@@ -39,7 +39,7 @@ namespace chrono {
 
 namespace modal {
 
-// This is an helper class for using Krylov-Schur eigen solver also with the shift&invert mode,
+// This is an helper class for using Krylov-Schur eigen solver also with the shift and invert mode,
 // because at the moment it is not yet available in Spectra.
 template <typename OpType, typename BOpType>
 class KrylovSchurGEigsShiftInvert : public KrylovSchurGEigsBase<SymGEigsShiftInvertOp<OpType, BOpType>, BOpType> {

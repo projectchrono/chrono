@@ -20,7 +20,7 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynTrackedVehicleMessage.h"
 
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 namespace chrono {
 namespace synchrono {
@@ -193,7 +193,7 @@ FlatBufferMessage SynTrackedVehicleDescriptionMessage::ConvertToFlatBuffers(
 void SynTrackedVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(const std::string& filename) {
     // Open and parse the input file
     rapidjson::Document d;
-    vehicle::ReadFileJSON(filename, d);
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         throw std::runtime_error("Vehicle file not read properly in SetZombieVisualizationFilesFromJSON.");
 

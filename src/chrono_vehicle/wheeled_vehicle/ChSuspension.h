@@ -105,9 +105,8 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     virtual void Advance(double step) {}
 
     /// Apply the provided motor torque.
-    /// The given torque is applied to the specified (left or right) axle. This
-    /// function provides the interface to the drivetrain subsystem (intermediated
-    /// by the vehicle system).
+    /// The given torque is applied to the specified (left or right) axle. This function provides the interface to the
+    /// drivetrain subsystem (intermediated by the vehicle system).
     void ApplyAxleTorque(VehicleSide side,  ///< indicates the axle (left or right) where the torque should be applied
                          double torque      ///< value of applied torque
     );

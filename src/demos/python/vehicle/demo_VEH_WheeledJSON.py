@@ -71,7 +71,7 @@ def main() :
         vis = veh.ChWheeledVehicleVisualSystemVSG()
         vis.SetWindowTitle('HMMWV JSON specification')
         vis.SetWindowSize(1280, 1024)
-        vis.EnableSkyBox()
+        vis.EnableSkyTexture()
         vis.SetLightIntensity(1.0)
         vis.SetLightDirection(2.0, 0.75)
         vis.EnableShadows()

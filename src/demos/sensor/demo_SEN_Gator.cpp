@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
 
     auto manager = chrono_types::make_shared<ChSensorManager>(gator.GetSystem());
     manager->SetVerbose(true);
-    ////manager->SetDebug(true);
+    // manager->SetDebug(true);
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
     Background b;
     b.mode = BackgroundMode::ENVIRONMENT_MAP;

@@ -45,7 +45,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     /// Set input file name with hydro data (HDF5 format).
     void SetHydroFilename(const std::string& filename);
 
-    /// Set gravity for the FSI syatem.
+    /// Set gravity for the FSI system.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Return gravitational acceleration.
@@ -53,10 +53,6 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
 
     void SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode);
     void SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts);
-
-    /// Add no wave conditions.
-    /// Note that the number of bodies is overwritten during initialization.
-    void AddWaves(const NoWaveParams& params);
 
     /// Add regular wave conditions.
     /// Note that the number of bodies is overwritten during initialization.
@@ -138,7 +134,6 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     std::unique_ptr<ChFsiFluidSystemTDPF_impl> m_impl;  ///< private implementation
 
     WaveType m_wave_type;
-    NoWaveParams m_no_wave_params;            ///< no wave parameters (optional)
     RegularWaveParams m_reg_wave_params;      ///< regular wave parameters (optional)
     IrregularWaveParams m_irreg_wave_params;  ///< irregular wave parameters (optional)
 

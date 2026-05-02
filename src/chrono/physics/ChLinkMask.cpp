@@ -39,9 +39,7 @@ ChLinkMask::ChLinkMask(const ChLinkMask& other) {
 
 ChLinkMask::~ChLinkMask() {
     for (unsigned int i = 0; i < nconstr; i++) {
-        if (constraints[i]) {
-            delete constraints[i];
-        }
+        delete constraints[i];
     }
 }
 

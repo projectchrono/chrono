@@ -7,17 +7,18 @@ namespace sensor {
 ChFilterTachometerUpdate::ChFilterTachometerUpdate() : ChFilter("Tachometer Updater") {}
 
 CH_SENSOR_API void ChFilterTachometerUpdate::Apply() {
-    if (m_tachSensor->m_axis == X) {
-        m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetAngVelLocal().x() * 60 / 2 / CH_PI;
-        //        printf("tachomter x axis\n");
-    } else if (m_tachSensor->m_axis == Y) {
-        m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetAngVelLocal().y() * 60 / 2 / CH_PI;
-        //        printf("tachomter y axis\n");
-    } else if (m_tachSensor->m_axis == Z) {
-        m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetAngVelLocal().z() * 60 / 2 / CH_PI;
-        //        printf("tachomter z axis\n");
-    } else {
-        throw std::runtime_error("Axis has to be X Y Z");
+    switch (m_tachSensor->m_axis) {
+        case ChTachometerSensor::Axis::X:
+            m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetAngVelLocal().x() * CH_RAD_S_TO_RPM;
+            break;
+        case ChTachometerSensor::Axis::Y:
+            m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetAngVelLocal().y() * CH_RAD_S_TO_RPM;
+            break;
+        case ChTachometerSensor::Axis::Z:
+            m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetAngVelLocal().z() * CH_RAD_S_TO_RPM;
+            break;
+        default:
+            throw std::runtime_error("Axis has to be X Y Z");
     }
 }
 

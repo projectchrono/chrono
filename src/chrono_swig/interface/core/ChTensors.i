@@ -20,29 +20,28 @@
 
 // The underlying XX() method is ignored, then we rename our custom getXX as XX. 
 // This way XX is substituted. We do the same for all the tensor elements
-%ignore chrono::ChVoightTensor::XX;
-%rename(XX) chrono::ChVoightTensor::getXX;
-%ignore chrono::ChVoightTensor::YY;
-%rename(YY) chrono::ChVoightTensor::getYY;
-%ignore chrono::ChVoightTensor::ZZ;
-%rename(ZZ) chrono::ChVoightTensor::getZZ;
-%ignore chrono::ChVoightTensor::XY;
-%rename(XY) chrono::ChVoightTensor::getXY;
-%ignore chrono::ChVoightTensor::XZ;
-%rename(XZ) chrono::ChVoightTensor::getXZ;
-%ignore chrono::ChVoightTensor::YZ;
-%rename(YZ) chrono::ChVoightTensor::getYZ;
+%ignore chrono::ChVoigtTensor::XX;
+%rename(XX) chrono::ChVoigtTensor::getXX;
+%ignore chrono::ChVoigtTensor::YY;
+%rename(YY) chrono::ChVoigtTensor::getYY;
+%ignore chrono::ChVoigtTensor::ZZ;
+%rename(ZZ) chrono::ChVoigtTensor::getZZ;
+%ignore chrono::ChVoigtTensor::XY;
+%rename(XY) chrono::ChVoigtTensor::getXY;
+%ignore chrono::ChVoigtTensor::XZ;
+%rename(XZ) chrono::ChVoigtTensor::getXZ;
+%ignore chrono::ChVoigtTensor::YZ;
+%rename(YZ) chrono::ChVoigtTensor::getYZ;
 
 // Parse the header file to generate wrappers
 %include "../../../chrono/core/ChTensors.h"
 
 // Tensors are templated by type
-%template(ChVoightTensorD) chrono::ChVoightTensor<double>;
 %template(ChStressTensorD) chrono::ChStressTensor<double>;
 %template(ChStrainTensorD) chrono::ChStrainTensor<double>;
+%template(ChStrainEngTensorD) chrono::ChStrainTensor<double>;
 
-
-%extend chrono::ChVoightTensor<double>{
+%extend chrono::ChVoigtTensor<double>{
 		public:
 
 			double const getXX() {

@@ -27,7 +27,7 @@ bool ChElementBeamIGA::add_gyroscopic_terms = true;
 
 ChElementBeamIGA::ChElementBeamIGA() {
     order = 3;
-    nodes.resize(4);  // controllare se ordine = -> 2 nodi, 2 control points, o di pi?
+    nodes.resize(4);
     knots.resize(8);
     int_order_s = 1;
     int_order_b = 1;
@@ -372,9 +372,9 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
             // Do quadrature over the Gauss points - reuse the "b" bend Gauss points
 
             for (int ig = 0; ig < int_order_b; ++ig) {
-                // absyssa in typical -1,+1 range:
+                // abscissa in typical -1,+1 range:
                 double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
-                // absyssa in span range:
+                // abscissa in span range:
                 double u = (c1 * eta + c2);
                 // scaling = gauss weight
                 double w = ChQuadrature::GetStaticTables()->Weight[int_order_b - 1][ig];
@@ -454,7 +454,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
                                                   ChState& state_x,
                                                   ChStateDelta& state_w,
                                                   bool used_for_differentiation) {
-    // get two values of absyssa at extreme of span
+    // get two values of abscissa at extreme of span
     double u1 = knots(order);
     double u2 = knots(knots.size() - order - 1);
 
@@ -472,9 +472,9 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     // Do quadrature over the "b" bend Gauss points
 
     for (int ig = 0; ig < int_order_b; ++ig) {
-        // absyssa in typical -1,+1 range:
+        // abscissa in typical -1,+1 range:
         double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
-        // absyssa in span range:
+        // abscissa in span range:
         double u = (c1 * eta + c2);
         // scaling = gauss weight
         double w = ChQuadrature::GetStaticTables()->Weight[int_order_b - 1][ig];
@@ -724,14 +724,14 @@ void ChElementBeamIGA::ComputeNF(const double U,
                                  const ChVectorDynamic<>& F,
                                  ChVectorDynamic<>* state_x,
                                  ChVectorDynamic<>* state_w) {
-    // get two values of absyssa at extreme of span
+    // get two values of abscissa at extreme of span
     double u1 = knots(order);
     double u2 = knots(knots.size() - order - 1);
 
     double c1 = (u2 - u1) / 2;
     double c2 = (u2 + u1) / 2;
 
-    // absyssa in span range:
+    // abscissa in span range:
     double u = (c1 * U + c2);
 
     // compute the basis functions N(u) at given u:
@@ -789,7 +789,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
 
     this->length = 0;
 
-    // get two values of absyssa at extreme of span
+    // get two values of abscissa at extreme of span
     double u1 = knots(order);
     double u2 = knots(knots.size() - order - 1);
 
@@ -801,9 +801,9 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
     this->Jacobian_s.resize(int_order_s);
 
     for (int ig = 0; ig < int_order_s; ++ig) {
-        // absyssa in typical -1,+1 range:
+        // abscissa in typical -1,+1 range:
         double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_s - 1][ig];
-        // absyssa in span range:
+        // abscissa in span range:
         double u = (c1 * eta + c2);
 
         // compute the basis functions N(u) at given u:
@@ -833,9 +833,9 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
     this->strain_k.resize(int_order_b);
 
     for (int ig = 0; ig < int_order_b; ++ig) {
-        // absyssa in typical -1,+1 range:
+        // abscissa in typical -1,+1 range:
         double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
-        // absyssa in span range:
+        // abscissa in span range:
         double u = (c1 * eta + c2);
         // scaling = gauss weight * change of range:
         double w = ChQuadrature::GetStaticTables()->Weight[int_order_b - 1][ig];

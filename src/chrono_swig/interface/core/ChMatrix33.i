@@ -11,6 +11,10 @@
 
 using namespace chrono;
 
+#ifdef CHRONO_PYTHON_NUMPY
+#include <numpy/arrayobject.h>
+#endif
+
 %}
 
 %import "ChQuaternion.i"
@@ -43,6 +47,30 @@ using namespace chrono;
 				ChMatrix33<double> r = (*$self) * s;
 				return r;
 			}
+
+#ifdef CHRONO_PYTHON_NUMPY
+			// Numpy integration: constructor from numpy array
+			ChMatrix33(double* a, int rows, int cols) {
+				auto* m = new chrono::ChMatrix33<double>();
+
+				for (int i = 0; i < rows; i++) {
+					for (int j = 0; j < cols; j++) {
+						(*m)(i, j) = a[i*cols + j];
+					}
+				}
+				return m;
+  			}
+  			// NumPy integration: single-call conversion to numpy array
+			PyObject* to_numpy() {
+				npy_intp dims[2] = {3, 3};
+				PyObject* array = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+				if (!array) return NULL;
+				double* dst = (double*)PyArray_DATA((PyArrayObject*)array);
+				const double* src = $self->data();
+				std::memcpy(dst, src, 9 * sizeof(double));
+				return array;
+			}
+#endif
 
 		/*
 					// these functions are also argument-templated, so we need to specify the types
@@ -123,6 +151,14 @@ def GetMatr(self, ):
 setattr(ChMatrix33d, "SetMatr", SetMatr)
 setattr(ChMatrix33d, "GetMatr", GetMatr)
 
+#ifdef CHRONO_PYTHON_NUMPY
+def _matr33_array(self, dtype=None):
+	import numpy as np
+	a = self.to_numpy()
+	return np.asarray(a, dtype=dtype) if dtype is not None else a
+
+setattr(ChMatrix33d, "__array__", _matr33_array)
+#endif
 %}
 
 #endif             // --------------------------------------------------------------------- PYTHON

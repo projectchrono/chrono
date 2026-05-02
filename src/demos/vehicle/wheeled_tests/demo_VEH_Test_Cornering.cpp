@@ -26,6 +26,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
@@ -66,7 +67,7 @@ int main(int argc, char** argv) {
     bool logged_data_plot = cli.GetAsType<bool>("logged_data");
     bool result_plot = cli.GetAsType<bool>("charts");
     bool output_images = false;
-    double road_friction = std::max(0.1,cli.GetAsType<double>("friction-coefficient"));
+    double road_friction = std::max(0.1, cli.GetAsType<double>("friction-coefficient"));
     double target_speed = 5;
     double speed_step = std::max(1.0, cli.GetAsType<double>("speed_step"));
     double step_size = 1.0e-3;
@@ -163,6 +164,7 @@ int main(int argc, char** argv) {
     init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
     // Create the vehicle model
+    vehicle_model->SetTireCollisionType(ChTire::CollisionType::SINGLE_POINT);
     vehicle_model->Create(&sys, init_csys, show_car_body);
     auto& vehicle = vehicle_model->GetVehicle();
 
@@ -276,7 +278,8 @@ int main(int argc, char** argv) {
             break;
         }
         if (sim_frame % switch_frame == 0 && sim_frame > 0) {
-            std::cout << "Actual course deviation = " << deviation << " m at Ay = " << floor(100.0*acc_y/9.81) << "% G" << std::endl;
+            std::cout << "Actual course deviation = " << deviation << " m at Ay = " << floor(100.0 * acc_y / 9.81)
+                      << "% G" << std::endl;
             csv_res << acc_y << driver.GetSteering() << std::endl;
             csv_angle << acc_y << roll << pitch << veh_slip_angle << std::endl;
             target_speed += speed_step;

@@ -35,6 +35,9 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     ChCollisionSystemBullet();
     virtual ~ChCollisionSystemBullet();
 
+    /// Return type of the collision system.
+    virtual Type GetType() const override { return Type::BULLET; }
+
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
     virtual void Clear() override;
@@ -68,23 +71,15 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// Return the time (in seconds) for narrowphase collision detection.
     virtual double GetTimerCollisionNarrow() const override;
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all contact containers in the system,
-    /// The basic behavior of the implementation is the following: collision system
-    /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
-    /// EndAddContact() of the contact container.
-    virtual void ReportContacts(ChContactContainer* mcontactcontainer) override;
+    /// Report contacts (fill the provided 'contact container').
+    /// This function, which should only be called after `Run()`, must add to the contact container contacts
+    /// corresponding to all detected pairwise collisions.
+    virtual void ReportContacts(ChContactContainer* contact_container) override;
 
-    /// After the Run() has completed, you can call this function to
-    /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
-    /// collision detection, calls this method multiple times for all proximity containers in the system,
-    /// The basic behavior of the implementation is  the following: collision system
-    /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
-    /// EndAddProximities() of the proximity container.
-    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override;
+    /// Report proximities (fill in the provided 'proximity container').
+    /// This function, which should only be called after `Run()`, must add to the contact container contacts
+    /// corresponding to all detected pairwise collisions.
+    virtual void ReportProximities(ChProximityContainer* proximity_container) override;
 
     /// Perform a ray-hit test with all collision models.
     virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const override;
@@ -154,7 +149,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     cbtCollisionAlgorithmCreateFunc* m_collision_arc_seg;
     cbtCollisionAlgorithmCreateFunc* m_collision_seg_arc;
     cbtCollisionAlgorithmCreateFunc* m_collision_arc_arc;
-    cbtCollisionAlgorithmCreateFunc* m_collision_cetri_cetri;
+    cbtCollisionAlgorithmCreateFunc* m_collision_chtri_chtri;
     cbtCollisionAlgorithmCreateFunc* m_collision_seg_seg;
 
     void* m_tmp_mem;

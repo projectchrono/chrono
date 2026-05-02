@@ -124,7 +124,7 @@ class ChApi ChHydraulicDirectionalValve4x3 {
     /// </pre>
     void SetCharacteristicParameters(double limit,  ///< laminar flow rate limit of 2 bar [N/m^2]
                                      double Q,      ///< nominal flow (full opening) [m^3/s]
-                                     double dp      ///< nominal presure difference [N/m^2]
+                                     double dp      ///< nominal pressure difference [N/m^2]
     );
 
     /// Set the Bode diagram frequency at -45 degrees phase shift (default: 35 Hz).

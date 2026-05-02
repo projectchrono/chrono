@@ -472,6 +472,88 @@ set(Chrono_fea_materials_HEADERS
     )
 source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_materials_HEADERS})
 
+set(Chrono_fea_multiphysics_SOURCES
+    fea/ChNodeFEAfieldXYZ.cpp
+    fea/ChFieldElement.cpp
+    fea/ChFieldElementTetrahedron4.cpp
+    fea/ChFieldElementTetrahedron4Face.cpp
+    fea/ChFieldElementHexahedron8.cpp
+    fea/ChFieldElementHexahedron8Face.cpp
+    fea/ChFieldElementLoadableVolume.cpp
+    fea/ChFieldElementLoadableSurface.cpp
+    fea/ChFieldData.cpp
+    fea/ChField.cpp
+    fea/ChMaterial.cpp
+    fea/ChMaterial3DDensity.cpp
+    fea/ChMaterialPoisson.cpp
+    fea/ChMaterial3DThermal.cpp
+    fea/ChMaterial3DThermalLinear.cpp
+    fea/ChMaterial3DThermalNonlinear.cpp
+    fea/ChMaterial3DStress.cpp
+    fea/ChMaterial3DHyperelastic.cpp
+    fea/ChMaterial3DStressStVenant.cpp
+    fea/ChMaterial3DStressNeoHookean.cpp
+    fea/ChMaterial3DStressKelvinVoigt.cpp
+    fea/ChMaterial3DStressOgden.cpp
+    fea/ChMaterial3DThermalStress.cpp
+    fea/ChDomain.cpp
+    fea/ChDomainThermal.cpp
+    fea/ChDomainDeformation.cpp
+    fea/ChDomainThermoDeformation.cpp
+    fea/ChVisualDataExtractor.cpp
+    fea/ChDrawer.cpp
+    fea/ChLoaderPressure.cpp
+    fea/ChLoaderGravity.cpp
+    fea/ChLoaderHeatFlux.cpp
+    fea/ChLoaderHeatRadiation.cpp
+    fea/ChLoaderHeatConvection.cpp
+    fea/ChLoaderHeatVolumetricSource.cpp
+    fea/ChBuilderVolume.cpp
+    fea/ChLinkFieldNode.cpp
+    fea/ChSurfaceOfDomain.cpp
+    )
+set(Chrono_fea_multiphysics_HEADERS
+    fea/ChNodeFEAfieldXYZ.h
+    fea/ChFieldElement.h
+    fea/ChFieldElementTetrahedron4.h
+    fea/ChFieldElementTetrahedron4Face.h
+    fea/ChFieldElementHexahedron8.h
+    fea/ChFieldElementHexahedron8Face.h
+    fea/ChFieldElementLoadableVolume.h
+    fea/ChFieldElementLoadableSurface.h
+    fea/ChFieldData.h
+    fea/ChField.h
+    fea/ChMaterial.h
+    fea/ChMaterial3DDensity.h
+    fea/ChMaterialPoisson.h
+    fea/ChMaterial3DThermal.h
+    fea/ChMaterial3DThermalLinear.h
+    fea/ChMaterial3DThermalNonlinear.h
+    fea/ChMaterial3DStress.h
+    fea/ChMaterial3DHyperelastic.h
+    fea/ChMaterial3DStressStVenant.h
+    fea/ChMaterial3DStressKelvinVoigt.h
+    fea/ChMaterial3DStressNeoHookean.h
+    fea/ChMaterial3DStressOgden.h
+    fea/ChMaterial3DThermalStress.h
+    fea/ChDomain.h
+    fea/ChDomainThermal.h
+    fea/ChDomainDeformation.h
+    fea/ChDomainThermoDeformation.h
+    fea/ChVisualDataExtractor.h
+    fea/ChDrawer.h
+    fea/ChLoaderPressure.h
+    fea/ChLoaderGravity.h
+    fea/ChLoaderHeatFlux.h
+    fea/ChLoaderHeatRadiation.h
+    fea/ChLoaderHeatConvection.h
+    fea/ChLoaderHeatVolumetricSource.h
+    fea/ChBuilderVolume.h
+    fea/ChLinkFieldNode.h
+    fea/ChSurfaceOfDomain.h
+    )
+source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
+
 set(Chrono_fea_sections_SOURCES
     fea/ChBeamSection.cpp
     fea/ChBeamSectionShape.cpp
@@ -518,6 +600,7 @@ set(Chrono_geometry_SOURCES
     geometry/ChCone.cpp
     geometry/ChCylinder.cpp
     geometry/ChCapsule.cpp
+    geometry/ChDelaunay2D.cpp
     geometry/ChLine.cpp
     geometry/ChLineArc.cpp
     geometry/ChLineSegment.cpp
@@ -546,6 +629,7 @@ set(Chrono_geometry_HEADERS
     geometry/ChCone.h
     geometry/ChCylinder.h
     geometry/ChCapsule.h
+    geometry/ChDelaunay2D.h
     geometry/ChLine.h
     geometry/ChLineCam.h
     geometry/ChLinePoly.h
@@ -643,8 +727,7 @@ if (CHRONO_THRUST_FOUND)
     set(Chrono_MulticoreMath_HEADERS
         multicore_math/matrix.h
         multicore_math/real.h
-        multicore_math/real_double.h
-        multicore_math/real_single.h
+        multicore_math/real2.h
         multicore_math/real2.h
         multicore_math/real3.h
         multicore_math/real4.h
@@ -687,7 +770,7 @@ set(Chrono_collision_SOURCES
     collision/ChCollisionShapeSegment.cpp
     collision/ChCollisionShapeSphere.cpp
     collision/ChCollisionShapeTriangle.cpp
-    collision/ChCollisionShapeMeshTriangle.cpp
+    collision/ChCollisionShapeConnectedTriangle.cpp
     collision/ChCollisionShapeTriangleMesh.cpp
     )
 set(Chrono_collision_HEADERS
@@ -715,7 +798,7 @@ set(Chrono_collision_HEADERS
     collision/ChCollisionShapeSegment.h
     collision/ChCollisionShapeSphere.h
     collision/ChCollisionShapeTriangle.h
-    collision/ChCollisionShapeMeshTriangle.h
+    collision/ChCollisionShapeConnectedTriangle.h
     collision/ChCollisionShapeTriangleMesh.h
     )
 source_group(collision FILES ${Chrono_collision_SOURCES} ${Chrono_collision_HEADERS})
@@ -798,7 +881,7 @@ set(Chrono_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionDispatch/cbtHashedSimplePairCache.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtChTriangleShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMeshShape.cpp
@@ -1097,8 +1180,6 @@ set(Chrono_utils_SOURCES
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
     utils/ChForceFunctors.cpp
-    utils/ChSocket.cpp
-    utils/ChSocketCommunication.cpp
     )
 set(Chrono_utils_HEADERS
     utils/ChConstants.h
@@ -1116,9 +1197,17 @@ set(Chrono_utils_HEADERS
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
     utils/ChForceFunctors.h
-    utils/ChSocket.h
-    utils/ChSocketCommunication.h
 )
+if(NOT EMSCRIPTEN)
+    set(Chrono_utils_SOURCES ${Chrono_utils_SOURCES}
+        utils/ChSocket.cpp
+        utils/ChSocketCommunication.cpp
+    )
+    set(Chrono_utils_HEADERS ${Chrono_utils_HEADERS}
+        utils/ChSocket.h
+        utils/ChSocketCommunication.h
+    )
+endif()
 if(BUILD_BENCHMARKING)
     set(Chrono_utils_HEADERS ${Chrono_utils_HEADERS} utils/ChBenchmark.h)
 endif()
@@ -1133,19 +1222,29 @@ set(Chrono_inputoutput_HEADERS
     input_output/ChCheckpointASCII.h
     input_output/ChWriterCSV.h
     input_output/ChUtilsInputOutput.h
+    input_output/ChUtilsJSON.h
 )
 set(Chrono_inputoutput_SOURCES
     input_output/ChOutputASCII.cpp
     input_output/ChCheckpointASCII.cpp
     input_output/ChWriterCSV.cpp
     input_output/ChUtilsInputOutput.cpp
+    input_output/ChUtilsJSON.cpp
 )
-if (HDF5_FOUND)
+if(HDF5_FOUND)
     set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
         input_output/ChOutputHDF5.h
     )
     set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
         input_output/ChOutputHDF5.cpp
+    )
+endif()
+if(CHRONO_YAML_ENABLED)
+    set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChUtilsYAML.h
+    )
+    set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChUtilsYAML.cpp
     )
 endif()
 source_group(input_output FILES ${Chrono_inputoutput_SOURCES} ${Chrono_inputoutput_HEADERS})
@@ -1287,6 +1386,7 @@ set(Chrono_SOURCES
     ${Chrono_fea_constraints_SOURCES}
     ${Chrono_fea_materials_SOURCES}
     ${Chrono_fea_sections_SOURCES}
+    ${Chrono_fea_multiphysics_SOURCES}
     ${Chrono_solver_SOURCES}
     ${Chrono_solver_constraints_SOURCES}
     ${Chrono_solver_variables_SOURCES}
@@ -1317,6 +1417,7 @@ set(Chrono_HEADERS
     ${Chrono_fea_elements_HEADERS}
     ${Chrono_fea_constraints_HEADERS}
     ${Chrono_fea_materials_HEADERS}
+    ${Chrono_fea_multiphysics_HEADERS}
     ${Chrono_fea_sections_HEADERS}
     ${Chrono_fea_constraints_HEADERS}
     ${Chrono_solver_HEADERS}
@@ -1467,6 +1568,10 @@ if(HDF5_FOUND)
     endif()
 endif()
 
+if(CHRONO_YAML_ENABLED)
+  target_link_libraries(Chrono_core PUBLIC yaml-cpp::yaml-cpp)
+endif()
+
 # Add the 'socket' library to the linking, depending on platform.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
@@ -1531,7 +1636,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
 endif()
 
-# Compiler warning level and disbaled warnings
+# Compiler warning level and disabled warnings
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Warning level set to default")

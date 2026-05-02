@@ -57,10 +57,10 @@ void Example1(const std::string& out_dir, ChSolver::Type solver_type, ChTimestep
     SetChronoSolver(sys, solver_type, integrator_type);
 
     // Create a 1-degree-of-freedom '1D' mechanical object, that
-    // is a ChShaft (an item that can oly rotate, with one inertia value
+    // is a ChShaft (an item that can only rotate, with one inertia value
     // and maybe one applied torque). The ChShaft objects do not have
     // any meaning in 3d: they are just 'building blocks' for making
-    // power trains as in imput-output black box schemes.
+    // power trains as in input-output black box schemes.
     auto my_shaftA = chrono_types::make_shared<ChShaft>();
     my_shaftA->SetInertia(10);
     my_shaftA->SetAppliedLoad(6);
@@ -78,7 +78,7 @@ void Example1(const std::string& out_dir, ChSolver::Type solver_type, ChTimestep
     // (Note that you could also build a 3D powertrain by creating full rigid bodies
     // of ChBody type and join them using ChLinkLockRevolute, ChLinkLockGear 3D constraints,
     // but this would introduce many unnecessary degrees of freedom/constraints
-    // whereas the 1D items of ChShaft type, in this example, make things much simplier).
+    // whereas the 1D items of ChShaft type, in this example, make things much simpler).
     auto my_shaft_gearAB = chrono_types::make_shared<ChShaftsGear>();
     my_shaft_gearAB->Initialize(my_shaftA, my_shaftB);
     my_shaft_gearAB->SetTransmissionRatio(-0.1);  // ex., a couple of spur gears with 20 and 200 teeth

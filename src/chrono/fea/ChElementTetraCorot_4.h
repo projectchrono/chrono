@@ -116,12 +116,12 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
 
     /// Returns the strain tensor (note that the tetrahedron 4 nodes is a linear
     /// element, thus the strain is constant in the entire volume).
-    /// The tensor is in the original undeformed unrotated reference.
+    /// The tensor is in the original undeformed non-rotated reference.
     ChStrainTensor<> GetStrain();
 
     /// Returns the stress tensor (note that the tetrahedron 4 nodes is a linear
     /// element, thus the stress is constant in the entire volume).
-    /// The tensor is in the original undeformed unrotated reference.
+    /// The tensor is in the original undeformed non-rotated reference.
     ChStressTensor<> GetStress();
 
     /// This function computes and adds corresponding masses to ElementBase member m_TotalMass
@@ -291,7 +291,7 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
 
     /// Returns the gradient of P (note that the tetrahedron 4 nodes is a linear
     /// element, thus the gradient is constant in the entire volume).
-    /// It is in the original undeformed unrotated reference.
+    /// It is in the original undeformed non-rotated reference.
     ChVectorN<double, 3> GetPgradient();
 
     //

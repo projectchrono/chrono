@@ -681,7 +681,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector3d(0, 0.01, 0), QuatFromAngleX(CH_PI_2)),
+        tools::DrawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector3d(0, 0.01, 0), QuatFromAngleX(CH_PI_2)),
                         ChColor(0.31f, 0.51f, 0.51f), true);
 
         vis->GetGUIEnvironment()->drawAll();
@@ -690,10 +690,10 @@ int main(int argc, char* argv[]) {
         // .. draw the spring constraints as simplified spring helix
         for (auto link : sys.GetLinks()) {
             if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-                tools::drawSegment(vis.get(), linkdist->GetEndPoint1Abs(), linkdist->GetEndPoint2Abs(),
+                tools::DrawSegment(vis.get(), linkdist->GetEndPoint1Abs(), linkdist->GetEndPoint2Abs(),
                                    ChColor(0.00f, 0.08f, 0.00f), true);
             } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-                tools::drawSpring(vis.get(), 0.03, linkspring->GetPoint1Abs(), linkspring->GetPoint2Abs(),
+                tools::DrawSpring(vis.get(), 0.03, linkspring->GetPoint1Abs(), linkspring->GetPoint2Abs(),
                                   ChColor(0.59f, 0.08f, 0.08f), 80, 10, true);
             }
         }

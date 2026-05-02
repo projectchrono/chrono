@@ -159,13 +159,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Set the gravitational acceleration vector (default: [0, 0, 0]).
     void SetGravitationalAcceleration(const ChVector3d& gacc) { G_acc = gacc; }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative X direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative X direction.
     void SetGravityX() { G_acc = ChVector3d(-9.8, 0, 0); }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative Y direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative Y direction.
     void SetGravityY() { G_acc = ChVector3d(0, -9.8, 0); }
 
-    /// Set gravitational acceleration (9.81 m/s^2) in negative Z direction.
+    /// Set gravitational acceleration (9.8 m/s^2) in negative Z direction.
     void SetGravityZ() { G_acc = ChVector3d(0, 0, -9.8); }
 
     /// Get the gravitatoinal acceleration vector.
@@ -457,22 +457,18 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This is mostly called automatically by time integration.
     unsigned int ComputeCollisions();
 
-    /// Class to be used as a callback interface for user defined actions performed
-    /// at each collision detection step.  For example, additional contact points can
-    /// be added to the underlying contact container.
+    /// Class to be used as a callback interface for user defined actions performed at each collision detection step.
+    /// The `OnCustomCollision()` method is called at each step, at the end of the collision detection step.
+    /// A custom callback object can add contacts to the system's contact container, directly apply resultant contact
+    /// forces to the contactable objects, etc.
     class ChApi CustomCollisionCallback {
       public:
         virtual ~CustomCollisionCallback() {}
-        virtual void OnCustomCollision(ChSystem* msys) {}
+        virtual void OnCustomCollision(ChSystem* sys) {}
     };
 
-    /// Specify a callback object to be invoked at each collision detection step.
-    /// Multiple such callback objects can be registered with a system. If present,
-    /// their OnCustomCollision() method is invoked.
-    /// Use this if you want that some specific callback function is executed at each
-    /// collision detection step (ex. all the times that ComputeCollisions() is automatically
-    /// called by the integration method). For example some other collision engine could
-    /// add further contacts using this callback.
+    /// Register a custom callback object.
+    /// Multiple such callback objects can be registered with a system.
     void RegisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback);
 
     /// Remove the given collision callback from this system.
@@ -522,7 +518,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const { return timer_jacobian(); }
 
-    /// Return the time (in seconds) for runnning the collision detection step, within the time step.
+    /// Return the time (in seconds) for running the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
 
     /// Return the time (in seconds) for system setup, within the time step.
@@ -620,17 +616,18 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   public:
-    /// Counts the number of bodies and links.
-    /// Computes the offsets of object states in the global state. Assumes that offset_x, offset_w, and offset_L are
-    /// already set as starting point for offsetting all the contained sub objects.
+    /// Count the number of bodies and links.
+    /// Compute the offsets of object states in the global state. This function assumes that offset_x, offset_w, and
+    /// offset_L are already set as starting point for offsetting all the contained sub objects.
     virtual void Setup();
 
-    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(double time, UpdateFlags update_flags);
+    /// Perform a system update (at the specified level) at the specified time.
+    void Update(double time, UpdateFlags update_flags = UpdateFlags::UPDATE_ALL);
 
-    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(UpdateFlags update_flags);
+    /// Perform a system update (at the specified level) at the current time.
+    void Update(UpdateFlags update_flags = UpdateFlags::UPDATE_ALL);
 
+    /// Force a system update.
     /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
     /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
     /// such changes are discovered automatically (addition/removal of items, input of mesh loads). For special cases,
@@ -700,7 +697,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
 
     /// From state Y={x,v} to system. This also triggers an update operation.
-    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
+    virtual void StateScatter(const ChState& x,
+                              const ChStateDelta& v,
+                              const double T,
+                              UpdateFlags update_flags) override;
 
     /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
     virtual void StateGatherAcceleration(ChStateDelta& a) override;
@@ -713,6 +713,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
     virtual void StateScatterReactions(const ChVectorDynamic<>& L) override;
+
+    /// Called at the end of a step, after the state has been updated. This can be used to perform any clean up or
+    /// finalization after a step is completed, or to update state variables that are not part of the state vector but
+    /// need to be updated only at the end of a step, like in plasticity.
+    virtual void StateOnEndStep(double T) override;
 
     /// Perform x_new = x + dx, for x in Y = {x, dx/dt}.\n
     /// It takes care of the fact that x has quaternions, dx has angular vel etc.
@@ -753,10 +758,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
         const ChStateDelta& v,        ///< current state, v part
         const double T,               ///< current time T
         bool force_state_scatter,     ///< if true, scatter x and v to the system
-        UpdateFlags update_flags,  ///< if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise switch off
-                                  ///< visual asset update, etc.
-        bool call_setup,          ///< if true, call the solver's Setup function
-        bool call_analyze         ///< if true, call the solver's Setup analyze phase
+        UpdateFlags update_flags,     ///< flags controlling operations performed during a system update
+        bool call_setup,              ///< if true, call the solver's Setup function
+        bool call_analyze             ///< if true, call the solver's Setup analyze phase
         ) override;
 
     /// Increment a vector R with the term c*F:
@@ -791,6 +795,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     ///    Qc += c*C
     virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        ///< result: the Qc residual, Qc += c*C
                                   const double c,               ///< a scaling factor
+                                  const double c_vel,           ///< scaling factor for constraints at speed level 
                                   const bool do_clamp = false,  ///< enable optional clamping of Qc
                                   const double clamp = 1e30     ///< clamping value
                                   ) override;
@@ -798,7 +803,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Increment a vector Qc with the term Ct = partial derivative dC/dt:
     ///    Qc += c*Ct
     virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
-                                   const double c          ///< a scaling factor
+                                   const double c,         ///< a scaling factor
+                                   const double c_vel      ///< scaling factor for constraints at speed level
                                    ) override;
 
     /// Collect all variables and constraints for physical components into the underlying system descriptor.
@@ -834,7 +840,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual ChVector3d GetBodyAppliedTorque(ChBody* body);
 
     /// Put bodies to sleep if possible. Also awakens sleeping bodies, if needed.
-    /// Returns true if some body changed from sleep to no sleep or viceversa,
+    /// Returns true if some body changed from sleep to no sleep or vice-versa,
     /// returns false if nothing changed. In the former case also performs Setup()
     /// since the system changed.
     bool ManageSleepingBodies();
@@ -842,7 +848,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Performs a single dynamics simulation step, advancing the system state by the current step size.
     virtual bool AdvanceDynamics();
 
-    std::string m_name;                                       ///< system name
+    std::string m_name;                                     ///< system name
     ChAssembly assembly;                                    ///< underlying mechanical assembly
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 

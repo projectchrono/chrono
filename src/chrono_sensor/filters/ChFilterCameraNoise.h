@@ -29,14 +29,24 @@ namespace sensor {
 /// @addtogroup sensor_filters
 /// @{
 
+/// Camera noise model types.
+enum class CameraNoiseModelType {
+    NONE,            ///< No noise model
+    CONST_NORMAL,    ///< Gaussian noise with constant mean and standard deviation
+    PIXEL_DEPENDENT  ///< Pixel-dependent Gaussian noise
+};
+
 /// A filter that adds Gaussian noise across an image with constant mean and standard deviation
 class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
   public:
     /// Class constructor
-    /// @param mean The mean value of the Guassian distribution
+    /// @param mean The mean value of the Gaussian distribution
     /// @param stdev The standard deviation of the Gaussian distribution
     /// @param name The string name of the filter.
     ChFilterCameraNoiseConstNormal(float mean, float stdev, std::string name = "ChFilterCameraNoiseConstNormal");
+
+    /// Return filter noise model type.
+    CameraNoiseModelType GetModel() const { return CameraNoiseModelType::CONST_NORMAL; }
 
     /// Apply function. Adds uniform Gaussian noise to an image.
     virtual void Apply();
@@ -48,7 +58,7 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    float m_mean;                                           ///< mean value of the Guassian distribution
+    float m_mean;                                           ///< mean value of the Gaussian distribution
     float m_stdev;                                          ///< standard deviation of the Gaussian distribution
     std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
     bool m_noise_init = true;                               ///< initialize noise only once
@@ -67,6 +77,9 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
     ChFilterCameraNoisePixDep(float variance_slope,
                               float variance_intercept,
                               std::string name = "ChFilterCameraNoisePixDep");
+
+    /// Return filter noise model type.
+    CameraNoiseModelType GetModel() const { return CameraNoiseModelType::PIXEL_DEPENDENT; }
 
     /// Apply function. Adds uniform Gaussian noise to an image.
     virtual void Apply();

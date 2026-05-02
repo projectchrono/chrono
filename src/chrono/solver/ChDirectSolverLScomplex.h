@@ -62,7 +62,7 @@ class ChApi ChDirectSolverLScomplex {
     virtual bool FactorizeMatrix() = 0;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem(const ChVectorDynamic<std::complex<double>>& b) = 0;
 
     /// Display an error message corresponding to the last failure.
@@ -90,7 +90,7 @@ class ChApi ChSolverSparseComplexLU : public ChDirectSolverLScomplex {
     virtual bool FactorizeMatrix() override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem(const ChVectorDynamic<std::complex<double>>& b) override;
 
     /// Display an error message corresponding to the last failure.
@@ -114,7 +114,7 @@ class ChApi ChSolverSparseComplexQR : public ChDirectSolverLScomplex {
     virtual bool FactorizeMatrix() override;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveSystem(const ChVectorDynamic<std::complex<double>>& b) override;
 
     /// Display an error message corresponding to the last failure.

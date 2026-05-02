@@ -193,7 +193,7 @@ void ChLinkMotionImposed::LoadKRMMatrices(double Kfactor, double Rfactor, double
     }
 }
 
-void ChLinkMotionImposed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+void ChLinkMotionImposed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     double T = this->GetChTime();
     ChVector3d mv = -position_function->GetLinVel(T);
     ChVector3d mw_loc = -rotation_function->GetAngVel(T);

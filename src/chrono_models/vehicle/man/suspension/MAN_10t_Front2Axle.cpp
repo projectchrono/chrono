@@ -148,7 +148,7 @@ MAN_10t_Front2Axle::MAN_10t_Front2Axle(const std::string& name) : ChSolidBellcra
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 MAN_10t_Front2Axle::~MAN_10t_Front2Axle() {}
 

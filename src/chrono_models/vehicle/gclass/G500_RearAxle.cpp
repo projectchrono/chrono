@@ -179,7 +179,7 @@ G500_RearAxle::G500_RearAxle(const std::string& name) : ChRigidPanhardAxle(name)
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 G500_RearAxle::~G500_RearAxle() {}
 

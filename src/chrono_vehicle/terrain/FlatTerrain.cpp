@@ -24,6 +24,13 @@ namespace vehicle {
 
 FlatTerrain::FlatTerrain(double height, float friction) : m_height(height), m_friction(friction) {}
 
+ChVector3d FlatTerrain::GetPoint(const ChVector3d& loc) const {
+    ChVector3d point = loc;
+    ChWorldFrame::Project(point);
+    point = point + m_height * ChWorldFrame::Vertical();
+    return point;
+}
+
 double FlatTerrain::GetHeight(const ChVector3d& loc) const {
     return m_height;
 }

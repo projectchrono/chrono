@@ -33,7 +33,7 @@ class ChApi ChMeshExporter {
     /// Write FEA mesh connectivity to specified output file.
     /// This connectivity is usually constant throughout the simulation. Hence, it may be called once at the beginning
     /// of the simulation (or as many times as it is needed), and should be used in the later stage when the
-    /// nodal/elemental informations are updated.
+    /// nodal/elemental information is updated.
     static void WriteMesh(std::shared_ptr<ChMesh> mesh,     ///< destination mesh
                           const std::string& mesh_filename  ///< output file name
     );

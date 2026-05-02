@@ -37,7 +37,7 @@ class CH_SENSOR_API ChFilterGrayscale : public ChFilter {
     /// @param name String name of the filter
     ChFilterGrayscale(std::string name = {});
 
-    /// Apply function. Converts RGB to Greyscale data.
+    /// Apply function. Converts RGB to grayscale data.
     virtual void Apply();
 
     /// Initializes all data needed by the filter apply function.
@@ -48,7 +48,7 @@ class CH_SENSOR_API ChFilterGrayscale : public ChFilter {
 
   private:
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_in;  ///< input buffer
-    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_out;    ///< Buffer for holding the greyscale data
+    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_out;    ///< Buffer for holding the grayscale data
     CUstream m_cuda_stream;                                ///< reference to the cuda stream
 };
 

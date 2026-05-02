@@ -31,15 +31,7 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono/assets/ChVisualSystem.h"
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -52,9 +44,6 @@ using namespace chrono::vehicle::hmmwv;
 // Patch types (RIGID or SCM)
 enum class PatchType { RIGID, SCM };
 PatchType patches[2] = {PatchType::SCM, PatchType::RIGID};
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // -----------------------------------------------------------------------------
 
@@ -228,58 +217,18 @@ int main(int argc, char* argv[]) {
     // Create run-time visualization
     // -----------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-                // Create the vehicle Irrlicht interface
-                auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-                vis_irr->SetWindowTitle("Mixed Terrain Demo");
-                vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.75);
-                vis_irr->Initialize();
-                vis_irr->AddLightDirectional();
-                vis_irr->AddSkyBox();
-                vis_irr->AddLogo();
-                vis_irr->AttachVehicle(&hmmwv.GetVehicle());
-                vis_irr->AttachDriver(&driver);
-
-                vis = vis_irr;
-#endif
-                break;
-            }
-
-            default:
-            case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-                // Create the vehicle VSG interface
-                auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-                vis_vsg->SetWindowTitle("Mixed Terrain Demo");
-                vis_vsg->SetWindowSize(1280, 800);
-                vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 8.0, 0.75);
-                vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
-                vis_vsg->AttachDriver(&driver);
-                vis_vsg->AttachTerrain(&rigid_terrain);
-                vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-                vis_vsg->EnableShadows();
-                vis_vsg->EnableSkyBox();
-                vis_vsg->Initialize();
-
-                vis = vis_vsg;
-#endif
-                break;
-            }
-        }
-    }
+    // Create the vehicle VSG interface
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+    vis->SetWindowTitle("Mixed Terrain Demo");
+    vis->SetWindowSize(1280, 800);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 8.0, 0.75);
+    vis->AttachVehicle(&hmmwv.GetVehicle());
+    vis->AttachDriver(&driver);
+    vis->AttachTerrain(&rigid_terrain);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->Initialize();
 
     // -------------------------
     // Create output directories

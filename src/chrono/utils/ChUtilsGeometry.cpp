@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Dario Fusai
 // =============================================================================
 
 #include <cstdlib>
@@ -21,22 +21,17 @@
 namespace chrono {
 namespace utils {
 
-#define EPS 1e-20
-#define EPS_TRIDEGEN 1e-10
+static constexpr double EPS = 1e-20;
+static constexpr double EPS_TRIDEGEN = 1e-10;
 
-// Calculate the line segment PaPb that is the shortest route between
-// two lines P1P2 and P3P4. Calculate also the values of mua and mub where
-//    Pa = P1 + mua (P2 - P1)
-//    Pb = P3 + mub (P4 - P3)
-// Return false if no solution exists.
 bool LineLineIntersect(const ChVector3d& p1,
                        const ChVector3d& p2,
                        const ChVector3d& p3,
                        const ChVector3d& p4,
-                       ChVector3d* pa,
-                       ChVector3d* pb,
-                       double* mua,
-                       double* mub) {
+                       ChVector3d& pa,
+                       ChVector3d& pb,
+                       double& ua,
+                       double& ub) {
     ChVector3d p13, p43, p21;
     double d1343, d4321, d1321, d4343, d2121;
     double numer, denom;
@@ -47,12 +42,12 @@ bool LineLineIntersect(const ChVector3d& p1,
     p43.x() = p4.x() - p3.x();
     p43.y() = p4.y() - p3.y();
     p43.z() = p4.z() - p3.z();
-    if (fabs(p43.x()) < EPS && fabs(p43.y()) < EPS && fabs(p43.z()) < EPS)
+    if (std::abs(p43.x()) < EPS && std::abs(p43.y()) < EPS && std::abs(p43.z()) < EPS)
         return false;
     p21.x() = p2.x() - p1.x();
     p21.y() = p2.y() - p1.y();
     p21.z() = p2.z() - p1.z();
-    if (fabs(p21.x()) < EPS && fabs(p21.y()) < EPS && fabs(p21.z()) < EPS)
+    if (std::abs(p21.x()) < EPS && std::abs(p21.y()) < EPS && std::abs(p21.z()) < EPS)
         return false;
 
     d1343 = p13.x() * p43.x() + p13.y() * p43.y() + p13.z() * p43.z();
@@ -62,26 +57,23 @@ bool LineLineIntersect(const ChVector3d& p1,
     d2121 = p21.x() * p21.x() + p21.y() * p21.y() + p21.z() * p21.z();
 
     denom = d2121 * d4343 - d4321 * d4321;
-    if (fabs(denom) < EPS)
+    if (std::abs(denom) < EPS)
         return false;
     numer = d1343 * d4321 - d1321 * d4343;
 
-    *mua = numer / denom;
-    *mub = (d1343 + d4321 * (*mua)) / d4343;
+    ua = numer / denom;
+    ub = (d1343 + d4321 * ua) / d4343;
 
-    pa->x() = p1.x() + *mua * p21.x();
-    pa->y() = p1.y() + *mua * p21.y();
-    pa->z() = p1.z() + *mua * p21.z();
-    pb->x() = p3.x() + *mub * p43.x();
-    pb->y() = p3.y() + *mub * p43.y();
-    pb->z() = p3.z() + *mub * p43.z();
+    pa.x() = p1.x() + ua * p21.x();
+    pa.y() = p1.y() + ua * p21.y();
+    pa.z() = p1.z() + ua * p21.z();
+    pb.x() = p3.x() + ub * p43.x();
+    pb.y() = p3.y() + ub * p43.y();
+    pb.z() = p3.z() + ub * p43.z();
 
     return true;
 }
 
-// Calculate distance between a point B and the segment (A1,A2).
-// Returns the distance from B to the line and sets the line parameter 'u' such that u=0 indicates that B projects into
-// A1 and u=1 indicates that B projects into A2.  If 0 <= u <= 1, in_segment is set to 'true'.
 double PointLineDistance(const ChVector3d& B, const ChVector3d& A1, const ChVector3d& A2, double& u, bool& in_segment) {
     u = -1;
     in_segment = false;
@@ -100,9 +92,7 @@ double PointLineDistance(const ChVector3d& B, const ChVector3d& A1, const ChVect
     return mdist;
 }
 
-// Calculate distance of a point from a triangle surface.
-// Also computes if projection is inside the triangle.
-double PointTriangleDistance(const ChVector3d& B,
+double PointTrianglePlaneDistance(const ChVector3d& B,
                              const ChVector3d& A1,
                              const ChVector3d& A2,
                              const ChVector3d& A3,
@@ -149,16 +139,71 @@ double PointTriangleDistance(const ChVector3d& B,
     return mdistance;
 }
 
-bool DegenerateTriangle(const ChVector3d& Dx, const ChVector3d& Dy) {
+bool IsTriangleDegenerate(const ChVector3d& Dx, const ChVector3d& Dy) {
     ChVector3d vcr;
     vcr = Vcross(Dx, Dy);
-    if (fabs(vcr.x()) < EPS_TRIDEGEN && fabs(vcr.y()) < EPS_TRIDEGEN && fabs(vcr.z()) < EPS_TRIDEGEN)
+    if (std::abs(vcr.x()) < EPS_TRIDEGEN && std::abs(vcr.y()) < EPS_TRIDEGEN && std::abs(vcr.z()) < EPS_TRIDEGEN)
         return true;
     return false;
 }
 
-bool DegenerateTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3) {
-    return DegenerateTriangle(v2 - v1, v3 - v1);
+bool IsTriangleDegenerate(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3) {
+    return IsTriangleDegenerate(v2 - v1, v3 - v1);
+}
+
+ChVector3d ClosestTrianglePointToPoint(const ChVector3d& p, const ChVector3d& a, const ChVector3d& b, const ChVector3d& c) {
+    // Check if P in vertex region outside A
+    ChVector3d ab = b - a;
+    ChVector3d ac = c - a;
+    ChVector3d ap = p - a;
+    double d1 = Vdot(ab, ap);
+    double d2 = Vdot(ac, ap);
+    if (d1 <= 0.0 && d2 <= 0.0) {
+        return a;  // barycentric coordinates (1,0,0)
+    }
+
+    // Check if P in vertex region outside B
+    ChVector3d bp = p - b;
+    double d3 = Vdot(ab, bp);
+    double d4 = Vdot(ac, bp);
+    if (d3 >= 0.0 && d4 <= d3) {
+        return b;  // barycentric coordinates (0,1,0)
+    }
+
+    // Check if P in edge region of AB, if so return projection of P onto AB
+    double vc = d1 * d4 - d3 * d2;
+    if (vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0) {
+        double v = d1 / (d1 - d3);
+        return a + v * ab;  // barycentric coordinates (1-v,v,0)
+    }
+
+    // Check if P in vertex region outside C
+    ChVector3d cp = p - c;
+    double d5 = Vdot(ab, cp);
+    double d6 = Vdot(ac, cp);
+    if (d6 >= 0.0 && d5 <= d6) {
+        return c;  // barycentric coordinates (0,0,1)
+    }
+
+    // Check if P in edge region of AC, if so return projection of P onto AC
+    double vb = d5 * d2 - d1 * d6;
+    if (vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0) {
+        double w = d2 / (d2 - d6);
+        return a + w * ac;  // barycentric coordinates (1-w,0,w)
+    }
+
+    // Check if P in edge region of BC, if so return projection of P onto BC
+    double va = d3 * d6 - d5 * d4;
+    if (va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0) {
+        double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        return b + w * (c - b);  // barycentric coordinates (0,1-w,w)
+    }
+
+    // P inside face region. Compute Q through its barycentric coordinates (u,v,w)
+    double denom = 1.0 / (va + vb + vc);
+    double v = vb * denom;
+    double w = vc * denom;
+    return a + ab * v + ac * w;  // = u*a + v*b + w*c, u = va * denom = 1.0f - v - w
 }
 
 }  // end namespace utils

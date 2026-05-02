@@ -35,11 +35,7 @@ namespace chrono {
 namespace parsers {
 
 ChParserTdpfYAML::ChParserTdpfYAML(const std::string& yaml_filename, bool verbose)
-    : ChParserCfdYAML(verbose),
-      m_gravity({0, 0, -9.8}),
-      m_loaded(false),
-      m_solver_loaded(false),
-      m_model_loaded(false) {
+    : ChParserCfdYAML(verbose), m_gravity({0, 0, -9.8}), m_loaded(false), m_solver_loaded(false), m_model_loaded(false) {
     SetVerbose(verbose);
     LoadFile(yaml_filename);
 }
@@ -52,15 +48,8 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
     YAML::Node yaml;
 
     // Load SPH YAML file
-    {
-        auto path = filesystem::path(yaml_filename);
-        if (!path.exists() || !path.is_file()) {
-            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-            throw std::runtime_error("File not found");
-        }
-        m_script_directory = path.parent_path().str();
-        yaml = YAML::LoadFile(yaml_filename);
-    }
+    yaml = YAML::LoadFile(yaml_filename);
+    m_file_handler.SetReferenceDirectory(yaml_filename);
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
@@ -78,7 +67,7 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
     {
         ChAssertAlways(yaml["model"]);
         auto model_fname = yaml["model"].as<std::string>();
-        auto model_filename = m_script_directory + "/" + model_fname;
+        auto model_filename = m_file_handler.GetReferenceDirectory() + "/" + model_fname;
         auto path = filesystem::path(model_filename);
         if (!path.exists() || !path.is_file()) {
             cerr << "Error: file '" << model_filename << "' not found." << endl;
@@ -98,7 +87,7 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
     {
         ChAssertAlways(yaml["solver"]);
         auto solver_fname = yaml["solver"].as<std::string>();
-        auto solver_filename = m_script_directory + "/" + solver_fname;
+        auto solver_filename = m_file_handler.GetReferenceDirectory() + "/" + solver_fname;
         auto path = filesystem::path(solver_filename);
         if (!path.exists() || !path.is_file()) {
             cerr << "Error: file '" << solver_filename << "' not found." << endl;
@@ -175,24 +164,12 @@ void ChParserTdpfYAML::LoadModelData(const YAML::Node& yaml) {
     if (model["angle_degrees"])
         m_use_degrees = model["angle_degrees"].as<bool>();
 
-    if (model["data_path"]) {
-        ChAssertAlways(model["data_path"]["type"]);
-        m_data_path = ReadDataPathType(model["data_path"]["type"]);
-        if (model["data_path"]["root"])
-            m_rel_path = model["data_path"]["root"].as<std::string>();
-    }
+    m_file_handler.Read(model);
 
     if (m_verbose) {
         cout << "model name: '" << m_name << "'" << endl;
         cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
-        switch (m_data_path) {
-            case ChParserYAML::DataPathType::ABS:
-                cout << "using absolute file paths" << endl;
-                break;
-            case ChParserYAML::DataPathType::REL:
-                cout << "using file paths relative to: '" << m_rel_path << "'" << endl;
-                break;
-        }
+        m_file_handler.PrintInfo();
     }
 
     // Read HDF5 hydrodynamic filename
@@ -210,16 +187,16 @@ void ChParserTdpfYAML::LoadModelData(const YAML::Node& yaml) {
             case WaveType::REGULAR:
                 ChAssertAlways(waves["height"]);
                 ChAssertAlways(waves["period"]);
-                m_reg_wave_params.regular_wave_amplitude_ = 0.5 * waves["height"].as<double>();
-                m_reg_wave_params.regular_wave_omega_ = CH_2PI / waves["period"].as<double>();
+                m_reg_wave_params.regular_wave_amplitude = 0.5 * waves["height"].as<double>();
+                m_reg_wave_params.regular_wave_omega = CH_2PI / waves["period"].as<double>();
                 if (waves["phase"])
-                    m_reg_wave_params.regular_wave_phase_ = waves["phase"].as<double>();
+                    m_reg_wave_params.regular_wave_phase = waves["phase"].as<double>();
                 else
-                    m_reg_wave_params.regular_wave_phase_ = 0;
+                    m_reg_wave_params.regular_wave_phase = 0;
                 if (waves["stretching"])
-                    m_reg_wave_params.wave_stretching_ = waves["stretching"].as<bool>();
+                    m_reg_wave_params.wave_stretching = waves["stretching"].as<bool>();
                 else
-                    m_reg_wave_params.wave_stretching_ = true;
+                    m_reg_wave_params.wave_stretching = true;
                 break;
             case WaveType::IRREGULAR:
                 //// TODO
@@ -249,7 +226,7 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
     }
 
     // Create a TDPF fluid system and associate the HDF5 file
-    auto h5_file = GetDatafilePath(m_h5_file);
+    auto h5_file = m_file_handler.GetFilename(m_h5_file);
     if (m_verbose)
         cout << "HDF5 hydro file: " << h5_file << endl;
     m_sysTDPF = chrono_types::make_unique<fsi::tdpf::ChFsiFluidSystemTDPF>();
@@ -259,7 +236,6 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
     // Add waves (note that the number of bodies is set during initialization of the TDPF system)
     switch (m_wave_type) {
         case WaveType::NONE:
-            m_sysTDPF->AddWaves(NoWaveParams());
             break;
         case WaveType::REGULAR: {
             m_sysTDPF->AddWaves(m_reg_wave_params);
@@ -309,12 +285,15 @@ void ChParserTdpfYAML::SaveOutput(int frame) {
 
 ChParserTdpfYAML::VisParams::VisParams()
     : render(false),
+#ifdef CHRONO_VSG
       mode(fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE),
+#endif
       colormap(ChColormap::Type::FAST),
       range({-1, 1}),
       update_fps(30),
       write_images(false),
-      image_dir(".") {}
+      image_dir(".") {
+}
 
 void ChParserTdpfYAML::VisParams::PrintInfo() {
     if (!render) {
@@ -322,45 +301,19 @@ void ChParserTdpfYAML::VisParams::PrintInfo() {
         return;
     }
 
+#ifdef CHRONO_VSGF
     cout << "run-time visualization" << endl;
-    cout << "  wave color mode:       " << fsi::tdpf::ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(mode)
-         << endl;
+    cout << "  wave color mode:       " << fsi::tdpf::ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(mode) << endl;
     cout << "  colormap:              " << ChColormap::GetTypeAsString(colormap) << endl;
     cout << "  color data range:      " << range << endl;
     cout << "  mesh update frequency: " << update_fps << endl;
+#endif
 }
 
 // =============================================================================
 
-ChColormap::Type ChParserTdpfYAML::ReadColorMapType(const YAML::Node& a) {
-    auto val = ToUpper(a.as<std::string>());
-    if (val == "BLACK_BODY")
-        return ChColormap::Type::BLACK_BODY;
-    if (val == "BLUE")
-        return ChColormap::Type::BLUE;
-    if (val == "BROWN")
-        return ChColormap::Type::BROWN;
-    if (val == "COPPER")
-        return ChColormap::Type::COPPER;
-    if (val == "FAST")
-        return ChColormap::Type::FAST;
-    if (val == "INFERNO")
-        return ChColormap::Type::INFERNO;
-    if (val == "JET")
-        return ChColormap::Type::JET;
-    if (val == "KINDLMANN")
-        return ChColormap::Type::KINDLMANN;
-    if (val == "BLACK_BODY")
-        return ChColormap::Type::BLACK_BODY;
-    if (val == "PLASMA")
-        return ChColormap::Type::PLASMA;
-    if (val == "RED_BLUE")
-        return ChColormap::Type::RED_BLUE;
-    return ChColormap::Type::JET;
-}
-
 ChParserTdpfYAML::WaveType ChParserTdpfYAML::ReadWaveType(const YAML::Node& a) {
-    auto val = ToUpper(a.as<std::string>());
+    auto val = ChToUpper(a.as<std::string>());
     if (val == "REGULAR")
         return WaveType::REGULAR;
     if (val == "IRREGULAR")
@@ -368,14 +321,16 @@ ChParserTdpfYAML::WaveType ChParserTdpfYAML::ReadWaveType(const YAML::Node& a) {
     return WaveType::NONE;
 }
 
+#ifdef CHRONO_VSG
 fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ChParserTdpfYAML::ReadWaveColoringMode(const YAML::Node& a) {
-    auto val = ToUpper(a.as<std::string>());
+    auto val = ChToUpper(a.as<std::string>());
     if (val == "HEIGHT")
         return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::HEIGHT;
     if (val == "VELOCITY")
         return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::VELOCITY_MAG;
     return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE;
 }
+#endif
 
 }  // namespace parsers
 }  // namespace chrono

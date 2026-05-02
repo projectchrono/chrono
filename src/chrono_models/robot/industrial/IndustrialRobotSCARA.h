@@ -65,7 +65,7 @@ class CH_MODELS_API IndustrialRobotSCARA : public IndustrialRobot {
     std::shared_ptr<ChLinkMotorRotationAngle> GetLinkForearmScrewRot() { return m_link_forearm_screw_rot; }
     std::shared_ptr<ChLinkMotorLinearPosition> GetLinkForearmScrewTransl() { return m_link_forearm_screw_transl; }
 
-    /// Get motors diplacement/velocity/acceleration/torque data.
+    /// Get motors displacement/velocity/acceleration/torque data.
     /// NB: given the R-R-R-P architecture, the first three motors are rotational and the fourth is translational;
     /// hence, the last returned quantities are linear values/forces.
     virtual ChVectorDynamic<> GetMotorsPos(bool wrap_angles = false) const override;

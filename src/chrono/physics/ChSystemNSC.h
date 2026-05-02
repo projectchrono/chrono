@@ -46,7 +46,7 @@ class ChApi ChSystemNSC : public ChSystem {
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
-    /// Minimum rebounce speed for elastic collision (defualt: 0.15).
+    /// Minimum rebounce speed for elastic collision (default: 0.15).
     /// For elastic collisions with nonzero restitution coefficient, objects will rebounce only if their relative
     /// colliding speed is above this threshold. Default 0.15 m/s. If this value is set too low, aliasing problems can
     /// happen with small high frequency rebounces and settling to static stacking might be more difficult.

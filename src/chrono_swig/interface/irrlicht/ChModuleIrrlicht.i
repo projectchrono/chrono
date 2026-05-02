@@ -122,7 +122,7 @@ using namespace gui;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 
-// WARNING: the drawChFunction is not working properly since it cannot recognize that ChFunction_XXX is derived from ChFunction
+// WARNING: the DrawChFunction is not working properly since it cannot recognize that ChFunction_XXX is derived from ChFunction
 
 %import(module="pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVector2.i"

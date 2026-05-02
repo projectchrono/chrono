@@ -31,7 +31,7 @@
 
   "Visualization":
   {
-    "Filename":  "M113/M113_chassis.obj",
+    "Filename":  "vehicle/M113/M113_chassis.obj",
     "Name":      "M113_Chassis_geom"
   }
 }

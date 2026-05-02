@@ -1,9 +1,8 @@
 #=============================================================================
 # CMake configuration file for demos f controllers in Chrono::Vehicle.
-# This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -12,27 +11,15 @@ endif()
 
 set(DEMOS
     demo_VEH_Controller_DLC
+    demo_VEH_Controller_AIDriver
 )
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-   set(DEMOS ${DEMOS}
-       demo_VEH_Controller_AIDriver
-  )
-endif()
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_vehicle_irrlicht")
-endif()
-
-if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_vehicle_vsg")
-endif()
+list(APPEND LIBS "Chrono_vehicle_vsg")
 
 if(CH_ENABLE_MODULE_SENSOR)
     list(APPEND LIBS "Chrono_sensor")

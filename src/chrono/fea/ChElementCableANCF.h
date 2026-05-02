@@ -33,7 +33,7 @@ namespace fea {
 /// Simple beam element with two nodes and ANCF gradient-deficient formulation.
 /// For this element, constant section and constant material are assumed along the beam coordinate. Torsional stiffness
 /// is impossible because of the formulation.  Based on the formulation in: "Analysis of Thin Beams and Cables Using the
-/// Absolute Nodal Co-ordinate Formulation", J. Gerstmayr, A. Shabana, Nonlinear Dynamics (2006) 45: 109-130,
+/// Absolute Nodal Coordinate Formulation", J. Gerstmayr, A. Shabana, Nonlinear Dynamics (2006) 45: 109-130,
 /// DOI: 10.1007/s11071-006-1856-1
 class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   public:

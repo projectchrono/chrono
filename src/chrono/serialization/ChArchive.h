@@ -23,6 +23,7 @@
 #include <map>
 #include <memory>
 #include <algorithm>
+#include <complex>
 
 #include "chrono/core/ChApiCE.h"
 
@@ -64,7 +65,7 @@ class ChArchiveIn;
 
 /// Functor to call the ArchiveIn function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveIn
-/// easier and equippable with virtual functions.
+/// easier and equipped with virtual functions.
 
 class ChFunctorArchiveIn {
   public:
@@ -386,7 +387,7 @@ ChNameValue<T> make_ChNameValue(const std::string& auto_name,
 
 /// Class to handle C++ values of generic type using type erasure and functors.
 /// For example used to call the ArchiveOut function for unrelated classes that implemented them. This helps stripping
-/// out the templating, to make ChArchiveOut easier and equippable with virtual functions.
+/// out the templating, to make ChArchiveOut easier and equipped with virtual functions.
 class ChValue {
   public:
     virtual ~ChValue() {}
@@ -763,6 +764,30 @@ class _wrap_pair {
     std::pair<T, Tv>* _wpair;
 };
 
+//
+// Wrapper class to ease the archival of std::complex
+//
+
+template <class T>
+class _wrap_complex {
+  public:
+    _wrap_complex(std::complex<T>& cplx) { m_cplx = &cplx; }
+    void ArchiveOut(ChArchiveOut& archive_out) {
+        archive_out << CHNVP(m_cplx->real(), "real");
+        archive_out << CHNVP(m_cplx->imag(), "imag");
+    }
+    void ArchiveIn(ChArchiveIn& archive_in) {
+        T val;
+        archive_in >> CHNVP(val, "real");
+        m_cplx->real(val);
+        archive_in >> CHNVP(val, "imag");
+        m_cplx->imag(val);
+    }
+
+  private:
+    std::complex<T>* m_cplx;
+};
+
 /// Base class for archives with pointers to shared objects.
 class ChApi ChArchive {
   protected:
@@ -949,6 +974,14 @@ class ChApi ChArchiveOut : public ChArchive {
         _wrap_pair<T, Tv> mpair(bVal.value());
         ChNameValue<_wrap_pair<T, Tv>> pair_val(bVal.name(), mpair);
         this->out(pair_val);
+    }
+
+    // trick to wrap std::complex container
+    template <class T>
+    void out(ChNameValue<std::complex<T>> bVal) {
+        _wrap_complex<T> cplx(bVal.value());
+        ChNameValue<_wrap_complex<T>> cplx_val(bVal.name(), cplx);
+        this->out(cplx_val);
     }
 
     // trick to wrap std::unordered_map container
@@ -1249,6 +1282,14 @@ class ChApi ChArchiveIn : public ChArchive {
         _wrap_pair<T, Tv> mpair(bVal.value());
         ChNameValue<_wrap_pair<T, Tv>> pair_val(bVal.name(), mpair);
         return this->in(pair_val);
+    }
+
+    // trick to wrap std::complex container
+    template <class T>
+    bool in(ChNameValue<std::complex<T>> bVal) {
+        _wrap_complex<T> cplx(bVal.value());
+        ChNameValue<_wrap_complex<T>> cplx_val(bVal.name(), cplx);
+        return this->in(cplx_val);
     }
 
     // trick to wrap std::unordered_map container

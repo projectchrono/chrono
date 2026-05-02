@@ -63,7 +63,7 @@ double ChFunctionCycloidal::GetDer3(double x) const {
         return 0;
     else if (x >= m_width)
         return 0;
-    double ret = std::pow(CH_2PI, 2) * m_height / std::pow(m_width, 3) * std::cos(CH_2PI * x / m_width);
+    double ret = CH_2PI * CH_2PI * m_height / (m_width * m_width * m_width) * std::cos(CH_2PI * x / m_width);
     return ret;
 }
 

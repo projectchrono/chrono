@@ -64,8 +64,8 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
 
     if (contactableA && contactableB) {
         // Geometric information for added contact.
-        int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex();
-        int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex();
+        int b1 = ((ChBody*)contactableA)->GetIndex();
+        int b2 = ((ChBody*)contactableB)->GetIndex();
         cd_data->norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
         cd_data->cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
@@ -114,8 +114,8 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo) {
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
         cd_data->dpth_rigid_rigid.push_back(cinfo.distance);
         cd_data->erad_rigid_rigid.push_back(cinfo.eff_radius);
-        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex(),
-                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex()));
+        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)contactableA)->GetIndex(),
+                                                 ((ChBody*)contactableB)->GetIndex()));
         cd_data->num_rigid_contacts++;
     }
 }
@@ -132,7 +132,7 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
     auto modelA = (ChCollisionModelMulticore*)blist[b1]->GetCollisionModel()->GetImplementation();
     auto modelB = (ChCollisionModelMulticore*)blist[b2]->GetCollisionModel()->GetImplementation();
 
-    // Collsion shapes in contact
+    // Collision shapes in contact
     auto shape1 = modelA->m_shapes[s1_index].get();
     auto shape2 = modelB->m_shapes[s2_index].get();
 

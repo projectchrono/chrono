@@ -19,7 +19,7 @@
 //
 // The reference file data was validated by digitizing Figs. 4 and 5 of the paper
 // Gerstmayr and Shabana, 2006, "Analysis of Thin Beams and Cables Using the Absolute
-// Nodal Co-ordinate Formulation", Nonlinear Dynamics, 45: 109-130.
+// Nodal Coordinate Formulation", Nonlinear Dynamics, 45: 109-130.
 //
 // Special attention must be paid to the number of Gauss points for gravity. For
 // successful verification, this number must be 2.

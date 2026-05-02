@@ -866,6 +866,29 @@ void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVect
     }
 }
 
+void ChAssembly::IntStateOnEndStep(double T) {
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntStateOnEndStep(T);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateOnEndStep(T);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntStateOnEndStep(T);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntStateOnEndStep(T);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntStateOnEndStep(T);
+    }
+}
+
 void ChAssembly::IntStateIncrement(const unsigned int off_x,
                                    ChState& x_new,
                                    const ChState& x,
@@ -1042,6 +1065,7 @@ void ChAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in
 void ChAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
                                      ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
                                      const double c,            ///< a scaling factor
+                                     const double c_vel,        ///< the scaling factor if the constraint is at speed level
                                      bool do_clamp,             ///< apply clamping to c*C?
                                      double recovery_clamp      ///< value for min/max clamping of c*C
 ) {
@@ -1049,49 +1073,50 @@ void ChAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
 
     for (auto& body : bodylist) {
         if (body->IsActive())
-            body->IntLoadConstraint_C(displ_L + body->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+            body->IntLoadConstraint_C(displ_L + body->GetOffset_L(), Qc, c, c_vel, do_clamp, recovery_clamp);
     }
     for (auto& shaft : shaftlist) {
         if (shaft->IsActive())
-            shaft->IntLoadConstraint_C(displ_L + shaft->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+            shaft->IntLoadConstraint_C(displ_L + shaft->GetOffset_L(), Qc, c, c_vel, do_clamp, recovery_clamp);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
-            link->IntLoadConstraint_C(displ_L + link->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+            link->IntLoadConstraint_C(displ_L + link->GetOffset_L(), Qc, c, c_vel, do_clamp, recovery_clamp);
     }
     for (auto& mesh : meshlist) {
-        mesh->IntLoadConstraint_C(displ_L + mesh->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+        mesh->IntLoadConstraint_C(displ_L + mesh->GetOffset_L(), Qc, c, c_vel, do_clamp, recovery_clamp);
     }
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
-            item->IntLoadConstraint_C(displ_L + item->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+            item->IntLoadConstraint_C(displ_L + item->GetOffset_L(), Qc, c, c_vel, do_clamp, recovery_clamp);
     }
 }
 
 void ChAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in Qc residual
                                       ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*Ct
-                                      const double c             ///< a scaling factor
+                                      const double c,            ///< a scaling factor
+                                      const double c_vel         ///< the scaling factor if the constraint is at speed level
 ) {
     int displ_L = off_L - this->offset_L;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
-            body->IntLoadConstraint_Ct(displ_L + body->GetOffset_L(), Qc, c);
+            body->IntLoadConstraint_Ct(displ_L + body->GetOffset_L(), Qc, c, c_vel);
     }
     for (auto& shaft : shaftlist) {
         if (shaft->IsActive())
-            shaft->IntLoadConstraint_Ct(displ_L + shaft->GetOffset_L(), Qc, c);
+            shaft->IntLoadConstraint_Ct(displ_L + shaft->GetOffset_L(), Qc, c, c_vel);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
-            link->IntLoadConstraint_Ct(displ_L + link->GetOffset_L(), Qc, c);
+            link->IntLoadConstraint_Ct(displ_L + link->GetOffset_L(), Qc, c, c_vel);
     }
     for (auto& mesh : meshlist) {
-        mesh->IntLoadConstraint_Ct(displ_L + mesh->GetOffset_L(), Qc, c);
+        mesh->IntLoadConstraint_Ct(displ_L + mesh->GetOffset_L(), Qc, c, c_vel);
     }
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
-            item->IntLoadConstraint_Ct(displ_L + item->GetOffset_L(), Qc, c);
+            item->IntLoadConstraint_Ct(displ_L + item->GetOffset_L(), Qc, c, c_vel);
     }
 }
 

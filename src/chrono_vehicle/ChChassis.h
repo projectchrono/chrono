@@ -72,6 +72,12 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Get the global location of the driver.
     ChVector3d GetDriverPos() const;
 
+    /// Get the linear velocity of the origin of chassis reference frame, expressed in the global frame.
+    const ChVector3d& GetLinearVelocity() const;
+
+    /// Return the angular velocity of the chassis reference frame, expressed in the chassis reference frame.
+    ChVector3d GetAngularVelocity() const;
+
     /// Get the vehicle speed.
     /// Return the speed measured at the origin of the chassis reference frame.
     double GetSpeed() const;
@@ -167,11 +173,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
         /// The external load is updated at each vehicle synchronization.
         /// A derived class must load the current values for the external force and its application point on the chassis
         /// body, both assumed to be provided in the chassis body local frame.
-        virtual void Update(double time,
-                            const ChChassis& chassis,
-                            ChVector3d& force,
-                            ChVector3d& point,
-                            ChVector3d& torque) {}
+        virtual void Update(double time, const ChChassis& chassis, ChVector3d& force, ChVector3d& point, ChVector3d& torque) {}
 
         std::string m_name;
     };
@@ -193,13 +195,13 @@ class CH_VEHICLE_API ChChassis : public ChPart {
               bool fixed = false        ///< [in] is the chassis body fixed to ground?
     );
 
-    /// Construct the concrete chassis at the specified global position and orientation.
+    /// Let derived classes complete initialization of the concrete chassis at the specified global position and orientation.
     /// The initial position and forward velocity are assumed to be given in the current world frame.
-    virtual void Construct(ChVehicle* vehicle,              ///< [in] containing vehicle
-                           const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
-                           double chassisFwdVel,            ///< [in] initial chassis forward velocity
-                           int collision_family             ///< [in] chassis collision family
-                           ) = 0;
+    virtual void OnInitialize(ChVehicle* vehicle,              ///< [in] containing vehicle
+                              const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
+                              double chassisFwdVel,            ///< [in] initial chassis forward velocity
+                              int collision_family             ///< [in] chassis collision family
+                              ) = 0;
 
     virtual double GetBodyMass() const = 0;
     virtual ChFrame<> GetBodyCOMFrame() const = 0;
@@ -239,22 +241,19 @@ class CH_VEHICLE_API ChChassisRear : public ChChassis {
     /// Construct a rear chassis subsystem with the specified name.
     ChChassisRear(const std::string& name);
 
-    /// Construct the concrete rear chassis relative to the specified front chassis.
+    /// Let derived classes complete initialization of the concrete rear chassis relative to the specified front chassis.
     /// The orientation is set to be the same as that of the front chassis while the location is based on the connector
     /// position on the front and rear chassis.
-    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
-                           int collision_family = 0             ///< [in] chassis collision family
-                           ) = 0;
+    virtual void OnInitialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
+                              int collision_family = 0             ///< [in] chassis collision family
+                              ) = 0;
 
   private:
     /// No driver in a rear chassis.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override final { return ChCoordsys<>(); }
 
     /// A rear chassis cannot be initialized as a root body.
-    virtual void Construct(ChVehicle* vehicle,
-                           const ChCoordsys<>& chassisPos,
-                           double chassisFwdVel,
-                           int collision_family = 0) override final {}
+    virtual void OnInitialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family = 0) override final {}
 };
 
 /// Vector of handles to rear chassis subsystems.

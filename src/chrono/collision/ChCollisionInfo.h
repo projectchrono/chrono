@@ -42,7 +42,7 @@ class ChApi ChCollisionInfo {
     /// Copy from other.
     ChCollisionInfo(const ChCollisionInfo& other, const bool swap = false);
 
-    /// Swap models, that is modelA becomes modelB and viceversa.
+    /// Swap models, that is modelA becomes modelB and vice-versa.
     void SwapModels();
 
     /// Set the default effective radius of curvature (for SMC contact).

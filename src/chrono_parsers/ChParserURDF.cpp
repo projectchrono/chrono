@@ -134,9 +134,9 @@ void ChParserURDF::SetBodyMeshCollisionType(const std::string& body_name, MeshCo
     m_coll_type[body_name] = collision_type;
 }
 
-void ChParserURDF::SetAllBodiesMeshCollisinoType(MeshCollisionType collision_type) {
+void ChParserURDF::SetAllBodiesMeshCollisionType(MeshCollisionType collision_type) {
     if (m_sys) {
-        cerr << "WARNING: SetAllBodiesMeshCollisinoType must be called before PopulateSystem." << endl;
+        cerr << "WARNING: SetAllBodiesMeshCollisionType must be called before PopulateSystem." << endl;
         return;
     }
 
@@ -817,7 +817,7 @@ void ChParserURDF::PrintModelJoints() {
                 cout << "fixed     ";
                 break;
             case urdf::Joint::CONTINUOUS:
-                cout << "continous ";
+                cout << "continuous ";
                 break;
             case urdf::Joint::UNKNOWN:
                 break;

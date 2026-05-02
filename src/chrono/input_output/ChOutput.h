@@ -52,7 +52,7 @@ class ChApi ChOutput {
     };
 
     /// Output mode options.
-    /// - FRAMES: output is organized in groups for each seperate frame;
+    /// - FRAMES: output is organized in groups for each separate frame;
     ///           suitable for postprocessing (e.g., rendering).
     /// - SERIES: output is organized by model components, each of them containing time-series for their various output quantities;
     ///           suitable for plotting results.

@@ -50,8 +50,8 @@ class ChApi ChBox : public ChVolume {
     /// Return the radius of a bounding sphere for this geometry.
     virtual double GetBoundingSphereRadius() const override;
 
-    /// Compute the baricenter of the box.
-    virtual ChVector3d Baricenter() const override { return ChVector3d(0); }
+    /// Compute the barycenter of the box.
+    virtual ChVector3d Barycenter() const override { return ChVector3d(0); }
 
     /// Evaluate position in box volume.
     virtual ChVector3d Evaluate(double parU, double parV, double parW) const override;
@@ -83,7 +83,7 @@ class ChApi ChBox : public ChVolume {
     /// Return the radius of a bounding sphere.
     static double CalcBoundingSphereRadius(const ChVector3d& lengths);
 
-    ChVector3d hlen;  ///< box halflengths
+    ChVector3d hlen;  ///< box half-lengths
 };
 
 /// @} chrono_geometry

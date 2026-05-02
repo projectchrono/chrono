@@ -12,9 +12,6 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-//// TODO
-//// - eliminate GetPhysicsItem
-
 #ifndef CH_COLLISION_MODEL_H
 #define CH_COLLISION_MODEL_H
 
@@ -78,13 +75,7 @@ class ChApi ChCollisionModel {
     void SetContactable(ChContactable* new_contactable);
 
     /// Get the pointer to the contactable object.
-    ChContactable* GetContactable() { return contactable; }
-
-    /// Get the pointer to the client owner ChPhysicsItem.
-    ///
-    //// TODO OBSOLETE
-    ///
-    ChPhysicsItem* GetPhysicsItem();
+    ChContactable* GetContactable() const { return contactable; }
 
     /// Synchronize the position and orientation of the collision model to the associated contactable.
     void SyncPosition();
@@ -94,16 +85,16 @@ class ChApi ChCollisionModel {
     void SetFamily(int family);
 
     /// Return the collision family for this model.
-    int GetFamily();
+    int GetFamily() const;
 
     /// By default, family mask is all turned on, so all families can collide with this object, but you can turn on-off
     /// some bytes of this mask so that some families do not collide. When two objects collide, the contact is created
-    /// only if the family is within the 'family mask' of the other, and viceversa.
+    /// only if the family is within the 'family mask' of the other, and vice-versa.
     void DisallowCollisionsWith(int family);
     void AllowCollisionsWith(int family);
 
     /// Return true if this model is allowed to collide with objects in the specified collision family.
-    bool CollidesWith(int family);
+    bool CollidesWith(int family) const;
 
     /// [INTERNAL USE] Return the collision family group of this model.
     /// The collision family of this model is the position of the single set bit in the return value.
@@ -133,7 +124,7 @@ class ChApi ChCollisionModel {
     void SetSafeMargin(float margin) { model_safe_margin = margin; }
 
     /// Return the inward safe margin (see SetSafeMargin).
-    float GetSafeMargin() { return model_safe_margin; }
+    float GetSafeMargin() const { return model_safe_margin; }
 
     /// Set the suggested collision outward 'envelope' used from shapes added from now on.
     /// This 'envelope' is a surrounding invisible volume which extends outward from the surface, and it is used to
@@ -145,7 +136,7 @@ class ChApi ChCollisionModel {
     void SetEnvelope(float envelope) { model_envelope = envelope; }
 
     /// Return the outward safe margin (see SetEnvelope).
-    float GetEnvelope() { return model_envelope; }
+    float GetEnvelope() const { return model_envelope; }
 
     /// Set the default envelope value.
     /// All collision shapes in all collision models created after the call to this function will use this value.
@@ -157,7 +148,10 @@ class ChApi ChCollisionModel {
     /// A particular collision system may ignore this suggested value.
     static void SetDefaultSuggestedMargin(double margin);
 
+    /// Get the default envelope value.
     static double GetDefaultSuggestedEnvelope();
+
+    /// Get the default margin value.
     static double GetDefaultSuggestedMargin();
 
     /// Return the axis aligned bounding box (AABB) of the collision model.
@@ -172,7 +166,7 @@ class ChApi ChCollisionModel {
     void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Return the number of collision shapes in this model.
-    unsigned int GetNumShapes() const { return (unsigned int)m_shape_instances.size(); }
+    unsigned int GetNumShapes() const { return static_cast<unsigned int>(m_shape_instances.size()); }
 
     /// Get the list of collision shapes in this model.
     const std::vector<ChCollisionShapeInstance>& GetShapeInstances() const { return m_shape_instances; }

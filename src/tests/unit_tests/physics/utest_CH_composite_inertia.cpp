@@ -49,11 +49,9 @@ TEST(CompositeInertia, hemispheres) {
 
     CompositeInertia comp;
 
-    comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height + offset), ChQuaternion<>(1, 0, 0, 0)), mass,
-                      ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
+    comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height + offset), ChQuaternion<>(1, 0, 0, 0)), mass, ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
 
-    comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height - offset), QuatFromAngleX(CH_PI)), mass,
-                      ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
+    comp.AddComponent(ChFrame<>(ChVector3d(0, 0, height - offset), QuatFromAngleX(CH_PI)), mass, ChMatrix33<>(ChVector3d(Jxx, Jyy, Jzz)));
 
     double c_mass = comp.GetMass();
     ChVector3d c_com = comp.GetCOM();
@@ -90,8 +88,7 @@ TEST(CompositeInertia, boxes) {
     double hz1 = hz / nz;
 
     double mass1 = 8 * hx1 * hy1 * hz1 * rho;
-    ChMatrix33<> inertia1(ChVector3d(mass1 * (hy1 * hy1 + hz1 * hz1) / 3, mass1 * (hx1 * hx1 + hz1 * hz1) / 3,
-                                     mass1 * (hx1 * hx1 + hy1 * hy1) / 3));
+    ChMatrix33<> inertia1(ChVector3d(mass1 * (hy1 * hy1 + hz1 * hz1) / 3, mass1 * (hx1 * hx1 + hz1 * hz1) / 3, mass1 * (hx1 * hx1 + hy1 * hy1) / 3));
 
     CompositeInertia comp;
 
@@ -113,8 +110,7 @@ TEST(CompositeInertia, boxes) {
     // Inertia properties of single box
     double b_mass = 8 * hx * hy * hz * rho;
     ChVector3d b_com = center;
-    ChMatrix33<> b_inertia(ChVector3d(b_mass * (hy * hy + hz * hz) / 3, b_mass * (hx * hx + hz * hz) / 3,
-                                      b_mass * (hx * hx + hy * hy) / 3));
+    ChMatrix33<> b_inertia(ChVector3d(b_mass * (hy * hy + hz * hz) / 3, b_mass * (hx * hx + hz * hz) / 3, b_mass * (hx * hx + hy * hy) / 3));
 
     // Check
     ASSERT_NEAR(c_mass, b_mass, tol);
@@ -147,8 +143,7 @@ TEST(CompositeInertia, hollow_sphere) {
 
     // Inertia properties of hollow sphere
     double s_mass = CH_4_3 * CH_PI * rho * (std::pow(r_out, 3) - std::pow(r_in, 3));
-    double s_J =
-        (2.0 / 5.0) * s_mass * (std::pow(r_out, 5) - std::pow(r_in, 5)) / (std::pow(r_out, 3) - std::pow(r_in, 3));
+    double s_J = (2.0 / 5.0) * s_mass * (std::pow(r_out, 5) - std::pow(r_in, 5)) / (std::pow(r_out, 3) - std::pow(r_in, 3));
     ChMatrix33<> s_inertia(s_J);
 
     // Check

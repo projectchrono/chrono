@@ -26,7 +26,7 @@ namespace dem {
 /// Used to compute position as a function of time.
 typedef std::function<double3(float)> GranPositionFunction;
 
-/// Position function representing no motion or offset as a funtion of time.
+/// Position function representing no motion or offset as a function of time.
 const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
 /// Verbosity level of the system.

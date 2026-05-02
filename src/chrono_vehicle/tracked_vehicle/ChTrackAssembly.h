@@ -64,7 +64,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Get a handle to the idler subsystem.
     std::shared_ptr<ChIdler> GetIdler() const { return m_idler; }
 
-    /// Get a handle to the idelr wheel subsystem.
+    /// Get a handle to the idler wheel subsystem.
     std::shared_ptr<ChTrackWheel> GetIdlerWheel() const { return m_idler->GetIdlerWheel(); }
 
     /// Get a handle to the brake subsystem.
@@ -220,6 +220,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Remove all track shoes from assembly.
     virtual void RemoveTrackShoes() = 0;
 
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const override;
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
     virtual void Output(ChOutput& database) const override;
     virtual void WriteCheckpoint(ChCheckpoint& database) const override;

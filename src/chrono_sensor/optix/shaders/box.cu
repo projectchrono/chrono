@@ -22,7 +22,7 @@
 #endif
 #endif
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 static __device__ float3 box_normal(float t, float3 t0, float3 t1) {
     float3 normal_pos = make_float3(t == t0.x ? 1 : 0, t == t0.y ? 1 : 0, t == t0.z ? 1 : 0);

@@ -91,7 +91,7 @@ mrole_Chassis::mrole_Chassis(const std::string& name, bool fixed, CollisionType 
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_model_file = GetVehicleDataFile("");
+    ////m_geometry.vis_model_file = GetVehicleDataFile("");
 
     switch (chassis_collision_type) {
         default:

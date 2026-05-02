@@ -22,7 +22,7 @@ services:
 
         CUDA_VERSION: "12-2"
         ROS_DISTRO: "humble"
-        OPTIX_SCRIPT: "data/NVIDIA-OptiX-SDK-7.7.0-linux64-x86_64.sh"
+        OPTIX_SCRIPT: "data/NVIDIA-OptiX-SDK-9.0.0-linux64-x86_64.sh" # Get optix script at https://developer.nvidia.com/designworks/optix/downloads/legacy
     volumes:
       - '../../:/home/${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}-dev'
       - '/tmp/.X11-unix:/tmp/.X11-unix'

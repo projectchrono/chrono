@@ -48,7 +48,6 @@ void IndustrialRobot::SetMotorsDisabled(bool disable) {
 void IndustrialRobot::SetBaseFrame(const ChFramed& base_frame) {
     for (auto& body : m_bodylist)
         body->ConcatenatePreTransformation(ChFrameMoving<>(base_frame));
-    m_sys->Update(UpdateFlags::UPDATE_ALL);
 }
 
 AssemblyAnalysis::ExitFlag IndustrialRobot::SetPoseTCP(const ChFramed& target_frame, unsigned int max_iters) {
@@ -149,8 +148,8 @@ std::shared_ptr<ChLinkMotorLinearPosition> IndustrialRobot::CreateMotorLinearPos
 
 void IndustrialRobot::CreatePassiveLinks() {
     for (const auto& motor : m_motorlist) {
-        std::shared_ptr<ChBodyFrame> body1(motor->GetBody1(), [](ChBodyFrame*) {});  // provide empy deleter function
-        std::shared_ptr<ChBodyFrame> body2(motor->GetBody2(), [](ChBodyFrame*) {});  // provide empy deleter function
+        std::shared_ptr<ChBodyFrame> body1(motor->GetBody1(), [](ChBodyFrame*) {});  // provide empty deleter function
+        std::shared_ptr<ChBodyFrame> body2(motor->GetBody2(), [](ChBodyFrame*) {});  // provide empty deleter function
         ChFramed absframe(motor->GetFrame2Abs());
 
         if (std::dynamic_pointer_cast<ChLinkMotorLinearPosition>(motor)) {

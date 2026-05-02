@@ -104,7 +104,7 @@ void IndustrialRobotSCARA_CAD::SetupMarkers() {
                     m_marker_TCP};
     m_joint_frames = {};  // no use
 
-    // Lenghts
+    // Lengths
     double H = (m_marker_base_biceps->GetAbsFrame().GetPos() - m_marker_ground_base->GetAbsFrame().GetPos())
                    .z();  // base height
     double L1 = (m_marker_biceps_forearm->GetAbsFrame().GetPos() - m_marker_base_biceps->GetAbsFrame().GetPos())

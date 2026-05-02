@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <set>
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChIndexedNodes.h"
@@ -26,10 +27,13 @@
 #include "chrono/fea/ChElementBase.h"
 #include "chrono/fea/ChMeshSurface.h"
 #include "chrono/fea/ChNodeFEAbase.h"
+//#include "chrono/fea/ChFeaMaterial.h"
 
 namespace chrono {
 
 class ChAssembly;
+class ChFeaFieldBase;
+class ChFeaDomain;
 
 namespace fea {
 
@@ -78,6 +82,15 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Get the number of elements in the mesh.
     unsigned int GetNumElements() const { return (unsigned int)velements.size(); }
+
+    //--- Multiphysics stuff:
+
+    /// Add domain to the mesh.
+    void AddDomain(std::shared_ptr<ChFeaDomain> mdom) {  this->domains.insert(mdom); }
+
+    /// Add field to the mesh.
+    void AddField(std::shared_ptr<ChFeaFieldBase> mfield) { this->fields.insert(mfield); }
+
 
     virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
     virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }
@@ -160,7 +173,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// If true, as by default, this mesh will add automatically a gravity load
     /// to all contained elements (that support gravity) using the G value from the ChSystem.
-    /// So this saves you from adding many ChLoad<ChLoaderGravity> to all elements.
+    /// So this saves you from adding many ChLoad<fea::ChLoaderGravity> to all elements.
     void SetAutomaticGravity(bool mg, int num_points = 1) {
         automatic_gravity_load = mg;
         num_points_gravity = num_points;
@@ -205,6 +218,7 @@ class ChApi ChMesh : public ChIndexedNodes {
                                       const ChState& x,
                                       const unsigned int off_v,
                                       ChStateDelta& Dv) override;
+    virtual void IntStateOnEndStep(double T) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -289,6 +303,11 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     std::vector<std::shared_ptr<ChContactSurface>> vcontactsurfaces;  ///<  contact surfaces
     std::vector<std::shared_ptr<ChMeshSurface>> vmeshsurfaces;        ///<  mesh surfaces, ex.for loads
+
+    // New generic multiphysics system:
+    std::set<std::shared_ptr<ChFeaFieldBase>> fields; ///< Set of fields for multiphysics. Each can reference some nodes.
+    std::set<std::shared_ptr<ChFeaDomain>> domains; ///< Set of domains for multiphysics. Each can reference some fields and some ChFeaElement.
+
 
     bool automatic_gravity_load;
     int num_points_gravity;

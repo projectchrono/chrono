@@ -24,6 +24,7 @@ using System;
 using System.IO; // For directory creation
 using static ChronoGlobals;
 using static chrono_vehicle;
+using static chrono;
 
 namespace ChronoDemo
 {
@@ -162,7 +163,7 @@ namespace ChronoDemo
             patch.SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 1200, 1200);
             terrain.Initialize();
 
-            // Create the interactive Irrlicht driver system
+            // Create the interactive driver system
             ChInteractiveDriver driver = new ChInteractiveDriver(uaz.GetVehicle());
             double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
             double throttle_time = 1.0;  // time to go from 0 to +1
@@ -172,18 +173,19 @@ namespace ChronoDemo
             driver.SetBrakingDelta(render_step_size / braking_time);
             driver.Initialize();
 
-            // -------------------------------------
-            // Create the vehicle Irrlicht interface
-            // -------------------------------------
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("UAZBUS Demo :: CSharp");
+            // ----------------------------
+            // Create the VSG vehicle interface
+            // ----------------------------
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("UAZBUS Demo :: CSharp");
             vis.SetChaseCamera(trackPoint, 6, 0.5);
-            vis.Initialize();
-            vis.AddLightDirectional();
-            vis.AddSkyBox();
-            vis.AddLogo();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
             vis.AttachVehicle(uaz.GetVehicle());
             vis.AttachDriver(driver);
+            vis.Initialize();
 
             // -----------------
             // Initialize output

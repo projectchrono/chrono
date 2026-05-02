@@ -22,7 +22,7 @@
     },
 
     "Visualization": {
-        "Mesh": "M113/meshes/Chassis.obj",
+        "Mesh": "vehicle/M113/meshes/Chassis.obj",
 
         "Primitives": [
             {

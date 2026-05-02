@@ -161,7 +161,7 @@ sys.AddLink(motor)
 
 # ------------------------------------------------------------------------------
 
-# Create the VSG visualization system
+# Create the Irrlicht visualization system
 vis = chronoirr.ChVisualSystemIrrlicht()
 vis.AttachSystem(sys)
 vis.SetWindowSize(800, 600)

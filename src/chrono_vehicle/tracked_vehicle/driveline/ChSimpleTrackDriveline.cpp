@@ -50,7 +50,7 @@ void ChSimpleTrackDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 // -----------------------------------------------------------------------------
 // This utility function implements a simple model of Torsen limited-slip
 // differential with a max_bias:1 torque bias ratio.
-// We hardcode the speed difference range over which the torque bias grows from
+// We hard-code the speed difference range over which the torque bias grows from
 // a value of 1 to a value of max_bias to the interval [0.25, 0.5].
 // -----------------------------------------------------------------------------
 static void differentialSplit(double torque,

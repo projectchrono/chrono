@@ -77,7 +77,7 @@ class ChApiPeridynamics ChMatterPeriLinearElastic
     /// Initialize material with weighted volume.
     virtual void SetupInitial() override;
 
-    /// Adds the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    /// Adds the peridynamics force to each node, as a summation of all the effects of neighboring nodes.
     /// Formulas based on Silling work
     virtual void ComputeForces() override;
 };

@@ -32,7 +32,6 @@ namespace modal {
 class ChModalAssembly;
 }
 
-
 /// Base class for physics items that are part of a simulation.
 /// Such items (e.g., rigid bodies, joints, FEM meshes, etc.) can contain ChVariables or ChConstraints objects.
 class ChApi ChPhysicsItem : public ChObj {
@@ -64,7 +63,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual bool IsCollisionEnabled() const { return false; }
 
     /// Add to the provided collision system any collision models managed by this physics item.
-    /// A derived calss should invoke ChCollisionSystem::Add for each of its collision models.
+    /// A derived class should invoke ChCollisionSystem::Add for each of its collision models.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {}
 
     /// Remove from the provided collision system any collision models managed by this physics item.
@@ -79,7 +78,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// By default, returns an infinite AABB.
     virtual ChAABB GetTotalAABB() const;
 
-    /// Get a symbolic 'center' of the object. 
+    /// Get a symbolic 'center' of the object.
     /// By default this function returns the center of the AABB.
     /// Derived classes may override this, but must always return a point inside the AABB.
     virtual ChVector3d GetCenter() const;
@@ -150,7 +149,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
                                  const double T,            ///< time
-                                 UpdateFlags update_flags    ///< perform complete update, or exclude visual assets, etc.
+                                 UpdateFlags update_flags   ///< flags controlling update operation
     ) {
         // Default behavior: even if no state is used, at least call Update()
         Update(T, update_flags);
@@ -163,7 +162,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// From global acceleration vector to item's state acceleration
     virtual void IntStateScatterAcceleration(const unsigned int off_a,  ///< offset in a accel. vector
-                                             const ChStateDelta& a  ///< acceleration part of state vector derivative
+                                             const ChStateDelta& a      ///< acceleration part of state vector derivative
     ) {}
 
     /// From item's reaction forces to global reaction vector
@@ -174,6 +173,12 @@ class ChApi ChPhysicsItem : public ChObj {
     /// From global reaction vector to item's reaction forces
     virtual void IntStateScatterReactions(const unsigned int off_L,   ///< offset in L vector
                                           const ChVectorDynamic<>& L  ///< L vector of reaction forces
+    ) {}
+
+    /// Called at the end of a step, after the state has been updated. This can be used to perform any clean up or
+    /// finalization after a step is completed, or to update state variables that are not part of the state vector but
+    /// need to be updated only at the end of a step, like in plasticity.
+    virtual void IntStateOnEndStep(double T  ///< time
     ) {}
 
     /// Computes x_new = x + Dt , using vectors at specified offsets.
@@ -223,9 +228,9 @@ class ChApi ChPhysicsItem : public ChObj {
     /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
     ///    Md += c*diag(M)
     virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
-                                      ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-                                      double& err,    ///< result: not touched if lumping does not introduce errors
-                                      const double c  ///< a scaling factor
+                                      ChVectorDynamic<>& Md,   ///< result: Md vector, diagonal of the lumped mass matrix
+                                      double& err,             ///< result: not touched if lumping does not introduce errors
+                                      const double c           ///< a scaling factor
     ) {}
 
     /// Takes the term Cq'*L, scale and adds to R at given offset:
@@ -240,7 +245,8 @@ class ChApi ChPhysicsItem : public ChObj {
     ///    Qc += c*C
     virtual void IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
                                      ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
-                                     const double c,          ///< a scaling factor
+                                     const double c,          ///< the scaling factor
+                                     const double c_vel,      ///< the scaling factor if the constraint is at speed level
                                      bool do_clamp,           ///< apply clamping to c*C?
                                      double recovery_clamp    ///< value for min/max clamping of c*C
     ) {}
@@ -249,25 +255,24 @@ class ChApi ChPhysicsItem : public ChObj {
     ///    Qc += c*Ct
     virtual void IntLoadConstraint_Ct(const unsigned int off,  ///< offset in Qc residual
                                       ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*Ct
-                                      const double c           ///< a scaling factor
+                                      const double c,          ///< the scaling factor
+                                      const double c_vel       ///< the scaling factor if the constraint is at speed level
     ) {}
 
     /// Prepare variables and constraints to accommodate a solution:
-    virtual void IntToDescriptor(
-        const unsigned int off_v,    ///< offset for \e v and \e R
-        const ChStateDelta& v,       ///< vector copied into the \e q 'unknowns' term of the variables
-        const ChVectorDynamic<>& R,  ///< vector copied into the \e F 'force' term of the variables
-        const unsigned int off_L,    ///< offset for \e L and \e Qc
-        const ChVectorDynamic<>& L,  ///< vector copied into the \e L 'lagrangian ' term of the constraints
-        const ChVectorDynamic<>& Qc  ///< vector copied into the \e Qb 'constraint' term of the constraints
+    virtual void IntToDescriptor(const unsigned int off_v,    ///< offset for \e v and \e R
+                                 const ChStateDelta& v,       ///< vector copied into the \e q 'unknowns' term of the variables
+                                 const ChVectorDynamic<>& R,  ///< vector copied into the \e F 'force' term of the variables
+                                 const unsigned int off_L,    ///< offset for \e L and \e Qc
+                                 const ChVectorDynamic<>& L,  ///< vector copied into the \e L 'lagrangian ' term of the constraints
+                                 const ChVectorDynamic<>& Qc  ///< vector copied into the \e Qb 'constraint' term of the constraints
     ) {}
 
     /// After a solver solution, fetch values from variables and constraints into vectors:
-    virtual void IntFromDescriptor(
-        const unsigned int off_v,  ///< offset for \e v
-        ChStateDelta& v,           ///< vector to where the \e q 'unknowns' term of the variables will be copied
-        const unsigned int off_L,  ///< offset for \e L
-        ChVectorDynamic<>& L       ///< vector to where \e L 'lagrangian ' term of the constraints will be copied
+    virtual void IntFromDescriptor(const unsigned int off_v,  ///< offset for \e v
+                                   ChStateDelta& v,           ///< vector to where the \e q 'unknowns' term of the variables will be copied
+                                   const unsigned int off_L,  ///< offset for \e L
+                                   ChVectorDynamic<>& L       ///< vector to where \e L 'lagrangian ' term of the constraints will be copied
     ) {}
 
     // SOLVER SYSTEM FUNCTIONS

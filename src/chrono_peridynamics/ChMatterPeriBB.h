@@ -27,7 +27,7 @@ class ChPeridynamics;
 /// @addtogroup chrono_peridynamics
 /// @{
 
-/// Helper class: the per-bond auxialiary data for ChMatterPeriBB
+/// Helper class: the per-bond auxiliary data for ChMatterPeriBB
 class ChApiPeridynamics ChMatterDataPerBondBB : public ChMatterDataPerBond {
   public:
     bool broken = false;
@@ -64,7 +64,7 @@ class ChApiPeridynamics ChMatterPeriBB : public ChMatterPeri<ChMatterDataPerNode
     /// and very often used approximation is the following 'fading' function.
     double VolumeCorrection(double dist, double horizon, double vol_size);
 
-    /// Add the peridynamics force to each node, as a summation of all the effects of neighbouring nodes.
+    /// Add the peridynamics force to each node, as a summation of all the effects of neighboring nodes.
     virtual void ComputeForces() override;
 
     virtual void SetupInitial() override;

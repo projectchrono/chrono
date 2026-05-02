@@ -123,7 +123,7 @@ struct ChFsiParamsSPH {
     bool use_delta_sph;                            ///< use delta SPH
     Real density_delta;                            ///< parameter for delta SPH
 
-    bool use_density_based_projection;  ///< Set true to use density based projetion scheme in ISPH solver
+    bool use_density_based_projection;  ///< Set true to use density based projection scheme in ISPH solver
 
     bool Pressure_Constraint;  ///< Whether the singularity of the pressure equation should be fixed
     SolverType LinearSolver;   ///< Type of the linear solver
@@ -144,11 +144,11 @@ struct ChFsiParamsSPH {
     bool Apply_BC_U;        ///< This option lets you apply a velocity BC on the BCE markers
     Real L_Characteristic;  ///< Characteristic for Re number computation
 
-    bool non_newtonian;       ///< Set true to model non-newtonian fluid
+    bool non_newtonian;       ///< Set true to model non-Newtonian fluid
     Rheology rheology_model;  ///< Model of the rheology
     Real ave_diam;            ///< average particle diameter
     Real cohesion;            ///< c in the stress model sigma=(mu*p+c)/|D|
-    FrictionLaw mu_of_I;      ///< Constant I in granular material dyanmcis
+    FrictionLaw mu_of_I;      ///< Constant I in granular material dynamics
     Real mu_max;              ///< maximum viscosity
     Real mu_fric_s;           ///< friction mu_s
     Real mu_fric_2;           ///< mu_2 constant in mu=mu(I)
@@ -158,7 +158,7 @@ struct ChFsiParamsSPH {
     Real HB_sr0;   ///< Herschel–Bulkley consistency index
     Real HB_k;     ///< Herschel–Bulkley consistency index
     Real HB_n;     ///< Herschel–Bulkley  power
-    Real HB_tau0;  ///< Herschel–Bulkley yeild stress
+    Real HB_tau0;  ///< Herschel–Bulkley yield stress
 
     Real E_young;                 ///< Young's modulus
     Real G_shear;                 ///< Shear modulus

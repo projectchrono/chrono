@@ -41,14 +41,13 @@ const std::string out_dir = GetChronoOutputPath() + "FSI_BCE/";
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<vsg3d::ChVisualSystemVSG> CreateVisulization(ChFsiSystemSPH& sysFSI,
-                                                             ChSystem& sysMBS,
-                                                             const std::string& title);
+std::shared_ptr<vsg3d::ChVisualSystemVSG> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSystem& sysMBS, const std::string& title);
 void Box();
 void Sphere();
 void Cylinder1();
 void Cylinder2();
-void Cone();
+void ConeCartesian();
+void ConePolar();
 void BoxContainer();
 
 // -----------------------------------------------------------------------------
@@ -71,8 +70,11 @@ int main(int argc, char* argv[]) {
     // Interior and exterior BCEs for thin cylinder geometry (Cartesian and polar coordinates)
     Cylinder2();
 
-    // Interior and exterior BCEs for cone geometry (Cartesian and polar coordinates)
-    Cone();
+    // Interior and exterior BCEs for cone geometry (Cartesian coordinates)
+    ConeCartesian();
+
+    // Interior and exterior BCEs for cone geometry (polar coordinates)
+    ConePolar();
 
     // Box container
     BoxContainer();
@@ -88,9 +90,7 @@ class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVis
     virtual bool get(unsigned int n) const override { return pos[n].y >= 0; }
 };
 
-std::shared_ptr<vsg3d::ChVisualSystemVSG> CreateVisulization(ChFsiSystemSPH& sysFSI,
-                                                             ChSystem& sysMBS,
-                                                             const std::string& title) {
+std::shared_ptr<vsg3d::ChVisualSystemVSG> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSystem& sysMBS, const std::string& title) {
     auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
@@ -108,7 +108,7 @@ std::shared_ptr<vsg3d::ChVisualSystemVSG> CreateVisulization(ChFsiSystemSPH& sys
     visVSG->SetLightIntensity(0.9f);
     visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
     visVSG->ToggleBodyLabelVisibility();
-    visVSG->SetBodyLabelsScale(0.5);
+    visVSG->SetBodyLabelsScale(0.25);
 
     visVSG->Initialize();
 
@@ -359,8 +359,7 @@ void Cylinder1() {
         body->SetName("exterior Cartesian");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderExterior(radius, length, false);
@@ -383,8 +382,7 @@ void Cylinder1() {
         body->SetName("exterior polar");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderExterior(radius, length, true);
@@ -407,8 +405,7 @@ void Cylinder1() {
         body->SetName("interior Cartesian");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderInterior(radius, length, false);
@@ -431,8 +428,7 @@ void Cylinder1() {
         body->SetName("interior polar");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderInterior(radius, length, true);
@@ -476,8 +472,7 @@ void Cylinder2() {
         body->SetName("exterior Cartesian");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderInterior(radius, length, false);
@@ -500,8 +495,7 @@ void Cylinder2() {
         body->SetName("exterior polar");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderInterior(radius, length, true);
@@ -524,8 +518,7 @@ void Cylinder2() {
         body->SetName("interior Cartesian");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderInterior(radius, length, false);
@@ -548,8 +541,7 @@ void Cylinder2() {
         body->SetName("interior polar");
 
         utils::ChBodyGeometry geometry;
-        geometry.coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
         auto bce = sysSPH.CreatePointsCylinderInterior(radius, length, true);
@@ -571,7 +563,7 @@ void Cylinder2() {
 
 // -----------------------------------------------------------------------------
 
-void Cone() {
+void ConeCartesian() {
     double spacing = 0.025;
 
     ChSystemSMC sysMBS;
@@ -598,36 +590,6 @@ void Cone() {
         for (int i = 0; i < bce.size(); i++) {
             fbce << bce[i].x() << " " << bce[i].y() << " " << bce[i].z() << endl;
         }
-        fbce.close();
-
-        sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body, bce, frame, false);
-    }
-
-    {
-        auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(+0.5, 0, -0.5));
-        body->SetName("exterior polar");
-
-        auto bce = sysSPH.CreatePointsConeExterior(cone_radius, cone_height, true);
-        fbce.open((out_dir + "/cone_bndry_polar.txt"), std::ios::trunc);
-        for (const auto& p : bce)
-            fbce << p << endl;
-        fbce.close();
-
-        sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body, bce, frame, false);
-    }
-
-    {
-        auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(+0.5, 0, -0.5));
-        body->SetName("truncated exterior polar");
-
-        auto bce = sysSPH.CreatePointsTruncatedConeExterior(cone_radius, cone_radius / 2, cone_height, true);
-        fbce.open((out_dir + "/cone_bndry_truncated_polar.txt"), std::ios::trunc);
-        for (const auto& p : bce)
-            fbce << p << endl;
         fbce.close();
 
         sysMBS.AddBody(body);
@@ -667,6 +629,74 @@ void Cone() {
     {
         auto body = chrono_types::make_shared<ChBody>();
         body->SetPos(ChVector3d(+0.5, 0, +0.5));
+        body->SetName("truncated interior Cartesian");
+
+        auto bce = sysSPH.CreatePointsTruncatedConeInterior(cone_radius, cone_radius / 2, cone_height, false);
+        fbce.open((out_dir + "/cone_solid_truncated_cartesian.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body, bce, frame, false);
+    }
+
+    sysFSI.Initialize();
+    auto vis = CreateVisulization(sysFSI, sysMBS, "BCE markers for cone geometry (Cartesian)");
+    while (vis->Run()) {
+        vis->Render();
+    }
+}
+
+void ConePolar() {
+    double spacing = 0.025;
+
+    ChSystemSMC sysMBS;
+    ChFsiFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
+
+    sysSPH.SetInitialSpacing(spacing);
+    sysSPH.SetKernelMultiplier(1.0);
+    sysFSI.SetStepSizeCFD(1e-4);
+
+    ChFrame<> frame(ChVector3d(-0.1, 0, -0.1), QuatFromAngleY(CH_PI / 8));
+    std::ofstream fbce;
+
+    double cone_radius = 0.25;
+    double cone_height = 0.2;
+
+    {
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(-0.5, 0, -0.5));
+        body->SetName("exterior polar");
+
+        auto bce = sysSPH.CreatePointsConeExterior(cone_radius, cone_height, true);
+        fbce.open((out_dir + "/cone_bndry_polar.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+        fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body, bce, frame, false);
+    }
+
+    {
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(+0.5, 0, -0.5));
+        body->SetName("truncated exterior polar");
+
+        auto bce = sysSPH.CreatePointsTruncatedConeExterior(cone_radius, cone_radius / 2, cone_height, true);
+        fbce.open((out_dir + "/cone_bndry_truncated_polar.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+        fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body, bce, frame, false);
+    }
+
+    {
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(-0.5, 0, +0.5));
         body->SetName("interior polar");
 
         auto bce = sysSPH.CreatePointsConeInterior(cone_radius, cone_height, true);
@@ -694,22 +724,8 @@ void Cone() {
         sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
-    {
-        auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(+0.5, 0, +0.5));
-        body->SetName("truncated interior Cartesian");
-
-        auto bce = sysSPH.CreatePointsTruncatedConeInterior(cone_radius, cone_radius / 2, cone_height, false);
-        fbce.open((out_dir + "/cone_solid_truncated_cartesian.txt"), std::ios::trunc);
-        for (const auto& p : bce)
-            fbce << p << endl;
-
-        sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body, bce, frame, false);
-    }
-
     sysFSI.Initialize();
-    auto vis = CreateVisulization(sysFSI, sysMBS, "BCE markers for cone geometry");
+    auto vis = CreateVisulization(sysFSI, sysMBS, "BCE markers for cone geometry (polar)");
     while (vis->Run()) {
         vis->Render();
     }

@@ -27,7 +27,7 @@ class ChPeridynamics;
 /// @addtogroup chrono_peridynamics
 /// @{
 
-/// Helper class: the per-bond auxialiary data for ChMatterPeriBBimplicit
+/// Helper class: the per-bond auxiliary data for ChMatterPeriBBimplicit
 class ChApiPeridynamics ChMatterDataPerBondBBimplicit : public ChMatterDataPerBond {
   public:
     enum class bond_state {
@@ -83,7 +83,7 @@ class ChApiPeridynamics ChMatterPeriBBimplicit
     double VolumeCorrection(double dist, double horizon, double vol_size);
 
     // Implement the function that adds the peridynamics force to each node, as a
-    // summation of all the effects of neighbouring nodes.
+    // summation of all the effects of neighboring nodes.
     virtual void ComputeForces() override;
 
     virtual unsigned int GetNumConstraints() override { return (unsigned int)bonds.size(); }
@@ -101,6 +101,7 @@ class ChApiPeridynamics ChMatterPeriBBimplicit
     virtual void IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
                                      ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
                                      const double c,          ///< a scaling factor
+                                     const double c_vel,      ///< the scaling factor if the constraint is at speed level
                                      bool do_clamp,           ///< apply clamping to c*C?
                                      double recovery_clamp    ///< value for min/max clamping of c*C
                                      ) override;

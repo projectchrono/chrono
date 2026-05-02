@@ -18,8 +18,6 @@
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #include "chrono_parsers/yaml/ChParserCfdYAML.h"
 
-#include "chrono/assets/ChColormap.h"
-
 #include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
 #include "chrono_fsi/tdpf/ChFsiFluidSystemTDPF.h"
 
@@ -66,7 +64,7 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     /// Create and return a Chrono FSI problem configured from cached model and simulation parameters.
     /// By default, the Chrono FSI problem is initialized (with no associated MBS system). If a system is attached after
     /// creation, the caller must create the FSI problem with initialize=false, attach an MBS to the problem, and then
-    /// explictly initialize the FSI problem.
+    /// explicitly initialize the FSI problem.
     std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> CreateFsiSystemTDPF(bool initialize = true);
 
     /// Access the underlying FSI system.
@@ -100,10 +98,12 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
 
         bool render;
 
+#ifdef CHRONO_VSG
         fsi::tdpf::ChTdpfVisualizationVSG::ColorMode mode;  ///< mode for wave false coloring
-        ChColormap::Type colormap;                          ///< colormap for wave false coloring
-        ChVector2d range;                                   ///< data range for false coloring
-        double update_fps;                                  ///< wave mesh update frequency (in FPS)
+#endif
+        ChColormap::Type colormap;  ///< colormap for wave false coloring
+        ChVector2d range;           ///< data range for false coloring
+        double update_fps;          ///< wave mesh update frequency (in FPS)
 
         bool write_images;      ///< if true, save snapshots
         std::string image_dir;  ///< directory for image files
@@ -115,9 +115,10 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     };
 
   private:
-    static ChColormap::Type ReadColorMapType(const YAML::Node& a);
     static WaveType ReadWaveType(const YAML::Node& a);
+#ifdef CHRONO_VSG
     static fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ReadWaveColoringMode(const YAML::Node& a);
+#endif
 
     RegularWaveParams m_reg_wave_params;
     IrregularWaveParams m_irreg_wave_params;

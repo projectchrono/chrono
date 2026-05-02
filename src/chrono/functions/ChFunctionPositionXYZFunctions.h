@@ -35,18 +35,23 @@ class ChApi ChFunctionPositionXYZFunctions : public ChFunctionPosition {
     /// "Virtual" copy constructor.
     virtual ChFunctionPositionXYZFunctions* Clone() const override { return new ChFunctionPositionXYZFunctions(*this); }
 
-    /// Set the fx(s) function for the X component of the motion, ie. p.x = fx(s)
-    void SetFunctionX(std::shared_ptr<ChFunction> mx) { this->px = mx; }
-    /// Get the fx(s) function for the X component of the motion, ie. p.x = fx(s)
-    std::shared_ptr<ChFunction> GetFunctionX() { return this->px; }
-    /// Set the fy(s) function for the Y component of the motion, ie. p.y = fy(s)
-    void SetFunctionY(std::shared_ptr<ChFunction> my) { this->py = my; }
-    /// Get the fy(s) function for the Y component of the motion, ie. p.y = fy(s)
-    std::shared_ptr<ChFunction> GetFunctionY() { return this->py; }
-    /// Set the fz(s) function for the Z component of the motion, ie. p.z = fz(s)
-    void SetFunctionZ(std::shared_ptr<ChFunction> mz) { this->pz = mz; }
-    /// Get the fz(s) function for the Z component of the motion, ie. p.z = fz(s)
-    std::shared_ptr<ChFunction> GetFunctionZ() { return this->pz; }
+    /// Set the fx(s) function for the X component of the motion, ie. p.x = fx(s).
+    void SetFunctionX(std::shared_ptr<ChFunction> mx) { px = mx; }
+
+    /// Get the fx(s) function for the X component of the motion, ie. p.x = fx(s).
+    std::shared_ptr<ChFunction> GetFunctionX() const { return px; }
+    
+    /// Set the fy(s) function for the Y component of the motion, ie. p.y = fy(s).
+    void SetFunctionY(std::shared_ptr<ChFunction> my) { py = my; }
+    
+    /// Get the fy(s) function for the Y component of the motion, ie. p.y = fy(s).
+    std::shared_ptr<ChFunction> GetFunctionY() const { return py; }
+    
+    /// Set the fz(s) function for the Z component of the motion, ie. p.z = fz(s).
+    void SetFunctionZ(std::shared_ptr<ChFunction> mz) { pz = mz; }
+   
+    /// Get the fz(s) function for the Z component of the motion, ie. p.z = fz(s).
+    std::shared_ptr<ChFunction> GetFunctionZ() const { return pz; }
 
     /// Return the position imposed by the function, at \a s.
     virtual ChVector3d GetPos(double s) const override;

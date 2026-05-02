@@ -34,6 +34,8 @@
 // Include C++ headers this way...
 
 %{
+#define SWIG_FILE_WITH_INIT
+
 #include <typeindex>
 #include <cstddef>
 
@@ -75,7 +77,13 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
+#include "chrono/input_output/ChCheckpoint.h"
+#include "chrono/input_output/ChCheckpointASCII.h"
 #include "chrono/input_output/ChWriterCSV.h"
+#include "chrono/input_output/ChUtilsJSON.h"
+#ifdef CHRONO_HAS_YAML
+#include "chrono/input_output/ChUtilsYAML.h"
+#endif
 #include "chrono/input_output/ChUtilsInputOutput.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtils.h"
@@ -92,6 +100,12 @@ using namespace chrono::utils;
 using namespace chrono::fea;
 %}
 
+#ifdef SWIGCSHARP
+%csmethodmodifiers chrono::ChCollisionSystem::GetType "public new"
+#ifdef CHRONO_HAS_YAML
+%csmethodmodifiers chrono::ChYamlFileHandler::GetType "public new"
+#endif
+#endif
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
@@ -126,7 +140,27 @@ inline const char* ChUtils_GetFilename() {
 %include "std_string.i"
 %include "std_vector.i"
 %include "typemaps.i"
+#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
+%include "python/cwstring.i"
+%include "cstring.i"
+#ifdef CHRONO_PYTHON_NUMPY
+%include "../numpy.i"
+#endif
+#endif              // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
+#ifdef SWIGCSHARP
+%apply unsigned char { uint8_t }; // C# byte-cast fix- to use uint8_t instead (see ChUpdateFlags.i)
+#endif
+
+#ifdef SWIGPYTHON
+#ifdef CHRONO_PYTHON_NUMPY
+%init %{
+    import_array();
+%}
+
+%apply (double* IN_ARRAY2, int DIM1, int DIM2) {(double* a, int rows, int cols)};
+#endif
+#endif
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
@@ -335,9 +369,6 @@ inline const char* ChUtils_GetFilename() {
 %include "ChContactMaterial.i"
 %include "ChCollisionShape.i"
 %include "ChCollisionModel.i"
-%include "../../../chrono/collision/ChCollisionShape.h"
-%include "../../../chrono/collision/ChCollisionShapes.h"
-%include "../../../chrono/collision/ChCollisionModel.h"
 %include "ChCollisionInfo.i"
 %include "../../../chrono/collision/ChCollisionSystem.h"
 %include "../../../chrono/collision/bullet/ChCollisionSystemBullet.h"
@@ -352,12 +383,17 @@ inline const char* ChUtils_GetFilename() {
 // functions/   classes
 %include "ChFunction.i"
 
+#ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
+// update flags for ChSystem & ChMesh, etc.
+%include "ChUpdateFlags.i"
+#endif              // --------------------------------------------------------------------- CSHARP
 %include "../../../chrono/fea/ChMesh.h"
 
 
 // assets
 %include "ChColor.i"
 %include "ChColormap.i"
+%include "ChVisualBSDFType.i"
 %include "ChVisualMaterial.i"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"
@@ -424,9 +460,16 @@ inline const char* ChUtils_GetFilename() {
 
 // Utils
 // for hulls and meshing
-%include "../../../chrono/collision/ChConvexDecomposition.h"
+// %include "../../../chrono/collision/ChConvexDecomposition.h"
+%include "ChConvexDecomposition.i"
 
+%include "../../../chrono/input_output/ChCheckpoint.h"
+%include "../../../chrono/input_output/ChCheckpointASCII.h"
 %include "../../../chrono/input_output/ChWriterCSV.h"
+%include "../../../chrono/input_output/ChUtilsJSON.h"
+#ifdef CHRONO_HAS_YAML
+%include "../../../chrono/input_output/ChUtilsYAML.h"
+#endif
 %include "../../../chrono/input_output/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChConstants.h"
 %include "../../../chrono/utils/ChUtils.h"
@@ -435,9 +478,10 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/utils/ChUtilsGeometry.h"
 
 %include "../../../chrono/input_output/ChOutput.h"
-%include "../../../chrono/input_output/ChCheckpoint.h"
 
 %include "ChParticleFactory.i"
+%include "ChOpenMP.i"
+
 //
 // C- CASTING OF SHARED POINTERS
 // 

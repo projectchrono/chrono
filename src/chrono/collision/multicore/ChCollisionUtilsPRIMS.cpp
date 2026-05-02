@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include <cassert>
+#include <cmath>
 
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
@@ -123,7 +124,7 @@ bool point_in_triangle(const real3& A, const real3& B, const real3& C, const rea
     real v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
     // Check if point is in triangle
-    real tol = 10 * C_REAL_EPSILON;
+    real tol = 10 * CH_REAL_EPSILON;
     return (u > -tol) && (v > -tol) && (u + v < 1 + tol);
 }
 
@@ -150,9 +151,9 @@ bool point_vs_face(const real3& hdims,
     uint ip = (i + 2) % 3;  // previous direction (0->2->1->0)
 
     // No interaction if point outside box slabs in face plane
-    if (abs(point[in]) > hdims[in])
+    if (std::abs(point[in]) > hdims[in])
         return false;
-    if (abs(point[ip]) > hdims[ip])
+    if (std::abs(point[ip]) > hdims[ip])
         return false;
 
     // Decide if working with the "positive" or "negative" box face
@@ -221,7 +222,7 @@ bool segment_vs_edge(const real3& hdims,
     locE[i] += tE;
 
     // No interaction if point not on edge
-    if (abs(locE[i]) > hdims[i])
+    if (std::abs(locE[i]) > hdims[i])
         return false;
 
     // Closest point on segment
@@ -263,12 +264,12 @@ int box_intersects_box(const real3& hdims1,
                        real3& dir) {
     Mat33 R(rot);
     Mat33 Rabs = Abs(R);
-    real minOverlap = C_REAL_MAX;
+    real minOverlap = CH_REAL_MAX;
 
     // Test the axes of the 1st box.
     for (uint i = 0; i < 3; i++) {
         real r2 = Rabs(i, 0) * hdims2[0] + Rabs(i, 1) * hdims2[1] + Rabs(i, 2) * hdims2[2];
-        real overlap = hdims1[i] + r2 - abs(pos[i]) + separation;
+        real overlap = hdims1[i] + r2 - std::abs(pos[i]) + separation;
 
         if (overlap <= 0)
             return 0;
@@ -283,7 +284,7 @@ int box_intersects_box(const real3& hdims1,
     // Test the axes of the 2nd box.
     for (uint i = 0; i < 3; i++) {
         real r1 = Rabs(0, i) * hdims1[0] + Rabs(1, i) * hdims1[1] + Rabs(2, i) * hdims1[2];
-        real overlap = r1 + hdims2[i] - abs(R(0, i) * pos[0] + R(1, i) * pos[1] + R(2, i) * pos[2]) + separation;
+        real overlap = r1 + hdims2[i] - std::abs(R(0, i) * pos[0] + R(1, i) * pos[1] + R(2, i) * pos[2]) + separation;
 
         if (overlap <= 0)
             return 0;
@@ -308,12 +309,12 @@ int box_intersects_box(const real3& hdims1,
             if (lengthSqr > 1e-6) {
                 real r1 = hdims1[y1] * Rabs(z1, x2) + hdims1[z1] * Rabs(y1, x2);
                 real r2 = hdims2[y2] * Rabs(x1, z2) + hdims2[z2] * Rabs(x1, y2);
-                real overlap = r1 + r2 - abs(pos[z1] * R(y1, x2) - pos[y1] * R(z1, x2)) + separation;
+                real overlap = r1 + r2 - std::abs(pos[z1] * R(y1, x2) - pos[y1] * R(z1, x2)) + separation;
 
                 if (overlap <= 0)
                     return 0;
 
-                real ooLen = 1 / Sqrt(lengthSqr);
+                real ooLen = 1 / std::sqrt(lengthSqr);
 
                 overlap *= ooLen;
                 if (overlap < minOverlap) {
@@ -339,7 +340,7 @@ int box_intersects_box(const real3& hdims1,
 // This check is performed by testing 13 possible separating planes between the box and triangle (see Ericson).
 int box_intersects_triangle(const real3& hdims, const real3& v0, const real3& v1, const real3& v2, real separation) {
     real3 hdimsS = hdims + separation;
-    real minOverlap = C_REAL_MAX;
+    real minOverlap = CH_REAL_MAX;
     real overlap;
 
     // (1) Test the 3 axes corresponding to the box face normals
@@ -362,9 +363,9 @@ int box_intersects_triangle(const real3& hdims, const real3& v0, const real3& v1
     real3 n = triangle_normal(v0, v1, v2);
 
     // (2) Test the axis corresponding to the triangle normal
-    real r = hdimsS[0] * Abs(n[0]) + hdimsS[1] * Abs(n[1]) + hdimsS[2] * Abs(n[2]);
+    real r = hdimsS[0] * std::abs(n[0]) + hdimsS[1] * std::abs(n[1]) + hdimsS[2] * std::abs(n[2]);
     real d = Dot(n, v0);
-    overlap = r - Abs(d);
+    overlap = r - std::abs(d);
     if (overlap <= 0)
         return 0;
     if (overlap < minOverlap) {
@@ -389,19 +390,19 @@ int box_intersects_triangle(const real3& hdims, const real3& v0, const real3& v1
         //     p0_k = V0 . a_k , p1_k = V1 . a_k , p2_k = V2 . a_k
         // (d) projection interval of triangle onto the cross product:
         //     [m_k , M_k] = [min(p0_k, p1_k, p2_k) , max(p0_k, p1_k, p2_k)]
-        // (e) overlap = 2 * r_k - Max(m_k+r_k, -M_k-r_k)
+        // (e) overlap = 2 * r_k - std::max(m_k+r_k, -M_k-r_k)
 
         // box direction u0 = [1,0,0]
         real3 a0(0, -f[i].z, +f[i].y);  // a0 = [1, 0, 0] x f[i]
         real a0_len = Length(a0);
         if (a0_len > 1e-10) {
-            real r0 = hdimsS.y * Abs(f[i].z) + hdimsS.z * Abs(f[i].y);
+            real r0 = hdimsS.y * std::abs(f[i].z) + hdimsS.z * std::abs(f[i].y);
             real p0_0 = -v0.y * f[i].z + v0.z * f[i].y;
             real p1_0 = -v1.y * f[i].z + v1.z * f[i].y;
             real p2_0 = -v2.y * f[i].z + v2.z * f[i].y;
             real m0 = Min(p0_0, p1_0, p2_0);
             real M0 = Max(p0_0, p1_0, p2_0);
-            overlap = 2 * r0 - Max(m0 + r0, -M0 - r0);
+            overlap = 2 * r0 - std::max(m0 + r0, -M0 - r0);
             if (overlap <= 0)
                 return 0;
             overlap /= a0_len;
@@ -414,13 +415,13 @@ int box_intersects_triangle(const real3& hdims, const real3& v0, const real3& v1
         real3 a1(+f[i].z, 0, -f[i].z);  // a1 = [0, 1, 0] x f[i]
         real a1_len = Length(a1);
         if (a1_len > 1e-10) {
-            real r1 = hdimsS.x * Abs(f[i].z) + hdimsS.z * Abs(f[i].x);
+            real r1 = hdimsS.x * std::abs(f[i].z) + hdimsS.z * std::abs(f[i].x);
             real p0_1 = v0.x * f[i].z - v0.z * f[i].x;
             real p1_1 = v1.x * f[i].z - v1.z * f[i].x;
             real p2_1 = v2.x * f[i].z - v2.z * f[i].x;
             real m1 = Min(p0_1, p1_1, p2_1);
             real M1 = Max(p0_1, p1_1, p2_1);
-            overlap = 2 * r1 - Max(m1 + r1, -M1 - r1);
+            overlap = 2 * r1 - std::max(m1 + r1, -M1 - r1);
             if (overlap <= 0)
                 return 0;
             overlap /= a1_len;
@@ -433,13 +434,13 @@ int box_intersects_triangle(const real3& hdims, const real3& v0, const real3& v1
         real3 a2(-f[i].y, +f[i].x, 0);  // a2 = [0, 0, 1] x f[i]
         real a2_len = Length(a2);
         if (a2_len > 1e-10) {
-            real r2 = hdimsS.x * Abs(f[i].y) + hdimsS.y * Abs(f[i].x);
+            real r2 = hdimsS.x * std::abs(f[i].y) + hdimsS.y * std::abs(f[i].x);
             real p0_2 = -v0.x * f[i].y + v0.y * f[i].x;
             real p1_2 = -v1.x * f[i].y + v1.y * f[i].x;
             real p2_2 = -v2.x * f[i].y + v2.y * f[i].x;
             real m2 = Min(p0_2, p1_2, p2_2);
             real M2 = Max(p0_2, p1_2, p2_2);
-            overlap = 2 * r2 - Max(m2 + r2, -M2 - r2);
+            overlap = 2 * r2 - std::max(m2 + r2, -M2 - r2);
             if (overlap <= 0)
                 return 0;
             overlap /= a2_len;

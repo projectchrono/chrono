@@ -49,7 +49,7 @@ std::shared_ptr<ChTriangleMeshConnected> CreateShoe() {
     auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
                                                                  false, true);
     mesh->Transform(VNULL, ChMatrix33<>(1.2));
-    mesh->RepairDuplicateVertexes(1e-9);
+    mesh->RepairDuplicateVertices(1e-9);
 
     return mesh;
 }
@@ -58,7 +58,7 @@ std::shared_ptr<ChTriangleMeshConnected> CreateBox() {
     auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"),
                                                                  false, true);
     mesh->Transform(VNULL, ChMatrix33<>(ChVector3d(0.15, 0.05, 0.15)));
-    mesh->RepairDuplicateVertexes(1e-9);
+    mesh->RepairDuplicateVertices(1e-9);
 
     return mesh;
 }
@@ -67,6 +67,18 @@ std::shared_ptr<ChTriangleMeshConnected> CreateBox() {
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    int which_model = 1;
+    std::string input;
+    std::cout << "Select model:\n";
+    std::cout << "  1. Track shoe [DEFAULT]" << std::endl;
+    std::cout << "  2. Box" << std::endl;
+    std::getline(std::cin, input);
+    if (!input.empty()) {
+        std::istringstream stream(input);
+        stream >> which_model;
+        which_model = std::max(1, std::min(which_model, 2));
+    }
 
     ChRandom::SetSeed(0);
 
@@ -113,7 +125,13 @@ int main(int argc, char* argv[]) {
     auto body_mat = body_mat_data.CreateMaterial(contact_method);
 
     // read mesh from file, scale, and repair
-    auto mesh = CreateShoe();
+    std::shared_ptr<ChTriangleMeshConnected> mesh = nullptr;
+    if (which_model == 1)
+        mesh = CreateShoe();
+    else if (which_model == 2)
+        mesh = CreateBox();
+    else
+        return 1;
 
     // compute mass properties from mesh
     double mass;

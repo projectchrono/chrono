@@ -31,9 +31,6 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono belong to this namespace and its children...
-
 using namespace chrono;
 using namespace fea;
 
@@ -198,7 +195,7 @@ void test_2() {
     std::cout << " Bar mass = " << melementA->GetMass() << "  restlength = " << melementA->GetRestLength() << std::endl;
 }
 
-void test_2b() {
+void test_3() {
     std::cout << "\n-------------------------------------------------" << std::endl;
     std::cout << "TEST: spring FEM dynamics compare to bar\n" << std::endl;
 
@@ -277,7 +274,7 @@ void test_2b() {
     }
 }
 
-void test_3() {
+void test_4() {
     std::cout << "\n-------------------------------------------------" << std::endl;
     std::cout << "TEST: tetrahedron FEM dynamics, implicit integration\n" << std::endl;
 
@@ -370,7 +367,7 @@ void test_3() {
     }
 }
 
-void test_4() {
+void test_5() {
     std::cout << "\n-------------------------------------------------" << std::endl;
     std::cout << "TEST: bar FEM dynamics (2 elements),  implicit integration\n" << std::endl;
 
@@ -467,10 +464,41 @@ void test_4() {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // test_1();
-    // test_2();
-    test_3();
-    // test_4();
+    std::string input;
+    int which_test = 1;
+    std::cout << "Select test model:\n";
+    std::cout << "  1. spring FEM dynamics, implicit integration [DEFAULT]" << std::endl;
+    std::cout << "  2. bar FEM dynamics, implicit integration" << std::endl;
+    std::cout << "  3. spring FEM dynamics compare to bar" << std::endl;
+    std::cout << "  4. tetrahedron FEM dynamics, implicit integration" << std::endl;
+    std::cout << "  5. bar FEM dynamics (2 elements),  implicit integration" << std::endl;
+    std::getline(std::cin, input);
+    if (!input.empty()) {
+        std::istringstream stream(input);
+        stream >> which_test;        
+        which_test = std::min(std::max(1, which_test), 5);
+    }
+
+    switch (which_test) {
+        case 1:
+            test_1();
+            break;
+        case 2:
+            test_2();
+            break;
+        case 3:
+            test_3();
+            break;
+        case 4:
+            test_4();
+            break;
+        case 5:
+            test_5();
+            break;
+        default:
+            test_1();
+            break;
+    }
 
     return 0;
 }

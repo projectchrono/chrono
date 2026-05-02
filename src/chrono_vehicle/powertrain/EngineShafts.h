@@ -20,7 +20,7 @@
 #define SHAFTS_ENGINE_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/powertrain/ChEngineShafts.h"
 
 namespace chrono {

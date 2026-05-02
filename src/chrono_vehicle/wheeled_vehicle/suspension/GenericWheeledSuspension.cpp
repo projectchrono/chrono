@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/GenericWheeledSuspension.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -127,7 +127,7 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             auto mass = body["Mass"].GetDouble();
             auto inertia_moments = ReadVectorJSON(body["Moments of Inertia"]);
             auto inertia_products = ReadVectorJSON(body["Products of Inertia"]);
-            auto geometry = std::make_shared<utils::ChBodyGeometry>(ReadVehicleGeometryJSON(body));
+            auto geometry = std::make_shared<utils::ChBodyGeometry>(ReadBodyGeometryJSON(body));
             DefineBody(name, mirrored, pos, rot, mass, inertia_moments, inertia_products, geometry);
         }
     }
@@ -138,7 +138,7 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
         for (auto& joint : joints) {
             auto name = joint["Name"].GetString();
             auto mirrored = joint["Mirrored"].GetBool();
-            auto type = ReadVehicleJointTypeJSON(joint["Type"]);
+            auto type = ReadJointTypeJSON(joint["Type"]);
             auto body1 = ReadBodyIdentifierJSON(joint["Body1"]);
             auto body2 = ReadBodyIdentifierJSON(joint["Body2"]);
             auto pos = ReadVectorJSON(joint["Position"]);

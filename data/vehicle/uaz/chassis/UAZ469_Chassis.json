@@ -27,6 +27,6 @@
   
   "Visualization":
   {
-    "Mesh":  "uaz/uaz469_chassis.obj"
+    "Mesh":  "vehicle/uaz/uaz469_chassis.obj"
   }
 }

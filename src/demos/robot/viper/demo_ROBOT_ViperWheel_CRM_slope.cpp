@@ -153,7 +153,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     trimesh->LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
     trimesh->Transform(ChVector3d(0, 0, 0),
                        ChMatrix33<>(scale_ratio));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);         // if meshes are not watertight
+    trimesh->RepairDuplicateVertices(1e-9);         // if meshes are not watertight
 
     // Compute mass inertia from mesh
     double mmass;
@@ -561,7 +561,7 @@ int main(int argc, char* argv[]) {
     // Save wheel mesh
     ChTriangleMeshConnected wheel_mesh;
     wheel_mesh.LoadWavefrontMesh(GetChronoDataFile(wheel_obj), false, true);
-    wheel_mesh.RepairDuplicateVertexes(1e-9);
+    wheel_mesh.RepairDuplicateVertices(1e-9);
 
     // Write the information into a txt file
     std::ofstream myFile;

@@ -21,4 +21,4 @@ endif()
 
 
 MESSAGE(STATUS "Add unit test programs for PHYSICS module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "physics" "${LIBS}")

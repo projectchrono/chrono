@@ -67,7 +67,7 @@ class ChVisualSystemVSGPlugin;
 class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   public:
     /// Create the Chrono::VSG run-time visualization system.
-    /// Optionally, specify the resolution used for tesselation of primitive shapes, by providing the number of
+    /// Optionally, specify the resolution used for tessellation of primitive shapes, by providing the number of
     /// divisions used to discretize a full circle. The default value of 24 corresponds to 15-degree divisions.
     ChVisualSystemVSG(int num_divs = 24);
     ~ChVisualSystemVSG();
@@ -77,6 +77,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// the range [1, 10]. For very large or very small models, this range may not be suitable. The 'model scale' set
     /// here is used as a multiplier for all these graphical elements.
     void SetModelScale(double scale) { m_scale_multiplier = scale; }
+
+    /// Get model scale.
+    double GetModelScale() const { return m_scale_multiplier; }
 
     /// Attach a custom plugin.
     /// Plugins offer a mechanism for extending a base VSG visual system with custom functionality; e.g., for rendering,
@@ -181,7 +184,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Render COM frames for all bodies in the system.
     void SetCOMFrameScale(double axis_length);
-    /// Toggle on/off visibilityy of COM frames.
+    /// Toggle on/off visibility of COM frames.
     void ToggleCOMFrameVisibility();
 
     /// Render COM symbol for all bodies in the system.
@@ -240,12 +243,27 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// This function must be called before Initialize().
     void EnableFullscreen(bool val = true);
 
-    /// Enable/disable use of a sky box background (default: false).
-    /// This function must be called before Initialize().
-    void EnableSkyBox(bool val = true);
+    /// Set the sky box texture file which must be a cube map file (ktx, ktx2, or dds).
+    /// The optional argument specifies the azimuth angle of the light source (if any), measured counter-clockwise from
+    /// the North (i.e., N->W->S->E->N). The sky box texture will be oriented to match the light direction and hence the
+    /// shadows (if enabled).
+    /// NOTE: azimuth setting currently not supported for sky box.
+    void SetSkyBoxTexture(const std::string& filename, double sun_azimuth);
 
-    /// Set the sky box texture.
-    void SetSkyBoxTexture(const std::string& filename);
+    /// Set the sky dome texture file which must be a 2d panorama image (png, jpg, bmp, etc.).
+    /// The optional argument specifies the azimuth angle of the light source (if any), measured counter-clockwise from
+    /// the North (i.e., N->W->S->E->N). This value can be computed from the x_pixel value of the light source location
+    /// in the texture image and the w_pixel width of the texture image as:
+    /// <pre>
+    ///    sun_azimuth = 2 * pi * (x_pixel / w_pixel)
+    /// </pre>
+    /// The sky dome texture will be oriented to match the light direction and hence the shadows (if enabled).
+    void SetSkyDomeTexture(const std::string& filename, double sun_azimuth);
+
+    /// Enable sky texture using the specified mode (DOME or BOX).
+    /// This function must be called before Initialize().
+    /// By default, no sky texture is used but rather the specified background color.
+    void EnableSkyTexture(SkyMode mode = SkyMode::DOME);
 
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
@@ -275,10 +293,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated rendering FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Set target render frame rate (default: 0 means render every frame)
-    /// When set to, for example, 60fps, it limits rendering to approximately that many FPS
-    /// even if physics is running faster. Dramatically improves performance for VSG since
-    /// recordAndSubmit() is expensive
+    /// Set target render frame rate (default: 0).
+    /// Rendering is limited to this frequency, regardless of the simulation time step.
+    /// A value of 0 indicates rendering at every simulation frame.
     void SetTargetRenderFPS(double fps) { m_target_render_fps = fps; }
 
     /// Enable/disable rendering of shadows (default: false).
@@ -286,17 +303,19 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void EnableShadows(bool val = true) { m_use_shadows = val; }
 
     /// Indicate whether or not shadows are enabled.
-    bool AreShadowsEnabled() const { return m_use_shadows; }
+    bool ShadowsEnabled() const { return m_use_shadows; }
 
     /// Set light intensity (default: 1).
-    /// The light intensity is clamped in [0,1].
-    /// Directional light intensity is set to 100% of this value, unless shadow are enabled, in which case it is set to
-    /// 80%. Ambient light intensity is set to 10% of this value.
+    /// Directional light intensity is set to 100% of this value (clamped in the interval [0,1]), unless shadow are
+    /// enabled, in which case it is set to 80%.
+    /// Ambient light intensity is set to 10% of this value.
     void SetLightIntensity(float intensity);
 
-    /// Set azimuth and elevation for directional light (default: 3pi/4 and pi/4) .
-    /// The azimuth is measured conter-clockwise from the x-axis and is clamped in [-pi, pi].
-    /// The elevation is measured from the (xy)-plane and is clamped in [-pi/2, pi/2].
+    /// Set azimuth and elevation angles for directional light (default: 3pi/4 and pi/4).
+    /// With the positive x-axis taken as North direction, the azimuth angle, clamped to the interval [0, 2*pi], is
+    /// measured counter-clockwise (i.e., N->W->S->E->N).
+    /// The elevation angle, clamped to [-pi/2, pi/2], is measured from the horizontal plane - (x,y) in a Z-up world
+    /// frame, or (x,z) in a Y-up world frame.
     void SetLightDirection(double azimuth, double elevation);
 
     /// Set the camera field of view in degrees (default: 40).
@@ -305,21 +324,24 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Set GUI font size (default: 13).
     void SetGuiFontSize(float size);
 
-    /// Add a wireframe grid with specified resolution at the specified position.
-    virtual void AddGrid(double x_step,                                      ///< spacing in x direction
-                         double y_step,                                      ///< spacing in y direction
-                         int nx,                                             ///< number of divisions in x direction
-                         int ny,                                             ///< number of divisions in y direction
-                         ChCoordsys<> pos = CSYSNORM,                        ///< position of grid center
-                         ChColor col = ChColor(0.1f, 0.1f, 0.1f)) override;  ///< line color
+    /// Add a grid with specified parameters in the x-y plane of the given frame.
+    virtual void AddGrid(double x_step,     ///< spacing in x direction
+                         double y_step,     ///< spacing in y direction
+                         int nx,            ///< number of divisions in x direction
+                         int ny,            ///< number of divisions in y direction
+                         ChCoordsys<> pos,  ///< grid reference frame
+                         ChColor col        ///< grid line color
+                         ) override;
 
     /// Add a visual model not bound to a Chrono object.
     /// The return value is the index of the new visual model.
     virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
+
     /// Add a visual shape not bound to a Chrono object.
     /// The return value is the index of the new visual model.
     virtual int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
-    /// Modify the position of the specified un-bound visual model.
+
+    /// Modify the position of the specified unbound visual model.
     virtual void UpdateVisualModel(int id, const ChFrame<>& frame) override;
 
     /// Add a user-defined GUI component.
@@ -384,20 +406,18 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<ShapeBuilder> GetVSGShapeBuilder() const { return m_shapeBuilder; }
 
     /// Get the ImGui texture for the specified colormap.
-    vsg::ref_ptr<vsgImGui::Texture> GetColormapTexture(ChColormap::Type type) const {
-        return m_colormap_textures.at(type);
-    }
+    vsg::ref_ptr<vsgImGui::Texture> GetColormapTexture(ChColormap::Type type) const { return m_colormap_textures.at(type); }
 
     /// Data for particle clouds managed by the visual system.
     struct ParticleCloud {
         std::shared_ptr<ChParticleCloud> pcloud;            ///< reference to the Chrono physics item
         vsg::ref_ptr<vsg::vec3Array> positions;             ///< particle positions
-        vsg::ref_ptr<vsg::vec4Array> colors;                ///< particle colours
+        vsg::ref_ptr<vsg::vec4Array> colors;                ///< particle colors
         bool dynamic_positions;                             ///< particle positions change
-        bool dynamic_colors;                                ///< particle colours change
+        bool dynamic_colors;                                ///< particle colors change
         vsg::ref_ptr<vsg::Node> geometry_node;              ///< owning scene graph node
         vsg::ref_ptr<vsg::BufferInfo> position_bufferInfo;  ///< instance positions buffer
-        vsg::ref_ptr<vsg::BufferInfo> color_bufferInfo;     ///< instance colours buffer
+        vsg::ref_ptr<vsg::BufferInfo> color_bufferInfo;     ///< instance colors buffer
         bool use_compute_colors = false;                    ///< GPU compute overrides CPU updates
         vsg::ref_ptr<vsg::Commands> compute_commands;       ///< compute dispatch commands
     };
@@ -424,7 +444,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual void OnSetup(ChSystem* sys) override;
 
     /// Update all VSG scenes with the current state of the associated Chrono systems.
-    void Update();
+    virtual void Update();
 
     bool GetDesiredCloudVisibility(int tag) const;
 
@@ -436,7 +456,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
     vsg::ref_ptr<vsg::CommandGraph> m_renderCommandGraph;   ///< graphics submit path
-    vsg::ref_ptr<vsg::CommandGraph> m_computeCommandGraph;  ///< compute submit path (particle colouring)
+    vsg::ref_ptr<vsg::CommandGraph> m_computeCommandGraph;  ///< compute submit path (particle coloring)
 
     bool m_show_logo;
     float m_logo_height;
@@ -494,8 +514,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
     std::vector<DeformableMesh> m_def_meshes;
 
-    std::vector<ParticleCloud> m_clouds;     ///< particle cloud metadata cached for VSG interop
-    bool m_default_cloud_visibility = true;  ///< fallback visibility before a specific tag is toggled
+    std::vector<ParticleCloud> m_clouds;                         ///< particle cloud metadata cached for VSG interoperability
+    bool m_default_cloud_visibility = true;                      ///< fallback visibility before a specific tag is toggled
     std::unordered_map<int, bool> m_cloud_visibility_overrides;  ///< per-tag visibility overrides
 
     bool m_show_visibility_controls;  ///< enable/disable global visibility controls
@@ -592,7 +612,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind point-point visual assets in the visual model associated with the given Chrono object.
     void BindPointPoint(const std::shared_ptr<ChObj>& item);
 
-    /// Bind the visual model assoicated with a particle cloud.
+    /// Bind the visual model associated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
 
     /// Bind the reference frame for the given ChObj.
@@ -601,14 +621,26 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the body COM frame.
     void BindCOMFrame(const std::shared_ptr<ChBody>& body);
 
-    /// Bind the body COM symbols.
-    void BindCOMSymbols();
+    /// Create body label text.
+    void CreateBodyLabel(const std::shared_ptr<ChBody>& body);
 
     /// Bind the link frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
-    /// Bind the body and link labels.
-    void BindLabels();
+    /// Create body label text.
+    void CreateLinkLabel(const std::shared_ptr<ChLinkBase>& link);
+
+    /// Bind the body COM symbols.
+    /// This function creates (if needed) the node in the COM symbol scene and caches the VSG symbol positions.
+    void BindCOMSymbols(const std::vector<ChVector3d>& c_pos);
+
+    /// Bind the body labels.
+    /// This function creates (if needed) the nodes in the body label scene and caches the VSG label texts.
+    void BindBodyLabels();
+
+    /// Bind the link labels.
+    /// This function creates (if needed) the nodes in the link label scene and caches the VSG label texts.
+    void BindLinkLabels();
 
     /// Populate a VSG group with non-mutable visualization shapes (from the given visual model).
     void PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
@@ -648,16 +680,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
 
-    bool m_use_skybox;
+    SkyMode m_sky_mode;
+    double m_skybox_sun_azimuth;
+    double m_skydome_sun_azimuth;
     std::string m_skybox_path;
+    std::string m_skysphere_path;
 
     vsg::dvec3 m_camera_up_vector;
     bool m_yup;
     double m_camera_angle_deg;
 
-    double m_light_intensity;
-    double m_elevation;
-    double m_azimuth;
+    double m_light_intensity;  ///< directional light intensity
+    double m_elevation;        ///< directional light elevation (measured from
+    double m_azimuth;          ///< directional light azimuth (measured from
+
     float m_gui_font_size = 20.0f;
 
     // Component rendering
@@ -689,13 +725,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_forces_colors;
 
     // Frame rendering
-    bool m_show_abs_frame;      ///< flag to toggle absolute frame visibility
-    bool m_show_ref_frames;     ///< flag to toggle object reference frame visibility
-    bool m_show_com_frames;     ///< flag to toggle COM frame visibility
-    bool m_show_com_symbols;    ///< flag to toggle COM symbol visibility
-    bool m_show_link_frames;    ///< flag to toggle link frame visibility
+    bool m_show_abs_frame;    ///< flag to toggle absolute frame visibility
+    bool m_show_ref_frames;   ///< flag to toggle object reference frame visibility
+    bool m_show_com_frames;   ///< flag to toggle COM frame visibility
+    bool m_show_com_symbols;  ///< flag to toggle COM symbol visibility
+    bool m_show_link_frames;  ///< flag to toggle link frame visibility
 
-    double m_scale_multiplier;  ///< measure of the model scale 
+    double m_scale_multiplier;  ///< measure of the model scale
     double m_abs_frame_scale;   ///< current absolute frame scale
     double m_ref_frame_scale;   ///< current reference frame scale
     double m_com_frame_scale;   ///< current COM frame scale
@@ -704,8 +740,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     vsg::ref_ptr<vsg::vec3Array> m_com_symbol_vertices;
     vsg::ref_ptr<vsg::vec4Array> m_com_symbol_positions;
-    bool m_com_size_changed;
-    bool m_com_symbols_empty;
+    bool m_com_symbol_size_changed;
 
     // Labels
     std::string m_label_font_path;         ///< path to label font
@@ -729,12 +764,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::Text>> m_link_labels_text;
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
-    double m_start_time;                              ///< wallclock time at first render
+    double m_start_time;                              ///< wall-clock time at first render
     ChTimer m_timer_render;                           ///< timer for rendering speed
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
 
-    double m_target_render_fps;  ///< target rendering framerate (0 = unlimited)
+    double m_target_render_fps;  ///< target rendering frame rate (0 = unlimited)
     double m_last_render_time;   ///< simulation time of last render
 
     // ImGui textures

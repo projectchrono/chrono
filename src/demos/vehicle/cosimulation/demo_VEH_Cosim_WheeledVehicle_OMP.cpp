@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     if (num_procs != 6) {
         if (rank == 0)
             std::cout << "\n\n4-wheel vehicle cosimulation code must be run on exactly 6 ranks!\n\n" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 
@@ -162,9 +162,7 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
         ChVehicleCosimWheeledVehicleNode* vehicle;
-        vehicle = new ChVehicleCosimWheeledVehicleNode(GetVehicleDataFile(vehicle_specfile),
-                                                       GetVehicleDataFile(engine_specfile),
-                                                       GetVehicleDataFile(transmission_specfile));
+        vehicle = new ChVehicleCosimWheeledVehicleNode(GetVehicleDataFile(vehicle_specfile), GetVehicleDataFile(engine_specfile), GetVehicleDataFile(transmission_specfile));
         vehicle->SetVerbose(verbose);
         vehicle->SetInitialLocation(init_loc);
         vehicle->SetInitialYaw(0);
@@ -235,8 +233,7 @@ int main(int argc, char** argv) {
             return 1;
         }
         ////double x_max = path->GetPoint(path->GetNumPoints() - 2).x() - 3.0;
-        auto driver = chrono_types::make_shared<ChPathFollowerDriver>(*vehicle->GetVehicle(), path, "path",
-                                                                      target_speed, 0.5, 0.5);
+        auto driver = chrono_types::make_shared<ChPathFollowerDriver>(*vehicle->GetVehicle(), path, "path", target_speed, 0.5, 0.5);
         driver->GetSteeringController().SetLookAheadDistance(2.0);
         driver->GetSteeringController().SetGains(1.0, 0, 0);
         driver->GetSpeedController().SetGains(0.6, 0.05, 0);
@@ -261,8 +258,7 @@ int main(int argc, char** argv) {
         node->Synchronize(cosim_frame, time);
         node->Advance(step_cosim);
         if (verbose)
-            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
-                 << node->GetTotalExecutionTime() << "]" << endl;
+            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  [" << node->GetTotalExecutionTime() << "]" << endl;
 
         if (output && time > output_frame / output_fps) {
             node->OutputData(output_frame);

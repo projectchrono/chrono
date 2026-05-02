@@ -141,7 +141,7 @@ uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
             f_hist.push_back(mf_p);
 
             real max_compare = 10e29;
-            for (int h = 1; h <= Min(current_iteration, n_armijo); h++) {
+            for (int h = 1; h <= std::min(current_iteration, n_armijo); h++) {
                 real compare = f_hist[current_iteration - h] + gmma * lambda * dTg;
                 if (compare > max_compare)
                     max_compare = compare;
@@ -151,7 +151,7 @@ uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
                 if (current_iteration > 0)
                     mf = f_hist[current_iteration - 1];
                 real lambdanew = -lambda * lambda * dTg / (2 * (mf_p - mf - lambda * dTg));
-                lambda = Max(sigma_min * lambda, Min(sigma_max * lambda, lambdanew));
+                lambda = std::max(sigma_min * lambda, std::min(sigma_max * lambda, lambdanew));
                 printf("Repeat Armijo, new lambda = %f \n", lambda);
             } else {
                 armijo_repeat = false;
@@ -173,7 +173,7 @@ uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
             if (sy <= 0) {
                 alpha = neg_BB1_fallback;
             } else {
-                alpha = Min(a_max, Max(a_min, sDs / sy));
+                alpha = std::min(a_max, std::max(a_min, sDs / sy));
             }
         } else {
             real sy = (ms, my);
@@ -181,14 +181,14 @@ uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
             if (sy <= 0) {
                 alpha = neg_BB2_fallback;
             } else {
-                alpha = Min(a_max, Max(a_min, sy / yDy));
+                alpha = std::min(a_max, std::max(a_min, sy / yDy));
             }
         }
         temp = ml - gdiff * mg;
         Project(temp.data());
         temp = (ml - temp) / (-gdiff);
 
-        real g_proj_norm = Sqrt((temp, temp));
+        real g_proj_norm = std::sqrt((temp, temp));
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
             objective_value = mf_p;

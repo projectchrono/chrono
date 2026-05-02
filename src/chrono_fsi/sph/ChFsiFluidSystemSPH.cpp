@@ -389,7 +389,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
         cerr << "WARNING: Kernel interaction radius multiplier is greater than 1.5 and the cubic spline kernel is "
                 "used. This may lead to pairing instability. See Pg 10. of Ha H.Bui et al. Smoothed particle "
                 "hydrodynamics (SPH) and its applications in geomechanics : From solid fracture to granular "
-                "behaviour and multiphase flows in porous media. You might want to switch to the Wendland kernel."
+                "behavior and multiphase flows in porous media. You might want to switch to the Wendland kernel."
              << endl;
     }
 
@@ -2470,7 +2470,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsMesh(ChTriangleMeshConn
     Real spacing = m_paramsH->d0;
 
     // Ensure mesh if watertight
-    mesh.RepairDuplicateVertexes(1e-9);
+    mesh.RepairDuplicateVertices(1e-9);
     auto bbox = mesh.GetBoundingBox();
 
     const double EPSI = 1e-6;

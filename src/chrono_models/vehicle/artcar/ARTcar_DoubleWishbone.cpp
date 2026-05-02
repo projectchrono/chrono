@@ -223,7 +223,7 @@ ARTcar_DoubleWishboneRear::ARTcar_DoubleWishboneRear(const std::string& name) : 
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 ARTcar_DoubleWishboneFront::~ARTcar_DoubleWishboneFront() {}
 

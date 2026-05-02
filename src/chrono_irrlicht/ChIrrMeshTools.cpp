@@ -334,15 +334,15 @@ IMesh* createCubeMesh(const irr::core::vector3df& size) {
 // -----------------------------------------------------------------------------
 // Create cone
 // -----------------------------------------------------------------------------
-IMesh* createConeMesh(f32 radius, f32 length, u32 tesselation) {
-    return createTruncatedConeMesh(0, radius, length, tesselation);
+IMesh* createConeMesh(f32 radius, f32 length, u32 tessellation) {
+    return createTruncatedConeMesh(0, radius, length, tessellation);
 }
 
 // -----------------------------------------------------------------------------
 // No shared normals between caps and hull
 // -----------------------------------------------------------------------------
-IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
-    return createTruncatedConeMesh(radius, radius, length, tesselation);
+IMesh* createCylinderMesh(f32 radius, f32 length, u32 tessellation) {
+    return createTruncatedConeMesh(radius, radius, length, tessellation);
 }
 
 // -----------------------------------------------------------------------------
@@ -447,12 +447,12 @@ IMesh* createCapsuleMesh(f32 radius, f32 hlen, u32 numSegV, u32 numSegR) {
 // No shared normals between caps and hull
 // -----------------------------------------------------------------------------
 
-IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
+IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tessellation) {
     irr::video::SColor color(255, 255, 255, 255);
 
     SMeshBuffer* buffer = new SMeshBuffer();
 
-    const f32 recTesselation = 1 / (f32)tesselation;
+    const f32 recTesselation = 1 / (f32)tessellation;
     const f32 angleStep = (2 * irr::core::PI) * recTesselation;
 
     // HULL
@@ -464,7 +464,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     auto beta = atan2f(radius_low - radius_top, length * 2);
 
-    for (i = 0; i <= tesselation; ++i) {
+    for (i = 0; i <= tessellation; ++i) {
         const f32 angle = angleStep * i;
 
         v.Pos.X = -radius_low * cosf(angle);
@@ -487,7 +487,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     }
 
     // indices for the main hull part
-    for (i = 0; i < tesselation * 2; i += 2) {
+    for (i = 0; i < tessellation * 2; i += 2) {
         buffer->Indices.push_back(i + 2);
         buffer->Indices.push_back(i + 1);
         buffer->Indices.push_back(i + 0);
@@ -501,7 +501,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     u32 index_bottom = buffer->Vertices.size();
 
-    for (i = 0; i <= tesselation; ++i) {
+    for (i = 0; i <= tessellation; ++i) {
         const f32 angle = angleStep * i;
         v.Pos.X = -radius_low * cosf(angle);
         v.Pos.Y = radius_low * sinf(angle);
@@ -522,7 +522,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     u32 index_center = buffer->Vertices.size() - 1;
 
-    for (i = 0; i < tesselation; ++i) {
+    for (i = 0; i < tessellation; ++i) {
         buffer->Indices.push_back(index_center);
         buffer->Indices.push_back(index_bottom + i + 1);
         buffer->Indices.push_back(index_bottom + i + 0);
@@ -532,7 +532,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     if (radius_top) {
         u32 index_top = buffer->Vertices.size();
 
-        for (i = 0; i <= tesselation; ++i) {
+        for (i = 0; i <= tessellation; ++i) {
             const f32 angle = angleStep * i;
             v.Pos.X = -radius_top * cosf(angle);
             v.Pos.Y = radius_top * sinf(angle);
@@ -553,7 +553,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
         index_center = buffer->Vertices.size() - 1;
 
-        for (i = 0; i < tesselation; ++i) {
+        for (i = 0; i < tessellation; ++i) {
             buffer->Indices.push_back(index_center);
             buffer->Indices.push_back(index_top + i + 0);
             buffer->Indices.push_back(index_top + i + 1);
@@ -570,12 +570,12 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 }
 
 /*
-IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
+IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tessellation) {
     irr::video::SColor color(255, 255, 255, 255);
 
     SMeshBuffer* buffer = new SMeshBuffer();
 
-    const f32 recTesselation = irr::core::reciprocal((f32)tesselation);
+    const f32 recTesselation = irr::core::reciprocal((f32)tessellation);
     const f32 angleStep = (irr::core::PI * 2.f) * recTesselation;
 
     // HULL
@@ -587,7 +587,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     auto beta = atan2f(radius_low - radius_top, length * 2);
 
-    for (i = 0; i <= tesselation; ++i) {
+    for (i = 0; i <= tessellation; ++i) {
         const f32 angle = angleStep * i;
         v.Pos.X = -radius_low * cosf(angle);
         v.Pos.Y = -length;
@@ -608,7 +608,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     }
 
     // indices for the main hull part
-    for (i = 0; i < tesselation * 2; i += 2) {
+    for (i = 0; i < tessellation * 2; i += 2) {
         buffer->Indices.push_back(i + 2);
         buffer->Indices.push_back(i + 0);
         buffer->Indices.push_back(i + 1);
@@ -622,7 +622,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     u32 index_bottom = buffer->Vertices.size();
 
-    for (i = 0; i <= tesselation; ++i) {
+    for (i = 0; i <= tessellation; ++i) {
         const f32 angle = angleStep * i;
         v.Pos.X = -radius_low * cosf(angle);
         v.Pos.Y = -length;
@@ -645,7 +645,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     u32 index_center = buffer->Vertices.size() - 1;
 
-    for (i = 0; i < tesselation; ++i) {
+    for (i = 0; i < tessellation; ++i) {
         buffer->Indices.push_back(index_center);
         buffer->Indices.push_back(index_bottom + i + 0);
         buffer->Indices.push_back(index_bottom + i + 1);
@@ -655,7 +655,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     if (radius_top) {
         u32 index_top = buffer->Vertices.size();
 
-        for (i = 0; i <= tesselation; ++i) {
+        for (i = 0; i <= tessellation; ++i) {
             const f32 angle = angleStep * i;
             v.Pos.X = -radius_top * cosf(angle);
             v.Pos.Y = length;
@@ -678,7 +678,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
         index_center = buffer->Vertices.size() - 1;
 
-        for (i = 0; i < tesselation; ++i) {
+        for (i = 0; i < tessellation; ++i) {
             buffer->Indices.push_back(index_center);
             buffer->Indices.push_back(index_top + i + 1);
             buffer->Indices.push_back(index_top + i + 0);

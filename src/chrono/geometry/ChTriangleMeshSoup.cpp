@@ -17,6 +17,9 @@
 
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
+extern "C" {
+#include "chrono_thirdparty/libstl/stlfile.h"
+}
 
 namespace chrono {
 
@@ -34,7 +37,7 @@ std::shared_ptr<ChTriangleMeshSoup> ChTriangleMeshSoup::CreateFromWavefrontFile(
     return trimesh;
 }
 
-bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
+bool ChTriangleMeshSoup::LoadWavefrontMesh(const std::string& filename) {
     std::vector<tinyobj::shape_t> shapes;
     tinyobj::attrib_t att;
     std::vector<tinyobj::material_t> materials;
@@ -66,13 +69,59 @@ bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     return true;
 }
 
+std::shared_ptr<ChTriangleMeshSoup> ChTriangleMeshSoup::CreateFromSTLFile(const std::string& filename) {
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
+    if (!trimesh->LoadSTLMesh(filename))
+        return nullptr;
+    return trimesh;
+}
+
+bool ChTriangleMeshSoup::LoadSTLMesh(const std::string& filename) {
+    char comment[80];
+    FILE* fp;
+    vertex_t nverts;
+    float* verts;
+    triangle_t ntris;
+    triangle_t* tris;
+    uint16_t* attrs;
+
+    fp = fopen(filename.c_str(), "rb");
+    auto success = loadstl(fp, comment, &verts, &nverts, &tris, &attrs, &ntris);
+    fclose(fp);
+
+    if (success != 0) {
+        free(tris);
+        free(verts);
+        free(attrs);
+        return false;
+    }
+
+    m_triangles.clear();
+    m_triangles.reserve(ntris);
+    for (triangle_t i = 0; i < ntris; ++i) {
+        triangle_t i1 = tris[i * 3];
+        triangle_t i2 = tris[i * 3 + 1];
+        triangle_t i3 = tris[i * 3 + 2];
+
+        ChVector3d v1(verts[i1 * 3], verts[i1 * 3 + 1], verts[i1 * 3 + 2]);
+        ChVector3d v2(verts[i2 * 3], verts[i2 * 3 + 1], verts[i2 * 3 + 2]);
+        ChVector3d v3(verts[i3 * 3], verts[i3 * 3 + 1], verts[i3 * 3 + 2]);
+        m_triangles.emplace_back(v1, v2, v3);
+    }
+
+    free(tris);
+    free(verts);
+    free(attrs);
+    return true;
+}
+
 void ChTriangleMeshSoup::AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) {
     ChTriangle tri(vertex0, vertex1, vertex2);
     m_triangles.push_back(tri);
 }
 
-void ChTriangleMeshSoup::Transform(const ChVector3d displ, const ChMatrix33<> rotscale) {
-    for (int i = 0; i < this->m_triangles.size(); ++i) {
+void ChTriangleMeshSoup::Transform(const ChVector3d& displ, const ChMatrix33d& rotscale) {
+    for (size_t i = 0; i < m_triangles.size(); ++i) {
         m_triangles[i].p1 = rotscale * m_triangles[i].p1;
         m_triangles[i].p1 += displ;
         m_triangles[i].p2 = rotscale * m_triangles[i].p2;

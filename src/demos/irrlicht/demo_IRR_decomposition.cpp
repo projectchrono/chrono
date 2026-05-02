@@ -9,24 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Dario Fusai
 // =============================================================================
 //
 // A small interactive editor to test the convex decomposition settings.
 //
 // =============================================================================
 
-#include <cstdlib>
-
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/core/ChRandom.h"
 #include "chrono/collision/ChConvexDecomposition.h"
-
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#include "chrono_irrlicht/ChIrrMeshTools.h"
-
-#include <irrlicht.h>
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -35,14 +28,11 @@ using namespace chrono::irrlicht;
 // Use the main namespace of Irrlicht
 using namespace irr;
 
-// to make things easier (it's a test..) introduce global variables.
-
-scene::IAnimatedMesh* modelMesh;
-scene::IAnimatedMeshSceneNode* modelNode;
-scene::ISceneNode* decompositionNode;
-
-ChConvexDecompositionHACDv2 mydecompositionHACDv2;
-
+// Utility global variables
+std::shared_ptr<ChTriangleMeshConnected> model_mesh = nullptr;
+std::shared_ptr<ChBody> original_body = nullptr;
+std::shared_ptr<ChBody> decomposition_body = nullptr;
+ChConvexDecompositionHACDv2 decompositionHACDv2;
 int hacd_maxhullcount;
 int hacd_maxhullmerge;
 int hacd_maxhullvertexes;
@@ -50,115 +40,74 @@ double hacd_concavity;
 double hacd_smallclusterthreshold;
 double hacd_fusetolerance;
 
-// LOAD A TRIANGLE MESH USING IRRLICHT IMPORTERS
-//
+// Load a triangle mesh from disk
 void LoadModel(ChVisualSystemIrrlicht* vis, const char* filename) {
-    if (modelNode)
-        modelNode->remove();
-    modelNode = 0;
+    model_mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename);
 
-    if (decompositionNode)
-        decompositionNode->remove();
-    decompositionNode = 0;
-
-    // Load a mesh using the Irrlicht I/O conversion
-    // from mesh file formats.
-    modelMesh = vis->GetSceneManager()->getMesh(filename);
-    modelNode = vis->GetSceneManager()->addAnimatedMeshSceneNode(modelMesh);
-    modelNode->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+    auto model_visshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>(model_mesh, false);
+    original_body->AddVisualShape(model_visshape);
+    vis->BindItem(original_body);
 }
 
+// Perform convex decomposition
 void DecomposeModel(ChVisualSystemIrrlicht* vis) {
-    if (decompositionNode)
-        decompositionNode->remove();
-    decompositionNode = 0;
-
-    if (!modelNode)
+    if (!model_mesh)
         return;
 
-    decompositionNode = vis->GetSceneManager()->addEmptySceneNode();
-
-    // Convert the Irrlicht mesh into a Chrono mesh.
-    ChTriangleMeshSoup chmesh;
-    // modelNode->getMesh();
-    fillChTrimeshFromIrlichtMesh(&chmesh, modelNode->getMesh());  // modelMesh->getMesh(0));
-
     // Perform the convex decomposition using the desired parameters.
-    mydecompositionHACDv2.Reset();
-    mydecompositionHACDv2.AddTriangleMesh(chmesh);
+    decompositionHACDv2.Reset();
+    decompositionHACDv2.AddTriangleMesh(*model_mesh);
 
-    mydecompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes,
-                                        (float)hacd_concavity, (float)hacd_smallclusterthreshold,
-                                        (float)hacd_fusetolerance);
-    mydecompositionHACDv2.ComputeConvexDecomposition();
+    decompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes, (float)hacd_concavity,
+                                      (float)hacd_smallclusterthreshold, (float)hacd_fusetolerance);
+    decompositionHACDv2.ComputeConvexDecomposition();
+    std::cout << "Convex decomposition completed\n";
+    std::cout << "Number of decomposed convex hulls: " << decompositionHACDv2.GetHullCount() << "\n";
 
-    // Visualize the resulting convex decomposition by creating many
-    // colored meshes, each per convex hull.
-    for (unsigned int j = 0; j < mydecompositionHACDv2.GetHullCount(); j++) {
-        scene::SMesh* mmesh = new scene::SMesh();
+    // Visualize the resulting convex decomposition by creating many colored meshes, each per convex hull.
+    decomposition_body = chrono_types::make_shared<ChBody>();
+    for (unsigned int j = 0; j < decompositionHACDv2.GetHullCount(); j++) {
+        auto chmesh_hull = chrono_types::make_shared<ChTriangleMeshSoup>();
+        decompositionHACDv2.GetConvexHullResult(j, *chmesh_hull);
 
-        // Get the j-th convex hull as a ChTriangleMesh.
-        ChTriangleMeshSoup chmesh_hull;
-        mydecompositionHACDv2.GetConvexHullResult(j, chmesh_hull);
+        auto trimesh_connected = chrono_types::make_shared<ChTriangleMeshConnected>();
+        for (const auto& tri : chmesh_hull->GetTriangles()) {
+            trimesh_connected->AddTriangle(tri);
+        }
 
-        video::SColor clr(255, 20 + (int)(140. * ChRandom::Get()), 20 + (int)(140. * ChRandom::Get()),
-                          20 + (int)(140. * ChRandom::Get()));
-
-        // Convert the j-th convex hull from a ChTriangleMesh to an Irrlicht mesh.
-        fillIrlichtMeshFromChTrimesh(mmesh, &chmesh_hull, clr);
-
-        // Add Irrlicht mesh to the scene, as a scene node.
-        scene::SAnimatedMesh* Amesh = new scene::SAnimatedMesh();
-        Amesh->addMesh(mmesh);
-        mmesh->drop();
-
-        scene::IAnimatedMeshSceneNode* piece_node =
-            vis->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
-        piece_node->getMaterial(0).EmissiveColor.set(255, 40, 40, 50);  // 255, 50, 50, 50);
-        // piece_node->getMaterial(0).AmbientColor.set(255,30,30,30);//100, 0,0,0);
-        piece_node->getMaterial(0).DiffuseColor.set(255, clr.getRed(), clr.getGreen(),
-                                                    clr.getBlue());  // 255, 50, 50, 50);
-        // piece_node->getMaterial(0).Lighting = true;
-        piece_node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
-        scene::IAnimatedMeshSceneNode* piece_node2 =
-            vis->GetSceneManager()->addAnimatedMeshSceneNode(Amesh, decompositionNode);
-        piece_node2->getMaterial(0).Lighting = true;
-        piece_node2->getMaterial(0).Wireframe = true;
-        piece_node2->getMaterial(0).Thickness = 2;
+        auto decomposition_visshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>(trimesh_connected, false);
+        ChColor col(0.1 + 0.5 * ChRandom::Get(), 0.3 + 0.2 * ChRandom::Get(), 0.5 * ChRandom::Get());
+        decomposition_visshape->SetColor(col);
+        decomposition_body->AddVisualShape(decomposition_visshape);
     }
 
-    modelNode->setVisible(false);
+    vis->BindItem(decomposition_body);
+    vis->UnbindItem(original_body);
 }
 
+// Save the convex decomposition as Wavefront .obj to a file
 void SaveHullsWavefront(ChVisualSystemIrrlicht* vis, const std::string& filename) {
-    // Save the convex decomposition to a
-    // file using the .obj fileformat.
-
     try {
         std::ofstream decomposed_objfile(filename);
-        mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
-    } catch (std::exception) {
+        decompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
+        std::cout << "Saved Wavefront file: " << filename << "\n";
+    } catch (...) {
         vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
 
+// Save the convex decomposition as chulls list to an .obj file
 void SaveHullsChulls(ChVisualSystemIrrlicht* vis, const std::string& filename) {
-    // Save the convex decomposition to a
-    // file using the .obj fileformat.
-
     try {
         std::ofstream decomposed_objfile(filename);
-        mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
-    } catch (std::exception) {
+        decompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
+        std::cout << "Saved chulls file: " << filename << "\n";
+    } catch (...) {
         vis->GetGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
 
-// Define a MyEventReceiver class which will be used to manage input
-// from the GUI graphical user interface (the interface will
-// be created with the basic -yet flexible- platform
-// independent toolset of Irrlicht).
-
+// Define an Irrlicht event receiver class which will be used to manage input from the GUI
 class MyEventReceiver : public IEventReceiver {
   public:
     MyEventReceiver(ChVisualSystemIrrlicht* vsys) : vis(vsys) {
@@ -199,7 +148,7 @@ class MyEventReceiver : public IEventReceiver {
         // ..add a GUI
         edit_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addEditBox(
             irr::core::stringw((int)hacd_maxhullvertexes).c_str(), core::rect<s32>(510, 110, 650, 125), true, 0, 123);
-        text_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addStaticText(L"Max. vertexes per hull",
+        text_hacd_maxhullvertexes = vis->GetGUIEnvironment()->addStaticText(L"Max. vertices per hull",
                                                                             core::rect<s32>(650, 110, 750, 125), false);
 
         // ..add a GUI
@@ -247,13 +196,12 @@ class MyEventReceiver : public IEventReceiver {
             switch (event.GUIEvent.EventType) {
                 case gui::EGET_MENU_ITEM_SELECTED: {
                     // a menu item was clicked
-
                     gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
                     id = menu->getItemCommandId(menu->getSelectedItem());
 
                     switch (id) {
                         case 90:
-                            env->addFileOpenDialog(L"Load a mesh file, in .OBJ/.X/.MAX format", true, 0, 80);
+                            env->addFileOpenDialog(L"Load a mesh file, in .OBJ format", true, 0, 80);
                             break;
                         case 95:
                             env->addFileOpenDialog(L"Load a 3D CAD model, in STEP format", true, 0, 85);
@@ -267,17 +215,13 @@ class MyEventReceiver : public IEventReceiver {
                         case 92:  // File -> Quit
                             vis->GetDevice()->closeDevice();
                             break;
-                        case 93:
-                            if (modelNode)
-                                modelNode->setVisible(true);
-                            if (decompositionNode)
-                                decompositionNode->setVisible(false);
+                        case 93:  // view model
+                            vis->BindItem(original_body);
+                            vis->UnbindItem(decomposition_body);
                             break;
-                        case 94:
-                            if (modelNode)
-                                modelNode->setVisible(false);
-                            if (decompositionNode)
-                                decompositionNode->setVisible(true);
+                        case 94:  // view decomposition
+                            vis->BindItem(decomposition_body);
+                            vis->UnbindItem(original_body);
                             break;
                     }
                     break;
@@ -369,23 +313,23 @@ class MyEventReceiver : public IEventReceiver {
     gui::IGUIEditBox* edit_hacd_fusetolerance;
 };
 
-//
-// This is the program which is executed
-//
-
+// Main program
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // 1- Create a Chrono physical system: all bodies and constraints
-    //    will be handled by this ChSystemNSC object.
+    // Create Chrono physical system
     ChSystemNSC sys;
-    sys.SetGravityY();
+    sys.SetGravitationalAcceleration({0, 0, 0});
 
-    // Initial settings
-    modelMesh = 0;
-    modelNode = 0;
-    decompositionNode = 0;
+    original_body = chrono_types::make_shared<ChBody>();
+    original_body->SetFixed(true);
+    sys.Add(original_body);
 
+    decomposition_body = chrono_types::make_shared<ChBody>();
+    decomposition_body->SetFixed(true);
+    sys.Add(decomposition_body);
+
+    // Default settings
     hacd_maxhullcount = 512;
     hacd_maxhullmerge = 256;
     hacd_maxhullvertexes = 64;

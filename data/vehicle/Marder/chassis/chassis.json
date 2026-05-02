@@ -22,6 +22,6 @@
     },
 
     "Visualization":  {
-      "Mesh":  "Marder/Hull.obj"
+      "Mesh":  "vehicle/Marder/Hull.obj"
     }
 }

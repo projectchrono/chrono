@@ -18,4 +18,4 @@ set(TESTS
 set(LIBS Chrono_core)
 
 message(STATUS "Add unit test programs for Chrono joints")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "joints" "${LIBS}")

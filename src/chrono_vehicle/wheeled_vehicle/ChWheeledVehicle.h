@@ -231,7 +231,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// If engaged and supported by the concrete brake type on this vehicle, this locks all vehicle brakes.
     void ApplyParkingBrake(bool lock);
 
-    /// Returns the state of the parking brake (true if enagaged, false otherwise).
+    /// Returns the state of the parking brake (true if engaged, false otherwise).
     bool ParkingBrake() const { return m_parking_on; }
 
     /// Disconnect driveline.
@@ -243,6 +243,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Log the types (template names) of current vehicle subsystems.
     void LogSubsystemTypes(std::ostream& os = std::cout);
+
+    /// Return a list with all bodies in the vehicle system.
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const override;
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.

@@ -106,7 +106,7 @@ uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,
         Project(temp.data());
         temp = (1.0 / gdiff) * (gamma - temp);
 
-        residual = Sqrt((double)(temp, temp));
+        residual = std::sqrt((temp, temp));
 
         AtIterationEnd(residual, objective_value);
 

@@ -108,6 +108,6 @@
     },
 
     "Visualization": {
-        "Mesh": "M113/TrackShoeBandBushing.obj"
+        "Mesh": "vehicle/M113/TrackShoeBandBushing.obj"
     }
 }

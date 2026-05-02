@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDrivelineWV {
   private:
     bool m_connected;
     double m_zero_torque;                    ///< zero band for motor torque
-    double m_driveshaft_speed;               ///< output to transmisson
+    double m_driveshaft_speed;               ///< output to transmission
     std::shared_ptr<ChShaft> m_front_left;   ///< associated front left wheel axle
     std::shared_ptr<ChShaft> m_front_right;  ///< associated front right wheel axle
     std::shared_ptr<ChShaft> m_rear_left;    ///< associated rear left wheel axle

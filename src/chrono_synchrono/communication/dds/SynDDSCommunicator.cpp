@@ -13,7 +13,7 @@
 //
 // Class that handles communication across ranks or external entities. A
 // communicator is something that passes messages over some protocol and
-// interfaecs either a rank with another rank, a rank with an external process
+// interfaces either a rank with another rank, a rank with an external process
 // or really anything that relies on communication over some network interface.
 //
 // This class is implemented as a very generic abstract handler that holds and
@@ -46,6 +46,8 @@
 
 #include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
 
+#include <cstdlib>
+
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
 using namespace eprosima::fastrtps::rtps;
@@ -53,18 +55,34 @@ using namespace eprosima::fastrtps::rtps;
 namespace chrono {
 namespace synchrono {
 
-SynDDSCommunicator::SynDDSCommunicator(int node_id, const std::string& prefix) : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(int node_id, const std::string& prefix, int domain_id)
+    : m_prefix(prefix), m_domain_id(ResolveDomainId(domain_id)) {
     AgentKey agent_key = AgentKey(node_id, 0);
     InitQoS(m_prefix + agent_key.GetKeyString());
 }
 
-SynDDSCommunicator::SynDDSCommunicator(const std::string& name, const std::string& prefix) : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(const std::string& name, const std::string& prefix, int domain_id)
+    : m_prefix(prefix), m_domain_id(ResolveDomainId(domain_id)) {
     InitQoS(name);
 }
 
-SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, const std::string& prefix)
-    : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos,
+                                       const std::string& prefix,
+                                       int domain_id)
+    : m_prefix(prefix), m_domain_id(ResolveDomainId(domain_id)) {
     CreateParticipant(qos);
+}
+
+int SynDDSCommunicator::ResolveDomainId(int requested_id) {
+    const char* env = std::getenv("SYNCHRONO_DDS_DOMAIN_ID");
+    if (env) {
+        char* end = nullptr;
+        long val = std::strtol(env, &end, 10);
+        if (end != env && *end == '\0' && val >= 0 && val <= 232)
+            return static_cast<int>(val);
+        SynLog() << "WARNING: Ignoring invalid SYNCHRONO_DDS_DOMAIN_ID='" << env << "'\n";
+    }
+    return requested_id;
 }
 
 void SynDDSCommunicator::InitQoS(const std::string& name) {
@@ -85,8 +103,9 @@ void SynDDSCommunicator::CreateParticipant(DomainParticipantQos& qos) {
     auto mask = StatusMask::all();
     mask.set(9, false);
 
-    // Create the domain participant
-    m_participant = DomainParticipantFactory::get_instance()->create_participant(0, qos, m_listener, mask);
+    // Create the domain participant on the configured domain ID
+    SynLog() << "Creating DDS participant on domain " << m_domain_id << "\n";
+    m_participant = DomainParticipantFactory::get_instance()->create_participant(m_domain_id, qos, m_listener, mask);
     if (!m_participant)
         SynLog() << "ERROR: Failed to create participant\n";
 }

@@ -50,13 +50,14 @@ class CH_VEHICLE_API FEATerrain : public ChTerrain {
     /// Get the terrain normal at the point below the specified location.
     virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override;
 
+    /// Get the terrain point below the specified location.
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override;
+
     /// Get the terrain coefficient of friction at the point below the specified location.
-    /// This coefficient of friction value may be used by certain tire models to modify
-    /// the tire characteristics, but it will have no effect on the interaction of the terrain
-    /// with other objects (including tire models that do not explicitly use it).
-    /// For FEATerrain, this function defers to the user-provided functor object
-    /// of type ChTerrain::FrictionFunctor, if one was specified.
-    /// Otherwise, it returns the constant value of 0.8.
+    /// This coefficient of friction value may be used by certain tire models to modify the tire characteristics, but it
+    /// will have no effect on the interaction of the terrain with other objects (including tire models that do not
+    /// explicitly use it). For FEATerrain, this function defers to the user-provided functor object of type
+    /// ChTerrain::FrictionFunctor, if one was specified. Otherwise, it returns the constant value of 0.8.
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
     /// Set the properties of the Drucker-Prager FEA soil.

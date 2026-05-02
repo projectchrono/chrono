@@ -31,7 +31,7 @@ namespace vehicle {
 /// @addtogroup vehicle_powertrain
 /// @{
 
-/// Defintion of a powertrain assembly system.
+/// Definition of a powertrain assembly system.
 /// A powertrain assembly consists of an engine and a transmission.
 class CH_VEHICLE_API ChPowertrainAssembly {
   public:

@@ -176,7 +176,7 @@ Duro_DeDionAxle::Duro_DeDionAxle(const std::string& name) : ChDeDionAxle(name) {
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 Duro_DeDionAxle::~Duro_DeDionAxle() {}
 

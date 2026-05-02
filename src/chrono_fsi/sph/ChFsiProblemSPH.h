@@ -238,10 +238,10 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Reconstruct surface from the current SPH particle data cloud.
     /// This function invokes the external `splashsurf` tool to generate a Wavefront OBJ mesh reconstructed from the
-    /// current positions of the SPH pareticles. If splashsurf was not found during configuration, this function is a
+    /// current positions of the SPH particles. If splashsurf was not found during configuration, this function is a
     /// no-op. The intermediate data file with SPH particle positions and the resulting mesh file are created in the
     /// specified directory and are named [name].json and [name].obj, respectively. If quiet=true, splashsurf console
-    /// output is supressed. This is a blocking operation which can be computationally expensive for large problems.
+    /// output is suppressed. This is a blocking operation which can be computationally expensive for large problems.
     /// See ChFsiSplashsurfSPH.
     void WriteReconstructedSurface(const std::string& dir, const std::string& name, bool quiet = false);
 

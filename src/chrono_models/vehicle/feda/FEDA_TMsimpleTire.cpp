@@ -52,8 +52,8 @@ void FEDA_TMsimpleTire::SetTMsimpleParams() {
                                39845.54, 42748.00, 45518.51, 48130.91, 50559.06, 52776.81, 54758.00};
 
     SetVerticalStiffness(defl, frc);
-    m_unloaded_radius = 0.4987;  //$Free tyre radius
-    m_width = 0.3350;            //$Nominal section width of the tyre
+    m_unloaded_radius = 0.4987;  //$Free tire radius
+    m_width = 0.3350;            //$Nominal section width of the tire
     m_rim_radius = 0.2858;       //$Nominal rim radius
     m_rolling_resistance = 0.015;
 

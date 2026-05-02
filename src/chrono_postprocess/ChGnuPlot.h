@@ -27,6 +27,12 @@
 
 #include "chrono_postprocess/ChApiPostProcess.h"
 
+#ifdef __APPLE__
+#define GNUTRM "qt"
+#else
+#define GNUTRM "wxt"
+#endif
+
 namespace chrono {
 
 /// Namespace with classes for the postprocess unit.
@@ -368,15 +374,19 @@ class ChGnuPlot {
     /// Set aspect ratio.
     void SetAspectRatio(double val) { m_commandfile += " set size ratio " + std::to_string(val) + "\n"; }
 
-    /// Set axes to equal size (i.e., square box) or restore default.
-    void SetAxesEqual(bool axequal) { m_commandfile += axequal ? " set size square \n" : " set size nosquare \n"; }
+    /// Set square axes (i.e., a square box) or restore default.
+    void SetAxesSquare(bool square) { m_commandfile += square ? " set size square \n" : " set size nosquare \n"; }
+
+    /// Set same scale for x and y.
+    /// Note that this can also be achieved with SetAspectRatio(-1).
+    void SetAxesEqual() { m_commandfile += " set view equal xy \n"; }
 
     /// Set output window title.
-    void SetOutputWindowTitle(const std::string& label) { m_commandfile += "set term wxt title '" + label + "'\n"; }
+    void SetOutputWindowTitle(const std::string& label) { m_commandfile += "set term " GNUTRM " title '" + label + "'\n"; }
 
     /// Set canvas size.
     void SetCanvasSize(int width, int height) {
-        m_commandfile += "set term wxt size ";
+        m_commandfile += "set term " GNUTRM " size ";
         m_commandfile += std::to_string(width);
         m_commandfile += ",";
         m_commandfile += std::to_string(height);
@@ -392,7 +402,7 @@ class ChGnuPlot {
     void OutputWindow(int windownum = 0, bool reset_text = false) {
         FlushPlots(m_commandfile);
         m_commandfile += "# Figure " + std::to_string(windownum) + "\n";
-        m_commandfile += "set terminal wxt " + std::to_string(windownum) + "\n";
+        m_commandfile += "set terminal " GNUTRM " " + std::to_string(windownum) + "\n";
 
         if (reset_text) {
             SetLabelX("");

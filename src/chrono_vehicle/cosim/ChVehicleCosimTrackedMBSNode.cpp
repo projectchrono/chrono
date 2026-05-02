@@ -150,7 +150,7 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
 
     // Initialize the DBP rig if one is attached
     if (m_DBP_rig) {
-        m_DBP_rig->m_verbose = m_verbose;
+        m_DBP_rig->SetVerbose(m_verbose);
         m_DBP_rig->Initialize(GetChassisBody(), GetSprocketAddendumRadius(), m_step_size);
 
         m_DBP_outf.open(m_node_out_dir + "/DBP.dat", std::ios::out);
@@ -230,7 +230,7 @@ void ChVehicleCosimTrackedMBSNode::Advance(double step_size) {
         PreAdvance(h);
         m_system->DoStepDynamics(h);
         if (m_DBP_rig) {
-            m_DBP_rig->OnAdvance(step_size);
+            m_DBP_rig->Advance(step_size);
         }
         PostAdvance(h);
         t += h;
@@ -246,7 +246,7 @@ void ChVehicleCosimTrackedMBSNode::OutputData(int frame) {
     double time = m_system->GetChTime();
 
     // If a DBP rig is attached, output its results
-    if (m_DBP_rig && time >= m_DBP_rig->m_delay_time) {
+    if (m_DBP_rig && time >= m_DBP_rig->GetTimeDelay()) {
         std::string del("  ");
 
         m_DBP_outf << time << del;

@@ -20,7 +20,7 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/SprocketDoublePin.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 

@@ -2,30 +2,23 @@
 # CMake configuration file for demos of rendering Chrono::Vehicle simulations.
 #=============================================================================
 
+if(NOT CH_ENABLE_MODULE_VSG)
+  return()
+endif()
+
 #--------------------------------------------------------------
 # List all demos
 
-set(DEMOS "")
-
-if(CH_ENABLE_MODULE_VSG)
-    set(DEMOS ${DEMOS}
-        demo_VEH_RenderJSON_VSG
-    )
-endif()
+set(DEMOS
+    demo_VEH_RenderJSON_VSG
+)
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_vehicle_irrlicht")
-endif()
-
-if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_vehicle_vsg")
-endif()
+list(APPEND LIBS "Chrono_vehicle_vsg")
 
 #--------------------------------------------------------------
 # Create the executables

@@ -32,8 +32,7 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChContactMethod contact_method)
-    : ChVehicle(name, contact_method) {
+ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChContactMethod contact_method) : ChVehicle(name, contact_method) {
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
@@ -105,10 +104,7 @@ void ChTrackedVehicle::Synchronize(double time, const DriverInputs& driver_input
 
 // Update the state of this vehicle at the current time. This version is used in a co-simulation framework and provides
 // the terrain forces on the track shoes (assumed to be expressed in the global reference frame).
-void ChTrackedVehicle::Synchronize(double time,
-                                   const DriverInputs& driver_inputs,
-                                   const TerrainForces& shoe_forces_left,
-                                   const TerrainForces& shoe_forces_right) {
+void ChTrackedVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const TerrainForces& shoe_forces_left, const TerrainForces& shoe_forces_right) {
     // Let the driveline combine driver inputs if needed
     double braking_left = 0;
     double braking_right = 0;
@@ -453,14 +449,41 @@ void ChTrackedVehicle::LogSubsystemTypes(std::ostream& os) {
 
 // -----------------------------------------------------------------------------
 
+std::vector<std::shared_ptr<ChBody>> ChTrackedVehicle::GetBodyList() const {
+    std::vector<std::shared_ptr<ChBody>> bodies;
+
+    {
+        auto b = m_chassis->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    for (auto& c : m_chassis_rear) {
+        auto b = c->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    {
+        auto b = m_tracks[0]->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    {
+        auto b = m_tracks[1]->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    return bodies;
+}
+
+// -----------------------------------------------------------------------------
+
 std::string ChTrackedVehicle::ExportComponentList() const {
     rapidjson::Document jsonDocument;
     jsonDocument.SetObject();
 
     std::string template_name = GetTemplateName();
     jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
-    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
-                           jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(), jsonDocument.GetAllocator());
 
     {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());

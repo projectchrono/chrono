@@ -32,8 +32,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::vsg3d;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
 // -----------------------------------------------------------------------------
 
 void ConstructModel(ChSystem& sys, int id) {
@@ -186,7 +184,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(1280, 800);
     vis->SetWindowPosition(100, 100);
     vis->SetWindowTitle("FEA checkpointing");
-    vis->EnableSkyBox();
+    vis->EnableSkyTexture(SkyMode::BOX);
     vis->AddCamera(ChVector3d(-0.8, 0.8, 0.8), ChVector3d());
     vis->SetCameraAngleDeg(50);
     vis->SetLightIntensity(1.0f);

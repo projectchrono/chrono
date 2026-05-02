@@ -69,12 +69,12 @@ double ChSystemDemMesh_impl::get_max_K() const {
 
         maxK = 4.0 / (3.0 * (sigma_sphere + std::min(std::min(sigma_sphere, sigma_wall), sigma_mesh))) *
                std::sqrt(sphere_radius_UU);
-        INFO_PRINTF("Use material based contact force model, maximum effective stiffnes is %e\n", maxK);
+        INFO_PRINTF("Use material based contact force model, maximum effective stiffness is %e\n", maxK);
         return maxK;
 
     } else {
         maxK = std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
-        INFO_PRINTF("Use user defined contact force model, maximum effective stiffnes is %e\n", maxK);
+        INFO_PRINTF("Use user defined contact force model, maximum effective stiffness is %e\n", maxK);
         return maxK;
     }
 }

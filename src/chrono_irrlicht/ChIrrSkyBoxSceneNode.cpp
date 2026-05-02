@@ -214,7 +214,7 @@ void CSkyBoxSceneNode::OnRegisterSceneNode() {
 
 // returns the material based on the zero based index i. To get the amount
 // of materials used by this scene node, use getMaterialCount().
-// This function is needed for inserting the node into the scene hirachy on a
+// This function is needed for inserting the node into the scene hierarchy on a
 // optimal position for minimizing renderstate changes, but can also be used
 // to directly modify the material of a scene node.
 video::SMaterial& CSkyBoxSceneNode::getMaterial(u32 i) {

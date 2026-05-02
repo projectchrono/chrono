@@ -19,8 +19,6 @@ namespace chrono {
 ChLinkLimit::ChLinkLimit()
     : m_active(false),
       m_penalty_only(false),
-      m_polar(false),
-      m_rotation(false),
       m_max(1),
       m_min(-1),
       m_maxCushion(0),
@@ -43,8 +41,6 @@ ChLinkLimit::ChLinkLimit()
 ChLinkLimit::ChLinkLimit(const ChLinkLimit& other) {
     m_active = other.m_active;
     m_penalty_only = other.m_penalty_only;
-    m_polar = other.m_polar;
-    m_rotation = other.m_rotation;
 
     m_max = other.m_max;
     m_min = other.m_min;
@@ -108,8 +104,6 @@ void ChLinkLimit::ArchiveOut(ChArchiveOut& archive_out) {
     // stream out all member data
     archive_out << CHNVP(m_active);
     archive_out << CHNVP(m_penalty_only);
-    archive_out << CHNVP(m_polar);
-    archive_out << CHNVP(m_rotation);
     archive_out << CHNVP(m_max);
     archive_out << CHNVP(m_min);
     archive_out << CHNVP(m_maxCushion);
@@ -132,8 +126,6 @@ void ChLinkLimit::ArchiveIn(ChArchiveIn& archive_in) {
     // stream in all member data
     archive_in >> CHNVP(m_active);
     archive_in >> CHNVP(m_penalty_only);
-    archive_in >> CHNVP(m_polar);
-    archive_in >> CHNVP(m_rotation);
     archive_in >> CHNVP(m_max);
     archive_in >> CHNVP(m_min);
     archive_in >> CHNVP(m_maxCushion);

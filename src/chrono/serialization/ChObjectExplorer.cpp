@@ -225,7 +225,7 @@ void ChObjectExplorer::ClearSearch() {
     this->tablevel = 0;
     this->results.clear();
     this->search_tokens.clear();
-    this->search_tokens.push_back("");  // for root lavel
+    this->search_tokens.push_back("");  // for root level
     this->in_array.clear();
     this->in_array.push_back(false);  // for root level
     for (int i = 0; i < this->results.size(); ++i) {

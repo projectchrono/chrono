@@ -38,7 +38,7 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
         auto element = mmesh->GetElement(ie);
 
         if (auto tet = std::dynamic_pointer_cast<ChElementTetrahedron>(element)) {
-            unsigned char nodes = 0;  // if the i-th bit is 1, the corressponding hex node is in the set
+            unsigned char nodes = 0;  // if the i-th bit is 1, the corresponding hex node is in the set
             for (int in = 0; in < 4; in++) {
                 if (node_set_map.find((size_t)tet->GetTetrahedronNode(in).get()) != node_set_map.end())
                     nodes |= 1 << in;
@@ -56,7 +56,7 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
         }
 
         if (auto hex = std::dynamic_pointer_cast<ChElementHexahedron>(element)) {
-            unsigned char nodes = 0;  // if the i-th bit is 1, the corressponding hex node is in the set
+            unsigned char nodes = 0;  // if the i-th bit is 1, the corresponding hex node is in the set
             for (int in = 0; in < 7; in++) {
                 if (node_set_map.find((size_t)hex->GetHexahedronNode(in).get()) != node_set_map.end())
                     nodes |= 1 << in;

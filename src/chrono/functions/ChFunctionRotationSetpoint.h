@@ -61,12 +61,13 @@ class ChApi ChFunctionRotationSetpoint : public ChFunctionRotation {
     CH_ENUM_MAPPER_END(eChSetpointMode);
     /// @endcond
 
-    /// Sets the extrapolation/interpolation mode
+    /// Set the extrapolation/interpolation mode.
     void SetMode(eChSetpointMode mmode) { mode = mmode; }
-    /// Gets the extrapolation/interpolation mode
-    eChSetpointMode GetMode() { return mode; }
+    
+    /// Get the extrapolation/interpolation mode.
+    eChSetpointMode GetMode() const { return mode; }
 
-    /// Use this to go back to s=0 (the SetSetpoint() function works only if called at increasing s values)
+    /// Use this to go back to s=0 (the SetSetpoint() function works only if called at increasing s values).
     void Reset(double ms = 0);
 
     /// Set the rotation setpoint, and compute its derivatives (angular speed, angular acceleration) automatically

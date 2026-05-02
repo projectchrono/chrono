@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
         vis->Render();
         
-        tools::drawGrid(vis.get(), 2, 2, 20, 20, ChCoordsys<>(ChVector3d(0, -20, 0), QuatFromAngleX(CH_PI_2)),
+        tools::DrawGrid(vis.get(), 2, 2, 20, 20, ChCoordsys<>(ChVector3d(0, -20, 0), QuatFromAngleX(CH_PI_2)),
                         ChColor(0.3f, 0.5f, 0.5f), true);
 
         // Update the position of the spinning fan (for visualization purposes only)
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
         ChFrame<> my_fan_framerotation(my_fan_coord);
         ChFrame<> my_fan_framespin(ChCoordsys<>(VNULL, my_fan_spin));
         ChCoordsys<> my_fan_coordsys = (my_fan_framespin >> my_fan_framerotation).GetCoordsys();
-        tools::alignIrrlichtNode(fanNode, my_fan_coordsys);
+        tools::AlignIrrlichtNode(fanNode, my_fan_coordsys);
 
         vis->EndScene();
 

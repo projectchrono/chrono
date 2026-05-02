@@ -93,7 +93,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
     // mg = mg - r;
 
     temp = gamma - one;
-    real norm_temp = Sqrt((real)(temp, temp));
+    real norm_temp = std::sqrt((temp, temp));
     if (data_manager->settings.solver.cache_step_length == true) {
         if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
             L = data_manager->measures.solver.normal_apgd_step_length;
@@ -119,7 +119,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
             // If the N matrix is zero for some reason, temp will be zero
             SchurProduct(temp, temp);
             // If temp is zero then L will be zero
-            L = Sqrt((real)(temp, temp)) / norm_temp;
+            L = std::sqrt((temp, temp)) / norm_temp;
         }
         // When L is zero the step length can't be computed, in this case just return
         // If the N is indeed zero then solving doesn't make sense
@@ -137,7 +137,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
 
     t = 1.0 / L;
     y = gamma;
-    // If no iterations are performed or the residual is NAN (which is shouldnt be)
+    // If no iterations are performed or the residual is NAN (which is should not be)
     // make sure that gamma_hat has something inside of it. Otherwise gamma will be
     // overwritten with a vector of zero size
     gamma_hat = gamma;
@@ -160,7 +160,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
             obj1 = (gamma_new, 0.5 * N_gamma_new - r);
             temp = gamma_new - y;
         }
-        theta_new = (-std::pow(theta, 2.0) + theta * Sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
+        theta_new = (-std::pow(theta, 2.0) + theta * std::sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
         beta_new = theta * (1.0 - theta) / (std::pow(theta, 2.0) + theta_new);
 
         temp = gamma_new - gamma;
@@ -169,7 +169,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
 
         // Compute the residual
         temp = gamma_new - g_diff * (N_gamma_new - r);
-        // ಠ_ಠ THIS PROJECTION IS IMPORTANT! (╯°□°)╯︵ ┻━┻
+        // THIS PROJECTION IS IMPORTANT!
         // If turned off the residual will be very incorrect! Turning it off can cause the solver to effectively use the
         // solution found in the first step because the residual never get's smaller. (You can convince yourself of this
         // by
@@ -179,7 +179,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
         Project(temp.data());
         temp = (1.0 / g_diff) * (gamma_new - temp);
         real temp_dotb = (real)(temp, temp);
-        real res = Sqrt(temp_dotb);
+        real res = std::sqrt(temp_dotb);
 
         if (res < residual) {
             residual = res;

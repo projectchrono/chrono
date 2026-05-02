@@ -26,10 +26,6 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 using namespace chrono::vsg3d;
@@ -101,59 +97,30 @@ int main(int argc, char* argv[]) {
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
-    if (render) {
-        ChVisualSystem::Type vis_type;
-
-#if defined(CHRONO_VSG)
-        vis_type = ChVisualSystem::Type::VSG;
-#elif defined(CHRONO_IRRLICHT)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#else
-        std::cout << "No Chrono run-time visualization module enabled. Disabling visualization." << std::endl;
-        render = false;
-#endif
-
-        switch (vis_type) {
-            case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-                auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-                vis_irr->SetWindowSize(800, 600);
-                vis_irr->SetWindowTitle("YAML model - " + model_name);
-                vis_irr->SetCameraVertical(camera_vertical);
-                vis_irr->Initialize();
-                vis_irr->AddLogo();
-                vis_irr->AddTypicalLights();
-                vis_irr->AddCamera(camera_location, camera_target);
-                vis_irr->AttachSystem(sys.get());
-
-                vis = vis_irr;
-#endif
-                break;
-            }
-            default:
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-                vis_vsg->AttachSystem(sys.get());
-                vis_vsg->SetWindowTitle("YAML model - " + model_name);
-                vis_vsg->AddCamera(camera_location, camera_target);
-                vis_vsg->SetWindowSize(1280, 800);
-                vis_vsg->SetWindowPosition(100, 100);
-                vis_vsg->SetCameraVertical(camera_vertical);
-                vis_vsg->SetCameraAngleDeg(40.0);
-                vis_vsg->SetLightIntensity(1.0f);
-                vis_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
-                vis_vsg->EnableShadows(enable_shadows);
-                vis_vsg->ToggleAbsFrameVisibility();
-                vis_vsg->SetAbsFrameScale(2.0);
-                vis_vsg->Initialize();
+    if (render) {
+        auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+        vis_vsg->AttachSystem(sys.get());
+        vis_vsg->SetWindowTitle("YAML model - " + model_name);
+        vis_vsg->AddCamera(camera_location, camera_target);
+        vis_vsg->SetWindowSize(1280, 800);
+        vis_vsg->SetWindowPosition(100, 100);
+        vis_vsg->SetCameraVertical(camera_vertical);
+        vis_vsg->SetCameraAngleDeg(40.0);
+        vis_vsg->SetLightIntensity(1.0f);
+        vis_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
+        vis_vsg->EnableShadows(enable_shadows);
+        vis_vsg->ToggleAbsFrameVisibility();
+        vis_vsg->SetAbsFrameScale(2.0);
+        vis_vsg->Initialize();
 
-                vis = vis_vsg;
-#endif
-                break;
-            }
-        }
+        vis = vis_vsg;
     }
+#else
+    if (render)
+        std::cout << "Chrono::VSG run-time visualization module not enabled. Disabling visualization." << std::endl;
+    render = false;
+#endif
 
     // Create output directory
     if (output) {

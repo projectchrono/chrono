@@ -18,14 +18,9 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
-#include "curand_utils.cuh"
-#include "camera_noise.cuh"
-// #include "chrono_sensor/utils/CudaMallocHelper.h"
-
-#include "chrono_sensor/optix/shaders/device_utils.h"
-
-// #include <chrono>
-// #include <memory>
+#include "chrono_sensor/cuda/curand_utils.cuh"
+#include "chrono_sensor/cuda/camera_noise.cuh"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 namespace chrono {
 namespace sensor {

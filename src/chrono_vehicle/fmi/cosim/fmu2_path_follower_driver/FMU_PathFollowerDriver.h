@@ -23,7 +23,7 @@
 // the current vehicle reference frame (of type ChFrameMoving).
 //
 // This driver FMU defines continuous output variables for:
-//   - sterring command (in [-1,1])
+//   - steering command (in [-1,1])
 //   - throttle command (in [0,1]
 //   - braking command (in [0,1])
 //
@@ -60,9 +60,7 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     ~FmuComponent() {}
 
     /// Advance dynamics.
-    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint,
-                                  fmi2Real communicationStepSize,
-                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
+    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
   private:
     virtual fmi2Status enterInitializationModeIMPL() override;
@@ -113,7 +111,7 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     bool save_img;         ///< enable/disable saving of visualization snapshots
     double fps;            ///< snapshot saving frequency (in FPS)
 
-    // Vehicle driver commands (FMU countinuous outputs)
+    // Vehicle driver commands (FMU continuous outputs)
     double steering;  ///< steering command, in [-1,1]
     double throttle;  ///< throttle command, in [0,1]
     double braking;   ///< braking command, in [0,1]

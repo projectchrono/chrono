@@ -1,9 +1,12 @@
 #=============================================================================
 # CMake configuration file for demos of Chrono::Vehicle model exchange FMUs.
-# These example programs require run-time visualization.
 #=============================================================================
 
 if(NOT CH_ENABLE_MODULE_VEHICLE_FMI)
+  return()
+endif()
+
+if (NOT CH_ENABLE_MODULE_VSG)
   return()
 endif()
 
@@ -18,14 +21,7 @@ set(DEMOS
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 list(APPEND LIBS "Chrono_fmi")
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_vehicle_irrlicht")
-endif()
-
-if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_vehicle_vsg")
-endif()
+list(APPEND LIBS "Chrono_vehicle_vsg")
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "Chrono_postprocess")

@@ -98,7 +98,7 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // SD is touched by "t" triangles, it'll show up "t" times in this array
     unsigned int* d_in = d_keys_out;
     // d_unique_out stores a list of *unique* SDs with the following property: each SD in this list has at least one
-    // triangle touching it. In terms of memory, this is pretty wasteful since it's unilkely that all SDs are touched by
+    // triangle touching it. In terms of memory, this is pretty wasteful since it's unlikely that all SDs are touched by
     // at least one triangle; perhaps revisit later.
     unsigned int* d_unique_out =
         (unsigned int*)stateOfSolver_resources.pDeviceMemoryScratchSpace(nSDs * sizeof(unsigned int));
@@ -266,7 +266,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
     if (sphereIDLocal < spheresTouchingThisSD) {
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
-            /// we have a valid sphere and a valid triganle; check if in contact
+            /// we have a valid sphere and a valid triangle; check if in contact
             float3 normal;  // Unit normal from pt2 to pt1 (triangle contact point to sphere contact point)
             float depth;    // Negative in overlap
             float3 pt1_float;
@@ -360,7 +360,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
 
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
-                // NOTE the cancelation of two negatives
+                // NOTE the cancellation of two negatives
                 force_accum = force_accum + gran_params->sphere_mass_SU * mesh_params->adhesionAcc_s2m * delta / depth;
 
                 // tangential component
@@ -544,7 +544,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
     if (sphereIDLocal < spheresTouchingThisSD) {
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
-            /// we have a valid sphere and a valid triganle; check if in contact
+            /// we have a valid sphere and a valid triangle; check if in contact
             float3 normal;  // Unit normal from pt2 to pt1 (triangle contact point to sphere contact point)
             float depth;    // Negative in overlap
             float3 pt1_float;
@@ -591,7 +591,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
 
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
-                // NOTE the cancelation of two negatives
+                // NOTE the cancellation of two negatives
                 force_accum = force_accum + gran_params->sphere_mass_SU * mesh_params->adhesionAcc_s2m * delta / depth;
 
                 // Velocity difference, it's better to do a coalesced access here than a fragmented access

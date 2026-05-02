@@ -178,11 +178,11 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Mixer SMC");
-    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->AddCamera(ChVector3d(0.6, -2, 3), ChVector3d(0, 0, 0));
     vis->SetWindowSize(1280, 720);
     vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-    vis->EnableSkyBox();
+    vis->EnableSkyTexture(SkyMode::BOX);
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(0.75f);
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI / 6);

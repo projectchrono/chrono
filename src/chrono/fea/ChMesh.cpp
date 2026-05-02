@@ -157,7 +157,7 @@ void ChMesh::Setup() {
     }
 }
 
-// Updates all time-dependant variables, if any...
+// Updates all time-dependent variables, if any...
 // Ex: maybe the elasticity can increase in time, etc.
 void ChMesh::Update(double m_time, UpdateFlags update_flags) {
     // Parent class update
@@ -275,6 +275,12 @@ void ChMesh::IntStateGetIncrement(const unsigned int off_x,
             local_off_x += vnodes[j]->GetNumCoordsPosLevelActive();
             local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
+    }
+}
+
+void ChMesh::IntStateOnEndStep(double T) {
+    for (int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->ElementUpdateEndStep(T);
     }
 }
 

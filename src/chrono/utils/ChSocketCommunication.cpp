@@ -25,46 +25,44 @@ ChSocketCommunication::ChSocketCommunication(ChSocketFramework& framework,  // s
                                              int n_in_values,               // number of recv scalar variables
                                              int n_out_values               // number of send variables
 ) {
-    this->myServer = 0;
-    this->myClient = 0;
-    this->in_n = n_in_values;
-    this->out_n = n_out_values;
-    this->nport = 0;
+    myServer = 0;
+    myClient = 0;
+    in_n = n_in_values;
+    out_n = n_out_values;
+    nport = 0;
 }
 
 ChSocketCommunication::~ChSocketCommunication() {
-    if (this->myServer)
-        delete this->myServer;
-    this->myServer = 0;
-    if (this->myClient)
-        delete this->myClient;
-    this->myClient = 0;
+    delete myServer;
+    myServer = nullptr;
+    delete myClient;
+    myClient = nullptr;
 }
 
 bool ChSocketCommunication::WaitConnection(int port) {
-    this->nport = port;
+    nport = port;
 
     // a server is created, that could listen at a given port
-    this->myServer = new ChSocketTCP(port);
+    myServer = new ChSocketTCP(port);
 
     // bind socket to server
-    this->myServer->bindSocket();
+    myServer->bindSocket();
 
     // wait for a client to connect (this might put the program in
     // a long waiting state... a timeout can be useful then)
-    this->myServer->listenToClient(1);
+    myServer->listenToClient(1);
 
     std::string clientHostName;
-    this->myClient = this->myServer->acceptClient(clientHostName);  // pick up the call!
+    myClient = myServer->acceptClient(clientHostName);  // pick up the call!
 
-    if (!this->myClient)
+    if (!myClient)
         throw std::runtime_error("Server failed in getting the client socket");
 
     return true;
 }
 
 bool ChSocketCommunication::SendData(double time, ChVectorConstRef out_data) {
-    if (out_data.size() != this->out_n)
+    if (out_data.size() != out_n)
         throw std::runtime_error("ERROR: Sent data must be a vector of size N.");
     if (!myClient)
         throw std::runtime_error("ERROR: Attempted 'SendData' with no connected client.");
@@ -85,24 +83,24 @@ bool ChSocketCommunication::SendData(double time, ChVectorConstRef out_data) {
     }
 
     // -----> SEND!!!
-    this->myClient->SendBuffer(mbuffer);
+    myClient->SendBuffer(mbuffer);
 
     return true;
 }
 
 bool ChSocketCommunication::ReceiveData(double& time, ChVectorRef in_data) {
-    if (in_data.size() != this->in_n)
+    if (in_data.size() != in_n)
         throw std::runtime_error("ERROR: Received data must be a vector of size N.");
     if (!myClient)
         throw std::runtime_error("ERROR: Attempted 'ReceiveData' with no connected client.");
 
     // Receive from the client
-    int nbytes = sizeof(double) * (this->in_n + 1);
+    int nbytes = sizeof(double) * (in_n + 1);
     std::vector<char> rbuffer;
     rbuffer.resize(nbytes);
 
     // -----> RECEIVE!!!
-    /*int numBytes =*/this->myClient->ReceiveBuffer(rbuffer, nbytes);
+    /*int numBytes =*/myClient->ReceiveBuffer(rbuffer, nbytes);
 
     // Deserialize data (little endian): retrieve time
     for (size_t ds = 0; ds < sizeof(double); ++ds) {

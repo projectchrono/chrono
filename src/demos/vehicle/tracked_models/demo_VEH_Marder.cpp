@@ -26,18 +26,10 @@
 
 #include "chrono_models/vehicle/marder/Marder.h"
 
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
+
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -52,9 +44,6 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
 ChVector3d initLoc(-40, 0, 0.9);
@@ -95,6 +84,7 @@ void AddFixedObstacles(ChSystem* system);
 void AddFallingObjects(ChSystem* system);
 
 // =============================================================================
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
@@ -233,43 +223,14 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization
     // -----------------------------------------
 
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("Marder Vehicle Demo");
-            vis_irr->SetChaseCamera(trackPoint, 10.0, 0.5);
-            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional(60, -90);
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&vehicle);
-            vis_irr->AttachDriver(&driver);
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("Marder Vehicle Demo");
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetChaseCamera(trackPoint, 12.0, 0.75);
-            vis_vsg->AttachVehicle(&vehicle);
-            vis_vsg->AttachDriver(&driver);
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+    vis->SetWindowTitle("Marder Vehicle Demo");
+    vis->SetWindowSize(1280, 800);
+    vis->SetChaseCamera(trackPoint, 12.0, 0.75);
+    vis->AttachVehicle(&vehicle);
+    vis->AttachDriver(&driver);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->Initialize();
 
     // -----------------
     // Initialize output
@@ -458,6 +419,7 @@ int main(int argc, char* argv[]) {
 }
 
 // =============================================================================
+
 void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
@@ -486,6 +448,7 @@ void AddFixedObstacles(ChSystem* system) {
 }
 
 // =============================================================================
+
 void AddFallingObjects(ChSystem* system) {
     double radius = 0.1;
     double mass = 10;

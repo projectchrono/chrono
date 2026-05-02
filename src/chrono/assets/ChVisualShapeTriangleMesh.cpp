@@ -148,6 +148,8 @@ void ChVisualShapeTriangleMesh::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(backface_cull);
     archive_out << CHNVP(name);
     archive_out << CHNVP(scale);
+    archive_out << CHNVP(fixed_connectivity);
+    archive_out << CHNVP(modified_vertices);
 }
 
 void ChVisualShapeTriangleMesh::ArchiveIn(ChArchiveIn& archive_in) {
@@ -161,6 +163,8 @@ void ChVisualShapeTriangleMesh::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(backface_cull);
     archive_in >> CHNVP(name);
     archive_in >> CHNVP(scale);
+    archive_in >> CHNVP(fixed_connectivity);
+    archive_in >> CHNVP(modified_vertices);
 }
 
 }  // end namespace chrono

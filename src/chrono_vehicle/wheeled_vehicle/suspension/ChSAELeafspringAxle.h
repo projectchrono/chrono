@@ -32,8 +32,8 @@
 // joints of the clamp bodies.
 //
 // For the stiffness parameters the user can take the desired translatoric vertical
-// stiffness dividedby two (we have two leaves). The preload can be set as a
-// vertical force dividedby two. The conversion to the rotary setup is made
+// stiffness divided by two (we have two leaves). The preload can be set as a
+// vertical force divided by two. The conversion to the rotary setup is made
 // automatically.
 //
 // The SAE model allows to consider the correct axle movement due to wheel travel.
@@ -93,9 +93,9 @@ namespace vehicle {
 /// and the rearleaf while the lateral stiffnesses are simulated by the rotational
 /// joints of the clamp bodies.
 ///
-/// For the stiffness parameters the user can take the desired translatoric vertical
-/// stiffness dividedby two (we have two leaves). The preload can be set as a
-/// vertical force dividedby two. The conversion to the rotary setup is made
+/// For the stiffness parameters the user can take the desired translational vertical
+/// stiffness divided by two (we have two leaves). The preload can be set as a
+/// vertical force divided by two. The conversion to the rotary setup is made
 /// automatically.
 ///
 /// The SAE model allows to consider the correct axle movement due to wheel travel.

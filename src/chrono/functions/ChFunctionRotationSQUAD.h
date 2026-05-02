@@ -45,18 +45,18 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
     );
 
     ChFunctionRotationSQUAD(const ChFunctionRotationSQUAD& other);
+
     virtual ~ChFunctionRotationSQUAD();
 
     /// "Virtual" copy constructor.
     virtual ChFunctionRotationSQUAD* Clone() const override { return new ChFunctionRotationSQUAD(*this); }
 
-    /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
-    /// but knot range is not necessarily in 0..1. So you can convert u->U,
-    /// where u is in knot range, calling this:
+    /// When using Evaluate() etc. you need U parameter to be in 0..1 range, but knot range is not necessarily in 0..1. 
+    /// So you can convert u->U, where u is in knot range, calling this.
     double ComputeUfromKnotU(double u) const { return (u - knots(0)) / (knots(knots.size() - 1) - knots(0)); }
-    /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
-    /// but knot range is not necessarily in 0..1. So you can convert U->u,
-    /// where u is in knot range, calling this:
+    
+    /// When using Evaluate() etc. you need U parameter to be in 0..1 range, but knot range is not necessarily in 0..1. 
+    /// So you can convert U->u, where u is in knot range, calling this.
     double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1) - knots(0)) + knots(0); }
 
     /// Access the rotations, ie. quaternion SQUAD control points
@@ -66,7 +66,7 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
     ChVectorDynamic<>& Knots() { return knots; }
 
     /// Get the order of spline
-    int GetOrder() { return p; }
+    int GetOrder() const { return p; }
 
     /// Initial easy setup from a given array of rotations (quaternion control points). Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
@@ -92,7 +92,7 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
     void SetClosed(bool mc);
 
     /// Tell if the rotation spline is closed periodic
-    bool GetClosed() { return closed; }
+    bool GetClosed() const { return closed; }
 
     /// Return the q value of the function, at s, as q=f(s).
     /// Parameter s always work in 0..1 range, even if knots are not in 0..1 range.

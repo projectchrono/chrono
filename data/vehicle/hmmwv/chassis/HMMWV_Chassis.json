@@ -27,6 +27,6 @@
 
   "Visualization":
   {
-    "Mesh":  "hmmwv/hmmwv_chassis.obj"
+    "Mesh":  "vehicle/hmmwv/hmmwv_chassis.obj"
   }
 }

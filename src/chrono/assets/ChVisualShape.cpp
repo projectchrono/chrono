@@ -17,7 +17,7 @@
 
 namespace chrono {
 
-ChVisualShape::ChVisualShape() : is_visible(true), is_mutable(false) {}
+ChVisualShape::ChVisualShape() : is_visible(true), is_mutable(false), is_double_faced(false) {}
 
 int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
@@ -100,6 +100,7 @@ void ChVisualShape::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(is_visible);
     archive_out << CHNVP(is_mutable);
+    archive_out << CHNVP(is_double_faced);
     archive_out << CHNVP(material_list);
 }
 
@@ -109,6 +110,7 @@ void ChVisualShape::ArchiveIn(ChArchiveIn& archive_in) {
     // stream in all member data:
     archive_in >> CHNVP(is_visible);
     archive_in >> CHNVP(is_mutable);
+    archive_in >> CHNVP(is_double_faced);
     archive_in >> CHNVP(material_list);
 }
 

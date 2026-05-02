@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunctionBSpline)
 
 ChFunctionBSpline::ChFunctionBSpline(int p,                             // order
-                                     const ChVectorDynamic<>& cpoints,  // conrol points
+                                     const ChVectorDynamic<>& cpoints,  // control points
                                      ChVectorDynamic<>* knots           // knot vector
 ) {
     if (p < 1)

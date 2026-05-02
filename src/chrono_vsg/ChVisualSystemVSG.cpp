@@ -31,6 +31,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 namespace chrono {
 namespace vsg3d {
 
@@ -38,8 +42,7 @@ namespace vsg3d {
 
 class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
   public:
-    ChMainGuiVSG(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 64)
-        : m_app(app), m_tex_height(tex_height) {
+    ChMainGuiVSG(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 64) : m_app(app), m_tex_height(tex_height) {
         // Create textures
         {
             auto texData = vsg::read_cast<vsg::Data>(m_app->m_logo_filename, options);
@@ -67,14 +70,12 @@ class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
 
         if (m_app->m_show_logo) {
             const float sizey = m_tex_height;
-            const float sizex =
-                sizey * static_cast<float>(m_app->m_logo_texture->width) / m_app->m_logo_texture->height;
+            const float sizex = sizey * static_cast<float>(m_app->m_logo_texture->width) / m_app->m_logo_texture->height;
             const float pad = 10;
 
             // Copied from imgui_demo.cpp simple overlay
-            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-                                            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-                                            ImGuiWindowFlags_NoNav;
+            ImGuiWindowFlags window_flags =
+                ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
             const ImGuiViewport* viewport = ImGui::GetMainViewport();
             ImVec2 work_pos = viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
             ImVec2 work_size = viewport->WorkSize;
@@ -111,8 +112,7 @@ class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
 
 class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrapper> {
   public:
-    EventHandlerWrapper(std::shared_ptr<ChEventHandlerVSG> component, ChVisualSystemVSG* app)
-        : m_component(component), m_app(app) {}
+    EventHandlerWrapper(std::shared_ptr<ChEventHandlerVSG> component, ChVisualSystemVSG* app) : m_component(component), m_app(app) {}
 
     void apply(vsg::KeyPressEvent& keyPress) override { m_component->process(keyPress); }
 
@@ -123,13 +123,12 @@ class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrappe
 
 // -----------------------------------------------------------------------------
 
-// Custom VertexIndexDraw variant that can request extra buffer usage flags (e.g., storage writes for GPU colouring)
+// Custom VertexIndexDraw variant that can request extra buffer usage flags (e.g., storage writes for GPU coloring)
 class ChronoVertexIndexDraw : public vsg::Inherit<vsg::VertexIndexDraw, ChronoVertexIndexDraw> {
   public:
     ChronoVertexIndexDraw() = default;
     ChronoVertexIndexDraw(const vsg::VertexIndexDraw& rhs, const vsg::CopyOp& copyop = {}) : Inherit(rhs, copyop) {}
-    ChronoVertexIndexDraw(const ChronoVertexIndexDraw& rhs, const vsg::CopyOp& copyop = {})
-        : Inherit(rhs, copyop), m_extraUsage(rhs.m_extraUsage) {}
+    ChronoVertexIndexDraw(const ChronoVertexIndexDraw& rhs, const vsg::CopyOp& copyop = {}) : Inherit(rhs, copyop), m_extraUsage(rhs.m_extraUsage) {}
 
     void setExtraUsage(VkBufferUsageFlags extraUsage) { m_extraUsage = extraUsage; }
     VkBufferUsageFlags getExtraUsage() const { return m_extraUsage; }
@@ -157,12 +156,11 @@ class ChronoVertexIndexDraw : public vsg::Inherit<vsg::VertexIndexDraw, ChronoVe
         if (requiresCreateAndCopy) {
             // When the original VSG node only asked for vertex/index usage, rebuild the combined buffer with any
             // extra usage bits so compute shaders can write into the same allocation the renderer reads from
-            // otherwise the colourmapping wont be accurate for particles
+            // otherwise the color mapping wont be accurate for particles
             vsg::BufferInfoList combinedBufferInfos(arrays);
             combinedBufferInfos.push_back(indices);
 
-            VkBufferUsageFlags usage =
-                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | m_extraUsage;
+            VkBufferUsageFlags usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | m_extraUsage;
             createBufferAndTransferData(context, combinedBufferInfos, usage, VK_SHARING_MODE_EXCLUSIVE);
         }
 
@@ -200,7 +198,7 @@ class ReplaceVertexIndexDraw : public vsg::Inherit<vsg::Visitor, ReplaceVertexIn
 
             if (auto vid = child.cast<vsg::VertexIndexDraw>()) {
                 // Clone the original draw node but request extra usage flags so the rebuilt buffers support
-                // compute shader writes (needed for GPU particle colouring!)
+                // compute shader writes (needed for GPU particle coloring!)
                 auto chrono_vid = ChronoVertexIndexDraw::create(*vid);
                 chrono_vid->setExtraUsage(m_extraUsage);
                 for (auto& array : chrono_vid->arrays) {
@@ -232,11 +230,7 @@ struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
           vsg::ref_ptr<vsg::Group> in_attachmentPoint,
           vsg::ref_ptr<vsg::Node> in_node,
           const vsg::CompileResult& in_compileResult)
-        : path(in_path),
-          viewer(in_viewer),
-          attachmentPoint(in_attachmentPoint),
-          node(in_node),
-          compileResult(in_compileResult) {}
+        : path(in_path), viewer(in_viewer), attachmentPoint(in_attachmentPoint), node(in_node), compileResult(in_compileResult) {}
 
     vsg::Path path;
     vsg::observer_ptr<vsg::Viewer> viewer;
@@ -245,7 +239,7 @@ struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
     vsg::CompileResult compileResult;
 
     void run() override {
-        // std::cout << "Merge::run() path = " << path << ", " << attachmentPoint << ", " << node << std::endl;
+        // cout << "Merge::run() path = " << path << ", " << attachmentPoint << ", " << node << endl;
 
         vsg::ref_ptr<vsg::Viewer> ref_viewer = viewer;
         if (ref_viewer) {
@@ -257,10 +251,7 @@ struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
 };
 
 struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
-    LoadOperation(vsg::ref_ptr<vsg::Viewer> in_viewer,
-                  vsg::ref_ptr<vsg::Group> in_attachmentPoint,
-                  const vsg::Path& in_filename,
-                  vsg::ref_ptr<vsg::Options> in_options)
+    LoadOperation(vsg::ref_ptr<vsg::Viewer> in_viewer, vsg::ref_ptr<vsg::Group> in_attachmentPoint, const vsg::Path& in_filename, vsg::ref_ptr<vsg::Options> in_options)
         : viewer(in_viewer), attachmentPoint(in_attachmentPoint), filename(in_filename), options(in_options) {}
 
     vsg::observer_ptr<vsg::Viewer> viewer;
@@ -291,7 +282,10 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_camera_trackball(true),
       m_capture_image(false),
       //
-      m_use_skybox(false),
+      m_sky_mode(SkyMode::NONE),
+      m_skydome_sun_azimuth(1.15 * CH_PI),
+      m_skybox_sun_azimuth(0.5 * CH_PI_2),
+      m_skysphere_path("vsg/textures/vsg_skydome.jpg"),
       m_skybox_path("vsg/textures/vsg_skybox.ktx"),
       //
       m_use_shadows(false),
@@ -331,8 +325,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_com_frame_scale(1),
       m_link_frame_scale(1),
       m_com_symbol_ratio(0.15),
-      m_com_size_changed(false),
-      m_com_symbols_empty(false),
+      m_com_symbol_size_changed(false),
       //
       m_label_size(0.2),
       m_label_font_path("vsg/fonts/OpenSans-Bold.vsgb"),
@@ -384,7 +377,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_shapeBuilder = ShapeBuilder::create(m_options, num_divs);
 
     // vsg builder is used for particle visualization
-    // for particles (spheres) we use phong shaders only
+    // for particles (spheres) we use Phong shaders only
     m_vsgBuilder = vsg::Builder::create();
 
     {
@@ -419,26 +412,28 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 #endif
 }
 
-ChVisualSystemVSG::~ChVisualSystemVSG() {}
+ChVisualSystemVSG::~ChVisualSystemVSG() {
+    m_plugins.clear();
+}
 
 void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetOutputScreen must be used before initialization!" << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetOutputScreen must be used before initialization!" << endl;
         return;
     }
     int maxNum = vsg::Device::maxNumDevices();
-    std::cout << "Screens found: " << maxNum << std::endl;
+    cout << "Screens found: " << maxNum << endl;
     if (screenNum >= 0 && screenNum < maxNum) {
         m_screen_num = screenNum;
     } else {
-        std::cerr << "Screen #" << screenNum << " cannot be used on this computer!" << std::endl;
+        cerr << "Screen #" << screenNum << " cannot be used on this computer!" << endl;
         throw std::runtime_error("Screen #" + std::to_string(screenNum) + " cannot be used on this computer!");
     }
 }
 
 void ChVisualSystemVSG::EnableFullscreen(bool val) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::EnableFullscreen must be used before initialization!" << std::endl;
+        cerr << "Function ChVisualSystemVSG::EnableFullscreen must be used before initialization!" << endl;
         return;
     }
     m_use_fullscreen = val;
@@ -450,14 +445,9 @@ size_t ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc)
     return m_gui.size() - 1;
 }
 
-size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title,
-                                         const ChVector2d& range,
-                                         ChColormap::Type type,
-                                         bool bimodal,
-                                         float width) {
+size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title, const ChVector2d& range, ChColormap::Type type, bool bimodal, float width) {
     if (m_initialized) {
-        std::cout << "Error: Attempt to create a VSG colorbar after initialization of the VSG visual system."
-                  << std::endl;
+        cout << "Error: Attempt to create a VSG colorbar after initialization of the VSG visual system." << endl;
 
         throw std::runtime_error("Attempt to create a VSG colorbar after initialization of the VSG visual system");
     }
@@ -502,7 +492,7 @@ void ChVisualSystemVSG::AddComputeCommands(vsg::ref_ptr<vsg::Commands> commands)
 
 void ChVisualSystemVSG::AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::AttachPlugin can only be called before initialization!" << std::endl;
+        cerr << "Function ChVisualSystemVSG::AttachPlugin can only be called before initialization!" << endl;
         return;
     }
     plugin->m_vsys = this;
@@ -516,8 +506,7 @@ void ChVisualSystemVSG::Quit() {
 
 void ChVisualSystemVSG::SetGuiFontSize(float size) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
-                  << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!" << endl;
         return;
     }
     m_gui_font_size = size;
@@ -525,7 +514,7 @@ void ChVisualSystemVSG::SetGuiFontSize(float size) {
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << endl;
         return;
     }
     m_windows_width = size[0];
@@ -534,7 +523,7 @@ void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
 
 void ChVisualSystemVSG::SetWindowSize(int width, int height) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << endl;
         return;
     }
     m_windows_width = width;
@@ -543,8 +532,7 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
 
 void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!"
-                  << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << endl;
         return;
     }
     m_windows_x = pos[0];
@@ -553,8 +541,7 @@ void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
 
 void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!"
-                  << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << endl;
         return;
     }
     m_windows_x = from_left;
@@ -563,50 +550,53 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle can only be called before initialization!"
-                  << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetWindowTitle can only be called before initialization!" << endl;
         return;
     }
     m_windows_title = title;
 }
 
-void ChVisualSystemVSG::EnableSkyBox(bool val) {
-    if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::EnableSkyBox can only be called before initialization!" << std::endl;
-        return;
-    }
-    m_use_skybox = val;
+void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename, double sun_azimuth) {
+    m_skybox_path = filename;
+    m_skybox_sun_azimuth = sun_azimuth;
 }
 
-void ChVisualSystemVSG::SetSkyBoxTexture(const std::string& filename) {
-    m_skybox_path = filename;
+void ChVisualSystemVSG::SetSkyDomeTexture(const std::string& filename, double sun_azimuth) {
+    m_skysphere_path = filename;
+    m_skydome_sun_azimuth = sun_azimuth;
+}
+
+void ChVisualSystemVSG::EnableSkyTexture(SkyMode mode) {
+    if (m_initialized) {
+        cerr << "Function ChVisualSystemVSG::EnableSkyTexture can only be called before initialization!" << endl;
+        return;
+    }
+    m_sky_mode = mode;
 }
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::AddCamera can only be called before initialization!" << std::endl;
+        cerr << "Function ChVisualSystemVSG::AddCamera can only be called before initialization!" << endl;
         return 1;
     }
 
     ChVector3d test = pos - targ;
     if (test.Length() == 0.0) {
-        std::cerr << "Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!" << std::endl;
-        std::cerr << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }" << std::endl;
-        std::cerr << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }" << std::endl;
+        cerr << "Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!" << endl;
+        cerr << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }" << endl;
+        cerr << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }" << endl;
         throw std::runtime_error("Function ChVisualSystemVSG::AddCamera Camera Pos and Target cannot be identical!");
     }
     if (m_yup) {
         if (pos.x() == 0.0 && pos.z() == 0.0) {
-            std::cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to upvector! -> Corrected!!"
-                      << std::endl;
+            cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to up-vector! -> Corrected!!" << endl;
             m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y(), pos.z() + 1.0);
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
         }
     } else {
         if (pos.x() == 0.0 && pos.y() == 0.0) {
-            std::cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to upvector! -> Corrected!!"
-                      << std::endl;
+            cout << "Function ChVisualSystemVSG::AddCamera Line of sight is parallel to up-vector! -> Corrected!!" << endl;
             m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y() + 1.0, pos.z());
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
@@ -645,8 +635,7 @@ ChVector3d ChVisualSystemVSG::GetCameraTarget() const {
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical can only be called before initialization!"
-                  << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetCameraVertical can only be called before initialization!" << endl;
         return;
     }
     switch (upDir) {
@@ -667,11 +656,10 @@ void ChVisualSystemVSG::SetLightIntensity(float intensity) {
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetLightDirection can only be called before initialization!"
-                  << std::endl;
+        cerr << "Function ChVisualSystemVSG::SetLightDirection can only be called before initialization!" << endl;
         return;
     }
-    m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
+    m_azimuth = ChClamp(azimuth, 0.0, CH_2PI);
     m_elevation = ChClamp(elevation, -CH_PI_2, CH_PI_2);
 }
 
@@ -693,11 +681,9 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->x = m_windows_x;
     windowTraits->y = m_windows_y;
     windowTraits->debugLayer = false;
-    windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME,
-                                          VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+    windowTraits->deviceExtensionNames = {VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MAINTENANCE2_EXTENSION_NAME, VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
                                           VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME};
-    windowTraits->swapchainPreferences.imageUsage =
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    windowTraits->swapchainPreferences.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     windowTraits->swapchainPreferences.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     windowTraits->fullscreen = m_use_fullscreen;
@@ -705,7 +691,7 @@ void ChVisualSystemVSG::Initialize() {
 
     m_label_font = vsg::read_cast<vsg::Font>(m_label_font_path, m_options);
     if (!m_label_font) {
-        std::cout << "Failed to read font : " << m_label_font_path << std::endl;
+        cout << "Failed to read font : " << m_label_font_path << endl;
         return;
     }
 
@@ -714,13 +700,16 @@ void ChVisualSystemVSG::Initialize() {
     double radius = 50.0;
     vsg::dbox bound;
 
-    if (m_use_skybox) {
-        vsg::Path fileName(m_skybox_path);
-        auto skyPtr = createSkybox(fileName, m_options, m_yup);
+    if (m_sky_mode == SkyMode::DOME) {
+        vsg::Path fileName(m_skysphere_path);
+        auto skyPtr = createSkysphere(fileName, m_options, m_skydome_sun_azimuth - m_azimuth, m_yup);
         if (skyPtr)
             m_scene->addChild(skyPtr);
-        else
-            m_use_skybox = false;
+    } else if (m_sky_mode == SkyMode::BOX) {
+        vsg::Path fileName(m_skybox_path);
+        auto skyPtr = createSkybox(fileName, m_options, m_skybox_sun_azimuth - m_azimuth, m_yup);
+        if (skyPtr)
+            m_scene->addChild(skyPtr);
     }
 
     auto ambientLight = vsg::AmbientLight::create();
@@ -744,7 +733,7 @@ void ChVisualSystemVSG::Initialize() {
     double sa = std::sin(m_azimuth);
     double ca = std::cos(m_azimuth);
     if (m_yup)
-        directionalLight->direction.set(-ce * ca, -se, -ce * sa);
+        directionalLight->direction.set(-ce * ca, -se, +ce * sa);
     else
         directionalLight->direction.set(-ce * ca, -ce * sa, -se);
 
@@ -800,7 +789,7 @@ void ChVisualSystemVSG::Initialize() {
 
     m_window = vsg::Window::create(windowTraits);
     if (!m_window) {
-        std::cout << "Could not create window." << std::endl;
+        cout << "Could not create window." << endl;
         return;
     }
 
@@ -808,33 +797,32 @@ void ChVisualSystemVSG::Initialize() {
     const auto& prop = m_window->getOrCreatePhysicalDevice()->getProperties();
 
     if (m_verbose) {
-        std::cout << "----------------------------------------------------" << std::endl;
-        std::cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization" << std::endl;
-        std::cout << "* GPU Name: " << prop.deviceName << std::endl;
+        cout << "----------------------------------------------------" << endl;
+        cout << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization" << endl;
+        cout << "* GPU Name: " << prop.deviceName << endl;
         switch (prop.deviceType) {
             default:
             case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER" << std::endl;
+                cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER" << endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU" << std::endl;
+                cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU" << endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU" << std::endl;
+                cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU" << endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU" << std::endl;
+                cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU" << endl;
                 break;
             case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                std::cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU" << std::endl;
+                cout << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU" << endl;
                 break;
         }
-        std::cout << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
-                  << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
-                  << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << std::endl;
-        std::cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << std::endl;
-        std::cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens." << std::endl;
-        std::cout << "----------------------------------------------------" << std::endl;
+        cout << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "." << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
+             << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << endl;
+        cout << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << endl;
+        cout << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens." << endl;
+        cout << "----------------------------------------------------" << endl;
     }
 
     m_window->clearColor() = vsg::vec4CH(m_background_color, 1.0f);
@@ -844,10 +832,8 @@ void ChVisualSystemVSG::Initialize() {
     m_lookAt = vsg::LookAt::create(m_vsg_cameraEye, m_vsg_cameraTarget, m_camera_up_vector);
 
     double nearFarRatio = 0.001;
-    auto perspective = vsg::Perspective::create(
-        m_camera_angle_deg,
-        static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
-        nearFarRatio * radius, radius * 10.0);
+    auto perspective = vsg::Perspective::create(m_camera_angle_deg, static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
+                                                nearFarRatio * radius, radius * 10.0);
 
     m_vsg_camera = vsg::Camera::create(perspective, m_lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
@@ -856,7 +842,7 @@ void ChVisualSystemVSG::Initialize() {
     // switches off automatic directional light setting
 
     m_renderGraph = vsg::createRenderGraphForView(m_window, m_vsg_camera, m_scene, VK_SUBPASS_CONTENTS_INLINE, false);
-    // extend for seperate render and compute graphs
+    // extend for separate render and compute graphs
     m_renderCommandGraph = vsg::CommandGraph::create(m_window, m_renderGraph);
     m_computeCommandGraph = vsg::CommandGraph::create(m_window);
 
@@ -882,7 +868,7 @@ void ChVisualSystemVSG::Initialize() {
             ImGuiIO& io = ImGui::GetIO();
             auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_gui_font_size);
             if (!imguiFont) {
-                std::cout << "Failed to load font: " << c_fontFile << std::endl;
+                cout << "Failed to load font: " << c_fontFile << endl;
                 return;
             }
         }
@@ -890,7 +876,7 @@ void ChVisualSystemVSG::Initialize() {
     } else {
         m_logo_height /= 2.0f;
         // ignore loadable ttf font
-        std::cout << "App runs with standard resolution on the Mac. Font size setting ignored." << std::endl;
+        cout << "App runs with standard resolution on the Mac. Font size setting ignored." << endl;
     }
 #endif
 
@@ -957,8 +943,7 @@ void ChVisualSystemVSG::Initialize() {
         // requirement via ResourceHints.
         resourceHints = vsg::ResourceHints::create();
         resourceHints->numDescriptorSets = 256;
-        resourceHints->descriptorPoolSizes.push_back(
-            VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 256});
+        resourceHints->descriptorPoolSizes.push_back(VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 256});
     }
 
     m_viewer->compile(resourceHints);
@@ -1023,60 +1008,66 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU->GPU for COM symbol size and body labels
-    // Only update if COM symbols are actually visible to avoid unecessary cpu to gpu data transfers
+    // Only update if COM symbols are actually visible to avoid unnecessary cpu to gpu data transfers
     // otherwise this is effectively marking dirty even if the symbols are hidden! (extra work)
-    if (m_show_com_symbols && !m_com_symbols_empty) {
-        auto symbol_size = m_scale_multiplier * m_com_frame_scale * m_com_symbol_ratio;
-
+    if (m_show_com_symbols || m_show_body_labels) {
         std::vector<ChVector3d> c_pos;
         for (auto sys : m_systems)
             CollectActiveBodyCOMPositions(sys->GetAssembly(), c_pos);
-        assert(!c_pos.empty());
 
-        ConvertPositions(c_pos, m_com_symbol_positions, symbol_size);
-        m_com_symbol_positions->dirty();
+        if (m_show_com_symbols && !c_pos.empty()) {
+            BindCOMSymbols(c_pos);
 
-        if (m_com_size_changed) {
-            m_com_symbol_vertices->set(0, vsg::vec3(-symbol_size / 2, -symbol_size / 2, 0));
-            m_com_symbol_vertices->set(1, vsg::vec3(+symbol_size / 2, -symbol_size / 2, 0));
-            m_com_symbol_vertices->set(2, vsg::vec3(+symbol_size / 2, +symbol_size / 2, 0));
-            m_com_symbol_vertices->set(3, vsg::vec3(-symbol_size / 2, +symbol_size / 2, 0));
-            m_com_symbol_vertices->dirty();
-            m_com_size_changed = false;
+            auto symbol_size = m_scale_multiplier * m_com_frame_scale * m_com_symbol_ratio;
+            ConvertPositions(c_pos, m_com_symbol_positions, symbol_size);
+            m_com_symbol_positions->dirty();
+
+            if (m_com_symbol_size_changed) {
+                m_com_symbol_vertices->set(0, vsg::vec3(-symbol_size / 2, -symbol_size / 2, 0));
+                m_com_symbol_vertices->set(1, vsg::vec3(+symbol_size / 2, -symbol_size / 2, 0));
+                m_com_symbol_vertices->set(2, vsg::vec3(+symbol_size / 2, +symbol_size / 2, 0));
+                m_com_symbol_vertices->set(3, vsg::vec3(-symbol_size / 2, +symbol_size / 2, 0));
+                m_com_symbol_vertices->dirty();
+                m_com_symbol_size_changed = false;
+            }
         }
 
-        assert(!m_body_labels.empty());
-        auto label_size = m_body_labels_scale * m_label_size;
+        if (m_show_body_labels && !c_pos.empty()) {
+            BindBodyLabels();
 
-        for (size_t iPos = 0; iPos < c_pos.size(); iPos++) {
-            m_body_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
-            m_body_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
-            m_body_labels_layout[iPos]->position =
-                vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
-            m_body_labels_layout[iPos]->color = vsg::vec4CH(m_body_labels_color, 1.0f);
-            m_body_labels_text[iPos]->setup(0, m_options);
+            auto label_size = m_body_labels_scale * m_label_size;
+
+            for (size_t iPos = 0; iPos < c_pos.size(); iPos++) {
+                m_body_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
+                m_body_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
+                m_body_labels_layout[iPos]->position = vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
+                m_body_labels_layout[iPos]->color = vsg::vec4CH(m_body_labels_color, 1.0f);
+                m_body_labels_text[iPos]->setup(0, m_options);
+            }
         }
     }
 
     // Dynamic data transfer CPU->GPU for link labels
     // Only update if link labels are actually visible to avoid expensive CPU work - the !m_link_labels_empty test
-    // doesn't condition this code comprehensively. If the link labels are empty, the for ipos won't run, but the
+    // doesn't condition this code comprehensively. If the link labels are empty, the for loop won't run, but the
     // CollectLinkFramePositions will still be called needlessly.
     if (m_show_link_labels) {
-        auto label_size = m_link_labels_scale * m_label_size;
-
         std::vector<ChVector3d> c_pos;
         for (auto sys : m_systems)
             CollectLinkFramePositions(sys->GetAssembly(), c_pos);
-        assert(!c_pos.empty());
 
-        for (size_t iPos = 0; iPos < c_pos.size(); iPos++) {
-            m_link_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
-            m_link_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
-            m_link_labels_layout[iPos]->position =
-                vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
-            m_link_labels_layout[iPos]->color = vsg::vec4CH(m_link_labels_color, 1.0f);
-            m_link_labels_text[iPos]->setup(0, m_options);
+        if (!c_pos.empty()) {
+            BindLinkLabels();
+
+            auto label_size = m_link_labels_scale * m_label_size;
+
+            for (size_t iPos = 0; iPos < c_pos.size(); iPos++) {
+                m_link_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
+                m_link_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
+                m_link_labels_layout[iPos]->position = vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
+                m_link_labels_layout[iPos]->color = vsg::vec4CH(m_link_labels_color, 1.0f);
+                m_link_labels_text[iPos]->setup(0, m_options);
+            }
         }
     }
 
@@ -1111,7 +1102,7 @@ void ChVisualSystemVSG::Render() {
 
     // Dynamic data transfer CPU->GPU for point clouds
     // use direct pointer access to avoid temporary object construction
-    // Dynamic colours are handled by the vulkan compute shader
+    // Dynamic colors are handled by the Vulkan compute shader
     if (!m_clouds.empty()) {
         auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
         for (const auto& cloud : m_clouds) {
@@ -1123,8 +1114,7 @@ void ChVisualSystemVSG::Render() {
                 for (size_t k = 0; k < count; ++k) {
                     if (cloud.pcloud->IsVisible(static_cast<unsigned int>(k))) {
                         const auto& src = cloud.pcloud->GetParticlePos(static_cast<unsigned int>(k));
-                        pos_data[k].set(static_cast<float>(src.x()), static_cast<float>(src.y()),
-                                        static_cast<float>(src.z()));
+                        pos_data[k].set(static_cast<float>(src.x()), static_cast<float>(src.y()), static_cast<float>(src.z()));
                     } else {
                         pos_data[k] = hide_pos;
                     }
@@ -1138,8 +1128,7 @@ void ChVisualSystemVSG::Render() {
     // To speed up cpu-gpu - treat ChVector3d arrays as contiguous arrays for bulk conversion over to gpu
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
-            const auto& new_vertices =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
+            const auto& new_vertices = def_mesh.mesh_soup ? def_mesh.trimesh->GetFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
             assert(def_mesh.vertices->size() == new_vertices.size());
 
             const size_t count = new_vertices.size();
@@ -1159,8 +1148,7 @@ void ChVisualSystemVSG::Render() {
         }
 
         if (def_mesh.dynamic_normals) {
-            const auto& new_normals =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceNormals() : def_mesh.trimesh->getAverageNormals();
+            const auto& new_normals = def_mesh.mesh_soup ? def_mesh.trimesh->GetFaceNormals() : def_mesh.trimesh->GetAverageNormals();
             assert(def_mesh.normals->size() == new_normals.size());
 
             const size_t count = new_normals.size();
@@ -1178,10 +1166,9 @@ void ChVisualSystemVSG::Render() {
         }
 
         // TODO: - could be converted to the VSG compute shader which particles use, but would only benefit with
-        // large vertice mesh when this loop is significant compared to the rest of the frame time
+        // large meshes when this loop is significant compared to the rest of the frame time
         if (def_mesh.dynamic_colors) {
-            const auto& new_colors =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->GetCoordsColors();
+            const auto& new_colors = def_mesh.mesh_soup ? def_mesh.trimesh->GetFaceColors() : def_mesh.trimesh->GetCoordsColors();
             assert(def_mesh.colors->size() == new_colors.size());
 
             const size_t count = new_colors.size();
@@ -1310,7 +1297,7 @@ void ChVisualSystemVSG::SetSegmentVisibility(bool vis, int tag) {
 
 void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
     // Remember requested visibility even before the scene graph is constructed so late clouds inherit it
-    // otherwise it causees issues with clouds added after initialisation
+    // otherwise it causes issues with clouds added after initialization
     if (tag == -1) {
         m_default_cloud_visibility = vis;
         m_cloud_visibility_overrides.clear();
@@ -1548,7 +1535,24 @@ void ChVisualSystemVSG::ConvertPositions(const std::vector<ChVector3d>& c, vsg::
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::BindCOMSymbols() {
+void ChVisualSystemVSG::BindCOMSymbols(const std::vector<ChVector3d>& c_pos) {
+    // Decide whether or not the node (child) in the COM symbol scene must be created:
+    // - Create the node in the COM symbol scene if it was not already created
+    // - Delete all children in the COM symbol scene and recreate the node if there is a change in the number of active bodies
+    bool create_node = false;
+    if (m_comSymbolScene->children.size() == 0) {
+        create_node = true;
+    } else if (!m_com_symbol_positions || c_pos.size() != m_com_symbol_positions->size()) {
+        m_comSymbolScene->children.clear();
+        create_node = true;
+    }
+    if (!create_node)
+        return;
+
+    if (m_com_symbol_positions && c_pos.size() != m_com_symbol_positions->size() && m_comSymbolScene->children.size() > 0) {
+        m_comSymbolScene->children.clear();
+    }
+
     auto symbol_texture_filename = GetChronoDataFile("vsg/textures/COM_symbol.png");
     auto symbol_size = m_scale_multiplier * m_com_frame_scale * m_com_symbol_ratio;
 
@@ -1563,17 +1567,7 @@ void ChVisualSystemVSG::BindCOMSymbols() {
     stateInfo.lighting = false;
     stateInfo.image = vsg::read_cast<vsg::Data>(symbol_texture_filename, m_options);
 
-    // collect COM positions from all active bodies
-    std::vector<ChVector3d> c_pos;
-    for (auto sys : m_systems)
-        CollectActiveBodyCOMPositions(sys->GetAssembly(), c_pos);
-
-    if (c_pos.empty()) {
-        m_com_symbols_empty = true;
-        return;
-    }
-
-    // convert to VSG array
+    // Convert body COM positions to VSG array
     auto v_pos = vsg::vec4Array::create(c_pos.size());
     ConvertPositions(c_pos, v_pos, symbol_size);
     geomInfo.positions = v_pos;
@@ -1581,16 +1575,31 @@ void ChVisualSystemVSG::BindCOMSymbols() {
     auto node = m_vsgBuilder->createQuad(geomInfo, stateInfo);
     m_comSymbolScene->addChild(m_show_com_symbols, node);
 
-    // find vertices of the symbol quad, to set the size dynamically, there is no transform matrix
+    // Find vertices of the symbol quad, to set the size dynamically, there is no transform matrix
     m_com_symbol_vertices = vsg::visit<FindVec3BufferData<0>>(node).getBufferData();
     m_com_symbol_vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
 
-    // find positions of the symbol instances, to update later on
-    m_com_symbol_positions = vsg::visit<FindVec4BufferData<4>>(node).getBufferData();
-    m_com_symbol_positions->properties.dataVariance = vsg::DYNAMIC_DATA;
+    // Cache the VSG positions for COM symbols, if there are any active bodies
+    // These positions will be dynamically updated during rendering
+    if (!c_pos.empty()) {
+        m_com_symbol_positions = vsg::visit<FindVec4BufferData<4>>(node).getBufferData();
+        m_com_symbol_positions->properties.dataVariance = vsg::DYNAMIC_DATA;
+    }
 }
 
-void ChVisualSystemVSG::BindLabels() {
+void ChVisualSystemVSG::BindBodyLabels() {
+    bool create_label_nodes = false;
+    if (m_bodyLabelScene->children.size() == 0) {
+        create_label_nodes = true;
+    } else if (m_bodyLabelScene->children.size() != m_body_labels.size()) {
+        m_bodyLabelScene->children.clear();
+        m_body_labels_text.clear();
+        m_body_labels_layout.clear();
+        create_label_nodes = true;
+    }
+    if (!create_label_nodes)
+        return;
+
     for (const auto& text : m_body_labels) {
         auto layout = vsg::StandardLayout::create();
         auto dynamic_text = vsg::Text::create();
@@ -1612,6 +1621,21 @@ void ChVisualSystemVSG::BindLabels() {
         m_bodyLabelScene->addChild(m_show_body_labels, dynamic_text);
     }
 
+    if (m_shapeBuilder->m_compileTraversal)
+        m_shapeBuilder->m_compileTraversal->compile(m_bodyLabelScene);
+}
+
+void ChVisualSystemVSG::BindLinkLabels() {
+    bool create_label_nodes = false;
+    if (m_linkLabelScene->children.size() == 0) {
+        create_label_nodes = true;
+    } else if (m_linkLabelScene->children.size() != m_link_labels.size()) {
+        m_linkLabelScene->children.clear();
+        create_label_nodes = true;
+    }
+    if (!create_label_nodes)
+        return;
+
     for (const auto& text : m_link_labels) {
         auto layout = vsg::StandardLayout::create();
         auto dynamic_text = vsg::Text::create();
@@ -1632,9 +1656,14 @@ void ChVisualSystemVSG::BindLabels() {
         m_link_labels_text.push_back(dynamic_text);
         m_linkLabelScene->addChild(m_show_link_labels, dynamic_text);
     }
+
+    if (m_shapeBuilder->m_compileTraversal)
+        m_shapeBuilder->m_compileTraversal->compile(m_linkLabelScene);
 }
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
+    ChAssertAlways(m_initialized);
+
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         BindBody(body);
         return;
@@ -1671,7 +1700,7 @@ void ChVisualSystemVSG::BindAll() {
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(ChFramed(), m_scale_multiplier * m_abs_frame_scale);
         vsg::Mask mask = m_show_abs_frame;
-        auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+        auto node = m_shapeBuilder->createFrameSymbol(transform, 2, false, 1.0f);
         node->setValue("Transform", transform);
         m_absFrameScene->addChild(mask, node);
     }
@@ -1680,33 +1709,12 @@ void ChVisualSystemVSG::BindAll() {
         BindAssembly(sys->GetAssembly());
     }
 
-    BindCOMSymbols();
-
-    // Use default body and link names if not user provided
-    int body_num = 0;
-    int link_num = 0;
-    for (auto sys : m_systems) {
-        for (auto body : sys->GetBodies()) {
-            if (!body->IsActive())
-                continue;
-            std::string body_name = body->GetName();
-            if (body_name.empty()) {
-                body_num++;
-                body_name = "_body_" + std::to_string(body_num);
-            }
-            m_body_labels.push_back(vsg::stringValue::create(body_name));
-        }
-        for (auto link : sys->GetLinks()) {
-            std::string link_name = link->GetName();
-            if (link_name.empty()) {
-                link_num++;
-                link_name = "_link_" + std::to_string(body_num);
-            }
-            m_link_labels.push_back(vsg::stringValue::create(link_name));
-        }
-    }
-
-    BindLabels();
+    std::vector<ChVector3d> c_pos;
+    for (auto sys : m_systems)
+        CollectActiveBodyCOMPositions(sys->GetAssembly(), c_pos);
+    BindCOMSymbols(c_pos);
+    BindBodyLabels();
+    BindLinkLabels();
 }
 
 // -----------------------------------------------------------------------------
@@ -1715,6 +1723,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     if (!body->IsFixed()) {
         BindReferenceFrame(body);
         BindCOMFrame(body);
+        CreateBodyLabel(body);
     }
     BindVisualShapesMutable(body, ObjectType::BODY);   // bind any mutable visual meshes in the body visual model
     BindVisualShapesFixed(body, ObjectType::BODY);     // bind all other visual shapes in the body visual model
@@ -1724,6 +1733,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
 
 void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
     BindLinkFrame(link);
+    CreateLinkLabel(link);
     BindPointPoint(link);
     BindVisualShapesFixed(link, ObjectType::LINK);
 }
@@ -1760,12 +1770,12 @@ void ChVisualSystemVSG::BindVisualShapesFixed(const std::shared_ptr<ChObj>& obj,
     if (!vis_model)
         return;
 
-    // Important for update: keep the correct scenegraph hierarchy
+    // Important for update: keep the correct scene-graph hierarchy
     //     modelGroup->model_transform->shapes_group
 
     auto vis_model_group = vsg::Group::create();
 
-    // Create a group to hold the shapes with their subtransforms
+    // Create a group to hold the shapes with their sub-transforms
     auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with fixed shapes in the visual model
@@ -1816,7 +1826,7 @@ void ChVisualSystemVSG::BindVisualShapesMutable(const std::shared_ptr<ChObj>& ob
 
     auto vis_model_group = vsg::Group::create();
 
-    // Create a group to hold the shapes with their subtransforms
+    // Create a group to hold the shapes with their sub-transforms
     auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with mutable shapes in the visual model
@@ -1872,13 +1882,13 @@ void ChVisualSystemVSG::BindCollisionShapesFixed(const std::shared_ptr<ChContact
     if (coll_model->GetShapeInstances().empty())
         return;
 
-    // Important for update: keep the correct scenegraph hierarchy
+    // Important for update: keep the correct scene-graph hierarchy
     //     modelGroup->model_transform->shapes_group
 
     // Create a group to hold this collision model
     auto coll_model_group = vsg::Group::create();
 
-    // Create a group to hold the shapes with their subtransforms
+    // Create a group to hold the shapes with their sub-transforms
     auto coll_shapes_group = vsg::Group::create();
 
     // Populate the group with fixed shapes in the collision model
@@ -1890,8 +1900,7 @@ void ChVisualSystemVSG::BindCollisionShapesFixed(const std::shared_ptr<ChContact
     // Attach a transform to the group and initialize it with the body current position
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum =
-        true;  // Enable frustum culling to reduce recordAndSubmit overhead
+    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(coll_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -1924,13 +1933,13 @@ void ChVisualSystemVSG::BindCollisionShapesMutable(const std::shared_ptr<ChConta
     if (coll_model->GetShapeInstances().empty())
         return;
 
-    // Important for update: keep the correct scenegraph hierarchy
+    // Important for update: keep the correct scene-graph hierarchy
     //     modelGroup->model_transform->shapes_group
 
-    // Create a group to hold this colision model
+    // Create a group to hold this collision model
     auto coll_model_group = vsg::Group::create();
 
-    // Create a group to hold the shapes with their subtransforms
+    // Create a group to hold the shapes with their sub-transforms
     auto coll_shapes_group = vsg::Group::create();
 
     // Populate the group with mutable shapes in the collision model
@@ -1942,8 +1951,7 @@ void ChVisualSystemVSG::BindCollisionShapesMutable(const std::shared_ptr<ChConta
     // Attach a transform to the group and initialize it with the body current position
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum =
-        true;  // Enable frustum culling to reduce recordAndSubmit overhead
+    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(coll_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -1994,8 +2002,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChObj>& obj) {
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
             auto X = PointPointFrame(segshape->GetPoint1Abs(), segshape->GetPoint2Abs(), length);
-            std::shared_ptr<ChVisualMaterial> material =
-                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+            std::shared_ptr<ChVisualMaterial> material = shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector3d(1, length, 1));
@@ -2014,8 +2021,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChObj>& obj) {
             auto resolution = sprshape->GetResolution();
             double length;
             auto X = PointPointFrame(sprshape->GetPoint1Abs(), sprshape->GetPoint2Abs(), length);
-            std::shared_ptr<ChVisualMaterial> material =
-                shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+            std::shared_ptr<ChVisualMaterial> material = shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
@@ -2141,8 +2147,8 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
             extraUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
         if (extraUsage != 0) {
-            // We need colour buffers that are both vertex inputs and storage buffers so the compute shader can
-            // overwrite particle colours; standard VSG nodes were only request vertex usage, so these get replaced here
+            // We need color buffers that are both vertex inputs and storage buffers so the compute shader can
+            // overwrite particle colors; standard VSG nodes were only request vertex usage, so these get replaced here
             ReplaceVertexIndexDraw replacer(extraUsage);
             node->accept(replacer);
 
@@ -2156,8 +2162,8 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         }
 
         node->setValue("Tag", pcloud->GetTag());
-        // Seed the scene graph node with the cached visibility choice for its tag
-        // this is primarily all for the bce particle markers - so that the visibility is consistent
+
+        // Seed the scene graph node with the cached visibility choice for its tag - so that the visibility is consistent
         // (since OnInitialize calls SetParticleCloudVisibility before the VSG scene has bound geometry)
         vsg::Mask mask = GetDesiredCloudVisibility(pcloud->GetTag());
         m_particleScene->addChild(mask, node);
@@ -2181,7 +2187,7 @@ void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
     vsg::Mask mask = m_show_ref_frames;
-    auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+    auto node = m_shapeBuilder->createFrameSymbol(transform, 2, false, 1.0f);
     node->setValue("Object", obj);
     node->setValue("Transform", transform);
     m_refFrameScene->addChild(mask, node);
@@ -2191,11 +2197,23 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto com_transform = vsg::MatrixTransform::create();
     com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
-    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 1.0f, 2.0f, true);
+    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 2, true, 1.0f);
     com_node->setValue("Body", body);
     com_node->setValue("MobilizedBody", nullptr);
     com_node->setValue("Transform", com_transform);
     m_comFrameScene->addChild(mask, com_node);
+}
+
+void ChVisualSystemVSG::CreateBodyLabel(const std::shared_ptr<ChBody>& body) {
+    // Use default body name if not set
+    static int body_num = 0;
+    std::string body_name = body->GetName();
+    if (body_name.empty()) {
+        body_num++;
+        body_name = "_body_" + std::to_string(body_num);
+    }
+    auto body_name_vsg = vsg::stringValue::create(body_name);
+    m_body_labels.push_back(body_name_vsg);
 }
 
 void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
@@ -2203,7 +2221,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto link_transform = vsg::MatrixTransform::create();
         link_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
-        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.75f, 1.0f, true);
+        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.75f);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 1);
         link_node->setValue("Transform", link_transform);
@@ -2212,7 +2230,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto link_transform = vsg::MatrixTransform::create();
         link_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
-        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 0.5f, 1.0f, true);
+        auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.5f);
         link_node->setValue("Link", link);
         link_node->setValue("Body", 2);
         link_node->setValue("Transform", link_transform);
@@ -2220,57 +2238,66 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     }
 }
 
+void ChVisualSystemVSG::CreateLinkLabel(const std::shared_ptr<ChLinkBase>& link) {
+    // Use default body name if not set
+    static int link_num = 0;
+    std::string link_name = link->GetName();
+    if (link_name.empty()) {
+        link_num++;
+        link_name = "_link_" + std::to_string(link_num);
+    }
+    auto link_name_vsg = vsg::stringValue::create(link_name);
+    m_link_labels.push_back(link_name_vsg);
+}
+
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group,
-                                                  std::shared_ptr<ChVisualModel> model) {
+void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.shape;
         const auto& X_SM = shape_instance.frame;
         bool wireframe = shape_instance.wireframe;
+        bool double_faced = shape->IsDoubleFaced();
 
         if (!shape->IsVisible())
             continue;
 
         // Material for primitive shapes (assumed at most one defined)
-        std::shared_ptr<ChVisualMaterial> material =
-            shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+        std::shared_ptr<ChVisualMaterial> material = shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
         if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
 
-            // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
+            // We have boxes and dice. Dice take cube textures, boxes take 6 identical textures.
             // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
-            auto grp =
-                !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != std::string::npos
-                    ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE, material, transform, wireframe)
-                    : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, wireframe);
+            auto grp = !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != std::string::npos
+                           ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE, material, transform, double_faced, wireframe)
+                           : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
             double rad = cylinder->GetRadius();
             double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp =
-                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto barrel = std::dynamic_pointer_cast<ChVisualShapeBarrel>(shape)) {
             //// TODO
@@ -2279,7 +2306,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, double_faced, wireframe);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
             if (trimesh->IsMutable())  // already treated as deformable mesh
@@ -2287,10 +2314,8 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
             auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
-                                                                      trimesh->GetMaterials(), wireframe)
-                           : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
-                                                                   trimesh->GetOpacity(), wireframe);
+                           ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform, trimesh->GetMaterials(), double_faced, wireframe)
+                           : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(), trimesh->GetOpacity(), double_faced, wireframe);
             group->addChild(grp);
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             const auto& filename = model_file->GetFilename();
@@ -2339,15 +2364,13 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             auto resolution_v = surface->GetResolutionV();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(geometry, material, transform, resolution_u, resolution_v,
-                                                             wireframe);
+            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(geometry, material, transform, resolution_u, resolution_v, double_faced, wireframe);
             group->addChild(grp);
         }
     }
 }
 
-void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> group,
-                                                    std::shared_ptr<ChVisualModel> model) {
+void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model) {
     for (auto& shape_instance : model->GetShapeInstances()) {
         auto& shape = shape_instance.shape;
 
@@ -2366,13 +2389,14 @@ void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> gro
         if (trimesh->GetMesh()->GetNumTriangles() == 0)
             continue;
 
+        bool double_faced = trimesh->IsDoubleFaced();
+        bool wireframe = trimesh->IsWireframe();
+
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
         auto child = trimesh->GetNumMaterials() > 0
-                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
-                                                                    trimesh->GetMaterials(), trimesh->IsWireframe())
-                         : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
-                                                                 trimesh->GetOpacity(), trimesh->IsWireframe());
+                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform, trimesh->GetMaterials(), double_faced, wireframe)
+                         : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(), trimesh->GetOpacity(), double_faced, wireframe);
 
         group->addChild(child);
 
@@ -2409,8 +2433,7 @@ void ChVisualSystemVSG::PopulateVisualShapesMutable(vsg::ref_ptr<vsg::Group> gro
     }
 }
 
-void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> group,
-                                                    std::shared_ptr<ChCollisionModel> model) {
+void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model) {
     // Default visualization material for collision shapes
     auto material = chrono_types::make_shared<ChVisualMaterial>();
     material->SetDiffuseColor(m_collision_color);
@@ -2422,38 +2445,38 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
         if (auto box = std::dynamic_pointer_cast<ChCollisionShapeBox>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, true, true);
             group->addChild(grp);
         } else if (auto sphere = std::dynamic_pointer_cast<ChCollisionShapeSphere>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChCollisionShapeEllipsoid>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCollisionShapeCylinder>(shape)) {
             double rad = cylinder->GetRadius();
             double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, true, true);
             group->addChild(grp);
         } else if (auto capsule = std::dynamic_pointer_cast<ChCollisionShapeCapsule>(shape)) {
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto cone = std::dynamic_pointer_cast<ChCollisionShapeCone>(shape)) {
             double rad = cone->GetRadius();
             double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, true);
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, true, true);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChCollisionShapeTriangleMesh>(shape)) {
             if (trimesh->IsMutable())  // already treated as deformable mesh
@@ -2463,24 +2486,22 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             auto trimesh_connected = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh->GetMesh());
             if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
                 continue;
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true, true);
             group->addChild(grp);
         } else if (auto hull = std::dynamic_pointer_cast<ChCollisionShapeConvexHull>(shape)) {
             if (hull->IsMutable())  // already treated as deformable mesh
                 continue;
             auto trimesh_connected = chrono_types::make_shared<ChTriangleMeshConnected>();
-            bt_utils::ChConvexHullLibraryWrapper lh;
-            lh.ComputeHull(hull->GetPoints(), *trimesh_connected);
+            bt_utils::ChConvexHullLibraryWrapper::ComputeHull(hull->GetPoints(), *trimesh_connected);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
-            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true, true);
             group->addChild(grp);
         }
     }
 }
 
-void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> group,
-                                                      std::shared_ptr<ChCollisionModel> model) {
+void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model) {
     // Default visualization material for collision shapes
     auto material = chrono_types::make_shared<ChVisualMaterial>();
     material->SetDiffuseColor(m_collision_color);
@@ -2509,7 +2530,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeMutable(vsg::ref_ptr<vsg::Group> g
         if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
             continue;
 
-        auto child = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true);
+        auto child = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, 1.0f, true, true);
         group->addChild(child);
 
         // Load deformable mesh data (for CPU->GPU transfer)
@@ -2745,7 +2766,7 @@ bool ChVisualSystemVSG::CreateContactsVSG::OnReportContact(const ChVector3d& pA,
                                                            ChContactable* modA,
                                                            ChContactable* modB,
                                                            int constraint_offset) {
-    // If we reached the alloted number of contact nodes, return now and stop scanning contacts
+    // If we reached the allotted number of contact nodes, return now and stop scanning contacts
     if (m_crt_contact >= m_app->m_max_num_contacts)
         return false;
 
@@ -2863,13 +2884,13 @@ void ChVisualSystemVSG::OnSetup(ChSystem* sys) {
 }
 
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
-    // Important for update: keep the correct scenegraph hierarchy
+    // Important for update: keep the correct scene-graph hierarchy
     //     model_group->model_transform->shapes_group
 
     // Create a group to hold this visual model
     auto vis_model_group = vsg::Group::create();
 
-    // Create a group to hold the shapes with their subtransforms
+    // Create a group to hold the shapes with their sub-transforms
     auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
@@ -2878,8 +2899,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
     // Attach a transform to the group and initialize it with the provided frame
     auto vis_model_transform = vsg::MatrixTransform::create();
     vis_model_transform->matrix = vsg::dmat4CH(frame, 1.0);
-    vis_model_transform->subgraphRequiresLocalFrustum =
-        true;  // Enable frustum culling to reduce recordAndSubmit overhead
+    vis_model_transform->subgraphRequiresLocalFrustum = true;  // Enable frustum culling to reduce recordAndSubmit overhead
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(vis_model_group);
         m_options->sharedObjects->share(vis_model_transform);
@@ -2931,7 +2951,7 @@ void ChVisualSystemVSG::ExportScreenImage() {
     auto physicalDevice = m_window->getPhysicalDevice();
     auto swapchain = m_window->getSwapchain();
 
-    // get the colour buffer image of the previous rendered frame as the current frame hasn't been rendered yet.  The 1
+    // get the color buffer image of the previous rendered frame as the current frame hasn't been rendered yet.  The 1
     // in window->imageIndex(1) means image from 1 frame ago.
     auto sourceImage = m_window->imageView(m_window->imageIndex(1))->image;
 
@@ -2947,11 +2967,11 @@ void ChVisualSystemVSG::ExportScreenImage() {
     VkFormatProperties destFormatProperties;
     vkGetPhysicalDeviceFormatProperties(*(physicalDevice), VK_FORMAT_R8G8B8A8_SRGB, &destFormatProperties);
 
-    bool supportsBlit = ((srcFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) != 0) &&
-                        ((destFormatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0);
+    bool supportsBlit =
+        ((srcFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) != 0) && ((destFormatProperties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT) != 0);
 
     if (supportsBlit) {
-        // we can automatically convert the image format when blit, so take advantage of it to ensure RGBA
+        // we can automatically convert the image format when using Blit, so take advantage of it to ensure RGBA
         targetImageFormat = VK_FORMAT_R8G8B8A8_SRGB;
     }
 
@@ -2974,8 +2994,7 @@ void ChVisualSystemVSG::ExportScreenImage() {
     destinationImage->compile(device);
 
     auto deviceMemory =
-        vsg::DeviceMemory::create(device, destinationImage->getMemoryRequirements(device->deviceID),
-                                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        vsg::DeviceMemory::create(device, destinationImage->getMemoryRequirements(device->deviceID), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     destinationImage->bind(deviceMemory, 0);
 
@@ -2985,41 +3004,38 @@ void ChVisualSystemVSG::ExportScreenImage() {
     auto commands = vsg::Commands::create();
 
     // 3.a) transition destinationImage to transfer destination initialLayout
-    auto transitionDestinationImageToDestinationLayoutBarrier = vsg::ImageMemoryBarrier::create(
-        0,                                                              // srcAccessMask
-        VK_ACCESS_TRANSFER_WRITE_BIT,                                   // dstAccessMask
-        VK_IMAGE_LAYOUT_UNDEFINED,                                      // oldLayout
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,                           // newLayout
-        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
-        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
-        destinationImage,                                               // image
-        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    auto transitionDestinationImageToDestinationLayoutBarrier = vsg::ImageMemoryBarrier::create(0,                                     // srcAccessMask
+                                                                                                VK_ACCESS_TRANSFER_WRITE_BIT,          // dstAccessMask
+                                                                                                VK_IMAGE_LAYOUT_UNDEFINED,             // oldLayout
+                                                                                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,  // newLayout
+                                                                                                VK_QUEUE_FAMILY_IGNORED,               // srcQueueFamilyIndex
+                                                                                                VK_QUEUE_FAMILY_IGNORED,               // dstQueueFamilyIndex
+                                                                                                destinationImage,                      // image
+                                                                                                VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
     );
 
     // 3.b) transition swapChainImage from present to transfer source initialLayout
-    auto transitionSourceImageToTransferSourceLayoutBarrier = vsg::ImageMemoryBarrier::create(
-        VK_ACCESS_MEMORY_READ_BIT,                                      // srcAccessMask
-        VK_ACCESS_TRANSFER_READ_BIT,                                    // dstAccessMask
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,                                // oldLayout
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,                           // newLayout
-        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
-        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
-        sourceImage,                                                    // image
-        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    auto transitionSourceImageToTransferSourceLayoutBarrier = vsg::ImageMemoryBarrier::create(VK_ACCESS_MEMORY_READ_BIT,                                      // srcAccessMask
+                                                                                              VK_ACCESS_TRANSFER_READ_BIT,                                    // dstAccessMask
+                                                                                              VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,                                // oldLayout
+                                                                                              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,                           // newLayout
+                                                                                              VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
+                                                                                              VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
+                                                                                              sourceImage,                                                    // image
+                                                                                              VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
     );
 
-    auto cmd_transitionForTransferBarrier =
-        vsg::PipelineBarrier::create(VK_PIPELINE_STAGE_TRANSFER_BIT,                        // srcStageMask
-                                     VK_PIPELINE_STAGE_TRANSFER_BIT,                        // dstStageMask
-                                     0,                                                     // dependencyFlags
-                                     transitionDestinationImageToDestinationLayoutBarrier,  // barrier
-                                     transitionSourceImageToTransferSourceLayoutBarrier     // barrier
-        );
+    auto cmd_transitionForTransferBarrier = vsg::PipelineBarrier::create(VK_PIPELINE_STAGE_TRANSFER_BIT,                        // srcStageMask
+                                                                         VK_PIPELINE_STAGE_TRANSFER_BIT,                        // dstStageMask
+                                                                         0,                                                     // dependencyFlags
+                                                                         transitionDestinationImageToDestinationLayoutBarrier,  // barrier
+                                                                         transitionSourceImageToTransferSourceLayoutBarrier     // barrier
+    );
 
     commands->addChild(cmd_transitionForTransferBarrier);
 
     if (supportsBlit) {
-        // 3.c.1) if blit using vkCmdBlitImage
+        // 3.c.1) if Blit using vkCmdBlitImage
         VkImageBlit region{};
         region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         region.srcSubresource.layerCount = 1;
@@ -3063,36 +3079,33 @@ void ChVisualSystemVSG::ExportScreenImage() {
 
     // 3.d) transition destination image from transfer destination layout to general layout to enable mapping to image
     // DeviceMemory
-    auto transitionDestinationImageToMemoryReadBarrier = vsg::ImageMemoryBarrier::create(
-        VK_ACCESS_TRANSFER_WRITE_BIT,                                   // srcAccessMask
-        VK_ACCESS_MEMORY_READ_BIT,                                      // dstAccessMask
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,                           // oldLayout
-        VK_IMAGE_LAYOUT_GENERAL,                                        // newLayout
-        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
-        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
-        destinationImage,                                               // image
-        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    auto transitionDestinationImageToMemoryReadBarrier = vsg::ImageMemoryBarrier::create(VK_ACCESS_TRANSFER_WRITE_BIT,                                   // srcAccessMask
+                                                                                         VK_ACCESS_MEMORY_READ_BIT,                                      // dstAccessMask
+                                                                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,                           // oldLayout
+                                                                                         VK_IMAGE_LAYOUT_GENERAL,                                        // newLayout
+                                                                                         VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
+                                                                                         VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
+                                                                                         destinationImage,                                               // image
+                                                                                         VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
     );
 
     // 3.e) transition swap chain image back to present
-    auto transitionSourceImageBackToPresentBarrier = vsg::ImageMemoryBarrier::create(
-        VK_ACCESS_TRANSFER_READ_BIT,                                    // srcAccessMask
-        VK_ACCESS_MEMORY_READ_BIT,                                      // dstAccessMask
-        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,                           // oldLayout
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,                                // newLayout
-        VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
-        VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
-        sourceImage,                                                    // image
-        VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
+    auto transitionSourceImageBackToPresentBarrier = vsg::ImageMemoryBarrier::create(VK_ACCESS_TRANSFER_READ_BIT,                                    // srcAccessMask
+                                                                                     VK_ACCESS_MEMORY_READ_BIT,                                      // dstAccessMask
+                                                                                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,                           // oldLayout
+                                                                                     VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,                                // newLayout
+                                                                                     VK_QUEUE_FAMILY_IGNORED,                                        // srcQueueFamilyIndex
+                                                                                     VK_QUEUE_FAMILY_IGNORED,                                        // dstQueueFamilyIndex
+                                                                                     sourceImage,                                                    // image
+                                                                                     VkImageSubresourceRange{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // subresourceRange
     );
 
-    auto cmd_transitionFromTransferBarrier =
-        vsg::PipelineBarrier::create(VK_PIPELINE_STAGE_TRANSFER_BIT,                 // srcStageMask
-                                     VK_PIPELINE_STAGE_TRANSFER_BIT,                 // dstStageMask
-                                     0,                                              // dependencyFlags
-                                     transitionDestinationImageToMemoryReadBarrier,  // barrier
-                                     transitionSourceImageBackToPresentBarrier       // barrier
-        );
+    auto cmd_transitionFromTransferBarrier = vsg::PipelineBarrier::create(VK_PIPELINE_STAGE_TRANSFER_BIT,                 // srcStageMask
+                                                                          VK_PIPELINE_STAGE_TRANSFER_BIT,                 // dstStageMask
+                                                                          0,                                              // dependencyFlags
+                                                                          transitionDestinationImageToMemoryReadBarrier,  // barrier
+                                                                          transitionSourceImageBackToPresentBarrier       // barrier
+    );
 
     commands->addChild(cmd_transitionFromTransferBarrier);
 
@@ -3101,8 +3114,7 @@ void ChVisualSystemVSG::ExportScreenImage() {
     auto commandPool = vsg::CommandPool::create(device, queueFamilyIndex);
     auto queue = device->getQueue(queueFamilyIndex);
 
-    vsg::submitCommandsToQueue(commandPool, fence, 100000000000, queue,
-                               [&](vsg::CommandBuffer& commandBuffer) { commands->record(commandBuffer); });
+    vsg::submitCommandsToQueue(commandPool, fence, 100000000000, queue, [&](vsg::CommandBuffer& commandBuffer) { commands->record(commandBuffer); });
 
     //
     // 4) map image and copy
@@ -3114,25 +3126,21 @@ void ChVisualSystemVSG::ExportScreenImage() {
     size_t destRowWidth = width * sizeof(vsg::ubvec4);
     vsg::ref_ptr<vsg::Data> imageData;
     if (destRowWidth == subResourceLayout.rowPitch) {
-        imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0,
-                                                                vsg::Data::Properties{targetImageFormat}, width,
-                                                                height);  // deviceMemory, offset, flags and dimensions
+        imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0, vsg::Data::Properties{targetImageFormat}, width, height);
     } else {
         // Map the buffer memory and assign as a ubyteArray that will automatically unmap itself on destruction.
         // A ubyteArray is used as the graphics buffer memory is not contiguous like vsg::Array2D, so map to a flat
         // buffer first then copy to Array2D.
-        auto mappedData = vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0,
-                                                                   vsg::Data::Properties{targetImageFormat},
-                                                                   subResourceLayout.rowPitch * height);
+        auto mappedData =
+            vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0, vsg::Data::Properties{targetImageFormat}, subResourceLayout.rowPitch * height);
         imageData = vsg::ubvec4Array2D::create(width, height, vsg::Data::Properties{targetImageFormat});
         for (uint32_t row = 0; row < height; ++row) {
-            std::memcpy(imageData->dataPointer(row * width), mappedData->dataPointer(row * subResourceLayout.rowPitch),
-                        destRowWidth);
+            std::memcpy(imageData->dataPointer(row * width), mappedData->dataPointer(row * subResourceLayout.rowPitch), destRowWidth);
         }
     }
 
     if (!vsg::write(imageData, m_image_filename, m_options)) {
-        std::cout << "Failed to write color buffer to " << m_image_filename << std::endl;
+        cout << "Failed to write color buffer to " << m_image_filename << endl;
     }
 }
 

@@ -167,7 +167,7 @@ void ChFunctionConstJerk::Setup(bool& feasible,
     double h = m_q1 - m_q0;                  // total displacement
     double amax2 = m_amax_lim * m_amax_lim;  // amax squared
 
-    // Check motion law feasability --------------------
+    // Check motion law feasibility --------------------
     double Tj_star1 = std::sqrt(std::abs(m_v1 - m_v0) / m_jmax_lim);
     double Tj_star2 = m_amax_lim / m_jmax_lim;
     double Tj_star = std::min(Tj_star1, Tj_star2);

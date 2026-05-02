@@ -252,7 +252,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTrackShoeBand::ToothMesh(double y) 
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     std::vector<ChVector3d>& vertices = trimesh->GetCoordsVertices();
     std::vector<ChVector3d>& normals = trimesh->GetCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertices();
     std::vector<ChVector3i>& idx_normals = trimesh->GetIndicesNormals();
 
     // Number of vertices:

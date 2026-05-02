@@ -27,6 +27,6 @@
 
   "Visualization":
   {
-    "Mesh":  "sedan/sedan_chassis_vis.obj"
+    "Mesh":  "vehicle/sedan/sedan_chassis_vis.obj"
   }
 }

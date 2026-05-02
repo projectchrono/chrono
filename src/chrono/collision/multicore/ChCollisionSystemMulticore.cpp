@@ -323,13 +323,13 @@ void ChCollisionSystemMulticore::Run() {
 
 // -----------------------------------------------------------------------------
 
-void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* container) {
+void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* contact_container) {
     const auto& blist = m_system->GetBodies();
 
     // Resize global arrays with composite material properties.
     // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
     // callback)
-    container->BeginAddContact();
+    contact_container->BeginAddContact();
 
     const auto& bids = cd_data->bids_rigid_rigid;          // global IDs of bodies in contact
     const auto& sids = cd_data->contact_shapeIDs;          // global IDs of shapes in contact
@@ -365,10 +365,10 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* container) {
             add_contact = this->narrow_callback->OnNarrowphase(cinfo);
 
         if (add_contact)
-            container->AddContact(cinfo);
+            contact_container->AddContact(cinfo);
     }
 
-    container->EndAddContact();
+    contact_container->EndAddContact();
 }
 
 // -----------------------------------------------------------------------------
@@ -385,37 +385,37 @@ static void ComputeAABBSphere(const real& radius,
 }
 
 static void ComputeAABBTriangle(const real3& A, const real3& B, const real3& C, real3& minp, real3& maxp) {
-    minp.x = Min(A.x, Min(B.x, C.x));
-    minp.y = Min(A.y, Min(B.y, C.y));
-    minp.z = Min(A.z, Min(B.z, C.z));
-    maxp.x = Max(A.x, Max(B.x, C.x));
-    maxp.y = Max(A.y, Max(B.y, C.y));
-    maxp.z = Max(A.z, Max(B.z, C.z));
+    minp.x = std::min(A.x, std::min(B.x, C.x));
+    minp.y = std::min(A.y, std::min(B.y, C.y));
+    minp.z = std::min(A.z, std::min(B.z, C.z));
+    maxp.x = std::max(A.x, std::max(B.x, C.x));
+    maxp.y = std::max(A.y, std::max(B.y, C.y));
+    maxp.z = std::max(A.z, std::max(B.z, C.z));
 }
 
 static void ComputeAABBBox(const real3& dim,
-                           const real3& lpositon,
+                           const real3& lposition,
                            const real3& position,
                            const quaternion& rotation,
                            const quaternion& body_rotation,
                            real3& minp,
                            real3& maxp) {
     real3 temp = AbsRotate(rotation, dim);
-    real3 pos = Rotate(lpositon, body_rotation) + position;
+    real3 pos = Rotate(lposition, body_rotation) + position;
     minp = pos - temp;
     maxp = pos + temp;
 }
 
 /*
 static void ComputeAABBCone(const real3& dim,
-                            const real3& lpositon,
-                            const real3& positon,
+                            const real3& lposition,
+                            const real3& position,
                             const quaternion& rotation,
                             const quaternion& body_rotation,
                             real3& minp,
                             real3& maxp) {
     real3 temp = AbsRotate(rotation, real3(dim.x, dim.y, dim.z / 2.0));
-    real3 pos = Rotate(lpositon - real3(0, 0, dim.z / 2.0), body_rotation) + positon;
+    real3 pos = Rotate(lposition - real3(0, 0, dim.z / 2.0), body_rotation) + position;
     minp = pos - temp;
     maxp = pos + temp;
 }

@@ -183,7 +183,7 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
       m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
       m_flex_bce_color(ChColor(1.0f, 1.0f, 0.4f)),
-      m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
+      m_active_box_color(ChColor(1.0f, 1.0f, 1.0f)),
       m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir("."),
@@ -206,15 +206,17 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
       m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir("."),
-      m_sph_cloud_index(-1) {  // ensure the SPH cloud lookup is revalidated on the first query
+      m_sph_cloud_index(-1) {  // ensure the SPH cloud lookup is re-validated on the first query
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
 }
 
 ChSphVisualizationVSG::~ChSphVisualizationVSG() {
-    auto& systems = m_vsys->GetSystems();
-    auto index = std::find(systems.begin(), systems.end(), m_sysMBS);
-    if (index != systems.end())
-        systems.erase(index);
+    if (m_vsys && m_sysMBS->GetVisualSystem()) {
+        auto& systems = m_vsys->GetSystems();
+        auto index = std::find(systems.begin(), systems.end(), m_sysMBS);
+        if (index != systems.end())
+            systems.erase(index);
+    }
 
     delete m_sysMBS;
 }
@@ -337,7 +339,7 @@ void ChSphVisualizationVSG::OnInitialize() {
     m_vsys->SetImageOutputDirectory(m_image_dir);
 
     // Issue performance warning if shadows are enabled for the containing visualization system
-    if (m_vsys->AreShadowsEnabled()) {
+    if (m_vsys->ShadowsEnabled()) {
         std::cerr << "WARNING:  Shadow rendering is enabled for the associated VSG visualization system.\n";
         std::cerr << "          This negatively affects rendering performance, especially for large particle systems."
                   << std::endl;
@@ -373,14 +375,14 @@ void ChSphVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
 
 void ChSphVisualizationVSG::BindComputationalDomain() {
     auto material = chrono_types::make_shared<ChVisualMaterial>();
-    material->SetDiffuseColor(m_active_box_color);
+    material->SetDiffuseColor(ChColor::Mix(m_active_box_color, ChColor(0, 1, 0)));
 
     auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
 
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", nullptr);
@@ -399,7 +401,7 @@ void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, in
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", obj);
@@ -468,17 +470,17 @@ ChSphVisualizationVSG::ColorMode ChSphVisualizationVSG::DetermineColorMode() con
 }
 
 bool ChSphVisualizationVSG::ShouldUseGpuColoring(size_t num_particles) const {
-    // Only enable the compute path when we have data and a supported colouring callback, else dont
+    // Only enable the compute path when we have data and a supported coloring callback, else don't
     if (!m_color_fun) {
-        // GPU colouring disabled: no colour callback function set
+        // GPU coloring disabled: no color callback function set
         return false;
     }
     if (num_particles == 0) {
-        // GPU colouring disabled: no particles to render
+        // GPU coloring disabled: no particles to render
         return false;
     }
     if (DetermineColorMode() == ColorMode::NONE) {
-        // GPU colouring disabled: unsupported colour mode
+        // GPU coloring disabled: unsupported color mode
         return false;
     }
     return true;
@@ -493,7 +495,7 @@ bool ChSphVisualizationVSG::InitializeGpuColoringResources(size_t num_particles)
         return false;
 
     auto cloud = GetSphParticleCloud();
-    // Defer initialisation until the visual system has bound the SPH cloud buffers
+    // Defer initialization until the visual system has bound the SPH cloud buffers
     if (!cloud || !cloud->position_bufferInfo || !cloud->color_bufferInfo)
         return false;
 
@@ -569,7 +571,7 @@ bool ChSphVisualizationVSG::InitializeGpuColoringResources(size_t num_particles)
     m_gpu_color.commands->addChild(m_gpu_color.dispatch);
     m_gpu_color.commands->addChild(m_gpu_color.barrier);
 
-    // Register the compute work with the visualisation system's compute command graph
+    // Register the compute work with the visualization system's compute command graph
     m_vsys->AddComputeCommands(m_gpu_color.commands);
     cloud->compute_commands = m_gpu_color.commands;
 
@@ -610,7 +612,7 @@ void ChSphVisualizationVSG::EnsureGpuColoringReady(size_t num_particles) {
 
     const bool enable = ShouldUseGpuColoring(num_particles);
     if (!enable) {
-        // Fall back to the old CPU path when the colour callback is disabled or unsupported
+        // Fall back to the old CPU path when the color callback is disabled or unsupported
         // .. could probably delete this handling and associated once confident the gpu path is good
         ConfigureGpuCommands(false);
         cloud->use_compute_colors = false;

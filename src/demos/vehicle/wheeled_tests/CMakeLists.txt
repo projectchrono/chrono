@@ -1,6 +1,5 @@
 #=============================================================================
 # CMake configuration file for the ISO2631 demos.
-# These example programs work with and without Irrlicht run-time visualization.
 #=============================================================================
 
 #--------------------------------------------------------------
@@ -45,10 +44,6 @@ endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "Chrono_postprocess")
-endif()
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_vehicle_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)

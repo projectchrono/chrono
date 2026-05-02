@@ -18,8 +18,6 @@
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #include "chrono_parsers/yaml/ChParserCfdYAML.h"
 
-#include "chrono/assets/ChColormap.h"
-
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -67,7 +65,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Create and return a Chrono FSI problem configured from cached model and simulation parameters.
     /// By default, the Chrono FSI problem is initialized (with no associated MBS system). If a system is attached after
     /// creation, the caller must create the FSI problem with initialize=false, attach an MBS to the problem with
-    /// ChFsiProblemSPH::AttachMultibodySystem, and then explictly invoke ChFsiProblemSPH::Initialize().
+    /// ChFsiProblemSPH::AttachMultibodySystem, and then explicitly invoke ChFsiProblemSPH::Initialize().
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> CreateFsiProblemSPH(bool initialize = true);
 
     /// Access the underlying FSI system.
@@ -219,7 +217,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     static fsi::sph::BCType ReadBoundaryConditionType(const YAML::Node& a);
 
     static ParticleColoringType ReadParticleColoringType(const YAML::Node& a);
-    static ChColormap::Type ReadColorMapType(const YAML::Node& a);
+
 #ifdef CHRONO_VSG
     static fsi::sph::MarkerPlanesVisibilityCallback::Mode ReadVisibilityMode(const YAML::Node& a);
 #endif

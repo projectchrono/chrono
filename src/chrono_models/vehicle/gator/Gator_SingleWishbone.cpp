@@ -65,7 +65,7 @@ Gator_SingleWishbone::Gator_SingleWishbone(const std::string& name) : ChSingleWi
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 Gator_SingleWishbone::~Gator_SingleWishbone() {}
 

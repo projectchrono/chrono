@@ -16,6 +16,12 @@
 //
 // =============================================================================
 
+// Run benchmark tests for a number of meshes between MIN^3 and MAX^3 (inclusive)
+#define TEST_MIN_MESHES 2
+#define TEST_MAX_MESHES 4
+
+// =============================================================================
+
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
@@ -39,40 +45,29 @@ float end_time = 10.0f;
 bool vis = true;
 
 int main(int argc, char* argv[]) {
-    for (int q = 2; q <= 3; q++) {
-        std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-        // -----------------
+    for (int q = TEST_MIN_MESHES; q <= TEST_MAX_MESHES; q++) {
         // Create the system
-        // -----------------
         ChSystemNSC sys;
         sys.SetGravityY();
 
-        // ---------------------------------------
-        // add a mesh to be visualized by a camera
-        // ---------------------------------------
+        // Add mesh instances to be visualized by a camera
         auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
         mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
-        int x_instances = q;
-        int y_instances = q;
-        int z_instances = q;
+        srand(0);
+
         float x_spread = 2.5f;
         float y_spread = 1.5f;
-        float z_spread = 1.f;
-        srand(0);
-        for (int i = 0; i < x_instances; i++) {
-            for (int j = 0; j < y_instances; j++) {
-                for (int k = 0; k < z_instances; k++) {
-                    ChVector3d p = {x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
-                                    z_spread * (k + .5 - z_instances / 2.)};
+        float z_spread = 1.0f;
 
-                    // ChVector3d p = {10 * (float)rand() - 5, 10 * (float)rand() - 5, 10 * (float)rand() - 5};
-
-                    ChQuaternion<> quat = QuatFromAngleAxis(p.Length(), {0, 0, 1});
-
-                    ChFrame<> f = ChFrame<>(p, quat);
+        for (int i = 0; i < q; i++) {
+            for (int j = 0; j < q; j++) {
+                for (int k = 0; k < q; k++) {
+                    ChVector3d p = {x_spread * (i + 0.5 * (1 - q)), y_spread * (j + 0.5 * (1 - q)),
+                                    z_spread * (k + 0.5 * (1 - q))};
 
                     auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
                     trimesh_shape->SetMesh(mmesh);
@@ -82,7 +77,7 @@ int main(int argc, char* argv[]) {
 
                     auto mesh_body = chrono_types::make_shared<ChBody>();
                     mesh_body->SetPos(p);
-                    mesh_body->SetRot(quat);
+                    mesh_body->SetRot(QuatFromAngleZ(p.Length()));
                     mesh_body->SetFixed(true);
                     mesh_body->AddVisualShape(trimesh_shape);
                     sys.Add(mesh_body);
@@ -98,7 +93,7 @@ int main(int argc, char* argv[]) {
         // Create a sensor manager
         // -----------------------
         auto manager = std::make_shared<ChSensorManager>(&sys);
-        manager->SetRayRecursions(0);
+        manager->SetRayRecursions(9); // number of ray bounces for tracing each path
         manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
@@ -113,7 +108,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>({-10, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                                   // image width
             1080,                                                                   // image height
-            (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true                 // FOV
+            (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true, true           // FOV, samples per pixel (spp), lens model type, consider diffuse reflection, use OptiX denoiser
         );
         cam->SetName("Camera Sensor");
         if (vis)
@@ -124,7 +119,7 @@ int main(int argc, char* argv[]) {
         // ---------------
         // Simulate system
         // ---------------
-        float orbit_radius = (x_instances / 2.0f) * x_spread + 5.0f;
+        float orbit_radius = (q / 2.0f) * x_spread + 5.0f;
         float orbit_rate = 0.5f;
         float ch_time = 0.0f;
 
@@ -144,7 +139,7 @@ int main(int argc, char* argv[]) {
         }
         std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-        int num_meshes = (x_instances) * (y_instances) * (z_instances);
+        int num_meshes = q * q * q;
         std::cout << "Num meshes: " << num_meshes << ", Num triangles: " << num_meshes * 164745
                   << ", Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
     }

@@ -131,7 +131,7 @@ class CH_VEHICLE_API ChPart {
 
     /// Read states of this subsystem's components from the specified checkpoint database.
     /// This base class implementation imports states for component physical items.
-    /// An assembly of parts should override this function and invoke ReadCheckpoint() for each copmponent part.
+    /// An assembly of parts should override this function and invoke ReadCheckpoint() for each component part.
     virtual void ReadCheckpoint(ChCheckpoint& database);
 
     /// Utility function for transforming inertia tensors between centroidal frames.
@@ -182,6 +182,9 @@ class CH_VEHICLE_API ChPart {
     /// Initialize the part (populate components and mark as initialized).
     /// A derived class should call this at the end of its initialization phase.
     void Initialize();
+
+    /// Get the list of bodies.
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const { return m_bodies; }
 
     /// Export the list of bodies to the specified JSON document.
     void ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies) const;

@@ -104,10 +104,10 @@ int main(int argc, char* argv[]) {
         vis->Render();
 
         // Render the rev-sph massless link.
-        tools::drawSegment(vis.get(), rev_sph->GetPoint1Abs(), rev_sph->GetPoint2Abs(), ChColor(0, 0.2f, 0), true);
+        tools::DrawSegment(vis.get(), rev_sph->GetPoint1Abs(), rev_sph->GetPoint2Abs(), ChColor(0, 0.2f, 0), true);
 
         // Render the point trajectory
-        tools::drawPolyline(vis.get(), trajectory, ChColor(0, 0.6f, 0), false);
+        tools::DrawPolyline(vis.get(), trajectory, ChColor(0, 0.6f, 0), false);
 
         vis->EndScene();
 

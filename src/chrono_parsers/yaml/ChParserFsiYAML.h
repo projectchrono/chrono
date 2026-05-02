@@ -40,7 +40,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
 
     void LoadFsiData(const YAML::Node& yaml);
 
-    /// Load the simulation and visualization saettings from the specified YAML node.
+    /// Load the simulation and visualization settings from the specified YAML node.
     void LoadSimData(const YAML::Node& yaml);
 
     /// Create and return a ChFsiSystem combining a Chrono MBS system and a fluid solver.

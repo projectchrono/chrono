@@ -56,9 +56,6 @@ using std::endl;
 
 // =============================================================================
 
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
 // Terrain type
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 
@@ -173,7 +170,7 @@ void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
                             vehicle_model->CameraHeight());
     vis_vsg->SetWindowSize(1280, 800);
-    vis_vsg->EnableSkyBox();
+    vis_vsg->EnableSkyTexture(SkyMode::DOME);
     vis_vsg->SetCameraAngleDeg(40);
     vis_vsg->SetLightIntensity(1.0f);
     vis_vsg->SetLightDirection(1.8 * CH_PI_2, CH_PI_4);
@@ -300,7 +297,7 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         for (const auto& a : vehicle_1.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ExportCheckpoint(ChCheckpoint::Format::ASCII,
+                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
                                                    dir_1 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
@@ -312,14 +309,14 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         for (const auto& a : vehicle_2.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ExportCheckpoint(ChCheckpoint::Format::ASCII,
+                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
                                                    dir_2 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
         }
     }
 
-    // Create the driver systems and initialize from checkpint files
+    // Create the driver systems and initialize from checkpoint files
     ChDriver driver_1(vehicle_1);
     ChDriver driver_2(vehicle_2);
     driver_1.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/driver_checkpoint.txt");
@@ -351,7 +348,7 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
     vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
     vis_vsg->SetChaseCameraPosition(pos_1 + ChVector3d(-35, 0, 2.0));
     vis_vsg->SetWindowSize(1280, 800);
-    vis_vsg->EnableSkyBox();
+    vis_vsg->EnableSkyTexture(SkyMode::DOME);
     vis_vsg->SetCameraAngleDeg(40);
     vis_vsg->SetLightIntensity(1.0f);
     vis_vsg->SetLightDirection(1.8 * CH_PI_2, CH_PI_4);

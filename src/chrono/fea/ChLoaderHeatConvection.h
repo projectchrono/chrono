@@ -1,0 +1,80 @@
+﻿// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora 
+// =============================================================================
+
+#ifndef CHLOADERHEATCONVECTION_H
+#define CHLOADERHEATCONVECTION_H
+
+
+#include "chrono/fea/ChField.h"
+#include "chrono/fea/ChFieldElement.h"
+#include "chrono/physics/ChLoaderUV.h"
+
+
+namespace chrono {
+namespace fea {
+
+/// @addtogroup chrono_fea
+/// @{
+
+/// Thermal load: heat convection from surface.
+/// Use this for applying a heat flux load on the surface of finite elements, 
+/// according to the convection model W_per_area = convection_coeff * (T_surface - T_fluid):
+
+class ChApi ChLoaderHeatConvection : public ChLoaderUVdistributed {
+public:
+    ChLoaderHeatConvection(std::shared_ptr<ChLoadableUV> mloadable, std::shared_ptr<ChFieldTemperature> temp_field)
+        : ChLoaderUVdistributed(mloadable), m_temp(temp_field), m_convection_coeff(1), m_T_fluid(0), num_integration_points(1) {}
+
+    virtual void ComputeF(double U,              ///< parametric coordinate in surface
+        double V,              ///< parametric coordinate in surface
+        ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+        ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
+        ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
+    ) override;
+
+    /// Set the convection coefficient of the surface, a, as in the formula W_per_area = Area * a * (T_surface - T_fluid) 
+    /// Units in SI are [W/m²°C], typically a value that depends on the type of fluid and its circulation, ex. 
+    /// Air (Free Convection): 5 to 25, Air(Forced Convection) : 10 to 200, Water(Forced Convection) : 50 to 10000 etc.
+    void SetSurfaceConvectionCoeff(double convection_coeff) { m_convection_coeff = convection_coeff; }
+
+    /// Set the convection coefficient of the surface.
+    double GetSurfaceConvectionCoeff() { return m_convection_coeff; }
+
+    /// Set the imposed fuid temperature at the external of the surface.
+    void SetFluidTemperature(double T_env) { m_T_fluid = T_env; }
+
+    /// Get the imposed fluid temperature at the external of the surface.
+    double GetFluidTemperature() { return m_T_fluid; }
+
+    void SetIntegrationPoints(int val) { num_integration_points = val; }
+    virtual int GetIntegrationPointsU() override { return num_integration_points; }
+    virtual int GetIntegrationPointsV() override { return num_integration_points; }
+
+private:
+    double m_convection_coeff;
+    double m_T_fluid;
+    int num_integration_points;
+    std::shared_ptr<ChFieldTemperature> m_temp;
+};
+
+
+
+
+/// @} chrono_fea
+
+}  // end namespace fea
+
+}  // end namespace chrono
+
+#endif

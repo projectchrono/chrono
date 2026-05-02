@@ -46,6 +46,6 @@ ENDIF()
 set(LIBS Chrono_core)
 
 MESSAGE(STATUS "Add unit test programs for COLLISION")
-build_utests(YES "${TESTS}" "${LIBS}" "${BULLET_FILES}")
+build_utests(YES "${TESTS}" "collision" "${LIBS}" "${BULLET_FILES}")
 
 

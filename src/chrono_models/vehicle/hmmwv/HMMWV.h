@@ -69,6 +69,8 @@ class CH_MODELS_API HMMWV {
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
 
+    void SetChassisCollisionGeometry(const utils::ChBodyGeometry& geometry);
+
     void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
@@ -103,6 +105,7 @@ class CH_MODELS_API HMMWV {
     ChContactMethod m_contactMethod;
     ChCollisionSystem::Type m_collsysType;
     CollisionType m_chassisCollisionType;
+    utils::ChBodyGeometry m_chassis_collision_geometry;
     bool m_fixed;
     bool m_brake_locking;
 

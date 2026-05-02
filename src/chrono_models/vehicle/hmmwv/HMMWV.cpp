@@ -23,6 +23,8 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
+#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
+
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCF4LumpedTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
@@ -115,12 +117,25 @@ void HMMWV::SetTireContactSurfaceType(ChTire::ContactSurfaceType surface_type,
     m_tire_collision_family = collision_family;
 }
 
+void HMMWV::SetChassisCollisionGeometry(const utils::ChBodyGeometry& geometry) {
+    assert(geometry.HasCollision());
+    m_chassis_collision_geometry.materials = geometry.materials;
+    m_chassis_collision_geometry.coll_boxes = geometry.coll_boxes;
+    m_chassis_collision_geometry.coll_spheres = geometry.coll_spheres;
+    m_chassis_collision_geometry.coll_cylinders = geometry.coll_cylinders;
+    m_chassis_collision_geometry.coll_cones = geometry.coll_cones;
+    m_chassis_collision_geometry.coll_meshes = geometry.coll_meshes;
+    m_chassis_collision_geometry.coll_hulls = geometry.coll_hulls;
+}
+
 // -----------------------------------------------------------------------------
 void HMMWV::Initialize() {
     // Create and initialize the HMMWV vehicle
     m_vehicle = CreateVehicle();
     m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
+    if (m_chassis_collision_geometry.HasCollision())
+        std::static_pointer_cast<HMMWV_Chassis>(m_vehicle->GetChassis())->SetCollisionGeometry(m_chassis_collision_geometry);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // If specified, enable aerodynamic drag

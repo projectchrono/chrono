@@ -68,7 +68,7 @@ class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
     std::shared_ptr<ChLinkMotorRotationAngle> GetMotorForearmWrist() { return m_link_forearm_wrist; }
     std::shared_ptr<ChLinkMotorRotationAngle> GetMotorWristEndeffector() { return m_link_wrist_end_effector; }
 
-    /// Get motors diplacement/velocity/acceleration/torque data.
+    /// Get motors displacement/velocity/acceleration/torque data.
     virtual ChVectorDynamic<> GetMotorsPos(bool wrap_angles = false) const override;
     virtual ChVectorDynamic<> GetMotorsPosDt() const override;
     virtual ChVectorDynamic<> GetMotorsPosDt2() const override;

@@ -43,12 +43,12 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     // for cosimulation  A <----> B
 
     /// Get the collision mesh in a pointer-less way, where vertices are given in a vector of xyz points, and triangles
-    /// are given as indexes to the three vertexes in that vector (similar to Wavefront OBJ meshes) Note, indexes are
+    /// are given as indexes to the three vertices in that vector (similar to Wavefront OBJ meshes) Note, indexes are
     /// 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on the mesh.
     void OutputSimpleMesh(
-        std::vector<ChVector3d>& vert_pos,  ///< array of vertexes (absolute xyz positions)
-        std::vector<ChVector3d>& vert_vel,  ///< array of vertexes (absolute xyz velocities, might be useful)
-        std::vector<ChVector3i>& triangles  ///< array of triangles (indexes to vertexes, ccw)
+        std::vector<ChVector3d>& vert_pos,  ///< array of vertices (absolute xyz positions)
+        std::vector<ChVector3d>& vert_vel,  ///< array of vertices (absolute xyz velocities, might be useful)
+        std::vector<ChVector3i>& triangles  ///< array of triangles (indexes to vertices, ccw)
     );
 
     /// Set the forces to the nodes in a pointer-less way, where forces are given as a vector of xyz vectors and indexes
@@ -56,7 +56,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// NOTE: do not insert/remove nodes from the collision mesh between the OutputSimpleMesh-InputSimpleForces pair!
     void InputSimpleForces(
         const std::vector<ChVector3d>& vert_forces,  ///< array of forces (absolute xyz forces in [N])
-        const std::vector<int>& vert_ind             ///< array of indexes to vertexes to which forces are applied
+        const std::vector<int>& vert_ind             ///< array of indexes to vertices to which forces are applied
     );
 
     /// Set the contact mesh (also resets the applied nodes)

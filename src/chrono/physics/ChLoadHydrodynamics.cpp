@@ -19,8 +19,7 @@
 
 namespace chrono {
 
-ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_blocks)
-    : m_body_blocks(body_blocks), m_verbose(false) {
+ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_blocks) : m_body_blocks(body_blocks), m_verbose(false) {
     // Traverse list of hydro bodies, check added mass block size, and collect list of variables
     std::vector<ChVariables*> variables;
     auto num_bodies = (int)body_blocks.size();
@@ -62,7 +61,7 @@ void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
         bool calc_M_inv = (solver_type == ChSolver::Type::APGD ||             //
                            solver_type == ChSolver::Type::BARZILAIBORWEIN ||  //
                            solver_type == ChSolver::Type::PSOR);              //
-           
+
         // Load mass matrix with body inertia (sparse, block-diagonal)
         ChSparseMatrix M_sparse;
         if (calc_M_inv) {
@@ -127,10 +126,7 @@ void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
     ChPhysicsItem::Update(time, update_flags);
 }
 
-void ChLoadHydrodynamics::IntLoadResidual_Mv(const unsigned int off,
-                                             ChVectorDynamic<>& R,
-                                             const ChVectorDynamic<>& w,
-                                             const double c) {
+void ChLoadHydrodynamics::IntLoadResidual_Mv(const unsigned int off, ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
     auto num_bodies = m_body_blocks.size();
 
     // Compress w to entries corresponding to the hydrodynamic bodies
@@ -143,12 +139,9 @@ void ChLoadHydrodynamics::IntLoadResidual_Mv(const unsigned int off,
     }
 
     // Update R += c * M * w
-    ChVectorDynamic<> cMw1 = c * m_added_mass * w1;
-    i = 0;
     for (const auto& b : m_body_blocks) {
         auto offset = b.body->GetOffset_w();
-        R(Eigen::seq(offset, offset + 5)) += cMw1(Eigen::seq(i, i + 5));
-        i += 6;
+        R(Eigen::seq(offset, offset + 5)) += c * b.block * w1;
     }
 }
 

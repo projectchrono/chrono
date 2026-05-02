@@ -84,7 +84,7 @@ Cherokee_SolidAxleFront::Cherokee_SolidAxleFront(const std::string& name) : ChSo
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 Cherokee_SolidAxleFront::~Cherokee_SolidAxleFront() {}
 

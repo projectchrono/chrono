@@ -26,7 +26,7 @@ set(DEMOS
   demo_MBS_hydraulic_actuator
   demo_MBS_hydraulic_crane
   demo_MBS_hydraulic_crane_cosim
-  demo_MBS_custom_contact
+  demo_MBS_custom_collision
   demo_MBS_spinning_tops
 )
 
@@ -34,6 +34,7 @@ set(DEMOS
 if(CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_MBS_checkpoint
+        demo_MBS_custom_contact
     )
 endif()
 

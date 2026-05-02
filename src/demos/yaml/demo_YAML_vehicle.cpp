@@ -23,10 +23,6 @@
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
@@ -91,68 +87,34 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle run-time visualization interface and the interactive driver
     std::shared_ptr<vehicle::ChVehicleVisualSystem> vis;
-    if (render) {
-        ChVisualSystem::Type vis_type;
-
-#if defined(CHRONO_VSG)
-        vis_type = ChVisualSystem::Type::VSG;
-#elif defined(CHRONO_IRRLICHT)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#else
-        std::cout << "No Chrono run-time visualization module enabled. Disabling visualization." << std::endl;
-        render = false;
-#endif
-
-        switch (vis_type) {
-            case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-                std::shared_ptr<vehicle::ChVehicleVisualSystemIrrlicht> vis_irr;
-                if (vehicle_type == parsers::ChParserVehicleYAML::VehicleType::WHEELED)
-                    vis_irr = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemIrrlicht>();
-                else
-                    vis_irr = chrono_types::make_shared<vehicle::ChTrackedVehicleVisualSystemIrrlicht>();
-                vis_irr->SetWindowTitle("Vehicle YAML demo - " + model_name);
-                vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-                vis_irr->SetChaseCamera(chassis_point, chase_distance, chase_height);
-                vis_irr->Initialize();
-                vis_irr->AddLightDirectional();
-                vis_irr->AddSkyBox();
-                vis_irr->AddLogo();
-                vis_irr->AttachVehicle(vehicle.get());
-                vis_irr->AttachDriver(driver.get());
-
-                vis = vis_irr;
-#endif
-                break;
-            }
-            default:
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                std::shared_ptr<vehicle::ChVehicleVisualSystemVSG> vis_vsg;
-                if (vehicle_type == parsers::ChParserVehicleYAML::VehicleType::WHEELED)
-                    vis_vsg = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemVSG>();
-                else
-                    vis_vsg = chrono_types::make_shared<vehicle::ChTrackedVehicleVisualSystemVSG>();
-                vis_vsg->SetWindowTitle("Vehicle YAML demo - " + model_name);
-                vis_vsg->AttachVehicle(vehicle.get());
-                vis_vsg->AttachDriver(driver.get());
-                vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-                vis_vsg->SetChaseCamera(chassis_point, chase_distance, chase_height);
-                vis_vsg->SetWindowSize(1280, 800);
-                vis_vsg->SetWindowPosition(100, 100);
-                vis_vsg->EnableSkyBox();
-                vis_vsg->SetCameraAngleDeg(40);
-                vis_vsg->SetLightIntensity(1.0f);
-                vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-                vis_vsg->EnableShadows(enable_shadows);
-                vis_vsg->Initialize();
+    if (render) {
+        std::shared_ptr<vehicle::ChVehicleVisualSystemVSG> vis_vsg;
+        if (vehicle_type == parsers::ChParserVehicleYAML::VehicleType::WHEELED)
+            vis_vsg = chrono_types::make_shared<vehicle::ChWheeledVehicleVisualSystemVSG>();
+        else
+            vis_vsg = chrono_types::make_shared<vehicle::ChTrackedVehicleVisualSystemVSG>();
+        vis_vsg->SetWindowTitle("Vehicle YAML demo - " + model_name);
+        vis_vsg->AttachVehicle(vehicle.get());
+        vis_vsg->AttachDriver(driver.get());
+        vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+        vis_vsg->SetChaseCamera(chassis_point, chase_distance, chase_height);
+        vis_vsg->SetWindowSize(1280, 800);
+        vis_vsg->SetWindowPosition(100, 100);
+        vis_vsg->EnableSkyTexture(SkyMode::BOX);
+        vis_vsg->SetCameraAngleDeg(40);
+        vis_vsg->SetLightIntensity(1.0f);
+        vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis_vsg->EnableShadows(enable_shadows);
+        vis_vsg->Initialize();
 
-                vis = vis_vsg;
-#endif
-                break;
-            }
-        }
+        vis = vis_vsg;
     }
+#else
+    if (render)
+        std::cout << "Chrono::VSG run-time visualization module not enabled. Disabling visualization." << std::endl;
+    render = false;
+#endif
 
     // Create output directory
     if (parser.Output()) {

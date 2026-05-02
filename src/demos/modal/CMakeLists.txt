@@ -10,6 +10,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_MOD_analysis
        demo_MOD_reduction
+       demo_MOD_cache_reduced
    )
 endif()
 

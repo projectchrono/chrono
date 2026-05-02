@@ -71,6 +71,8 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
         demo_FEA_contactsANCF_SMC
         demo_FEA_hexaANCF_3813_9
         demo_FEA_beamsANCF
+        demo_FEA_multiphysics
+        demo_FEA_multiphysics_custom
     )
     endif()
     
@@ -121,7 +123,7 @@ endif()
 message(STATUS "Add demo programs for FEA module")
 
 foreach(PROGRAM ${FEA_DEMOS})
-    add_executable(${PROGRAM}  ${PROGRAM}.cpp ${UTILS})
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
     source_group(""  FILES ${PROGRAM}.cpp ${UTILS})
 
     set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)

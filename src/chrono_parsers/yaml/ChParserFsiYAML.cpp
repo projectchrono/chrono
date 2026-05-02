@@ -48,7 +48,7 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(co
     for (size_t i = 0; i < num_shapes; i++) {
         const YAML::Node& shape = a[i];
         ChAssertAlways(shape["type"]);
-        std::string type = ToUpper(shape["type"].as<std::string>());
+        std::string type = ChToUpper(shape["type"].as<std::string>());
 
         if (type == "SPHERE") {
             ChAssertAlways(shape["location"]);
@@ -77,7 +77,7 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(co
         } else if (type == "HULL") {
             ChAssertAlways(shape["filename"]);
             std::string filename = shape["filename"].as<std::string>();
-            geometry->coll_hulls.push_back(utils::ChBodyGeometry::ConvexHullsShape(GetDatafilePath(filename), -1));
+            geometry->coll_hulls.push_back(utils::ChBodyGeometry::ConvexHullsShape(m_file_handler.GetFilename(filename), -1));
         } else if (type == "MESH") {
             ChAssertAlways(shape["filename"]);
             std::string filename = shape["filename"].as<std::string>();
@@ -93,8 +93,7 @@ std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(co
                 scale = shape["scale"].as<double>();
             if (shape["contact_radius"])
                 radius = shape["contact_radius"].as<double>();
-            geometry->coll_meshes.push_back(
-                utils::ChBodyGeometry::TrimeshShape(pos, rot, GetDatafilePath(filename), scale, radius, -1));
+            geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, rot, m_file_handler.GetFilename(filename), scale, radius, -1));
         }
     }
 
@@ -105,15 +104,8 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
     YAML::Node yaml;
 
     // Load FSI YAML file
-    {
-        auto path = filesystem::path(yaml_filename);
-        if (!path.exists() || !path.is_file()) {
-            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-            throw std::runtime_error("File not found");
-        }
-        m_script_directory = path.parent_path().str();
-        yaml = YAML::LoadFile(yaml_filename);
-    }
+    yaml = YAML::LoadFile(yaml_filename);
+    m_file_handler.SetReferenceDirectory(yaml_filename);
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
@@ -129,8 +121,8 @@ void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
     ChAssertAlways(yaml["fluid"]);
     auto mbs_fname = yaml["mbs"].as<std::string>();
     auto fluid_fname = yaml["fluid"].as<std::string>();
-    auto mbs_filename = m_script_directory + "/" + mbs_fname;
-    auto fluid_filename = m_script_directory + "/" + fluid_fname;
+    auto mbs_filename = m_file_handler.GetReferenceDirectory() + "/" + mbs_fname;
+    auto fluid_filename = m_file_handler.GetReferenceDirectory() + "/" + fluid_fname;
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
         cout << "\n[ChParserFsiYAML] Loading Chrono::FSI specification from: " << yaml_filename << "\n" << endl;
@@ -177,12 +169,7 @@ void ChParserFsiYAML::LoadFsiData(const YAML::Node& yaml) {
     if (yaml["angle_degrees"])
         m_use_degrees = yaml["angle_degrees"].as<bool>();
 
-    if (yaml["data_path"]) {
-        ChAssertAlways(yaml["data_path"]["type"]);
-        m_data_path = ReadDataPathType(yaml["data_path"]["type"]);
-        if (yaml["data_path"]["root"])
-            m_rel_path = yaml["data_path"]["root"].as<std::string>();
-    }
+    m_file_handler.Read(yaml);
 
     // Read FSI bodies
     if (yaml["fsi_bodies"]) {
@@ -199,14 +186,7 @@ void ChParserFsiYAML::LoadFsiData(const YAML::Node& yaml) {
     if (m_verbose) {
         cout << "model name: '" << m_name << "'" << endl;
         cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
-        switch (m_data_path) {
-            case ChParserYAML::DataPathType::ABS:
-                cout << "using absolute file paths" << endl;
-                break;
-            case ChParserYAML::DataPathType::REL:
-                cout << "using file paths relative to: '" << m_rel_path << "'" << endl;
-                break;
-        }
+        m_file_handler.PrintInfo();
     }
 }
 
@@ -231,7 +211,7 @@ void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
             m_vis.enable_shadows = vis["enable_shadows"].as<bool>();
         if (vis["camera"]) {
             if (vis["camera"]["vertical"]) {
-                auto camera_vertical = ToUpper(vis["camera"]["vertical"].as<std::string>());
+                auto camera_vertical = ChToUpper(vis["camera"]["vertical"].as<std::string>());
                 if (camera_vertical == "Y")
                     m_vis.camera_vertical = CameraVerticalDir::Y;
                 else if (camera_vertical == "Z")
@@ -398,12 +378,7 @@ void ChParserFsiYAML::SimParams::PrintInfo() {
 }
 
 ChParserFsiYAML::VisParams::VisParams()
-    : render(false),
-      render_fps(120),
-      camera_vertical(CameraVerticalDir::Z),
-      camera_location({0, -1, 0}),
-      camera_target({0, 0, 0}),
-      enable_shadows(true) {}
+    : render(false), render_fps(120), camera_vertical(CameraVerticalDir::Z), camera_location({0, -1, 0}), camera_target({0, 0, 0}), enable_shadows(true) {}
 
 void ChParserFsiYAML::VisParams::PrintInfo() {
     if (!render) {

@@ -85,13 +85,18 @@ class ChApi ChSolver {
     /// The argument `analyze` indicates if a full analysis of the system matrix is required. This is true when a
     /// structural change in the system was detected (e.g., when a physical component was added to or removed from the
     /// Chrono system).
-    /// This function must return true if successfull and false otherwise.
+    /// This function must return true if successful and false otherwise.
     virtual bool Setup(ChSystemDescriptor& sysd, bool analyze) { return true; }
 
     /// Solve the linear system.
     /// The system descriptor contains the constraints and variables.
     /// The return value is specific to a derived solver class.
     virtual double Solve(ChSystemDescriptor& sysd) = 0;
+
+    /// Set the matrix conditioning factor (default: 1).
+    /// A concrete solver can use this scaling factor to improve conditioning of the system matrix by scaling the
+    /// generalized mass matrix block.
+    void SetConditioningFactor(double factor) { conditioning_factor = factor; }
 
     /// Set verbose output from solver.
     void SetVerbose(bool mv) { verbose = mv; }
@@ -109,10 +114,12 @@ class ChApi ChSolver {
     std::string GetTypeAsString() const { return GetTypeAsString(GetType()); }
 
     /// Return the provided solver type as a string.
-    static std::string GetTypeAsString(Type type); 
+    static std::string GetTypeAsString(Type type);
 
   protected:
-    ChSolver() : verbose(false) {}
+    ChSolver();
+
+    double conditioning_factor;
 
     bool verbose;
     bool write_matrix;

@@ -48,8 +48,8 @@ class ChApi ChMeshSurface {
     /// Note that this function does not check for double insertion of the same face.
     virtual void AddFace(std::shared_ptr<ChLoadableUV> mface) { faces.push_back(mface); }
 
-    /// Add multiple faces of FEM elements given a set of nodes at vertexes.
-    /// Scan all the finite elements already added in the parent ChMesh, and check if any has a face whose vertexes are
+    /// Add multiple faces of FEM elements given a set of nodes at vertices.
+    /// Scan all the finite elements already added in the parent ChMesh, and check if any has a face whose vertices are
     /// all in the given node set; if so, add it to this mesh surface, with these rules:
     /// - surface elements inherited from ChLoadableUV: the element is added
     /// - face of ChElementTetrahedron : a ChTetrahedronFace proxy is created and added

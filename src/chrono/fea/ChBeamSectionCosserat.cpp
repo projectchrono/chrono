@@ -367,11 +367,11 @@ void ChElasticityCosseratAdvancedGenericFPM::ComputeStiffnessMatrix(ChMatrix66d&
 // -----------------------------------------------------------------------------
 
 void ChElasticityCosseratMesh::SetAsRectangularSection(double width_y, double width_z) {
-    this->vertexes.clear();
-    this->vertexes.push_back(ChVector2d(width_y * 0.5, width_z * 0.5));
-    this->vertexes.push_back(ChVector2d(width_y * 0.5, -width_z * 0.5));
-    this->vertexes.push_back(ChVector2d(-width_y * 0.5, -width_z * 0.5));
-    this->vertexes.push_back(ChVector2d(-width_y * 0.5, width_z * 0.5));
+    this->vertices.clear();
+    this->vertices.push_back(ChVector2d(width_y * 0.5, width_z * 0.5));
+    this->vertices.push_back(ChVector2d(width_y * 0.5, -width_z * 0.5));
+    this->vertices.push_back(ChVector2d(-width_y * 0.5, -width_z * 0.5));
+    this->vertices.push_back(ChVector2d(-width_y * 0.5, width_z * 0.5));
 
     this->triangles.clear();
     this->triangles.push_back(ChVector3i(0, 1, 2));
@@ -386,16 +386,16 @@ void ChElasticityCosseratMesh::SetAsRectangularSection(double width_y, double wi
 }
 
 void ChElasticityCosseratMesh::SetAsCircularSection(double diameter) {
-    this->vertexes.clear();
+    this->vertices.clear();
     this->triangles.clear();
 
     double rad = diameter * 0.5;
-    this->vertexes.push_back(ChVector2d(0, 0));
-    this->vertexes.push_back(ChVector2d(rad, 0));
+    this->vertices.push_back(ChVector2d(0, 0));
+    this->vertices.push_back(ChVector2d(rad, 0));
     int ntri = 12;
     for (int i = 0; i < ntri; ++i) {
         double alpha = (i + 1) * (CH_2PI / (double)ntri);
-        this->vertexes.push_back(ChVector2d(rad * std::cos(alpha), rad * std::sin(alpha)));
+        this->vertices.push_back(ChVector2d(rad * std::cos(alpha), rad * std::sin(alpha)));
         this->triangles.push_back(ChVector3i(0, i + 1, i + 2));
     }
 
@@ -411,7 +411,7 @@ void ChElasticityCosseratMesh::ComputeStress(ChVector3d& stress_n,
                                              ChVector3d& stress_m,
                                              const ChVector3d& strain_n,
                                              const ChVector3d& strain_m) {
-    int nv = (int)this->vertexes.size();
+    int nv = (int)this->vertices.size();
     int nt = (int)this->triangles.size();
 
     // temp per-vertex data for point strains:
@@ -434,8 +434,8 @@ void ChElasticityCosseratMesh::ComputeStress(ChVector3d& stress_n,
         else
             mmat = materials[i];
 
-        double vy = vertexes[i][0];
-        double vz = vertexes[i][1];
+        double vy = vertices[i][0];
+        double vz = vertices[i][1];
         epsilon_xx[i] = strain_n.x() + strain_m.y() * vz - strain_m.z() * vy;
         gamma_xy[i] = strain_n.y() + strain_m.x() * (warp_dy - vz);
         gamma_xz[i] = strain_n.z() + strain_m.x() * (warp_dz + vy);
@@ -452,12 +452,12 @@ void ChElasticityCosseratMesh::ComputeStress(ChVector3d& stress_n,
         size_t iv1 = triangles[t].x();
         size_t iv2 = triangles[t].y();
         size_t iv3 = triangles[t].z();
-        double y1 = this->vertexes[iv1][0];
-        double z1 = this->vertexes[iv1][1];
-        double y2 = this->vertexes[iv2][0];
-        double z2 = this->vertexes[iv2][1];
-        double y3 = this->vertexes[iv3][0];
-        double z3 = this->vertexes[iv3][1];
+        double y1 = this->vertices[iv1][0];
+        double z1 = this->vertices[iv1][1];
+        double y2 = this->vertices[iv2][0];
+        double z2 = this->vertices[iv2][1];
+        double y3 = this->vertices[iv3][0];
+        double z3 = this->vertices[iv3][1];
 
         double A = fabs(0.5 * ((y1 * (z2 - z3) + y2 * (z3 - z1) + y3 * (z1 - z2))));
 
@@ -791,7 +791,7 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector3d& stre
             }
         }
     }
-    // te scalar plastic accumulator in this case is the sum of the single accumulators of the various degreees of
+    // te scalar plastic accumulator in this case is the sum of the single accumulators of the various degrees of
     // freedom of the beam:
     mydata_new->p_strain_acc = mydata_new->p_strain_acc_e.x() + mydata_new->p_strain_acc_e.y() +
                                mydata_new->p_strain_acc_e.z() + mydata_new->p_strain_acc_k.x() +

@@ -131,7 +131,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI, double wheel_vel, double wheel_Ang
     double scale_ratio = 1.f;
     trimesh->LoadWavefrontMesh(GetChronoDataFile(drum_obj), false, true);
     trimesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+    trimesh->RepairDuplicateVertices(1e-9);                              // if meshes are not watertight
 
     // Compute mass inertia from mesh
     double mmass;

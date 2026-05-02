@@ -281,7 +281,7 @@ void ChLinkLock::BuildLink() {
     C_dtdt.setZero();
     react.setZero();
 
-    // Need to zero out the first 3 entries in rows corrsponding to rotation constraints
+    // Need to zero out the first 3 entries in rows corresponding to rotation constraints
     Cq1.setZero();
     Cq2.setZero();
 }
@@ -1039,6 +1039,7 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
 void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                      ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                      const double c,            // a scaling factor
+                                     const double c_vel,        // the scaling factor if the constraint is at speed level
                                      bool do_clamp,             // apply clamping to c*C?
                                      double recovery_clamp)     // value for min/max clamping of c*C
 {
@@ -1131,8 +1132,9 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
 
 void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc residual
                                       ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
-                                      const double c)            // a scaling factor
-{
+                                      const double c,            // the scaling factor
+                                      const double c_vel         // the scaling factor if the constraint is at speed level
+){
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {

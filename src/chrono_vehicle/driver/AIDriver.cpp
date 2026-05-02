@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/driver/AIDriver.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 
@@ -40,7 +40,7 @@ AIDriver::AIDriver(ChVehicle& vehicle, const std::string& filename) : ChAIDriver
     // Read threshold throttle value
     SetThresholdThrottle(d["Speed Controller"]["Threshold Throttle"].GetDouble());
 
-    // Read mapping fronmt wheel angle -> steering input
+    // Read mapping front wheel angle -> steering input
     const rapidjson::Value& map_data = d["Steering Map"];
     assert(map_data.IsArray());
     unsigned int n = map_data.Size();

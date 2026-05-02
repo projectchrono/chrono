@@ -21,7 +21,7 @@
 #endif
 #endif
 
-#include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 __device__ __inline__ void check_ends(const float3& ray_orig,
                                       const float3& ray_dir,

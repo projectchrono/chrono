@@ -19,7 +19,7 @@
 #include <cstdio>
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/PushPipeAxle.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

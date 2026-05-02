@@ -57,6 +57,7 @@ class CH_MODELS_API G500 {
     void SetEngineType(EngineModelType val) { m_engineType = val; }
     void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
     void SetTireType(TireModelType val) { m_tireType = val; }
+    void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
 
     // void setSteeringType(SteeringTypeWV val) { m_steeringType = val; }
 
@@ -106,6 +107,7 @@ class CH_MODELS_API G500 {
     TransmissionModelType m_transmissionType;
     BrakeType m_brake_type;
     TireModelType m_tireType;
+    ChTire::CollisionType m_tire_collision_type;
 
     double m_tire_step_size;
 

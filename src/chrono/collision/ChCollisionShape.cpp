@@ -44,10 +44,13 @@ class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
     CH_ENUM_MAPPER_END(Type);
 };
 
-ChCollisionShape::ChCollisionShape(Type type) : m_type(type), m_material(nullptr), is_mutable(false) {}
+ChCollisionShape::ChCollisionShape(Type type) : m_type(type) {}
 
-ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChContactMaterial> material)
-    : m_type(type), m_material(material) {}
+ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChContactMaterial> material) : m_type(type), m_material(material) {}
+
+void ChCollisionShape::SetParentShape(std::shared_ptr<ChCollisionShape> parent) {
+    m_parent = parent.get();
+}
 
 void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

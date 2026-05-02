@@ -160,7 +160,7 @@ void ChVisualSystemIrrlicht::SetLogLevel(irr::ELOG_LEVEL log_level) {
 void ChVisualSystemIrrlicht::SetCameraVertical(CameraVerticalDir vert) {
     m_yup = (vert == CameraVerticalDir::Y);
 }
-CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() {
+CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() const {
     return (m_yup == true ? CameraVerticalDir::Y : CameraVerticalDir::Z);
 }
 
@@ -173,6 +173,9 @@ void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
+    //// RADU TODO
+    //// Allow attaching more than one ChSystem to the same Irrlicht visualization
+
     ChVisualSystem::AttachSystem(sys);
 
     // If the visualization system is already initialized
@@ -605,13 +608,13 @@ void ChVisualSystemIrrlicht::Render() {
         GetSceneManager()->drawAll();  // draw 3D scene the usual way, if no shadow maps
 
     for (auto& g : m_grids) {
-        irrlicht::tools::drawGrid(this, g.x_step, g.y_step, g.nx, g.ny, g.csys, g.col, true);
+        irrlicht::tools::DrawGrid(this, g.x_step, g.y_step, g.nx, g.ny, g.csys, g.col, true);
     }
 
     m_gui->Render();
 
     if (m_draw_colorbar) {
-        tools::drawColorbar(this,                                       //
+        tools::DrawColorbar(this,                                       //
                             *m_colormap,                                //
                             m_colorbar_range[0], m_colorbar_range[1],   //
                             m_colorbar_title,                           //
@@ -627,13 +630,13 @@ void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_len
     const auto& u = frame.GetRotMat().GetAxisX();
     const auto& v = frame.GetRotMat().GetAxisY();
     const auto& w = frame.GetRotMat().GetAxisZ();
-    irrlicht::tools::drawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
-    irrlicht::tools::drawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
-    irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
+    irrlicht::tools::DrawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
+    irrlicht::tools::DrawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
+    irrlicht::tools::DrawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
 }
 
 void ChVisualSystemIrrlicht::RenderCOGFrames(double axis_length) {
-    irrlicht::tools::drawAllCOGs(this, axis_length);
+    irrlicht::tools::DrawAllCOMs(this, axis_length);
 }
 
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
@@ -1009,6 +1012,11 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
             mchildnode->setRotation(shape_m4.getRotationDegrees());
 
             SetVisualMaterial(mchildnode, shape);
+
+            mchildnode->setAutomaticCulling(scene::EAC_OFF);
+            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, true);
+            mchildnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
+            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );

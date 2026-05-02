@@ -36,6 +36,7 @@ using namespace chrono::fea;
 
 bool addGravity = false;
 double time_step = 0.001;
+
 // Forward declaration
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      std::shared_ptr<ChContactMaterialSMC> mysurfmaterial,
@@ -46,28 +47,29 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint);
 
-// =============================================================================
-// ========================= main Function
-// =============================================================================
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     // You can perform this unit test with different material prop.
-    double rho = 1000;  ///< material density
-    double E = 5e8;     ///< Young's modulus
-    double nu = 0.3;    ///< Poisson ratio
+    double rho = 1000;  // material density
+    double E = 5e8;     // Young's modulus
+    double nu = 0.3;    // Poisson ratio
     auto my_material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
+
     // You can also change the contact surface properties for further investigation.
     auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     mysurfmaterial->SetKn(1e0);
     mysurfmaterial->SetKt(0);
     mysurfmaterial->SetGn(1e0);
     mysurfmaterial->SetGt(0);
-    // =============================================================================
+
     ChMatrix33<> rot_transform(1);
     ChVector3d translate;
     double sphere_swept_thickness;
     double scaleFactor;
     double elementThickness;
     bool printContacts = true;
+
     // This unit test creates 2 ANCF Shell Elements and place them in different
     // positions in each test and evaluates if there is contact between them or not.
     // The first element is a square of 2m*2m which is placed at the origin of the
@@ -76,8 +78,8 @@ int main(int argc, char* argv[]) {
     // vector and rot_transform matrix in order to obtain different config. Note that
     // the plate is positioned in xz plane and y is the normal direction.
 
-    // =======================TEST 1============================================
-    printf("--------------------------------------------------\n");
+    // ------------- TEST 1
+
     translate = ChVector3d(0, 1, 0);
     sphere_swept_thickness = 0.505;
     scaleFactor = 1;
@@ -86,15 +88,16 @@ int main(int argc, char* argv[]) {
 
     bool ThereIsContact1 = EvaluateContact(my_material, mysurfmaterial, sphere_swept_thickness, scaleFactor,
                                            elementThickness, translate, rot_transform, printContacts);
+    // This case has contacts
     if (ThereIsContact1) {
         printf("There are contacts in test 1. Test passed.\n");
         test1Passed = true;
-    }  // This case has contacts
-    else
+    } else
         printf("There are no contacts in test 1. Test failed.\n");
-    printf("--------------------------------------------------\n");
-    // =======================TEST 2============================================
+
+    // ------------- TEST 2
     // same test with smaller sphere_swept_thickness
+
     translate = ChVector3d(0, 1, 0);
     sphere_swept_thickness = 0.499;
     scaleFactor = 1;
@@ -103,17 +106,17 @@ int main(int argc, char* argv[]) {
 
     bool ThereIsContact2 = EvaluateContact(my_material, mysurfmaterial, sphere_swept_thickness, scaleFactor,
                                            elementThickness, translate, rot_transform, printContacts);
+    // This case does not have contacts
     if (ThereIsContact2)
         printf("There are contacts in test 2. Test failed.\n");
     else {
-        {
-            printf("There are no contacts in test 2. Test passed.\n");
-            test2Passed = true;
-        }
-    }  // This case does not have contacts
-    printf("--------------------------------------------------\n");
-    // =======================TEST 3============================================
+        printf("There are no contacts in test 2. Test passed.\n");
+        test2Passed = true;
+    }
+
+    // ------------- TEST 3
     // test for to elements positioned on the same plane.
+
     translate = ChVector3d(2.5, 0, 0);
     sphere_swept_thickness = 0.249;
     scaleFactor = 1;
@@ -122,15 +125,15 @@ int main(int argc, char* argv[]) {
 
     bool ThereIsContact3 = EvaluateContact(my_material, mysurfmaterial, sphere_swept_thickness, scaleFactor,
                                            elementThickness, translate, rot_transform, printContacts);
+    // This case does not have contacts
     if (ThereIsContact3)
         printf("There are contacts in test 3. Test failed.\n");
     else {
         printf("There are no contacts in test 3. Test passed.\n");
         test3Passed = true;
-    }  // This case does not have contacts
-    printf("--------------------------------------------------\n");
+    }
 
-    // =======================TEST 4============================================
+    // ------------- TEST 4
 
     translate = ChVector3d(2.1, 0, 0);
     sphere_swept_thickness = 0.4;
@@ -139,24 +142,27 @@ int main(int argc, char* argv[]) {
     bool test4Passed = false;
     bool ThereIsContact4 = EvaluateContact(my_material, mysurfmaterial, sphere_swept_thickness, scaleFactor,
                                            elementThickness, translate, rot_transform, printContacts);
-    if (ThereIsContact4)
-        printf("There are contacts in test 4. Test failed.\n");
     // This case should not pass if the sphere_swept_thickness is expanded
     // only in normal direction not normal to the element's edge.
+    if (ThereIsContact4)
+        printf("There are contacts in test 4. Test failed.\n");
     else {
         printf("There are no contacts in test 4. Test passed.\n");
         test4Passed = true;
     }
-    printf("--------------------------------------------------\n");
-    // =============================================================================
 
-    if (test1Passed && test2Passed && test3Passed && test4Passed)
+    // ---------------
+
+    if (test1Passed && test2Passed && test3Passed && test4Passed) {
         printf("Unit test passed successfully.\n");
-    else
-        printf("Unit test passed failed.\n");
+        return 0;
+    }
 
-    return 0;
+    printf("Unit test failed.\n");
+    return 1;
 }
+
+// -----------------------------------------------------------------------------
 
 // Custom contact container -- get access to the contact lists in the base class.
 class MyContactContainer : public ChContactContainerSMC {
@@ -183,9 +189,6 @@ class MyContactContainer : public ChContactContainerSMC {
     }
 };
 
-/////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      std::shared_ptr<ChContactMaterialSMC> mysurfmaterial,
                      double sphere_swept_thickness,
@@ -195,6 +198,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.UseMaterialProperties(false);
 
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);
