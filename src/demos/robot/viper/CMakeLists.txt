@@ -16,6 +16,7 @@ set(DEMOS ${DEMOS}
 if(CH_ENABLE_MODULE_SENSOR AND CH_USE_SENSOR_OPTIX)
   set(DEMOS ${DEMOS}
       demo_ROBOT_Viper_SCM_Sensor
+      demo_ROBOT_Viper_CRM_Wheelsinkage
   )
 endif()
 

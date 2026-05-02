@@ -39,18 +39,11 @@
 
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
-#include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/sensors/ChCameraSensor.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterVisualize.h"
-
-
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
 using namespace chrono::viper;
 using namespace chrono::vehicle;
-using namespace chrono::sensor;
 
 using std::cout;
 using std::cin;
@@ -66,203 +59,18 @@ PatchType patch_type = PatchType::HEIGHT_MAP;
 double terrain_length = 12;
 double terrain_width = 3;
 
-// VDB info
-bool firstInst = true;
-std::vector<int> idList;
-int prevActiveVoxels = 0;
-std::vector<std::shared_ptr<ChBody>> voxelBodyList = {};
-std::vector<float> offsetXList = {};
-std::vector<float> offsetYList = {};
-
-int num_meshes = 100;
-std::vector<std::shared_ptr<ChVisualShapeTriangleMesh>> regolith_meshes;  // ChVisualShapeTriangleMesh
-
-
 // ===================================================================================================================
 
-void createVoxelGrid(std::vector<ChVector3d> points,
-                     ChSystem* sys,
-                     std::shared_ptr<ChVisualMaterial> vis_mat) {
-    float slope_angle = 0;
-    
-    float spacing = 0.01 / 2.f;
-    float r = spacing;
-    int pointsPerVoxel = 1;
-    float voxelSize = spacing;
-    int activeVoxels = points.size();
-
-    // std::cout << "Creating CPU Voxel Grid for " <<  activeVoxels << " particles." << std::endl;
-    // std::cout << "Previous active voxels: " << prevActiveVoxels << std::endl;
-    // std::cout << "VoxelSize=" << voxelSize << std::endl;
-
-    int numVoxelsToAdd = activeVoxels - prevActiveVoxels;
-    int numAdds = 0;
-    int numUpdates = 0;
-
-    if (!firstInst) {
-        thread_local std::mt19937 generator(std::random_device{}());
-        std::uniform_int_distribution<int> distribution(0, num_meshes - 1);
-        std::uniform_real_distribution<float> randpos(-.005f, .005f);
-        std::uniform_real_distribution<float> randscale(1.f, 1.5);
-        int voxelCount = 0;
-        for (int i = 0; i < activeVoxels; i++) {
-            // ChVector3d pos(points[6 * i], points[6 * i + 1], points[6 * i + 2]);
-            ChVector3d pos = points[i];
-            if (!idList.empty() && ((voxelCount < prevActiveVoxels) || (voxelCount < idList.size()))) {
-                numUpdates++;
-                auto voxelBody = voxelBodyList[idList[voxelCount]];
-                float offsetX = offsetXList[idList[voxelCount]];
-                float offsetY = offsetYList[idList[voxelCount]];
-                ChVector3d voxelPos(pos.x() + offsetX, pos.y() + offsetY, pos.z());
-                double xRot = voxelPos.x() * cos(-slope_angle) + voxelPos.z() * sin(-slope_angle);
-                double yRot = voxelPos.y();
-                double zRot = -voxelPos.x() * sin(-slope_angle) + voxelPos.z() * cos(-slope_angle);
-
-                // Create a new rotated vector
-                ChVector3d rotatedVoxelPos(xRot, yRot, zRot);
-                voxelBody->SetPos(rotatedVoxelPos);
-                voxelBody->SetRot(QuatFromAngleY(-slope_angle));
-                // voxelBody->SetPos({voxelPos.x(), voxelPos.y(), voxelPos.z()});
-            }
-            // Create a sphere for each point
-            else if (numVoxelsToAdd > 0 && voxelCount >= prevActiveVoxels) {
-                numAdds++;
-                std::shared_ptr<ChBody> voxelBody;
-                if (true) {
-                    // std::cout << "Adding Mesh " << i << std::endl;
-                    int meshIndex = distribution(generator);  // Randomly select a mesh (if needed)
-                    auto trimesh_shape = regolith_meshes[meshIndex];
-                    trimesh_shape->SetScale(randscale(generator));
-                    if (trimesh_shape->GetNumMaterials() == 0) {
-                        trimesh_shape->AddMaterial(vis_mat);
-                    } else {
-                        trimesh_shape->GetMaterials()[0] = vis_mat;
-                    }
-                    voxelBody = chrono_types::make_shared<ChBody>();
-                    voxelBody->AddVisualShape(trimesh_shape);
-                } else {
-                    auto voxelBody = chrono_types::make_shared<ChBodyEasySphere>(r, 1000, true, false);
-                }
-                float offsetX = randpos(generator);
-                float offsetY = randpos(generator);
-                // Set the position and other properties of the voxel body
-                ChVector3d voxelPos(pos.x() + offsetX, pos.y() + offsetY, pos.z());
-                double xRot = voxelPos.x() * cos(-slope_angle) + voxelPos.z() * sin(-slope_angle);
-                double yRot = voxelPos.y();
-                double zRot = -voxelPos.x() * sin(-slope_angle) + voxelPos.z() * cos(-slope_angle);
-
-                ChVector3d rotatedVoxelPos(xRot, yRot, zRot);
-                voxelBody->SetPos(rotatedVoxelPos);
-                voxelBody->SetRot(QuatFromAngleY(-slope_angle));
-                voxelBody->SetFixed(true);
-
-                int index = voxelBodyList.size();
-                voxelBodyList.push_back(voxelBody);
-                {
-                    auto shape = voxelBody->GetVisualModel()->GetShapeInstances()[0].shape;
-                    if (shape->GetNumMaterials() == 0) {
-                        shape->AddMaterial(vis_mat);
-                    } else {
-                        shape->GetMaterials()[0] = vis_mat;
-                    }
-                }
-                idList.emplace_back(index);
-                offsetXList.emplace_back(offsetX);
-                offsetYList.emplace_back(offsetY);
-            }
-            voxelCount++;
-        }
-
-    } else {
-        voxelBodyList.resize(activeVoxels);
-        idList.resize(activeVoxels);
-        offsetXList.resize(activeVoxels);
-        offsetYList.resize(activeVoxels);
-
-        // std::atomic<int> voxelCount(0);  // Thread-safe counter for the voxels
-
-        // Use std::for_each with parallel execution
-        // std::for_each(std::execution::par, points.begin(), points.begin() + activeVoxels, [&](float& point) {
-        for (int i = 0; i < points.size(); i++) {
-            // Calculate the index based on the position in the loop
-            // int i = &point - &points[0];  // Get the current index
-
-            thread_local std::mt19937 generator(std::random_device{}());
-            std::uniform_int_distribution<int> distribution(0, num_meshes - 1);
-            std::uniform_real_distribution<float> randpos(-.005f, .005f);
-            std::uniform_real_distribution<float> randscale(1.f, 1.5);
-            // Compute voxel position in world space
-            ChVector3d pos = points[i];
-            // Create voxelBody if necessary
-            if (numVoxelsToAdd > 0 && i >= prevActiveVoxels) {
-                std::shared_ptr<ChBody> voxelBody;
-                if (true) {
-                    // std::cout << "Adding Mesh " << i << std::endl;
-                    int meshIndex = distribution(generator);  // Randomly select a mesh (if needed)
-                    auto trimesh_shape = regolith_meshes[meshIndex];
-                    trimesh_shape->SetScale(randscale(generator));
-                    if (trimesh_shape->GetNumMaterials() == 0) {
-                        trimesh_shape->AddMaterial(vis_mat);
-                    } else {
-                        trimesh_shape->GetMaterials()[0] = vis_mat;
-                    }
-                    voxelBody = chrono_types::make_shared<ChBody>();
-                    voxelBody->AddVisualShape(trimesh_shape);
-
-                } else {
-                    // Create a sphere voxel
-                    voxelBody = chrono_types::make_shared<ChBodyEasySphere>(r, 1000, true, false);
-
-                    auto shape = voxelBody->GetVisualModel()->GetShapeInstances()[0].shape;
-                    if (shape->GetNumMaterials() == 0) {
-                        shape->AddMaterial(vis_mat);
-                    } else {
-                        shape->GetMaterials()[0] = vis_mat;
-                    }
-                }
-
-                float offsetX = randpos(generator);
-                float offsetY = randpos(generator);
-                // Set the position and other properties of the voxel body
-                ChVector3d voxelPos(pos.x() + offsetX, pos.y() + offsetY, pos.z());
-                double xRot = voxelPos.x() * cos(-slope_angle) + voxelPos.z() * sin(-slope_angle);
-                double yRot = voxelPos.y();
-                double zRot = -voxelPos.x() * sin(-slope_angle) + voxelPos.z() * cos(-slope_angle);
-
-                // Create a new rotated vector
-                ChVector3d rotatedVoxelPos(xRot, yRot, zRot);
-                voxelBody->SetPos(rotatedVoxelPos);
-                voxelBody->SetFixed(true);
-
-                // Directly assign the voxelBody and index to the preallocated list positions
-                voxelBodyList[i] = voxelBody;
-                idList[i] = i;  // Assign index to idList slot
-                offsetXList[i] = offsetX;
-                offsetYList[i] = offsetY;
-            }
-            //});
-        }
-    }
-    prevActiveVoxels = activeVoxels;
-    // std::cout << "Num Voxels: " << voxelBodyList.size() << std::endl;
-    // std::vector<std::shared_ptr<ChBody>> sub_vector(voxelBodyList.begin() + 182254, voxelBodyList.begin() + 364509);
-    // std::vector<std::shared_ptr<ChBody>> sub_vector(voxelBodyList.begin() + 0, voxelBodyList.begin() + 182254);
-    sys->SetSprites(voxelBodyList);
-    firstInst = false;
-}
-
-
-
 int main(int argc, char* argv[]) {
-    double density = 100;
+    double density = 1700;
     double cohesion = 5e3;
     double friction = 0.7;
-    double youngs_modulus = 0.5e5;
+    double youngs_modulus = 1e6;
     double poisson_ratio = 0.3;
 
     double tend = 30;
     double step_size = 5e-4;
-    ChVector3d active_box_dim(5.0, 5.0, 5.0);
+    ChVector3d active_box_dim(0.6, 0.6, 0.6);
 
     bool render = true;       // use run-time visualization
     double render_fps = 200;  // rendering FPS
@@ -298,7 +106,7 @@ int main(int argc, char* argv[]) {
     rover->Initialize(ChFrame<>(init_loc, QUNIT));
 
     // Create the CRM terrain system
-    double initial_spacing = 0.01;
+    double initial_spacing = 0.03;
     CRMTerrain terrain(sys, initial_spacing);
     auto sysFSI = terrain.GetFsiSystemSPH();
     auto sysSPH = terrain.GetFluidSystemSPH();
@@ -308,6 +116,7 @@ int main(int argc, char* argv[]) {
     terrain.SetStepSizeCFD(step_size);
 
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
     mat_props.mu_I0 = 0.04;
@@ -330,7 +139,6 @@ int main(int argc, char* argv[]) {
     sph_params.use_variable_time_step = true;  // This makes the step size irrelevant - now we just make sure we are
                                                // within the max of exchange_info (meta step)
     terrain.SetSPHParameters(sph_params);
-    sysSPH->SetDensity(density);
 
     // Set output level from SPH simulation
     terrain.SetOutputLevel(OutputLevel::STATE);
@@ -408,69 +216,11 @@ int main(int argc, char* argv[]) {
         vis = visVSG;
     }
 
-    // Load regolith meshes
-    std::string mesh_name_prefix = "sensor/geometries/regolith/particle_";
-    for (int i = 1; i <= num_meshes; i++) {
-        auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-            GetChronoDataFile(mesh_name_prefix + std::to_string(i) + ".obj"), false, true);
-        mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
-        auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
-        trimesh_shape->SetMesh(mmesh);
-        // std::cout << "OK1" << std::endl;
-        trimesh_shape->SetName("RegolithMesh" + std::to_string(i));
-        trimesh_shape->SetMutable(false);
-        regolith_meshes.push_back(trimesh_shape);
-    }
-
-    auto regolith_material = chrono_types::make_shared<ChVisualMaterial>();
-    regolith_material->SetAmbientColor({1, 1, 1});  // 0.65f,0.65f,0.65f
-    regolith_material->SetDiffuseColor({1, 1, 1});  // 0.29f, 0.29f, 0.235f
-    regolith_material->SetSpecularColor({1, 1, 1});
-    regolith_material->SetUseSpecularWorkflow(true);
-    regolith_material->SetRoughness(1.0f);
-    // regolith_material->SetBSDF((unsigned int)BSDFType::HAPKE);
-    regolith_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,
-                                          23.4f * (CH_PI / 180));
-    regolith_material->SetClassID(30000);
-    regolith_material->SetInstanceID(20000);
-
-    float intensity = 1.0;
-    auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    manager->scene->AddPointLight({0.5, 1, 1}, {intensity, intensity, intensity}, 500);
-    manager->scene->SetAmbientLight({.1, .1, .1});
-    manager->SetVerbose(false);
-    manager->SetRayRecursions(4);
-
-    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
-    floor->SetPos({0, 0, 0});
-    floor->SetFixed(true);
-    sys.Add(floor);
-
-    chrono::ChFrame<double> offset_pose1(
-        {0.5, 1, 1}, QuatFromAngleAxis(-CH_PI_2, {0, 0, 1}));  // Q_from_AngAxis(CH_PI_4, {0, 1, 0})  //-1200, -252, 100
-    chrono::ChFrame<double> rot = chrono::ChFrame<double>(ChVector3d(0, 0, 0), QuatFromAngleAxis(60.0f / 180.0f * CH_PI, {0, 1, 0}));
-
-    auto cam = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
-                                                        30,   // update rate in Hz
-                                                        offset_pose1 * rot,  // offset pose
-                                                        1280,   // image width
-                                                        720,  // image height
-                                                        1.5707963267948966,           // camera's horizontal field of view
-                                                        1,  // super sampling factor
-                                                        CameraLensModelType::PINHOLE,    // lens model type
-                                                        false);
-    cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Third Person Camera"));
-
-    manager->AddSensor(cam);
-
-
     // Start the simulation
     double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
     double exchange_info = 5 * step_size;
-    std::vector<ChVector3d> h_points;
-    // std::vector<float> h_points;
     while (time < tend) {
         rover->Update();
 
@@ -487,21 +237,10 @@ int main(int argc, char* argv[]) {
 
         // Advance dynamics of multibody and fluid systems concurrently
         terrain.DoStepDynamics(exchange_info);
-        if (time > 0.2) {
-            // h_points = sysSPH->GetPositions();
-            // h_points = sysSPH->GetParticleData();
-            auto all_particles = sysSPH->GetParticlePositions();
-            h_points = std::vector<ChVector3d>(all_particles.begin(), all_particles.begin() + sysSPH->GetNumFluidMarkers());
-            createVoxelGrid(h_points, &sys, regolith_material);
-            // std::cout << "Start rendering" << std::endl;
-            manager->Update();
-        }
 
         time += exchange_info;
         sim_frame++;
     }
-    std::cout << "Saving data..." << std::endl;
-    sysSPH->SaveParticleData("particle_data");
 
     terrain.PrintStats();
     std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_CRM/";
