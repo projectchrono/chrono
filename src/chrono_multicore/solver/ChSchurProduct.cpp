@@ -34,9 +34,9 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
 
     if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
         if (data_manager->settings.solver.compute_N) {
-            output = Nschur * x + E * x;
+            output = Nschur * x + E.cwiseProduct(x);
         } else {
-            output = D_T * data_manager->host_data.M_invD * x + E * x;
+            output = D_T * data_manager->host_data.M_invD * x + E.cwiseProduct(x);
         }
 
     } else {
@@ -55,13 +55,13 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {
-                o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
+                o_b = D_b_T * (M_invD_b * x_b) + E_b.cwiseProduct(x_b);
             } break;
 
             case SolverMode::NORMAL: {
                 VectorType tmp = M_invD_b * x_b + M_invD_n * x_n;
-                o_b = D_b_T * tmp + E_b * x_b;
-                o_n = D_n_T * tmp + E_n * x_n;
+                o_b = D_b_T * tmp + E_b.cwiseProduct(x_b);
+                o_n = D_n_T * tmp + E_n.cwiseProduct(x_n);
             } break;
 
             case SolverMode::SLIDING: {
@@ -72,9 +72,9 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
                 ConstSubVectorType E_t = E.segment(num_rigid_contacts, num_rigid_contacts * 2);
 
                 VectorType tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
-                o_b = D_b_T * tmp + E_b * x_b;
-                o_n = D_n_T * tmp + E_n * x_n;
-                o_t = D_t_T * tmp + E_t * x_t;
+                o_b = D_b_T * tmp + E_b.cwiseProduct(x_b);
+                o_n = D_n_T * tmp + E_n.cwiseProduct(x_n);
+                o_t = D_t_T * tmp + E_t.cwiseProduct(x_t);
 
             } break;
 
@@ -92,10 +92,10 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
                 ConstSubVectorType E_s = E.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
 
                 VectorType tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
-                o_b = D_b_T * tmp + E_b * x_b;
-                o_n = D_n_T * tmp + E_n * x_n;
-                o_t = D_t_T * tmp + E_t * x_t;
-                o_s = D_s_T * tmp + E_s * x_s;
+                o_b = D_b_T * tmp + E_b.cwiseProduct(x_b);
+                o_n = D_n_T * tmp + E_n.cwiseProduct(x_n);
+                o_t = D_t_T * tmp + E_t.cwiseProduct(x_t);
+                o_s = D_s_T * tmp + E_s.cwiseProduct(x_s);
 
             } break;
         }
