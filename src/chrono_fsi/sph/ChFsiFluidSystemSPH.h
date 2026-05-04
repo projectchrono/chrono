@@ -34,6 +34,13 @@ class SphFluidDynamics;
 class SphBceManager;
 struct FsiDataManager;
 
+/// Device-resident view of the current FSI-SPH marker positions.
+/// The positions are stored as Real4 values, with XYZ as world position and W as marker radius.
+struct CH_FSI_API ChFsiSphMarkerDeviceView {
+    const Real4* pos_rad = nullptr;  ///< device pointer to marker position/radius data
+    size_t num_fluid_markers = 0;    ///< number of fluid markers, starting at pos_rad[0]
+};
+
 /// @addtogroup fsisph
 /// @{
 
@@ -390,6 +397,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Extract positions of all markers (SPH and BCE).
     std::vector<Real3> GetPositions() const;
+
+    /// Return a device-resident view of all marker positions.
+    /// This accessor does not copy marker data to the host. The returned device pointer remains owned by this SPH system
+    /// and is valid until marker storage is resized or the SPH system is destroyed.
+    ChFsiSphMarkerDeviceView GetMarkerDeviceView() const;
 
     /// Extract velocities of all markers (SPH and BCE).
     std::vector<Real3> GetVelocities() const;

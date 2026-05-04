@@ -28,6 +28,9 @@
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/optix/ChOptixEngine.h"
     #include "chrono_sensor/optix/scene/ChScene.h"
+    #ifdef CHRONO_FSI_SPH
+        #include "chrono_sensor/ChFsiSphRender.h"
+    #endif
 #endif
 
 #include <fstream>
@@ -82,6 +85,18 @@ class CH_SENSOR_API ChSensorManager {
     /// Calls on the sensor manager to rebuild the scene.
     /// This translates all objects from the Chrono system into their appropriate OptiX objects.
     void ReconstructScenes();
+
+#ifdef CHRONO_FSI_SPH
+    /// Attach a Chrono::FSI::SPH system for native Sensor rendering.
+    /// Returns a handle that can be used to detach the source later.
+    int AttachFsiSphSystem(std::shared_ptr<chrono::fsi::sph::ChFsiFluidSystemSPH> sys, const ChFsiSphRenderOptions& options = ChFsiSphRenderOptions());
+
+    /// Detach a previously attached Chrono::FSI::SPH render source.
+    void DetachFsiSphSystem(int handle);
+
+    /// Remove all Chrono::FSI::SPH render sources from this manager.
+    void ClearFsiSphSystems();
+#endif
 
     /// Get the maximum number of allowed OptiX Engines for the manager.
     /// @return An integer specifying the maximum number of engines the manager is allowed to create.

@@ -89,6 +89,11 @@ class CH_SENSOR_API ChOptixEngine {
     /// Tells the optix manager to construct the scene from scratch, translating all objects from Chrono to OptiX
     void ConstructScene();
 
+#ifdef CHRONO_FSI_SPH
+    /// Set the native FSI-SPH render sources to include when constructing and updating the OptiX scene.
+    void SetFsiSphSources(const std::vector<ChFsiSphRenderSource>* sources) { m_fsi_sph_sources = sources; }
+#endif
+
     /// Way to query the device ID on which the engine is running. CANNOT BE MODIFIED since the engine will have been
     /// already constructed
     /// @return the GPU ID
@@ -135,6 +140,14 @@ class CH_SENSOR_API ChOptixEngine {
     /// Update the scene characteristics such as lights, background, etc.
     void UpdateSceneDescription(std::shared_ptr<ChScene> scene);
 
+#ifdef CHRONO_FSI_SPH
+    /// Add native FSI-SPH render sources to the scene.
+    void AddFsiSphVisualization();
+
+    /// Update native FSI-SPH render source instance transforms.
+    void UpdateFsiSphVisualization();
+#endif
+
     /// Creates an optix box visualization object from a Chrono box shape.
     void boxVisualization(std::shared_ptr<ChBody> body,
                           std::shared_ptr<ChVisualShapeBox> box_shape,
@@ -180,6 +193,10 @@ class CH_SENSOR_API ChOptixEngine {
     // information that belongs to the rendering concept of this engine
     OptixDeviceContext m_context;  ///< the optix context we use for everything
     ContextParameters m_params;
+
+#ifdef CHRONO_FSI_SPH
+    const std::vector<ChFsiSphRenderSource>* m_fsi_sph_sources = nullptr;  ///< native FSI-SPH render sources
+#endif
     ContextParameters* md_params = nullptr;
     OptixTraversableHandle m_root;
     std::shared_ptr<ChOptixGeometry> m_geometry;  // manager of all geometry in the scene

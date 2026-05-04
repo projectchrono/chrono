@@ -24,6 +24,11 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
+    #include "chrono_sensor/ChFsiSphRender.h"
+#endif
+
 #include <deque>
 
 namespace chrono {
@@ -111,7 +116,6 @@ class CH_SENSOR_API ChOptixGeometry {
                            ChVector3d scale,
                            unsigned int mat_id);
 
-
     /// Create the root node and acceleration structure of the scene
     ///@return A traversable handle to the root node
     OptixTraversableHandle CreateRootStructure();
@@ -127,6 +131,20 @@ class CH_SENSOR_API ChOptixGeometry {
 
     /// Update the deformable meshes based on how the meshes changed in Chrono
     void UpdateDeformableMeshes();
+
+#ifdef CHRONO_FSI_SPH
+    /// Add a native FSI-SPH marker cloud rendered as visual shape sprite instances.
+    void AddFsiSphCloud(int source_id,
+                        size_t count,
+                        const std::vector<CUdeviceptr>& d_vertices,
+                        const std::vector<CUdeviceptr>& d_indices,
+                        const std::vector<std::shared_ptr<ChVisualShape>>& shapes,
+                        const std::vector<unsigned int>& mat_ids,
+                        const ChVector3f& position_jitter);
+
+    /// Update a native FSI-SPH marker cloud from device-resident FSI marker positions.
+    void UpdateFsiSphCloud(int source_id, const chrono::fsi::sph::Real4* pos_rad, size_t marker_offset, size_t count);
+#endif
 
     /// Cleanup the entire optix geometry manager, cleans and frees device pointers and root structure
     void Cleanup();
@@ -160,6 +178,9 @@ class CH_SENSOR_API ChOptixGeometry {
                                    bool compact_no_update = true,
                                    bool rebuild = false,
                                    unsigned int gas_id = 0);
+
+    /// Reuse or build a GAS for a rigid triangle mesh.
+    unsigned int GetOrCreateRigidMeshGAS(CUdeviceptr d_vertices, CUdeviceptr d_indices, std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape);
 
     /// Function ot convert scale, rotation, translation to top 3 rows of transform matrix
     /// @param[in] s the scale vector
@@ -225,6 +246,27 @@ class CH_SENSOR_API ChOptixGeometry {
     /// deformable mesh list [mesh shape, d_vertices, d_indices, gas id]
     std::vector<std::tuple<std::shared_ptr<ChVisualShapeTriangleMesh>, CUdeviceptr, CUdeviceptr, unsigned int>>
         m_deformable_meshes;
+
+#ifdef CHRONO_FSI_SPH
+    struct FsiSphSpriteTemplate {
+        unsigned int gas_id = 0;
+        unsigned int mat_id = 0;
+        ChVector3f scale = ChVector3f(1.f, 1.f, 1.f);
+    };
+
+    struct FsiSphCloud {
+        int source_id = -1;
+        size_t instance_offset = 0;
+        size_t count = 0;
+        std::vector<FsiSphSpriteTemplate> sprite_templates;
+        CUdeviceptr d_sprite_gas_handles = {};
+        CUdeviceptr d_sprite_mat_ids = {};
+        CUdeviceptr d_sprite_scales = {};
+        ChVector3f sprite_position_jitter = ChVector3f(0.f, 0.f, 0.f);
+    };
+
+    std::vector<FsiSphCloud> m_fsi_sph_clouds;  ///< native FSI-SPH instance clouds
+#endif
 
     float m_start_time;  ///< time corresponding to start frame
     float m_end_time;    ///< time corresponding to end frame

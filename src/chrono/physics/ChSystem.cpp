@@ -81,8 +81,6 @@ ChSystem::ChSystem(const std::string& name)
 
     // Set default timestepper
     timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
-
-    m_sprites = std::vector <std::shared_ptr<ChBody>>();
 }
 
 ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr), visual_system(nullptr) {
@@ -2118,11 +2116,6 @@ void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
 
     // Recompute statistics, offsets, etc.
     Setup();
-}
-
-
-void ChSystem::AddSprite(std::shared_ptr<ChBody> sprite) {
-    m_sprites.push_back(sprite);
 }
 
 }  // end namespace chrono
