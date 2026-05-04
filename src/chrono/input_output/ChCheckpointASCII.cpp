@@ -269,6 +269,34 @@ void ChCheckpointASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkM
     }
 }
 
+void ChCheckpointASCII::WriteDouble(double value) {
+    CheckIfComponentType();
+    m_csv << value << endl;
+}
+
+void ChCheckpointASCII::WriteInteger(int value) {
+    CheckIfComponentType();
+    m_csv << value << endl;
+}
+
+void ChCheckpointASCII::WriteVector(const std::vector<double>& vector) {
+    CheckIfComponentType();
+    m_csv << vector.size();
+    for (auto v : vector)
+        m_csv << v;
+    m_csv << endl;
+}
+
+void ChCheckpointASCII::WriteChVector3(const ChVector3d& vector) {
+    CheckIfComponentType();
+    m_csv << vector << endl;
+}
+
+void ChCheckpointASCII::WriteChQuaternion(const ChQuaterniond& quat) {
+    CheckIfComponentType();
+    m_csv << quat << endl;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChCheckpointASCII::ReadTime(double& time) {
@@ -437,6 +465,64 @@ void ChCheckpointASCII::ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
             s2->SetPosDt(pos2_dt);
         }
     }
+}
+
+void ChCheckpointASCII::ReadDouble(double& value) {
+    CheckIfOpen();
+    CheckIfComponentType();
+
+    std::string line;
+    std::getline(m_ifile, line);
+    std::istringstream iss(line);
+
+    iss >> value;
+}
+
+void ChCheckpointASCII::ReadInteger(int& value) {
+    CheckIfOpen();
+    CheckIfComponentType();
+
+    std::string line;
+    std::getline(m_ifile, line);
+    std::istringstream iss(line);
+
+    iss >> value;
+}
+
+void ChCheckpointASCII::ReadVector(std::vector<double>& vector) {
+    CheckIfOpen();
+    CheckIfComponentType();
+
+    std::string line;
+    std::getline(m_ifile, line);
+    std::istringstream iss(line);
+
+    size_t n;
+    iss >> n;
+    assert(n == vector.size());
+    for (size_t i = 0; i < n; i++) {
+        iss >> vector[i];
+    }
+}
+
+void ChCheckpointASCII::ReadChVector3(ChVector3d& vector) {
+    CheckIfOpen();
+    CheckIfComponentType();
+
+    std::string line;
+    std::getline(m_ifile, line);
+    std::istringstream iss(line);
+    iss >> vector.x() >> vector.y() >> vector.z();
+}
+
+void ChCheckpointASCII::ReadChQuaternion(ChQuaterniond& quat) {
+    CheckIfOpen();
+    CheckIfComponentType();
+
+    std::string line;
+    std::getline(m_ifile, line);
+    std::istringstream iss(line);
+    iss >> quat.e0() >> quat.e1() >> quat.e2() >> quat.e3();
 }
 
 }  // namespace chrono
