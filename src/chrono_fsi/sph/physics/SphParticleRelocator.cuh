@@ -29,7 +29,7 @@ namespace sph {
 /// @addtogroup fsisph_physics
 /// @{
 
-class FsiDataManager;
+struct FsiDataManager;
 
 class SphParticleRelocator {
   public:
