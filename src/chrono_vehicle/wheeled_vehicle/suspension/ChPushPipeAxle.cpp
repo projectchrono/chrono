@@ -39,8 +39,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChPushPipeAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "SPRING_A   ", "SPRING_C   ",
-                                                    "SPINDLE    ", "AXLE_C     ", "PANHARD_A  ", "PANHARD_C  "};
+const std::string ChPushPipeAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "SPRING_A   ", "SPRING_C   ", "SPINDLE    ", "AXLE_C     ", "PANHARD_A  ", "PANHARD_C  "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -195,8 +194,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->SetTag(m_obj_tag);
-    m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
+    m_revolute[side]->Initialize(m_spindle[side], m_axleTube, ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
@@ -267,10 +265,8 @@ double ChPushPipeAxle::GetTrack() {
 std::vector<ChSuspension::ForceTSDA> ChPushPipeAxle::ReportSuspensionForce(VehicleSide side) const {
     std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
-                                        m_spring[side]->GetVelocity());
-    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
-                                        m_shock[side]->GetVelocity());
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(), m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(), m_shock[side]->GetVelocity());
 
     return forces;
 }
@@ -310,10 +306,8 @@ void ChPushPipeAxle::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_axleTube, m_pushPipeOuterA, m_pushPipeOuterC, getAxleTubeRadius(),
-                         ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_panhardRod, m_panhardOuterA, m_panhardOuterC, getPanhardRodRadius(),
-                         ChColor(0.5f, 0.7f, 0.9f));
+    AddVisualizationLink(m_axleTube, m_pushPipeOuterA, m_pushPipeOuterC, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_panhardRod, m_panhardOuterA, m_panhardOuterC, getPanhardRodRadius(), ChColor(0.5f, 0.7f, 0.9f));
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
@@ -338,11 +332,7 @@ void ChPushPipeAxle::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPushPipeAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                          const ChVector3d pt_1,
-                                          const ChVector3d pt_2,
-                                          double radius,
-                                          const ChColor& color) {
+void ChPushPipeAxle::AddVisualizationLink(std::shared_ptr<ChBody> body, const ChVector3d pt_1, const ChVector3d pt_2, double radius, const ChColor& color) {
     // Express hardpoint locations in body frame.
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
@@ -360,6 +350,9 @@ void ChPushPipeAxle::PopulateComponentList() {
 
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
+
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);

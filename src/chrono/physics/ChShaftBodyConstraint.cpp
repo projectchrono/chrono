@@ -20,27 +20,22 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftBodyRotation)
 
-ChShaftBodyRotation::ChShaftBodyRotation() : torque_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z) {}
+ChShaftBodyRotation::ChShaftBodyRotation() : torque_react(0), shaft(nullptr), body(nullptr), shaft_dir(VECT_Z) {}
 
 ChShaftBodyRotation::ChShaftBodyRotation(const ChShaftBodyRotation& other) : ChPhysicsItem(other) {
     torque_react = other.torque_react;
     shaft_dir = other.shaft_dir;
-    shaft = NULL;
-    body = NULL;
+    shaft = nullptr;
+    body = nullptr;
 }
 
-bool ChShaftBodyRotation::Initialize(std::shared_ptr<ChShaft> mshaft,
-                                     std::shared_ptr<ChBodyFrame> mbody,
-                                     const ChVector3d& mdir) {
-    ChShaft* mm1 = mshaft.get();
-    ChBodyFrame* mm2 = mbody.get();
-    assert(mm1 && mm2);
+bool ChShaftBodyRotation::Initialize(std::shared_ptr<ChShaft> connected_shaft, std::shared_ptr<ChBodyFrame> connected_body, const ChVector3d& dir) {
+    assert(connected_shaft && connected_body);
+    shaft = connected_shaft.get();
+    body = connected_body.get();
+    shaft_dir = Vnorm(dir);
 
-    shaft = mm1;
-    body = mm2;
-    shaft_dir = Vnorm(mdir);
-
-    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+    constraint.SetVariables(&connected_shaft->Variables(), &connected_body->Variables());
 
     SetSystem(shaft->GetSystem());
     return true;
@@ -62,22 +57,22 @@ void ChShaftBodyRotation::IntStateScatterReactions(const unsigned int off_L, con
     torque_react = -L(off_L);
 }
 
-void ChShaftBodyRotation::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                              ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                              const ChVectorDynamic<>& L,  ///< the L vector
-                                              const double c               ///< a scaling factor
+void ChShaftBodyRotation::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                              ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                              const ChVectorDynamic<>& L,  // the L vector
+                                              const double c               // a scaling factor
 ) {
     constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
-void ChShaftBodyRotation::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                              ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                              const double c,            ///< a scaling factor
-                                              const double c_vel,        ///< the scaling factor if the constraint is at speed level
-                                              bool do_clamp,             ///< apply clamping to c*C?
-                                              double recovery_clamp      ///< value for min/max clamping of c*C
+void ChShaftBodyRotation::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                              ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                              const double c,            // a scaling factor
+                                              const double c_vel,        // the scaling factor if the constraint is at speed level
+                                              bool do_clamp,             // apply clamping to c*C?
+                                              double recovery_clamp      // value for min/max clamping of c*C
 ) {
-    double res = 0;  // no residual anyway! allow drifting...
+    double res = 0;  // no residual, allow drifting
 
     double cnstr_violation = c * res;
 
@@ -99,10 +94,7 @@ void ChShaftBodyRotation::IntToDescriptor(const unsigned int off_v,
     constraint.SetRightHandSide(Qc(off_L));
 }
 
-void ChShaftBodyRotation::IntFromDescriptor(const unsigned int off_v,
-                                            ChStateDelta& v,
-                                            const unsigned int off_L,
-                                            ChVectorDynamic<>& L) {
+void ChShaftBodyRotation::IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
@@ -134,8 +126,6 @@ void ChShaftBodyRotation::ConstraintsBiLoad_Ct(double factor) {
 }
 
 void ChShaftBodyRotation::LoadConstraintJacobians() {
-    // compute jacobians
-    // ChVector3d jacw = body->TransformDirectionParentToLocal(shaft_dir);
     ChVector3d jacw = shaft_dir;
 
     constraint.Get_Cq_a()(0) = -1;
@@ -185,31 +175,24 @@ void ChShaftBodyRotation::ArchiveIn(ChArchiveIn& archive_in) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftBodyTranslation)
 
-ChShaftBodyTranslation::ChShaftBodyTranslation()
-    : force_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z), shaft_pos(VNULL) {}
+ChShaftBodyTranslation::ChShaftBodyTranslation() : force_react(0), shaft(nullptr), body(nullptr), shaft_dir(VECT_Z), shaft_pos(VNULL) {}
 
 ChShaftBodyTranslation::ChShaftBodyTranslation(const ChShaftBodyTranslation& other) : ChPhysicsItem(other) {
     force_react = other.force_react;
     shaft_dir = other.shaft_dir;
     shaft_pos = other.shaft_pos;
-    shaft = NULL;
-    body = NULL;
+    shaft = nullptr;
+    body = nullptr;
 }
 
-bool ChShaftBodyTranslation::Initialize(std::shared_ptr<ChShaft> mshaft,
-                                        std::shared_ptr<ChBodyFrame> mbody,
-                                        const ChVector3d& mdir,
-                                        const ChVector3d& mpos) {
-    ChShaft* mm1 = mshaft.get();
-    ChBodyFrame* mm2 = mbody.get();
-    assert(mm1 && mm2);
+bool ChShaftBodyTranslation::Initialize(std::shared_ptr<ChShaft> connected_shaft, std::shared_ptr<ChBodyFrame> connected_body, const ChVector3d& dir, const ChVector3d& pos) {
+    assert(connected_shaft && connected_body);
+    shaft = connected_shaft.get();
+    body = connected_body.get();
+    shaft_dir = Vnorm(dir);
+    shaft_pos = pos;
 
-    shaft = mm1;
-    body = mm2;
-    shaft_dir = Vnorm(mdir);
-    shaft_pos = mpos;
-
-    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+    constraint.SetVariables(&connected_shaft->Variables(), &connected_body->Variables());
 
     SetSystem(shaft->GetSystem());
     return true;
@@ -231,22 +214,22 @@ void ChShaftBodyTranslation::IntStateScatterReactions(const unsigned int off_L, 
     force_react = -L(off_L);
 }
 
-void ChShaftBodyTranslation::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                                 ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                                 const ChVectorDynamic<>& L,  ///< the L vector
-                                                 const double c               ///< a scaling factor
+void ChShaftBodyTranslation::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                                 const ChVectorDynamic<>& L,  // the L vector
+                                                 const double c               // a scaling factor
 ) {
     constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
-void ChShaftBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                                 ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                                 const double c,            ///< a scaling factor
-                                                 const double c_vel,        ///< the scaling factor if the constraint is at speed level
-                                                 bool do_clamp,             ///< apply clamping to c*C?
-                                                 double recovery_clamp      ///< value for min/max clamping of c*C
+void ChShaftBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                                 ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                                 const double c,            // a scaling factor
+                                                 const double c_vel,        // the scaling factor if the constraint is at speed level
+                                                 bool do_clamp,             // apply clamping to c*C?
+                                                 double recovery_clamp      // value for min/max clamping of c*C
 ) {
-    double res = 0;  // no residual anyway! allow drifting...
+    double res = 0;  // no residual, allow drifting
 
     double cnstr_violation = c * res;
 
@@ -268,10 +251,7 @@ void ChShaftBodyTranslation::IntToDescriptor(const unsigned int off_v,
     constraint.SetRightHandSide(Qc(off_L));
 }
 
-void ChShaftBodyTranslation::IntFromDescriptor(const unsigned int off_v,
-                                               ChStateDelta& v,
-                                               const unsigned int off_L,
-                                               ChVectorDynamic<>& L) {
+void ChShaftBodyTranslation::IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
@@ -303,7 +283,6 @@ void ChShaftBodyTranslation::ConstraintsBiLoad_Ct(double factor) {
 }
 
 void ChShaftBodyTranslation::LoadConstraintJacobians() {
-    // compute jacobians
     ChVector3d jacx = body->TransformDirectionLocalToParent(shaft_dir);
     ChVector3d jacw = Vcross(shaft_pos, shaft_dir);
 

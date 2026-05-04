@@ -62,6 +62,13 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
     /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
     bool SetSphereRadius(double coll_radius, double out_envelope);
 
+    /// Data for each collision shape.
+    struct ShapeData {
+        std::shared_ptr<ChCollisionShape> ch_shape;   ///< Chrono collision shape
+        std::shared_ptr<cbtCollisionShape> bt_shape;  ///< associated Bullet collision shape
+        ChCollisionModelBullet* bt_model;             ///< containing Bullet collision model
+    };
+
   protected:
     /// Populate the collision system with the collision shapes defined in this model.
     void Populate();
@@ -84,8 +91,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
     std::unique_ptr<cbtCollisionObject> bt_collision_object;  ///< Bullet collision object containing Bullet geometries
     std::shared_ptr<cbtCompoundShape> bt_compound_shape;      ///< compound for models with more than one shape
 
-    std::vector<std::shared_ptr<cbtCollisionShape>> m_bt_shapes;  ///< list of Bullet collision shapes in model
-    std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;      ///< extended list of collision shapes
+    std::vector<std::shared_ptr<ShapeData>> m_shapes;  ///<  list of collision shapes
 
     friend class ChCollisionSystemBullet;
     friend class ChCollisionSystemBulletMulticore;

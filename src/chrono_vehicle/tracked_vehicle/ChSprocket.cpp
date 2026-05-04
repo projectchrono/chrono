@@ -143,10 +143,7 @@ void ChSprocket::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(double radius,
-                                                                             double width,
-                                                                             double delta,
-                                                                             ChColor color) const {
+std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(double radius, double width, double delta, ChColor color) const {
     auto sep = GetSeparation();
     auto profile = GetProfile();
 
@@ -318,10 +315,9 @@ void ChSprocket::LogConstraintViolations() {
 
 void ChSprocket::PopulateComponentList() {
     m_bodies.push_back(m_gear);
-
     m_shafts.push_back(m_axle);
-
     m_joints.push_back(m_revolute);
+    m_shaft_body_rot.push_back(m_axle_to_spindle);
 }
 
 }  // end namespace vehicle
