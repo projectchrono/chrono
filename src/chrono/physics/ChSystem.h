@@ -810,12 +810,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Collect all variables and constraints for physical components into the underlying system descriptor.
     void DescriptorPrepareInject();
 
-    void AddSprite(std::shared_ptr<ChBody> sprite);
-    void SetSprites(std::vector<std::shared_ptr<ChBody>> sprites) {m_sprites = sprites;}
-
-    std::shared_ptr<ChBody> GetSprite(int i) { return m_sprites[i]; }
-    std::vector<std::shared_ptr<ChBody>> GetSprites() { return m_sprites; }
-
   protected:
     /// Collect all variables and constraints for physical components into the specified system descriptor.
     virtual void DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor);
@@ -909,8 +903,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     ChVectorDynamic<> applied_forces;  ///< system-wide vector of applied forces (lazy evaluation)
     bool applied_forces_current;       ///< indicates if system-wide vector of forces is up-to-date
-
-    std::vector<std::shared_ptr<ChBody>> m_sprites;  ///< list of sprites in the scene
 
     // Friend class declarations
 

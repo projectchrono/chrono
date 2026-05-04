@@ -100,6 +100,10 @@ void ChVisualSystemOptix::AddSensor(std::shared_ptr<ChSensor> sensor) {
                         m_system, m_device_list[(int)m_engines.size()], m_optix_reflections,
                         m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
 
+#ifdef CHRONO_FSI_SPH
+                    engine->SetFsiSphSources(&scene->GetFsiSphSources());
+#endif
+
                     // engine->ConstructScene();
                     engine->AssignSensor(pOptixSensor);
 

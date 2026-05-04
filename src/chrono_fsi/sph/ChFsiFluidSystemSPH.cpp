@@ -2710,6 +2710,18 @@ std::vector<Real3> ChFsiFluidSystemSPH::GetPositions() const {
     return m_data_mgr->GetPositions();
 }
 
+ChFsiSphMarkerDeviceView ChFsiFluidSystemSPH::GetMarkerDeviceView() const {
+    ChFsiSphMarkerDeviceView view;
+
+    SynchronizeCopyStream();
+
+    const auto& pos_rad = m_data_mgr->sphMarkers_D->posRadD;
+    view.pos_rad = pos_rad.empty() ? nullptr : thrust::raw_pointer_cast(pos_rad.data());
+    view.num_fluid_markers = m_data_mgr->countersH->numFluidMarkers;
+
+    return view;
+}
+
 std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities() const {
     SynchronizeCopyStream();
     return m_data_mgr->GetVelocities();

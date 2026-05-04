@@ -23,6 +23,9 @@
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/sensors/ChOptixSensor.h"
 #endif
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
+#endif
 
 using std::cout;
 using std::cerr;
@@ -86,6 +89,29 @@ CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
 #endif
 }
 
+#ifdef CHRONO_FSI_SPH
+CH_SENSOR_API int ChSensorManager::AttachFsiSphSystem(std::shared_ptr<chrono::fsi::sph::ChFsiFluidSystemSPH> sys, const ChFsiSphRenderOptions& options) {
+    if (!sys) {
+        cerr << "WARNING: Ignoring null Chrono::FSI::SPH system render source\n";
+        return -1;
+    }
+
+    int handle = scene->AddFsiSphSystem(sys, options);
+    ReconstructScenes();
+    return handle;
+}
+
+CH_SENSOR_API void ChSensorManager::DetachFsiSphSystem(int handle) {
+    scene->RemoveFsiSphSystem(handle);
+    ReconstructScenes();
+}
+
+CH_SENSOR_API void ChSensorManager::ClearFsiSphSystems() {
+    scene->ClearFsiSphSystems();
+    ReconstructScenes();
+}
+#endif
+
 CH_SENSOR_API void ChSensorManager::SetMaxEngines(int num_groups) {
     if (num_groups > 0 && num_groups < 1000) {
         m_allowable_groups = num_groups;
@@ -137,6 +163,10 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                     
                     auto engine = chrono_types::make_shared<ChOptixEngine>(
                         m_system, m_device_list[(int)m_engines.size()], m_optix_reflections, m_verbose, m_debug);
+
+#ifdef CHRONO_FSI_SPH
+                    engine->SetFsiSphSources(&scene->GetFsiSphSources());
+#endif
 
                     // engine->ConstructScene();
 

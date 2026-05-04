@@ -187,6 +187,15 @@ if(CH_USE_SENSOR_OPTIX)
       cuda/phys_cam_ops.cuh
   )
 
+  if(CH_ENABLE_MODULE_FSI_SPH)
+    list(APPEND Chrono_sensor_CUDA_SOURCES
+      cuda/fsi_sph_render.cu
+    )
+    list(APPEND Chrono_sensor_CUDA_HEADERS
+      cuda/fsi_sph_render.cuh
+    )
+  endif()
+
   source_group("cuda" FILES ${Chrono_sensor_CUDA_SOURCES} ${Chrono_sensor_CUDA_HEADERS})
 
 else()
@@ -209,6 +218,7 @@ set(Chrono_sensor_HEADERS
     ChApiSensor.h
     ChSensorManager.h
     ChDynamicsManager.h
+    ChFsiSphRender.h
 )
 
 source_group("source" FILES ${Chrono_sensor_SOURCES} ${Chrono_sensor_HEADERS})
@@ -515,6 +525,10 @@ if(CH_USE_SENSOR_OPTIX)
   if(CH_USE_SENSOR_NVDB)
     target_link_libraries(Chrono_sensor PRIVATE OpenVDB::openvdb)
     target_link_libraries(Chrono_sensor PRIVATE OpenVDB::nanovdb)
+  endif()
+
+  if(CH_ENABLE_MODULE_FSI_SPH)
+    target_link_libraries(Chrono_sensor PUBLIC Chrono_fsisph)
   endif()
 
 endif()

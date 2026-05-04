@@ -32,10 +32,15 @@
 // #include <optixu/optixu_math_namespace.h>
 #include <cuda_runtime.h>
 
+#include <algorithm>
+
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_sensor/ChApiSensor.h"
+#ifdef CHRONO_FSI_SPH
+  #include "chrono_sensor/ChFsiSphRender.h"
+#endif
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 #include "chrono_sensor/optix/shaders/ChOptixLightStructs.h"
@@ -148,7 +153,7 @@ class CH_SENSOR_API ChScene {
     /// @param light_ID the index of the disk light to be modified
     /// @param disk_light the new disk light
     void ModifyDiskLight(unsigned int light_ID, const ChOptixLight& disk_light);
-    
+
     /// @brief Add the environment light that emits light from all directions based on an environment map.
     /// @param env_tex_path the full path of the environment map texture.
     /// @param intensity_scale a scale factor for the intensity of the environment light. Default value is 1.0 (no scaling).
@@ -217,6 +222,30 @@ class CH_SENSOR_API ChScene {
     std::shared_ptr<ChBody> GetSprite(int i) { return m_sprites[i]; }
     std::vector<std::shared_ptr<ChBody>> GetSprites() { return m_sprites; }
 
+#ifdef CHRONO_FSI_SPH
+    /// Attach a native Chrono::FSI::SPH render source to this scene.
+    int AddFsiSphSystem(std::shared_ptr<chrono::fsi::sph::ChFsiFluidSystemSPH> sys, const ChFsiSphRenderOptions& options) {
+        ChFsiSphRenderSource source;
+        source.id = m_next_fsi_sph_source_id++;
+        source.system = sys;
+        source.options = options;
+        m_fsi_sph_sources.push_back(source);
+        return source.id;
+    }
+
+    /// Remove a native Chrono::FSI::SPH render source from this scene.
+    void RemoveFsiSphSystem(int id) {
+        m_fsi_sph_sources.erase(std::remove_if(m_fsi_sph_sources.begin(), m_fsi_sph_sources.end(), [id](const ChFsiSphRenderSource& source) { return source.id == id; }),
+                                m_fsi_sph_sources.end());
+    }
+
+    /// Remove all native Chrono::FSI::SPH render sources from this scene.
+    void ClearFsiSphSystems() { m_fsi_sph_sources.clear(); }
+
+    /// Return all native Chrono::FSI::SPH render sources attached to this scene.
+    const std::vector<ChFsiSphRenderSource>& GetFsiSphSources() const { return m_fsi_sph_sources; }
+#endif
+
     #ifdef USE_SENSOR_NVDB
     /// @brief  Allows passing in Chrono::FSI SPH markers to the scene, to be used for rendering SPH simulations. Note: Must also add a ChNVDBVolume body to the scene as well.
     /// @param fsi_points_d pointer to the FSI markers in host memory
@@ -283,6 +312,11 @@ class CH_SENSOR_API ChScene {
     std::vector<std::shared_ptr<ChBody>> m_sprites;  ///< list of sprites in the scene
     // nvdb::VolumeGVDB* m_gvdb;  // GVDB volume of the scene
     // int m_gvdb_chan;           // GVDB render channel
+
+#ifdef CHRONO_FSI_SPH
+    std::vector<ChFsiSphRenderSource> m_fsi_sph_sources;  ///< native FSI-SPH render sources
+    int m_next_fsi_sph_source_id = 0;                     ///< id generator for native FSI-SPH sources
+#endif
 
     #ifdef USE_SENSOR_NVDB
       float* m_fsi_points = nullptr; // Pointer to FSI particle positions in host

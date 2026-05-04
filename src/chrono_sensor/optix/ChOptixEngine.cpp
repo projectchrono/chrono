@@ -50,6 +50,10 @@
 
 #include "chrono_sensor/cuda/cuda_utils.cuh"
 
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
+#endif
+
 #ifdef USE_SENSOR_NVDB
 #include <openvdb/openvdb.h>
 #endif
@@ -525,6 +529,70 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
     m_pipeline->AddBody(body);
 }
 
+#ifdef CHRONO_FSI_SPH
+void ChOptixEngine::AddFsiSphVisualization() {
+    if (!m_fsi_sph_sources)
+        return;
+
+    for (const auto& source : *m_fsi_sph_sources) {
+        if (!source.system)
+            continue;
+
+        const auto view = source.system->GetMarkerDeviceView();
+        if (view.num_fluid_markers == 0)
+            continue;
+
+        if (source.options.sprite_shapes.empty())
+            continue;
+
+        const auto& sprite_shapes = source.options.sprite_shapes;
+
+        std::vector<CUdeviceptr> d_vertices;
+        std::vector<CUdeviceptr> d_indices;
+        std::vector<std::shared_ptr<ChVisualShape>> shapes;
+        std::vector<unsigned int> mat_ids;
+        d_vertices.reserve(sprite_shapes.size());
+        d_indices.reserve(sprite_shapes.size());
+        shapes.reserve(sprite_shapes.size());
+        mat_ids.reserve(sprite_shapes.size());
+
+        for (const auto& shape : sprite_shapes) {
+            if (!shape)
+                continue;
+
+            std::vector<std::shared_ptr<ChVisualMaterial>> materials = shape->GetMaterials();
+            if (auto mesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
+                CUdeviceptr d_vertex_buffer = {};
+                CUdeviceptr d_index_buffer = {};
+                const unsigned int mat_id = m_pipeline->GetRigidMeshMaterial(d_vertex_buffer, d_index_buffer, mesh, materials);
+                d_vertices.push_back(d_vertex_buffer);
+                d_indices.push_back(d_index_buffer);
+                shapes.push_back(mesh);
+                mat_ids.push_back(mat_id);
+            }
+        }
+
+        m_geometry->AddFsiSphCloud(source.id, view.num_fluid_markers, d_vertices, d_indices, shapes, mat_ids, source.options.sprite_position_jitter);
+    }
+}
+
+void ChOptixEngine::UpdateFsiSphVisualization() {
+    if (!m_fsi_sph_sources)
+        return;
+
+    for (const auto& source : *m_fsi_sph_sources) {
+        if (!source.system)
+            continue;
+
+        const auto view = source.system->GetMarkerDeviceView();
+        if (!view.pos_rad || view.num_fluid_markers == 0)
+            continue;
+
+        m_geometry->UpdateFsiSphCloud(source.id, view.pos_rad, 0, view.num_fluid_markers);
+    }
+}
+#endif
+
 #ifdef USE_SENSOR_NVDB
 void ChOptixEngine::nvdbVisualization(std::shared_ptr<ChBody> body,
                                       std::shared_ptr<ChNVDBShape> box_shape,
@@ -650,65 +718,9 @@ void ChOptixEngine::ConstructScene() {
         }
     }
 
-    // Add sprites to the scene
-    for (auto sprite : m_system->GetSprites()) {
-        if (sprite->GetVisualModel()) {
-            for (auto& shape_instance : sprite->GetVisualModel()->GetShapeInstances()) {
-                const auto& shape = shape_instance.shape;
-                const auto& shape_frame = shape_instance.frame;
-                // check if the asset is a ChVisualShape
-
-                // if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
-
-                // collect relative position and orientation of the asset
-                // ChVector3d asset_pos = visual_asset->Pos;
-                // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
-
-                // const ChFrame<float> asset_frame = ChFrame<float>(asset_pos,asset_rot_mat);
-
-                if (!shape->IsVisible()) {
-                    // std::cout << "Ignoring an asset that is set to invisible\n";
-                    printf("Body %s is invisible\n", sprite->GetName().c_str());
-                } else if (auto box_shape = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
-                    boxVisualization(sprite, box_shape, shape_frame);
-                } 
-                #ifdef USE_SENSOR_NVDB
-                else if (std::shared_ptr<ChNVDBShape> nvdb_shape = std::dynamic_pointer_cast<ChNVDBShape>(shape)) {
-                    nvdbVisualization(sprite, nvdb_shape, shape_frame);
-                    printf("Added NVDB Shape!");
-                }
-                #endif
-                else if (auto sphere_shape = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
-                    sphereVisualization(sprite, sphere_shape, shape_frame);
-
-                } else if (auto cylinder_shape = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
-                    cylinderVisualization(sprite, cylinder_shape, shape_frame);
-
-                } else if (auto trimesh_shape = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
-                    if (!trimesh_shape->IsMutable()) {
-                        // printf("Trimesh Shape: %s, Pos: %f,%f,%f\n", sprite->GetName().c_str(), sprite->GetPos().x(),
-                        //        sprite->GetPos().y(), sprite->GetPos().z());
-                        rigidMeshVisualization(sprite, trimesh_shape, shape_frame);
-
-                        // added_asset_for_body = true;
-                    } else {
-                        deformableMeshVisualization(sprite, trimesh_shape, shape_frame);
-                    }
-
-                } else if (auto ellipsoid_shape = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
-                } else if (auto cone_shape = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
-                } else if (auto rbox_shape = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
-                } else if (auto capsule_shape = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
-                } else if (auto path_shape = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
-                } else if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
-                }
-
-                // TODO: Add NVDB Vis condition
-                // }
-                // }
-            }
-        }
-    }
+#ifdef CHRONO_FSI_SPH
+    AddFsiSphVisualization();
+#endif
 
     m_params.root = m_geometry->CreateRootStructure();
     m_pipeline->UpdateAllSBTs();
@@ -851,6 +863,10 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         scene->ResetLightsChanged();
         scene->ResetOriginChanged();
     }
+
+#ifdef CHRONO_FSI_SPH
+    UpdateFsiSphVisualization();
+#endif
 
     #ifdef USE_SENSOR_NVDB
         if (float* d_pts = scene->GetFSIParticles()) {
