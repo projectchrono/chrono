@@ -38,8 +38,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChSemiTrailingArm::m_pointNames[] = {"SPINDLE ", "TA_CM",    "TA_O",     "TA_I",    "TA_S",
-                                                       "SHOCK_C ", "SHOCK_A ", "SPRING_C", "SPRING_A"};
+const std::string ChSemiTrailingArm::m_pointNames[] = {"SPINDLE ", "TA_CM", "TA_O", "TA_I", "TA_S", "SHOCK_C ", "SHOCK_A ", "SPRING_C", "SPRING_A"};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -87,10 +86,7 @@ void ChSemiTrailingArm::Construct(std::shared_ptr<ChChassis> chassis,
     InitializeSide(RIGHT, chassis, m_pointsR, right_ang_vel);
 }
 
-void ChSemiTrailingArm::InitializeSide(VehicleSide side,
-                                       std::shared_ptr<ChChassis> chassis,
-                                       const std::vector<ChVector3d>& points,
-                                       double ang_vel) {
+void ChSemiTrailingArm::InitializeSide(VehicleSide side, std::shared_ptr<ChChassis> chassis, const std::vector<ChVector3d>& points, double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
@@ -137,8 +133,7 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->SetTag(m_obj_tag);
-    m_revolute[side]->Initialize(m_spindle[side], m_arm[side],
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
+    m_revolute[side]->Initialize(m_spindle[side], m_arm[side], ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the revolute joint between chassis and arm.
@@ -152,9 +147,8 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.SetFromDirectionAxes(u, v, w);
 
-    m_revoluteArm[side] = chrono_types::make_shared<ChJoint>(
-        ChJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
-        ChFrame<>((points[TA_O] + points[TA_I]) / 2, rot.GetQuaternion()), getCABushingData());
+    m_revoluteArm[side] = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
+                                                             ChFrame<>((points[TA_O] + points[TA_I]) / 2, rot.GetQuaternion()), getCABushingData());
     m_revoluteArm[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_revoluteArm[side]);
 
@@ -227,10 +221,8 @@ double ChSemiTrailingArm::GetTrack() {
 std::vector<ChSuspension::ForceTSDA> ChSemiTrailingArm::ReportSuspensionForce(VehicleSide side) const {
     std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
-                                        m_spring[side]->GetVelocity());
-    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
-                                        m_shock[side]->GetVelocity());
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(), m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(), m_shock[side]->GetVelocity());
 
     return forces;
 }
@@ -279,10 +271,8 @@ void ChSemiTrailingArm::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     // Add visualization for upper control arms
-    AddVisualizationArm(m_arm[LEFT], m_pointsL[TA_O], m_pointsL[TA_I], m_pointsL[TA_S], m_pointsL[SPINDLE],
-                        getArmRadius());
-    AddVisualizationArm(m_arm[RIGHT], m_pointsR[TA_O], m_pointsR[TA_I], m_pointsR[TA_S], m_pointsR[SPINDLE],
-                        getArmRadius());
+    AddVisualizationArm(m_arm[LEFT], m_pointsL[TA_O], m_pointsL[TA_I], m_pointsL[TA_S], m_pointsL[SPINDLE], getArmRadius());
+    AddVisualizationArm(m_arm[RIGHT], m_pointsR[TA_O], m_pointsR[TA_I], m_pointsR[TA_S], m_pointsR[SPINDLE], getArmRadius());
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
@@ -337,12 +327,13 @@ void ChSemiTrailingArm::PopulateComponentList() {
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
 
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);
-    m_revoluteArm[0]->IsKinematic() ? m_joints.push_back(m_revoluteArm[0]->GetAsLink())
-                                    : m_body_loads.push_back(m_revoluteArm[0]->GetAsBushing());
-    m_revoluteArm[1]->IsKinematic() ? m_joints.push_back(m_revoluteArm[1]->GetAsLink())
-                                    : m_body_loads.push_back(m_revoluteArm[1]->GetAsBushing());
+    m_revoluteArm[0]->IsKinematic() ? m_joints.push_back(m_revoluteArm[0]->GetAsLink()) : m_body_loads.push_back(m_revoluteArm[0]->GetAsBushing());
+    m_revoluteArm[1]->IsKinematic() ? m_joints.push_back(m_revoluteArm[1]->GetAsLink()) : m_body_loads.push_back(m_revoluteArm[1]->GetAsBushing());
 
     m_tsdas.push_back(m_spring[0]);
     m_tsdas.push_back(m_spring[1]);

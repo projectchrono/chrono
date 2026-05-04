@@ -31,8 +31,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChPart::ChPart(const std::string& name)
-    : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0), m_obj_tag(-1) {}
+ChPart::ChPart(const std::string& name) : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0), m_obj_tag(-1) {}
 
 // -----------------------------------------------------------------------------
 
@@ -91,8 +90,7 @@ void ChPart::AddInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
 
     // Shift inertia away from COM (parallel axis theorem)
     // Express inertia relative to global frame.
-    inertia += com_abs.GetRotMat() * m_inertia * com_abs.GetRotMat().transpose() +
-               GetMass() * CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
+    inertia += com_abs.GetRotMat() * m_inertia * com_abs.GetRotMat().transpose() + GetMass() * CompositeInertia::InertiaShiftMatrix(com_abs.GetPos());
 }
 
 // -----------------------------------------------------------------------------
@@ -101,11 +99,10 @@ void ChPart::AddInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
 // vehicle reference frame to an inertia matrix expressed in a centroidal body
 // reference frame.
 // -----------------------------------------------------------------------------
-ChMatrix33<> ChPart::TransformInertiaMatrix(
-    const ChVector3d& moments,        // moments of inertia in vehicle-aligned centroidal frame
-    const ChVector3d& products,       // products of inertia in vehicle-aligned centroidal frame
-    const ChMatrix33<>& vehicle_rot,  // vehicle absolute orientation matrix
-    const ChMatrix33<>& body_rot      // body absolute orientation matrix
+ChMatrix33<> ChPart::TransformInertiaMatrix(const ChVector3d& moments,        // moments of inertia in vehicle-aligned centroidal frame
+                                            const ChVector3d& products,       // products of inertia in vehicle-aligned centroidal frame
+                                            const ChMatrix33<>& vehicle_rot,  // vehicle absolute orientation matrix
+                                            const ChMatrix33<>& body_rot      // body absolute orientation matrix
 ) {
     // Calculate rotation matrix body-to-vehicle
     ChMatrix33<> R = vehicle_rot.transpose() * body_rot;
@@ -121,7 +118,7 @@ ChMatrix33<> ChPart::TransformInertiaMatrix(
 // Implementation of the function ExportComponentList.
 // -----------------------------------------------------------------------------
 
-rapidjson::Value Vec2Val(const ChVector3d& vec, rapidjson::Document::AllocatorType& allocator) {
+static rapidjson::Value Vec2Val(const ChVector3d& vec, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value array(rapidjson::kArrayType);
     array.PushBack(vec.x(), allocator);
     array.PushBack(vec.y(), allocator);
@@ -129,7 +126,7 @@ rapidjson::Value Vec2Val(const ChVector3d& vec, rapidjson::Document::AllocatorTy
     return array;
 }
 
-rapidjson::Value Quat2Val(const ChQuaternion<>& q, rapidjson::Document::AllocatorType& allocator) {
+static rapidjson::Value Quat2Val(const ChQuaternion<>& q, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value array(rapidjson::kArrayType);
     array.PushBack(q.e0(), allocator);
     array.PushBack(q.e1(), allocator);
@@ -138,7 +135,7 @@ rapidjson::Value Quat2Val(const ChQuaternion<>& q, rapidjson::Document::Allocato
     return array;
 }
 
-rapidjson::Value Frame2Val(const ChFrame<>& frame, rapidjson::Document::AllocatorType& allocator) {
+static rapidjson::Value Frame2Val(const ChFrame<>& frame, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value obj(rapidjson::kObjectType);
     obj.AddMember("pos", Vec2Val(frame.GetPos(), allocator), allocator);
     obj.AddMember("rot quat", Quat2Val(frame.GetRot(), allocator), allocator);
@@ -148,11 +145,11 @@ rapidjson::Value Frame2Val(const ChFrame<>& frame, rapidjson::Document::Allocato
     return obj;
 }
 
-rapidjson::Value Csys2Val(const ChCoordsys<>& csys, rapidjson::Document::AllocatorType& allocator) {
+static rapidjson::Value Csys2Val(const ChCoordsys<>& csys, rapidjson::Document::AllocatorType& allocator) {
     return Frame2Val(ChFrame<>(csys), allocator);
 }
 
-rapidjson::Value Mat2Val(const ChMatrixNM<double, 6, 6>& mat, rapidjson::Document::AllocatorType& allocator) {
+static rapidjson::Value Mat2Val(const ChMatrixNM<double, 6, 6>& mat, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value rows(rapidjson::kArrayType);
     for (int i = 0; i < 6; i++) {
         rapidjson::Value column(rapidjson::kArrayType);
@@ -182,6 +179,7 @@ void ChPart::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportShaftList(jsonDocument, m_shafts);
     ExportJointList(jsonDocument, m_joints);
     ExportCouplesList(jsonDocument, m_couples);
+    ExportShaftBodyConstraintList(jsonDocument, m_shaft_body_rot, m_shaft_body_trans);
     ExportLinSpringList(jsonDocument, m_tsdas);
     ExportRotSpringList(jsonDocument, m_rsdas);
     ExportBodyLoadList(jsonDocument, m_body_loads);
@@ -189,7 +187,7 @@ void ChPart::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportRotMotorList(jsonDocument, m_rot_motors);
 }
 
-rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson::Document::AllocatorType& allocator) {
+static rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value jsonArray(rapidjson::kArrayType);
 
     for (const auto& item : model->GetShapeInstances()) {
@@ -240,7 +238,7 @@ void ChPart::ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::
     auto P_X_A = GetTransform().GetInverse();  // transform from absolute to parent
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto body : bodies) {
+    for (const auto& body : bodies) {
         ChFrame<> A_X_B = *body;          // transform from body to absolute
         ChFrame<> P_X_B = P_X_A * A_X_B;  // transform from body to parent
         rapidjson::Value obj(rapidjson::kObjectType);
@@ -262,7 +260,7 @@ void ChPart::ExportShaftList(rapidjson::Document& jsonDocument, std::vector<std:
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto shaft : shafts) {
+    for (const auto& shaft : shafts) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(shaft->GetName().c_str()), allocator);
@@ -279,7 +277,7 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
     auto P_X_A = GetTransform().GetInverse();  // transform from absolute to parent
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto joint : joints) {
+    for (const auto& joint : joints) {
         ChFrame<> A_X_J = ChFrame<>(joint->GetFrame2Abs());  // transform from joint to absolute
         ChFrame<> P_X_J = P_X_A * A_X_J;                     // transform from joint to parent
         rapidjson::Value obj(rapidjson::kObjectType);
@@ -300,12 +298,11 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
     jsonDocument.AddMember("joints", jsonArray, allocator);
 }
 
-void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument,
-                               std::vector<std::shared_ptr<ChShaftsCouple>> couples) const {
+void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaftsCouple>> couples) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto couple : couples) {
+    for (const auto& couple : couples) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(couple->GetName().c_str()), allocator);
@@ -319,11 +316,42 @@ void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument,
     jsonDocument.AddMember("couples", jsonArray, allocator);
 }
 
+void ChPart::ExportShaftBodyConstraintList(rapidjson::Document& jsonDocument,
+                                           std::vector<std::shared_ptr<ChShaftBodyRotation>> rot_constraints,
+                                           std::vector<std::shared_ptr<ChShaftBodyTranslation>> trans_constraints) const {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (const auto& c : rot_constraints) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(c->GetName().c_str()), allocator);
+        obj.AddMember("type", "shaft-body rotation constraint", allocator);
+        obj.AddMember("id", c->GetIdentifier(), allocator);
+        obj.AddMember("shaft name", rapidjson::StringRef(c->GetShaft()->GetName().c_str()), allocator);
+        obj.AddMember("shaft id", c->GetShaft()->GetIdentifier(), allocator);
+        obj.AddMember("constraint direction", Vec2Val(c->GetShaftDirection(), allocator), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    for (const auto& c : trans_constraints) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(c->GetName().c_str()), allocator);
+        obj.AddMember("type", "shaft-body translation constraint", allocator);
+        obj.AddMember("id", c->GetIdentifier(), allocator);
+        obj.AddMember("shaft name", rapidjson::StringRef(c->GetShaft()->GetName().c_str()), allocator);
+        obj.AddMember("shaft id", c->GetShaft()->GetIdentifier(), allocator);
+        obj.AddMember("constraint direction", Vec2Val(c->GetShaftDirection(), allocator), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    jsonDocument.AddMember("shaft-body constraints", jsonArray, allocator);
+}
+
 void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChMarker>> markers) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto marker : markers) {
+    for (const auto& marker : markers) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(marker->GetName().c_str()), allocator);
@@ -336,14 +364,13 @@ void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std
     jsonDocument.AddMember("markers", jsonArray, allocator);
 }
 
-void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
-                                 std::vector<std::shared_ptr<ChLinkTSDA>> springs) const {
+void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkTSDA>> springs) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     const auto& A_X_P = GetTransform();  // transform from parent to absolute
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto spring : springs) {
+    for (const auto& spring : springs) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(spring->GetName().c_str()), allocator);
@@ -355,10 +382,8 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
         obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName().c_str()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
-        obj.AddMember("point1", Vec2Val(A_X_P.TransformPointParentToLocal(spring->GetPoint1Abs()), allocator),
-                      allocator);
-        obj.AddMember("point2", Vec2Val(A_X_P.TransformPointParentToLocal(spring->GetPoint2Abs()), allocator),
-                      allocator);
+        obj.AddMember("point1", Vec2Val(A_X_P.TransformPointParentToLocal(spring->GetPoint1Abs()), allocator), allocator);
+        obj.AddMember("point2", Vec2Val(A_X_P.TransformPointParentToLocal(spring->GetPoint2Abs()), allocator), allocator);
         obj.AddMember("has functor", spring->GetForceFunctor() != nullptr, allocator);
         if (!spring->GetForceFunctor()) {
             obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
@@ -373,15 +398,14 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
     jsonDocument.AddMember("linear spring-dampers", jsonArray, allocator);
 }
 
-void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
-                                 std::vector<std::shared_ptr<ChLinkRSDA>> springs) const {
+void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkRSDA>> springs) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     const auto& A_X_P = GetTransform();  // transform from parent to absolute
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto spring : springs) {
-        auto pos = spring->GetVisualModelFrame().GetPos();                 // position in absolute frame
+    for (const auto& spring : springs) {
+        const auto& pos = spring->GetVisualModelFrame().GetPos();          // position in absolute frame
         auto axis = spring->GetVisualModelFrame().GetRotMat().GetAxisZ();  // axis in absolute frame
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
@@ -410,12 +434,11 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
     jsonDocument.AddMember("rotational spring-dampers", jsonArray, allocator);
 }
 
-void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument,
-                                std::vector<std::shared_ptr<ChLoadBodyBody>> loads) const {
+void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLoadBodyBody>> loads) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
-    for (auto load : loads) {
+    for (const auto& load : loads) {
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(load->GetName().c_str()), allocator);
@@ -433,13 +456,11 @@ void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument,
     jsonDocument.AddMember("bushings", jsonArray, allocator);
 }
 
-void ChPart::ExportLinMotorList(rapidjson::Document& jsonDocument,
-                                std::vector<std::shared_ptr<ChLinkMotorLinear>> loads) const {
+void ChPart::ExportLinMotorList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkMotorLinear>> loads) const {
     //// TODO
 }
 
-void ChPart::ExportRotMotorList(rapidjson::Document& jsonDocument,
-                                std::vector<std::shared_ptr<ChLinkMotorRotation>> loads) const {
+void ChPart::ExportRotMotorList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkMotorRotation>> loads) const {
     //// TODO
 }
 

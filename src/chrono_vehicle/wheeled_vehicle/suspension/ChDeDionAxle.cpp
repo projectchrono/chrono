@@ -46,9 +46,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChDeDionAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "SPRING_A   ", "SPRING_C   ",
-                                                  "SPINDLE    ", "AXLE_C     ", "STABI_CON  ", "WATT_CNT_LE",
-                                                  "WATT_CNT_RI", "WATT_LE_CH ", "WATT_RI_CH "};
+const std::string ChDeDionAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "SPRING_A   ", "SPRING_C   ", "SPINDLE    ", "AXLE_C     ",
+                                                  "STABI_CON  ", "WATT_CNT_LE", "WATT_CNT_RI", "WATT_LE_CH ", "WATT_RI_CH "};
 
 // -----------------------------------------------------------------------------
 ChDeDionAxle::ChDeDionAxle(const std::string& name) : ChSuspension(name) {}
@@ -131,8 +130,7 @@ void ChDeDionAxle::Construct(std::shared_ptr<ChChassis> chassis,
     chassis->GetSystem()->AddLink(m_axleTubeGuideLong);
 
     // Watt lateral guiding mechanism
-    ChVector3d cntrPos =
-        suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_CNT_LE) + getLocation(WATT_CNT_RI) / 2.0));
+    ChVector3d cntrPos = suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_CNT_LE) + getLocation(WATT_CNT_RI) / 2.0));
     m_wattCenterLinkBody = chrono_types::make_shared<ChBody>();
     m_wattCenterLinkBody->SetName(m_name + "_wattCenterBody");
     m_wattCenterLinkBody->SetTag(m_obj_tag);
@@ -142,8 +140,7 @@ void ChDeDionAxle::Construct(std::shared_ptr<ChChassis> chassis,
     m_wattCenterLinkBody->SetInertiaXX(getWattCenterInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattCenterLinkBody);
 
-    ChVector3d lftPos =
-        suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_LE_CH) + getLocation(WATT_CNT_LE)) / 2.0);
+    ChVector3d lftPos = suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_LE_CH) + getLocation(WATT_CNT_LE)) / 2.0);
     m_wattLeftLinkBody = chrono_types::make_shared<ChBody>();
     m_wattLeftLinkBody->SetName(m_name + "_wattLeftBody");
     m_wattLeftLinkBody->SetTag(m_obj_tag);
@@ -153,8 +150,7 @@ void ChDeDionAxle::Construct(std::shared_ptr<ChChassis> chassis,
     m_wattLeftLinkBody->SetInertiaXX(getWattSideInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattLeftLinkBody);
 
-    ChVector3d rghtPos =
-        suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_RI_CH) + getLocation(WATT_CNT_RI)) / 2.0);
+    ChVector3d rghtPos = suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_RI_CH) + getLocation(WATT_CNT_RI)) / 2.0);
     m_wattRightLinkBody = chrono_types::make_shared<ChBody>();
     m_wattRightLinkBody->SetName(m_name + "_wattRightBody");
     m_wattRightLinkBody->SetTag(m_obj_tag);
@@ -175,36 +171,28 @@ void ChDeDionAxle::Construct(std::shared_ptr<ChChassis> chassis,
     m_wattLeftToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattLeftToCenterSph->SetName(m_name + "_wattLeft2CenterSph");
     m_wattLeftToCenterSph->SetTag(m_obj_tag);
-    m_wattLeftToCenterSph->Initialize(
-        m_wattLeftLinkBody, m_wattCenterLinkBody,
-        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE)), QUNIT));
+    m_wattLeftToCenterSph->Initialize(m_wattLeftLinkBody, m_wattCenterLinkBody, ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattLeftToCenterSph);
 
     // link the Watt left link to the axle tube
     m_wattLeftToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattLeftToAxleTubeSph->SetName(m_name + "_wattLeft2ChassisSph");
     m_wattLeftToAxleTubeSph->SetTag(m_obj_tag);
-    m_wattLeftToAxleTubeSph->Initialize(
-        m_wattLeftLinkBody, chassis->GetBody(),
-        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH)), QUNIT));
+    m_wattLeftToAxleTubeSph->Initialize(m_wattLeftLinkBody, chassis->GetBody(), ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattLeftToAxleTubeSph);
 
     // link the Watt right link to the center link
     m_wattRightToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattRightToCenterSph->SetName(m_name + "_wattRight2CenterSph");
     m_wattRightToCenterSph->SetTag(m_obj_tag);
-    m_wattRightToCenterSph->Initialize(
-        m_wattRightLinkBody, m_wattCenterLinkBody,
-        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI)), QUNIT));
+    m_wattRightToCenterSph->Initialize(m_wattRightLinkBody, m_wattCenterLinkBody, ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattRightToCenterSph);
 
     // link the Watt right link to the axle tube
     m_wattRightToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattRightToAxleTubeSph->SetName(m_name + "_wattRight2ChassisSph");
     m_wattRightToAxleTubeSph->SetTag(m_obj_tag);
-    m_wattRightToAxleTubeSph->Initialize(
-        m_wattRightLinkBody, chassis->GetBody(),
-        ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH)), QUNIT));
+    m_wattRightToAxleTubeSph->Initialize(m_wattRightLinkBody, chassis->GetBody(), ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH)), QUNIT));
     chassis->GetSystem()->AddLink(m_wattRightToAxleTubeSph);
 
     // Transform all hardpoints to absolute frame.
@@ -224,11 +212,7 @@ void ChDeDionAxle::Construct(std::shared_ptr<ChChassis> chassis,
     InitializeSide(RIGHT, chassis->GetBody(), scbeamR, m_pointsR, right_ang_vel);
 }
 
-void ChDeDionAxle::InitializeSide(VehicleSide side,
-                                  std::shared_ptr<ChBodyAuxRef> chassis,
-                                  std::shared_ptr<ChBody> scbeam,
-                                  const std::vector<ChVector3d>& points,
-                                  double ang_vel) {
+void ChDeDionAxle::InitializeSide(VehicleSide side, std::shared_ptr<ChBodyAuxRef> chassis, std::shared_ptr<ChBody> scbeam, const std::vector<ChVector3d>& points, double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
@@ -256,8 +240,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->SetTag(m_obj_tag);
-    m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
+    m_revolute[side]->Initialize(m_spindle[side], m_axleTube, ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
@@ -317,8 +300,7 @@ void ChDeDionAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
-    composite.AddComponent(m_wattCenterLinkBody->GetFrameCOMToAbs(), getWattCenterMass(),
-                           ChMatrix33<>(inertiaWattCenter));
+    composite.AddComponent(m_wattCenterLinkBody->GetFrameCOMToAbs(), getWattCenterMass(), ChMatrix33<>(inertiaWattCenter));
     composite.AddComponent(m_wattLeftLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
     composite.AddComponent(m_wattRightLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
 
@@ -342,10 +324,8 @@ double ChDeDionAxle::GetTrack() {
 std::vector<ChSuspension::ForceTSDA> ChDeDionAxle::ReportSuspensionForce(VehicleSide side) const {
     std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
-                                        m_spring[side]->GetVelocity());
-    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
-                                        m_shock[side]->GetVelocity());
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(), m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(), m_shock[side]->GetVelocity());
 
     return forces;
 }
@@ -386,13 +366,10 @@ void ChDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
     AddVisualizationLink(m_axleTube, m_axleCenter, m_axleChassis, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_axleTube, m_stabiConnectorL, m_stabiConnectorR, getAxleTubeRadius() / 2,
-                         ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(),
-                         ChColor(0.5f, 0.7f, 0.8f));
+    AddVisualizationLink(m_axleTube, m_stabiConnectorL, m_stabiConnectorR, getAxleTubeRadius() / 2, ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(), ChColor(0.5f, 0.7f, 0.8f));
     AddVisualizationLink(m_wattLeftLinkBody, m_wattLower, m_wattOuterL, getWattLinkRadius(), ChColor(0.8f, 0.5f, 0.5f));
-    AddVisualizationLink(m_wattRightLinkBody, m_wattUpper, m_wattOuterR, getWattLinkRadius(),
-                         ChColor(0.5f, 0.8f, 0.5f));
+    AddVisualizationLink(m_wattRightLinkBody, m_wattUpper, m_wattOuterR, getWattLinkRadius(), ChColor(0.5f, 0.8f, 0.5f));
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
@@ -418,11 +395,7 @@ void ChDeDionAxle::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDeDionAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                        const ChVector3d pt_1,
-                                        const ChVector3d pt_2,
-                                        double radius,
-                                        const ChColor& color) {
+void ChDeDionAxle::AddVisualizationLink(std::shared_ptr<ChBody> body, const ChVector3d pt_1, const ChVector3d pt_2, double radius, const ChColor& color) {
     // Express hardpoint locations in body frame.
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
@@ -440,6 +413,9 @@ void ChDeDionAxle::PopulateComponentList() {
 
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
+
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);

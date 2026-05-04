@@ -26,8 +26,8 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-ChRotationalDamperSuspension::ChRotationalDamperSuspension(const std::string& name, bool has_shock, bool lock_arm)
-    : ChTrackSuspension(name, has_shock, lock_arm) {}
+
+ChRotationalDamperSuspension::ChRotationalDamperSuspension(const std::string& name, bool has_shock, bool lock_arm) : ChTrackSuspension(name, has_shock, lock_arm) {}
 
 ChRotationalDamperSuspension::~ChRotationalDamperSuspension() {
     auto sys = m_arm->GetSystem();
@@ -41,9 +41,8 @@ ChRotationalDamperSuspension::~ChRotationalDamperSuspension() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chassis,
-                                             const ChVector3d& location,
-                                             ChTrackAssembly* track) {
+
+void ChRotationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -89,15 +88,12 @@ void ChRotationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the joint between arm and chassis.
     if (m_lock_arm) {
         // Create a weld kinematic joint.
-        m_joint =
-            chrono_types::make_shared<ChJoint>(ChJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
-                                                      m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
+        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     } else {
         // Create a revolute joint or bushing.
         // The axis of rotation is the y axis of the suspension reference frame.
-        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_joint",
-                                                            chassis->GetBody(), m_arm,
-                                                            ChFrame<>(points[ARM_CHASSIS], z2y), getArmBushingData());
+        m_joint =
+            chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_joint", chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y), getArmBushingData());
     }
     m_joint->SetTag(m_obj_tag);
     chassis->AddJoint(m_joint);
@@ -133,8 +129,7 @@ void ChRotationalDamperSuspension::UpdateInertiaProperties() {
     // Calculate COM and inertia expressed in global frame
     CompositeInertia composite;
     composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
-    composite.AddComponent(m_road_wheel->GetBody()->GetFrameCOMToAbs(), m_road_wheel->GetBody()->GetMass(),
-                           m_road_wheel->GetBody()->GetInertia());
+    composite.AddComponent(m_road_wheel->GetBody()->GetFrameCOMToAbs(), m_road_wheel->GetBody()->GetMass(), m_road_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
@@ -148,6 +143,7 @@ double ChRotationalDamperSuspension::GetCarrierAngle() const {
 }
 
 // -----------------------------------------------------------------------------
+
 ChTrackSuspension::ForceTorque ChRotationalDamperSuspension::ReportSuspensionForce() const {
     ChTrackSuspension::ForceTorque force;
 
@@ -169,6 +165,7 @@ ChTrackSuspension::ForceTorque ChRotationalDamperSuspension::ReportSuspensionFor
 }
 
 // -----------------------------------------------------------------------------
+
 void ChRotationalDamperSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
@@ -208,7 +205,7 @@ void ChRotationalDamperSuspension::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChRotationalDamperSuspension::LogConstraintViolations() {
     ChVectorDynamic<> C = m_joint->GetConstraintViolation();
     std::cout << "  Arm-chassis joint\n";
@@ -221,7 +218,6 @@ void ChRotationalDamperSuspension::LogConstraintViolations() {
     m_road_wheel->LogConstraintViolations();
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 void ChRotationalDamperSuspension::PopulateComponentList() {

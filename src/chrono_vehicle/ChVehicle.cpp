@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Davide Moricoli
 // =============================================================================
 //
 // Base class for a vehicle model.
