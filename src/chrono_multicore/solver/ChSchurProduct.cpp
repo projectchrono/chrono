@@ -19,18 +19,18 @@ using namespace chrono;
 ChSchurProduct::ChSchurProduct() {
     data_manager = 0;
 }
-void ChSchurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>& output) {
+void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
     data_manager->system_timer.start("SchurProduct");
 
-    const DynamicVector<real>& E = data_manager->host_data.E;
+    const VectorType& E = data_manager->host_data.E;
 
     uint num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-    output.reset();
+    output.setZero();
 
-    const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    const CompressedMatrix<real>& Nschur = data_manager->host_data.Nschur;
+    const SparseMatrixType& D_T = data_manager->host_data.D_T;
+    const SparseMatrixType& Nschur = data_manager->host_data.Nschur;
 
     if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
         if (data_manager->settings.solver.compute_N) {
@@ -40,18 +40,18 @@ void ChSchurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real
         }
 
     } else {
-        const SubMatrixType& D_n_T = _DNT_;
-        const SubMatrixType& D_b_T = _DBT_;
-        const SubMatrixType& M_invD_n = _MINVDN_;
-        const SubMatrixType& M_invD_b = _MINVDB_;
+        const SparseMatrixType& D_n_T = _DNT_;
+        const SparseMatrixType& D_b_T = _DBT_;
+        const SparseMatrixType& M_invD_n = _MINVDN_;
+        const SparseMatrixType& M_invD_b = _MINVDB_;
 
-        SubVectorType o_b = subvector(output, num_unilaterals, num_bilaterals);
-        ConstSubVectorType x_b = subvector(x, num_unilaterals, num_bilaterals);
-        ConstSubVectorType E_b = subvector(E, num_unilaterals, num_bilaterals);
+        SubVectorType o_b = output.segment(num_unilaterals, num_bilaterals);
+        ConstSubVectorType x_b = x.segment(num_unilaterals, num_bilaterals);
+        ConstSubVectorType E_b = E.segment(num_unilaterals, num_bilaterals);
 
-        SubVectorType o_n = subvector(output, 0, num_rigid_contacts);
-        ConstSubVectorType x_n = subvector(x, 0, num_rigid_contacts);
-        ConstSubVectorType E_n = subvector(E, 0, num_rigid_contacts);
+        SubVectorType o_n = output.segment(0, num_rigid_contacts);
+        ConstSubVectorType x_n = x.segment(0, num_rigid_contacts);
+        ConstSubVectorType E_n = E.segment(0, num_rigid_contacts);
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {
@@ -59,19 +59,19 @@ void ChSchurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real
             } break;
 
             case SolverMode::NORMAL: {
-                blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
+                VectorType tmp = M_invD_b * x_b + M_invD_n * x_n;
                 o_b = D_b_T * tmp + E_b * x_b;
                 o_n = D_n_T * tmp + E_n * x_n;
             } break;
 
             case SolverMode::SLIDING: {
-                const SubMatrixType& D_t_T = _DTT_;
-                const SubMatrixType& M_invD_t = _MINVDT_;
-                SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
-                ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
-                ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);
+                const SparseMatrixType& D_t_T = _DTT_;
+                const SparseMatrixType& M_invD_t = _MINVDT_;
+                SubVectorType o_t = output.segment(num_rigid_contacts, num_rigid_contacts * 2);
+                ConstSubVectorType x_t = x.segment(num_rigid_contacts, num_rigid_contacts * 2);
+                ConstSubVectorType E_t = E.segment(num_rigid_contacts, num_rigid_contacts * 2);
 
-                blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
+                VectorType tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t;
                 o_b = D_b_T * tmp + E_b * x_b;
                 o_n = D_n_T * tmp + E_n * x_n;
                 o_t = D_t_T * tmp + E_t * x_t;
@@ -79,19 +79,19 @@ void ChSchurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real
             } break;
 
             case SolverMode::SPINNING: {
-                const SubMatrixType& D_t_T = _DTT_;
-                const SubMatrixType& D_s_T = _DST_;
-                const SubMatrixType& M_invD_t = _MINVDT_;
-                const SubMatrixType& M_invD_s = _MINVDS_;
-                SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
-                ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
-                ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);
+                const SparseMatrixType& D_t_T = _DTT_;
+                const SparseMatrixType& D_s_T = _DST_;
+                const SparseMatrixType& M_invD_t = _MINVDT_;
+                const SparseMatrixType& M_invD_s = _MINVDS_;
+                SubVectorType o_t = output.segment(num_rigid_contacts, num_rigid_contacts * 2);
+                ConstSubVectorType x_t = x.segment(num_rigid_contacts, num_rigid_contacts * 2);
+                ConstSubVectorType E_t = E.segment(num_rigid_contacts, num_rigid_contacts * 2);
 
-                SubVectorType o_s = subvector(output, num_rigid_contacts * 3, num_rigid_contacts * 3);
-                ConstSubVectorType x_s = subvector(x, num_rigid_contacts * 3, num_rigid_contacts * 3);
-                ConstSubVectorType E_s = subvector(E, num_rigid_contacts * 3, num_rigid_contacts * 3);
+                SubVectorType o_s = output.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
+                ConstSubVectorType x_s = x.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
+                ConstSubVectorType E_s = E.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
 
-                blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
+                VectorType tmp = M_invD_b * x_b + M_invD_n * x_n + M_invD_t * x_t + M_invD_s * x_s;
                 o_b = D_b_T * tmp + E_b * x_b;
                 o_n = D_n_T * tmp + E_n * x_n;
                 o_t = D_t_T * tmp + E_t * x_t;
@@ -111,6 +111,6 @@ void ChSchurProductBilateral::Setup(ChMulticoreDataManager* data_container_) {
     NschurB = _DBT_ * _MINVDB_;
 }
 
-void ChSchurProductBilateral::operator()(const DynamicVector<real>& x, DynamicVector<real>& output) {
+void ChSchurProductBilateral::operator()(const VectorType& x, VectorType& output) {
     output = NschurB * x;
 }

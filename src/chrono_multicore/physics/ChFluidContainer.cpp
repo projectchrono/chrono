@@ -141,30 +141,24 @@ unsigned int ChFluidContainer::GetNumNonZeros() {
 
 void ChFluidContainer::ComputeInvMass(int offset) {
     num_particles = data_manager->num_particles;
-    CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
+    SparseMatrixType& M_inv = data_manager->host_data.M_inv;
 
     real inv_mass = 1.0 / mass;
     for (int i = 0; i < (signed)num_particles; i++) {
-        M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
-        M_inv.finalize(offset + i * 3 + 0);
-        M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_mass);
-        M_inv.finalize(offset + i * 3 + 1);
-        M_inv.append(offset + i * 3 + 2, offset + i * 3 + 2, inv_mass);
-        M_inv.finalize(offset + i * 3 + 2);
+        M_inv.insert(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
+        M_inv.insert(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
+        M_inv.insert(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
     }
 }
 void ChFluidContainer::ComputeMass(int offset) {
     num_particles = data_manager->num_particles;
-    CompressedMatrix<real>& M = data_manager->host_data.M;
+    SparseMatrixType& M = data_manager->host_data.M;
 
     real fluid_mass = mass;
     for (int i = 0; i < (signed)num_particles; i++) {
-        M.append(offset + i * 3 + 0, offset + i * 3 + 0, fluid_mass);
-        M.finalize(offset + i * 3 + 0);
-        M.append(offset + i * 3 + 1, offset + i * 3 + 1, fluid_mass);
-        M.finalize(offset + i * 3 + 1);
-        M.append(offset + i * 3 + 2, offset + i * 3 + 2, fluid_mass);
-        M.finalize(offset + i * 3 + 2);
+        M.insert(offset + i * 3 + 0, offset + i * 3 + 0) = fluid_mass;
+        M.insert(offset + i * 3 + 1, offset + i * 3 + 1) = fluid_mass;
+        M.insert(offset + i * 3 + 2, offset + i * 3 + 2) = fluid_mass;
     }
 }
 void ChFluidContainer::Setup3DOF(int start_constraint) {
@@ -194,7 +188,7 @@ void ChFluidContainer::Density_Fluid() {
     real h = kernel_radius;
     real inv_density = 1.0 / rho;
     real mass_over_density = mass * inv_density;
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
 
 #pragma omp parallel for
     for (int body_a = 0; body_a < (signed)num_particles; body_a++) {
@@ -248,7 +242,7 @@ void ChFluidContainer::Normalize_Density_Fluid() {
 }
 
 void ChFluidContainer::Build_D() {
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
 
     BuildRigidParticleBoundary(contact_mu, num_particles, body_offset, start_boundary, data_manager);
 
@@ -312,7 +306,7 @@ void ChFluidContainer::Build_D() {
     }
 }
 void ChFluidContainer::Build_b() {
-    DynamicVector<real>& b = data_manager->host_data.b;
+    VectorType& b = data_manager->host_data.b;
 
     CorrectionRigidParticleBoundary(contact_mu, contact_cohesion, alpha, contact_recovery_speed, num_particles,
                                  start_boundary, data_manager);
@@ -325,7 +319,7 @@ void ChFluidContainer::Build_b() {
     }
 }
 void ChFluidContainer::Build_E() {
-    DynamicVector<real>& E = data_manager->host_data.E;
+    VectorType& E = data_manager->host_data.E;
     ComplianceRigidParticleBoundary(contact_mu, contact_compliance, alpha, start_boundary, data_manager);
 
     real step_size = data_manager->settings.step_size;
@@ -350,7 +344,7 @@ void ChFluidContainer::Project(real* gamma) {
 }
 
 void ChFluidContainer::GenerateSparsity() {
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
     AppendRigidParticleBoundary(contact_mu, num_particles, body_offset, start_boundary, data_manager);
 
     if (data_manager->cd_data->num_particle_contacts > 0) {
@@ -359,7 +353,6 @@ void ChFluidContainer::GenerateSparsity() {
                 int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
                 AppendRow3(D_T, start_density + body_a, body_offset + body_b * 3, 0);
             }
-            D_T.finalize(start_density + body_a);
         }
         // Add more entries for viscosity
         // Code is repeated because there are three rows per viscosity constraint
@@ -369,19 +362,16 @@ void ChFluidContainer::GenerateSparsity() {
                     int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
                     AppendRow3(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, 0);
                 }
-                D_T.finalize(start_viscous + body_a * 3 + 0);
                 //
                 for (int i = 0; i < data_manager->cd_data->c_counts_3dof_3dof[body_a]; i++) {
                     int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
                     AppendRow3(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3, 0);
                 }
-                D_T.finalize(start_viscous + body_a * 3 + 1);
                 //
                 for (int i = 0; i < data_manager->cd_data->c_counts_3dof_3dof[body_a]; i++) {
                     int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
                     AppendRow3(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3, 0);
                 }
-                D_T.finalize(start_viscous + body_a * 3 + 2);
             }
         }
     }
@@ -391,12 +381,12 @@ void ChFluidContainer::PreSolve() {
     if (gamma_old.size() > 0) {
         if (enable_viscosity) {
             if (gamma_old.size() == (num_particles + num_particles * 3)) {
-                blaze::subvector(data_manager->host_data.gamma, start_density,
+                data_manager->host_data.gamma.segment(start_density,
                                  num_particles + num_particles * 3) = gamma_old * .9;
             }
         } else {
             if (gamma_old.size() == num_particles) {
-                blaze::subvector(data_manager->host_data.gamma, start_density, num_particles) = gamma_old * .9;
+                data_manager->host_data.gamma.segment(start_density, num_particles) = gamma_old * .9;
             }
         }
     }
@@ -407,10 +397,10 @@ void ChFluidContainer::PostSolve() {
         if (enable_viscosity) {
             gamma_old.resize(num_particles + num_particles * 3);
             gamma_old =
-                blaze::subvector(data_manager->host_data.gamma, start_density, num_particles + num_particles * 3);
+                data_manager->host_data.gamma.segment(start_density, num_particles + num_particles * 3);
         } else {
             gamma_old.resize(num_particles);
-            gamma_old = blaze::subvector(data_manager->host_data.gamma, start_density, num_particles);
+            gamma_old = data_manager->host_data.gamma.segment(start_density, num_particles);
         }
     }
 
@@ -447,17 +437,17 @@ void ChFluidContainer::CalculateContactForces() {
     if (num_contacts <= 0) {
         return;
     }
-    DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
+    VectorType& gamma = data_manager->host_data.gamma;
+    SubVectorType gamma_n = gamma.segment(start_boundary, _num_rf_c_);
 
-    contact_forces = submatrix(data_manager->host_data.D, 0, start_boundary, _num_dof_, _num_rf_c_) * gamma_n /
+    contact_forces = data_manager->host_data.D.middleCols(start_boundary, _num_rf_c_).topRows(_num_dof_) * gamma_n /
                      data_manager->settings.step_size;
 
     if (contact_mu != 0) {
-        SubVectorType gamma_t = subvector(gamma, start_boundary + _num_rf_c_, 2 * _num_rf_c_);
+        SubVectorType gamma_t = gamma.segment(start_boundary + _num_rf_c_, 2 * _num_rf_c_);
         contact_forces +=
-            submatrix(data_manager->host_data.D, 0, start_boundary + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) * gamma_t /
-            data_manager->settings.step_size;
+            data_manager->host_data.D.middleCols(start_boundary + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_) *
+            gamma_t / data_manager->settings.step_size;
     }
 
     // contact_forces
@@ -493,12 +483,12 @@ void ChFluidContainer::GetFluidPressure(custom_vector<real>& pres) {
 void ChFluidContainer::GetFluidForce(custom_vector<real3>& forc) {
     forc.resize(num_particles);
 
-    DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    SubVectorType gamma_n = subvector(gamma, start_density, num_particles);
+    VectorType& gamma = data_manager->host_data.gamma;
+    SubVectorType gamma_n = gamma.segment(start_density, num_particles);
 
-    DynamicVector<real> pressure_forces =
-        submatrix(data_manager->host_data.D, body_offset, start_density, num_particles * 3, num_particles) *
-        gamma_n / data_manager->settings.step_size;
+    VectorType pressure_forces =
+        data_manager->host_data.D.middleCols(start_density, num_particles)
+        .middleRows(body_offset, num_particles * 3) * gamma_n / data_manager->settings.step_size;
 
     for (int i = 0; i < (signed)num_particles; i++) {
         forc[i] = real3(pressure_forces[i * 3 + 0], pressure_forces[i * 3 + 1], pressure_forces[i * 3 + 2]);

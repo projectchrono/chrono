@@ -121,7 +121,7 @@ void AppendRigidParticleBoundary(const real contact_mu,
                               const uint body_offset,
                               const uint start_boundary,
                               ChMulticoreDataManager* data_manager) {
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     if (num_rigid_particle_contacts > 0) {
         custom_vector<int>& neighbor_rigid_particle = data_manager->cd_data->neighbor_rigid_particle;
@@ -131,17 +131,14 @@ void AppendRigidParticleBoundary(const real contact_mu,
             int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
             AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);                     //
             AppendRow3(D_T, start_boundary + index + 0, body_offset + p * 3, 0);           //
-            D_T.finalize(start_boundary + index + 0);                                      //
         );
         if (contact_mu != 0) {
             Loop_Over_Rigid_Neighbors(                                                                               //
                 int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];                        //
                 AppendRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, rigid * 6, 0);            //
                 AppendRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, body_offset + p * 3, 0);  //
-                D_T.finalize(start_boundary + num_rigid_particle_contacts + index * 2 + 0);                             //
                 AppendRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, rigid * 6, 0);            //
                 AppendRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, body_offset + p * 3, 0);  //
-                D_T.finalize(start_boundary + num_rigid_particle_contacts + index * 2 + 1);                             //
             );
         }
     }
@@ -214,7 +211,7 @@ void ComplianceRigidParticleBoundary(const real contact_mu,
                                   const real alpha,
                                   const uint start_boundary,
                                   ChMulticoreDataManager* data_manager) {
-    DynamicVector<real>& E = data_manager->host_data.E;
+    VectorType& E = data_manager->host_data.E;
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     real inv_h = 1 / data_manager->settings.step_size;
     real inv_hpa = 1 / (data_manager->settings.step_size + alpha);
@@ -250,7 +247,7 @@ void CorrectionRigidParticleBoundary(const real contact_mu,
                                   ChMulticoreDataManager* data_manager) {
     real inv_hpa = 1 / (data_manager->settings.step_size + alpha);
 
-    DynamicVector<real>& b = data_manager->host_data.b;
+    VectorType& b = data_manager->host_data.b;
     custom_vector<real>& dpth_rigid_particle = data_manager->cd_data->dpth_rigid_particle;
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
 
@@ -287,7 +284,7 @@ void BuildRigidParticleBoundary(const real contact_mu,
                              ChMulticoreDataManager* data_manager) {
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     if (num_rigid_particle_contacts > 0) {
-        CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+        SparseMatrixType& D_T = data_manager->host_data.D_T;
         custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
         custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 

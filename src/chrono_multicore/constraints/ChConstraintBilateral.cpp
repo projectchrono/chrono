@@ -56,9 +56,10 @@ void ChConstraintBilateral::Build_D() {
 
     // Loop over the active constraints and fill in the rows of the Jacobian,
     // taking into account the type of each constraint.
-    SubMatrixType D_b_T = _DBT_;
+    // SparseMatrixType D_b_T = _DBT_;
+    SparseMatrixType& D_b_T = data_manager->host_data.D_T;
 
-    //#pragma omp parallel for
+    // #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         int type = data_manager->host_data.bilateral_type[cntr];
@@ -73,21 +74,21 @@ void ChConstraintBilateral::Build_D() {
                 int colA = idA * 6;
                 int colB = idB * 6;
 
-                D_b_T(row, colA + 0) = mbilateral->Get_Cq_a()(0);
-                D_b_T(row, colA + 1) = mbilateral->Get_Cq_a()(1);
-                D_b_T(row, colA + 2) = mbilateral->Get_Cq_a()(2);
+                D_b_T.coeffRef(row, colA + 0) = mbilateral->Get_Cq_a()(0);
+                D_b_T.coeffRef(row, colA + 1) = mbilateral->Get_Cq_a()(1);
+                D_b_T.coeffRef(row, colA + 2) = mbilateral->Get_Cq_a()(2);
 
-                D_b_T(row, colA + 3) = mbilateral->Get_Cq_a()(3);
-                D_b_T(row, colA + 4) = mbilateral->Get_Cq_a()(4);
-                D_b_T(row, colA + 5) = mbilateral->Get_Cq_a()(5);
+                D_b_T.coeffRef(row, colA + 3) = mbilateral->Get_Cq_a()(3);
+                D_b_T.coeffRef(row, colA + 4) = mbilateral->Get_Cq_a()(4);
+                D_b_T.coeffRef(row, colA + 5) = mbilateral->Get_Cq_a()(5);
 
-                D_b_T(row, colB + 0) = mbilateral->Get_Cq_b()(0);
-                D_b_T(row, colB + 1) = mbilateral->Get_Cq_b()(1);
-                D_b_T(row, colB + 2) = mbilateral->Get_Cq_b()(2);
+                D_b_T.coeffRef(row, colB + 0) = mbilateral->Get_Cq_b()(0);
+                D_b_T.coeffRef(row, colB + 1) = mbilateral->Get_Cq_b()(1);
+                D_b_T.coeffRef(row, colB + 2) = mbilateral->Get_Cq_b()(2);
 
-                D_b_T(row, colB + 3) = mbilateral->Get_Cq_b()(3);
-                D_b_T(row, colB + 4) = mbilateral->Get_Cq_b()(4);
-                D_b_T(row, colB + 5) = mbilateral->Get_Cq_b()(5);
+                D_b_T.coeffRef(row, colB + 3) = mbilateral->Get_Cq_b()(3);
+                D_b_T.coeffRef(row, colB + 4) = mbilateral->Get_Cq_b()(4);
+                D_b_T.coeffRef(row, colB + 5) = mbilateral->Get_Cq_b()(5);
             } break;
 
             case BilateralType::SHAFT_SHAFT: {
@@ -99,8 +100,8 @@ void ChConstraintBilateral::Build_D() {
                 int colA = data_manager->num_rigid_bodies * 6 + idA;
                 int colB = data_manager->num_rigid_bodies * 6 + idB;
 
-                D_b_T(row, colA) = mbilateral->Get_Cq_a()(0);
-                D_b_T(row, colB) = mbilateral->Get_Cq_b()(0);
+                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
+                D_b_T.coeffRef(row, colB) = mbilateral->Get_Cq_b()(0);
             } break;
 
             case BilateralType::SHAFT_BODY: {
@@ -112,15 +113,15 @@ void ChConstraintBilateral::Build_D() {
                 int colA = data_manager->num_rigid_bodies * 6 + idA;
                 int colB = idB * 6;
 
-                D_b_T(row, colA) = mbilateral->Get_Cq_a()(0);
+                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
 
-                D_b_T(row, colB + 0) = mbilateral->Get_Cq_b()(0);
-                D_b_T(row, colB + 1) = mbilateral->Get_Cq_b()(1);
-                D_b_T(row, colB + 2) = mbilateral->Get_Cq_b()(2);
+                D_b_T.coeffRef(row, colB + 0) = mbilateral->Get_Cq_b()(0);
+                D_b_T.coeffRef(row, colB + 1) = mbilateral->Get_Cq_b()(1);
+                D_b_T.coeffRef(row, colB + 2) = mbilateral->Get_Cq_b()(2);
 
-                D_b_T(row, colB + 3) = mbilateral->Get_Cq_b()(3);
-                D_b_T(row, colB + 4) = mbilateral->Get_Cq_b()(4);
-                D_b_T(row, colB + 5) = mbilateral->Get_Cq_b()(5);
+                D_b_T.coeffRef(row, colB + 3) = mbilateral->Get_Cq_b()(3);
+                D_b_T.coeffRef(row, colB + 4) = mbilateral->Get_Cq_b()(4);
+                D_b_T.coeffRef(row, colB + 5) = mbilateral->Get_Cq_b()(5);
             } break;
 
             case BilateralType::SHAFT_SHAFT_SHAFT: {
@@ -133,9 +134,9 @@ void ChConstraintBilateral::Build_D() {
                 int colB = data_manager->num_rigid_bodies * 6 + idB;
                 int colC = data_manager->num_rigid_bodies * 6 + idC;
 
-                D_b_T(row, colA) = mbilateral->Get_Cq_a()(0);
-                D_b_T(row, colB) = mbilateral->Get_Cq_b()(0);
-                D_b_T(row, colC) = mbilateral->Get_Cq_c()(0);
+                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
+                D_b_T.coeffRef(row, colB) = mbilateral->Get_Cq_b()(0);
+                D_b_T.coeffRef(row, colC) = mbilateral->Get_Cq_c()(0);
             } break;
 
             case BilateralType::SHAFT_SHAFT_BODY: {
@@ -148,16 +149,16 @@ void ChConstraintBilateral::Build_D() {
                 int colB = data_manager->num_rigid_bodies * 6 + idB;
                 int colC = idC * 6;
 
-                D_b_T(row, colA) = mbilateral->Get_Cq_a()(0);
-                D_b_T(row, colB) = mbilateral->Get_Cq_b()(0);
+                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
+                D_b_T.coeffRef(row, colB) = mbilateral->Get_Cq_b()(0);
 
-                D_b_T(row, colC + 0) = mbilateral->Get_Cq_c()(0);
-                D_b_T(row, colC + 1) = mbilateral->Get_Cq_c()(1);
-                D_b_T(row, colC + 2) = mbilateral->Get_Cq_c()(2);
+                D_b_T.coeffRef(row, colC + 0) = mbilateral->Get_Cq_c()(0);
+                D_b_T.coeffRef(row, colC + 1) = mbilateral->Get_Cq_c()(1);
+                D_b_T.coeffRef(row, colC + 2) = mbilateral->Get_Cq_c()(2);
 
-                D_b_T(row, colC + 3) = mbilateral->Get_Cq_c()(3);
-                D_b_T(row, colC + 4) = mbilateral->Get_Cq_c()(4);
-                D_b_T(row, colC + 5) = mbilateral->Get_Cq_c()(5);
+                D_b_T.coeffRef(row, colC + 3) = mbilateral->Get_Cq_c()(3);
+                D_b_T.coeffRef(row, colC + 4) = mbilateral->Get_Cq_c()(4);
+                D_b_T.coeffRef(row, colC + 5) = mbilateral->Get_Cq_c()(5);
             } break;
         }
     }
@@ -175,7 +176,7 @@ void ChConstraintBilateral::GenerateSparsity() {
     // order of the column index for each row. Recall that body states are always
     // before shaft states.
 
-    CompressedMatrix<real>& D_b_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_b_T = data_manager->host_data.D_T;
     int off = data_manager->num_unilaterals;
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
@@ -201,19 +202,19 @@ void ChConstraintBilateral::GenerateSparsity() {
                     col2 = idA * 6;
                 }
 
-                D_b_T.append(row, col1 + 0, 1);
-                D_b_T.append(row, col1 + 1, 1);
-                D_b_T.append(row, col1 + 2, 1);
-                D_b_T.append(row, col1 + 3, 1);
-                D_b_T.append(row, col1 + 4, 1);
-                D_b_T.append(row, col1 + 5, 1);
+                D_b_T.insert(row, col1 + 0) = 1;
+                D_b_T.insert(row, col1 + 1) = 1;
+                D_b_T.insert(row, col1 + 2) = 1;
+                D_b_T.insert(row, col1 + 3) = 1;
+                D_b_T.insert(row, col1 + 4) = 1;
+                D_b_T.insert(row, col1 + 5) = 1;
 
-                D_b_T.append(row, col2 + 0, 1);
-                D_b_T.append(row, col2 + 1, 1);
-                D_b_T.append(row, col2 + 2, 1);
-                D_b_T.append(row, col2 + 3, 1);
-                D_b_T.append(row, col2 + 4, 1);
-                D_b_T.append(row, col2 + 5, 1);
+                D_b_T.insert(row, col2 + 0) = 1;
+                D_b_T.insert(row, col2 + 1) = 1;
+                D_b_T.insert(row, col2 + 2) = 1;
+                D_b_T.insert(row, col2 + 3) = 1;
+                D_b_T.insert(row, col2 + 4) = 1;
+                D_b_T.insert(row, col2 + 5) = 1;
             } break;
 
             case BilateralType::SHAFT_SHAFT: {
@@ -230,8 +231,8 @@ void ChConstraintBilateral::GenerateSparsity() {
                     col2 = data_manager->num_rigid_bodies * 6 + idA;
                 }
 
-                D_b_T.append(row, col1, 1);
-                D_b_T.append(row, col2, 1);
+                D_b_T.insert(row, col1) = 1;
+                D_b_T.insert(row, col2) = 1;
             } break;
 
             case BilateralType::SHAFT_BODY: {
@@ -243,14 +244,14 @@ void ChConstraintBilateral::GenerateSparsity() {
                 col1 = idB * 6;
                 col2 = data_manager->num_rigid_bodies * 6 + idA;
 
-                D_b_T.append(row, col1 + 0, 1);
-                D_b_T.append(row, col1 + 1, 1);
-                D_b_T.append(row, col1 + 2, 1);
-                D_b_T.append(row, col1 + 3, 1);
-                D_b_T.append(row, col1 + 4, 1);
-                D_b_T.append(row, col1 + 5, 1);
+                D_b_T.insert(row, col1 + 0) = 1;
+                D_b_T.insert(row, col1 + 1) = 1;
+                D_b_T.insert(row, col1 + 2) = 1;
+                D_b_T.insert(row, col1 + 3) = 1;
+                D_b_T.insert(row, col1 + 4) = 1;
+                D_b_T.insert(row, col1 + 5) = 1;
 
-                D_b_T.append(row, col2, 1);
+                D_b_T.insert(row, col2) = 1;
             } break;
 
             case BilateralType::SHAFT_SHAFT_SHAFT: {
@@ -265,9 +266,9 @@ void ChConstraintBilateral::GenerateSparsity() {
                 col2 = data_manager->num_rigid_bodies * 6 + ids[1];
                 col3 = data_manager->num_rigid_bodies * 6 + ids[2];
 
-                D_b_T.append(row, col1, 1);
-                D_b_T.append(row, col2, 1);
-                D_b_T.append(row, col3, 1);
+                D_b_T.insert(row, col1) = 1;
+                D_b_T.insert(row, col2) = 1;
+                D_b_T.insert(row, col3) = 1;
             } break;
 
             case BilateralType::SHAFT_SHAFT_BODY: {
@@ -285,18 +286,16 @@ void ChConstraintBilateral::GenerateSparsity() {
                     col3 = data_manager->num_rigid_bodies * 6 + idA;
                 }
 
-                D_b_T.append(row, col1 + 0, 1);
-                D_b_T.append(row, col1 + 1, 1);
-                D_b_T.append(row, col1 + 2, 1);
-                D_b_T.append(row, col1 + 3, 1);
-                D_b_T.append(row, col1 + 4, 1);
-                D_b_T.append(row, col1 + 5, 1);
+                D_b_T.insert(row, col1 + 0) = 1;
+                D_b_T.insert(row, col1 + 1) = 1;
+                D_b_T.insert(row, col1 + 2) = 1;
+                D_b_T.insert(row, col1 + 3) = 1;
+                D_b_T.insert(row, col1 + 4) = 1;
+                D_b_T.insert(row, col1 + 5) = 1;
 
-                D_b_T.append(row, col2, 1);
-                D_b_T.append(row, col3, 1);
+                D_b_T.insert(row, col2) = 1;
+                D_b_T.insert(row, col3) = 1;
             } break;
         }
-
-        D_b_T.finalize(row);
     }
 }

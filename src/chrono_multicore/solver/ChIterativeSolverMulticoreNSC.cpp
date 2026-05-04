@@ -19,16 +19,16 @@ using namespace chrono;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
+#define CLEAR_RESIZE_RESERVE(M, nnz, rows, cols) \
     {                                            \
-        uint current = (uint)M.capacity();       \
+        uint current = (uint)M.nonZeros();       \
         if (current > 0) {                       \
-            clear(M);                            \
+            M.setZero();                         \
         }                                        \
+        M.resize(rows, cols);                    \
         if (current < (unsigned)nnz) {           \
             M.reserve(nnz*(size_t)1.1);          \
         }                                        \
-        M.resize(rows, cols, false);             \
     }
 
 void ChIterativeSolverMulticoreNSC::RunTimeStep() {
@@ -57,7 +57,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     // ComputeMassMatrix();
 
     data_manager->host_data.gamma.resize(data_manager->num_constraints);
-    data_manager->host_data.gamma.reset();
+    data_manager->host_data.gamma.setZero();
 
     // Perform any setup tasks for all constraint types
     data_manager->rigid_rigid->Setup(data_manager);
@@ -138,11 +138,11 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
         }
     }
 
-    //    DynamicVector<real> temp(data_manager->num_rigid_bodies * 6, 0.0);
-    //    DynamicVector<real> output(num_rigid_contacts * 3, 0.0);
+    //    VectorType temp(data_manager->num_rigid_bodies * 6, 0.0);
+    //    VectorType output(num_rigid_contacts * 3, 0.0);
     //
-    //    // DynamicVector<real> temp(data_manager->num_particles * 3, 0.0);
-    //    // DynamicVector<real> output(data_manager->num_particles, 0.0);
+    //    // VectorType temp(data_manager->num_particles * 3, 0.0);
+    //    // VectorType output(data_manager->num_particles, 0.0);
     //
     //    /////
     //    double t1 = 0;
@@ -158,7 +158,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     //    }
     //    ChTimer timer;
     //    timer.start();
-    //    DynamicVector<real> compare =
+    //    VectorType compare =
     //        data_manager->host_data.D_T * data_manager->host_data.D * data_manager->host_data.gamma;
     //    timer.stop();
     //    std::cout << "time1: " << t1 << " time2: " << timer() << std::endl;
@@ -199,9 +199,9 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     uint num_particle_particle = data_manager->node_container->GetNumConstraints();
     uint nnz_particle_particle = data_manager->node_container->GetNumNonZeros();
 
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& M_invD = data_manager->host_data.M_invD;
+    const SparseMatrixType& M_inv = data_manager->host_data.M_inv;
 
     int nnz_total = nnz_bilaterals + nnz_particle_particle;
     int num_rows = num_bilaterals + num_particle_particle;
@@ -224,24 +224,24 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
             break;
     }
 
-    CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
-    CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
+    CLEAR_RESIZE_RESERVE(D_T, nnz_total, num_rows, num_dof)
+    CLEAR_RESIZE_RESERVE(M_invD, nnz_total, num_dof, num_rows)
 
     data_manager->rigid_rigid->GenerateSparsity();
     data_manager->bilateral->GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
 
     // Move b code here so that it can be computed along side D
-    DynamicVector<real>& b = data_manager->host_data.b;
+    VectorType& b = data_manager->host_data.b;
     b.resize(data_manager->num_constraints);
-    reset(b);
+    b.setZero();
 
     data_manager->rigid_rigid->Build_D();
     data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
 
     // using the .transpose(); function will do in place transpose and copy
-    data_manager->host_data.D = trans(D_T);
+    data_manager->host_data.D = D_T.transpose();
 
     data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
 
@@ -255,7 +255,7 @@ void ChIterativeSolverMulticoreNSC::ComputeE() {
     }
 
     data_manager->host_data.E.resize(data_manager->num_constraints);
-    reset(data_manager->host_data.E);
+    data_manager->host_data.E.setZero();
 
     data_manager->rigid_rigid->Build_E();
     data_manager->bilateral->Build_E();
@@ -270,15 +270,15 @@ void ChIterativeSolverMulticoreNSC::ComputeR() {
         return;
     }
 
-    ////const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    ////const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    ////const VectorType& M_invk = data_manager->host_data.M_invk;
+    ////const SparseMatrixType& D_T = data_manager->host_data.D_T;
 
-    DynamicVector<real>& R = data_manager->host_data.R_full;
+    VectorType& R = data_manager->host_data.R_full;
 
     // B is now resized in the Jacobian function
 
     R.resize(data_manager->num_constraints);
-    reset(R);
+    R.setZero();
 
     data_manager->rigid_rigid->Build_b();
     data_manager->bilateral->Build_b();
@@ -296,8 +296,8 @@ void ChIterativeSolverMulticoreNSC::ComputeN() {
     }
 
     data_manager->system_timer.start("ChIterativeSolverMulticore_N");
-    const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& Nschur = data_manager->host_data.Nschur;
+    const SparseMatrixType& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& Nschur = data_manager->host_data.Nschur;
     Nschur = D_T * data_manager->host_data.M_invD;
     data_manager->system_timer.stop("ChIterativeSolverMulticore_N");
 }
@@ -307,8 +307,8 @@ void ChIterativeSolverMulticoreNSC::SetR() {
         return;
     }
 
-    DynamicVector<real>& R = data_manager->host_data.R;
-    const DynamicVector<real>& R_full = data_manager->host_data.R_full;
+    VectorType& R = data_manager->host_data.R;
+    const VectorType& R_full = data_manager->host_data.R_full;
 
     uint num_rigid_contacts = 0;
     uint num_rigid_particle = 0;
@@ -320,46 +320,46 @@ void ChIterativeSolverMulticoreNSC::SetR() {
     uint num_bilaterals = data_manager->num_bilaterals;
     uint num_particles = data_manager->num_particles;
     R.resize(data_manager->num_constraints);
-    reset(R);
+    R.setZero();
 
     if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
         R = R_full;
     } else {
-        subvector(R, num_unilaterals, num_bilaterals) = subvector(R_full, num_unilaterals, num_bilaterals);
-        subvector(R, num_unilaterals + num_bilaterals, num_rigid_particle) = subvector(R_full, num_unilaterals + num_bilaterals, num_rigid_particle);
+        R.segment(num_unilaterals, num_bilaterals) = R_full.segment(num_unilaterals, num_bilaterals);
+        R.segment(num_unilaterals + num_bilaterals, num_rigid_particle) = R_full.segment(num_unilaterals + num_bilaterals, num_rigid_particle);
 
         // TODO: Set R in the associated 3dof container
-        subvector(R, num_unilaterals + num_bilaterals + num_rigid_particle, num_particles) =
-            subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_particle, num_particles);
+        R.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles) =
+            R_full.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles);
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {
             } break;
 
             case SolverMode::NORMAL: {
-                subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
+                R.segment(0, num_rigid_contacts) = R_full.segment(0, num_rigid_contacts);
             } break;
 
             case SolverMode::SLIDING: {
-                subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
-                subvector(R, num_rigid_contacts, num_rigid_contacts * 2) = subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
+                R.segment(0, num_rigid_contacts) = R_full.segment(0, num_rigid_contacts);
+                R.segment(num_rigid_contacts, num_rigid_contacts * 2) = R_full.segment(num_rigid_contacts, num_rigid_contacts * 2);
             } break;
 
             case SolverMode::SPINNING: {
-                subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
-                subvector(R, num_rigid_contacts, num_rigid_contacts * 2) = subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
-                subvector(R, num_rigid_contacts * 3, num_rigid_contacts * 3) = subvector(R_full, num_rigid_contacts * 3, num_rigid_contacts * 3);
+                R.segment(0, num_rigid_contacts) = R_full.segment(0, num_rigid_contacts);
+                R.segment(num_rigid_contacts, num_rigid_contacts * 2) = R_full.segment(num_rigid_contacts, num_rigid_contacts * 2);
+                R.segment(num_rigid_contacts * 3, num_rigid_contacts * 3) = R_full.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
             } break;
         }
     }
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeImpulses() {
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-    const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    const SparseMatrixType& M_inv = data_manager->host_data.M_inv;
+    const VectorType& gamma = data_manager->host_data.gamma;
 
-    const DynamicVector<real>& hf = data_manager->host_data.hf;
-    DynamicVector<real>& v = data_manager->host_data.v;
+    const VectorType& hf = data_manager->host_data.hf;
+    VectorType& v = data_manager->host_data.v;
 
     if (data_manager->num_constraints > 0) {
         // Compute new velocity based on the Lagrange multipliers

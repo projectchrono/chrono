@@ -34,22 +34,22 @@ ChSolverMulticoreAPGD::ChSolverMulticoreAPGD()
       g_diff(0) {}
 
 void ChSolverMulticoreAPGD::UpdateR() {
-    const SubMatrixType& D_n_T = _DNT_;
-    const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    const DynamicVector<real>& b = data_manager->host_data.b;
-    DynamicVector<real>& R = data_manager->host_data.R;
-    DynamicVector<real>& s = data_manager->host_data.s;
+    const SparseMatrixType& D_n_T = _DNT_;
+    const VectorType& M_invk = data_manager->host_data.M_invk;
+    const VectorType& b = data_manager->host_data.b;
+    VectorType& R = data_manager->host_data.R;
+    VectorType& s = data_manager->host_data.s;
 
     uint num_contacts = data_manager->cd_data->num_rigid_contacts;
 
     s.resize(num_contacts);
-    reset(s);
+    s.setZero();
 
     rigid_rigid->Build_s();
 
-    ConstSubVectorType b_n = blaze::subvector(b, 0, num_contacts);
-    SubVectorType R_n = blaze::subvector(R, 0, num_contacts);
-    SubVectorType s_n = blaze::subvector(s, 0, num_contacts);
+    ConstSubVectorType b_n = b.segment(0, num_contacts);
+    SubVectorType R_n = R.segment(0, num_contacts);
+    SubVectorType s_n = s.segment(0, num_contacts);
 
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
@@ -58,8 +58,8 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
                                   ChProjectConstraints& Project,
                                   const uint max_iter,
                                   const uint size,
-                                  const DynamicVector<real>& r,
-                                  DynamicVector<real>& gamma) {
+                                  const VectorType& r,
+                                  VectorType& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -67,7 +67,6 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
-    DynamicVector<real> one(size, 1.0);
     data_manager->system_timer.start("ChSolverMulticore_Solve");
     gamma_hat.resize(size);
     N_gamma_new.resize(size);
@@ -92,8 +91,8 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
     // SchurProduct(gamma, mg);
     // mg = mg - r;
 
-    temp = gamma - one;
-    real norm_temp = std::sqrt((temp, temp));
+    temp = gamma - VectorType::Ones(size);
+    real norm_temp = temp.norm();
     if (data_manager->settings.solver.cache_step_length == true) {
         if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
             L = data_manager->measures.solver.normal_apgd_step_length;
@@ -119,7 +118,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
             // If the N matrix is zero for some reason, temp will be zero
             SchurProduct(temp, temp);
             // If temp is zero then L will be zero
-            L = std::sqrt((temp, temp)) / norm_temp;
+            L = temp.norm() / norm_temp;
         }
         // When L is zero the step length can't be computed, in this case just return
         // If the N is indeed zero then solving doesn't make sense
@@ -149,15 +148,15 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
         gamma_new = y - t * g;
         Project(gamma_new.data());
         SchurProduct(gamma_new, N_gamma_new);
-        obj2 = (y, 0.5 * temp - r);
+        obj2 = y.dot(0.5 * temp - r);
         temp = gamma_new - y;
-        while ((gamma_new, 0.5 * N_gamma_new - r) > obj2 + (g + 0.5 * L * temp, temp)) {
+        while (gamma_new.dot(0.5 * N_gamma_new - r) > obj2 + temp.dot(g + 0.5 * L * temp)) {
             L = 2.0 * L;
             t = 1.0 / L;
             gamma_new = y - t * g;
             Project(gamma_new.data());
             SchurProduct(gamma_new, N_gamma_new);
-            obj1 = (gamma_new, 0.5 * N_gamma_new - r);
+            obj1 = gamma_new.dot(0.5 * N_gamma_new - r);
             temp = gamma_new - y;
         }
         theta_new = (-std::pow(theta, 2.0) + theta * std::sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
@@ -165,7 +164,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
 
         temp = gamma_new - gamma;
         y = beta_new * temp + gamma_new;
-        dot_g_temp = (g, temp);
+        dot_g_temp = g.dot(temp);
 
         // Compute the residual
         temp = gamma_new - g_diff * (N_gamma_new - r);
@@ -178,8 +177,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
         // the same.)
         Project(temp.data());
         temp = (1.0 / g_diff) * (gamma_new - temp);
-        real temp_dotb = (real)(temp, temp);
-        real res = std::sqrt(temp_dotb);
+        real res = temp.norm();
 
         if (res < residual) {
             residual = res;
@@ -187,7 +185,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
 
             // Compute the objective value
             temp = 0.5 * N_gamma_new - r;
-            objective_value = (gamma_new, temp);
+            objective_value = gamma_new.dot(temp);
         }
 
         AtIterationEnd(residual, objective_value);

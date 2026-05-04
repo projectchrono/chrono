@@ -127,7 +127,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
 
     // Scatter the states to the Chrono objects (bodies and shafts) and update
     // all physics items at the end of the step.
-    DynamicVector<real>& velocities = data_manager->host_data.v;
+    VectorType& velocities = data_manager->host_data.v;
     custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
 
