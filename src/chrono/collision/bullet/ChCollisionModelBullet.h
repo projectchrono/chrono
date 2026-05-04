@@ -49,19 +49,25 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
     virtual ChAABB GetBoundingBox() const override;
 
     /// Return the outward safe margin.
-    float GetEnvelope() { return model->GetEnvelope(); }
+    float GetEnvelope() const { return model->GetEnvelope(); }
 
     /// Return the inward safe margin.
-    float GetSafeMargin() { return model->GetSafeMargin(); }
+    float GetSafeMargin() const { return model->GetSafeMargin(); }
 
-    /// Sets the position and orientation of the collision
-    /// model as the current position of the corresponding ChContactable
+    /// Sets the position and orientation of the collision model as the current position of the corresponding ChContactable.
     virtual void SyncPosition() override;
 
     /// If the collision shape is a sphere, resize it and return true (if no
     /// sphere is found in this collision shape, return false).
     /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
     bool SetSphereRadius(double coll_radius, double out_envelope);
+
+    /// Data for each collision shape.
+    struct ShapeData {
+        std::shared_ptr<ChCollisionShape> ch_shape;   ///< Chrono collision shape
+        std::shared_ptr<cbtCollisionShape> bt_shape;  ///< associated Bullet collision shape
+        ChCollisionModelBullet* bt_model;             ///< containing Bullet collision model
+    };
 
   protected:
     /// Populate the collision system with the collision shapes defined in this model.
@@ -70,9 +76,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
     /// Additional operations to be performed on a change in collision family.
     virtual void OnFamilyChange(short int family_group, short int family_mask) override;
 
-    void InjectShape(std::shared_ptr<ChCollisionShape> shape,
-                     std::shared_ptr<cbtCollisionShape> bt_shape,
-                     const ChFrame<>& frame);
+    void InjectShape(std::shared_ptr<ChCollisionShape> shape, std::shared_ptr<cbtCollisionShape> bt_shape, const ChFrame<>& frame);
 
     void InjectPath2D(std::shared_ptr<ChCollisionShapePath2D> shape_path, const ChFrame<>& frame);
     void InjectConvexHull(std::shared_ptr<ChCollisionShapeConvexHull> shape_hull, const ChFrame<>& frame);
@@ -87,9 +91,8 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
     std::unique_ptr<cbtCollisionObject> bt_collision_object;  ///< Bullet collision object containing Bullet geometries
     std::shared_ptr<cbtCompoundShape> bt_compound_shape;      ///< compound for models with more than one shape
 
-    std::vector<std::shared_ptr<cbtCollisionShape>> m_bt_shapes;  ///< list of Bullet collision shapes in model
-    std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;      ///< extended list of collision shapes
-    
+    std::vector<std::shared_ptr<ShapeData>> m_shapes;  ///<  list of collision shapes
+
     friend class ChCollisionSystemBullet;
     friend class ChCollisionSystemBulletMulticore;
     friend class chrono::fea::ChContactSurfaceMesh;

@@ -30,9 +30,11 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
+#endif
 #ifdef CHRONO_MULTICORE
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
@@ -276,6 +278,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#ifdef CHRONO_FEA
             case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
                 auto tire = new ChVehicleCosimTireNodeFlexible(0, tire_specfile);
                 tire->EnableTirePressure(true);
@@ -308,6 +311,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#endif
             default:
                 break;
         }

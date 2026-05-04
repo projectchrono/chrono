@@ -26,8 +26,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
-ChLinkLock::ChLinkLock()
-    : type(Type::FREE), m_num_constr(0), m_num_constr_bil(0), m_num_constr_uni(0), d_restlength(0) {
+ChLinkLock::ChLinkLock() : type(Type::FREE), m_num_constr(0), m_num_constr_bil(0), m_num_constr_uni(0), d_restlength(0) {
     // Need to zero out the bottom-right 4x3 block
     Cq1_temp.setZero();
     Cq2_temp.setZero();
@@ -398,9 +397,7 @@ void ChLinkLock::UpdateState() {
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
     Ct_temp.pos = m2_Rel_A_dt.transpose() * (m_body2->GetRotMat().transpose() * PQw) +
-                  marker2->GetRotMat().transpose() *
-                      (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDt().pos) -
-                       marker2->GetCoordsysDt().pos);
+                  marker2->GetRotMat().transpose() * (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDt().pos) - marker2->GetCoordsysDt().pos);
 
     Ct_temp.rot = q_AD;
 
@@ -413,15 +410,14 @@ void ChLinkLock::UpdateState() {
     ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
     ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
-    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                              // *- -- Cq1_temp(1-3) =  [Aqo2]
-    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                             // -- *- Cq2_temp(1-3) = -[Aqo2]
-    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
-    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
+    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                                   // *- -- Cq1_temp(1-3) =  [Aqo2]
+    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                                  // -- *- Cq2_temp(1-3) = -[Aqo2]
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;       // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +       //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(
-            Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
         ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         stempQ2.semiTranspose();
         Cq1_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
@@ -576,9 +572,7 @@ void ChLinkLock::UpdateState() {
     }
 }
 
-static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
-                                ChLinkLock::ChConstraintMatrixX6& mCqw,
-                                ChBodyFrame* mbody) {
+static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq, ChLinkLock::ChConstraintMatrixX6& mCqw, ChBodyFrame* mbody) {
     // translational part - not changed
     mCqw.block(0, 0, mCq.rows(), 3) = mCq.block(0, 0, mCq.rows(), 3);
 
@@ -1094,37 +1088,31 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) +=
-                std::max(c * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) +=
-                std::max(c * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) +=
-                std::max(c * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) +=
-                std::max(c * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) +=
-                std::max(c * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) +=
-                std::max(c * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) += std::max(c * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
     }
@@ -1134,7 +1122,7 @@ void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc
                                       ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                       const double c,            // the scaling factor
                                       const double c_vel         // the scaling factor if the constraint is at speed level
-){
+) {
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
@@ -1237,10 +1225,7 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
     }
 }
 
-void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) {
+void ChLinkLock::IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) {
     unsigned int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
@@ -1445,11 +1430,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
                 if (mask.GetConstraint(i).IsUnilateral())
-                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
-                                                  std::max(factor * C(cnt), -recovery_clamp));
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + std::max(factor * C(cnt), -recovery_clamp));
                 else
-                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
-                                                  std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
                 mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * C(cnt));
 
@@ -1460,126 +1443,102 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_X->constr_lower.SetRightHandSide(limit_X->constr_lower.GetRightHandSide() +
-                                              factor * (-limit_X->GetMin() + relM.pos.x()));
+                limit_X->constr_lower.SetRightHandSide(limit_X->constr_lower.GetRightHandSide() + factor * (-limit_X->GetMin() + relM.pos.x()));
             } else {
-                limit_X->constr_lower.SetRightHandSide(limit_X->constr_lower.GetRightHandSide() +
-                                              std::max(factor * (-limit_X->GetMin() + relM.pos.x()), -recovery_clamp));
+                limit_X->constr_lower.SetRightHandSide(limit_X->constr_lower.GetRightHandSide() + std::max(factor * (-limit_X->GetMin() + relM.pos.x()), -recovery_clamp));
             }
         }
         if (limit_X->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_X->constr_upper.SetRightHandSide(limit_X->constr_upper.GetRightHandSide() +
-                                              factor * (limit_X->GetMax() - relM.pos.x()));
+                limit_X->constr_upper.SetRightHandSide(limit_X->constr_upper.GetRightHandSide() + factor * (limit_X->GetMax() - relM.pos.x()));
             } else {
-                limit_X->constr_upper.SetRightHandSide(limit_X->constr_upper.GetRightHandSide() +
-                                              std::max(factor * (limit_X->GetMax() - relM.pos.x()), -recovery_clamp));
+                limit_X->constr_upper.SetRightHandSide(limit_X->constr_upper.GetRightHandSide() + std::max(factor * (limit_X->GetMax() - relM.pos.x()), -recovery_clamp));
             }
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Y->constr_lower.SetRightHandSide(limit_Y->constr_lower.GetRightHandSide() +
-                                              factor * (-limit_Y->GetMin() + relM.pos.y()));
+                limit_Y->constr_lower.SetRightHandSide(limit_Y->constr_lower.GetRightHandSide() + factor * (-limit_Y->GetMin() + relM.pos.y()));
             } else {
-                limit_Y->constr_lower.SetRightHandSide(limit_Y->constr_lower.GetRightHandSide() +
-                                              std::max(factor * (-limit_Y->GetMin() + relM.pos.y()), -recovery_clamp));
+                limit_Y->constr_lower.SetRightHandSide(limit_Y->constr_lower.GetRightHandSide() + std::max(factor * (-limit_Y->GetMin() + relM.pos.y()), -recovery_clamp));
             }
         }
         if (limit_Y->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Y->constr_upper.SetRightHandSide(limit_Y->constr_upper.GetRightHandSide() +
-                                              factor * (limit_Y->GetMax() - relM.pos.y()));
+                limit_Y->constr_upper.SetRightHandSide(limit_Y->constr_upper.GetRightHandSide() + factor * (limit_Y->GetMax() - relM.pos.y()));
             } else {
-                limit_Y->constr_upper.SetRightHandSide(limit_Y->constr_upper.GetRightHandSide() +
-                                              std::max(factor * (limit_Y->GetMax() - relM.pos.y()), -recovery_clamp));
+                limit_Y->constr_upper.SetRightHandSide(limit_Y->constr_upper.GetRightHandSide() + std::max(factor * (limit_Y->GetMax() - relM.pos.y()), -recovery_clamp));
             }
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Z->constr_lower.SetRightHandSide(limit_Z->constr_lower.GetRightHandSide() +
-                                              factor * (-limit_Z->GetMin() + relM.pos.z()));
+                limit_Z->constr_lower.SetRightHandSide(limit_Z->constr_lower.GetRightHandSide() + factor * (-limit_Z->GetMin() + relM.pos.z()));
             } else {
-                limit_Z->constr_lower.SetRightHandSide(limit_Z->constr_lower.GetRightHandSide() +
-                                              std::max(factor * (-limit_Z->GetMin() + relM.pos.z()), -recovery_clamp));
+                limit_Z->constr_lower.SetRightHandSide(limit_Z->constr_lower.GetRightHandSide() + std::max(factor * (-limit_Z->GetMin() + relM.pos.z()), -recovery_clamp));
             }
         }
         if (limit_Z->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Z->constr_upper.SetRightHandSide(limit_Z->constr_upper.GetRightHandSide() +
-                                              factor * (limit_Z->GetMax() - relM.pos.z()));
+                limit_Z->constr_upper.SetRightHandSide(limit_Z->constr_upper.GetRightHandSide() + factor * (limit_Z->GetMax() - relM.pos.z()));
             } else {
-                limit_Z->constr_upper.SetRightHandSide(limit_Z->constr_upper.GetRightHandSide() +
-                                              std::max(factor * (limit_Z->GetMax() - relM.pos.z()), -recovery_clamp));
+                limit_Z->constr_upper.SetRightHandSide(limit_Z->constr_upper.GetRightHandSide() + std::max(factor * (limit_Z->GetMax() - relM.pos.z()), -recovery_clamp));
             }
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Rx->constr_lower.SetRightHandSide(limit_Rx->constr_lower.GetRightHandSide() +
-                                                        factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()));
+                limit_Rx->constr_lower.SetRightHandSide(limit_Rx->constr_lower.GetRightHandSide() + factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()));
             } else {
-                limit_Rx->constr_lower.SetRightHandSide(
-                    limit_Rx->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
+                limit_Rx->constr_lower.SetRightHandSide(limit_Rx->constr_lower.GetRightHandSide() +
+                                                        std::max(factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
             }
         }
         if (limit_Rx->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Rx->constr_upper.SetRightHandSide(limit_Rx->constr_upper.GetRightHandSide() +
-                                                        factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()));
+                limit_Rx->constr_upper.SetRightHandSide(limit_Rx->constr_upper.GetRightHandSide() + factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()));
             } else {
-                limit_Rx->constr_upper.SetRightHandSide(
-                    limit_Rx->constr_upper.GetRightHandSide() +
-                    std::max(factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
+                limit_Rx->constr_upper.SetRightHandSide(limit_Rx->constr_upper.GetRightHandSide() +
+                                                        std::max(factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
             }
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Ry->constr_lower.SetRightHandSide(limit_Ry->constr_lower.GetRightHandSide() +
-                                                        factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()));
+                limit_Ry->constr_lower.SetRightHandSide(limit_Ry->constr_lower.GetRightHandSide() + factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()));
             } else {
-                limit_Ry->constr_lower.SetRightHandSide(
-                    limit_Ry->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
+                limit_Ry->constr_lower.SetRightHandSide(limit_Ry->constr_lower.GetRightHandSide() +
+                                                        std::max(factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
             }
         }
         if (limit_Ry->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Ry->constr_upper.SetRightHandSide(limit_Ry->constr_upper.GetRightHandSide() +
-                                                        factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()));
+                limit_Ry->constr_upper.SetRightHandSide(limit_Ry->constr_upper.GetRightHandSide() + factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()));
             } else {
-                limit_Ry->constr_upper.SetRightHandSide(
-                    limit_Ry->constr_upper.GetRightHandSide() +
-                    std::max(factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
+                limit_Ry->constr_upper.SetRightHandSide(limit_Ry->constr_upper.GetRightHandSide() +
+                                                        std::max(factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
             }
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Rz->constr_lower.SetRightHandSide(limit_Rz->constr_lower.GetRightHandSide() +
-                                                        factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()));
+                limit_Rz->constr_lower.SetRightHandSide(limit_Rz->constr_lower.GetRightHandSide() + factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()));
             } else {
-                limit_Rz->constr_lower.SetRightHandSide(
-                    limit_Rz->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
+                limit_Rz->constr_lower.SetRightHandSide(limit_Rz->constr_lower.GetRightHandSide() +
+                                                        std::max(factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
             }
         }
         if (limit_Rz->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Rz->constr_upper.SetRightHandSide(limit_Rz->constr_upper.GetRightHandSide() +
-                                                        factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()));
+                limit_Rz->constr_upper.SetRightHandSide(limit_Rz->constr_upper.GetRightHandSide() + factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()));
             } else {
-                limit_Rz->constr_upper.SetRightHandSide(
-                    limit_Rz->constr_upper.GetRightHandSide() +
-                    std::max(factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
+                limit_Rz->constr_upper.SetRightHandSide(limit_Rz->constr_upper.GetRightHandSide() +
+                                                        std::max(factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
             }
         }
     }
@@ -1605,11 +1564,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     }
 }
 
-void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq,
-                             int qrow,
-                             ChMatrixRef mCqw,
-                             int qwrow,
-                             const ChGlMatrix34<>& Gl) {
+void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq, int qrow, ChMatrixRef mCqw, int qwrow, const ChGlMatrix34<>& Gl) {
     // translational part - not changed
     mCqw.block<1, 3>(qwrow, 0) = mCq.block<1, 3>(qrow, 0);
 
@@ -1963,95 +1918,69 @@ void ChLinkLock::ArchiveIn(ChArchiveIn& archive_in) {
 
 // =======================================================================================
 
-void ChLinkLockRevolute::Lock(bool lock) {
-    BuildLink(true, true, true, false, true, true, lock);
-    if (system) {
+void ChLinkLock::RebuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3) {
+    const auto& g_X_m1 = marker1->GetAbsFrame();
+    ChFramed b2_X_g = m_body2->GetInverse();
+    ChFramed b2_X_m2 = b2_X_g * g_X_m1;
+
+    BuildLink(x, y, z, e0, e1, e2, e3);
+
+    marker2->ImposeRelativeTransform(b2_X_m2);
+
+    if (system)
         system->ForceUpdate();
-    }
+}
+
+void ChLinkLockRevolute::Lock(bool lock) {
+    RebuildLink(true, true, true, false, true, true, lock);
 }
 
 void ChLinkLockSpherical::Lock(bool lock) {
-    BuildLink(true, true, true, false, lock, lock, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(true, true, true, false, lock, lock, lock);
 }
 
 void ChLinkLockCylindrical::Lock(bool lock) {
-    BuildLink(true, true, lock, false, true, true, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(true, true, lock, false, true, true, lock);
 }
 
 void ChLinkLockPrismatic::Lock(bool lock) {
-    BuildLink(true, true, lock, false, true, true, true);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(true, true, lock, false, true, true, true);
 }
 
 void ChLinkLockPointPlane::Lock(bool lock) {
-    BuildLink(lock, lock, true, false, lock, lock, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, lock, true, false, lock, lock, lock);
 }
 
 void ChLinkLockPointLine::Lock(bool lock) {
-    BuildLink(lock, true, true, false, lock, lock, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, true, true, false, lock, lock, lock);
 }
 
 void ChLinkLockPlanar::Lock(bool lock) {
-    BuildLink(lock, lock, true, false, true, true, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, lock, true, false, true, true, lock);
 }
 
 void ChLinkLockOldham::Lock(bool lock) {
-    BuildLink(lock, lock, true, false, true, true, true);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, lock, true, false, true, true, true);
 }
 
 void ChLinkLockFree::Lock(bool lock) {
-    BuildLink(lock, lock, lock, false, lock, lock, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, lock, lock, false, lock, lock, lock);
 }
 
 void ChLinkLockAlign::Lock(bool lock) {
-    BuildLink(lock, lock, lock, false, true, true, true);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, lock, lock, false, true, true, true);
 }
 
 void ChLinkLockParallel::Lock(bool lock) {
-    BuildLink(lock, lock, lock, false, true, true, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, lock, lock, false, true, true, lock);
 }
 
 void ChLinkLockPerpend::Lock(bool lock) {
-    BuildLink(lock, lock, lock, false, true, lock, true);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, lock, lock, false, true, lock, true);
 }
 
 void ChLinkLockRevolutePrismatic::Lock(bool lock) {
-    BuildLink(lock, true, true, false, true, true, lock);
-    if (system) {
-        system->ForceUpdate();
-    }
+    RebuildLink(lock, true, true, false, true, true, lock);
 }
 
 // =======================================================================================
@@ -2132,9 +2061,8 @@ void ChLinkLockLock::SetMotionAxis(ChVector3d m_axis) {
 }
 
 void ChLinkLockLock::SetRotationRepresentation(RotRepresentation rot_rep) {
-    if (rot_rep != RotRepresentation::ANGLE_AXIS || rot_rep != RotRepresentation::EULER_ANGLES_ZXZ ||
-        rot_rep != RotRepresentation::CARDAN_ANGLES_XYZ || rot_rep != RotRepresentation::CARDAN_ANGLES_ZXY ||
-        rot_rep != RotRepresentation::CARDAN_ANGLES_ZYX) {
+    if (rot_rep != RotRepresentation::ANGLE_AXIS || rot_rep != RotRepresentation::EULER_ANGLES_ZXZ || rot_rep != RotRepresentation::CARDAN_ANGLES_XYZ ||
+        rot_rep != RotRepresentation::CARDAN_ANGLES_ZXY || rot_rep != RotRepresentation::CARDAN_ANGLES_ZYX) {
         std::cerr << "Unknown input rotation representation" << std::endl;
         throw std::runtime_error("Unknown input rotation representation");
         return;
@@ -2157,8 +2085,8 @@ void ChLinkLockLock::UpdateTime(double time) {
 
     // If some limit is provided, the delta values may have been changed by limits themselves,
     // so no further modifications by motion laws.
-    if ((limit_X && limit_X->IsActive()) || (limit_Y && limit_Y->IsActive()) || (limit_Z && limit_Z->IsActive()) ||
-        (limit_Rx && limit_Rx->IsActive()) || (limit_Ry && limit_Ry->IsActive()) || (limit_Rz && limit_Rz->IsActive()))
+    if ((limit_X && limit_X->IsActive()) || (limit_Y && limit_Y->IsActive()) || (limit_Z && limit_Z->IsActive()) || (limit_Rx && limit_Rx->IsActive()) ||
+        (limit_Ry && limit_Ry->IsActive()) || (limit_Rz && limit_Rz->IsActive()))
         return;
 
     // Update motion position/speed/acceleration by motion laws
@@ -2244,8 +2172,7 @@ void ChLinkLockLock::UpdateState() {
 
     // relC_dtdt.rot
     relC_dtdt.rot =
-        Qadd(Qadd(Qcross(Qconjugate(deltaC_dtdt.rot), relM.rot), Qcross(Qconjugate(deltaC.rot), relM_dtdt.rot)),
-             Qscale(Qcross(Qconjugate(deltaC_dt.rot), relM_dt.rot), 2));
+        Qadd(Qadd(Qcross(Qconjugate(deltaC_dtdt.rot), relM.rot), Qcross(Qconjugate(deltaC.rot), relM_dtdt.rot)), Qscale(Qcross(Qconjugate(deltaC_dt.rot), relM_dt.rot), 2));
 
     // Compute the Cq Ct Qc matrices (temporary, for complete lock constraint)
 
@@ -2256,9 +2183,7 @@ void ChLinkLockLock::UpdateState() {
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
     Ct_temp.pos = m2_Rel_A_dt.transpose() * (m_body2->GetRotMat().transpose() * PQw) +
-                  marker2->GetRotMat().transpose() *
-                      (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDt().pos) -
-                       marker2->GetCoordsysDt().pos);
+                  marker2->GetRotMat().transpose() * (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDt().pos) - marker2->GetCoordsysDt().pos);
     Ct_temp.pos -= deltaC_dt.pos;  // the deltaC contribute
 
     // deltaC^*(q_AD) + deltaC_dt^*q_pq
@@ -2273,15 +2198,14 @@ void ChLinkLockLock::UpdateState() {
     ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
     ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
-    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                              // *- -- Cq1_temp(1-3)  =[Aqo2]
-    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                             // -- *- Cq2_temp(1-3)  =-[Aqo2]
-    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
-    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
+    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                                   // *- -- Cq1_temp(1-3)  =[Aqo2]
+    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                                  // -- *- Cq2_temp(1-3)  =-[Aqo2]
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;       // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +       //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(
-            Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
         ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();

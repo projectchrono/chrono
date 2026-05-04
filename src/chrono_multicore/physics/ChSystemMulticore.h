@@ -93,7 +93,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual unsigned int GetNumShafts() const override { return data_manager->num_shafts; }
 
     /// Gets the number of contacts.
-    virtual unsigned int GetNumContacts() override;
+    virtual unsigned int GetNumContacts() const override;
 
     /// Get the number of scalar constraints in the system.
     virtual unsigned int GetNumConstraints() override {

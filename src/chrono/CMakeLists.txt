@@ -14,6 +14,13 @@ option(CH_USE_BULLET_DOUBLE "Compile Chrono with double precision support in Bul
 cmake_dependent_option(CH_USE_BULLET_OPENMP "Compile Chrono with OpenMP support in Bullet" ON "CH_ENABLE_OPENMP" OFF)
 
 # -------------------------------------------------------------------------------------------------
+# FEA support
+# -------------------------------------------------------------------------------------------------
+
+option(CH_ENABLE_MODULE_FEA "Enable the Chrono FEA module" ON)
+cmake_dependent_option(CH_ENABLE_MODULE_FEA_MULTIPHYSICS "Enable the Chrono FEA-MULTIPHYSICS module" ON "CH_ENABLE_MODULE_FEA" OFF)
+
+# -------------------------------------------------------------------------------------------------
 # Collect files in the core Chrono library
 # -------------------------------------------------------------------------------------------------
 
@@ -331,7 +338,7 @@ source_group(physics\\shafts FILES ${Chrono_physics_shafts_SOURCES} ${Chrono_phy
 
 # FEA group
 
-set(Chrono_fea_SOURCES
+set(Chrono_fea_base_SOURCES
     fea/ChBuilderBeam.cpp
     fea/ChGaussIntegrationRule.cpp
     fea/ChGaussPoint.cpp
@@ -347,8 +354,10 @@ set(Chrono_fea_SOURCES
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
     fea/ChLoadsNodeXYZRot.cpp
+    fea/ChLoaderGravity.cpp
+    fea/ChLoaderPressure.cpp
     )
-set(Chrono_fea_HEADERS
+set(Chrono_fea_base_HEADERS
     fea/ChBuilderBeam.h
     fea/ChHexahedronFace.h
     fea/ChTetrahedronFace.h
@@ -367,9 +376,11 @@ set(Chrono_fea_HEADERS
     fea/ChMeshSurface.h
     fea/ChLoadContactSurfaceMesh.h
     fea/ChLoadsNodeXYZRot.h
+    fea/ChLoaderGravity.h
+    fea/ChLoaderPressure.h
     fea/ChRotUtils.h
     )
-source_group(fea FILES ${Chrono_fea_SOURCES} ${Chrono_fea_HEADERS})
+source_group(fea FILES ${Chrono_fea_base_SOURCES} ${Chrono_fea_base_HEADERS})
 
 # FEA sub-groups
 
@@ -472,88 +483,6 @@ set(Chrono_fea_materials_HEADERS
     )
 source_group(fea\\materials FILES ${Chrono_fea_materials_SOURCES} ${Chrono_fea_materials_HEADERS})
 
-set(Chrono_fea_multiphysics_SOURCES
-    fea/ChNodeFEAfieldXYZ.cpp
-    fea/ChFieldElement.cpp
-    fea/ChFieldElementTetrahedron4.cpp
-    fea/ChFieldElementTetrahedron4Face.cpp
-    fea/ChFieldElementHexahedron8.cpp
-    fea/ChFieldElementHexahedron8Face.cpp
-    fea/ChFieldElementLoadableVolume.cpp
-    fea/ChFieldElementLoadableSurface.cpp
-    fea/ChFieldData.cpp
-    fea/ChField.cpp
-    fea/ChMaterial.cpp
-    fea/ChMaterial3DDensity.cpp
-    fea/ChMaterialPoisson.cpp
-    fea/ChMaterial3DThermal.cpp
-    fea/ChMaterial3DThermalLinear.cpp
-    fea/ChMaterial3DThermalNonlinear.cpp
-    fea/ChMaterial3DStress.cpp
-    fea/ChMaterial3DHyperelastic.cpp
-    fea/ChMaterial3DStressStVenant.cpp
-    fea/ChMaterial3DStressNeoHookean.cpp
-    fea/ChMaterial3DStressKelvinVoigt.cpp
-    fea/ChMaterial3DStressOgden.cpp
-    fea/ChMaterial3DThermalStress.cpp
-    fea/ChDomain.cpp
-    fea/ChDomainThermal.cpp
-    fea/ChDomainDeformation.cpp
-    fea/ChDomainThermoDeformation.cpp
-    fea/ChVisualDataExtractor.cpp
-    fea/ChDrawer.cpp
-    fea/ChLoaderPressure.cpp
-    fea/ChLoaderGravity.cpp
-    fea/ChLoaderHeatFlux.cpp
-    fea/ChLoaderHeatRadiation.cpp
-    fea/ChLoaderHeatConvection.cpp
-    fea/ChLoaderHeatVolumetricSource.cpp
-    fea/ChBuilderVolume.cpp
-    fea/ChLinkFieldNode.cpp
-    fea/ChSurfaceOfDomain.cpp
-    )
-set(Chrono_fea_multiphysics_HEADERS
-    fea/ChNodeFEAfieldXYZ.h
-    fea/ChFieldElement.h
-    fea/ChFieldElementTetrahedron4.h
-    fea/ChFieldElementTetrahedron4Face.h
-    fea/ChFieldElementHexahedron8.h
-    fea/ChFieldElementHexahedron8Face.h
-    fea/ChFieldElementLoadableVolume.h
-    fea/ChFieldElementLoadableSurface.h
-    fea/ChFieldData.h
-    fea/ChField.h
-    fea/ChMaterial.h
-    fea/ChMaterial3DDensity.h
-    fea/ChMaterialPoisson.h
-    fea/ChMaterial3DThermal.h
-    fea/ChMaterial3DThermalLinear.h
-    fea/ChMaterial3DThermalNonlinear.h
-    fea/ChMaterial3DStress.h
-    fea/ChMaterial3DHyperelastic.h
-    fea/ChMaterial3DStressStVenant.h
-    fea/ChMaterial3DStressKelvinVoigt.h
-    fea/ChMaterial3DStressNeoHookean.h
-    fea/ChMaterial3DStressOgden.h
-    fea/ChMaterial3DThermalStress.h
-    fea/ChDomain.h
-    fea/ChDomainThermal.h
-    fea/ChDomainDeformation.h
-    fea/ChDomainThermoDeformation.h
-    fea/ChVisualDataExtractor.h
-    fea/ChDrawer.h
-    fea/ChLoaderPressure.h
-    fea/ChLoaderGravity.h
-    fea/ChLoaderHeatFlux.h
-    fea/ChLoaderHeatRadiation.h
-    fea/ChLoaderHeatConvection.h
-    fea/ChLoaderHeatVolumetricSource.h
-    fea/ChBuilderVolume.h
-    fea/ChLinkFieldNode.h
-    fea/ChSurfaceOfDomain.h
-    )
-source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
-
 set(Chrono_fea_sections_SOURCES
     fea/ChBeamSection.cpp
     fea/ChBeamSectionShape.cpp
@@ -589,6 +518,113 @@ set(Chrono_fea_constraints_HEADERS
     fea/ChLinkBeamIGAFrame.h
     )
 source_group(fea\\constraints FILES ${Chrono_fea_constraints_SOURCES} ${Chrono_fea_constraints_HEADERS})
+
+set(Chrono_fea_multiphysics_SOURCES
+    fea/multiphysics/ChNodeFEAfieldXYZ.cpp
+    fea/multiphysics/ChFieldElement.cpp
+    fea/multiphysics/ChFieldElementTetrahedron4.cpp
+    fea/multiphysics/ChFieldElementTetrahedron4Face.cpp
+    fea/multiphysics/ChFieldElementHexahedron8.cpp
+    fea/multiphysics/ChFieldElementHexahedron8Face.cpp
+    fea/multiphysics/ChFieldElementLoadableVolume.cpp
+    fea/multiphysics/ChFieldElementLoadableSurface.cpp
+    fea/multiphysics/ChFieldData.cpp
+    fea/multiphysics/ChField.cpp
+    fea/multiphysics/ChMaterial.cpp
+    fea/multiphysics/ChMaterial3DDensity.cpp
+    fea/multiphysics/ChMaterialPoisson.cpp
+    fea/multiphysics/ChMaterial3DThermal.cpp
+    fea/multiphysics/ChMaterial3DThermalLinear.cpp
+    fea/multiphysics/ChMaterial3DThermalNonlinear.cpp
+    fea/multiphysics/ChMaterial3DStress.cpp
+    fea/multiphysics/ChMaterial3DHyperelastic.cpp
+    fea/multiphysics/ChMaterial3DStressStVenant.cpp
+    fea/multiphysics/ChMaterial3DStressNeoHookean.cpp
+    fea/multiphysics/ChMaterial3DStressKelvinVoigt.cpp
+    fea/multiphysics/ChMaterial3DStressOgden.cpp
+    fea/multiphysics/ChMaterial3DThermalStress.cpp
+    fea/multiphysics/ChDomain.cpp
+    fea/multiphysics/ChDomainThermal.cpp
+    fea/multiphysics/ChDomainDeformation.cpp
+    fea/multiphysics/ChDomainThermoDeformation.cpp
+    fea/multiphysics/ChVisualDataExtractor.cpp
+    fea/multiphysics/ChDrawer.cpp
+    fea/multiphysics/ChLoaderHeatFlux.cpp
+    fea/multiphysics/ChLoaderHeatRadiation.cpp
+    fea/multiphysics/ChLoaderHeatConvection.cpp
+    fea/multiphysics/ChLoaderHeatVolumetricSource.cpp
+    fea/multiphysics/ChBuilderVolume.cpp
+    fea/multiphysics/ChLinkFieldNode.cpp
+    fea/multiphysics/ChSurfaceOfDomain.cpp
+    )
+set(Chrono_fea_multiphysics_HEADERS
+    fea/multiphysics/ChNodeFEAfieldXYZ.h
+    fea/multiphysics/ChFieldElement.h
+    fea/multiphysics/ChFieldElementTetrahedron4.h
+    fea/multiphysics/ChFieldElementTetrahedron4Face.h
+    fea/multiphysics/ChFieldElementHexahedron8.h
+    fea/multiphysics/ChFieldElementHexahedron8Face.h
+    fea/multiphysics/ChFieldElementLoadableVolume.h
+    fea/multiphysics/ChFieldElementLoadableSurface.h
+    fea/multiphysics/ChFieldData.h
+    fea/multiphysics/ChField.h
+    fea/multiphysics/ChMaterial.h
+    fea/multiphysics/ChMaterial3DDensity.h
+    fea/multiphysics/ChMaterialPoisson.h
+    fea/multiphysics/ChMaterial3DThermal.h
+    fea/multiphysics/ChMaterial3DThermalLinear.h
+    fea/multiphysics/ChMaterial3DThermalNonlinear.h
+    fea/multiphysics/ChMaterial3DStress.h
+    fea/multiphysics/ChMaterial3DHyperelastic.h
+    fea/multiphysics/ChMaterial3DStressStVenant.h
+    fea/multiphysics/ChMaterial3DStressKelvinVoigt.h
+    fea/multiphysics/ChMaterial3DStressNeoHookean.h
+    fea/multiphysics/ChMaterial3DStressOgden.h
+    fea/multiphysics/ChMaterial3DThermalStress.h
+    fea/multiphysics/ChDomain.h
+    fea/multiphysics/ChDomainThermal.h
+    fea/multiphysics/ChDomainDeformation.h
+    fea/multiphysics/ChDomainThermoDeformation.h
+    fea/multiphysics/ChVisualDataExtractor.h
+    fea/multiphysics/ChDrawer.h
+    fea/multiphysics/ChLoaderHeatFlux.h
+    fea/multiphysics/ChLoaderHeatRadiation.h
+    fea/multiphysics/ChLoaderHeatConvection.h
+    fea/multiphysics/ChLoaderHeatVolumetricSource.h
+    fea/multiphysics/ChBuilderVolume.h
+    fea/multiphysics/ChLinkFieldNode.h
+    fea/multiphysics/ChSurfaceOfDomain.h
+    )
+source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
+
+set(Chrono_fea_SOURCES "")
+set(Chrono_fea_HEADERS "")
+if(CH_ENABLE_MODULE_FEA)
+    set(Chrono_fea_SOURCES ${Chrono_fea_SOURCES}
+        ${Chrono_fea_base_SOURCES}
+        ${Chrono_fea_nodes_SOURCES}
+        ${Chrono_fea_elements_SOURCES}
+        ${Chrono_fea_materials_SOURCES}
+        ${Chrono_fea_sections_SOURCES}
+        ${Chrono_fea_constraints_SOURCES}
+    )
+    set(Chrono_fea_HEADERS ${Chrono_fea_HEADERS}
+        ${Chrono_fea_base_HEADERS}
+        ${Chrono_fea_nodes_HEADERS}
+        ${Chrono_fea_elements_HEADERS}
+        ${Chrono_fea_materials_HEADERS}
+        ${Chrono_fea_sections_HEADERS}
+        ${Chrono_fea_constraints_HEADERS}
+    )
+    if(CH_ENABLE_MODULE_FEA_MULTIPHYSICS)
+        set(Chrono_fea_SOURCES ${Chrono_fea_SOURCES}
+            ${Chrono_fea_multiphysics_SOURCES}
+        )
+        set(Chrono_fea_HEADERS ${Chrono_fea_HEADERS}
+            ${Chrono_fea_multiphysics_HEADERS}
+        )
+    endif()
+endif()
 
 # Geometry group
 
@@ -681,7 +717,6 @@ set(Chrono_assets_SOURCES
     assets/ChVisualShapeLine.cpp
     assets/ChVisualShapePointPoint.cpp
     assets/ChVisualShapeSurface.cpp
-    assets/ChVisualShapeFEA.cpp
     )
 set(Chrono_assets_HEADERS
     assets/ChTexture.h
@@ -709,10 +744,16 @@ set(Chrono_assets_HEADERS
     assets/ChVisualShapeLine.h
     assets/ChVisualShapePointPoint.h
     assets/ChVisualShapeSurface.h
-    assets/ChVisualShapeFEA.h
     )
+if(CH_ENABLE_MODULE_FEA)
+    set(Chrono_assets_HEADERS ${Chrono_assets_SOURCES}
+        assets/ChVisualShapeFEA.cpp
+    )
+    set(Chrono_assets_HEADERS ${Chrono_assets_HEADERS}
+        assets/ChVisualShapeFEA.h
+    )
+endif()
 source_group(assets FILES ${Chrono_assets_SOURCES} ${Chrono_assets_HEADERS})
-
 
 # Multicore types and math 
 
@@ -1381,12 +1422,6 @@ set(Chrono_SOURCES
     ${Chrono_physics_hydraulics_SOURCES}
     ${Chrono_physics_shafts_SOURCES}
     ${Chrono_fea_SOURCES}
-    ${Chrono_fea_nodes_SOURCES}
-    ${Chrono_fea_elements_SOURCES}
-    ${Chrono_fea_constraints_SOURCES}
-    ${Chrono_fea_materials_SOURCES}
-    ${Chrono_fea_sections_SOURCES}
-    ${Chrono_fea_multiphysics_SOURCES}
     ${Chrono_solver_SOURCES}
     ${Chrono_solver_constraints_SOURCES}
     ${Chrono_solver_variables_SOURCES}
@@ -1413,13 +1448,6 @@ set(Chrono_HEADERS
     ${Chrono_physics_hydraulics_HEADERS}
     ${Chrono_physics_shafts_HEADERS}
     ${Chrono_fea_HEADERS}
-    ${Chrono_fea_nodes_HEADERS}
-    ${Chrono_fea_elements_HEADERS}
-    ${Chrono_fea_constraints_HEADERS}
-    ${Chrono_fea_materials_HEADERS}
-    ${Chrono_fea_multiphysics_HEADERS}
-    ${Chrono_fea_sections_HEADERS}
-    ${Chrono_fea_constraints_HEADERS}
     ${Chrono_solver_HEADERS}
     ${Chrono_solver_constraints_HEADERS}
     ${Chrono_solver_variables_HEADERS}

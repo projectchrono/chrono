@@ -35,8 +35,10 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
+#endif
 
 #undef CHRONO_MUMPS
 #include "demos/SetChronoSolver.h"
@@ -226,6 +228,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#ifdef CHRONO_FEA
             case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
                 auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, GetVehicleDataFile(tire_specfile));
                 tire->EnableTirePressure(true);
@@ -269,6 +272,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#endif
             default:
                 break;
         }

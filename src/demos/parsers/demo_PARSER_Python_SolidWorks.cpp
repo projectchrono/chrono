@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     sys.SetGravityY();
 
     // Set the collision margins.
-    // This is expecially important for very large or very small objects!
+    // This is especially important for very large or very small objects!
     // Do this before creating shapes.
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);
@@ -82,9 +82,11 @@ int main(int argc, char* argv[]) {
     for (auto link : sys.GetLinks()) {
         std::cout << "item:" << typeid(link).name() << std::endl;
     }
+#ifdef CHRONO_FEA
     for (auto& mesh : sys.GetMeshes()) {
         std::cout << "item:" << typeid(mesh).name() << std::endl;
     }
+#endif
     for (auto ph : sys.GetOtherPhysicsItems()) {
         std::cout << "item:" << typeid(ph).name() << std::endl;
     }
@@ -127,10 +129,7 @@ int main(int argc, char* argv[]) {
         escape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
         anchor->GetCollisionModel()->SetAllShapesMaterial(mat);
     } else
-        std::cerr << std::endl
-                  << std::endl
-                  << "ERROR: cannot find one or more objects from their names in the Chrono system!\n"
-                  << std::endl;
+        std::cerr << std::endl << std::endl << "ERROR: cannot find one or more objects from their names in the Chrono system!\n" << std::endl;
 
     // Irrlicht run-time visualization
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -142,10 +141,8 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector3d(0, 0.25, 0.25), ChVector3d(0, 0, -0.1));
     vis->AddTypicalLights();
-    //vis->AddLightWithShadow(ChVector3d(-0.5, 0.5, 0.0), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
-    //                        ChColor(1.0f, 0.9f, 0.9f));
-    //vis->AddLightWithShadow(ChVector3d(+0.5, 0.5, 0.5), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
-    //                        ChColor(0.6f, 0.8f, 1.0f));
+    ////vis->AddLightWithShadow(ChVector3d(-0.5, 0.5, 0.0), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512, ChColor(1.0f, 0.9f, 0.9f));
+    ////vis->AddLightWithShadow(ChVector3d(+0.5, 0.5, 0.5), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512, ChColor(0.6f, 0.8f, 1.0f));
     vis->EnableShadows();
 
     // Simulation loop

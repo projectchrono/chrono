@@ -173,8 +173,8 @@ int main(int argc, char* argv[]) {
         ChCoordsys<> my_fan_coord(ChVector3d(12, -6, 0), my_fan_rotation);
         ChFrame<> my_fan_framerotation(my_fan_coord);
         ChFrame<> my_fan_framespin(ChCoordsys<>(VNULL, my_fan_spin));
-        ChCoordsys<> my_fan_coordsys = (my_fan_framespin >> my_fan_framerotation).GetCoordsys();
-        tools::AlignIrrlichtNode(fanNode, my_fan_coordsys);
+        ChFrame<> my_fan_irrframe = my_fan_framespin >> my_fan_framerotation;
+        tools::AlignIrrlichtNode(fanNode, my_fan_irrframe);
 
         vis->EndScene();
 

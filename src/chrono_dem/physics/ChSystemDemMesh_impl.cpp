@@ -161,21 +161,21 @@ void ChSystemDemMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot
 }
 
 void ChSystemDemMesh_impl::cleanupTriMesh() {
-    cudaFree(meshSoup->triangleFamily_ID);
-    cudaFree(meshSoup->familyMass_SU);
+    demErrchk(cudaFree(meshSoup->triangleFamily_ID));
+    demErrchk(cudaFree(meshSoup->familyMass_SU));
 
-    cudaFree(meshSoup->node1);
-    cudaFree(meshSoup->node2);
-    cudaFree(meshSoup->node3);
+    demErrchk(cudaFree(meshSoup->node1));
+    demErrchk(cudaFree(meshSoup->node2));
+    demErrchk(cudaFree(meshSoup->node3));
 
-    cudaFree(meshSoup->vel);
-    cudaFree(meshSoup->omega);
+    demErrchk(cudaFree(meshSoup->vel));
+    demErrchk(cudaFree(meshSoup->omega));
 
-    cudaFree(meshSoup->generalizedForcesPerFamily);
-    cudaFree(tri_params->fam_frame_broad);
-    cudaFree(tri_params->fam_frame_narrow);
-    cudaFree(meshSoup);
-    cudaFree(tri_params);
+    demErrchk(cudaFree(meshSoup->generalizedForcesPerFamily));
+    demErrchk(cudaFree(tri_params->fam_frame_broad));
+    demErrchk(cudaFree(tri_params->fam_frame_narrow));
+    demErrchk(cudaFree(meshSoup));
+    demErrchk(cudaFree(tri_params));
 }
 
 void ChSystemDemMesh_impl::ApplyMeshMotion(unsigned int mesh_id,

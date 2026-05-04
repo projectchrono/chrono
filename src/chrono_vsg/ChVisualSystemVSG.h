@@ -49,6 +49,10 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChParticleCloud.h"
 
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+#endif
+
 #include "chrono_vsg/ChApiVSG.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vsg/ChEventHandlerVSG.h"
@@ -591,8 +595,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind assets associated with a ChLink.
     void BindLink(const std::shared_ptr<ChLinkBase>& link);
 
+#ifdef CHRONO_FEA
     /// Bind assets associated with a ChMesh.
     void BindMesh(const std::shared_ptr<fea::ChMesh>& mesh);
+#endif
 
     /// Bind all assets associated with the given ChAssembly.
     void BindAssembly(const ChAssembly& assembly);

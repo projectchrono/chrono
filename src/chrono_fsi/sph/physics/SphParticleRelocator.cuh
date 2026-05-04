@@ -19,7 +19,8 @@
 #ifndef SPH_PARTICLE_RELOCATOR_CUH
 #define SPH_PARTICLE_RELOCATOR_CUH
 
-#include "chrono_fsi/sph/physics/SphDataManager.cuh"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
+#include "chrono_fsi/sph/physics/SphMarkerType.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -27,6 +28,8 @@ namespace sph {
 
 /// @addtogroup fsisph_physics
 /// @{
+
+class FsiDataManager;
 
 class SphParticleRelocator {
   public:

@@ -19,6 +19,18 @@ REM THIS STATIC LIBRARY DOESN'T APPEAR ANYMORE, USE THE VERSION FROM THE INTEL o
 REM For chrono::sensor, we are using the machine's CUDA and optix installation since anaconda does not have the up-to-date packages we need
 REM Keep an eye on this in the future. Ideally, all packages we use to build pyChrono should come from anaconda
 
+REM Due to issues in https://github.com/conda-forge/vsgimgui-feedstock/issues/6, we need to build vsgImGui from source and link it statically.
+REM This is a workaround until the issue is resolved.
+set "VSGIMGUI_SOURCE_DIR=%SRC_DIR%\download_vsg\vsgImGui"
+set "VSG_INSTALL_DIR=%SRC_DIR%\contrib\build-scripts\vsg_build"
+
+git clone -c advice.detachedHead=false --depth 1 --branch v0.7.0 "https://github.com/vsg-dev/vsgImGui" "%VSGIMGUI_SOURCE_DIR%"
+git -C "%VSGIMGUI_SOURCE_DIR%" apply "%SRC_DIR%\contrib\packaging-python\conda\vsgImGui-win-export.diff"
+cmake -G "Visual Studio 17 2022" -T "v143,cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" ^
+ -B build_vsgImGui -S "%VSGIMGUI_SOURCE_DIR%" -DBUILD_SHARED_LIBS:BOOL=OFF -DVSGIMGUI_STATIC_DLLEXPORT:BOOL=ON
+cmake --build build_vsgImGui --config Release
+cmake --install build_vsgImGui --config Release --prefix "%VSG_INSTALL_DIR%"
+
 mkdir cmake_began
 cmake -G "Visual Studio 17 2022" -T "v143,cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
@@ -34,7 +46,7 @@ cmake -G "Visual Studio 17 2022" -T "v143,cuda=C:/Program Files/NVIDIA GPU Compu
  -DCH_ENABLE_MODULE_FSI_SPH=ON ^
  -DCH_ENABLE_MODULE_FSI_TDPF=OFF ^
  -DCH_ENABLE_MODULE_IRRLICHT=ON ^
- -DCH_ENABLE_MODULE_VSG=OFF ^
+ -DCH_ENABLE_MODULE_VSG=ON ^
  -DCH_ENABLE_MODULE_POSTPROCESS=ON ^
  -DCH_ENABLE_MODULE_VEHICLE=ON ^
  -DCH_ENABLE_MODULE_PYTHON=ON ^
@@ -55,6 +67,7 @@ cmake -G "Visual Studio 17 2022" -T "v143,cuda=C:/Program Files/NVIDIA GPU Compu
  -DMKL_INCLUDE_DIR="%PREFIX%"/Library/include ^
  -DMKL_RT_LIBRARY="%PREFIX%"/Library/lib/mkl_rt.lib ^
  -DIOMP5_LIBRARY="%PREFIX%"/Library/lib/libiomp5md.lib ^
+ -DvsgImGui_DIR="%VSG_INSTALL_DIR%"/lib/cmake/vsgImGui/ ^
  ..
 
 if errorlevel 1 exit 1

@@ -437,6 +437,7 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
 
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+#ifdef CHRONO_FEA
             auto tire_fea = std::dynamic_pointer_cast<ChDeformableTire>(wheel->GetTire());
             if (tire_fea) {
                 auto mesh = tire_fea->GetMesh();
@@ -454,6 +455,9 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
             } else {
                 terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
             }
+#else
+            terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
+#endif
         }
     }
 }

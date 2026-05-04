@@ -113,7 +113,7 @@ class ChApi ChContactMaterialCompositeSMC : public ChContactMaterialComposite {
     float kn;  ///< normal stiffness coefficient
     float kt;  ///< tangential stiffness coefficient
     float gn;  ///< normal viscous damping coefficient
-    float gt;  ///< tangential viscuous damping coefficient
+    float gt;  ///< tangential viscous damping coefficient
 
     ChContactMaterialCompositeSMC();
 

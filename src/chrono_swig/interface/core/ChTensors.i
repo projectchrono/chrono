@@ -38,7 +38,6 @@
 
 // Tensors are templated by type
 %template(ChStressTensorD) chrono::ChStressTensor<double>;
-%template(ChStrainTensorD) chrono::ChStrainTensor<double>;
 %template(ChStrainEngTensorD) chrono::ChStrainTensor<double>;
 
 %extend chrono::ChVoigtTensor<double>{

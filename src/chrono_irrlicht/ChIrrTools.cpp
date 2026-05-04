@@ -147,11 +147,11 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
 }
 
 // -----------------------------------------------------------------------------
-// Align an Irrlicht object to a the specified coordinate system.
+// Align an Irrlicht object to a the specified frame.
 // -----------------------------------------------------------------------------
-void AlignIrrlichtNode(scene::ISceneNode* node, const ChCoordsys<>& coords) {
+void AlignIrrlichtNode(scene::ISceneNode* node, const ChFrame<>& frame) {
     // Construct the equivalent 4x4 Irrlicht matrix
-    irr::core::matrix4CH irrMat(coords);
+    irr::core::matrix4CH irrMat(frame);
 
     // Set position and rotation of node using the Irrlicht matrix
     node->setPosition(irrMat.getTranslation());

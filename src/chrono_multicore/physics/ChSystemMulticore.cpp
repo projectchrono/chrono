@@ -643,7 +643,7 @@ void ChSystemMulticore::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
 
-unsigned int ChSystemMulticore::GetNumContacts() {
+unsigned int ChSystemMulticore::GetNumContacts() const {
     if (!data_manager->cd_data)
         return 0;
 

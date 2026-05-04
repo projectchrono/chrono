@@ -108,8 +108,8 @@ ChApiIrr irr::video::SColor ToIrrlichtSColor(const ChColor& col, float alpha = 1
 /// Convert a ChVisualMaterial to an Irrlicht material.
 ChApiIrr irr::video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, irr::video::IVideoDriver* driver);
 
-/// Align an Irrlicht object to a the specified coordinate system.
-ChApiIrr void AlignIrrlichtNode(irr::scene::ISceneNode* node, const ChCoordsys<>& coords);
+/// Align an Irrlicht object to a the specified frame.
+ChApiIrr void AlignIrrlichtNode(irr::scene::ISceneNode* node, const ChFrame<>& frame);
 
 /// Draw contact points used by a ChSystem in the current Irrlicht viewer.
 /// The contact points are visually represented with short lines, of length mlen, aligned to contact normals.

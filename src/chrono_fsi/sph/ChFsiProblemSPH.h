@@ -78,30 +78,17 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are
     /// pruned). To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
-    void AddRigidBody(std::shared_ptr<ChBody> body,
-                      std::shared_ptr<utils::ChBodyGeometry> geometry,
-                      bool check_embedded,
-                      bool use_grid_bce = false);
+    void AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded, bool use_grid_bce = false);
 
-    void AddRigidBodySphere(std::shared_ptr<ChBody> body,
-                            const ChVector3d& pos,
-                            double radius,
-                            bool use_grid_bce = false);
+    void AddRigidBodySphere(std::shared_ptr<ChBody> body, const ChVector3d& pos, double radius, bool use_grid_bce = false);
     void AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& pos, const ChVector3d& size);
-    void AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
-                               const ChFramed& pos,
-                               double radius,
-                               double length,
-                               bool use_grid_bce = false);
-    void AddRigidBodyMesh(std::shared_ptr<ChBody> body,
-                          const ChFramed& pos,
-                          const std::string& obj_file,
-                          const ChVector3d& interior_point,
-                          double scale);
+    void AddRigidBodyCylinderX(std::shared_ptr<ChBody> body, const ChFramed& pos, double radius, double length, bool use_grid_bce = false);
+    void AddRigidBodyMesh(std::shared_ptr<ChBody> body, const ChFramed& pos, const std::string& obj_file, const ChVector3d& interior_point, double scale);
 
     /// Return the number of BCE markers associated with the specified rigid body.
     size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
 
+#ifdef CHRONO_FEA
     /// Enable use and set method of obtaining FEA node directions for generating FEA BCE marker location.
     /// By default, node directions are not used, resulting in linear interpolation between nodes.
     /// If enabled, exact node direction vectors are received from the FEA solver (NodeDirectionsMode::EXACT), or else
@@ -125,6 +112,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     void AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+#endif
 
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
@@ -152,9 +140,7 @@ class CH_FSI_API ChFsiProblemSPH {
     };
 
     /// Register a callback for setting SPH particle initial properties.
-    void RegisterParticlePropertiesCallback(std::shared_ptr<ParticlePropertiesCallback> callback) {
-        m_props_cb = callback;
-    }
+    void RegisterParticlePropertiesCallback(std::shared_ptr<ParticlePropertiesCallback> callback) { m_props_cb = callback; }
 
     /// Set gravitational acceleration for both multibody and fluid systems.
     void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI->SetGravitationalAcceleration(gravity); }
@@ -168,8 +154,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Explicitly set the computational domain limits.
     /// By default, this encompasses all SPH and BCE markers with no boundary conditions imposed in any direction.
-    void SetComputationalDomain(const ChAABB& aabb,
-                                BoundaryConditions bc_type = {BCType::NONE, BCType::NONE, BCType::NONE}) {
+    void SetComputationalDomain(const ChAABB& aabb, BoundaryConditions bc_type = {BCType::NONE, BCType::NONE, BCType::NONE}) {
         m_domain_aabb = aabb;
         m_bc_type = bc_type;
     }
@@ -208,7 +193,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// An exception is thrown if the given body was not added through AddRigidBody.
     const ChVector3d& GetFsiBodyForce(std::shared_ptr<ChBody> body) const;
 
-    /// Return the FSI applied torque on on the specified body (as returned by AddRigidBody).
+    /// Return the FSI applied torque on the specified body (as returned by AddRigidBody).
     /// The torque is expressed in the absolute frame.
     /// An exception is thrown if the given body was not added through AddRigidBody.
     const ChVector3d& GetFsiBodyTorque(std::shared_ptr<ChBody> body) const;
@@ -265,7 +250,7 @@ class CH_FSI_API ChFsiProblemSPH {
     }
     struct CoordHash {
         std::size_t operator()(const ChVector3i& p) const noexcept {
-            // Pack the three ints into 64-bit lanes; mix each, then combine.
+            // Pack the three integers into 64-bit lanes; mix each, then combine.
             std::uint64_t x = static_cast<std::uint32_t>(p.x());
             std::uint64_t y = static_cast<std::uint32_t>(p.y());
             std::uint64_t z = static_cast<std::uint32_t>(p.z());
@@ -289,15 +274,15 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Prune SPH markers that are inside a body mesh volume.
     /// Voxelize the body mesh (at the scaling resolution) and identify grid nodes inside the boundary
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
-    int ProcessBodyMesh(ChFsiFluidSystemSPH::FsiSphBody& b,
-                        ChTriangleMeshConnected trimesh,
-                        const ChVector3d& interior_point);
+    int ProcessBodyMesh(ChFsiFluidSystemSPH::FsiSphBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
+#ifdef CHRONO_FEA
     /// Prune SPH markers that overlap with the FEA mesh BCE markers.
     void ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m);
 
     /// Prune SPH markers that overlap with the FEA mesh BCE markers.
     void ProcessFeaMesh2D(ChFsiFluidSystemSPH::FsiSphMesh2D& m);
+#endif
 
     // Only derived classes can use the following particle and marker relocation functions
 
@@ -321,8 +306,7 @@ class CH_FSI_API ChFsiProblemSPH {
     BoundaryConditions m_bc_type;                      ///< boundary conditions in each direction
     ChAABB m_sph_aabb;                                 ///< SPH volume bounding box
 
-    std::unordered_map<std::shared_ptr<ChBody>, size_t>
-        m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
+    std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 

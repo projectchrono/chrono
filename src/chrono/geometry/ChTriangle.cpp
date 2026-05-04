@@ -23,7 +23,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChTriangle)
 
 // Tolerance for testing degenerate triangles
-static constexpr double EPS_TRIDEGENERATE2 = 1e-20;
+static constexpr double EPS_TRIDEGENERATE = 1e-10;
 
 ChTriangle::ChTriangle(const ChTriangle& source) {
     p1 = source.p1;
@@ -69,8 +69,8 @@ bool ChTriangle::CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const Ch
     ChVector3d v = p3 - p1;
     ChVector3d n = Vcross(u, v);
 
-    double len = n.Length2();
-    if (len < EPS_TRIDEGENERATE2)
+    double len = n.Length();
+    if (len < EPS_TRIDEGENERATE)
         return false;
 
     N = n / len;
