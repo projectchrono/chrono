@@ -2,6 +2,18 @@
 # CMake configuration file for demos of various Chrono::Vehicle terrain models.
 #=============================================================================
 
+# Headless SCM CLI (does NOT require VSG — used for subprocess evaluation)
+add_executable(chrono_scm_cli
+    ${CMAKE_CURRENT_SOURCE_DIR}/../chrono_scm_cli.cpp
+)
+target_link_libraries(chrono_scm_cli
+    Chrono_core
+    Chrono_vehicle
+)
+set_target_properties(chrono_scm_cli PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
 if(NOT CH_ENABLE_MODULE_VSG)
   return()
 endif()
