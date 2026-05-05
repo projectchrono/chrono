@@ -158,6 +158,7 @@ public:
 /// For testing purposes.
 /// Utility class for creating a box filled with a 3d structured grid of tetrahedral
 /// finite elements. Adding nodes and finite elements to fields and domains is up to you.
+/// The Kuhn decomposition is used,so that each cubic cell of the 3d grid is split into 6 tetrahedrons.
 
 class ChApi ChBuilderVolumeBoxTetra {
 
@@ -185,7 +186,7 @@ public:
 
     Ch3DArrayOfNodes nodes;
 
-    Ch3DArrayOfItems<std::array<std::shared_ptr<ChFieldElementTetrahedron4>, 5 > >  elements; // grouped as 5 tetra evey cubic cell
+    Ch3DArrayOfItems<std::array<std::shared_ptr<ChFieldElementTetrahedron4>, 6 > >  elements; // grouped as 6 tetra evey cubic cell
 
     // may be useful if adding loads:
     std::vector<std::shared_ptr<ChFieldElementSurface>> faces_x_hi;
