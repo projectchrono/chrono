@@ -69,11 +69,15 @@ int main() {
         body->SetInertiaXX(ChVector3d(0.001, 0.001, 0.001));
         body->AddCollisionShape(chrono_types::make_shared<ChCollisionShapeSphere>(mat, 0.02));
         system.AddBody(body);
+        body->AccumulateForce(0, ChVector3d(0, 0, -load), body->GetPos(), false);
+        std::cerr << "[CLI] body added, stepping loop..." << std::endl;
 
         for (int i = 0; i < 40; i++) {
             body->EmptyAccumulator(0);
             body->AccumulateForce(0, ChVector3d(0, 0, -load), body->GetPos(), false);
+            std::cerr << "[CLI] stepping..." << std::endl;
             system.DoStepDynamics(1e-4);
+            std::cerr << "[CLI] step done" << std::endl;
         }
 
         ChVector3d force(0, 0, 0), torque(0, 0, 0);

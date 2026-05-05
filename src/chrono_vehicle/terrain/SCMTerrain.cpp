@@ -1064,6 +1064,7 @@ static const std::vector<ChVector2i> neighbors4{
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMLoader::ComputeInternalForces() {
+    fprintf(stderr, "[SCM] ComputeInternalForces START\n");
     // Initialize list of modified visualization mesh vertices (use any externally modified vertices)
     std::vector<int> modified_vertices = m_external_modified_vertices;
     m_external_modified_vertices.clear();
@@ -1142,6 +1143,7 @@ void SCMLoader::ComputeInternalForces() {
     m_num_ray_hits = 0;
 
     m_timer_ray_casting.start();
+    fprintf(stderr, "[SCM] ray_casting start, domains=%zu\n", m_active_domains.size());
 
 #ifdef RAY_CASTING_WITH_CRITICAL_SECTION
 
@@ -1270,6 +1272,7 @@ void SCMLoader::ComputeInternalForces() {
 #endif
 
     m_timer_ray_casting.stop();
+    fprintf(stderr, "[SCM] ray_casting done, hits=%zu\n", hits.size());
 
     // --------------------
     // Find contact patches
@@ -1539,6 +1542,7 @@ void SCMLoader::ComputeInternalForces() {
     }
 
     m_timer_contact_forces.stop();
+    fprintf(stderr, "[SCM] contact_forces done\n");
 
     // --------------------------------------------------
     // Flow material to the side of rut, using heuristics
@@ -1709,6 +1713,7 @@ void SCMLoader::ComputeInternalForces() {
     }
 
     m_timer_visualization.stop();
+    fprintf(stderr, "[SCM] ComputeInternalForces END\n");
 }
 
 void SCMLoader::AddMaterialToNode(double amount, NodeRecord& nr) {
