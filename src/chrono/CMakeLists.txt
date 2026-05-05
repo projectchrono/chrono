@@ -1823,9 +1823,4 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-# Fix Bullet rayTest on Apple Silicon
-if(APPLE)
-  target_compile_definitions(Chrono_core PRIVATE BT_DISABLE_STACK_TEMP_MEMORY)
-  message(STATUS "Apple Silicon: BT_DISABLE_STACK_TEMP_MEMORY for Bullet rayTest alignment")
-endif()
 
