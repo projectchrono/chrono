@@ -27,6 +27,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -138,11 +139,10 @@ class CH_VEHICLE_API ChPart {
     /// It converts an inertia matrix specified in a centroidal frame aligned with the
     /// vehicle reference frame to an inertia matrix expressed in a centroidal body
     /// reference frame.
-    static ChMatrix33<> TransformInertiaMatrix(
-        const ChVector3d& moments,        ///< moments of inertia in vehicle-aligned centroidal frame
-        const ChVector3d& products,       ///< products of inertia in vehicle-aligned centroidal frame
-        const ChMatrix33<>& vehicle_rot,  ///< vehicle absolute orientation matrix
-        const ChMatrix33<>& body_rot      ///< body absolute orientation matrix
+    static ChMatrix33<> TransformInertiaMatrix(const ChVector3d& moments,        ///< moments of inertia in vehicle-aligned centroidal frame
+                                               const ChVector3d& products,       ///< products of inertia in vehicle-aligned centroidal frame
+                                               const ChMatrix33<>& vehicle_rot,  ///< vehicle absolute orientation matrix
+                                               const ChMatrix33<>& body_rot      ///< body absolute orientation matrix
     );
 
   protected:
@@ -196,8 +196,12 @@ class CH_VEHICLE_API ChPart {
     void ExportJointList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLink>> joints) const;
 
     /// Export the list of shaft couples to the specified JSON document.
-    void ExportCouplesList(rapidjson::Document& jsonDocument,
-                           std::vector<std::shared_ptr<ChShaftsCouple>> couples) const;
+    void ExportCouplesList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaftsCouple>> couples) const;
+
+    /// Export the list of shaft-body constraints to the specified JSON document.
+    void ExportShaftBodyConstraintList(rapidjson::Document& jsonDocument,
+                                       std::vector<std::shared_ptr<ChShaftBodyRotation>> rot_constraints,
+                                       std::vector<std::shared_ptr<ChShaftBodyTranslation>> trans_constraints) const;
 
     /// Export the list of markers to the specified JSON document.
     void ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChMarker>> markers) const;
@@ -209,16 +213,13 @@ class CH_VEHICLE_API ChPart {
     void ExportRotSpringList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkRSDA>> springs) const;
 
     /// Export the list of body-body loads to the specified JSON document.
-    void ExportBodyLoadList(rapidjson::Document& jsonDocument,
-                            std::vector<std::shared_ptr<ChLoadBodyBody>> loads) const;
+    void ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLoadBodyBody>> loads) const;
 
     /// Export the list of linear motors to the specified JSON document.
-    void ExportLinMotorList(rapidjson::Document& jsonDocument,
-                            std::vector<std::shared_ptr<ChLinkMotorLinear>> loads) const;
+    void ExportLinMotorList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkMotorLinear>> loads) const;
 
     /// Export the list of rotational motors to the specified JSON document.
-    void ExportRotMotorList(rapidjson::Document& jsonDocument,
-                            std::vector<std::shared_ptr<ChLinkMotorRotation>> loads) const;
+    void ExportRotMotorList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkMotorRotation>> loads) const;
 
     /// Erase all visual shapes from the visual model associated with the specified physics item (if any).
     static void RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item);
@@ -240,6 +241,8 @@ class CH_VEHICLE_API ChPart {
     std::vector<std::shared_ptr<ChShaft>> m_shafts;
     std::vector<std::shared_ptr<ChLink>> m_joints;
     std::vector<std::shared_ptr<ChShaftsCouple>> m_couples;
+    std::vector<std::shared_ptr<ChShaftBodyRotation>> m_shaft_body_rot;
+    std::vector<std::shared_ptr<ChShaftBodyTranslation>> m_shaft_body_trans;
     std::vector<std::shared_ptr<ChMarker>> m_markers;
     std::vector<std::shared_ptr<ChLinkTSDA>> m_tsdas;
     std::vector<std::shared_ptr<ChLinkRSDA>> m_rsdas;

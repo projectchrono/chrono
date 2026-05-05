@@ -41,23 +41,22 @@ class ChApi ChShaftBodyRotation : public ChPhysicsItem {
     /// Initialize the constraint, given the 1D shaft and 3D body to join.
     /// Direction is expressed in the local coordinates of the body.
     /// Both items must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> mshaft,     ///< shaft to join
-                    std::shared_ptr<ChBodyFrame> mbody,  ///< body to join
-                    const ChVector3d& mdir               ///< direction of the shaft on 3D body
+    bool Initialize(std::shared_ptr<ChShaft> connected_shaft,     ///< shaft to join
+                    std::shared_ptr<ChBodyFrame> connected_body,  ///< body to join
+                    const ChVector3d& dir                         ///< direction of the shaft on 3D body
     );
 
-    /// Get the shaft.
+    /// Get the connected shaft.
     ChShaft* GetShaft() { return shaft; }
 
     /// Get the body.
     ChBodyFrame* GetBody() { return body; }
 
-    /// Set the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
-    /// body. The shaft applies only torque, about this axis.
-    void SetShaftDirection(ChVector3d md) { shaft_dir = Vnorm(md); }
+    /// Set the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the body.
+    /// The shaft applies only torque, about this axis.
+    void SetShaftDirection(ChVector3d dir) { shaft_dir = Vnorm(dir); }
 
-    /// Get the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
-    /// body.
+    /// Get the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the body.
     const ChVector3d& GetShaftDirection() const { return shaft_dir; }
 
     /// Get the reaction torque considered as applied to ChShaft.
@@ -90,16 +89,8 @@ class ChApi ChShaftBodyRotation : public ChPhysicsItem {
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     const double c_vel,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override {}
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
@@ -107,10 +98,7 @@ class ChApi ChShaftBodyRotation : public ChPhysicsItem {
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void LoadConstraintJacobians() override;
@@ -127,8 +115,7 @@ class ChApi ChShaftBodyRotation : public ChPhysicsItem {
 CH_CLASS_VERSION(ChShaftBodyRotation, 0)
 
 /// Constraint between a 3D ChBody object and a ChShaft object that represents a 1D translational DOF.
-/// Note that this is different from the ChShaftBodyRotation constraint  which connects to a rotational DOF.
-/// A translation axis must be specified (to tell along which direction the 1D shaft inertia rotation affects the body).
+/// A translation axis must be specified (to indicate the direction along which the 1D shaft mass affects the body).
 class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
   public:
     ChShaftBodyTranslation();
@@ -141,10 +128,10 @@ class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
     /// Initialize the constraint, given the 1D shaft and 3D body to join.
     ///  Direction is expressed in the local coordinates of the body.
     ///  Both items must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> mshaft,     ///< shaft to join, representing translational dof
-                    std::shared_ptr<ChBodyFrame> mbody,  ///< body to join
-                    const ChVector3d& mdir,              ///< the direction of the shaft on 3D body, in body coords
-                    const ChVector3d& mpos  ///< the anchro position of the shaft on 3D body, in body coords
+    bool Initialize(std::shared_ptr<ChShaft> connected_shaft,     ///< shaft to join, representing translational dof
+                    std::shared_ptr<ChBodyFrame> connected_body,  ///< body to join
+                    const ChVector3d& dir,                        ///< the direction of the shaft on 3D body, in body coords
+                    const ChVector3d& pos                         ///< the anchor position of the shaft on 3D body, in body coords
     );
 
     /// Get the shaft.
@@ -153,16 +140,14 @@ class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
     /// Get the body.
     ChBodyFrame* GetBody() { return body; }
 
-    /// Set the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
-    /// body.
-    void SetShaftDirection(ChVector3d md) { shaft_dir = Vnorm(md); }
+    /// Set the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the body.
+    void SetShaftDirection(ChVector3d dir) { shaft_dir = Vnorm(dir); }
 
-    /// Get the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
-    /// body.
+    /// Get the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the body.
     const ChVector3d& GetShaftDirection() const { return shaft_dir; }
 
     /// Set the anchor point of the shaft respect to 3D body, as a vector expressed in the coordinates of the body.
-    void SetShaftPos(ChVector3d md) { shaft_pos = md; }
+    void SetShaftPos(ChVector3d pos) { shaft_pos = pos; }
 
     /// Get the anchor point of the shaft respect to 3D body, as a vector expressed in the coordinates of the body.
     const ChVector3d& GetShaftPos() const { return shaft_pos; }
@@ -198,16 +183,8 @@ class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     const double c_vel, 
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override {}
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
@@ -215,10 +192,7 @@ class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;

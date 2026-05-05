@@ -77,6 +77,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get a handle to the revolute joint on the specified side.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute(VehicleSide side) const { return m_revolute[side]; }
 
+    /// Get a handle to the shaft-body connection.
+    std::shared_ptr<ChShaftBodyRotation> GetShaftBodyConnection(VehicleSide side) const { return m_axle_to_spindle[side]; }
+
     /// Get the global location of the spindle on the specified side.
     const ChVector3d& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
 

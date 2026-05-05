@@ -4,5 +4,5 @@ set(TESTS
 
 list(APPEND LIBS Chrono_core)
 
-message(STATUS "Add benchmark test programs for geometry module")
+message(STATUS "Add benchmark test programs for GEOMETRY module")
 build_btests("${TESTS}" "${LIBS}")
