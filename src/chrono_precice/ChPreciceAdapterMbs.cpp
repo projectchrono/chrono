@@ -25,7 +25,7 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose) : m_sys(sys), m_time_step(time_step) {
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose) : m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
     SetVerbose(verbose);
 }
 
@@ -46,6 +46,8 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     m_vis.camera_location = parser.GetCameraLocation();
     m_vis.camera_target = parser.GetCameraTarget();
     m_vis.enable_shadows = parser.EnableShadows();
+
+    m_enforce_realtime = parser.EnforceRealtime();
 
     // Read in preCICE participant configuration
     ConstructSolver(input_filename);
@@ -251,6 +253,9 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
     }
 
     m_sys->DoStepDynamics(time_step);
+
+    if (m_enforce_realtime)
+        m_rt_timer.Spin(time_step);
 }
 
 void ChPreciceAdapterMbs::WriteData() {

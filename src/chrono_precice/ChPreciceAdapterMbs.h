@@ -18,6 +18,7 @@
 #include "chrono_precice/ChPreciceAdapter.h"
 
 #include "chrono/functions/ChFunction.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -61,6 +62,8 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
                              bool enable_shadows                 ///< enable dynamic shadows
     );
 
+    void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
+
     void AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body);
 
     virtual void InitializeParticipant() override;
@@ -89,6 +92,8 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     std::shared_ptr<ChSystem> m_sys;
     double m_time_step;
+    bool m_enforce_realtime;
+    ChRealtimeStepTimer m_rt_timer;
 
     // System checkpoint data
     Checkpoint m_checkpoint;
