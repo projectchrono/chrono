@@ -1153,7 +1153,9 @@ void SCMLoader::ComputeInternalForces() {
     for (auto& p : m_active_domains) {
         // Loop through all vertices in the patch range
         int num_ray_casts = 0;
+#ifndef __APPLE__
     #pragma omp parallel for num_threads(nthreads) reduction(+ : num_ray_casts)
+#endif
         for (int k = 0; k < p.m_range.size(); k++) {
             ChVector2i ij = p.m_range[k];
 
@@ -1161,7 +1163,9 @@ void SCMLoader::ComputeInternalForces() {
             double x = ij.x() * m_delta;
             double y = ij.y() * m_delta;
             double z;
+#ifndef __APPLE__
     #pragma omp critical(SCM_ray_casting)
+#endif
             z = GetHeight(ij);
 
             ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
@@ -1180,7 +1184,9 @@ void SCMLoader::ComputeInternalForces() {
             num_ray_casts++;
 
             if (mrayhit_result.hit) {
+#ifndef __APPLE__
     #pragma omp critical(SCM_ray_casting)
+#endif
                 {
                     // If this is the first hit from this node, initialize the node record
                     if (m_grid_map.find(ij) == m_grid_map.end()) {
@@ -1201,7 +1207,12 @@ void SCMLoader::ComputeInternalForces() {
 
     // Map-reduce approach (to eliminate critical section)
 
-    const int nthreads = GetSystem()->GetNumThreadsChrono();
+    const int nthreads =
+#ifdef __APPLE__
+        1;
+#else
+        GetSystem()->GetNumThreadsChrono();
+#endif
     std::vector<std::unordered_map<ChVector2i, HitRecord, CoordHash> > t_hits(nthreads);
 
     // Loop through all active domains (user-defined or default one)
@@ -1210,9 +1221,15 @@ void SCMLoader::ComputeInternalForces() {
 
         // Loop through all vertices in the patch range
         int num_ray_casts = 0;
+#ifndef __APPLE__
     #pragma omp parallel for num_threads(nthreads) reduction(+ : num_ray_casts)
+#endif
         for (int k = 0; k < p.m_range.size(); k++) {
+#ifdef __APPLE__
+            int t_num = 0;
+#else
             int t_num = ChOMP::GetThreadNum();
+#endif
             ChVector2i ij = p.m_range[k];
 
             // Move from (i, j) to (x, y, z) representation in the world frame
