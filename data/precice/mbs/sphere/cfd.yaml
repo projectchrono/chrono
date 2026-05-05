@@ -1,0 +1,16 @@
+precice_adapter_config:
+  participant_name: Fluid
+  
+  interfaces:
+  - mesh_name: FluidMesh
+    mesh_type: RIGID_BODY_REF_POINTS
+    write_data:
+    - name: forces
+      type: FORCES
+    - name: torques
+      type: TORQUES
+    read_data:
+    - name: positions
+      type: POSITIONS
+    - name: velocities
+      type: VELOCITIES

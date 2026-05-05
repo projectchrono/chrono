@@ -7,7 +7,8 @@ set(DEMOS demo_PRECICE_test)
 
 if(CH_ENABLE_MODULE_PARSERS)
 
-  #set(DEMOS ${DEMOS} demo_PRECICE_mbs)
+  set(DEMOS ${DEMOS}
+      demo_PRECICE_sphere_bounce)
   
   #if(CH_ENABLE_MODULE_FSI)
   #  set(DEMOS ${DEMOS} demo_PRECICE_fsi)

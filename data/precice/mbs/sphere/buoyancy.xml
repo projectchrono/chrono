@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+  <log>
+    <sink
+      type="stream"
+      output="stdout"
+      filter="%Severity% > debug"
+      format="preCICE:%ColorizedSeverity% %Message%"
+      enabled="true" />
+  </log>
+
+  <data:vector name="positions" />
+  <data:vector name="velocities" />
+  <data:vector name="forces" />
+  <data:vector name="torques" />
+
+  <mesh name="SolidMesh" dimensions="3">
+    <use-data name="positions" />
+    <use-data name="velocities" />
+    <use-data name="forces" />
+    <use-data name="torques" />
+  </mesh>
+
+  <mesh name="FluidMesh" dimensions="3">
+    <use-data name="positions" />
+    <use-data name="velocities" />
+    <use-data name="forces" />
+    <use-data name="torques" />
+  </mesh>
+
+  <participant name="Solid">
+    <provide-mesh name="SolidMesh" />
+    <write-data name="positions" mesh="SolidMesh" />
+    <write-data name="velocities" mesh="SolidMesh" />
+    <read-data name="forces" mesh="SolidMesh" />
+    <read-data name="torques" mesh="SolidMesh" />
+  </participant>
+
+  <participant name="Fluid">
+    <receive-mesh name="SolidMesh" from="Solid" />
+    <provide-mesh name="FluidMesh" />
+    <mapping:nearest-neighbor
+      direction="write"
+      from="FluidMesh"
+      to="SolidMesh"
+      constraint="conservative" />
+    <mapping:nearest-neighbor
+      direction="read"
+      from="SolidMesh"
+      to="FluidMesh"
+      constraint="consistent" />
+    <write-data name="forces" mesh="FluidMesh" />
+    <write-data name="torques" mesh="FluidMesh" />
+    <read-data name="positions" mesh="FluidMesh" />
+    <read-data name="velocities" mesh="FluidMesh" />
+  </participant>
+
+  <m2n:sockets acceptor="Solid" connector="Fluid" exchange-directory="." />
+
+  <coupling-scheme:serial-explicit>
+    <participants first="Solid" second="Fluid" />
+    <max-time-windows value="500" />
+    <time-window-size value="0.01" />
+    <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
+    <exchange data="velocities" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
+    <exchange data="forces" mesh="SolidMesh" from="Fluid" to="Solid" />
+    <exchange data="torques" mesh="SolidMesh" from="Fluid" to="Solid" />
+  </coupling-scheme:serial-explicit>
+</precice-configuration>
