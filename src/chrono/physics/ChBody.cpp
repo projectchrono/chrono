@@ -382,11 +382,15 @@ unsigned int ChBody::AddAccumulator() {
 }
 
 void ChBody::EmptyAccumulator(unsigned int idx) {
+    if (idx >= accumulators.size())
+        accumulators.resize(idx + 1);
     accumulators[idx].force = VNULL;
     accumulators[idx].torque = VNULL;
 }
 
 void ChBody::AccumulateForce(unsigned int idx, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+    if (idx >= accumulators.size())
+        accumulators.resize(idx + 1);
     ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
                             : AppliedForceParentToWrenchParent(force, appl_point);
     accumulators[idx].force += w_abs.force;
@@ -394,6 +398,8 @@ void ChBody::AccumulateForce(unsigned int idx, const ChVector3d& force, const Ch
 }
 
 void ChBody::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool local) {
+    if (idx >= accumulators.size())
+        accumulators.resize(idx + 1);
     if (local)
         accumulators[idx].torque += torque;
     else
@@ -401,10 +407,16 @@ void ChBody::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool l
 }
 
 const ChVector3d& ChBody::GetAccumulatedForce(unsigned int idx) const {
+    static const ChVector3d zero(VNULL);
+    if (idx >= accumulators.size())
+        return zero;
     return accumulators[idx].force;
 }
 
 const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int idx) const {
+    static const ChVector3d zero(VNULL);
+    if (idx >= accumulators.size())
+        return zero;
     return accumulators[idx].torque;
 }
 
