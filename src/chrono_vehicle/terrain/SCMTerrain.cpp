@@ -1323,7 +1323,13 @@ void SCMLoader::ComputeInternalForces() {
         std::queue<ChVector2i> todo;
         todo.push(ij);
 
+        int flood_iter = 0;
+        const int FLOOD_MAX = 100000;
         while (!todo.empty()) {
+            if (++flood_iter > FLOOD_MAX) {
+                std::cerr << "[SCM] WARNING: flood-fill exceeded " << FLOOD_MAX << " iterations, breaking" << std::endl;
+                break;
+            }
             auto crt = hits.find(todo.front());  // Current hit node is first element in queue
             todo.pop();                          // Remove first element from queue
 
