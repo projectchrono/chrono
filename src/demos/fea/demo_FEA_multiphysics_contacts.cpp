@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     // all surfaces that might generate contacts.
 
     auto contact_material = chrono_types::make_shared<ChContactMaterialSMC>();
-    contact_material->SetYoungModulus(1e5);
+    contact_material->SetYoungModulus(2e5);
     contact_material->SetFriction(0.3f);
     contact_material->SetRestitution(0.2f);
     contact_material->SetAdhesion(0);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     // mesh with elements, as box shape
 
     // Build a test volume discretized with a regular grid of finite elements.
-    ChBuilderVolumeBoxTetra builder;
+    ChBuilderVolumeBox builder;
     builder.BuildVolume(ChFrame<>(ChVector3d(-0.5, 0.2, 0)),  // inital position of the box
                         8, 2, 3,                // N of elements in x,y,z direction
                         1, 0.2, 0.3);          // width in x,y,z direction
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector3d(0, 2, -4));
+    vis->AddCamera(ChVector3d(1, 0.6, 1));
     vis->AddTypicalLights();
 
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

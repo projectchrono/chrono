@@ -22,7 +22,7 @@ set(TESTS
     utest_FEA_ANCFhexa_3813_9
 )
 
-if(CH_ENABLE_MODULE_FEA_MULTYPHISICS)
+if(CH_ENABLE_MODULE_FEA_MULTIPHYSICS)
   set(TESTS ${TESTS}
     utest_FEA_domain_deformation
   )
