@@ -198,6 +198,7 @@ void ChPreciceAdapterMbs::WriteCheckpoint(double time) {
     double sys_time;
     m_sys->StateGather(m_checkpoint.x, m_checkpoint.v, sys_time);
     assert(time == sys_time);
+    m_checkpoint.time = time;
 }
 
 void ChPreciceAdapterMbs::ReadCheckpoint(double time) {
@@ -287,8 +288,8 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Me
                     auto& c_body = m_coupling_bodies[i];
                     ChVector3d force;
                     force.x() = data_values[3 * i + 0];
-                    force.x() = data_values[3 * i + 1];
-                    force.x() = data_values[3 * i + 2];
+                    force.y() = data_values[3 * i + 1];
+                    force.z() = data_values[3 * i + 2];
                     c_body->body->AccumulateForce(c_body->accumulator_index, force, c_body->body->GetFrameRefToAbs().GetPos(), false);
                     if (m_verbose)
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | force:  " << force << endl;
@@ -300,8 +301,8 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Me
                     auto& c_body = m_coupling_bodies[i];
                     ChVector3d torque;
                     torque.x() = data_values[3 * i + 0];
-                    torque.x() = data_values[3 * i + 1];
-                    torque.x() = data_values[3 * i + 2];
+                    torque.y() = data_values[3 * i + 1];
+                    torque.z() = data_values[3 * i + 2];
                     c_body->body->AccumulateTorque(c_body->accumulator_index, torque, false);
                     if (m_verbose)
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | torque: " << torque << endl;
