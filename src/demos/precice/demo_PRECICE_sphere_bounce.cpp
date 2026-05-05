@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     // Problem settings
     std::string precice_config_filename = GetChronoDataFile("precice/mbs/sphere/buoyancy.xml");
-    bool verbose = false;
+    bool verbose = true;
 
     // Get the participant type (MBS or CFD)
     ChCLI cli(argv[0], "");
@@ -96,11 +96,14 @@ class ParticipantCFD : public ChPreciceAdapter {
 
   private:
     std::string mesh_name;
-    std::string read_data_name;
-    std::string write_data_name;
-    double radius = 0.2;
-    std::vector<double> positions;
-    std::vector<double> forces;
+    std::vector<double> position;
+    std::vector<double> velocity;
+    std::vector<double> force;
+
+    double radius = 0.2;  // sphere radius
+    double cd = 0.47;     // sphere drag coefficient
+    double rho = 1000;    // water density
+    double g = 9.81;      // gravitational acceleration
 };
 
 ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
@@ -124,19 +127,19 @@ void ParticipantCFD::InitializeParticipant() {
     std::vector<double> vertices(3, 0.0);
     RegisterMesh(mesh_name, vertices);
 
-    read_data_name = "positions";
-    write_data_name = "forces";
-
     // Size and initialize input and output data
-    positions.resize(3, 0.0);
-    forces.resize(3, 0.0);
+    position.resize(3, 0.0);
+    velocity.resize(3, 0.0);
+    force.resize(3, 0.0);
 }
 
 void ParticipantCFD::ReadData() {
     ChPreciceAdapter::ReadData();
-    positions = m_coupling_meshes[mesh_name].data[read_data_name].values;
+    position = m_coupling_meshes[mesh_name].data["positions"].values;
+    velocity = m_coupling_meshes[mesh_name].data["velocities"].values;
     if (m_verbose) {
-        cout << m_prefix2 << "positions:  " << positions[0] << " " << positions[1] << " " << positions[2] << endl;
+        cout << m_prefix2 << "position:  " << position[0] << " " << position[1] << " " << position[2] << endl;
+        cout << m_prefix2 << "velocity:  " << velocity[0] << " " << velocity[1] << " " << velocity[2] << endl;
     }
 }
 
@@ -147,26 +150,33 @@ double ParticipantCFD::GetSolverTimeStep(double max_time_step) const {
 void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
     ChPreciceAdapter::AdvanceParticipant(time, time_step);
 
-    // Calculate volume of displaced fluid assuming surface at z=0
-    double h = radius - positions[2];
-    if (h < 0)
-        forces[2] = 0;
-    else {
+    // Calculate fluid forces for current sphere positin and velocity
+    double h = radius - position[2];
+    double v = velocity[2];
+    force[2] = 0;
+    if (h > 0) {
         h = std::min(h, 2 * radius);
-        double rho = 1000;
-        double g = 9.81;
-        double V = CH_PI * h * h * (radius - CH_1_3 * h);
-        forces[2] = rho * g * V;
+
+        // Calculate volume of displaced fluid (assuming surface at z=0) and buoyancy force
+        double volume = CH_PI * h * h * (radius - CH_1_3 * h);
+        double frc_b = rho * g * volume;
+
+        // Calculate dynamic viscous drag force
+        double frc_d = 0.5 * rho * v * v * cd * (4 * CH_PI * radius * radius);
+
+        // Set total force
+        force[2] = (v < 0) ? frc_b + frc_d : frc_b - frc_d;
+
         if (m_verbose)
-            cout << m_prefix2 << "h = " << h << "  BUYOANCY force = " << forces[2] << endl;
+            cout << m_prefix2 << "h = " << h << "  buoyancy = " << frc_b << "  drag = " << frc_d << endl;
     }
 }
 
 void ParticipantCFD::WriteData() {
-    m_coupling_meshes[mesh_name].data[write_data_name].values = forces;
+    m_coupling_meshes[mesh_name].data["forces"].values = force;
     ChPreciceAdapter::WriteData();
     if (m_verbose) {
-        cout << m_prefix2 << "forces: " << forces[0] << " " << forces[1] << " " << forces[2] << endl;
+        cout << m_prefix2 << "force: " << force[0] << " " << force[1] << " " << force[2] << endl;
     }
 }
 

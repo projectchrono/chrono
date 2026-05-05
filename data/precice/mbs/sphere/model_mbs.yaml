@@ -10,7 +10,7 @@ model:
   
   bodies:
     - name: ball
-      location: [0, 0, 0.2]
+      location: [0, 0, 0.3]
       mass: 15
       inertia:
         moments: [0.023, 0.023, 0.023]
