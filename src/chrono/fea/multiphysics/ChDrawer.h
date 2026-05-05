@@ -135,7 +135,7 @@ public:
         // Setup triangles: vertex indexes per each triangle
         mmesh.GetIndicesVertices()[tri_offset+0] = ChVector3i((int)vert_offset + 0, (int)vert_offset + 1, (int)vert_offset + 2);
         mmesh.GetIndicesVertices()[tri_offset + 1] = ChVector3i((int)vert_offset + 1, (int)vert_offset + 3, (int)vert_offset + 2);
-        mmesh.GetIndicesVertices()[tri_offset + 2] = ChVector3i((int)vert_offset + 2, (int)vert_offset + 0, (int)vert_offset + 3);
+        mmesh.GetIndicesVertices()[tri_offset + 2] = ChVector3i((int)vert_offset + 2, (int)vert_offset + 3, (int)vert_offset + 0);
         mmesh.GetIndicesVertices()[tri_offset + 3] = ChVector3i((int)vert_offset + 3, (int)vert_offset + 1, (int)vert_offset + 0);
         
         // Normal indexes per each triangle. Assuming 4 normals, one per tetrahedron face.
