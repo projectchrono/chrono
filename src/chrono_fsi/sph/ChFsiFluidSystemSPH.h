@@ -385,9 +385,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// of BCE points and add it through the containing FSI system.
     void AddBCEBoundary(const std::vector<ChVector3d>& points, const ChFramed& frame);
 
-    // Nevi added this
-    std::vector<float> GetParticleData();
-
     // ----------- Utility functions for extracting information at specific SPH particles
 
     /// Utility function for finding indices of SPH particles inside a given OBB.

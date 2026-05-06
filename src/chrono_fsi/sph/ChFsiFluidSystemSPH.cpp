@@ -2923,12 +2923,6 @@ std::vector<Real3> ChFsiFluidSystemSPH::GetForces(const std::vector<int>& indice
     return m_data_mgr->GetForces(indices);
 }
 
-// Nevi added this
-std::vector<float> ChFsiFluidSystemSPH::GetParticleData() {
-    return m_data_mgr->GetParticleData();
-};
-
-
 }  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

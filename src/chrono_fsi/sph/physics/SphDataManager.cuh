@@ -407,9 +407,6 @@ struct FsiDataManager {
     thrust::device_vector<Real> courantViscousTimeStepD;  ///< Courant time step for viscosity
     thrust::device_vector<Real> accelerationTimeStepD;    ///< Courant time step for acceleration - unsorted
 
-    // Nevi added this
-    std::vector<float> GetParticleData();
-
   private:
     // Memory management parameters
     uint m_max_extended_particles;  ///< Maximum number of extended particles seen so far
