@@ -15,12 +15,13 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 
 #include "chrono_thirdparty/stb/stb_image_write.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include <vector>
 #include <sstream>
@@ -43,7 +44,7 @@ bool WriteRGBA16ToBinary(const std::string& file_path, uint16_t width, uint16_t 
     const uint16_t bit_depth = 16; // uint16 for each pixel channel
 
     // recursively create folder if not exists
-    // std::filesystem::path path(file_path);
+    // std::std::filesystem::path path(file_path);
     // std::filesystem::create_directories(path.parent_path());
 
     // Open file in binary mode
@@ -83,7 +84,7 @@ bool WriteFloatToBinary(const std::string& file_path, uint16_t width, uint16_t h
     const uint16_t bit_depth = 32; // bit length of FLOAT
 
     // recursively create folder if not exists
-    // std::filesystem::path path(file_path);
+    // std::std::filesystem::path path(file_path);
     // std::filesystem::create_directories(path.parent_path());
 
     // Open file in binary mode
@@ -237,8 +238,8 @@ CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor,
     for (auto s : split_string) {
         if (s != "") {
             partial_path += s + "/";
-            if (!filesystem::path(partial_path).exists()) {
-                if (!filesystem::create_directory(filesystem::path(partial_path))) {
+            if (!exists(std::filesystem::path(partial_path))) {
+                if (!std::filesystem::create_directory(std::filesystem::path(partial_path))) {
                     std::cerr << "Could not create directory: " << partial_path << std::endl;
                 } else {
                     std::cout << "Created directory for sensor data: " << partial_path << std::endl;

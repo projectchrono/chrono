@@ -50,8 +50,6 @@
 #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include <chrono>
 
 #ifdef CHRONO_IRRLICHT
@@ -135,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

@@ -38,8 +38,6 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace fea;
 double step_size = 1e-3;
@@ -250,7 +248,7 @@ int main(int argc, char* argv[]) {
     double t_sim = 0;
     if (generate_output) {
         // Create output directory (if it does not already exist).
-        if (!filesystem::create_directory(out_dir)) {
+        if (!std::filesystem::create_directory(out_dir)) {
             std::cout << "Error creating directory " << out_dir << "\n";
             return 1;
         }

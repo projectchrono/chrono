@@ -32,8 +32,6 @@
     #include "chrono_dem/visualization/ChDemVisualizationVSG.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::dem;
 
@@ -98,9 +96,9 @@ int main(int argc, char* argv[]) {
     dem_sys.SetParticleOutputMode(params.write_mode);
 
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    filesystem::create_directory(filesystem::path(out_dir));
+    std::filesystem::create_directory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    filesystem::create_directory(filesystem::path(out_dir));
+    std::filesystem::create_directory(std::filesystem::path(out_dir));
 
     dem_sys.SetTimeIntegrator(CHDEM_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     dem_sys.SetFixedStepSize(params.step_size);

@@ -30,7 +30,6 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimCuriosityNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
@@ -236,12 +235,12 @@ int main(int argc, char** argv) {
     std::string out_dir_top = GetChronoOutputPath() + "CURIOSITY_COSIM";
     std::string out_dir = out_dir_top + "/" + ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type);
     if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir_top))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir_top))) {
             cout << "Error creating directory " << out_dir_top << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;

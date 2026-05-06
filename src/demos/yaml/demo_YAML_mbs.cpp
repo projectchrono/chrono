@@ -31,7 +31,6 @@
 using namespace chrono::vsg3d;
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
@@ -125,12 +124,12 @@ int main(int argc, char* argv[]) {
     // Create output directory
     if (output) {
         std::string out_dir = GetChronoOutputPath() + "YAML_MBS";
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
         out_dir = out_dir + "/" + model_name;
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

@@ -33,8 +33,6 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 
 // =============================================================================
@@ -132,7 +130,7 @@ int main(int argc, char* argv[]) {
     // Initialize output
     const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
     if (output || blender_output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

@@ -34,8 +34,6 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 using namespace chrono::vsg3d;
@@ -437,7 +435,7 @@ int main(int argc, char* argv[]) {
         time_end = time_dropping;
         out_fps = out_fps_dropping;
 
-        if (!filesystem::path(checkpoint_file).exists()) {
+        if (!exists(std::filesystem::path(checkpoint_file))) {
             cout << "Checkpoint file " << checkpoint_file << " not found" << endl;
             cout << "Make sure to first run a SETTLING problem." << endl;
             return 1;
@@ -471,11 +469,11 @@ int main(int argc, char* argv[]) {
     double zero_v = 0.1 * r_g;
 
     // Create output directories.
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
         cout << "Error creating directory " << pov_dir << endl;
         return 1;
     }

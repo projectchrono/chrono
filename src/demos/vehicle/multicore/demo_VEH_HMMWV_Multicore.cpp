@@ -50,8 +50,6 @@
 using namespace chrono::vsg3d;
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -276,13 +274,13 @@ int main(int argc, char* argv[]) {
     std::string del("  ");
 
     if (output || povray) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << endl;
             return 1;
         }
 
         if (povray) {
-            if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+            if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
                 std::cerr << "Error creating directory " << pov_dir << std::endl;
                 return 1;
             }

@@ -28,8 +28,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/SetChronoSolver.h"
 
 using namespace chrono;
@@ -208,7 +206,7 @@ int main(int argc, char* argv[]) {
 
     const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

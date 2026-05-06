@@ -35,8 +35,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/SetChronoSolver.h"
 #include "viper_wheel.h"
 
@@ -149,7 +147,7 @@ int main() {
     // -----------------
 
     const std::string out_dir = GetChronoOutputPath() + "VIPER_WHEEL_CRM";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

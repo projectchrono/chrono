@@ -16,12 +16,12 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler_ipc.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include <tinyxml2.h>
 #include <fstream>
@@ -36,7 +36,7 @@ ChROSRobotModelHandler::ChROSRobotModelHandler(const std::string& robot_model, c
 class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::CustomProcessor {
   public:
     CustomProcessorFilenameResolver(const std::string& filename)
-        : m_filepath(filesystem::path(filename).parent_path().str()) {}
+        : m_filepath(std::filesystem::path(filename).parent_path().str()) {}
 
     /// This method will parse the links and resolve each filename to be an absolute path.
     virtual void Process(tinyxml2::XMLElement& elem, ChSystem& system) override {
@@ -102,12 +102,12 @@ class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::Cu
         const std::string separator("://");
         const size_t pos_separator = filename.find(separator);
         if (pos_separator == std::string::npos) {
-            filesystem::path path(filename);
+            std::filesystem::path path(filename);
             if (!path.is_absolute())
-                path = (filesystem::path(m_filepath) / path).make_absolute();
+                path = absolute((std::filesystem::path(m_filepath) / path));
             else
-                path = filesystem::path(filename);
-            resolved_filename = "file://" + path.str();
+                path = std::filesystem::path(filename);
+            resolved_filename = "file://" + path.string();
         }
 
         return resolved_filename;

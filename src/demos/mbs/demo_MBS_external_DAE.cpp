@@ -25,8 +25,6 @@
 
 #include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
@@ -485,7 +483,7 @@ int main(int argc, char* argv[]) {
 
     // Create output directory
     std::string out_dir = GetChronoOutputPath() + "DEMO_EXTERNAL_DYNAMICS_DAE";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }

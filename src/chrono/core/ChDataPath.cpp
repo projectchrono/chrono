@@ -10,9 +10,9 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChDataPath.h"
+#include <filesystem>
 
-#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono/core/ChDataPath.h"
 
 namespace chrono {
 
@@ -50,9 +50,9 @@ void SetChronoOutputPath(const std::string& path) {
 
 const std::string& GetChronoOutputPath() {
     // If the directory does not yet exists, create it
-    auto out_path = filesystem::path(chrono_out_path);
-    if (!out_path.exists())
-        filesystem::create_directory(out_path);
+    auto out_path = std::filesystem::path(chrono_out_path);
+    if (!exists(out_path))
+        std::filesystem::create_directory(out_path);
 
     return chrono_out_path;
 }
@@ -69,9 +69,9 @@ void SetChronoTestOutputPath(const std::string& path) {
 
 const std::string& GetChronoTestOutputPath() {
     // If the directory does not yet exists, create it
-    auto out_path = filesystem::path(chrono_test_out_path);
-    if (!out_path.exists())
-        filesystem::create_directory(out_path);
+    auto out_path = std::filesystem::path(chrono_test_out_path);
+    if (!exists(out_path))
+        std::filesystem::create_directory(out_path);
 
     return chrono_test_out_path;
 }

@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "chrono/ChConfig.h"
 #include "chrono/ChVersion.h"
@@ -36,7 +37,6 @@
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 

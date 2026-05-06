@@ -28,8 +28,6 @@
 
 #include "chrono_models/vehicle/sedan/Sedan.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::sedan;
@@ -112,7 +110,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output
     const std::string out_dir = GetChronoOutputPath() + "SEDAN";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

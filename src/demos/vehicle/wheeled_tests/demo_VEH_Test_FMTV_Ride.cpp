@@ -27,8 +27,6 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #ifdef CHRONO_VSG
@@ -247,12 +245,12 @@ int main(int argc, char* argv[]) {
     std::string out_dir;
     if (data_output) {
         out_dir = GetChronoOutputPath() + "FMTV_RIDE";
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
         out_dir = out_dir + "/" + vehicle_model->ModelName();
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

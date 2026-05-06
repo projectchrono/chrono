@@ -22,6 +22,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cassert>
+#include <filesystem>
 
 #include "chrono_parsers/ChParserURDF.h"
 
@@ -38,8 +39,6 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_HAS_ROS
     #include "ament_index_cpp/get_package_prefix.hpp"
@@ -74,7 +73,7 @@ ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), 
     }
 
     // Cache path to the URDF model file
-    m_filepath = filesystem::path(filename).parent_path().str();
+    m_filepath = std::filesystem::path(filename).parent_path().string();
 }
 
 void ChParserURDF::SetRootInitPose(const ChFrame<>& init_pose) {
@@ -222,9 +221,9 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
             result_filename = path;
 
             // Check if the path is relative (make it absolute if yes) or if it's absolute.
-            filesystem::path fpath(result_filename);
+            std::filesystem::path fpath(result_filename);
             if (!fpath.is_absolute())
-                result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
+                result_filename = absolute((std::filesystem::path(m_filepath) / fpath)).string();
         } else {
             cerr << "While resolving " + filename + ": Schemes of form [" + scheme + "] are not supported." << endl;
             result_filename = filename;
@@ -233,9 +232,9 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
         result_filename = filename;
 
         // Check if the path is relative (make it absolute if yes) or if it's absolute.
-        filesystem::path fpath(result_filename);
+        std::filesystem::path fpath(result_filename);
         if (!fpath.is_absolute())
-            result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
+            result_filename = absolute((std::filesystem::path(m_filepath) / fpath)).string();
     }
 
     return result_filename;
@@ -427,7 +426,7 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConst
                 case urdf::Geometry::MESH: {
                     auto mesh = std::static_pointer_cast<urdf::Mesh>(collision->geometry);
                     auto mesh_filename = resolveFilename(mesh->filename);
-                    auto ext = filesystem::path(mesh->filename).extension();
+                    auto ext = std::filesystem::path(mesh->filename).extension();
 
                     std::shared_ptr<ChTriangleMeshConnected> trimesh;
                     if (ext == "obj" || ext == "OBJ")

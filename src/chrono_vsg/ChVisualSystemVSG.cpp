@@ -19,6 +19,7 @@
 #include <cctype>
 #include <sstream>
 #include <iomanip>
+#include <filesystem>
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
@@ -28,8 +29,6 @@
 #include "chrono_vsg/impl/BaseEventHandlers.h"
 #include "chrono_vsg/impl/VSGnodes.h"
 #include "chrono_vsg/impl/VSGvisitors.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::cerr;
@@ -2327,7 +2326,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             const auto& filename = model_file->GetFilename();
             const auto& scale = model_file->GetScale();
 
-            auto ext = filesystem::path(filename).extension();
+            auto ext = std::filesystem::path(filename).extension().string();
             std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
             ChQuaterniond rot = (ext == "OBJ" || ext == "STL") ? QUNIT : QuatFromAngleX(-CH_PI_2);
 

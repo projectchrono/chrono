@@ -27,8 +27,6 @@
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 namespace chrono {
 namespace vehicle {
 

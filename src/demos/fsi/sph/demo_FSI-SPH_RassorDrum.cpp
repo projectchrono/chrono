@@ -36,7 +36,6 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -433,8 +432,8 @@ int main(int argc, char* argv[]) {
             std::string base_dir = chrono_output_path + "FSI_Rassor_SingleDrum/" + wheel_params.str() + "/";
 
             // Try to create the directory structure - ignoring errors if directories already exist
-            filesystem::create_directory(filesystem::path(chrono_output_path + "FSI_Rassor_SingleDrum/"));
-            filesystem::create_directory(filesystem::path(base_dir));
+            std::filesystem::create_directory(std::filesystem::path(chrono_output_path + "FSI_Rassor_SingleDrum/"));
+            std::filesystem::create_directory(std::filesystem::path(base_dir));
 
             // Create directory with all parameters in a single folder
             std::stringstream ss;
@@ -446,13 +445,13 @@ int main(int argc, char* argv[]) {
             ss << "_av_" << params.artificial_viscosity;
             out_dir = base_dir + ss.str();
 
-            filesystem::create_directory(filesystem::path(out_dir));
-            filesystem::create_directory(filesystem::path(out_dir + "/particles"));
-            filesystem::create_directory(filesystem::path(out_dir + "/fsi"));
+            std::filesystem::create_directory(std::filesystem::path(out_dir));
+            std::filesystem::create_directory(std::filesystem::path(out_dir + "/particles"));
+            std::filesystem::create_directory(std::filesystem::path(out_dir + "/fsi"));
 
             // Create directory for snapshots if enabled
             if (params.snapshots) {
-                filesystem::create_directory(filesystem::path(out_dir + "/snapshots"));
+                std::filesystem::create_directory(std::filesystem::path(out_dir + "/snapshots"));
             }
         } catch (const std::exception& e) {
             std::cerr << "Error creating directory structure: " << e.what() << std::endl;

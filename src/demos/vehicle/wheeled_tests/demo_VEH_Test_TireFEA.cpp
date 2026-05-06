@@ -48,8 +48,6 @@ using namespace chrono::vsg3d;
 using namespace chrono::postprocess;
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/SetChronoSolver.h"
 
 using namespace chrono;
@@ -330,7 +328,7 @@ int main(int argc, char* argv[]) {
 
     // Set up output
     std::string out_dir = GetChronoOutputPath() + "FEAtire_TEST";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

@@ -194,21 +194,21 @@ void ChVehicleCosimBaseNode::SetOutDir(const std::string& dir_name, const std::s
     m_node_out_dir = dir_name + "/" + m_name + suffix;
 
     // Create node-specific output directory
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(m_node_out_dir))) {
         std::cout << "Error creating directory " << m_node_out_dir << std::endl;
         return;
     }
 
     // Create subdirectories for simulation and visualization outputs
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(m_node_out_dir + "/simulation"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/simulation" << std::endl;
         return;
     }
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/visualization"))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(m_node_out_dir + "/visualization"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/visualization" << std::endl;
         return;
     }
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/images"))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(m_node_out_dir + "/images"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/images" << std::endl;
         return;
     }

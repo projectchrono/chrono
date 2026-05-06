@@ -21,6 +21,7 @@
 #include <sstream>
 #include <queue>
 #include <stdexcept>
+#include <filesystem>
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
@@ -31,7 +32,6 @@
 #include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
 
 #include "chrono_thirdparty/stb/stb.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::cerr;

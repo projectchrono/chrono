@@ -530,7 +530,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
+        trimesh_shape->SetName(std::filesystem::path(b.m_mesh_filename).stem().string());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
         m_system->AddBody(body);
     }
@@ -590,7 +590,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
     // Create subdirectory for output from settling simulation (if enabled)
     if (m_settling_output) {
-        if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/settling"))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(m_node_out_dir + "/settling"))) {
             std::cout << "Error creating directory " << m_node_out_dir + "/settling" << std::endl;
             return;
         }

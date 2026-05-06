@@ -20,8 +20,6 @@
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChValidation.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -76,9 +74,9 @@ int main(int argc, char* argv[]) {
     std::string out_dir = GetChronoTestOutputPath() + "/prismatic_spring";
     std::string dirS = out_dir + "/sparse";
     std::string dirD = out_dir + "/dense";
-    filesystem::create_directory(filesystem::path(out_dir));
-    filesystem::create_directory(filesystem::path(dirS));
-    filesystem::create_directory(filesystem::path(dirD));
+    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    std::filesystem::create_directory(std::filesystem::path(dirS));
+    std::filesystem::create_directory(std::filesystem::path(dirD));
 
     std::string fileS = dirS + "/height.txt";
     std::string fileD = dirD + "/height.txt";

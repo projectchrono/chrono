@@ -40,8 +40,6 @@
     #include "chrono_postprocess/ChBlender.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/SetChronoSolver.h"
 
 using namespace chrono;
@@ -252,7 +250,7 @@ int main() {
     // -----------------
 
     const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
@@ -280,7 +278,7 @@ int main() {
 
     if (blender_output) {
         std::string blender_dir = out_dir + "/blender";
-        if (!filesystem::create_directory(filesystem::path(blender_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(blender_dir))) {
             cerr << "Error creating directory " << blender_dir << endl;
             return 1;
         }

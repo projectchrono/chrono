@@ -15,11 +15,12 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 
 #include "chrono/core/ChDataPath.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_HAS_CXX17
     #include <filesystem>
@@ -1271,7 +1272,7 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                                           std::string file_name,
                                           bool mirror,
                                           bool exclude_from_material_cleanup) {
-    if (!filesystem::path(file_name).exists()) {
+    if (!exists(std::filesystem::path(file_name))) {
         throw std::runtime_error("Error, file not found: " + file_name);
     }
 

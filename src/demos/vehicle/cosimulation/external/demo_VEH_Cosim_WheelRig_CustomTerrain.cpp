@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "RIG_COSIM_CUSTOM";
     if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;

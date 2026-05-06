@@ -34,7 +34,6 @@
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "granular.h"
 
@@ -121,18 +120,18 @@ int main(int argc, char* argv[]) {
     std::string pov_dir = dir + "/POVRAY" + suffix;
     std::string out_dir = dir + "/RESULTS" + suffix;
 
-    if (!filesystem::create_directory(filesystem::path(dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(dir))) {
         cout << "Error creating directory " << dir << endl;
         return 1;
     }
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             return 1;
         }
     }
     if (pov_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
             cout << "Error creating directory " << pov_dir << endl;
             return 1;
         }

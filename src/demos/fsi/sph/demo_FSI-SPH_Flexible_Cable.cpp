@@ -45,7 +45,6 @@
 #endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -258,40 +257,40 @@ int main(int argc, char* argv[]) {
 
     // Create oputput directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphIntegrationSchemeString() + "/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     out_dir = out_dir + viscosity_method + "_" + boundary_method + "_ps" + std::to_string(ps_freq);
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/particles"))) {
             cerr << "Error creating directory " << out_dir + "/particles" << endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/fsi"))) {
             cerr << "Error creating directory " << out_dir + "/fsi" << endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/vtk"))) {
             cerr << "Error creating directory " << out_dir + "/vtk" << endl;
             return 1;
         }
     }
 
     if (snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/snapshots"))) {
             cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
             return 1;
         }

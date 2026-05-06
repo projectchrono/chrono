@@ -12,6 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_parsers/yaml/ChParserFsiYAML.h"
@@ -21,8 +23,6 @@
 #ifdef CHRONO_FSI_TDPF
     #include "chrono_parsers/yaml/ChParserTdpfYAML.h"
 #endif
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::cerr;
@@ -347,7 +347,7 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
 
     if (m_parserMBS) {
         std::string out_dir_MBS = out_dir + "/mbs";
-        if (filesystem::create_directory(filesystem::path(out_dir_MBS))) {
+        if (std::filesystem::create_directory(std::filesystem::path(out_dir_MBS))) {
             m_parserMBS->SetOutputDir(out_dir_MBS);
         } else {
             std::cerr << "Error creating directory " << out_dir_MBS << std::endl;
@@ -357,7 +357,7 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
 
     if (m_parserCFD) {
         std::string out_dir_CFD = out_dir + "/fluid";
-        if (filesystem::create_directory(filesystem::path(out_dir_CFD))) {
+        if (std::filesystem::create_directory(std::filesystem::path(out_dir_CFD))) {
             m_parserCFD->SetOutputDir(out_dir_CFD);
         } else {
             std::cerr << "Error creating directory " << out_dir_CFD << std::endl;

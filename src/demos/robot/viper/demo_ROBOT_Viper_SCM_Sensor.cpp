@@ -43,8 +43,6 @@
 #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -172,7 +170,7 @@ int main(int argc, char* argv[]) {
     // Initialize output
     std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_SCM_SENSOR";
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

@@ -14,6 +14,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChCamera.h"
@@ -28,8 +29,6 @@
 #include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_postprocess/ChPovRay.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace postprocess {
@@ -203,14 +202,14 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Create directories
     if (base_path != "") {
-        if (!filesystem::create_directory(filesystem::path(base_path))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(base_path))) {
             std::cout << "Error creating base directory \"" << base_path << "\" for the POV files." << std::endl;
             return;
         }
         base_path = base_path + "/";
     }
-    filesystem::create_directory(filesystem::path(base_path + pic_path));
-    filesystem::create_directory(filesystem::path(base_path + out_path));
+    std::filesystem::create_directory(std::filesystem::path(base_path + pic_path));
+    std::filesystem::create_directory(std::filesystem::path(base_path + out_path));
 
     // Generate the _assets.pov script (initial state, it will be populated later by
     // appending assets as they enter the exporter, only once if shared, using ExportAssets() )
@@ -625,8 +624,8 @@ void ChPovRay::ExportMaterials(std::ofstream& assets_file, const std::vector<std
 
         // add POV  texture (changing the path to absolute to allow base_path different to the one of .exe)
         if (!mat->GetKdTexture().empty()) {
-            auto rel_path = filesystem::path(mat->GetKdTexture());
-            auto abs_path = rel_path.make_absolute().str();
+            auto rel_path = std::filesystem::path(mat->GetKdTexture());
+            auto abs_path = absolute(rel_path).string();
             auto ext = rel_path.extension();
             if (ext == "jpg")
                 ext = "jpeg";

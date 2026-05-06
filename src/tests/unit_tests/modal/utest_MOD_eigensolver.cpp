@@ -31,7 +31,6 @@
 
 #include "chrono/solver/ChDirectSolverLScomplex.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/fast_matrix_market/app/Eigen.hpp"
 
 #include <iomanip>
@@ -60,15 +59,15 @@ double GetEigenvaluesMaxDiff(const ChVectorDynamic<std::complex<double>>& eig1,
 
 void prepare_folders(std::string testname) {
     // Create output directory (if it does not already exist)
-    if (!filesystem::create_directory(filesystem::path(val_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(val_dir))) {
         std::cerr << "Error creating directory " << val_dir << std::endl;
         throw std::invalid_argument("Error creating directory " + val_dir);
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         throw std::invalid_argument("Error creating directory " + out_dir);
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + testname))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir + testname))) {
         std::cerr << "Error creating directory " << out_dir + testname << std::endl;
         throw std::invalid_argument("Error creating directory " + out_dir + testname);
     }

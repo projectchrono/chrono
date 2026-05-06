@@ -32,8 +32,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -198,12 +196,12 @@ int main(int argc, char* argv[]) {
     // ----- Create output directory
     std::string out_dir = GetChronoOutputPath() + "FSI-TDPF_rm3";
     std::string img_dir = out_dir + "/reg_waves_img";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
     if (snapshots) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(img_dir))) {
             std::cerr << "Error creating directory " << img_dir << std::endl;
             return 1;
         }

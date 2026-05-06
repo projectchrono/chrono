@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
     // Prepare output directory
     std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_COSIM";
     if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;
@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
               + ChVehicleCosimTireNode::GetTireTypeAsString(tire_type) + "_"  //
               + ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type);
     if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;

@@ -14,6 +14,8 @@
 #define CH_DATA_PATH_H
 
 #include <string>
+#include <filesystem>
+
 #include "chrono/core/ChApiCE.h"
 
 namespace chrono {

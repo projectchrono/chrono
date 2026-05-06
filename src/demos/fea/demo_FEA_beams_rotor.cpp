@@ -30,7 +30,6 @@
 #include "chrono/fea/ChMesh.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_postprocess/ChGnuPlot.h"
 
 #include "FEAvisualization.h"
@@ -62,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     // Directory for output data
     const std::string out_dir = GetChronoOutputPath() + "BEAM_ROTOR";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
