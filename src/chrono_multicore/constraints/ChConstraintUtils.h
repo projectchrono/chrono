@@ -82,56 +82,10 @@ static void inline AppendRow6Weak(T& D, const int row, const int col, const real
 }
 
 template <typename T>
-static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
-    //    printf("%d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
-    if (D.coeff(row, col + 0) == 0.0 && A.x != 0.0) {
-        printf("fail: %d %d\n", row, col + 0); exit(1);
-    }
-    if (D.coeff(row, col + 1) == 0.0 && A.y != 0.0) {
-        printf("fail: %d %d\n", row, col + 1); exit(1);
-    }
-    if (D.coeff(row, col + 2) == 0.0 && A.z != 0.0) {
-        printf("fail: %d %d\n", row, col + 2); exit(1);
-    }
-
-    if (A.x != 0.0) D.coeffRef(row, col + 0) = A.x;
-    if (A.y != 0.0) D.coeffRef(row, col + 1) = A.y;
-    if (A.z != 0.0) D.coeffRef(row, col + 2) = A.z;
-}
-template <typename T>
 static void inline SetRow3Weak(T& D, const int row, const int col, const real3& A) {
     if (A.x != 0.0) D.coeffRef(row, col + 0) = A.x;
     if (A.y != 0.0) D.coeffRef(row, col + 1) = A.y;
     if (A.z != 0.0) D.coeffRef(row, col + 2) = A.z;
-}
-template <typename T>
-static void inline SetRow6Check(T& D, const int row, const int col, const real3& A, const real3& B) {
-    //    printf("%d [%d %d %d] [%d %d %d]\n", row, col + 0, col + 1, col + 2, col + 3, col + 4, col + 5);
-    if (D.coeff(row, col + 0) == 0.0 && A.x != 0.0) {
-        printf("fail: %d %d\n", row, col + 0); exit(1);
-    }
-    if (D.coeff(row, col + 1) == 0.0 && A.y != 0.0) {
-        printf("fail: %d %d\n", row, col + 1); exit(1);
-    }
-    if (D.coeff(row, col + 2) == 0.0 && A.z != 0.0) {
-        printf("fail: %d %d\n", row, col + 2); exit(1);
-    }
-    if (D.coeff(row, col + 3) == 0.0 && B.x != 0.0) {
-        printf("fail: %d %d\n", row, col + 3); exit(1);
-    }
-    if (D.coeff(row, col + 4) == 0.0 && B.y != 0.0) {
-        printf("fail: %d %d\n", row, col + 4); exit(1);
-    }
-    if (D.coeff(row, col + 5) == 0.0 && B.z != 0.0) {
-        printf("fail: %d %d\n", row, col + 5); exit(1);
-    }
-
-    if (A.x != 0.0) D.coeffRef(row, col + 0) = A.x;
-    if (A.y != 0.0) D.coeffRef(row, col + 1) = A.y;
-    if (A.z != 0.0) D.coeffRef(row, col + 2) = A.z;
-    if (B.x != 0.0) D.coeffRef(row, col + 3) = B.x;
-    if (B.y != 0.0) D.coeffRef(row, col + 4) = B.y;
-    if (B.z != 0.0) D.coeffRef(row, col + 5) = B.z;
 }
 
 template <typename T>

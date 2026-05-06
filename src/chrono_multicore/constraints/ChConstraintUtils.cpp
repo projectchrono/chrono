@@ -305,8 +305,8 @@ void BuildRigidParticleBoundary(const real contact_mu,
                 Compute_Jacobian(rot_rigid[rigid], U, V, W,
                                  cpta[p * ChNarrowphase::max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2, T3);
 
-                SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-                SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U););
+                SetRow6(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
+                SetRow3(D_T, start_boundary + index + 0, body_offset + p * 3, U););
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
@@ -319,13 +319,13 @@ void BuildRigidParticleBoundary(const real contact_mu,
                 Compute_Jacobian(rot_rigid[rigid], U, V, W,
                                  cpta[p * ChNarrowphase::max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2, T3);
 
-                SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-                SetRow6Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, rigid * 6, -V, T2);
-                SetRow6Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, rigid * 6, -W, T3);
+                SetRow6(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
+                SetRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, rigid * 6, -V, T2);
+                SetRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
-                SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U);
-                SetRow3Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, body_offset + p * 3, V);
-                SetRow3Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, body_offset + p * 3, W););
+                SetRow3(D_T, start_boundary + index + 0, body_offset + p * 3, U);
+                SetRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, body_offset + p * 3, V);
+                SetRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, body_offset + p * 3, W););
         }
     }
 }

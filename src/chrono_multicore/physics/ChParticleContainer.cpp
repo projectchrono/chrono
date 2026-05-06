@@ -189,8 +189,8 @@ void ChParticleContainer::Build_D() {
             Loop_Over_Particle_Neighbors(                                                       //
                 real3 U = -Normalize(xij); real3 V; real3 W;                                 //
                 Orthogonalize(U, V, W);                                                      //
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);  //
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U);   //
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);  //
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);   //
             );
 
         } else {
@@ -199,14 +199,14 @@ void ChParticleContainer::Build_D() {
 
                 // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_a * 3);
 
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_a * 3, -V);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_a * 3, -W);
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_a * 3, -V);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_a * 3, -W);
                 // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_b * 3);
 
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_b * 3, V);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_b * 3, V);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
         }
     }
 }

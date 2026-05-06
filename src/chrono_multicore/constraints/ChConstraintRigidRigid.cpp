@@ -442,8 +442,8 @@ void ChConstraintRigidRigid::Build_D() {
         real3 U_B = Rotate(U, q_b);
         T6 = Cross(U_B, sbar_b.v);
 
-        SetRow6Check(D_T, off + row * 1 + 0, body_id.x * 6, -U, T3);
-        SetRow6Check(D_T, off + row * 1 + 0, body_id.y * 6, U, -T6);
+        SetRow6(D_T, off + row * 1 + 0, body_id.x * 6, -U, T3);
+        SetRow6(D_T, off + row * 1 + 0, body_id.y * 6, U, -T6);
 
         if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
             off = num_rigid_contacts;
@@ -458,22 +458,22 @@ void ChConstraintRigidRigid::Build_D() {
             T7 = Cross(V_B, sbar_b.v);
             T8 = Cross(W_B, sbar_b.v);
 
-            SetRow6Check(D_T, off + row * 2 + 0, body_id.x * 6, -V, T4);
-            SetRow6Check(D_T, off + row * 2 + 1, body_id.x * 6, -W, T5);
+            SetRow6(D_T, off + row * 2 + 0, body_id.x * 6, -V, T4);
+            SetRow6(D_T, off + row * 2 + 1, body_id.x * 6, -W, T5);
 
-            SetRow6Check(D_T, off + row * 2 + 0, body_id.y * 6, V, -T7);
-            SetRow6Check(D_T, off + row * 2 + 1, body_id.y * 6, W, -T8);
+            SetRow6(D_T, off + row * 2 + 0, body_id.y * 6, V, -T7);
+            SetRow6(D_T, off + row * 2 + 1, body_id.y * 6, W, -T8);
 
             if (solver_mode == SolverMode::SPINNING) {
                 off = 3 * num_rigid_contacts;
 
-                SetRow3Check(D_T, off + row * 3 + 0, body_id.x * 6 + 3, -U_A);
-                SetRow3Check(D_T, off + row * 3 + 1, body_id.x * 6 + 3, -V_A);
-                SetRow3Check(D_T, off + row * 3 + 2, body_id.x * 6 + 3, -W_A);
+                SetRow3(D_T, off + row * 3 + 0, body_id.x * 6 + 3, -U_A);
+                SetRow3(D_T, off + row * 3 + 1, body_id.x * 6 + 3, -V_A);
+                SetRow3(D_T, off + row * 3 + 2, body_id.x * 6 + 3, -W_A);
 
-                SetRow3Check(D_T, off + row * 3 + 0, body_id.y * 6 + 3, U_B);
-                SetRow3Check(D_T, off + row * 3 + 1, body_id.y * 6 + 3, V_B);
-                SetRow3Check(D_T, off + row * 3 + 2, body_id.y * 6 + 3, W_B);
+                SetRow3(D_T, off + row * 3 + 0, body_id.y * 6 + 3, U_B);
+                SetRow3(D_T, off + row * 3 + 1, body_id.y * 6 + 3, V_B);
+                SetRow3(D_T, off + row * 3 + 2, body_id.y * 6 + 3, W_B);
             }
         }
     }
