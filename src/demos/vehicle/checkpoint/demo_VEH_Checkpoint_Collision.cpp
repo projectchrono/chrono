@@ -56,8 +56,21 @@ using std::endl;
 // =============================================================================
 
 enum class ChassisCollisionGeometry { SPHERE_PRIM, SPHERE_MESH, TRIMESH };
-
 ChassisCollisionGeometry geometry_type = ChassisCollisionGeometry::SPHERE_PRIM;
+
+// Simulation parameters
+// - step_size_base         [s]        : base integration step size (used outside the collision phase)
+// - step_size_multiplier   [-]        : factor by which the step size is decreased during the collision phase
+// - num_BB_iterations      [-]        : maximum number of iterations for the Barzilai-Borwein solver
+// - num_collision_threads  [-]        : maximum number of OpenMP threads used by the Bullet collisino detection
+// - collision_fps          [frames/s] : frequency of collition detection calls during the collision phase (a non-positive value indicates calls at each step)
+// - render_fps             [frames/s] : frequency of visualization rendering (a non-positive value indicates rendering at each step)
+double step_size_base = 1e-3;
+double step_size_multiplier = 10;
+int num_BB_iterations = 50;
+int num_collision_threads = 4;
+double collision_fps = 1000;
+double render_fps = 50;
 
 // =============================================================================
 
@@ -66,10 +79,11 @@ std::unique_ptr<ChSystemSMC> CreateSystem() {
     auto sys = chrono_types::make_unique<ChSystemSMC>();
 
     sys->SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
+    sys->SetNumThreads(1, std::min(num_collision_threads, ChOMP::GetNumProcs()), 1);
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     auto solver = chrono_types::make_shared<ChSolverBB>();
-    solver->SetMaxIterations(100);
+    solver->SetMaxIterations(num_BB_iterations);
     solver->SetOmega(0.8);
     solver->SetSharpnessLambda(1.0);
     sys->SetSolver(solver);
@@ -253,13 +267,13 @@ std::shared_ptr<ChWheeledVehicleVisualSystemVSG> CreateVisualization(MyVehicle& 
 
 // Render the visualization system at the specified time and render frame rate.
 // Return false if the visualization system is closed.
-bool RenderVisualization(std::shared_ptr<ChWheeledVehicleVisualSystemVSG> vis, double time, double render_fps) {
+bool RenderVisualization(std::shared_ptr<ChWheeledVehicleVisualSystemVSG> vis, double time, double fps) {
     static int render_frame = 0;
 
     if (vis) {
         if (!vis->Run())
             return false;
-        if (time >= render_frame / render_fps) {
+        if (time >= render_frame / fps) {
             vis->Render();
             render_frame++;
         }
@@ -281,7 +295,7 @@ void SimulateSingle(double time_end, double target_speed, const DriverFunctions&
 
     // Create the containing Chrono system
     auto sys = CreateSystem();
-    double step_size = 2e-3;
+    double step_size = step_size_base;
 
     // Create the vehicle model, terrain, and driver system
     // The vehicle is created with no chassis visualization or collision
@@ -299,8 +313,6 @@ void SimulateSingle(double time_end, double target_speed, const DriverFunctions&
 #endif
 
     // Simulation loop
-    double render_fps = 50;
-
     while (true) {
         double time = sys->GetChTime();
 
@@ -422,10 +434,18 @@ void SimulateMultiple(const std::vector<std::pair<ChVector2d, double>>& position
 
     // Simulation loop
 
-    double step_size = 1e-3;
-    double render_fps = 50;
+    double step_size = step_size_base;
+
+    double timer_step = 0;
+    double timer_advance = 0;
+    double timer_collision = 0;
+    double rtf = 0;
+    int num_timer_steps = 0;
+
     bool collision_start = false;
-    
+    double time_collision_start = 0;
+    int num_collision_calls = 0;
+
     while (true) {
         double time = sys->GetChTime();
 
@@ -442,7 +462,7 @@ void SimulateMultiple(const std::vector<std::pair<ChVector2d, double>>& position
             break;
 #endif
 
-        // Synchronize subsystems
+        // Synchronize vehicle, driver, terrain, and visualization systems
         for (int i = 0; i < my_vehicles.size(); i++) {
             my_drivers[i]->Synchronize(time);
             my_vehicles[i]->Synchronize(time, my_drivers[i]->GetInputs(), terrain);
@@ -452,7 +472,7 @@ void SimulateMultiple(const std::vector<std::pair<ChVector2d, double>>& position
         vis->Synchronize(time, my_drivers[0]->GetInputs());
 #endif
 
-        // Advance simulation
+        // Advance simulation of vehicle, driver, terrain, and visualization systems
         for (int i = 0; i < my_vehicles.size(); i++) {
             my_drivers[i]->Advance(step_size);
             my_vehicles[i]->Advance(step_size);
@@ -462,26 +482,60 @@ void SimulateMultiple(const std::vector<std::pair<ChVector2d, double>>& position
         vis->Advance(step_size);
 #endif
 
+        // Decide if the collision detection algorithm should run for this step
+        bool do_collision = true;
+        if (collision_start) {
+            if (collision_fps <= 0 || (time - time_collision_start) >= num_collision_calls / collision_fps) {
+                do_collision = true;
+                num_collision_calls++;
+            } else {
+                do_collision = false;
+            }
+        }
+
         // Advance state of entire system (containing all vehicles)
-        sys->DoStepDynamics(step_size);
+        sys->DoStepDynamics(step_size, do_collision);
+
+        // Collect timing information
+        if (collision_start) {
+            timer_step += sys->GetTimerStep();
+            timer_advance += sys->GetTimerAdvance();
+            timer_collision += sys->GetTimerCollision();
+            rtf += sys->GetRTF();
+            num_timer_steps++;
+        }
 
         // Intercept start and end of chassis collision
         // - reduce step size while contact occurs
         // - print vehicle speed after collision
         if (!collision_start && sys->GetNumContacts() > 0) {
             collision_start = true;
-            step_size /= 10;
-            cout << "Start contact at t:    " << time << endl;
-            cout << "  Step size reduced:   " << step_size << endl;
+            time_collision_start = time;
+            num_collision_calls = 0;
+            step_size /= step_size_multiplier;
+            cout << "Start contact at t: " << time << " s" << endl;
+            cout << "  Step size reduced to: " << step_size << " s" << endl;
+            timer_step = 0;
+            timer_advance = 0;
+            timer_collision = 0;
+            rtf = 0;
+            num_timer_steps = 0;
         }
 
         if (collision_start && sys->GetNumContacts() == 0) {
-            step_size *= 10;
-            cout << "End contact at t:      " << time << endl;
-            cout << "  Step size increased: " << step_size << endl;
-            cout << "  Vehicle 1 speed:     " << my_vehicles[0]->GetVehicle().GetSpeed() << endl;
-            cout << "  Vehicle 2 speed:     " << my_vehicles[1]->GetVehicle().GetSpeed() << endl;
             collision_start = false;
+            step_size *= step_size_multiplier;
+            cout << "End contact at t: " << time << " s" << endl;
+            cout << "  Vehicle 1 speed: " << my_vehicles[0]->GetVehicle().GetSpeed() << " m/s" << endl;
+            cout << "  Vehicle 2 speed: " << my_vehicles[1]->GetVehicle().GetSpeed() << " m/s" << endl;
+            cout << "  Timing information for collision phase" << endl;
+            cout << "      Num. collision calls:   " << num_collision_calls << endl;
+            cout << "      Num. integration steps: " << num_timer_steps << endl;
+            cout << "      average step time:      " << 1000 * timer_step / num_timer_steps << " ms" << endl;
+            cout << "      average advance time:   " << 1000 * timer_advance / num_timer_steps << " ms" << endl;
+            cout << "      average collision time: " << 1000 * timer_collision / num_timer_steps << " ms" << endl;
+            cout << "      average RTF:            " << rtf / num_timer_steps << endl;
+            cout << "  Step size increased to: " << step_size << " s" << endl;
         }
     }
 
@@ -518,7 +572,7 @@ void SimulateMultiple(const std::vector<std::pair<ChVector2d, double>>& position
 int main(int argc, char* argv[]) {
     // Create output directories
     std::string out_dir = GetChronoOutputPath() + "VEHICLE_CHECKPOINT_1";
-    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(out_dir)) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
