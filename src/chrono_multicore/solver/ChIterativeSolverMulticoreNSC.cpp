@@ -240,7 +240,12 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
 
-    // using the .transpose(); function will do in place transpose and copy
+    // Compress D_T: Build_D uses insert() which leaves matrix in uncompressed
+    // form. Compressed form is required for safe block extraction (middleRows/cols)
+    // and also more efficient for sparse-sparse products below.
+    D_T.makeCompressed();
+
+    // using transpose() function will do in place transpose and copy
     data_manager->host_data.D = D_T.transpose();
 
     data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
@@ -270,13 +275,9 @@ void ChIterativeSolverMulticoreNSC::ComputeR() {
         return;
     }
 
-    ////const VectorType& M_invk = data_manager->host_data.M_invk;
-    ////const SparseMatrixType& D_T = data_manager->host_data.D_T;
-
     VectorType& R = data_manager->host_data.R_full;
 
     // B is now resized in the Jacobian function
-
     R.resize(data_manager->num_constraints);
     R.setZero();
 

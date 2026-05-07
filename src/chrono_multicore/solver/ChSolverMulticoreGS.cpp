@@ -36,7 +36,15 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
 
-    SparseMatrixType Nschur = data_manager->host_data.D_T * data_manager->host_data.M_invD;
+    // Reuse Nschur already computed by ComputeN() when available; otherwise
+    // compute it locally (GS need it for diagonal preconditioning and row dots)
+    SparseMatrixType nschur_local;
+    if (!data_manager->settings.solver.compute_N) {
+        nschur_local = data_manager->host_data.D_T * data_manager->host_data.M_invD;
+    }
+    const SparseMatrixType& Nschur = data_manager->settings.solver.compute_N
+                                         ? data_manager->host_data.Nschur
+                                         : nschur_local;
     VectorType D;
     D.resize(num_constraints, false);
 
@@ -86,18 +94,14 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
 
         for (int i = 0; i < (signed)num_contacts; i++) {
             ml[offset + i] = ml[offset + i] - omega * D[offset + i] *
-                                                  Nschur.row(offset + i * 1 + 0).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                                                  r[offset + i];
-            ml[nc + i * 2 + 0] =
-                ml[nc + i * 2 + 0] -
-                omega * D[nc + i * 2 + 0] *
-                    Nschur.row(nc + i * 2 + 0).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                    r[nc + i * 2 + 0];
-            ml[nc + i * 2 + 1] =
-                ml[nc + i * 2 + 1] -
-                omega * D[nc + i * 2 + 1] *
-                    Nschur.row(nc + i * 2 + 1).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                    r[nc + i * 2 + 1];
+                             Nschur.row(offset + i * 1 + 0).dot(ml) -
+                             r[offset + i];
+            ml[nc + i * 2 + 0] = ml[nc + i * 2 + 0] - omega * D[nc + i * 2 + 0] *
+                                 Nschur.row(nc + i * 2 + 0).dot(ml) -
+                                 r[nc + i * 2 + 0];
+            ml[nc + i * 2 + 1] = ml[nc + i * 2 + 1] - omega * D[nc + i * 2 + 1] *
+                                 Nschur.row(nc + i * 2 + 1).dot(ml) -
+                                 r[nc + i * 2 + 1];
 
             data_manager->rigid_rigid->Project_Single(i, ml.data());
         }
@@ -106,33 +110,30 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
 
         for (size_t i = 0; i < num_bilaterals; i++) {
             ml[offset + i] = ml[offset + i] - omega * D[offset + i] *
-                                                  (Nschur.row(offset + i * 1 + 0).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                                                   r[offset + i]);
+                             (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
         }
         if (data_manager->num_particles) {
             offset += data_manager->num_bilaterals;
 
             for (size_t i = 0; i < data_manager->num_particles; i++) {
                 ml[offset + i] = ml[offset + i] - omega * D[offset + i] *
-                                                      (Nschur.row(offset + i * 1 + 0).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                                                       r[offset + i]);
+                                 (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
             }
 
             offset += data_manager->num_particles;
 
             for (size_t i = 0; i < num_rigid_particle_contacts; i++) {
                 ml[offset + i] = ml[offset + i] - omega * D[offset + i] *
-                                                      (Nschur.row(offset + i * 1 + 0).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                                                       r[offset + i]);
+                                 (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
                 if (data_manager->node_container->contact_mu != 0) {
                     ml[offset + nfc + i * 2 + 0] = ml[offset + nfc + i * 2 + 0] -
                                                    omega * D[offset + nfc + i * 2 + 0] *
-                                                       (Nschur.row(offset + nfc + i * 2 + 0).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                                                        r[offset + nfc + i * 2 + 0]);
+                                                   (Nschur.row(offset + nfc + i * 2 + 0).dot(ml) -
+                                                   r[offset + nfc + i * 2 + 0]);
                     ml[offset + nfc + i * 2 + 1] = ml[offset + nfc + i * 2 + 1] -
                                                    omega * D[offset + nfc + i * 2 + 1] *
-                                                       (Nschur.row(offset + nfc + i * 2 + 1).dot(ml.segment(0, 1 * data_manager->num_constraints)) -
-                                                        r[offset + nfc + i * 2 + 1]);
+                                                   (Nschur.row(offset + nfc + i * 2 + 1).dot(ml) -
+                                                   r[offset + nfc + i * 2 + 1]);
                 }
                 data_manager->node_container->Project(ml.data());
             }

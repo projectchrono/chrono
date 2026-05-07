@@ -41,7 +41,13 @@ uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,
     temp.resize(size);
     VectorType deltal;
     deltal.resize(size);
-    SparseMatrixType Nschur = data_manager->host_data.D_T * data_manager->host_data.M_invD;
+    SparseMatrixType nschur_local;
+    if (!data_manager->settings.solver.compute_N) {
+        nschur_local = data_manager->host_data.D_T * data_manager->host_data.M_invD;
+    }
+    const SparseMatrixType& Nschur = data_manager->settings.solver.compute_N
+                                         ? data_manager->host_data.Nschur
+                                         : nschur_local;
     VectorType D;
     D.resize(num_constraints, false);
     // real eignenval = LargestEigenValue(SchurProduct, temp);
