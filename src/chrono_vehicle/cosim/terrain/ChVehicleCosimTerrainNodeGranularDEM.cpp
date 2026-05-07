@@ -420,7 +420,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::Settle() {
 
     // Create subdirectory for output from settling simulation (if enabled)
     if (m_settling_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(m_node_out_dir + "/settling"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(m_node_out_dir + "/settling"))) {
             cout << "Error creating directory " << m_node_out_dir + "/settling" << endl;
             return;
         }

@@ -238,13 +238,13 @@ int main(int argc, char* argv[]) {
     const std::string pov_dir = out_dir + "/POVRAY";
     const std::string img_dir = out_dir + "/IMG";
 
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     if (povray_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (img_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(img_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
             std::cout << "Error creating directory " << img_dir << std::endl;
             return 1;
         }

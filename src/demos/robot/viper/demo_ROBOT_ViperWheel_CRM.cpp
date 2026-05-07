@@ -147,7 +147,7 @@ int main() {
     // -----------------
 
     const std::string out_dir = GetChronoOutputPath() + "VIPER_WHEEL_CRM";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

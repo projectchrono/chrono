@@ -145,20 +145,20 @@ int main(int argc, char* argv[]) {
 
     // Initialize output
     std::string out_dir = GetChronoOutputPath() + "WHEELED";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     out_dir = out_dir + "/" + vehicle_model->ModelName();
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     std::string pov_dir = out_dir + "/POVRAY";
     if (povray_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
 
     std::string blender_dir = out_dir + "/BLENDER";
     if (blender_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(blender_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(blender_dir))) {
             std::cout << "Error creating directory " << blender_dir << std::endl;
             return 1;
         }

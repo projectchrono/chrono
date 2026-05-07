@@ -298,34 +298,34 @@ int main(int argc, char* argv[]) {
     std::string out_dir;
     if (output || snapshots) {
         out_dir = GetChronoOutputPath() + "FSI_Baffle_Flow/";
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
 
         out_dir = out_dir + viscosity_method + "_" + boundary_method + std::to_string(ps_freq);
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
 
         if (output) {
-            if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/particles"))) {
+            if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/particles"))) {
                 std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
                 return 1;
             }
-            if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/fsi"))) {
+            if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/fsi"))) {
                 std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
                 return 1;
             }
-            if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/vtk"))) {
+            if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/vtk"))) {
                 std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
                 return 1;
             }
         }
 
         if (snapshots) {
-            if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/snapshots"))) {
+            if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/snapshots"))) {
                 std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
                 return 1;
             }

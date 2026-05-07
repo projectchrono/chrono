@@ -696,7 +696,7 @@ int main(int argc, char* argv[]) {
 
     // Create output directory
     std::string out_dir = GetChronoOutputPath() + "DEMO_POWERTRAIN";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

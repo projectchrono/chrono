@@ -119,18 +119,18 @@ int main(int argc, char* argv[]) {
 
 
     // Create oputput directories
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     out_dir = out_dir + "/" + sysSPH->GetPhysicsProblemString() + "_" + sysSPH->GetSphIntegrationSchemeString();
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     if (output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/particles"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/particles"))) {
             std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
             return 1;
         }

@@ -120,18 +120,18 @@ int main(int argc, char* argv[]) {
     std::string pov_dir = dir + "/POVRAY" + suffix;
     std::string out_dir = dir + "/RESULTS" + suffix;
 
-    if (!std::filesystem::create_directory(std::filesystem::path(dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(dir))) {
         cout << "Error creating directory " << dir << endl;
         return 1;
     }
     if (output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             return 1;
         }
     }
     if (pov_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(pov_dir))) {
             cout << "Error creating directory " << pov_dir << endl;
             return 1;
         }

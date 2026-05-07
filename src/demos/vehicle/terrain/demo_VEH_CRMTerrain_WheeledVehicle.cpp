@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------
 
     std::string out_dir = GetChronoOutputPath() + "CRM_Wheeled_Vehicle/";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

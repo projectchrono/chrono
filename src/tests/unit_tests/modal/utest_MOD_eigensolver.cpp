@@ -59,15 +59,15 @@ double GetEigenvaluesMaxDiff(const ChVectorDynamic<std::complex<double>>& eig1,
 
 void prepare_folders(std::string testname) {
     // Create output directory (if it does not already exist)
-    if (!std::filesystem::create_directory(std::filesystem::path(val_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(val_dir))) {
         std::cerr << "Error creating directory " << val_dir << std::endl;
         throw std::invalid_argument("Error creating directory " + val_dir);
     }
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         throw std::invalid_argument("Error creating directory " + out_dir);
     }
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir + testname))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir + testname))) {
         std::cerr << "Error creating directory " << out_dir + testname << std::endl;
         throw std::invalid_argument("Error creating directory " + out_dir + testname);
     }

@@ -469,11 +469,11 @@ int main(int argc, char* argv[]) {
     double zero_v = 0.1 * r_g;
 
     // Create output directories.
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(pov_dir))) {
         cout << "Error creating directory " << pov_dir << endl;
         return 1;
     }

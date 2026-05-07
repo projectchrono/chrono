@@ -193,26 +193,26 @@ int main(int argc, char* argv[]) {
 
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break/";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     out_dir = out_dir + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphIntegrationSchemeString() + "_ps" +
               std::to_string(ps_freq);
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     if (output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/particles"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/particles"))) {
             std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
             return 1;
         }
     }
     if (snapshots) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/snapshots"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/snapshots"))) {
             std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
             return 1;
         }

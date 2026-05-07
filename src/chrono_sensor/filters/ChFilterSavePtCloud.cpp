@@ -90,7 +90,7 @@ CH_SENSOR_API void ChFilterSavePtCloud::Initialize(std::shared_ptr<ChSensor> pSe
         if (s != "") {
             partial_path += s + "\\";
             if (!exists(std::filesystem::path(partial_path))) {
-                if (!std::filesystem::create_directory(std::filesystem::path(partial_path))) {
+                if (!CreateOutputDirectory(std::filesystem::path(partial_path))) {
                     std::cerr << "Could not create directory: " << partial_path << std::endl;
                 } else {
                     std::cout << "Created directory for sensor data: " << partial_path << std::endl;
@@ -112,7 +112,7 @@ CH_SENSOR_API void ChFilterSavePtCloud::Initialize(std::shared_ptr<ChSensor> pSe
         if (s != "") {
             partial_path += s + "/";
             if (!exists(std::filesystem::path(partial_path))) {
-                if (!std::filesystem::create_directory(std::filesystem::path(partial_path))) {
+                if (!CreateOutputDirectory(std::filesystem::path(partial_path))) {
                     std::cerr << "Could not create directory: " << partial_path << std::endl;
                 } else {
                     std::cout << "Created directory for sensor data: " << partial_path << std::endl;

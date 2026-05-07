@@ -351,7 +351,7 @@ TEST(WholeBodyWdFilter, SawtoothBurstRMS) {
 
 TEST(ShockWxyFilter, StandardSignal) {
     std::string out_dir = GetChronoTestOutputPath() + "/ISO2631";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         FAIL();
     }

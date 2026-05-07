@@ -151,9 +151,9 @@ int main(int argc, char* argv[]) {
 
     // Create data directory
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     // Finalize initialization of the Chrono::Dem system
     dem_sys.Initialize();

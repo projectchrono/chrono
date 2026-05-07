@@ -235,20 +235,20 @@ int main(int argc, char* argv[]) {
     std::string driver_out_dir = out_dir + "/" + driver_instance_name;
     std::string tire_out_dir = out_dir + "/" + tire_instance_name;
 
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!std::filesystem::create_directory(std::filesystem::path(vehicle_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(vehicle_out_dir))) {
         std::cout << "Error creating directory " << vehicle_out_dir << std::endl;
         return 1;
     }
-    if (!std::filesystem::create_directory(std::filesystem::path(driver_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(driver_out_dir))) {
         std::cout << "Error creating directory " << driver_out_dir << std::endl;
         return 1;
     }
     for (int i = 0; i < 4; i++) {
-        if (!std::filesystem::create_directory(std::filesystem::path(tire_out_dir + "_" + std::to_string(i)))) {
+        if (!CreateOutputDirectory(std::filesystem::path(tire_out_dir + "_" + std::to_string(i)))) {
             std::cout << "Error creating directory " << tire_out_dir + "_" + std::to_string(i) << std::endl;
             return 1;
         }

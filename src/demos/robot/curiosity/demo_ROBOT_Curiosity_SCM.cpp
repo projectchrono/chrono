@@ -256,12 +256,12 @@ int main(int argc, char* argv[]) {
     // Initialize output
     const std::string out_dir = GetChronoOutputPath() + "CURIOSITY_SCM";
     if (output || snapshots) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
         if (snapshots) {
-            if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/snapshots"))) {
+            if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/snapshots"))) {
                 std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
                 return 1;
             }

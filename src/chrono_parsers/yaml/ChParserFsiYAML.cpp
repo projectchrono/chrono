@@ -347,7 +347,7 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
 
     if (m_parserMBS) {
         std::string out_dir_MBS = out_dir + "/mbs";
-        if (std::filesystem::create_directory(std::filesystem::path(out_dir_MBS))) {
+        if (CreateOutputDirectory(std::filesystem::path(out_dir_MBS))) {
             m_parserMBS->SetOutputDir(out_dir_MBS);
         } else {
             std::cerr << "Error creating directory " << out_dir_MBS << std::endl;
@@ -357,7 +357,7 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
 
     if (m_parserCFD) {
         std::string out_dir_CFD = out_dir + "/fluid";
-        if (std::filesystem::create_directory(std::filesystem::path(out_dir_CFD))) {
+        if (CreateOutputDirectory(std::filesystem::path(out_dir_CFD))) {
             m_parserCFD->SetOutputDir(out_dir_CFD);
         } else {
             std::cerr << "Error creating directory " << out_dir_CFD << std::endl;

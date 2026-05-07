@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
 
     // Set up output directory
     std::string base_dir = GetChronoOutputPath();
-    std::filesystem::create_directory(std::filesystem::path(base_dir));
+    CreateOutputDirectory(std::filesystem::path(base_dir));
 
     // Create output directory name with rheology model and parameters
     std::stringstream ss;
@@ -306,11 +306,11 @@ int main(int argc, char* argv[]) {
     }
     ss << "/";
     std::string out_dir = ss.str();
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     // Create snapshots directory if enabled
     if (snapshots) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "snapshots"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "snapshots"))) {
             std::cerr << "Error creating directory " << out_dir + "snapshots" << std::endl;
         }
     }

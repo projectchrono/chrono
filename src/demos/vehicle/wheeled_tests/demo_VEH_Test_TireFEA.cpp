@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
 
     // Set up output
     std::string out_dir = GetChronoOutputPath() + "FEAtire_TEST";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

@@ -274,14 +274,14 @@ void ChBlender::ExportScript(const std::string& filename) {
 
     // Create directories
     if (base_path != "") {
-        if (!std::filesystem::create_directory(std::filesystem::path(base_path))) {
+        if (!CreateOutputDirectory(std::filesystem::path(base_path))) {
             std::cout << "Error creating base directory \"" << base_path << "\" for the Blender files." << std::endl;
             return;
         }
         base_path = base_path + "/";
     }
-    std::filesystem::create_directory(std::filesystem::path(base_path + pic_path));
-    std::filesystem::create_directory(std::filesystem::path(base_path + out_path));
+    CreateOutputDirectory(std::filesystem::path(base_path + pic_path));
+    CreateOutputDirectory(std::filesystem::path(base_path + out_path));
 
     // Generate the xxx.assets.py script (initial assets, it will be populated later by
     // appending assets as they enter the exporter, only once if shared, using ExportAssets() )

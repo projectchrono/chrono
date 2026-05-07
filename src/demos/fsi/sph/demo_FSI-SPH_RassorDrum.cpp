@@ -432,8 +432,8 @@ int main(int argc, char* argv[]) {
             std::string base_dir = chrono_output_path + "FSI_Rassor_SingleDrum/" + wheel_params.str() + "/";
 
             // Try to create the directory structure - ignoring errors if directories already exist
-            std::filesystem::create_directory(std::filesystem::path(chrono_output_path + "FSI_Rassor_SingleDrum/"));
-            std::filesystem::create_directory(std::filesystem::path(base_dir));
+            CreateOutputDirectory(std::filesystem::path(chrono_output_path + "FSI_Rassor_SingleDrum/"));
+            CreateOutputDirectory(std::filesystem::path(base_dir));
 
             // Create directory with all parameters in a single folder
             std::stringstream ss;
@@ -445,13 +445,13 @@ int main(int argc, char* argv[]) {
             ss << "_av_" << params.artificial_viscosity;
             out_dir = base_dir + ss.str();
 
-            std::filesystem::create_directory(std::filesystem::path(out_dir));
-            std::filesystem::create_directory(std::filesystem::path(out_dir + "/particles"));
-            std::filesystem::create_directory(std::filesystem::path(out_dir + "/fsi"));
+            CreateOutputDirectory(std::filesystem::path(out_dir));
+            CreateOutputDirectory(std::filesystem::path(out_dir + "/particles"));
+            CreateOutputDirectory(std::filesystem::path(out_dir + "/fsi"));
 
             // Create directory for snapshots if enabled
             if (params.snapshots) {
-                std::filesystem::create_directory(std::filesystem::path(out_dir + "/snapshots"));
+                CreateOutputDirectory(std::filesystem::path(out_dir + "/snapshots"));
             }
         } catch (const std::exception& e) {
             std::cerr << "Error creating directory structure: " << e.what() << std::endl;

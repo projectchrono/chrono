@@ -209,13 +209,13 @@ int main(int argc, char* argv[]) {
     const std::string out_dir = GetChronoOutputPath() + "M113_DEF_SOIL";
     const std::string img_dir = out_dir + "/IMG";
 
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     if (img_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(img_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
             std::cout << "Error creating directory " << img_dir << std::endl;
             return 1;
         }

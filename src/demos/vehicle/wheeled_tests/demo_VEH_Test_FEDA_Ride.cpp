@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     // Output directory
     // ----------------
 
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }

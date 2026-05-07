@@ -51,9 +51,9 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     // Setup simulation
     ChSystemDemMesh dem_sys(params.sphere_radius, params.sphere_density,

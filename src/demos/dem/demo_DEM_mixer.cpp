@@ -96,9 +96,9 @@ int main(int argc, char* argv[]) {
     dem_sys.SetParticleOutputMode(params.write_mode);
 
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     dem_sys.SetTimeIntegrator(CHDEM_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     dem_sys.SetFixedStepSize(params.step_size);

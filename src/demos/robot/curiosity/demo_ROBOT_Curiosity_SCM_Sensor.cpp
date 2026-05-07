@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output
     if (output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

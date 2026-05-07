@@ -214,7 +214,7 @@ int main() {
     // -----------------
 
     const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
@@ -257,7 +257,7 @@ int main() {
 
     if (blender_output) {
         std::string blender_dir = out_dir + "/blender";
-        if (!std::filesystem::create_directory(std::filesystem::path(blender_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(blender_dir))) {
             cerr << "Error creating directory " << blender_dir << endl;
             return 1;
         }

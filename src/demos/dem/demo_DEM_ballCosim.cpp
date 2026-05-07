@@ -103,9 +103,9 @@ void runBallDrop(ChSystemDemMesh& dem_sys, ChDemSimulationParameters& params) {
 #endif
 
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     float iteration_step = params.step_size;
     std::cout << "Output at    " << out_fps << " FPS" << std::endl;
@@ -184,9 +184,9 @@ int main(int argc, char* argv[]) {
 
     // Output directory
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     std::string checkpoint_file = out_dir + "/checkpoint.dat";
 

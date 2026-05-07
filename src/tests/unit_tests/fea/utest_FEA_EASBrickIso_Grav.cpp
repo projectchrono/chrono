@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     if (generate_output) {
         // Create output directory (if it does not already exist).
-        if (!std::filesystem::create_directory(out_dir)) {
+        if (!CreateOutputDirectory(out_dir)) {
             std::cout << "Error creating directory " << out_dir << "\n";
             return 1;
         }

@@ -174,12 +174,12 @@ int main(int argc, char* argv[]) {
 
     // Create oputput directories
     std::string out_dir = GetChronoOutputPath() + "FSI_FEAdirections";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
     if (snapshots) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir + "/snapshots"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/snapshots"))) {
             std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
             return 1;
         }

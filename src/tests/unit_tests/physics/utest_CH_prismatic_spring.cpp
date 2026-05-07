@@ -74,9 +74,9 @@ int main(int argc, char* argv[]) {
     std::string out_dir = GetChronoTestOutputPath() + "/prismatic_spring";
     std::string dirS = out_dir + "/sparse";
     std::string dirD = out_dir + "/dense";
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
-    std::filesystem::create_directory(std::filesystem::path(dirS));
-    std::filesystem::create_directory(std::filesystem::path(dirD));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(dirS));
+    CreateOutputDirectory(std::filesystem::path(dirD));
 
     std::string fileS = dirS + "/height.txt";
     std::string fileD = dirD + "/height.txt";

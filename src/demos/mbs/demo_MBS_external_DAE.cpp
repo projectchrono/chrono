@@ -483,7 +483,7 @@ int main(int argc, char* argv[]) {
 
     // Create output directory
     std::string out_dir = GetChronoOutputPath() + "DEMO_EXTERNAL_DYNAMICS_DAE";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }

@@ -361,11 +361,11 @@ int main(int argc, char* argv[]) {
     std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_A";
     std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
 
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!std::filesystem::create_directory(std::filesystem::path(vehicle_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(vehicle_out_dir))) {
         std::cout << "Error creating directory " << vehicle_out_dir << std::endl;
         return 1;
     }

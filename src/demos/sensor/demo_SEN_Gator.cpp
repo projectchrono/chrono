@@ -307,11 +307,11 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     if (povray_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
-        if (!std::filesystem::create_directory(std::filesystem::path(pov_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }

@@ -44,7 +44,7 @@ enum class ArchiveType { BINARY, JSON, XML };
 const std::string out_dir = GetChronoTestOutputPath() + "/ch_archive/";
 
 TEST(ChArchiveJSON, ChSparseMatrix) {
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return;
     }
@@ -83,7 +83,7 @@ TEST(ChArchiveJSON, ChSparseMatrix) {
 }
 
 TEST(ChArchiveJSON, ChComplexSparseMatrix) {
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return;
     }
@@ -289,7 +289,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
 void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
                  ArchiveType outtype,
                  std::string outputfilename = "") {
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return;
     }
@@ -389,7 +389,7 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
 }
 
 TEST(ChArchiveJSON, Pendulum) {
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return;
     }
@@ -476,7 +476,7 @@ TEST(ChArchiveBinary, Fourbar) {
 }
 
 TEST(ChArchiveJSON, Solver) {
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return;
     }
@@ -521,7 +521,7 @@ TEST(ChArchiveJSON, Solver) {
 }
 
 TEST(ChArchiveJSON, nullpointers) {
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return;
     }
@@ -650,7 +650,7 @@ TEST(ChArchiveJSON, nullpointers) {
 // }
 
 TEST(ChArchiveJSON, ChVectorDynamicTest) {
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return;
     }

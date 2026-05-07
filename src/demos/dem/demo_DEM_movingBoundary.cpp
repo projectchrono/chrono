@@ -72,9 +72,9 @@ int main(int argc, char* argv[]) {
     dem_sys.SetParticleOutputMode(params.write_mode);
 
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     // The box to fill with particles
     ChVector3f hdims((float)(params.box_X / 2.0 - 1.2), (float)(params.box_Y / 2.0 - 1.2),

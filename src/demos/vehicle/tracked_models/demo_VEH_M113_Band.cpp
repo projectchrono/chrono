@@ -107,19 +107,19 @@ int main(int argc, char* argv[]) {
     const std::string img_dir = out_dir + "/IMG";
     const std::string vtk_dir = out_dir + "/VTK";
 
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (img_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(img_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
             cout << "Error creating directory " << img_dir << endl;
             return 1;
         }
     }
     if (vtk_output) {
-        if (!std::filesystem::create_directory(std::filesystem::path(vtk_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(vtk_dir))) {
             cout << "Error creating directory " << vtk_dir << endl;
             return 1;
         }
