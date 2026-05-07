@@ -15,17 +15,17 @@
 //
 // =============================================================================
 
-#include <filesystem>
+#include <vector>
+#include <sstream>
+#include <fstream>
+
+#include "chrono/core/ChDataPath.h"
 
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 
 #include "chrono_thirdparty/stb/stb_image_write.h"
-
-#include <vector>
-#include <sstream>
-#include <fstream>
 
 #include <cuda_runtime_api.h>
 

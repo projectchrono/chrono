@@ -15,15 +15,14 @@
 //
 // =============================================================================
 
-#include <filesystem>
+#include <vector>
+#include <sstream>
+
+#include "chrono/core/ChDataPath.h"
+#include "chrono/input_output/ChWriterCSV.h"
 
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 #include "chrono_sensor/sensors/ChOptixSensor.h"
-
-#include "chrono/input_output/ChWriterCSV.h"
-
-#include <vector>
-#include <sstream>
 
 #include <cuda_runtime_api.h>
 

@@ -59,16 +59,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     size_t GetNumTrackShoes(VehicleSide side) const { return m_tracks[side]->GetNumTrackShoes(); }
 
     /// Get a handle to the specified track shoe.
-    std::shared_ptr<ChTrackShoe> GetTrackShoe(VehicleSide side, size_t id) const {
-        return m_tracks[side]->GetTrackShoe(id);
-    }
+    std::shared_ptr<ChTrackShoe> GetTrackShoe(VehicleSide side, size_t id) const { return m_tracks[side]->GetTrackShoe(id); }
 
     /// Get the complete state for the specified track shoe.
     /// This includes the location, orientation, linear and angular velocities,
     /// all expressed in the global reference frame.
-    BodyState GetTrackShoeState(VehicleSide side, size_t shoe_id) const {
-        return m_tracks[side]->GetTrackShoeState(shoe_id);
-    }
+    BodyState GetTrackShoeState(VehicleSide side, size_t shoe_id) const { return m_tracks[side]->GetTrackShoeState(shoe_id); }
 
     /// Get the complete states for all track shoes of the specified track assembly.
     /// It is assumed that the vector of body states was properly sized.
@@ -148,9 +144,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Return estimated resistive torque on the specified sprocket.
     /// This torque is available only if monitoring of contacts for that sprocket is enabled.
-    ChVector3d GetSprocketResistiveTorque(VehicleSide side) const {
-        return m_contact_manager->GetSprocketResistiveTorque(side);
-    }
+    ChVector3d GetSprocketResistiveTorque(VehicleSide side) const { return m_contact_manager->GetSprocketResistiveTorque(side); }
 
     /// Write contact information to file.
     /// If data collection was enabled and at least one subsystem is monitored,
@@ -200,7 +194,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Advance the state of this vehicle by the specified time step.
     /// In addition to advancing the state of the multibody system (if the vehicle owns the underlying system), this
     /// function also advances the state of the associated powertrain.
-    virtual void Advance(double step) override final;
+    virtual void Advance(double step, bool do_collision = true) override final;
 
     /// Lock/unlock the differential (if available).
     void LockDifferential(bool lock);
