@@ -75,16 +75,22 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
 
     std::shared_ptr<SensorDeviceR8Buffer> m_bufferR8;
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_bufferRGBA8;
+    std::shared_ptr<SensorDeviceRGBA16Buffer> m_bufferRGBA16;
+    std::shared_ptr<SensorDeviceRGBDHalf4Buffer> m_bufferRGBDHalf4;
     std::shared_ptr<SensorDeviceSemanticBuffer> m_bufferSemantic;
     std::shared_ptr<SensorDeviceDepthBuffer> m_bufferDepth;
+    std::shared_ptr<SensorDeviceNormalBuffer> m_bufferNormal;
 
     std::shared_ptr<SensorDeviceDIBuffer> m_bufferDI;
     std::shared_ptr<SensorDeviceRadarBuffer> m_bufferRadar;
 
     std::shared_ptr<SensorHostR8Buffer> m_hostR8;
     std::shared_ptr<SensorHostRGBA8Buffer> m_hostRGBA8;
+    std::shared_ptr<SensorHostRGBA16Buffer> m_hostRGBA16;
+    std::shared_ptr<SensorHostRGBDHalf4Buffer> m_hostRGBDHalf4;
     std::shared_ptr<SensorHostSemanticBuffer> m_hostSemantic;
     std::shared_ptr<SensorHostDepthBuffer> m_hostDepth;
+    std::shared_ptr<SensorHostNormalBuffer> m_hostNormal;
 
     std::shared_ptr<SensorHostDIBuffer> m_hostDI;
     std::shared_ptr<SensorHostRadarBuffer> m_hostRadar;
@@ -104,7 +110,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     static int s_windowCount;       ///< keeps track of the window count
     static std::mutex s_glfwMutex;  ///< mutex to prevent us making two windows at the exact same time
 
-    bool m_window_disabled = false;  ///< for checking if window is not allowed on sysmtem (e.g. headless rendering)
+    bool m_window_disabled = false;  ///< for checking if window is not allowed on system (e.g. headless rendering)
     int m_w;                         ///< width of the window
     int m_h;                         ///< height of the window
     bool m_fullscreen;               ///< toggle for fullscreen mode

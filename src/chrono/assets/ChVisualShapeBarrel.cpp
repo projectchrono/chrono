@@ -20,7 +20,8 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeBarrel)
 
-ChVisualShapeBarrel::ChVisualShapeBarrel() {}
+ChVisualShapeBarrel::ChVisualShapeBarrel()
+    : Hlow(0.0), Hsup(0.0), Rvert(0.0), Rhor(0.0), Roffset(0.0) {}
 
 ChVisualShapeBarrel::ChVisualShapeBarrel(double Y_low,
                                          double Y_high,

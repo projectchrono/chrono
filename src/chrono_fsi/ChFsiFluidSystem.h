@@ -41,7 +41,7 @@ class CH_FSI_API ChFsiFluidSystem {
     /// Enable/disable verbose terminal output (default: true).
     void SetVerbose(bool verbose);
 
-    /// Set gravity for the fluid syatem.
+    /// Set gravity for the fluid system.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) = 0;
 
     /// Set integration step size.
@@ -79,18 +79,30 @@ class CH_FSI_API ChFsiFluidSystem {
     /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
     /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
     /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
-    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states,
-                                 const std::vector<FsiMeshState>& mesh1D_states,
-                                 const std::vector<FsiMeshState>& mesh2D_states) = 0;
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states) = 0;
 
     /// Store the body and mesh node forces to the given vectors.
     /// The functions LoadSolidStates and StoreSolidForces allow using a generic FSI interface.
     /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
     /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
     /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
-                                  std::vector<FsiMeshForce> mesh1D_forces,
-                                  std::vector<FsiMeshForce> mesh2D_forces) = 0;
+    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces) = 0;
+
+#ifdef CHRONO_FEA
+    /// Load FSI body and mesh node states from the given vectors.
+    /// The functions LoadSolidStates and StoreSolidForces allow using a generic FSI interface.
+    /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
+    /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
+    /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states, const std::vector<FsiMeshState>& mesh1D_states, const std::vector<FsiMeshState>& mesh2D_states) = 0;
+
+    /// Store the body and mesh node forces to the given vectors.
+    /// The functions LoadSolidStates and StoreSolidForces allow using a generic FSI interface.
+    /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
+    /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
+    /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
+    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces, std::vector<FsiMeshForce> mesh1D_forces, std::vector<FsiMeshForce> mesh2D_forces) = 0;
+#endif
 
     /// Get the current step size.
     /// The default implementation returns the specified constant step size.
@@ -100,10 +112,15 @@ class CH_FSI_API ChFsiFluidSystem {
   protected:
     ChFsiFluidSystem();
 
-    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
-
     /// Solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {}
+
+    /// Initialize the fluid system using initial states of solid FSI objects.
+    /// A call to this function marks completion of the fluid system construction and can only be made from ChFsiSystem.
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states) = 0;
+
+#ifdef CHRONO_FEA
+    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
 
     /// Solver-specific actions taken when a 1D deformable solid is added as an FSI object.
     virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> mesh, bool check_embedded) {}
@@ -113,15 +130,15 @@ class CH_FSI_API ChFsiFluidSystem {
 
     /// Initialize the fluid system using initial states of solid FSI objects.
     /// A call to this function marks completion of the fluid system construction and can only be made from ChFsiSystem.
-    virtual void Initialize(const std::vector<FsiBodyState>& body_states,
-                            const std::vector<FsiMeshState>& mesh1D_states,
-                            const std::vector<FsiMeshState>& mesh2D_states) = 0;
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states, const std::vector<FsiMeshState>& mesh1D_states, const std::vector<FsiMeshState>& mesh2D_states) = 0;
+#endif
 
     bool m_verbose;        ///< enable/disable m_verbose terminal output
     std::string m_outdir;  ///< output directory
 
     NodeDirectionsMode m_node_directions_mode;  ///< mode used for FEA node directions
-    bool m_is_initialized;                      ///< set to true once the Initialize function is called
+
+    bool m_is_initialized;  ///< set to true once the Initialize function is called
 
     double m_time;         ///< current simulation time
     double m_step;         ///< time step for fluid dynamics

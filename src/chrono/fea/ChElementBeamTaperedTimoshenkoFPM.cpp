@@ -164,7 +164,7 @@ void ChElementBeamTaperedTimoshenkoFPM::ShapeFunctionsTimoshenkoFPM(ShapeFunctio
     NB = std::make_tuple(Nx, Bx);
 }
 
-/// This class defines the calculations for the Guass integrand of
+/// This class defines the calculations for the Gauss integrand of
 /// the cross-sectional stiffness/damping/mass matrices
 class BeamTaperedTimoshenkoFPM : public ChIntegrand1D<ChMatrixNM<double, 12, 12>> {
   public:
@@ -175,7 +175,7 @@ class BeamTaperedTimoshenkoFPM : public ChIntegrand1D<ChMatrixNM<double, 12, 12>
     // Which one matrix is evaluated? stiffness/damping/mass matrices
     // - 0: stiffness matrix
     // - 1: damping matrix
-    // - 2: mass matix
+    // - 2: mass matrix
     void SetChoiceKiRiMi(int mv) { m_choice_KiRiMi = mv; }
     int GetChoiceKiRiMi() { return m_choice_KiRiMi; }
 
@@ -183,7 +183,7 @@ class BeamTaperedTimoshenkoFPM : public ChIntegrand1D<ChMatrixNM<double, 12, 12>
     ChElementBeamTaperedTimoshenkoFPM* m_element;
     // 0: stiffness matrix
     // 1: damping matrix
-    // 2: mass matix
+    // 2: mass matrix
     int m_choice_KiRiMi = 0;
 
     virtual void Evaluate(ChMatrixNM<double, 12, 12>& result, const double x) override;
@@ -224,7 +224,7 @@ void BeamTaperedTimoshenkoFPM::Evaluate(ChMatrixNM<double, 12, 12>& result, cons
 };
 
 void ChElementBeamTaperedTimoshenkoFPM::ComputeStiffnessMatrix() {
-    // Calculate the local element stiffness matrix via Guass integration
+    // Calculate the local element stiffness matrix via Gauss integration
     this->Km.setZero();
     BeamTaperedTimoshenkoFPM myformula(this, 0);  // 0: stiffness matrix
     ChMatrixNM<double, 12, 12> TempStiffnessMatrix;
@@ -242,7 +242,7 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeStiffnessMatrix() {
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
-    // Calculate the local element damping matrix via Guass integration
+    // Calculate the local element damping matrix via Gauss integration
     this->Rm.setZero();
     BeamTaperedTimoshenkoFPM myformula(this, 1);  // 1: damping matrix
     ChMatrixNM<double, 12, 12> TempDampingMatrix;
@@ -269,7 +269,7 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::ComputeConsistentMassMatrix() {
-    // Calculate the local element mass matrix via Guass integration
+    // Calculate the local element mass matrix via Gauss integration
     this->M.setZero();
     BeamTaperedTimoshenkoFPM myformula(this, 2);  // 2: mass matrix
     ChMatrixNM<double, 12, 12> TempMassMatrix;

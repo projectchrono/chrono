@@ -37,6 +37,7 @@
 
 #include "chrono/utils/ChUtils.h"
 
+#include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #include "chrono_fsi/sph/physics/SphParticleRelocator.cuh"
 #include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"
 
@@ -134,7 +135,7 @@ struct togrid_op {
         idx /= (dim.y + 1);
         int z = idx;
 
-        // 2. Shift marker grid ccordinates to current destination AABB
+        // 2. Shift marker grid coordinates to current destination AABB
         x += aabb.min.x;
         y += aabb.min.y;
         z += aabb.min.z;

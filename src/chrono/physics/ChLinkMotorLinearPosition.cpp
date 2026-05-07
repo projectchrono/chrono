@@ -47,7 +47,7 @@ void ChLinkMotorLinearPosition::Update(double time, UpdateFlags update_flags) {
     C(m_actuated_idx) = this->mpos - m_func->GetVal(time) - this->pos_offset;
 }
 
-void ChLinkMotorLinearPosition::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+void ChLinkMotorLinearPosition::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     double mCt = -m_func->GetDer(this->GetChTime());
     if (mask.GetConstraint(m_actuated_idx).IsActive()) {
         Qc(off_L + m_actuated_idx) += c * mCt;

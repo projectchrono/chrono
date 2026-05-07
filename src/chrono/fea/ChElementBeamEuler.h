@@ -170,7 +170,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     //
 
     /// Gets the xyz displacement of a point on the beam line,
-    /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
+    /// and the rotation RxRyRz of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) override;

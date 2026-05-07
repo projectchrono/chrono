@@ -47,7 +47,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
 	set(DEMOS
         ${DEMOS}
-		demo_MCORE_custom_contact
+		demo_MCORE_custom_collision
         demo_MCORE_collision_object)
 endif()
 

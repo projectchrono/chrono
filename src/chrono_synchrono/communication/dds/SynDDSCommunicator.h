@@ -13,7 +13,7 @@
 //
 // Class that handles communication across ranks or external entities. A
 // communicator is something that passes messages over some protocol and
-// interfaecs either a rank with another rank, a rank with an external process
+// interfaces either a rank with another rank, a rank with an external process
 // or really anything that relies on communication over some network interface.
 //
 // This class is implemented as a very generic abstract handler that holds and
@@ -56,23 +56,43 @@ class SynDDSParticipantListener;
 
 const std::string default_prefix = std::string("/syn/node/");
 
+/// Default DDS domain ID used by SynChrono.  Intentionally differs from the
+/// ROS 2 default (0) so that SynChrono and ROS 2 participants do not discover
+/// each other when both are running on the same machine.  Override at runtime
+/// with the SYNCHRONO_DDS_DOMAIN_ID environment variable, or pass a domain_id
+/// explicitly to the constructor.
+static constexpr int SYN_DEFAULT_DDS_DOMAIN_ID = 33;
+
 /// Derived communicator used to establish and facilitate communication between nodes.
 /// Uses the Data Distribution Service (DDS) standard
 class SYN_API SynDDSCommunicator : public SynCommunicator {
   public:
-    SynDDSCommunicator(int node_id, const std::string& prefix = default_prefix);
+    ///@brief Construct from a numeric node id
+    ///
+    ///@param node_id The numeric node identifier
+    ///@param prefix prefix to use for the participant
+    ///@param domain_id DDS domain id (default: SYN_DEFAULT_DDS_DOMAIN_ID, overridden by SYNCHRONO_DDS_DOMAIN_ID env var)
+    SynDDSCommunicator(int node_id,
+                       const std::string& prefix = default_prefix,
+                       int domain_id = SYN_DEFAULT_DDS_DOMAIN_ID);
 
-    ///@brief Default constructor
+    ///@brief Construct from a participant name string
     ///
     ///@param name The name to set to the qos
     ///@param prefix prefix to use for the participant
-    SynDDSCommunicator(const std::string& name, const std::string& prefix = default_prefix);
+    ///@param domain_id DDS domain id (default: SYN_DEFAULT_DDS_DOMAIN_ID, overridden by SYNCHRONO_DDS_DOMAIN_ID env var)
+    SynDDSCommunicator(const std::string& name,
+                       const std::string& prefix = default_prefix,
+                       int domain_id = SYN_DEFAULT_DDS_DOMAIN_ID);
 
     ///@brief Set the QoS directly from the constructor
     ///
     ///@param qos the Quality of Service to set for the participant
     ///@param prefix prefix to use for the participant
-    SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, const std::string& prefix = default_prefix);
+    ///@param domain_id DDS domain id (default: SYN_DEFAULT_DDS_DOMAIN_ID, overridden by SYNCHRONO_DDS_DOMAIN_ID env var)
+    SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos,
+                       const std::string& prefix = default_prefix,
+                       int domain_id = SYN_DEFAULT_DDS_DOMAIN_ID);
 
     ///@brief Destructor
     ///
@@ -199,14 +219,19 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     std::string m_prefix;
 
   private:
+    /// Resolve the effective DDS domain ID.  If the SYNCHRONO_DDS_DOMAIN_ID
+    /// environment variable is set its value takes priority; otherwise the
+    /// constructor-supplied @p requested_id is used.
+    static int ResolveDomainId(int requested_id);
+
     void InitQoS(const std::string& name);
 
-    ///@brief Creates the underyling participant
+    ///@brief Creates the underlying participant
     ///
     ///@param qos the Quality of Service to set to the participant
     void CreateParticipant(eprosima::fastdds::dds::DomainParticipantQos& qos);
 
-    ///@brief Publish the outgoing messagse
+    ///@brief Publish the outgoing messages
     ///
     void Publish();
 
@@ -224,6 +249,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     SubscriberList m_subscribers;
 
     SynDDSParticipantListener* m_listener;
+    int m_domain_id;  ///< Effective DDS domain ID for the participant
 };
 
 /// @} synchrono_communication

@@ -92,6 +92,7 @@ void ChShaftsGearbox::IntLoadResidual_CqL(const unsigned int off_L,
 void ChShaftsGearbox::IntLoadConstraint_C(const unsigned int off_L,
                                           ChVectorDynamic<>& Qc,
                                           const double c,
+                                          const double c_vel,  
                                           bool do_clamp,
                                           double recovery_clamp) {
     double res = 0;  // no residual anyway! allow drifting...

@@ -27,17 +27,14 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-ChFsiSplashsurfSPH::ChFsiSplashsurfSPH(const ChFsiFluidSystemSPH& sysSPH)
-    : m_sysSPH(sysSPH), m_radius(-1), m_cube_size(0.5), m_smoothing_length(1.5), m_surface_threshold(0.6) {}
+ChFsiSplashsurfSPH::ChFsiSplashsurfSPH(const ChFsiFluidSystemSPH& sysSPH) : m_sysSPH(sysSPH), m_radius(-1), m_cube_size(0.5), m_smoothing_length(1.5), m_surface_threshold(0.6) {}
 
 void ChFsiSplashsurfSPH::WriteParticleFileJSON(const std::string& filename) {
     m_sysSPH.SynchronizeCopyStream();
     writeParticleFileJSON(filename, *m_sysSPH.m_data_mgr);
 }
 
-void ChFsiSplashsurfSPH::WriteReconstructedSurface(const std::string& in_filename,
-                                                   const std::string& out_filename,
-                                                   bool quiet) {
+void ChFsiSplashsurfSPH::WriteReconstructedSurface(const std::string& in_filename, const std::string& out_filename, bool quiet) {
 #ifndef CHRONO_HAS_SPLASHSURF
     std::cout << "Error: splashsurf not available." << std::endl;
     throw std::runtime_error("splashsurf not available");

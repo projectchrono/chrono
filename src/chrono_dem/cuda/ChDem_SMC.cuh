@@ -16,9 +16,15 @@
 
 #pragma once
 
-#include <cub/cub.cuh>
+#include "chrono_dem/cuda/ChGpuRuntime.h"
 
-#include <cuda.h>
+#if defined(CHRONO_USE_HIP)
+    #include <hipcub/hipcub.hpp>
+    namespace cub = hipcub;
+#else
+    #include <cub/cub.cuh>
+#endif
+#include <thrust/functional.h>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -108,7 +114,7 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X_local,
     }
 }
 
-/// Compute the elementwise squared sum of array XYZ components.
+/// Compute the element-wise squared sum of array XYZ components.
 template <typename T>
 __global__ void elementalArray3Squared(T* sqSum, const T* arrX, const T* arrY, const T* arrZ, size_t nSpheres) {
     size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
@@ -179,7 +185,7 @@ static __global__ void elementalXAboveValue(unsigned int* YorN,
  *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
  *
  * Assumptions:
- *   - Granular material is made up of monodisperse spheres.
+ *   - Granular material is made up of mono-disperse spheres.
  *   - The function below assumes the spheres are in a box
  *   - The box has dimensions L x D x H.
  *   - The reference frame associated with the box:
@@ -234,7 +240,7 @@ __global__ void getNumberOfSpheresTouchingEachSD(ChSystemDem_impl::GranSphereDat
 
     // Do a winningStreak search on whole block, might not have high utilization here
     bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
+    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, thrust::not_equal_to<unsigned int>());
     __syncthreads();
 
     // Write back to shared memory; eight-way bank conflicts here - to revisit later
@@ -251,7 +257,7 @@ __global__ void getNumberOfSpheresTouchingEachSD(ChSystemDem_impl::GranSphereDat
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
         if (touchedSD != NULL_CHDEM_ID && head_flags[i]) {
-            // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
+            // current index into shared data structure of length 8*CUB_THREADS, could easily be inlined
             unsigned int idInShared = MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i;
             unsigned int winningStreak = 0;  // should always be under 256 by simulation constraints
             // This is the beginning of a sequence of SDs with a new ID
@@ -369,7 +375,7 @@ inline __device__ void findNewLocalCoords(ChSystemDem_impl::GranSphereDataPtr sp
             (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, (float)gran_params->BD_frame_X * l_unit,
             (float)gran_params->BD_frame_Y * l_unit, (float)gran_params->BD_frame_Z * l_unit);
         __threadfence();
-        cuda::std::terminate();
+        CHGPU_DEVICE_ABORT();
     }
 
     // write local pos back to global memory
@@ -673,7 +679,7 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
 // and beta = log(cor)/sqrt(log(cor)^2 + pi^2)
 // LULUTODO: check effective mass, eff_radius etc
 // LULUTODO: Is this called by sphere-mesh and sphere-wall?? nope
-// LULUTODO: check damping componenet as well
+// LULUTODO: check damping component as well
 inline __device__ float3 computeSphereNormalForces_matBased(float3& vrel_t,
                                                             float3& contact_normal,
                                                             float& sqrt_Rd,
@@ -1050,7 +1056,7 @@ static __global__ void computeSphereContactForces_matBased(ChSystemDem_impl::Gra
                     contact_normal, m_eff);
 
                 if (gran_params->recording_contactInfo == true) {
-                    // record normal froce
+                    // record normal force
                     sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;
                     // record friction force
                     sphere_data->tangential_friction_force[body_A_offset + contact_id] = tangent_force;

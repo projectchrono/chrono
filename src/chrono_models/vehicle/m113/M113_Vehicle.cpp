@@ -29,7 +29,9 @@
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblySinglePin.h"
-#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
+#ifdef CHRONO_FEA
+    #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -53,9 +55,8 @@ M113_Vehicle::M113_Vehicle(bool fixed,
                            ChContactMethod contact_method,
                            CollisionType chassis_collision_type)
     : ChTrackedVehicle("M113", contact_method), m_create_track(true) {
-    Create(fixed, shoe_type, shoe_topology, element_type, constrain_curvature, num_elements_length, num_elements_width,
-           driveline_type, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA,
-           chassis_collision_type);
+    Create(fixed, shoe_type, shoe_topology, element_type, constrain_curvature, num_elements_length, num_elements_width, driveline_type, brake_type, use_track_bushings,
+           use_suspension_bushings, use_track_RSDA, chassis_collision_type);
 }
 
 M113_Vehicle::M113_Vehicle(bool fixed,
@@ -73,9 +74,8 @@ M113_Vehicle::M113_Vehicle(bool fixed,
                            ChSystem* system,
                            CollisionType chassis_collision_type)
     : ChTrackedVehicle("M113", system), m_create_track(true) {
-    Create(fixed, shoe_type, shoe_topology, element_type, constrain_curvature, num_elements_length, num_elements_width,
-           driveline_type, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA,
-           chassis_collision_type);
+    Create(fixed, shoe_type, shoe_topology, element_type, constrain_curvature, num_elements_length, num_elements_width, driveline_type, brake_type, use_track_bushings,
+           use_suspension_bushings, use_track_RSDA, chassis_collision_type);
 }
 
 // -----------------------------------------------------------------------------
@@ -90,8 +90,8 @@ M113_Vehicle_SinglePin::M113_Vehicle_SinglePin(bool fixed,
                                                CollisionType chassis_collision_type)
     : M113_Vehicle(fixed,
                    TrackShoeType::SINGLE_PIN,
-                   DoublePinTrackShoeType::ONE_CONNECTOR,     // unused
-                   ChTrackShoeBandANCF::ElementType::ANCF_4,  // unusued
+                   DoublePinTrackShoeType::ONE_CONNECTOR,     // not used
+                   ChTrackShoeBandANCF::ElementType::ANCF_4,  // not used
                    false,                                     // not used
                    0,                                         // not used
                    0,                                         // not used
@@ -287,31 +287,25 @@ void M113_Vehicle::Create(bool fixed,
     // Create the track assembly subsystems
     switch (shoe_type) {
         case TrackShoeType::SINGLE_PIN:
-            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(
-                LEFT, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
-            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(
-                RIGHT, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(LEFT, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(RIGHT, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
             break;
         case TrackShoeType::DOUBLE_PIN:
-            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(
-                LEFT, shoe_topology, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
-            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(
-                RIGHT, shoe_topology, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(LEFT, shoe_topology, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(RIGHT, shoe_topology, brake_type, use_track_bushings, use_suspension_bushings, use_track_RSDA);
             break;
         case TrackShoeType::BAND_BUSHING:
-            m_tracks[0] =
-                chrono_types::make_shared<M113_TrackAssemblyBandBushing>(LEFT, brake_type, use_suspension_bushings);
-            m_tracks[1] =
-                chrono_types::make_shared<M113_TrackAssemblyBandBushing>(RIGHT, brake_type, use_suspension_bushings);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(LEFT, brake_type, use_suspension_bushings);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(RIGHT, brake_type, use_suspension_bushings);
             break;
+#ifdef CHRONO_FEA
         case TrackShoeType::BAND_ANCF:
-            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(
-                LEFT, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width,
-                use_suspension_bushings);
-            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(
-                RIGHT, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width,
-                use_suspension_bushings);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(LEFT, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width,
+                                                                                use_suspension_bushings);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(RIGHT, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width,
+                                                                                use_suspension_bushings);
             break;
+#endif
     }
 
     // Create the driveline

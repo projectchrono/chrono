@@ -25,7 +25,7 @@ namespace fea {
 /// @addtogroup fea_utils
 /// @{
 
-/// Base class for drawing tesselated profiles of beams in 3D views, if needed.
+/// Base class for drawing tessellated profiles of beams in 3D views, if needed.
 /// This cross section visualization shape is independent from physical properties
 /// (area, inertia, etc.) that you can define with other components of the ChBeamSection,
 /// such as for example ChBeamSectionCosseratElasticity, etc.
@@ -41,11 +41,11 @@ class ChApi ChBeamSectionShape {
 
     /// Get the number of lines making the profile of the section, for meshing purposes.
     /// C0 continuity is required between lines, C1 also required within each line.
-    /// Ex. a circle has 1 line, a cube 4 lines, etc. Sharp corners can be done mith multiple lines.
+    /// Ex. a circle has 1 line, a cube 4 lines, etc. Sharp corners can be done with multiple lines.
     virtual unsigned int GetNumLines() const = 0;
 
     /// Get the number of points to be allocated per each section, for the i-th line in the section.
-    /// We assume one also allocates same number of 3d normalss.
+    /// We assume one also allocates same number of 3d normals.
     virtual unsigned int GetNumPoints(unsigned int i_line) const = 0;
 
     /// Compute the points (in the reference of the section), for the i-th line in the section.
@@ -59,7 +59,7 @@ class ChApi ChBeamSectionShape {
     /// Returns the axis-aligned bounding box (assuming axes of local reference of the section)
     /// This functions has many uses, ex.for drawing, optimizations, collisions.
     /// We provide a fallback default implementation that iterates over all points thanks to GetPoints(),
-    /// but one could override this if a more efficient implementaiton is possible (ex for circular beams, etc.)
+    /// but one could override this if a more efficient implementation is possible (ex for circular beams, etc.)
     virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const;
 };
 
@@ -156,7 +156,7 @@ class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
 
 /// A class for drawing properties of beams whose section is a set of M polylines, each with N points.
 /// The shading will show the longitudinal edges extruded at each Nth point as a smooth edge,
-/// so if you need sharp edges, just create multiple polylines (ex a quadrialteral=4 polylines).
+/// so if you need sharp edges, just create multiple polylines (ex a quadrilateral=4 polylines).
 /// Used as a component of ChBeamSection.
 
 class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {

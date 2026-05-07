@@ -25,7 +25,7 @@ namespace chrono {
 /// @{
 
 /// A motion function p=f(s) where p(t) is defined with a
-/// ChLine geometry object, ex. ChLineArc or ChLineBSpline etc.
+/// ChLine geometry object (e.g. ChLineArc, ChLineBSpline, etc.).
 
 class ChApi ChFunctionPositionLine : public ChFunctionPosition {
   public:
@@ -40,19 +40,18 @@ class ChApi ChFunctionPositionLine : public ChFunctionPosition {
     /// "Virtual" copy constructor.
     virtual ChFunctionPositionLine* Clone() const override { return new ChFunctionPositionLine(*this); }
 
-    /// Get the trajectory line
+    /// Get the trajectory line.
     std::shared_ptr<ChLine> GetLine() const { return m_trajectory_line; }
 
-    /// Sets the trajectory line (take ownership - does not copy line)
+    /// Set the trajectory line.
     void SetLine(std::shared_ptr<ChLine> line) { m_trajectory_line = line; }
 
-    /// Gets the address of the function u=u(s) telling
+    /// Get the function u=u(s) telling
     /// how the curvilinear parameter u of the spline changes in s (time).
     std::shared_ptr<ChFunction> GetSpaceFunction() const { return m_space_fun; }
 
-    /// Sets the function u=u(s) telling how the curvilinear parameter
-    /// of the spline changes in s (time).
-    /// Otherwise, by default, is a linear ramp, so evaluates the spline from begin at s=0 to end at s=1
+    /// Set the function u=u(s) telling how the curvilinear parameter of the spline changes in s (e.g. time).
+    /// Note: by default, u=u(s) is a linear ramp, so evaluates the spline from begin at s=0 to end at s=1.
     void SetSpaceFunction(std::shared_ptr<ChFunction> funct) { m_space_fun = funct; }
 
     /// Return the position imposed by the function, at \a s.
@@ -61,7 +60,7 @@ class ChApi ChFunctionPositionLine : public ChFunctionPosition {
     /// Return the linear velocity imposed by the function, at \a s.
     virtual ChVector3d GetLinVel(double s) const override;
 
-    /// Return the linear acceleration imposed the function, at \a s.
+    /// Return the linear acceleration imposed by the function, at \a s.
     virtual ChVector3d GetLinAcc(double s) const override;
 
     /// Method to allow serialization of transient data to archives
@@ -72,7 +71,6 @@ class ChApi ChFunctionPositionLine : public ChFunctionPosition {
 
   private:
     std::shared_ptr<ChLine> m_trajectory_line;
-
     std::shared_ptr<ChFunction> m_space_fun;
 };
 

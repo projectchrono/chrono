@@ -146,6 +146,7 @@ void ChMatterPeriBBimplicit::IntLoadResidual_CqL(const unsigned int off_L,
 void ChMatterPeriBBimplicit::IntLoadConstraint_C(const unsigned int off,
                                                  ChVectorDynamic<>& Qc,
                                                  const double c,
+                                                 const double c_vel,  
                                                  bool do_clamp,
                                                  double recovery_clamp) {
     int boff = 0;
@@ -164,7 +165,7 @@ void ChMatterPeriBBimplicit::IntLoadConstraint_C(const unsigned int off,
 
         double qc = inv_hpa * bond.second.d_zeta;
 
-        // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbond
+        // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
         // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
         // For this reason, do not do any clamping.
         // if (do_clamp) {

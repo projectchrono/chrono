@@ -35,8 +35,8 @@ ChVisualMaterial::ChVisualMaterial()
       use_specular_workflow(true),
       class_id(0),
       instance_id(0),
-      use_hapke(false),
-      emissive_power(0.f) {}
+      emissive_power(0.f),
+      bsdf_type(BSDFType::PRINCIPLED) {} 
 
 void ChVisualMaterial::SetKdTexture(const std::string& filename) {
     kd_texture.SetFilename(filename);

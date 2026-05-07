@@ -35,12 +35,9 @@ namespace vehicle {
 // Utility custom function for ramping up to a prescribed value.
 class ConstantFunction : public chrono::ChFunction {
   public:
-    ConstantFunction(double max_value, double time_delay = 0, double time_ramp = 1)
-        : m_max_value(max_value), m_time_delay(time_delay), m_time_ramp(time_ramp) {}
+    ConstantFunction(double max_value, double time_delay = 0, double time_ramp = 1) : m_max_value(max_value), m_time_delay(time_delay), m_time_ramp(time_ramp) {}
 
-    virtual ConstantFunction* Clone() const override {
-        return new ConstantFunction(m_time_delay, m_time_ramp, m_max_value);
-    }
+    virtual ConstantFunction* Clone() const override { return new ConstantFunction(m_time_delay, m_time_ramp, m_max_value); }
 
     virtual double GetVal(double t) const override {
         if (t <= m_time_delay)
@@ -96,43 +93,57 @@ class RampFunction : public chrono::ChFunction {
 // =============================================================================
 
 ChVehicleCosimDBPRig::ChVehicleCosimDBPRig()
-    : m_dbp_filter_window(0.1),
-      m_dbp_filtered(0),
-      m_slip_filter_window(0.1),
-      m_slip_filtered(0),
-      m_verbose(false),
-      m_delay_time(0) {}
+    : m_dbp_filter_window(0.1), m_dbp_filtered(0), m_slip_filter_window(0.1), m_slip_filtered(0), m_verbose(false), m_time_delay(0.2), m_time_ramp(0.5), m_wheel_radius(0) {}
+
+void ChVehicleCosimDBPRig::SetRampingIntervals(double delay, double ramp_time) {
+    m_time_delay = delay;
+    m_time_ramp = ramp_time;
+}
 
 void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size) {
+    m_wheel_radius = wheel_radius;
+
     // Initialize filters
     int nw_dbp = static_cast<int>(std::round(m_dbp_filter_window / step_size));
     m_dbp_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw_dbp);
     int nw_slip = static_cast<int>(std::round(m_slip_filter_window / step_size));
     m_slip_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw_slip);
 
-    InitializeRig(chassis, wheel_radius);
+    // Create the ground and carrier bodies
+    // Since the carrier will be connected to ground with a horizontal prismatic joint, its mass does not contribute to vertical load
+    m_ground = chrono_types::make_shared<ChBody>();
+    m_ground->SetFixed(true);
+    chassis->GetSystem()->AddBody(m_ground);
+
+    m_carrier = chrono_types::make_shared<ChBody>();
+    m_carrier->SetMass(10);
+    m_carrier->SetInertiaXX(ChVector3d(1, 1, 1));
+    m_carrier->SetPos(chassis->GetPos());
+    m_carrier->SetRot(QUNIT);
+    chassis->GetSystem()->AddBody(m_carrier);
+
+    // Connect chassis body to connector using a vertical prismatic joint
+    auto prism_vert = chrono_types::make_shared<ChLinkLockPrismatic>();
+    prism_vert->Initialize(m_carrier, chassis, ChFrame<>(m_carrier->GetPos(), QUNIT));
+    chassis->GetSystem()->AddLink(prism_vert);
 }
 
-void ChVehicleCosimDBPRig::OnAdvance(double step_size) {
+void ChVehicleCosimDBPRig::Advance(double step_size) {
     m_dbp_filtered = m_dbp_filter->Add(GetDBP());
     m_slip_filtered = m_slip_filter->Add(GetSlip());
+}
+
+double ChVehicleCosimDBPRig::GetSlip() const {
+    double lin_vel = GetLinVel();
+    double ang_vel = GetAngVel();
+    double slip = std::abs(ang_vel) > 1e-4 ? 1 - lin_vel / (ang_vel * m_wheel_radius) : 0.0;
+    return slip;
 }
 
 // =============================================================================
 
 ChVehicleCosimDBPRigImposedSlip::ChVehicleCosimDBPRigImposedSlip(ActuationType act_type, double base_vel, double slip)
-    : m_act_type(act_type),
-      m_base_vel(base_vel),
-      m_slip(slip),
-      m_lin_vel(0),
-      m_ang_vel(0),
-      m_time_delay(0.2),
-      m_time_ramp(0.5) {}
-
-void ChVehicleCosimDBPRigImposedSlip::SetRampingIntervals(double delay, double ramp_time) {
-    m_time_delay = delay;
-    m_time_ramp = ramp_time;
-}
+    : m_act_type(act_type), m_base_vel(base_vel), m_slip(slip), m_lin_vel(0), m_ang_vel(0) {}
 
 std::string ChVehicleCosimDBPRigImposedSlip::GetActuationTypeAsString(ActuationType type) {
     switch (type) {
@@ -145,8 +156,7 @@ std::string ChVehicleCosimDBPRigImposedSlip::GetActuationTypeAsString(ActuationT
     }
 }
 
-ChVehicleCosimDBPRigImposedSlip::ActuationType ChVehicleCosimDBPRigImposedSlip::GetActuationTypeFromString(
-    const std::string& type) {
+ChVehicleCosimDBPRigImposedSlip::ActuationType ChVehicleCosimDBPRigImposedSlip::GetActuationTypeFromString(const std::string& type) {
     if (type == "SET_LIN_VEL")
         return ActuationType::SET_LIN_VEL;
     if (type == "SET_ANG_VEL")
@@ -155,7 +165,10 @@ ChVehicleCosimDBPRigImposedSlip::ActuationType ChVehicleCosimDBPRigImposedSlip::
     return ActuationType::UNKNOWN;
 }
 
-void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) {
+void ChVehicleCosimDBPRigImposedSlip::Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size) {
+    // Initialize base class
+    ChVehicleCosimDBPRig::Initialize(chassis, wheel_radius, step_size);
+
     // Calculate rig linear velocity and wheel angular velocity
     switch (m_act_type) {
         case ActuationType::SET_ANG_VEL:
@@ -185,39 +198,22 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
         cout << "[DBP rig     ] wheel radius = " << wheel_radius << endl;
     }
 
-    // Create a "ground" body
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetFixed(true);
-    chassis->GetSystem()->AddBody(ground);
-
-    // Create a "carrier" body.
-    // Since the carrier will be connected to ground with a horizontal prismatic joint, its mass does not contribute to
-    // vertical load.
-    auto carrier = chrono_types::make_shared<ChBody>();
-    carrier->SetMass(10);
-    carrier->SetInertiaXX(ChVector3d(1, 1, 1));
-    carrier->SetPos(chassis->GetPos());
-    carrier->SetRot(QUNIT);
-    carrier->SetPosDt(ChVector3d(m_lin_vel, 0, 0));
-    chassis->GetSystem()->AddBody(carrier);
-
-    // Connect chassis body to connector using a vertical prismatic joint
-    auto prism_vert = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_vert->Initialize(carrier, chassis, ChFrame<>(carrier->GetPos(), QUNIT));
-    chassis->GetSystem()->AddLink(prism_vert);
+    // Impose initial velocity on carrier body
+    m_carrier->SetPosDt(ChVector3d(m_lin_vel, 0, 0));
 
     // Connect carrier to ground with a linear motor
     m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
     m_lin_motor->SetSpeedFunction(m_lin_motor_func);
-    m_lin_motor->Initialize(carrier, ground, ChFrame<>(carrier->GetPos(), QUNIT));
+    m_lin_motor->Initialize(m_ground, m_carrier, ChFrame<>(m_carrier->GetPos(), Q_ROTATE_X_TO_Z));
     chassis->GetSystem()->AddLink(m_lin_motor);
-
-    // Set initialization (ramping up) time
-    m_delay_time = 0.2 + 0.5;
 }
 
-std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedSlip::GetMotorFunction() const {
-    return m_rot_motor_func;
+void ChVehicleCosimDBPRigImposedSlip::Advance(double step_size) {
+    ChVehicleCosimDBPRig::Advance(step_size);
+    if (m_verbose) {
+        double t = m_carrier->GetChTime();
+        cout << "[DBP rig     ] lin. motor fun: " << m_lin_motor_func->GetVal(t) << " rot. motor fun: " << m_rot_motor_func->GetVal(t) << endl;
+    }
 }
 
 double ChVehicleCosimDBPRigImposedSlip::GetDBP() const {
@@ -226,40 +222,18 @@ double ChVehicleCosimDBPRigImposedSlip::GetDBP() const {
 
 // =============================================================================
 
-ChVehicleCosimDBPRigImposedAngVel::ChVehicleCosimDBPRigImposedAngVel(double ang_vel, double force_rate)
-    : m_ang_vel(ang_vel), m_tire_radius(0), m_force_rate(force_rate), m_time_delay(0.2), m_time_ramp(0.5) {}
+ChVehicleCosimDBPRigImposedAngVel::ChVehicleCosimDBPRigImposedAngVel(double ang_vel, double force_rate) : m_ang_vel(ang_vel), m_force_rate(force_rate) {}
 
-void ChVehicleCosimDBPRigImposedAngVel::SetRampingIntervals(double delay, double ramp_time) {
-    m_time_delay = delay;
-    m_time_ramp = ramp_time;
-}
+void ChVehicleCosimDBPRigImposedAngVel::Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size) {
+    // Initialize base class
+    ChVehicleCosimDBPRig::Initialize(chassis, wheel_radius, step_size);
 
-void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> chassis, double wheel_radius) {
+    // Motor function
     m_rot_motor_func = chrono_types::make_shared<ConstantFunction>(m_ang_vel, m_time_delay, m_time_ramp);
-
-    // Create a "ground" body
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetFixed(true);
-    chassis->GetSystem()->AddBody(ground);
-
-    // Create a "carrier" body.
-    // Since the carrier will be connected to ground with a horizontal prismatic joint, its mass does not contribute to
-    // vertical load.
-    m_carrier = chrono_types::make_shared<ChBody>();
-    m_carrier->SetMass(10);
-    m_carrier->SetInertiaXX(ChVector3d(1, 1, 1));
-    m_carrier->SetPos(chassis->GetPos());
-    m_carrier->SetRot(QUNIT);
-    chassis->GetSystem()->AddBody(m_carrier);
-
-    // Connect chassis body to connector using a vertical prismatic joint
-    auto prism_vert = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_vert->Initialize(m_carrier, chassis, ChFrame<>(m_carrier->GetPos(), QUNIT));
-    chassis->GetSystem()->AddLink(prism_vert);
 
     // Connect carrier to ground with a horizontal prismatic joint
     auto prism_horiz = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_horiz->Initialize(m_carrier, ground, ChFrame<>(m_carrier->GetPos(), QuatFromAngleY(CH_PI_2)));
+    prism_horiz->Initialize(m_carrier, m_ground, ChFrame<>(m_carrier->GetPos(), QuatFromAngleY(CH_PI_2)));
     chassis->GetSystem()->AddLink(prism_horiz);
 
     // Apply a resistive force to carrier body
@@ -270,23 +244,14 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
     load_container->Add(m_DBP_force);
     chassis->GetSystem()->Add(load_container);
-
-    // Set initialization (ramping up) time
-    m_delay_time = 0.2 + 0.5;
 }
 
-std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedAngVel::GetMotorFunction() const {
-    return m_rot_motor_func;
-}
-
-double ChVehicleCosimDBPRigImposedAngVel::GetSlip() const {
-    double lin_vel = m_carrier->GetPosDt().x();
-    double slip = 1 - lin_vel / (m_ang_vel * m_tire_radius);
-    return slip;
-}
-
-double ChVehicleCosimDBPRigImposedAngVel::GetLinVel() const {
-    return m_carrier->GetPosDt().x();
+void ChVehicleCosimDBPRigImposedAngVel::Advance(double step_size) {
+    ChVehicleCosimDBPRig::Advance(step_size);
+    if (m_verbose) {
+        double t = m_carrier->GetChTime();
+        cout << "[DBP rig     ] rot. motor fun: " << m_rot_motor_func->GetVal(t) << endl;
+    }
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetDBP() const {

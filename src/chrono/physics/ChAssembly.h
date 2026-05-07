@@ -18,10 +18,13 @@
 #include <cmath>
 #include <vector>
 
-#include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLinksAll.h"
+
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+#endif
 
 namespace chrono {
 
@@ -59,8 +62,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Attach a link to this assembly.
     void AddLink(std::shared_ptr<ChLinkBase> link);
 
+#ifdef CHRONO_FEA
     /// Attach a mesh to this assembly.
     void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
+#endif
 
     /// Attach a ChPhysicsItem object that is not a body, link, or mesh.
     void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
@@ -87,8 +92,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void RemoveShaft(std::shared_ptr<ChShaft> shaft);
     /// Remove a link from this assembly.
     void RemoveLink(std::shared_ptr<ChLinkBase> link);
+#ifdef CHRONO_FEA
     /// Remove a mesh from the assembly.
     void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
+#endif
     /// Remove a ChPhysicsItem object that is not a body or a link
     void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
     /// Remove arbitrary ChPhysicsItem that was added to the assembly.
@@ -100,8 +107,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void RemoveAllShafts();
     /// Remove all links from this assembly.
     void RemoveAllLinks();
+#ifdef CHRONO_FEA
     /// Remove all meshes from this assembly.
     void RemoveAllMeshes();
+#endif
     /// Remove all physics items  not in the body, link, or mesh lists.
     void RemoveAllOtherPhysicsItems();
 
@@ -111,8 +120,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return shaftlist; }
     /// Get the list of links.
     virtual const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return linklist; }
+#ifdef CHRONO_FEA
     /// Get the list of meshes.
     virtual const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return meshlist; }
+#endif
     /// Get the list of physics items that are not in the body or link lists.
     virtual const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const { return otherphysicslist; }
 
@@ -124,8 +135,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::shared_ptr<ChShaft> SearchShaft(const std::string& name) const;
     /// Search a link by its name.
     std::shared_ptr<ChLinkBase> SearchLink(const std::string& name) const;
+#ifdef CHRONO_FEA
     /// Search a mesh by its name.
     std::shared_ptr<fea::ChMesh> SearchMesh(const std::string& name) const;
+#endif
     /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
     std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const std::string& name) const;
     /// Search a marker by its name.
@@ -221,60 +234,28 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void ForceToRest() override;
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGather(const unsigned int off_x,
-                                ChState& x,
-                                const unsigned int off_v,
-                                ChStateDelta& v,
-                                double& T) override;
-    virtual void IntStateScatter(const unsigned int off_x,
-                                 const ChState& x,
-                                 const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const double T,
-                                 UpdateFlags update_flags) override;
+    virtual void IntStateGather(const unsigned int off_x, ChState& x, const unsigned int off_v, ChStateDelta& v, double& T) override;
+    virtual void IntStateScatter(const unsigned int off_x, const ChState& x, const unsigned int off_v, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntStateIncrement(const unsigned int off_x,
-                                   ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   const ChStateDelta& Dv) override;
-    virtual void IntStateGetIncrement(const unsigned int off_x,
-                                      const ChState& x_new,
-                                      const ChState& x,
-                                      const unsigned int off_v,
-                                      ChStateDelta& Dv) override;
+    virtual void IntStateOnEndStep(double T) override;
+    virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void IntStateGetIncrement(const unsigned int off_x, const ChState& x_new, const ChState& x, const unsigned int off_v, ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-    virtual void IntLoadResidual_Mv(const unsigned int off,
-                                    ChVectorDynamic<>& R,
-                                    const ChVectorDynamic<>& w,
-                                    const double c) override;
-    virtual void IntLoadLumpedMass_Md(const unsigned int off,
-                                      ChVectorDynamic<>& Md,
-                                      double& err,
-                                      const double c) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadResidual_Mv(const unsigned int off, ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
@@ -320,10 +301,12 @@ class ChApi ChAssembly : public ChPhysicsItem {
   protected:
     virtual void SetupInitial() override;
 
-    std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies
-    std::vector<std::shared_ptr<ChShaft>> shaftlist;               ///< list of 1-D shafts
-    std::vector<std::shared_ptr<ChLinkBase>> linklist;             ///< list of joints (links)
-    std::vector<std::shared_ptr<fea::ChMesh>> meshlist;            ///< list of meshes
+    std::vector<std::shared_ptr<ChBody>> bodylist;      ///< list of rigid bodies
+    std::vector<std::shared_ptr<ChShaft>> shaftlist;    ///< list of 1-D shafts
+    std::vector<std::shared_ptr<ChLinkBase>> linklist;  ///< list of joints (links)
+#ifdef CHRONO_FEA
+    std::vector<std::shared_ptr<fea::ChMesh>> meshlist;  ///< list of meshes
+#endif
     std::vector<std::shared_ptr<ChPhysicsItem>> otherphysicslist;  ///< list of other physics objects
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 

@@ -32,7 +32,9 @@ namespace vehicle {
 
 ChVehicleCosimTireNodeBypass::ChVehicleCosimTireNodeBypass(int index, double mass, double radius, double width)
     : ChVehicleCosimTireNode(index), m_mass(mass), m_radius(radius), m_width(width) {
-    m_geometry = utils::ChBodyGeometry();  // empty geometry
+    // Create tire geometry as a way to communicate tire radius and width
+    m_geometry.materials.push_back(ChContactMaterialData());
+    m_geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, VECT_Y, m_radius, m_width, 0));
 }
 
 }  // namespace vehicle

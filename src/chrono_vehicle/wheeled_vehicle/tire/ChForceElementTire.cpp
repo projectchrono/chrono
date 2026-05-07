@@ -60,8 +60,7 @@ TerrainForce ChForceElementTire::GetTireForce() const {
     tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
 
     // Move the tire forces from the contact patch to the wheel center
-    tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetAxisZ()) - tireforce.point, tireforce.force);
+    tireforce.moment += Vcross(m_data.frame.pos - tireforce.point, tireforce.force);
 
     return tireforce;
 }

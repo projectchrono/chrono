@@ -19,7 +19,7 @@
 #include <algorithm>
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
 
 using namespace rapidjson;
@@ -61,7 +61,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
     ////bool pressure_info_found = false;
 
     if (d.HasMember("Parameters")) {
-        // Full parameterization
+        // Full parametrization
         m_par.pn = d["Parameters"]["Vertical"]["Nominal Vertical Force [N]"].GetDouble();
         if (d["Parameters"]["Vertical"].HasMember("Maximum Vertical Force [N]"))
             m_par.pn_max = d["Parameters"]["Vertical"]["Maximum Vertical Force [N]"].GetDouble();

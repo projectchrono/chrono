@@ -44,6 +44,9 @@ class ChApi ChCollisionSystemMulticore : public ChCollisionSystem {
     ChCollisionSystemMulticore();
     virtual ~ChCollisionSystemMulticore();
 
+    /// Return type of the collision system.
+    virtual Type GetType() const override { return Type::MULTICORE; }
+
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
     virtual void Clear() override;
@@ -116,12 +119,16 @@ class ChApi ChCollisionSystemMulticore : public ChCollisionSystem {
     /// Return the time (in seconds) for narrowphase collision detection.
     virtual double GetTimerCollisionNarrow() const override;
 
-    /// Fill in the provided contact container with collision information after Run().
-    virtual void ReportContacts(ChContactContainer* container) override;
+    /// Report contacts (fill the provided 'contact container').
+    /// This function, which should only be called after `Run()`, must add to the contact container contacts
+    /// corresponding to all detected pairwise collisions.
+    virtual void ReportContacts(ChContactContainer* contact_container) override;
 
-    /// Fill in the provided proximity container with near point information after Run().
+    /// Report proximities (fill in the provided 'proximity container').
+    /// This function, which should only be called after `Run()`, must add to the contact container contacts
+    /// corresponding to all detected pairwise collisions.
     /// Not used.
-    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override {}
+    virtual void ReportProximities(ChProximityContainer* proximity_container) override {}
 
     /// Perform a ray-hit test with all collision models.
     virtual bool RayHit(const ChVector3d& from, const ChVector3d& to, ChRayhitResult& result) const override;

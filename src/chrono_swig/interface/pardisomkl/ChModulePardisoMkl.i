@@ -123,6 +123,7 @@ using namespace chrono;
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChSolver.i"
 
 %include "../../../chrono_pardisomkl/ChSolverPardisoMKL.h"

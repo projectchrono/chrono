@@ -48,10 +48,7 @@ ChFsiFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return *m_sysSPH;
 }
 
-std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body,
-                                                    const std::vector<ChVector3d>& bce,
-                                                    const ChFrame<>& rel_frame,
-                                                    bool check_embedded) {
+std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded) {
     ChAssertAlways(m_sysSPH);
 
     // Add the FSI body with no geometry
@@ -63,10 +60,8 @@ std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body
     fsisph_body.bce_ids.resize(bce.size(), (int)fsisph_body.fsi_body->index);
 
     ChFramed abs_frame = body->GetFrameRefToAbs() * rel_frame;
-    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce_coords),
-                   [&rel_frame](const ChVector3d& v) { return rel_frame.TransformPointLocalToParent(v); });
-    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce),
-                   [&abs_frame](const ChVector3d& v) { return abs_frame.TransformPointLocalToParent(v); });
+    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce_coords), [&rel_frame](const ChVector3d& v) { return rel_frame.TransformPointLocalToParent(v); });
+    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce), [&abs_frame](const ChVector3d& v) { return abs_frame.TransformPointLocalToParent(v); });
 
     return fsi_body;
 }

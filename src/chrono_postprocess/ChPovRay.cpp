@@ -89,9 +89,11 @@ void ChPovRay::AddAll() {
     for (const auto& body : mSystem->GetBodies()) {
         Add(body);
     }
+#ifdef CHRONO_FEA
     for (const auto& mesh : mSystem->GetMeshes()) {
         Add(mesh);
     }
+#endif
     for (const auto& ph : mSystem->GetOtherPhysicsItems()) {
         Add(ph);
     }
@@ -104,9 +106,11 @@ void ChPovRay::RemoveAll() {
     for (auto& body : mSystem->GetBodies()) {
         Remove(body);
     }
+#ifdef CHRONO_FEA
     for (auto& mesh : mSystem->GetMeshes()) {
         Remove(mesh);
     }
+#endif
     for (auto& ph : mSystem->GetOtherPhysicsItems()) {
         Remove(ph);
     }
@@ -175,14 +179,7 @@ void ChPovRay::SetShowLinks(bool show, double msize) {
     if (show)
         links_size = msize;
 }
-void ChPovRay::SetShowContacts(bool show,
-                               ContactSymbol mode,
-                               double scale,
-                               double width,
-                               double max_size,
-                               bool do_colormap,
-                               double colormap_start,
-                               double colormap_end) {
+void ChPovRay::SetShowContacts(bool show, ContactSymbol mode, double scale, double width, double max_size, bool do_colormap, double colormap_start, double colormap_end) {
     contacts_show = show;
     if (show) {
         contacts_scale_mode = mode;
@@ -287,10 +284,8 @@ void ChPovRay::ExportScript(const std::string& filename) {
     mfile << "camera { " << std::endl;
     if (camera_orthographic) {
         mfile << " orthographic " << std::endl;
-        mfile << " right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle
-              << " *0.5)/180)*3.14) " << std::endl;
-        mfile << " up y * image_height/image_width * " << (camera_location - camera_aim).Length() << " * tan ((("
-              << camera_angle << "*0.5)/180)*3.14) " << std::endl;
+        mfile << " right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle << " *0.5)/180)*3.14) " << std::endl;
+        mfile << " up y * image_height/image_width * " << (camera_location - camera_aim).Length() << " * tan (((" << camera_angle << "*0.5)/180)*3.14) " << std::endl;
         ChVector3d mdir = (camera_aim - camera_location) * 0.00001;
         mfile << " direction <" << mdir.x() << "," << mdir.y() << "," << mdir.z() << "> " << std::endl;
     } else {
@@ -306,8 +301,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     mfile << "light_source {\n"
           << " <" << def_light_location.x() << "," << def_light_location.y() << "," << def_light_location.z() << ">\n"
-          << " color rgb<" << def_light_color.R << "," << def_light_color.G << "," << def_light_color.B << "> "
-          << std::endl;
+          << " color rgb<" << def_light_color.R << "," << def_light_color.G << "," << def_light_color.B << "> " << std::endl;
     if (!def_light_cast_shadows)
         mfile << " shadowless " << std::endl;
     mfile << "}\n\n" << std::endl;
@@ -328,8 +322,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     // Write POV code to open the n.th scene file
 
     mfile << "// Include POV code to for the n.th scene file:\n" << std::endl;
-    mfile << "#declare scene_file = concat(\"" << (out_path + "/" + out_data_filename).c_str()
-          << "\", str(frame_number,-5,0), \".pov\") " << std::endl;
+    mfile << "#declare scene_file = concat(\"" << (out_path + "/" + out_data_filename).c_str() << "\", str(frame_number,-5,0), \".pov\") " << std::endl;
     mfile << "#include scene_file\n" << std::endl;
 
     // Write POV code to load and display contacts
@@ -370,8 +363,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
         }
         mfile << "" << std::endl;
 
-        mfile << "#declare contacts_file = concat(\"" << out_path + "/" + out_data_filename
-              << "\", str(frame_number,-5,0), \".contacts\") " << std::endl;
+        mfile << "#declare contacts_file = concat(\"" << out_path + "/" + out_data_filename << "\", str(frame_number,-5,0), \".contacts\") " << std::endl;
         mfile << "#fopen MyContactsFile contacts_file read " << std::endl;
 
         mfile << " \n\
@@ -439,8 +431,7 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
             bool wireframe = false;
 
             if (obj_shape) {
-                auto temp_allocated_loadtrimesh =
-                    ChTriangleMeshConnected::CreateFromWavefrontFile(obj_shape->GetFilename(), true, true);
+                auto temp_allocated_loadtrimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj_shape->GetFilename(), true, true);
                 if (temp_allocated_loadtrimesh) {
                     mesh = temp_allocated_loadtrimesh;
                 } else {
@@ -459,15 +450,13 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
                 assets_file << " vertex_vectors {" << std::endl;
                 assets_file << (int)mesh->m_vertices.size() << "," << std::endl;
                 for (unsigned int iv = 0; iv < mesh->m_vertices.size(); iv++)
-                    assets_file << "  <" << mesh->m_vertices[iv].x() << "," << mesh->m_vertices[iv].y() << ","
-                                << mesh->m_vertices[iv].z() << ">," << std::endl;
+                    assets_file << "  <" << mesh->m_vertices[iv].x() << "," << mesh->m_vertices[iv].y() << "," << mesh->m_vertices[iv].z() << ">," << std::endl;
                 assets_file << " }" << std::endl;
 
                 assets_file << " normal_vectors {" << std::endl;
                 assets_file << (int)mesh->m_normals.size() << "," << std::endl;
                 for (unsigned int iv = 0; iv < mesh->m_normals.size(); iv++)
-                    assets_file << "  <" << mesh->m_normals[iv].x() << "," << mesh->m_normals[iv].y() << ","
-                                << mesh->m_normals[iv].z() << ">," << std::endl;
+                    assets_file << "  <" << mesh->m_normals[iv].x() << "," << mesh->m_normals[iv].y() << "," << mesh->m_normals[iv].z() << ">," << std::endl;
                 assets_file << " }" << std::endl;
 
                 assets_file << " uv_vectors {" << std::endl;
@@ -480,8 +469,7 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
                     assets_file << " texture_list {" << std::endl;
                     assets_file << (int)(mesh->m_colors.size()) << "," << std::endl;
                     for (unsigned int iv = 0; iv < mesh->m_vertices.size(); iv++) {
-                        assets_file << " texture{pigment{rgb <" << mesh->m_colors[iv].R << "," << mesh->m_colors[iv].G
-                                    << "," << mesh->m_colors[iv].B << ">}}," << std::endl;
+                        assets_file << " texture{pigment{rgb <" << mesh->m_colors[iv].R << "," << mesh->m_colors[iv].G << "," << mesh->m_colors[iv].B << ">}}," << std::endl;
                     }
                     assets_file << " }" << std::endl;
                 }
@@ -489,11 +477,9 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
                 assets_file << " face_indices {" << std::endl;
                 assets_file << (int)mesh->m_face_v_indices.size() << "," << std::endl;
                 for (unsigned int it = 0; it < mesh->m_face_v_indices.size(); it++) {
-                    assets_file << "  <" << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y()
-                                << "," << mesh->m_face_v_indices[it].z() << ">";
+                    assets_file << "  <" << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y() << "," << mesh->m_face_v_indices[it].z() << ">";
                     if (mesh->m_colors.size() == mesh->m_vertices.size())
-                        assets_file << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y() << ","
-                                    << mesh->m_face_v_indices[it].z();
+                        assets_file << mesh->m_face_v_indices[it].x() << "," << mesh->m_face_v_indices[it].y() << "," << mesh->m_face_v_indices[it].z();
                     assets_file << "," << std::endl;
                 }
                 assets_file << " }" << std::endl;
@@ -502,17 +488,15 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
                     assets_file << " normal_indices {" << std::endl;
                     assets_file << (int)mesh->m_face_n_indices.size() << "," << std::endl;
                     for (unsigned int it = 0; it < mesh->m_face_n_indices.size(); it++)
-                        assets_file << "  <" << mesh->m_face_n_indices[it].x() << "," << mesh->m_face_n_indices[it].y()
-                                    << "," << mesh->m_face_n_indices[it].z() << ">," << std::endl;
+                        assets_file << "  <" << mesh->m_face_n_indices[it].x() << "," << mesh->m_face_n_indices[it].y() << "," << mesh->m_face_n_indices[it].z() << ">,"
+                                    << std::endl;
                     assets_file << " }" << std::endl;
                 }
-                if ((mesh->m_face_uv_indices.size() != mesh->m_face_v_indices.size()) &&
-                    (mesh->m_face_uv_indices.size() > 0)) {
+                if ((mesh->m_face_uv_indices.size() != mesh->m_face_v_indices.size()) && (mesh->m_face_uv_indices.size() > 0)) {
                     assets_file << " uv_indices {" << std::endl;
                     assets_file << (int)mesh->m_face_uv_indices.size() << "," << std::endl;
                     for (unsigned int it = 0; it < mesh->m_face_uv_indices.size(); it++)
-                        assets_file << "  <" << mesh->m_face_uv_indices[it].x() << ","
-                                    << mesh->m_face_uv_indices[it].y() << "," << mesh->m_face_uv_indices[it].z() << ">,"
+                        assets_file << "  <" << mesh->m_face_uv_indices[it].x() << "," << mesh->m_face_uv_indices[it].y() << "," << mesh->m_face_uv_indices[it].z() << ">,"
                                     << std::endl;
                     assets_file << " }" << std::endl;
                 }
@@ -525,17 +509,14 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
                 std::map<std::pair<int, int>, std::pair<int, int>> edges;
                 mesh->ComputeWingedEdges(edges, true);
                 for (const auto& edge : edges) {
-                    assets_file << " cylinder {<" << mesh->m_vertices[edge.first.first].x() << ","
-                                << mesh->m_vertices[edge.first.first].y() << ","
+                    assets_file << " cylinder {<" << mesh->m_vertices[edge.first.first].x() << "," << mesh->m_vertices[edge.first.first].y() << ","
                                 << mesh->m_vertices[edge.first.first].z() << ">,";
-                    assets_file << "<" << mesh->m_vertices[edge.first.second].x() << ","
-                                << mesh->m_vertices[edge.first.second].y() << ","
+                    assets_file << "<" << mesh->m_vertices[edge.first.second].x() << "," << mesh->m_vertices[edge.first.second].y() << ","
                                 << mesh->m_vertices[edge.first.second].z() << ">,";
                     assets_file << (wireframe_thickness * 0.5) << std::endl << " no_shadow ";
                     if (mesh->m_colors.size() == mesh->m_vertices.size())
-                        assets_file << "finish{ ambient rgb<" << mesh->m_colors[edge.first.first].R << ","
-                                    << mesh->m_colors[edge.first.first].G << "," << mesh->m_colors[edge.first.first].B
-                                    << "> diffuse 0}";
+                        assets_file << "finish{ ambient rgb<" << mesh->m_colors[edge.first.first].R << "," << mesh->m_colors[edge.first.first].G << ","
+                                    << mesh->m_colors[edge.first.first].B << "> diffuse 0}";
                     assets_file << "}" << std::endl;
                 }
             }
@@ -584,10 +565,8 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
             auto axis = shape_frame.GetRotMat().GetAxisZ();
             auto hlen = cylinder->GetHeight() / 2;
 
-            assets_file << " <" << -hlen * axis.x() << "," << -hlen * axis.y() << "," << -hlen * axis.z() << ">,"
-                        << std::endl;
-            assets_file << " <" << +hlen * axis.x() << "," << +hlen * axis.y() << "," << +hlen * axis.z() << ">,"
-                        << std::endl;
+            assets_file << " <" << -hlen * axis.x() << "," << -hlen * axis.y() << "," << -hlen * axis.z() << ">," << std::endl;
+            assets_file << " <" << +hlen * axis.x() << "," << +hlen * axis.y() << "," << +hlen * axis.z() << ">," << std::endl;
             assets_file << " " << cylinder->GetRadius() << "" << std::endl;
 
             ApplyMaterials(assets_file, shape->GetMaterials());
@@ -633,8 +612,7 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
     }
 }
 
-void ChPovRay::ExportMaterials(std::ofstream& assets_file,
-                               const std::vector<std::shared_ptr<ChVisualMaterial>>& materials) {
+void ChPovRay::ExportMaterials(std::ofstream& assets_file, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials) {
     for (const auto& mat : materials) {
         // Do nothing if the material was already processed (because it is shared)
         // Otherwise, add the material to the cache list and process it
@@ -662,8 +640,7 @@ void ChPovRay::ExportMaterials(std::ofstream& assets_file,
         // add POV  pigment (only if no texture has been added, otherwise POV complains)
         if (mat->GetKdTexture().empty()) {
             const auto& color = mat->GetDiffuseColor();
-            assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << ","
-                        << 1 - mat->GetOpacity() << "> }" << std::endl;
+            assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << "," << 1 - mat->GetOpacity() << "> }" << std::endl;
         }
 
         // POV macro - end
@@ -671,15 +648,16 @@ void ChPovRay::ExportMaterials(std::ofstream& assets_file,
     }
 }
 
-void ChPovRay::ExportObjData(std::ofstream& pov_file,
-                             std::shared_ptr<ChPhysicsItem> item,
-                             const ChFrame<>& parentframe) {
+void ChPovRay::ExportObjData(std::ofstream& pov_file, std::shared_ptr<ChPhysicsItem> item, const ChFrame<>& parentframe) {
     // Check for custom command for this item
     auto commands = m_custom_commands.find((size_t)item.get());
 
     auto vis_model = item->GetVisualModel();
     unsigned int num_shapes = vis_model->GetNumShapes();
-    unsigned int num_shapesFEA = vis_model->GetNumShapesFEA();
+    unsigned int num_shapesFEA = 0;
+#ifdef CHRONO_FEA
+    num_shapesFEA = vis_model->GetNumShapesFEA();
+#endif
     int num_cameras = (int)item->GetCameras().size();
     int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;
     int num_csys = (parentframe.GetCoordsys() == CSYSNORM) ? 0 : 1;
@@ -695,12 +673,9 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
         const auto& shape = shape_instance.shape;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
-        if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape) ||
-            std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape) ||
-            std::dynamic_pointer_cast<ChVisualShapeSphere>(shape) ||
-            std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape) ||
-            std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape) ||
-            std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
+        if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape) || std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeSphere>(shape) || std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape) || std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             pov_file << "sh_" << (size_t)shape.get() << "()" << std::endl;
         }
     }
@@ -816,16 +791,14 @@ void ChPovRay::ExportData(const std::string& filename) {
                     const ChCoordsys<>& cogcsys = body->GetFrameCOMToAbs().GetCoordsys();
                     pov_file << "sh_csysCOG(";
                     pov_file << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
-                    pov_file << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","
-                             << cogcsys.rot.e3() << ",";
+                    pov_file << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << "," << cogcsys.rot.e3() << ",";
                     pov_file << COGs_size << ")" << std::endl;
                 }
                 // Show body frame ref?
                 if (frames_show) {
                     pov_file << "sh_csysFRM(";
                     pov_file << assetcsys.pos.x() << "," << assetcsys.pos.y() << "," << assetcsys.pos.z() << ",";
-                    pov_file << assetcsys.rot.e0() << "," << assetcsys.rot.e1() << "," << assetcsys.rot.e2() << ","
-                             << assetcsys.rot.e3() << ",";
+                    pov_file << assetcsys.rot.e0() << "," << assetcsys.rot.e1() << "," << assetcsys.rot.e2() << "," << assetcsys.rot.e3() << ",";
                     pov_file << frames_size << ")" << std::endl;
                 }
             }
@@ -872,21 +845,21 @@ void ChPovRay::ExportData(const std::string& filename) {
                     ChFrame<> frBabs = linkmate->GetFrame2Rel() >> *linkmate->GetBody2();
                     pov_file << "sh_csysFRM(";
                     pov_file << frAabs.GetPos().x() << "," << frAabs.GetPos().y() << "," << frAabs.GetPos().z() << ",";
-                    pov_file << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2()
-                             << "," << frAabs.GetRot().e3() << ",";
+                    pov_file << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2() << "," << frAabs.GetRot().e3() << ",";
                     pov_file << links_size * 0.7 << ")" << std::endl;  // smaller, as 'slave' csys.
                     pov_file << "sh_csysFRM(";
                     pov_file << frBabs.GetPos().x() << "," << frBabs.GetPos().y() << "," << frBabs.GetPos().z() << ",";
-                    pov_file << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2()
-                             << "," << frBabs.GetRot().e3() << ",";
+                    pov_file << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2() << "," << frBabs.GetRot().e3() << ",";
                     pov_file << links_size << ")" << std::endl;
                 }
             }
 
+#ifdef CHRONO_FEA
             // saving an FEA mesh?
             if (auto fea_mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
                 ExportObjData(pov_file, fea_mesh, ChFrame<>());
             }
+#endif
 
         }  // end loop on objects
 
@@ -896,20 +869,18 @@ void ChPovRay::ExportData(const std::string& filename) {
 
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
-                virtual bool OnReportContact(
-                    const ChVector3d& pA,             // contact pA
-                    const ChVector3d& pB,             // contact pB
-                    const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
-                    double distance,                  // contact distance
-                    double eff_radius,                // effective radius of curvature at contact
-                    const ChVector3d& react_forces,   // react. forces, expressed in 'plane_coord'
-                    const ChVector3d& react_torques,  // react. torques, if rolling friction
-                    ChContactable* contactobjA,       // first contactable object (may be nullptr)
-                    ChContactable* contactobjB,       // second contactable object (may be nullptr)
-                    int constraint_offset             // NSC only: ignored here
-                    ) override {
-                    if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
-                        fabs(react_forces.z()) > 1e-8) {
+                virtual bool OnReportContact(const ChVector3d& pA,             // contact pA
+                                             const ChVector3d& pB,             // contact pB
+                                             const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+                                             double distance,                  // contact distance
+                                             double eff_radius,                // effective radius of curvature at contact
+                                             const ChVector3d& react_forces,   // react. forces, expressed in 'plane_coord'
+                                             const ChVector3d& react_torques,  // react. torques, if rolling friction
+                                             ChContactable* contactobjA,       // first contactable object (may be nullptr)
+                                             ChContactable* contactobjB,       // second contactable object (may be nullptr)
+                                             int constraint_offset             // NSC only: ignored here
+                                             ) override {
+                    if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 || fabs(react_forces.z()) > 1e-8) {
                         ChMatrix33<> localmatr(plane_coord);
                         ChVector3d n1 = localmatr.GetAxisX();
                         ChVector3d absreac = localmatr * react_forces;
@@ -941,18 +912,15 @@ void ChPovRay::ExportData(const std::string& filename) {
             pov_file << "camera { " << std::endl;
             if (camera_orthographic) {
                 pov_file << " orthographic " << std::endl;
-                pov_file << " right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle
-                         << " *0.5)/180)*3.14) " << std::endl;
-                pov_file << " up y * image_height/image_width * " << (camera_location - camera_aim).Length()
-                         << " * tan (((" << camera_angle << "*0.5)/180)*3.14) " << std::endl;
+                pov_file << " right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle << " *0.5)/180)*3.14) " << std::endl;
+                pov_file << " up y * image_height/image_width * " << (camera_location - camera_aim).Length() << " * tan (((" << camera_angle << "*0.5)/180)*3.14) " << std::endl;
                 ChVector3d mdir = (camera_aim - camera_location) * 0.00001;
                 pov_file << " direction <" << mdir.x() << "," << mdir.y() << "," << mdir.z() << "> " << std::endl;
             } else {
                 pov_file << " right -x*image_width/image_height " << std::endl;
                 pov_file << " angle " << camera_angle << " " << std::endl;
             }
-            pov_file << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z()
-                     << ">\n"
+            pov_file << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z() << ">\n"
                      << " look_at <" << camera_aim.x() << "," << camera_aim.y() << "," << camera_aim.z() << ">\n"
                      << " sky <" << camera_up.x() << "," << camera_up.y() << "," << camera_up.z() << "> " << std::endl;
             pov_file << "}\n\n" << std::endl;

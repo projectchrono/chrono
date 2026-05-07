@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// Enable/disable information terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
-    /// Checkpoint the state of this tire to the given checkpint file.
+    /// Checkpoint the state of this tire to the given checkpoint file.
     virtual void ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const override;
 
     /// Initialize this tire from the given checkpoint file.

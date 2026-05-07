@@ -37,10 +37,10 @@ class ChApiCASCADE ChVisualShapeCascade : public ChVisualShape {
     TopoDS_Shape& Shape() { return mshape; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out);
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in);
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     TopoDS_Shape mshape;  ///< OpenCASCADE shape

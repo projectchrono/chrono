@@ -23,7 +23,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChTriangle)
 
 // Tolerance for testing degenerate triangles
-#define EPS_TRIDEGENERATE 1e-20
+static constexpr double EPS_TRIDEGENERATE = 1e-10;
 
 ChTriangle::ChTriangle(const ChTriangle& source) {
     p1 = source.p1;
@@ -56,7 +56,7 @@ ChAABB ChTriangle::GetBoundingBox() const {
     return CalcBoundingBox(p1, p2, p3);
 }
 
-ChVector3d ChTriangle::Baricenter() const {
+ChVector3d ChTriangle::Barycenter() const {
     ChVector3d mb;
     mb.x() = (p1.x() + p2.x() + p3.x()) * CH_1_3;
     mb.y() = (p1.y() + p2.y() + p3.y()) * CH_1_3;
@@ -65,21 +65,15 @@ ChVector3d ChTriangle::Baricenter() const {
 }
 
 bool ChTriangle::CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, ChVector3d& N) {
-    ChVector3d u;
-    u = Vsub(p2, p1);
-    ChVector3d v;
-    v = Vsub(p3, p1);
+    ChVector3d u = p2 - p1;
+    ChVector3d v = p3 - p1;
+    ChVector3d n = Vcross(u, v);
 
-    ChVector3d n;
-    n = Vcross(u, v);
-
-    double len = Vlength(n);
-
-    if (fabs(len) > EPS_TRIDEGENERATE)
-        N = Vmul(n, (1.0 / len));
-    else
+    double len = n.Length();
+    if (len < EPS_TRIDEGENERATE)
         return false;
 
+    N = n / len;
     return true;
 }
 
@@ -99,23 +93,29 @@ ChVector3d ChTriangle::GetNormal() const {
     return normal;
 }
 
-bool ChTriangle::IsDegenerated() const {
-    return utils::DegenerateTriangle(p1, p2, p3);
+bool ChTriangle::IsDegenerate() const {
+    return utils::IsTriangleDegenerate(p1, p2, p3);
 }
 
-double ChTriangle::PointTriangleDistance(ChVector3d B,           // point to be measured
-                                         double& mu,             // returns U parametric coord of projection
-                                         double& mv,             // returns V parametric coord of projection
-                                         bool& is_into,          // returns true if projection falls on the triangle
-                                         ChVector3d& Bprojected  // returns the position of the projected point
-) {
-    return utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
+double ChTriangle::PointTrianglePlaneDistance(ChVector3d B,           // point to be measured
+                                              double& u,              // returns U parametric coord of projection
+                                              double& v,              // returns V parametric coord of projection
+                                              bool& is_into,          // returns true if projection falls on the triangle
+                                              ChVector3d& Bprojected  // returns the position of the projected point
+) const {
+    return utils::PointTrianglePlaneDistance(B, p1, p2, p3, u, v, is_into, Bprojected);
 }
 
 void ChTriangle::SetPoints(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3) {
     p1 = P1;
     p2 = P2;
     p3 = P3;
+}
+
+double ChTriangle::CalcArea(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3) {
+    ChVector3d v1 = p2 - p1;
+    ChVector3d v2 = p3 - p1;
+    return 0.5 * Vcross(v1, v2).Length();
 }
 
 void ChTriangle::ArchiveOut(ChArchiveOut& archive_out) {

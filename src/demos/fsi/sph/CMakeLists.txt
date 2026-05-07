@@ -11,13 +11,8 @@ set(DEMOS ${DEMOS}
    demo_FSI-SPH_EmbeddedObject
    demo_FSI-SPH_BaffleFlow
    demo_FSI-SPH_CouetteFlow
-   demo_FSI-SPH_Flap
    demo_FSI-SPH_AngleRepose
-   demo_FSI-SPH_Cratering
    demo_FSI-SPH_RassorDrum
-   demo_FSI-SPH_NormalBevameter
-   demo_FSI-SPH_ConePenetrometer
-   demo_FSI-SPH_Hydrostatic
    demo_FSI-SPH_Cone_Drop
 )
 
@@ -27,7 +22,7 @@ if(CH_ENABLE_MODULE_VSG)
   )      
 endif()
 
-if(CH_ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_FEA AND CH_ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
       demo_FSI-SPH_FEAdirections
       demo_FSI-SPH_Flexible_Plate

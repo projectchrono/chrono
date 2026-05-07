@@ -40,11 +40,11 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googletest/googl
 #--------------------------------------------------------------
 
 # Convenience function to build and install unit tests from a list
-function(build_utests ADD_TESTS TESTS LIBS)
+function(build_utests ADD_TESTS TESTS LABEL LIBS)
 
     # Get optional list of additional files
-    if(${ARGC} GREATER 3)
-      set(EXTRA_FILES ${ARGV3})
+    if(${ARGC} GREATER 4)
+      set(EXTRA_FILES ${ARGV4})
     else()
       set(EXTRA_FILES "")
     endif()
@@ -77,7 +77,9 @@ function(build_utests ADD_TESTS TESTS LIBS)
         install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
         if(${ADD_TESTS})
            add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-           set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
+           set_tests_properties(${PROGRAM} PROPERTIES 
+                                WORKING_DIRECTORY ${MY_WORKING_DIR}
+                                LABELS "${LABEL}")
         endif()
     endforeach()
 
@@ -94,12 +96,15 @@ if(BUILD_TESTING_BASE)
   ADD_SUBDIRECTORY(physics)
   ADD_SUBDIRECTORY(joints)
   ADD_SUBDIRECTORY(smc_contact/sequential)
+  ADD_SUBDIRECTORY(geometry)
 endif()
 
-option(BUILD_TESTING_FEA "Build unit tests for FEA module" TRUE)
-mark_as_advanced(FORCE BUILD_TESTING_FEA)
-if(BUILD_TESTING_FEA)
-  ADD_SUBDIRECTORY(fea)
+if(CH_ENABLE_MODULE_FEA)
+  option(BUILD_TESTING_FEA "Build unit tests for FEA module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_FEA)
+  if(BUILD_TESTING_FEA)
+    ADD_SUBDIRECTORY(fea)
+  endif()
 endif()
 
 if(CH_ENABLE_MODULE_MODAL)
@@ -107,6 +112,14 @@ if(CH_ENABLE_MODULE_MODAL)
   mark_as_advanced(FORCE BUILD_TESTING_MODAL)
   if(BUILD_TESTING_MODAL)
     ADD_SUBDIRECTORY(modal)
+  endif()
+endif()
+
+if(CH_ENABLE_MODULE_CASCADE)
+  option(BUILD_TESTING_CASCADE "Build unit tests for Cascade module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_CASCADE)
+  if(BUILD_TESTING_CASCADE)
+    ADD_SUBDIRECTORY(cascade)
   endif()
 endif()
 
@@ -174,4 +187,3 @@ if(CH_ENABLE_MODULE_FSI_SPH)
     ADD_SUBDIRECTORY(fsi/sph)
   endif()
 endif()
-

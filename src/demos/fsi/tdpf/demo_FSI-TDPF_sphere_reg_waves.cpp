@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Radu Serban
+// Author: Radu Serban, Dave Ogden
 // =============================================================================
 
 #include <iomanip>
@@ -85,8 +85,10 @@ int main(int argc, char* argv[]) {
     // ----- Multibody system
     ChSystemNSC sysMBS;
     sysMBS.SetSolverType(solver_type);
-    sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
-    sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    if (sysMBS.GetSolver()->AsIterative()) {
+        sysMBS.GetSolver()->AsIterative()->SetMaxIterations(300);
+        sysMBS.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(use_diag_precond);
+    }
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
@@ -132,9 +134,8 @@ int main(int argc, char* argv[]) {
 
     // Add regular wave
     RegularWaveParams reg_wave_params;
-    reg_wave_params.num_bodies_ = 1;
-    reg_wave_params.regular_wave_amplitude_ = wave_amplitude;
-    reg_wave_params.regular_wave_omega_ = CH_2PI / wave_period;
+    reg_wave_params.regular_wave_amplitude = wave_amplitude;
+    reg_wave_params.regular_wave_omega = CH_2PI / wave_period;
     sysTDPF.AddWaves(reg_wave_params);
 
     // ----- FSI system
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]) {
     visVSG->AttachPlugin(visFSI);
     visVSG->AttachSystem(&sysMBS);
     visVSG->SetWindowTitle("FSI-TDPF sphere regular waves");
-    visVSG->SetWindowSize(1280, 800);
+    visVSG->SetWindowSize(1280, 720);
     visVSG->SetBackgroundColor(ChColor(0.04f, 0.11f, 0.18f));
     visVSG->AddCamera(ChVector3d(30, -35, 15), ChVector3d(0, 0, 0));
     visVSG->SetLightIntensity(0.9f);

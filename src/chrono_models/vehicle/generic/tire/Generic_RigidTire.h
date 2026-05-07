@@ -30,7 +30,7 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Rigid tire model for the Generic vehicle vehicle.
+/// Rigid tire model for the Generic vehicle.
 class CH_MODELS_API Generic_RigidTire : public ChRigidTire {
   public:
     Generic_RigidTire(const std::string& name, bool use_mesh = false);

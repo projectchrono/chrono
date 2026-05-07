@@ -185,9 +185,10 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
+                                     const double c_vel,  
                                      bool do_clamp,
                                      double recovery_clamp) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
@@ -461,7 +462,7 @@ class ChApi ChLinkMateDistanceZ : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateDistanceZ* Clone() const override { return new ChLinkMateDistanceZ(*this); }
 
-    /// Set the distance of the two constrainted frames along the Z axis of frame 2.
+    /// Set the distance of the two constrained frames along the Z axis of frame 2.
     void SetDistance(double distance) { m_distance = distance; }
 
     /// Get the imposed distance on Z of frame 2.

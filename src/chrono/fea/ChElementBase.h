@@ -97,12 +97,20 @@ class ChApi ChElementBase {
     // Functions for interfacing to the state bookkeeping
 
     /// This is optionally implemented if there is some internal state that requires integration.
+    /// Note: this will be called at each IntStateIncrement(), that can happen more frequently
+    /// than at each time step (ex. in implicit solvers). If you rather need to integrate some inner
+    /// state only at the end of each time step, rather implement  ElementUpdateEndStep()
     virtual void EleDoIntegration() {}
 
     /// Add the internal forces (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
     ///   R += forces * c
     virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {}
+
+    /// For a given finite element, computes updates at the end of a time step. This may happen less
+    /// frequently than a full Update. Ex. useful if you have some custom per-element inner states 
+    /// like plastic flow, etc.
+    virtual void ElementUpdateEndStep(double time) {}
 
     /// Add the product of element mass M by a vector w (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
@@ -117,7 +125,7 @@ class ChApi ChElementBase {
     /// Add the contribution of gravity loads, multiplied by a scaling factor c, as:
     ///   R += M * g * c
     /// Note that it is up to the element implementation to build a proper g vector that
-    /// contains G_acc values in the proper stride (ex. tetahedrons have 4x copies of G_acc in g).
+    /// contains G_acc values in the proper stride (ex. tetrahedrons have 4x copies of G_acc in g).
     /// Note that elements can provide fast implementations that do not need to build any internal M matrix,
     /// and not even the g vector, for instance if using lumped masses.
     virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) = 0;

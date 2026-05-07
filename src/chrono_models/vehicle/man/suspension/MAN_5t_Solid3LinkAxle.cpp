@@ -131,7 +131,7 @@ MAN_5t_Solid3LinkAxle::MAN_5t_Solid3LinkAxle(const std::string& name) : ChSolidT
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 MAN_5t_Solid3LinkAxle::~MAN_5t_Solid3LinkAxle() {}
 

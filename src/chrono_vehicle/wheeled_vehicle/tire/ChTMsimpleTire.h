@@ -27,7 +27,7 @@
 //  - FED-Alpha vehicle model
 //  - Tire data sets gained by conversion of Pac02 TIR parameter files
 //  - Steady state cornering test and test results from Keweenah Research Center (KRC)
-//  - unvalidateble functionality has been removed
+//  - non-validated functionality has been removed
 // ===================================================================================
 
 #ifndef CH_TMSIMPLETIRE

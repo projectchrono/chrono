@@ -23,8 +23,12 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
-#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
+#ifdef CHRONO_FEA
+    #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
+#endif
+
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
 
 #ifdef CHRONO_MUMPS
     #include "chrono_mumps/ChSolverMumps.h"
@@ -32,16 +36,6 @@
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
-using namespace chrono::vsg3d;
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -57,15 +51,12 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
-// Run-time visualization system
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
 // Simulation step size
 double step_size = 1e-4;
 
 // Specification of test rig inputs:
 //   'true':  use driver inputs from file
-//   'false': use interactive Irrlicht driver
+//   'false': use interactive driver
 bool use_data_driver = true;
 std::string driver_file("M113/test_rig/TTR_inputs.dat");
 
@@ -114,20 +105,25 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
 
         auto bodyA = dynamic_cast<ChBody*>(modA);
         auto bodyB = dynamic_cast<ChBody*>(modB);
+        #ifdef CHRONO_FEA
         auto vertexA = dynamic_cast<fea::ChContactNodeXYZ*>(modA);
         auto vertexB = dynamic_cast<fea::ChContactNodeXYZ*>(modB);
         auto faceA = dynamic_cast<fea::ChContactTriangleXYZ*>(modA);
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
+        #endif
 
         if (bodyA && bodyB) {
             cout << "  Body-Body:  " << bodyA->GetName() << "  " << bodyB->GetName() << endl;
             m_num_contacts_bb++;
             return true;
-        } else if (vertexA && vertexB) {
+        } 
+        #ifdef CHRONO_FEA
+        else if (vertexA && vertexB) {
             cout << "  Vertex-Vertex" << endl;
         } else if (faceA && faceB) {
             cout << "  Face-Face" << endl;
         }
+        #endif
 
         // Continue scanning contacts
         return true;
@@ -152,7 +148,9 @@ int main(int argc, char* argv[]) {
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
         rig = new ChTrackTestRig(GetVehicleDataFile(filename), create_track, ChContactMethod::SMC);
-    } else {
+    }
+#ifdef CHRONO_FEA
+    else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
         ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_4;
@@ -168,9 +166,8 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case TrackShoeType::BAND_ANCF: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(
-                    side, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width,
-                    false);
+                auto assembly =
+                    chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width, false);
                 assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;
@@ -183,6 +180,7 @@ int main(int argc, char* argv[]) {
         rig = new ChTrackTestRig(track_assembly, create_track, ChContactMethod::SMC);
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
+#endif
 
     // ----------------------------
     // Associate a collision system
@@ -235,44 +233,14 @@ int main(int argc, char* argv[]) {
     rig->Initialize();
 
     // ---------------------------------------
-    // Create the vehicle Irrlicht application
+    // Create the vehicle run-time application
     // ---------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
-    std::shared_ptr<ChVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChTrackTestRigVisualSystemIRR>();
-            vis_irr->SetWindowSize(1280, 1024);
-            vis_irr->SetWindowTitle("Continuous Band Track Test Rig");
-            vis_irr->AttachTTR(rig);
-            vis_irr->Initialize();
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowTitle("Continuous Band Track Test Rig");
-            vis_vsg->AttachTTR(rig);
-            vis_vsg->Initialize();
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowTitle("Continuous Band Track Test Rig");
+    vis->AttachTTR(rig);
+    vis->Initialize();
 
     // ---------------------------------------
     // Contact reporter object (for debugging)
@@ -332,7 +300,9 @@ int main(int argc, char* argv[]) {
     auto sys = rig->GetSystem();
     cout << "Number of bodies:        " << sys->GetBodies().size() << endl;
     cout << "Number of physics items: " << sys->GetOtherPhysicsItems().size() << endl;
+#ifdef CHRONO_FEA
     cout << "Number of FEA meshes:    " << sys->GetMeshes().size() << endl;
+#endif
 
     // -----------------
     // Initialize output

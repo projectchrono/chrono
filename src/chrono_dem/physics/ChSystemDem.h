@@ -106,7 +106,7 @@ class CH_DEM_API ChSystemDem {
     /// friction.
     void SetFrictionMode(CHDEM_FRICTION_MODE new_mode);
 
-    /// Set rolling resistence formulation.
+    /// Set rolling resistance formulation.
     /// NOTE: This requires friction to be active, otherwise this setting will be ignored.
     void SetRollingMode(CHDEM_ROLLING_MODE new_mode);
 
@@ -144,7 +144,7 @@ class CH_DEM_API ChSystemDem {
     /// Set sphere-to-wall tangential damping coefficient.
     void SetGt_SPH2WALL(double someValue);
 
-    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model.
+    /// Set the ratio of cohesion to gravity for mono-disperse spheres. Assumes a constant cohesion model.
     void SetCohesionRatio(float someValue);
 
     /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model.
@@ -182,7 +182,7 @@ class CH_DEM_API ChSystemDem {
     /// Manually set the simulation time (mainly used for restarted simulation).
     void SetSimTime(float time);
 
-    /// Set simualtion verbosity level.
+    /// Set simulation verbosity level.
     void SetVerbosity(CHDEM_VERBOSITY level);
 
     /// Create an axis-aligned sphere boundary condition.
@@ -523,7 +523,7 @@ class CH_DEM_API ChSystemDemMesh : public ChSystemDem {
     void SetMeshes();
 
     CHDEM_MESH_VERBOSITY mesh_verbosity;                             ///< mesh operations verbosity level
-    std::vector<std::shared_ptr<ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
+    std::vector<std::shared_ptr<ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in co-simulation
     std::vector<float> m_mesh_masses;                                ///< associated mesh masses
     bool use_mesh_normals =
         false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR

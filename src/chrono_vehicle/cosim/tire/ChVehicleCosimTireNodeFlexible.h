@@ -30,6 +30,10 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
 
 namespace chrono {
@@ -102,17 +106,19 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
 
     /// Print the current lowest mesh node.
     void PrintLowestNode();
-    
+
     /// Print current contact forces.
     void PrintContactData(const std::vector<ChVector3d>& forces, const std::vector<int>& indices);
 
     std::shared_ptr<ChDeformableTire> m_tire_def;                   ///< deformable tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
-    std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
-    std::vector<std::vector<unsigned int>> m_adjVertices;  ///< list of vertex indices for each mesh element
-    MeshContact m_forces;                                  ///< cached nodal forces received from terrain node
+    std::vector<std::vector<unsigned int>> m_adjElements;           ///< list of neighboring elements for each mesh vertex
+    std::vector<std::vector<unsigned int>> m_adjVertices;           ///< list of vertex indices for each mesh element
+    MeshContact m_forces;                                           ///< cached nodal forces received from terrain node
 
-    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsys;  ///< run-time visualization system
+#endif
 };
 
 /// @} vehicle_cosim_tire

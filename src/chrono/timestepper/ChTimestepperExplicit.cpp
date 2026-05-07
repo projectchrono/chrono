@@ -94,6 +94,7 @@ void ChTimestepperEulerExplicitIorder::Advance(double dt) {
     integrable->StateScatter(Y, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterDerivative(dYdt);  // -> system auxiliary data
     integrable->StateScatterReactions(L);      // -> system auxiliary data
+    integrable->StateOnEndStep(T);             // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperEulerExplicitIorder::ArchiveOut(ChArchiveOut& archive) {
@@ -150,6 +151,7 @@ void ChTimestepperEulerExplicitIIorder::Advance(double dt) {
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(A);  // -> system auxiliary data
     integrable->StateScatterReactions(L);     // -> system auxiliary data
+    integrable->StateOnEndStep(T);            // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperEulerExplicitIIorder::ArchiveOut(ChArchiveOut& archive) {
@@ -203,6 +205,7 @@ void ChTimestepperEulerSemiImplicit::Advance(double dt) {
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(A);  // -> system auxiliary data
     integrable->StateScatterReactions(L);     // -> system auxiliary data
+    integrable->StateOnEndStep(T);            // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperEulerSemiImplicit::ArchiveOut(ChArchiveOut& archive) {
@@ -266,6 +269,7 @@ void ChTimestepperRungeKutta::Advance(double dt) {
     integrable->StateScatter(Y, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterDerivative(dYdt);  // -> system auxiliary data
     integrable->StateScatterReactions(L);      // -> system auxiliary data
+    integrable->StateOnEndStep(T);             // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperRungeKutta::ArchiveOut(ChArchiveOut& archive) {
@@ -321,6 +325,7 @@ void ChTimestepperHeun::Advance(double dt) {
     integrable->StateScatter(Y, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterDerivative(dYdt);  // -> system auxiliary data
     integrable->StateScatterReactions(L);      // -> system auxiliary data
+    integrable->StateOnEndStep(T);             // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperHeun::ArchiveOut(ChArchiveOut& archive) {
@@ -375,6 +380,7 @@ void ChTimestepperLeapfrog::Advance(double dt) {
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterAcceleration(A);  // -> system auxiliary data
     integrable->StateScatterReactions(L);     // -> system auxiliary data
+    integrable->StateOnEndStep(T);            // finalize step, ex. for plasticity etc.
 }
 
 void ChTimestepperLeapfrog::ArchiveOut(ChArchiveOut& archive) {

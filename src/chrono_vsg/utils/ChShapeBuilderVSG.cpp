@@ -14,6 +14,9 @@
 
 #include <cmath>
 
+#include <vsg/nodes/DepthSorted.h>
+#include <vsg/utils/ComputeBounds.h>
+
 #include "chrono_vsg/utils/ChDataUtilsVSG.h"
 #include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 #include "chrono_vsg/utils/ChShaderUtilsVSG.h"
@@ -25,6 +28,21 @@ using std::cos;
 
 namespace chrono {
 namespace vsg3d {
+
+namespace {
+/// Wrap a node in vsg::DepthSorted for correct back-to-front rendering of transparent objects.
+/// Must be called after geometry has been added as child so bounds can be computed.
+vsg::ref_ptr<vsg::Node> wrapIfTransparent(vsg::ref_ptr<vsg::Node> node, std::shared_ptr<ChVisualMaterial> material) {
+    bool use_blending = (material->GetOpacity() < 1.0) || (!material->GetOpacityTexture().empty());
+    if (!use_blending)
+        return node;
+
+    auto cb = vsg::visit<vsg::ComputeBounds>(node);
+    auto center = (cb.bounds.min + cb.bounds.max) * 0.5;
+    auto radius = vsg::length(cb.bounds.max - cb.bounds.min) * 0.5;
+    return vsg::DepthSorted::create(10, vsg::dsphere(center.x, center.y, center.z, radius), node);
+}
+}  // namespace
 
 ShapeBuilder::ShapeBuilder(vsg::ref_ptr<vsg::Options> options, int num_divs) : m_options(options) {
     // Create the primitive shape builders
@@ -46,7 +64,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
                                                       vsg::ref_ptr<vsg::ushortArray>& indices,
                                                       std::shared_ptr<ChVisualMaterial> material,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                      bool wireframe) {
+                                                      bool double_faced,
+                                                      bool wireframe,
+                                                      float wire_width) {
     const uint32_t instanceCount = 1;
 
     // apply texture scaling
@@ -56,10 +76,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
         texcoords->set(i, tx);
     }
 
-    auto colors =
-        vsg::vec4Array::create(vertices->size(), vsg::vec4CH(material->GetDiffuseColor(), material->GetOpacity()));
+    auto colors = vsg::vec4Array::create(vertices->size(), vsg::vec4CH(material->GetDiffuseColor(), material->GetOpacity()));
     auto scenegraph = vsg::Group::create();
-    auto stategraph = createPbrStateGroup(m_options, material, wireframe);
+    auto stategraph = createPbrStateGroup(m_options, material, double_faced, wireframe, wire_width);
     transform->subgraphRequiresLocalFrustum = false;
 
     // setup geometry
@@ -80,7 +99,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
     vid->instanceCount = instanceCount;
 
     stategraph->addChild(vid);
-    transform->addChild(stategraph);
+    transform->addChild(wrapIfTransparent(stategraph, material));
     scenegraph->addChild(transform);
 
     if (m_compileTraversal)
@@ -92,15 +111,15 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
 vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
                                                       std::shared_ptr<ChVisualMaterial> material,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                      bool wireframe) {
+                                                      bool double_faced,
+                                                      bool wireframe,
+                                                      float wire_width) {
     vsg::ref_ptr<vsg::vec3Array> vertices;
     vsg::ref_ptr<vsg::vec3Array> normals;
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
 
-    // Important:
-    // the unique texcoords cannot be used directly to allow individual scaling
-    // a copy is taken therefore
+    // Important: the unique texture coordinates cannot be used directly to allow individual scaling; therefore, a copy is made
     switch (shape_type) {
         case ShapeType::BOX:
             vertices = m_box_data->vertices;
@@ -157,7 +176,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
             indices = m_cone_data->indices;
             break;
     }
-    auto scenegraph = CreatePbrShape(vertices, normals, texcoords, indices, material, transform, wireframe);
+    auto scenegraph = CreatePbrShape(vertices, normals, texcoords, indices, material, transform, double_faced, wireframe, wire_width);
     return scenegraph;
 }
 
@@ -190,12 +209,9 @@ void GetSurfaceShapeData(std::shared_ptr<ChSurface> geometry,
             double mU = iu / (double)sections_u;  // u abscissa
 
             ChVector3d P = geometry->Evaluate(mU, mV);
-            ////P = vis->Pos + vis->Rot * P;
-
             ChVector3d N = geometry->GetNormal(mU, mV);
-            ////N = vis->Rot * N;
 
-            // create two triangles per uv increment
+            // create two triangles per u-v increment
             vertices->set(iu + iv * (sections_u + 1), vsg::vec3(P.x(), P.y(), P.z()));
             normals->set(iu + iv * (sections_u + 1), vsg::vec3(N.x(), N.y(), N.z()));
             texcoords->set(iu + iv * (sections_u + 1), vsg::vec2(mU, mV));
@@ -219,13 +235,15 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrSurfaceShape(std::shared_ptr<ChS
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              int resolution_u,
                                                              int resolution_v,
-                                                             bool wireframe) {
+                                                             bool double_faced,
+                                                             bool wireframe,
+                                                             float wire_width) {
     vsg::ref_ptr<vsg::vec3Array> vertices;
     vsg::ref_ptr<vsg::vec3Array> normals;
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
     GetSurfaceShapeData(geometry, resolution_u, resolution_v, vertices, normals, texcoords, indices);
-    auto scenegraph = CreatePbrShape(vertices, normals, texcoords, indices, material, transform, wireframe);
+    auto scenegraph = CreatePbrShape(vertices, normals, texcoords, indices, material, transform, double_faced, wireframe, wire_width);
     return scenegraph;
 }
 
@@ -235,7 +253,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChT
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              const ChColor& default_color,
                                                              float opacity,
-                                                             bool wireframe) {
+                                                             bool double_faced,
+                                                             bool wireframe,
+                                                             float wire_width) {
     auto scenegraph = vsg::Group::create();
     auto chronoMat = chrono_types::make_shared<ChVisualMaterial>();
     chronoMat->SetOpacity(opacity);
@@ -245,7 +265,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChT
     const auto& uvs = mesh->GetCoordsUV();
     const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& c_indices = mesh->GetIndicesColors();
@@ -335,9 +355,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChT
     vid->indexCount = static_cast<uint32_t>(vsg_indices->size());
     vid->instanceCount = 1;
 
-    auto stategraph = createPbrStateGroup(m_options, chronoMat, wireframe);
+    auto stategraph = createPbrStateGroup(m_options, chronoMat, double_faced, wireframe, wire_width);
     stategraph->addChild(vid);
-    transform->addChild(stategraph);
+    transform->addChild(wrapIfTransparent(stategraph, chronoMat));
 
     scenegraph->addChild(transform);
 
@@ -350,7 +370,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChT
 vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 const ChColor& default_color,
-                                                                bool wireframe) {
+                                                                bool double_faced,
+                                                                bool wireframe,
+                                                                float wire_width) {
     auto scenegraph = vsg::Group::create();
     auto chronoMat = chrono_types::make_shared<ChVisualMaterial>();
 
@@ -363,7 +385,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
     bool normals_ok = true;
     std::vector<ChVector3d> avg_normals;
     if (nvertices != normals.size()) {
-        avg_normals = mesh->getAverageNormals();
+        avg_normals = mesh->GetAverageNormals();
         normals_ok = false;
     }
     bool texcoords_ok = true;
@@ -375,7 +397,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         colors_ok = false;
     }
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
 
     // create and fill the vsg buffers
     vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
@@ -414,9 +436,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
     vid->indexCount = static_cast<uint32_t>(vsg_indices->size());
     vid->instanceCount = 1;
 
-    auto stategraph = createPbrStateGroup(m_options, chronoMat, wireframe);
+    auto stategraph = createPbrStateGroup(m_options, chronoMat, double_faced, wireframe, wire_width);
     stategraph->addChild(vid);
-    transform->addChild(stategraph);
+    transform->addChild(wrapIfTransparent(stategraph, chronoMat));
 
     scenegraph->addChild(transform);
 
@@ -429,7 +451,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
 vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 const std::vector<ChVisualMaterialSharedPtr>& materials,
-                                                                bool wireframe) {
+                                                                bool double_faced,
+                                                                bool wireframe,
+                                                                float wire_width) {
     auto scenegraph = vsg::Group::create();
     transform->subgraphRequiresLocalFrustum = false;
     scenegraph->addChild(transform);
@@ -440,7 +464,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
     const auto& normals = mesh->GetCoordsNormals();
     const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& m_indices = mesh->GetIndicesMaterials();
@@ -510,8 +534,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
             vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
             vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
             // apply texture scale
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x() * chronoMat->GetTextureScale().x(),
-                                            (1.0 - tmp_texcoords[k].y()) * chronoMat->GetTextureScale().y()));
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x() * chronoMat->GetTextureScale().x(), (1.0 - tmp_texcoords[k].y()) * chronoMat->GetTextureScale().y()));
             vsg_indices->set(k, (unsigned int)k);
         }
         auto colors = vsg::vec4Array::create(vsg_vertices->size(), vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
@@ -533,10 +556,10 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
         vid->indexCount = static_cast<uint32_t>(vsg_indices->size());
         vid->instanceCount = 1;
 
-        auto stategraph = createPbrStateGroup(m_options, chronoMat, wireframe);
+        auto stategraph = createPbrStateGroup(m_options, chronoMat, double_faced, wireframe, wire_width);
         stategraph->addChild(vid);
-        transform->addChild(stategraph);
-    }  // imat
+        transform->addChild(wrapIfTransparent(stategraph, chronoMat));
+    }
 
     if (m_compileTraversal)
         m_compileTraversal->compile(scenegraph);
@@ -545,28 +568,27 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                         float color_factor,
                                                          float line_width,
-                                                         bool skipZbuffer) {
+                                                         bool skip_Zbuffer,
+                                                         float color_factor,
+                                                         ChColor x_rgb,
+                                                         ChColor y_rgb,
+                                                         ChColor z_rgb) {
     auto scenegraph = vsg::Group::create();
     scenegraph->addChild(transform);
 
-    // Set red, green, and blue colors at specified darkness level
-    ChColor R(1, 0, 0);
-    ChColor G(0, 1, 0);
-    ChColor B(0, 0, 1);
+    // Set colors at specified darkness level
+    auto x_hsv = ChColor::RGB2HSV(x_rgb);
+    x_hsv[2] *= color_factor;
+    x_rgb = ChColor::HSV2RGB(x_hsv);
 
-    auto hsvR = ChColor::RGB2HSV(R);
-    hsvR[2] *= color_factor;
-    R = ChColor::HSV2RGB(hsvR);
+    auto y_hsv = ChColor::RGB2HSV(y_rgb);
+    y_hsv[2] *= color_factor;
+    y_rgb = ChColor::HSV2RGB(y_hsv);
 
-    auto hsvG = ChColor::RGB2HSV(G);
-    hsvG[2] *= color_factor;
-    G = ChColor::HSV2RGB(hsvG);
-
-    auto hsvB = ChColor::RGB2HSV(B);
-    hsvB[2] *= color_factor;
-    B = ChColor::HSV2RGB(hsvB);
+    auto z_hsv = ChColor::RGB2HSV(z_rgb);
+    z_hsv[2] *= color_factor;
+    z_rgb = ChColor::HSV2RGB(z_hsv);
 
     // calculate vertices
     const int num_points = 6;
@@ -580,14 +602,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     vertices->set(4, vsg::vec3(0, 0, 0));
     vertices->set(5, vsg::vec3(0, 0, 1));
 
-    colors->set(0, vsg::vec3CH(R));
-    colors->set(1, vsg::vec3CH(R));
-    colors->set(2, vsg::vec3CH(G));
-    colors->set(3, vsg::vec3CH(G));
-    colors->set(4, vsg::vec3CH(B));
-    colors->set(5, vsg::vec3CH(B));
+    colors->set(0, vsg::vec3CH(x_rgb));
+    colors->set(1, vsg::vec3CH(x_rgb));
+    colors->set(2, vsg::vec3CH(y_rgb));
+    colors->set(3, vsg::vec3CH(y_rgb));
+    colors->set(4, vsg::vec3CH(z_rgb));
+    colors->set(5, vsg::vec3CH(z_rgb));
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, line_width, skipZbuffer);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, line_width, skip_Zbuffer);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -786,12 +808,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(std::shared_ptr<ChVisua
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
-                                                  double vstep,
-                                                  int nu,
-                                                  int nv,
-                                                  ChCoordsys<> pos,
-                                                  ChColor col) {
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
     auto scenegraph = vsg::Group::create();
     auto transform = vsg::MatrixTransform::create();
 
@@ -800,8 +817,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
     double rotAngle;
     ChVector3d rotAxis;
     r.GetAngleAxis(rotAngle, rotAxis);
-    transform->matrix =
-        vsg::translate(p.x(), p.y(), p.z()) * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+    transform->matrix = vsg::translate(p.x(), p.y(), p.z()) * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
 
     scenegraph->addChild(transform);
     // calculate vertices
@@ -858,44 +874,36 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
 
 ShapeBuilder::BoxShapeData::BoxShapeData() {
     const float a = 1.0;
-    vertices = vsg::vec3Array::create({{-a, -a, -a}, {a, -a, -a}, {a, -a, a},  {-a, -a, a},  {a, a, -a},  {-a, a, -a},
-                                       {-a, a, a},   {a, a, a},   {-a, a, -a}, {-a, -a, -a}, {-a, -a, a}, {-a, a, a},
-                                       {a, -a, -a},  {a, a, -a},  {a, a, a},   {a, -a, a},   {a, -a, -a}, {-a, -a, -a},
-                                       {-a, a, -a},  {a, a, -a},  {-a, -a, a}, {a, -a, a},   {a, a, a},   {-a, a, a}});
+    vertices = vsg::vec3Array::create({{-a, -a, -a}, {a, -a, -a},  {a, -a, a},  {-a, -a, a}, {a, a, -a},  {-a, a, -a}, {-a, a, a}, {a, a, a},
+                                       {-a, a, -a},  {-a, -a, -a}, {-a, -a, a}, {-a, a, a},  {a, -a, -a}, {a, a, -a},  {a, a, a},  {a, -a, a},
+                                       {a, -a, -a},  {-a, -a, -a}, {-a, a, -a}, {a, a, -a},  {-a, -a, a}, {a, -a, a},  {a, a, a},  {-a, a, a}});
 
-    normals = vsg::vec3Array::create({{0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, 1, 0},  {0, 1, 0},
-                                      {0, 1, 0},  {0, 1, 0},  {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0},
-                                      {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {0, 0, -1}, {0, 0, -1},
-                                      {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},  {0, 0, 1},  {0, 0, 1}});
+    normals =
+        vsg::vec3Array::create({{0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0},
+                                {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},  {0, 0, 1},  {0, 0, 1}});
 
-    texcoords = vsg::vec2Array::create({{0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
-                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
-                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}});
+    texcoords = vsg::vec2Array::create({{0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0},
+                                        {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}});
 
-    indices = vsg::ushortArray::create({0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
-                                        12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
+    indices = vsg::ushortArray::create({0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
 }
 
 ShapeBuilder::DieShapeData::DieShapeData() {
     const float a = 1.0;
-    vertices = vsg::vec3Array::create({{-a, -a, -a}, {a, -a, -a}, {a, -a, a},  {-a, -a, a},  {a, a, -a},  {-a, a, -a},
-                                       {-a, a, a},   {a, a, a},   {-a, a, -a}, {-a, -a, -a}, {-a, -a, a}, {-a, a, a},
-                                       {a, -a, -a},  {a, a, -a},  {a, a, a},   {a, -a, a},   {a, -a, -a}, {-a, -a, -a},
-                                       {-a, a, -a},  {a, a, -a},  {-a, -a, a}, {a, -a, a},   {a, a, a},   {-a, a, a}});
+    vertices = vsg::vec3Array::create({{-a, -a, -a}, {a, -a, -a},  {a, -a, a},  {-a, -a, a}, {a, a, -a},  {-a, a, -a}, {-a, a, a}, {a, a, a},
+                                       {-a, a, -a},  {-a, -a, -a}, {-a, -a, a}, {-a, a, a},  {a, -a, -a}, {a, a, -a},  {a, a, a},  {a, -a, a},
+                                       {a, -a, -a},  {-a, -a, -a}, {-a, a, -a}, {a, a, -a},  {-a, -a, a}, {a, -a, a},  {a, a, a},  {-a, a, a}});
 
-    normals = vsg::vec3Array::create({{0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, 1, 0},  {0, 1, 0},
-                                      {0, 1, 0},  {0, 1, 0},  {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0},
-                                      {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {0, 0, -1}, {0, 0, -1},
-                                      {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},  {0, 0, 1},  {0, 0, 1}});
+    normals =
+        vsg::vec3Array::create({{0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0}, {-1, 0, 0},
+                                {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},  {0, 0, 1},  {0, 0, 1}});
 
-    texcoords = vsg::vec2Array::create(
-        {{0.25f, 0},      {0.5f, 0},        {0.5f, 0.3333f},  {0.25f, 0.3333f}, {0.25f, 0.6666f}, {0.5f, 0.6666f},
-         {0.5f, 1},       {0.25f, 1},       {0, 0.3333f},     {0.25f, 0.3333f}, {0.25f, 0.6666f}, {0, 0.6666f},
-         {0.5f, 0.3333f}, {0.75f, 0.3333f}, {0.75f, 0.6666f}, {0.5f, 0.6666f},  {0.25f, 0.3333f}, {0.5f, 0.3333f},
-         {0.5f, 0.6666f}, {0.25f, 0.6666f}, {0.75f, 0.3333f}, {1, 0.3333f},     {1, 0.6666f},     {0.75f, 0.6666f}});
+    texcoords =
+        vsg::vec2Array::create({{0.25f, 0},       {0.5f, 0},        {0.5f, 0.3333f},  {0.25f, 0.3333f}, {0.25f, 0.6666f}, {0.5f, 0.6666f},  {0.5f, 1},        {0.25f, 1},
+                                {0, 0.3333f},     {0.25f, 0.3333f}, {0.25f, 0.6666f}, {0, 0.6666f},     {0.5f, 0.3333f},  {0.75f, 0.3333f}, {0.75f, 0.6666f}, {0.5f, 0.6666f},
+                                {0.25f, 0.3333f}, {0.5f, 0.3333f},  {0.5f, 0.6666f},  {0.25f, 0.6666f}, {0.75f, 0.3333f}, {1, 0.3333f},     {1, 0.6666f},     {0.75f, 0.6666f}});
 
-    indices = vsg::ushortArray::create({0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
-                                        12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
+    indices = vsg::ushortArray::create({0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
 }
 
 // sphere

@@ -16,7 +16,15 @@
 #include "chrono_dem/cuda/ChDem_SMC.cuh"
 #include "chrono_dem/physics/ChSystemDemMesh_impl.h"
 #include "chrono_dem/utils/ChDemUtilities.h"
-#include <math_constants.h>
+#if defined(CHRONO_USE_HIP)
+    #if __has_include(<hip/math_constants.h>)
+        #include <hip/math_constants.h>
+    #elif __has_include(<math_constants.h>)
+        #include <math_constants.h>
+    #endif
+#else
+    #include <math_constants.h>
+#endif
 
 namespace chrono {
 namespace dem {
@@ -39,13 +47,13 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
 
     // copy data into the tmp array
     demErrchk(cudaMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
-    cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
+    demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, numTriangles));
     demErrchk(cudaDeviceSynchronize());
 
     // get pointer to device memory; this memory block will be used internally by CUB, for scratch area
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
+    demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, numTriangles));
     demErrchk(cudaDeviceSynchronize());
     unsigned int numOfTriangleTouchingSD_instances;  // total number of instances in which a triangle touches an SD
     numOfTriangleTouchingSD_instances = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
@@ -74,14 +82,15 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // SDs:       23 23 23 89 89  89  89  107 107 107 etc.
     // Triangle:   5  9 17 43 67 108 221    6  12 298 etc.
     // First, determine temporary device storage requirements; pass null, CUB tells us what it needs
-    cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in, d_values_out,
-                                    numOfTriangleTouchingSD_instances);
+    demErrchk(cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
+                                                   d_values_out, numOfTriangleTouchingSD_instances));
     demErrchk(cudaDeviceSynchronize());
 
     // get pointer to device memory; this memory block will be used internally by CUB
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
-                                    d_values_out, numOfTriangleTouchingSD_instances);
+    demErrchk(cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out,
+                                                   d_values_in, d_values_out,
+                                                   numOfTriangleTouchingSD_instances));
     demErrchk(cudaDeviceSynchronize());
 
     // We started with SDs touching a triangle; we just flipped this through the key-value sort. That is, we now
@@ -98,7 +107,7 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // SD is touched by "t" triangles, it'll show up "t" times in this array
     unsigned int* d_in = d_keys_out;
     // d_unique_out stores a list of *unique* SDs with the following property: each SD in this list has at least one
-    // triangle touching it. In terms of memory, this is pretty wasteful since it's unilkely that all SDs are touched by
+    // triangle touching it. In terms of memory, this is pretty wasteful since it's unlikely that all SDs are touched by
     // at least one triangle; perhaps revisit later.
     unsigned int* d_unique_out =
         (unsigned int*)stateOfSolver_resources.pDeviceMemoryScratchSpace(nSDs * sizeof(unsigned int));
@@ -109,14 +118,15 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // Output value represents the number of SDs that have at last one triangle touching the SD
     unsigned int* d_num_runs_out = Triangle_SDsCompositeOffsets.data();
     // dry run, figure out the number of bytes that will be used in the actual run
-    cub::DeviceRunLengthEncode::Encode(NULL, temp_storage_bytes, d_in, d_unique_out, d_counts_out, d_num_runs_out,
-                                       numOfTriangleTouchingSD_instances);
+    demErrchk(cub::DeviceRunLengthEncode::Encode(NULL, temp_storage_bytes, d_in, d_unique_out, d_counts_out,
+                                                      d_num_runs_out, numOfTriangleTouchingSD_instances));
     demErrchk(cudaDeviceSynchronize());
 
     d_scratch_space = TriangleIDS_ByMultiplicity.data();
     // Run the actual encoding operation
-    cub::DeviceRunLengthEncode::Encode(d_scratch_space, temp_storage_bytes, d_in, d_unique_out, d_counts_out,
-                                       d_num_runs_out, numOfTriangleTouchingSD_instances);
+    demErrchk(cub::DeviceRunLengthEncode::Encode(d_scratch_space, temp_storage_bytes, d_in, d_unique_out,
+                                                      d_counts_out, d_num_runs_out,
+                                                      numOfTriangleTouchingSD_instances));
     demErrchk(cudaDeviceSynchronize());
 
     // SD_numTrianglesTouching contains only zeros
@@ -135,10 +145,10 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     in_ptr = SD_numTrianglesTouching.data();
     // Just borrow the first element of SD_TrianglesCompositeOffsets to store the max value
     unsigned int* maxTriCount = SD_TrianglesCompositeOffsets.data();
-    cub::DeviceReduce::Max(NULL, temp_storage_bytes, in_ptr, maxTriCount, nSDs);
+    demErrchk(cub::DeviceReduce::Max(NULL, temp_storage_bytes, in_ptr, maxTriCount, nSDs));
     demErrchk(cudaDeviceSynchronize());
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, in_ptr, maxTriCount, nSDs);
+    demErrchk(cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, in_ptr, maxTriCount, nSDs));
     demErrchk(cudaDeviceSynchronize());
     if (*maxTriCount > MAX_TRIANGLE_COUNT_PER_SD)
         CHDEM_ERROR("ERROR! %u triangles are found in one of the SDs! The max allowance is %u.\n", *maxTriCount,
@@ -147,11 +157,11 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // Lastly, we need to do a CUB prefix scan to get the offsets in the big composite array
     in_ptr = SD_numTrianglesTouching.data();
     out_ptr = SD_TrianglesCompositeOffsets.data();
-    cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+    demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs));
     demErrchk(cudaDeviceSynchronize());
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run CUB exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+    demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs));
     demErrchk(cudaDeviceSynchronize());
 }
 
@@ -228,7 +238,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
         if (local_ID < numSDTriangles) {
             size_t SD_composite_offset = SD_TrianglesCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_CHDEM_ID) {
-                ABORTABORTABORT("Invalid composite offset %lu for SD %u, touching %u triangles\n", NULL_CHDEM_ID,
+                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_CHDEM_ID,
                                 thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
@@ -266,7 +276,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
     if (sphereIDLocal < spheresTouchingThisSD) {
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
-            /// we have a valid sphere and a valid triganle; check if in contact
+            /// we have a valid sphere and a valid triangle; check if in contact
             float3 normal;  // Unit normal from pt2 to pt1 (triangle contact point to sphere contact point)
             float depth;    // Negative in overlap
             float3 pt1_float;
@@ -360,7 +370,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
 
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
-                // NOTE the cancelation of two negatives
+                // NOTE the cancellation of two negatives
                 force_accum = force_accum + gran_params->sphere_mass_SU * mesh_params->adhesionAcc_s2m * delta / depth;
 
                 // tangential component
@@ -507,7 +517,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
         if (local_ID < numSDTriangles) {
             size_t SD_composite_offset = SD_TrianglesCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_CHDEM_ID) {
-                ABORTABORTABORT("Invalid composite offset %lu for SD %u, touching %u triangles\n", NULL_CHDEM_ID,
+                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_CHDEM_ID,
                                 thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
@@ -544,7 +554,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
     if (sphereIDLocal < spheresTouchingThisSD) {
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
-            /// we have a valid sphere and a valid triganle; check if in contact
+            /// we have a valid sphere and a valid triangle; check if in contact
             float3 normal;  // Unit normal from pt2 to pt1 (triangle contact point to sphere contact point)
             float depth;    // Negative in overlap
             float3 pt1_float;
@@ -591,7 +601,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
 
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
-                // NOTE the cancelation of two negatives
+                // NOTE the cancellation of two negatives
                 force_accum = force_accum + gran_params->sphere_mass_SU * mesh_params->adhesionAcc_s2m * delta / depth;
 
                 // Velocity difference, it's better to do a coalesced access here than a fragmented access

@@ -53,7 +53,7 @@ enum BroadphaseNativeTypes
 	BARREL_SHAPE_PROXYTYPE,       /* ***CHRONO*** */
 	POINT_SHAPE_PROXYTYPE,        /* ***CHRONO*** */
 	SEGMENT_SHAPE_PROXYTYPE,      /* ***CHRONO*** */
-	CE_TRIANGLE_SHAPE_PROXYTYPE,  /* ***CHRONO*** */
+	CH_TRIANGLE_SHAPE_PROXYTYPE,  /* ***CHRONO*** */
 
 	// concave shapes
 	CONCAVE_SHAPES_START_HERE,

@@ -27,16 +27,8 @@
     #include "chrono_postprocess/ChBlender.h"
 #endif
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vsg/ChVisualSystemVSG.h"
+#include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
@@ -46,9 +38,6 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 bool output = false;
 bool blender_output = false;
@@ -118,6 +107,7 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system
     auto collsys_type = ChCollisionSystem::Type::BULLET;
     ChSystemSMC sys;
+    sys.SetGravityY();
     sys.SetNumThreads(4, 8, 1);
     switch (collsys_type) {
         case ChCollisionSystem::Type::BULLET: {
@@ -215,7 +205,7 @@ int main(int argc, char* argv[]) {
 
     // Or use a height map:
     ////terrain.Initialize(GetVehicleDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
-    ///mesh_resolution);
+    /// mesh_resolution);
 
     // Or use a mesh:
     ////terrain.Initialize(GetVehicleDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
@@ -228,13 +218,13 @@ int main(int argc, char* argv[]) {
     } else {
         // Constant soil properties
         terrain.SetSoilParameters(0.2e6,  // Bekker Kphi
-                                   0,      // Bekker Kc
-                                   1.1,    // Bekker n exponent
-                                   0,      // Mohr cohesive limit (Pa)
-                                   30,     // Mohr friction limit (degrees)
-                                   0.01,   // Janosi shear coefficient (m)
-                                   4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                   3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                                  0,      // Bekker Kc
+                                  1.1,    // Bekker n exponent
+                                  0,      // Mohr cohesive limit (Pa)
+                                  30,     // Mohr friction limit (degrees)
+                                  0.01,   // Janosi shear coefficient (m)
+                                  4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                                  3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
         );
 
         // LETE sand parameters
@@ -264,7 +254,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    
+
     ////terrain.SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 16, 16);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
@@ -274,66 +264,26 @@ int main(int argc, char* argv[]) {
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_ISLAND_ID, 0, 8);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_IS_TOUCHED, 0, 8);
-    
+
     terrain.SetColormap(ChColormap::Type::COPPER);
     terrain.SetMeshWireframe(true);
 
     // Create the run-time visualization system
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
+    auto visSCM = chrono_types::make_shared<vehicle::ChScmVisualizationVSG>(&terrain);
+    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+    vis->AttachSystem(&sys);
+    vis->AttachPlugin(visSCM);
+    vis->SetWindowTitle("SCM deformable terrain");
+    vis->AddCamera(ChVector3d(3.0, 2.0, 0.0), ChVector3d(0, tire_rad, 0));
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowPosition(100, 100);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->Initialize();
 
-    std::shared_ptr<ChVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-            vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("SCM deformable terrain");
-            vis_irr->Initialize();
-            vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddCamera(ChVector3d(2.0, 1.4, 0.0), ChVector3d(0, tire_rad, 0));
-            vis_irr->AttachSystem(&sys);
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // SCM plugin
-            auto visSCM = chrono_types::make_shared<vehicle::ChScmVisualizationVSG>(&terrain);
-
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-            vis_vsg->AttachSystem(&sys);
-            vis_vsg->AttachPlugin(visSCM);
-            vis_vsg->SetWindowTitle("SCM deformable terrain");
-            vis_vsg->AddCamera(ChVector3d(3.0, 2.0, 0.0), ChVector3d(0, tire_rad, 0));
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->EnableSkyBox();
-            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetCameraAngleDeg(40.0);
-            vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
-
-        // Create the Blender exporter
+    // Create the Blender exporter
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChBlender blender_exporter(&sys);
     if (blender_output) {
@@ -343,8 +293,6 @@ int main(int argc, char* argv[]) {
         blender_exporter.ExportScript();
     }
 #endif
-
-    // SIMULATION LOOP
 
     /*
         // Change the timestepper to HHT:
@@ -360,6 +308,7 @@ int main(int argc, char* argv[]) {
         sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
     */
 
+    // Simulation loop
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (output) {

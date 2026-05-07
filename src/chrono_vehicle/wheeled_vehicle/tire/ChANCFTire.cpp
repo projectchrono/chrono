@@ -19,6 +19,7 @@
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementShellANCF_3833.h"
+#include "chrono/fea/ChLoaderPressure.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 

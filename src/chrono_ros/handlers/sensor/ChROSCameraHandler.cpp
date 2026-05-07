@@ -71,8 +71,8 @@ std::vector<uint8_t> ChROSCameraHandler::GetSerializedData(double time) {
     }
 
     // Calculate image dimensions
-    uint32_t width = m_camera->GetWidth() / m_camera->GetSampleFactor();
-    uint32_t height = m_camera->GetHeight() / m_camera->GetSampleFactor();
+    uint32_t width = m_camera->GetWidth();
+    uint32_t height = m_camera->GetHeight();
     uint32_t step = sizeof(PixelRGBA8) * width;
     size_t image_size = step * height;
 

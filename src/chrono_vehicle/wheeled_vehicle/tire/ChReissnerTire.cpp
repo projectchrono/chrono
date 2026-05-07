@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/fea/ChElementShellReissner4.h"
+#include "chrono/fea/ChLoaderPressure.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 

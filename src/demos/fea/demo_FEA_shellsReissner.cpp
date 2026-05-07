@@ -90,6 +90,8 @@ int main(int argc, char* argv[]) {
     ChVector3d load_torque;
     ChVector3d load_force;
 
+    bool have_ref = false;
+
     // Set up selected experiment
     std::string experiment_name = "";
     ChVector3d camera_location;
@@ -200,6 +202,8 @@ int main(int argc, char* argv[]) {
             ref_Y.AddPoint(1.00, 6.698);
             ref_X.AddPoint(4.00, 3.286);
 
+            have_ref = true;
+
             break;
         }
 
@@ -305,6 +309,8 @@ int main(int argc, char* argv[]) {
             ref_Y.AddPoint(0.90, 16.886);
             ref_X.AddPoint(1.00, 13.891);
             ref_Y.AddPoint(1.00, 17.528);
+
+            have_ref = true;
 
             break;
         }
@@ -506,8 +512,10 @@ int main(int argc, char* argv[]) {
     gpl << "set key left top";
     gpl.Plot(rec_Y, "W", " with lines lt -1 lc rgb'#00AAEE' ");
     gpl.Plot(rec_X, "-U", " with lines lt -1 lc rgb'#AA00EE' ");
-    gpl.Plot(ref_Y, "W ref.", "pt 4 ps 1.4");
-    gpl.Plot(ref_X, "-U ref.", "pt 4 ps 1.4");
+    if (have_ref) {
+        gpl.Plot(ref_Y, "W ref.", "pt 4 ps 1.4");
+        gpl.Plot(ref_X, "-U ref.", "pt 4 ps 1.4");
+    }
 
     return 0;
 }

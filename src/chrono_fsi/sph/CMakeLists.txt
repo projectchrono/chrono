@@ -23,14 +23,18 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     return()
 endif()
 
-# Return now if CUDA is not available
-if(NOT CHRONO_CUDA_FOUND)
-    message(WARNING "Chrono::FSI::SPH requires CUDA, but CUDA was not found; disabling Chrono::FSI::SPH")
+# Return now if neither CUDA nor HIP is available
+if(NOT CHRONO_CUDA_FOUND AND NOT CHRONO_HIP_FOUND)
+    message(WARNING "Chrono::FSI::SPH requires CUDA or HIP, but neither backend was found; disabling Chrono::FSI::SPH")
     set(CH_ENABLE_MODULE_FSI_SPH OFF CACHE BOOL "Enable the Chrono::SPH FSI module" FORCE)
     return()
 endif()
 
-message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
+if(CHRONO_HIP_FOUND)
+    message(STATUS "  Chrono HIP architectures: ${CHRONO_HIP_ARCHITECTURES}")
+else()
+    message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
+endif()
 
 #-----------------------------------------------------------------------------
 
@@ -66,6 +70,7 @@ endif()
 # --------------- SPH FSI FILES
 
 set(FSISPH_BASE_FILES
+    ChSphGpuRuntime.h
     ChFsiDataTypesSPH.h
     ChFsiDefinitionsSPH.h
     ChFsiParamsSPH.h
@@ -132,6 +137,31 @@ set(FSISPH_UTILS_FILES
     utils/SphUtilsLogging.cuh
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
+
+set(FSISPH_GPU_SOURCE_FILES
+    ChFsiProblemSPH.cpp
+    ChFsiSystemSPH.cpp
+    ChFsiInterfaceSPH.cpp
+    ChFsiFluidSystemSPH.cpp
+    ChFsiSplashsurfSPH.cpp
+    physics/SphBceManager.cu
+    physics/SphCollisionSystem.cu
+    physics/SphDataManager.cu
+    physics/SphFluidDynamics.cu
+    physics/SphForce.cu
+    physics/SphForceWCSPH.cu
+    physics/SphForceISPH.cu
+    physics/SphFsiInterface.cu
+    physics/SphGeneral.cu
+    physics/SphParticleRelocator.cu
+    utils/SphUtilsDevice.cu
+    utils/SphUtilsPrint.cu
+)
+
+if(CHRONO_HIP_FOUND)
+    set_source_files_properties(${FSISPH_GPU_SOURCE_FILES} PROPERTIES LANGUAGE HIP)
+endif()
+
 
 # --------------- 3rd party STB FILES
 
@@ -208,24 +238,59 @@ if(MSVC)
   set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
+if(CHRONO_CUDA_FOUND)
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
+endif()
 
 target_link_libraries(Chrono_fsisph PRIVATE Chrono_core)
 target_link_libraries(Chrono_fsisph PUBLIC Chrono_fsi)
 
-target_link_libraries(Chrono_fsisph PUBLIC CUDA::cudart_static)
-target_link_libraries(Chrono_fsisph PUBLIC CUDA::nvrtc)
-target_link_libraries(Chrono_fsisph PUBLIC CUDA::cuda_driver)
-target_link_libraries(Chrono_fsisph PUBLIC CUDA::cublas)
-target_link_libraries(Chrono_fsisph PUBLIC CUDA::cusparse)
+target_compile_definitions(Chrono_fsisph PRIVATE CH_API_COMPILE_FSI)
+if(CHRONO_HIP_FOUND)
+  target_compile_definitions(Chrono_fsisph PRIVATE CHRONO_USE_HIP)
+  target_compile_definitions(Chrono_fsisph INTERFACE CHRONO_FSI_SPH_USE_HIP_RUNTIME)
+endif()
 
-target_link_libraries(Chrono_fsisph PUBLIC Thrust::Thrust)
-target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+if(CHRONO_CUDA_FOUND)
+  target_compile_definitions(Chrono_fsisph PUBLIC CHRONO_USE_CUDA)
+  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cudart_static)
+  target_link_libraries(Chrono_fsisph PUBLIC CUDA::nvrtc)
+  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cuda_driver)
+  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cublas)
+  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cusparse)
 
-target_compile_definitions(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+  target_link_libraries(Chrono_fsisph PUBLIC Thrust::Thrust)
+  target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+  target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
-set_target_properties(Chrono_fsisph PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+  set_target_properties(Chrono_fsisph PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+elseif(CHRONO_HIP_FOUND)
+  find_package(hip QUIET CONFIG HINTS "${CHRONO_ROCM_ROOT}")
+  if(TARGET hip::host)
+    # Keep HIP compiler/runtime flags local to the fsisph target.
+    # Public consumers are regular C++ translation units that only need the ROCm
+    # headers for declarations from public headers, not the HIP target's compile
+    # definitions/options that can force Thrust onto the rocPRIM backend.
+    target_link_libraries(Chrono_fsisph PRIVATE hip::host)
+  endif()
+  if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
+    target_include_directories(Chrono_fsisph PUBLIC "${CHRONO_ROCM_ROOT}/include")
+  endif()
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP")
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+  target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
+  target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+  # Mixed CXX/HIP targets can leak HIP_ARCHITECTURES into ordinary CXX compilations
+  # (for example stb_image.cpp), which makes the host compiler see --offload-arch.
+  # Keep the target-level property disabled and pass the GPU arch flags only to real HIP TUs.
+  set_target_properties(Chrono_fsisph PROPERTIES HIP_ARCHITECTURES OFF)
+  if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
+    foreach(_chrono_hip_arch IN LISTS CHRONO_HIP_ARCHITECTURES)
+      target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
+      target_link_options(Chrono_fsisph PRIVATE $<$<LINK_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
+    endforeach()
+  endif()
+endif()
 
 install(TARGETS Chrono_fsisph
         EXPORT ChronoTargets
@@ -259,20 +324,33 @@ if(CH_ENABLE_MODULE_VSG)
       set_target_properties(Chrono_fsisph_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
-    target_compile_definitions(Chrono_fsisph_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+    target_compile_definitions(Chrono_fsisph_vsg PRIVATE CH_API_COMPILE_FSI)
     
     target_link_libraries(Chrono_fsisph_vsg PRIVATE Chrono_core Chrono_fsisph)
     target_link_libraries(Chrono_fsisph_vsg PUBLIC Chrono_vsg)
 
-    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cudart_static)
-    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::nvrtc)
-    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cuda_driver)
-    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cublas)
-    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cusparse)
+    if(CHRONO_CUDA_FOUND)
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE CHRONO_USE_CUDA)
+      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cudart_static)
+      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::nvrtc)
+      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cuda_driver)
+      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cublas)
+      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cusparse)
 
-    target_link_libraries(Chrono_fsisph_vsg PRIVATE Thrust::Thrust)
-    target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-    target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+      target_link_libraries(Chrono_fsisph_vsg PRIVATE Thrust::Thrust)
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+    elseif(CHRONO_HIP_FOUND)
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE CHRONO_USE_HIP)
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP")
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+      if(TARGET hip::host)
+        target_link_libraries(Chrono_fsisph_vsg PRIVATE hip::host)
+      endif()
+      if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
+        target_include_directories(Chrono_fsisph_vsg PRIVATE "${CHRONO_ROCM_ROOT}/include")
+      endif()
+    endif()
 
     install(TARGETS Chrono_fsisph_vsg
             EXPORT ChronoTargets

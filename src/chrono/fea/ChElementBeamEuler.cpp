@@ -323,8 +323,8 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     //   [2] "A Unified Approach to the Timoshenko Geometric Stiffness Matrix Considering Higher-Order Terms in the
     //   Strain Tensor"
     //        https://www.scielo.br/pdf/lajss/v16n4/1679-7825-lajss-16-04-e185.pdf
-    // Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook �Concepts and
-    // Applications of Finite Element Analysis? or in W. McGuire & R.H. Gallagher & R.D. Ziemian, �Matrix Structural
+    // Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook Concepts and
+    // Applications of Finite Element Analysis? or in W. McGuire & R.H. Gallagher & R.D. Ziemian, Matrix Structural
     // Analysis?
 
     // double EA = section->GetAxialRigidity();
@@ -876,7 +876,7 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector3d
 
     // The shear center offset is respect to the centerline.
     // In case the section has a shear center displacement:
-    // Sy = Sy - Cy;   // Unnecessary to do this substraction
+    // Sy = Sy - Cy;   // Unnecessary to do this subtraction
     // Sz = Sz - Cz;
 
     ChMatrix33<> Rotsect0;
@@ -1029,7 +1029,7 @@ void ChElementBeamEuler::ComputeNF(const double U,
                                    ChVectorDynamic<>* state_x,
                                    ChVectorDynamic<>* state_w) {
     ShapeVector N;
-    ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependant on state
+    ShapeFunctions(N, U);  // evaluate shape functions (in compressed vector), btw. not dependent on state
 
     detJ = GetRestLength() / 2.0;
 

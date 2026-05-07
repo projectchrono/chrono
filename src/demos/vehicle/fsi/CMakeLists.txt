@@ -1,6 +1,5 @@
 #=============================================================================
 # CMake configuration file for demos of various Chrono::Vehicle terrain models.
-# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 if(NOT CH_ENABLE_MODULE_FSI_SPH)

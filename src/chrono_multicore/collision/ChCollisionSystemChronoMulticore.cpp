@@ -135,7 +135,7 @@ void ChCollisionSystemChronoMulticore::ReportContacts(ChContactContainer* contai
     ////auto& sindex = cd_data->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the composite material, and load material properties in the data manager
-    // (on a per contact basis). Snce this is contact method-specific, we defer to the underlying contact container.
+    // (on a per contact basis). Since this is contact method-specific, we defer to the underlying contact container.
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_contacts; i++) {
         auto b1 = bids[i].x;                  // global IDs of bodies in contact

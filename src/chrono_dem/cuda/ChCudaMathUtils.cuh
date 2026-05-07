@@ -157,7 +157,7 @@ inline __device__ double3 face_normal(const double3& A, const double3& B, const 
 }
 
 inline __device__ unsigned int hashmapBKTid(unsigned int seed) {
-    /// Generates a "random" hashtag empoloying a Park-Miller RNG using only 32-bit arithmetic. Care was taken here to
+    /// Generates a "random" hashtag employing a Park-Miller RNG using only 32-bit arithmetic. Care was taken here to
     /// avoid overflow. This is deterministic: the same seed will generate the same hashmap tag. Source:
     /// https://en.wikipedia.org/wiki/Lehmer_random_number_generator
     const unsigned int N = 0x7fffffff;

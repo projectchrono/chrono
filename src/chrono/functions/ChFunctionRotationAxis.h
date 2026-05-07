@@ -37,14 +37,16 @@ class ChApi ChFunctionRotationAxis : public ChFunctionRotation {
     virtual ChFunctionRotationAxis* Clone() const override { return new ChFunctionRotationAxis(*this); }
 
     /// Set the angle(s) function expressing the rotation about the fixed axis of rotation. Angle assumed in radians.
-    void SetFunctionAngle(std::shared_ptr<ChFunction> mx) { this->fangle = mx; }
+    void SetFunctionAngle(std::shared_ptr<ChFunction> mx) { fangle = mx; }
+    
     /// Get the angle(s) function expressing the rotation about the fixed axis of rotation. Angle assumed in radians.
-    std::shared_ptr<ChFunction> GetFunctionAngle() { return this->fangle; }
+    std::shared_ptr<ChFunction> GetFunctionAngle() const { return fangle; }
 
     /// Set the fixed axis of rotation. It must be unit length. Default Z vector.
-    void SetAxis(const ChVector3d& mv) { this->axis = mv; }
+    void SetAxis(const ChVector3d& mv) { axis = mv; }
+    
     /// Get the fixed axis of rotation.
-    ChVector3d GetAxis() { return this->axis; }
+    ChVector3d GetAxis() const { return axis; }
 
     /// Return the rotation as a quaternion, function of s, as q=f(s).
     virtual ChQuaternion<> GetQuat(double s) const override;

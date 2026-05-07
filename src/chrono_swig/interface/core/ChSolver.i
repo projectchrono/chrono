@@ -49,6 +49,7 @@ Type GetType() const { return chrono::ChSolver::Type::CUSTOM; }
 #include <cstdlib>
 #include <cmath>
 
+#include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSolverVI.h"
 #include "chrono/solver/ChSolverLS.h"
@@ -65,6 +66,8 @@ Type GetType() const { return chrono::ChSolver::Type::CUSTOM; }
 
 using namespace chrono;
 %}
+
+%shared_ptr(chrono::ChSystemDescriptor)
 
 %shared_ptr(chrono::ChSolver)
 %shared_ptr(chrono::ChSolverVI)
@@ -86,6 +89,7 @@ using namespace chrono;
 %shared_ptr(chrono::ChSolverADMM)
 
 // Parse the header file to generate wrappers
+%include "../../../chrono/solver/ChSystemDescriptor.h"
 %include "../../../chrono/solver/ChSolver.h"
 %include "../../../chrono/solver/ChSolverVI.h"
 %include "../../../chrono/solver/ChSolverLS.h"

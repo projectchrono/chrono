@@ -23,20 +23,17 @@
 namespace chrono {
 namespace sensor {
 
-// -----------------------------------------------------------------------------
-// Constructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChLidarSensor::ChLidarSensor(
-    std::shared_ptr<chrono::ChBody> parent,
+ChLidarSensor::ChLidarSensor(
+    std::shared_ptr<ChBody> parent,
     float updateRate,
-    chrono::ChFrame<double> offsetPose,
+    ChFrame<double> offsetPose,
     unsigned int w,               // image width
     unsigned int h,               // image height
     float hFOV,                   // horizontal field of view
     float max_vertical_angle,     // highest vertical angle
     float min_vertical_angle,     // lowest ray angle
     float max_distance,           // maximum distance for lidar
-    LidarBeamShape beam_shape,    // beam shape, only rectangular and eliptical are supported
+    LidarBeamShape beam_shape,    // beam shape, only rectangular and elliptical are supported
     unsigned int sample_radius,   // radius of the beam samples
     float vert_divergence_angle,  // vertical divergence angle of the beam
     float hori_divergence_angle,  // horizontal divergence angle of the beam
@@ -64,10 +61,8 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
     SetCollectionWindow(0);
     SetLag(1 / updateRate);
 }
-// -----------------------------------------------------------------------------
-// Destructor
-// -----------------------------------------------------------------------------
-CH_SENSOR_API ChLidarSensor::~ChLidarSensor() {}
+
+ChLidarSensor::~ChLidarSensor() {}
 
 }  // namespace sensor
 }  // namespace chrono

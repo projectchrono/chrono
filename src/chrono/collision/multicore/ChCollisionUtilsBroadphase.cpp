@@ -36,9 +36,9 @@ namespace mc_utils {
 vec3 Compute_Grid_Resolution(uint num_aabb, const real3& d, real k) {
     vec3 grid_size = vec3(0);
     real V = d.x * d.y * d.z;
-    grid_size.x = int(d.x * Pow(k * num_aabb / V, real(1.0 / 3.0)));
-    grid_size.y = int(d.y * Pow(k * num_aabb / V, real(1.0 / 3.0)));
-    grid_size.z = int(d.z * Pow(k * num_aabb / V, real(1.0 / 3.0)));
+    grid_size.x = int(d.x * std::pow(k * num_aabb / V, real(CH_1_3)));
+    grid_size.y = int(d.y * std::pow(k * num_aabb / V, real(CH_1_3)));
+    grid_size.z = int(d.z * std::pow(k * num_aabb / V, real(CH_1_3)));
 
     grid_size = Max(grid_size, vec3(1));
 

@@ -43,7 +43,7 @@ namespace chrono {
 
 /// Base class for a Chrono checkpoint database.
 /// A Chrono checkpoint DB can be of SYSTEM type (in which case it contains all states associated with a given system)
-/// or of COMPONENT tpe (in which case it contains states for specific subsets of Chrono phsics items). The latter
+/// or of COMPONENT tpe (in which case it contains states for specific subsets of Chrono physics items). The latter
 /// option is useful in checkpointing and initializing from a checkpoint sub-assemblies, for example vehicle systems.
 /// When importing a checkpoint to initialize a give system (SYSTEM-type checkpoint) or a subset of physics items
 /// (COMPONENT-type checkpoint), it is the caller's responsibility to ensure that the target objects (system or
@@ -145,6 +145,26 @@ class ChApi ChCheckpoint {
     /// Only for a COMPONENT type checkpoint DB.
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
 
+    /// Write the specified double value.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void WriteDouble(double value) = 0;
+
+    /// Write the specified integer value.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void WriteInteger(int value) = 0;
+
+    /// Write the components of the specified vector of doubles.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void WriteVector(const std::vector<double>& vector) = 0;
+
+    /// Write the components of the specified 3D vector (with double values).
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void WriteChVector3(const ChVector3d& vector) = 0;
+
+    /// Write the components of the specified quaternion (with double values).
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void WriteChQuaternion(const ChQuaterniond& quat) = 0;
+
     /// Write the checkpoint database to a disk file with the specified name.
     virtual void WriteFile(const std::string& filename) = 0;
 
@@ -200,6 +220,26 @@ class ChApi ChCheckpoint {
     /// Read motor states from the input checkpoint database and set them to the rotational motors in the provided list.
     /// Only for a COMPONENT type checkpoint DB.
     virtual void ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
+
+    /// Read a double value and set it to the provided variable.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void ReadDouble(double& value) = 0;
+
+    /// Read an integer value and set it to the provided variable.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void ReadInteger(int& value) = 0;
+
+    /// Read a sequence of double values and load them in the provided vector.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void ReadVector(std::vector<double>& vector) = 0;
+
+    /// Read components of a 3D vector from the input checkpoint database and set them to the provided vector.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void ReadChVector3(ChVector3d& vector) = 0;
+
+    /// Read components of a quaternion from the input checkpoint database and set them to the provided ChQuaternion.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void ReadChQuaternion(ChQuaterniond& quat) = 0;
 
     // ---------------
     // Print utilities

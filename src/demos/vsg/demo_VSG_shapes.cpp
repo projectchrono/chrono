@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(ChVector2i(1200, 800));
     vis->SetWindowPosition(ChVector2i(100, 300));
     vis->SetWindowTitle("Chrono VSG Shapes");
-    vis->EnableSkyBox();
+    vis->EnableSkyTexture(SkyMode::BOX);
     vis->SetLightIntensity(0.9f);
     vis->SetLightDirection(0.5 * CH_PI_2, CH_PI_4);
     vis->Initialize();

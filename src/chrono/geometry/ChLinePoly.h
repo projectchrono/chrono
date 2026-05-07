@@ -26,12 +26,8 @@ namespace chrono {
 
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
 class ChApi ChLinePoly : public ChLine {
-  private:
-    std::vector<ChVector3d> points;  ///< control points
-    int degree;                      ///< polynomial degree
-
   public:
-    ChLinePoly(int mnumpoints = 1);
+    ChLinePoly(int num_points = 1);
     ChLinePoly(const ChLinePoly& source);
     ~ChLinePoly() {}
 
@@ -41,8 +37,8 @@ class ChApi ChLinePoly : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_POLY; }
 
-    virtual int GetComplexity() const override { return (int)points.size(); }
-    virtual void SetComplexity(int mc) override{};
+    virtual int GetComplexity() const override { return static_cast<int>(points.size()); }
+    virtual void SetComplexity(int mc) override {};
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector3d Evaluate(double U) const override;
@@ -50,23 +46,27 @@ class ChApi ChLinePoly : public ChLine {
     /// Returns curve length. sampling does not matter
     virtual double Length(int sampling) const override;
 
-    /// Gets the number of control points
+    /// Get the number of control points.
     size_t GetNumPoints() const;
 
-    /// Get the degree of the curve (1= linear, 2= quadric, 3= cubic, etc.)
+    /// Get the degree of the curve (1= linear, 2= quadric, 3= cubic, etc.).
     int GetDegree() const;
 
     /// Get the n-th control point.
-    ChVector3d GetPoint(size_t mnum) const;
+    ChVector3d GetPoint(size_t idx) const;
 
     /// Set the n-th control point
-    bool SetPoint(int mnum, const ChVector3d& mpoint);
+    bool SetPoint(int idx, const ChVector3d& point);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::vector<ChVector3d> points;  ///< control points
+    int degree;                      ///< polynomial degree
 };
 
 /// @} chrono_geometry

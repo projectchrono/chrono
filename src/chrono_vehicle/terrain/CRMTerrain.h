@@ -73,6 +73,11 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     virtual void Synchronize(double time) override;
     virtual void Advance(double step) override;
     virtual double GetHeight(const ChVector3d& loc) const override { return 0.0; }
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override {
+        ChVector3d point = loc;
+        ChWorldFrame::Project(point);
+        return point;
+    }
     virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override { return ChWorldFrame::Vertical(); }
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override { return 0.0f; }
 

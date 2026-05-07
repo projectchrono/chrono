@@ -423,10 +423,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     };
 
   private:
-    static ChSolver::Type ReadSolverType(const YAML::Node& a);
-    static ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
-    static VisualizationType ReadVisualizationType(const YAML::Node& a);
-
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
 

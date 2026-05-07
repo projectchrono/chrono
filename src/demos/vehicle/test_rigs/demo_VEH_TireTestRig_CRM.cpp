@@ -25,14 +25,14 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
-
-#ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #endif
+
+#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -78,7 +78,9 @@ int main() {
     auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
     auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
-    bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    bool fea_tire = false;
+#ifdef CHRONO_FEA
+    fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 
     // Set tire contact surface (relevant for FEA tires only)
     if (fea_tire) {
@@ -87,6 +89,7 @@ int main() {
         double surface_dim = 0;
         tire->SetContactSurfaceType(surface_type, surface_dim, collision_family);
     }
+#endif
 
     // ---------------------------------------------------------
     // Create system and set default solver and integrator types
@@ -97,17 +100,20 @@ int main() {
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
 
-    if (fea_tire) {
-        sys = new ChSystemSMC;
-        step_size = 1e-5;
-        solver_type = ChSolver::Type::PARDISO_MKL;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    } else {
+    if (!fea_tire) {
         sys = new ChSystemNSC;
         step_size = 2e-4;
         solver_type = ChSolver::Type::BARZILAIBORWEIN;
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
+#ifdef CHRONO_FEA
+    else {
+        sys = new ChSystemSMC;
+        step_size = 1e-5;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+#endif
 
     // Set collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -180,18 +186,19 @@ int main() {
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
     ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
 
-    // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
+    // Scenario: specified longitudinal slip (overrides other definitions of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
     // Set delay before applying inputs (settling time)
     double input_time_delay = 1.0;
     rig.SetTimeDelay(input_time_delay);
 
-    // Initialize the tire test rig
+    // Initialize the tire test rig; in TEST mode set a drop speed of 0.05
     ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
-    rig.Initialize(ChTireTestRig::Mode::TEST);
+    rig.Initialize(ChTireTestRig::Mode::TEST, 0.05);
 
+#ifdef CHRONO_FEA
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
         auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
@@ -202,6 +209,7 @@ int main() {
         visFEA->SetSmoothFaces(true);
         tire_def->AddVisualShapeFEA(visFEA);
     }
+#endif
 
     // -----------------
     // Initialize output
@@ -219,7 +227,6 @@ int main() {
 
     std::shared_ptr<ChVisualSystem> vis;
 
-#ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
         auto sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetFsiSystemSPH();
@@ -242,9 +249,6 @@ int main() {
         visVSG->Initialize();
         vis = visVSG;
     }
-#else
-    render = false;
-#endif
 
 #ifdef CHRONO_POSTPROCESS
     // ---------------------------
@@ -306,17 +310,17 @@ int main() {
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
 
-                auto long_slip = rig.GetLongitudinalSlip();
+        auto long_slip = rig.GetLongitudinalSlip();
         auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
         auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
 
-        if (gnuplot_output && time > input_time_delay) {
+        if (gnuplot_output && time > rig.OutputEnabled()) {
             long_slip_fct.AddPoint(time, long_slip);
             slip_angle_fct.AddPoint(time, slip_angle);
             camber_angle_fct.AddPoint(time, camber_angle);
         }
 
-        if (debug_output) {
+        if (debug_output && rig.OutputEnabled()) {
             cout << time << endl;
             auto long_slip = rig.GetLongitudinalSlip();
             auto slip_angle = rig.GetSlipAngle();
@@ -345,7 +349,7 @@ int main() {
     // Plot results
     // ------------
 
-    if (gnuplot_output && sys->GetChTime() > input_time_delay) {
+    if (gnuplot_output && rig.OutputEnabled()) {
         postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
         gplot_long_slip.SetGrid();
         gplot_long_slip.SetLabelX("time (s)");

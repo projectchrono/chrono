@@ -74,6 +74,7 @@ void ChFsiFluidSystemTDPF::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool 
     m_num_rigid_bodies++;
 }
 
+#ifdef CHRONO_FEA
 void ChFsiFluidSystemTDPF::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
     m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex1D_elements += fsi_mesh->GetNumElements();
@@ -85,13 +86,9 @@ void ChFsiFluidSystemTDPF::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, b
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
     m_num_2D_meshes++;
 }
+#endif
 
 //------------------------------------------------------------------------------
-
-void ChFsiFluidSystemTDPF::AddWaves(const NoWaveParams& params) {
-    m_no_wave_params = params;
-    m_wave_type = WaveType::NONE;
-}
 
 void ChFsiFluidSystemTDPF::AddWaves(const RegularWaveParams& params) {
     m_reg_wave_params = params;
@@ -130,6 +127,48 @@ void ChFsiFluidSystemTDPF::SetTaperedDirectOptions(const hydrochrono::hydro::Tap
 
 //------------------------------------------------------------------------------
 
+
+void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_states) {
+    ChAssertAlways(!m_hydro_filename.empty());
+
+    // Initialize and add waves
+    switch (m_wave_type) {
+        case WaveType::NONE:
+            m_impl->m_waves = chrono_types::make_shared<NoWave>();
+            break;
+        case WaveType::REGULAR:
+            m_impl->m_waves = chrono_types::make_shared<RegularWave>(m_reg_wave_params);
+            break;
+        case WaveType::IRREGULAR:
+            m_impl->m_waves = chrono_types::make_shared<IrregularWaves>(m_irreg_wave_params);
+            break;
+    }
+    m_impl->m_waves->SetNumBodies(m_num_rigid_bodies);
+
+    // Initialize low-level implementation object
+    m_impl->Initialize(m_hydro_filename, m_num_rigid_bodies);
+
+    // Build force components for HydroForces
+    std::vector<std::unique_ptr<hydrochrono::hydro::IHydroForceComponent>> components;
+
+    // Hydrostatics component (uses shared factory for consistent construction)
+    components.push_back(m_impl->CreateHydrostaticsComponent());
+
+    // Radiation component (uses shared factory for consistent construction)
+    components.push_back(m_impl->CreateRadiationComponent());
+
+    // Excitation component (uses shared factory for consistent construction)
+    components.push_back(m_impl->CreateExcitationComponent());
+
+    // Construct HydroForces (takes ownership of components)
+    m_impl->m_hc_force_system = std::make_unique<hydrochrono::hydro::HydroForces>(m_num_rigid_bodies, std::move(components));
+
+    // Cache initial solid states in the TDPF structure
+    m_impl->m_hc_state.bodies.resize(m_num_rigid_bodies);
+    LoadSolidStates(body_states);
+}
+
+#ifdef CHRONO_FEA
 void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_states,
                                       const std::vector<FsiMeshState>& mesh1D_states,
                                       const std::vector<FsiMeshState>& mesh2D_states) {
@@ -138,18 +177,16 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
     // Initialize and add waves
     switch (m_wave_type) {
         case WaveType::NONE:
-            m_no_wave_params.num_bodies_ = m_num_rigid_bodies;
-            m_impl->m_waves = chrono_types::make_shared<NoWave>(m_no_wave_params);
+            m_impl->m_waves = chrono_types::make_shared<NoWave>();
             break;
         case WaveType::REGULAR:
-            m_reg_wave_params.num_bodies_ = m_num_rigid_bodies;
             m_impl->m_waves = chrono_types::make_shared<RegularWave>(m_reg_wave_params);
             break;
         case WaveType::IRREGULAR:
-            m_irreg_wave_params.num_bodies_ = m_num_rigid_bodies;
             m_impl->m_waves = chrono_types::make_shared<IrregularWaves>(m_irreg_wave_params);
             break;
     }
+    m_impl->m_waves->SetNumBodies(m_num_rigid_bodies);
 
     // Initialize low-level implementation object
     m_impl->Initialize(m_hydro_filename, m_num_rigid_bodies);
@@ -174,9 +211,27 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
     m_impl->m_hc_state.bodies.resize(m_num_rigid_bodies);
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 }
+#endif
 
 //------------------------------------------------------------------------------
 
+void ChFsiFluidSystemTDPF::LoadSolidStates(const std::vector<FsiBodyState>& body_states) {
+    for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
+        m_impl->m_hc_state.bodies[i].position = body_states[i].pos.eigen();
+        m_impl->m_hc_state.bodies[i].orientation_rpy = body_states[i].rot.GetCardanAnglesXYZ().eigen();
+        m_impl->m_hc_state.bodies[i].linear_velocity = body_states[i].lin_vel.eigen();
+        m_impl->m_hc_state.bodies[i].angular_velocity = body_states[i].ang_vel.eigen();
+    }
+}
+
+void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce> body_forces) {
+    for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
+        body_forces[i].force = m_impl->m_hc_forces[i].segment(0, 3);
+        body_forces[i].torque = m_impl->m_hc_forces[i].segment(3, 3);
+    }
+}
+
+#ifdef CHRONO_FEA
 void ChFsiFluidSystemTDPF::LoadSolidStates(const std::vector<FsiBodyState>& body_states,
                                            const std::vector<FsiMeshState>& mesh1D_states,
                                            const std::vector<FsiMeshState>& mesh2D_states) {
@@ -196,6 +251,7 @@ void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce> body_force
         body_forces[i].torque = m_impl->m_hc_forces[i].segment(3, 3);
     }
 }
+#endif
 
 //------------------------------------------------------------------------------
 

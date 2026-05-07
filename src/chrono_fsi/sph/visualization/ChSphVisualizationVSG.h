@@ -149,7 +149,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     ChSystem* GetSystem() const { return m_sysMBS; }
 
   private:
-    /// GPU shader modes supported by the SPH particle colour compute path.
+    /// GPU shader modes supported by the SPH particle color compute path.
     enum class ColorMode {
         NONE = 0,
         HEIGHT = 1,
@@ -173,11 +173,11 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         vsg::ref_ptr<vsg::vec4Array> velocityData;                     ///< staging buffer for velocities
         vsg::ref_ptr<vsg::vec4Array> propertyData;                     ///< staging buffer for auxiliary properties
         vsg::ref_ptr<vsg::vec4Array> uniformData;                      ///< packed uniforms for shader constants
-        vsg::ref_ptr<vsg::vec4Array> colormapData;                     ///< LUT storage for active colourmap
+        vsg::ref_ptr<vsg::vec4Array> colormapData;                     ///< LUT storage for active colormap
         vsg::ref_ptr<vsg::DescriptorBuffer> positionDescriptor;        ///< descriptor binding for positions
         vsg::ref_ptr<vsg::DescriptorBuffer> velocityDescriptor;        ///< descriptor binding for velocities
         vsg::ref_ptr<vsg::DescriptorBuffer> propertyDescriptor;        ///< descriptor binding for properties
-        vsg::ref_ptr<vsg::DescriptorBuffer> colorDescriptor;           ///< descriptor binding for output colours
+        vsg::ref_ptr<vsg::DescriptorBuffer> colorDescriptor;           ///< descriptor binding for output colors
         vsg::ref_ptr<vsg::DescriptorBuffer> uniformDescriptor;         ///< descriptor binding for uniforms
         vsg::ref_ptr<vsg::DescriptorBuffer> colormapDescriptor;        ///< descriptor binding for LUT data
         vsg::ref_ptr<vsg::DescriptorSetLayout> descriptorSetLayout;    ///< layout describing binding slots
@@ -189,8 +189,8 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         vsg::ref_ptr<vsg::Dispatch> dispatch;                          ///< command issuing the compute dispatch
         vsg::ref_ptr<vsg::PipelineBarrier> barrier;                    ///< barrier syncing compute to draw
         vsg::ref_ptr<vsg::Commands> commands;                          ///< command list submitted to compute graph
-        ChColormap::Type currentColormapType = ChColormap::Type::JET;  ///< currently uploaded colourmap
-        uint32_t colormapResolution = 512u;                            ///< sampling resolution for colourmap LUT
+        ChColormap::Type currentColormapType = ChColormap::Type::JET;  ///< currently uploaded colormap
+        uint32_t colormapResolution = 512u;                            ///< sampling resolution for colormap LUT
         bool colormapDirty = true;                                     ///< flag forcing LUT upload
         ColorMode mode = ColorMode::NONE;                              ///< last compute mode dispatched
     } m_gpu_color;

@@ -37,7 +37,7 @@ GL_INSTALL_DIR="$HOME/Packages/gl"
 
 URDF_INSTALL_DIR="C:/Packages/urdf"
 
-OPTIX_INSTALL_DIR="$HOME/Packages/optix-7.7.0"
+OPTIX_INSTALL_DIR="$HOME/Packages/optix-dev-9.1.0"
 FASTDDS_INSTALL_DIR="$HOME/Packages/fastrtps-2.4.0"
 
 SWIG_EXE="swig"

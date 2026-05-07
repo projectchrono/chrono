@@ -40,6 +40,7 @@ Kraz::Kraz()
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
@@ -55,6 +56,7 @@ Kraz::Kraz(ChSystem* system)
       m_fixed(false),
       m_engineType(EngineModelType::SIMPLE_MAP),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
@@ -178,6 +180,7 @@ void Kraz::Initialize() {
 
     for (auto& axle : m_tractor->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetCollisionType(m_tire_collision_type);
             if (m_tire_step_size > 0)
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
@@ -185,6 +188,7 @@ void Kraz::Initialize() {
 
     for (auto& axle : m_trailer->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetCollisionType(m_tire_collision_type);
             if (m_tire_step_size > 0)
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }

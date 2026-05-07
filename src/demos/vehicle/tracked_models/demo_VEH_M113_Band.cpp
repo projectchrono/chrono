@@ -26,19 +26,13 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
+#endif
 
 #include "chrono_models/vehicle/m113/M113.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
 #ifdef CHRONO_MUMPS
     #include "chrono_mumps/ChSolverMumps.h"
@@ -60,9 +54,6 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Band track type (BAND_BUSHING or BAND_ANCF)
 TrackShoeType shoe_type = TrackShoeType::BAND_ANCF;
@@ -101,10 +92,9 @@ double vtk_FPS = 50;
 // Forward declarations
 void AddFixedObstacles(ChSystem* system);
 void WriteVehicleVTK(const std::string& vtk_dir, int frame, ChTrackedVehicle& vehicle);
-void WriteMeshVTK(const std::string& vtk_dir,
-                  int frame,
-                  std::shared_ptr<fea::ChMesh> meshL,
-                  std::shared_ptr<fea::ChMesh> meshR);
+#ifdef CHRONO_FEA
+void WriteMeshVTK(const std::string& vtk_dir, int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr<fea::ChMesh> meshR);
+#endif
 
 // =============================================================================
 
@@ -169,14 +159,14 @@ int main(int argc, char* argv[]) {
     auto& vehicle = m113.GetVehicle();
     auto sys = vehicle.GetSystem();
 
+#ifdef CHRONO_FEA
     std::shared_ptr<fea::ChMesh> meshL;
     std::shared_ptr<fea::ChMesh> meshR;
     if (shoe_type == TrackShoeType::BAND_ANCF) {
-        meshL =
-            std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::LEFT))->GetMesh();
-        meshR =
-            std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::RIGHT))->GetMesh();
+        meshL = std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::LEFT))->GetMesh();
+        meshR = std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::RIGHT))->GetMesh();
     }
+#endif
 
     // Set visualization type for vehicle components.
     vehicle.SetChassisVisualizationType(VisualizationType::NONE);
@@ -188,8 +178,7 @@ int main(int argc, char* argv[]) {
     vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
     // Export sprocket and shoe tread visualization meshes
-    auto trimesh =
-        vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->CreateVisualizationMesh(0.15, 0.03, 0.02);
+    auto trimesh = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->CreateVisualizationMesh(0.15, 0.03, 0.02);
     ChTriangleMeshConnected::WriteWavefront(out_dir + "/M113_Sprocket.obj", {*trimesh});
     std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0))->WriteTreadVisualizationMesh(out_dir);
 
@@ -200,13 +189,13 @@ int main(int argc, char* argv[]) {
     // Control internal collisions and contact monitoring
     // --------------------------------------------------
 
+#ifdef CHRONO_FEA
     // Disable contact for the FEA track meshes
     if (shoe_type == TrackShoeType::BAND_ANCF) {
-        std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(LEFT))
-            ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
-        std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(RIGHT))
-            ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
+        std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(LEFT))->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
+        std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(RIGHT))->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
     }
+#endif
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
     ////vehicle.EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
@@ -272,57 +261,18 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization
     // -----------------------------------------
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
+    std::string title = std::string("M113 Band-track Vehicle - ") + (shoe_type == TrackShoeType::BAND_BUSHING ? " - BUSHINGS" : " - ANCF MESH");
 
-    std::string title = std::string("M113 Band-track Vehicle - ") +
-                        (shoe_type == TrackShoeType::BAND_BUSHING ? " - BUSHINGS" : " - ANCF MESH");
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle(title);
-            vis_irr->SetWindowSize(1200, 800);
-            vis_irr->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&vehicle);
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle(title);
-            vis_vsg->SetWindowSize(1200, 800);
-            vis_vsg->EnableSkyBox();
-            vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
-            vis_vsg->AttachVehicle(&m113.GetVehicle());
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    // Create the vehicle VSG interface
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+    vis->SetWindowTitle(title);
+    vis->SetWindowSize(1200, 800);
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
+    vis->AttachVehicle(&m113.GetVehicle());
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 
     // Setup chassis position output with column headers
     chrono::ChWriterCSV csv("\t");
@@ -499,8 +449,10 @@ int main(int argc, char* argv[]) {
 
         if (vtk_output && step_number % vtk_steps == 0) {
             WriteVehicleVTK(vtk_dir, vtk_frame, vehicle);
+#ifdef CHRONO_FEA
             if (shoe_type == TrackShoeType::BAND_ANCF)
                 WriteMeshVTK(vtk_dir, vtk_frame, meshL, meshR);
+#endif
             vtk_frame++;
         }
 
@@ -592,6 +544,7 @@ void AddFixedObstacles(ChSystem* system) {
 
 // =============================================================================
 
+#ifdef CHRONO_FEA
 void WriteMeshVTK(const std::string& vtk_dir, int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr<fea::ChMesh> meshR) {
     static bool generate_connectivity = true;
     if (generate_connectivity) {
@@ -604,6 +557,7 @@ void WriteMeshVTK(const std::string& vtk_dir, int frame, std::shared_ptr<fea::Ch
     fea::ChMeshExporter::WriteFrame(meshL, vtk_dir + "/meshL_connectivity.out", filenameL);
     fea::ChMeshExporter::WriteFrame(meshR, vtk_dir + "/meshR_connectivity.out", filenameR);
 }
+#endif
 
 void WriteVehicleVTK(const std::string& vtk_dir, int frame, ChTrackedVehicle& vehicle) {
     {
@@ -651,8 +605,7 @@ void WriteVehicleVTK(const std::string& vtk_dir, int frame, ChTrackedVehicle& ve
         const auto& gearR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetGearBody();
         csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPosDt() << gearL->GetAngVelLocal() << endl;
         csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPosDt() << gearR->GetAngVelLocal() << endl;
-        csv.WriteToFile(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk",
-                        "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.WriteToFile(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {

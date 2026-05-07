@@ -46,7 +46,7 @@ CH_SENSOR_API void ChFilterRadarXYZReturn::Apply() {
     cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
                                       (int)m_buffer_in->Height, m_hFOV, m_vFOV, m_cuda_stream);
 
-    // Transfer pointcloud to host
+    // Transfer point cloud to host
     auto buf = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
     cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(),
                     m_buffer_out->Width * m_buffer_out->Height * sizeof(RadarXYZReturn), cudaMemcpyDeviceToHost,
@@ -104,7 +104,7 @@ CH_SENSOR_API void ChFilterRadarXYZReturn::Apply() {
     //    }
     //    printf("post filtered points %i\n", m_buffer_out->Beam_return_count);
 
-    // transfer pointcloud to device
+    // transfer point cloud to device
     cudaMemcpyAsync(m_buffer_out->Buffer.get(), filtered_buf.data(),
                     m_buffer_out->Beam_return_count * sizeof(RadarXYZReturn), cudaMemcpyHostToDevice, m_cuda_stream);
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;

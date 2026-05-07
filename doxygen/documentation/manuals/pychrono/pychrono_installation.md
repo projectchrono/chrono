@@ -50,7 +50,7 @@ To install a PyChrono conda module, do the following:
    ```
 
 <div class="ce-warning">
-vsg3d module and ROS module are not yet available in the conda version of PyChrono. To use them you might need to "Build Python modules from the C++ API"
+cascade, vsg3d and ROS modules are not yet available in the conda version of PyChrono. To use them you might need to "Build Python modules from the C++ API"
 </div>
 
 

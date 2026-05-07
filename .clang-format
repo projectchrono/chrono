@@ -1,7 +1,7 @@
 BasedOnStyle: Chromium
 
 # Longer lines
-ColumnLimit: 120
+ColumnLimit: 180
 
 # Increase indentation
 IndentWidth: 4

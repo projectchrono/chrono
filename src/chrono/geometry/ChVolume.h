@@ -49,7 +49,7 @@ class ChApi ChVolume : public ChGeometry {
     virtual bool IsClosedU() const { return false; }
 
     /// Return true if the volume is closed (periodic) in the 2nd parametric coordinate.
-    virtual bool IslosedV() const { return false; }
+    virtual bool IsClosedV() const { return false; }
 
     /// Return true if the volume is closed (periodic) in the 3rd parametric coordinate.
     virtual bool IsClosedW() const { return false; }

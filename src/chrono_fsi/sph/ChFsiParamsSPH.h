@@ -41,7 +41,7 @@ struct ChFsiParamsSPH {
     EosType eos_type;                      ///< Equation of state type (Tait or isothermal)
     ViscosityMethod viscosity_method;      ///< Viscosity treatment type (physics-based laminar flow or artificial)
     BoundaryMethod boundary_method;        ///< Boundary type (Adami or Holmes)
-    KernelType kernel_type;                ///< Kernel type (Quadratic, cubic spline, quintinc spline, quintic Wendland)
+    KernelType kernel_type;                ///< Kernel type (Quadratic, cubic spline, quintic spline, quintic Wendland)
     ShiftingMethod shifting_method;        ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
     RheologyCRM rheology_model_crm;        ///< Rheology model (MU_OF_I or MCC)
 
@@ -63,9 +63,8 @@ struct ChFsiParamsSPH {
     int num_neighbors;      ///< Number of neighbor particles
     Real epsMinMarkersDis;  ///< Multiplier for minimum distance between markers (d_min = eps * h)
     int num_bce_layers;     ///< Number of BCE marker layers attached to boundary and solid surfaces (default: 3)
-    Real
-        toleranceZone;  ///< Helps determine the particles that are in the domain but are outside the boundaries, so
-                        ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
+    Real toleranceZone;     ///< Helps determine the particles that are in the domain but are outside the boundaries, so
+                            ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
 
     Real base_pressure;    ///< Relative value of pressure applied to the whole domain
     Real3 delta_pressure;  ///< Change in Pressure for periodic BC (when particle moves from one side to the other)
@@ -80,9 +79,9 @@ struct ChFsiParamsSPH {
     Real invrho0;  ///< 1 / rho0
     Real volume0;  ///< Initial particle volume
 
-    Real markerMass;  ///< marker mass
-    Real mu0;         ///< Viscosity
-    Real v_Max;  ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
+    Real markerMass;               ///< marker mass
+    Real mu0;                      ///< Viscosity
+    Real v_Max;                    ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
     Real shifting_xsph_eps;        ///< Coefficient for XSPH shifting
     Real shifting_ppst_push;       ///< Coefficient for PPST shifting - this is applied when penetration with fictitious
                                    ///< sphere is detected
@@ -116,14 +115,14 @@ struct ChFsiParamsSPH {
 
     bool Conservative_Form;  ///< use conservative or consistent discretization
     int gradient_type;       ///< Type of the gradient operator
-    int laplacian_type;      ///< Type of the laplacian operator
+    int laplacian_type;      ///< Type of the Laplacian operator
 
     bool use_consistent_gradient_discretization;   ///< use consistent discretization for gradient operator
-    bool use_consistent_laplacian_discretization;  ///< use consistent discretization for laplacian operator
+    bool use_consistent_laplacian_discretization;  ///< use consistent discretization for Laplacian operator
     bool use_delta_sph;                            ///< use delta SPH
     Real density_delta;                            ///< parameter for delta SPH
 
-    bool use_density_based_projection;  ///< Set true to use density based projetion scheme in ISPH solver
+    bool use_density_based_projection;  ///< Set true to use density based projection scheme in ISPH solver
 
     bool Pressure_Constraint;  ///< Whether the singularity of the pressure equation should be fixed
     SolverType LinearSolver;   ///< Type of the linear solver
@@ -144,11 +143,11 @@ struct ChFsiParamsSPH {
     bool Apply_BC_U;        ///< This option lets you apply a velocity BC on the BCE markers
     Real L_Characteristic;  ///< Characteristic for Re number computation
 
-    bool non_newtonian;       ///< Set true to model non-newtonian fluid
+    bool non_newtonian;       ///< Set true to model non-Newtonian fluid
     Rheology rheology_model;  ///< Model of the rheology
     Real ave_diam;            ///< average particle diameter
     Real cohesion;            ///< c in the stress model sigma=(mu*p+c)/|D|
-    FrictionLaw mu_of_I;      ///< Constant I in granular material dyanmcis
+    FrictionLaw mu_of_I;      ///< Constant I in granular material dynamics
     Real mu_max;              ///< maximum viscosity
     Real mu_fric_s;           ///< friction mu_s
     Real mu_fric_2;           ///< mu_2 constant in mu=mu(I)
@@ -158,14 +157,14 @@ struct ChFsiParamsSPH {
     Real HB_sr0;   ///< Herschel–Bulkley consistency index
     Real HB_k;     ///< Herschel–Bulkley consistency index
     Real HB_n;     ///< Herschel–Bulkley  power
-    Real HB_tau0;  ///< Herschel–Bulkley yeild stress
+    Real HB_tau0;  ///< Herschel–Bulkley yield stress
 
     Real E_young;                 ///< Young's modulus
     Real G_shear;                 ///< Shear modulus
     Real INV_G_shear;             ///< 1.0 / G_shear
     Real K_bulk;                  ///< Bulk modulus
     Real Nu_poisson;              ///< Poisson's ratio
-    Real artificial_viscosity;    ///< Artifical viscosity coefficient
+    Real artificial_viscosity;    ///< Artificial viscosity coefficient
     Real Coh_coeff;               ///< Cohesion coefficient
     Real free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
     ///< field is computed and compared to this threshold. Particles with divergence

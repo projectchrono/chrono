@@ -35,7 +35,7 @@ namespace chrono {
 ///
 ///    p = f(s)
 ///
-/// where p is a 3D vector (ex. a position) and s is a scalar (ex. time)
+/// where p is a 3D vector (e.g. a position) and s is a scalar (e.g. time)
 /// Inherited classes must override at least the GetPos() method.
 
 class ChApi ChFunctionPosition {
@@ -60,10 +60,10 @@ class ChApi ChFunctionPosition {
     /// Inherited classes may override this method with a more efficient implementation (e.g. analytical solution).
     virtual ChVector3d GetLinAcc(double s) const;
 
-    /// Update could be implemented by children classes, ex. to launch callbacks
+    /// Update could be implemented by children classes, e.g. to launch callbacks.
     virtual void Update(double t) {}
 
-    /// Method to allow serialization of transient data to archives
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.

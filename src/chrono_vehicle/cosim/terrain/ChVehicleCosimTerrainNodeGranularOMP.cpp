@@ -38,10 +38,6 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
-
 using std::cout;
 using std::endl;
 
@@ -51,16 +47,14 @@ namespace chrono {
 namespace vehicle {
 
 // Set tags for obstacles and particles.
-static constexpr int tag_obstacles = 100; // all obstacle bodies use this tag
-static constexpr int tag_particles = 200; // all particles have a tag larger than this
+static constexpr int tag_obstacles = 100;  // all obstacle bodies use this tag
+static constexpr int tag_particles = 200;  // all particles have a tag larger than this
 
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the (multicore) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(double length,
-                                                                           double width,
-                                                                           ChContactMethod method)
+ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(double length, double width, ChContactMethod method)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, length, width, method),
       m_radius_p(5e-3),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
@@ -127,8 +121,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
     m_path_points.push_back({m_dimX, 0, 0});
 }
 
-ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
-                                                                           const std::string& specfile)
+ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, const std::string& specfile)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, 0, 0, method),
       m_constructed(false),
       m_use_checkpoint(false),
@@ -259,8 +252,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& sp
     else if (t_model.compare("None") == 0)
         m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::None;
 
-    m_system->GetSettings()->solver.use_material_properties =
-        d["Simulation settings"]["Use material properties"].GetBool();
+    m_system->GetSettings()->solver.use_material_properties = d["Simulation settings"]["Use material properties"].GetBool();
 
     m_radius_p = d["Simulation settings"]["Proxy contact radius"].GetDouble();
     m_fixed_proxies = d["Simulation settings"]["Fix proxies"].GetBool();
@@ -290,16 +282,12 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetContactForceModel(ChSystemSMC::Con
     m_system->GetSettings()->solver.contact_force_model = model;
 }
 
-void ChVehicleCosimTerrainNodeGranularOMP::SetTangentialDisplacementModel(
-    ChSystemSMC::TangentialDisplacementModel model) {
+void ChVehicleCosimTerrainNodeGranularOMP::SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel model) {
     assert(m_system->GetContactMethod() == ChContactMethod::SMC);
     m_system->GetSettings()->solver.tangential_displ_mode = model;
 }
 
-void ChVehicleCosimTerrainNodeGranularOMP::SetSamplingMethod(utils::SamplingType type,
-                                                             double init_height,
-                                                             double sep_factor,
-                                                             bool in_layers) {
+void ChVehicleCosimTerrainNodeGranularOMP::SetSamplingMethod(utils::SamplingType type, double init_height, double sep_factor, bool in_layers) {
     m_sampling_type = type;
     m_init_depth = init_height;
     m_separation_factor = sep_factor;
@@ -384,20 +372,19 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     double hthick = m_thick / 2;
 
     // Bottom box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, m_thick),
-                          ChVector3d(hdimX, 0, -hthick), ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, m_thick), ChVector3d(hdimX, 0, -hthick), ChQuaternion<>(1, 0, 0, 0), true);
     // Front box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_thick, m_dimY, m_init_depth + m_thick),
-                          ChVector3d(+m_dimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_thick, m_dimY, m_init_depth + m_thick), ChVector3d(+m_dimX + hthick, 0, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0), true);
     // Rear box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_thick, m_dimY, m_init_depth + m_thick),
-                          ChVector3d(-hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_thick, m_dimY, m_init_depth + m_thick), ChVector3d(-hthick, 0, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0), true);
     // Left box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_thick, m_init_depth + m_thick),
-                          ChVector3d(hdimX, +hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_thick, m_init_depth + m_thick), ChVector3d(hdimX, +hdimY + hthick, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0), true);
     // Right box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_thick, m_init_depth + m_thick),
-                          ChVector3d(hdimX, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_thick, m_init_depth + m_thick), ChVector3d(hdimX, -hdimY - hthick, hdimZ - hthick),
+                          ChQuaternion<>(1, 0, 0, 0), true);
 
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
@@ -495,8 +482,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             ChQuaternion<> rot;
             ChVector3d pos_dt;
             ChQuaternion<> rot_dt;
-            iss >> tag >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >>
-                pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >> rot_dt.e2() >> rot_dt.e3();
+            iss >> tag >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >> pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >>
+                rot_dt.e2() >> rot_dt.e3();
 
             auto body = m_system->GetBodies()[ib];
             assert(body->GetTag() == tag);
@@ -521,12 +508,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh =
-            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector3d baricenter;
+        ChVector3d barycenter;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, barycenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetName("obstacle");
@@ -555,8 +541,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "   Contact method = " << (m_method == ChContactMethod::SMC ? "SMC" : "NSC") << endl;
-    outf << "   Use material properties? " << (m_system->GetSettings()->solver.use_material_properties ? "YES" : "NO")
-         << endl;
+    outf << "   Use material properties? " << (m_system->GetSettings()->solver.use_material_properties ? "YES" : "NO") << endl;
     outf << "   Collision envelope = " << m_system->GetSettings()->collision.collision_envelope << endl;
     outf << "Terrain patch dimensions" << endl;
     outf << "   X = " << m_dimX << "  Y = " << m_dimY << endl;
@@ -641,8 +626,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         max_contacts = std::max(max_contacts, n_contacts);
 
         if (m_verbose)
-            cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
-                 << m_timer.GetTimeSeconds() << "]  " << n_contacts << std::flush;
+            cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  [" << m_timer.GetTimeSeconds() << "]  " << n_contacts << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && steps % output_steps == 0) {
@@ -755,6 +739,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
 
 // -----------------------------------------------------------------------------
 
+#ifdef CHRONO_FEA
 // Create bodies with triangular contact geometry as proxies for the mesh faces.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
@@ -790,8 +775,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         std::string name = "tri_" + std::to_string(it);
         double len = 0.1;
 
-        utils::AddTriangleGeometry(body.get(), material, ChVector3d(len, 0, 0), ChVector3d(0, len, 0),
-                                   ChVector3d(0, 0, len), name);
+        utils::AddTriangleGeometry(body.get(), material, ChVector3d(len, 0, 0), ChVector3d(0, len, 0), ChVector3d(0, 0, len), name);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
 
@@ -803,6 +787,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
 
     m_proxies[i] = proxy;
 }
+#endif
 
 void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
@@ -842,25 +827,28 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnInitialize(unsigned int num_objects
 
     // Create the visualization window
     if (m_renderRT) {
-#if defined(CHRONO_VSG)
-        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-        vsys_vsg->AttachSystem(m_system);
-        vsys_vsg->SetWindowTitle("Terrain Node (GranularOMP)");
-        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
-        vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        vsys_vsg->SetCameraAngleDeg(40);
-        vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
-        vsys_vsg->SetImageOutput(m_writeRT);
-        vsys_vsg->Initialize();
+#ifdef CHRONO_VSG
+        m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
 
-        m_vsys = vsys_vsg;
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (GranularOMP)");
+        m_vsys->SetWindowSize(ChVector2i(1280, 720));
+        m_vsys->SetWindowPosition(ChVector2i(100, 100));
+        ////m_vsys->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
+        m_vsys->EnableSkyTexture();
+        m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
+        m_vsys->SetCameraAngleDeg(40);
+        m_vsys->SetLightIntensity(1.0f);
+        m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
+        m_vsys->SetImageOutput(m_writeRT);
+        m_vsys->Initialize();
+
+        m_vsys->ToggleAbsFrameVisibility();
 #endif
     }
 }
 
+#ifdef CHRONO_FEA
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
 // The proxy body is effectively reconstructed at each synchronization time:
 //    - position at the center of mass of the three vertices
@@ -876,7 +864,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
-    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    const auto& idx_verts = trimesh->GetIndicesVertices();
     int nt = trimesh->GetNumTriangles();
 
     // shape_data contains all triangle vertex locations, in groups of three real3, one group for each triangle.
@@ -919,6 +907,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
     PrintMeshProxiesUpdateData(i, mesh_state);
 }
+#endif
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
@@ -931,10 +920,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, Body
 
 // Calculate barycentric coordinates (a1, a2, a3) for a given point P
 // with respect to the triangle with vertices {v1, v2, v3}
-ChVector3d ChVehicleCosimTerrainNodeGranularOMP::CalcBarycentricCoords(const ChVector3d& v1,
-                                                                       const ChVector3d& v2,
-                                                                       const ChVector3d& v3,
-                                                                       const ChVector3d& vP) {
+ChVector3d ChVehicleCosimTerrainNodeGranularOMP::CalcBarycentricCoords(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3, const ChVector3d& vP) {
     ChVector3d v12 = v2 - v1;
     ChVector3d v13 = v3 - v1;
     ChVector3d v1P = vP - v1;
@@ -954,6 +940,7 @@ ChVector3d ChVehicleCosimTerrainNodeGranularOMP::CalcBarycentricCoords(const ChV
     return ChVector3d(a1, a2, a3);
 }
 
+#ifdef CHRONO_FEA
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
@@ -965,7 +952,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
-    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    const auto& idx_verts = trimesh->GetIndicesVertices();
     int nt = trimesh->GetNumTriangles();
 
     // Maintain an unordered map of vertex indices and associated contact forces.
@@ -1016,6 +1003,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
         mesh_contact.nv++;
     }
 }
+#endif
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
@@ -1036,17 +1024,18 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::OnRender() {
-    if (!m_vsys)
+    if (!m_renderRT)
         return;
-    if (!m_vsys->Run())
-        MPI_Abort(MPI_COMM_WORLD, 1);
 
+#ifdef CHRONO_VSG
     if (m_track)
         m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
-    m_vsys->BeginScene();
-    m_vsys->Render();
-    m_vsys->EndScene();
+    if (m_vsys->Run())
+        m_vsys->Render();
+    else
+        MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -1083,8 +1072,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
     for (auto& body : m_system->GetBodies()) {
         if (body->GetTag() < tag_particles)
             continue;
-        csv << body->GetTag() << body->GetPos() << body->GetRot() << body->GetPosDt() << body->GetRotDt()
-            << endl;
+        csv << body->GetTag() << body->GetPos() << body->GetRot() << body->GetPosDt() << body->GetRotDt() << endl;
     }
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
@@ -1098,29 +1086,27 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
 void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     // Include only particles
-    utils::WriteVisualizationAssets(
-        m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_particles; }, true);
+    utils::WriteVisualizationAssets(m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_particles; }, true);
 }
 
+#ifdef CHRONO_FEA
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     {
         auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
 
-        auto lowest = std::min_element(
-            proxy->bodies.begin(), proxy->bodies.end(),
-            [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
+        auto lowest =
+            std::min_element(proxy->bodies.begin(), proxy->bodies.end(), [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
         double height = (*lowest)->GetPos().z();
         const ChVector3d& vel = (*lowest)->GetPosDt();
-        cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel
-             << endl;
+        cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel << endl;
     }
 
     {
-        auto lowest = std::min_element(mesh_state.vpos.begin(), mesh_state.vpos.end(),
-                                       [](const ChVector3d& a, const ChVector3d& b) { return a.z() < b.z(); });
+        auto lowest = std::min_element(mesh_state.vpos.begin(), mesh_state.vpos.end(), [](const ChVector3d& a, const ChVector3d& b) { return a.z() < b.z(); });
         cout << "[Terrain node] object: " << i << "  lowest vertex:  height = " << (*lowest).z() << endl;
     }
 }
+#endif
 
 }  // end namespace vehicle
 }  // end namespace chrono

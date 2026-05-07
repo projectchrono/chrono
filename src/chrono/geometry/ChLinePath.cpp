@@ -73,28 +73,28 @@ void ChLinePath::SetSubLineDurationN(size_t n, double mduration) {
     }
 }
 
-void ChLinePath::AddSubLine(std::shared_ptr<ChLine> mline, double duration) {
-    lines.push_back(mline);
+void ChLinePath::AddSubLine(std::shared_ptr<ChLine> line, double duration) {
+    lines.push_back(line);
     durations.push_back(0);
     end_times.push_back(0);
     SetSubLineDurationN(lines.size() - 1, duration);
 }
 
-void ChLinePath::AddSubLine(ChLine& mline, double duration) {
-    std::shared_ptr<ChLine> pline((ChLine*)mline.Clone());
+void ChLinePath::AddSubLine(ChLine& line, double duration) {
+    std::shared_ptr<ChLine> pline((ChLine*)line.Clone());
     AddSubLine(pline, duration);
 }
 
-void ChLinePath::InsertSubLine(size_t n, std::shared_ptr<ChLine> mline, double duration) {
-    lines.insert(lines.begin() + n, mline);
+void ChLinePath::InsertSubLine(size_t n, std::shared_ptr<ChLine> line, double duration) {
+    lines.insert(lines.begin() + n, line);
     durations.push_back(0);
     end_times.push_back(0);
     // force recompute following end times:
     SetSubLineDurationN(n, duration);
 }
 
-void ChLinePath::InsertSubLine(size_t n, ChLine& mline, double duration) {
-    std::shared_ptr<ChLine> pline((ChLine*)mline.Clone());
+void ChLinePath::InsertSubLine(size_t n, ChLine& line, double duration) {
+    std::shared_ptr<ChLine> pline((ChLine*)line.Clone());
     InsertSubLine(n, pline, duration);
 }
 

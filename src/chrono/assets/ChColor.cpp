@@ -111,11 +111,18 @@ ChColor ChColor::HSV2RGB(const ChVector3f& hsv) {
 
 ChColor ChColor::Interp(const ChColor& c1, const ChColor& c2, double f) {
     ChClamp(f, 0.0, 1.0);
-
     ChColor c;
     c.R = (1 - f) * c1.R + f * c2.R;
     c.G = (1 - f) * c1.G + f * c2.G;
     c.B = (1 - f) * c1.B + f * c2.B;
+    return c;
+}
+
+ChColor ChColor::Mix(const ChColor& c1, const ChColor& c2) {
+    ChColor c;
+    c.R = std::sqrt((c1.R * c1.R + c2.R * c2.R) / 2);
+    c.G = std::sqrt((c1.G * c1.G + c2.G * c2.G) / 2);
+    c.B = std::sqrt((c1.B * c1.B + c2.B * c2.B) / 2);
     return c;
 }
 

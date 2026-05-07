@@ -86,7 +86,7 @@ vis.AddTypicalLights()
 while vis.Run():
     vis.BeginScene() 
     vis.Render()
-    chronoirr.drawAllCOGs(vis, 2)
+    chronoirr.DrawAllCOMs(vis, 2)
     vis.EndScene()
     sys.DoStepDynamics(5e-3)
 

@@ -29,9 +29,9 @@
 #include "chrono/physics/ChContactMaterial.h"
 
 // Ignore legacy keywords 'near' and 'far' in Visual Studio compiler
-#ifdef _WIN32 
-#undef near
-#undef far
+#ifdef _WIN32
+    #undef near
+    #undef far
 #endif
 #include <urdf_parser/urdf_parser.h>
 
@@ -102,7 +102,7 @@ class ChApiParsers ChParserURDF {
     void SetBodyMeshCollisionType(const std::string& body_name, MeshCollisionType collision_type);
 
     /// Set the collision type for all bodies with mesh collision shapes (default: TRIMESH).
-    void SetAllBodiesMeshCollisinoType(MeshCollisionType collision_type);
+    void SetAllBodiesMeshCollisionType(MeshCollisionType collision_type);
 
     /// Set default contact material properties.
     /// All bodies for which SetBodyContactMaterial was not explicitly called will be constructed with this contact
@@ -110,7 +110,7 @@ class ChApiParsers ChParserURDF {
     void SetDefaultContactMaterial(const ChContactMaterialData& mat_data);
 
     /// Set contact material properties for the specified body.
-    /// Bodies for which this function is not explictly called are constructed with the default contact material.
+    /// Bodies for which this function is not explicitly called are constructed with the default contact material.
     void SetBodyContactMaterial(const std::string& body_name, const ChContactMaterialData& mat_data);
 
     /// Enable visualization of collision shapes (default: visualization shapes).
@@ -119,7 +119,7 @@ class ChApiParsers ChParserURDF {
     /// Create the Chrono model in the given system from the parsed URDF model.
     void PopulateSystem(ChSystem& sys);
 
-    /// Print the list of Chrono bodies generated fropm parsed URDF file.
+    /// Print the list of Chrono bodies generated frop parsed URDF file.
     /// This list is populated only after a call to PopulateSystem().
     void PrintChronoBodies();
 
@@ -169,8 +169,7 @@ class ChApiParsers ChParserURDF {
     /// Scan the URDF XML for all objects of the specified key and execute the Process() function of the provided
     /// callback object. Only direct children of the "robot" element in the input URDF are processed. The XML document
     /// may be augmented as the processed XML document is returned.
-    std::shared_ptr<tinyxml2::XMLDocument> CustomProcess(const std::string& key,
-                                                         std::shared_ptr<CustomProcessor> callback);
+    std::shared_ptr<tinyxml2::XMLDocument> CustomProcess(const std::string& key, std::shared_ptr<CustomProcessor> callback);
 
   private:
     ChColor toChColor(const urdf::Color& color);

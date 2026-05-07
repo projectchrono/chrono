@@ -37,12 +37,7 @@ class ChApi ChLinkLimit {
     void SetActive(bool val) { m_active = val; }
 
     bool IsPenalty() const { return m_penalty_only; }
-    bool IsPolar() const { return m_polar; }
-    bool IsRotation() const { return m_rotation; }
-
     void SetPenalty(bool val) { m_penalty_only = val; }
-    void SetPolar(bool val) { m_polar = val; }
-    void SetRotation(bool val) { m_rotation = val; }
 
     double GetMax() const { return m_max; }
     double GetMin() const { return m_min; }
@@ -90,8 +85,6 @@ class ChApi ChLinkLimit {
   private:
     bool m_active;
     bool m_penalty_only;
-    bool m_polar;
-    bool m_rotation;
 
     double m_max;
     double m_min;

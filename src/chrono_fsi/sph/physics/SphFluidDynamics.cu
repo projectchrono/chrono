@@ -96,7 +96,7 @@ double SphFluidDynamics::computeTimeStep() const {
                                            std::numeric_limits<Real>::max(), thrust::minimum<Real>()));
 
     double adjusted_time_step = 0.3 * std::min(min_courant_viscous_time_step, min_acceleration_time_step);
-    // Log the time step values for analysiss
+    // Log the time step values for analysis
 #ifdef FSI_COUNT_LOGGING_ENABLED
     QuantityLogger::GetInstance().AddValue("time_step", adjusted_time_step);
     QuantityLogger::GetInstance().AddValue("min_courant_viscous_time_step", min_courant_viscous_time_step);
@@ -549,7 +549,7 @@ __device__ void TauEulerStep(Real dT,
         // Update density
         rho_p.x = rho_p.x + deriv_rho * dT;
         // Update specific volume based on the volumetric strain rate
-        // TODO: How are we guaranteed that the volumentric strain rate and the density are synchronized?
+        // TODO: How are we guaranteed that the volumetric strain rate and the density are synchronized?
         // One aspect is that they are both numerically integrated from the divergence of the velocity field
         pcEvSv.z *= (1 - pcEvSv.y * dT);
         // Set min to prevent collapse of the specific volume
@@ -557,7 +557,7 @@ __device__ void TauEulerStep(Real dT,
     }
 }
 
-// Kernel to update the fluid properities of a particle, using an explicit Euler step.
+// Kernel to update the fluid properties of a particle, using an explicit Euler step.
 // First, update the particle position and velocity. Next,
 // - For a CFD problem, advance the density and calculate pressure from the Equation of State;
 // - For a CRM problem, update the stress tensor and the pressure (density is kept constant).
@@ -605,9 +605,9 @@ __global__ void EulerStep_D(Real4* posRadD,
     }
 }
 
-// Kernel to update the fluid properities of a particle, using an mid-point step.
+// Kernel to update the fluid properties of a particle, using an mid-point step.
 // Note: the derivatives (provided in input vectors) are assumed to have been calculated at the mid-point!
-// The mid-point updates for position and velocitie are:
+// The mid-point updates for position and velocity are:
 //    v_{n+1} = v_n + h * F_{n+1/2}
 //    r_{n+1} = r_n + h * (v_{n+1} + v_n) / 2
 // These are implemented in reverse order (because the velocity update would overwrite v_n) as:
@@ -1040,7 +1040,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 
     Real numerator = 0.0;
     Real denominator = 0.0;
-    // examine neighbouring cells
+    // examine neighboring cells
     for (int z = -1; z <= 1; z++) {
         for (int y = -1; y <= 1; y++) {
             for (int x = -1; x <= 1; x++) {

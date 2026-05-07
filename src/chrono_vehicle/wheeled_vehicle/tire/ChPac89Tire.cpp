@@ -240,7 +240,7 @@ void ChPac89Tire::Advance(double step) {
         // Smoothing interval for My
         const double vx_min = 0.125;
         const double vx_max = 0.5;
-        // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
+        // Smoothing factor dependent on m_state.abs_vx, allows soft switching of My
         double myStartUp = ChFunctionSineStep::Eval(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }

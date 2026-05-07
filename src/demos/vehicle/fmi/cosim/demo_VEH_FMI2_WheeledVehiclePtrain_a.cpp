@@ -34,7 +34,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/utils/ChSpeedController.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -128,8 +128,7 @@ class DriverSystem {
     double braking;
 };
 
-DriverSystem::DriverSystem(ChSystem& sys, const std::string& path_filename)
-    : target_speed(10), steering(0), braking(0), throttle(0) {
+DriverSystem::DriverSystem(ChSystem& sys, const std::string& path_filename) : target_speed(10), steering(0), braking(0), throttle(0) {
     auto path = ChBezierCurve::Read(path_filename, false);
 
     speedPID = chrono_types::make_shared<ChSpeedController>();

@@ -77,6 +77,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get a handle to the revolute joint on the specified side.
     std::shared_ptr<ChLinkLockRevolute> GetRevolute(VehicleSide side) const { return m_revolute[side]; }
 
+    /// Get a handle to the shaft-body connection.
+    std::shared_ptr<ChShaftBodyRotation> GetShaftBodyConnection(VehicleSide side) const { return m_axle_to_spindle[side]; }
+
     /// Get the global location of the spindle on the specified side.
     const ChVector3d& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
 
@@ -105,9 +108,8 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     virtual void Advance(double step) {}
 
     /// Apply the provided motor torque.
-    /// The given torque is applied to the specified (left or right) axle. This
-    /// function provides the interface to the drivetrain subsystem (intermediated
-    /// by the vehicle system).
+    /// The given torque is applied to the specified (left or right) axle. This function provides the interface to the
+    /// drivetrain subsystem (intermediated by the vehicle system).
     void ApplyAxleTorque(VehicleSide side,  ///< indicates the axle (left or right) where the torque should be applied
                          double torque      ///< value of applied torque
     );

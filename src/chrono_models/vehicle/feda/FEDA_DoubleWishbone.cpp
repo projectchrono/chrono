@@ -68,7 +68,7 @@ const double FEDA_DoubleWishboneFront::m_springRestLength =
 const double FEDA_DoubleWishboneFront::m_springF0 = 0.125550934 * FEDA_DoubleWishboneFront::m_springCoefficient;
 const double FEDA_DoubleWishboneFront::m_bumpstop_clearance = 0.11;
 const double FEDA_DoubleWishboneFront::m_reboundstop_clearance =
-    0.08;  // the rebound neads araound 4 cm to compensate the spring forces: 0.11-0.03 = 0.08
+    0.08;  // the rebound needs around 4 cm to compensate the spring forces: 0.11-0.03 = 0.08
 const double FEDA_DoubleWishboneFront::m_air_pressure[] = {18.0 * psi2pascal, 41.5 * psi2pascal,
                                                            110.0 * psi2pascal};  // Proving Ground Config
 
@@ -105,7 +105,7 @@ const double FEDA_DoubleWishboneRear::m_springRestLength =
 const double FEDA_DoubleWishboneRear::m_springF0 = 0.125550934 * FEDA_DoubleWishboneRear::m_springCoefficient;
 const double FEDA_DoubleWishboneRear::m_bumpstop_clearance = 0.11;
 const double FEDA_DoubleWishboneRear::m_reboundstop_clearance =
-    0.07;  // the rebound neads araound 4 cm to compensate the spring forces: 0.11-0.04 = 0.07
+    0.07;  // the rebound needs around 4 cm to compensate the spring forces: 0.11-0.04 = 0.07
 const double FEDA_DoubleWishboneRear::m_air_pressure[] = {41.0 * psi2pascal, 72 * psi2pascal,
                                                           150.0 * psi2pascal};  // Proving Ground Config
 
@@ -124,7 +124,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
           m_cylinder_compression_length(0.16),
           m_coilSpringF0(coilSpringF0),
           m_P0(p0) {
-        // percalculations
+        // pre-calculations
         double A0 = std::pow(m_piston_radius, 2.0) * CH_PI;
         double V0 = m_cylinder_compression_length * A0;
         m_airSpringF0 = m_P0 * A0;
@@ -225,7 +225,7 @@ class FEDA_ShockForce : public ChLinkTSDA::ForceFunctor {
 class FEDA_ShockODE : public ChLinkTSDA::ODE {
   public:
     FEDA_ShockODE() : m_use_damper_tables(true) {
-        // Setup damper tables for high freqnency signals
+        // Setup damper tables for high frequency signals
         m_hf_damper_table.AddPoint(-5.0, -93494.0202);  // found by linear extrapolation
         m_hf_damper_table.AddPoint(-0.33, -10335);
         m_hf_damper_table.AddPoint(-0.22, -8376);
@@ -240,7 +240,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
         m_hf_damper_table.AddPoint(0.33, 7496);
         m_hf_damper_table.AddPoint(5.0, 62719.72222);  // found by linear extrapolation
 
-        // Setup damper tables for low freqnency signals
+        // Setup damper tables for low frequency signals
         m_lf_damper_table.AddPoint(-5.0, -92405.19192);  // found by linear extrapolation
         m_lf_damper_table.AddPoint(-1.0, -22292.06061);
         m_lf_damper_table.AddPoint(-0.33, -10548);
@@ -258,7 +258,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
     }
 
     virtual unsigned int GetNumStates() const override { return 2; }
-    virtual void SetInitialConditions(ChVectorDynamic<>& states,  // output vector containig initial conditions
+    virtual void SetInitialConditions(ChVectorDynamic<>& states,  // output vector containing initial conditions
                                       const ChLinkTSDA& link      // associated link
                                       ) override {
         // we start with zero velocity and zero force
@@ -287,7 +287,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
             force_hf = m_hf_damper_table.GetVal(vel);
             force_lf = m_lf_damper_table.GetVal(vel_min);
         } else {
-            // use continuous funktions (derived from the tables)
+            // use continuous functions (derived from the tables)
             force_hf = HF_DamperForce(vel);
             force_lf = LF_DamperForce(vel_min);
         }
@@ -412,7 +412,7 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 FEDA_DoubleWishboneFront::~FEDA_DoubleWishboneFront() {
     /* what happens here?

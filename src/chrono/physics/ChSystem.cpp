@@ -103,21 +103,23 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     setupcount = other.setupcount;
     write_matrix = other.write_matrix;
     output_dir = other.output_dir;
+    if (other.GetCollisionSystem())
+        SetCollisionSystemType(other.GetCollisionSystem()->GetType());
     SetTimestepperType(other.GetTimestepperType());
+    SetSolverType(other.GetSolverType());
     nthreads_chrono = other.nthreads_chrono;
     nthreads_eigen = other.nthreads_eigen;
     nthreads_collision = other.nthreads_collision;
+    max_penetration_recovery_speed = other.max_penetration_recovery_speed;
+    use_sleeping = other.use_sleeping;
+    ncontacts = other.ncontacts;
+    collision_callbacks = other.collision_callbacks;
+
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
+
     is_initialized = false;
     is_updated = false;
     applied_forces_current = false;
-
-    max_penetration_recovery_speed = other.max_penetration_recovery_speed;
-    SetSolverType(other.GetSolverType());
-    use_sleeping = other.use_sleeping;
-
-    ncontacts = other.ncontacts;
-
-    collision_callbacks = other.collision_callbacks;
 }
 
 ChSystem::~ChSystem() {
@@ -165,10 +167,12 @@ void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
     link->SetSystem(this);
 }
 
+#ifdef CHRONO_FEA
 void ChSystem::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     assembly.AddMesh(mesh);
     mesh->SetSystem(this);
 }
+#endif
 
 void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assembly.AddOtherPhysicsItem(item);
@@ -196,12 +200,14 @@ void ChSystem::RemoveLink(std::shared_ptr<ChLinkBase> link) {
     link->SetSystem(nullptr);
 }
 
+#ifdef CHRONO_FEA
 void ChSystem::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
     if (collision_system)
         mesh->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveMesh(mesh);
     mesh->SetSystem(nullptr);
 }
+#endif
 
 void ChSystem::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     if (collision_system)
@@ -228,10 +234,12 @@ void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+#ifdef CHRONO_FEA
     if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
         AddMesh(mesh);
         return;
     }
+#endif
 
     AddOtherPhysicsItem(item);
 }
@@ -255,10 +263,12 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+#ifdef CHRONO_FEA
     if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
         RemoveMesh(mesh);
         return;
     }
+#endif
 
     RemoveOtherPhysicsItem(item);
 }
@@ -505,18 +515,17 @@ bool ChSystem::ManageSleepingBodies() {
       public:
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
-        virtual bool OnReportContact(
-            const ChVector3d& pA,             // contact pA
-            const ChVector3d& pB,             // contact pB
-            const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
-            double distance,                  // contact distance
-            double eff_radius,                // effective radius of curvature at contact
-            const ChVector3d& react_forces,   // react. forces (if already computed), expressed in 'plane_coord'
-            const ChVector3d& react_torques,  // react.torques, if rolling friction (if already computed)
-            ChContactable* contactobjA,       // first contactable object (may be nullptr)
-            ChContactable* contactobjB,       // second contactable object (may be nullptr)
-            int constraint_offset             // NSC only; ignored here
-            ) override {
+        virtual bool OnReportContact(const ChVector3d& pA,             // contact pA
+                                     const ChVector3d& pB,             // contact pB
+                                     const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+                                     double distance,                  // contact distance
+                                     double eff_radius,                // effective radius of curvature at contact
+                                     const ChVector3d& react_forces,   // react. forces (if already computed), expressed in 'plane_coord'
+                                     const ChVector3d& react_torques,  // react.torques, if rolling friction (if already computed)
+                                     ChContactable* contactobjA,       // first contactable object (may be nullptr)
+                                     ChContactable* contactobjB,       // second contactable object (may be nullptr)
+                                     int constraint_offset             // NSC only; ignored here
+                                     ) override {
             if (!(contactobjA && contactobjB))
                 return true;
             ChBody* b1 = dynamic_cast<ChBody*>(contactobjA);
@@ -740,7 +749,7 @@ void ChSystem::Update(UpdateFlags update_flags) {
     contact_container->Update(ch_time, update_flags);
 
     // Update any attached visualization system only when also updating assets
-    if (visual_system && has_flag(update_flags,UpdateFlags::VISUAL_ASSETS))
+    if (visual_system && has_flag(update_flags, UpdateFlags::VISUAL_ASSETS))
         visual_system->OnUpdate(this);
 
     timer_update.stop();
@@ -762,22 +771,17 @@ void ChSystem::IntToDescriptor(const unsigned int off_v,
     // Use also on contact container:
     int displ_L = off_L - assembly.offset_L;
     int displ_v = off_v - assembly.offset_w;
-    contact_container->IntToDescriptor(displ_v + contact_container->GetOffset_w(), v, R,
-                                       displ_L + contact_container->GetOffset_L(), L, Qc);
+    contact_container->IntToDescriptor(displ_v + contact_container->GetOffset_w(), v, R, displ_L + contact_container->GetOffset_L(), L, Qc);
 }
 
-void ChSystem::IntFromDescriptor(const unsigned int off_v,
-                                 ChStateDelta& v,
-                                 const unsigned int off_L,
-                                 ChVectorDynamic<>& L) {
+void ChSystem::IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) {
     // Operate on assembly sub-objects (bodies, links, etc.)
     assembly.IntFromDescriptor(off_v, v, off_L, L);
 
     // Use also on contact container:
     int displ_L = off_L - assembly.offset_L;
     int displ_v = off_v - assembly.offset_w;
-    contact_container->IntFromDescriptor(displ_v + contact_container->GetOffset_w(), v,
-                                         displ_L + contact_container->GetOffset_L(), L);
+    contact_container->IntFromDescriptor(displ_v + contact_container->GetOffset_w(), v, displ_L + contact_container->GetOffset_L(), L);
 }
 
 // -----------------------------------------------------------------------------
@@ -933,8 +937,7 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
     // Use also on contact container:
     unsigned int displ_x = off_x - assembly.offset_x;
     unsigned int displ_v = off_v - assembly.offset_w;
-    contact_container->IntStateGather(displ_x + contact_container->GetOffset_x(), x,
-                                      displ_v + contact_container->GetOffset_w(), v, T);
+    contact_container->IntStateGather(displ_x + contact_container->GetOffset_x(), x, displ_v + contact_container->GetOffset_w(), v, T);
 
     T = ch_time;
 }
@@ -1006,6 +1009,14 @@ void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L) {
     contact_container->IntStateScatterReactions(displ_L + contact_container->GetOffset_L(), L);
 }
 
+void ChSystem::StateOnEndStep(double T) {
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateOnEndStep(T);
+
+    // Use also on contact container:
+    contact_container->IntStateOnEndStep(T);
+}
+
 // Perform x_new = x + dx    for x in    Y = {x, dx/dt}
 // It takes care of the fact that x has quaternions, dx has angular vel etc.
 // NOTE: the system is not updated automatically after the state increment, so one might
@@ -1020,8 +1031,7 @@ void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDe
     // Use also on contact container:
     unsigned int displ_x = off_x - assembly.offset_x;
     unsigned int displ_v = off_v - assembly.offset_w;
-    contact_container->IntStateIncrement(displ_x + contact_container->GetOffset_x(), x_new, x,
-                                         displ_v + contact_container->GetOffset_w(), Dx);
+    contact_container->IntStateIncrement(displ_x + contact_container->GetOffset_x(), x_new, x, displ_v + contact_container->GetOffset_w(), Dx);
 }
 
 // Assuming a DAE of the form
@@ -1033,21 +1043,20 @@ void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDe
 //  |-Dl|   [ Cq  0   ]      |-Qc|
 // for given residuals R and -Qc, and  H = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
 // This function returns true if successful and false otherwise.
-bool ChSystem::StateSolveCorrection(
-    ChStateDelta& Dv,             // result: computed Dv
-    ChVectorDynamic<>& Dl,        // result: computed Dl Lagrange multipliers
-    const ChVectorDynamic<>& R,   // the R residual
-    const ChVectorDynamic<>& Qc,  // the Qc residual
-    const double c_a,             // the factor in c_a*M
-    const double c_v,             // the factor in c_v*dF/dv
-    const double c_x,             // the factor in c_x*dF/dx
-    const ChState& x,             // current state, x part
-    const ChStateDelta& v,        // current state, v part
-    const double T,               // current time T
-    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-    UpdateFlags update_flags,      // if true, perform a full update during scatter
-    bool call_setup,              // if true, call the solver's Setup() function
-    bool call_analyze             // if true, call the solver's Setup analyze phase
+bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
+                                    ChVectorDynamic<>& Dl,        // result: computed Dl Lagrange multipliers
+                                    const ChVectorDynamic<>& R,   // the R residual
+                                    const ChVectorDynamic<>& Qc,  // the Qc residual
+                                    const double c_a,             // the factor in c_a*M
+                                    const double c_v,             // the factor in c_v*dF/dv
+                                    const double c_x,             // the factor in c_x*dF/dx
+                                    const ChState& x,             // current state, x part
+                                    const ChStateDelta& v,        // current state, v part
+                                    const double T,               // current time T
+                                    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
+                                    UpdateFlags update_flags,     // if true, perform a full update during scatter
+                                    bool call_setup,              // if true, call the solver's Setup() function
+                                    bool call_analyze             // if true, call the solver's Setup analyze phase
 ) {
     CH_PROFILE("StateSolveCorrection");
 
@@ -1225,37 +1234,38 @@ void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R, const ChVectorDynamic<>& L
 //    Qc += c*C
 void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  // result: the Qc residual, Qc += c*C
                                 const double c,         // a scaling factor
+                                const double c_vel,     // scaling factor for constraints at speed level
                                 const bool do_clamp,    // enable optional clamping of Qc
                                 const double clamp      // clamping value
 ) {
     unsigned int off_L = 0;
 
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadConstraint_C(off_L, Qc, c, do_clamp, clamp);
+    assembly.IntLoadConstraint_C(off_L, Qc, c, c_vel, do_clamp, clamp);
 
     // Use also on contact container:
     unsigned int displ_L = off_L - assembly.offset_L;
-    contact_container->IntLoadConstraint_C(displ_L + contact_container->GetOffset_L(), Qc, c, do_clamp, clamp);
+    contact_container->IntLoadConstraint_C(displ_L + contact_container->GetOffset_L(), Qc, c, c_vel, do_clamp, clamp);
 }
 
 // Increment a vector Qc with the term Ct = partial derivative dC/dt:
 //    Qc += c*Ct
-void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c) {
+void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     unsigned int off_L = 0;
 
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadConstraint_Ct(off_L, Qc, c);
+    assembly.IntLoadConstraint_Ct(off_L, Qc, c, c_vel);
 
     // Use also on contact container:
     unsigned int displ_L = off_L - assembly.offset_L;
-    contact_container->IntLoadConstraint_Ct(displ_L + contact_container->GetOffset_L(), Qc, c);
+    contact_container->IntLoadConstraint_Ct(displ_L + contact_container->GetOffset_L(), Qc, c, c_vel);
 }
 
 // -----------------------------------------------------------------------------
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
-unsigned int ChSystem::GetNumContacts() {
+unsigned int ChSystem::GetNumContacts() const {
     return contact_container->GetNumContacts();
 }
 
@@ -1397,12 +1407,7 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix& Cq) {
     descriptor->PasteConstraintsJacobianMatrixInto(Cq);
 }
 
-void ChSystem::WriteSystemMatrices(bool save_M,
-                                   bool save_K,
-                                   bool save_R,
-                                   bool save_Cq,
-                                   const std::string& path,
-                                   bool one_indexed) {
+void ChSystem::WriteSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path, bool one_indexed) {
     // Prepare lists of variables and constraints, if not already prepared.
     DescriptorPrepareInject();
 
@@ -1452,7 +1457,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     ChSparseMatrix CqT = Cq.transpose();
     CqT.makeCompressed();
 
-    // Perform QR decomposition on Cq to identify linearly-dependant rows (ie. redundant scalar constraint equations)
+    // Perform QR decomposition on Cq to identify linearly-dependent rows (ie. redundant scalar constraint equations)
     Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> QR_dec;
     QR_dec.compute(CqT);
 
@@ -1486,9 +1491,8 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
                 }
             }
 
-            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName() << "["
-                      << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/"
-                      << corr_link->GetNumConstraints() << "]" << std::endl;
+            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName() << "[" << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L())
+                      << "/" << corr_link->GetNumConstraints() << "]" << std::endl;
         }
     }
 
@@ -1506,9 +1510,8 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
         constr_map[link->GetOffset_L()] = link;
     }
 
-    std::map<unsigned int, std::array<bool, 6>>
-        constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
-                            // ChLinkMate!) that have redundant equations
+    std::map<unsigned int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
+                                                                    // ChLinkMate!) that have redundant equations
     for (auto r_sel = 0; r_sel < redundant_constraints_idx.size(); ++r_sel) {
         // pick the constraint with redundant degrees of constraints
         auto constr_pair_mod = constr_map.upper_bound(redundant_constraints_idx[r_sel]);
@@ -1518,9 +1521,8 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
         if (auto constr_mod = std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_pair_mod->second)) {
             auto sel_constr_offset = constr_mod->GetOffset_L();
 
-            std::array<bool, 6> original_mask = {constr_mod->IsConstrainedX(),  constr_mod->IsConstrainedY(),
-                                                 constr_mod->IsConstrainedZ(),  constr_mod->IsConstrainedRx(),
-                                                 constr_mod->IsConstrainedRy(), constr_mod->IsConstrainedRz()};
+            std::array<bool, 6> original_mask = {constr_mod->IsConstrainedX(),  constr_mod->IsConstrainedY(),  constr_mod->IsConstrainedZ(),
+                                                 constr_mod->IsConstrainedRx(), constr_mod->IsConstrainedRy(), constr_mod->IsConstrainedRz()};
 
             if (constrnewmask_map.find(sel_constr_offset) == constrnewmask_map.end())
                 constrnewmask_map[sel_constr_offset] = original_mask;
@@ -1540,19 +1542,17 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
         }
     }
 
-    // Modify ChLinkMate constaints based on new mask
-    for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end();
-         ++constrnewmask_it) {
+    // Modify ChLinkMate constraints based on new mask
+    for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end(); ++constrnewmask_it) {
         std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_map[constrnewmask_it->first])
-            ->SetConstrainedCoords(constrnewmask_it->second[0], constrnewmask_it->second[1],
-                                   constrnewmask_it->second[2], constrnewmask_it->second[3],
-                                   constrnewmask_it->second[4], constrnewmask_it->second[5]);
+            ->SetConstrainedCoords(constrnewmask_it->second[0], constrnewmask_it->second[1], constrnewmask_it->second[2], constrnewmask_it->second[3], constrnewmask_it->second[4],
+                                   constrnewmask_it->second[5]);
     }
 
     // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
-    Update(UpdateFlags::UPDATE_ALL &~UpdateFlags::VISUAL_ASSETS);
+    Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
     DescriptorPrepareInject();
 
     if (verbose) {
@@ -1699,11 +1699,7 @@ bool ChSystem::DoFrameDynamics(double frame_time, double step_size) {
 // System assembly
 // -----------------------------------------------------------------------------
 
-AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
-                                                int max_num_iterationsNR,
-                                                double abstol_residualNR,
-                                                double reltol_updateNR,
-                                                double abstol_updateNR) {
+AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action, int max_num_iterationsNR, double abstol_residualNR, double reltol_updateNR, double abstol_updateNR) {
     Initialize();
 
     applied_forces_current = false;
@@ -1907,10 +1903,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     return true;
 }
 
-bool ChSystem::DoStaticNonlinearRheonomic(
-    int max_num_iterations,
-    bool verbose,
-    std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
+bool ChSystem::DoStaticNonlinearRheonomic(int max_num_iterations, bool verbose, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
     Initialize();
 
     applied_forces_current = false;
@@ -2076,7 +2069,7 @@ void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
     /*int version =*/archive_in.VersionRead<ChSystem>();
 
-    // deserialize unerlying assembly
+    // deserialize underlying assembly
     archive_in >> CHNVP(assembly);
 
     // stream in all member data:

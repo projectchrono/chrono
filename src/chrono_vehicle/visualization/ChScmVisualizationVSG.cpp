@@ -96,10 +96,12 @@ ChScmVisualizationVSG::ChScmVisualizationVSG(SCMTerrain* scm)
 }
 
 ChScmVisualizationVSG::~ChScmVisualizationVSG() {
-    auto& systems = m_vsys->GetSystems();
-    auto index = std::find(systems.begin(), systems.end(), m_sys);
-    if (index != systems.end())
-        systems.erase(index);
+    if (m_vsys && m_sys->GetVisualSystem()) {
+        auto& systems = m_vsys->GetSystems();
+        auto index = std::find(systems.begin(), systems.end(), m_sys);
+        if (index != systems.end())
+            systems.erase(index);
+    }
 
     delete m_sys;
 }
@@ -144,7 +146,7 @@ void ChScmVisualizationVSG::OnInitialize() {
     m_vsys->SetImageOutputDirectory(m_image_dir);
 
     // Issue performance warning if shadows are enabled for the containing visualization system
-    if (m_vsys->AreShadowsEnabled()) {
+    if (m_vsys->ShadowsEnabled()) {
         std::cerr << "WARNING:  Shadow rendering is enabled for the associated VSG visualization system.\n";
         std::cerr << "          This negatively affects rendering performance, especially for large particle systems."
                   << std::endl;
@@ -186,7 +188,7 @@ void ChScmVisualizationVSG::BindActiveBox(SCMLoader::ActiveDomainInfo& domain) {
     auto dframe = bframe.TransformLocalToParent(ChFramed(domain.m_center));
     transform->matrix = vsg::dmat4CH(dframe, domain.m_hdims);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
 
     // Set group properties
     group->setValue("Object", &domain);
@@ -205,7 +207,7 @@ void ChScmVisualizationVSG::BindDefaultActiveBox() {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(m_default_domain.m_center, QUNIT), m_default_domain.m_hdims);
     auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
 
     // Set group properties
     group->setValue("Object", &m_default_domain);

@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Test for bilateral joint constraints in a NSC sys.
+// Test for bilateral joint constraints in a NSC system.
 //
 // The mechanism consists of three bodies (ground, sled, and pendulum) with a
 // prismatic joint between ground and sled and a revolute joint between sled and
 // pendulum.
-// The sys is simulated with different combinations of solver settings
+// The system is simulated with different combinations of solver settings
 // (type of solver, solver mode, maximum number of iterations).  Constraint
 // violations are monitored and verified.
 //
@@ -61,14 +61,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         // Problem parameters
         double init_vel = 2;
 
-        // Create the mechanical sys
+        // Create the mechanical system
         sys = new ChSystemMulticoreNSC();
         sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
         // Set number of threads
         sys->SetNumThreads(1);
 
-        // Edit sys settings
+        // Edit system settings
         sys->GetSettings()->solver.tolerance = tolerance;
         sys->GetSettings()->solver.max_iteration_bilateral = opts.max_iter_bilateral;
         sys->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
@@ -156,7 +156,7 @@ TEST_P(JointsDVI, simulate) {
         vis->AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
         vis->SetWindowSize(1280, 720);
         vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-        vis->EnableSkyBox();
+        vis->EnableSkyTexture(SkyMode::BOX);
         vis->SetCameraAngleDeg(40.0);
         vis->SetLightIntensity(1.0f);
         vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

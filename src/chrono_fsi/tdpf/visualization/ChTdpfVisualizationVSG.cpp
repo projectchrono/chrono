@@ -142,10 +142,12 @@ ChTdpfVisualizationVSG::ChTdpfVisualizationVSG(ChFsiFluidSystemTDPF* sysTDPF)
 }
 
 ChTdpfVisualizationVSG::~ChTdpfVisualizationVSG() {
-    auto& systems = m_vsys->GetSystems();
-    auto index = std::find(systems.begin(), systems.end(), m_sysMBS);
-    if (index != systems.end())
-        systems.erase(index);
+    if (m_vsys && m_sysMBS->GetVisualSystem()) {
+        auto& systems = m_vsys->GetSystems();
+        auto index = std::find(systems.begin(), systems.end(), m_sysMBS);
+        if (index != systems.end())
+            systems.erase(index);
+    }
 
     delete m_sysMBS;
 }
@@ -172,11 +174,11 @@ std::string ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(ColorMode mode)
         case ColorMode::VELOCITY_MAG:
             return "Velocity magnitude";
         case ColorMode::VELOCITY_X:
-            return "Velocityy component X";
+            return "Velocity component X";
         case ColorMode::VELOCITY_Y:
-            return "Velocityy component Y";
+            return "Velocity component Y";
         case ColorMode::VELOCITY_Z:
-            return "Velocityy component Z";
+            return "Velocity component Z";
     }
     return "None";
 }
@@ -229,7 +231,7 @@ void ChTdpfVisualizationVSG::CreateWaveMesh() {
     m_wave_mesh.trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     std::vector<ChVector3d>& vertices = m_wave_mesh.trimesh->GetCoordsVertices();
     std::vector<ChVector3d>& normals = m_wave_mesh.trimesh->GetCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = m_wave_mesh.trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = m_wave_mesh.trimesh->GetIndicesVertices();
     std::vector<ChVector3i>& idx_normals = m_wave_mesh.trimesh->GetIndicesNormals();
     std::vector<ChVector2d>& uv_coords = m_wave_mesh.trimesh->GetCoordsUV();
     std::vector<ChColor>& colors = m_wave_mesh.trimesh->GetCoordsColors();
@@ -288,7 +290,7 @@ void ChTdpfVisualizationVSG::OnBindAssets() {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(), 1);
     auto child = m_vsys->GetVSGShapeBuilder()->CreateTrimeshColShape(m_wave_mesh.trimesh, transform, ChColor(1, 1, 1),
-                                                                     m_wave_mesh.opacity, m_wave_mesh.wireframe);
+                                                                     m_wave_mesh.opacity, false, m_wave_mesh.wireframe);
     vsg::Mask mask = m_waves_visible;
     m_wave_scene->addChild(mask, child);
 
@@ -384,7 +386,7 @@ void ChTdpfVisualizationVSG::OnRender() {
     // Dynamic data transfer CPU->GPU for wave mesh
     if (m_wave_mesh.dynamic_vertices) {
         const auto& new_vertices =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceVertices() : m_wave_mesh.trimesh->GetCoordsVertices();
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceVertices() : m_wave_mesh.trimesh->GetCoordsVertices();
         assert(m_wave_mesh.vertices->size() == new_vertices.size());
 
         const size_t count = new_vertices.size();
@@ -405,7 +407,7 @@ void ChTdpfVisualizationVSG::OnRender() {
 
     if (m_wave_mesh.dynamic_normals) {
         const auto& new_normals =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceNormals() : m_wave_mesh.trimesh->getAverageNormals();
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceNormals() : m_wave_mesh.trimesh->GetAverageNormals();
         assert(m_wave_mesh.normals->size() == new_normals.size());
 
         const size_t count = new_normals.size();
@@ -424,7 +426,7 @@ void ChTdpfVisualizationVSG::OnRender() {
 
     if (m_wave_mesh.dynamic_colors) {
         const auto& new_colors =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->getFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
+            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
         assert(m_wave_mesh.colors->size() == new_colors.size());
 
         const size_t count = new_colors.size();

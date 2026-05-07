@@ -101,8 +101,7 @@ class MarkerPositionVisibilityCallback : public ChSphVisualizationVSG::MarkerVis
 class WaveFunction : public ChFunction {
   public:
     WaveFunction() : delay(0), a2(0), omega(0) {}
-    WaveFunction(double delay, double amplitude, double frequency)
-        : delay(delay), a2(amplitude / 2), omega(CH_2PI * frequency) {}
+    WaveFunction(double delay, double amplitude, double frequency) : delay(delay), a2(amplitude / 2), omega(CH_2PI * frequency) {}
 
     virtual WaveFunction* Clone() const override { return new WaveFunction(); }
 
@@ -127,9 +126,7 @@ class WaveFunctionDecay : public ChFunction {
 
     virtual WaveFunction* Clone() const override { return new WaveFunction(); }
 
-    virtual double GetVal(double t) const override {
-        return 0.5 * s0 * (1 - std::exp(-t / T)) * std::sin(2. * CH_PI / T * t);
-    }
+    virtual double GetVal(double t) const override { return 0.5 * s0 * (1 - std::exp(-t / T)) * std::sin(2. * CH_PI / T * t); }
 
   private:
     double s0;  // stroke
@@ -168,14 +165,11 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
     cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", "adami");
-    cli.AddOption<std::string>("Physics", "viscosity_method",
-                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)",
-                               "artificial_unilateral");
+    cli.AddOption<std::string>("Physics", "viscosity_method", "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
 
     // Set the default
     std::string use_variable_time_step_str = use_variable_time_step ? "true" : "false";
-    cli.AddOption<std::string>("Physics", "use_variable_time_step", "true/false to use variable time step",
-                               use_variable_time_step_str);
+    cli.AddOption<std::string>("Physics", "use_variable_time_step", "true/false to use variable time step", use_variable_time_step_str);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -215,6 +209,7 @@ std::shared_ptr<ChBody> CreateRigidPost(ChSystem& sysMBS, const ChVector3d& loc,
     return body;
 }
 
+#ifdef CHRONO_FEA
 std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, const ChVector3d& loc, double length, double radius) {
     // Cable properties
     double element_length = 0.05;
@@ -338,10 +333,8 @@ std::shared_ptr<ChMesh> CreateFlexiblePlate(ChSystem& sysMBS, const ChVector3d& 
 
             // Create the element and set its nodes.
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
-            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)), std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)), std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
 
             // Set element dimensions
             element->SetDimensions(dy, dz);
@@ -354,8 +347,7 @@ std::shared_ptr<ChMesh> CreateFlexiblePlate(ChSystem& sysMBS, const ChVector3d& 
 
             // Add element to mesh
             mesh->AddElement(element);
-            ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
-                                        element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
+            ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() + element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
             ////cout << "Add element " << num_elem << " with center:  " << center << endl;
             num_elem++;
         }
@@ -383,6 +375,7 @@ std::shared_ptr<ChMesh> CreateFlexiblePlate(ChSystem& sysMBS, const ChVector3d& 
 
     return mesh;
 }
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -392,7 +385,7 @@ int main(int argc, char* argv[]) {
     double step_size_CFD = 1e-4;
     double step_size_MBD = (create_flex_cable || create_flex_plate) ? 1e-5 : 1e-4;
 
-     // Meta-step (communication interval)
+    // Meta-step (communication interval)
     double meta_time_step = 5 * std::max(step_size_CFD, step_size_MBD);
 
     // Parse command line arguments
@@ -407,8 +400,7 @@ int main(int argc, char* argv[]) {
     std::string boundary_method = "adami";
     bool use_variable_time_step = true;
     std::string viscosity_method = "artificial_unilateral";
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         use_variable_time_step, boundary_method, viscosity_method)) {
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq, use_variable_time_step, boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -503,7 +495,10 @@ int main(int argc, char* argv[]) {
         geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
         geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
         fsi.AddRigidBody(body, geometry, true);
-    } else if (create_flex_cable) {
+    }
+
+#ifdef CHRONO_FEA
+    if (create_flex_cable) {
         double length = 0.8;
         double radius = 0.01;
         auto mesh = CreateFlexibleCable(fsi.GetMultibodySystem(), ChVector3d(-csize.x() / 4, 0, 0), length, radius);
@@ -516,6 +511,7 @@ int main(int argc, char* argv[]) {
         fsi.SetBcePattern2D(BcePatternMesh2D::CENTERED, false);
         fsi.AddFeaMesh(mesh, true);
     }
+#endif
 
     // Complete construction of the FSI problem
     fsi.Initialize();
@@ -527,8 +523,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + fsi.GetSphIntegrationSchemeString() + "_" + viscosity_method + "_" + boundary_method + "_ps" +
-              std::to_string(ps_freq);
+    out_dir = out_dir + fsi.GetSphIntegrationSchemeString() + "_" + viscosity_method + "_" + boundary_method + "_ps" + std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -672,8 +667,7 @@ int main(int argc, char* argv[]) {
                 if (verbose)
                     cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
 

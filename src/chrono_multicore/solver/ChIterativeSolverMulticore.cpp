@@ -217,13 +217,12 @@ void ChIterativeSolverMulticore::PerformStabilization() {
         const DynamicVector<real> R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
         DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
-        data_manager->measures.solver.total_iteration +=
-            bilateral_solver->Solve(SchurProductBilateral,                                  //
-                                    ProjectNone,                                            //
-                                    data_manager->settings.solver.max_iteration_bilateral,  //
-                                    num_bilaterals,                                         //
-                                    R_b,                                                    //
-                                    gamma_b);                                               //
+        data_manager->measures.solver.total_iteration += bilateral_solver->Solve(SchurProductBilateral,                                  //
+                                                                                 ProjectNone,                                            //
+                                                                                 data_manager->settings.solver.max_iteration_bilateral,  //
+                                                                                 num_bilaterals,                                         //
+                                                                                 R_b,                                                    //
+                                                                                 gamma_b);                                               //
         blaze::subvector(gamma, num_unilaterals, num_bilaterals) = gamma_b;
     }
 

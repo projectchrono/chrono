@@ -119,11 +119,11 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 // D Rigid Particle
 #define _DRFN_ submatrix(_D_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
 #define _DRFT_ submatrix(_D_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
-// D fluid fluid density
+// D fluid density
 #define _DFFD_                                                                                                  \
     submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
               _num_particle_dof_, _num_particles_)
-// D fluid fluid viscosity
+// D fluid viscosity
 #define _DFFV_                                                          \
     submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
               _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, _num_particle_dof_, 3 * _num_particles_)
@@ -204,7 +204,7 @@ struct host_container {
     custom_vector<real3> ct_force;   ///< Contact forces per contact
     custom_vector<real3> ct_torque;  ///< Contact torques per contact
     // These vectors hold the resultant contact force and torque for each body in contact, accumulating over all
-    // contacts that the body is involved in. The force and torque are given at the body origin, expresed in the
+    // contacts that the body is involved in. The force and torque are given at the body origin, expressed in the
     // absolute frame. for bodies that are involved in at least one contact.
     custom_vector<real3> ct_body_force;   ///< Total contact force on bodies
     custom_vector<real3> ct_body_torque;  ///< Total contact torque on these bodies
@@ -212,7 +212,7 @@ struct host_container {
     // Contact shear history (SMC)
     custom_vector<vec3> shear_neigh;          ///< Neighbor list of contacting bodies and shapes
     custom_vector<real3> shear_disp;          ///< Accumulated shear displacement for each neighbor
-    custom_vector<real> contact_relvel_init;  ///< Initial relative normal velocity manitude per contact pair
+    custom_vector<real> contact_relvel_init;  ///< Initial relative normal velocity magnitude per contact pair
     custom_vector<real> contact_duration;     ///< Accumulated contact duration, per contact pair
 
     /// Mapping from all bodies in the system to bodies involved in a contact.
@@ -326,7 +326,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
 
     host_container host_data;  ///< Structure of data arrays (state, contact, etc)
 
-    /// Used by the bilarerals for computing the Jacobian and other terms.
+    /// Used by the bilaterals for computing the Jacobian and other terms.
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
 
     std::shared_ptr<Ch3DOFContainer> node_container;  ///< container of 3-DOF particles

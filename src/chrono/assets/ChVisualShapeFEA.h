@@ -150,10 +150,10 @@ class ChApi ChVisualShapeFEA {
     void SetWireframe(bool use_wireframe) { wireframe = use_wireframe; }
 
     /// Return the current data type to be plotted (speeds, forces, etc.).
-    DataType GetFEMdataType() { return fem_data_type; }
+    DataType GetFEMdataType() const { return fem_data_type; }
 
     /// Returns the current data type to be drawn with glyphs.
-    GlyphType GetFEMglyphType() { return fem_glyph; }
+    GlyphType GetFEMglyphType() const { return fem_glyph; }
 
     /// Get the type of the colormap currently in use.
     ChColormap::Type GetColormapType() const;

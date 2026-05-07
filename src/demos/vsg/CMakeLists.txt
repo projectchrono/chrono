@@ -5,11 +5,17 @@ set(DEMOS
     demo_VSG_assets
     demo_VSG_paths
     demo_VSG_shapes
+    demo_VSG_transparency
     demo_VSG_wave
     demo_VSG_helmet
     demo_VSG_vehicles
-    demo_VSG_visualize_FEA
 )
+
+if(CH_ENABLE_MODULE_FEA)
+  set(DEMOS ${DEMOS}
+    demo_VSG_visualize_FEA
+  )
+endif()
 
 #--- maybe it is not necessary to build app bundles with vsg
 if(APPLE)
@@ -21,7 +27,6 @@ endif()
 
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS "Chrono_vsg")
-
 
 #--------------------------------------------------------------
 

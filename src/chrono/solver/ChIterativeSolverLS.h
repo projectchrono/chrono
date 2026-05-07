@@ -93,7 +93,7 @@ class ChApi ChIterativeSolverLS : public ChIterativeSolver, public ChSolverLS {
     virtual bool SetupProblem() = 0;
 
     /// Solve the linear system using the current factorization and right-hand side vector.
-    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    /// Load the solution vector (already of appropriate size) and return true if successful.
     virtual bool SolveProblem() = 0;
 
     ChMatrixSPMV* m_spmv;                 ///< matrix-like wrapper for SPMV operations
@@ -108,7 +108,7 @@ class ChApi ChIterativeSolverLS : public ChIterativeSolver, public ChSolverLS {
 /// GMRES iterative solver.\n
 /// Solves Ax=b for general sparse matrix a, using the Generalized Minimal Residual Algorithm based on the Arnoldi
 /// algorithm implemented with Householder reflections.\n
-/// See ChIterativeSolverLS for supported solver settings and paramters.
+/// See ChIterativeSolverLS for supported solver settings and parameters.
 class ChApi ChSolverGMRES : public ChIterativeSolverLS {
   public:
     ChSolverGMRES();
@@ -128,7 +128,7 @@ class ChApi ChSolverGMRES : public ChIterativeSolverLS {
 
 /// BiCGSTAB iterative solver.\n
 /// Solves for Ax = b sparse linear problems using a bi-conjugate gradient stabilized algorithm.\n
-/// See ChIterativeSolverLS for supported solver settings and paramters.
+/// See ChIterativeSolverLS for supported solver settings and parameters.
 class ChApi ChSolverBiCGSTAB : public ChIterativeSolverLS {
   public:
     ChSolverBiCGSTAB();
@@ -149,7 +149,7 @@ class ChApi ChSolverBiCGSTAB : public ChIterativeSolverLS {
 /// MINRES iterative solver.
 /// Solves Ax=b for symmetric sparse matrix A, using a conjugate-gradient type method based on Lanczos
 /// tridiagonalization.\n
-/// See ChIterativeSolverLS for supported solver settings and paramters.
+/// See ChIterativeSolverLS for supported solver settings and parameters.
 class ChApi ChSolverMINRES : public ChIterativeSolverLS {
   public:
     ChSolverMINRES();

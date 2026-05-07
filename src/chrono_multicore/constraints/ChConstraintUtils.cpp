@@ -260,18 +260,18 @@ void CorrectionRigidParticleBoundary(const real contact_mu,
         if (contact_mu == 0) {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
-                                      real bi = 0;                                                                //
-                                      if (contact_cohesion != 0) { depth = Min(depth, 0); }                       //
-                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);                    //
-                                      b[start_boundary + index + 0] = bi;                                         //
+                                      real bi = 0;                                                                   //
+                                      if (contact_cohesion != 0) { depth = std::min(depth, real(0)); }               //
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);                       //
+                                      b[start_boundary + index + 0] = bi;                                            //
             );
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
-                                      real bi = 0;                                                                //
-                                      if (contact_cohesion != 0) { depth = Min(depth, 0); }                       //
-                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);                    //
-                                      b[start_boundary + index + 0] = bi;                                         //
+                                      real bi = 0;                                                                   //
+                                      if (contact_cohesion != 0) { depth = std::min(depth, real(0)); }               //
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);                       //
+                                      b[start_boundary + index + 0] = bi;                                            //
                                       b[start_boundary + num_rigid_particle_contacts + index * 2 + 0] = 0;           //
                                       b[start_boundary + num_rigid_particle_contacts + index * 2 + 1] = 0;           //
             );

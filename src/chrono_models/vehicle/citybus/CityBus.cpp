@@ -40,6 +40,7 @@ CityBus::CityBus()
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
@@ -56,6 +57,7 @@ CityBus::CityBus(ChSystem* system)
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
@@ -176,6 +178,7 @@ void CityBus::Initialize() {
 
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetCollisionType(m_tire_collision_type);
             if (m_tire_step_size > 0)
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }

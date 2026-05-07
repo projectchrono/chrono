@@ -1,7 +1,7 @@
 # change the version number in case of a release build
 package:
   name: pychrono
-  version: 9.0.1
+  version: 10.0.0
 
 source:
   path: ../../..
@@ -18,6 +18,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }} # [not osx]
+    - {{ stdlib('c') }}
     - cmake >=4
     - ninja   # [linux or osx]
     - jinja2  # [linux]
@@ -30,9 +31,8 @@ requirements:
     - libglvnd-glx-cos7-x86_64 # [linux]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
-    - mkl-devel ==2025.2.0 # [not arm64]
+    - mkl-devel ==2025.2.0 # [linux64 or win64]
     - irrlicht
-    - occt ==7.9.2
     - numpy
     - glew
     - glfw
@@ -50,12 +50,13 @@ requirements:
     - libcurand-dev # [not osx]
     - libcublas-dev # [not osx]
     - libcusparse-dev # [not osx]
+    - vulkanscenegraph ==1.1.11
+    - vsgxchange
   run:
     - python
-    - mkl ==2025.2.0 # [not arm64]
+    - mkl ==2025.2.0 # [linux64 or win64]
     - numpy
     - irrlicht
-    - occt ==7.9.2
     - glew
     - glfw
     - eigen ==3.4.0
@@ -66,6 +67,8 @@ requirements:
     - openmpi
     - yaml
     - tinyxml2
+    - vulkanscenegraph ==1.1.11
+    - vsgxchange
 
 about:
   home: https://github.com/projectchrono/chrono

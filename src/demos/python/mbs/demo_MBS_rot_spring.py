@@ -125,8 +125,8 @@ frame = 0
 while vis.Run():
     vis.BeginScene() 
     vis.Render()
-    irr.drawAllCOGs(vis, 1.0)
-    irr.drawAllLinkframes(vis, 1.5)
+    irr.DrawAllCOMs(vis, 1.0)
+    irr.DrawAllLinkframes(vis, 1.5)
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
 

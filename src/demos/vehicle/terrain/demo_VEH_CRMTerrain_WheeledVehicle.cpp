@@ -31,7 +31,7 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->EnableSkyBox();
+        visVSG->EnableSkyTexture(SkyMode::DOME);
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         visVSG->SetCameraAngleDeg(40);
@@ -437,6 +437,7 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
 
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+#ifdef CHRONO_FEA
             auto tire_fea = std::dynamic_pointer_cast<ChDeformableTire>(wheel->GetTire());
             if (tire_fea) {
                 auto mesh = tire_fea->GetMesh();
@@ -454,6 +455,9 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
             } else {
                 terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
             }
+#else
+            terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
+#endif
         }
     }
 }

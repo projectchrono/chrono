@@ -65,7 +65,7 @@ class ChQuaternion {
     Real* data() { return m_data; }
     const Real* data() const { return m_data; }
 
-    // EIGEN INTER-OPERABILITY
+    // EIGEN INTEROPERABILITY
 
     /// Construct a quaternion from an Eigen vector expression.
     template <typename Derived>

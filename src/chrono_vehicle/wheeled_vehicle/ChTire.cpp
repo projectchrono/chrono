@@ -120,282 +120,347 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const st
 }
 
 // -----------------------------------------------------------------------------
-// Utility functions for characterizing the geometric contact between a disc with
-// specified center location, normal direction, and radius and the terrain,
-// assumed to be specified as a height field (over the x-y domain).
-// These functions return false if no contact occurs.
-// Otherwise, they set the contact points on the disc (ptD) and on the terrain (ptT),
-// the normal contact direction, and the resulting penetration depth (a positive value).
+// Utility functions for characterizing the geometric contact between a disc with specified center location, normal
+// direction, and radius and the terrain, assumed to be specified as a height field (over the x-y domain). These
+// functions return false if no contact occurs. Otherwise, they set the contact points on the disc (ptD) and on the
+// terrain (ptT), the normal contact direction, and the resulting penetration depth (a positive value).
 //
 // The first version uses a single point on the terrain.
 // The second version uses the average of four terrain heights.
 // The third version uses the collision algorithm of Sui and Hirshey.
 //
-// NOTE: uses terrain normal at disc center for approximate calculation.
-// Hence, only valid for terrains with constant slope. A completely accurate
-// solution would require an iterative calculation of the contact point.
+// NOTE: uses terrain normal at disc center for approximate calculation. Hence, only valid for terrains with constant
+// slope. A completely accurate solution would require an iterative calculation of the contact point.
 // -----------------------------------------------------------------------------
-bool ChTire::DiscTerrainCollision(
-    CollisionType method,             // [in] tire-terrain collision detection method
-    const ChTerrain& terrain,         // [in] reference to terrain system
-    const ChVector3d& disc_center,    // [in] global location of the disc center
-    const ChVector3d& disc_normal,    // [in] disc normal, expressed in the global frame
-    double disc_radius,               // [in] disc radius
-    double width,                     // [in] tire width
-    const ChFunctionInterp& areaDep,  // [in] lookup table to calculate depth from intersection area
-    ChCoordsys<>& contact,            // [out] contact coordinate system (relative to the global frame)
-    double& depth,                    // [out] penetration depth (positive if contact occurred)
-    float& mu                         // [out] coefficient of friction at contact
+
+bool ChTire::DiscTerrainCollision(CollisionType method,                // collision detection method
+                                  const ChTerrain& terrain,            // reference to terrain system
+                                  const ChVector3d& C,                 // disc center (in global frame)
+                                  const ChVector3d& dn,                // disc normal (in global frame)
+                                  double r,                            // disc radius
+                                  double w,                            // tire width
+                                  const ChFunctionInterp& area2depth,  // contact frame (in global frame)
+                                  ChCoordsys<>& contact,               // contact frame (in global frame)
+                                  double& depth,                       // penetration (positive if contact)
+                                  float& mu                            // coefficient of friction
 ) {
     switch (method) {
         default:
         case CollisionType::SINGLE_POINT:
-            return DiscTerrainCollision1pt(terrain, disc_center, disc_normal, disc_radius, contact, depth, mu);
+            return DiscTerrainCollision1pt(terrain, C, dn, r, contact, depth, mu);
         case CollisionType::FOUR_POINTS:
-            return DiscTerrainCollision4pt(terrain, disc_center, disc_normal, disc_radius, width, contact, depth, mu);
+            return DiscTerrainCollision4pt(terrain, C, dn, r, w, contact, depth, mu);
         case CollisionType::ENVELOPE:
-            return DiscTerrainCollisionEnvelope(terrain, disc_center, disc_normal, disc_radius, width, areaDep, contact,
-                                                depth, mu);
+            return DiscTerrainCollisionEnvelope(terrain, C, dn, r, w, area2depth, contact, depth, mu);
     }
 }
 
-bool ChTire::DiscTerrainCollision1pt(
-    const ChTerrain& terrain,       // [in] reference to terrain system
-    const ChVector3d& disc_center,  // [in] global location of the disc center
-    const ChVector3d& disc_normal,  // [in] disc normal, expressed in the global frame
-    double disc_radius,             // [in] disc radius
-    ChCoordsys<>& contact,          // [out] contact coordinate system (relative to the global frame)
-    double& depth,                  // [out] penetration depth (positive if contact occurred)
-    float& mu                       // [out] coefficient of friction at contact
+// Find intersection point B of line (A, v) with a circle (C, r) -> B
+// Line and circle are assumed co-planar (no check)
+bool LineCircleIntersection(const ChVector3d& C,  // circle center
+                            double r,             // circle radius
+                            const ChVector3d& A,  // point on line
+                            const ChVector3d& v,  // line versor
+                            int dir,              // find point in the direction sgn(dir) * v
+                            ChVector3d& B         // intersection point (if any)
 ) {
-    // Vertical offset for terrain queries (above terrain by a disc diameter)
-    auto voffset = 2.0 * disc_radius * ChWorldFrame::Vertical();
+    // Solve quadratic a*t^2 + 2*b*t + c = 0
+    // with a = Vdot(v,v) = 1
+    ChVector3d w = A - C;
+    double b = Vdot(v, w);
+    double c = Vdot(w, w) - r * r;
 
-    // Find the location of the lowest point on the wheel disc in the direction of the world vertical.
-    ChVector3d wheel_forward = Vcross(disc_normal, ChWorldFrame::Vertical());
-    wheel_forward.Normalize();
-    ChVector3d wheel_bottom_location = disc_center + disc_radius * Vcross(disc_normal, wheel_forward);
+    double delta = b * b - c;
+    if (delta < 0)
+        return false;
 
-    // Find terrain height, normal, and friction at this point on the wheel disc.
-    double hc;
-    ChVector3d normal;
-    terrain.GetProperties(wheel_bottom_location + voffset, hc, normal, mu);
+    double t = -b + std::sqrt(delta);
+    if (dir < 0)
+        t *= -1;
+
+    B = A + t * v;
+
+    return true;
+}
+
+// Project point A on plane (P,n) -> B
+void PointPlaneProjection(const ChVector3d& A,  // point to be projected
+                          const ChVector3d& P,  // point in plane
+                          const ChVector3d& n,  // plane normal
+                          ChVector3d& B         // projected point
+) {
+    double dist = Vdot((A - P), n);
+    B = A - dist * n;
+}
+
+bool ChTire::DiscTerrainCollision1pt(const ChTerrain& terrain,  // reference to terrain system
+                                     const ChVector3d& C,       // disc center (in global frame)
+                                     const ChVector3d& dn,      // disc normal (in global frame)
+                                     double r,                  // disc radius
+                                     ChCoordsys<>& contact,     // contact frame (in global frame)
+                                     double& depth,             // penetration (positive if contact)
+                                     float& mu                  // coefficient of friction
+) {
+    // Vertical offset for terrain queries (above terrain by disc diameter)
+    auto voffset = 2 * r * ChWorldFrame::Vertical();
+
+    // Calculate horizontal direction in disc plane
+    ChVector3d df = Vcross(dn, ChWorldFrame::Vertical());
+    df.Normalize();
+
+    // Find lowest point on disc in the direction of the world vertical
+    ChVector3d B = C + r * Vcross(dn, df);
+
+    // Query terrain at bottom point
+    double h;
+    ChVector3d P;
+    ChVector3d n;
+    terrain.GetProperties(B + voffset, P, h, n, mu);
 
     // No contact if the disc center is below the terrain.
-    double disc_height = ChWorldFrame::Height(disc_center);
-    if (disc_height <= hc)
+    double dh = ChWorldFrame::Height(C);
+    if (dh <= h)
         return false;
 
-    // Calculate the contact depth at this point.
-    double hc_height = ChWorldFrame::Height(wheel_bottom_location);
-    depth = (hc - hc_height) * Vdot(ChWorldFrame::Vertical(), normal);
+    // Project terrain normal onto disc plane
+    // n <- dn X ( n X dn ) = n - (n.dn)dn
+    n -= Vdot(n, dn) * dn;
 
-    // Based on the sampled normal we now do a first order approximation of where the contact point would be. We also
-    // will estimate the contact depth at that point.
-    ChVector3d wheel_forward_normal = Vcross(disc_normal, normal);
+    // -------
+    // Approximate terrain with a plane (P, n)
+    // Use disc center as reference point A
+    // -------
 
-    // There is no contact if the disc is (almost) horizontal, so bail out in that case.
-    double sinTilt2 = wheel_forward_normal.Length2();
-    if (sinTilt2 < 1e-3)
+    ChVector3d A = C;
+
+    // Intersect line (A, -n) with the circle (C, r)
+    // (no need to use LineCircleIntersection here)
+    // (B not really needed here, since AB=r)
+    B = A - r * n;
+
+    // Project reference point onto terrain plane
+    ChVector3d Pp;
+    n.Normalize();
+    PointPlaneProjection(A, P, n, Pp);
+
+    // Calculate depth (along n)
+    double AB = (B - A).Length();
+    double AP = (Pp - A).Length();
+    depth = AB - AP;
+    if (depth <= 0)
         return false;
 
-    wheel_forward_normal.Normalize();
+    // Query terrain at projection point
+    terrain.GetProperties(Pp + voffset, Pp, h, n, mu);
 
-    // Now re-calculate the depth. Return now if the wheel does not touch ground.
-    depth = disc_radius - ((disc_radius - depth) * Vdot(wheel_forward, wheel_forward_normal));
-    if (depth <= 0.0)
-        return false;
-
-    // And we re-calculate the contact point.
-    wheel_bottom_location = disc_center + (disc_radius - depth) * Vcross(disc_normal, wheel_forward_normal);
-
-    // Approximate the terrain with a plane. Define the projection of the lowest point onto this plane as the contact
-    // point on the terrain.
-    ChVector3d longitudinal = Vcross(disc_normal, normal);
-    longitudinal.Normalize();
-    ChVector3d lateral = Vcross(normal, longitudinal);
-    ChMatrix33<> rot;
-    rot.SetFromDirectionAxes(longitudinal, lateral, normal);
-
-    contact.pos = wheel_bottom_location;
+    // Construct contact patch frame from P and n
+    ChVector3d fwd = Vcross(dn, n);
+    // Note that both dn and n are normalized; therefore, fwd will be too
+    ChVector3d lat = Vcross(n, fwd);
+    ChMatrix33<> rot(fwd, lat, n);
+    contact.pos = Pp;
     contact.rot = rot.GetQuaternion();
 
     return true;
 }
 
-bool ChTire::DiscTerrainCollision4pt(
-    const ChTerrain& terrain,       // [in] reference to terrain system
-    const ChVector3d& disc_center,  // [in] global location of the disc center
-    const ChVector3d& disc_normal,  // [in] disc normal, expressed in the global frame
-    double disc_radius,             // [in] disc radius
-    double width,                   // [in] tire width
-    ChCoordsys<>& contact,          // [out] contact coordinate system (relative to the global frame)
-    double& depth,                  // [out] penetration depth (positive if contact occurred),
-    float& mu                       // [out] coefficient of friction at contact
+bool ChTire::DiscTerrainCollision4pt(const ChTerrain& terrain,  // reference to terrain system
+                                     const ChVector3d& C,       // disc center (in global frame)
+                                     const ChVector3d& dn,      // disc normal (in global frame)
+                                     double r,                  // disc radius
+                                     double w,                  // tire width
+                                     ChCoordsys<>& contact,     // contact frame (in global frame)
+                                     double& depth,             // penetration (positive if contact)
+                                     float& mu                  // coefficient of friction
 ) {
-    double dx = 0.1 * disc_radius;
-    double dy = 0.3 * width;
+    // Vertical offset for terrain queries (above terrain by disc diameter)
+    auto voffset = 2 * r * ChWorldFrame::Vertical();
 
-    // Vertical offset for terrain queries (above terrain by a disc diameter)
-    auto voffset = 2.0 * disc_radius * ChWorldFrame::Vertical();
+    // Calculate horizontal direction in disc plane
+    ChVector3d df = Vcross(dn, ChWorldFrame::Vertical());
+    df.Normalize();
 
-    // Find the location of the lowest point on the wheel disc in the direction of the world vertical.
-    ChVector3d wheel_forward = Vcross(disc_normal, ChWorldFrame::Vertical());
-    wheel_forward.Normalize();
-    ChVector3d wheel_bottom_location = disc_center + disc_radius * Vcross(disc_normal, wheel_forward);
+    // Find lowest point on disc in the direction of the world vertical
+    ChVector3d B = C + r * Vcross(dn, df);
 
-    // Find terrain height, normal, and friction at the this point on the wheel disc.
-    double hc;
-    ChVector3d normal;
-    terrain.GetProperties(wheel_bottom_location + voffset, hc, normal, mu);
+    // Query terrain at bottom point
+    double h;
+    ChVector3d P;
+    ChVector3d n;
+    terrain.GetProperties(B + voffset, P, h, n, mu);
 
     // No contact if the disc center is below the terrain.
-    double disc_height = ChWorldFrame::Height(disc_center);
-    if (disc_height <= hc)
+    double dh = ChWorldFrame::Height(C);
+    if (dh <= h)
         return false;
 
-    // Based on the sampled normal we now do a first order approximation of where the contact point
-    // would be. We also will estimate the contact depth at that point.
-    ChVector3d wheel_forward_normal = Vcross(disc_normal, normal);
+    // Project terrain normal onto disc plane
+    // n <- dn X ( n X dn ) = n - (n.dn)dn
+    n -= Vdot(n, dn) * dn;
 
-    // There is no contact if the disc is (almost) horizontal, so bail out in that case.
-    double sinTilt2 = wheel_forward_normal.Length2();
-    if (sinTilt2 < 1e-3)
+    // -------
+    // Approximate terrain with a plane (P, n)
+    // Find 4 reference points around disc center
+    // -------
+    n.Normalize();
+    ChVector3d fwd = Vcross(dn, n);
+    fwd.Normalize();
+    ChVector3d lat = Vcross(n, fwd);
+
+    int num_points = 4;
+    double dx = 0.1 * r;
+    double dy = 0.3 * w;
+    std::array<ChVector3d, 4> Q = {C + dx * fwd, C - dx * fwd, C + dy * lat, C - dy * lat};
+
+    // Process each reference points and accumulate
+    depth = 0;
+    ChVector3d P_sum = VNULL;
+    for (const ChVector3d& A : Q) {
+        // Intersect line (A, -n) with the circle (C, r)
+        bool check = LineCircleIntersection(C, r, A, n, -1, B);
+        if (!check) {
+            num_points--;
+            continue;
+        }
+
+        // Project reference point onto terrain plane
+        ChVector3d Pp;
+        PointPlaneProjection(A, P, n, Pp);
+
+        // Calculate depth (along n) and update
+        double AB = (B - A).Length();
+        double AP = (Pp - A).Length();
+        double deltaDepth = AB - AP;
+        if (deltaDepth <= 0.0) {
+            num_points--;
+            continue;
+        }
+        depth += deltaDepth;
+
+        // Query terrain at projection point
+        terrain.GetProperties(Pp + voffset, Pp, h, n, mu);
+
+        // Accumulate Pp
+        P_sum += Pp;
+    }
+
+    if (num_points == 0)
         return false;
 
-    wheel_forward_normal.Normalize();
-
-    // And we re-calculate the contact point.
-    wheel_bottom_location = disc_center + disc_radius * Vcross(disc_normal, wheel_forward_normal);
-
-    ChVector3d longitudinal = Vcross(disc_normal, normal);
-    longitudinal.Normalize();
-    ChVector3d lateral = Vcross(normal, longitudinal);
-
-    // Calculate four contact points in the contact patch
-    ChVector3d ptQ1 = wheel_bottom_location + dx * longitudinal;
-    double hQ1 = terrain.GetHeight(ptQ1 + voffset);
-    double ptQ1_height = ChWorldFrame::Height(ptQ1);
-    ptQ1 = ptQ1 - (ptQ1_height - hQ1) * ChWorldFrame::Vertical();
-
-    ChVector3d ptQ2 = wheel_bottom_location - dx * longitudinal;
-    double hQ2 = terrain.GetHeight(ptQ2 + voffset);
-    double ptQ2_height = ChWorldFrame::Height(ptQ2);
-    ptQ2 = ptQ2 - (ptQ2_height - hQ2) * ChWorldFrame::Vertical();
-
-    ChVector3d ptQ3 = wheel_bottom_location + dy * lateral;
-    double hQ3 = terrain.GetHeight(ptQ3 + voffset);
-    double ptQ3_height = ChWorldFrame::Height(ptQ3);
-    ptQ3 = ptQ3 - (ptQ3_height - hQ3) * ChWorldFrame::Vertical();
-
-    ChVector3d ptQ4 = wheel_bottom_location - dy * lateral;
-    double hQ4 = terrain.GetHeight(ptQ4 + voffset);
-    double ptQ4_height = ChWorldFrame::Height(ptQ4);
-    ptQ4 = ptQ4 - (ptQ4_height - hQ4) * ChWorldFrame::Vertical();
-
-    // Calculate a smoothed road surface normal
-    ChVector3d rQ2Q1 = ptQ1 - ptQ2;
-    ChVector3d rQ4Q3 = ptQ3 - ptQ4;
-
-    ChVector3d terrain_normal = Vcross(rQ2Q1, rQ4Q3);
-    terrain_normal.Normalize();
-
-    // Find terrain height as average of four points. No contact if lowest point is above the terrain.
-    wheel_bottom_location = 0.25 * (ptQ1 + ptQ2 + ptQ3 + ptQ4);
-    ChVector3d d = wheel_bottom_location - disc_center;
-    double da = d.Length();
-
-    if (da >= disc_radius)
+    depth /= num_points;
+    if (depth <= 0)
         return false;
 
-    ChMatrix33<> rot;
-    rot.SetFromDirectionAxes(longitudinal, lateral, terrain_normal);
+    // Query terrain at average projection
+    P_sum /= num_points;
+    terrain.GetProperties(P_sum + voffset, P, h, n, mu);
 
-    contact.pos = wheel_bottom_location;
+    // Construct contact patch frame from P and n
+    fwd = Vcross(dn, n);
+    fwd.Normalize();
+    lat = Vcross(n, fwd);
+    ChMatrix33<> rot(fwd, lat, n);
+    contact.pos = P;
     contact.rot = rot.GetQuaternion();
-
-    depth = disc_radius - da;
-    assert(depth > 0);
 
     return true;
 }
 
-void ChTire::ConstructAreaDepthTable(double disc_radius, ChFunctionInterp& areaDep) {
-    const size_t n_lookup = 90;
-    double depMax = disc_radius;  // should be high enough to avoid extrapolation
-    double depStep = depMax / double(n_lookup - 1);
-    for (size_t i = 0; i < n_lookup; i++) {
-        double dep = depStep * double(i);
-        double alpha = 2.0 * std::acos(1.0 - dep / disc_radius);
-        double area = 0.5 * disc_radius * disc_radius * (alpha - std::sin(alpha));
-        areaDep.AddPoint(area, dep);
+void ChTire::ConstructAreaDepthTable(double r, ChFunctionInterp& area2depth) {
+    const size_t n = 90;
+    double depth_max = r;  // should be high enough to avoid extrapolation
+    double depth_step = depth_max / double(n - 1);
+    for (size_t i = 0; i < n; i++) {
+        double depth = i * depth_step;
+        double alpha = 2 * std::acos(1 - depth / r);
+        double area = 0.5 * r * r * (alpha - std::sin(alpha));
+        area2depth.AddPoint(area, depth);
     }
 }
 
-bool ChTire::DiscTerrainCollisionEnvelope(
-    const ChTerrain& terrain,         // [in] reference to terrain system
-    const ChVector3d& disc_center,    // [in] global location of the disc center
-    const ChVector3d& disc_normal,    // [in] disc normal, expressed in the global frame
-    double disc_radius,               // [in] disc radius
-    double width,                     // [in] tire width
-    const ChFunctionInterp& areaDep,  // [in] lookup table to calculate depth from intersection area
-    ChCoordsys<>& contact,            // [out] contact coordinate system (relative to the global frame)
-    double& depth,                    // [out] penetration depth (positive if contact occurred)
-    float& mu                         // [out] coefficient of friction at contact
+bool ChTire::DiscTerrainCollisionEnvelope(const ChTerrain& terrain,            // reference to terrain system
+                                          const ChVector3d& C,                 // disc center (in global frame)
+                                          const ChVector3d& dn,                // disc normal (in global frame)
+                                          double r,                            // disc radius
+                                          double w,                            // tire width
+                                          const ChFunctionInterp& area2depth,  // depth from area lookup table
+                                          ChCoordsys<>& contact,               // contact frame (in global frame)
+                                          double& depth,                       // penetration (positive if contact)
+                                          float& mu                            // coefficient of friction
 ) {
     // Vertical offset for terrain queries (above terrain by a disc radius)
-    auto voffset = disc_radius * ChWorldFrame::Vertical();
+    auto voffset = r * ChWorldFrame::Vertical();
 
-    // Approximate the terrain with a plane. Define the projection of the lowest point onto this plane as the contact
-    // point on the terrain. We don't know where the equivalent contact point is exactly, so we use the intersection
-    // area to decide if there is contact or not.
-    ChVector3d normal = terrain.GetNormal(disc_center + voffset);
-    ChVector3d longitudinal = Vcross(disc_normal, normal);
-    longitudinal.Normalize();
+    // Calculate horizontal direction in disc plane
+    ChVector3d df = Vcross(dn, ChWorldFrame::Vertical());
+    df.Normalize();
 
-    const size_t n_div = 180;
-    double x_step = 2.0 * disc_radius / n_div;
-    double A = 0;  // overlapping area of tire disc and road surface contour
-    for (size_t i = 1; i < n_div; i++) {
-        double x = -disc_radius + x_step * double(i);
-        ChVector3d pTest = disc_center + x * longitudinal;
-        double q = terrain.GetHeight(pTest + voffset);
-        double a = ChWorldFrame::Height(pTest) - std::sqrt(disc_radius * disc_radius - x * x);
-        if (q > a) {
-            A += q - a;
+    // Find lowest point on disc in the direction of the world vertical
+    ChVector3d B = C + r * Vcross(dn, df);
+
+    // Query terrain at bottom point
+    double h;
+    ChVector3d P;
+    ChVector3d n;
+    terrain.GetProperties(B + voffset, P, h, n, mu);
+
+    // No contact if the disc center is below the terrain.
+    double dh = ChWorldFrame::Height(C);
+    if (dh <= h)
+        return false;
+
+    // Project terrain normal onto disc plane
+    // n <- dn X ( n X dn ) = n - (n.dn)dn
+    n -= Vdot(n, dn) * dn;
+
+    // -------
+    // Approximate terrain with a plane (P, n)
+    // Work in the plane of the disc and query actual terrain height
+    // -------
+
+    ChVector3d A;
+
+    // Calculate overlapping area of tire disc and terrain surface contour
+    const size_t n_div = 100;
+    double x_step = 2 * r / n_div;
+    double area = 0;
+    for (size_t i = 0; i <= n_div; i++) {
+        double x = -r + i * x_step;
+        A = C + x * df;                              // query point
+        double ph = ChWorldFrame::Height(A);         // query point height
+        double th = terrain.GetHeight(A + voffset);  // terrain height at query point
+        dh = ph - std::sqrt(r * r - x * x);          // disc point height
+        depth = th - dh;                             // depth at query point
+        ////std::cout << x << " " << ph << " " << th << " " << dh << std::endl;
+        if (depth > 0) {
+            area += depth;
         }
     }
-    A *= x_step;
 
-    if (A == 0) {
+    if (area == 0)
         return false;
-    }
+
+    area *= x_step;
 
     // Calculate equivalent depth from A
-    depth = areaDep.GetVal(A);
+    depth = area2depth.GetVal(area);
 
-    // Find the lowest point on the disc. There is no contact if the disc is (almost) horizontal.
-    ChVector3d dir1 = Vcross(disc_normal, normal);
-    double sinTilt2 = dir1.Length2();
-
-    if (sinTilt2 < 1e-3)
+    if (depth > r)
         return false;
 
-    // Contact point (lowest point on disc).
-    ChVector3d ptD = disc_center + (disc_radius - depth) * Vcross(disc_normal, dir1 / std::sqrt(sinTilt2));
+    // Find candidate point on terrain
+    P = C + (r - depth) * n;
 
-    // Find terrain height at lowest point. No contact if lowest point is above the terrain.
-    normal = terrain.GetNormal(ptD + 2.0 * voffset);
-    longitudinal = Vcross(disc_normal, normal);
-    longitudinal.Normalize();
-    ChVector3d lateral = Vcross(normal, longitudinal);
-    ChMatrix33<> rot;
-    rot.SetFromDirectionAxes(longitudinal, lateral, normal);
+    // Query terrain at this point
+    terrain.GetProperties(P + voffset, P, h, n, mu);
 
-    contact.pos = ptD;
+    // Construct contact patch frame from P and n
+    ChVector3d fwd = Vcross(dn, n);
+    fwd.Normalize();
+    ChVector3d lat = Vcross(n, fwd);
+    ChMatrix33<> rot(fwd, lat, n);
+    contact.pos = P;
     contact.rot = rot.GetQuaternion();
-
-    mu = terrain.GetCoefficientFriction(ptD);
 
     return true;
 }
@@ -403,13 +468,12 @@ bool ChTire::DiscTerrainCollisionEnvelope(
 // -----------------------------------------------------------------------------
 // Estimate the tire moments of inertia, given the tire specification and mass.
 // The tire is assumed to be composed of simple geometric shapes:
-// - The sidewalls are treated as discs with an inner diameter equal to the
-//   wheel diameter, and an outer diameter equal to the static diameter of the
-//   tire.
-// - The tread face is treated as a band with a diameter equal to the static
-//   radius of the tire.
+// - The sidewalls are treated as discs with an inner diameter equal to the wheel diameter,
+//   and an outer diameter equal to the static diameter of the  tire.
+// - The tread face is treated as a band with a diameter equal to the static  radius of the tire.
 // A rubber material is assumed, using a density of 1050 kg/m^3.
 // -----------------------------------------------------------------------------
+
 double VolumeCyl(double r_outer, double r_inner, double cyl_height) {
     return CH_PI * cyl_height * (r_outer * r_outer - r_inner * r_inner);
 }

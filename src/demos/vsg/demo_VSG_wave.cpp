@@ -38,7 +38,7 @@ std::shared_ptr<ChTriangleMeshConnected> CreateMesh(double L, int n) {
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     std::vector<ChVector3d>& vertices = trimesh->GetCoordsVertices();
     std::vector<ChVector3d>& normals = trimesh->GetCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertices();
     std::vector<ChVector3i>& idx_normals = trimesh->GetIndicesNormals();
     std::vector<ChVector2d>& uv_coords = trimesh->GetCoordsUV();
     std::vector<ChColor>& colors = trimesh->GetCoordsColors();

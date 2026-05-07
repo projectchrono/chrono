@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Dario Fusai
 // =============================================================================
 
 #include <iomanip>
@@ -25,13 +25,13 @@ namespace chrono {
 //
 
 int GetIndex(ChVector3d vertex, std::vector<ChVector3d>& vertexOUT, double tol) {
-    // Suboptimal: search vertexes with same position and reuse, (in future: adopt hash map..)
+    // Suboptimal: search vertices with same position and reuse, (in future: adopt hash map..)
     for (unsigned int iv = 0; iv < vertexOUT.size(); iv++) {
         if (vertex.Equals(vertexOUT[iv], tol)) {
             return iv;
         }
     }
-    // not found, so add it to new vertexes
+    // not found, so add it to new vertices
     vertexOUT.push_back(vertex);
     return ((int)vertexOUT.size() - 1);
 }
@@ -63,31 +63,30 @@ ChConvexDecomposition::ChConvexDecomposition() {}
 ChConvexDecomposition::~ChConvexDecomposition() {}
 
 bool ChConvexDecomposition::AddTriangle(const ChTriangle& t1) {
-    return this->AddTriangle(t1.p1, t1.p2, t1.p3);  // add the input mesh one triangle at a time.
+    return AddTriangle(t1.p1, t1.p2, t1.p3);  // add the input mesh one triangle at a time.
 }
 
 bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm) {
     for (unsigned int i = 0; i < tm.GetNumTriangles(); i++) {
-        if (!this->AddTriangle(tm.GetTriangle(i)))
+        if (!AddTriangle(tm.GetTriangle(i)))
             return false;
     }
     return true;
 }
 
 bool ChConvexDecomposition::WriteConvexHullsAsChullsFile(std::ostream& mstream) {
-    mstream << std::setprecision(9) << std::defaultfloat;
-    mstream << "# Convex hulls obtained with Chrono\n"
-            << "# convex decomposition (.chulls format: only vertexes)\n";
+    mstream << std::setprecision(9) << std::defaultfloat
+            << "# Chrono convex hulls decomposition -- .chulls format (list of vertices)\n\n";
 
-    for (unsigned int ih = 0; ih < this->GetHullCount(); ih++) {
-        std::vector<ChVector3d> aconvexhull;
+    for (unsigned int ih = 0; ih < GetHullCount(); ih++) {
+        std::vector<ChVector3d> convexhull;
 
-        if (!this->GetConvexHullResult(ih, aconvexhull))
+        if (!GetConvexHullResult(ih, convexhull))
             return false;
 
-        mstream << "hull\n";
-        for (unsigned int i = 0; i < aconvexhull.size(); i++) {
-            mstream << aconvexhull[i].x() << " " << aconvexhull[i].y() << " " << aconvexhull[i].z() << "\n";
+        mstream << "hull_" << ih << "\n";
+        for (const auto& vert : convexhull) {
+            mstream << vert.x() << " " << vert.y() << " " << vert.z() << "\n";
         }
     }
     return true;
@@ -112,31 +111,31 @@ ChConvexDecompositionHACD::~ChConvexDecompositionHACD() {
     myHACD = 0;
 }
 
-void ChConvexDecompositionHACD::Reset(void) {
+void ChConvexDecompositionHACD::Reset() {
     if (myHACD)
         HACD::DestroyHACD(myHACD);
     myHACD = 0;
     myHACD = HACD::CreateHACD();
-    this->points.clear();
-    this->triangles.clear();
+    points.clear();
+    triangles.clear();
 }
 
 bool ChConvexDecompositionHACD::AddTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3) {
-    long lastpoint = (long)this->points.size();
+    long lastpoint = (long)points.size();
     HACD::Vec3<HACD::Real> vertex1(v1.x(), v1.y(), v1.z());
     HACD::Vec3<HACD::Real> vertex2(v2.x(), v2.y(), v2.z());
     HACD::Vec3<HACD::Real> vertex3(v3.x(), v3.y(), v3.z());
-    this->points.push_back(vertex1);
-    this->points.push_back(vertex2);
-    this->points.push_back(vertex3);
+    points.push_back(vertex1);
+    points.push_back(vertex2);
+    points.push_back(vertex3);
     HACD::Vec3<long> newtri(lastpoint, lastpoint + 1, lastpoint + 2);
-    this->triangles.push_back(newtri);
+    triangles.push_back(newtri);
     return true;
 }
 
 bool ChConvexDecompositionHACD::AddTriangleMesh(const ChTriangleMesh& tm) {
     for (unsigned int i = 0; i < tm.GetNumTriangles(); i++) {
-        if (!this->ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
+        if (!ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
             return false;
     }
     return true;
@@ -165,9 +164,9 @@ void ChConvexDecompositionHACD::SetParameters(unsigned int nClusters,
 }
 
 int ChConvexDecompositionHACD::ComputeConvexDecomposition() {
-    myHACD->SetPoints(&this->points[0]);
+    myHACD->SetPoints(&points[0]);
     myHACD->SetNPoints(points.size());
-    myHACD->SetTriangles(&this->triangles[0]);
+    myHACD->SetTriangles(&triangles[0]);
     myHACD->SetNTriangles(triangles.size());
 
     myHACD->Compute();
@@ -177,7 +176,7 @@ int ChConvexDecompositionHACD::ComputeConvexDecomposition() {
 
 /// Get the number of computed hulls after the convex decomposition
 unsigned int ChConvexDecompositionHACD::GetHullCount() {
-    return (unsigned int)this->myHACD->GetNClusters();
+    return (unsigned int)myHACD->GetNClusters();
 }
 
 bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull) {
@@ -187,25 +186,21 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, std:
     size_t nPoints = myHACD->GetNPointsCH(hullIndex);
     size_t nTriangles = myHACD->GetNTrianglesCH(hullIndex);
 
-    HACD::Vec3<HACD::Real>* pointsCH = new HACD::Vec3<HACD::Real>[nPoints];
-    HACD::Vec3<long>* trianglesCH = new HACD::Vec3<long>[nTriangles];
-    myHACD->GetCH(hullIndex, pointsCH, trianglesCH);
+    std::vector<HACD::Vec3<HACD::Real>> pointsCH(nPoints);
+    std::vector<HACD::Vec3<long>> trianglesCH(nTriangles);
+    myHACD->GetCH(hullIndex, pointsCH.data(), trianglesCH.data());
 
-    // convert to chrono data...
-    convexhull.clear();
+    // convert to chrono data
+    convexhull.clear();  // clear, for safety
     for (unsigned int i = 0; i < nPoints; i++) {
         ChVector3d point(pointsCH[i].X(), pointsCH[i].Y(), pointsCH[i].Z());
         convexhull.push_back(point);
     }
 
-    delete[] pointsCH;
-    delete[] trianglesCH;
-
     return true;
 }
 
-/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
-/// that is passed as a parameter.
+/// Get the n-th computed convex hull, by filling a ChTriangleMesh object that is passed as a parameter
 bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) {
     if (hullIndex > myHACD->GetNClusters())
         return false;
@@ -213,10 +208,11 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTr
     size_t nPoints = myHACD->GetNPointsCH(hullIndex);
     size_t nTriangles = myHACD->GetNTrianglesCH(hullIndex);
 
-    HACD::Vec3<HACD::Real>* pointsCH = new HACD::Vec3<HACD::Real>[nPoints];
-    HACD::Vec3<long>* trianglesCH = new HACD::Vec3<long>[nTriangles];
-    myHACD->GetCH(hullIndex, pointsCH, trianglesCH);
+    std::vector<HACD::Vec3<HACD::Real>> pointsCH(nPoints);
+    std::vector<HACD::Vec3<long>> trianglesCH(nTriangles);
+    myHACD->GetCH(hullIndex, pointsCH.data(), trianglesCH.data());
 
+    convextrimesh.Clear();  // clear, for safety
     for (unsigned int i = 0; i < nTriangles; i++) {
         unsigned int i1 = trianglesCH[i].X();
         unsigned int i2 = trianglesCH[i].Y();
@@ -226,9 +222,6 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTr
                                   ChVector3d(pointsCH[i3].X(), pointsCH[i3].Y(), pointsCH[i3].Z()));
     }
 
-    delete[] pointsCH;
-    delete[] trianglesCH;
-
     return true;
 }
 
@@ -237,39 +230,33 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTr
 //
 
 void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(std::ostream& mstream) {
-    mstream << "# Convex hulls obtained with Chrono \n# convex decomposition \n\n";
+    mstream << std::setprecision(9) << "# Chrono convex hulls decomposition -- Wavefront .obj format\n\n";
+
     NxU32 vcount_base = 1;
     NxU32 vcount_total = 0;
     NxU32 tcount_total = 0;
-    char buffer[200];
     for (unsigned int hullIndex = 0; hullIndex < this->GetHullCount(); hullIndex++) {
         mstream << "g hull_" << hullIndex << "\n";
 
         size_t nPoints = myHACD->GetNPointsCH(hullIndex);
         size_t nTriangles = myHACD->GetNTrianglesCH(hullIndex);
 
-        HACD::Vec3<HACD::Real>* pointsCH = new HACD::Vec3<HACD::Real>[nPoints];
-        HACD::Vec3<long>* trianglesCH = new HACD::Vec3<long>[nTriangles];
-        myHACD->GetCH(hullIndex, pointsCH, trianglesCH);
+        std::vector<HACD::Vec3<HACD::Real>> pointsCH(nPoints);
+        std::vector<HACD::Vec3<long>> trianglesCH(nTriangles);
+        myHACD->GetCH(hullIndex, pointsCH.data(), trianglesCH.data());
 
         vcount_total += (NxU32)nPoints;
         tcount_total += (NxU32)nTriangles;
         for (unsigned int i = 0; i < nPoints; i++) {
-            snprintf(buffer, sizeof(buffer), "v %0.9f %0.9f %0.9f\r\n", pointsCH[i].X(), pointsCH[i].Y(),
-                     pointsCH[i].Z());
-            mstream << buffer;
+            mstream << "v " << pointsCH[i].X() << " " << pointsCH[i].Y() << " " << pointsCH[i].Z() << "\n";
         }
         for (unsigned int i = 0; i < nTriangles; i++) {
             unsigned int i1 = trianglesCH[i].X();
             unsigned int i2 = trianglesCH[i].Y();
             unsigned int i3 = trianglesCH[i].Z();
-            snprintf(buffer, sizeof(buffer), "f %d %d %d\r\n", i1 + vcount_base, i2 + vcount_base, i3 + vcount_base);
-            mstream << buffer;
+            mstream << "f " << i1 + vcount_base << " " << i2 + vcount_base << " " << i3 + vcount_base << "\n";
         }
         vcount_base += (NxU32)nPoints;
-
-        delete[] pointsCH;
-        delete[] trianglesCH;
     }
 }
 
@@ -282,11 +269,9 @@ void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(std::ostream& mst
 
 /// Basic constructor
 ChConvexDecompositionHACDv2::ChConvexDecompositionHACDv2() {
-    this->descriptor.init();
-
+    descriptor.init();
     gHACD = HACD::createHACD_API();
-
-    this->fuse_tol = 1e-9;
+    fuse_tol = 1e-9;
 }
 
 /// Destructor
@@ -294,30 +279,27 @@ ChConvexDecompositionHACDv2::~ChConvexDecompositionHACDv2() {
     gHACD->release();  // will delete itself
 }
 
-void ChConvexDecompositionHACDv2::Reset(void) {
-    this->descriptor.init();
+void ChConvexDecompositionHACDv2::Reset() {
+    descriptor.init();
     gHACD->releaseHACD();
 
-    this->points.clear();
-    this->triangles.clear();
+    points.clear();
+    triangles.clear();
 }
 
 bool ChConvexDecompositionHACDv2::AddTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3) {
-    int lastpoint = (int)this->points.size();
-    ChVector3d vertex1(v1.x(), v1.y(), v1.z());
-    ChVector3d vertex2(v2.x(), v2.y(), v2.z());
-    ChVector3d vertex3(v3.x(), v3.y(), v3.z());
-    this->points.push_back(vertex1);
-    this->points.push_back(vertex2);
-    this->points.push_back(vertex3);
+    int lastpoint = static_cast<int>(points.size());
+    points.push_back(v1);
+    points.push_back(v2);
+    points.push_back(v3);
     ChVector3i newtri(lastpoint, lastpoint + 1, lastpoint + 2);
-    this->triangles.push_back(newtri);
+    triangles.push_back(newtri);
     return true;
 }
 
 bool ChConvexDecompositionHACDv2::AddTriangleMesh(const ChTriangleMesh& tm) {
     for (unsigned int i = 0; i < tm.GetNumTriangles(); i++) {
-        if (!this->ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
+        if (!ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
             return false;
     }
     return true;
@@ -329,13 +311,13 @@ void ChConvexDecompositionHACDv2::SetParameters(unsigned int mmMaxHullCount,
                                                 float mmConcavity,
                                                 float mmSmallClusterThreshold,
                                                 float mmFuseTol) {
-    // this->descriptor.init();
-    this->descriptor.mMaxHullCount = mmMaxHullCount;
-    this->descriptor.mMaxMergeHullCount = mmMaxMergeHullCount;
-    this->descriptor.mMaxHullVertices = mmMaxHullVertices;
-    this->descriptor.mConcavity = mmConcavity;
-    this->descriptor.mSmallClusterThreshold = mmSmallClusterThreshold;
-    this->fuse_tol = mmFuseTol;
+    // descriptor.init();
+    descriptor.mMaxHullCount = mmMaxHullCount;
+    descriptor.mMaxMergeHullCount = mmMaxMergeHullCount;
+    descriptor.mMaxHullVertices = mmMaxHullVertices;
+    descriptor.mConcavity = mmConcavity;
+    descriptor.mSmallClusterThreshold = mmSmallClusterThreshold;
+    fuse_tol = mmFuseTol;
 }
 
 class MyCallback : public hacd::ICallback {
@@ -352,18 +334,16 @@ int ChConvexDecompositionHACDv2::ComputeConvexDecomposition() {
     if (!gHACD)
         return 0;
 
-    // Preprocess: fuse repeated vertices...
-
+    // Preprocess: fuse repeated vertices
     std::vector<ChVector3d> points_FUSED;
     std::vector<ChVector3i> triangles_FUSED;
-    FuseMesh(this->points, this->triangles, points_FUSED, triangles_FUSED, this->fuse_tol);
+    FuseMesh(points, triangles, points_FUSED, triangles_FUSED, fuse_tol);
 
     // Convert to HACD format
-
-    this->descriptor.mTriangleCount = (hacd::HaU32)triangles_FUSED.size();
-    this->descriptor.mVertexCount = (hacd::HaU32)points_FUSED.size();
-    this->descriptor.mIndices = new hacd::HaU32[3 * this->descriptor.mTriangleCount];
-    this->descriptor.mVertices = new hacd::HaF32[3 * this->descriptor.mVertexCount];
+    descriptor.mTriangleCount = (hacd::HaU32)triangles_FUSED.size();
+    descriptor.mVertexCount = (hacd::HaU32)points_FUSED.size();
+    descriptor.mIndices = new hacd::HaU32[3 * descriptor.mTriangleCount];
+    descriptor.mVertices = new hacd::HaF32[3 * descriptor.mVertexCount];
     for (unsigned int mv = 0; mv < points_FUSED.size(); mv++) {
         ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 0] = (float)points_FUSED[mv].x();
         ((hacd::HaF32*)descriptor.mVertices)[mv * 3 + 1] = (float)points_FUSED[mv].y();
@@ -378,46 +358,45 @@ int ChConvexDecompositionHACDv2::ComputeConvexDecomposition() {
     MyCallback callback;
     descriptor.mCallback = static_cast<hacd::ICallback*>(&callback);
 
-    // Perform the decomposition!
+    // Perform the decomposition
+    hacd::HaU32 hullCount = gHACD->performHACD(descriptor);
 
-    hacd::HaU32 hullCount = gHACD->performHACD(this->descriptor);
-
-    delete[] this->descriptor.mIndices;
-    delete[] this->descriptor.mVertices;
-    this->descriptor.mTriangleCount = 0;
-    this->descriptor.mVertexCount = 0;
+    delete[] descriptor.mIndices;
+    delete[] descriptor.mVertices;
+    descriptor.mTriangleCount = 0;
+    descriptor.mVertexCount = 0;
 
     return hullCount;
 }
 
 /// Get the number of computed hulls after the convex decomposition
 unsigned int ChConvexDecompositionHACDv2::GetHullCount() {
-    return this->gHACD->getHullCount();
+    return gHACD->getHullCount();
 }
 
 bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull) {
-    if (hullIndex > this->gHACD->getHullCount())
+    if (hullIndex > gHACD->getHullCount())
         return false;
 
     const HACD::HACD_API::Hull* hull = gHACD->getHull(hullIndex);
+    convexhull.clear();  // clear, for safety
     if (hull) {
         for (hacd::HaU32 i = 0; i < hull->mVertexCount; i++) {
             const hacd::HaF32* p = &hull->mVertices[i * 3];
-            ChVector3d point(p[0], p[1], p[2]);
-            convexhull.push_back(point);
+            convexhull.emplace_back(p[0], p[1], p[2]);
         }
         return true;
     }
     return false;
 }
 
-/// Get the n-th computed convex hull, by filling a ChTriangleMesh object
-/// that is passed as a parameter.
+/// Get the n-th computed convex hull, by filling a ChTriangleMesh object that is passed as a parameter
 bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) {
-    if (hullIndex > this->gHACD->getHullCount())
+    if (hullIndex > gHACD->getHullCount())
         return false;
 
     const HACD::HACD_API::Hull* hull = gHACD->getHull(hullIndex);
+    convextrimesh.Clear();  // clear, for safety
     if (hull) {
         for (unsigned int i = 0; i < hull->mTriangleCount; i++) {
             unsigned int i1 = 3 * hull->mIndices[i * 3 + 0];
@@ -437,11 +416,9 @@ bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, Ch
 //
 
 void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(std::ostream& mstream) {
-    mstream << "# Convex hulls obtained with Chrono \n# convex decomposition \n\n";
+    mstream << std::setprecision(9) << "# Chrono convex hulls decomposition -- Wavefront .obj format\n\n";
 
-    char buffer[200];
-
-    hacd::HaU32* baseVertex = new hacd::HaU32[GetHullCount()];
+    std::vector<hacd::HaU32> baseVertex(GetHullCount());
     hacd::HaU32 vertexCount = 0;
     for (hacd::HaU32 i = 0; i < GetHullCount(); i++) {
         const HACD::HACD_API::Hull* hull = gHACD->getHull(i);
@@ -449,8 +426,7 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(std::ostream& m
             baseVertex[i] = vertexCount;
             for (hacd::HaU32 j = 0; j < hull->mVertexCount; j++) {
                 const hacd::HaF32* p = &hull->mVertices[j * 3];
-                snprintf(buffer, sizeof(buffer), "v %0.9f %0.9f %0.9f\r\n", p[0], p[1], p[2]);
-                mstream << buffer;
+                mstream << "v " << p[0] << " " << p[1] << " " << p[2] << "\n";
             }
             vertexCount += hull->mVertexCount;
         }
@@ -463,12 +439,10 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(std::ostream& m
                 hacd::HaU32 i1 = hull->mIndices[j * 3 + 0] + startVertex + 1;
                 hacd::HaU32 i2 = hull->mIndices[j * 3 + 1] + startVertex + 1;
                 hacd::HaU32 i3 = hull->mIndices[j * 3 + 2] + startVertex + 1;
-                snprintf(buffer, sizeof(buffer), "f %d %d %d\r\n", i1, i2, i3);
-                mstream << buffer;
+                mstream << "f " << i1 << " " << i2 << " " << i3 << "\n";
             }
         }
     }
-    delete[] baseVertex;
 }
 
 }  // end namespace chrono

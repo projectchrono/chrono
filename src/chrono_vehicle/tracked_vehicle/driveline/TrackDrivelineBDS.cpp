@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

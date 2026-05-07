@@ -267,8 +267,8 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         return mbody;
     };
 
-    /// Set the number of random vertexes used to generate each random convex hull.
-    /// Note that the final number of vertexes in the hull might be lower since
+    /// Set the number of random vertices used to generate each random convex hull.
+    /// Note that the final number of vertices in the hull might be lower since
     /// random points that fall inside the convex hull are not used.
     void SetNpoints(int mnpoints) { npoints = mnpoints; }
     /// Set the statistical distribution for the radius.

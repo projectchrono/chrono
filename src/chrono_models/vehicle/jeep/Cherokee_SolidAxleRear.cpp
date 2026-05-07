@@ -62,7 +62,7 @@ Cherokee_SolidAxleRear::Cherokee_SolidAxleRear(const std::string& name) : ChLeaf
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 Cherokee_SolidAxleRear::~Cherokee_SolidAxleRear() {}
 

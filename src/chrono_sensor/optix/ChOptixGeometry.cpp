@@ -37,7 +37,7 @@ ChOptixGeometry::~ChOptixGeometry() {
 }
 
 void ChOptixGeometry::Cleanup() {
-    // intance and root buffer cleanup
+    // instance and root buffer cleanup
     if (md_instances) {
         CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(md_instances)));
         md_instances = {};
@@ -52,7 +52,7 @@ void ChOptixGeometry::Cleanup() {
     }
     m_instances.clear();
 
-    // GAS buffers, handles, and tranform cleanup
+    // GAS buffers, handles, and transform cleanup
     if (md_motion_transforms) {
         CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(md_motion_transforms)));
         md_motion_transforms = {};
@@ -140,7 +140,7 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
         uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
         // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
-        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
+        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of objects
         // CUdeviceptr d_sbt_index;
         // CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_sbt_index), sizeof(sbt_index)));
         // CUDA_ERROR_CHECK(
@@ -157,10 +157,9 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building box GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -231,7 +230,7 @@ void ChOptixGeometry::AddNVDBVolume(std::shared_ptr<ChBody> body,
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
         uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
         // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
-        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
+        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of objects
         // CUdeviceptr d_sbt_index;
         // CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_sbt_index), sizeof(sbt_index)));
         // CUDA_ERROR_CHECK(
@@ -248,10 +247,9 @@ void ChOptixGeometry::AddNVDBVolume(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building box GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -326,10 +324,9 @@ void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building sphere GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -403,10 +400,9 @@ void ChOptixGeometry::AddCylinder(std::shared_ptr<ChBody> body,
         aabb_input.customPrimitiveArray.sbtIndexOffsetStrideInBytes = sizeof(uint32_t);
         aabb_input.customPrimitiveArray.primitiveIndexOffset = 0;
 
-        OptixAccelBuildOptions accel_options = {
-            OPTIX_BUILD_FLAG_ALLOW_COMPACTION,  // buildFlags
-            OPTIX_BUILD_OPERATION_BUILD         // operation
-        };
+        OptixAccelBuildOptions accel_options = {};
+        accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+        accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
 
         // building cylinder GAS
         OptixAccelBufferSizes gas_buffer_sizes;
@@ -507,7 +503,7 @@ void ChOptixGeometry::UpdateDeformableMeshes() {
         CUdeviceptr d_indices = std::get<2>(m_deformable_meshes[i]);
         unsigned int gas_id = std::get<3>(m_deformable_meshes[i]);
 
-        // perform a rebuild of the triange acceleration structure
+        // perform a rebuild of the triage acceleration structure
         BuildTrianglesGAS(mesh_shape, d_vertices, d_indices, false, true, gas_id);
     }
 }
@@ -520,7 +516,10 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChVisualShapeTri
                                                 unsigned int gas_id) {
     auto mesh = mesh_shape->GetMesh();
 
-    OptixAccelBuildOptions accel_options = {OPTIX_BUILD_FLAG_ALLOW_COMPACTION, OPTIX_BUILD_OPERATION_BUILD};
+    OptixAccelBuildOptions accel_options = {};
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION; // allow compaction to save memory
+    accel_options.operation = OPTIX_BUILD_OPERATION_BUILD; // build operation
+    
     if (!compact_no_update) {
         accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
         // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
@@ -540,7 +539,7 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChVisualShapeTri
 
     // index data/params
     mesh_input.triangleArray.indexBuffer = d_indices;
-    mesh_input.triangleArray.numIndexTriplets = static_cast<unsigned int>(mesh->GetIndicesVertexes().size());
+    mesh_input.triangleArray.numIndexTriplets = static_cast<unsigned int>(mesh->GetIndicesVertices().size());
     mesh_input.triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
     // TODO: if vertices get padded to uint4, this need to reflect that
     mesh_input.triangleArray.indexStrideInBytes = sizeof(uint4);  // sizeof(uint3);

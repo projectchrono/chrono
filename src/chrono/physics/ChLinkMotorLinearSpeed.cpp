@@ -59,7 +59,7 @@ void ChLinkMotorLinearSpeed::Update(double time, UpdateFlags update_flags) {
         C(m_actuated_idx) = 0.0;
 }
 
-void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     double mCt = -m_func->GetVal(this->GetChTime());
     if (mask.GetConstraint(m_actuated_idx).IsActive()) {
         Qc(off_L + m_actuated_idx) += c * mCt;

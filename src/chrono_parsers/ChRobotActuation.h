@@ -70,7 +70,7 @@ class ChApiParsers ChRobotActuation {
 
     typedef std::vector<double> Actuation;
 
-    /// Constrauct a robot actuator using the specified input data files.
+    /// Construct a robot actuator using the specified input data files.
     /// The data files for the "start" and "stop" phases are not required (pass an ampty string).
     ChRobotActuation(int num_motors,                     ///< number of actuated motors
                      const std::string& filename_start,  ///< name of file with joint actuations for start phase

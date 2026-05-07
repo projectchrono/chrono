@@ -1,13 +1,13 @@
 #=============================================================================
-# CMake configuration file for Chrono Vehicle cosimulation library
+# CMake configuration file for Chrono Vehicle co-simulation library
 #
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
 # Return now if MPI is not available
 if(NOT MPI_FOUND)
-	message(WARNING "Chrono::Vehicle cosimulation support requires MPI, but MPI not found")
-	message(STATUS "Cosimulation support disabled")
+	message(WARNING "Chrono::Vehicle co-simulation support requires MPI, but MPI not found")
+	message(STATUS "Co-simulation support disabled")
 	return()
 endif()
 
@@ -45,11 +45,16 @@ set(CV_COSIM_MBS_FILES
 set(CV_COSIM_TIRE_FILES
     tire/ChVehicleCosimTireNodeRigid.h
     tire/ChVehicleCosimTireNodeRigid.cpp
-    tire/ChVehicleCosimTireNodeFlexible.h
-    tire/ChVehicleCosimTireNodeFlexible.cpp
     tire/ChVehicleCosimTireNodeBypass.h
     tire/ChVehicleCosimTireNodeBypass.cpp
 )
+
+if(CH_ENABLE_MODULE_FEA)
+    set(CV_COSIM_TIRE_FILES ${CV_COSIM_TIRE_FILES}
+        tire/ChVehicleCosimTireNodeFlexible.h
+        tire/ChVehicleCosimTireNodeFlexible.cpp
+    )
+endif()
 
 set(CV_COSIM_TERRAIN_FILES
     terrain/ChVehicleCosimTerrainNodeChrono.h
@@ -174,10 +179,6 @@ endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
   target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_postprocess)
-endif()
-if(CH_ENABLE_MODULE_IRRLICHT)
-  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_irrlicht)
-  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_vehicle_irrlicht)
 endif()
 if(CH_ENABLE_MODULE_VSG)
   target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_vsg)

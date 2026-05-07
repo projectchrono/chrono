@@ -128,7 +128,7 @@ class CH_VEHICLE_API ChTireTestRig {
     void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
 
     /// Specify a constant given longitudinal slip. This version overrides the motion functions for the carrier
-    /// longitudinal slip and for the wheel angular speed to enforce the specified longitudinalslip value. A positive
+    /// longitudinal slip and for the wheel angular speed to enforce the specified longitudinal slip value. A positive
     /// slip value indicates that the wheel is spinning. A negative slip value indicates that the wheel is sliding
     /// (skidding); in particular, s=-1 indicates sliding without rotation.
     void SetConstantLongitudinalSlip(double long_slip, double base_speed = 1);
@@ -188,7 +188,7 @@ class CH_VEHICLE_API ChTireTestRig {
     );
 
     /// Enable use of CRM terrain.
-    /// The terrain subsystem is modelled through continuum with CRM.
+    /// The terrain subsystem is modeled through continuum with CRM.
     void SetTerrainCRM(const TerrainPatchSize& size, const TerrainParamsCRM& params);
 
     /// Enable use of CRM terrain.
@@ -219,17 +219,28 @@ class CH_VEHICLE_API ChTireTestRig {
     void SetWheelActiveBox(const ChVector3d& size);
 
     /// Set time delay before applying motion functions (default: 0 s).
+    /// In TEST mode, this delay is measured after the wheel bottom point reaches the terrain height.
     void SetTimeDelay(double delay) { m_time_delay = delay; }
+
+    /// Get time delay after which measurements are calculated.
+    /// After the drop phase (TEST mode only), this value is set to the input time delay increased by the wheel drop
+    /// time. Before the drop phase is completed, this function returns the input time delay.
+    double GetTimeDelay() const { return m_time_delay; }
+
+    /// Check if kinematic and kinetic quantities are collected.
+    /// This function returns true only in TEST mode once the motion functions are activated.
+    bool OutputEnabled() const { return m_output; }
 
     /// Initialize the rig system.
     /// It is the user's responsibility to set the operation mode and motion functions in a consistent way.
-    void Initialize(Mode mode);
+    /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`. 
+    void Initialize(Mode mode, double drop_speed = 0.1);
 
     /// Get suggested collision settings.
     /// These values are meaningful only when using granular terrain and Chrono::Multicore.
     void GetSuggestedCollisionSettings(
         double& collision_envelope,  ///< suggested envelope based on particle radius
-        ChVector3i& collision_bins   ///< suggested number of bins for broad-pahse collision detection
+        ChVector3i& collision_bins   ///< suggested number of bins for broad-phase collision detection
     ) const;
 
     /// Advance system state by the specified time step.
@@ -269,8 +280,14 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Get the spindle object.
     std::shared_ptr<ChSpindle> GetSpindle() const { return m_spindle; }
 
+    /// Get the linear motor used to actuate the carrier.
+    std::shared_ptr<ChLinkMotorLinearSpeed> GetMotorCarrier() const { return m_lin_motor; }
+
+    /// Get the rotation motor used to actuate the wheel.
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetMotorWheel() const { return m_rot_motor; }
+
   private:
-    void CreateMechanism(Mode mode);
+    void CreateMechanism();
 
     void CreateTerrain();
     void CreateTerrainSCM();
@@ -279,6 +296,9 @@ class CH_VEHICLE_API ChTireTestRig {
     void CreateTerrainCRM();
 
     ChSystem* m_system;  ///< pointer to the Chrono system
+
+    Mode m_mode;    ///< testing mode
+    bool m_output;  ///< if false, report default measurements (typically 0)
 
     std::shared_ptr<ChTerrain> m_terrain;  ///< handle to underlying terrain subsystem
     std::shared_ptr<ChWheel> m_wheel;      ///< handle to wheel subsystem
@@ -321,6 +341,7 @@ class CH_VEHICLE_API ChTireTestRig {
     double m_long_slip;         ///< user-specified longitudinal slip
     double m_base_speed;        ///< base speed for long slip calculation
 
+    std::shared_ptr<ChLinkMotorLinearSpeed> m_drop_motor;   ///< actuator for controlled wheel drop
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;    ///< carrier actuator
     std::shared_ptr<ChLinkMotorRotationSpeed> m_rot_motor;  ///< wheel actuator
     std::shared_ptr<ChLinkLockLock> m_slip_lock;            ///< slip angle actuator

@@ -26,9 +26,6 @@ namespace chrono {
 
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
-  private:
-    std::vector<ChTriangle> m_triangles;  ///< triangle list
-
   public:
     ChTriangleMeshSoup() {}
     ChTriangleMeshSoup(const ChTriangleMeshSoup& source);
@@ -36,45 +33,57 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChTriangleMeshSoup* Clone() const override { return new ChTriangleMeshSoup(*this); }
 
-    /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
-    /// If an error occurrs during loading, an empty shared pointer is returned.
-    static std::shared_ptr<ChTriangleMeshSoup> CreateFromWavefrontFile(const std::string& filename);
+    /// Get the class type as an enum.
+    virtual Type GetType() const override { return Type::TRIANGLEMESH_SOUP; }
 
-    /// Load from the given Wavefront .obj file
-    bool LoadWavefrontMesh(std::string filename);
-
-    /// Access the n-th triangle in mesh
-    ////virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }
-
-    /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
-
-    /// Add a triangle to this triangle mesh, by specifying a ChTriangle
-    virtual void AddTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
-
-    /// Get the number of triangles already added to this mesh
-    virtual unsigned int GetNumTriangles() const override { return (unsigned int)m_triangles.size(); }
+    /// Get the number of triangles already added to this mesh.
+    virtual unsigned int GetNumTriangles() const override { return static_cast<unsigned int>(m_triangles.size()); }
 
     /// Access the n-th triangle in mesh
     virtual ChTriangle GetTriangle(unsigned int index) const override { return m_triangles[index]; }
 
-    /// Get the list of triangles.
+    /// Access the list of mesh triangles.
     std::vector<ChTriangle>& GetTriangles() { return m_triangles; }
 
-    /// Clear all data
-    virtual void Clear() override { this->m_triangles.clear(); }
+    /// Add a triangle to this triangle mesh, by specifying the three coordinates.
+    virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
 
-    /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
+    /// Add a triangle to this triangle mesh, by specifying a ChTriangle.
+    virtual void AddTriangle(const ChTriangle& triangle) override { m_triangles.push_back(triangle); }
 
-    /// Get the class type as an enum.
-    virtual Type GetType() const override { return Type::TRIANGLEMESH_SOUP; }
+    /// Access the n-th triangle in mesh
+    ////virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }
+
+    /// Create and return a ChTriangleMeshSoup from a Wavefront OBJ file.
+    /// If an error occurrs during loading, an empty shared pointer is returned.
+    static std::shared_ptr<ChTriangleMeshSoup> CreateFromWavefrontFile(const std::string& filename);
+
+    /// Load from the given Wavefront .obj file.
+    /// NB: this mesh object must already be initialized.
+    bool LoadWavefrontMesh(const std::string& filename);
+
+    /// Create and return a ChTriangleMeshSoup from an STL file.
+    /// If an error occurrs during loading, an empty shared pointer is returned.
+    static std::shared_ptr<ChTriangleMeshSoup> CreateFromSTLFile(const std::string& filename);
+
+    /// Load an STL file into this triangle mesh.
+    /// NB: this mesh object must already be initialized.
+    bool LoadSTLMesh(const std::string& filename);
+
+    /// Clear all data.
+    virtual void Clear() override { m_triangles.clear(); }
+
+    /// Transform all vertices, by displacing and rotating (rotation via matrix, so also scaling if needed).
+    virtual void Transform(const ChVector3d& displ, const ChMatrix33d& rotscale) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::vector<ChTriangle> m_triangles;  ///< triangle list
 };
 
 /// @} chrono_geometry

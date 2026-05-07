@@ -57,6 +57,9 @@
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
+#include "chrono_ros/handlers/mbs/ChROSCraneStateHandler.h"
+#include "chrono_ros/handlers/mbs/ChROSActuatorStateHandler.h"
+
 #ifdef CHRONO_SENSOR
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/sensors/Sensor.h"
@@ -68,7 +71,9 @@
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/sensors/ChDepthCamera.h"
 #include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChNormalCamera.h"
 #include "chrono_sensor/sensors/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChPhysCameraSensor.h"
 #endif
 
 #ifdef CHRONO_HAS_OPTIX
@@ -145,6 +150,9 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSTFHandler)
 %shared_ptr(chrono::ros::ChROSRobotModelHandler)
 
+%shared_ptr(chrono::ros::ChROSCraneStateHandler)
+%shared_ptr(chrono::ros::ChROSActuatorStateHandler)
+
 #ifdef CHRONO_SENSOR
 
 #ifdef CHRONO_HAS_OPTIX
@@ -209,6 +217,9 @@ using namespace chrono::ros;
 %include "../../../chrono_ros/handlers/ChROSTFHandler.h"
 %include "../../../chrono_ros/handlers/ChROSHandlerUtilities.h"
 %include "../../../chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
+
+%include "../../../chrono_ros/handlers/mbs/ChROSCraneStateHandler.h"
+%include "../../../chrono_ros/handlers/mbs/ChROSActuatorStateHandler.h"
 
 #ifdef CHRONO_SENSOR
 

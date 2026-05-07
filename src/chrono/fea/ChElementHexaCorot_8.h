@@ -110,11 +110,11 @@ class ChApi ChElementHexaCorot_8 : public ChElementHexahedron,
     virtual void UpdateRotation() override;
 
     /// Returns the strain tensor at given parameters.
-    /// The tensor is in the original undeformed unrotated reference.
+    /// The tensor is in the original undeformed non-rotated reference.
     ChStrainTensor<> GetStrain(double z1, double z2, double z3);
 
     /// Returns the stress tensor at given parameters.
-    /// The tensor is in the original undeformed unrotated reference.
+    /// The tensor is in the original undeformed non-rotated reference.
     ChStressTensor<> GetStress(double z1, double z2, double z3);
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also

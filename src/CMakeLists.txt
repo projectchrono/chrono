@@ -178,6 +178,11 @@ endif()
 
 option(CH_USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
+set(CHRONO_HAS_SSE "#undef CHRONO_HAS_SSE")
+set(CHRONO_HAS_AVX "#undef CHRONO_HAS_AVX")
+set(CHRONO_HAS_FMA "#undef CHRONO_HAS_FMA")
+set(CHRONO_HAS_NEON "#undef CHRONO_HAS_NEON")
+
 if(CH_USE_SIMD)
    find_package(SIMD)
 
@@ -226,7 +231,7 @@ if(CH_USE_SIMD)
 
    # NEON support
    if(SIMD_NEON)
-     set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
+     set(CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
    endif()
 
    message(STATUS "SIMD optimization:")
@@ -308,26 +313,151 @@ if(MPI_CXX_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
-# CUDA support
+# GPU backend support (CUDA and HIP)
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for CUDA")
-
-# Notes:
-# - with new policy CM0104, CMake sets CMAKE_CUDA_ARCHITECTURES based on what nvcc reports
-# - nvcc uses as default sm_52
-# - we use our own cached CHRONO_CUDA_ARCHITECTURES variable
-# - for newer CMake versions, we set CHRONO_CUDA_ARCHITECTURES to 'all-major'
-# - for older CMake (e.g. 3.22 as in Ubuntu 22.04), we request the user to set CHRONO_CUDA_ARCHITECTURES
-# - we bypass CMAKE_CUDA_ARCHITECTURES (force it as advanced and set it from CHRONO_CUDA_ARCHITECTURES)
+set(CHRONO_GPU_BACKEND "AUTO" CACHE STRING "GPU backend for Chrono GPU modules: AUTO, CUDA, HIP")
+set_property(CACHE CHRONO_GPU_BACKEND PROPERTY STRINGS AUTO CUDA HIP)
 set(CHRONO_CUDA_ARCHITECTURES "" CACHE STRING "Chrono CUDA architectures")
+set(CHRONO_HIP_ARCHITECTURES "" CACHE STRING "Chrono HIP architectures")
+set(CHRONO_ROCM_ROOT "" CACHE PATH "Explicit ROCm root for HIP builds")
+set(CHRONO_MIN_HIP_VERSION "5.7.0" CACHE STRING "Minimum HIP version required by Chrono")
 mark_as_advanced(FORCE CMAKE_CUDA_ARCHITECTURES)
+mark_as_advanced(FORCE CMAKE_HIP_ARCHITECTURES)
+
+function(chrono_read_hip_version hip_header out_var)
+  if(NOT EXISTS "${hip_header}")
+    set(${out_var} "" PARENT_SCOPE)
+    return()
+  endif()
+
+  file(STRINGS "${hip_header}" _major REGEX "^#define[ 	]+HIP_VERSION_MAJOR[ 	]+[0-9]+")
+  file(STRINGS "${hip_header}" _minor REGEX "^#define[ 	]+HIP_VERSION_MINOR[ 	]+[0-9]+")
+  file(STRINGS "${hip_header}" _patch REGEX "^#define[ 	]+HIP_VERSION_PATCH[ 	]+[0-9]+")
+
+  if(NOT _major OR NOT _minor OR NOT _patch)
+    set(${out_var} "" PARENT_SCOPE)
+    return()
+  endif()
+
+  string(REGEX REPLACE ".*HIP_VERSION_MAJOR[ 	]+([0-9]+).*" "\\1" _maj "${_major}")
+  string(REGEX REPLACE ".*HIP_VERSION_MINOR[ 	]+([0-9]+).*" "\\1" _min "${_minor}")
+  string(REGEX REPLACE ".*HIP_VERSION_PATCH[ 	]+([0-9]+).*" "\\1" _pat "${_patch}")
+  set(${out_var} "${_maj}.${_min}.${_pat}" PARENT_SCOPE)
+endfunction()
+
+function(chrono_find_rocm out_root out_version)
+  set(_roots)
+  if(CHRONO_ROCM_ROOT)
+    list(APPEND _roots "${CHRONO_ROCM_ROOT}")
+  endif()
+  if(DEFINED ROCM_PATH AND NOT ROCM_PATH STREQUAL "")
+    list(APPEND _roots "${ROCM_PATH}")
+  endif()
+  if(DEFINED ENV{ROCM_PATH} AND NOT "$ENV{ROCM_PATH}" STREQUAL "")
+    list(APPEND _roots "$ENV{ROCM_PATH}")
+  endif()
+  if(DEFINED ENV{ROCM_HOME} AND NOT "$ENV{ROCM_HOME}" STREQUAL "")
+    list(APPEND _roots "$ENV{ROCM_HOME}")
+  endif()
+  if(DEFINED ENV{HIP_PATH} AND NOT "$ENV{HIP_PATH}" STREQUAL "")
+    list(APPEND _roots "$ENV{HIP_PATH}")
+  endif()
+  list(APPEND _roots /opt/rocm /usr/lib/rocm /usr/local/rocm)
+
+  foreach(_root IN LISTS _roots)
+    if(NOT _root)
+      continue()
+    endif()
+    set(_header "")
+    if(EXISTS "${_root}/include/hip/hip_version.h")
+      set(_header "${_root}/include/hip/hip_version.h")
+    elseif(EXISTS "${_root}/hip/include/hip/hip_version.h")
+      set(_header "${_root}/hip/include/hip/hip_version.h")
+    endif()
+    if(_header)
+      chrono_read_hip_version("${_header}" _ver)
+      if(_ver)
+        set(${out_root} "${_root}" PARENT_SCOPE)
+        set(${out_version} "${_ver}" PARENT_SCOPE)
+        return()
+      endif()
+    endif()
+  endforeach()
+
+  set(${out_root} "" PARENT_SCOPE)
+  set(${out_version} "" PARENT_SCOPE)
+endfunction()
 
 include(CheckLanguage)
-check_language(CUDA)
 
-# If CUDA was found, enable the CUDA language
-if(CMAKE_CUDA_COMPILER)
+set(CHRONO_CUDA_FOUND FALSE)
+set(CHRONO_HIP_FOUND FALSE)
+set(CHRONO_GPU_FOUND FALSE)
+set(CHRONO_GPU_BACKEND_RESOLVED "NONE")
+set(CHRONO_ROCM_VERSION "")
+
+message(STATUS "Searching for GPU backends")
+
+set(_chrono_try_hip FALSE)
+set(_chrono_try_cuda FALSE)
+if(CHRONO_GPU_BACKEND STREQUAL "HIP")
+  set(_chrono_try_hip TRUE)
+elseif(CHRONO_GPU_BACKEND STREQUAL "CUDA")
+  set(_chrono_try_cuda TRUE)
+elseif(CHRONO_GPU_BACKEND STREQUAL "AUTO")
+  chrono_find_rocm(_chrono_rocm_root _chrono_rocm_ver)
+  if(_chrono_rocm_root AND _chrono_rocm_ver VERSION_GREATER_EQUAL CHRONO_MIN_HIP_VERSION)
+    set(_chrono_try_hip TRUE)
+  else()
+    set(_chrono_try_cuda TRUE)
+  endif()
+else()
+  message(FATAL_ERROR "Invalid CHRONO_GPU_BACKEND='${CHRONO_GPU_BACKEND}'. Expected AUTO, CUDA, or HIP.")
+endif()
+
+if(_chrono_try_hip)
+  chrono_find_rocm(_chrono_rocm_root _chrono_rocm_ver)
+  if(_chrono_rocm_root)
+    list(PREPEND CMAKE_PREFIX_PATH "${_chrono_rocm_root}")
+    if(NOT DEFINED CMAKE_HIP_COMPILER_ROCM_ROOT)
+      set(CMAKE_HIP_COMPILER_ROCM_ROOT "${_chrono_rocm_root}" CACHE PATH "ROCm root path")
+    endif()
+    if(NOT DEFINED CMAKE_HIP_PLATFORM)
+      set(CMAKE_HIP_PLATFORM "amd" CACHE STRING "HIP platform")
+    endif()
+    check_language(HIP)
+    if(CMAKE_HIP_COMPILER)
+      enable_language(HIP)
+      set(CHRONO_HIP_FOUND TRUE)
+      set(CHRONO_GPU_FOUND TRUE)
+      set(CHRONO_GPU_BACKEND_RESOLVED "HIP")
+      set(CHRONO_ROCM_ROOT "${_chrono_rocm_root}" CACHE PATH "Explicit ROCm root for HIP builds" FORCE)
+      set(CHRONO_ROCM_VERSION "${_chrono_rocm_ver}")
+      if(CHRONO_HIP_ARCHITECTURES STREQUAL "" AND CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
+        set(CHRONO_HIP_ARCHITECTURES "native" CACHE STRING "Chrono HIP architectures" FORCE)
+      endif()
+      if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
+        set(CMAKE_HIP_ARCHITECTURES ${CHRONO_HIP_ARCHITECTURES} CACHE STRING "HIP architectures" FORCE)
+      endif()
+      message(STATUS "  HIP compiler:            ${CMAKE_HIP_COMPILER}")
+      message(STATUS "  ROCm version:            ${CHRONO_ROCM_VERSION}")
+      message(STATUS "  ROCm root dir:           ${CHRONO_ROCM_ROOT}")
+      if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
+        message(STATUS "  HIP archs:               ${CHRONO_HIP_ARCHITECTURES}")
+      endif()
+    else()
+      message(STATUS "  WARNING: HIP requested but no HIP compiler was found.")
+    endif()
+  else()
+    message(STATUS "  WARNING: HIP requested but ROCm was not found.")
+  endif()
+endif()
+
+if(NOT CHRONO_HIP_FOUND AND (_chrono_try_cuda OR CHRONO_GPU_BACKEND STREQUAL "AUTO"))
+  message(STATUS "Searching for CUDA")
+  check_language(CUDA)
+  if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
     find_package(CUDAToolkit)
     message(STATUS "  CUDA compiler:           ${CMAKE_CUDA_COMPILER}")
@@ -348,17 +478,40 @@ if(CMAKE_CUDA_COMPILER)
       message("  WARNING: CUDA architectures not found. Set CHRONO_CUDA_ARCHITECTURES")
     else()
       set(CHRONO_CUDA_FOUND TRUE)
+      set(CHRONO_GPU_FOUND TRUE)
+      set(CHRONO_GPU_BACKEND_RESOLVED "CUDA")
       message(STATUS "  CUDA found and enabled.")
       set(CMAKE_CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES} CACHE STRING "CUDA architectures" FORCE)
-      ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
       if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         set(CUDA_SEPARABLE_COMPILATION OFF)
       endif()
     endif()
-else()
+  else()
     set(CHRONO_CUDA_FOUND FALSE)
     mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
     message("  WARNING  CUDA not found. CUDA features will be disabled.")
+  endif()
+endif()
+
+set(CHRONO_GPU_BACKEND ${CHRONO_GPU_BACKEND_RESOLVED})
+#-----------------------------------------------------------------------------
+# HIP + Eigen alignment compatibility
+#-----------------------------------------------------------------------------
+
+# Some host-side Chrono classes contain fixed-size Eigen objects. With AVX,
+# Eigen may require 32-byte alignment; a few allocation paths used by demos,
+# visualization, or MBS coupling do not guarantee that in all environments.
+# In HIP builds this can abort demo_FSI-SPH_CouetteFlow before any SPH kernel is
+# reached. Limiting Eigen's maximum static alignment to 16 bytes avoids the
+# fragile 32-byte over-alignment requirement while keeping ordinary
+# SSE-friendly vectorization and without touching CUDA/NVIDIA builds.
+set(CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES "16" CACHE STRING
+    "Maximum Eigen alignment in HIP builds; set to 0 to fully disable fixed-size Eigen over-alignment")
+if(CHRONO_HIP_FOUND)
+  target_compile_definitions(Eigen3::Eigen INTERFACE
+    EIGEN_MAX_ALIGN_BYTES=${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES}
+    EIGEN_MAX_STATIC_ALIGN_BYTES=${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES})
+  message(STATUS "  HIP Eigen max alignment: ${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES} bytes")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -368,6 +521,16 @@ endif()
 message(STATUS "Searching for Thrust")
 
 find_package(Thrust)
+
+if(CHRONO_HIP_FOUND AND Thrust_FOUND AND CHRONO_ROCM_ROOT)
+  file(REAL_PATH "${THRUST_INCLUDE_DIR}" _chrono_thrust_include_real)
+  file(REAL_PATH "${CHRONO_ROCM_ROOT}" _chrono_rocm_root_real)
+  string(FIND "${_chrono_thrust_include_real}" "${_chrono_rocm_root_real}/" _chrono_rocm_thrust_pos)
+  if(_chrono_rocm_thrust_pos EQUAL 0 OR _chrono_thrust_include_real STREQUAL "${_chrono_rocm_root_real}")
+    message(STATUS "  Ignoring ROCm-packaged Thrust for host-side Chrono targets in HIP builds.")
+    set(Thrust_FOUND FALSE)
+  endif()
+endif()
 
 if(Thrust_FOUND)
   message(STATUS "  Thrust version:     ${THRUST_VERSION}")
@@ -395,24 +558,63 @@ option(CH_ENABLE_HDF5 "Enable HDF5 support" OFF)
 
 if(CH_ENABLE_HDF5)
     message(STATUS "Searching for HDF5...")
-    find_package(HDF5 COMPONENTS CXX)
 
+    find_package(HDF5 COMPONENTS CXX)
     if (HDF5_FOUND)
         message(STATUS "  HDF5 found         (HDF5_FOUND)         ${HDF5_FOUND}")
         message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
         message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
         message(STATUS "  HDF5 libraries     (HDF5_LIBRARIES)     ${HDF5_LIBRARIES}")
-
-        set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
     else()
         message(STATUS "  Could not find HDF5")
     endif()
+endif()
 
+#-----------------------------------------------------------------------------
+# Enable YAML support
+#-----------------------------------------------------------------------------
+
+option(CH_ENABLE_YAML "Enable YAML support" ON)
+
+if(CH_ENABLE_YAML)
+    message(STATUS "Enabling YAML support...")
+
+    if(MSVC AND MSVC_VERSION LESS 1930)
+        # Due to a bug, yaml-cpp cannot be compiled with VS 2019 or older
+        message("WARNING: yaml-cpp requires Visual Studio 2022 or newer.")
+        message(STATUS "YAML parser support disabled.")
+        set(CHRONO_YAML_ENABLED NO)
+    else()
+        # Fetch yaml-cpp from third party directory
+        include(FetchContent)
+    
+        FetchContent_Declare(
+          yaml-cpp
+          SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp"
+        )
+        FetchContent_MakeAvailable(yaml-cpp)
+        
+        mark_as_advanced(FORCE YAML_CPP_INSTALL)
+        mark_as_advanced(FORCE YAML_CPP_INSTALL_CMAKEDIR)
+        
+        # Disable warnings
+        if (MSVC)
+          target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+          target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4275>)
+          target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4267>)
+        endif()
+
+        message(STATUS "  Using ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp.")
+        set(CHRONO_YAML_ENABLED YES)
+    endif()
 endif()
 
 #------------------------------------------------------------
 # Build submodules
 #------------------------------------------------------------
+
+set(CHRONO_HAS_GTEST "#undef CHRONO_HAS_GTEST")
+set(CHRONO_HAS_GBENCHMARK "#undef CHRONO_HAS_GBENCHMARK")
 
 if(BUILD_TESTING)
   message(STATUS "Build Google test framework")
@@ -435,7 +637,6 @@ if(BUILD_TESTING)
     message("  Google test code not found: update git submodules.")
     message("  Building of unit tests was disabled.")
     set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree." FORCE)
-    set(CHRONO_HAS_GTEST "")
   endif()
 
 endif()
@@ -475,7 +676,6 @@ if(BUILD_BENCHMARKING)
     message("  Google benchmark code not found: update git submodules.")
     message("  Building of benchmark tests was disabled.")
     set(BUILD_BENCHMARKING OFF CACHE BOOL "Build benchmark tests" FORCE)
-    set(CHRONO_HAS_GBENCHMARK "")
   endif()
 
 endif()
@@ -492,6 +692,7 @@ add_subdirectory(chrono)
 # ATTENTION: It is important to configure Chrono::Mumps before any other modules that may depend on Intel MKL!
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_pardisomkl)
+add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_parsers)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
@@ -502,7 +703,6 @@ add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_peridynamics)
 add_subdirectory(chrono_multicore)
-add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_dem)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_models)
@@ -518,7 +718,7 @@ endif()
 if(BUILD_TESTING)
   add_subdirectory(tests/unit_tests)
   if(CH_ENABLE_MODULE_PYTHON)
-    add_subdirectory(tests/python_unit_tests)
+    add_subdirectory(tests/unit_tests/python)
   endif()
 endif()
 if(BUILD_BENCHMARKING)
@@ -526,6 +726,20 @@ if(BUILD_BENCHMARKING)
 endif()
 
 message(STATUS "")
+
+#------------------------------------------------------------
+# Install yaml-cpp
+#------------------------------------------------------------
+
+if(CHRONO_YAML_ENABLED)
+  install(TARGETS yaml-cpp
+          EXPORT ChronoTargets
+          RUNTIME DESTINATION bin
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          #INCLUDES DESTINATION include/chrono_thirdparty/yaml-cpp
+  )
+endif()
 
 #------------------------------------------------------------
 # Install headers from chrono_thirdparty folder
@@ -563,6 +777,18 @@ string(LENGTH "${CMAKE_SOURCE_DIR}/src/" SOURCE_PATH_SIZE)
 # TODO: the following tests should be more precise (we should test
 #       that a particular module was successfully built, not just
 #       enabled)
+
+if(CH_ENABLE_MODULE_FEA)
+  set(CHRONO_FEA "#define CHRONO_FEA")
+  if(CH_ENABLE_MODULE_FEA_MULTIPHYSICS)
+    set(CHRONO_FEA_MULTIPHYSICS "#define CHRONO_FEA_MULTIPHYSICS")
+  else()
+    set(CHRONO_FEA_MULTIPHYSICS "#undef CHRONO_FEA_MULTIPHYSICS")
+  endif()
+else()
+  set(CHRONO_FEA "#undef CHRONO_FEA")
+  set(CHRONO_FEA_MULTIPHYSICS "#undef CHRONO_FEA_MULTIPHYSICS")
+endif()
 
 if(CH_ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
@@ -612,16 +838,11 @@ else()
   set(CHRONO_PARDISO_MKL "#undef CHRONO_PARDISO_MKL")
 endif()
 
-if(CH_ENABLE_MODULE_PARSERS)
-  set(CHRONO_PARSERS "#define CHRONO_PARSERS")
-else()
-  set(CHRONO_PARSERS "#undef CHRONO_PARSERS")
-endif()
-
 if(CH_ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
+  set(CHRONO_HAS_GNUPLOT "#undef CHRONO_HAS_GNUPLOT")
 endif()
 
 if(CH_ENABLE_MODULE_PYTHON)
@@ -652,6 +873,12 @@ else()
   set(CHRONO_FSI "#undef CHRONO_FSI")
   set(CHRONO_FSI_SPH "#undef CHRONO_FSI_SPH")
   set(CHRONO_FSI_TDPF "#undef CHRONO_FSI_TDPF")
+endif()
+
+if(CH_ENABLE_MODULE_PARSERS)
+  set(CHRONO_PARSERS "#define CHRONO_PARSERS")
+else()
+  set(CHRONO_PARSERS "#undef CHRONO_PARSERS")
 endif()
 
 if(CH_ENABLE_MODULE_DEM)
@@ -710,6 +937,14 @@ else()
   set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
 endif()
 
+if(CHRONO_HIP_FOUND)
+  set(CHRONO_HAS_HIP "#define CHRONO_HAS_HIP")
+  set(CHRONO_HIP_VERSION "#define CHRONO_HIP_VERSION \"${CHRONO_ROCM_VERSION}\"")
+else()
+  set(CHRONO_HAS_HIP "#undef CHRONO_HAS_HIP")
+  set(CHRONO_HIP_VERSION "#undef CHRONO_HIP_VERSION")
+endif()
+
 if(CHRONO_THRUST_FOUND)
   set(CHRONO_HAS_THRUST "#define CHRONO_HAS_THRUST")
   set(CHRONO_THRUST_VERSION "#define CHRONO_THRUST_VERSION \"${THRUST_VERSION}\"")
@@ -726,7 +961,19 @@ else()
     set(CHRONO_HAS_CXX17 "#undef CHRONO_HAS_CXX17")
 endif()
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
+if(HDF5_FOUND)
+    set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
+else()
+    set(CHRONO_HAS_HDF5 "#undef CHRONO_HAS_HDF5")
+endif()
+
+if(CHRONO_YAML_ENABLED)
+    set(CHRONO_HAS_YAML "#define CHRONO_HAS_YAML")
+else()
+    set(CHRONO_HAS_YAML "#undef CHRONO_HAS_YAML")
+endif()
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ChConfig.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
                @ONLY)
 
@@ -737,7 +984,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
 # Generate and install the versioning header file
 #-----------------------------------------------------------------------------
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChVersion.h.in"
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ChVersion.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
                @ONLY)
 
@@ -756,32 +1003,33 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
 
-# Create Chrono project configuration script in install and build trees
+# Create Chrono project configuration script for the install tree
 set(CH_INSTALL_TREE TRUE)
 set(CH_BUILD_TREE_DIR "")
 set(CHRONO_SWIG_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_swig")
 configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
+  "${CMAKE_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake-install"
   INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
+# Create Chrono project configuration script for the build tree
 set(CH_INSTALL_TREE FALSE)
 set(CH_BUILD_TREE_DIR "${PROJECT_BINARY_DIR}")
 set(CHRONO_SWIG_DIR "${CMAKE_BINARY_DIR}/chrono_swig")
 configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+  "${CMAKE_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake"
   INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
 unset(CH_INSTALL_TREE)
 unset(CH_BUILD_TREE_DIR)
 
-# install config files
+# install config file
 install(FILES
-        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
-        RENAME "chrono-config.cmake"
+        "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake-install"
+        RENAME "ChronoConfig.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
@@ -805,32 +1053,23 @@ if(CH_ENABLE_MODULE_CSHARP)
 endif()
 
 #-----------------------------------------------------------------------------
+# Create the ChronoConfigVersion.cmake file
+#-----------------------------------------------------------------------------
 
+write_basic_package_version_file(
+  "${CMAKE_BINARY_DIR}/cmake/ChronoConfigVersion.cmake"
+  VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}"
+  COMPATIBILITY SameMajorVersion
+)
 
-## TODO DARIOM: do version
-# # set version
-# set(version 3.4.1)
-
-# set_property(TARGET MathFunctions PROPERTY VERSION ${version})
-# set_property(TARGET MathFunctions PROPERTY SOVERSION 3)
-# set_property(TARGET MathFunctions PROPERTY
-#   INTERFACE_MathFunctions_MAJOR_VERSION 3)
-# set_property(TARGET MathFunctions APPEND PROPERTY
-#   COMPATIBLE_INTERFACE_STRING MathFunctions_MAJOR_VERSION
-# )
-
-# # generate the version file for the config file
-# write_basic_package_version_file(
-#   "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
-#   VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}"
-#   COMPATIBILITY AnyNewerVersion
-# )
-
+install(FILES
+        "${CMAKE_BINARY_DIR}/cmake/ChronoConfigVersion.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
 
 #-----------------------------------------------------------------------------
 # Export generated ChronoTargets.cmake
 #-----------------------------------------------------------------------------
-
 
 export(EXPORT ChronoTargets
        FILE "${CMAKE_BINARY_DIR}/cmake/ChronoTargets.cmake"

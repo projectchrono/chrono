@@ -3,7 +3,53 @@ Overview of Chrono::Sensor {#sensor_overview}
 
 \tableofcontents
 
-The Chrono::Sensor module provides support for simulating RGB cameras, lidar, radar, GPS, and accelerometer, gyroscope, and magnetometer within a Chrono simulation. Sensors are objects that are attached to Chrono Bodies(ChBody). Chrono::Sensor is currently compatible with the core rigid body simulation in Chrono including Chrono::Vehicle.
+The Chrono::Sensor module provides support for simulating RGB cameras, lidar, radar, GPS, and accelerometer, gyroscope, and magnetometer within a Chrono simulation. Sensors are objects that are attached to Chrono Bodies(ChBody). Chrono::Sensor is currently compatible with the core rigid body simulation in Chrono including Chrono::Vehicle. It's also compatible with the SCMTerrain, but it's not yet compatible with FSI problems. A full list of supported capabilities are listed.
+
+## Supported Sensors
+ - RGB monocular camera
+ - Physics-based RGB monocular camera
+ - Depth camera
+ - Segmentation camera
+ - Normal-map camera
+ - Lidar
+ - GPS
+ - IMU
+
+## Current Capabilities
+ - Scene Rendering
+	 - Lights
+		 - Point light
+		 - Spot light
+		 - Directional light
+		 - Rectangle area light
+		 - Disk area light
+		 - Environment light
+		 - Shadows
+	 - Materials
+		 - Reflection based on material reflectance
+		 - Fresnel effect
+		 - Mesh support based on Wavefront OBJ+MTL format
+		 - Programmatic material creation
+		 - Legacy integrator supports partial transparency without refractance
+	 - Objects
+		 - Box primitives
+		 - Sphere primitives
+		 - Cylinder primitives
+		 - Triangle Mesh
+ - Camera sensor
+	 - Ground-truth ray-traced camera rendering
+	 - Filter-based sensor model for user defined sensor model
+ - Filters
+  	 - Greyscale kernel
+  	 - Visualization using GLFW
+  	 - Copy-back filter for data access from CPU
+  	 - Save images to file at a specific path
+  	 - Convert lidar measurements to point cloud
+ - Lidar Sensor
+     - Single ray and multi-ray data generation
+ - GPS Sensor
+ - IMU Sensor
+     - Accelerometer and Gyroscope
 
 ## Detailed overview of Chrono::Sensor.
 

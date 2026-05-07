@@ -19,8 +19,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinePoly)
 
-ChLinePoly::ChLinePoly(int mnumpoints) : degree(1) {
-    points.resize(mnumpoints);
+ChLinePoly::ChLinePoly(int num_points) : degree(1) {
+    points.resize(num_points);
 }
 
 ChLinePoly::ChLinePoly(const ChLinePoly& source) : ChLine(source) {
@@ -36,19 +36,18 @@ int ChLinePoly::GetDegree() const {
     return degree;
 }
 
-ChVector3d ChLinePoly::GetPoint(size_t mnum) const {
-    if (mnum >= GetNumPoints())
+ChVector3d ChLinePoly::GetPoint(size_t idx) const {
+    if (idx >= GetNumPoints())
         return VNULL;
 
-    return points[mnum];
+    return points[idx];
 }
 
-bool ChLinePoly::SetPoint(int mnum, const ChVector3d& mpoint) {
-    if (mnum >= GetNumPoints())
+bool ChLinePoly::SetPoint(int idx, const ChVector3d& point) {
+    if (idx >= GetNumPoints())
         return false;
 
-    this->points[mnum] = mpoint;
-
+    points[idx] = point;
     return true;
 }
 

@@ -21,10 +21,11 @@
 #include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono_cascade/ChCascadeBodyEasy.h"
+#include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChVisualShapeCascade.h"
 #include "chrono/solver/ChSolverADMM.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -39,19 +40,18 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::cascade;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::NONE;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
-#ifdef CHRONO_IRRLICHT
-    vis_type = ChVisualSystem::Type::IRRLICHT;
+#if !defined(CHRONO_IRRLICHT) && !defined(CHRONO_VSG)
+    std::cerr << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
+    return 1;
 #endif
-#ifdef CHRONO_VSG
-    vis_type = ChVisualSystem::Type::VSG;
-#endif
+
     // Check for valid visualization system
     if(vis_type == ChVisualSystem::Type::NONE) {
         std::cout << "Configure chrono with VSG or Irrlicht to run this example!" << std::endl;
-        return 99;
+        return 1;
     }
     // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
@@ -89,15 +89,15 @@ int main(int argc, char* argv[]) {
     // syntax and * or ? wldcards, etc.
     //
 
-    std::shared_ptr<ChCascadeBodyEasy> body_base;
-    std::shared_ptr<ChCascadeBodyEasy> body_turret;
-    std::shared_ptr<ChCascadeBodyEasy> body_bicep;
-    std::shared_ptr<ChCascadeBodyEasy> body_elbow;
-    std::shared_ptr<ChCascadeBodyEasy> body_forearm;
-    std::shared_ptr<ChCascadeBodyEasy> body_wrist;
-    std::shared_ptr<ChCascadeBodyEasy> body_hand;
-    std::shared_ptr<ChCascadeBodyEasy> body_cylinder;
-    std::shared_ptr<ChCascadeBodyEasy> body_rod;
+    std::shared_ptr<ChBodyEasyCascade> body_base;
+    std::shared_ptr<ChBodyEasyCascade> body_turret;
+    std::shared_ptr<ChBodyEasyCascade> body_bicep;
+    std::shared_ptr<ChBodyEasyCascade> body_elbow;
+    std::shared_ptr<ChBodyEasyCascade> body_forearm;
+    std::shared_ptr<ChBodyEasyCascade> body_wrist;
+    std::shared_ptr<ChBodyEasyCascade> body_hand;
+    std::shared_ptr<ChBodyEasyCascade> body_cylinder;
+    std::shared_ptr<ChBodyEasyCascade> body_rod;
 
     // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     if (load_ok) {
         TopoDS_Shape shape_base;
         if (mydoc.GetNamedShape(shape_base, "Assem10/Assem8")) {
-            body_base = chrono_types::make_shared<ChCascadeBodyEasy>(shape_base, 1000, true, false);
+            body_base = chrono_types::make_shared<ChBodyEasyCascade>(shape_base, 1000, true, false);
             sys.Add(body_base);
 
             // The base is fixed to the ground
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_turret;
         if (mydoc.GetNamedShape(shape_turret, "Assem10/Assem4")) {
-            auto mbody = chrono_types::make_shared<ChCascadeBodyEasy>(shape_turret, 1000, true, false);
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_turret, 1000, true, false);
             body_turret = mbody;
             sys.Add(body_turret);
             // Move the body as for global displacement/rotation
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_bicep;
         if (mydoc.GetNamedShape(shape_bicep, "Assem10/Assem1")) {
-            body_bicep = chrono_types::make_shared<ChCascadeBodyEasy>(shape_bicep, 1000, true, false);
+            body_bicep = chrono_types::make_shared<ChBodyEasyCascade>(shape_bicep, 1000, true, false);
             sys.Add(body_bicep);
             // Move the body as for global displacement/rotation
             body_bicep->ConcatenatePreTransformation(root_frame);
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_elbow;
         if (mydoc.GetNamedShape(shape_elbow, "Assem10/Assem5")) {
-            body_elbow = chrono_types::make_shared<ChCascadeBodyEasy>(shape_elbow, 1000, true, false);
+            body_elbow = chrono_types::make_shared<ChBodyEasyCascade>(shape_elbow, 1000, true, false);
             sys.Add(body_elbow);
             // Move the body as for global displacement/rotation
             body_elbow->ConcatenatePreTransformation(root_frame);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_forearm;
         if (mydoc.GetNamedShape(shape_forearm, "Assem10/Assem7")) {
-            body_forearm = chrono_types::make_shared<ChCascadeBodyEasy>(shape_forearm, 1000, true, false);
+            body_forearm = chrono_types::make_shared<ChBodyEasyCascade>(shape_forearm, 1000, true, false);
             sys.Add(body_forearm);
             // Move the body as for global displacement/rotation
             body_forearm->ConcatenatePreTransformation(root_frame);
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_wrist;
         if (mydoc.GetNamedShape(shape_wrist, "Assem10/Assem6")) {
-            body_wrist = chrono_types::make_shared<ChCascadeBodyEasy>(shape_wrist, 1000, true, false);
+            body_wrist = chrono_types::make_shared<ChBodyEasyCascade>(shape_wrist, 1000, true, false);
             sys.Add(body_wrist);
             // Move the body as for global displacement/rotation
             body_wrist->ConcatenatePreTransformation(root_frame);
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_hand;
         if (mydoc.GetNamedShape(shape_hand, "Assem10/Assem9")) {
-            body_hand = chrono_types::make_shared<ChCascadeBodyEasy>(shape_hand, 1000, true, false);
+            body_hand = chrono_types::make_shared<ChBodyEasyCascade>(shape_hand, 1000, true, false);
             sys.Add(body_hand);
             // Move the body as for global displacement/rotation
             body_hand->ConcatenatePreTransformation(root_frame);
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_cylinder;
         if (mydoc.GetNamedShape(shape_cylinder, "Assem10/Assem3")) {
-            body_cylinder = chrono_types::make_shared<ChCascadeBodyEasy>(shape_cylinder, 1000, true, false);
+            body_cylinder = chrono_types::make_shared<ChBodyEasyCascade>(shape_cylinder, 1000, true, false);
             sys.Add(body_cylinder);
             // Move the body as for global displacement/rotation
             body_cylinder->ConcatenatePreTransformation(root_frame);
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_rod;
         if (mydoc.GetNamedShape(shape_rod, "Assem10/Assem2")) {
-            body_rod = chrono_types::make_shared<ChCascadeBodyEasy>(shape_rod, 1000, true, false);
+            body_rod = chrono_types::make_shared<ChBodyEasyCascade>(shape_rod, 1000, true, false);
             sys.Add(body_rod);
             // Move the body as for global displacement/rotation
             body_rod->ConcatenatePreTransformation(root_frame);
@@ -387,24 +387,31 @@ int main(int argc, char* argv[]) {
     sys.Add(mfloor);
 
     // Create a stack of boxes to be impacted
-    if (true) {
-        double brick_h = 0.3;
-        for (int ix = 0; ix < 3; ++ix)
-            for (int ib = 0; ib < 6; ++ib) {
-                std::shared_ptr<ChBodyEasyBox> cube(
-                    new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
-                cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
-                cube->SetRot(QuatFromAngleY(ib * 0.1));
-                cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom::Get()),  //
-                                                          0.5f + float(0.5 * ChRandom::Get()),  //
-                                                          0.5f + float(0.5 * ChRandom::Get())   //
-                                                          ));
-                sys.Add(cube);
-            }
-    }
+    double brick_h = 0.3;
+    for (int ix = 0; ix < 3; ++ix)
+        for (int ib = 0; ib < 6; ++ib) {
+            std::shared_ptr<ChBodyEasyBox> cube(new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
+            cube->SetPos(ChVector3d(-1.4, (0.5 * brick_h) + ib * brick_h, -0.4 - 0.5 * ix));
+            cube->SetRot(QuatFromAngleY(ib * 0.1));
+            cube->GetVisualShape(0)->SetColor(ChColor(0.5f + float(0.5 * ChRandom::Get()),  //
+                                                      0.5f + float(0.5 * ChRandom::Get()),  //
+                                                      0.5f + float(0.5 * ChRandom::Get())   //
+                                                      ));
+            sys.Add(cube);
+        }
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
@@ -430,6 +437,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetWindowTitle("Load a robot model from STEP file");
             vis_vsg->AddCamera(ChVector3d(2.2, 1.6, 2.5), ChVector3d(0, 1, 0));
+            vis_vsg->SetLightDirection(-CH_PI_2, CH_PI_4);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -471,8 +479,8 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        ////tools::drawChFunction(vis.get(), motlaw_z, 0, 10, -0.9, 0.2, 10, 400, 300, 80);
-        ////tools::drawChFunction(vis.get(), motlaw_y, 0, 10, -0.9, 0.2, 10, 500, 300, 80);
+        ////tools::DrawChFunction(vis.get(), motlaw_z, 0, 10, -0.9, 0.2, 10, 400, 300, 80);
+        ////tools::DrawChFunction(vis.get(), motlaw_y, 0, 10, -0.9, 0.2, 10, 500, 300, 80);
         vis->EndScene();
 
         sys.DoStepDynamics(time_step);

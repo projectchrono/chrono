@@ -23,8 +23,7 @@ namespace chrono {
 /// @{
 
 /// Base class for all geometric objects representing bi-parametric surfaces in 3D space.
-/// This is the base for all U,V-parametric object, implementing Evaluate()
-/// that returns a point as a function of two U,V parameters.
+/// This is the base for all U,V-parametric object, implementing Evaluate() that returns a point as a function of two U,V parameters.
 class ChApi ChSurface : public ChGeometry {
   public:
     ChSurface() : wireframe(false) {}
@@ -47,7 +46,7 @@ class ChApi ChSurface : public ChGeometry {
     virtual bool IsClosedU() const { return false; }
 
     /// Return true if the surface is closed (periodic) in the 2nd parametric coordinate.
-    virtual bool IslosedV() const { return false; }
+    virtual bool IsClosedV() const { return false; }
 
     /// Return dimensionality of this object.
     /// For a surface, this is always 2.

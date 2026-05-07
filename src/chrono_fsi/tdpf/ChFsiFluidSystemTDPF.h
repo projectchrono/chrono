@@ -45,7 +45,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     /// Set input file name with hydro data (HDF5 format).
     void SetHydroFilename(const std::string& filename);
 
-    /// Set gravity for the FSI syatem.
+    /// Set gravity for the FSI system.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Return gravitational acceleration.
@@ -53,10 +53,6 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
 
     void SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode);
     void SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts);
-
-    /// Add no wave conditions.
-    /// Note that the number of bodies is overwritten during initialization.
-    void AddWaves(const NoWaveParams& params);
 
     /// Add regular wave conditions.
     /// Note that the number of bodies is overwritten during initialization.
@@ -78,9 +74,30 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
   private:
     enum class WaveType { NONE, REGULAR, IRREGULAR };
 
+    // ----------
+
+    /// Load the given body and mesh node states in the TDPF data manager structures.
+    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the TDPF data
+    /// manager. LoadSolidStates is always called once during initialization. If the TDPF fluid solver is paired with
+    /// the generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at
+    /// each co-simulation data exchange. If using a custom TDPF FSI interface, MBS states are copied directly...
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states) override;
+
+    /// Store the body and mesh node forces from the TDPF data manager to the given vectors.
+    /// If the TDPF fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
+    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using a custom TDPF FSI
+    /// interface, MBS forces are copied directly...
+    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces) override;
+
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
+    // ----------
+
+    /// Initialize the TDPF fluid system with FSI support.
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states) override;
+
+ #ifdef CHRONO_FEA
     /// TDPF solver-specific actions taken when a 1D deformable solid is added as an FSI object.
     virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
 
@@ -112,6 +129,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) override;
+#endif
 
     // ----------
 
@@ -138,7 +156,6 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     std::unique_ptr<ChFsiFluidSystemTDPF_impl> m_impl;  ///< private implementation
 
     WaveType m_wave_type;
-    NoWaveParams m_no_wave_params;            ///< no wave parameters (optional)
     RegularWaveParams m_reg_wave_params;      ///< regular wave parameters (optional)
     IrregularWaveParams m_irreg_wave_params;  ///< irregular wave parameters (optional)
 

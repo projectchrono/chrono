@@ -115,7 +115,7 @@ class ChApi ChFilterI : public ChAnalogueFilter {
     double m_Ti;
 };
 
-/// Caclulate the time derivation of an input signal:
+/// Calculate the time derivation of an input signal:
 /// H(s) = Td * s
 class ChApi ChFilterD : public ChAnalogueFilter {
   public:
@@ -454,7 +454,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     void GeneratePlotFile(std::string fName, std::string testInfo);
 
   private:
-    // running time of data loging
+    // running time of data logging
     const double m_tstart1 = 0.2;
     const double m_tstart2 = 0.5;
     double m_logging_time;
@@ -472,12 +472,12 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     std::vector<double> m_data_acc_ap_z;  // vertical acceleration in ft/s^2 for absorbed power calculation
     double m_data_ap_avg;
 
-    // freqency weighted data series
+    // frequency weighted data series
     std::vector<double> m_data_acc_x_wd;
     std::vector<double> m_data_acc_y_wd;
     std::vector<double> m_data_acc_z_wk;
 
-    // integrated squared freqency weighted data series
+    // integrated squared frequency weighted data series
     std::vector<double> m_data_aw_x_i;
     std::vector<double> m_data_aw_y_i;
     std::vector<double> m_data_aw_z_i;
@@ -487,7 +487,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     std::vector<double> m_data_vdv_y_i;
     std::vector<double> m_data_vdv_z_i;
 
-    // integral averaged freqency weighted data series
+    // integral averaged frequency weighted data series
     std::vector<double> m_data_aw_x_avg;
     std::vector<double> m_data_aw_y_avg;
     std::vector<double> m_data_aw_z_avg;
@@ -541,7 +541,7 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
   private:
     // time step = 1/fs for the input data
     double m_step_inp;
-    // running time of data loging
+    // running time of data logging
     const double m_tstart1 = 0.2;
     const double m_tstart2 = 0.5;
     const double m_step = 1.0 / 160.0;

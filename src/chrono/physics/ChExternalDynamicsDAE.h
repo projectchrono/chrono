@@ -173,7 +173,7 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
             throw std::runtime_error("IncrementState required for a DAE with Ny != Nyd.");
     }
 
-    /// Calculate the increment between the two procided state vectors.
+    /// Calculate the increment between the two provided state vectors.
     /// Must calculate Dv = x_new - x. If the number of derivatives is equal to the number of states, this is a simple
     /// vector subtraction and this function need not be implemented. Otherwise (e.g., when using quaternions for
     /// rotations), special treatment is required and a derived class must provide an override. Here, 'x' and 'x_new'
@@ -243,9 +243,10 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
+                                     const double c_vel, 
                                      bool do_clamp,
                                      double recovery_clamp) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,

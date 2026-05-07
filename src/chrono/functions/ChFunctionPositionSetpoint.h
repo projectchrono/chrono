@@ -64,12 +64,13 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
     CH_ENUM_MAPPER_END(eChSetpointMode);
     /// @endcond
 
-    /// Sets the extrapolation/interpolation mode
+    /// Set the extrapolation/interpolation mode.
     void SetMode(eChSetpointMode mmode) { mode = mmode; }
-    /// Gets the extrapolation/interpolation mode
-    eChSetpointMode GetMode() { return mode; }
 
-    /// Use this to go back to s=0 (the SetSetpoint() function works only if called at increasing s values)
+    /// Get the extrapolation/interpolation mode
+    eChSetpointMode GetMode() const { return mode; }
+
+    /// Use this to go back to s=0 (the SetSetpoint() function works only if called at increasing s values).
     void Reset(double ms = 0);
 
     /// Set the setpoint, and compute its derivatives (speed, acceleration) automatically
@@ -82,19 +83,13 @@ class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
     /// be zero. If in FIRST_ORDER_HOLD mode: value p will interpolate linearly from the previous value, derivative p_ds
     /// will be constant, p_dsds will be zero. If in SOH mode: value p will interpolate quadratically, derivative p_ds
     /// will be linear, p_dsds will be constant.
-    virtual void SetSetpoint(ChVector3d p_setpoint, double s);
+    virtual void SetSetpoint(const ChVector3d& p_setpoint, double s);
 
     /// Set the setpoint, and also its derivatives. Moreover, changes the mode to eChSetpointMode::OVERRIDE, so
     /// all values will persist indefinitely until next call, that is multiple calls to GetPos(s) GetLinVel() etc. will
     /// give same results (non interpolated) regardless of s.
-    virtual void SetSetpointAndDerivatives(ChVector3d p_setpoint,
-                                           ChVector3d p_setpoint_ds,
-                                           ChVector3d p_setpoint_dsds) {
-        mode = eChSetpointMode::OVERRIDE;
-        P = p_setpoint;
-        P_ds = p_setpoint_ds;
-        P_dsds = p_setpoint_dsds;
-    }
+    virtual void SetSetpointAndDerivatives(const ChVector3d& p_setpoint,
+                                           const ChVector3d& p_setpoint_ds, const ChVector3d& p_setpoint_dsds);
 
     /// Return the position imposed by the function, at \a s.
     virtual ChVector3d GetPos(double s) const override;

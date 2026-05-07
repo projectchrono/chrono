@@ -42,9 +42,8 @@ namespace vehicle {
 /// @{
 
 /// Granular terrain model.
-/// This class implements a rectangular patch of granular terrain with spherical particles.
-/// Boundary conditions (model of a container bin) are imposed through a custom collision
-/// detection object.
+/// This class implements a rectangular patch of granular terrain with spherical particles. Boundary conditions (model
+/// of a container bin) are imposed through a custom collision detection object.
 class CH_VEHICLE_API GranularTerrain : public ChTerrain {
   public:
     /// Construct a default GranularTerrain.
@@ -61,11 +60,10 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }
 
     /// Set outward collision envelope.
-    /// This value is used for the internal custom collision detection for imposing
-    /// boundary conditions.  Note that if the underlying system is of SMC type (i.e.,
-    /// using a penalty-based contact method), the envelope is automatically set to 0.
-    /// For NSC systems (i.e., when using a complementarity-based contact method), if
-    /// the envelope is not specified, the default value is 5% of the particle radius.
+    /// This value is used for the internal custom collision detection for imposing boundary conditions.  Note that if
+    /// the underlying system is of SMC type (i.e., using a penalty-based contact method), the envelope is automatically
+    /// set to 0. For NSC systems (i.e., when using a complementarity-based contact method), if the envelope is not
+    /// specified, the default value is 5% of the particle radius.
     void SetCollisionEnvelope(double envelope) { m_envelope = envelope; }
 
     /// Set the minimum number of particles to be generated (default: 0).
@@ -94,11 +92,9 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> GetGroundBody() { return m_ground; }
 
     /// Initialize the granular terrain system.
-    /// The granular material is created in successive layers within the specified volume,
-    /// using the specified generator, until the number of particles exceeds the specified
-    /// minimum value (see SetMinNumParticles).
-    /// The initial particle locations are obtained with Poisson Disk sampling, using the
-    /// given minimum separation distance.
+    /// The granular material is created in successive layers within the specified volume, using the specified
+    /// generator, until the number of particles exceeds the specified minimum value (see SetMinNumParticles). The
+    /// initial particle locations are obtained with Poisson Disk sampling, using the given minimum separation distance.
     void Initialize(const ChVector3d& center,                  ///< [in] center of bottom
                     double length,                             ///< [in] patch dimension in X direction
                     double width,                              ///< [in] patch dimension in Y direction
@@ -128,6 +124,10 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Get the number of particles.
     unsigned int GetNumParticles() const { return m_num_particles; }
 
+    /// Get the terrain point below the specified location.
+    /// This function returns the highest point over all granular particles.
+    virtual ChVector3d GetPoint(const ChVector3d& loc) const override;
+
     /// Get the terrain height below the specified location.
     /// This function returns the highest point over all granular particles.
     virtual double GetHeight(const ChVector3d& loc) const override;
@@ -136,12 +136,11 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
-    /// This coefficient of friction value may be used by certain tire models to modify
-    /// the tire characteristics, but it will have no effect on the interaction of the terrain
-    /// with other objects (including tire models that do not explicitly use it).
-    /// For GranularTerrain, this function defers to the user-provided functor object of type
-    /// ChTerrain::FrictionFunctor, if one was specified.
-    /// Otherwise, it returns the constant value specified through SetContactFrictionCoefficient.
+    /// This coefficient of friction value may be used by certain tire models to modify the tire characteristics, but it
+    /// will have no effect on the interaction of the terrain with other objects (including tire models that do not
+    /// explicitly use it). For GranularTerrain, this function defers to the user-provided functor object of type
+    /// ChTerrain::FrictionFunctor, if one was specified. Otherwise, it returns the constant value specified through
+    /// SetContactFrictionCoefficient.
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
   private:

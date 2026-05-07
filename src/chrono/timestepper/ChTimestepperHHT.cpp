@@ -81,6 +81,8 @@ void ChTimestepperHHT::FinalizeStep() {
     // Scatter auxiliary data (A and L) -> system
     integrable->StateScatterAcceleration(A);
     integrable->StateScatterReactions(L);
+
+    integrable->StateOnEndStep(T);
 }
 
 // Prepare attempting a step of size h (assuming a converged state at the current time t):
@@ -128,8 +130,10 @@ void ChTimestepperHHT::Increment() {
     integrable->LoadResidual_CqL(R, Lnew, 1.0);              //  Cq'*l_new
     integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));  // -1/(1+alpha)*M*a_new
     integrable->LoadConstraint_C(
-        Qc, 1 / (beta * h * h), Qc_do_clamp,
-        Qc_clamping);  //  Qc= 1/(beta*h^2)*C  (sign will be flipped later in StateSolveCorrection)
+        Qc, 
+        1 / (beta * h * h),         //  Qc= 1/(beta*h^2)*C  for most constraints 
+        1 / (gamma * h),            //  Qc= 1/(gamma*h)*C   for constraints at velocity level
+        Qc_do_clamp, Qc_clamping);  //  (Qc sign will be flipped later in StateSolveCorrection)
 
     // Solve linear system
     integrable->StateSolveCorrection(Ds, Dl, R, Qc,

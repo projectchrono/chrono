@@ -167,7 +167,7 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
     this->l0[1] = Li[1].Length();
     this->l0[2] = Li[2].Length();
 
-    // Compute orthogonal system at triangle in carthesian basis
+    // Compute orthogonal system at triangle in Cartesian basis
     ChVector3d t0_1 = m_nodes[1]->GetX0() - m_nodes[0]->GetX0();
     ChVector3d t0_2 = m_nodes[2]->GetX0() - m_nodes[0]->GetX0();
     // Compute normal - and orthogonalize others
@@ -413,7 +413,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             np[i] = VNULL;
     }
 
-    // Compute orthogonal system at triangle in carthesian basis
+    // Compute orthogonal system at triangle in Cartesian basis
     ChVector3d t_1 = np[1] - np[0];
     ChVector3d t_2 = np[2] - np[0];
     // Compute normal
@@ -522,7 +522,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             int iI[3] = {
                 (i_used_tri + 3), (it + 2) % 3,
                 (it + 1) %
-                    3};  // state indexes of used vertexes in neighbouring triangle it, opposed to vertex iv=it; ccwise
+                    3};  // state indexes of used vertices in neighbouring triangle it, opposed to vertex iv=it; ccwise
 
             for (int iv = 0; iv < 3; ++iv) {
                 Fi.segment(iv * 3, 3) += -mtL_coeff *  // * lambda_M/lambda_M  (=1)

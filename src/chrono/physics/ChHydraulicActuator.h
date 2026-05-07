@@ -62,7 +62,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     void SetActuatorInitialLength(double len);
 
     /// Set initial loading force.
-    /// If provided, this value is used in calculating consistent initial conditions, using the initial dircetional
+    /// If provided, this value is used in calculating consistent initial conditions, using the initial directional
     /// valve spool position and the initial cylinder pressures as initial guesses. Otherwise, the initial actuator
     /// state is set to the user specified values (which may be inconsistent with the configuration of the cylinder
     /// piston).
@@ -135,7 +135,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 
     bool is_attached;            ///< true if actuator attached to bodies
-    ChBody* m_body1;             ///< first conected body
+    ChBody* m_body1;             ///< first connected body
     ChBody* m_body2;             ///< second connected body
     ChVector3d m_loc1;           ///< point on body 1 (local frame)
     ChVector3d m_loc2;           ///< point on body 2 (local frame)
@@ -228,7 +228,7 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
     /// Extract cylinder pressures from current state.
     virtual Vec2 ExtractCylinderPressures() const override;
 
-    /// Evaluate pressure rates at curent state.
+    /// Evaluate pressure rates at current state.
     Vec2 EvaluatePressureRates(double t, const Vec2& p, double U);
 
     Vec2 pc0;   ///< initial cylinder pressures
@@ -318,7 +318,7 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
     /// Extract cylinder pressures from current state.
     virtual Vec2 ExtractCylinderPressures() const override;
 
-    /// Evaluate pressure rates at curent state.
+    /// Evaluate pressure rates at current state.
     Vec3 EvaluatePressureRates(double t, const Vec3& p, double U);
 
     ChHydraulicThrottleValve tvalve;  ///< throttle valve

@@ -29,6 +29,10 @@
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+#endif
+
 #include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 namespace chrono {
@@ -117,8 +121,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     /// ChTire subsystem, needed to pass the terrain contact forces back to the vehicle wheels.
     class DummyTire : public ChTire {
       public:
-        DummyTire(int index, double mass, double radius, double width)
-            : ChTire("dummy_tire"), m_index(index), m_mass(mass), m_radius(radius), m_width(width) {}
+        DummyTire(int index, double mass, double radius, double width) : ChTire("dummy_tire"), m_index(index), m_mass(mass), m_radius(radius), m_width(width) {}
         virtual std::string GetTemplateName() const override { return "dummy_tire"; }
         virtual double GetRadius() const override { return m_radius; }
         virtual double GetWidth() const override { return m_width; }
@@ -127,9 +130,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
         virtual ChVector3d GetTireInertia() const override { return ChVector3d(0.1, 0.1, 0.1); }
         virtual ChVector3d GetAddedInertia() const override { return ChVector3d(0.1, 0.1, 0.1); }
         virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_force; }
-        virtual TerrainForce ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override {
-            return m_force;
-        }
+        virtual TerrainForce ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override { return m_force; }
         virtual TerrainForce GetTireForce() const override { return m_force; }
         virtual void InitializeInertiaProperties() override {}
         virtual void UpdateInertiaProperties() override {}
@@ -146,7 +147,9 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     std::shared_ptr<ChDriver> m_driver;                  ///< vehicle driver
     std::shared_ptr<ChTerrain> m_terrain;                ///< dummy terrain (for vehicle synchronization)
     std::vector<std::shared_ptr<DummyTire>> m_tires;     ///< dummy tires (for applying spindle forces)
-    std::shared_ptr<ChVehicleVisualSystem> m_vsys;       ///< run-time visualization system
+#ifdef CHRONO_VSG
+    std::shared_ptr<ChWheeledVehicleVisualSystemVSG> m_vsys;  ///< run-time visualization system
+#endif
 
     ChVector3d m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw

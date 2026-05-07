@@ -1,4 +1,4 @@
-chrono-version: 9.0
+chrono-version: 10.0
 type: FSI
 
 mbs:   "mbs.yaml"

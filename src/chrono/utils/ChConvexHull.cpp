@@ -30,23 +30,23 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 // Return twice the signed area of the triangle {p1,p2,p3}
-double SignedArea(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
+static double SignedArea(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     return (p2.y() - p1.y()) * (p3.x() - p2.x()) - (p2.x() - p1.x()) * (p3.y() - p2.y());
 }
 
 // Utility function to decide relative orientation of 3 points.
-// Returns 0 for colinear points, +1 for clock-wise, -1 for counterclock-wise.
-int Orientation(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
+// Returns 0 for collinear points, +1 for clock-wise, -1 for counterclockwise.
+static int Orientation(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     static double eps = 1e-10;
     double val = SignedArea(p1, p2, p3);
 
     if (std::abs(val) < eps)
-        return 0;               // (nearly) colinear
-    return (val > 0) ? 1 : -1;  // clock- or counterclock-wise
+        return 0;               // (nearly) collinear
+    return (val > 0) ? 1 : -1;  // clock- or counterclockwise
 }
 
 // Return true if point p2 is between points p1 and p3 (the 3 points are assumed collinear).
-bool InBetween(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
+static bool InBetween(const ChVector2d& p1, const ChVector2d& p2, const ChVector2d& p3) {
     bool a = (p2.x() >= p1.x() && p2.x() <= p3.x()) || (p2.x() <= p1.x() && p2.x() >= p3.x());
     bool b = (p2.y() >= p1.y() && p2.y() <= p3.y()) || (p2.y() <= p1.y() && p2.y() >= p3.y());
     return a && b;
@@ -124,7 +124,7 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2d>& points, size_t
             }
         }
 
-        // Before adding next to the convex hull, include any other points on the line from crt to next.
+        // Before adding next to the convex hull, include any other points on the line from current to next.
         for (size_t i = 0; i < n; i++) {
             if (i != crt && i != next && !added[i] && Orientation(points[crt], points[i], points[next]) == 0 &&
                 InBetween(points[crt], points[i], points[next])) {
@@ -141,7 +141,7 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2d>& points, size_t
         m_perimeter += (points[next] - points[crt]).Length();
         m_area += SignedArea(points[next], points[crt], ChVector2d(0, 0));
 
-        // Safety check to prevent inifinite loop.
+        // Safety check to prevent infinite loop.
         //// TODO: are there still some corner cases not properly treated?
         if (m_hull.size() > n + 1) {
             std::cout << "\n\nERROR in ChConvexHull2D::ComputeJarvis: infinite loop\n\n" << std::endl;

@@ -93,7 +93,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual unsigned int GetNumShafts() const override { return data_manager->num_shafts; }
 
     /// Gets the number of contacts.
-    virtual unsigned int GetNumContacts() override;
+    virtual unsigned int GetNumContacts() const override;
 
     /// Get the number of scalar constraints in the system.
     virtual unsigned int GetNumConstraints() override {
@@ -128,7 +128,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const override;
 
-    /// Return the time (in seconds) for runnning the collision detection step, within the time step.
+    /// Return the time (in seconds) for running the collision detection step, within the time step.
     virtual double GetTimerCollision() const override;
 
     /// Return the time (in seconds) for system setup, within the time step.

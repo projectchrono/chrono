@@ -33,6 +33,7 @@
 #include "chrono_dem/physics/ChSystemDem.h"
 #include "chrono_dem/utils/ChDemJsonParser.h"
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_VSG
     #include "chrono_dem/visualization/ChDemVisualizationVSG.h"
 #endif

@@ -21,7 +21,7 @@
 namespace chrono {
 namespace industrial {
 
-static const double FD_STEP = 1e-7;  // forward differentiation stepsize
+static const double FD_STEP = 1e-7;  // forward differentiation step size
 
 ChQuaternion<> SLERP(const ChQuaternion<>& qa, const ChQuaternion<>& qb, double t) {
     ChQuaternion<> qdelta = qa.GetConjugate() * qb;

@@ -66,7 +66,7 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
     size_t GetResolution() { return resolution; }
     double GetTurns() { return turns; }
     
-    /// Disable CPU-side visual geometry updates (for visualisation systems that generate geometry on GPU)
+    /// Disable CPU-side visual geometry updates (for visualization systems that generate geometry on GPU)
     void SetGeometryUpdatesDisabled(bool disable) { m_disable_geom_updates = disable; }
 
   private:

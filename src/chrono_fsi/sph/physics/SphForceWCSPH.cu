@@ -55,7 +55,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
 
     uint NLStart = numNeighborsPerPart[index];
     uint NLEnd = numNeighborsPerPart[index + 1];
-    // examine neighbouring cells
+    // examine neighboring cells
     for (int n = NLStart; n < NLEnd; n++) {
         uint j = neighborList[n];
         if (j == index) {
@@ -128,7 +128,7 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
 
     uint NLStart = numNeighborsPerPart[index];
     uint NLEnd = numNeighborsPerPart[index + 1];
-    // examine neighbouring cells
+    // examine neighboring cells
     for (int n = NLStart; n < NLEnd; n++) {
         uint j = neighborList[n];
         if (j == index) {
@@ -204,7 +204,7 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
     int3 gridPos = calcGridPos(posRadA);
     uint NLStart = numNeighborsPerPart[index];
     uint NLEnd = numNeighborsPerPart[index + 1];
-    // examine neighbouring cells
+    // examine neighboring cells
     for (int n = NLStart; n < NLEnd; n++) {
         uint j = neighborList[n];
         if (j == index) {
@@ -1115,7 +1115,7 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     Real derivVz = (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.x +
                    (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.y +
                    (tauXxYyZz_A.z * invRhoASq + tauXxYyZz_B.z * invRhoBSq) * MA_gradW.z;
-    // TODO: Visco-plastic model
+    // TODO: Viscoplastic model
     // Real vel = length(velMasA);
     // if(vel > 0.3){
     //     Real rAB_Dot_GradWh = dot(dist3, gradW);
@@ -1137,7 +1137,7 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     switch (paramsD.viscosity_method) {
         case ViscosityMethod::ARTIFICIAL_UNILATERAL: {
             // Artificial Viscosity from Monaghan 1997
-            // This has no viscous forces in the seperation phase - used in SPH codes simulating fluids
+            // This has no viscous forces in the separation phase - used in SPH codes simulating fluids
             if (vAB_rAB < 0) {
                 Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x);
                 // Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
@@ -1148,7 +1148,7 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
         }
         case ViscosityMethod::ARTIFICIAL_BILATERAL: {
             // Artificial viscosity treatment from J J Monaghan (2005) "Smoothed particle hydrodynamics"
-            // Here there is viscous force added even during the seperation phase - makes the simulation more stable
+            // Here there is viscous force added even during the separation phase - makes the simulation more stable
             Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x);
             // Real nu = -paramsD.artificial_viscosity * paramsD.h * paramsD.Cs * paramsD.invrho0;
             derivM1 = -Mass * (nu * intermediate);
@@ -1161,8 +1161,8 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     derivVz += derivM1 * gradW.z;
     // }
 
-    // Artifical pressure to handle tensile instability issue.
-    // A complete artifical stress should be implemented in the future.
+    // Artificial pressure to handle tensile instability issue.
+    // A complete artificial stress should be implemented in the future.
     // if (paramsD.Coh_coeff > 1e-5) {
     Real Pa = -0.333333333f * (tauXxYyZz_A.x + tauXxYyZz_A.y + tauXxYyZz_A.z);
     if (Pa < 0) {

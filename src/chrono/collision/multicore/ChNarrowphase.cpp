@@ -387,7 +387,7 @@ void ChNarrowphase::ProcessRigidRigid() {
 
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     real l = x - minimum;
-    int c = (int)Round(l * inv_bin_edge);
+    int c = (int)std::round(l * inv_bin_edge);
     return c;
 }
 

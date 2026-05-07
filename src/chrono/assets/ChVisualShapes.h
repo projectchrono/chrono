@@ -30,6 +30,8 @@
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
+#ifdef CHRONO_FEA
+    #include "chrono/assets/ChVisualShapeFEA.h"
+#endif
 
 #endif

@@ -15,7 +15,7 @@
 //  Two spheres are initially held together by adhesion, in the absence of gravity
 //  Gravity is turned on first with F_gravity < F_adhesion, then with
 //  F_gravity > F_adhesion. The spheres should stay in contact during case 1
-//  but seperate during case 2.
+//  but separate during case 2.
 //
 // =============================================================================
 

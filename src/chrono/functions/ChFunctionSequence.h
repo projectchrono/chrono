@@ -39,12 +39,7 @@ class ChApi ChFseqNode {
     bool ydtdt_cont;
 
     void SetDuration(double mdur);
-    void SetTend(double mt_end) {
-        t_end = mt_end;
-        if (t_end < t_start)
-            t_end = t_start;
-        duration = t_end - t_start;
-    }
+    void SetTend(double mt_end);
 
     ChFseqNode();
     ChFseqNode(std::shared_ptr<ChFunction> myfx, double mdur);

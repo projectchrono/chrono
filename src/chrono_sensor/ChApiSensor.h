@@ -48,7 +48,6 @@
         @defgroup sensor_filters Sensor Filters
         @defgroup sensor_cuda CUDA Wrapper Functions
         @defgroup sensor_optix OptiX-Based Code
-        @defgroup sensor_tensorrt TensorRT-Based Code
         @defgroup sensor_scene Scene
         @defgroup sensor_utils Utilities
     @}

@@ -37,6 +37,15 @@ ChSystemDescriptor::~ChSystemDescriptor() {
     m_KRMblocks.clear();
 }
 
+void ChSystemDescriptor::BeginInsertion() {
+    m_constraints.clear();
+    m_variables.clear();
+    m_KRMblocks.clear();
+}
+
+void ChSystemDescriptor::EndInsertion() {
+    UpdateCountsAndOffsets();
+}
 bool ChSystemDescriptor::HasKRMBlocks() {
     return m_KRMblocks.size() > 0;
 }
@@ -56,7 +65,7 @@ bool ChSystemDescriptor::SupportsSchurComplement() {
     return m_use_Minv;
 }
 
-void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolation, double& resulting_feasability) {
+void ChSystemDescriptor::ComputeFeasibilityViolation(double& resulting_maxviolation, double& resulting_feasability) {
     resulting_maxviolation = 0;
     resulting_feasability = 0;
 
@@ -114,17 +123,18 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
 
 void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z,
                                                 unsigned int start_row,
-                                                unsigned int start_col) const {
+                                                unsigned int start_col,
+                                                double scale_factor) const {
     // Contribution of mass or rigid bodies and node-concentrated masses
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->PasteMassInto(Z, start_row, start_col, c_a);
+            var->PasteMassInto(Z, start_row, start_col, scale_factor * c_a);
         }
     }
 
     // Contribution of stiffness, damping, and mass matrices
     for (const auto& KRMBlock : m_KRMblocks) {
-        KRMBlock->PasteMatrixInto(Z, start_row, start_col, false);
+        KRMBlock->PasteMatrixInto(Z, start_row, start_col, scale_factor, false);
     }
 }
 
@@ -161,19 +171,20 @@ unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixTransposedInto(Ch
 void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
                                                    unsigned int start_row,
                                                    unsigned int start_col,
+                                                   double scale_factor,
                                                    bool only_bilateral) const {
+    double factor = -1 / scale_factor;
     int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
-            Z.SetElement(start_row + s_c, start_col + s_c, -constr->GetComplianceTerm());
+            Z.SetElement(start_row + s_c, start_col + s_c, factor * constr->GetComplianceTerm());
             s_c++;
         }
     }
 }
 
-void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>* rhs) const {
+void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>* rhs, double scale_factor) const {
     n_q = CountActiveVariables();
-
     n_c = CountActiveConstraints();
 
     if (Z) {
@@ -181,19 +192,19 @@ void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>*
 
         Z->setZeroValues();
 
-        PasteMassKRMMatrixInto(*Z, 0, 0);
+        PasteMassKRMMatrixInto(*Z, 0, 0, scale_factor);
 
         PasteConstraintsJacobianMatrixInto(*Z, n_q, 0);
 
         PasteConstraintsJacobianMatrixTransposedInto(*Z, 0, n_q);
 
-        PasteComplianceMatrixInto(*Z, n_q, n_q);
+        PasteComplianceMatrixInto(*Z, n_q, n_q, scale_factor);
     }
 
     if (rhs) {
         rhs->setZero(n_q + n_c, 1);
 
-        BuildDiVector(*rhs);
+        BuildDiVector(*rhs, scale_factor);
     }
 }
 
@@ -224,7 +235,7 @@ unsigned int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& b, unsigned in
     return n_c;
 }
 
-unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& d) const {
+unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& d, double scale_factor) const {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
     d.setZero(n_q + n_c);
@@ -232,7 +243,7 @@ unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& d) const {
     // Fills the 'f' vector part
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            d.segment(var->GetOffset(), var->GetDOF()) = var->Force();
+            d.segment(var->GetOffset(), var->GetDOF()) = scale_factor * var->Force();
         }
     }
 
@@ -251,8 +262,8 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& diagonal
     n_c = CountActiveConstraints();
     diagonal_vect.setZero(n_q + n_c);
 
-    // Fill the diagonal values given by ChKRMBlock objects , if any
-    // (This cannot be easily parallelized because of possible write concurrency).
+    // Fill the diagonal values given by ChKRMBlock objects, if any
+    // NOTE: this cannot be easily parallelized because of possible write concurrency
     for (const auto& krm_block : m_KRMblocks) {
         krm_block->DiagonalAdd(diagonal_vect);
     }
@@ -264,7 +275,7 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& diagonal
         }
     }
 
-    // Get the 'E' diagonal terms (E_i = - cfm_i )
+    // Get the 'E' diagonal terms (E_i = - cfm_i)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             diagonal_vect(constr->GetOffset() + n_q) = -constr->GetComplianceTerm();
@@ -272,6 +283,40 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& diagonal
     }
 
     return n_q + n_c;
+}
+
+unsigned int ChSystemDescriptor::BuildDiagonalVectorUpper(ChVectorDynamic<>& diagonal_upper) const {
+    n_q = CountActiveVariables();
+    diagonal_upper.setZero(n_q);
+
+    // Fill the diagonal values given by ChKRMBlock objects, if any
+    // NOTE: this cannot be easily parallelized because of possible write concurrency
+    for (const auto& krm_block : m_KRMblocks) {
+        krm_block->DiagonalAdd(diagonal_upper);
+    }
+
+    // Get the 'M' diagonal terms given by ChVariables objects
+    for (const auto& var : m_variables) {
+        if (var->IsActive()) {
+            var->AddMassDiagonalInto(diagonal_upper, c_a);
+        }
+    }
+
+    return n_q;
+}
+
+unsigned int ChSystemDescriptor::BuildDiagonalVectorLower(ChVectorDynamic<>& diagonal_lower) const {
+    n_c = CountActiveConstraints();
+    diagonal_lower.setZero(n_c);
+
+    // Get the 'E' diagonal terms (E_i = cfm_i)
+    for (const auto& constr : m_constraints) {
+        if (constr->IsActive()) {
+            diagonal_lower(constr->GetOffset()) = constr->GetComplianceTerm();
+        }
+    }
+
+    return n_c;
 }
 
 unsigned int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& vector, bool resize_vector) const {
@@ -361,7 +406,7 @@ unsigned int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& vector,
     return n_q + n_c;
 }
 
-unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& vector) {
+unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& vector, double scale_factor) {
     n_q = CountActiveVariables();
     n_c = CountActiveConstraints();
 
@@ -375,9 +420,10 @@ unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& v
     }
 
     // Fetch from the second part of vector (x.l = -l), with flipped sign!
+    double factor = -1 / scale_factor;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->SetLagrangeMultiplier(-vector(constr->GetOffset() + n_q));
+            constr->SetLagrangeMultiplier(factor * vector(constr->GetOffset() + n_q));
         }
     }
 

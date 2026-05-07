@@ -277,10 +277,13 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
     }
 
     // Use a model file if provided
+    // Note: using ChVisualShapeModelFile does not work properly with Chrono::VSG (bug in assimp?)
     if (vis == VisualizationType::MESH && !vis_model_file.empty()) {
-        auto obj_shape = chrono_types::make_shared<ChVisualShapeModelFile>();
-        obj_shape->SetFilename(vis_model_file);
-        body->AddVisualShape(obj_shape, ChFrame<>());
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_model_file, true, true);
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(filesystem::path(vis_model_file).stem());
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
         return;
     }
 

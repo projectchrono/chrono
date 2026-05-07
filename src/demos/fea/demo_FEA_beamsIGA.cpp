@@ -355,7 +355,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     melasticity->SetAsRectangularSection(beam_wy, beam_wz);  // automatically sets A, Ixx, Iyy, Ksy, Ksz and J
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
-    // The isotropic hardening curve. The value at zero absyssa is the initial yeld.
+    // The isotropic hardening curve. The value at zero abscissa is the initial yeld.
     mplasticity->n_yeld_x = chrono_types::make_shared<ChFunctionConst>(3000);
     // mplasticity->n_yeld_x = chrono_types::make_shared<ChFunctionRamp>(3000, 1e3);
     // The optional kinematic hardening curve:

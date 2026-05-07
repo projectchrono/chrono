@@ -30,19 +30,19 @@ class ChApi ChVisualShapeBarrel : public ChVisualShape {
 
     ~ChVisualShapeBarrel() {}
 
-    double GetHlow() { return Hlow; }
+    double GetHlow() const { return Hlow; }
     void SetHlow(double ms) { Hlow = ms; }
 
-    double GetHsup() { return Hsup; }
+    double GetHsup() const { return Hsup; }
     void SetHsup(double ms) { Hsup = ms; }
 
-    double GetRvert() { return Rvert; }
+    double GetRvert() const { return Rvert; }
     void SetRvert(double ms) { Rvert = ms; }
 
-    double GetRhor() { return Rhor; }
+    double GetRhor() const { return Rhor; }
     void SetRhor(double ms) { Rhor = ms; }
 
-    double GetRoffset() { return Roffset; }
+    double GetRoffset() const { return Roffset; }
     void SetRoffset(double ms) { Roffset = ms; }
 
     /// Get the shape bounding box.

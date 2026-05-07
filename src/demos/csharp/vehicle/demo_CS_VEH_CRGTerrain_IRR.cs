@@ -64,7 +64,7 @@ namespace ChronoDemo
         };
 
         // Road visualization (mesh or boundary lines)
-        public static bool useMesh = false; // N.B. runs slow with mesh in IRR (both c++ and c#) vs the VSG version.
+        public static bool useMesh = false; // N.B. mesh visualisation is well-supported in VSG
         // Desired vehicle speed (m/s)
         public static double targetSpeed = 12;
         // Minimum / maximum speed (m/s) for Human driver type
@@ -492,15 +492,16 @@ namespace ChronoDemo
             // Create the visualization system
             // -------------------------------
 
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetHUDLocation(500, 20);
-            vis.SetWindowTitle("OpenCRG Steering");
+            ChWheeledVehicleVisualSystemVSG vis = new ChWheeledVehicleVisualSystemVSG();
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetWindowTitle("OpenCRG Steering");
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightIntensity(1.0f);
+            chrono_vsg.CastToChVisualSystemVSG(vis).SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableSkyTexture(SkyMode.DOME);
+            chrono_vsg.CastToChVisualSystemVSG(vis).EnableShadows();
+            vis.AttachVehicle(getTheVehicle);  // Must attach vehicle BEFORE Initialize()
+            vis.AttachTerrain(terrain);
             vis.Initialize();
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AddLightDirectional();
-            vis.AttachVehicle(getTheVehicle);
 
             // Set up sentinal
             var sentinel = new ChVisualShapeSphere(0.1);
@@ -539,13 +540,10 @@ namespace ChronoDemo
                 vis.BeginScene();
                 vis.Render();
 
-                // Draw the world reference frame at the sentinel location
-                vis.RenderFrame(new ChFramed(driver.GetSentinelLocation()));
-
                 // Render scene and output images
                 if (outputImages && stepNumber % renderSteps == 0)
                 {
-                    string fileName = $"{outDir}/Image_{renderFrame + 1:D3}.bmp";
+                    string fileName = $"{outDir}/Image_{renderFrame + 1:D3}.png";
                     vis.WriteImageToFile(fileName);
                     renderFrame++;
                 }

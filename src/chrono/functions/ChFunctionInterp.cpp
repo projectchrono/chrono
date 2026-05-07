@@ -36,6 +36,11 @@ void ChFunctionInterp::AddPoint(double x, double y, bool overwrite_if_existing) 
     }
 }
 
+void ChFunctionInterp::Reset() {
+    m_table.clear();
+    m_last_greater = m_table.end();
+}
+
 double ChFunctionInterp::GetVal(double x) const {
     if (m_table.empty()) {
         return 0.0;

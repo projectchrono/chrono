@@ -212,7 +212,7 @@ void WriteConeVTK(const std::string& filename,
     // Generate a cone mesh
     ChTriangleMeshConnected mesh;
     std::vector<ChVector3d>& vertices = mesh.GetCoordsVertices();
-    std::vector<ChVector3i>& indices = mesh.GetIndicesVertexes();
+    std::vector<ChVector3i>& indices = mesh.GetIndicesVertices();
 
     // Create local coordinate system that matches how the cone is created in the simulation
     // In the simulation, the cone is rotated with Q_FLIP_AROUND_X, so the apex points in -Z direction

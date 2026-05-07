@@ -121,6 +121,12 @@ double ObsModTerrain::GetEffLength() {
            std::hypot(m_x[3] - m_x[2], m_Q(3, 1) - m_Q(2, 1));
 }
 
+ChVector3d ObsModTerrain::GetPoint(const ChVector3d& loc) const {
+    ChVector3d loc_ISO = ChWorldFrame::ToISO(loc);
+    ChVector3d vec_ISO(loc_ISO.x(), loc_ISO.y(), GetHeight(loc));
+    return ChWorldFrame::FromISO(vec_ISO);
+}
+
 double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
     ChVector3d loc_ISO = ChWorldFrame::ToISO(loc);
     if ((loc_ISO.x() > m_xmin && loc_ISO.x() < m_xmax) && (loc_ISO.y() > m_ymin && loc_ISO.y() < m_ymax)) {
@@ -135,7 +141,7 @@ double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
             }
         }
         if (ix1 == -1) {
-            std::cerr << "x intervall?\n";
+            std::cerr << "x interval?\n";
         }
         int jy1 = -1;
         int jy2 = -1;
@@ -147,7 +153,7 @@ double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
             }
         }
         if (jy1 == -1) {
-            std::cerr << "y intervall?\n";
+            std::cerr << "y interval?\n";
         }
         double x = loc_ISO.x();
         double y = loc_ISO.y();
@@ -203,7 +209,7 @@ void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
 void ObsModTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     auto& coords = m_mesh->GetCoordsVertices();
-    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& indices = m_mesh->GetIndicesVertices();
     auto& normals = m_mesh->GetCoordsNormals();
     auto& normidx = m_mesh->GetIndicesNormals();
 

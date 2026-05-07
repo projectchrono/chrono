@@ -22,10 +22,11 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceSegmentSet.h"
-
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+    #include "chrono/fea/ChContactSurfaceMesh.h"
+    #include "chrono/fea/ChContactSurfaceSegmentSet.h"
+#endif
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChFsiFluidSystem.h"
@@ -65,7 +66,7 @@ class CH_FSI_API ChFsiSystem {
     /// The default implementation sets the verbose mode for the FSI system and the underlying FSI interface.
     void SetVerbose(bool verbose);
 
-    /// Set gravitational acceleration for the FSI syatem.
+    /// Set gravitational acceleration for the FSI system.
     /// This function sets gravity for both the fluid and multibody systems.
     void SetGravitationalAcceleration(const ChVector3d& gravity);
 
@@ -77,10 +78,9 @@ class CH_FSI_API ChFsiSystem {
     void SetStepsizeMBD(double step);
 
     /// Add a rigid body to the FSI system.
-    std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body,
-                                        std::shared_ptr<ChBodyGeometry> geometry,
-                                        bool check_embedded);
+    std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded);
 
+#ifdef CHRONO_FEA
     /// Add an FEA mesh to the FSI system.
     /// Any SegmentSet contact surfaces already defined for the FEA mesh are used to generate the interface between the
     /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
@@ -100,6 +100,7 @@ class CH_FSI_API ChFsiSystem {
     /// direction over all elements incident to the node. The default is set by a concrete ChFsiSystem and the
     /// associated FSI interface.
     void UseNodeDirections(NodeDirectionsMode mode);
+#endif
 
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.

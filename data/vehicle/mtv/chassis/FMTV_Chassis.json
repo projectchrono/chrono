@@ -26,6 +26,6 @@
   "Rear Connector Location": [ -1.85, 0, 0.45 ],
 
     "Visualization": {
-        "Mesh": "mtv/meshes/m1078_front.obj"
+        "Mesh": "vehicle/mtv/meshes/m1078_front.obj"
     }
 }

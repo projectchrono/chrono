@@ -9,7 +9,7 @@ This module enables:
   + Adams
 - interacting with Python language (requires Python interpreter)
 
-Note that import of fnite element models (meshes) can be done using the @ref chrono::fea::ChMeshFileLoader "ChMeshFileLoader" class, available in the main Chrono module (so no need for the PARSERS module). This class enables the import of Abaqus, TetGen, GMF (LS-DYNA) or generic OBJ files, but only for very specific elements and is not a full-fledged FE import tool.
+Note that import of finite element models (meshes) can be done using the @ref chrono::fea::ChMeshFileLoader "ChMeshFileLoader" class, available in the main Chrono module (so no need for the PARSERS module). This class enables the import of Abaqus, TetGen, GMF (LS-DYNA) or generic OBJ files, but only for very specific elements and is not a full-fledged FE import tool.
 
 [Installation guide for Chrono::Parsers](@ref module_parsers_installation)
 

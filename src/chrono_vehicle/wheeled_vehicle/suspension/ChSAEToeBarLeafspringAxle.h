@@ -32,8 +32,8 @@
 // joints of the clamp bodies.
 //
 // For the stiffness parameters the user can take the desired translatoric vertical
-// stiffness dividedby two (we have two leaves). The preload can be set as a
-// vertical force dividedby two. The conversion to the rotary setup is made
+// stiffness divided by two (we have two leaves). The preload can be set as a
+// vertical force divided by two. The conversion to the rotary setup is made
 // automatically.
 //
 // The SAE model allows to consider the correct axle movement due to wheel travel.
@@ -87,8 +87,8 @@ namespace vehicle {
 /// joints of the clamp bodies.
 ///
 /// For the stiffness parameters the user can take the desired translatoric vertical
-/// stiffness dividedby two (we have two leaves). The preload can be set as a
-/// vertical force dividedby two. The conversion to the rotary setup is made
+/// stiffness divided by two (we have two leaves). The preload can be set as a
+/// vertical force divided by two. The conversion to the rotary setup is made
 /// automatically.
 ///
 /// The SAE model allows to consider the correct axle movement due to wheel travel.
@@ -278,9 +278,9 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
 
     // double getDensity() { return 7850.0; }  // density of steel
 
-    /// Return the height of the leaf (for visualisation and calculation of mass properties)
+    /// Return the height of the leaf (for visualization and calculation of mass properties)
     // virtual double getLeafHeight() const = 0;
-    /// Return the height of the leaf (for visualisation and calculation of mass properties)
+    /// Return the height of the leaf (for visualization and calculation of mass properties)
     // virtual double getLeafWidth() const = 0;
 
     /// Return the free (rest) length of the spring element.

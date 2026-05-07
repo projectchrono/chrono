@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     // Create terrain and obstacles
     CreateTerrain(sys);
 
-    // Create a Curiosity rover and the asociated driver
+    // Create a Curiosity rover and the associated driver
     ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
     auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
 

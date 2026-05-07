@@ -52,9 +52,12 @@ class ChApi ChColor {
     /// Set from HSV.
     static ChColor HSV2RGB(const ChVector3f& hsv);
 
-    /// Interpolate between two colors.
+    /// Linearly interpolate between two colors.
     /// The interpolation fraction f must be in [0,1].
     static ChColor Interp(const ChColor& c1, const ChColor& c2, double f);
+
+    /// Mix two colors.
+    static ChColor Mix(const ChColor& c1, const ChColor& c2);
 
     /// Method to allow serialization of transient data to archives.
     void ArchiveOut(ChArchiveOut& archive_out);

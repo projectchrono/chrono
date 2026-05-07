@@ -36,7 +36,7 @@ enum class PhysicsProblem {
 ////            - once that is done, we can move integration_scheme out of the ChFsiParamsSPH structure.
 
 /// Integration scheme.
-/// All explicit integratioon schemes use a Weakly-Compressible SPH (WCSPH) formulation in which the density is
+/// All explicit integration schemes use a Weakly-Compressible SPH (WCSPH) formulation in which the density is
 /// integrated and an equation of state is used to calculate the corresponding pressure. For the implicit SPH scheme,
 /// the pressure is instead updated.
 enum class IntegrationScheme {
@@ -58,7 +58,7 @@ enum class EosType { TAIT, ISOTHERMAL };
 /// SPH kernel type.
 enum class KernelType { QUADRATIC, CUBIC_SPLINE, QUINTIC_SPLINE, WENDLAND };
 
-/// Visosity method type.
+/// Viscosity method type.
 enum class ViscosityMethod { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
 
 /// Boundary method type.
@@ -77,6 +77,7 @@ enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 /// Mu_of_I: Rate dependent friction law
 /// MCC: Modified Cam Clay with hardening
 enum class RheologyCRM { MU_OF_I, MCC };
+
 // -----------------------------------------------------------------------------
 
 /// Enumeration for specifying whether the sides of a computational domain are

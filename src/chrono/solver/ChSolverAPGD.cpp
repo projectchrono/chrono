@@ -35,7 +35,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         throw std::runtime_error("ChSolverAPGD: System descriptor does not support Schur complement-based solvers.");
     }
 
-    // Update auxiliary data in all constrants
+    // Update auxiliary data in all constraints
     sysd.SchurComplementUpdateConstraints(false);
 
     double L, t;

@@ -55,7 +55,7 @@ void ChIrrNodeShape::Update() {
     }
 
     if (auto trianglemesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(m_shape)) {
-        if (trianglemesh->FixedConnectivity())
+        if (trianglemesh->IsFixedConnectivity())
             UpdateTriangleMeshFixedConnectivity(trianglemesh);
         else
             UpdateTriangleMesh(trianglemesh);
@@ -123,7 +123,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
     const auto& uvs = mesh->GetCoordsUV();
     const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& c_indices = mesh->GetIndicesColors();
@@ -147,7 +147,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
     irr_vertices.set_used(nvertexes);
 
     // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector3d t[3];   // positions of trianlge vertices
+    ChVector3d t[3];   // positions of triangle vertices
     ChVector3d n[3];   // normals at the triangle vertices
     ChVector2d uv[3];  // UV coordinates at the triangle vertices
     ChColor col[3];    // color coordinates at the triangle vertices
@@ -203,7 +203,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
                               !trianglemesh->IsWireframe());  // avoid shading for wireframes
     meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
 
-    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertices  color
 }
 
 void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
@@ -231,7 +231,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
     const auto& normals = mesh->GetCoordsNormals();
     const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& m_indices = mesh->GetIndicesMaterials();
@@ -270,7 +270,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
         core::map<video::S3DVertex, int> vertex_map;
 
         // Set the Irrlicht vertex and index buffers for this mesh buffer
-        ChVector3d t[3];   // positions of trianlge vertices
+        ChVector3d t[3];   // positions of triangle vertices
         ChVector3d n[3];   // normals at the triangle vertices
         ChVector2d uv[3];  // UV coordinates at the triangle vertices
         unsigned int num_added_tri = 0;
@@ -342,7 +342,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
     ////meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
     ////meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
     ////meshnode->setMaterialFlag(video::EMF_ANTI_ALIASING, true);
-    ////meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+    ////meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertices  color
 }
 
 // Update a trimesh by keeping fixed the connectivity and only touching the specified modified vertices.
@@ -369,9 +369,9 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisua
     std::vector<ChVector3d>& normals = mesh->GetCoordsNormals();
     std::vector<ChVector2d>& uvs = mesh->GetCoordsUV();
     std::vector<ChColor>& colors = mesh->GetCoordsColors();
-    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertices();
 
-    unsigned int ntriangles = (unsigned int)mesh->GetIndicesVertexes().size();
+    unsigned int ntriangles = (unsigned int)mesh->GetIndicesVertices().size();
     unsigned int nvertices = (unsigned int)mesh->GetCoordsVertices().size();
     unsigned int nuvs = (unsigned int)mesh->GetCoordsUV().size();
     unsigned int ncolors = (unsigned int)mesh->GetCoordsColors().size();
@@ -436,7 +436,7 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisua
     }
 
     irrmesh->setDirty();                                         // to force update of hardware buffers
-    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertexes  color
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertices  color
 }
 
 void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
@@ -469,6 +469,8 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             nvertexes = 9 * glyphs->GetNumberOfGlyphs();
             break;
         case ChGlyphs::GLYPH_TENSOR:
+            ntriangles = 3 * glyphs->GetNumberOfGlyphs();
+            nvertexes = 9 * glyphs->GetNumberOfGlyphs();
             break;
     }
 
@@ -484,8 +486,14 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     // set buffers
 
     if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT) {
-        const u32 u[36] = {0,  1,  2,  0,  2,  3,  4,  6,  5,  4,  7,  6,  8,  9,  10, 8,  10, 11,
-                           12, 14, 13, 12, 15, 14, 16, 18, 17, 16, 19, 18, 20, 21, 22, 20, 22, 23};
+
+        // left handed coords, node ordering 
+        // const u32 u[36] = {0,  1,  2,  0,  2,  3,  4,  6,  5,  4,  7,  6,  8,  9,  10, 8,  10, 11,
+        //                    12, 14, 13, 12, 15, 14, 16, 18, 17, 16, 19, 18, 20, 21, 22, 20, 22, 23};
+        
+        // right handed coords, node ordering 
+        const u32 u[36] = {0,  2,  1,  0,  3,  2,  4,  5,  6,  4,  6,  7,  8,  10,  9, 8,  11, 10,
+                           12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 22, 21, 20, 23, 22};
 
         int itri = 0;
 
@@ -544,7 +552,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         int itri = 0;
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
             ChVector3d t1 = glyphs->points[ig];
-            ChVector3d t2 = (*glyphs->vectors)[ig] + t1;
+            ChVector3d t2 = (*glyphs->vectors)[ig] * glyphs->glyph_scalelenght + t1;
             ChColor mcol = (*glyphs->colors)[ig];
             video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
 
@@ -623,11 +631,72 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         }
     }
 
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_TENSOR) {
+        int itri = 0;
+
+        for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
+            ChVector3d t1 = glyphs->points[ig];
+            ChVector3d t2;
+            ChVector3d t3;
+
+            // X axis - create a  small line (a degenerate triangle) per each vector
+            t2 = t1 + (*glyphs->rotations)[ig].Rotate(ChVector3d(1, 0, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].x());
+            t3 = t1 - (*glyphs->rotations)[ig].Rotate(ChVector3d(1, 0, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].x());
+
+            irrmesh->getVertexBuffer()[0 + ig * 9] =
+                video::S3DVertex((f32)t3.x(), (f32)t3.y(), (f32)t3.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+            irrmesh->getVertexBuffer()[1 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+            irrmesh->getVertexBuffer()[2 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + ig * 9);
+
+            ++itri;
+
+            // Y axis
+            t2 = t1 + (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 1, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].y());
+            t3 = t1 - (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 1, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].y());
+
+            irrmesh->getVertexBuffer()[3 + ig * 9] =
+                video::S3DVertex((f32)t3.x(), (f32)t3.y(), (f32)t3.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+            irrmesh->getVertexBuffer()[4 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+            irrmesh->getVertexBuffer()[5 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 3 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 4 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 5 + ig * 9);
+
+            ++itri;
+
+            // Z axis
+            t2 = t1 + (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 0, 1) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].z());
+            t3 = t1 - (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 0, 1) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].z());
+
+            irrmesh->getVertexBuffer()[6 + ig * 9] =
+                video::S3DVertex((f32)t3.x(), (f32)t3.y(), (f32)t3.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+            irrmesh->getVertexBuffer()[7 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+            irrmesh->getVertexBuffer()[8 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 6 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 7 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 8 + ig * 9);
+
+            ++itri;
+        }
+    }
+
     irrmesh->setDirty();                                  // to force update of hardware buffers
     irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
     irrmesh->recalculateBoundingBox();
 
-    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR || glyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR || glyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS || glyphs->GetDrawMode() == ChGlyphs::GLYPH_TENSOR) {
         meshnode->setMaterialFlag(video::EMF_WIREFRAME, true);
         meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
@@ -642,7 +711,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     else
         meshnode->setMaterialFlag(video::EMF_ZBUFFER, false);
 
-    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertices  color
 }
 
 void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface) {
@@ -721,7 +790,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
         meshnode->setMaterialFlag(video::EMF_LIGHTING, true);  // avoid shading for wireframe
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
         meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);
-    } else {                  // if wirewrame u v isolines
+    } else {                  // if wireframe u v isolines
         auto isolines_u = 4;  //// TEST
         auto isolines_v = 3;  //// TEST
         auto sections_u = surface->GetResolutionU() * isolines_u;
@@ -864,7 +933,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<ChLine> line, unsigned int nvert
     meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
     meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
 
-    // meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
+    // meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertices  color
 }
 
 }  // end namespace irrlicht

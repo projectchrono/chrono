@@ -18,7 +18,9 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChConveyor.h"
-#include "chrono/fea/ChMesh.h"
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+#endif
 
 namespace chrono {
 

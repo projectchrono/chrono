@@ -21,7 +21,7 @@
 namespace chrono {
 
 /// Motor to apply a load between two shafts.
-/// Similar to the simplier ChShaftsAppliedTorque, this class specifies the load through a function of time.
+/// Similar to the simpler ChShaftsAppliedTorque, this class specifies the load through a function of time.
 /// Differently from the ChShaftsMotorPosition and ChShaftsMotorSpeed, this does not enforce precise motion via
 /// constraint. Application examples:
 /// - mimic a PID controlled system with some feedback

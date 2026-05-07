@@ -88,7 +88,7 @@ class CH_FSI_API ChTdpfVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin 
     static std::string GetWaveMeshColorModeAsString(ColorMode mode);
 
   private:
-    /// Deformable mesh for wave visualizaiton.
+    /// Deformable mesh for wave visualization.
     struct WaveMesh {
         WaveMesh()
             : wireframe(false),

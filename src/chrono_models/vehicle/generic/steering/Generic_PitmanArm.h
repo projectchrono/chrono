@@ -30,7 +30,7 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Pitman-arm steering subsystem for the genmeric vehicle.
+/// Pitman-arm steering subsystem for the generic vehicle.
 class CH_MODELS_API Generic_PitmanArm : public ChPitmanArm {
   public:
     Generic_PitmanArm(const std::string& name);

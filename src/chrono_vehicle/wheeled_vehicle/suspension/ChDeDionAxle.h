@@ -18,7 +18,7 @@
 //
 // DeDion axles are lightweight solid axles
 // There are two guiding joints
-//  - longitudinal: spherejoint
+//  - longitudinal: spherical joint
 //  - lateral:      Watt linkage (center pivot arm, two side rods)
 //
 // Example cars with DeDion axle(s)

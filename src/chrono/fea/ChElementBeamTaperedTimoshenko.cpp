@@ -325,16 +325,16 @@ void ChElementBeamTaperedTimoshenko::GetFieldDt(ChVectorDynamic<>& mD_dt) {
 void ChElementBeamTaperedTimoshenko::GetFieldDt2(ChVectorDynamic<>& mD_dtdt) {
     mD_dtdt.resize(12);
 
-    // Node 0, accelaration (in local element frame, corotated back by A' )
+    // Node 0, acceleration (in local element frame, corotated back by A' )
     mD_dtdt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPosDt2()).eigen();
 
-    // Node 0, x,y,z ang.accelaration (in local element frame, corotated back by A' )
+    // Node 0, x,y,z ang.acceleration (in local element frame, corotated back by A' )
     mD_dtdt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetAngAccParent()).eigen();
 
-    // Node 1, accelaration (in local element frame, corotated back by A' )
+    // Node 1, acceleration (in local element frame, corotated back by A' )
     mD_dtdt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPosDt2()).eigen();
 
-    // Node 1, x,y,z ang.accelaration (in local element frame, corotated back by A' )
+    // Node 1, x,y,z ang.acceleration (in local element frame, corotated back by A' )
     mD_dtdt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetAngAccParent()).eigen();
 }
 
@@ -420,7 +420,7 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
 
     // In case the section has a shear center displacement:
     // The shear center offset is respect to the centerline of beam element.
-    /*Sy1 = Sy1 - Cy1;  // Unnecessary to do this substraction
+    /*Sy1 = Sy1 - Cy1;  // Unnecessary to do this subtraction
     Sz1 = Sz1 - Cz1;
     Sy2 = Sy2 - Cy2;
     Sz2 = Sz2 - Cz2;*/
@@ -482,7 +482,7 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrixAtPoint(ChMatrixDynam
     // double L = this->length;
 
     // The shear center offset is respect to the centerline of beam element.
-    /*Sy1 = Sy1 - Cy1;  // Unnecessary to do this substraction
+    /*Sy1 = Sy1 - Cy1;  // Unnecessary to do this subtraction
     Sz1 = Sz1 - Cz1;
     Sy2 = Sy2 - Cy2;
     Sz2 = Sz2 - Cz2;*/
@@ -722,7 +722,7 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     double PL2_15_z = 2. * L / (15.);  // optional [2]: ...+ 4*IyA /(L);
     double PL_30_y = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
     double PL_30_z = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
-    /*  DONOT use the axial terms:
+    /*  DO NOT use the axial terms:
     this->Kg(0, 0) =  P_L;
     this->Kg(6, 6) =  P_L;
     this->Kg(0, 6) = -P_L;

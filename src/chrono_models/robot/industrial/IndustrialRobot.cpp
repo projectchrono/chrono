@@ -48,7 +48,6 @@ void IndustrialRobot::SetMotorsDisabled(bool disable) {
 void IndustrialRobot::SetBaseFrame(const ChFramed& base_frame) {
     for (auto& body : m_bodylist)
         body->ConcatenatePreTransformation(ChFrameMoving<>(base_frame));
-    m_sys->Update(UpdateFlags::UPDATE_ALL);
 }
 
 AssemblyAnalysis::ExitFlag IndustrialRobot::SetPoseTCP(const ChFramed& target_frame, unsigned int max_iters) {
@@ -81,9 +80,7 @@ void IndustrialRobot::SetColor(const ChColor& col) {
                 m_bodylist[i]->GetVisualShape(j)->SetColor(col);
 }
 
-void IndustrialRobot::AttachBody(std::shared_ptr<ChBody> body_attach,
-                                 std::shared_ptr<ChBody> robot_body,
-                                 const ChFrame<>& frame) {
+void IndustrialRobot::AttachBody(std::shared_ptr<ChBody> body_attach, std::shared_ptr<ChBody> robot_body, const ChFrame<>& frame) {
     m_body_attached = true;
     m_link_attach->Initialize(body_attach, robot_body, frame);
     body_attach->SetFixed(false);
@@ -117,12 +114,11 @@ void IndustrialRobot::ClearShapes() {
         body->GetVisualModel()->Clear();
 }
 
-std::shared_ptr<ChLinkMotorRotationAngle> IndustrialRobot::CreateMotorRotationAngle(
-    ChSystem* sys,
-    std::shared_ptr<ChBody> body1,
-    std::shared_ptr<ChBody> body2,
-    const ChFramed& frame,
-    std::shared_ptr<ChFunction> motfun) {
+std::shared_ptr<ChLinkMotorRotationAngle> IndustrialRobot::CreateMotorRotationAngle(ChSystem* sys,
+                                                                                    std::shared_ptr<ChBody> body1,
+                                                                                    std::shared_ptr<ChBody> body2,
+                                                                                    const ChFramed& frame,
+                                                                                    std::shared_ptr<ChFunction> motfun) {
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(body1, body2, frame);
     if (motfun) {
@@ -132,12 +128,11 @@ std::shared_ptr<ChLinkMotorRotationAngle> IndustrialRobot::CreateMotorRotationAn
     return motor;
 }
 
-std::shared_ptr<ChLinkMotorLinearPosition> IndustrialRobot::CreateMotorLinearPosition(
-    ChSystem* sys,
-    std::shared_ptr<ChBody> body1,
-    std::shared_ptr<ChBody> body2,
-    const ChFramed& frame,
-    std::shared_ptr<ChFunction> motfun) {
+std::shared_ptr<ChLinkMotorLinearPosition> IndustrialRobot::CreateMotorLinearPosition(ChSystem* sys,
+                                                                                      std::shared_ptr<ChBody> body1,
+                                                                                      std::shared_ptr<ChBody> body2,
+                                                                                      const ChFramed& frame,
+                                                                                      std::shared_ptr<ChFunction> motfun) {
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     motor->Initialize(body1, body2, frame);
     if (motfun) {
@@ -149,20 +144,18 @@ std::shared_ptr<ChLinkMotorLinearPosition> IndustrialRobot::CreateMotorLinearPos
 
 void IndustrialRobot::CreatePassiveLinks() {
     for (const auto& motor : m_motorlist) {
-        std::shared_ptr<ChBodyFrame> body1(motor->GetBody1(), [](ChBodyFrame*) {});  // provide empy deleter function
-        std::shared_ptr<ChBodyFrame> body2(motor->GetBody2(), [](ChBodyFrame*) {});  // provide empy deleter function
+        std::shared_ptr<ChBodyFrame> body1(motor->GetBody1(), [](ChBodyFrame*) {});  // provide empty deleter function
+        std::shared_ptr<ChBodyFrame> body2(motor->GetBody2(), [](ChBodyFrame*) {});  // provide empty deleter function
         ChFramed absframe(motor->GetFrame2Abs());
 
         if (std::dynamic_pointer_cast<ChLinkMotorLinearPosition>(motor)) {
-            std::dynamic_pointer_cast<ChLinkMotorLinearPosition>(motor)->SetGuideConstraint(
-                ChLinkMotorLinear::GuideConstraint::FREE);
+            std::dynamic_pointer_cast<ChLinkMotorLinearPosition>(motor)->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
             auto passive_link = chrono_types::make_shared<ChLinkMatePrismatic>();
             passive_link->SetName(motor->GetName() + "_passive");
             passive_link->Initialize(body1, body2, absframe);
             m_sys->Add(passive_link);
         } else if (std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(motor)) {
-            std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(motor)->SetSpindleConstraint(
-                ChLinkMotorRotation::SpindleConstraint::FREE);
+            std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(motor)->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::FREE);
             auto passive_link = chrono_types::make_shared<ChLinkMateRevolute>();
             passive_link->SetName(motor->GetName() + "_passive");
             passive_link->Initialize(body1, body2, absframe);

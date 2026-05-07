@@ -32,8 +32,8 @@
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeBypass.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
 using std::cout;
@@ -84,8 +84,8 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     ChSystemSMC* m_system;                          // containing Chrono system
     std::vector<std::shared_ptr<ChBody>> m_bodies;  // proxy tire bodies
 
-#ifdef CHRONO_IRRLICHT
-    std::shared_ptr<irrlicht::ChVisualSystemIrrlicht> m_vis;  // Irrlicht run-time visualization
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vis;  // run-time visualization
 #endif
 };
 
@@ -119,8 +119,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_terrain->SetKt(4e5f);
     mat_terrain->SetGt(4e1f);
 
-    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector3d(m_dimX, m_dimY, 0.2), ChVector3d(0, 0, -0.1),
-                          ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector3d(m_dimX, m_dimY, 0.2), ChVector3d(0, 0, -0.1), ChQuaternion<>(1, 0, 0, 0), true);
 
     // Shared proxy contact material
     auto mat_proxy = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -147,7 +146,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_bodies[i]->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
         m_bodies[i]->EnableCollision(true);
 
-        utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2);
+        utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2, VNULL, Q_ROTATE_Y_TO_Z);
 
         m_system->AddBody(m_bodies[i]);
     }
@@ -155,20 +154,19 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     // Reset system time to 0.
     m_system->SetChTime(0);
 
-#ifdef CHRONO_IRRLICHT
+#ifdef CHRONO_VSG
     if (m_renderRT) {
-        // Create the Irrlicht visualization system
-        m_vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        m_vis->SetCameraVertical(CameraVerticalDir::Z);
-        m_vis->SetWindowSize(1280, 720);
-        m_vis->SetWindowTitle("Custom terrain node");
-        m_vis->Initialize();
-        m_vis->AddLogo();
-        m_vis->AddSkyBox();
-        m_vis->AddCamera(ChVector3d(2, 1.4, 1));
-        m_vis->AddLightDirectional();
-
+        // Create the run-time visualization system
+        m_vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vis->AttachSystem(m_system);
+        m_vis->SetCameraVertical(CameraVerticalDir::Z);
+        m_vis->SetWindowTitle("Custom terrain node");
+        m_vis->SetWindowSize(1280, 720);
+        m_vis->AddCamera(ChVector3d(2, 1.4, 1));
+        m_vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        m_vis->EnableShadows();
+        m_vis->Initialize();
+        m_vis->ToggleAbsFrameVisibility();
     }
 #endif
 }
@@ -183,7 +181,7 @@ void MyTerrain::OnAdvance(double step_size) {
 }
 
 void MyTerrain::OnRender() {
-#ifdef CHRONO_IRRLICHT
+#ifdef CHRONO_VSG
     if (!m_vis->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
@@ -232,7 +230,7 @@ int main(int argc, char** argv) {
     if (num_procs != 3) {
         if (rank == 0)
             std::cout << "\n\nSingle wheel cosimulation code must be run on exactly 3 ranks!\n\n" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        MPI_Finalize();
         return 1;
     }
 
@@ -350,8 +348,7 @@ int main(int argc, char** argv) {
             node->Synchronize(is, time);
             node->Advance(step_size);
             if (verbose)
-                cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
-                     << node->GetTotalExecutionTime() << "]" << endl;
+                cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  [" << node->GetTotalExecutionTime() << "]" << endl;
 
             if (is % output_steps == 0) {
                 node->OutputData(output_frame);

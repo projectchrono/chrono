@@ -111,7 +111,7 @@ Vec2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double U, const Vec2& p,
     double Q1 = 0;
 
     // In the linear regime:
-    //    1. Compute flow at the limit between laminar and tubulent models.
+    //    1. Compute flow at the limit between laminar and turbulent models.
     //       Assume positive sign.
     //    2. Compute the actual flow as a factor of the flow at the limit.
     //       Sign of Delta_p defines sign of the volume flow.

@@ -30,7 +30,7 @@
 
 /**
     @defgroup cascade_module CASCADE module
-    @brief Tools for interoperation with CAD files.
+    @brief Tools for interoperability with CAD files.
 
     This module allows using the OpenCASCADE solid modeling kernel in Chrono.
 
@@ -45,7 +45,7 @@ namespace chrono {
 /// @{
 
 /// \brief Namespace with classes for the CASCADE module.
-/// The "cascade" namespace contains tools for interoperation with CAD
+/// The "cascade" namespace contains tools for interoperability with CAD
 /// files. The OpenCASCADE open-source library is used to this end:
 /// it can load STEP files saved from most 3D CADs.
 namespace cascade {}

@@ -24,24 +24,13 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_VSG
-    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
-
-// Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step sizes
 double step_size = 0.005;
@@ -121,57 +110,20 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle run-time visualization interface and the interactive driver
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
-
-    std::shared_ptr<ChVehicleVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("Two cars demo");
-            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.5);
-            vis_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
-            vis_irr->SetChaseCameraPosition(ChVector3d(-15, 0, 2.0));
-            vis_irr->Initialize();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AddLightDirectional();
-            vis_irr->AttachVehicle(&hmmwv_1.GetVehicle());
-
-            vis = vis_irr;
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("Two cars demo");
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.5);
-            vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
-            vis_vsg->SetChaseCameraPosition(ChVector3d(-15, 0, 2.0));
-            vis_vsg->AttachVehicle(&hmmwv_1.GetVehicle());
-            vis_vsg->EnableSkyBox();
-            vis_vsg->SetCameraAngleDeg(40);
-            vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-#endif
-            break;
-        }
-    }
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+    vis->SetWindowTitle("Two cars demo");
+    vis->SetWindowSize(1280, 800);
+    vis->SetWindowPosition(100, 100);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.5);
+    vis->SetChaseCameraState(utils::ChChaseCamera::Track);
+    vis->SetChaseCameraPosition(ChVector3d(-15, 0, 2.0));
+    vis->AttachVehicle(&hmmwv_1.GetVehicle());
+    vis->EnableSkyTexture(SkyMode::DOME);
+    vis->SetCameraAngleDeg(40);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 
     // ---------------
     // Simulation loop

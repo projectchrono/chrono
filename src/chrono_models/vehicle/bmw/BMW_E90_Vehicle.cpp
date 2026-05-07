@@ -23,7 +23,7 @@
 //
 // The steering geometry has been changed for chrono, because the original data
 // lead to a situation where the inner wheel turn angle is smaller than the outer
-// one at cornering. The steering trapez has been recalculated to standard behavior.
+// one at cornering. The steering trapezoid has been recalculated to standard behavior.
 //
 // The tire parameters where calculated from data with a Matlab script, both presented
 // in SAE Paper 2007-01-0818. Actually no alignment torque, camber influence and

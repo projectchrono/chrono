@@ -89,7 +89,7 @@ Generic_DoubleWishboneReducedRear::Generic_DoubleWishboneReducedRear(const std::
 }
 
 // -----------------------------------------------------------------------------
-// Destructors
+// Destructor
 // -----------------------------------------------------------------------------
 Generic_DoubleWishboneReducedFront::~Generic_DoubleWishboneReducedFront() {}
 

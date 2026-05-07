@@ -22,7 +22,7 @@
 namespace chrono {
 
 /// Motor to enforce the relative position r(t) between two shafts, using a rheonomic constraint.
-/// The position of shaft A with respect to shaft B is set trhough a function of time f(t) and an optional offset:
+/// The position of shaft A with respect to shaft B is set through a function of time f(t) and an optional offset:
 ///    r(t) = f(t) + offset
 /// The relative position represents an angle for rotational motor and a displacement for linear motors.
 /// Note: no compliance is allowed, so if the actuator hits an undeformable obstacle it hits a pathological situation
@@ -95,9 +95,10 @@ class ChApi ChShaftsMotorPosition : public ChShaftsMotor {
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
+                                     const double c_vel, 
                                      bool do_clamp,
                                      double recovery_clamp) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

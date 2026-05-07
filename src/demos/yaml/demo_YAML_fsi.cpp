@@ -24,13 +24,13 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtils.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
 
@@ -39,21 +39,43 @@ using namespace chrono;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Extract filenames from command-line arguments
-    std::string yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/fsi_objectdrop.yaml");
-    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/fsi_baffleflow.yaml");
-    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/fsi_wavetank.yaml");
-    ////std::string yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
-
-    ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "f,fsi_file", "FSI problem specification YAML file", yaml_filename);
-    if (!cli.Parse(argc, argv, true))
-        return 1;
-    if (argc == 1) {
-        cli.Help();
-        std::cout << "Using default YAML specification file" << std::endl;
+    // Select model
+    std::string input;
+    int model = 1;
+    std::cout << "Options:\n";
+    std::cout << "  1. Object drop (SPH) [DEFAULT]" << std::endl;
+    std::cout << "  2. Baffle flow (SPH)" << std::endl;
+    std::cout << "  3. Wave tank (SPH)" << std::endl;
+    std::cout << "  4. Sphere decay (TDPF)" << std::endl;
+    std::cout << "  5. Other (user-provided YAML file)" << std::endl;
+    std::cout << "\nSelect model: ";
+    std::getline(std::cin, input);
+    if (!input.empty()) {
+        std::istringstream stream(input);
+        stream >> model;
+        ChClampValue(model, 1, 5);
     }
-    yaml_filename = cli.GetAsType<std::string>("fsi_file");
+
+    // Set input file name
+    std::string yaml_filename;
+    switch (model) {
+        case 1:
+            yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/fsi_objectdrop.yaml");
+            break;
+        case 2:
+            yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/fsi_baffleflow.yaml");
+            break;
+        case 3:
+            yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/fsi_wavetank.yaml");
+            break;
+        case 4:
+            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+            break;
+        case 5:
+            std::cout << "FSI YAML specification file name: ";
+            std::getline(std::cin, yaml_filename);
+            break;
+    }
 
     std::cout << std::endl;
     std::cout << "YAML specification file: " << yaml_filename << std::endl;

@@ -64,7 +64,7 @@ class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
     double rot_offset;
 
     virtual void Update(double time, UpdateFlags update_flags) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 };
 

@@ -24,7 +24,7 @@ namespace chrono {
 /// @addtogroup chrono_geometry
 /// @{
 
-/// Geometric object representing an sequence of other ChLine objects,
+/// Geometric object representing an sequence of other ChLine objects.
 /// The ChLine objects are assumed to be properly concatenated and to have C0 continuity.
 class ChApi ChLinePath : public ChLine {
   public:
@@ -38,6 +38,7 @@ class ChApi ChLinePath : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_PATH; }
 
+    /// Get the complexity.
     virtual int GetComplexity() const override { return 2; }
 
     /// Return curve length.
@@ -66,25 +67,25 @@ class ChApi ChLinePath : public ChLine {
     void SetSubLineDurationN(size_t n, double mduration);
 
     /// Queue a line (push it back to the array of lines).
-    void AddSubLine(std::shared_ptr<ChLine> mline,  ///< line to add
-                    double duration = 1             ///< duration of the abscyssa when calling the Evaluate() function
+    void AddSubLine(std::shared_ptr<ChLine> line,  ///< line to add
+                    double duration = 1            ///< duration of the abscyssa when calling the Evaluate() function
     );
 
     /// Queue a line (push it back to the array of lines)
-    void AddSubLine(ChLine& mline,       ///< line to add
+    void AddSubLine(ChLine& line,        ///< line to add
                     double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
     );
 
     /// Insert a line at the specified index in line array.
-    void InsertSubLine(size_t n,                       ///< index in line array
-                       std::shared_ptr<ChLine> mline,  ///< line to add
-                       double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
+    void InsertSubLine(size_t n,                      ///< index in line array
+                       std::shared_ptr<ChLine> line,  ///< line to add
+                       double duration = 1            ///< duration of the abscyssa when calling the Evaluate() function
     );
 
     /// Insert a line at a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
     void InsertSubLine(size_t n,            ///< index of line, 0 is first, etc.
-                       ChLine& mline,       ///< line to add
+                       ChLine& line,        ///< line to add
                        double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
     );
 
@@ -103,8 +104,7 @@ class ChApi ChLinePath : public ChLine {
     /// the 0..1 range like with other lines.
     void SetPathDuration(double mUduration);
 
-    /// Check if the path is topologically connected,
-    /// i.e. if all the sub lines are queued to have C0 continuity
+    /// Check if the path is topologically connected, i.e. if all the sub lines are queued to have C0 continuity
     double GetContinuityMaxError() const;
 
     /// Method to allow serialization of transient data to archives.
@@ -113,7 +113,8 @@ class ChApi ChLinePath : public ChLine {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    std::vector<std::shared_ptr<ChLine> > lines;
+  private:
+    std::vector<std::shared_ptr<ChLine>> lines;
     std::vector<double> end_times;
     std::vector<double> durations;
 };

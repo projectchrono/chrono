@@ -55,7 +55,7 @@ enum CuriosityWheelID {
 /// Curiosity chassis type.
 enum class CuriosityChassisType { FullRover, Scarecrow };
 
-/// Curiostiy wheel type.
+/// Curiosity wheel type.
 enum class CuriosityWheelType { RealWheel, SimpleWheel, CylWheel };
 
 // -----------------------------------------------------------------------------
@@ -93,7 +93,7 @@ class CH_MODELS_API CuriosityPart {
     /// This is the orientation wrt the global frame of the part reference frame.
     const ChQuaternion<>& GetRot() const { return m_body->GetFrameRefToAbs().GetRot(); }
 
-    /// Return the linear velocity of the Curiopsity part.
+    /// Return the linear velocity of the Curiosity part.
     /// This is the absolute linear velocity of the part reference frame.
     const ChVector3d& GetLinVel() const { return m_body->GetFrameRefToAbs().GetPosDt(); }
 
@@ -105,8 +105,8 @@ class CH_MODELS_API CuriosityPart {
     /// This is the absolute linear acceleration of the part reference frame.
     const ChVector3d& GetLinAcc() const { return m_body->GetFrameRefToAbs().GetPosDt2(); }
 
-    /// Return the angular acceleratino of the Curiosity part.
-    /// This is the absolute angular acceleratin of the part reference frame.
+    /// Return the angular acceleration of the Curiosity part.
+    /// This is the absolute angular acceleration of the part reference frame.
     const ChVector3d GetAngAcc() const { return m_body->GetFrameRefToAbs().GetAngAccParent(); }
 
     /// Initialize the rover part by attaching it to the specified chassis body.
@@ -229,9 +229,7 @@ class CuriosityDriver;
 /// This class should be the entry point to create a complete rover.
 class CH_MODELS_API Curiosity {
   public:
-    Curiosity(ChSystem* system,
-              CuriosityChassisType chassis_type = CuriosityChassisType::FullRover,
-              CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel);
+    Curiosity(ChSystem* system, CuriosityChassisType chassis_type = CuriosityChassisType::FullRover, CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel);
     ~Curiosity() {}
 
     /// Get the containing system.
@@ -373,10 +371,9 @@ class CH_MODELS_API Curiosity {
 
 // -----------------------------------------------------------------------------
 
-/// Base class definition for a Curiosity driver.
-/// A derived class must implement the Update function to set the various motor controls at the current time.
-/// Alternatively, a derived class may directly access the associate Curiosity rover and control it through different
-/// means (such as applying torques to the wheel driveshafts).
+/// Definition for a Curiosity driver system.
+/// The rover is controlled through angular velocities at all 6 wheels and steering angles at the front and rear wheels.
+/// This base class controls directly the wheel angular speeds and steering angles. Derived classes can use different mechanisms for setting these controls.
 class CH_MODELS_API CuriosityDriver {
   public:
     /// Type of drive motor control.
@@ -384,6 +381,8 @@ class CH_MODELS_API CuriosityDriver {
         SPEED,  ///< angular speed
         TORQUE  ///< torque
     };
+
+    CuriosityDriver();
     virtual ~CuriosityDriver() {}
 
     /// Set current steering input (angle: negative for left turn, positive for right turn).
@@ -394,21 +393,22 @@ class CH_MODELS_API CuriosityDriver {
     /// This function sets the steering angle for the specified wheel.
     void SetSteering(double angle, CuriosityWheelID id);
 
-    /// Indicate the control type for the drive motors.
-    virtual DriveMotorType GetDriveMotorType() const = 0;
+    /// Set all steering angles.
+    void SetSteeringAngles(const std::array<double, 4>& angles) { steer_angles = angles; }
+
+    /// Set all wheel angular speeds.
+    void SetDriveSpeeds(const std::array<double, 6>& speeds) { drive_speeds = speeds; }
+
+    /// Indicate the control type for the drive motors (default: SPEED).
+    virtual DriveMotorType GetDriveMotorType() const { return DriveMotorType::SPEED; }
 
   protected:
-    CuriosityDriver();
+    /// Update the driver system.
+    /// This function is called at each rover Update and can be used by derived classes to set new drive motor angular speeds and steering motor angles.
+    /// A positive steering input corresponds to a left turn and a negative value to a right turn.
+    virtual void Update(double time) {}
 
-    /// Set the current rover driver inputs.
-    /// This function is called by the associated Curiosity at each rover Update. A derived class must update the values
-    /// for the angular speeds for the drive motors, as well as the angles for the steering motors and the lift motors
-    /// at the specified time. A positive steering input corresponds to a left turn and a negative value to a right
-    /// turn.
-    virtual void Update(double time) = 0;
-
-    Curiosity* curiosity;  ///< associated Curiosity rover
-
+    Curiosity* curiosity;                ///< associated Curiosity rover
     std::array<double, 6> drive_speeds;  ///< angular speeds for drive motors (positive for forward motion)
     std::array<double, 4> steer_angles;  ///< angles for steer motors (negative for left turn, positive for right turn)
 

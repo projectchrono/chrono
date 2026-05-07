@@ -9,25 +9,15 @@ option(CH_ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 # Return now if this module is not enabled
 if(NOT CH_ENABLE_MODULE_VEHICLE)
    mark_as_advanced(FORCE CH_ENABLE_OPENCRG)
-   mark_as_advanced(FORCE CH_ENABLE_IRRKLANG)
-   mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
-   mark_as_advanced(FORCE IRRKLANG_LIBRARY)
    return()
 endif()
 
 message(STATUS "\n==== Chrono Vehicle module ====\n")
 
 mark_as_advanced(CLEAR CH_ENABLE_OPENCRG)
-mark_as_advanced(CLEAR CH_ENABLE_IRRKLANG)
-mark_as_advanced(CLEAR IRRKLANG_INSTALL_DIR)
-mark_as_advanced(CLEAR IRRKLANG_LIBRARY)
 
 # Provide option to add OpenCRG support.
 option(CH_ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
-
-# If Irrlicht support was enabled, provide option to add Irrklang support.
-cmake_dependent_option(CH_ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
-                       "CH_ENABLE_MODULE_IRRLICHT" OFF)
 
 # ----------------------------------------------------------------------------
 # Find the OpenCRG library
@@ -74,38 +64,6 @@ endif()
 SET(CH_USE_OPENCRG "${CH_USE_OPENCRG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
-# Find IrrKlang library
-# ----------------------------------------------------------------------------
-
-if(CH_ENABLE_IRRKLANG)
-
-  set(IRRKLANG_ROOT "" CACHE PATH "IrrKlang SDK root directory")
-  set(IRRKLANG_LIBDIR "" CACHE PATH "IrrKlang SDK library directory")
-  find_package(IRRKLANG)
-
-  if (NOT IRRKLANG_FOUND)
-    mark_as_advanced(CLEAR IRRKLANG_ROOT)
-    mark_as_advanced(CLEAR IRRKLANG_LIBDIR)
-  else()
-    set(IRRKLANG_LIBDIR ${IRRKLANG_LIBRARY_DIR} CACHE STRING "IrrKlang SDK library directory" FORCE)
-    mark_as_advanced(FORCE IRRKLANG_ROOT)
-    mark_as_advanced(FORCE IRRKLANG_LIBDIR)
-  endif()
-
-  message(STATUS "IrrKlang include dir: ${IRRKLANG_INCLUDE_DIR}")
-  message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
-
-  set(CH_USE_IRRKLANG ${IRRKLANG_FOUND})
-
-else()
-
-  set(CH_USE_IRRKLANG FALSE)
-
-endif()
-
-set(CH_USE_IRRKLANG "${CH_USE_IRRKLANG}" PARENT_SCOPE)
-
-# ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
@@ -114,12 +72,6 @@ if(CH_USE_OPENCRG)
   set(CHRONO_OPENCRG "#define CHRONO_HAS_OPENCRG")
 else()
   set(CHRONO_OPENCRG "#undef CHRONO_HAS_OPENCRG")
-endif()
-
-if(CH_ENABLE_IRRKLANG)
-  set(CHRONO_IRRKLANG "#define CHRONO_HAS_IRRKLANG")
-else()
-  set(CHRONO_IRRKLANG "#undef CHRONO_HAS_IRRKLANG")
 endif()
 
 # Generate the configuration header file using substitution variables.
@@ -272,9 +224,13 @@ set(CV_TERRAIN_FILES
     terrain/SCMTerrain.cpp
     terrain/GranularTerrain.h
     terrain/GranularTerrain.cpp
-    terrain/FEATerrain.h
-    terrain/FEATerrain.cpp
 )
+if(CH_ENABLE_MODULE_FEA)
+    set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
+        terrain/FEATerrain.h
+        terrain/FEATerrain.cpp
+    )
+endif()
 if(CH_USE_OPENCRG)
     set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
         terrain/CRGTerrain.h
@@ -298,8 +254,8 @@ set(CV_UTILS_FILES
     utils/ChAdaptiveSpeedController.cpp
     utils/ChVehiclePath.h
     utils/ChVehiclePath.cpp
-    utils/ChUtilsJSON.h
-    utils/ChUtilsJSON.cpp
+    utils/ChVehicleUtilsJSON.h
+    utils/ChVehicleUtilsJSON.cpp
 )
 source_group("utils" FILES ${CV_UTILS_FILES})
 
@@ -536,17 +492,9 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChTMsimpleTire.cpp
     wheeled_vehicle/tire/ChTMeasyTire.h
     wheeled_vehicle/tire/ChTMeasyTire.cpp
-    wheeled_vehicle/tire/ChDeformableTire.h
-    wheeled_vehicle/tire/ChDeformableTire.cpp
-    wheeled_vehicle/tire/ChANCFTire.h
-    wheeled_vehicle/tire/ChANCFTire.cpp
-    wheeled_vehicle/tire/ChReissnerTire.h
-    wheeled_vehicle/tire/ChReissnerTire.cpp
-    wheeled_vehicle/tire/ChFEATire.h
-    wheeled_vehicle/tire/ChFEATire.cpp
     wheeled_vehicle/tire/ChPac02Tire.h
     wheeled_vehicle/tire/ChPac02Tire.cpp
-
+    #
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
     wheeled_vehicle/tire/Pac89Tire.h
@@ -557,19 +505,32 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/TMeasyTire.cpp
     wheeled_vehicle/tire/TMsimpleTire.h
     wheeled_vehicle/tire/TMsimpleTire.cpp
-    wheeled_vehicle/tire/ReissnerTire.h
-    wheeled_vehicle/tire/ReissnerTire.cpp
-    wheeled_vehicle/tire/ANCFTire.h
-    wheeled_vehicle/tire/ANCFTire.cpp
-    wheeled_vehicle/tire/FEATire.h
-    wheeled_vehicle/tire/FEATire.cpp
-    wheeled_vehicle/tire/ANCFToroidalTire.h
-    wheeled_vehicle/tire/ANCFToroidalTire.cpp
-    wheeled_vehicle/tire/ReissnerToroidalTire.h
-    wheeled_vehicle/tire/ReissnerToroidalTire.cpp
     wheeled_vehicle/tire/Pac02Tire.h
     wheeled_vehicle/tire/Pac02Tire.cpp
 )
+if(CH_ENABLE_MODULE_FEA)
+    set(CV_WV_TIRE_FILES ${CV_WV_TIRE_FILES}
+        wheeled_vehicle/tire/ChDeformableTire.h
+        wheeled_vehicle/tire/ChDeformableTire.cpp
+        wheeled_vehicle/tire/ChANCFTire.h
+        wheeled_vehicle/tire/ChANCFTire.cpp
+        wheeled_vehicle/tire/ChReissnerTire.h
+        wheeled_vehicle/tire/ChReissnerTire.cpp
+        wheeled_vehicle/tire/ChFEATire.h
+        wheeled_vehicle/tire/ChFEATire.cpp
+        #
+        wheeled_vehicle/tire/ReissnerTire.h
+        wheeled_vehicle/tire/ReissnerTire.cpp
+        wheeled_vehicle/tire/ANCFTire.h
+        wheeled_vehicle/tire/ANCFTire.cpp
+        wheeled_vehicle/tire/FEATire.h
+        wheeled_vehicle/tire/FEATire.cpp
+        wheeled_vehicle/tire/ANCFToroidalTire.h
+        wheeled_vehicle/tire/ANCFToroidalTire.cpp
+        wheeled_vehicle/tire/ReissnerToroidalTire.h
+        wheeled_vehicle/tire/ReissnerToroidalTire.cpp
+    )
+endif()
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 
 set(CV_WV_VEHICLE_FILES
@@ -705,18 +666,23 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeBand.cpp
     tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h
     tracked_vehicle/track_shoe/ChTrackShoeBandBushing.cpp
-    tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h
-    tracked_vehicle/track_shoe/ChTrackShoeBandANCF.cpp
-
+    #
     tracked_vehicle/track_shoe/TrackShoeSinglePin.h
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/TrackShoeDoublePin.h
     tracked_vehicle/track_shoe/TrackShoeDoublePin.cpp
     tracked_vehicle/track_shoe/TrackShoeBandBushing.h
     tracked_vehicle/track_shoe/TrackShoeBandBushing.cpp
-    tracked_vehicle/track_shoe/TrackShoeBandANCF.h
-    tracked_vehicle/track_shoe/TrackShoeBandANCF.cpp
 )
+if(CH_ENABLE_MODULE_FEA)
+    set(CV_TV_TRACKSHOE_FILES ${CV_TV_TRACKSHOE_FILES}
+        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h
+        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.cpp
+        #
+        tracked_vehicle/track_shoe/TrackShoeBandANCF.h
+        tracked_vehicle/track_shoe/TrackShoeBandANCF.cpp
+    )
+endif()
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
 set(CV_TV_TRACKASSEMBLY_FILES
@@ -730,18 +696,23 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblyBand.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.cpp
-    tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h
-    tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.cpp
-
+    #
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h
     tracked_vehicle/track_assembly/TrackAssemblyBandBushing.cpp
-    tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h
-    tracked_vehicle/track_assembly/TrackAssemblyBandANCF.cpp
 )
+if(CH_ENABLE_MODULE_FEA)
+    set(CV_TV_TRACKASSEMBLY_FILES ${CV_TV_TRACKASSEMBLY_FILES}
+        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h
+        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.cpp
+        #
+        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h
+        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.cpp
+    )
+endif()
 source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
 
 set(CV_TV_TEST_RIG_FILES
@@ -974,10 +945,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     target_link_libraries(Chrono_vehicle_irrlicht PRIVATE Chrono_core Chrono_vehicle)
     target_link_libraries(Chrono_vehicle_irrlicht PUBLIC Chrono_irrlicht)
 
-    if(CH_ENABLE_IRRKLANG)
-        target_link_libraries(Chrono_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
-    endif()
-
     target_compile_definitions(Chrono_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
     install(TARGETS Chrono_vehicle_irrlicht
@@ -1033,11 +1000,10 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 #-------------------------------------------------------------------------------
-# Trigger CMake for vehicle cosimulation
+# Trigger CMake for vehicle co-simulation
 #-------------------------------------------------------------------------------
 
-option(CH_ENABLE_MODULE_VEHICLE_COSIM "Build the Chrono vehicle cosimulation library" TRUE)
-mark_as_advanced(FORCE CH_ENABLE_MODULE_VEHICLE_COSIM)
+option(CH_ENABLE_MODULE_VEHICLE_COSIM "Build the Chrono vehicle co-simulation library" TRUE)
 if(CH_ENABLE_MODULE_VEHICLE_COSIM)
   add_subdirectory(cosim)
 endif()
@@ -1075,19 +1041,8 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-# Install files for chrono-config (in both build and install trees)
-file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
-
 # On Windows, copy DLLs
 #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-#    if(CH_ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
-#        add_custom_command(TARGET Chrono_vehicle_irrlicht POST_BUILD
-#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#            "${IRRKLANG_DLL}"
-#            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
-#    endif()
-#
 #    if(EXISTS "${OpenCRG_DLL}")
 #        add_custom_command(TARGET Chrono_vehicle POST_BUILD
 #            COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -1097,6 +1052,5 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake" DESTINATION ${CH_CO
 #    endif()
 #
 #  # Make variable visible from outside this directory
-#  set(CH_IRRKLANG_DLL "${IRRKLANG_DLL}" PARENT_SCOPE)
 #  set(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
 #endif()

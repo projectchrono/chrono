@@ -114,7 +114,7 @@ class ChApiParsers ChParserOpenSim {
     void EnableCollision(bool val) { m_collide = val; }
 
     /// Set collision families (to disable collision between a body and its parent).
-    /// Note: automaticaly enables collision.
+    /// Note: automatically enables collision.
     void SetCollisionFamilies(int family_1 = 1,  ///< [in] first collision family
                               int family_2 = 2   ///< [in] second collision family
     );

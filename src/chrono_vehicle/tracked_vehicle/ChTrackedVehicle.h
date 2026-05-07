@@ -215,6 +215,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Log the types (template names) of current vehicle subsystems.
     void LogSubsystemTypes(std::ostream& os = std::cout);
 
+    /// Return a list with all bodies in the vehicle system.
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const override;
+
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual std::string ExportComponentList() const override;

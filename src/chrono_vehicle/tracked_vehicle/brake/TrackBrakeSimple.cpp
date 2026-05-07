@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

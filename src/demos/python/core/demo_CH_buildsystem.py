@@ -58,9 +58,9 @@ class MyReportContactCallback(chrono.ReportContactCallback):
     def __init__(self):
          chrono.ReportContactCallback.__init__(self)
     def OnReportContact(self,vA,vB,cA,dist,rad,force,torque,modA,modB,cnstr_offset):
-         bodyUpA = chrono.CastContactableToChBody(modA)
+         bodyUpA = chrono.CastToChBody(modA)
          nameA = bodyUpA.GetName()
-         bodyUpB = chrono.CastContactableToChBody(modB)
+         bodyUpB = chrono.CastToChBody(modB)
          nameB = bodyUpB.GetName()
          print ('  contact: point A=' , vA,  '  dist=', dist, 'first body:', nameA, 'second body:', nameB)
          return True        # return False to stop reporting contacts

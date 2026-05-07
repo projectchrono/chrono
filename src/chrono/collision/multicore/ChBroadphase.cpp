@@ -46,7 +46,7 @@ ChBroadphase::ChBroadphase()
 
 // Inverted AABB (assumed associated with an active shape).
 auto inverted =
-    thrust::make_tuple(real3(+C_REAL_MAX, +C_REAL_MAX, +C_REAL_MAX), real3(-C_REAL_MAX, -C_REAL_MAX, -C_REAL_MAX), 0);
+    thrust::make_tuple(real3(+CH_REAL_MAX, +CH_REAL_MAX, +CH_REAL_MAX), real3(-CH_REAL_MAX, -CH_REAL_MAX, -CH_REAL_MAX), 0);
 
 // Invert an AABB associated with an inactive shape or a shape on a non-colliding body.
 struct BoxInvert {
@@ -71,8 +71,8 @@ struct BoxReduce {
         real3 rhs_ll = thrust::get<0>(rhs);
         real3 rhs_ur = thrust::get<1>(rhs);
 
-        real3 ll = real3(Min(lhs_ll.x, rhs_ll.x), Min(lhs_ll.y, rhs_ll.y), Min(lhs_ll.z, rhs_ll.z));
-        real3 ur = real3(Max(lhs_ur.x, rhs_ur.x), Max(lhs_ur.y, rhs_ur.y), Max(lhs_ur.z, rhs_ur.z));
+        real3 ll = Min(lhs_ll, rhs_ll);
+        real3 ur = Max(lhs_ur, rhs_ur);
 
         return thrust::tuple<real3, real3, uint>(ll, ur, 0);
     }
@@ -106,10 +106,8 @@ typedef thrust::pair<real3, real3> bbox;
 // Reduce a pair of bounding boxes (a,b) to a bounding box containing a and b.
 struct bbox_reduction {
     bbox operator()(bbox a, bbox b) {
-        real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
-                         Min(a.first.z, b.first.z));  // lower left corner
-        real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
-                         Max(a.second.z, b.second.z));  // upper right corner
+        real3 ll = Min(a.first, b.first);    // lower left corner
+        real3 ur = Max(a.second, b.second);  // upper right corner
         return bbox(ll, ur);
     }
 };
@@ -129,13 +127,13 @@ void ChBroadphase::ParticleBoundingBox() {
     bbox_reduction binary_op;
     res = thrust::transform_reduce(pos_3dof.begin(), pos_3dof.end(), unary_op, res, binary_op);
 
-    res.first.x = radius * Floor(res.first.x / radius);
-    res.first.y = radius * Floor(res.first.y / radius);
-    res.first.z = radius * Floor(res.first.z / radius);
+    res.first.x = radius * std::floor(res.first.x / radius);
+    res.first.y = radius * std::floor(res.first.y / radius);
+    res.first.z = radius * std::floor(res.first.z / radius);
 
-    res.second.x = radius * Ceil(res.second.x / radius);
-    res.second.y = radius * Ceil(res.second.y / radius);
-    res.second.z = radius * Ceil(res.second.z / radius);
+    res.second.x = radius * std::ceil(res.second.x / radius);
+    res.second.y = radius * std::ceil(res.second.y / radius);
+    res.second.z = radius * std::ceil(res.second.z / radius);
 
     cd_data->part_min_bounding_point = res.first - radius * 6;
     cd_data->part_max_bounding_point = res.second + radius * 6;

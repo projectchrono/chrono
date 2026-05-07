@@ -253,7 +253,7 @@ void TrajectoryInterpolatorOperationSpace::AutoComputeTrajectoryDurations() {
     std::vector<double> path_lengths(m_waypoints->size() - 1);
     double path_length_tot = 0;
     for (auto i = 0; i < m_waypoints->size() - 1; ++i) {
-        // measure traj lengths in cartesian space
+        // measure traj lengths in Cartesian space
         path_lengths[i] = ((*m_waypoints)[i + 1].pos - (*m_waypoints)[i].pos).Length();
         path_length_tot += path_lengths[i];
     }

@@ -80,12 +80,8 @@ class ChApi ChSystemDescriptor {
     /// Access the vector of variables.
     std::vector<ChVariables*>& GetVariables() { return m_variables; }
 
-    /// Begin insertion of items
-    virtual void BeginInsertion() {
-        m_constraints.clear();
-        m_variables.clear();
-        m_KRMblocks.clear();
-    }
+    /// Begin insertion of items.
+    virtual void BeginInsertion();
 
     /// Insert reference to a ChConstraint object.
     virtual void InsertConstraint(ChConstraint* mc) { m_constraints.push_back(mc); }
@@ -98,7 +94,7 @@ class ChApi ChSystemDescriptor {
 
     /// End insertion of items.
     /// A derived class should always call UpdateCountsAndOffsets.
-    virtual void EndInsertion() { UpdateCountsAndOffsets(); }
+    virtual void EndInsertion();
 
     /// Count & returns the scalar variables in the system.
     /// This excludes ChVariable object that are set as inactive.
@@ -138,13 +134,21 @@ class ChApi ChSystemDescriptor {
     /// Get the vector d = {f; -b} with all the 'fb' and 'bi' known terms, as in Z*y-d.
     /// This vector is the concatenation of BuildFbVector and BuildBiVector.
     /// It will be automatically reset and resized to the proper length if necessary.
-    virtual unsigned int BuildDiVector(ChVectorDynamic<>& d) const;
+    virtual unsigned int BuildDiVector(ChVectorDynamic<>& d, double scale_factor = 1) const;
 
     /// Get the D diagonal of the Z system matrix, as a single column vector.
     /// This includes all the diagonal masses of M, and all the diagonal E (-cfm) terms.
     /// The diagonal_vect must already have size equal to the number of unknowns, otherwise it will be resized as
     /// necessary.
     virtual unsigned int BuildDiagonalVector(ChVectorDynamic<>& diagonal_vect) const;
+
+    /// Get the upper diagonal part of the Z system matrix (corresponding to H block), as a single column vector.
+    /// Note: result vector is automatically resized.
+    virtual unsigned int BuildDiagonalVectorUpper(ChVectorDynamic<>& diagonal_upper) const;
+
+    /// Get the lower diagonal part of the Z system matrix (corresponding to E block), as a single column vector.
+    /// Note: result vector is automatically resized.
+    virtual unsigned int BuildDiagonalVectorLower(ChVectorDynamic<>& diagonal_lower) const;
 
     /// Gather the 'q' tertms from all variables into a column vector.
     /// The column vector will be automatically reset and resized to the proper length if requested.
@@ -170,7 +174,7 @@ class ChApi ChSystemDescriptor {
     /// \return  the number of scalar constraint multipliers (i.e. the rows of the column vector).
     virtual unsigned int FromVectorToConstraints(const ChVectorDynamic<>& vector);
 
-    /// Gather all unknows x = {q,l} into a column vector.
+    /// Gather all unknowns x = {q,l} into a column vector.
     /// The column vector will be automatically reset and resized to the proper length if requested.
     /// \return  the number of scalar unknowns
     virtual unsigned int FromUnknownsToVector(ChVectorDynamic<>& vector,  ///< system-level vector x={q,l}
@@ -179,8 +183,9 @@ class ChApi ChSystemDescriptor {
 
     /// Scatter the given vector to the variables 'q' and constraint multipliers 'l'.
     /// Note that *no* check on the size and ordering of the provided vector is performed.
+    /// The scattered Lagrange multipliers are first multiplied by 1/scale_factor.
     /// \return  the number of scalar unknowns
-    virtual unsigned int FromVectorToUnknowns(const ChVectorDynamic<>& vector);
+    virtual unsigned int FromVectorToUnknowns(const ChVectorDynamic<>& vector, double scale_factor = 1);
 
     // ------------------------------------------
 
@@ -260,7 +265,10 @@ class ChApi ChSystemDescriptor {
                                const ChVectorDynamic<>& x  ///< vector to be multiplied
     );
 
-    /// Compute upper part of system descriptor product, as in `[Z]*y = d -> res = [H]*v + [CqT]*l`.
+    /// Compute the upper part of system descriptor product.
+    /// <pre>
+    ///    result = H * v + Cq' * l
+    /// </pre>
     /// Note:
     /// - 'result' is automatically resized
     /// - if negate_lambda = true, automatically flip sign to provided lambda.
@@ -270,7 +278,10 @@ class ChApi ChSystemDescriptor {
                             bool negate_lambda           ///< flip sign to dual variable
     );
 
-    /// Compute lower part of system descriptor product, as in `[Z]*y = d -> res = [Cq]*v + [E]*l`.
+    /// Compute lower part of system descriptor product.
+    /// <pre>
+    ///    result = Cq * v + E * l
+    /// </pre>
     /// Note:
     /// - 'result' is automatically resized
     /// - if negate_lambda = true, automatically flip sign to provided lambda.
@@ -301,13 +312,12 @@ class ChApi ChSystemDescriptor {
         ChVectorDynamic<>& mx  ///< system-level vector of unknowns x={q,-l} (only the l part is projected)
     );
 
-    /// The following (obsolete) function may be called after a solver's 'Solve()'
-    /// operation has been performed. This gives an estimate of 'how
-    /// good' the solver had been in finding the proper solution.
+    /// The following (obsolete) function may be called after a solver's 'Solve()' operation has been performed. 
+    /// This gives an estimate of 'how good' the solver had been in finding the proper solution.
     /// Resulting estimates are passed as references in member arguments.
-    virtual void ComputeFeasabilityViolation(
+    virtual void ComputeFeasibilityViolation(
         double& resulting_maxviolation,  ///< gets the max constraint violation (either bi- and unilateral.)
-        double& resulting_feasability    ///< gets the max feasability as max |l*c| , for unilateral only
+        double& resulting_feasability    ///< gets the max feasibility as max |l*c| , for unilateral only
     );
 
     // LOGGING/OUTPUT/ETC.
@@ -317,7 +327,10 @@ class ChApi ChSystemDescriptor {
     /// - resize Z (and potentially call SetZeroValues if the case)
     /// - call LoadKRMMatrices with the desired factors
     /// - call SetMassFactor() with the appropriate value
-    void PasteMassKRMMatrixInto(ChSparseMatrix& Z, unsigned int start_row = 0, unsigned int start_col = 0) const;
+    void PasteMassKRMMatrixInto(ChSparseMatrix& Z,
+                                unsigned int start_row = 0,
+                                unsigned int start_col = 0,
+                                double scale_factor = 1) const;
 
     /// Paste the constraints jacobian of the system into a sparse matrix at a given position.
     /// Before calling this function the user needs to:
@@ -347,11 +360,13 @@ class ChApi ChSystemDescriptor {
     void PasteComplianceMatrixInto(ChSparseMatrix& Z,
                                    unsigned int start_row = 0,
                                    unsigned int start_col = 0,
+                                   double scale_factor = 1,
                                    bool only_bilateral = false) const;
 
-    /// Create and return the assembled system matrix and RHS vector at a given position.
-    virtual void BuildSystemMatrix(ChSparseMatrix* Z,      ///< [out] assembled system matrix
-                                   ChVectorDynamic<>* rhs  ///< [out] assembled RHS vector
+    /// Create and return the assembled system matrix and/or RHS vector at a given position.
+    virtual void BuildSystemMatrix(ChSparseMatrix* Z,       ///< assembled system matrix
+                                   ChVectorDynamic<>* rhs,  ///< assembled RHS vector
+                                   double scale_factor = 1  ///< optional scaling factor for generalized mass matrix
     ) const;
 
     /// Write the current system matrix blocks and right-hand side components.

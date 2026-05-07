@@ -105,6 +105,90 @@ CH_SENSOR_API void ChFilterAccess<SensorHostRGBA8Buffer, UserRGBA8BufferPtr>::Ap
 }
 
 template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostRGBDHalf4Buffer, UserRGBDHalf4BufferPtr>::Apply() {
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostRGBDHalf4Buffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    }
+    else {
+        tmp_buffer = chrono_types::make_shared<SensorHostRGBDHalf4Buffer>();
+        std::shared_ptr<PixelRGBDHalf4[]> b(
+            cudaHostMallocHelper<PixelRGBDHalf4>(m_bufferIn->Width * m_bufferIn->Height),
+            cudaHostFreeHelper<PixelRGBDHalf4>
+        );
+        tmp_buffer->Buffer = std::move(b);
+    }
+
+    tmp_buffer->Width = m_bufferIn->Width;
+    tmp_buffer->Height = m_bufferIn->Height;
+    tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
+    tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
+
+    cudaMemcpyAsync(
+        tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
+        m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelRGBDHalf4), cudaMemcpyDeviceToHost, m_cuda_stream
+    );
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+        // prevent lag buffer overflow - remove any old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            m_empty_lag_buffers.push(m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+        // synchronize the cuda stream since we moved data to the host
+        cudaStreamSynchronize(m_cuda_stream);
+    }
+}
+
+template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostRGBA16Buffer, UserRGBA16BufferPtr>::Apply() {
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostRGBA16Buffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    }
+    else {
+        tmp_buffer = chrono_types::make_shared<SensorHostRGBA16Buffer>();
+        std::shared_ptr<PixelRGBA16[]> b(
+            cudaHostMallocHelper<PixelRGBA16>(m_bufferIn->Width * m_bufferIn->Height),
+            cudaHostFreeHelper<PixelRGBA16>
+        );
+        tmp_buffer->Buffer = std::move(b);
+    }
+
+    tmp_buffer->Width = m_bufferIn->Width;
+    tmp_buffer->Height = m_bufferIn->Height;
+    tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
+    tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
+
+    cudaMemcpyAsync(
+        tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
+        m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelRGBA16), cudaMemcpyDeviceToHost, m_cuda_stream
+    );
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+        // prevent lag buffer overflow - remove any old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            m_empty_lag_buffers.push(m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+        // synchronize the cuda stream since we moved data to the host
+        cudaStreamSynchronize(m_cuda_stream);
+    }
+}
+
+template <>
 CH_SENSOR_API void ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPtr>::Apply() {
     // create a new buffer to push to the lag buffer list
     std::shared_ptr<SensorHostSemanticBuffer> tmp_buffer;
@@ -136,6 +220,45 @@ CH_SENSOR_API void ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPt
         while (m_lag_buffers.size() > m_max_lag_buffers) {
             m_empty_lag_buffers.push(
                 m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+        // synchronize the cuda stream since we moved data to the host
+        cudaStreamSynchronize(m_cuda_stream);
+    }
+}
+
+template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostNormalBuffer, UserNormalBufferPtr>::Apply() {
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostNormalBuffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    }
+    else {
+        tmp_buffer = chrono_types::make_shared<SensorHostNormalBuffer>();
+        std::shared_ptr<PixelNormal[]> b(cudaHostMallocHelper<PixelNormal>(m_bufferIn->Width * m_bufferIn->Height),
+                                         cudaHostFreeHelper<PixelNormal>);
+        tmp_buffer->Buffer = std::move(b);
+    }
+
+    tmp_buffer->Width = m_bufferIn->Width;
+    tmp_buffer->Height = m_bufferIn->Height;
+    tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
+    tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
+
+    cudaMemcpyAsync(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
+                    m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelNormal), cudaMemcpyDeviceToHost, m_cuda_stream);
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+        // prevent lag buffer overflow - remove any old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            // push the buffer back for efficiency if it wasn't given to the user
+            m_empty_lag_buffers.push(m_lag_buffers.front());
             m_lag_buffers.pop();
         }
         // synchronize the cuda stream since we moved data to the host

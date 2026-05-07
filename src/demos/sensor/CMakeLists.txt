@@ -11,6 +11,8 @@ if(CH_USE_SENSOR_OPTIX)
       demo_SEN_buildtest
       demo_SEN_JSON
       demo_SEN_camera
+      demo_SEN_cornell_box
+      demo_SEN_phys_cam
       demo_SEN_lidar
       demo_SEN_radar
       demo_SEN_radar1
@@ -26,13 +28,6 @@ if(CH_USE_SENSOR_OPTIX)
       )
   endif()
   
-  # Demos that require tensorrt
-  if(CH_USE_SENSOR_TENSORRT)
-      set(DEMOS ${DEMOS}
-        demo_SEN_NNCamera
-      )
-  endif()
-
 endif()
 
 #--------------------------------------------------------------
@@ -77,8 +72,3 @@ foreach(PROGRAM ${DEMOS})
   install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 
 endforeach()
-
-#--------------------------------------------------------------
-# Demos that are self-determining
-
-add_subdirectory(demo_SEN_rl_infer)

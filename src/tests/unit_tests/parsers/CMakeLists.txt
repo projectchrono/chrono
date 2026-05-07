@@ -14,4 +14,4 @@ if(CH_USE_ROS)
 endif()
 
 message(STATUS "Add unit test programs for PARSERS module")
-build_utests(YES "${TESTS}" "${LIBS}")
+build_utests(YES "${TESTS}" "parsers" "${LIBS}")

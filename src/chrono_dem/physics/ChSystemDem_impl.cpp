@@ -12,8 +12,7 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Luning Fang, Radu Serban
 // =============================================================================
 
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "chrono_dem/cuda/ChGpuRuntime.h"
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -514,7 +513,7 @@ float3 ChSystemDem_impl::getRollingVrot(unsigned int i, unsigned int j) {
     return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-/// get rolling characterisitc contact time
+/// get rolling characteristic contact time
 float ChSystemDem_impl::getRollingCharContactTime(unsigned int i, unsigned int j) {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");
@@ -878,12 +877,12 @@ double ChSystemDem_impl::get_max_K() const {
 
         maxK = 4.0 / (3.0 * (sigma_sphere + std::min(sigma_sphere, sigma_wall))) * std::sqrt(sphere_radius_UU);
 
-        INFO_PRINTF("Use material based contact force model, maximum effective stiffnes is %e\n", maxK);
+        INFO_PRINTF("Use material based contact force model, maximum effective stiffness is %e\n", maxK);
         return maxK;
 
     } else {
         maxK = std::max(K_n_s2s_UU, K_n_s2w_UU);
-        INFO_PRINTF("Use user defined contact force model, maximum effective stiffnes is %e\n", maxK);
+        INFO_PRINTF("Use user defined contact force model, maximum effective stiffness is %e\n", maxK);
         return maxK;
     }
 }
@@ -1140,7 +1139,7 @@ void ChSystemDem_impl::convertBCUnits() {
                 INFO_PRINTF("adding plane!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
-                // normal is unitless
+                // normal is unit-less
                 // TODO normalize this just in case
                 // float abs = Length(params_UU);
                 params_SU.plane_params.normal.x = (float)params_UU.plane_params.normal.x;
@@ -1164,7 +1163,7 @@ void ChSystemDem_impl::convertBCUnits() {
                 INFO_PRINTF("adding cylinder!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
-                // normal is unitless
+                // normal is unit-less
                 // TODO normalize this just in case
                 // float abs = Length(params_UU);
                 params_SU.cyl_params.radius = convertToPosSU<int64_t, float>(params_UU.cyl_params.radius);
@@ -1207,8 +1206,16 @@ void ChSystemDem_impl::initializeSpheres() {
     int dev_ID;
     demErrchk(cudaGetDevice(&dev_ID));
     // these two will be mostly read by everyone
+#if defined(CUDART_VERSION) && (CUDART_VERSION >= 13000)
+    cudaMemLocation dev_location{};
+    dev_location.type = cudaMemLocationTypeDevice;
+    dev_location.id = dev_ID;
+    demErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_location));
+    demErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_location));
+#else
     demErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID));
     demErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
+#endif
 
     INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU,
                 stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
@@ -1373,7 +1380,7 @@ unsigned int ChSystemDem_impl::GetNumContacts() const {
 
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.
 void ChSystemDem_impl::partitionBD() {
-    // Create BC walls and potential trajactory function
+    // Create BC walls and potential trajectory function
     CreateWallBCs();
     setBDWallsMotionFunction(GranPosFunction_default);
 

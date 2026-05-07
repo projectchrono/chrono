@@ -15,9 +15,10 @@
 // Tachometer model is parameterized by :
 // 1. parent: the body the sensor is taking measurements
 // 2. updateRate: frequency of data acquisition
-// 3. axis: Axis of rotatioh to measure (X,Y,Z)
+// 3. axis: Axis of rotation to measure (X,Y,Z)
 //
 // =============================================================================
+
 #ifndef CHTACHOMETER_H
 #define CHTACHOMETER_H
 
@@ -26,33 +27,33 @@
 namespace chrono {
 namespace sensor {
 
-enum Axis { X, Y, Z };
-
 /// @addtogroup sensor_sensors
 /// @{
 
-/// Tachometer class. This class queries the chrono system for the angular velocity of the parent body.
+/// Tachometer class.
+/// This class queries the chrono system for the angular velocity of the parent body.
 class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
   public:
+    /// Tachometer axis of rotation.
+    enum class Axis { X, Y, Z };
+
     /// Class constructor
     /// @param parent Body to which the sensor is attached
     /// @param update Rate at which the sensor should update.
     /// @param offsetPose Relative position and orientation of sensor relative to parent body
     /// @param axis Axis of rotation to measure (X,Y,Z)
-    ChTachometerSensor(std::shared_ptr<chrono::ChBody> parent,
-                       float update,
-                       chrono::ChFrame<double> offsetPose,
-                       Axis axis);
-    /// Class destructor
+    ChTachometerSensor(std::shared_ptr<ChBody> parent, float update, ChFrame<double> offsetPose, Axis axis);
+
     ~ChTachometerSensor() {}
-    virtual void PushKeyFrame();
-    virtual void ClearKeyFrames();
+
+    virtual void PushKeyFrame() override;
+    virtual void ClearKeyFrames() override;
 
   private:
-    /// Variable for communicating the sensor's keyframes from the ChSystem into the data generation filter
     std::vector<ChVector3d> m_keyframes;
-    friend class ChFilterTachometerUpdate;
     Axis m_axis;
+
+    friend class ChFilterTachometerUpdate;
 };
 
 /// @} sensor_sensors

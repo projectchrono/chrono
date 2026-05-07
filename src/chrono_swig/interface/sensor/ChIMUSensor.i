@@ -14,3 +14,7 @@ using namespace chrono::sensor;
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_sensor/sensors/ChIMUSensor.h"
+
+%DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChAccelerometerSensor)
+%DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChGyroscopeSensor)
+%DefSharedPtrDynamicCast(chrono::sensor, ChSensor, ChMagnetometerSensor)
