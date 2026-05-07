@@ -128,7 +128,7 @@ private:
 
     // utility
     static std::array<int, 4>& GetFaceNodeMapping(int faceId) {
-        static std::array<int, 4> ifa0 = { 0, 5, 7, 3 };
+        static std::array<int, 4> ifa0 = { 0, 4, 7, 3 };
         static std::array<int, 4> ifa1 = { 1, 5, 6, 2 };
         static std::array<int, 4> ifa2 = { 0, 1, 5, 4 };
         static std::array<int, 4> ifa3 = { 2, 3, 7, 6 };
