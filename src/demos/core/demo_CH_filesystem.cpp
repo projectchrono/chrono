@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     cout << "nonexistant:is_file = " << is_regular_file(path("nonexistant")) << endl;
     cout << "nonexistant:is_directory = " << is_directory(path("nonexistant")) << endl;
     cout << "nonexistant:filename = " << path("nonexistant").filename() << endl;
-    cout << "nonexistant:extension = " << path("nonexistant").extension() << endl;
+    cout << "nonexistant:extension = " << path("nonexistant").extension().string() << endl;
     cout << endl;
 
     cout << "out_file:exists = " << exists(path(out_file)) << endl;
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
     cout << "out_file:is_directory = " << is_directory(path(out_file)) << endl;
     cout << "out_file:filename = " << path(out_file).filename() << endl;
     cout << "out_file:stem = " << path(out_file).stem() << endl;
-    cout << "out_file:extension = " << path(out_file).extension() << endl;
+    cout << "out_file:extension = " << path(out_file).extension().string() << endl;
     cout << "out_file:make_absolute = " << absolute(path(out_file)) << endl;
     cout << endl;
 
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
     cout << "out_dir:is_directory = " << is_directory(path(out_dir)) << endl;
     cout << "out_dir:filename = " << path(out_dir).filename() << endl;
     cout << "out_dir:stem = " << path(out_dir).stem() << endl;
-    cout << "out_dir:extension = " << path(out_dir).extension() << endl;
+    cout << "out_dir:extension = " << path(out_dir).extension().string() << endl;
     cout << "out_dir:make_absolute = " << absolute(path(out_dir)) << endl;
     cout << endl;
 

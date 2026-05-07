@@ -626,7 +626,8 @@ void ChPovRay::ExportMaterials(std::ofstream& assets_file, const std::vector<std
         if (!mat->GetKdTexture().empty()) {
             auto rel_path = std::filesystem::path(mat->GetKdTexture());
             auto abs_path = absolute(rel_path).string();
-            auto ext = rel_path.extension();
+            auto ext = rel_path.extension().string();
+            ext.erase(0, 1);  // remove leading '.'
             if (ext == "jpg")
                 ext = "jpeg";
 

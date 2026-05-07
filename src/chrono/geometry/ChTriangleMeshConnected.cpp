@@ -270,7 +270,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChTriangleMeshConnected::CreateFromWave
 }
 
 bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, bool load_normals, bool load_uv) {
-    assert(std::filesystem::path(filename).is_file());
+    assert(is_regular_file(std::filesystem::path(filename)));
 
     std::vector<tinyobj::shape_t> shapes;
     tinyobj::attrib_t att;

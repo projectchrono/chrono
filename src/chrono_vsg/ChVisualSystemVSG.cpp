@@ -2327,8 +2327,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             const auto& scale = model_file->GetScale();
 
             auto ext = std::filesystem::path(filename).extension().string();
-            std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
-            ChQuaterniond rot = (ext == "OBJ" || ext == "STL") ? QUNIT : QuatFromAngleX(-CH_PI_2);
+            ChQuaterniond rot = (ext == ".obj" || ext == ".OBJ" || ext == ".stl" || ext == ".STL") ? QUNIT : QuatFromAngleX(-CH_PI_2);
 
             size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();

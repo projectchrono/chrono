@@ -426,12 +426,12 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConst
                 case urdf::Geometry::MESH: {
                     auto mesh = std::static_pointer_cast<urdf::Mesh>(collision->geometry);
                     auto mesh_filename = resolveFilename(mesh->filename);
-                    auto ext = std::filesystem::path(mesh->filename).extension();
+                    auto ext = std::filesystem::path(mesh->filename).extension().string();
 
                     std::shared_ptr<ChTriangleMeshConnected> trimesh;
-                    if (ext == "obj" || ext == "OBJ")
+                    if (ext == ".obj" || ext == ".OBJ")
                         trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false);
-                    else if (ext == "stl" || ext == "STL")
+                    else if (ext == ".stl" || ext == ".STL")
                         trimesh = ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
 
                     if (!trimesh) {
