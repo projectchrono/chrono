@@ -29,9 +29,9 @@ ChVisualShapeModelFile::ChVisualShapeModelFile(const std::string& fname) : filen
 ChAABB ChVisualShapeModelFile::GetBoundingBox() const {
     auto ext = std::filesystem::path(filename).extension().string();
     std::shared_ptr<ChTriangleMeshConnected> trimesh;
-    if (ext == "obj" || ext == "OBJ")
+    if (ext == ".obj" || ext == ".OBJ")
         trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, false);
-    else if (ext == "stl" || ext == "STL")
+    else if (ext == ".stl" || ext == ".STL")
         trimesh = ChTriangleMeshConnected::CreateFromSTLFile(filename, true);
     if (trimesh)
         return trimesh->GetBoundingBox();
