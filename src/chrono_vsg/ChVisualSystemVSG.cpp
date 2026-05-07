@@ -116,6 +116,10 @@ class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrappe
 
     void apply(vsg::KeyPressEvent& keyPress) override { m_component->process(keyPress); }
     void apply(vsg::KeyReleaseEvent& keyRelease) override { m_component->process(keyRelease); }
+    void apply(vsg::ButtonPressEvent& buttonPress) override { m_component->process(buttonPress); }
+    void apply(vsg::ButtonReleaseEvent& buttonRelease) override { m_component->process(buttonRelease); }
+    void apply(vsg::MoveEvent& moveEvent) override { m_component->process(moveEvent); }
+    void apply(vsg::TouchEvent& touchEvent) override { m_component->process(touchEvent); }
 
   private:
     std::shared_ptr<ChEventHandlerVSG> m_component;
