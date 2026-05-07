@@ -385,7 +385,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     /// Utility debugging function that outputs all of the data associated for a system.
     int ExportCurrentSystem(std::string output_dir);
 
-    /// Print a sparse blaze matrix.
+    /// Print a sparse eigen matrix.
     void PrintMatrix(SparseMatrixType src);
 };
 

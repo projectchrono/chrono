@@ -16,11 +16,6 @@
 
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
-#if BLAZE_MAJOR_VERSION == 2
-    #include <blaze/math/SparseRow.h>
-#endif
-#include <blaze/math/CompressedMatrix.h>
-
 using namespace chrono;
 
 uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,

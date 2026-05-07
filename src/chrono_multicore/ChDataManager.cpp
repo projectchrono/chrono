@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono_multicore/ChDataManager.h"
+#include <iomanip>
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 using namespace chrono;

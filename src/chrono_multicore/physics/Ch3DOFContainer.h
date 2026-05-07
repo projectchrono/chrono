@@ -29,12 +29,6 @@
 
 #include "chrono/multicore_math/matrix.h"
 
-// Blaze headers
-// ATTENTION: It is important for these to be included after sse.h!
-#include <blaze/math/DynamicVector.h>
-
-using blaze::DynamicVector;
-
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
