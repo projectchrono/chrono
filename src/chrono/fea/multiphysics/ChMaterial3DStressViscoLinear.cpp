@@ -14,7 +14,7 @@
 
 #include <cmath>
 
-#include "chrono/fea/multiphysics/ChMaterial3DStressKelvinVoigt.h"
+#include "chrono/fea/multiphysics/ChMaterial3DStressViscoLinear.h"
 
 namespace chrono {
 namespace fea {

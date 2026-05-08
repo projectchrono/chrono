@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHMATERIAL3DSTRESSKELVINVOIGT_H
-#define CHMATERIAL3DSTRESSKELVINVOIGT_H
+#ifndef CHMATERIAL3DSTRESSVISCOLINEAR_H
+#define CHMATERIAL3DSTRESSVISCOLINEAR_H
 
 #include "chrono/fea/multiphysics/ChMaterial3DStress.h"
 #include "chrono/core/ChTensors.h"
@@ -31,16 +31,20 @@ class ChElementData;
 /// @{
 
 
-/// Class for Kelvin-Voigt damping. This provides damping forces proportional to the spatial velocity
-/// gradient. It is assumed to be used in parallel with some elastic stress model like ChMaterial3DStressStVenant.
+/// Class for linear damping (Newton damping in lagrangian solid, as S=D:E_dot where E_dot is the 
+/// time derivative of Green Lagrange strain and D is a constant tensor build from viscosity coefficients, 
+/// or more in detail:  S = lambda tr(E_dot) I + 2μ E_dot  ). 
+/// This is a bit different from the ChMaterial3DStressViscoNewton, which provides damping forces proportional 
+/// to the spatial velocity, as in CFD fluids. But this is faster to compute.
+/// It is assumed to be used in parallel with some elastic stress model like ChMaterial3DStressStVenant.
 /// If used alone, it provides a fluid-like viscous damping.
 
-class ChMaterial3DStressKelvinVoigt : public ChMaterial3DStress {
+class ChMaterial3DStressViscoLinear : public ChMaterial3DStress {
 public:
 
-    ChMaterial3DStressKelvinVoigt() : volumetric_damping(0), deviatoric_damping(0) {}
+    ChMaterial3DStressViscoLinear() : volumetric_damping(0), deviatoric_damping(0) {}
 
-    virtual ~ChMaterial3DStressKelvinVoigt() {}
+    virtual ~ChMaterial3DStressViscoLinear() {}
 
     /// Set the damping for the deviatoric effect. This corresponds to the viscous
     /// damping μ in Newtonian fluids.
@@ -55,47 +59,56 @@ public:
     /// Compute elastic stress from spatial velocity gradient "l"
     
     virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
-                                const ChMatrix33d& F_def,           ///< current deformation gradient tensor
+                                const ChMatrix33d& F,               ///< current deformation gradient tensor
                                 const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point
                                 ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
-    ) {
-        // compute d, rate of deformation tensor:
-        ChMatrix33d d = 0.5 * (*l + l->transpose());  
-        
-        // Cauchy σ = ζtr(d)I + 2μd
-        ChMatrix33d sigma = this->volumetric_damping * d.trace() * Eigen::Matrix3d::Identity()  
-                            + 2.0 * this->deviatoric_damping * d;
+    ) override {
+        // compute E_dot, time derivative of Green Lagrange strain:
+        ChMatrix33d F_dot = (*l) * F;                                               // F_dot = l F
+        ChMatrix33d E_dot = 0.5 * (F.transpose() * F_dot + F_dot.transpose() * F);  // E_dot = 0.5 (F^T F_dot + F_dot^T F)
 
-        // Cauchy σ -> PK2 stress S
-        // S = J F⁻¹ (ζ tr(d) I + 2μ d) F⁻ᵀ
-        double J = F_def.determinant();
-        ChMatrix33d F_inv = F_def.inverse();
-        ChMatrix33d F_inv_T = F_inv.transpose(); // transpose of F_inv (F^{-T})
-        ChMatrix33d S = J * F_inv * sigma * F_inv_T;
+        // Lamé - type viscous law,   S = lambda tr(E_dot) I + 2μ E_dot
+        ChMatrix33d S = this->volumetric_damping * E_dot.trace() * ChMatrix33d::Identity()                            
+                             + 2.0 * this->deviatoric_damping * E_dot;  
+
         S_stress.ConvertFromMatrix(S);
     }
 
     /// Computes the tangent modulus 
 
     virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& C, ///< output C tangent modulus, as dS=C*dE
+                                       ChMatrixNM<double, 6, 6>* D, ///< output D tangent modulus, as dS=C*d(E_dot) (maybe nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 const ChMatrix33d& F_def,       ///< current deformation gradient tensor
                                 const ChMatrix33d* l,           ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 ChFieldData* data_per_point,    ///< pointer to auxiliary data (ex states), if any, per quadrature point
                                 ChElementData* data_per_element ///< pointer to auxiliary data (ex states), if any, per element 
-    ) {
+    ) override {
         C.setZero();
-        //***TODO***
+        assert(D);
+        D->setZero();
+
+        const double lambda_v = this->volumetric_damping;
+        const double mu_v = this->deviatoric_damping;
+
+        // Normal components
+        (*D)(0, 0) = lambda_v + 2.0 * mu_v;
+        (*D)(1, 1) = lambda_v + 2.0 * mu_v;
+        (*D)(2, 2) = lambda_v + 2.0 * mu_v;
+
+        (*D)(0, 1) = lambda_v;
+        (*D)(0, 2) = lambda_v;
+        (*D)(1, 0) = lambda_v;
+        (*D)(1, 2) = lambda_v;
+        (*D)(2, 0) = lambda_v;
+        (*D)(2, 1) = lambda_v;
+
+        // Shear components
+        (*D)(3, 3) = mu_v;
+        (*D)(4, 4) = mu_v;
+        (*D)(5, 5) = mu_v;
     }
 
-    /// Update your own auxiliary data, if any, at the end of time step (ex for plasticity).
-    /// This is called at the end of every time step (or nl static step)
-    virtual void ComputeUpdateEndStep(ChFieldData* data_per_point,          ///< pointer to auxiliary data (ex states), if any, per quadrature point
-                                      ChElementData* data_per_element,      ///< pointer to auxiliary data (ex states), if any, per element 
-                                      const double time
-    ) {
-         // default: do nothing. 
-    }
 
     /// This material need info on the spatial velocity gradient  l=\nabla_x v 
     virtual bool IsSpatialVelocityGradientNeeded() const {
