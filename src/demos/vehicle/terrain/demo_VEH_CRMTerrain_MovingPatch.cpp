@@ -32,8 +32,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/SetChronoSolver.h"
 
 using namespace chrono;

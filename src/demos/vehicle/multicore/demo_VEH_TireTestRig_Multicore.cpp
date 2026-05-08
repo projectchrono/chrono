@@ -27,8 +27,6 @@ using namespace chrono::vsg3d;
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
 using namespace chrono;

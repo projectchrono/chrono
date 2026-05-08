@@ -201,7 +201,7 @@ void ChContactSurfaceNodeCloud::AddNode(ChFieldDataPos3D* nodedata, const double
 /// Utility function to add all nodes of the specified multiphysics mesh to this collision cloud.
 /// Works only if the ChDomain contains a ChFieldDisplacement3D
 void ChContactSurfaceNodeCloud::AddAllNodes(std::shared_ptr<ChDomain> meshdomain, double point_radius) {
-    for (unsigned int ifield = 0; ifield < meshdomain->GetNumFields(); ++ifield)
+    for (int ifield = 0; ifield < meshdomain->GetNumFields(); ++ifield)
         if (auto field_disp = std::dynamic_pointer_cast<ChFieldDisplacement3D>(meshdomain->GetField(ifield))) {
             for (auto& mnode : field_disp->GetNodeDataMap())
                 this->AddNode(&mnode.second, point_radius);

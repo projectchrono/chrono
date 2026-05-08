@@ -93,7 +93,7 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
 }
 
 // Advance the state of this vehicle by the specified time step.
-void ChWheeledVehicle::Advance(double step) {
+void ChWheeledVehicle::Advance(double step, bool do_collision) {
     // Advance state of the associated powertrain (if any)
     if (m_powertrain_assembly) {
         m_powertrain_assembly->Advance(step);
@@ -111,7 +111,7 @@ void ChWheeledVehicle::Advance(double step) {
     }
 
     // Invoke base class function to advance state of underlying Chrono system.
-    ChVehicle::Advance(step);
+    ChVehicle::Advance(step, do_collision);
 }
 
 // Enable/disable differential locking.

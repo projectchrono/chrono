@@ -24,8 +24,6 @@
 #include "chrono_models/vehicle/m113/M113_IdlerWheel.h"
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 namespace chrono {
 namespace vehicle {
 namespace m113 {

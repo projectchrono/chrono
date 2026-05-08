@@ -45,8 +45,6 @@
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularDEM.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #undef CHRONO_MUMPS
 #include "demos/SetChronoSolver.h"
 
@@ -217,12 +215,12 @@ int main(int argc, char** argv) {
                           ChVehicleCosimTireNode::GetTireTypeAsString(tire_type) + "_" +  //
                           ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type);
     if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir_top))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir_top))) {
             cout << "Error creating directory " << out_dir_top << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;

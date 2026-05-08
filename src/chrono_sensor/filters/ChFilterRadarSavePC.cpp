@@ -15,16 +15,15 @@
 //
 // =============================================================================
 
+#include <vector>
+#include <sstream>
+
+#include "chrono/core/ChDataPath.h"
+#include "chrono/input_output/ChWriterCSV.h"
+
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
-
-#include "chrono/input_output/ChWriterCSV.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
-
-#include <vector>
-#include <sstream>
 
 #include <cuda_runtime_api.h>
 
@@ -77,8 +76,8 @@ CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSe
     for (auto s : split_string) {
         if (s != "") {
             partial_path += s + "\\";
-            if (!filesystem::path(partial_path).exists()) {
-                if (!filesystem::create_directory(filesystem::path(partial_path))) {
+            if (!exists(std::filesystem::path(partial_path))) {
+                if (!CreateOutputDirectory(std::filesystem::path(partial_path))) {
                     std::cerr << "Could not create directory: " << partial_path << std::endl;
                 } else {
                     std::cout << "Created directory for sensor data: " << partial_path << std::endl;
@@ -99,8 +98,8 @@ CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSe
     for (auto s : split_string) {
         if (s != "") {
             partial_path += s + "/";
-            if (!filesystem::path(partial_path).exists()) {
-                if (!filesystem::create_directory(filesystem::path(partial_path))) {
+            if (!exists(std::filesystem::path(partial_path))) {
+                if (!CreateOutputDirectory(std::filesystem::path(partial_path))) {
                     std::cerr << "Could not create directory: " << partial_path << std::endl;
                 } else {
                     std::cout << "Created directory for sensor data: " << partial_path << std::endl;

@@ -8,7 +8,7 @@ The Chrono source code can be obtained from the Chrono GitHub [repository](https
 ------------------------------------------------------------
 ## Prerequisites {#prerequisites}
 
-Building Chrono from sources requires a C++ compiler and the [CMake](https://cmake.org/) build system.
+Building Chrono from sources requires a C++ compiler (which supports at least the **C++17** standard) and the [CMake](https://cmake.org/) build system.
 
 #### Recommended compilers {#compilers}
 

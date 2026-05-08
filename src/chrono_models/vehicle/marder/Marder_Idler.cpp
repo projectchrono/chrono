@@ -24,8 +24,6 @@
 #include "chrono_models/vehicle/marder/Marder_IdlerWheel.h"
 #include "chrono_models/vehicle/marder/Marder_Idler.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 namespace chrono {
 namespace vehicle {
 namespace marder {

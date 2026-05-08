@@ -28,8 +28,6 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 // #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -242,12 +240,12 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     if (povray_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
