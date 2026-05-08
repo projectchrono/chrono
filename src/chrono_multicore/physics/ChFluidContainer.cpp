@@ -145,9 +145,9 @@ void ChFluidContainer::ComputeInvMass(int offset) {
 
     real inv_mass = 1.0 / mass;
     for (int i = 0; i < (signed)num_particles; i++) {
-        M_inv.insert(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
-        M_inv.insert(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
-        M_inv.insert(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
+        M_inv.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
+        M_inv.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
+        M_inv.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
     }
 }
 void ChFluidContainer::ComputeMass(int offset) {
@@ -156,9 +156,9 @@ void ChFluidContainer::ComputeMass(int offset) {
 
     real fluid_mass = mass;
     for (int i = 0; i < (signed)num_particles; i++) {
-        M.insert(offset + i * 3 + 0, offset + i * 3 + 0) = fluid_mass;
-        M.insert(offset + i * 3 + 1, offset + i * 3 + 1) = fluid_mass;
-        M.insert(offset + i * 3 + 2, offset + i * 3 + 2) = fluid_mass;
+        M.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = fluid_mass;
+        M.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = fluid_mass;
+        M.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = fluid_mass;
     }
 }
 void ChFluidContainer::Setup3DOF(int start_constraint) {

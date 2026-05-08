@@ -141,9 +141,9 @@ void ChParticleContainer::ComputeInvMass(int offset) {
 
     real inv_mass = 1.0 / mass;
     for (uint i = 0; i < num_particles; i++) {
-        M_inv.insert(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
-        M_inv.insert(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
-        M_inv.insert(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
+        M_inv.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
+        M_inv.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
+        M_inv.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
     }
 }
 
@@ -152,9 +152,9 @@ void ChParticleContainer::ComputeMass(int offset) {
     SparseMatrixType& M = data_manager->host_data.M;
 
     for (uint i = 0; i < num_particles; i++) {
-        M.insert(offset + i * 3 + 0, offset + i * 3 + 0) = mass;
-        M.insert(offset + i * 3 + 1, offset + i * 3 + 1) = mass;
-        M.insert(offset + i * 3 + 2, offset + i * 3 + 2) = mass;
+        M.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = mass;
+        M.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = mass;
+        M.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = mass;
     }
 }
 
@@ -186,11 +186,11 @@ void ChParticleContainer::Build_D() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Particle_Neighbors(                                                       //
-                real3 U = -Normalize(xij); real3 V; real3 W;                                 //
-                Orthogonalize(U, V, W);                                                      //
-                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);  //
-                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);   //
+            Loop_Over_Particle_Neighbors(
+                real3 U = -Normalize(xij); real3 V; real3 W;
+                Orthogonalize(U, V, W);
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
             );
 
         } else {
@@ -225,20 +225,20 @@ void ChParticleContainer::Build_b() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;                 //
-                                         real bi = 0;                                              //
-                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }  //
-                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);  //
-                                         b[start_contact + index + 0] = bi;                        //
+            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;
+                                         real bi = 0;
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }
+                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                         b[start_contact + index + 0] = bi;
             );
         } else {
-            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;                   //
-                                         real bi = 0;                                                //
-                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }    //
-                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);    //
-                                         b[start_contact + index + 0] = bi;                          //
-                                         b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;  //
-                                         b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;  //
+            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;
+                                         real bi = 0;
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }
+                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                         b[start_contact + index + 0] = bi;
+                                         b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;
+                                         b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;
             );
         }
     }
@@ -332,11 +332,18 @@ void ChParticleContainer::GenerateSparsity() {
                         continue;
                     }
 
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 0, body_offset + body_a * 3, 0);
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 0, body_offset + body_b * 3, 0);
-
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 1, body_offset + body_a * 3, 0);
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 1, body_offset + body_b * 3, 0);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 0,
+                               body_offset + body_a * 3, 0);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 0,
+                               body_offset + body_b * 3, 0);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 1,
+                               body_offset + body_a * 3, 0);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 1,
+                               body_offset + body_b * 3, 0);
 
                     index_t++;
                 }
