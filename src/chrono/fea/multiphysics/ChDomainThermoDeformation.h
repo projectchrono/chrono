@@ -282,20 +282,28 @@ public:
         // Mechanical deformation:  F = F_m * F_t  -->  F_m = F * F_t^{-1}
         ChMatrix33d F_m = F * F_t_inv;
 
-        ChMatrix33d l;
-        ChMatrix33d* a_l = nullptr;
-        if (material_thermalstress->material_stress->IsSpatialVelocityGradientNeeded()) {
-            ChMatrixDynamic<> dot_x_hh(3, melement->GetNumNodes());
-            this->GetFieldPackedStateBlockDt(melement, data, dot_x_hh, i_field_displ); // dot_x_hh = [v1 | v2 | v3 | v4..]
-            l = dot_x_hh * dNde.transpose() * J_x.inverse();
-        }
 
         // K_def-def = sum (B' * k * B  * w * |J|)  
-        if (Kpfactor) {
+        if (Kpfactor || Rpfactor) {
 
-            // Compute tangent modulus
+            ChMatrix33d l;
+            ChMatrix33d* a_l = nullptr;
             ChMatrix66<double> C;
-            this->material_thermalstress->material_stress->ComputeTangentModulus(C,
+            ChMatrix66<double> D;
+            ChMatrix66<double>* a_D = nullptr;
+
+            if (material_thermalstress->material_stress->IsSpatialVelocityGradientNeeded()) {
+                ChMatrixDynamic<> dot_x_hh(3, melement->GetNumNodes());
+                this->GetFieldPackedStateBlockDt(melement, data, dot_x_hh, i_field_displ);  // dot_x_hh = [v1 | v2 | v3 | v4..]
+                l = dot_x_hh * dNde.transpose() * J_x.inverse();
+                a_l = &l;
+            }
+            if (Rpfactor)
+                a_D = &D;
+
+            // Compute tangent modulus C (assumed: dS=[C]dE with P  2nd Piola-Kirchhoff, E Green-Lagrange)
+            // and, in case of viscosity etc, also the damping tangent D (assumed: dS=[D]dE_dot)
+            this->material_thermalstress->material_stress->ComputeTangentModulus(C, a_D,
                 F_m,
                 a_l,
                 data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
@@ -307,7 +315,9 @@ public:
             H.block(n_ele_coords_thermal, n_ele_coords_thermal, n_ele_coords_deform, n_ele_coords_deform) += Kpfactor * (B.transpose() * C * B);
 
             // ***TODO*** add the geometric tangent stiffness
-            // ***TODO*** rayleigh damping
+            
+            if (Rpfactor)
+                H.block(n_ele_coords_thermal, n_ele_coords_thermal, n_ele_coords_deform, n_ele_coords_deform) += Rpfactor * (B.transpose() * D * B);
         }
 
         // M_def-def  matrix : consistent mass matrix:   

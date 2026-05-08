@@ -177,21 +177,29 @@ public:
 
         ChMatrix33d F = J_x * J_X_inv;
 
-        ChMatrix33d l;
-        ChMatrix33d* a_l = nullptr;
-        if (material->IsSpatialVelocityGradientNeeded()) {
-            ChMatrixDynamic<> dot_x_hh(3, melement->GetNumNodes());
-            this->GetFieldPackedStateBlockDt(melement, data, dot_x_hh, 0); // dot_x_hh = [v1 | v2 | v3 | v4..]
-            l = dot_x_hh * dNde.transpose() * J_x.inverse();
-        }
 
         // K  matrix 
         // K = sum (B' * C * B  * w * |J|)  
-        if (Kpfactor) {
+        if (Kpfactor || Rpfactor) {
 
-            // Compute tangent modulus (assumed: dP=[C]dE with P  2nd Piola-Kirchhoff, E Green-Lagrange)
+            ChMatrix33d l;
+            ChMatrix33d* a_l = nullptr;
             ChMatrix66<double> C;
-            this->material->ComputeTangentModulus(C,
+            ChMatrix66<double> D;
+            ChMatrix66<double>* a_D = nullptr;
+
+            if (material->IsSpatialVelocityGradientNeeded()) {
+                ChMatrixDynamic<> dot_x_hh(3, melement->GetNumNodes());
+                this->GetFieldPackedStateBlockDt(melement, data, dot_x_hh, 0);  // dot_x_hh = [v1 | v2 | v3 | v4..]
+                l = dot_x_hh * dNde.transpose() * J_x.inverse();
+                a_l = &l;
+            }
+            if (Rpfactor)
+                a_D = &D;
+
+            // Compute tangent modulus C (assumed: dS=[C]dE with P  2nd Piola-Kirchhoff, E Green-Lagrange)
+            // and, in case of viscosity etc, also the damping tangent D (assumed: dS=[D]dE_dot)
+            this->material->ComputeTangentModulus(C, a_D,
                 F,
                 a_l,
                 data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr,
@@ -201,8 +209,11 @@ public:
             ChDomainDeformation::ComputeB(B, dNdX, F);
 
             H += Kpfactor * (B.transpose() * C * B);
+
             // ***TODO*** add the geometric tangent stiffness
-            // ***TODO*** rayleigh damping
+
+            if (Rpfactor)
+                H += Rpfactor * (B.transpose() * D * B);
         }
 
         // M  matrix : consistent mass matrix:   
@@ -225,7 +236,6 @@ public:
                 }
             }
 
-            // ***TODO*** rayleigh damping
         }
     }
 
