@@ -220,6 +220,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Remove all track shoes from assembly.
     virtual void RemoveTrackShoes() = 0;
 
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const override;
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
     virtual void Output(ChOutput& database) const override;
     virtual void WriteCheckpoint(ChCheckpoint& database) const override;

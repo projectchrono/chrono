@@ -60,8 +60,9 @@
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualSystem.h"
 
+#ifdef CHRONO_FEA
 #include "chrono/fea/ChMesh.h"
-
+#endif
 
 #include "chrono/collision/ChCollisionShape.h"
 #include "chrono/collision/ChCollisionShapes.h"
@@ -256,7 +257,9 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
 
+#ifdef CHRONO_FEA
 %shared_ptr(chrono::fea::ChMesh)
+#endif
 
 %shared_ptr(chrono::ChCollisionShape)
 %shared_ptr(chrono::ChCollisionModel)
@@ -384,11 +387,12 @@ inline const char* ChUtils_GetFilename() {
 %include "ChFunction.i"
 
 #ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
-// update flags for ChSystem & ChMesh, etc.
 %include "ChUpdateFlags.i"
 #endif              // --------------------------------------------------------------------- CSHARP
-%include "../../../chrono/fea/ChMesh.h"
 
+#ifdef CHRONO_FEA
+%include "../../../chrono/fea/ChMesh.h"
+#endif
 
 // assets
 %include "ChColor.i"
@@ -501,7 +505,9 @@ inline const char* ChUtils_GetFilename() {
 %DefSharedPtrDynamicCast(chrono, ChLoadable, ChBody)
 %DefSharedPtrDynamicCast(chrono, ChLoadable, ChNodeBase)
 
+#ifdef CHRONO_FEA
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeFEA)
+#endif
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeModelFile)
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeTriangleMesh)
 %DefSharedPtrDynamicCast(chrono, ChVisualShape, ChVisualShapeSphere)

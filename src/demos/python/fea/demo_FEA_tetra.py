@@ -112,7 +112,7 @@ sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_LINEARIZED)
 while vis.Run():
     vis.BeginScene()
     vis.Render()
-    chronoirr.drawCoordsys(vis, chrono.CSYSNORM, 1.2)
+    chronoirr.DrawCoordsys(vis, chrono.CSYSNORM, 1.2)
     vis.EndScene()
     sys.DoStepDynamics(0.001)
 

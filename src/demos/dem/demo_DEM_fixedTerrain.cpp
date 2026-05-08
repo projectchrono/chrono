@@ -25,8 +25,6 @@
 #include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_dem/physics/ChSystemDem.h"
 #include "chrono_dem/utils/ChDemJsonParser.h"
 #include "chrono_dem/utils/ChDemSphereDecomp.h"
@@ -153,9 +151,9 @@ int main(int argc, char* argv[]) {
 
     // Create data directory
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    filesystem::create_directory(filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    filesystem::create_directory(filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     // Finalize initialization of the Chrono::Dem system
     dem_sys.Initialize();

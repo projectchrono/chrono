@@ -119,6 +119,7 @@ set(CHRONO_THRUST_AVAILABLE @Thrust_FOUND@)
 set(CHRONO_MPI_CXX_AVAILABLE @MPI_CXX_FOUND@)
 set(CHRONO_HDF5_AVAILABLE @HDF5_FOUND@)
 set(CHRONO_OPTIX_AVAILABLE @CH_USE_SENSOR_OPTIX@)
+set(CHRONO_YAML_AVAILABLE @CHRONO_YAML_ENABLED@)
 
 set(CHRONO_CUDA_ARCHITECTURES "@CHRONO_CUDA_ARCHITECTURES@")
 
@@ -443,6 +444,22 @@ list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
 if (NOT CHRONO_STATIC)
   list(APPEND CHRONO_DLL_NAMES "Chrono_core.dll")
   list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
+endif()
+
+
+#-------------------------------------------------------------------------------
+# Add dependency on yaml-cpp if it was available during build (even if Parsers module is not requested)
+#-------------------------------------------------------------------------------
+
+if (CHRONO_YAML_AVAILABLE)
+    list(PREPEND CHRONO_LIB_NAMES "yaml-cpp")
+    if (NOT CHRONO_STATIC)
+      list(APPEND CHRONO_DLL_NAMES "yaml-cpp.dll")
+    endif()
+
+    if (CHRONO_INSTALL_TREE)
+      include_directories(${CHRONO_PACKAGE_PREFIX_DIR}/include/chrono_thirdparty/yaml-cpp/include)
+    endif()
 endif()
 
 #-------------------------------------------------------------------------------
@@ -960,14 +977,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     set(CHRONO_PARSERS_URDF @CH_USE_URDF@)
 
     list(PREPEND CHRONO_LIB_NAMES "Chrono_parsers")
-    list(PREPEND CHRONO_LIB_NAMES "yaml-cpp")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_parsers.dll")
-      list(APPEND CHRONO_DLL_NAMES "yaml-cpp.dll")
-    endif()
-
-    if (CHRONO_INSTALL_TREE)
-      include_directories(${CHRONO_PACKAGE_PREFIX_DIR}/include/chrono_thirdparty/yaml-cpp/include)
     endif()
 
     if(@CH_USE_URDF@)

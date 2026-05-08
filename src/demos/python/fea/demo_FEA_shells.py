@@ -397,7 +397,7 @@ while vis.Run():
     vis.Render()
 
     # .. draw also a grid
-    chronoirr.drawGrid(vis, 1, 1)
+    chronoirr.DrawGrid(vis, 1, 1)
     # ...update load at end nodes, as simple lumped nodal forces
     load_scale = mtime * 0.1
     for mendnode in(nodesLoad) :

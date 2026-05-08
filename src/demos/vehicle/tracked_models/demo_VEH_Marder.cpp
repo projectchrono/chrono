@@ -32,8 +32,6 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::marder;
@@ -240,13 +238,13 @@ int main(int argc, char* argv[]) {
     const std::string pov_dir = out_dir + "/POVRAY";
     const std::string img_dir = out_dir + "/IMG";
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     if (povray_output) {
-        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
@@ -254,7 +252,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
             std::cout << "Error creating directory " << img_dir << std::endl;
             return 1;
         }

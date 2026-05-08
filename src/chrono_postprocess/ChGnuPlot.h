@@ -374,8 +374,12 @@ class ChGnuPlot {
     /// Set aspect ratio.
     void SetAspectRatio(double val) { m_commandfile += " set size ratio " + std::to_string(val) + "\n"; }
 
-    /// Set axes to equal size (i.e., square box) or restore default.
-    void SetAxesEqual(bool axequal) { m_commandfile += axequal ? " set size square \n" : " set size nosquare \n"; }
+    /// Set square axes (i.e., a square box) or restore default.
+    void SetAxesSquare(bool square) { m_commandfile += square ? " set size square \n" : " set size nosquare \n"; }
+
+    /// Set same scale for x and y.
+    /// Note that this can also be achieved with SetAspectRatio(-1).
+    void SetAxesEqual() { m_commandfile += " set view equal xy \n"; }
 
     /// Set output window title.
     void SetOutputWindowTitle(const std::string& label) { m_commandfile += "set term " GNUTRM " title '" + label + "'\n"; }

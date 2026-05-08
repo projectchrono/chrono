@@ -39,7 +39,6 @@
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #include "viper_wheel.h"
@@ -399,7 +398,7 @@ int main(int argc, char* argv[]) {
 
     if (params.output) {
         // Create output directories
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
@@ -413,7 +412,7 @@ int main(int argc, char* argv[]) {
         out_dir = ss.str();
 
         // Create output directories
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
@@ -425,19 +424,19 @@ int main(int argc, char* argv[]) {
         std::cout << "Output directory: " << out_dir << std::endl;
 
         // Create output directories
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/particles"))) {
             std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/fsi"))) {
             std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/vtk"))) {
             std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
             return 1;
         }
@@ -445,7 +444,7 @@ int main(int argc, char* argv[]) {
 
     // Create directory for snapshots if enabled
     if (params.snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "snapshots"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "snapshots"))) {
             std::cerr << "Error creating directory " << out_dir + "snapshots" << std::endl;
             return 1;
         }

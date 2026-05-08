@@ -128,12 +128,12 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderOtherGraphics() {
         if (normals) {
             ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
+                irrlicht::tools::DrawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
         if (forces) {
             ChVector3d v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
+                irrlicht::tools::DrawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
     }
 
@@ -144,12 +144,12 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderOtherGraphics() {
         if (normals) {
             ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
             if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
+                irrlicht::tools::DrawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
         if (forces) {
             ChVector3d v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
+                irrlicht::tools::DrawSegment(this, v1, v2, ChColor(0.31f, 0.00f, 0.00f), false);
         }
     }
 
@@ -181,11 +181,11 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderContacts(const std::list<ChTrac
         ChVector3d v1 = c.m_point;
         if (normals) {
             ChVector3d v2 = v1 + c.m_csys.GetAxisX() * scale_normals;
-            irrlicht::tools::drawSegment(this, v1, v2, col, false);
+            irrlicht::tools::DrawSegment(this, v1, v2, col, false);
         }
         if (forces) {
             ChVector3d v2 = v1 + c.m_force * scale_forces;
-            irrlicht::tools::drawSegment(this, v1, v2, ChColor(0.71f, 0.00f, 0.00f), false);
+            irrlicht::tools::DrawSegment(this, v1, v2, ChColor(0.71f, 0.00f, 0.00f), false);
         }
     }
 }

@@ -89,9 +89,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     //@}
 
     /// Get the number of scalar constraints for this link.
-    virtual unsigned int GetNumConstraints() override {
-        return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral();
-    }
+    virtual unsigned int GetNumConstraints() override { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
 
     /// Get the number of bilateral constraints for this link.
     virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
@@ -160,6 +158,11 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// - UpdateCqw
     /// - UpdateForces;
     virtual void Update(double time, UpdateFlags update_flags) override;
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    virtual void Lock(bool lock) {}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -246,10 +249,20 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// Sets number of constraints based on current mask information.
     void BuildLink();
 
-    /// Set the mask and then resize matrices.
+    /// Build a joint using the link-lock formulation of given type.
+    /// Set the mask and resize internal matrices.
     void BuildLinkType(Type link_type);
+
+    /// Build a joint using the link-lock formulation using the given constraints in all translational and rotational directions.
+    /// Set the mask and then resize matrices.
     void BuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
 
+    /// Rebuild the joint using the given constraints to reflect the current configuration of the connected bodies.
+    /// Build the link modifying the internal marker on the 2nd body to reflect current relative configuration.
+    void RebuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
+
+    /// Rebuild the joint using the specified type.
+    /// The internal markers are unchanged.
     void ChangeType(Type new_link_type);
 
     // Extend parent functions to account for any ChLinkLimit objects.
@@ -258,26 +271,16 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
 
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     // Extend parent constraint functions to consider constraints possibly induced by 'limits'.
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
@@ -389,7 +392,7 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Spherical joint, with the 'ChLinkLock' formulation.
@@ -404,7 +407,7 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Cylindrical joint, with the 'ChLinkLock' formulation.
@@ -419,7 +422,7 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Prismatic joint, with the 'ChLinkLock' formulation.
@@ -434,7 +437,7 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Point-plane joint, with the 'ChLinkLock' formulation.
@@ -449,7 +452,7 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Point-line joint, with the 'ChLinkLock' formulation.
@@ -464,7 +467,7 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Plane-plane joint, with the 'ChLinkLock' formulation.
@@ -479,7 +482,7 @@ class ChApi ChLinkLockPlanar : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Oldham joint, with the 'ChLinkLock' formulation.
@@ -494,7 +497,7 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Free joint, with the 'ChLinkLock' formulation.
@@ -509,7 +512,7 @@ class ChApi ChLinkLockFree : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Align joint, with the 'ChLinkLock' formulation.
@@ -524,7 +527,7 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Parallel joint, with the 'ChLinkLock' formulation.
@@ -539,7 +542,7 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// Perpendicularity joint, with the 'ChLinkLock' formulation.
@@ -554,7 +557,7 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 /// RevolutePrismatic joint, with the 'ChLinkLock' formulation.
@@ -569,7 +572,7 @@ class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock);
+    virtual void Lock(bool lock) override;
 };
 
 }  // end namespace chrono

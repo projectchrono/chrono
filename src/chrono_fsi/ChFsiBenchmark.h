@@ -42,14 +42,11 @@ class ChFsiBenchmarkTest : public utils::ChBenchmarkTest {
     virtual void ResetTimers() override;
     virtual void UpdateTimers() override;
 
-    double m_timer_CFD;   ///< time for CFD
-    double m_timer_MBS;   ///< time for MBS
+    double m_timer_CFD;  ///< time for CFD
+    double m_timer_MBS;  ///< time for MBS
 };
 
-inline ChFsiBenchmarkTest::ChFsiBenchmarkTest()
-    : utils::ChBenchmarkTest(),
-      m_timer_CFD(0),
-      m_timer_MBS(0) {}
+inline ChFsiBenchmarkTest::ChFsiBenchmarkTest() : utils::ChBenchmarkTest(), m_timer_CFD(0), m_timer_MBS(0) {}
 
 inline void ChFsiBenchmarkTest::ResetTimers() {
     utils::ChBenchmarkTest::ResetTimers();
@@ -93,7 +90,7 @@ inline void ChFsiBenchmarkTest::UpdateTimers() {
 /// batch of SIM_STEPS is timed and recorded.
 /// The test is repeated REPETITIONS number of times, to collect statistics.
 #define CH_FSI_BM_SIMULATION_ONCE(TEST_NAME, TEST, SKIP_STEPS, SIM_STEPS, REPETITIONS) \
-    using TEST_NAME = chrono::fsi::ChFsiBenchmarkFixture<TEST, 0>;                        \
+    using TEST_NAME = chrono::fsi::ChFsiBenchmarkFixture<TEST, 0>;                     \
     BENCHMARK_DEFINE_F(TEST_NAME, SimulateOnce)(benchmark::State & st) {               \
         Reset(SKIP_STEPS);                                                             \
         while (st.KeepRunning()) {                                                     \
@@ -101,10 +98,7 @@ inline void ChFsiBenchmarkTest::UpdateTimers() {
         }                                                                              \
         Report(st);                                                                    \
     }                                                                                  \
-    BENCHMARK_REGISTER_F(TEST_NAME, SimulateOnce)                                      \
-        ->Unit(benchmark::kMillisecond)                                                \
-        ->Iterations(1)                                                                \
-        ->Repetitions(REPETITIONS);
+    BENCHMARK_REGISTER_F(TEST_NAME, SimulateOnce)->Unit(benchmark::kMillisecond)->Iterations(1)->Repetitions(REPETITIONS);
 
 // =============================================================================
 

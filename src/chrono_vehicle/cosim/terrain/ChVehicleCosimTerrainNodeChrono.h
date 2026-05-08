@@ -26,7 +26,9 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChContactSurfaceMesh.h"
+#endif
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
@@ -132,6 +134,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Use information in the m_geometry struct (collision geometry expressed in local frame).
     virtual void CreateRigidProxy(unsigned int i) = 0;
 
+#ifdef CHRONO_FEA
     /// Create the i-th proxy mesh.
     /// Use information in the m_geometry struct (collision geometry expressed in local frame).
     virtual void CreateMeshProxy(unsigned int i) {
@@ -139,6 +142,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
             throw std::runtime_error("Current terrain type does not support the MESH communication interface!");
         }
     }
+#endif
 
   protected:
     /// Base class for a proxy associated with a co-simulation solid.
@@ -163,6 +167,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         std::vector<int> indices;                     ///< indices of corresponding flexible mesh solid
     };
 
+#ifdef CHRONO_FEA
     /// Proxy contact mesh surface associated with a co-simulation solid.
     /// Such a proxy can be associated with a flexible solid interacting with the terrain system.
     /// The underlying FEA mesh is used simply as a container for collision shapes and carrier of visualization.
@@ -172,6 +177,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
     };
+#endif
 
     Type m_type;  ///< terrain type
 

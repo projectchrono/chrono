@@ -18,7 +18,8 @@
 #ifndef CUDALLOC_HPP
 #define CUDALLOC_HPP
 
-#include <cuda_runtime_api.h>
+#include "chrono_dem/ChDemDefines.h"
+#include "chrono_dem/cuda/ChGpuRuntime.h"
 #include <climits>
 #include <iostream>
 #include <memory>
@@ -91,7 +92,11 @@ class cudallocator {
         return (T*)vptr;
     }
 
-    void deallocate(pointer p, size_type n) { cudaFree(p); }
+    void deallocate(pointer p, size_type n) {
+        if (p) {
+            demErrchk(cudaFree(p));
+        }
+    }
 
     bool operator==(const cudallocator& other) const { return true; }
     bool operator!=(const cudallocator& other) const { return false; }

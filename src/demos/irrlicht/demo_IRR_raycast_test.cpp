@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
 
         if (draw_rays) {
             for (auto& p : caster.GetPoints()) {
-                tools::drawSegment(vis.get(), p - ChVector3d(0, 0, 100), p, ChColor(0.5f, 0.5f, 0.5f), true);
+                tools::DrawSegment(vis.get(), p - ChVector3d(0, 0, 100), p, ChColor(0.5f, 0.5f, 0.5f), true);
             }
         }
 

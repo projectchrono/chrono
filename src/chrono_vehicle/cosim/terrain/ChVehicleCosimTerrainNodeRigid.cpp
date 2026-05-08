@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <filesystem>
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -32,8 +33,6 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::endl;
@@ -252,7 +251,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
+        trimesh_shape->SetName(std::filesystem::path(b.m_mesh_filename).stem().string());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);
@@ -294,6 +293,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     outf << "   proxy contact radius = " << m_radius_p << endl;
 }
 
+#ifdef CHRONO_FEA
 // Create bodies with spherical contact geometry as proxies for the mesh vertices.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh vertex.
@@ -334,6 +334,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
 
     m_proxies[i] = proxy;
 }
+#endif
 
 void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
@@ -395,6 +396,7 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
     }
 }
 
+#ifdef CHRONO_FEA
 // Set position and velocity of proxy bodies based on mesh vertices.
 // Set orientation to identity and angular velocity to zero.
 void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
@@ -412,6 +414,7 @@ void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& 
     ////if (m_verbose)
     ////    PrintMeshProxiesUpdateData(i, mesh_state);
 }
+#endif
 
 // Set state of wheel proxy body.
 void ChVehicleCosimTerrainNodeRigid::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
@@ -422,6 +425,7 @@ void ChVehicleCosimTerrainNodeRigid::UpdateRigidProxy(unsigned int i, BodyState&
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
 
+#ifdef CHRONO_FEA
 // Collect contact forces on the (node) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeRigid::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
@@ -439,6 +443,7 @@ void ChVehicleCosimTerrainNodeRigid::GetForceMeshProxy(unsigned int i, MeshConta
         }
     }
 }
+#endif
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeRigid::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
@@ -473,6 +478,7 @@ void ChVehicleCosimTerrainNodeRigid::OutputVisualizationData(int frame) {
     utils::WriteVisualizationAssets(m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_obstacles; }, true);
 }
 
+#ifdef CHRONO_FEA
 void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
 
@@ -482,6 +488,7 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, 
     const ChVector3d& vel = (*lowest)->GetPosDt();
     cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel << endl;
 }
+#endif
 
 }  // end namespace vehicle
 }  // end namespace chrono

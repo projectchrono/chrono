@@ -229,24 +229,24 @@ int main(int argc, char* argv[]) {
 
             // .. draw also some circle lines representing gears - just for aesthetical reasons
 
-            tools::drawCircle(vis.get(), link_gearBC->GetRadius2(),
+            tools::DrawCircle(vis.get(), link_gearBC->GetRadius2(),
                               (link_gearBC->GetFrameShaft2() >> *link_gearBC->GetBody2()).GetCoordsys(),
                               ChColor(1, 0, 0), 50, true);
-            tools::drawCircle(vis.get(), link_gearAD->GetRadius1(),
+            tools::DrawCircle(vis.get(), link_gearAD->GetRadius1(),
                               (link_gearAD->GetFrameShaft1() >> *link_gearAD->GetBody1()).GetCoordsys(),
                               ChColor(1, 0, 0), 30, true);
-            tools::drawCircle(vis.get(), link_gearAD->GetRadius2(),
+            tools::DrawCircle(vis.get(), link_gearAD->GetRadius2(),
                               (link_gearAD->GetFrameShaft2() >> *link_gearAD->GetBody2()).GetCoordsys(),
                               ChColor(1, 0, 0), 30, true);
 
-            tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
-            tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
-            tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
+            tools::DrawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
+            tools::DrawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
+            tools::DrawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
 
             // ..draw also some segments for a simplified representation of pulley
-            tools::drawSegment(vis.get(), link_pulleyDE->GetBeltUpPos1(), link_pulleyDE->GetBeltUpPos2(),
+            tools::DrawSegment(vis.get(), link_pulleyDE->GetBeltUpPos1(), link_pulleyDE->GetBeltUpPos2(),
                                ChColor(0, 1, 0), true);
-            tools::drawSegment(vis.get(), link_pulleyDE->GetBeltBottomPos1(), link_pulleyDE->GetBeltBottomPos2(),
+            tools::DrawSegment(vis.get(), link_pulleyDE->GetBeltBottomPos1(), link_pulleyDE->GetBeltBottomPos2(),
                                ChColor(0, 1, 0), true);
 
             vis->EndScene();

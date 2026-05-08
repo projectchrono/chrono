@@ -18,10 +18,7 @@
 
 using namespace chrono;
 
-real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct,
-                                    ChProjectConstraints& Project,
-                                    DynamicVector<real>& gamma,
-                                    const DynamicVector<real>& r) {
+real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, DynamicVector<real>& gamma, const DynamicVector<real>& r) {
     real gdiff = 1.0 / std::pow(data_manager->num_constraints, 2.0);
     SchurProduct(gamma, tmp);
     tmp = tmp - r;
@@ -47,8 +44,7 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
     bool verbose = false;
     bool useWarmStarting = true;
     if (verbose)
-        std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_manager->num_rigid_bodies
-                  << std::endl;
+        std::cout << "Number of constraints: " << size << "\nNumber of variables  : " << data_manager->num_rigid_bodies << std::endl;
 
     real L, t;
     real theta;

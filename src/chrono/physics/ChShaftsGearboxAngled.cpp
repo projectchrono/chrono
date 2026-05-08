@@ -52,7 +52,7 @@ bool ChShaftsGearboxAngled::Initialize(
 
     assert(shaft1 && shaft2 && body);
     assert(shaft1 != shaft2);
-    assert((shaft1->GetSystem() == shaft2->GetSystem()));
+    assert(shaft1->GetSystem() == shaft2->GetSystem());
 
     constraint.SetVariables(&shaft_1->Variables(), &shaft_2->Variables(), &truss->Variables());
 
@@ -80,6 +80,7 @@ void ChShaftsGearboxAngled::IntLoadResidual_CqL(const unsigned int off_L,    // 
 void ChShaftsGearboxAngled::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                                 ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                                 const double c,            // a scaling factor
+                                                const double c_vel,        // the scaling factor if the constraint is at speed level
                                                 bool do_clamp,             // apply clamping to c*C?
                                                 double recovery_clamp      // value for min/max clamping of c*C
 ) {

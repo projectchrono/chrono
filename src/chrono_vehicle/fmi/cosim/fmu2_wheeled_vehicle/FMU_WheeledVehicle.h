@@ -57,9 +57,7 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     ~FmuComponent() {}
 
     /// Advance dynamics.
-    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint,
-                                  fmi2Real communicationStepSize,
-                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
+    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
   private:
     virtual fmi2Status enterInitializationModeIMPL() override;
@@ -125,8 +123,8 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     // FMU continuous inputs and outputs for co-simulation (vehicle-powertrain)
     double driveshaft_speed;       ///< driveshaft angular speed (output)
     double driveshaft_torque;      ///< driveshaft motor torque (input)
-    double engine_reaction;        ///< engine reaction torque on chassis (intput)
-    double transmission_reaction;  ///< transmission reaction torque on chassis (intput)
+    double engine_reaction;        ///< engine reaction torque on chassis (input)
+    double transmission_reaction;  ///< transmission reaction torque on chassis (input)
 
     //// TODO - more outputs
 

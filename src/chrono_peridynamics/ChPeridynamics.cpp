@@ -541,11 +541,12 @@ void ChPeridynamics::IntLoadResidual_CqL(const unsigned int off_L,
 void ChPeridynamics::IntLoadConstraint_C(const unsigned int off,
                                          ChVectorDynamic<>& Qc,
                                          const double c,
+                                         const double c_vel,  ///< the scaling factor if the constraint is at speed level
                                          bool do_clamp,
                                          double recovery_clamp) {
     unsigned int local_off = 0;
     for (auto& mymat : this->materials) {
-        mymat->IntLoadConstraint_C(off + local_off, Qc, c, do_clamp, recovery_clamp);
+        mymat->IntLoadConstraint_C(off + local_off, Qc, c, c_vel, do_clamp, recovery_clamp);
         local_off += mymat->GetNumConstraints();
     }
 }

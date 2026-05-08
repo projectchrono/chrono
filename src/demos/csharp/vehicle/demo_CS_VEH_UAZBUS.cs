@@ -50,9 +50,6 @@ namespace ChronoDemo
             double step_size = 3e-3;
             double tire_step_size = 1e-3;
 
-            // Simulation end time
-            double tend = 15;
-
             // Time interval between two render frames
             double render_step_size = 1.0 / 50;  // FPS = 50
             

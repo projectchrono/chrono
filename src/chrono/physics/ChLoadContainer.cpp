@@ -33,6 +33,12 @@ void ChLoadContainer::Add(std::shared_ptr<ChLoadBase> newload) {
     loadlist.push_back(newload);
 }
 
+void ChLoadContainer::Add(std::shared_ptr<ChLoader> loader) {
+    auto wrapping_load = chrono_types::make_shared<ChLoad>(loader);
+
+    this->Add(wrapping_load);
+}
+
 void ChLoadContainer::Update(double time, UpdateFlags update_flags) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
         loadlist[i]->Update(time, update_flags);

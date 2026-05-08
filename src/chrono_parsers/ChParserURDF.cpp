@@ -22,6 +22,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cassert>
+#include <filesystem>
 
 #include "chrono_parsers/ChParserURDF.h"
 
@@ -29,6 +30,7 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
@@ -37,8 +39,6 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_HAS_ROS
     #include "ament_index_cpp/get_package_prefix.hpp"
@@ -73,7 +73,7 @@ ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), 
     }
 
     // Cache path to the URDF model file
-    m_filepath = filesystem::path(filename).parent_path().str();
+    m_filepath = std::filesystem::path(filename).parent_path().string();
 }
 
 void ChParserURDF::SetRootInitPose(const ChFrame<>& init_pose) {
@@ -213,9 +213,7 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
 
             result_filename = package_share_directory + "/" + filename_in_package;
 #else
-            cerr << "While resolving " + filename +
-                        ": Filename prefixed with package:// not supported without a ROS installation."
-                 << endl;
+            cerr << "While resolving " + filename + ": Filename prefixed with package:// not supported without a ROS installation." << endl;
             result_filename = filename;
 #endif
         } else if (scheme == "file") {
@@ -223,9 +221,9 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
             result_filename = path;
 
             // Check if the path is relative (make it absolute if yes) or if it's absolute.
-            filesystem::path fpath(result_filename);
+            std::filesystem::path fpath(result_filename);
             if (!fpath.is_absolute())
-                result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
+                result_filename = absolute((std::filesystem::path(m_filepath) / fpath)).string();
         } else {
             cerr << "While resolving " + filename + ": Schemes of form [" + scheme + "] are not supported." << endl;
             result_filename = filename;
@@ -234,9 +232,9 @@ std::string ChParserURDF::resolveFilename(const std::string& filename) {
         result_filename = filename;
 
         // Check if the path is relative (make it absolute if yes) or if it's absolute.
-        filesystem::path fpath(result_filename);
+        std::filesystem::path fpath(result_filename);
         if (!fpath.is_absolute())
-            result_filename = (filesystem::path(m_filepath) / fpath).make_absolute().str();
+            result_filename = absolute((std::filesystem::path(m_filepath) / fpath)).string();
     }
 
     return result_filename;
@@ -364,9 +362,7 @@ std::shared_ptr<ChVisualShape> ChParserURDF::toChVisualShape(const urdf::Geometr
     return vis_shape;
 }
 
-void ChParserURDF::attachVisualization(std::shared_ptr<ChBody> body,
-                                       urdf::LinkConstSharedPtr link,
-                                       const ChFrame<>& ref_frame) {
+void ChParserURDF::attachVisualization(std::shared_ptr<ChBody> body, urdf::LinkConstSharedPtr link, const ChFrame<>& ref_frame) {
     if (m_vis_collision) {
         const auto& collision_array = link->collision_array;
         for (const auto& collision : collision_array) {
@@ -391,9 +387,7 @@ void ChParserURDF::attachVisualization(std::shared_ptr<ChBody> body,
     }
 }
 
-void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
-                                   urdf::LinkConstSharedPtr link,
-                                   const ChFrame<>& ref_frame) {
+void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConstSharedPtr link, const ChFrame<>& ref_frame) {
     const auto& collision_array = link->collision_array;
 
     // Create the contact material for all collision shapes associated with this body
@@ -413,15 +407,13 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
             switch (collision->geometry->type) {
                 case urdf::Geometry::BOX: {
                     auto box = std::static_pointer_cast<urdf::Box>(collision->geometry);
-                    auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(contact_material, box->dim.x,
-                                                                                   box->dim.y, box->dim.z);
+                    auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(contact_material, box->dim.x, box->dim.y, box->dim.z);
                     body->AddCollisionShape(ct_shape, frame);
                     break;
                 }
                 case urdf::Geometry::CYLINDER: {
                     auto cylinder = std::static_pointer_cast<urdf::Cylinder>(collision->geometry);
-                    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(
-                        contact_material, cylinder->radius, cylinder->length);
+                    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(contact_material, cylinder->radius, cylinder->length);
                     body->AddCollisionShape(ct_shape, frame);
                     break;
                 }
@@ -434,41 +426,35 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                 case urdf::Geometry::MESH: {
                     auto mesh = std::static_pointer_cast<urdf::Mesh>(collision->geometry);
                     auto mesh_filename = resolveFilename(mesh->filename);
-                    auto ext = filesystem::path(mesh->filename).extension();
+                    auto ext = std::filesystem::path(mesh->filename).extension().string();
 
                     std::shared_ptr<ChTriangleMeshConnected> trimesh;
-                    if (ext == "obj" || ext == "OBJ")
+                    if (ext == ".obj" || ext == ".OBJ")
                         trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false);
-                    else if (ext == "stl" || ext == "STL")
+                    else if (ext == ".stl" || ext == ".STL")
                         trimesh = ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
 
                     if (!trimesh) {
-                        cout << "Warning: Unsupported format for collision mesh file <" << mesh_filename << ">."
-                             << endl;
+                        cout << "Warning: Unsupported format for collision mesh file <" << mesh_filename << ">." << endl;
                         cout << "Warning: No collision shape was generated for body <" << link_name << ">.\n" << endl;
                         break;
                     }
 
-                    MeshCollisionType coll_type = m_coll_type.find(link_name) != m_coll_type.end()
-                                                      ? m_coll_type.find(link_name)->second
-                                                      : MeshCollisionType::TRIANGLE_MESH;
+                    MeshCollisionType coll_type = m_coll_type.find(link_name) != m_coll_type.end() ? m_coll_type.find(link_name)->second : MeshCollisionType::TRIANGLE_MESH;
                     switch (coll_type) {
                         case MeshCollisionType::TRIANGLE_MESH: {
-                            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(
-                                contact_material, trimesh, false, false, 0.002);
+                            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(contact_material, trimesh, false, false, 0.002);
                             body->AddCollisionShape(ct_shape, frame);
                             break;
                         }
                         case MeshCollisionType::CONVEX_HULL: {
-                            auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(
-                                contact_material, trimesh->GetCoordsVertices());
+                            auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(contact_material, trimesh->GetCoordsVertices());
                             body->AddCollisionShape(ct_shape, frame);
                             break;
                         }
                         case MeshCollisionType::NODE_CLOUD: {
                             for (const auto& v : trimesh->GetCoordsVertices()) {
-                                auto ct_shape =
-                                    chrono_types::make_shared<ChCollisionShapeSphere>(contact_material, 0.002);
+                                auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(contact_material, 0.002);
                                 body->AddCollisionShape(ct_shape, ChFrame<>(v, QUNIT));
                             }
                             break;
@@ -853,8 +839,7 @@ void ChParserURDF::PrintChronoJoints() {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<tinyxml2::XMLDocument> ChParserURDF::CustomProcess(const std::string& key,
-                                                                   std::shared_ptr<CustomProcessor> callback) {
+std::shared_ptr<tinyxml2::XMLDocument> ChParserURDF::CustomProcess(const std::string& key, std::shared_ptr<CustomProcessor> callback) {
     auto xml_doc = chrono_types::make_shared<tinyxml2::XMLDocument>();
     xml_doc->Parse(m_xml_string.c_str());
     if (xml_doc->Error()) {

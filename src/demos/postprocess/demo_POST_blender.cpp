@@ -26,6 +26,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualShapeLine.h"
@@ -35,8 +36,6 @@
 #include "chrono/core/ChRandom.h"
 
 #include "chrono_postprocess/ChBlender.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace postprocess;

@@ -90,7 +90,7 @@ p2 = chrono.ChVector3d(m.cos(max_angle), -m.sin(max_angle), 0)
 while vis.Run():
     vis.BeginScene() 
     vis.Render()
-    irr.drawSegment(vis, p0, p0 + p1 * 4);
-    irr.drawSegment(vis, p0, p0 + p2 * 4);
+    irr.DrawSegment(vis, p0, p0 + p1 * 4);
+    irr.DrawSegment(vis, p0, p0 + p2 * 4);
     vis.EndScene()
     sys.DoStepDynamics(1e-3)

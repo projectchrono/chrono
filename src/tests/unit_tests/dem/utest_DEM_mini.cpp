@@ -24,8 +24,6 @@
 
 #include "chrono_dem/physics/ChSystemDem.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::dem;
 

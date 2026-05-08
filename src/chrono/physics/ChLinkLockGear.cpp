@@ -147,6 +147,7 @@ void ChLinkLockGear::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>
 void ChLinkLockGear::IntLoadConstraint_C(const unsigned int off,
                                          ChVectorDynamic<>& Qc,
                                          const double c,
+                                         const double c_vel,  
                                          bool do_clamp,
                                          double recovery_clamp) {
     if (this->is_compliant) {
@@ -154,7 +155,7 @@ void ChLinkLockGear::IntLoadConstraint_C(const unsigned int off,
     } 
     else {
         // Inherit parent class
-        ChLinkLock::IntLoadConstraint_C(off, Qc, c, do_clamp, recovery_clamp);
+        ChLinkLock::IntLoadConstraint_C(off, Qc, c, c_vel, do_clamp, recovery_clamp);
     }
 }
 

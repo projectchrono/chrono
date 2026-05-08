@@ -469,6 +469,8 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             nvertexes = 9 * glyphs->GetNumberOfGlyphs();
             break;
         case ChGlyphs::GLYPH_TENSOR:
+            ntriangles = 3 * glyphs->GetNumberOfGlyphs();
+            nvertexes = 9 * glyphs->GetNumberOfGlyphs();
             break;
     }
 
@@ -484,8 +486,14 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     // set buffers
 
     if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT) {
-        const u32 u[36] = {0,  1,  2,  0,  2,  3,  4,  6,  5,  4,  7,  6,  8,  9,  10, 8,  10, 11,
-                           12, 14, 13, 12, 15, 14, 16, 18, 17, 16, 19, 18, 20, 21, 22, 20, 22, 23};
+
+        // left handed coords, node ordering 
+        // const u32 u[36] = {0,  1,  2,  0,  2,  3,  4,  6,  5,  4,  7,  6,  8,  9,  10, 8,  10, 11,
+        //                    12, 14, 13, 12, 15, 14, 16, 18, 17, 16, 19, 18, 20, 21, 22, 20, 22, 23};
+        
+        // right handed coords, node ordering 
+        const u32 u[36] = {0,  2,  1,  0,  3,  2,  4,  5,  6,  4,  6,  7,  8,  10,  9, 8,  11, 10,
+                           12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 22, 21, 20, 23, 22};
 
         int itri = 0;
 
@@ -544,7 +552,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         int itri = 0;
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
             ChVector3d t1 = glyphs->points[ig];
-            ChVector3d t2 = (*glyphs->vectors)[ig] + t1;
+            ChVector3d t2 = (*glyphs->vectors)[ig] * glyphs->glyph_scalelenght + t1;
             ChColor mcol = (*glyphs->colors)[ig];
             video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
 
@@ -623,11 +631,72 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         }
     }
 
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_TENSOR) {
+        int itri = 0;
+
+        for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
+            ChVector3d t1 = glyphs->points[ig];
+            ChVector3d t2;
+            ChVector3d t3;
+
+            // X axis - create a  small line (a degenerate triangle) per each vector
+            t2 = t1 + (*glyphs->rotations)[ig].Rotate(ChVector3d(1, 0, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].x());
+            t3 = t1 - (*glyphs->rotations)[ig].Rotate(ChVector3d(1, 0, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].x());
+
+            irrmesh->getVertexBuffer()[0 + ig * 9] =
+                video::S3DVertex((f32)t3.x(), (f32)t3.y(), (f32)t3.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+            irrmesh->getVertexBuffer()[1 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+            irrmesh->getVertexBuffer()[2 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + ig * 9);
+
+            ++itri;
+
+            // Y axis
+            t2 = t1 + (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 1, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].y());
+            t3 = t1 - (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 1, 0) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].y());
+
+            irrmesh->getVertexBuffer()[3 + ig * 9] =
+                video::S3DVertex((f32)t3.x(), (f32)t3.y(), (f32)t3.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+            irrmesh->getVertexBuffer()[4 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+            irrmesh->getVertexBuffer()[5 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 3 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 4 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 5 + ig * 9);
+
+            ++itri;
+
+            // Z axis
+            t2 = t1 + (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 0, 1) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].z());
+            t3 = t1 - (*glyphs->rotations)[ig].Rotate(ChVector3d(0, 0, 1) * glyphs->GetGlyphsSize() * (*glyphs->eigenvalues)[ig].z());
+
+            irrmesh->getVertexBuffer()[6 + ig * 9] =
+                video::S3DVertex((f32)t3.x(), (f32)t3.y(), (f32)t3.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+            irrmesh->getVertexBuffer()[7 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+            irrmesh->getVertexBuffer()[8 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 6 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 7 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 8 + ig * 9);
+
+            ++itri;
+        }
+    }
+
     irrmesh->setDirty();                                  // to force update of hardware buffers
     irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
     irrmesh->recalculateBoundingBox();
 
-    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR || glyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR || glyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS || glyphs->GetDrawMode() == ChGlyphs::GLYPH_TENSOR) {
         meshnode->setMaterialFlag(video::EMF_WIREFRAME, true);
         meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);

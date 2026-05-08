@@ -48,9 +48,6 @@ namespace ChronoDemo
             double step_size = 1e-3;
             double tire_step_size = 1e-3;
 
-            // Time interval between two render frames
-            double render_step_size = 1.0 / 50;  // FPS = 50
-
             //------------------------------------------
             // Visualisation, Tracking and Vehicle Setup
             //------------------------------------------

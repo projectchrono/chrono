@@ -27,8 +27,10 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#endif
 
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
@@ -36,8 +38,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
     #include "chrono_postprocess/ChBlender.h"
 #endif
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "demos/SetChronoSolver.h"
 
@@ -76,7 +76,9 @@ int main() {
     auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
     auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
-    bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    bool fea_tire = false;
+#ifdef CHRONO_FEA
+    fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 
     // Set tire contact surface (relevant for FEA tires only)
     if (fea_tire) {
@@ -85,6 +87,7 @@ int main() {
         double surface_dim = 0;
         tire->SetContactSurfaceType(surface_type, surface_dim, collision_family);
     }
+#endif
 
     // ---------------------------------------------------------
     // Create system and set default solver and integrator types
@@ -95,17 +98,20 @@ int main() {
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
 
-    if (fea_tire) {
-        sys = new ChSystemSMC;
-        step_size = 1e-5;
-        solver_type = ChSolver::Type::PARDISO_MKL;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    } else {
+    if (!fea_tire) {
         sys = new ChSystemNSC;
         step_size = 2e-4;
         solver_type = ChSolver::Type::BARZILAIBORWEIN;
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
+#ifdef CHRONO_FEA
+    else {
+        sys = new ChSystemSMC;
+        step_size = 1e-5;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+#endif
 
     // Set collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -178,7 +184,7 @@ int main() {
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
     ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
 
-    // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
+    // Scenario: specified longitudinal slip (overrides other definitions of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
     // Set delay before applying inputs (settling time)
@@ -190,6 +196,7 @@ int main() {
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
     rig.Initialize(ChTireTestRig::Mode::TEST, 0.05);
 
+#ifdef CHRONO_FEA
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
         auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
@@ -200,13 +207,14 @@ int main() {
         visFEA->SetSmoothFaces(true);
         tire_def->AddVisualShapeFEA(visFEA);
     }
+#endif
 
     // -----------------
     // Initialize output
     // -----------------
 
     const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
@@ -249,7 +257,7 @@ int main() {
 
     if (blender_output) {
         std::string blender_dir = out_dir + "/blender";
-        if (!filesystem::create_directory(filesystem::path(blender_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(blender_dir))) {
             cerr << "Error creating directory " << blender_dir << endl;
             return 1;
         }

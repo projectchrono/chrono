@@ -115,7 +115,7 @@ x0 = slider1.GetPos().x
 while vis.Run():
     vis.BeginScene() 
     vis.Render()
-    irr.drawAllLinkframes(vis, 1)
+    irr.DrawAllLinkframes(vis, 1)
     vis.EndScene()
     sys.DoStepDynamics(1e-3)
 

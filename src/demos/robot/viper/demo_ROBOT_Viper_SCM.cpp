@@ -25,8 +25,6 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -151,7 +149,7 @@ int main(int argc, char* argv[]) {
     // Initialize output
     std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_SCM";
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

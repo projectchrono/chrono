@@ -24,7 +24,6 @@
 
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 using namespace chrono::vehicle;
@@ -135,7 +134,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> SynWheeledVehicleAgent::CreateMeshZom
     if (!filename.empty()) {
         auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(filename), true, true);
         trimesh->SetMesh(mesh);
-        trimesh->SetName(filesystem::path(filename).stem());
+        trimesh->SetName(std::filesystem::path(filename).stem().string());
     }
     return trimesh;
 }

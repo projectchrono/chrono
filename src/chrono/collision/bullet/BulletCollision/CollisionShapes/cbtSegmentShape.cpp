@@ -30,11 +30,7 @@ software.
 
 using namespace chrono;
 
-cbtSegmentShape::cbtSegmentShape(const ChVector3d* p1,
-                                 const ChVector3d* p2,
-                                 bool owns_vertex_1,
-                                 bool owns_vertex_2,
-                                 double radius)
+cbtSegmentShape::cbtSegmentShape(const ChVector3d* p1, const ChVector3d* p2, bool owns_vertex_1, bool owns_vertex_2, double radius)
     : p1(p1), p2(p2), owns_vertex_1(owns_vertex_1), owns_vertex_2(owns_vertex_2), sradius(radius) {
     m_shapeType = SEGMENT_SHAPE_PROXYTYPE;
 }
@@ -60,9 +56,7 @@ cbtVector3 cbtSegmentShape::localGetSupportingVertexWithoutMargin(const cbtVecto
     return sup;
 }
 
-void cbtSegmentShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors,
-                                                                        cbtVector3* supportVerticesOut,
-                                                                        int numVectors) const {
+void cbtSegmentShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {
     printf("NOT SUPPORTED!! \n");
 }
 
@@ -89,13 +83,12 @@ void cbtSegmentShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVec
     cbtVector3 p1_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p1);
     cbtVector3 p2_w = t.getOrigin() + t.getBasis() * cbtVector3CH(*p2);
 
-    ChCollisionModelBullet* triModel = (ChCollisionModelBullet*)getUserPointer();
+    auto seg_data = (ChCollisionModelBullet::ShapeData*)getUserPointer();
+    ChCollisionModelBullet* bt_model = seg_data->bt_model;
 
-    cbtVector3 venvelope(triModel->GetEnvelope(), triModel->GetEnvelope(), triModel->GetEnvelope());
+    cbtVector3 venvelope(bt_model->GetEnvelope(), bt_model->GetEnvelope(), bt_model->GetEnvelope());
     cbtVector3 vsphereswept((cbtScalar)sradius, (cbtScalar)sradius, (cbtScalar)sradius);
 
-    aabbMin = cbtVector3(std::min(p1_w.x(), p2_w.x()), std::min(p1_w.y(), p2_w.y()), std::min(p1_w.z(), p2_w.z())) -
-              venvelope - vsphereswept;
-    aabbMax = cbtVector3(std::max(p1_w.x(), p2_w.x()), std::max(p1_w.y(), p2_w.y()), std::max(p1_w.z(), p2_w.z())) +
-              venvelope + vsphereswept;
+    aabbMin = cbtVector3(std::min(p1_w.x(), p2_w.x()), std::min(p1_w.y(), p2_w.y()), std::min(p1_w.z(), p2_w.z())) - venvelope - vsphereswept;
+    aabbMax = cbtVector3(std::max(p1_w.x(), p2_w.x()), std::max(p1_w.y(), p2_w.y()), std::max(p1_w.z(), p2_w.z())) + venvelope + vsphereswept;
 }

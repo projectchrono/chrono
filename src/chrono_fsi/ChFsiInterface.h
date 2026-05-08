@@ -52,17 +52,16 @@ class CH_FSI_API ChFsiInterface {
     /// Add a rigid body.
     /// The fluid-solid interaction is based on the provided rigid geometry.
     /// If geometry=nullptr, it is assumed that the interaction geometry is provided separately.
-    std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body,
-                                        std::shared_ptr<utils::ChBodyGeometry> geometry,
-                                        bool check_embedded);
+    std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded);
 
+#ifdef CHRONO_FEA
     /// Add a flexible solid with segment set contact to the FSI system.
-    std::shared_ptr<FsiMesh1D> AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface,
-                                            bool check_embedded);
+    std::shared_ptr<FsiMesh1D> AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded);
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    std::shared_ptr<FsiMesh2D> AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface,
-                                            bool check_embedded);
+    std::shared_ptr<FsiMesh2D> AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded);
+
+#endif
 
     /// Initialize the FSI interface.
     virtual void Initialize();
@@ -72,6 +71,7 @@ class CH_FSI_API ChFsiInterface {
     /// Get the number of FSI bodies.
     unsigned int GetNumBodies() const;
 
+#ifdef CHRONO_FEA
     /// Get the number of FSI 1-D meshes.
     unsigned int GetNumMeshes1D() const;
 
@@ -89,6 +89,7 @@ class CH_FSI_API ChFsiInterface {
 
     /// Get the number of FSI 2-D mesh nodes.
     unsigned int GetNumNodes2D() const;
+#endif
 
     // ------------
 
@@ -97,12 +98,14 @@ class CH_FSI_API ChFsiInterface {
 
     /// Get writable access to the set of bodies added to the FSI interface.
     std::vector<std::shared_ptr<FsiBody>>& GetBodies() { return m_fsi_bodies; }
-    
+
+#ifdef CHRONO_FEA
     /// Get the set of 1D meshes added to the FSI interface.
     const std::vector<std::shared_ptr<FsiMesh1D>>& GetMeshes1D() const { return m_fsi_meshes1D; }
-    
+
     /// Get the set of 2D meshes added to the FSI interface.
     const std::vector<std::shared_ptr<FsiMesh2D>>& GetMeshes2D() const { return m_fsi_meshes2D; }
+#endif
 
     // ------------
 
@@ -116,44 +119,57 @@ class CH_FSI_API ChFsiInterface {
 
     // ------------
 
-    /// Enable use and set method of obtaining FEA node directions. Default: NodeDirectionsMode::NONE.
-    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
-
     /// Utility function to allocate state vectors.
-    /// If use of node directions is enabled, also resize the vectors of node directions for FSI meshes.
-    void AllocateStateVectors(std::vector<FsiBodyState>& body_states,
-                              std::vector<FsiMeshState>& mesh1D_states,
-                              std::vector<FsiMeshState>& mesh2D_states) const;
+    void AllocateStateVectors(std::vector<FsiBodyState>& body_states) const;
 
     /// Utility function to allocate force vectors.
-    void AllocateForceVectors(std::vector<FsiBodyForce>& body_forces,
-                              std::vector<FsiMeshForce>& mesh_forces1D,
-                              std::vector<FsiMeshForce>& mesh_forces2D) const;
+    void AllocateForceVectors(std::vector<FsiBodyForce>& body_forces) const;
 
     /// Utility function to check sizes of state vectors.
-    bool CheckStateVectors(const std::vector<FsiBodyState>& body_states,
-                           const std::vector<FsiMeshState>& mesh1D_states,
-                           const std::vector<FsiMeshState>& mesh2D_states) const;
+    bool CheckStateVectors(const std::vector<FsiBodyState>& body_states) const;
 
     /// Utility function to check sizes of force vectors.
-    bool CheckForceVectors(const std::vector<FsiBodyForce>& body_forces,
-                           const std::vector<FsiMeshForce>& mesh_forces1D,
-                           const std::vector<FsiMeshForce>& mesh_forces2D) const;
+    bool CheckForceVectors(const std::vector<FsiBodyForce>& body_forces) const;
 
     /// Utility function to get current solid phase states from the multibody system in the provided structures.
     /// This function is always called once during initialization of the containing ChFsiSystem.
     /// During simulation, a derived class may use this function in its implementation of `ExchangeSolidStates`.
     /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
-    void StoreSolidStates(std::vector<FsiBodyState>& body_states,
-                          std::vector<FsiMeshState>& mesh1D_states,
-                          std::vector<FsiMeshState>& mesh2D_states);
+    void StoreSolidStates(std::vector<FsiBodyState>& body_states);
 
     /// Utility function to apply forces in the provided structures to the multibody system.
     /// A derived class may use this function in its implementation of `ExchangeSolidForces`.
     /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
-    void LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
-                         std::vector<FsiMeshForce>& mesh1D_forces,
-                         std::vector<FsiMeshForce>& mesh2D_forces);
+    void LoadSolidForces(std::vector<FsiBodyForce>& body_forces);
+
+#ifdef CHRONO_FEA
+    /// Enable use and set method of obtaining FEA node directions. Default: NodeDirectionsMode::NONE.
+    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
+
+    /// Utility function to allocate state vectors.
+    /// If use of node directions is enabled, also resize the vectors of node directions for FSI meshes.
+    void AllocateStateVectors(std::vector<FsiBodyState>& body_states, std::vector<FsiMeshState>& mesh1D_states, std::vector<FsiMeshState>& mesh2D_states) const;
+
+    /// Utility function to allocate force vectors.
+    void AllocateForceVectors(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh_forces1D, std::vector<FsiMeshForce>& mesh_forces2D) const;
+
+    /// Utility function to check sizes of state vectors.
+    bool CheckStateVectors(const std::vector<FsiBodyState>& body_states, const std::vector<FsiMeshState>& mesh1D_states, const std::vector<FsiMeshState>& mesh2D_states) const;
+
+    /// Utility function to check sizes of force vectors.
+    bool CheckForceVectors(const std::vector<FsiBodyForce>& body_forces, const std::vector<FsiMeshForce>& mesh_forces1D, const std::vector<FsiMeshForce>& mesh_forces2D) const;
+
+    /// Utility function to get current solid phase states from the multibody system in the provided structures.
+    /// This function is always called once during initialization of the containing ChFsiSystem.
+    /// During simulation, a derived class may use this function in its implementation of `ExchangeSolidStates`.
+    /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
+    void StoreSolidStates(std::vector<FsiBodyState>& body_states, std::vector<FsiMeshState>& mesh1D_states, std::vector<FsiMeshState>& mesh2D_states);
+
+    /// Utility function to apply forces in the provided structures to the multibody system.
+    /// A derived class may use this function in its implementation of `ExchangeSolidForces`.
+    /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
+    void LoadSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces);
+#endif
 
     // ------------
 
@@ -176,9 +192,11 @@ class CH_FSI_API ChFsiInterface {
     ChSystem* m_sysMBS;
     ChFsiFluidSystem* m_sysCFD;
 
-    std::vector<std::shared_ptr<FsiBody>> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
+    std::vector<std::shared_ptr<FsiBody>> m_fsi_bodies;  ///< rigid bodies exposed to the FSI system
+#ifdef CHRONO_FEA
     std::vector<std::shared_ptr<FsiMesh1D>> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
     std::vector<std::shared_ptr<FsiMesh2D>> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
+#endif
 };
 
 // =============================================================================
@@ -204,10 +222,12 @@ class CH_FSI_API ChFsiInterfaceGeneric : public ChFsiInterface {
 
     std::vector<FsiBodyState> m_body_states;
     std::vector<FsiBodyForce> m_body_forces;
+#ifdef CHRONO_FEA
     std::vector<FsiMeshState> m_mesh1D_states;
     std::vector<FsiMeshForce> m_mesh1D_forces;
     std::vector<FsiMeshState> m_mesh2D_states;
     std::vector<FsiMeshForce> m_mesh2D_forces;
+#endif
 };
 
 // =============================================================================

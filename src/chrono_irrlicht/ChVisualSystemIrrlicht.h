@@ -98,7 +98,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void SetCameraVertical(CameraVerticalDir vert);
 
     /// Tells if the current camera vertical mode is Y or Z
-    CameraVerticalDir GetCameraVertical();
+    CameraVerticalDir GetCameraVertical() const;
 
     /// Set the Irrlicht logging level (default irr::ELL_INFORMATION).
     /// Must be called before Initialize().
@@ -246,17 +246,18 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unless called after the visual system is initialized and attached.
     void SetInfoTab(int ntab);
 
-    irr::IrrlichtDevice* GetDevice() { return m_device; }
-    irr::video::IVideoDriver* GetVideoDriver() { return m_device->getVideoDriver(); }
-    irr::scene::ISceneManager* GetSceneManager() { return m_device->getSceneManager(); }
-    irr::scene::ICameraSceneNode* GetActiveCamera() { return m_device->getSceneManager()->getActiveCamera(); }
-    irr::gui::IGUIEnvironment* GetGUIEnvironment() { return m_device->getGUIEnvironment(); }
+    /// Interface to underlying Irrlicht device.
+    irr::IrrlichtDevice* GetDevice() const { return m_device; }
+    irr::video::IVideoDriver* GetVideoDriver() const { return m_device->getVideoDriver(); }
+    irr::scene::ISceneManager* GetSceneManager() const { return m_device->getSceneManager(); }
+    irr::scene::ICameraSceneNode* GetActiveCamera() const { return m_device->getSceneManager()->getActiveCamera(); }
+    irr::gui::IGUIEnvironment* GetGUIEnvironment() const { return m_device->getGUIEnvironment(); }
 
     /// Get the window ID.
     void* GetWindowId() const { return m_device_params.WindowId; }
 
     /// Return the Irrlicht ChIrrGUI object.
-    ChIrrGUI* GetGUI() { return m_gui.get(); }
+    ChIrrGUI* GetGUI() const { return m_gui.get(); }
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
@@ -330,13 +331,13 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void SetUtilityFlag(bool flag) { m_utility_flag = flag; }
 
     /// Get device creation parameters.
-    irr::SIrrlichtCreationParameters GetCreationParameters() const { return m_device_params; }
+    const irr::SIrrlichtCreationParameters& GetCreationParameters() const { return m_device_params; }
 
     /// Set device creation parameters.
     void SetCreationParameters(const irr::SIrrlichtCreationParameters& device_params) { m_device_params = device_params; }
 
     /// Get list of cameras defined for the scene
-    std::vector<std::shared_ptr<RTSCamera>> GetCameras() const { return m_cameras; }
+    const std::vector<std::shared_ptr<RTSCamera>>& GetCameras() const { return m_cameras; }
 
   protected:
     /// Irrlicht scene node for a visual model not associated with a physics item.

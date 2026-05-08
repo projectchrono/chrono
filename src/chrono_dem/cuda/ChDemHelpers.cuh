@@ -20,7 +20,7 @@
 #include "chrono_dem/cuda/ChCudaMathUtils.cuh"
 #include "chrono_dem/ChDemDefines.h"
 
-#include <cub/cub.cuh>
+#include "chrono_dem/cuda/ChGpuRuntime.h"
 
 using chrono::dem::ChSystemDem_impl;
 using chrono::dem::CHDEM_TIME_INTEGRATOR;
@@ -32,7 +32,7 @@ using chrono::dem::CHDEM_ROLLING_MODE;
     {                             \
         printf(__VA_ARGS__);      \
         __threadfence();          \
-        cuda::std::terminate();   \
+        CHGPU_DEVICE_ABORT();     \
     }
 
 #define CHDEM_DEBUG_PRINTF(...) printf(__VA_ARGS__)

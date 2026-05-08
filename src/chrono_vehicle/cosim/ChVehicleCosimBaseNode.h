@@ -41,8 +41,6 @@
     #include "chrono_postprocess/ChBlender.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #define MBS_NODE_RANK 0
 #define TERRAIN_NODE_RANK 1
 #define TIRE_NODE_RANK(i) (i + 2)

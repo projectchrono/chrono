@@ -31,8 +31,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/core/ChRandom.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"

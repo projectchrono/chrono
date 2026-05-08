@@ -190,7 +190,7 @@ void ChLinkMotorRotationSpeed::LoadKRMMatrices(double Kfactor, double Rfactor, d
     }
 }
 
-void ChLinkMotorRotationSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+void ChLinkMotorRotationSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     double mCt = -0.5 * m_func->GetVal(GetChTime());
 
     unsigned int ncrz = mask.GetNumConstraints() - 1;

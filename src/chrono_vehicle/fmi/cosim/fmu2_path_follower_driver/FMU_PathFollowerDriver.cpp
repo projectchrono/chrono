@@ -25,7 +25,6 @@
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
-#include "chrono/utils/ChUtils.h"
 
 #include "FMU_PathFollowerDriver.h"
 
@@ -55,8 +54,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                            const fmi2CallbackFunctions* functions,
                            fmi2Boolean visible,
                            fmi2Boolean loggingOn)
-    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn),
-      render_frame(0) {
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn), render_frame(0) {
     // Initialize FMU type
     initializeType(fmuType);
 
@@ -100,11 +98,11 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Set FIXED PARAMETERS for this FMU
     //// TODO: units for gains
-    AddFmuVariable(&path_file, "path_file", FmuVariable::Type::String, "1", "path specififcation file",  //
-                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);          //
+    AddFmuVariable(&path_file, "path_file", FmuVariable::Type::String, "1", "path specification file",  //
+                   FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);         //
 
     AddFmuVariable(&look_ahead_dist, "look_ahead_dist", FmuVariable::Type::Real, "1",            //
-                   "lookahead distance, steering controller",                                    //
+                   "look-ahead distance, steering controller",                                   //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
     AddFmuVariable(&Kp_steering, "Kp_steering", FmuVariable::Type::Real, "1",                    //
                    "proportional gain, steering controller",                                     //
@@ -251,8 +249,7 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
         vis_sys->SetWindowTitle("Path-follower Driver FMU (FMI 2.0)");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
         vis_sys->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
-        vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot),
-                         ChColor(0.31f, 0.43f, 0.43f));
+        vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot), ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();
         vis_sys->AddCamera(ChVector3d(-4, 0, 0.5), ChVector3d(0, 0, 0));
         vis_sys->AddTypicalLights();
@@ -269,12 +266,9 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
     return fmi2Status::fmi2OK;
 }
 
-fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
-                                    fmi2Real communicationStepSize,
-                                    fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
+fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
     while (m_time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time),
-                              std::min(communicationStepSize, step_size));
+        fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time), std::min(communicationStepSize, step_size));
 
         // Set the throttle and braking values based on the output from the speed controller.
         double out_speed = speedPID->Advance(ref_frame, target_speed, m_time, h);

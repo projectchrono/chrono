@@ -37,7 +37,10 @@ set(CH_USE_SENSOR_OPTIX TRUE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor f
 
 if(CH_USE_SENSOR_OPTIX)
 
-  if(CHRONO_CUDA_FOUND)
+  if(CHRONO_HIP_FOUND)
+    message(STATUS "WARNING: Chrono::Sensor / OptiX is CUDA-only and not supported with HIP; disabling OptiX-dependent features")
+    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
+  elseif(CHRONO_CUDA_FOUND)
     message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
   
     message(STATUS "Looking for OptiX")
@@ -46,7 +49,7 @@ if(CH_USE_SENSOR_OPTIX)
     if(OptiX_INCLUDE)
       message(STATUS "  OptiX include directory: ${OptiX_INCLUDE}")
     else()
-      message(STATUS "WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
+      message("WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
       set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
     endif()
   else()
@@ -557,7 +560,7 @@ if(CH_USE_SENSOR_OPTIX)
     # Flags used directly in the source code as defines
 
     #set(CUDA_NVRTC_FLAGS -arch compute_30 -use_fast_math -lineinfo -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
-    set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++11 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
+    set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++17 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     mark_as_advanced(CUDA_NVRTC_FLAGS)
     message(STATUS "  CUDA NVRTC flags: ${CUDA_NVRTC_FLAGS}")
 
@@ -567,9 +570,23 @@ if(CH_USE_SENSOR_OPTIX)
     endforeach()
     set(CUDA_NVRTC_FLAG_LIST "${CUDA_NVRTC_FLAG_LIST} \\\n  0,")
   
+    # CUDA 13 places CCCL/libcu++ headers in <cuda>/include/cccl, but curand_kernel.h
+    # includes them as <cuda/std/...>. NVRTC does not automatically add that directory.
+    set(_CHRONO_CUDA_CCCL_INCLUDE_DIRS)
+    foreach(_cuda_include_dir ${CUDAToolkit_INCLUDE_DIRS})
+      if(EXISTS "${_cuda_include_dir}/cccl/cuda/std/type_traits")
+        list(APPEND _CHRONO_CUDA_CCCL_INCLUDE_DIRS "${_cuda_include_dir}/cccl")
+      endif()
+    endforeach()
+    if(DEFINED CUDAToolkit_TARGET_DIR AND EXISTS "${CUDAToolkit_TARGET_DIR}/include/cccl/cuda/std/type_traits")
+      list(APPEND _CHRONO_CUDA_CCCL_INCLUDE_DIRS "${CUDAToolkit_TARGET_DIR}/include/cccl")
+    endif()
+    list(REMOVE_DUPLICATES _CHRONO_CUDA_CCCL_INCLUDE_DIRS)
+
     set(CUDA_NVRTC_INCLUDE_DIRS
         ${OptiX_INCLUDE}
         ${CUDAToolkit_INCLUDE_DIRS}
+        ${_CHRONO_CUDA_CCCL_INCLUDE_DIRS}
         ${CMAKE_INSTALL_PREFIX}/include
         ${CMAKE_SOURCE_DIR}/src
         CACHE STRING "NVRTC include dirs as list." FORCE)

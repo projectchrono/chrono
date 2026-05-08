@@ -25,6 +25,12 @@
 // Macros specifying enabled Chrono modules
 // -----------------------------------------------------------------------------
 
+// If module FEA was enabled, define CHRONO_FEA
+@CHRONO_FEA@
+
+// If module FEA_MULTIPHYSICS was enabled, define CHRONO_FEA_MULTIPHYSICS
+@CHRONO_FEA_MULTIPHYSICS@
+
 // If module CASCADE was enabled, define CHRONO_CASCADE
 @CHRONO_CASCADE@
 
@@ -84,13 +90,6 @@
 
 // If module FMI was enabled, define CHRONO_FMI
 @CHRONO_FMI@
-
-// -----------------------------------------------------------------------------
-// C++ standard support
-// -----------------------------------------------------------------------------
-
-// If Chrono was built with C++17 support, define CHRONO_HAS_CXX17
-@CHRONO_HAS_CXX17@
 
 // -----------------------------------------------------------------------------
 // GnuPlot
@@ -189,12 +188,16 @@
 @CHRONO_HAS_CUDA@
 @CHRONO_CUDA_VERSION@
 
+// If HIP is available, define CHRONO_HAS_HIP and set HIP/ROCm version
+@CHRONO_HAS_HIP@
+@CHRONO_HIP_VERSION@
+
 // If THRUST is available, define CHRONO_HAS_THRUST and set Thrust version
 @CHRONO_HAS_THRUST@
 @CHRONO_THRUST_VERSION@
 
-// If CUDA is not available, force Thrust to always use the OMP backend
-#ifndef CHRONO_HAS_CUDA
+// If neither CUDA nor HIP is available, force Thrust to always use the OMP backend
+#if !defined(CHRONO_HAS_CUDA) && !defined(CHRONO_HAS_HIP)
   #ifndef THRUST_DEVICE_SYSTEM
     #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
   #endif

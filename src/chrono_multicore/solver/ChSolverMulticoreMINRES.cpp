@@ -33,10 +33,10 @@ uint ChSolverMulticoreMinRes::Solve(ChSchurProduct& SchurProduct,
     v.resize(N);
     v_hat.resize(x.size());
     w.resize(N);
+    w = 0;
     Av.resize(x.size());
 
-    real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1,
-               r2, r3;
+    real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;
     SchurProduct(x, v_hat);
     v_hat = mb - v_hat;
     beta = std::sqrt((v_hat, v_hat));

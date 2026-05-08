@@ -89,6 +89,40 @@ void ChBodyAuxRef::SetCoordsys(const ChVector3<>& v, const ChQuaternion<>& q) {
     SetFrameCOMToAbs(ChFramed(v, q));
 }
 
+void ChBodyAuxRef::SetPosDt(const ChVector3<>& p_dt) {
+    ChBody::SetPosDt(p_dt);
+    ref_to_abs.SetPosDt(GetPosDt());
+    ref_to_abs.SetRotDt(GetRotDt());
+}
+
+void ChBodyAuxRef::SetLinVel(const ChVector3<>& p_dt) {
+    SetPosDt(p_dt);
+}
+
+void ChBodyAuxRef::SetRotDt(const ChQuaternion<>& q_dt) {
+    ChBody::SetRotDt(q_dt);
+    ref_to_abs.SetPosDt(GetPosDt());
+    ref_to_abs.SetRotDt(GetRotDt());
+}
+
+void ChBodyAuxRef::SetAngVelLocal(const ChVector3<>& w) {
+    ChBody::SetAngVelLocal(w);
+    ref_to_abs.SetPosDt(GetPosDt());
+    ref_to_abs.SetRotDt(GetRotDt());
+}
+
+void ChBodyAuxRef::SetAngVelParent(const ChVector3<>& w) {
+    ChBody::SetAngVelParent(w);
+    ref_to_abs.SetPosDt(GetPosDt());
+    ref_to_abs.SetRotDt(GetRotDt());
+}
+
+void ChBodyAuxRef::SetCoordsysDt(const ChCoordsys<>& csys_dt) {
+    ChBody::SetCoordsysDt(csys_dt);
+    ref_to_abs.SetPosDt(GetPosDt());
+    ref_to_abs.SetRotDt(GetRotDt());
+}
+
 // -----------------------------------------------------------------------------
 
 void ChBodyAuxRef::ArchiveOut(ChArchiveOut& archive_out) {

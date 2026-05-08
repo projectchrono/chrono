@@ -74,16 +74,18 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/GenericWheeledSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/Balancer.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+#include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
-#include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
+#endif
 
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
@@ -95,10 +97,12 @@
 #include "chrono_vehicle/tracked_vehicle/track_wheel/SingleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/TranslationalDamperSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperSuspension.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"
@@ -540,13 +544,17 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<Pac89Tire>(d);
     } else if (subtype.compare("Pac02Tire") == 0) {
         tire = chrono_types::make_shared<Pac02Tire>(d);
-    } else if (subtype.compare("ANCFTire") == 0) {
+    }
+#ifdef CHRONO_FEA
+    else if (subtype.compare("ANCFTire") == 0) {
         tire = chrono_types::make_shared<ANCFTire>(d);
     } else if (subtype.compare("ReissnerTire") == 0) {
         tire = chrono_types::make_shared<ReissnerTire>(d);
     } else if (subtype.compare("FEATire") == 0) {
         tire = chrono_types::make_shared<FEATire>(d);
-    } else {
+    }
+#endif
+    else {
         throw std::invalid_argument("Tire type not supported in ReadTireJSON.");
     }
 
@@ -579,9 +587,13 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filena
         track = chrono_types::make_shared<TrackAssemblyDoublePin>(d);
     } else if (subtype.compare("TrackAssemblyBandBushing") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandBushing>(d);
-    } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
+    }
+#ifdef CHRONO_FEA
+    else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
-    } else {
+    }
+#endif
+    else {
         throw std::invalid_argument("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
     }
 

@@ -146,6 +146,7 @@ void ChMatterPeriBBimplicit::IntLoadResidual_CqL(const unsigned int off_L,
 void ChMatterPeriBBimplicit::IntLoadConstraint_C(const unsigned int off,
                                                  ChVectorDynamic<>& Qc,
                                                  const double c,
+                                                 const double c_vel,  
                                                  bool do_clamp,
                                                  double recovery_clamp) {
     int boff = 0;

@@ -278,6 +278,12 @@ void ChMesh::IntStateGetIncrement(const unsigned int off_x,
     }
 }
 
+void ChMesh::IntStateOnEndStep(double T) {
+    for (int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->ElementUpdateEndStep(T);
+    }
+}
+
 void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // nodes applied forces
     unsigned int local_off_v = 0;

@@ -108,9 +108,9 @@ void ChContinuumElastic::ComputeElasticStress(ChStressTensor<>& stress, const Ch
     stress.XX() = strain.XX() * (m_lamefirst + 2 * G) + strain.YY() * m_lamefirst + strain.ZZ() * m_lamefirst;
     stress.YY() = strain.XX() * m_lamefirst + strain.YY() * (m_lamefirst + 2 * G) + strain.ZZ() * m_lamefirst;
     stress.ZZ() = strain.XX() * m_lamefirst + strain.YY() * m_lamefirst + strain.ZZ() * (m_lamefirst + 2 * G);
-    stress.XY() = strain.XY() * 2 * G;
-    stress.XZ() = strain.XZ() * 2 * G;
-    stress.YZ() = strain.YZ() * 2 * G;
+    stress.SetXY( strain.GetXY() * 2 * G);
+    stress.SetXZ( strain.GetXZ() * 2 * G);
+    stress.SetYZ( strain.GetYZ() * 2 * G);
 }
 
 void ChContinuumElastic::ComputeElasticStrain(ChStrainTensor<>& strain, const ChStressTensor<>& stress) const {
@@ -119,9 +119,9 @@ void ChContinuumElastic::ComputeElasticStrain(ChStrainTensor<>& strain, const Ch
     strain.XX() = invE * (stress.XX() - stress.YY() * m_poisson - stress.ZZ() * m_poisson);
     strain.YY() = invE * (-stress.XX() * m_poisson + stress.YY() - stress.ZZ() * m_poisson);
     strain.ZZ() = invE * (-stress.XX() * m_poisson - stress.YY() * m_poisson + stress.ZZ());
-    strain.XY() = stress.XY() * invhG;
-    strain.XZ() = stress.XZ() * invhG;
-    strain.YZ() = stress.YZ() * invhG;
+    strain.SetXY( stress.GetXY() * invhG );
+    strain.SetXZ( stress.GetXZ() * invhG );
+    strain.SetYZ( stress.GetYZ() * invhG );
 }
 
 void ChContinuumElastic::ArchiveOut(ChArchiveOut& archive_out) {
@@ -202,7 +202,7 @@ void ChContinuumPlasticVonMises::ComputeReturnMapping(ChStrainTensor<>& plastics
 
     double vonm = guesselstrain.GetEquivalentVonMises();
     if (vonm > this->m_elastic_yield) {
-        ChVoightTensor<> mdev;
+        ChStrainTensor<> mdev;
         guesselstrain.GetDeviatoricPart(mdev);
         plasticstrainflow = mdev * ((vonm - this->m_elastic_yield) / (vonm));
     } else {
@@ -214,7 +214,7 @@ void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& plas
                                                           const ChStrainTensor<>& totstrain) const {
     double vonm = totstrain.GetEquivalentVonMises();
     if (vonm > this->m_elastic_yield) {
-        ChVoightTensor<> mdev;
+        ChStrainTensor<> mdev;
         totstrain.GetDeviatoricPart(mdev);
         plasticstrainflow = mdev * ((vonm - this->m_elastic_yield) / (vonm));
     } else {
@@ -324,16 +324,16 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& plasticstr
                 dFdS.XX() = this->m_alpha + (2 * mstress.XX() - mstress.YY() - mstress.ZZ()) / sixdevsq;
                 dFdS.YY() = this->m_alpha + (-mstress.XX() + 2 * mstress.YY() - mstress.ZZ()) / sixdevsq;
                 dFdS.ZZ() = this->m_alpha + (-mstress.XX() - mstress.YY() + 2 * mstress.ZZ()) / sixdevsq;
-                dFdS.XY() = mstress.XY() / devsq;
-                dFdS.YZ() = mstress.YZ() / devsq;
-                dFdS.XZ() = mstress.XZ() / devsq;
+                dFdS.SetXY( mstress.GetXY() / devsq);
+                dFdS.SetYZ( mstress.GetYZ() / devsq);
+                dFdS.SetXZ( mstress.GetXZ() / devsq);
 
                 dGdS.XX() = this->m_dilatancy + (2 * mstress.XX() - mstress.YY() - mstress.ZZ()) / sixdevsq;
                 dGdS.YY() = this->m_dilatancy + (-mstress.XX() + 2 * mstress.YY() - mstress.ZZ()) / sixdevsq;
                 dGdS.ZZ() = this->m_dilatancy + (-mstress.XX() - mstress.YY() + 2 * mstress.ZZ()) / sixdevsq;
-                dGdS.XY() = mstress.XY() / devsq;
-                dGdS.YZ() = mstress.YZ() / devsq;
-                dGdS.XZ() = mstress.XZ() / devsq;
+                dGdS.SetXY( mstress.GetXY() / devsq);
+                dGdS.SetYZ( mstress.GetYZ() / devsq);
+                dGdS.SetXZ( mstress.GetXZ() / devsq);
             } else {
                 std::cerr << "Error: axial singularity - SHOULD NEVER OCCUR  - handled by polar cone" << std::endl;
                 dFdS.setZero();
@@ -368,7 +368,7 @@ void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplast
     this->ComputeElasticStress(mstress, mestrain);
     double prager = mstress.GetInvariant_I1() * this->m_alpha + std::sqrt(mstress.GetInvariant_J2());
     if (prager > this->m_elastic_yield) {
-        ChVoightTensor<> mdev;
+        ChStressTensor<> mdev;
         mstress.GetDeviatoricPart(mdev);
         double divisor = 2. * std::sqrt(mstress.GetInvariant_J2());
         if (divisor > 10e-20)
