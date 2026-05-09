@@ -39,7 +39,6 @@
 
 using Eigen::SparseMatrix;
 using Eigen::Matrix;
-using Eigen::Block;
 using Eigen::VectorBlock;
 using custom_vector;
 
@@ -62,9 +61,6 @@ class ChContactMaterialCompositionStrategy;
 
 using SparseMatrixType = SparseMatrix<real, Eigen::RowMajor>;
 using VectorType = Matrix<real, Eigen::Dynamic, 1>;
-
-// using SubMatrixType = Block<SparseMatrixType>;
-// using ConstSubMatrixType = Block<const SparseMatrixType>;
 
 using SubVectorType = VectorBlock<VectorType>;
 using ConstSubVectorType = VectorBlock<const VectorType>;
