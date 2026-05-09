@@ -43,7 +43,6 @@
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
-
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
@@ -179,12 +178,12 @@ int main(int argc, char* argv[]) {
         case PatchType::HEIGHT_MAP:
             // Create a patch from a height field map image
             terrain.Construct(GetVehicleDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
-                              terrain_length, terrain_width,                           // length (X) and width (Y)
-                              {0.25, 0.55},                                            // height range
-                              0.25,                                                    // depth
-                              true,                                                    // uniform depth
-                              ChVector3d(terrain_length / 2, 0, 0),                    // patch center
-                              BoxSide::Z_NEG                                           // bottom wall
+                              terrain_length, terrain_width,                         // length (X) and width (Y)
+                              {0.25, 0.55},                                          // height range
+                              0.25,                                                  // depth
+                              true,                                                  // uniform depth
+                              ChVector3d(terrain_length / 2, 0, 0),                  // patch center
+                              BoxSide::Z_NEG                                         // bottom wall
             );
             break;
     }
@@ -226,8 +225,7 @@ int main(int argc, char* argv[]) {
     // Load regolith meshes
     std::string mesh_name_prefix = "data/models/regolith/particle_";
     for (int i = 1; i <= num_meshes; i++) {
-        auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-            GetChronoDataFile(mesh_name_prefix + std::to_string(i) + ".obj"), false, true);
+        auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(mesh_name_prefix + std::to_string(i) + ".obj"), false, true);
         mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
         auto trimesh_shape = std::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(mmesh);
@@ -244,8 +242,7 @@ int main(int argc, char* argv[]) {
     regolith_material->SetUseSpecularWorkflow(true);
     regolith_material->SetRoughness(1.0f);
     // regolith_material->SetBSDF((unsigned int)BSDFType::HAPKE);
-    regolith_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,
-                                          23.4f * (CH_PI / 180));
+    regolith_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f, 23.4f * (CH_PI / 180));
     regolith_material->SetClassID(30000);
     regolith_material->SetInstanceID(20000);
     for (auto& mesh : regolith_meshes) {
@@ -276,23 +273,21 @@ int main(int argc, char* argv[]) {
     floor->SetFixed(true);
     sys.Add(floor);
 
-    chrono::ChFrame<double> offset_pose1(
-        {0.5, 1, 1}, QuatFromAngleAxis(-CH_PI_2, {0, 0, 1}));  // Q_from_AngAxis(CH_PI_4, {0, 1, 0})  //-1200, -252, 100
+    chrono::ChFrame<double> offset_pose1({0.5, 1, 1}, QuatFromAngleAxis(-CH_PI_2, {0, 0, 1}));  // Q_from_AngAxis(CH_PI_4, {0, 1, 0})  //-1200, -252, 100
     chrono::ChFrame<double> rot = chrono::ChFrame<double>(ChVector3d(0, 0, 0), QuatFromAngleAxis(60.0f / 180.0f * CH_PI, {0, 1, 0}));
 
-    auto cam = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
-                                                        render_fps,   // update rate in Hz
-                                                        offset_pose1 * rot,  // offset pose
-                                                        1280,   // image width
-                                                        720,  // image height
-                                                        1.5707963267948966,           // camera's horizontal field of view
-                                                        1,  // super sampling factor
-                                                        CameraLensModelType::PINHOLE,    // lens model type
-                                                        false);
+    auto cam = chrono_types::make_shared<ChCameraSensor>(floor,                         // body camera is attached to
+                                                         render_fps,                    // update rate in Hz
+                                                         offset_pose1 * rot,            // offset pose
+                                                         1280,                          // image width
+                                                         720,                           // image height
+                                                         1.5707963267948966,            // camera's horizontal field of view
+                                                         1,                             // super sampling factor
+                                                         CameraLensModelType::PINHOLE,  // lens model type
+                                                         false);
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Third Person Camera"));
 
     manager->AddSensor(cam);
-
 
     // Start the simulation
     double time = 0;

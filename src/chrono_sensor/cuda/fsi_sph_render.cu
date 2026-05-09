@@ -58,8 +58,7 @@ __global__ void update_fsi_sph_sprite_instances(const chrono::fsi::sph::Real4* p
 
         size_t source_idx = idx;
         if (render_count != source_count) {
-            const double scaled = (static_cast<double>(idx) + 0.5) * static_cast<double>(source_count) /
-                                  static_cast<double>(render_count);
+            const double scaled = (static_cast<double>(idx) + 0.5) * static_cast<double>(source_count) / static_cast<double>(render_count);
             source_idx = static_cast<size_t>(scaled);
             if (source_idx >= source_count)
                 source_idx = source_count - 1;
@@ -122,16 +121,14 @@ void cuda_update_fsi_sph_sprite_instances(const chrono::fsi::sph::Real4* pos_rad
                                           float render_particle_spacing,
                                           const ChVector3f& position_jitter,
                                           const ChVector3f& origin_offset) {
-    if (!pos_rad || !instances || !gas_handles || !sbt_offsets || !template_scales || source_count == 0 ||
-        render_count == 0 || num_templates == 0)
+    if (!pos_rad || !instances || !gas_handles || !sbt_offsets || !template_scales || source_count == 0 || render_count == 0 || num_templates == 0)
         return;
 
     constexpr int block_size = 256;
     size_t grid_size = (render_count + block_size - 1) / block_size;
-    update_fsi_sph_sprite_instances<<<static_cast<unsigned int>(grid_size), block_size>>>(
-        pos_rad, source_count, render_count, instances, gas_handles, sbt_offsets, template_scales, num_templates,
-        render_particle_spacing, position_jitter.x(), position_jitter.y(), position_jitter.z(), origin_offset.x(),
-        origin_offset.y(), origin_offset.z());
+    update_fsi_sph_sprite_instances<<<static_cast<unsigned int>(grid_size), block_size>>>(pos_rad, source_count, render_count, instances, gas_handles, sbt_offsets, template_scales,
+                                                                                          num_templates, render_particle_spacing, position_jitter.x(), position_jitter.y(),
+                                                                                          position_jitter.z(), origin_offset.x(), origin_offset.y(), origin_offset.z());
 }
 
 }  // namespace sensor
