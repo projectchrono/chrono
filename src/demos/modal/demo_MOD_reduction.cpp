@@ -47,10 +47,10 @@ const std::string out_dir = GetChronoOutputPath() + "MODAL_REDUCTION";
 int ID_current_example = 1;
 bool modal_analysis = true;
 
-double beam_Young = 100.e6;
+double beam_Young = 1200.e6;
 double beam_density = 1000;
 double beam_wz = 0.3;
-double beam_wy = 0.05;
+double beam_wy = 0.1;
 double beam_L = 6;
 int n_elements = 8;
 
@@ -58,7 +58,7 @@ int n_elements = 8;
 double damping_alpha = 0.0001;
 double damping_beta = 0.01;
 
-double step_size = 0.05;
+double step_size = 0.01;
 
 unsigned int num_modes = 12;
 bool USE_STATIC_CORRECTION = false;
@@ -272,7 +272,7 @@ void CreateCantilever(ChSystem& sys,
 
     // set gravity
     if (USE_GRAVITY)
-        sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
+        sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));  // -Z axis
     else
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
