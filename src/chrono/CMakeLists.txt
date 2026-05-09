@@ -540,9 +540,11 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/multiphysics/ChMaterial3DHyperelastic.cpp
     fea/multiphysics/ChMaterial3DStressStVenant.cpp
     fea/multiphysics/ChMaterial3DStressNeoHookean.cpp
-    fea/multiphysics/ChMaterial3DStressKelvinVoigt.cpp
+    fea/multiphysics/ChMaterial3DStressViscoNewton.cpp
+    fea/multiphysics/ChMaterial3DStressViscoLinear.cpp
     fea/multiphysics/ChMaterial3DStressOgden.cpp
     fea/multiphysics/ChMaterial3DThermalStress.cpp
+    fea/multiphysics/ChMaterial3DStressParallel.cpp
     fea/multiphysics/ChDomain.cpp
     fea/multiphysics/ChDomainThermal.cpp
     fea/multiphysics/ChDomainDeformation.cpp
@@ -577,10 +579,12 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/multiphysics/ChMaterial3DStress.h
     fea/multiphysics/ChMaterial3DHyperelastic.h
     fea/multiphysics/ChMaterial3DStressStVenant.h
-    fea/multiphysics/ChMaterial3DStressKelvinVoigt.h
+    fea/multiphysics/ChMaterial3DStressViscoNewton.h
+    fea/multiphysics/ChMaterial3DStressViscoLinear.h
     fea/multiphysics/ChMaterial3DStressNeoHookean.h
     fea/multiphysics/ChMaterial3DStressOgden.h
     fea/multiphysics/ChMaterial3DThermalStress.h
+    fea/multiphysics/ChMaterial3DStressParallel.h
     fea/multiphysics/ChDomain.h
     fea/multiphysics/ChDomainThermal.h
     fea/multiphysics/ChDomainDeformation.h

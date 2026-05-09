@@ -328,8 +328,6 @@ public:
         F.setZero();
         mvariables.SetNodeMass(0);
     }
-    
-    static bool IsFirstOrderState() { return false; }
 
     // Custom properties, helpers etc.
 

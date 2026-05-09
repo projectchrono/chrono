@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHMATERIAL3DSTRESSKELVINVOIGT_H
-#define CHMATERIAL3DSTRESSKELVINVOIGT_H
+#ifndef CHMATERIAL3DSTRESSVISCONEWTON_H
+#define CHMATERIAL3DSTRESSVISCONEWTON_H
 
 #include "chrono/fea/multiphysics/ChMaterial3DStress.h"
 #include "chrono/core/ChTensors.h"
@@ -31,16 +31,16 @@ class ChElementData;
 /// @{
 
 
-/// Class for Kelvin-Voigt damping. This provides damping forces proportional to the spatial velocity
+/// Class for Newtonian damping. This provides damping forces proportional to the spatial velocity
 /// gradient. It is assumed to be used in parallel with some elastic stress model like ChMaterial3DStressStVenant.
 /// If used alone, it provides a fluid-like viscous damping.
 
-class ChMaterial3DStressKelvinVoigt : public ChMaterial3DStress {
+class ChMaterial3DStressViscoNewton : public ChMaterial3DStress {
 public:
 
-    ChMaterial3DStressKelvinVoigt() : volumetric_damping(0), deviatoric_damping(0) {}
+    ChMaterial3DStressViscoNewton() : volumetric_damping(0), deviatoric_damping(0) {}
 
-    virtual ~ChMaterial3DStressKelvinVoigt() {}
+    virtual ~ChMaterial3DStressViscoNewton() {}
 
     /// Set the damping for the deviatoric effect. This corresponds to the viscous
     /// damping μ in Newtonian fluids.
@@ -55,11 +55,11 @@ public:
     /// Compute elastic stress from spatial velocity gradient "l"
     
     virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
-                                const ChMatrix33d& F_def,           ///< current deformation gradient tensor
+                                const ChMatrix33d& F,               ///< current deformation gradient tensor
                                 const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point
                                 ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
-    ) {
+    ) override {
         // compute d, rate of deformation tensor:
         ChMatrix33d d = 0.5 * (*l + l->transpose());  
         
@@ -69,8 +69,8 @@ public:
 
         // Cauchy σ -> PK2 stress S
         // S = J F⁻¹ (ζ tr(d) I + 2μ d) F⁻ᵀ
-        double J = F_def.determinant();
-        ChMatrix33d F_inv = F_def.inverse();
+        double J = F.determinant();
+        ChMatrix33d F_inv = F.inverse();
         ChMatrix33d F_inv_T = F_inv.transpose(); // transpose of F_inv (F^{-T})
         ChMatrix33d S = J * F_inv * sigma * F_inv_T;
         S_stress.ConvertFromMatrix(S);
@@ -79,22 +79,100 @@ public:
     /// Computes the tangent modulus 
 
     virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& C, ///< output C tangent modulus, as dS=C*dE
+                                       ChMatrixNM<double, 6, 6>* D, ///< output D tangent modulus, as dS=C*d(E_dot) (maybe nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 const ChMatrix33d& F_def,       ///< current deformation gradient tensor
                                 const ChMatrix33d* l,           ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 ChFieldData* data_per_point,    ///< pointer to auxiliary data (ex states), if any, per quadrature point
                                 ChElementData* data_per_element ///< pointer to auxiliary data (ex states), if any, per element 
-    ) {
+    ) override {
         C.setZero();
-        //***TODO***
-    }
 
-    /// Update your own auxiliary data, if any, at the end of time step (ex for plasticity).
-    /// This is called at the end of every time step (or nl static step)
-    virtual void ComputeUpdateEndStep(ChFieldData* data_per_point,          ///< pointer to auxiliary data (ex states), if any, per quadrature point
-                                      ChElementData* data_per_element,      ///< pointer to auxiliary data (ex states), if any, per element 
-                                      const double time
-    ) {
-         // default: do nothing. 
+        assert(D);
+
+        D->setZero();
+
+        const double lambda_v = this->volumetric_damping;
+        const double mu_v = this->deviatoric_damping;
+
+        const double J = F_def.determinant();
+
+        ChMatrix33d Finv = F_def.inverse();
+        ChMatrix33d FinvT = Finv.transpose();
+
+        auto VoigtToTensor = [](int k, int& i, int& j) {
+            switch (k) {
+                case 0:
+                    i = 0;
+                    j = 0;
+                    break;
+                case 1:
+                    i = 1;
+                    j = 1;
+                    break;
+                case 2:
+                    i = 2;
+                    j = 2;
+                    break;
+                case 3:
+                    i = 1;
+                    j = 2;
+                    break;
+                case 4:
+                    i = 0;
+                    j = 2;
+                    break;
+                case 5:
+                    i = 0;
+                    j = 1;
+                    break;
+            }
+        };
+
+        // loop over Voigt columns
+        // each column corresponds to one basis perturbation dE_dot
+
+        for (int col = 0; col < 6; ++col) {
+            // build perturbation dE_dot
+
+            ChMatrix33d dEdot = ChMatrix33d::Zero();
+
+            int a, b;
+            VoigtToTensor(col, a, b);
+
+            dEdot(a, b) = 1.0;
+
+            if (a != b)
+                dEdot(b, a) = 1.0;
+
+            // d = F^{-T} dE_dot F^{-1}
+
+            ChMatrix33d d = FinvT * dEdot * Finv;
+
+            // dsigma
+
+            ChMatrix33d dsigma = lambda_v * d.trace() * ChMatrix33d::Identity() + 2.0 * mu_v * d;
+
+            // dS = J F^{-1} dsigma F^{-T}
+
+            ChMatrix33d dS = J * Finv * dsigma * FinvT;
+
+            // store into Voigt matrix
+
+            for (int row = 0; row < 6; ++row) {
+                int i, j;
+                VoigtToTensor(row, i, j);
+
+                double val = dS(i, j);
+
+                // engineering shear scaling:
+                // strain-like quantities use factor 2
+
+                if (col >= 3)
+                    val *= 0.5;
+
+                (*D)(row, col) = val;
+            }
+        }
     }
 
     /// This material need info on the spatial velocity gradient  l=\nabla_x v 
