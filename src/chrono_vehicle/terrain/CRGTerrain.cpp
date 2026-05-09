@@ -31,6 +31,7 @@
 //==============================================================================
 
 #include <algorithm>
+#include <filesystem>
 
 #include "chrono/physics/ChBodyEasy.h"
 
@@ -49,8 +50,6 @@
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 extern "C" {
 #include "crgBaseLib.h"
@@ -93,8 +92,8 @@ void CRGTerrain::EnableVerbose(bool val) {
 
 void CRGTerrain::SetRoadDiffuseTextureFile(std::string texFile) {
     m_diffuse_texture_filename = GetChronoDataFile(texFile);
-    filesystem::path path(m_diffuse_texture_filename);
-    if (path.is_file() && path.exists()) {
+    std::filesystem::path path(m_diffuse_texture_filename);
+    if (is_regular_file(path) && exists(path)) {
         m_use_diffuseTexture = true;
         ////std::cout << "Diffuse Texture file " << m_diffuse_texture_filename << " can be used.\n";
     }
@@ -102,8 +101,8 @@ void CRGTerrain::SetRoadDiffuseTextureFile(std::string texFile) {
 
 void CRGTerrain::SetRoadNormalTextureFile(std::string texFile) {
     m_normal_texture_filename = GetChronoDataFile(texFile);
-    filesystem::path path(m_normal_texture_filename);
-    if (path.is_file() && path.exists()) {
+    std::filesystem::path path(m_normal_texture_filename);
+    if (is_regular_file(path) && exists(path)) {
         m_use_normalTexture = true;
         ////std::cout << "Normal Texture file " << m_normal_texture_filename << " can be used.\n";
     }
@@ -111,8 +110,8 @@ void CRGTerrain::SetRoadNormalTextureFile(std::string texFile) {
 
 void CRGTerrain::SetRoadRoughnessTextureFile(std::string texFile) {
     m_rough_texture_filename = GetChronoDataFile(texFile);
-    filesystem::path path(m_rough_texture_filename);
-    if (path.is_file() && path.exists()) {
+    std::filesystem::path path(m_rough_texture_filename);
+    if (is_regular_file(path) && exists(path)) {
         m_use_roughTexture = true;
         ////std::cout << "Roughness Texture file " << m_rough_texture_filename << " can be used.\n";
     }
@@ -175,7 +174,7 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
     }
 
     // Set mesh and curve names based on name of CRG input file.
-    auto stem = filesystem::path(crg_file).stem();
+    auto stem = std::filesystem::path(crg_file).stem().string();
     m_mesh_name = stem + "_mesh";
     m_curve_left_name = stem + "_left";
     m_curve_right_name = stem + "_right";

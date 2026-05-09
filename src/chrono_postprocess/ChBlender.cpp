@@ -14,6 +14,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCone.h"
@@ -32,8 +33,6 @@
 #include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_postprocess/ChBlender.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace postprocess {
@@ -275,14 +274,14 @@ void ChBlender::ExportScript(const std::string& filename) {
 
     // Create directories
     if (base_path != "") {
-        if (!filesystem::create_directory(filesystem::path(base_path))) {
+        if (!CreateOutputDirectory(std::filesystem::path(base_path))) {
             std::cout << "Error creating base directory \"" << base_path << "\" for the Blender files." << std::endl;
             return;
         }
         base_path = base_path + "/";
     }
-    filesystem::create_directory(filesystem::path(base_path + pic_path));
-    filesystem::create_directory(filesystem::path(base_path + out_path));
+    CreateOutputDirectory(std::filesystem::path(base_path + pic_path));
+    CreateOutputDirectory(std::filesystem::path(base_path + out_path));
 
     // Generate the xxx.assets.py script (initial assets, it will be populated later by
     // appending assets as they enter the exporter, only once if shared, using ExportAssets() )
@@ -309,7 +308,7 @@ void ChBlender::ExportScript(const std::string& filename) {
                     << "chrono_view_link_csys =  " << (this->frames_links_show ? "True" : "False") << "\n"
                     << "chrono_view_link_csys_size = " << this->frames_links_size << "\n"
                     << "" << std::endl;
-        std::string abspath_pic_output = filesystem::path(base_path + pic_path).make_absolute().str() + "/" + pic_filename + "_######";
+        std::string abspath_pic_output = absolute(std::filesystem::path(base_path + pic_path)).string() + "/" + pic_filename + "_######";
         std::replace(abspath_pic_output.begin(), abspath_pic_output.end(), '\\', '/');
         assets_file << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'\n"
                     << "bpy.context.scene.render.resolution_x = " << this->picture_width << "\n"
@@ -474,7 +473,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file, std::ofstream& state_fi
         }
 
         if (auto obj_shape = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-            std::string abspath_obj = filesystem::path(obj_shape->GetFilename()).make_absolute().str();
+            std::string abspath_obj = absolute(std::filesystem::path(obj_shape->GetFilename())).string();
             std::replace(abspath_obj.begin(), abspath_obj.end(), '\\', '/');
             *mfile << "try:\n"
                    << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection\n"
@@ -880,7 +879,7 @@ void ChBlender::ExportMaterials(std::ofstream& mfile,
             mfile << "(" << mat->GetDiffuseColor().R << "," << mat->GetDiffuseColor().G << "," << mat->GetDiffuseColor().B << ", 1"
                   << "),";
         else {
-            std::string abspath_texture = filesystem::path(mat->GetKdTexture()).make_absolute().str();
+            std::string abspath_texture = absolute(std::filesystem::path(mat->GetKdTexture())).string();
             std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
             mfile << "'" << abspath_texture.c_str() << "',";
         }
@@ -888,7 +887,7 @@ void ChBlender::ExportMaterials(std::ofstream& mfile,
         if (mat->GetMetallicTexture().empty())
             mfile << "metallic=" << mat->GetMetallic() << ",";
         else {
-            std::string abspath_texture = filesystem::path(mat->GetMetallicTexture()).make_absolute().str();
+            std::string abspath_texture = absolute(std::filesystem::path(mat->GetMetallicTexture())).string();
             std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
             mfile << "metallic='" << abspath_texture.c_str() << "',";
         }
@@ -898,13 +897,13 @@ void ChBlender::ExportMaterials(std::ofstream& mfile,
         if (mat->GetRoughnessTexture().empty())
             mfile << "roughness=" << mat->GetRoughness() << ",";
         else {
-            std::string abspath_texture = filesystem::path(mat->GetRoughnessTexture()).make_absolute().str();
+            std::string abspath_texture = absolute(std::filesystem::path(mat->GetRoughnessTexture())).string();
             std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
             mfile << "roughness='" << abspath_texture.c_str() << "',";
         }
 
         if (!mat->GetNormalMapTexture().empty()) {
-            std::string abspath_texture = filesystem::path(mat->GetNormalMapTexture()).make_absolute().str();
+            std::string abspath_texture = absolute(std::filesystem::path(mat->GetNormalMapTexture())).string();
             std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
             mfile << "bump_map='" << abspath_texture.c_str() << "',";
         }

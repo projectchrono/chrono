@@ -28,8 +28,6 @@
     #include "chrono_dem/visualization/ChDemVisualizationVSG.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::dem;
 
@@ -53,9 +51,9 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_dir = GetChronoOutputPath() + "DEM/";
-    filesystem::create_directory(filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
-    filesystem::create_directory(filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     // Setup simulation
     ChSystemDemMesh dem_sys(params.sphere_radius, params.sphere_density,

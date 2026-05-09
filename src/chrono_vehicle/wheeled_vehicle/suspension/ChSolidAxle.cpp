@@ -36,10 +36,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChSolidAxle::m_pointNames[] = {
-    "SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ", "LL_A       ", "LL_C       ",
-    "UL_A       ", "UL_C       ", "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ", "TIEROD_K   ",
-    "SPINDLE    ", "KNUCKLE_CM ", "LL_CM      ", "UL_CM      ", "TRACKBAR_A ", "TRACKBAR_C "};
+const std::string ChSolidAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ", "LL_A       ", "LL_C       ",
+                                                 "UL_A       ", "UL_C       ", "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ", "TIEROD_K   ",
+                                                 "SPINDLE    ", "KNUCKLE_CM ", "LL_CM      ", "UL_CM      ", "TRACKBAR_A ", "TRACKBAR_C "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -287,8 +286,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetName(m_name + "_universalTierod" + suffix);
         m_universalTierod->SetTag(m_obj_tag);
-        m_universalTierod->Initialize(m_tierod, m_knuckle[side],
-                                      ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_PI_2)));
+        m_universalTierod->Initialize(m_tierod, m_knuckle[side], ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_universalTierod);
     }
 
@@ -305,8 +303,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_revoluteKingpin[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteKingpin[side]->SetName(m_name + "_revoluteKingpin" + suffix);
     m_revoluteKingpin[side]->SetTag(m_obj_tag);
-    m_revoluteKingpin[side]->Initialize(m_axleTube, m_knuckle[side],
-                                        ChFrame<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
+    m_revoluteKingpin[side]->Initialize(m_axleTube, m_knuckle[side], ChFrame<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteKingpin[side]);
 
     // Create and initialize the spherical joint between axle and upper link.
@@ -327,8 +324,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->SetTag(m_obj_tag);
-    m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side],
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
+    m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side], ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spring/damper
@@ -390,15 +386,13 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
         m_universalDraglink->SetName(m_name + "_universalDraglink" + suffix);
         m_universalDraglink->SetTag(m_obj_tag);
-        m_universalDraglink->Initialize(m_draglink, m_bellCrank,
-                                        ChFrame<>(points[BELLCRANK_DRAGLINK], rot.GetQuaternion()));
+        m_universalDraglink->Initialize(m_draglink, m_bellCrank, ChFrame<>(points[BELLCRANK_DRAGLINK], rot.GetQuaternion()));
         chassis->GetSystem()->AddLink(m_universalDraglink);
 
         // Create and initialize the revolute joint between bellCrank and axle tube.
         // Determine the joint orientation matrix from the hardpoint locations by
         // constructing a rotation matrix with the z axis along the joint direction.
-        w = Vcross(points[BELLCRANK_DRAGLINK] - points[BELLCRANK_AXLE],
-                   points[BELLCRANK_TIEROD] - points[BELLCRANK_AXLE]);
+        w = Vcross(points[BELLCRANK_DRAGLINK] - points[BELLCRANK_AXLE], points[BELLCRANK_TIEROD] - points[BELLCRANK_AXLE]);
         w.Normalize();
         v = points[BELLCRANK_TIEROD] - points[BELLCRANK_DRAGLINK];
         v.Normalize();
@@ -415,8 +409,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         m_pointPlaneBellCrank = chrono_types::make_shared<ChLinkLockPointPlane>();
         m_pointPlaneBellCrank->SetName(m_name + "_pointPlaneBellCrank" + suffix);
         m_pointPlaneBellCrank->SetTag(m_obj_tag);
-        m_pointPlaneBellCrank->Initialize(m_bellCrank, m_tierod,
-                                          ChFrame<>(points[BELLCRANK_TIEROD], chassisRot * QuatFromAngleX(CH_PI_2)));
+        m_pointPlaneBellCrank->Initialize(m_bellCrank, m_tierod, ChFrame<>(points[BELLCRANK_TIEROD], chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_pointPlaneBellCrank);
     }
 
@@ -436,8 +429,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 }
 
 void ChSolidAxle::InitializeInertiaProperties() {
-    m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() + getBellCrankMass() +
-             2 * (getSpindleMass() + getULMass() + getLLMass() + getKnuckleMass());
+    m_mass = getAxleTubeMass() + getTierodMass() + getDraglinkMass() + getBellCrankMass() + 2 * (getSpindleMass() + getULMass() + getLLMass() + getKnuckleMass());
 }
 
 void ChSolidAxle::UpdateInertiaProperties() {
@@ -488,10 +480,8 @@ double ChSolidAxle::GetTrack() {
 std::vector<ChSuspension::ForceTSDA> ChSolidAxle::ReportSuspensionForce(VehicleSide side) const {
     std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
-                                        m_spring[side]->GetVelocity());
-    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
-                                        m_shock[side]->GetVelocity());
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(), m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(), m_shock[side]->GetVelocity());
 
     return forces;
 }
@@ -624,26 +614,19 @@ void ChSolidAxle::AddVisualizationAssets(VisualizationType vis) {
 
     AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
-    AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[BELLCRANK_DRAGLINK], getDraglinkRadius(),
-                         ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationBellCrank(m_bellCrank, m_pointsL[BELLCRANK_DRAGLINK], m_pointsL[BELLCRANK_AXLE],
-                              m_pointsL[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
+    AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[BELLCRANK_DRAGLINK], getDraglinkRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationBellCrank(m_bellCrank, m_pointsL[BELLCRANK_DRAGLINK], m_pointsL[BELLCRANK_AXLE], m_pointsL[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
 
-    AddVisualizationLink(m_trackbarBody, m_trackbarAxle, m_trackbarChassis, getTrackbarRadius(),
-                         ChColor(0.7f, 0.2f, 0.7f));
+    AddVisualizationLink(m_trackbarBody, m_trackbarAxle, m_trackbarChassis, getTrackbarRadius(), ChColor(0.7f, 0.2f, 0.7f));
 
-    AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
-                            getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
-    AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K],
-                            getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
+    AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K], getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
+    AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K], getKnuckleRadius(), ChColor(0.2f, 0.7f, 0.2f));
 
     AddVisualizationLink(m_upperLink[LEFT], m_pointsL[UL_A], m_pointsL[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
-    AddVisualizationLink(m_upperLink[RIGHT], m_pointsR[UL_A], m_pointsR[UL_C], getULRadius(),
-                         ChColor(0.6f, 0.2f, 0.6f));
+    AddVisualizationLink(m_upperLink[RIGHT], m_pointsR[UL_A], m_pointsR[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
 
     AddVisualizationLink(m_lowerLink[LEFT], m_pointsL[LL_A], m_pointsL[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
-    AddVisualizationLink(m_lowerLink[RIGHT], m_pointsR[LL_A], m_pointsR[LL_C], getLLRadius(),
-                         ChColor(0.2f, 0.6f, 0.2f));
+    AddVisualizationLink(m_lowerLink[RIGHT], m_pointsR[LL_A], m_pointsR[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
@@ -679,11 +662,7 @@ void ChSolidAxle::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                       const ChVector3d pt_1,
-                                       const ChVector3d pt_2,
-                                       double radius,
-                                       const ChColor& color) {
+void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body, const ChVector3d pt_1, const ChVector3d pt_2, double radius, const ChColor& color) {
     // Express hardpoint locations in body frame.
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
@@ -761,6 +740,9 @@ void ChSolidAxle::PopulateComponentList() {
 
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
+
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);

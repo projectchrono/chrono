@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace rapidjson;
 
@@ -112,7 +112,7 @@ void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_meshFile), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
+        trimesh_shape->SetName(std::filesystem::path(m_meshFile).stem().string());
         m_shoe->AddVisualShape(trimesh_shape);
     } else {
         ChTrackShoeBandANCF::AddVisualizationAssets(vis);

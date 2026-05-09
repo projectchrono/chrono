@@ -63,10 +63,7 @@ void ChRigidSuspension::Construct(std::shared_ptr<ChChassis> chassis,
     InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
 }
 
-void ChRigidSuspension::InitializeSide(VehicleSide side,
-                                       std::shared_ptr<ChBodyAuxRef> chassis,
-                                       const std::vector<ChVector3d>& points,
-                                       double ang_vel) {
+void ChRigidSuspension::InitializeSide(VehicleSide side, std::shared_ptr<ChBodyAuxRef> chassis, const std::vector<ChVector3d>& points, double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
@@ -84,8 +81,7 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->SetTag(m_obj_tag);
-    m_revolute[side]->Initialize(chassis, m_spindle[side],
-                                 ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
+    m_revolute[side]->Initialize(chassis, m_spindle[side], ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the axle shaft and its connection to the spindle.
@@ -161,6 +157,9 @@ void ChRigidSuspension::PopulateComponentList() {
 
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
+
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);

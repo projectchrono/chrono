@@ -3,7 +3,7 @@
 
 set(DEMOS "")
 
-if(CHRONO_ENABLE_MODULE_FEA)
+if(CH_ENABLE_MODULE_FEA)
     set(DEMOS ${DEMOS}
         demo_MOD_slewing_beam
     )
@@ -12,7 +12,7 @@ if(CHRONO_ENABLE_MODULE_FEA)
         set(DEMOS ${DEMOS}
             demo_MOD_analysis
             demo_MOD_reduction
-        demo_MOD_cache_reduced
+            demo_MOD_cache_reduced
         )
     endif()
 endif()

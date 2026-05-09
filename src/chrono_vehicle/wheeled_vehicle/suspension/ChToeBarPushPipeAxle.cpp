@@ -38,9 +38,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChToeBarPushPipeAxle::m_pointNames[] = {
-    "SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ", "KNUCKLE_DRL", "SPRING_A   ", "SPRING_C   ",
-    "TIEROD_C   ", "TIEROD_K   ", "SPINDLE    ", "KNUCKLE_CM ", "AXLE_C     ", "PANHARD_A  ", "PANHARD_C  "};
+const std::string ChToeBarPushPipeAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ", "KNUCKLE_DRL", "SPRING_A   ", "SPRING_C   ",
+                                                          "TIEROD_C   ", "TIEROD_K   ", "SPINDLE    ", "KNUCKLE_CM ", "AXLE_C     ", "PANHARD_A  ", "PANHARD_C  "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -99,8 +98,7 @@ void ChToeBarPushPipeAxle::Construct(std::shared_ptr<ChChassis> chassis,
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
-    ChVector3d midpoint_local =
-        0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L) + ChVector3d(0, 0, getPortalOffset()));
+    ChVector3d midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L) + ChVector3d(0, 0, getPortalOffset()));
     ChVector3d outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z() + getPortalOffset());
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();
@@ -230,8 +228,7 @@ void ChToeBarPushPipeAxle::Construct(std::shared_ptr<ChChassis> chassis,
         m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
         m_universalDraglink->SetName(m_name + "_universalDraglink" + "_L");
         m_universalDraglink->SetTag(m_obj_tag);
-        m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT],
-                                        ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.GetQuaternion()));
+        m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT], ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.GetQuaternion()));
         chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
     } else {
         // Create and initialize the draglink body (one side only).
@@ -265,16 +262,12 @@ void ChToeBarPushPipeAxle::Construct(std::shared_ptr<ChChassis> chassis,
         m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
         m_universalDraglink->SetName(m_name + "_universalDraglink" + "_R");
         m_universalDraglink->SetTag(m_obj_tag);
-        m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT],
-                                        ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.GetQuaternion()));
+        m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT], ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.GetQuaternion()));
         chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
     }
 }
 
-void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side,
-                                          std::shared_ptr<ChBodyAuxRef> chassis,
-                                          const std::vector<ChVector3d>& points,
-                                          double ang_vel) {
+void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side, std::shared_ptr<ChBodyAuxRef> chassis, const std::vector<ChVector3d>& points, double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
@@ -320,8 +313,7 @@ void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side,
         m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetName(m_name + "_universalTierod" + suffix);
         m_universalTierod->SetTag(m_obj_tag);
-        m_universalTierod->Initialize(m_tierod, m_knuckle[side],
-                                      ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_PI_2)));
+        m_universalTierod->Initialize(m_tierod, m_knuckle[side], ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_universalTierod);
     }
 
@@ -338,16 +330,14 @@ void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side,
     m_revoluteKingpin[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteKingpin[side]->SetName(m_name + "_revoluteKingpin" + suffix);
     m_revoluteKingpin[side]->SetTag(m_obj_tag);
-    m_revoluteKingpin[side]->Initialize(m_axleTube, m_knuckle[side],
-                                        ChFrame<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
+    m_revoluteKingpin[side]->Initialize(m_axleTube, m_knuckle[side], ChFrame<>((points[KNUCKLE_U] + points[KNUCKLE_L]) / 2, rot.GetQuaternion()));
     chassis->GetSystem()->AddLink(m_revoluteKingpin[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->SetTag(m_obj_tag);
-    m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side],
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
+    m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side], ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spring/damper
@@ -422,10 +412,8 @@ double ChToeBarPushPipeAxle::GetTrack() {
 std::vector<ChSuspension::ForceTSDA> ChToeBarPushPipeAxle::ReportSuspensionForce(VehicleSide side) const {
     std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
-                                        m_spring[side]->GetVelocity());
-    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
-                                        m_shock[side]->GetVelocity());
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(), m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(), m_shock[side]->GetVelocity());
 
     return forces;
 }
@@ -499,25 +487,19 @@ void ChToeBarPushPipeAxle::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_axleTube, m_pushPipeOuterA, m_pushPipeOuterC, getAxleTubeRadius(),
-                         ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_panhardRod, m_panhardOuterA, m_panhardOuterC, getPanhardRodRadius(),
-                         ChColor(0.5f, 0.7f, 0.9f));
+    AddVisualizationLink(m_axleTube, m_pushPipeOuterA, m_pushPipeOuterC, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_panhardRod, m_panhardOuterA, m_panhardOuterC, getPanhardRodRadius(), ChColor(0.5f, 0.7f, 0.9f));
 
     AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
     if (m_left_knuckle_steers) {
-        AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[KNUCKLE_DRL], getDraglinkRadius(),
-                             ChColor(0.7f, 0.7f, 0.7f));
+        AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[KNUCKLE_DRL], getDraglinkRadius(), ChColor(0.7f, 0.7f, 0.7f));
     } else {
-        AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsR[KNUCKLE_DRL], getDraglinkRadius(),
-                             ChColor(0.7f, 0.7f, 0.7f));
+        AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsR[KNUCKLE_DRL], getDraglinkRadius(), ChColor(0.7f, 0.7f, 0.7f));
     }
 
-    AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
-                            getKnuckleRadius());
-    AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K],
-                            getKnuckleRadius());
+    AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K], getKnuckleRadius());
+    AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K], getKnuckleRadius());
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
@@ -545,11 +527,7 @@ void ChToeBarPushPipeAxle::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChToeBarPushPipeAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                                const ChVector3d pt_1,
-                                                const ChVector3d pt_2,
-                                                double radius,
-                                                const ChColor& color) {
+void ChToeBarPushPipeAxle::AddVisualizationLink(std::shared_ptr<ChBody> body, const ChVector3d pt_1, const ChVector3d pt_2, double radius, const ChColor& color) {
     // Express hardpoint locations in body frame.
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
@@ -557,11 +535,7 @@ void ChToeBarPushPipeAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     utils::ChBodyGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
 }
 
-void ChToeBarPushPipeAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
-                                                   const ChVector3d pt_U,
-                                                   const ChVector3d pt_L,
-                                                   const ChVector3d pt_T,
-                                                   double radius) {
+void ChToeBarPushPipeAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle, const ChVector3d pt_U, const ChVector3d pt_L, const ChVector3d pt_T, double radius) {
     static const double threshold2 = 1e-6;
 
     // Express hardpoint locations in body frame.
@@ -595,6 +569,9 @@ void ChToeBarPushPipeAxle::PopulateComponentList() {
 
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
+
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);

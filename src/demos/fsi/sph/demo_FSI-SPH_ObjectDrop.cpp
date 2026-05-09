@@ -31,7 +31,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
@@ -321,38 +320,38 @@ int main(int argc, char* argv[]) {
 
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Object_Drop/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     out_dir = out_dir + fsi.GetSphIntegrationSchemeString() + "_" + viscosity_method + "_" + boundary_method + "_ps" +
               std::to_string(ps_freq);
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/particles"))) {
             cerr << "Error creating directory " << out_dir + "/particles" << endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/fsi"))) {
             cerr << "Error creating directory " << out_dir + "/fsi" << endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/vtk"))) {
             cerr << "Error creating directory " << out_dir + "/vtk" << endl;
             return 1;
         }
     }
 
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/snapshots"))) {
         cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/meshes"))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/meshes"))) {
         cerr << "Error creating directory " << out_dir + "/meshes" << endl;
         return 1;
     }

@@ -33,8 +33,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -235,12 +233,12 @@ int main(int argc, char* argv[]) {
     // -------------------------
 
     const std::string out_dir = GetChronoOutputPath() + "DEMO_RIGID_SCM_PATCHES";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/img"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/img"))) {
             std::cout << "Error creating directory " << out_dir + "/img" << std::endl;
             return 1;
         }

@@ -331,7 +331,7 @@ ChVector3d RunModel(bool load_from_file) {
 }
 
 int main(int argc, char* argv[]) {
-    std::filesystem::create_directory(std::filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
     // Directory for output data
     if (!std::filesystem::exists(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;

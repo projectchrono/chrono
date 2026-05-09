@@ -52,7 +52,7 @@ bool ChShaftsGearboxAngled::Initialize(
 
     assert(shaft1 && shaft2 && body);
     assert(shaft1 != shaft2);
-    assert((shaft1->GetSystem() == shaft2->GetSystem()));
+    assert(shaft1->GetSystem() == shaft2->GetSystem());
 
     constraint.SetVariables(&shaft_1->Variables(), &shaft_2->Variables(), &truss->Variables());
 

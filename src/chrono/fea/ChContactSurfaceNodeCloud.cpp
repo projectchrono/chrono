@@ -101,11 +101,119 @@ ChPhysicsItem* ChContactNodeXYZRot::GetPhysicsItem() {
     return m_container->GetPhysicsItem();
 }
 
+
+
+#ifdef CHRONO_FEA_MULTIPHYSICS
+
+// -----------------------------------------------------------------------------
+//  ChContactNodeXYZRot
+
+ChContactNodeFieldXYZ::ChContactNodeFieldXYZ(std::shared_ptr<ChNodeFEAfieldXYZ> node, std::shared_ptr<ChFieldDisplacement3D> field, ChContactSurface* contact_surface) {
+    this->SetNode(node, field);
+    m_container = contact_surface;
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_field_data->GetVariable());
+}
+
+ChContactNodeFieldXYZ::ChContactNodeFieldXYZ(ChFieldDataPos3D* nodedata,
+                                             ChContactSurface* contact_surface) {
+    this->SetNode(nodedata);
+    m_container = contact_surface;
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(&m_field_data->GetVariable());
+}
+
+void ChContactNodeFieldXYZ::ContactForceLoadResidual_F(const ChVector3d& F, const ChVector3d& T, const ChVector3d& abs_point, ChVectorDynamic<>& R) {
+    R.segment(m_field_data->DataGetOffsetVelLevel(), 3) += F.eigen();
+}
+
+void ChContactNodeFieldXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
+                                                        ChMatrix33<>& contact_plane,
+                                                        ChConstraintTuple* jacobian_tuple_N,
+                                                        ChConstraintTuple* jacobian_tuple_U,
+                                                        ChConstraintTuple* jacobian_tuple_V,
+                                                        bool second) {
+    ChMatrix33<> Jx1 = contact_plane.transpose();
+    if (!second)
+        Jx1 *= -1;
+
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
+
+    tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = Jx1.row(2);
+}
+
+ChPhysicsItem* ChContactNodeFieldXYZ::GetPhysicsItem() {
+    return m_container->GetPhysicsItem();
+}
+
+
+#endif
+
+
+
 // -----------------------------------------------------------------------------
 //  ChContactSurfaceNodeCloud
 
 ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh)
     : ChContactSurface(material, mesh) {}
+
+#ifdef CHRONO_FEA_MULTIPHYSICS
+
+ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChDomain* mesh) 
+    : ChContactSurface(material, mesh) {}
+
+void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAfieldXYZ> node, std::shared_ptr<ChFieldDisplacement3D> field, const double point_radius) {
+    if (!node || !field)
+        return;
+    auto contact_node = chrono_types::make_shared<ChContactNodeFieldXYZ>(node, field, this);
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    contact_node->AddCollisionShape(point_shape);
+
+    if (!m_self_collide) {
+        contact_node->GetCollisionModel()->SetFamily(m_collision_family);
+        contact_node->GetCollisionModel()->DisallowCollisionsWith(m_collision_family);
+    }
+
+    m_nodes_field.push_back(contact_node);
+}
+
+void ChContactSurfaceNodeCloud::AddNode(ChFieldDataPos3D* nodedata, const double point_radius) {
+    if (!nodedata)
+        return;
+    auto contact_node = chrono_types::make_shared<ChContactNodeFieldXYZ>(nodedata, this);
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    contact_node->AddCollisionShape(point_shape);
+
+    if (!m_self_collide) {
+        contact_node->GetCollisionModel()->SetFamily(m_collision_family);
+        contact_node->GetCollisionModel()->DisallowCollisionsWith(m_collision_family);
+    }
+
+    m_nodes_field.push_back(contact_node);
+}
+
+/// Utility function to add all nodes of the specified multiphysics mesh to this collision cloud.
+/// Works only if the ChDomain contains a ChFieldDisplacement3D
+void ChContactSurfaceNodeCloud::AddAllNodes(std::shared_ptr<ChDomain> meshdomain, double point_radius) {
+    for (int ifield = 0; ifield < meshdomain->GetNumFields(); ++ifield)
+        if (auto field_disp = std::dynamic_pointer_cast<ChFieldDisplacement3D>(meshdomain->GetField(ifield))) {
+            for (auto& mnode : field_disp->GetNodeDataMap())
+                this->AddNode(&mnode.second, point_radius);
+        }
+}
+
+void ChContactSurfaceNodeCloud::AddAllNodes(std::shared_ptr<ChFieldDisplacement3D> meshfield, double point_radius) {
+    for (auto& mnode : meshfield->GetNodeDataMap())
+            this->AddNode(&mnode.second, point_radius);
+}
+
+#endif
 
 void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> node, const double point_radius) {
     if (!node)
@@ -165,6 +273,11 @@ void ChContactSurfaceNodeCloud::SyncCollisionModels() const {
     for (auto& node : m_nodes_rot) {
         node->GetCollisionModel()->SyncPosition();
     }
+#ifdef CHRONO_FEA_MULTIPHYSICS
+    for (auto& node : m_nodes_field) {
+        node->GetCollisionModel()->SyncPosition();
+    }
+#endif
 }
 
 void ChContactSurfaceNodeCloud::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
@@ -175,6 +288,11 @@ void ChContactSurfaceNodeCloud::AddCollisionModelsToSystem(ChCollisionSystem* co
     for (const auto& node : m_nodes_rot) {
         coll_sys->Add(node->GetCollisionModel());
     }
+#ifdef CHRONO_FEA_MULTIPHYSICS
+    for (const auto& node : m_nodes_field) {
+        coll_sys->Add(node->GetCollisionModel());
+    }
+#endif
 }
 
 void ChContactSurfaceNodeCloud::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
@@ -184,6 +302,11 @@ void ChContactSurfaceNodeCloud::RemoveCollisionModelsFromSystem(ChCollisionSyste
     for (const auto& node : m_nodes_rot) {
         coll_sys->Remove(node->GetCollisionModel());
     }
+#ifdef CHRONO_FEA_MULTIPHYSICS
+    for (const auto& node : m_nodes_field) {
+        coll_sys->Remove(node->GetCollisionModel());
+    }
+#endif
 }
 
 ChAABB ChContactSurfaceNodeCloud::GetAABB() const {
@@ -194,8 +317,18 @@ ChAABB ChContactSurfaceNodeCloud::GetAABB() const {
     for (const auto& node : m_nodes_rot) {
         aabb += node->GetPos();
     }
+#ifdef CHRONO_FEA_MULTIPHYSICS
+    for (const auto& node : m_nodes_field) {
+        aabb += node->GetPos();
+    }
+#endif
     return aabb;
 }
+
+
+
+
+
 
 }  // end namespace fea
 }  // end namespace chrono

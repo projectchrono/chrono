@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
     vis_mesh_A->SetColormap(colormap_type);
     vis_mesh_A->SetColormapRange(colormap_range);
     vis_mesh_A->SetSmoothFaces(true);
-    mesh->AddVisualShapeFEA(vis_mesh_A);
+   // mesh->AddVisualShapeFEA(vis_mesh_A);
 
     auto vis_mesh_B = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh_B->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
