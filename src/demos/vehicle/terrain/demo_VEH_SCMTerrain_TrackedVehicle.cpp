@@ -32,8 +32,6 @@
 #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
@@ -211,13 +209,13 @@ int main(int argc, char* argv[]) {
     const std::string out_dir = GetChronoOutputPath() + "M113_DEF_SOIL";
     const std::string img_dir = out_dir + "/IMG";
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
             std::cout << "Error creating directory " << img_dir << std::endl;
             return 1;
         }

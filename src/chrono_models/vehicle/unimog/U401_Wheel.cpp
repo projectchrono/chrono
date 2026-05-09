@@ -16,11 +16,8 @@
 //
 // =============================================================================
 
-#include <algorithm>
-
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_models/vehicle/unimog/U401_Wheel.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {

@@ -1,7 +1,7 @@
 set(TESTS
 )
 
-if(CHRONO_ENABLE_MODULE_FEA)
+if(CH_ENABLE_MODULE_FEA)
     set(TESTS ${TESTS}
         utest_MOD_eigensolver
         utest_MOD_curved_beam

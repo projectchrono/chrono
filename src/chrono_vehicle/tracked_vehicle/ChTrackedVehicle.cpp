@@ -143,7 +143,7 @@ void ChTrackedVehicle::Synchronize(double time, const DriverInputs& driver_input
 }
 
 // Advance the state of this vehicle by the specified time step.
-void ChTrackedVehicle::Advance(double step) {
+void ChTrackedVehicle::Advance(double step, bool do_collision) {
     // Advance state of the associated powertrain (if one is attached)
     if (m_powertrain_assembly) {
         m_powertrain_assembly->Advance(step);
@@ -154,7 +154,7 @@ void ChTrackedVehicle::Advance(double step) {
     m_tracks[RIGHT]->Advance(step);
 
     // Invoke base class function to advance state of underlying Chrono system
-    ChVehicle::Advance(step);
+    ChVehicle::Advance(step, do_collision);
 
     // Process contacts
     m_contact_manager->Process(this);

@@ -20,8 +20,6 @@
 #include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::vsg3d;

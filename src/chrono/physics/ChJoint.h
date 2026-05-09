@@ -19,13 +19,13 @@
 #ifndef CH_JOINT_H
 #define CH_JOINT_H
 
+#include <variant>
+
 #include "chrono/core/ChApiCE.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLoadsBody.h"
-
-#include "chrono_thirdparty/variant/variant.hpp"
 
 namespace chrono {
 
@@ -119,7 +119,7 @@ class ChApi ChJoint {
                        ChFrame<> bushing_frame,
                        std::shared_ptr<BushingData> bd);
 
-    mpark::variant<Link, Bushing> m_joint;
+    std::variant<Link, Bushing> m_joint;
 };
 
 /// @} chrono_physics

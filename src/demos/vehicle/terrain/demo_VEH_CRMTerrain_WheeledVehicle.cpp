@@ -35,8 +35,6 @@
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -271,7 +269,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------
 
     std::string out_dir = GetChronoOutputPath() + "CRM_Wheeled_Vehicle/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

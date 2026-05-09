@@ -51,12 +51,12 @@ ChYamlFileHandler::Type ChYamlFileHandler::ReadType(const YAML::Node& a) {
 }
 
 void ChYamlFileHandler::SetReferenceDirectory(const std::string& pathname) {
-    auto path = filesystem::path(pathname);
-    if (!path.exists()) {
+    auto path = std::filesystem::path(pathname);
+    if (!exists(path)) {
         cerr << "Error: path '" << pathname << "' does not exist." << endl;
         throw std::runtime_error("Path does not exist");
     }
-    m_reference_dir = path.is_file() ? path.parent_path().str() : pathname;
+    m_reference_dir = is_regular_file(path) ? path.parent_path().string() : pathname;
 }
 
 std::string ChYamlFileHandler::GetFilename(const std::string& filename) const {
@@ -70,10 +70,10 @@ std::string ChYamlFileHandler::GetFilename(const std::string& filename) const {
             break;
     }
 
-    auto filepath = filesystem::path(full_filename);
+    auto filepath = std::filesystem::path(full_filename);
 
-    ChAssertAlways(filepath.exists());
-    ChAssertAlways(filepath.is_file());
+    ChAssertAlways(exists(filepath));
+    ChAssertAlways(is_regular_file(filepath));
 
     return full_filename;
 }

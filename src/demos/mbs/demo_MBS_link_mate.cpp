@@ -30,11 +30,9 @@
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace filesystem;
+using namespace std::filesystem;
 
 // Used to sort the Eigen matrix
 namespace Eigen {

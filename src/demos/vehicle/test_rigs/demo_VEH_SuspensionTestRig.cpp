@@ -34,8 +34,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 
@@ -254,7 +252,7 @@ int main(int argc, char* argv[]) {
 
     // Set up rig output
     std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

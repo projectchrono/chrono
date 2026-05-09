@@ -27,6 +27,12 @@ if(CH_USE_SENSOR_OPTIX)
         demo_SEN_deformableSoil
       )
   endif()
+
+  if(CH_ENABLE_MODULE_FSI_SPH)
+      set(DEMOS ${DEMOS}
+        demo_SEN_CRM_Rendering
+      )
+  endif()
   
 endif()
 
@@ -34,6 +40,7 @@ endif()
 # Include directories, compiler flags, libraries
 
 list(APPEND LIBRARIES Chrono_core)
+list(APPEND LIBRARIES "ChronoModels_robot")
 list(APPEND LIBRARIES "Chrono_sensor")
 
 if(CH_ENABLE_MODULE_IRRLICHT)
@@ -48,6 +55,16 @@ if(CH_ENABLE_MODULE_VEHICLE)
    if(CH_ENABLE_MODULE_VEHICLE_MODELS)
       list(APPEND LIBRARIES "ChronoModels_vehicle")
    endif()
+endif()
+
+if(CH_ENABLE_MODULE_VSG)
+    list(APPEND LIBRARIES "Chrono_vsg")
+    if(CH_ENABLE_MODULE_VEHICLE) 
+      list(APPEND LIBRARIES "Chrono_vehicle_vsg")
+    endif()
+    if(CH_ENABLE_MODULE_FSI_SPH)
+      list(APPEND LIBRARIES "Chrono_fsisph_vsg")
+    endif()
 endif()
 
 #--------------------------------------------------------------

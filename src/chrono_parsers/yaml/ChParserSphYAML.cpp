@@ -17,6 +17,7 @@
 //// - output
 
 #include <algorithm>
+#include <filesystem>
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/input_output/ChOutputASCII.h"
@@ -25,8 +26,6 @@
 #endif
 
 #include "chrono_parsers/yaml/ChParserSphYAML.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::cerr;
@@ -76,8 +75,8 @@ void ChParserSphYAML::LoadFile(const std::string& yaml_filename) {
         ChAssertAlways(yaml["model"]);
         auto model_fname = yaml["model"].as<std::string>();
         auto model_filename = m_file_handler.GetReferenceDirectory() + "/" + model_fname;
-        auto path = filesystem::path(model_filename);
-        if (!path.exists() || !path.is_file()) {
+        auto path = std::filesystem::path(model_filename);
+        if (!exists(path) || !is_regular_file(path)) {
             cerr << "Error: file '" << model_filename << "' not found." << endl;
             throw std::runtime_error("File not found");
         }
@@ -96,8 +95,8 @@ void ChParserSphYAML::LoadFile(const std::string& yaml_filename) {
         ChAssertAlways(yaml["solver"]);
         auto solver_fname = yaml["solver"].as<std::string>();
         auto solver_filename = m_file_handler.GetReferenceDirectory() + "/" + solver_fname;
-        auto path = filesystem::path(solver_filename);
-        if (!path.exists() || !path.is_file()) {
+        auto path = std::filesystem::path(solver_filename);
+        if (!exists(path) || !is_regular_file(path)) {
             cerr << "Error: file '" << solver_filename << "' not found." << endl;
             throw std::runtime_error("File not found");
         }

@@ -24,8 +24,6 @@
 #include "chrono/geometry/ChDelaunay2D.h"
 #include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 
 static const std::string out_dir = GetChronoTestOutputPath() + "/delaunay/";
@@ -54,7 +52,7 @@ static const std::vector<std::array<int, 3>> g_matlab_ref_triangles = {
     {8, 12, 19}, {9, 10, 21}, {11, 14, 15}, {11, 14, 24}, {11, 15, 20}, {11, 20, 24}, {13, 15, 16}, {13, 15, 20}, {13, 18, 23}, {13, 20, 23}, {14, 15, 16}, {14, 16, 17}};
 
 int main(int argc, char* argv[]) {
-    if (!filesystem::create_subdirectory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

@@ -369,8 +369,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
     // Check if user-defined cMin and cMax are much larger than defaults
     if (m_paramsH->cMin.x < 2 * default_cMin.x || m_paramsH->cMin.y < 2 * default_cMin.y || m_paramsH->cMin.z < 2 * default_cMin.z || m_paramsH->cMax.x > 2 * default_cMax.x ||
         m_paramsH->cMax.y > 2 * default_cMax.y || m_paramsH->cMax.z > 2 * default_cMax.z) {
-        cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. "
-             << "This may slow down the simulation." << endl;
+        cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. " << "This may slow down the simulation." << endl;
     }
 
     // TODO: Add check for whether computational domain is larger than SPH + BCE layers
@@ -2869,6 +2868,18 @@ std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame,
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions() const {
     SynchronizeCopyStream();
     return m_data_mgr->GetPositions();
+}
+
+ChFsiSphMarkerDeviceView ChFsiFluidSystemSPH::GetMarkerDeviceView() const {
+    ChFsiSphMarkerDeviceView view;
+
+    SynchronizeCopyStream();
+
+    const auto& pos_rad = m_data_mgr->sphMarkers_D->posRadD;
+    view.pos_rad = pos_rad.empty() ? nullptr : thrust::raw_pointer_cast(pos_rad.data());
+    view.num_fluid_markers = m_data_mgr->countersH->numFluidMarkers;
+
+    return view;
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities() const {
