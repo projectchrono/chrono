@@ -136,10 +136,12 @@ class CH_SENSOR_API ChOptixGeometry {
     /// Add a native FSI-SPH marker cloud rendered as visual shape sprite instances.
     void AddFsiSphCloud(int source_id,
                         size_t count,
+                        size_t source_count,
                         const std::vector<CUdeviceptr>& d_vertices,
                         const std::vector<CUdeviceptr>& d_indices,
                         const std::vector<std::shared_ptr<ChVisualShape>>& shapes,
                         const std::vector<unsigned int>& mat_ids,
+                        float render_particle_spacing,
                         const ChVector3f& position_jitter);
 
     /// Update a native FSI-SPH marker cloud from device-resident FSI marker positions.
@@ -258,10 +260,12 @@ class CH_SENSOR_API ChOptixGeometry {
         int source_id = -1;
         size_t instance_offset = 0;
         size_t count = 0;
+        size_t source_count = 0;
         std::vector<FsiSphSpriteTemplate> sprite_templates;
         CUdeviceptr d_sprite_gas_handles = {};
         CUdeviceptr d_sprite_mat_ids = {};
         CUdeviceptr d_sprite_scales = {};
+        float render_particle_spacing = 0.f;
         ChVector3f sprite_position_jitter = ChVector3f(0.f, 0.f, 0.f);
     };
 

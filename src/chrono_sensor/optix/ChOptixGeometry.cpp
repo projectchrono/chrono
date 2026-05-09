@@ -400,12 +400,14 @@ void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
 #ifdef CHRONO_FSI_SPH
 void ChOptixGeometry::AddFsiSphCloud(int source_id,
                                      size_t count,
+                                     size_t source_count,
                                      const std::vector<CUdeviceptr>& d_vertices,
                                      const std::vector<CUdeviceptr>& d_indices,
                                      const std::vector<std::shared_ptr<ChVisualShape>>& shapes,
                                      const std::vector<unsigned int>& mat_ids,
+                                     float render_particle_spacing,
                                      const ChVector3f& position_jitter) {
-    if (count == 0 || shapes.empty())
+    if (count == 0 || source_count == 0 || shapes.empty())
         return;
     if (d_vertices.size() != shapes.size() || d_indices.size() != shapes.size() || mat_ids.size() != shapes.size())
         return;
@@ -418,6 +420,8 @@ void ChOptixGeometry::AddFsiSphCloud(int source_id,
     cloud.source_id = source_id;
     cloud.instance_offset = instance_offset;
     cloud.count = count;
+    cloud.source_count = source_count;
+    cloud.render_particle_spacing = render_particle_spacing;
     cloud.sprite_position_jitter = position_jitter;
 
     std::vector<OptixTraversableHandle> gas_handles;
@@ -479,11 +483,10 @@ void ChOptixGeometry::UpdateFsiSphCloud(int source_id,
         if (cloud.source_id != source_id)
             continue;
 
-        const size_t n = std::min(count, cloud.count);
-        cuda_update_fsi_sph_sprite_instances(pos_rad + marker_offset, n, reinterpret_cast<OptixInstance*>(md_instances) + cloud.instance_offset,
+        cuda_update_fsi_sph_sprite_instances(pos_rad + marker_offset, count, cloud.count, reinterpret_cast<OptixInstance*>(md_instances) + cloud.instance_offset,
                                              reinterpret_cast<const OptixTraversableHandle*>(cloud.d_sprite_gas_handles), reinterpret_cast<const unsigned int*>(cloud.d_sprite_mat_ids),
                                              reinterpret_cast<const float3*>(cloud.d_sprite_scales), static_cast<unsigned int>(cloud.sprite_templates.size()),
-                                             cloud.sprite_position_jitter, m_origin_offset);
+                                             cloud.render_particle_spacing, cloud.sprite_position_jitter, m_origin_offset);
         return;
     }
 }

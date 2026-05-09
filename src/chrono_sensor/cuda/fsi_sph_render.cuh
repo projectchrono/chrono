@@ -31,12 +31,14 @@ namespace chrono {
 namespace sensor {
 
 void cuda_update_fsi_sph_sprite_instances(const chrono::fsi::sph::Real4* pos_rad,
-                                          size_t count,
+                                          size_t source_count,
+                                          size_t render_count,
                                           OptixInstance* instances,
                                           const OptixTraversableHandle* gas_handles,
                                           const unsigned int* sbt_offsets,
                                           const float3* template_scales,
                                           unsigned int num_templates,
+                                          float render_particle_spacing,
                                           const ChVector3f& position_jitter,
                                           const ChVector3f& origin_offset);
 
