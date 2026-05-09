@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Load regolith meshes
-    std::string mesh_name_prefix = "data/models/regolith/particle_";
+    std::string mesh_name_prefix = "models/regolith/particle_";
     for (int i = 1; i <= num_meshes; i++) {
         auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(mesh_name_prefix + std::to_string(i) + ".obj"), false, true);
         mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
