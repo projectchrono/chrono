@@ -60,15 +60,14 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param mat_id the material id associated with the box
     void AddBox(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector3d scale, unsigned int mat_id);
 
-    #ifdef USE_SENSOR_NVDB
+#ifdef USE_SENSOR_NVDB
     /// Add a NVDB volume to the optix scene
     /// @param body the Chrono Body that drives the NVDB volume
     /// @param asset_frame the Chrono frame that specifies how the asset is attached to the body
     /// @param scale the scale of the NVDB volume
     /// @param mat_id the material id associated with the NVDB volume
-    void AddNVDBVolume(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame,ChVector3d scale,unsigned int mat_id);
-    #endif
-
+    void AddNVDBVolume(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector3d scale, unsigned int mat_id);
+#endif
 
     /// Add a sphere geometry to the optix scene
     /// @param body the Chrono Body that drives the sphere
@@ -161,11 +160,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param asset_frame the frame associated with the asset relative to the body
     /// @param scale the scale of the object
     /// @param gas_handle the handle to the geometry acceleration structure
-    void AddGenericObject(unsigned int mat_id,
-                          std::shared_ptr<ChBody> body,
-                          ChFrame<double> asset_frame,
-                          ChVector3d scale,
-                          OptixTraversableHandle gas_handle);
+    void AddGenericObject(unsigned int mat_id, std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector3d scale, OptixTraversableHandle gas_handle);
 
     /// Function to build a geometry acceleration structure for a triangle mesh
     /// @param mesh_shape the chrono mesh representing this asset
@@ -209,7 +204,7 @@ class CH_SENSOR_API ChOptixGeometry {
     bool m_cyl_inst = false;       ///< whether a cylinder has been created
 
     unsigned int m_nvdb_gas_id;
-    bool m_nvdb_inst = false;  
+    bool m_nvdb_inst = false;
 
     // instance and root buffers
     std::vector<OptixInstance> m_instances;  ///< host vector of geometry instances
@@ -246,8 +241,7 @@ class CH_SENSOR_API ChOptixGeometry {
     std::vector<std::tuple<CUdeviceptr, unsigned int>> m_known_meshes;
 
     /// deformable mesh list [mesh shape, d_vertices, d_indices, gas id]
-    std::vector<std::tuple<std::shared_ptr<ChVisualShapeTriangleMesh>, CUdeviceptr, CUdeviceptr, unsigned int>>
-        m_deformable_meshes;
+    std::vector<std::tuple<std::shared_ptr<ChVisualShapeTriangleMesh>, CUdeviceptr, CUdeviceptr, unsigned int>> m_deformable_meshes;
 
 #ifdef CHRONO_FSI_SPH
     struct FsiSphSpriteTemplate {

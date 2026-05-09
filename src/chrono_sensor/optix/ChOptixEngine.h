@@ -129,14 +129,14 @@ class CH_SENSOR_API ChOptixEngine {
     /// Update all sensor positions and orientations.
     /// @param to_be_updated the vector of Optix sensor IDs to be updated
     /// @param scene the scene that these Optix sensors belong to
-    void UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);  
-    
-    /// Update all raygen_record and filter parameters of the Optix sensors 
+    void UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);
+
+    /// Update all raygen_record and filter parameters of the Optix sensors
     /// @param to_be_updated the vector of Optix sensor IDs to be updated
     /// @param scene the scene that these Optix sensors belong to
     void UpdateSensorParameters(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);
 
-    void UpdateDeformableMeshes();        ///< updates the dynamic meshes in the scene
+    void UpdateDeformableMeshes();  ///< updates the dynamic meshes in the scene
     /// Update the scene characteristics such as lights, background, etc.
     void UpdateSceneDescription(std::shared_ptr<ChScene> scene);
 
@@ -149,33 +149,23 @@ class CH_SENSOR_API ChOptixEngine {
 #endif
 
     /// Creates an optix box visualization object from a Chrono box shape.
-    void boxVisualization(std::shared_ptr<ChBody> body,
-                          std::shared_ptr<ChVisualShapeBox> box_shape,
-                          ChFrame<> asset_frame);
+    void boxVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChVisualShapeBox> box_shape, ChFrame<> asset_frame);
 
     /// Creates an optix sphere visualization object from a Chrono sphere shape.
-    void sphereVisualization(std::shared_ptr<ChBody> body,
-                             std::shared_ptr<ChVisualShapeSphere> sphere_shape,
-                             ChFrame<> asset_frame);
+    void sphereVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChVisualShapeSphere> sphere_shape, ChFrame<> asset_frame);
 
     /// Creates an optix cylinder visualization object from a Chrono cylinder shape.
-    void cylinderVisualization(std::shared_ptr<ChBody> body,
-                               std::shared_ptr<ChVisualShapeCylinder> sphere_shape,
-                               ChFrame<> asset_frame);
+    void cylinderVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChVisualShapeCylinder> sphere_shape, ChFrame<> asset_frame);
 
     /// Creates an optix rigid mesh visualization object from a Chrono mesh shape
-    void rigidMeshVisualization(std::shared_ptr<ChBody> body,
-                                std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
-                                ChFrame<> asset_frame);
+    void rigidMeshVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape, ChFrame<> asset_frame);
 
     /// Creates an optix deformable mesh visualization object from a Chrono mesh shape.
-    void deformableMeshVisualization(std::shared_ptr<ChBody> body,
-                                     std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
-                                     ChFrame<> asset_frame);
+    void deformableMeshVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape, ChFrame<> asset_frame);
 
-    #ifdef USE_SENSOR_NVDB
-        void nvdbVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChNVDBShape> box_shape, ChFrame<> asset_frame);
-    #endif
+#ifdef USE_SENSOR_NVDB
+    void nvdbVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChNVDBShape> box_shape, ChFrame<> asset_frame);
+#endif
 
     std::vector<unsigned int> m_renderQueue;  ///< list of sensor indices that need to be updated
 
@@ -202,9 +192,8 @@ class CH_SENSOR_API ChOptixEngine {
     std::shared_ptr<ChOptixGeometry> m_geometry;  // manager of all geometry in the scene
     std::shared_ptr<ChOptixPipeline> m_pipeline;  // manager of all geometry in the scene
 
-    std::vector<std::shared_ptr<ChOptixSensor>> m_assignedSensor;  ///< list of sensor this engine is responsible for
-    std::vector<std::shared_ptr<ChFilterOptixRender>>
-        m_assignedRenderers;  ///< list of sensor this engine is responsible for
+    std::vector<std::shared_ptr<ChOptixSensor>> m_assignedSensor;           ///< list of sensor this engine is responsible for
+    std::vector<std::shared_ptr<ChFilterOptixRender>> m_assignedRenderers;  ///< list of sensor this engine is responsible for
 
     std::vector<ChFrame<double>> m_cameraStartFrames;
     std::vector<bool> m_cameraStartFrames_set;

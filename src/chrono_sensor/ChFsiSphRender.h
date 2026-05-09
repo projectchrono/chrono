@@ -41,7 +41,7 @@ namespace sensor {
 struct CH_SENSOR_API ChFsiSphRenderOptions {
     std::vector<std::shared_ptr<ChVisualShape>> sprite_shapes;            ///< Required visual shape templates used for marker sprites.
     ChVector3f sprite_position_jitter = ChVector3f(0.005f, 0.005f, 0.f);  ///< Deterministic per-marker sprite jitter.
-    float render_particle_spacing = 0.f;  ///< Absolute visual particle spacing. Must be positive to render particles.
+    float render_particle_spacing = 0.f;                                  ///< Absolute visual particle spacing. Must be positive to render particles.
 };
 
 #ifdef CHRONO_FSI_SPH

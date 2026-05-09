@@ -369,8 +369,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
     // Check if user-defined cMin and cMax are much larger than defaults
     if (m_paramsH->cMin.x < 2 * default_cMin.x || m_paramsH->cMin.y < 2 * default_cMin.y || m_paramsH->cMin.z < 2 * default_cMin.z || m_paramsH->cMax.x > 2 * default_cMax.x ||
         m_paramsH->cMax.y > 2 * default_cMax.y || m_paramsH->cMax.z > 2 * default_cMax.z) {
-        cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. "
-             << "This may slow down the simulation." << endl;
+        cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. " << "This may slow down the simulation." << endl;
     }
 
     // TODO: Add check for whether computational domain is larger than SPH + BCE layers
