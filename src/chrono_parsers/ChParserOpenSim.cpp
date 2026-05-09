@@ -21,10 +21,10 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono_parsers/ChParserOpenSim.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_thirdparty/filesystem/resolver.h"
 #include "chrono_thirdparty/rapidxml/rapidxml_print.hpp"
 #include "chrono_thirdparty/rapidxml/rapidxml_utils.hpp"
 
@@ -44,7 +44,6 @@
 #include <cstring>
 #include <utility>
 
-using namespace filesystem;
 using namespace rapidxml;
 
 namespace chrono {
@@ -116,11 +115,11 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
     // the osim file opensim/Rajagopal2015.osim should have the referenced obj
     // files sitting in data/opensim/Rajagopal2015/
     // Use filesystem for path parsing, we should probably use the library more
-    path filepath(filename);
+    std::filesystem::path filepath(filename);
 
     // Set the member path so when we load meshes we can find them
     // Strip the parent and stem to use as directory for data files
-    m_datapath = filepath.parent_path().str() + "/" + filepath.stem() + "/";
+    m_datapath = filepath.parent_path().string() + "/" + filepath.stem().string() + "/";
 
     rapidxml::file<char> file(filename.c_str());
 

@@ -111,7 +111,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     void Initialize();
 
     /// Advance the state of the track test rig by the specified time step.
-    virtual void Advance(double step) override;
+    virtual void Advance(double step, bool do_collision = true) override;
 
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for sprocket, idler, road wheels, and track shoes.

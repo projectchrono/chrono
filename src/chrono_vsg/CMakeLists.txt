@@ -16,16 +16,6 @@ endif()
 
 message(STATUS "\n==== Chrono VSG module ====\n")
 
-# VSG requires C++17 support. Disable module if not available
-if(NOT CH_CXX17)
-   message(WARNING "Chrono::VSG requires C++17 support which is not available; disabling Chrono::VSG")
-   set(CH_ENABLE_MODULE_VSG OFF CACHE BOOL "Enable the Chrono VSG module" FORCE)
-   mark_as_advanced(FORCE vsg_DIR)
-   mark_as_advanced(FORCE vsgXchange_DIR)
-   mark_as_advanced(FORCE vsgImGui_DIR)
-   return()
-endif()
-
 mark_as_advanced(CLEAR VSG_LIBRARY)
 mark_as_advanced(CLEAR VSG_ROOT)
 

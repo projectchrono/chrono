@@ -44,8 +44,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 
 // -----------------------------------------------------------------------------
@@ -117,7 +115,7 @@ int main(int argc, char* argv[]) {
     // --------------
 
     std::string out_dir = GetChronoOutputPath() + "./DEMO_FMI_VDP_MODEX";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

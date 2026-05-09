@@ -44,8 +44,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::fmi2;
 using namespace chrono::vehicle;
@@ -311,12 +309,12 @@ int main(int argc, char* argv[]) {
     // -------------------------
 
     const std::string out_dir = GetChronoOutputPath() + "DEMO_WHEELEDVEHICLE_FMI_MODEX";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     if (save_img) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/img"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/img"))) {
             std::cout << "Error creating directory " << out_dir + "/img" << std::endl;
             return 1;
         }

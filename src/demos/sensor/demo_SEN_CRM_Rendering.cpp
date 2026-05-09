@@ -35,8 +35,6 @@
 #include "chrono/physics/ChMassProperties.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #include "chrono_sensor/ChFsiSphRender.h"
@@ -67,7 +65,7 @@ PatchType patch_type = PatchType::HEIGHT_MAP;
 double terrain_length = 12;
 double terrain_width = 3;
 
-int num_meshes = 100;
+int num_meshes = 3;
 std::vector<std::shared_ptr<ChVisualShapeTriangleMesh>> regolith_meshes;  // ChVisualShapeTriangleMesh
 
 int main(int argc, char* argv[]) {
@@ -115,7 +113,7 @@ int main(int argc, char* argv[]) {
     rover->Initialize(ChFrame<>(init_loc, QUNIT));
 
     // Create the CRM terrain system
-    double initial_spacing = 0.01;
+    double initial_spacing = 0.02;
     CRMTerrain terrain(sys, initial_spacing);
     auto sysFSI = terrain.GetFsiSystemSPH();
     auto sysSPH = terrain.GetFluidSystemSPH();
@@ -270,6 +268,7 @@ int main(int argc, char* argv[]) {
     for (const auto& mesh : regolith_meshes)
         fsi_render_options.sprite_shapes.push_back(mesh);
     fsi_render_options.sprite_position_jitter = ChVector3f(0.005f, 0.005f, 0.f);
+    fsi_render_options.render_particle_spacing = 0.01f;
     manager->AttachFsiSphSystem(sysSPH, fsi_render_options);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
@@ -328,7 +327,7 @@ int main(int argc, char* argv[]) {
 
     terrain.PrintStats();
     std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_CRM/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

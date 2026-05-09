@@ -40,8 +40,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_fmi/fmi2/ChFmuToolsImport.h"
 
 using namespace chrono;
@@ -336,7 +334,7 @@ void PowertrainSystem::DoStep(double time, double step_size) {
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    std::cout << filesystem::path(argv[0]).filename() << std::endl;
+    std::cout << std::filesystem::path(argv[0]).filename() << std::endl;
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n" << std::endl;
 
 #ifdef FMU_EXPORT_SUPPORT
@@ -363,11 +361,11 @@ int main(int argc, char* argv[]) {
     std::string out_dir = GetChronoOutputPath() + "./DEMO_WHEELEDVEHICLE_FMI_COSIM_A";
     std::string vehicle_out_dir = out_dir + "/" + vehicle_instance_name;
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(vehicle_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(vehicle_out_dir))) {
         std::cout << "Error creating directory " << vehicle_out_dir << std::endl;
         return 1;
     }

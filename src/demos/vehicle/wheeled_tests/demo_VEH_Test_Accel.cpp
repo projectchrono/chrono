@@ -33,8 +33,6 @@
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
@@ -113,12 +111,12 @@ int main(int argc, char* argv[]) {
     // -----------------------
 
     std::string out_dir = GetChronoOutputPath() + "ACCELERATION_TEST";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     out_dir = out_dir + "/" + vehicle_model->ModelName();
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

@@ -45,8 +45,6 @@ using namespace chrono::vsg3d;
 using namespace chrono::postprocess;
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/vehicle/WheeledVehicleModels.h"
 #include "demos/SetChronoSolver.h"
 
@@ -444,19 +442,19 @@ int main(int argc, char* argv[]) {
 
     // Create output directories
     std::string out_dir = GetChronoOutputPath() + "VEHICLE_CHECKPOINT";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     auto dir1 = out_dir + "/" + v1->ModelName();
-    if (!filesystem::create_directory(filesystem::path(dir1))) {
+    if (!CreateOutputDirectory(std::filesystem::path(dir1))) {
         cout << "Error creating directory " << dir1 << endl;
         return 1;
     }
 
     auto dir2 = out_dir + "/" + v2->ModelName();
-    if (!filesystem::create_directory(filesystem::path(dir2))) {
+    if (!CreateOutputDirectory(std::filesystem::path(dir2))) {
         cout << "Error creating directory " << dir2 << endl;
         return 1;
     }

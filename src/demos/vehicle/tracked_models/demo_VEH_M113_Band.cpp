@@ -42,8 +42,6 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
@@ -109,19 +107,19 @@ int main(int argc, char* argv[]) {
     const std::string img_dir = out_dir + "/IMG";
     const std::string vtk_dir = out_dir + "/VTK";
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
             cout << "Error creating directory " << img_dir << endl;
             return 1;
         }
     }
     if (vtk_output) {
-        if (!filesystem::create_directory(filesystem::path(vtk_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(vtk_dir))) {
             cout << "Error creating directory " << vtk_dir << endl;
             return 1;
         }

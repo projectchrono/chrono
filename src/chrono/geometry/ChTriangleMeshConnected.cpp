@@ -23,10 +23,10 @@
 #include <cstdio>
 #include <fstream>
 #include <map>
+#include <filesystem>
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 extern "C" {
 #include "chrono_thirdparty/libstl/stlfile.h"
@@ -270,7 +270,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChTriangleMeshConnected::CreateFromWave
 }
 
 bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, bool load_normals, bool load_uv) {
-    assert(filesystem::path(filename).is_file());
+    assert(is_regular_file(std::filesystem::path(filename)));
 
     std::vector<tinyobj::shape_t> shapes;
     tinyobj::attrib_t att;

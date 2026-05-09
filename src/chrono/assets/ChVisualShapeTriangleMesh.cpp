@@ -12,9 +12,10 @@
 // Authors: Alesandro Tasora, Radu Serban
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace chrono {
@@ -37,7 +38,7 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected>
 
     // Try to read material information form an MTL file
     const auto& filename = mesh->GetFileName();
-    auto mtl_base = filesystem::path(filesystem::path(filename).parent_path()).str();
+    auto mtl_base = std::filesystem::path(std::filesystem::path(filename).parent_path()).string();
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     bool have_mtl_materials = false;

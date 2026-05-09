@@ -12,11 +12,11 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_parsers/yaml/ChParserCfdYAML.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::cerr;
@@ -28,8 +28,8 @@ namespace parsers {
 ChParserCfdYAML::ChParserCfdYAML(bool verbose) : ChParserYAML() {}
 
 ChParserCfdYAML::FluidSystemType ChParserCfdYAML::ReadFluidSystemType(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
+    auto path = std::filesystem::path(yaml_filename);
+    if (!exists(path) || !is_regular_file(path)) {
         cerr << "Error: file '" << yaml_filename << "' not found." << endl;
         throw std::runtime_error("File not found");
     }

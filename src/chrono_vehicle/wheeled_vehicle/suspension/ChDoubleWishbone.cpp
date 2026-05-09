@@ -38,14 +38,12 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChDoubleWishbone::m_pointNames[] = {
-    "SPINDLE ", "UPRIGHT ", "UCA_F   ", "UCA_B   ", "UCA_U   ", "UCA_CM  ", "LCA_F   ", "LCA_B   ",
-    "LCA_U   ", "LCA_CM  ", "SHOCK_C ", "SHOCK_A ", "SPRING_C", "SPRING_A", "TIEROD_C", "TIEROD_U"};
+const std::string ChDoubleWishbone::m_pointNames[] = {"SPINDLE ", "UPRIGHT ", "UCA_F   ", "UCA_B   ", "UCA_U   ", "UCA_CM  ", "LCA_F   ", "LCA_B   ",
+                                                      "LCA_U   ", "LCA_CM  ", "SHOCK_C ", "SHOCK_A ", "SPRING_C", "SPRING_A", "TIEROD_C", "TIEROD_U"};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDoubleWishbone::ChDoubleWishbone(const std::string& name, bool vehicle_frame_inertia)
-    : ChSuspension(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
+ChDoubleWishbone::ChDoubleWishbone(const std::string& name, bool vehicle_frame_inertia) : ChSuspension(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 ChDoubleWishbone::~ChDoubleWishbone() {
     if (!IsInitialized())
@@ -142,8 +140,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
     if (m_vehicle_frame_inertia) {
-        ChMatrix33<> inertia =
-            TransformInertiaMatrix(getUprightInertiaMoments(), getUprightInertiaProducts(), chassisRot, chassisRot);
+        ChMatrix33<> inertia = TransformInertiaMatrix(getUprightInertiaMoments(), getUprightInertiaProducts(), chassisRot, chassisRot);
         m_upright[side]->SetInertia(inertia);
     } else {
         m_upright[side]->SetInertiaXX(getUprightInertiaMoments());
@@ -205,8 +202,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->SetTag(m_obj_tag);
-    m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
+    m_revolute[side]->Initialize(m_spindle[side], m_upright[side], ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the revolute joint between chassis and UCA.
@@ -220,16 +216,14 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.SetFromDirectionAxes(u, v, w);
 
-    m_revoluteUCA[side] = chrono_types::make_shared<ChJoint>(
-        ChJoint::Type::REVOLUTE, m_name + "_revoluteUCA" + suffix, chassis->GetBody(), m_UCA[side],
-        ChFrame<>((points[UCA_F] + points[UCA_B]) / 2, rot.GetQuaternion()), getUCABushingData());
+    m_revoluteUCA[side] = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_revoluteUCA" + suffix, chassis->GetBody(), m_UCA[side],
+                                                             ChFrame<>((points[UCA_F] + points[UCA_B]) / 2, rot.GetQuaternion()), getUCABushingData());
     m_revoluteUCA[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_revoluteUCA[side]);
 
     // Create and initialize the spherical joint between upright and UCA.
     m_sphericalUCA[side] =
-        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix, m_UCA[side],
-                                           m_upright[side], ChFrame<>(points[UCA_U], chassisRot));
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix, m_UCA[side], m_upright[side], ChFrame<>(points[UCA_U], chassisRot));
     m_sphericalUCA[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalUCA[side]);
 
@@ -244,16 +238,14 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.SetFromDirectionAxes(u, v, w);
 
-    m_revoluteLCA[side] = chrono_types::make_shared<ChJoint>(
-        ChJoint::Type::REVOLUTE, m_name + "_revoluteLCA" + suffix, chassis->GetBody(), m_LCA[side],
-        ChFrame<>((points[LCA_F] + points[LCA_B]) / 2, rot.GetQuaternion()), getLCABushingData());
+    m_revoluteLCA[side] = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_revoluteLCA" + suffix, chassis->GetBody(), m_LCA[side],
+                                                             ChFrame<>((points[LCA_F] + points[LCA_B]) / 2, rot.GetQuaternion()), getLCABushingData());
     m_revoluteLCA[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_revoluteLCA[side]);
 
     // Create and initialize the spherical joint between upright and LCA.
     m_sphericalLCA[side] =
-        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix, m_LCA[side],
-                                           m_upright[side], ChFrame<>(points[LCA_U], chassisRot));
+        chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix, m_LCA[side], m_upright[side], ChFrame<>(points[LCA_U], chassisRot));
     m_sphericalLCA[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalLCA[side]);
 
@@ -276,14 +268,12 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
         chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
 
         // Connect tierod body to upright (spherical) and chassis (universal)
-        m_sphericalTierod[side] = chrono_types::make_shared<ChJoint>(
-            ChJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
-            ChFrame<>(points[TIEROD_U], chassisRot), getTierodBushingData());
+        m_sphericalTierod[side] = chrono_types::make_shared<ChJoint>(ChJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
+                                                                     ChFrame<>(points[TIEROD_U], chassisRot), getTierodBushingData());
         m_sphericalTierod[side]->SetTag(m_obj_tag);
         chassis->AddJoint(m_sphericalTierod[side]);
-        m_universalTierod[side] = chrono_types::make_shared<ChJoint>(
-            ChJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
+        m_universalTierod[side] = chrono_types::make_shared<ChJoint>(ChJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
+                                                                     ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.
@@ -378,10 +368,8 @@ double ChDoubleWishbone::GetTrack() {
 std::vector<ChSuspension::ForceTSDA> ChDoubleWishbone::ReportSuspensionForce(VehicleSide side) const {
     std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
-                                        m_spring[side]->GetVelocity());
-    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
-                                        m_shock[side]->GetVelocity());
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(), m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(), m_shock[side]->GetVelocity());
 
     return forces;
 }
@@ -465,8 +453,7 @@ void ChDoubleWishbone::LogConstraintViolations(VehicleSide side) {
         }
     } else {
         std::cout << "Tierod distance       ";
-        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance()
-                  << "\n";
+        std::cout << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
     }
 }
 
@@ -479,10 +466,8 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     // Add visualization for uprights
-    AddVisualizationUpright(m_upright[LEFT], 0.5 * (m_pointsL[SPINDLE] + m_pointsL[UPRIGHT]), m_pointsL[UCA_U],
-                            m_pointsL[LCA_U], m_pointsL[TIEROD_U], getUprightRadius());
-    AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[UCA_U],
-                            m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
+    AddVisualizationUpright(m_upright[LEFT], 0.5 * (m_pointsL[SPINDLE] + m_pointsL[UPRIGHT]), m_pointsL[UCA_U], m_pointsL[LCA_U], m_pointsL[TIEROD_U], getUprightRadius());
+    AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[UCA_U], m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
 
     // Add visualization for upper control arms
     AddVisualizationControlArm(m_UCA[LEFT], m_pointsL[UCA_F], m_pointsL[UCA_B], m_pointsL[UCA_U], getUCARadius());
@@ -537,11 +522,7 @@ void ChDoubleWishbone::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
-                                                  const ChVector3d pt_F,
-                                                  const ChVector3d pt_B,
-                                                  const ChVector3d pt_U,
-                                                  double radius) {
+void ChDoubleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm, const ChVector3d pt_F, const ChVector3d pt_B, const ChVector3d pt_U, double radius) {
     // Express hardpoint locations in body frame.
     ChVector3d p_F = arm->TransformPointParentToLocal(pt_F);
     ChVector3d p_B = arm->TransformPointParentToLocal(pt_B);
@@ -578,10 +559,7 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     }
 }
 
-void ChDoubleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
-                                              const ChVector3d pt_C,
-                                              const ChVector3d pt_U,
-                                              double radius) {
+void ChDoubleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod, const ChVector3d pt_C, const ChVector3d pt_U, double radius) {
     // Express hardpoint locations in body frame.
     ChVector3d p_C = tierod->TransformPointParentToLocal(pt_C);
     ChVector3d p_U = tierod->TransformPointParentToLocal(pt_U);
@@ -608,33 +586,24 @@ void ChDoubleWishbone::PopulateComponentList() {
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
 
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);
-    m_revoluteUCA[0]->IsKinematic() ? m_joints.push_back(m_revoluteUCA[0]->GetAsLink())
-                                    : m_body_loads.push_back(m_revoluteUCA[0]->GetAsBushing());
-    m_revoluteUCA[1]->IsKinematic() ? m_joints.push_back(m_revoluteUCA[1]->GetAsLink())
-                                    : m_body_loads.push_back(m_revoluteUCA[1]->GetAsBushing());
-    m_sphericalUCA[0]->IsKinematic() ? m_joints.push_back(m_sphericalUCA[0]->GetAsLink())
-                                     : m_body_loads.push_back(m_sphericalUCA[0]->GetAsBushing());
-    m_sphericalUCA[1]->IsKinematic() ? m_joints.push_back(m_sphericalUCA[1]->GetAsLink())
-                                     : m_body_loads.push_back(m_sphericalUCA[1]->GetAsBushing());
-    m_revoluteLCA[0]->IsKinematic() ? m_joints.push_back(m_revoluteLCA[0]->GetAsLink())
-                                    : m_body_loads.push_back(m_revoluteLCA[0]->GetAsBushing());
-    m_revoluteLCA[1]->IsKinematic() ? m_joints.push_back(m_revoluteLCA[1]->GetAsLink())
-                                    : m_body_loads.push_back(m_revoluteUCA[1]->GetAsBushing());
-    m_sphericalLCA[0]->IsKinematic() ? m_joints.push_back(m_sphericalLCA[0]->GetAsLink())
-                                     : m_body_loads.push_back(m_sphericalLCA[0]->GetAsBushing());
-    m_sphericalLCA[1]->IsKinematic() ? m_joints.push_back(m_sphericalLCA[1]->GetAsLink())
-                                     : m_body_loads.push_back(m_sphericalLCA[1]->GetAsBushing());
+    m_revoluteUCA[0]->IsKinematic() ? m_joints.push_back(m_revoluteUCA[0]->GetAsLink()) : m_body_loads.push_back(m_revoluteUCA[0]->GetAsBushing());
+    m_revoluteUCA[1]->IsKinematic() ? m_joints.push_back(m_revoluteUCA[1]->GetAsLink()) : m_body_loads.push_back(m_revoluteUCA[1]->GetAsBushing());
+    m_sphericalUCA[0]->IsKinematic() ? m_joints.push_back(m_sphericalUCA[0]->GetAsLink()) : m_body_loads.push_back(m_sphericalUCA[0]->GetAsBushing());
+    m_sphericalUCA[1]->IsKinematic() ? m_joints.push_back(m_sphericalUCA[1]->GetAsLink()) : m_body_loads.push_back(m_sphericalUCA[1]->GetAsBushing());
+    m_revoluteLCA[0]->IsKinematic() ? m_joints.push_back(m_revoluteLCA[0]->GetAsLink()) : m_body_loads.push_back(m_revoluteLCA[0]->GetAsBushing());
+    m_revoluteLCA[1]->IsKinematic() ? m_joints.push_back(m_revoluteLCA[1]->GetAsLink()) : m_body_loads.push_back(m_revoluteUCA[1]->GetAsBushing());
+    m_sphericalLCA[0]->IsKinematic() ? m_joints.push_back(m_sphericalLCA[0]->GetAsLink()) : m_body_loads.push_back(m_sphericalLCA[0]->GetAsBushing());
+    m_sphericalLCA[1]->IsKinematic() ? m_joints.push_back(m_sphericalLCA[1]->GetAsLink()) : m_body_loads.push_back(m_sphericalLCA[1]->GetAsBushing());
     if (UseTierodBodies()) {
-        m_sphericalTierod[0]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[0]->GetAsLink())
-                                            : m_body_loads.push_back(m_sphericalTierod[0]->GetAsBushing());
-        m_sphericalTierod[1]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[1]->GetAsLink())
-                                            : m_body_loads.push_back(m_sphericalTierod[1]->GetAsBushing());
-        m_universalTierod[0]->IsKinematic() ? m_joints.push_back(m_universalTierod[0]->GetAsLink())
-                                            : m_body_loads.push_back(m_universalTierod[0]->GetAsBushing());
-        m_universalTierod[1]->IsKinematic() ? m_joints.push_back(m_universalTierod[1]->GetAsLink())
-                                            : m_body_loads.push_back(m_universalTierod[1]->GetAsBushing());
+        m_sphericalTierod[0]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[0]->GetAsLink()) : m_body_loads.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[1]->GetAsLink()) : m_body_loads.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? m_joints.push_back(m_universalTierod[0]->GetAsLink()) : m_body_loads.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? m_joints.push_back(m_universalTierod[1]->GetAsLink()) : m_body_loads.push_back(m_universalTierod[1]->GetAsBushing());
     } else {
         m_joints.push_back(m_distTierod[0]);
         m_joints.push_back(m_distTierod[1]);

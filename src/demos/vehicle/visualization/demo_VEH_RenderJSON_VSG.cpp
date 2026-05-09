@@ -31,8 +31,6 @@
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vsg3d;

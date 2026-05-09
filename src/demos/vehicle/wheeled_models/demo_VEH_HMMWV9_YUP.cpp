@@ -31,8 +31,6 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #define USE_PATH_FOLLOWER
 
 using namespace chrono;

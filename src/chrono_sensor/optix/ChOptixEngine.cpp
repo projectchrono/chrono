@@ -46,6 +46,9 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/optix/ChNVDBVolume.h"
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <random>
 
 #include "chrono_sensor/cuda/cuda_utils.cuh"
@@ -60,6 +63,34 @@
 
 namespace chrono {
 namespace sensor {
+
+#ifdef CHRONO_FSI_SPH
+namespace {
+
+size_t EstimateFsiSphRenderCount(size_t num_fluid_markers, double source_spacing, float render_particle_spacing) {
+    if (num_fluid_markers == 0)
+        return 0;
+
+    if (render_particle_spacing <= 0.f)
+        return 0;
+
+    const double source = std::max(source_spacing, 1e-12);
+    const double target = std::max(static_cast<double>(render_particle_spacing), 1e-12);
+    const double ratio = source / target;
+    const double estimate = static_cast<double>(num_fluid_markers) * ratio * ratio * ratio;
+
+    if (!std::isfinite(estimate) || estimate <= 1.0)
+        return 1;
+
+    const double max_size = static_cast<double>(std::numeric_limits<size_t>::max());
+    if (estimate >= max_size)
+        return std::numeric_limits<size_t>::max();
+
+    return std::max<size_t>(1, static_cast<size_t>(estimate + 0.5));
+}
+
+}  // namespace
+#endif
 
 ChOptixEngine::ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections, bool verbose, bool debug)
     : m_verbose(verbose), m_debug(debug), m_deviceId(device_id), m_recursions(max_scene_reflections), m_sceneThread() {
@@ -572,7 +603,10 @@ void ChOptixEngine::AddFsiSphVisualization() {
             }
         }
 
-        m_geometry->AddFsiSphCloud(source.id, view.num_fluid_markers, d_vertices, d_indices, shapes, mat_ids, source.options.sprite_position_jitter);
+        const size_t render_count = EstimateFsiSphRenderCount(
+            view.num_fluid_markers, source.system->GetInitialSpacing(), source.options.render_particle_spacing);
+        m_geometry->AddFsiSphCloud(source.id, render_count, view.num_fluid_markers, d_vertices, d_indices, shapes, mat_ids,
+                                   source.options.render_particle_spacing, source.options.sprite_position_jitter);
     }
 }
 

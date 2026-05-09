@@ -59,7 +59,7 @@ TEST(ChParserURDF, URDF_package) {
         // If ROS is available, and the urdf_tutorial package exists, the filename should be resolved. It's going to be
         // absolute, so check that it ends with the expected filename and exists
         EXPECT_TRUE(right_tip_vis_filename.find("meshes/l_finger_tip.dae") != std::string::npos);
-        EXPECT_TRUE(filesystem::path(right_tip_vis_filename).exists());
+        EXPECT_TRUE(std::filesystem::path(right_tip_vis_filename).exists());
     } catch (const ament_index_cpp::PackageNotFoundError& e) {
         // If the urdf_tutorial package does not exist, the filename should not be resolved
         EXPECT_TRUE(right_tip_vis_filename == "package://urdf_tutorial/meshes/l_finger_tip.dae");

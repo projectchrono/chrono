@@ -20,8 +20,6 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::vsg3d;
@@ -30,7 +28,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> CreateMeshShape(const std::string& fi
     auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(filesystem::path(filename).stem());
+    trimesh_shape->SetName(std::filesystem::path(filename).stem().string());
 
     return trimesh_shape;
 }

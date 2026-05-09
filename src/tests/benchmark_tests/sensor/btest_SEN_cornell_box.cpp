@@ -24,7 +24,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -180,11 +179,8 @@ int main(int argc, char* argv[]) {
     // Create a sensor manager
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    unsigned int light_idx =
-        manager->scene->AddPointLight({0.0f, 0.0f, 3.8f}, {2.0f / 2, 1.8902f / 2, 1.7568f / 2}, 5.0f);
-    // unsigned int light_idx = manager->scene->AddRectangleLight(
-    //     {0.0f, 0.0f, 4.24f}, {50.f, 50.f, 50.f}, 8.0f, {2.0f, 0.0f, 0.0f}, {0.0f, -2.0f, 0.0f}, true
-    // );
+    ////unsigned int light_idx = manager->scene->AddPointLight({0.0f, 0.0f, 3.8f}, {2.0f / 2, 1.8902f / 2, 1.7568f / 2}, 5.0f);
+    ////unsigned int light_idx = manager->scene->AddRectangleLight({0.0f, 0.0f, 4.24f}, {50.f, 50.f, 50.f}, 8.0f, {2.0f, 0.0f, 0.0f}, {0.0f, -2.0f, 0.0f}, true);
 
     // -------------------------------------------------------
     // Create a camera and add it to the sensor manager
