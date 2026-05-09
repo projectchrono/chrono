@@ -747,13 +747,9 @@ void ChIterativeSolverMulticoreSMC::ComputeD() {
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
     SparseMatrixType& D_T = data_manager->host_data.D_T;
-    if (D_T.nonZeros() > 0) {
-        D_T.setZero();
-        D_T.makeCompressed();
-    }
 
-    D_T.resize(num_constraints, num_dof);
-    D_T.reserve(nnz_bilaterals);
+    D_T = SparseMatrixType(num_constraints, num_dof);
+    D_T.reserve(Eigen::VectorXi::Constant(num_constraints, nnz_bilaterals));
 
     data_manager->bilateral->GenerateSparsity();
     data_manager->bilateral->Build_D();

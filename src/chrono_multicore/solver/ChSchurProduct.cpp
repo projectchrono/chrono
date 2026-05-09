@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono_multicore/solver/ChSolverMulticore.h"
+#include "chrono_thirdparty/rapidjson/reader.h"
 
 using namespace chrono;
 

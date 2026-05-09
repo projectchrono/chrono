@@ -202,19 +202,7 @@ void ChConstraintBilateral::GenerateSparsity() {
                     col2 = idA * 6;
                 }
 
-                D_b_T.insert(row, col1 + 0) = 1;
-                D_b_T.insert(row, col1 + 1) = 1;
-                D_b_T.insert(row, col1 + 2) = 1;
-                D_b_T.insert(row, col1 + 3) = 1;
-                D_b_T.insert(row, col1 + 4) = 1;
-                D_b_T.insert(row, col1 + 5) = 1;
-
-                D_b_T.insert(row, col2 + 0) = 1;
-                D_b_T.insert(row, col2 + 1) = 1;
-                D_b_T.insert(row, col2 + 2) = 1;
-                D_b_T.insert(row, col2 + 3) = 1;
-                D_b_T.insert(row, col2 + 4) = 1;
-                D_b_T.insert(row, col2 + 5) = 1;
+                D_b_T.reserve(Eigen::VectorXi::Constant(12, 1));
             } break;
 
             case BilateralType::SHAFT_SHAFT: {
@@ -231,8 +219,7 @@ void ChConstraintBilateral::GenerateSparsity() {
                     col2 = data_manager->num_rigid_bodies * 6 + idA;
                 }
 
-                D_b_T.insert(row, col1) = 1;
-                D_b_T.insert(row, col2) = 1;
+                D_b_T.reserve(Eigen::VectorXi::Constant(2, 1));
             } break;
 
             case BilateralType::SHAFT_BODY: {
@@ -244,14 +231,7 @@ void ChConstraintBilateral::GenerateSparsity() {
                 col1 = idB * 6;
                 col2 = data_manager->num_rigid_bodies * 6 + idA;
 
-                D_b_T.insert(row, col1 + 0) = 1;
-                D_b_T.insert(row, col1 + 1) = 1;
-                D_b_T.insert(row, col1 + 2) = 1;
-                D_b_T.insert(row, col1 + 3) = 1;
-                D_b_T.insert(row, col1 + 4) = 1;
-                D_b_T.insert(row, col1 + 5) = 1;
-
-                D_b_T.insert(row, col2) = 1;
+                D_b_T.reserve(Eigen::VectorXi::Constant(7, 1));
             } break;
 
             case BilateralType::SHAFT_SHAFT_SHAFT: {
@@ -266,9 +246,7 @@ void ChConstraintBilateral::GenerateSparsity() {
                 col2 = data_manager->num_rigid_bodies * 6 + ids[1];
                 col3 = data_manager->num_rigid_bodies * 6 + ids[2];
 
-                D_b_T.insert(row, col1) = 1;
-                D_b_T.insert(row, col2) = 1;
-                D_b_T.insert(row, col3) = 1;
+                D_b_T.reserve(Eigen::VectorXi::Constant(3, 1));
             } break;
 
             case BilateralType::SHAFT_SHAFT_BODY: {
@@ -286,15 +264,7 @@ void ChConstraintBilateral::GenerateSparsity() {
                     col3 = data_manager->num_rigid_bodies * 6 + idA;
                 }
 
-                D_b_T.insert(row, col1 + 0) = 1;
-                D_b_T.insert(row, col1 + 1) = 1;
-                D_b_T.insert(row, col1 + 2) = 1;
-                D_b_T.insert(row, col1 + 3) = 1;
-                D_b_T.insert(row, col1 + 4) = 1;
-                D_b_T.insert(row, col1 + 5) = 1;
-
-                D_b_T.insert(row, col2) = 1;
-                D_b_T.insert(row, col3) = 1;
+                D_b_T.reserve(Eigen::VectorXi::Constant(8, 1));
             } break;
         }
     }

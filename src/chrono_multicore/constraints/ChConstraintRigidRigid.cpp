@@ -519,29 +519,30 @@ void ChConstraintRigidRigid::GenerateSparsity() {
             const vec2& body_id = ids[index];
             int row = index;
             int off = 3 * num_rigid_contacts;
-            D_T.insert(off + row * 3 + 0, body_id.x * 6 + 3) = 0;
-            D_T.insert(off + row * 3 + 0, body_id.x * 6 + 4) = 0;
-            D_T.insert(off + row * 3 + 0, body_id.x * 6 + 5) = 0;
+            D_T.reserve(Eigen::VectorXi::Constant(18, 0));
+            // D_T.insert(off + row * 3 + 0, body_id.x * 6 + 3) = 0;
+            // D_T.insert(off + row * 3 + 0, body_id.x * 6 + 4) = 0;
+            // D_T.insert(off + row * 3 + 0, body_id.x * 6 + 5) = 0;
 
-            D_T.insert(off + row * 3 + 0, body_id.y * 6 + 3) = 0;
-            D_T.insert(off + row * 3 + 0, body_id.y * 6 + 4) = 0;
-            D_T.insert(off + row * 3 + 0, body_id.y * 6 + 5) = 0;
+            // D_T.insert(off + row * 3 + 0, body_id.y * 6 + 3) = 0;
+            // D_T.insert(off + row * 3 + 0, body_id.y * 6 + 4) = 0;
+            // D_T.insert(off + row * 3 + 0, body_id.y * 6 + 5) = 0;
 
-            D_T.insert(off + row * 3 + 1, body_id.x * 6 + 3) = 0;
-            D_T.insert(off + row * 3 + 1, body_id.x * 6 + 4) = 0;
-            D_T.insert(off + row * 3 + 1, body_id.x * 6 + 5) = 0;
+            // D_T.insert(off + row * 3 + 1, body_id.x * 6 + 3) = 0;
+            // D_T.insert(off + row * 3 + 1, body_id.x * 6 + 4) = 0;
+            // D_T.insert(off + row * 3 + 1, body_id.x * 6 + 5) = 0;
 
-            D_T.insert(off + row * 3 + 1, body_id.y * 6 + 3) = 0;
-            D_T.insert(off + row * 3 + 1, body_id.y * 6 + 4) = 0;
-            D_T.insert(off + row * 3 + 1, body_id.y * 6 + 5) = 0;
+            // D_T.insert(off + row * 3 + 1, body_id.y * 6 + 3) = 0;
+            // D_T.insert(off + row * 3 + 1, body_id.y * 6 + 4) = 0;
+            // D_T.insert(off + row * 3 + 1, body_id.y * 6 + 5) = 0;
 
-            D_T.insert(off + row * 3 + 2, body_id.x * 6 + 3) = 0;
-            D_T.insert(off + row * 3 + 2, body_id.x * 6 + 4) = 0;
-            D_T.insert(off + row * 3 + 2, body_id.x * 6 + 5) = 0;
+            // D_T.insert(off + row * 3 + 2, body_id.x * 6 + 3) = 0;
+            // D_T.insert(off + row * 3 + 2, body_id.x * 6 + 4) = 0;
+            // D_T.insert(off + row * 3 + 2, body_id.x * 6 + 5) = 0;
 
-            D_T.insert(off + row * 3 + 2, body_id.y * 6 + 3) = 0;
-            D_T.insert(off + row * 3 + 2, body_id.y * 6 + 4) = 0;
-            D_T.insert(off + row * 3 + 2, body_id.y * 6 + 5) = 0;
+            // D_T.insert(off + row * 3 + 2, body_id.y * 6 + 3) = 0;
+            // D_T.insert(off + row * 3 + 2, body_id.y * 6 + 4) = 0;
+            // D_T.insert(off + row * 3 + 2, body_id.y * 6 + 5) = 0;
         }
     }
 }

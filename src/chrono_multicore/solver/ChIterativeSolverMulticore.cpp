@@ -83,7 +83,7 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
     }
 
     auto set = [&](int r, int c, real val) {
-        if (needs_build) M_inv.insert(r, c) = val;
+        if (needs_build) M_inv.insert(r, c)   = val;
         else             M_inv.coeffRef(r, c) = val;
     };
 
@@ -143,8 +143,8 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
     }
 
     auto set = [&](int r, int c, real val) {
-        if (needs_build) M.insert(r, c) = val;
-        else M.coeffRef(r, c) = val;
+        if (needs_build) M.insert(r, c)   = val;
+        else             M.coeffRef(r, c) = val;
     };
 
     for (int i = 0; i < (signed)num_bodies; i++) {
@@ -191,12 +191,12 @@ void ChIterativeSolverMulticore::PerformStabilization() {
         const VectorType R_b = R_full.segment(num_unilaterals, num_bilaterals);
         VectorType gamma_b = gamma.segment(num_unilaterals, num_bilaterals);
 
-        data_manager->measures.solver.total_iteration += bilateral_solver->Solve(SchurProductBilateral,                                  //
-                                                                                 ProjectNone,                                            //
-                                                                                 data_manager->settings.solver.max_iteration_bilateral,  //
-                                                                                 num_bilaterals,                                         //
-                                                                                 R_b,                                                    //
-                                                                                 gamma_b);                                               //
+        data_manager->measures.solver.total_iteration += bilateral_solver->Solve(SchurProductBilateral,
+                                                                                 ProjectNone,
+                                                                                 data_manager->settings.solver.max_iteration_bilateral,
+                                                                                 num_bilaterals,
+                                                                                 R_b,
+                                                                                 gamma_b);
         gamma.segment(num_unilaterals, num_bilaterals) = gamma_b;
     }
 
