@@ -91,23 +91,25 @@ CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
 
 #ifdef CHRONO_FSI_SPH
 CH_SENSOR_API int ChSensorManager::AttachFsiSphSystem(std::shared_ptr<chrono::fsi::sph::ChFsiFluidSystemSPH> sys, const ChFsiSphRenderOptions& options) {
-    if (!sys) {
-        cerr << "WARNING: Ignoring null Chrono::FSI::SPH system render source\n";
-        return -1;
-    }
-
-    int handle = scene->AddFsiSphSystem(sys, options);
+    int handle = -1;
+    #ifdef CHRONO_HAS_OPTIX
+    handle = scene->AddFsiSphSystem(sys, options);
     ReconstructScenes();
+    #endif
     return handle;
 }
 
 CH_SENSOR_API void ChSensorManager::DetachFsiSphSystem(int handle) {
+    #ifdef CHRONO_HAS_OPTIX
     scene->RemoveFsiSphSystem(handle);
+    #endif
     ReconstructScenes();
 }
 
 CH_SENSOR_API void ChSensorManager::ClearFsiSphSystems() {
+    #ifdef CHRONO_HAS_OPTIX
     scene->ClearFsiSphSystems();
+    #endif
     ReconstructScenes();
 }
 #endif

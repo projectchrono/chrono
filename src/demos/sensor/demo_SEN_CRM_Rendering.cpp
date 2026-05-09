@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Load regolith meshes
-    std::string mesh_name_prefix = "sensor/geometries/regolith/particle_";
+    std::string mesh_name_prefix = "data/models/regolith/particle_";
     for (int i = 1; i <= num_meshes; i++) {
         auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile(mesh_name_prefix + std::to_string(i) + ".obj"), false, true);

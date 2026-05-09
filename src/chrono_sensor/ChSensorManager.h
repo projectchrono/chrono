@@ -28,9 +28,10 @@
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/optix/ChOptixEngine.h"
     #include "chrono_sensor/optix/scene/ChScene.h"
-    #ifdef CHRONO_FSI_SPH
-        #include "chrono_sensor/ChFsiSphRender.h"
-    #endif
+#endif
+
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_sensor/ChFsiSphRender.h"
 #endif
 
 #include <fstream>
