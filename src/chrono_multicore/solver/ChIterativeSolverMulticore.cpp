@@ -118,7 +118,7 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
     data_manager->node_container->ComputeInvMass(m + (int)num_motors);
     if (needs_build) M_inv.makeCompressed();
 
-    M_invk = v + M_inv * hf;
+    M_invk.noalias() = v + M_inv * hf;
 }
 
 void ChIterativeSolverMulticore::ComputeMassMatrix() {

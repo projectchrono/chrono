@@ -165,5 +165,5 @@ void ChSchurProductBilateral::Setup(ChMulticoreDataManager* data_container_) {
 }
 
 void ChSchurProductBilateral::operator()(const VectorType& x, VectorType& output) {
-    output = NschurB * x;
+    output.noalias() = NschurB * x;
 }

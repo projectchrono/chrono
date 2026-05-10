@@ -170,6 +170,8 @@ endif()
 
 target_compile_definitions(Chrono_multicore PRIVATE CH_API_COMPILE_MULTICORE)
 target_compile_definitions(Chrono_multicore PRIVATE BT_THREADSAFE)
+# Prevent Eigen from spawning OpenMP threads inside Chrono's OpenMP regions
+target_compile_definitions(Chrono_multicore PRIVATE EIGEN_DONT_PARALLELIZE)
 
 # ----- Configure Thrust -----
 target_compile_definitions(Chrono_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")

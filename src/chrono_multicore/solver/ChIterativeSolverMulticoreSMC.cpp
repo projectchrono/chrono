@@ -778,7 +778,7 @@ void ChIterativeSolverMulticoreSMC::ComputeR() {
     data_manager->host_data.b.setZero();
     data_manager->bilateral->Build_b();
 
-    data_manager->host_data.R_full =
+    data_manager->host_data.R_full.noalias() =
         -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
 }
 
@@ -861,7 +861,7 @@ void ChIterativeSolverMulticoreSMC::ComputeImpulses() {
 
     if (data_manager->num_constraints > 0) {
         ConstSubVectorType gamma_b = gamma.segment(num_unilaterals, num_bilaterals);
-        v = M_invk + data_manager->host_data.M_invD * gamma_b;
+        v.noalias() = M_invk + data_manager->host_data.M_invD * gamma_b;
     } else {
         v = M_invk;
     }

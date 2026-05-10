@@ -78,7 +78,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
 
     if (data_manager->num_constraints > 0) {
         // Right-hand side should be updated with latest velocity after pre-solve
-        data_manager->host_data.R_full =
+        data_manager->host_data.R_full.noalias() =
             -data_manager->host_data.b - data_manager->host_data.D_T * (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
     }
     SchurProductFull.Setup(data_manager);

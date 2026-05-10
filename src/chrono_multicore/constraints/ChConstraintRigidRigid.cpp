@@ -331,7 +331,7 @@ void ChConstraintRigidRigid::Build_s() {
 
     const SparseMatrixType& M_invD = data_manager->host_data.M_invD;
 
-    v_new = M_invk + M_invD * gamma;
+    v_new.noalias() = M_invk + M_invD * gamma;
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_rigid_contacts; index++) {
@@ -520,29 +520,6 @@ void ChConstraintRigidRigid::GenerateSparsity() {
             int row = index;
             int off = 3 * num_rigid_contacts;
             D_T.reserve(Eigen::VectorXi::Constant(18, 0));
-            // D_T.insert(off + row * 3 + 0, body_id.x * 6 + 3) = 0;
-            // D_T.insert(off + row * 3 + 0, body_id.x * 6 + 4) = 0;
-            // D_T.insert(off + row * 3 + 0, body_id.x * 6 + 5) = 0;
-
-            // D_T.insert(off + row * 3 + 0, body_id.y * 6 + 3) = 0;
-            // D_T.insert(off + row * 3 + 0, body_id.y * 6 + 4) = 0;
-            // D_T.insert(off + row * 3 + 0, body_id.y * 6 + 5) = 0;
-
-            // D_T.insert(off + row * 3 + 1, body_id.x * 6 + 3) = 0;
-            // D_T.insert(off + row * 3 + 1, body_id.x * 6 + 4) = 0;
-            // D_T.insert(off + row * 3 + 1, body_id.x * 6 + 5) = 0;
-
-            // D_T.insert(off + row * 3 + 1, body_id.y * 6 + 3) = 0;
-            // D_T.insert(off + row * 3 + 1, body_id.y * 6 + 4) = 0;
-            // D_T.insert(off + row * 3 + 1, body_id.y * 6 + 5) = 0;
-
-            // D_T.insert(off + row * 3 + 2, body_id.x * 6 + 3) = 0;
-            // D_T.insert(off + row * 3 + 2, body_id.x * 6 + 4) = 0;
-            // D_T.insert(off + row * 3 + 2, body_id.x * 6 + 5) = 0;
-
-            // D_T.insert(off + row * 3 + 2, body_id.y * 6 + 3) = 0;
-            // D_T.insert(off + row * 3 + 2, body_id.y * 6 + 4) = 0;
-            // D_T.insert(off + row * 3 + 2, body_id.y * 6 + 5) = 0;
         }
     }
 }

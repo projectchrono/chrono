@@ -34,7 +34,6 @@ using namespace chrono;
 void ChConstraintBilateral::Build_b() {
     std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraints();
 
-#pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
@@ -43,10 +42,7 @@ void ChConstraintBilateral::Build_b() {
 }
 
 void ChConstraintBilateral::Build_E() {
-#pragma omp parallel for
-    for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
-        data_manager->host_data.E[index + data_manager->num_unilaterals] = 0;
-    }
+    data_manager->host_data.E.segment(data_manager->num_unilaterals, data_manager->num_bilaterals).setZero();
 }
 
 void ChConstraintBilateral::Build_D() {

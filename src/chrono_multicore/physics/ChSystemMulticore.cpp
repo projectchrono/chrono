@@ -131,8 +131,10 @@ bool ChSystemMulticore::AdvanceDynamics(bool do_collision) {
     custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
 
-#pragma omp parallel for
-    for (int i = 0; i < assembly.bodylist.size(); i++) {
+    const real step = (real)GetStep();
+
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < (signed)assembly.bodylist.size(); i++) {
         if (data_manager->host_data.active_rigid[i] != 0) {
             auto& body = assembly.bodylist[i];
             body->Variables().State()(0) = velocities[i * 6 + 0];
@@ -142,15 +144,28 @@ bool ChSystemMulticore::AdvanceDynamics(bool do_collision) {
             body->Variables().State()(4) = velocities[i * 6 + 4];
             body->Variables().State()(5) = velocities[i * 6 + 5];
 
-            body->VariablesQbIncrementPosition(GetStep());
-            body->VariablesQbSetSpeed(GetStep());
+            // Integrate pos/rot directly on host_data arrays (same algorithm as
+            // ChBody::VariablesQbIncrementPosition but on contiguous arrays).
+            const real3 vel_abs(velocities[i * 6 + 0], velocities[i * 6 + 1], velocities[i * 6 + 2]);
+            const real3 omega_loc(velocities[i * 6 + 3], velocities[i * 6 + 4], velocities[i * 6 + 5]);
 
+            pos_pointer[i] += step * vel_abs;
+
+            const real3 omega_abs = Rotate(omega_loc, rot_pointer[i]);
+            const real omega_len = Length(omega_abs);
+            if (omega_len > (real)1e-12) {
+                const quaternion dq = QuatFromAngleAxis(omega_len * step, omega_abs / omega_len);
+                rot_pointer[i] = Normalize(Mult(dq, rot_pointer[i]));
+            }
+
+            // Push integrated state to ChBody so downstream virtual calls see it.
+            body->SetPos(ChVector3d(pos_pointer[i].x, pos_pointer[i].y, pos_pointer[i].z));
+            body->SetRot(ChQuaternion<>(rot_pointer[i].w, rot_pointer[i].x,
+                                        rot_pointer[i].y, rot_pointer[i].z));
+
+            body->VariablesQbSetSpeed(step);
             body->Update(ch_time, UpdateFlags::UPDATE_ALL);
-
-            // update the position and rotation vectors
-            pos_pointer[i] = (real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z()));
-            rot_pointer[i] =
-                (quaternion(body->GetRot().e0(), body->GetRot().e1(), body->GetRot().e2(), body->GetRot().e3()));
+            // pos_pointer/rot_pointer already hold the integrated state; no readback needed.
         }
     }
 
@@ -334,8 +349,10 @@ void ChSystemMulticore::UpdateRigidBodies() {
     custom_vector<char>& active = data_manager->host_data.active_rigid;
     custom_vector<char>& collide = data_manager->host_data.collide_rigid;
 
-#pragma omp parallel for
-    for (int i = 0; i < assembly.bodylist.size(); i++) {
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < (signed)assembly.bodylist.size(); i++) {
+        if (i + 4 < (signed)assembly.bodylist.size())
+            __builtin_prefetch(assembly.bodylist[i + 4].get(), 0, 1);
         auto& body = assembly.bodylist[i];
 
         body->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);

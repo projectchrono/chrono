@@ -239,12 +239,12 @@ void ComplianceRigidParticleBoundary(const real contact_mu,
 
 CH_MULTICORE_API
 void CorrectionRigidParticleBoundary(const real contact_mu,
-                                  const real contact_cohesion,
-                                  const real alpha,
-                                  const real contact_recovery_speed,
-                                  const uint num_particles,
-                                  const uint start_boundary,
-                                  ChMulticoreDataManager* data_manager) {
+                                     const real contact_cohesion,
+                                     const real alpha,
+                                     const real contact_recovery_speed,
+                                     const uint num_particles,
+                                     const uint start_boundary,
+                                     ChMulticoreDataManager* data_manager) {
     real inv_hpa = 1 / (data_manager->settings.step_size + alpha);
 
     VectorType& b = data_manager->host_data.b;
