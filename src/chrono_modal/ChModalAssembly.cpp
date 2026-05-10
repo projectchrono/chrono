@@ -1755,6 +1755,10 @@ void ChModalAssembly::Setup() {
     // For the "internal" items:
     //
 
+    unsigned int offset_x_for_internals = this->offset_x + m_num_coords_pos_boundary;
+    unsigned int offset_w_for_internals = this->offset_w + m_num_coords_vel_boundary;
+    unsigned int offset_L_for_internals = this->offset_L + m_num_constr_boundary;
+
     for (auto& body : internal_bodylist) {
         if (body->IsFixed()) {
             // throw std::runtime_error("Cannot use a fixed body as internal");
@@ -1763,9 +1767,9 @@ void ChModalAssembly::Setup() {
         } else {
             m_num_bodies_internal++;
 
-            body->SetOffset_x(this->offset_x + m_num_coords_pos_boundary + m_num_coords_pos_internal);
-            body->SetOffset_w(this->offset_w + m_num_coords_vel_boundary + m_num_coords_vel_internal);
-            body->SetOffset_L(this->offset_L + m_num_constr_boundary + m_num_constr_internal);
+            body->SetOffset_x(offset_x_for_internals + m_num_coords_pos_internal);
+            body->SetOffset_w(offset_w_for_internals + m_num_coords_vel_internal);
+            body->SetOffset_L(offset_L_for_internals + m_num_constr_internal);
 
             body->Setup();  // currently, no-op
 
@@ -1779,9 +1783,9 @@ void ChModalAssembly::Setup() {
         if (link->IsActive()) {
             m_num_links_internal++;
 
-            link->SetOffset_x(this->offset_x + m_num_coords_pos_boundary + m_num_coords_pos_internal);
-            link->SetOffset_w(this->offset_w + m_num_coords_vel_boundary + m_num_coords_vel_internal);
-            link->SetOffset_L(this->offset_L + m_num_constr_boundary + m_num_constr_internal);
+            link->SetOffset_x(offset_x_for_internals + m_num_coords_pos_internal);
+            link->SetOffset_w(offset_w_for_internals + m_num_coords_vel_internal);
+            link->SetOffset_L(offset_L_for_internals + m_num_constr_internal);
 
             link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
@@ -1797,9 +1801,9 @@ void ChModalAssembly::Setup() {
     for (auto& mesh : internal_meshlist) {
         m_num_meshes_internal++;
 
-        mesh->SetOffset_x(this->offset_x + m_num_coords_pos_boundary + m_num_coords_pos_internal);
-        mesh->SetOffset_w(this->offset_w + m_num_coords_vel_boundary + m_num_coords_vel_internal);
-        mesh->SetOffset_L(this->offset_L + m_num_constr_boundary + m_num_constr_internal);
+        mesh->SetOffset_x(offset_x_for_internals + m_num_coords_pos_internal);
+        mesh->SetOffset_w(offset_w_for_internals + m_num_coords_vel_internal);
+        mesh->SetOffset_L(offset_L_for_internals + m_num_constr_internal);
 
         mesh->Setup();  // compute DOFs and iteratively call Setup for child items
 
@@ -1814,9 +1818,9 @@ void ChModalAssembly::Setup() {
     for (auto& item : internal_otherphysicslist) {
         m_num_otherphysicsitems_internal++;
 
-        item->SetOffset_x(this->offset_x + m_num_coords_pos_boundary + m_num_coords_pos_internal);
-        item->SetOffset_w(this->offset_w + m_num_coords_vel_boundary + m_num_coords_vel_internal);
-        item->SetOffset_L(this->offset_L + m_num_constr_boundary + m_num_constr_internal);
+        item->SetOffset_x(offset_x_for_internals + m_num_coords_pos_internal);
+        item->SetOffset_w(offset_w_for_internals + m_num_coords_vel_internal);
+        item->SetOffset_L(offset_L_for_internals + m_num_constr_internal);
 
         item->Setup();
 
