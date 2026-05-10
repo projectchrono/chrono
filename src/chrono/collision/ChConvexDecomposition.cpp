@@ -440,5 +440,146 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(std::ostream& s
     }
 }
 
+// -----------------------------------------------------------------------------
+// ChConvexDecompositionVHACD
+// -----------------------------------------------------------------------------
+
+ChConvexDecompositionVHACD::ChConvexDecompositionVHACD() {
+    // Create VHACD interface
+    m_vhacd = VHACD::CreateVHACD();
+
+    // Default settings
+    m_params.m_maxConvexHulls = 512;
+    m_params.m_maxNumVerticesPerCH = 64;
+    m_params.m_resolution = 1000;
+    m_params.m_minimumVolumePercentErrorAllowed = 1.0;
+    m_params.m_shrinkWrap = true;
+    m_params.m_fillMode = VHACD::FillMode::FLOOD_FILL;
+}
+
+ChConvexDecompositionVHACD::~ChConvexDecompositionVHACD() {
+    m_vhacd->Clean();
+    m_vhacd->Release();
+}
+
+void ChConvexDecompositionVHACD::Reset() {
+    m_vhacd->Clean();
+    m_points.clear();
+    m_indices.clear();
+}
+
+bool ChConvexDecompositionVHACD::AddTriangle(const ChVector3d& v1, const ChVector3d& v2, const ChVector3d& v3) {
+    uint32_t lastpoint = static_cast<uint32_t>(m_points.size() / 3);
+    m_points.push_back(v1.x());
+    m_points.push_back(v1.y());
+    m_points.push_back(v1.z());
+    //
+    m_points.push_back(v2.x());
+    m_points.push_back(v2.y());
+    m_points.push_back(v2.z());
+    //
+    m_points.push_back(v3.x());
+    m_points.push_back(v3.y());
+    m_points.push_back(v3.z());
+
+    m_indices.push_back(lastpoint);
+    m_indices.push_back(lastpoint + 1);
+    m_indices.push_back(lastpoint + 2);
+
+    return true;
+}
+
+void ChConvexDecompositionVHACD::SetParameters(unsigned int max_chull_count,
+                                               unsigned int max_verts_per_chull,
+                                               unsigned int voxel_resolution,
+                                               double min_volume_perc_error,
+                                               unsigned int max_recursion_depth,
+                                               bool shrink_wrap) {
+    m_params.m_maxConvexHulls = max_chull_count;
+    m_params.m_maxNumVerticesPerCH = max_verts_per_chull;
+    m_params.m_resolution = voxel_resolution;
+    m_params.m_minimumVolumePercentErrorAllowed = min_volume_perc_error;
+    m_params.m_maxRecursionDepth = max_recursion_depth;
+    m_params.m_shrinkWrap = shrink_wrap;
+    m_params.m_fillMode = VHACD::FillMode::FLOOD_FILL;
+}
+
+unsigned int ChConvexDecompositionVHACD::ComputeConvexDecomposition() {
+    if (m_points.empty() || m_indices.empty())
+        return 0;
+
+    // TODO: preprocess to remove repeated vertices (?)
+
+    bool success = m_vhacd->Compute(m_points.data(), static_cast<uint32_t>(m_points.size() / 3), m_indices.data(), static_cast<uint32_t>(m_indices.size() / 3), m_params);
+
+    int hull_count = (success) ? m_vhacd->GetNConvexHulls() : 0.0;
+    return hull_count;
+}
+
+unsigned int ChConvexDecompositionVHACD::GetHullCount() {
+    return m_vhacd->GetNConvexHulls();
+}
+
+bool ChConvexDecompositionVHACD::GetConvexHullResult(unsigned int hull_index, ChTriangleMesh& convextrimesh) {
+    if (hull_index >= m_vhacd->GetNConvexHulls())
+        return false;
+
+    VHACD::IVHACD::ConvexHull hull;
+    bool success = m_vhacd->GetConvexHull(hull_index, hull);
+    if (!success)
+        return false;
+
+    convextrimesh.Clear();
+    for (const auto& tri : hull.m_triangles) {
+        ChVector3d vA(hull.m_points[tri.mI0].mX, hull.m_points[tri.mI0].mY, hull.m_points[tri.mI0].mZ);
+        ChVector3d vB(hull.m_points[tri.mI1].mX, hull.m_points[tri.mI1].mY, hull.m_points[tri.mI1].mZ);
+        ChVector3d vC(hull.m_points[tri.mI2].mX, hull.m_points[tri.mI2].mY, hull.m_points[tri.mI2].mZ);
+        convextrimesh.AddTriangle(vA, vB, vC);
+    }
+
+    return true;
+}
+
+bool ChConvexDecompositionVHACD::GetConvexHullResult(unsigned int hull_index, std::vector<ChVector3d>& convexhull) {
+    if (hull_index >= m_vhacd->GetNConvexHulls())
+        return false;
+
+    VHACD::IVHACD::ConvexHull hull;
+    bool success = m_vhacd->GetConvexHull(hull_index, hull);
+    if (!success)
+        return false;
+
+    convexhull.clear(); // clear, for safety
+    convexhull.reserve(3 * hull.m_triangles.size());
+    for (const auto& tri : hull.m_triangles) {
+        convexhull.emplace_back(hull.m_points[tri.mI0].mX, hull.m_points[tri.mI0].mY, hull.m_points[tri.mI0].mZ);
+        convexhull.emplace_back(hull.m_points[tri.mI1].mX, hull.m_points[tri.mI1].mY, hull.m_points[tri.mI1].mZ);
+        convexhull.emplace_back(hull.m_points[tri.mI2].mX, hull.m_points[tri.mI2].mY, hull.m_points[tri.mI2].mZ);
+    }
+
+    return true;
+}
+
+void ChConvexDecompositionVHACD::WriteConvexHullsAsWavefrontObj(std::ostream& stream) {
+    stream << std::setprecision(9) << "# Chrono convex hulls decomposition -- Wavefront .obj format\n\n";
+
+    uint32_t offset = 0;
+    for (unsigned int hull_index = 0; hull_index < GetHullCount(); ++hull_index) {
+        VHACD::IVHACD::ConvexHull hull;
+        m_vhacd->GetConvexHull(hull_index, hull);
+        stream << "g hull_" << hull_index << "\n";
+
+        // Vertices
+        for (const auto& vert : hull.m_points) {
+            stream << "v " << vert.mX << " " << vert.mY << " " << vert.mZ << "\n";
+        }
+        // Triangles
+        for (const auto& tri : hull.m_triangles) {
+            stream << "f " << tri.mI0 + offset + 1 << " " << tri.mI1 + offset + 1 << " " << tri.mI2 + offset + 1 << "\n";
+        }
+        offset += static_cast<uint32_t>(hull.m_points.size());
+        stream << "\n";
+    }
+}
 
 }  // end namespace chrono
