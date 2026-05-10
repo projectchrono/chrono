@@ -185,13 +185,13 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Return false if some edge has more than 2 neighboring triangles.
     bool ComputeWingedEdges(std::map<std::pair<int, int>, std::pair<int, int>>& winged_edges, bool allow_single_wing = true) const;
 
-    /// Connect overlapping vertices.
-    /// This can be used to attempt to repair a mesh with 'open edges' to transform it into a watertight mesh.
-    /// Say, if a cube is modeled with 6 faces with 4 distinct vertices each, it might display properly, but for
-    /// some algorithms (e.g. collision detection) topological information might be needed, hence adjacent faces must be connected.
+    /// Connect overlapping vertices closer than a prescribed threshold.
+    /// This can be used to attempt to repair a mesh with 'open edges' and transform it into a watertight mesh with connected adjacent faces.
+    /// Example: merge a disconnected cube modeled with 12 individual triangles (3 vertices each) into a connected mesh with 8 unique vertices shared by 12 triangles;
+    /// this might be needed by some algorithms (e.g. collision detection) to exploit topological information.
+    /// Note: normal, color, UV, and material indices are NOT updated.
     /// Return the number of merged vertices.
-    int RepairDuplicateVertices(double tolerance = 1e-18  ///< ignore vertices closer than this value
-    );
+    unsigned int RepairDuplicateVertices(double tolerance);
 
     /// Offset the mesh, by a specified value, orthogonally to the faces.
     /// The offset can be inward or outward.

@@ -71,7 +71,7 @@ ChTriangleMeshConnected::~ChTriangleMeshConnected() {
 }
 
 void ChTriangleMeshConnected::AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) {
-    int base_v = (int)m_vertices.size();
+    int base_v = static_cast<int>(m_vertices.size());
     m_vertices.push_back(vertex0);
     m_vertices.push_back(vertex1);
     m_vertices.push_back(vertex2);
@@ -79,7 +79,7 @@ void ChTriangleMeshConnected::AddTriangle(const ChVector3d& vertex0, const ChVec
 }
 
 void ChTriangleMeshConnected::AddTriangle(const ChTriangle& triangle) {
-    int base_v = (int)m_vertices.size();
+    int base_v = static_cast<int>(m_vertices.size());
     m_vertices.push_back(triangle.p1);
     m_vertices.push_back(triangle.p2);
     m_vertices.push_back(triangle.p3);
@@ -380,7 +380,7 @@ bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load
 }
 
 bool ChTriangleMeshConnected::WriteSTL(const std::string& filename, const ChTriangleMeshConnected& trimesh) {
-    // STL file format (Wikipedia)
+    // STL file format
     // ----------------------------------------------------
     // UINT8[80]        – Header               - 80 bytes
     // UINT32           – Number of triangles  - 04 bytes
@@ -505,7 +505,6 @@ bool ChTriangleMeshConnected::WriteWavefront(const std::string& filename, const 
     return true;
 }
 
-/// Utility function for merging multiple meshes.
 ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMeshConnected>& meshes) {
     ChTriangleMeshConnected trimesh;
     auto& vertices = trimesh.m_vertices;
@@ -702,25 +701,26 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
     return !pathological_edges;
 }
 
-int ChTriangleMeshConnected::RepairDuplicateVertices(double tolerance) {
-    int nmerged = 0;
+unsigned int ChTriangleMeshConnected::RepairDuplicateVertices(double tolerance) {
+    unsigned int num_merged = 0;
     std::vector<ChVector3d> processed_verts;
     std::vector<int> new_indexes(m_vertices.size());
+    const double dist_sq = tolerance * tolerance;
 
-    // merge vertices
+    // Merge vertices
     for (int i = 0; i < m_vertices.size(); ++i) {
         bool tomerge = false;
         for (int j = 0; j < processed_verts.size(); ++j) {
-            if ((m_vertices[i] - processed_verts[j]).Length2() < tolerance) {
+            if ((m_vertices[i] - processed_verts[j]).Length2() < dist_sq) {
                 tomerge = true;
-                ++nmerged;
+                ++num_merged;
                 new_indexes[i] = j;
                 break;
             }
         }
         if (!tomerge) {
             processed_verts.push_back(m_vertices[i]);
-            new_indexes[i] = (int)processed_verts.size() - 1;
+            new_indexes[i] = static_cast<int>(processed_verts.size()) - 1;
         }
     }
 
@@ -734,13 +734,12 @@ int ChTriangleMeshConnected::RepairDuplicateVertices(double tolerance) {
         m_face_v_indices[i].z() = new_indexes[m_face_v_indices[i].z()];
     }
 
-    return nmerged;
+    return num_merged;
 }
 
 // Offset algorithm based on:
 // " A 3D surface offset method for STL-format models"
 //   Xiuzhi Qu and Brent Stucker
-
 bool ChTriangleMeshConnected::MakeOffset(double moffset) {
     std::map<int, std::vector<int>> map_vertex_triangles;
     std::vector<ChVector3d> voffsets(m_vertices.size());
@@ -803,8 +802,6 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
     return true;
 }
 
-// Return the indexes of the two vertices of the specified triangle edge.
-// If unique = true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
 std::pair<int, int> ChTriangleMeshConnected::GetTriangleEdgeIndices(const ChVector3i& face_indices,  // indices of a triangular face
                                                                     int nedge,                       // number of edge: 0, 1, 2
                                                                     bool unique                      // swap?
@@ -857,8 +854,6 @@ static bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int
     }
 }
 
-// Split an edge by inserting a point in the middle
-// It also updates uv buffer, normals buffer, etc. and recomputes neighboring map.
 bool ChTriangleMeshConnected::SplitEdge(int itA,                                              // triangle index,
                                         int itB,                                              // triangle index, -1 if not existing (means free edge on A)
                                         int neA,                                              // n.edge on tri A: 0,1,2
@@ -1051,10 +1046,6 @@ bool ChTriangleMeshConnected::SplitEdge(int itA,                                
 
     return true;
 }
-
-// Performs mesh refinement using Rivara LEPP long-edge bisection algorithm.
-// Based on "Multithread parallelization of Lepp-bisection algorithms"
-//    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473�488
 
 void ChTriangleMeshConnected::RefineMeshEdges(std::vector<int>& marked_tris,              ///< triangles to refine (aso surrounding triangles might be affected by refinements)
                                               double edge_maxlen,                         ///< maximum length of edge (small values give higher resolution)
