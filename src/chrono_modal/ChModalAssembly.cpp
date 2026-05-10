@@ -21,6 +21,8 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadsBody.h"
 
 namespace chrono {
 
@@ -2427,8 +2429,11 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
         // Update the external forces imposed on the internal nodes.
         // Note: the below code requires that the internal bodies and internal nodes are inserted in sequence.
         {
+            std::unordered_map<ChBody*, unsigned int> body_to_offset;
+
             unsigned int offset_loc = 0;
             for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
+                body_to_offset[internal_bodylist[ip].get()] = offset_loc;
                 const auto& wrench = internal_bodylist[ip]->GetAccumulatorWrench();
                 m_full_forces_internal.segment(offset_loc, 3) = wrench.force.eigen();
                 m_full_forces_internal.segment(offset_loc + 3, 3) = wrench.torque.eigen();
@@ -2450,6 +2455,52 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
                 }
             }
 #endif
+
+            for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
+                const auto& physicsitem = internal_otherphysicslist[ip];
+                if (auto loadcontainer = std::dynamic_pointer_cast<ChLoadContainer>(physicsitem)) {
+                    // Note that we cannot directly use loadcontainer->LoadIntLoadResidual_F(0, global_forces, 1.0) 
+                    // because it may scatter forces to connected bodies, nodes etc. whose offsets are still referred to the full system.
+                    // Moreover, some stiff loads generate tangent stiffness matrices, and if so, the modal assembly already
+                    // computes a corresponding reduced force vector as "K * local deformations", so adding forces also here would be redundant.
+                    // Anyway, we can handle at least NON-stiff loads on a per-case basis:
+                    for (auto& load : loadcontainer->GetLoadList()) {
+                        if (!load->IsStiff()) {
+                            if (auto bload = std::dynamic_pointer_cast<ChLoadBodyForce>(load)) {
+                                chrono::ChVectorN<double, 6> mQ;
+                                bload->ComputeQ(nullptr, nullptr);
+                                auto body = std::dynamic_pointer_cast<ChBody>(bload->loadable);
+                                auto boffset = body_to_offset.find(body.get());
+                                if (boffset != body_to_offset.end())
+                                    m_full_forces_internal.segment(boffset->second, 6) += bload->GetQ();
+                            }
+                            if (auto bload = std::dynamic_pointer_cast<ChLoadBodyTorque>(load)) {
+                                chrono::ChVectorN<double, 6> mQ;
+                                bload->ComputeQ(nullptr, nullptr);
+                                auto body = std::dynamic_pointer_cast<ChBody>(bload->loadable);
+                                auto boffset = body_to_offset.find(body.get());
+                                if (boffset != body_to_offset.end())
+                                    m_full_forces_internal.segment(boffset->second, 6) += bload->GetQ();
+                            }
+                            if (auto bload = std::dynamic_pointer_cast<ChLoadBodyBody>(load)) {
+                                chrono::ChVectorN<double, 12> mQ;
+                                bload->ComputeQ(nullptr, nullptr);
+                                auto bodyA = std::dynamic_pointer_cast<ChBody>(bload->GetBodyA());
+                                auto bodyB = std::dynamic_pointer_cast<ChBody>(bload->GetBodyB());
+                                auto boffsetA = body_to_offset.find(bodyA.get());
+                                auto boffsetB = body_to_offset.find(bodyB.get());
+                                if (boffsetA != body_to_offset.end())
+                                    m_full_forces_internal.segment(boffsetA->second, 6) += bload->GetQ().segment(0, 6);
+                                if (boffsetB != body_to_offset.end())
+                                    m_full_forces_internal.segment(boffsetB->second, 6) += bload->GetQ().segment(6, 6);
+                            }
+
+                        }
+                    }
+
+                }
+            }
+
         }
 
         // 4-
