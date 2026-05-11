@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

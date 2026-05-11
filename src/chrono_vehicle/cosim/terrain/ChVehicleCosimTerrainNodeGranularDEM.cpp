@@ -354,9 +354,9 @@ void ChVehicleCosimTerrainNodeGranularDEM::Construct() {
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector3d baricenter;
+        ChVector3d barycenter;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, barycenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetName("obstacle");
@@ -374,7 +374,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::Construct() {
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
+        trimesh_shape->SetName(std::filesystem::path(b.m_mesh_filename).stem().string());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);
@@ -420,7 +420,7 @@ void ChVehicleCosimTerrainNodeGranularDEM::Settle() {
 
     // Create subdirectory for output from settling simulation (if enabled)
     if (m_settling_output) {
-        if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/settling"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(m_node_out_dir + "/settling"))) {
             cout << "Error creating directory " << m_node_out_dir + "/settling" << endl;
             return;
         }

@@ -1,3 +1,7 @@
+if(NOT CH_ENABLE_MODULE_FEA)
+    return()
+endif()
+
 set(TESTS
     btest_FEA_ANCFshell
     btest_FEA_contact

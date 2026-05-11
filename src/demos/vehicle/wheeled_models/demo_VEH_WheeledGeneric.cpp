@@ -30,8 +30,6 @@
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
 using namespace chrono;

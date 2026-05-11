@@ -487,6 +487,7 @@ void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
 void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,
                                             ChVectorDynamic<>& Qc,
                                             const double c,
+                                            const double c_vel,  
                                             bool do_clamp,
                                             double recovery_clamp) {
     int cnt = 0;
@@ -504,7 +505,7 @@ void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,
     }
 }
 
-void ChLinkMateGeneric::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+void ChLinkMateGeneric::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     // NOT NEEDED BECAUSE NO RHEONOMIC TERM
 }
 

@@ -86,6 +86,7 @@ class ChApi ChObj {
     /// Note that no range check is performed.
     std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
 
+#ifdef CHRONO_FEA
     /// Add the specified FEA visualization object to the visualization model.
     /// If this object does not have a visual model, one is created.
     void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
@@ -93,6 +94,7 @@ class ChApi ChObj {
     /// Access the specified FEA visualization object in the visualization model (if any).
     /// Note that no range check is performed.
     std::shared_ptr<ChVisualShapeFEA> GetVisualShapeFEA(unsigned int i) const;
+#endif
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// If the visual model is cloned (for example for an object modeling a particle system), this function returns

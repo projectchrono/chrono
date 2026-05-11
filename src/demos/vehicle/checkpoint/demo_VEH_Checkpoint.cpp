@@ -45,8 +45,6 @@ using namespace chrono::vsg3d;
 using namespace chrono::postprocess;
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/vehicle/WheeledVehicleModels.h"
 #include "demos/SetChronoSolver.h"
 
@@ -297,7 +295,7 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         for (const auto& a : vehicle_1.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ExportCheckpoint(ChCheckpoint::Format::ASCII,
+                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
                                                    dir_1 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
@@ -309,14 +307,14 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
         for (const auto& a : vehicle_2.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ExportCheckpoint(ChCheckpoint::Format::ASCII,
+                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
                                                    dir_2 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
         }
     }
 
-    // Create the driver systems and initialize from checkpint files
+    // Create the driver systems and initialize from checkpoint files
     ChDriver driver_1(vehicle_1);
     ChDriver driver_2(vehicle_2);
     driver_1.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/driver_checkpoint.txt");
@@ -444,19 +442,19 @@ int main(int argc, char* argv[]) {
 
     // Create output directories
     std::string out_dir = GetChronoOutputPath() + "VEHICLE_CHECKPOINT";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     auto dir1 = out_dir + "/" + v1->ModelName();
-    if (!filesystem::create_directory(filesystem::path(dir1))) {
+    if (!CreateOutputDirectory(std::filesystem::path(dir1))) {
         cout << "Error creating directory " << dir1 << endl;
         return 1;
     }
 
     auto dir2 = out_dir + "/" + v2->ModelName();
-    if (!filesystem::create_directory(filesystem::path(dir2))) {
+    if (!CreateOutputDirectory(std::filesystem::path(dir2))) {
         cout << "Error creating directory " << dir2 << endl;
         return 1;
     }

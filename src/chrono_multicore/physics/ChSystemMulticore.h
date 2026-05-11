@@ -55,7 +55,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     ChSystemMulticore(const ChSystemMulticore& other);
     virtual ~ChSystemMulticore();
 
-    virtual bool AdvanceDynamics() override;
+    virtual bool AdvanceDynamics(bool do_collision = true) override;
     virtual void AddBody(std::shared_ptr<ChBody> body) override;
     virtual void AddShaft(std::shared_ptr<ChShaft> shaft) override;
     virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;
@@ -93,7 +93,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual unsigned int GetNumShafts() const override { return data_manager->num_shafts; }
 
     /// Gets the number of contacts.
-    virtual unsigned int GetNumContacts() override;
+    virtual unsigned int GetNumContacts() const override;
 
     /// Get the number of scalar constraints in the system.
     virtual unsigned int GetNumConstraints() override {

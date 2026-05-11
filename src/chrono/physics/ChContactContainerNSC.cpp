@@ -298,6 +298,7 @@ void ChContactContainerNSC::IntLoadResidual_CqL(const unsigned int off_L,
 void ChContactContainerNSC::IntLoadConstraint_C(const unsigned int off,
                                                 ChVectorDynamic<>& Qc,
                                                 const double c,
+                                                const double c_vel, 
                                                 bool do_clamp,
                                                 double recovery_clamp) {
     unsigned int coffset = 0;

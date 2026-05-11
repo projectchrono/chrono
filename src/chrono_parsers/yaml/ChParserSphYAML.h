@@ -18,8 +18,6 @@
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #include "chrono_parsers/yaml/ChParserCfdYAML.h"
 
-#include "chrono/assets/ChColormap.h"
-
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -219,7 +217,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     static fsi::sph::BCType ReadBoundaryConditionType(const YAML::Node& a);
 
     static ParticleColoringType ReadParticleColoringType(const YAML::Node& a);
-    static ChColormap::Type ReadColorMapType(const YAML::Node& a);
+
 #ifdef CHRONO_VSG
     static fsi::sph::MarkerPlanesVisibilityCallback::Mode ReadVisibilityMode(const YAML::Node& a);
 #endif

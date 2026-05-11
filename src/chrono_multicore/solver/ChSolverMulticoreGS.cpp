@@ -158,7 +158,7 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
         Project(ml_old.data());
         ml_old = (1.0 / gdiff) * (gamma - ml_old);
 
-        residual = Sqrt((double)(ml_old, ml_old));
+        residual = std::sqrt((ml_old, ml_old));
 
         AtIterationEnd(residual, objective_value);
 

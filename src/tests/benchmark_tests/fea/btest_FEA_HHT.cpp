@@ -31,8 +31,6 @@
     #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::fea;
 
@@ -237,7 +235,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     std::string out_dir = GetChronoOutputPath() + "FEA_TEST_HHT";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

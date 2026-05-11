@@ -194,21 +194,21 @@ void ChVehicleCosimBaseNode::SetOutDir(const std::string& dir_name, const std::s
     m_node_out_dir = dir_name + "/" + m_name + suffix;
 
     // Create node-specific output directory
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(m_node_out_dir))) {
         std::cout << "Error creating directory " << m_node_out_dir << std::endl;
         return;
     }
 
     // Create subdirectories for simulation and visualization outputs
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
+    if (!CreateOutputDirectory(std::filesystem::path(m_node_out_dir + "/simulation"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/simulation" << std::endl;
         return;
     }
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/visualization"))) {
+    if (!CreateOutputDirectory(std::filesystem::path(m_node_out_dir + "/visualization"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/visualization" << std::endl;
         return;
     }
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/images"))) {
+    if (!CreateOutputDirectory(std::filesystem::path(m_node_out_dir + "/images"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/images" << std::endl;
         return;
     }
@@ -386,7 +386,7 @@ void ChVehicleCosimBaseNode::SendGeometry(const utils::ChBodyGeometry& geom, int
         const auto& trimesh = mesh.trimesh;
         const auto& vertices = trimesh->GetCoordsVertices();
         const auto& normals = trimesh->GetCoordsNormals();
-        const auto& idx_vertices = trimesh->GetIndicesVertexes();
+        const auto& idx_vertices = trimesh->GetIndicesVertices();
         const auto& idx_normals = trimesh->GetIndicesNormals();
         unsigned int nv = trimesh->GetNumVertices();
         unsigned int nn = trimesh->GetNumNormals();
@@ -483,7 +483,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(utils::ChBodyGeometry& geom, int sourc
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         auto& vertices = trimesh->GetCoordsVertices();
         auto& normals = trimesh->GetCoordsNormals();
-        auto& idx_vertices = trimesh->GetIndicesVertexes();
+        auto& idx_vertices = trimesh->GetIndicesVertices();
         auto& idx_normals = trimesh->GetIndicesNormals();
 
         int surf_props[4];
@@ -495,7 +495,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(utils::ChBodyGeometry& geom, int sourc
 
         trimesh->GetCoordsVertices().resize(nv);
         trimesh->GetCoordsNormals().resize(nn);
-        trimesh->GetIndicesVertexes().resize(nt);
+        trimesh->GetIndicesVertices().resize(nt);
         trimesh->GetIndicesNormals().resize(nt);
 
         // Tire mesh vertices & normals and triangle indices

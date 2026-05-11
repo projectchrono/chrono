@@ -21,7 +21,7 @@
 
   "Visualization":
   {
-    //"Mesh":  "ultra_tow/UT_chassis_vis.obj",
+    //"Mesh":  "vehicle/ultra_tow/UT_chassis_vis.obj",
     "Primitives": [
         {
             "Type": "BOX",

@@ -177,13 +177,17 @@ set(CVM_HMMWV_TIRE_FILES
     hmmwv/tire/HMMWV_TMeasyTire.h
     hmmwv/tire/HMMWV_TMsimpleTire.cpp
     hmmwv/tire/HMMWV_TMsimpleTire.h
-    hmmwv/tire/HMMWV_ANCFTire.cpp
-    hmmwv/tire/HMMWV_ANCFTire.h
-    hmmwv/tire/HMMWV_ANCF4LumpedTire.cpp
-    hmmwv/tire/HMMWV_ANCF4LumpedTire.h
-    hmmwv/tire/HMMWV_ReissnerTire.cpp
-    hmmwv/tire/HMMWV_ReissnerTire.h
 )
+if(CH_ENABLE_MODULE_FEA)
+    set(CVM_HMMWV_TIRE_FILES ${CVM_HMMWV_TIRE_FILES}
+        hmmwv/tire/HMMWV_ANCFTire.cpp
+        hmmwv/tire/HMMWV_ANCFTire.h
+        hmmwv/tire/HMMWV_ANCF4LumpedTire.cpp
+        hmmwv/tire/HMMWV_ANCF4LumpedTire.h
+        hmmwv/tire/HMMWV_ReissnerTire.cpp
+        hmmwv/tire/HMMWV_ReissnerTire.h
+    )
+endif()
 set(CVM_HMMWV_VEHICLE_FILES
     hmmwv/HMMWV.cpp
     hmmwv/HMMWV.h
@@ -852,9 +856,13 @@ set(CVM_M113_TRACKASSEMBLY_FILES
     m113/track_assembly/M113_TrackAssemblyDoublePin.h
     m113/track_assembly/M113_TrackAssemblyBandBushing.cpp
     m113/track_assembly/M113_TrackAssemblyBandBushing.h
-    m113/track_assembly/M113_TrackAssemblyBandANCF.cpp
-    m113/track_assembly/M113_TrackAssemblyBandANCF.h
 )
+if(CH_ENABLE_MODULE_FEA)
+    set(CVM_M113_TRACKASSEMBLY_FILES ${CVM_M113_TRACKASSEMBLY_FILES}
+        m113/track_assembly/M113_TrackAssemblyBandANCF.cpp
+        m113/track_assembly/M113_TrackAssemblyBandANCF.h
+    )
+endif()
 set(CVM_M113_SPROCKET_FILES
     m113/sprocket/M113_SprocketSinglePin.cpp
     m113/sprocket/M113_SprocketSinglePin.h
@@ -870,9 +878,13 @@ set(CVM_M113_TRACKSHOE_FILES
     m113/track_shoe/M113_TrackShoeDoublePin.h
     m113/track_shoe/M113_TrackShoeBandBushing.cpp
     m113/track_shoe/M113_TrackShoeBandBushing.h
-    m113/track_shoe/M113_TrackShoeBandANCF.cpp
-    m113/track_shoe/M113_TrackShoeBandANCF.h
 )
+if(CH_ENABLE_MODULE_FEA)
+    set(CVM_M113_TRACKSHOE_FILES ${CVM_M113_TRACKSHOE_FILES}
+        m113/track_shoe/M113_TrackShoeBandANCF.cpp
+        m113/track_shoe/M113_TrackShoeBandANCF.h
+    )
+endif()
 set(CVM_M113_DRIVELINE_FILES
     m113/driveline/M113_DrivelineBDS.cpp
     m113/driveline/M113_DrivelineBDS.h

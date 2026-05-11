@@ -24,15 +24,14 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/core/ChRandom.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
@@ -46,19 +45,17 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChTriangleMeshConnected> CreateShoe() {
-    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
-                                                                 false, true);
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"), false, true);
     mesh->Transform(VNULL, ChMatrix33<>(1.2));
-    mesh->RepairDuplicateVertexes(1e-9);
+    mesh->RepairDuplicateVertices(1e-9);
 
     return mesh;
 }
 
 std::shared_ptr<ChTriangleMeshConnected> CreateBox() {
-    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"),
-                                                                 false, true);
+    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"), false, true);
     mesh->Transform(VNULL, ChMatrix33<>(ChVector3d(0.15, 0.05, 0.15)));
-    mesh->RepairDuplicateVertexes(1e-9);
+    mesh->RepairDuplicateVertices(1e-9);
 
     return mesh;
 }
@@ -124,7 +121,7 @@ int main(int argc, char* argv[]) {
     ChContactMaterialData body_mat_data;
     auto body_mat = body_mat_data.CreateMaterial(contact_method);
 
-    // read mesh from file, scale, and repair
+    // Read mesh from file, scale, and repair
     std::shared_ptr<ChTriangleMeshConnected> mesh = nullptr;
     if (which_model == 1)
         mesh = CreateShoe();
@@ -133,7 +130,7 @@ int main(int argc, char* argv[]) {
     else
         return 1;
 
-    // compute mass properties from mesh
+    // Compute mass properties from mesh
     double mass;
     ChVector3d cog;
     ChMatrix33<> inertia;
@@ -143,7 +140,7 @@ int main(int argc, char* argv[]) {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
 
-    // visualization shape
+    // Visualization shape
     auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vis_shape->SetMesh(mesh);
     vis_shape->SetColor(ChColor(0.25f, 0.5f, 0.25f));
@@ -151,7 +148,7 @@ int main(int argc, char* argv[]) {
     auto vis_model = chrono_types::make_shared<ChVisualModel>();
     vis_model->AddShape(vis_shape);
 
-    // collision shape
+    // Collision shape
     auto coll_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, mesh, false, false, 0.005);
 
     // ---------------------
@@ -163,15 +160,15 @@ int main(int argc, char* argv[]) {
         auto falling = chrono_types::make_shared<ChBodyAuxRef>();
         falling->SetFixed(false);
 
-        // set the COM coordinates to barycenter, without displacing the reference frame, and
+        // Set the COM coordinates to barycenter, without displacing the reference frame, and
         // make the COM frame a principal frame
         falling->SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
 
-        // set mass and inertia
+        // Set mass and inertia
         falling->SetMass(mass * density);
         falling->SetInertiaXX(density * principal_I);
 
-        // set the absolute position of the body
+        // Set the absolute position of the body
         int layer = j % 3;
         int ix = (j / 3) % 3;
         int iz = (j / 3) / 3;
@@ -185,7 +182,7 @@ int main(int argc, char* argv[]) {
 
         falling->SetFrameRefToAbs(ChFrame<>(ChVector3d(x, y, z), rot));
 
-        // attach visualization and collision shapes
+        // Attach visualization and collision shapes
         falling->AddVisualModel(vis_model);
         falling->AddCollisionShape(coll_shape);
         falling->EnableCollision(true);
@@ -210,10 +207,10 @@ int main(int argc, char* argv[]) {
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            auto vis_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(sys.get());
             vis_irr->SetWindowSize(1280, 800);
-            vis_irr->SetWindowTitle("Collisions between objects");
+            vis_irr->SetWindowTitle("Collisions between meshes");
             vis_irr->SetCameraVertical(CameraVerticalDir::Y);
             vis_irr->Initialize();
             vis_irr->AddLogo();
@@ -227,9 +224,9 @@ int main(int argc, char* argv[]) {
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            auto vis_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
             vis_vsg->AttachSystem(sys.get());
-            vis_vsg->SetWindowTitle("Collisions between objects");
+            vis_vsg->SetWindowTitle("Collisions between meshes");
             vis_vsg->AddCamera(ChVector3d(-2.5, 1.0, 2.5));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
@@ -250,12 +247,17 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
+    
+    ChRealtimeStepTimer rt_timer;
 
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
+    
         sys->DoStepDynamics(step);
+        
+        rt_timer.Spin(step);
     }
 
     return 0;

@@ -37,9 +37,9 @@ namespace sph {
 class SphBceManager {
   public:
     SphBceManager(FsiDataManager& data_mgr,             ///< FSI data
-               NodeDirections node_directions_mode,  ///< enable/disable use of FEA node direction info
-               bool verbose,                         ///< verbose terminal output
-               bool check_errors                     ///< check CUDA errors
+                  NodeDirections node_directions_mode,  ///< enable/disable use of FEA node direction info
+                  bool verbose,                         ///< verbose terminal output
+                  bool check_errors                     ///< check CUDA errors
     );
 
     ~SphBceManager();
@@ -69,7 +69,7 @@ class SphBceManager {
 
     void updateBCEAcc();
 
-    /// Complete construction of the BCE at the intial configuration of the system.
+    /// Complete construction of the BCE at the initial configuration of the system.
     void Initialize(std::vector<int> fsiBodyBceNum);
 
   private:

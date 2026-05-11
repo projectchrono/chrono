@@ -26,6 +26,6 @@
   "Rear Connector Location": [ -1, 0, 0 ],
 
   "Visualization": {
-    "Mesh": "gator/gator_chassis.obj"
+    "Mesh": "vehicle/gator/gator_chassis.obj"
   }
 }

@@ -91,15 +91,7 @@ class ChApi Mat33 {
     }
 
     // Constructor that takes individual elements
-    Mat33(const real& v11,
-          const real& v21,
-          const real& v31,
-          const real& v12,
-          const real& v22,
-          const real& v32,
-          const real& v13,
-          const real& v23,
-          const real& v33) {
+    Mat33(const real& v11, const real& v21, const real& v31, const real& v12, const real& v22, const real& v32, const real& v13, const real& v23, const real& v33) {
         array[0] = v11;
         array[1] = v21;
         array[2] = v31;
@@ -163,13 +155,12 @@ ChApi Mat33 operator*(const Mat33& M, const Mat33& N);
 ChApi Mat33 operator+(const Mat33& M, const Mat33& N);
 ChApi Mat33 operator-(const Mat33& M, const Mat33& N);
 
-ChApi OPERATOR_EQUALSALT_PROTO(*, real, Mat33)       //
-    ChApi OPERATOR_EQUALSALT_PROTO(*, Mat33, Mat33)  //
-    ChApi OPERATOR_EQUALSALT_PROTO(+, Mat33, Mat33)  //
-    ChApi OPERATOR_EQUALSALT_PROTO(-, Mat33, Mat33)  //
+ChApi OPERATOR_EQUALSALT_PROTO(*, real, Mat33)   //
+ChApi OPERATOR_EQUALSALT_PROTO(*, Mat33, Mat33)  //
+ChApi OPERATOR_EQUALSALT_PROTO(+, Mat33, Mat33)  //
+ChApi OPERATOR_EQUALSALT_PROTO(-, Mat33, Mat33)  //
 
-    ChApi Mat33
-    operator-(const Mat33& M);
+ChApi Mat33 operator-(const Mat33& M);
 ChApi Mat33 operator*(const real s, const Mat33& a);
 
 ChApi Mat33 SkewSymmetric(const real3& r);
@@ -181,8 +172,7 @@ ChApi Mat33 Transpose(const Mat33& a);
 ChApi Mat33 MultTranspose(const Mat33& M, const Mat33& N);  // M * N^T
 ChApi Mat33 TransposeMult(const Mat33& M, const Mat33& N);  // M^T * N
 ChApi real Trace(const Mat33& m);
-ChApi Mat33 OuterProduct(const real3& a,
-                         const real3& b);  // Multiply a 3x1 by a 1x3 to get a 3x3
+ChApi Mat33 OuterProduct(const real3& a, const real3& b);  // Multiply a 3x1 by a 1x3 to get a 3x3
 ChApi real InnerProduct(const Mat33& A, const Mat33& B);
 ChApi Mat33 Adjoint(const Mat33& A);
 ChApi Mat33 AdjointTranspose(const Mat33& A);
@@ -212,8 +202,7 @@ ChApi real3 operator*(const DiagMat33& M, const real3& v);
 struct ChApi SymMat33 {
     SymMat33() : x11(0), x21(0), x31(0), x22(0), x32(0), x33(0) {}
 
-    SymMat33(const real y11, const real y21, const real y31, const real y22, const real y32, const real y33)
-        : x11(y11), x21(y21), x31(y31), x22(y22), x32(y32), x33(y33) {}
+    SymMat33(const real y11, const real y21, const real y31, const real y22, const real y32, const real y33) : x11(y11), x21(y21), x31(y31), x22(y22), x32(y32), x33(y33) {}
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
     void operator=(const SymMat33& N) {
@@ -250,11 +239,12 @@ struct ChApi Mat32 {
     }
     inline real operator[](unsigned int i) const { return array[i]; }
     inline real& operator[](unsigned int i) { return array[i]; }
-    real array[8];
+
     // 0 4
     // 1 5
     // 2 6
     // 3 7 //Not used
+    real array[8];
 };
 
 ChApi real3 operator*(const Mat32& M, const real2& v);
@@ -273,9 +263,10 @@ struct ChApi Mat23 {
         array[6] = row2.z;
         array[7] = 0;
     }
-    real array[8];
+
     // 0 1 2 3
     // 4 5 6 7
+    real array[8];
 };
 
 // ========================================================================================

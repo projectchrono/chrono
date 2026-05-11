@@ -92,17 +92,17 @@ uint ChSolverMulticoreSPGQP::Solve(ChSchurProduct& SchurProduct,
         Project(temp.data());
         // g_alpha = 1.0 / alpha * (x - temp);
 
-        // printf("||g_alpha||: %f \n", Sqrt((g_alpha, g_alpha)));
-        //        if (Sqrt((g_alpha, g_alpha)) < data_manager->settings.solver.tolerance) {
+        // printf("||g_alpha||: %f \n", std::sqrt((g_alpha, g_alpha)));
+        //        if (std::sqrt((g_alpha, g_alpha)) < data_manager->settings.solver.tolerance) {
         //            break;
         //        }
 
         d_k = temp - x;
 
         real max_compare = -10e29;
-        for (int h = 1; h <= Min(current_iteration, m); h++) {
+        for (int h = 1; h <= std::min(current_iteration, m); h++) {
             real compare = f_hist[current_iteration - h];
-            max_compare = Max(max_compare, compare);
+            max_compare = std::max(max_compare, compare);
         }
 
         f_max = max_compare;
@@ -111,8 +111,8 @@ uint ChSolverMulticoreSPGQP::Solve(ChSchurProduct& SchurProduct,
 
         xi = (f_max - f_hist[current_iteration]) / Ad_k_dot_d_k;
         beta_bar = -(g, d_k) / Ad_k_dot_d_k;
-        beta_tilde = gam * beta_bar + Sqrt(gam * gam * beta_bar * beta_bar + 2 * xi);
-        beta_k = Min(sigma_max, beta_tilde);
+        beta_tilde = gam * beta_bar + std::sqrt(gam * gam * beta_bar * beta_bar + 2 * xi);
+        beta_k = std::min(sigma_max, beta_tilde);
         x = x + beta_k * d_k;
         g = g + beta_k * Ad_k;
         f_hist[current_iteration + 1] = (0.5 * (g - r, x));
@@ -122,7 +122,7 @@ uint ChSolverMulticoreSPGQP::Solve(ChSchurProduct& SchurProduct,
         Project(temp.data());
         temp = (x - temp) / (-gdiff);
 
-        real g_proj_norm = Sqrt((temp, temp));
+        real g_proj_norm = std::sqrt((temp, temp));
         if (g_proj_norm < lastgoodres) {
             lastgoodres = g_proj_norm;
             objective_value = f_hist[current_iteration + 1];

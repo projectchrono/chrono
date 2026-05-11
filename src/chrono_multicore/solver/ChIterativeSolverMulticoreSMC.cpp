@@ -254,15 +254,15 @@ void function_CalcContactForces(
     switch (contact_model) {
         case ChSystemSMC::ContactForceModel::Hooke:
             if (use_mat_props) {
-                real tmp_k = (16.0 / 15) * Sqrt(eff_radius[index]) * E_eff;
+                real tmp_k = (16.0 / 15) * std::sqrt(eff_radius[index]) * E_eff;
                 char_vel = (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) ? relvel_init : char_vel;
                 real v2 = char_vel * char_vel;
-                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
-                loge = (cr_eff > 1 - eps) ? Log(1 - eps) : loge;
-                real tmp_g = 1 + Pow(CH_PI / loge, 2);
-                kn = tmp_k * Pow(m_eff * v2 / tmp_k, 1.0 / 5);
+                real loge = (cr_eff < eps) ? std::log(eps) : std::log(cr_eff);
+                loge = (cr_eff > 1 - eps) ? std::log(1 - eps) : loge;
+                real tmp_g = 1 + std::pow(real(CH_PI) / loge, 2);
+                kn = tmp_k * std::pow(m_eff * v2 / tmp_k, real(0.2));
                 kt = kn;
-                gn = Sqrt(4 * m_eff * kn / tmp_g);
+                gn = std::sqrt(4 * m_eff * kn / tmp_g);
                 gt = gn;
             } else {
                 kn = user_kn;
@@ -278,78 +278,78 @@ void function_CalcContactForces(
 
         case ChSystemSMC::ContactForceModel::Hertz:
             if (use_mat_props) {
-                real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
+                real sqrt_Rd = std::sqrt(eff_radius[index] * delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real St = 8 * G_eff * sqrt_Rd;
-                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
-                real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
+                real loge = (cr_eff < eps) ? std::log(eps) : std::log(cr_eff);
+                real beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
                 kn = CH_2_3 * Sn;
                 kt = St;
-                gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
-                gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);
+                gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * m_eff);
+                gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * m_eff);
             } else {
-                real tmp = eff_radius[index] * Sqrt(delta_n);
+                real tmp = eff_radius[index] * std::sqrt(delta_n);
                 kn = tmp * user_kn;
                 kt = tmp * user_kt;
                 gn = tmp * m_eff * user_gn;
                 gt = tmp * m_eff * user_gt;
             }
 
-            kn_simple = kn / Sqrt(delta_n);
-            gn_simple = gn / Pow(delta_n, 1.0 / 4.0);
+            kn_simple = kn / std::sqrt(delta_n);
+            gn_simple = gn / std::pow(delta_n, real(0.25));
 
             break;
 
         case ChSystemSMC::Flores:
             if (use_mat_props) {
-                real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
+                real sqrt_Rd = std::sqrt(eff_radius[index] * delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real St = 8 * G_eff * sqrt_Rd;
                 cr_eff = (cr_eff < 0.01) ? 0.01 : cr_eff;
                 cr_eff = (cr_eff > 1.0 - eps) ? 1.0 - eps : cr_eff;
-                real loge = Log(cr_eff);
-                real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
+                real loge = std::log(cr_eff);
+                real beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
                 char_vel = (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) ? relvel_init : char_vel;
                 kn = CH_2_3 * Sn;
                 kt = CH_2_3 * St;
                 gn = 8.0 * (1.0 - cr_eff) * kn * delta_n / (5.0 * cr_eff * char_vel);
-                gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);  // Need to multiply St by 2/3 here as well ?
+                gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * m_eff);  // Need to multiply St by 2/3 here as well ?
             } else {
-                real tmp = eff_radius[index] * Sqrt(delta_n);
+                real tmp = eff_radius[index] * std::sqrt(delta_n);
                 kn = tmp * user_kn;
                 kt = tmp * user_kt;
                 gn = tmp * m_eff * user_gn * delta_n;
                 gt = tmp * m_eff * user_gt;
             }
 
-            kn_simple = kn / Sqrt(delta_n);
-            gn_simple = gn / Pow(delta_n, 3.0 / 2.0);
+            kn_simple = kn / std::sqrt(delta_n);
+            gn_simple = gn / std::pow(delta_n, real(1.5));
 
             break;
 
         case ChSystemSMC::ContactForceModel::PlainCoulomb:
             if (use_mat_props) {
-                real sqrt_Rd = Sqrt(delta_n);
+                real sqrt_Rd = std::sqrt(delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
-                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
-                real beta = loge / Sqrt(loge * loge + CH_PI * CH_PI);
+                real loge = (cr_eff < eps) ? std::log(eps) : std::log(cr_eff);
+                real beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
                 kn = CH_2_3 * Sn;
-                gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
+                gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * m_eff);
             } else {
-                real tmp = Sqrt(delta_n);
+                real tmp = std::sqrt(delta_n);
                 kn = tmp * user_kn;
                 gn = tmp * user_gn;
             }
 
-            kn_simple = kn / Sqrt(delta_n);
-            gn_simple = gn / Pow(delta_n, 1.0 / 4.0);
+            kn_simple = kn / std::sqrt(delta_n);
+            gn_simple = gn / std::pow(delta_n, real(0.25));
 
             kt = 0;
             gt = 0;
 
             {
                 real forceN_mag = kn * delta_n - gn * relvel_n_mag;
-                real forceT_mag = mu_eff * Tanh(5.0 * relvel_t_mag) * forceN_mag;
+                real forceT_mag = mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN_mag;
 
                 // Accumulate normal and tangential forces
                 real3 force = forceN_mag * normal[index];
@@ -363,9 +363,9 @@ void function_CalcContactForces(
                 // If the duration of the current contact is less than the duration of a typical collision,
                 // do not apply friction. Rolling and spinning friction should only be applied to persistent contacts
                 // Rolling and spinning friction are applied right away for critically damped or over-damped systems
-                real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+                real d_coeff = gn_simple / (2.0 * m_eff * std::sqrt(kn_simple / m_eff));
                 if (d_coeff < 1.0) {
-                    real t_collision = CH_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+                    real t_collision = CH_PI * std::sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
                     if (t_contact <= t_collision) {
                         muRoll_eff = 0.0;
                         muSpin_eff = 0.0;
@@ -400,7 +400,7 @@ void function_CalcContactForces(
                     real r2 = Length(pt2_loc);
                     real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
                     real rc = r1 * r1 - xc * xc;
-                    rc = (rc < eps) ? eps : Sqrt(rc);
+                    rc = (rc < eps) ? eps : std::sqrt(rc);
 
                     m_spin1 = muSpin_eff * rc *
                               RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b1]) / Length(rel_o);
@@ -414,7 +414,7 @@ void function_CalcContactForces(
                         force -= adhesion_eff * normal[index];
                         break;
                     case ChSystemSMC::AdhesionForceModel::DMT:
-                        force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
+                        force -= adhesionMultDMT_eff * std::sqrt(eff_radius[index]) * normal[index];
                         break;
                     case ChSystemSMC::AdhesionForceModel::Perko:
                         force -= adhesionSPerko_eff * eff_radius[index] * normal[index];
@@ -453,7 +453,7 @@ void function_CalcContactForces(
     real3 forceT = forceT_stiff + forceT_damp;
     real forceT_mag = Length(forceT);
     real delta_t_mag = Length(delta_t);
-    real forceT_slide = mu_eff * Abs(forceN_mag);
+    real forceT_slide = mu_eff * std::abs(forceN_mag);
     if (forceT_mag > forceT_slide) {
         if (delta_t_mag > eps) {
             real ratio = forceT_slide / forceT_mag;
@@ -485,9 +485,9 @@ void function_CalcContactForces(
     // If the duration of the current contact is less than the duration of a typical collision,
     // do not apply friction. Rolling and spinning friction should only be applied to persistent contacts.
     // Rolling and spinning friction are applied right away for critically damped or over-damped systems.
-    real d_coeff = gn_simple / (2.0 * m_eff * Sqrt(kn_simple / m_eff));
+    real d_coeff = gn_simple / (2.0 * m_eff * std::sqrt(kn_simple / m_eff));
     if (d_coeff < 1.0) {
-        real t_collision = CH_PI * Sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
+        real t_collision = CH_PI * std::sqrt(m_eff / (kn_simple * (1 - d_coeff * d_coeff)));
         if (t_contact <= t_collision) {
             muRoll_eff = 0.0;
             muSpin_eff = 0.0;
@@ -521,7 +521,7 @@ void function_CalcContactForces(
         real r2 = Length(pt2_loc);
         real xc = (r1 * r1 - r2 * r2) / (2 * (r1 + r2 - delta_n)) + 0.5 * (r1 + r2 - delta_n);
         real rc = r1 * r1 - xc * xc;
-        rc = (rc < eps) ? eps : Sqrt(rc);
+        rc = (rc < eps) ? eps : std::sqrt(rc);
 
         m_spin1 =
             muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b1]) / Length(rel_o);
@@ -535,7 +535,7 @@ void function_CalcContactForces(
             force -= adhesion_eff * normal[index];
             break;
         case ChSystemSMC::AdhesionForceModel::DMT:
-            force -= adhesionMultDMT_eff * Sqrt(eff_radius[index]) * normal[index];
+            force -= adhesionMultDMT_eff * std::sqrt(eff_radius[index]) * normal[index];
             break;
         case ChSystemSMC::AdhesionForceModel::Perko:
             force -= adhesionSPerko_eff * eff_radius[index] * normal[index];

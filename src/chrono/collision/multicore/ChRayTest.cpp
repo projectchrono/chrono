@@ -48,7 +48,7 @@ bool sphere_ray(const real3& pos,
     // Otherwise, no intersection if ray points away from sphere.
     if (c <= 0) {
         if (vv > 0)
-            normal = vec / Sqrt(vv);
+            normal = vec / std::sqrt(vv);
         else
             normal = real3(0, 0, 1);
         mindist2 = 0;
@@ -63,7 +63,7 @@ bool sphere_ray(const real3& pos,
     if (discr < 0)
         return false;
 
-    real t = -(b + Sqrt(discr)) / a;
+    real t = -(b + std::sqrt(discr)) / a;
     if (t >= 1)
         return false;
     real dist2 = a * (t * t);
@@ -192,7 +192,7 @@ bool cylsurf_ray(const real& radius,
     if (disc < 0)
         return false;
 
-    real t = -(b + Sqrt(disc)) / a;
+    real t = -(b + std::sqrt(disc)) / a;
     real dist2 = t * t * ray_len2;
 
     // There is no intersection if the point on the segment lies outside the segment or if it is at a distance larger
@@ -243,7 +243,7 @@ bool disk_ray(int cap,
     real3 ray = end - start;
 
     // No intersection if ray (near) parallel to cylinder cap.
-    if (Abs(ray.y) < 0.0001)
+    if (std::abs(ray.y) < 0.0001)
         return false;
 
     // No intersection if start "below" cap
@@ -404,7 +404,7 @@ bool ChRayTest::Check(const real3& start, const real3& end, RayHitInfo& info) {
     // - Set increment in ray parameter at each crossing
     // - Set increment in bin index at each crossing
     // - Set termination criteria (grid exit condition)
-    real3 t_next(C_REAL_MAX);
+    real3 t_next(CH_REAL_MAX);
     real3 delta(0);
     vec3 step;
     vec3 exit;
@@ -426,7 +426,7 @@ bool ChRayTest::Check(const real3& start, const real3& end, RayHitInfo& info) {
 
     // Walk through each bin intersected by the ray (DDA).
     ConvexShape shape(-1, &cd_data->shape_data);
-    real mindist2 = C_REAL_MAX;
+    real mindist2 = CH_REAL_MAX;
     bool hit = false;
 
     ////std::cout << "Ray start: [" << start.x << "," << start.y << "," << start.z << "]" << std::endl;
@@ -452,7 +452,7 @@ bool ChRayTest::Check(const real3& start, const real3& end, RayHitInfo& info) {
         // If a shape in the current bin was hit, stop.
         if (hit) {
             info.shapeID = shape.index;         // Identifier of closest hit shape
-            info.dist = Sqrt(mindist2);         // Distance from ray origin
+            info.dist = std::sqrt(mindist2);         // Distance from ray origin
             info.t = info.dist / Length(ray);   // Ray parameter at intersection with closest shape
             info.point = start + info.t * ray;  // Intersection point
             break;

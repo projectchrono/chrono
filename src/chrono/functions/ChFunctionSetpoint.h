@@ -55,7 +55,7 @@ class ChApi ChFunctionSetpoint : public ChFunction {
     }
 
     /// Get the last set setpoint
-    double GetSetpoint() { return Y; }
+    double GetSetpoint() const { return Y; }
 
     /// Update could be implemented by children classes, ex. to launch callbacks
     virtual void Update(double x) override {}

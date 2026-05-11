@@ -59,6 +59,13 @@ void ChFseqNode::SetDuration(double mdur) {
     t_end = t_start + duration;
 }
 
+void ChFseqNode::SetTend(double mt_end) {
+    t_end = mt_end;
+    if (t_end < t_start)
+        t_end = t_start;
+    duration = t_end - t_start;
+}
+
 void ChFseqNode::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChFseqNode>();

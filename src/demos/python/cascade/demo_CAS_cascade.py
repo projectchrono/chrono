@@ -41,7 +41,7 @@ shape    = BRepAlgoAPI.BRepAlgoAPI_Cut(torus, cylinder).Shape()
 # given the CAD shape. Also visualize it.
 vis_params = cascade.ChCascadeTriangulate(0.1, True, 0.5)
 
-body = cascade.ChCascadeBodyEasy(shape,       # the CAD shape
+body = cascade.ChBodyEasyCascade(shape,       # the CAD shape
                                  1000,        # the density
                                  vis_params,  # must visualize triangle mesh geometry?
                                  True,        # must collide?

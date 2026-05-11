@@ -26,7 +26,7 @@ def test_create_cylinder():
     # given the CAD shape. Also visualize it.
     vis_params = cascade.ChCascadeTriangulate(0.1, True, 0.5)
 
-    body = cascade.ChCascadeBodyEasy(cylinder,       # the CAD shape
+    body = cascade.ChBodyEasyCascade(cylinder,       # the CAD shape
                                     1000,        # the density
                                     vis_params,  # must visualize triangle mesh geometry?
                                     True,        # must collide?

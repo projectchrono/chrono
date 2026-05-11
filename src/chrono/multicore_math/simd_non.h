@@ -63,7 +63,7 @@ inline real Dot(const real3& v) {
 }
 
 inline real3 SquareRoot(const real3& v) {
-    return real3(Sqrt(v[0]), Sqrt(v[1]), Sqrt(v[2]));
+    return real3(std::sqrt(v[0]), std::sqrt(v[1]), std::sqrt(v[2]));
 }
 
 inline real3 Cross(const real3& a, const real3& b) {
@@ -139,7 +139,7 @@ inline real HorizontalAdd(const real3& a) {
 }
 
 inline real4 SquareRoot(real4 v) {
-    return real4(Sqrt(v[0]), Sqrt(v[1]), Sqrt(v[2]), Sqrt(v[3]));
+    return real4(std::sqrt(v[0]), std::sqrt(v[1]), std::sqrt(v[2]), std::sqrt(v[3]));
 }
 
 inline real3 Cross3(const real3& a, const real3& b) {
@@ -151,39 +151,39 @@ inline real3 Cross3(const real3& a, const real3& b) {
 }
 
 inline real3 Abs(const real3& v) {
-    return real3(chrono::Abs(v[0]), chrono::Abs(v[1]), chrono::Abs(v[2]));
+    return real3(std::abs(v[0]), std::abs(v[1]), std::abs(v[2]));
 }
 
 inline real3 Max(const real3& a, const real3& b) {
-    return real3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
+    return real3(std::max(a[0], b[0]), std::max(a[1], b[1]), std::max(a[2], b[2]));
 }
 
 inline real3 Max(const real3& a, real b) {
-    return real3(chrono::Max(a[0], b), chrono::Max(a[1], b), chrono::Max(a[2], b));
+    return real3(std::max(a[0], b), std::max(a[1], b), std::max(a[2], b));
 }
 
 inline real3 Min(const real3& a, const real3& b) {
-    return real3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
+    return real3(std::min(a[0], b[0]), std::min(a[1], b[1]), std::min(a[2], b[2]));
 }
 
 inline real3 Min(const real3& a, real b) {
-    return real3(chrono::Min(a[0], b), chrono::Min(a[1], b), chrono::Min(a[2], b));
+    return real3(std::min(a[0], b), std::min(a[1], b), std::min(a[2], b));
 }
 
 inline real3 Round(const real3& a) {
-    return real3(chrono::Round(a[0]), chrono::Round(a[1]), chrono::Round(a[2]));
+    return real3(std::round(a[0]), std::round(a[1]), std::round(a[2]));
 }
 
 inline bool IsZero(const real3& v, const real& a) {
-    return chrono::Abs(v.x) < a && chrono::Abs(v.y) < a && chrono::Abs(v.z) < a;
+    return std::abs(v.x) < a && std::abs(v.y) < a && std::abs(v.z) < a;
 }
 
 inline real Max3(const real3& a) {
-    return chrono::Max(a[0], chrono::Max(a[1], a[2]));
+    return std::max(a[0], std::max(a[1], a[2]));
 }
 
 inline real Min3(const real3& a) {
-    return chrono::Min(a[0], chrono::Min(a[1], a[2]));
+    return std::min(a[0], std::min(a[1], a[2]));
 }
 
 inline real Dot3(const real3& a, const real3& b) {
@@ -259,8 +259,8 @@ quaternion change_sign(const quaternion& a) {
 }
 
 inline quaternion Normalize(const quaternion& a) {
-    real length = Sqrt(Dot4(a));
-    if (length < C_REAL_EPSILON) {
+    real length = std::sqrt(Dot4(a));
+    if (length < CH_REAL_EPSILON) {
         return quaternion(1, 0, 0, 0);
     }
     length = 1.0 / length;
@@ -280,11 +280,11 @@ inline vec3 Add(const vec3& a, const vec3& b) {
 }
 
 inline vec3 Max(const vec3& a, const vec3& b) {
-    return vec3(chrono::Max(a[0], b[0]), chrono::Max(a[1], b[1]), chrono::Max(a[2], b[2]));
+    return vec3(std::max(a[0], b[0]), std::max(a[1], b[1]), std::max(a[2], b[2]));
 }
 
 inline vec3 Min(const vec3& a, const vec3& b) {
-    return vec3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
+    return vec3(std::min(a[0], b[0]), std::min(a[1], b[1]), std::min(a[2], b[2]));
 }
 
 }  // end namespace simd

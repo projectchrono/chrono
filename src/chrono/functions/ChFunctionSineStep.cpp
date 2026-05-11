@@ -82,6 +82,19 @@ double ChFunctionSineStep::GetDer2(double x) const {
     return ydd;
 }
 
+double ChFunctionSineStep::GetDer3(double x) const {
+    if (x <= m_p1.x())
+        return 0;
+
+    if (x >= m_p2.x())
+        return 0;
+
+    double xx = (x - m_p1.x()) / m_dp.x();
+    double yddd = CH_2PI * CH_2PI * m_dp.y() / (m_dp.x() * m_dp.x() * m_dp.x()) * std::cos(CH_2PI * xx);
+
+    return yddd;
+}
+
 void ChFunctionSineStep::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out.VersionWrite<ChFunctionSineStep>();
     ChFunction::ArchiveOut(archive_out);

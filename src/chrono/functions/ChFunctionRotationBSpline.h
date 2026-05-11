@@ -36,28 +36,29 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     /// Constructor. By default constructs a linear SLERP between two identical null rotations
     ChFunctionRotationBSpline();
 
-    /// Constructor from a given array of control points; each control point is a rotation to interpolate. Input data is
-    /// copied. If the knots are not provided, a uniformly spaced knot vector is made.
-    ChFunctionRotationBSpline(
-        int morder,  ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChQuaternion<>>&
-            mrotations,                ///< control points, size n. Each is a rotation. Required: at least n >= p+1
-        ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+    /// Constructor from a given array of control points.
+    /// Each control point is a rotation to interpolate. Input data is copied. 
+    /// If the knots are not provided, a uniformly spaced knot vector is made.
+    ChFunctionRotationBSpline(int morder,                                     ///< order p: 1= linear, 2=quadratic, etc.
+                              const std::vector<ChQuaternion<>>& mrotations,  ///< control points, size n. Each is a rotation. Required: at least n >= p+1
+                              ChVectorDynamic<>* mknots = nullptr             ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
     ChFunctionRotationBSpline(const ChFunctionRotationBSpline& other);
+    
     virtual ~ChFunctionRotationBSpline();
 
     /// "Virtual" copy constructor.
     virtual ChFunctionRotationBSpline* Clone() const override { return new ChFunctionRotationBSpline(*this); }
 
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
-    /// but knot range is not necessarily in 0..1. So you can convert u->U,
-    /// where u is in knot range, calling this:
+    /// but knot range is not necessarily in 0..1. 
+    /// So you can convert u->U, where u is in knot range, calling this.
     double ComputeUfromKnotU(double u) const { return (u - knots(p)) / (knots(knots.size() - 1 - p) - knots(p)); }
+    
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
-    /// but knot range is not necessarily in 0..1. So you can convert U->u,
-    /// where u is in knot range, calling this:
+    /// but knot range is not necessarily in 0..1. 
+    /// So you can convert U->u, where u is in knot range, calling this.
     double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
 
     /// Access the rotations, ie. quaternion spline control points
@@ -67,14 +68,13 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     ChVectorDynamic<>& Knots() { return knots; }
 
     /// Get the order of spline
-    int GetOrder() { return p; }
+    int GetOrder() const { return p; }
 
     /// Initial easy setup from a given array of rotations (quaternion spline control points). Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
-    virtual void Setup(
-        int morder,                                     ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChQuaternion<>>& mrotations,  ///< rotations, size n. Required: at least n >= p+1
-        ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+    virtual void Setup(int morder,                                     ///< order p: 1= linear, 2=quadratic, etc.
+                       const std::vector<ChQuaternion<>>& mrotations,  ///< rotations, size n. Required: at least n >= p+1
+                       ChVectorDynamic<>* mknots = 0                   ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
     /// Gets the address of the function u=u(s) telling
@@ -94,7 +94,7 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     void SetClosed(bool mc);
 
     /// Tell if the rotation spline is closed periodic
-    bool GetClosed() { return closed; }
+    bool GetClosed() const { return closed; }
 
     /// Return the q value of the function, at s, as q=f(s).
     /// Parameter s always work in 0..1 range, even if knots are not in 0..1 range.

@@ -24,6 +24,6 @@
   "Rear Connector Location": [ -3.95, 0, -0.05 ],
 
   "Visualization": {
-    "Mesh": "gclass/G500long.obj"
+    "Mesh": "vehicle/gclass/G500long.obj"
   }
 }

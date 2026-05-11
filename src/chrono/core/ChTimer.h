@@ -26,7 +26,11 @@ class ChTimer {
     ChTimer() : m_running(false), m_total(0) {}
 
     /// Start the timer.
-    void start() {
+    /// Optionally reset internal accumulated time.
+    void start(bool reset_timer = false) {
+        if (reset_timer) {
+            reset();
+        }
         m_running = true;
         m_start = std::chrono::high_resolution_clock::now();
     }

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/driver/AIDriver.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

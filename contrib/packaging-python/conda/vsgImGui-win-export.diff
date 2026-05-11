@@ -1,0 +1,26 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 41d749d..9d189c6 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -35,6 +35,7 @@ set(SOURCES
+ )
+ 
+ OPTION(SHOW_DEMO_WINDOW "Toggle the build of the ImGui::ShowDemoWindow(bool*) and ImPlot::ShadowDemoWindow(bool*)" ON)
++OPTION(VSGIMGUI_STATIC_DLLEXPORT "When building vsgImGui as a static library on Windows, define vsgImGui_EXPORTS so the object files carry dllexport directives (useful when repackaging into a downstream DLL)." OFF)
+ 
+ if (SHOW_DEMO_WINDOW)
+     set(SOURCES ${SOURCES}
+@@ -63,6 +64,13 @@ set_property(TARGET vsgImGui PROPERTY CXX_STANDARD 17)
+ 
+ target_compile_definitions(vsgImGui PRIVATE ${EXTRA_DEFINES})
+ 
++if (WIN32 AND VSGIMGUI_STATIC_DLLEXPORT)
++    get_target_property(_vsgimgui_target_type vsgImGui TYPE)
++    if (_vsgimgui_target_type STREQUAL "STATIC_LIBRARY")
++        target_compile_definitions(vsgImGui PRIVATE vsgImGui_EXPORTS)
++    endif()
++endif()
++
+ target_include_directories(vsgImGui PUBLIC
+     $<BUILD_INTERFACE:${VSGIMGUI_SOURCE_DIR}/include>
+     $<BUILD_INTERFACE:${VSGIMGUI_SOURCE_DIR}/include/vsgImGui>

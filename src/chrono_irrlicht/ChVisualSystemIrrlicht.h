@@ -57,9 +57,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     ChVisualSystemIrrlicht();
 
     /// Auto-initialized run-time visualization system, with default settings.
-    ChVisualSystemIrrlicht(ChSystem* sys,
-                           const ChVector3d& camera_pos = ChVector3d(2, 2, 2),
-                           const ChVector3d& camera_targ = ChVector3d(0, 0, 0));
+    ChVisualSystemIrrlicht(ChSystem* sys, const ChVector3d& camera_pos = ChVector3d(2, 2, 2), const ChVector3d& camera_targ = ChVector3d(0, 0, 0));
 
     virtual ~ChVisualSystemIrrlicht();
 
@@ -100,7 +98,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void SetCameraVertical(CameraVerticalDir vert);
 
     /// Tells if the current camera vertical mode is Y or Z
-    CameraVerticalDir GetCameraVertical();
+    CameraVerticalDir GetCameraVertical() const;
 
     /// Set the Irrlicht logging level (default irr::ELL_INFORMATION).
     /// Must be called before Initialize().
@@ -125,12 +123,12 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) override;
 
     /// Add a grid with specified parameters in the x-y plane of the given frame.
-    virtual void AddGrid(double x_step,                           ///< grid cell size in X direction
-                         double y_step,                           ///< grid cell size in Y direction
-                         int nx,                                  ///< number of cells in X direction
-                         int ny,                                  ///< number of cells in Y direction
-                         ChCoordsys<> pos = CSYSNORM,             ///< grid reference frame
-                         ChColor col = ChColor(0.1f, 0.1f, 0.1f)  ///< grid line color
+    virtual void AddGrid(double x_step,     ///< spacing in x direction
+                         double y_step,     ///< spacing in y direction
+                         int nx,            ///< number of divisions in x direction
+                         int ny,            ///< number of divisions in y direction
+                         ChCoordsys<> pos,  ///< grid reference frame
+                         ChColor col        ///< grid line color
                          ) override;
 
     void UpdateGrid(int id, const ChCoordsys<>& csys);
@@ -176,9 +174,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Add a point light to the scene.
     /// Has no effect, unless called after Initialize().
-    irr::scene::ILightSceneNode* AddLight(const ChVector3d& pos,
-                                          double radius,
-                                          ChColor color = ChColor(0.7f, 0.7f, 0.7f));
+    irr::scene::ILightSceneNode* AddLight(const ChVector3d& pos, double radius, ChColor color = ChColor(0.7f, 0.7f, 0.7f));
 
     /// Add a point light that cast shadow (using soft shadows/shadow maps)
     /// Note that the quality of the shadow strictly depends on how close 'near_value' and 'far_value' are to the
@@ -250,17 +246,18 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unless called after the visual system is initialized and attached.
     void SetInfoTab(int ntab);
 
-    irr::IrrlichtDevice* GetDevice() { return m_device; }
-    irr::video::IVideoDriver* GetVideoDriver() { return m_device->getVideoDriver(); }
-    irr::scene::ISceneManager* GetSceneManager() { return m_device->getSceneManager(); }
-    irr::scene::ICameraSceneNode* GetActiveCamera() { return m_device->getSceneManager()->getActiveCamera(); }
-    irr::gui::IGUIEnvironment* GetGUIEnvironment() { return m_device->getGUIEnvironment(); }
+    /// Interface to underlying Irrlicht device.
+    irr::IrrlichtDevice* GetDevice() const { return m_device; }
+    irr::video::IVideoDriver* GetVideoDriver() const { return m_device->getVideoDriver(); }
+    irr::scene::ISceneManager* GetSceneManager() const { return m_device->getSceneManager(); }
+    irr::scene::ICameraSceneNode* GetActiveCamera() const { return m_device->getSceneManager()->getActiveCamera(); }
+    irr::gui::IGUIEnvironment* GetGUIEnvironment() const { return m_device->getGUIEnvironment(); }
 
     /// Get the window ID.
     void* GetWindowId() const { return m_device_params.WindowId; }
 
     /// Return the Irrlicht ChIrrGUI object.
-    ChIrrGUI* GetGUI() { return m_gui.get(); }
+    ChIrrGUI* GetGUI() const { return m_gui.get(); }
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
@@ -334,22 +331,19 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void SetUtilityFlag(bool flag) { m_utility_flag = flag; }
 
     /// Get device creation parameters.
-    irr::SIrrlichtCreationParameters GetCreationParameters() const { return m_device_params; }
+    const irr::SIrrlichtCreationParameters& GetCreationParameters() const { return m_device_params; }
 
     /// Set device creation parameters.
-    void SetCreationParameters(const irr::SIrrlichtCreationParameters& device_params) {
-        m_device_params = device_params;
-    }
+    void SetCreationParameters(const irr::SIrrlichtCreationParameters& device_params) { m_device_params = device_params; }
 
     /// Get list of cameras defined for the scene
-    std::vector<std::shared_ptr<RTSCamera>> GetCameras() const { return m_cameras; }
+    const std::vector<std::shared_ptr<RTSCamera>>& GetCameras() const { return m_cameras; }
 
   protected:
     /// Irrlicht scene node for a visual model not associated with a physics item.
     class ChIrrNodeVisual : public irr::scene::ISceneNode {
       public:
-        ChIrrNodeVisual(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr)
-            : irr::scene::ISceneNode(parent, mgr, 0) {}
+        ChIrrNodeVisual(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr) : irr::scene::ISceneNode(parent, mgr, 0) {}
         virtual void render() override {}
         virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return m_box; }
         irr::core::aabbox3d<irr::f32> m_box;
@@ -362,9 +356,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     void CreateIrrNode(std::shared_ptr<ChPhysicsItem> item);
 
     /// Populate the ChIrrNodeModel for the visual model instance of the specified physics item.
-    void PopulateIrrNode(irr::scene::ISceneNode* node,
-                         std::shared_ptr<ChVisualModel> model,
-                         const ChFrame<>& parent_frame);
+    void PopulateIrrNode(irr::scene::ISceneNode* node, std::shared_ptr<ChVisualModel> model, const ChFrame<>& parent_frame);
 
     /// Purge Irrlicht nodes associated with a deleted physics item or with a deleted visual model.
     void PurgeIrrNodes();

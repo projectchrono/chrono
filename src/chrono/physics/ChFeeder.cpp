@@ -73,7 +73,7 @@ void ChFeeder::GetFeederVibration(ChFrame<>& ref,
     wz = w_z;
 }
 
-void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) {
+void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     // This feeder class works only if the contact container is of NSC type because we are going to modify the Ct =
     // dC/dt component of the constraints; the SMC contacts do not have it.
 

@@ -21,7 +21,7 @@
 #define SIMPLEMAP_AUTOMATIC_TRANSMISSION_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"

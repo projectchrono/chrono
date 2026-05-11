@@ -32,6 +32,6 @@
 
   "Visualization":
   {
-      "Mesh":              "M113/meshes/Roller_R.obj"
+      "Mesh":              "vehicle/M113/meshes/Roller_R.obj"
   }
 }

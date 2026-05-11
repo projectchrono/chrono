@@ -20,6 +20,11 @@
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
+#ifdef CHRONO_FEA_MULTIPHYSICS
+    #include "chrono/fea/multiphysics/ChNodeFEAfieldXYZ.h"
+    #include "chrono/fea/multiphysics/ChField.h"
+    #include "chrono/fea/multiphysics/ChDomain.h"
+#endif
 
 namespace chrono {
 namespace fea {
@@ -168,7 +173,7 @@ class ChApi ChContactNodeXYZRot : public ChContactable {
 
     // INTERFACE TO ChContactable
 
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_3; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
         return new ChConstraintTuple_1vars<6>(&m_node->Variables());
@@ -260,6 +265,124 @@ class ChApi ChContactNodeXYZRot : public ChContactable {
     ChContactSurface* m_container;
 };
 
+
+// -----------------------------------------------------------------------------
+
+
+#ifdef CHRONO_FEA_MULTIPHYSICS
+
+// Note: the ChContactNodeXYZ would be sufficient if ChNodeFEAfieldXYZ were inherited from ChNodeFEAxyz, but this is
+// currently not the case, nor ChNodeFEAfieldXYZ contains the ChVariable or other infos on real displacement of the node,
+// that is a ChFieldDataPos3D object in ChFieldDisplacement3D map. 
+// As such, we need to also implement this ChContactNodeFieldXYZ as a proxy to a ChFieldDataPos3D.
+
+/// Proxy to FEA nodes with 3 xyz + 3 rot coords, to grant them the features needed for collision detection.
+class ChApi ChContactNodeFieldXYZ : public ChContactable {
+  public:
+    ChContactNodeFieldXYZ(std::shared_ptr<ChNodeFEAfieldXYZ> node, std::shared_ptr<ChFieldDisplacement3D> field, ChContactSurface* contact_surface);
+
+    ChContactNodeFieldXYZ(ChFieldDataPos3D* nodedata = nullptr, ChContactSurface* contact_surface = nullptr);
+
+    /// Access the FEA node to whom this is is a proxy
+    //ChNodeFEAfieldXYZ* GetNode() { return m_node; }
+
+    /// Set the FEA node to whom this is a proxy
+    void SetNode(std::shared_ptr<ChNodeFEAfieldXYZ> node, std::shared_ptr<ChFieldDisplacement3D> field) {
+        m_field_data = &field->NodeData(node);
+    }
+    /// Set the FEA node to whom this is a proxy
+    void SetNode(ChFieldDataPos3D* nodedata) { 
+        m_field_data = nodedata; 
+    }
+
+    /// Get the current position.
+    ChVector3d GetPos() const { return m_field_data->GetPos(); }
+
+    /// Get the contact surface container
+    ChContactSurface* GetContactSurface() const { return m_container; }
+
+    /// Set the contact surface container
+    void SetContactSurface(ChContactSurface* contact_surface) { m_container = contact_surface; }
+
+    // INTERFACE TO ChContactable
+
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_3; }
+
+    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_1vars<3>(&m_field_data->GetVariable()); }
+
+    /// Tell if the object must be considered in collision detection.
+    virtual bool IsContactActive() override { return true; }
+
+    /// Get the number of DOFs affected by this object (position part).
+    virtual int GetContactableNumCoordsPosLevel() override { return 3; }
+
+    /// Get the number of DOFs affected by this object (speed part).
+    virtual int GetContactableNumCoordsVelLevel() override { return 3; }
+
+    /// Get all the DOFs packed in a single vector (position part).
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_field_data->GetPos().eigen(); }
+
+    /// Get all the DOFs packed in a single vector (speed part).
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_field_data->GetPosDt().eigen(); }
+
+    /// Increment the provided state of this object by the given state-delta increment.
+    /// Compute: x_new = x + dw.
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override { m_field_data->DataIntStateIncrement(0, x_new, x, 0, dw); }
+
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override { return state_x.segment(0, 3); }
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point, const ChState& state_x, const ChStateDelta& state_w) override { return state_w.segment(0, 3); }
+
+    /// Get the absolute speed of point abs_point if attached to the surface.
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_field_data->GetPosDt(); }
+
+    /// Return the frame of the associated collision model relative to the contactable object.
+    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(m_field_data->GetPos(), QUNIT); }
+
+    /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F, const ChVector3d& T, const ChVector3d& abs_point, ChVectorDynamic<>& R) override;
+
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
+    /// The force and its application point are specified in the global frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactComputeQ(const ChVector3d& F, const ChVector3d& T, const ChVector3d& point, const ChState& state_x, ChVectorDynamic<>& Q, int offset) override {
+        Q.segment(offset, 3) = F.eigen();
+    }
+
+    /// Compute the jacobian(s) part(s) for this contactable item.
+    /// For example, if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
+                                               bool second) override;
+
+    virtual double GetContactableMass() override {
+        //// TODO !!!!!!!!!!!!!!!!!!!!
+        return 1;
+        // return this->m_node->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
+    }
+
+    /// This is only for backward compatibility.
+    virtual ChPhysicsItem* GetPhysicsItem() override;
+
+  private:
+    ChContactSurface* m_container;
+    ChFieldDataPos3D* m_field_data;
+};
+
+#endif
+
+
+
+
 // -----------------------------------------------------------------------------
 
 /// Class which defines a contact surface for FEA elements.
@@ -305,6 +428,28 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     /// Access the n-th node with rotational dofs.
     std::shared_ptr<ChContactNodeXYZRot> GetNodeRot(unsigned int n) { return m_nodes_rot[n]; };
 
+   #ifdef CHRONO_FEA_MULTIPHYSICS
+
+    ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChDomain* meshdomain);
+
+    /// Add a specific multiphysics node to this collision cloud.
+    void AddNode(std::shared_ptr<ChNodeFEAfieldXYZ> node, std::shared_ptr<ChFieldDisplacement3D> field, const double point_radius = 0.001);
+
+    /// Add a specific multiphysics node to this collision cloud.
+    void AddNode(ChFieldDataPos3D* nodedata, const double point_radius = 0.001);
+
+    /// Utility function to add all nodes of the specified multiphysics mesh to this collision cloud. 
+    /// Works only if the ChDomain contains a ChFieldDisplacement3D
+    void AddAllNodes(std::shared_ptr<ChDomain> meshdomain, double point_radius = 0.001);
+
+    /// Utility function to add all nodes of the specified multiphysics field to this collision cloud.
+    void AddAllNodes(std::shared_ptr<ChFieldDisplacement3D> meshfield, double point_radius = 0.001);
+
+    /// Get the list of contact nodes from multiphysics.
+    std::vector<std::shared_ptr<ChContactNodeFieldXYZ>>& GetNodesField() { return m_nodes_field; }
+
+   #endif
+
     // Functions to interface this with ChPhysicsItem container.
     virtual void SyncCollisionModels() const override;
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
@@ -313,6 +458,10 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
   private:
     std::vector<std::shared_ptr<ChContactNodeXYZ>> m_nodes;         //  nodes
     std::vector<std::shared_ptr<ChContactNodeXYZRot>> m_nodes_rot;  //  nodes with rotations
+   #ifdef CHRONO_FEA_MULTIPHYSICS
+    std::vector<std::shared_ptr<ChContactNodeFieldXYZ>> m_nodes_field;  //  nodes from multiphysics  
+   #endif
+
 };
 
 /// @} fea_contact

@@ -21,7 +21,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
@@ -47,8 +47,6 @@ using namespace chrono::vsg3d;
     #include "chrono_postprocess/ChBlender.h"
 using namespace chrono::postprocess;
 #endif
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "demos/SetChronoSolver.h"
 
@@ -330,7 +328,7 @@ int main(int argc, char* argv[]) {
 
     // Set up output
     std::string out_dir = GetChronoOutputPath() + "FEAtire_TEST";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

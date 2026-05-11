@@ -23,8 +23,6 @@
 
 #include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeSinglePin.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 namespace chrono {
 namespace vehicle {
 namespace m113 {

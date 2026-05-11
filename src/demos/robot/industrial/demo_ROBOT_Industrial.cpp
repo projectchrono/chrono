@@ -150,10 +150,10 @@ int main(int argc, char* argv[]) {
         // Graphics
         vis->BeginScene();
         vis->Render();
-        tools::drawCoordsys(vis.get(), targetcoord, 0.1);                               // draw target
-        tools::drawCoordsys(vis.get(), robot->GetMarkerTCP()->GetAbsCoordsys(), 0.05);  // draw TCP coordsys
+        tools::DrawCoordsys(vis.get(), targetcoord, 0.1);                               // draw target
+        tools::DrawCoordsys(vis.get(), robot->GetMarkerTCP()->GetAbsCoordsys(), 0.05);  // draw TCP coordsys
         for (const auto& ii : keys)
-            tools::drawCoordsys(vis.get(), ii, 0.05);  // draw key frames
+            tools::DrawCoordsys(vis.get(), ii, 0.05);  // draw key frames
         vis->EndScene();
 
         // Impose following of trajectory through analytical IK, at run-time

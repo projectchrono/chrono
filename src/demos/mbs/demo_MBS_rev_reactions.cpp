@@ -79,8 +79,8 @@ int main(int argc, char* argv[]) {
         vis->Render();
 
         // Render the joint frames
-        tools::drawCoordsys(vis.get(), rev->GetFrame1Abs().GetCoordsys());
-        tools::drawCoordsys(vis.get(), rev->GetFrame2Abs().GetCoordsys());
+        tools::DrawCoordsys(vis.get(), rev->GetFrame1Abs().GetCoordsys());
+        tools::DrawCoordsys(vis.get(), rev->GetFrame2Abs().GetCoordsys());
 
         // Render reaction force on 1st connected body
         {
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
             auto p1 = rev->GetFrame1Abs().GetPos();
             auto p2 = p1 + frc;
-            tools::drawSegment(vis.get(), p1, p2, ChColor(0.5f, 0.5f, 0.0f), false);
+            tools::DrawSegment(vis.get(), p1, p2, ChColor(0.5f, 0.5f, 0.0f), false);
         }
 
         // Render reaction force on 2nd connected body
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
             auto p1 = rev->GetFrame2Abs().GetPos();
             auto p2 = p1 + frc;
-            tools::drawSegment(vis.get(), p1, p2, ChColor(0.0f, 0.5f, 0.5f), false);
+            tools::DrawSegment(vis.get(), p1, p2, ChColor(0.0f, 0.5f, 0.5f), false);
         }
 
         vis->EndScene();

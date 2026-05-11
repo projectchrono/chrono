@@ -15,6 +15,7 @@
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/physics/ChLoad.h"
+#include "chrono/fea/ChLoaderGravity.h"
 
 namespace chrono {
 namespace fea {
@@ -113,7 +114,7 @@ void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVecto
 
     if (auto loadable = std::dynamic_pointer_cast<ChLoadableUVW>(this_wrapper)) {
         if (G_acc != VNULL) {
-            auto gravity_loader = chrono_types::make_shared<ChLoaderGravity>(loadable);
+            auto gravity_loader = chrono_types::make_shared<fea::ChLoaderGravity>(loadable);
             gravity_loader->SetGravitationalAcceleration(G_acc);
             gravity_loader->SetNumIntPoints(1);  //// TODO n. gauss points as parameter?
             auto gravity_load = chrono_types::make_shared<ChLoad>(gravity_loader);

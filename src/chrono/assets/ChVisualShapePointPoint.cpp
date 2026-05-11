@@ -72,7 +72,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     
     auto linepath = chrono_types::make_shared<ChLinePath>();
 
-    // Following part was copied from irrlicht::tools::drawSpring()
+    // Following part was copied from irrlicht::tools::DrawSpring()
     ChVector3d dist = endpoint2 - endpoint1;
     ChVector3d Vx, Vy, Vz;
     double length = dist.Length();

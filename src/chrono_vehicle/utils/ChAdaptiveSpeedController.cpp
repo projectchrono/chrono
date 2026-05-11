@@ -31,7 +31,7 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/utils/ChAdaptiveSpeedController.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace rapidjson;
 

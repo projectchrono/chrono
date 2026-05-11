@@ -510,9 +510,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector3d baricenter;
+        ChVector3d barycenter;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, barycenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetName("obstacle");
@@ -530,7 +530,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
+        trimesh_shape->SetName(std::filesystem::path(b.m_mesh_filename).stem().string());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
         m_system->AddBody(body);
     }
@@ -590,7 +590,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
     // Create subdirectory for output from settling simulation (if enabled)
     if (m_settling_output) {
-        if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/settling"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(m_node_out_dir + "/settling"))) {
             std::cout << "Error creating directory " << m_node_out_dir + "/settling" << std::endl;
             return;
         }
@@ -739,6 +739,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
 
 // -----------------------------------------------------------------------------
 
+#ifdef CHRONO_FEA
 // Create bodies with triangular contact geometry as proxies for the mesh faces.
 // Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
@@ -786,6 +787,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
 
     m_proxies[i] = proxy;
 }
+#endif
 
 void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
@@ -846,6 +848,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnInitialize(unsigned int num_objects
     }
 }
 
+#ifdef CHRONO_FEA
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
 // The proxy body is effectively reconstructed at each synchronization time:
 //    - position at the center of mass of the three vertices
@@ -861,7 +864,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
-    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    const auto& idx_verts = trimesh->GetIndicesVertices();
     int nt = trimesh->GetNumTriangles();
 
     // shape_data contains all triangle vertex locations, in groups of three real3, one group for each triangle.
@@ -904,6 +907,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
     PrintMeshProxiesUpdateData(i, mesh_state);
 }
+#endif
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
@@ -936,6 +940,7 @@ ChVector3d ChVehicleCosimTerrainNodeGranularOMP::CalcBarycentricCoords(const ChV
     return ChVector3d(a1, a2, a3);
 }
 
+#ifdef CHRONO_FEA
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
@@ -947,7 +952,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
-    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    const auto& idx_verts = trimesh->GetIndicesVertices();
     int nt = trimesh->GetNumTriangles();
 
     // Maintain an unordered map of vertex indices and associated contact forces.
@@ -998,6 +1003,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
         mesh_contact.nv++;
     }
 }
+#endif
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
@@ -1083,6 +1089,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
     utils::WriteVisualizationAssets(m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_particles; }, true);
 }
 
+#ifdef CHRONO_FEA
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     {
         auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
@@ -1099,6 +1106,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned i
         cout << "[Terrain node] object: " << i << "  lowest vertex:  height = " << (*lowest).z() << endl;
     }
 }
+#endif
 
 }  // end namespace vehicle
 }  // end namespace chrono

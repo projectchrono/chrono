@@ -21,7 +21,7 @@
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.h"
-#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtChTriangleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPointShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
@@ -42,9 +42,11 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionModelBullet)
 CH_UPCASTING(ChCollisionModelBullet, ChCollisionModelImpl)
 
+// -----------------------------------------------------------------------------
+
 /// Utility function to populate a Bullet triangle mesh from a Chrono one
 static void PopulateBulletMesh(cbtTriangleMesh* bullet_mesh, std::shared_ptr<ChTriangleMesh> trimesh) {
-    for (auto i = 0; i < trimesh->GetNumTriangles(); i++) {
+    for (unsigned int i = 0; i < trimesh->GetNumTriangles(); i++) {
         bullet_mesh->addTriangle(cbtVector3CH(trimesh->GetTriangle(i).p1),  //
                                  cbtVector3CH(trimesh->GetTriangle(i).p2),  //
                                  cbtVector3CH(trimesh->GetTriangle(i).p3),  //
@@ -52,21 +54,6 @@ static void PopulateBulletMesh(cbtTriangleMesh* bullet_mesh, std::shared_ptr<ChT
         );
     }
 }
-
-// -----------------------------------------------------------------------------
-
-ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model) : ChCollisionModelImpl(collision_model) {
-    bt_collision_object = std::unique_ptr<cbtCollisionObject>(new cbtCollisionObject);
-    bt_collision_object->setCollisionShape(nullptr);
-    bt_collision_object->setUserPointer((void*)this);
-}
-
-ChCollisionModelBullet::~ChCollisionModelBullet() {
-    m_shapes.clear();
-    m_bt_shapes.clear();
-}
-
-// -----------------------------------------------------------------------------
 
 // Utility class to convert a Chrono frame into a Bullet transform.
 class cbtTransformCH : public cbtTransform {
@@ -94,6 +81,18 @@ class ChCoordsysBT : public ChCoordsys<double> {
 
 // -----------------------------------------------------------------------------
 
+ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model) : ChCollisionModelImpl(collision_model) {
+    bt_collision_object = std::unique_ptr<cbtCollisionObject>(new cbtCollisionObject);
+    bt_collision_object->setCollisionShape(nullptr);
+    bt_collision_object->setUserPointer((void*)this);
+}
+
+ChCollisionModelBullet::~ChCollisionModelBullet() {
+    m_shapes.clear();
+}
+
+// -----------------------------------------------------------------------------
+
 cbtScalar ChCollisionModelBullet::GetSuggestedFullMargin() {
     return (cbtScalar)(GetEnvelope() + GetSafeMargin());
 }
@@ -114,7 +113,7 @@ void ChCollisionModelBullet::Populate() {
                 model->SetSafeMargin(radius);
                 auto bt_shape = chrono_types::make_shared<cbtSphereShape>((cbtScalar)(radius + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::ELLIPSOID: {
@@ -126,7 +125,7 @@ void ChCollisionModelBullet::Populate() {
                 auto bt_shape = chrono_types::make_shared<cbtMultiSphereShape>(&spos, &rad, 1);
                 bt_shape->setLocalScaling(bt_axes);
                 bt_shape->setMargin((cbtScalar)std::min((double)full_margin, 0.9 * std::min(std::min(haxes.x(), haxes.y()), haxes.z())));
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::BOX: {
@@ -135,7 +134,7 @@ void ChCollisionModelBullet::Populate() {
                 model->SetSafeMargin(std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
                 auto bt_shape = chrono_types::make_shared<cbtBoxShape>(cbtVector3CH(len / 2 + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::CYLINDER: {
@@ -146,7 +145,7 @@ void ChCollisionModelBullet::Populate() {
                 ChVector3d size(radius, radius, height / 2);
                 auto bt_shape = chrono_types::make_shared<cbtCylinderShapeZ>(cbtVector3CH(size + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::CAPSULE: {
@@ -156,7 +155,7 @@ void ChCollisionModelBullet::Populate() {
                 model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
                 auto bt_shape = chrono_types::make_shared<cbtCapsuleShapeZ>((cbtScalar)(radius + envelope), (cbtScalar)(height + 2 * envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::CYLSHELL: {
@@ -166,7 +165,7 @@ void ChCollisionModelBullet::Populate() {
                 model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
                 auto bt_shape = chrono_types::make_shared<cbtCylindricalShellShape>((cbtScalar)(radius + envelope), (cbtScalar)(height / 2 + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::BARREL: {
@@ -184,7 +183,7 @@ void ChCollisionModelBullet::Populate() {
                 auto sR_offset = (cbtScalar)(R_offset);
                 auto bt_shape = chrono_types::make_shared<cbtBarrelShape>(sY_low, sY_high, sR_vert, sR_hor, sR_offset);
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::CONE: {
@@ -194,7 +193,7 @@ void ChCollisionModelBullet::Populate() {
                 model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height)));
                 auto bt_shape = chrono_types::make_shared<cbtConeShapeZ>(radius + envelope, height + envelope);
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::POINT: {
@@ -203,32 +202,32 @@ void ChCollisionModelBullet::Populate() {
                 model->SetSafeMargin(radius);
                 auto bt_shape = chrono_types::make_shared<cbtPointShape>((cbtScalar)(radius + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape, bt_shape, frame);
+                InjectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::SEGMENT: {
                 auto shape_seg = std::static_pointer_cast<ChCollisionShapeSegment>(shape);
-                injectSegmentProxy(shape_seg);
+                InjectSegmentProxy(shape_seg);
                 break;
             }
             case ChCollisionShape::Type::PATH2D: {
                 auto shape_path = std::static_pointer_cast<ChCollisionShapePath2D>(shape);
-                injectPath2D(shape_path, frame);
+                InjectPath2D(shape_path, frame);
                 break;
             }
             case ChCollisionShape::Type::CONVEXHULL: {
                 auto shape_hull = std::static_pointer_cast<ChCollisionShapeConvexHull>(shape);
-                injectConvexHull(shape_hull, frame);
+                InjectConvexHull(shape_hull, frame);
                 break;
             }
             case ChCollisionShape::Type::TRIANGLEMESH: {
                 auto shape_trimesh = std::static_pointer_cast<ChCollisionShapeTriangleMesh>(shape);
-                injectTriangleMesh(shape_trimesh, frame);
+                InjectTriangleMesh(shape_trimesh, frame);
                 break;
             }
-            case ChCollisionShape::Type::MESHTRIANGLE: {
-                auto shape_triangle = std::static_pointer_cast<ChCollisionShapeMeshTriangle>(shape);
-                injectTriangleProxy(shape_triangle);
+            case ChCollisionShape::Type::CONNECTEDTRIANGLE: {
+                auto shape_triangle = std::static_pointer_cast<ChCollisionShapeConnectedTriangle>(shape);
+                InjectTriangleProxy(shape_triangle);
                 break;
             }
             default:
@@ -236,59 +235,59 @@ void ChCollisionModelBullet::Populate() {
                 break;
         }
     }
-
-    // The number of total collision shapes must match the number of Bullet collision shapes
-    assert(m_shapes.size() == m_bt_shapes.size());
 }
 
-void ChCollisionModelBullet::injectShape(std::shared_ptr<ChCollisionShape> shape, std::shared_ptr<cbtCollisionShape> bt_shape, const ChFrame<>& frame) {
-    auto full_margin = GetSuggestedFullMargin();
+void ChCollisionModelBullet::InjectShape(std::shared_ptr<ChCollisionShape> shape, std::shared_ptr<cbtCollisionShape> bt_shape, const ChFrame<>& frame) {
+    // Cache the colision shapes and attach shape information as Bullet user data
+    // This must be done first, to have access to the Bullet collision model's GetSafeMargin() and GetEnvelope()
+    auto shape_data = chrono_types::make_shared<ShapeData>();
+    shape_data->ch_shape = shape;
+    shape_data->bt_shape = bt_shape;
+    shape_data->bt_model = this;
+    m_shapes.push_back(shape_data);
+    bt_shape->setUserPointer(shape_data.get());
 
+    auto full_margin = GetSuggestedFullMargin();
     bool centered = (frame.GetPos().IsNull() && frame.GetRot().IsIdentity());
 
-    // This is needed so one can later access the model's GetSafeMargin() and GetEnvelope()
-    bt_shape->setUserPointer(this);
-
-    if (m_bt_shapes.size() == 0) {  // ----------------------------------- this is the first shape added to the model
-
-        // [in] shape vector: {}
-        // [out] shape vector: {centered shape} OR {off-center shape}
+    if (m_shapes.size() == 1) {
+        // this is the first shape added to the model
+        // shape vector: {centered shape} OR {off-center shape}
 
         if (centered) {
+            // add new shape as a centered shape
             bt_collision_object->setCollisionShape(bt_shape.get());
         } else {
+            // create a compound and add new shape to compound
             bt_compound_shape = chrono_types::make_shared<cbtCompoundShape>(true);
             bt_compound_shape->setMargin((cbtScalar)full_margin);
             bt_compound_shape->addChildShape(cbtTransformCH(frame), bt_shape.get());
             bt_collision_object->setCollisionShape(bt_compound_shape.get());
         }
 
-    } else if (!bt_compound_shape && m_bt_shapes.size() == 1) {  // ------ the model has only one centered shape
+    } else if (!bt_compound_shape && m_shapes.size() == 2) {
+        // the model has only one centered shape
+        // shape vector: {old centered shape | shape}
 
-        // [in] shape vector: {centered shape}
-        // [out] shape vector: {old centered shape | shape}
-
+        // create a compound and add existing (old) and new shapes to compound
         bt_compound_shape = chrono_types::make_shared<cbtCompoundShape>(true);
         bt_compound_shape->setMargin((cbtScalar)full_margin);
         cbtTransform identity;
         identity.setIdentity();
-        bt_compound_shape->addChildShape(identity, m_bt_shapes[0].get());
+        bt_compound_shape->addChildShape(identity, m_shapes[0]->bt_shape.get());
         bt_compound_shape->addChildShape(cbtTransformCH(frame), bt_shape.get());
         bt_collision_object->setCollisionShape(bt_compound_shape.get());
 
-    } else {  // --------------------------------------------------------- already working with a compound
+    } else {
+        // already working with a compound
+        // shape vector: {old shape | old shape | ... | new shape}
 
-        // [in] shape vector: {old shape | old shape | ...}
-        // [out] shape vector: {old shape | old shape | ... | new shape}
-
+        // add new shape to compound
         bt_compound_shape->addChildShape(cbtTransformCH(frame), bt_shape.get());
     }
-
-    m_shapes.push_back(shape);
-    m_bt_shapes.push_back(bt_shape);
 }
 
-void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D> shape_path, const ChFrame<>& frame) {
+void ChCollisionModelBullet::InjectPath2D(std::shared_ptr<ChCollisionShapePath2D> shape_path, const ChFrame<>& frame) {
     const auto& path = *shape_path->GetGeometry();
     const auto& material = shape_path->GetMaterial();
     auto thickness = shape_path->GetSRadius();
@@ -301,17 +300,17 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
     for (size_t i = 0; i < path.GetSubLinesCount(); ++i) {
         if (auto segment = std::dynamic_pointer_cast<ChLineSegment>(path.GetSubLineN(i))) {
             if (segment->pA.z() != segment->pB.z())
-                throw std::runtime_error("Error! injectPath2D: sub segment of ChLinePath not parallel to XY plane!");
+                throw std::runtime_error("Error! InjectPath2D: sub segment of ChLinePath not parallel to XY plane!");
             ChVector3d pA(segment->pA.x(), segment->pA.y(), 0);
             ChVector3d pB(segment->pB.x(), segment->pB.y(), 0);
             auto shape_seg = chrono_types::make_shared<ChCollisionShapeSegment2D>(material, *segment, thickness);
             shape_seg->SetParentShape(shape_path);
             auto bt_shape = chrono_types::make_shared<cbt2DsegmentShape>(cbtVector3CH(pA), cbtVector3CH(pB), (cbtScalar)thickness);
             bt_shape->setMargin((cbtScalar)full_margin);
-            injectShape(shape_seg, bt_shape, frame);
+            InjectShape(shape_seg, bt_shape, frame);
         } else if (auto arc = std::dynamic_pointer_cast<ChLineArc>(path.GetSubLineN(i))) {
             if ((arc->origin.rot.e1() != 0) || (arc->origin.rot.e2() != 0))
-                throw std::invalid_argument("Error! injectPath2D: a sub arc of ChLinePath not parallel to XY plane!");
+                throw std::invalid_argument("Error! InjectPath2D: a sub arc of ChLinePath not parallel to XY plane!");
 
             double angle1 = arc->angle1;
             double angle2 = arc->angle2;
@@ -322,9 +321,9 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
             auto bt_shape = chrono_types::make_shared<cbt2DarcShape>((cbtScalar)arc->origin.pos.x(), (cbtScalar)arc->origin.pos.y(), (cbtScalar)arc->radius, (cbtScalar)angle1,
                                                                      (cbtScalar)angle2, arc->counterclockwise, (cbtScalar)thickness);
             bt_shape->setMargin((cbtScalar)full_margin);
-            injectShape(shape_arc, bt_shape, frame);
+            InjectShape(shape_arc, bt_shape, frame);
         } else {
-            throw std::invalid_argument("Error! injectPath2D: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
+            throw std::invalid_argument("Error! InjectPath2D: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
 
         size_t i_prev = i;
@@ -344,7 +343,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
 
             // check if connected segments
             if ((pos_prev - pos_next).Length() > 1e-9)
-                throw std::runtime_error("Error! injectPath2D: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
+                throw std::runtime_error("Error! InjectPath2D: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
 
             // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment
             if (Vcross(dir_prev, dir_next).z() < -1e-9) {
@@ -356,7 +355,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
                 auto bt_shape = chrono_types::make_shared<cbt2DarcShape>((cbtScalar)pos_prev.x(), (cbtScalar)pos_prev.y(), (cbtScalar)0, (cbtScalar)angle1, (cbtScalar)angle2,
                                                                          false, (cbtScalar)thickness);
                 bt_shape->setMargin((cbtScalar)full_margin);
-                injectShape(shape_arc, bt_shape, frame);
+                InjectShape(shape_arc, bt_shape, frame);
             } else {
                 // std::cout << "concave corner between " << i_next << " and " << i_next << std::endl;
             }
@@ -364,7 +363,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
     }
 }
 
-void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeConvexHull> shape_hull, const ChFrame<>& frame) {
+void ChCollisionModelBullet::InjectConvexHull(std::shared_ptr<ChCollisionShapeConvexHull> shape_hull, const ChFrame<>& frame) {
     const auto& points = shape_hull->GetPoints();
 
     auto safe_margin = GetSafeMargin();
@@ -383,9 +382,8 @@ void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeCo
     model->SetSafeMargin((cbtScalar)std::min((double)safe_margin, approx_chord * 0.2));
 
     // shrink the convex hull by GetSafeMargin()
-    bt_utils::ChConvexHullLibraryWrapper lh;
     ChTriangleMeshConnected mmesh;
-    lh.ComputeHull(points, mmesh);
+    bt_utils::ChConvexHullLibraryWrapper::ComputeHull(points, mmesh);
     mmesh.MakeOffset(-safe_margin);
 
     auto bt_shape = chrono_types::make_shared<cbtConvexHullShape>();
@@ -395,7 +393,7 @@ void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeCo
     bt_shape->setMargin((cbtScalar)full_margin);
     bt_shape->recalcLocalAabb();
 
-    injectShape(shape_hull, bt_shape, frame);
+    InjectShape(shape_hull, bt_shape, frame);
 }
 
 // -----------------------------------------------------------------------------
@@ -444,108 +442,96 @@ class cbtGImpactMeshShape_handlemesh : public cbtGImpactMeshShape {
     }
 };
 
-void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShapeTriangleMesh> shape_trimesh, const ChFrame<>& frame) {
-    float envelope = GetEnvelope();
-    float safe_margin = GetSafeMargin();
-    auto trimesh = shape_trimesh->GetMesh();
-    bool is_static = shape_trimesh->IsStatic();
-    bool is_convex = shape_trimesh->IsConvex();
-    double radius = shape_trimesh->GetRadius();
+void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShapeTriangleMesh> shape_trimesh, const ChFrame<>& frame) {
+    const float envelope = GetEnvelope();
+    const float safe_margin = GetSafeMargin();
+    const auto trimesh = shape_trimesh->GetMesh();
+    const bool is_static = shape_trimesh->IsStatic();
+    const bool is_convex = shape_trimesh->IsConvex();
+    const double radius = shape_trimesh->GetRadius();
 
-    if (!trimesh->GetNumTriangles())
+    if (trimesh->GetNumTriangles() == 0) {
         return;
+    }
 
     // Triangle mesh with connectivity ------------------------
     if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh)) {
-        std::vector<std::array<int, 4>> trimap;
-        mesh->ComputeNeighbouringTriangleMap(trimap);
+        std::vector<std::array<int, 4>> neighb_trimap;  // [Ti, TAi, TBi, TCi]
+        bool ok_trimap = mesh->ComputeNeighbouringTriangleMap(neighb_trimap);
 
-        std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
-        mesh->ComputeWingedEdges(winged_edges, true);
+        std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;  // {v1i, v2i}->{T1i, T2i}
+        bool ok_wingedge = mesh->ComputeWingedEdges(winged_edges, true);
 
-        std::vector<bool> added_vertices(mesh->m_vertices.size());
+        std::vector<bool> added_vertices(mesh->m_vertices.size(), false);
 
         // Iterate on triangles
-        for (int it = 0; it < mesh->m_face_v_indices.size(); ++it) {
-            // Edges = pairs of vertices indices
-            std::pair<int, int> edgeA(mesh->m_face_v_indices[it].x(), mesh->m_face_v_indices[it].y());
-            std::pair<int, int> edgeB(mesh->m_face_v_indices[it].y(), mesh->m_face_v_indices[it].z());
-            std::pair<int, int> edgeC(mesh->m_face_v_indices[it].z(), mesh->m_face_v_indices[it].x());
+        for (size_t it = 0; it < mesh->m_face_v_indices.size(); ++it) {
+            const ChVector3i& tri_verts_indices = mesh->m_face_v_indices[it];
+
+            // Edges: pairs of vertices indices
+            std::pair<int, int> edgeA(tri_verts_indices.x(), tri_verts_indices.y());
+            std::pair<int, int> edgeB(tri_verts_indices.y(), tri_verts_indices.z());
+            std::pair<int, int> edgeC(tri_verts_indices.z(), tri_verts_indices.x());
 
             // Vertex indices in edges: always in increasing order to avoid ambiguous duplicated edges
             if (edgeA.first > edgeA.second)
-                edgeA = std::pair<int, int>(edgeA.second, edgeA.first);
+                std::swap(edgeA.first, edgeA.second);
             if (edgeB.first > edgeB.second)
-                edgeB = std::pair<int, int>(edgeB.second, edgeB.first);
+                std::swap(edgeB.first, edgeB.second);
             if (edgeC.first > edgeC.second)
-                edgeC = std::pair<int, int>(edgeC.second, edgeC.first);
+                std::swap(edgeC.first, edgeC.second);
 
             // Collect wing vertices
             auto wingedgeA = winged_edges.find(edgeA);
             auto wingedgeB = winged_edges.find(edgeB);
             auto wingedgeC = winged_edges.find(edgeC);
 
-            int i_wingvertex_A = -1;
-            int i_wingvertex_B = -1;
-            int i_wingvertex_C = -1;
-
-            if (trimap[it][1] != -1) {
-                i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].x();
-                if (mesh->m_face_v_indices[trimap[it][1]].y() != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].y() != wingedgeA->first.second)
-                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].y();
-                if (mesh->m_face_v_indices[trimap[it][1]].z() != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].z() != wingedgeA->first.second)
-                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].z();
-            }
-
-            if (trimap[it][2] != -1) {
-                i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].x();
-                if (mesh->m_face_v_indices[trimap[it][2]].y() != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].y() != wingedgeB->first.second)
-                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].y();
-                if (mesh->m_face_v_indices[trimap[it][2]].z() != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].z() != wingedgeB->first.second)
-                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].z();
-            }
-
-            if (trimap[it][3] != -1) {
-                i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].x();
-                if (mesh->m_face_v_indices[trimap[it][3]].y() != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].y() != wingedgeC->first.second)
-                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].y();
-                if (mesh->m_face_v_indices[trimap[it][3]].z() != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].z() != wingedgeC->first.second)
-                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].z();
-            }
+            auto get_wingvertex_idx = [&mesh](int edgetriangle_idx, const std::map<std::pair<int, int>, std::pair<int, int>>::iterator& wingedge) -> int {
+                int wingvertex_idx = -1;  // no wing edge exists
+                if (edgetriangle_idx != -1) {
+                    const ChVector3i& edgetri_verts_indices = mesh->m_face_v_indices[edgetriangle_idx];
+                    wingvertex_idx = edgetri_verts_indices.x();
+                    if (edgetri_verts_indices.y() != wingedge->first.first && edgetri_verts_indices.y() != wingedge->first.second)
+                        wingvertex_idx = edgetri_verts_indices.y();
+                    if (edgetri_verts_indices.z() != wingedge->first.first && edgetri_verts_indices.z() != wingedge->first.second)
+                        wingvertex_idx = edgetri_verts_indices.z();
+                }
+                return wingvertex_idx;
+            };
+            int wingvertexA_idx = get_wingvertex_idx(neighb_trimap[it][1], wingedgeA);
+            int wingvertexB_idx = get_wingvertex_idx(neighb_trimap[it][2], wingedgeB);
+            int wingvertexC_idx = get_wingvertex_idx(neighb_trimap[it][3], wingedgeC);
 
             // Add a mesh triangle collision shape (triangle with connectivity information).
-            // For a non-wing vertex (i.e. 'free' edge), point to opposite vertex, that is the vertex in triangle not
-            // belonging to edge. Indicate is an edge is owned by this triangle. Otherwise, they belong to a neighboring
-            // triangle.
-            auto shape_triangle = chrono_types::make_shared<ChCollisionShapeMeshTriangle>(shape_trimesh->GetMaterial(),                                       // contact material
-                                                                                          &mesh->m_vertices[mesh->m_face_v_indices[it].x()],                  // face nodes
-                                                                                          &mesh->m_vertices[mesh->m_face_v_indices[it].y()],                  //
-                                                                                          &mesh->m_vertices[mesh->m_face_v_indices[it].z()],                  //
-                                                                                          wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A]  // edge node 1
-                                                                                                                         : &mesh->m_vertices[mesh->m_face_v_indices[it].z()],  //
-                                                                                          wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B]  // edge node 2
-                                                                                                                         : &mesh->m_vertices[mesh->m_face_v_indices[it].x()],  //
-                                                                                          wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C]  // edge node 3
-                                                                                                                         : &mesh->m_vertices[mesh->m_face_v_indices[it].y()],  //
-                                                                                          !added_vertices[mesh->m_face_v_indices[it].x()],  // face owns nodes?
-                                                                                          !added_vertices[mesh->m_face_v_indices[it].y()],  //
-                                                                                          !added_vertices[mesh->m_face_v_indices[it].z()],  //
-                                                                                          wingedgeA->second.first != -1,                    // face owns edges?
-                                                                                          wingedgeB->second.first != -1,                    //
-                                                                                          wingedgeC->second.first != -1,                    //
-                                                                                          radius                                            // thickness
+            // For a non-wing vertex (i.e. 'free' edge), point to opposite vertex, that is the vertex in triangle not belonging to edge.
+            // Indicate if an edge is owned by this triangle. Otherwise, they belong to a neighboring triangle.
+            auto shape_triangle = chrono_types::make_shared<ChCollisionShapeConnectedTriangle>(
+                shape_trimesh->GetMaterial(),                                                                                    // contact material
+                &mesh->m_vertices[tri_verts_indices.x()],                                                                        // vertex 1 coords
+                &mesh->m_vertices[tri_verts_indices.y()],                                                                        // vertex 2 coords
+                &mesh->m_vertices[tri_verts_indices.z()],                                                                        // vertex 3 coords
+                wingedgeA->second.second != -1 ? &mesh->m_vertices[wingvertexA_idx] : &mesh->m_vertices[tri_verts_indices.z()],  // edge 1 neighbor vertex
+                wingedgeB->second.second != -1 ? &mesh->m_vertices[wingvertexB_idx] : &mesh->m_vertices[tri_verts_indices.x()],  // edge 2 neighbor vertex
+                wingedgeC->second.second != -1 ? &mesh->m_vertices[wingvertexC_idx] : &mesh->m_vertices[tri_verts_indices.y()],  // edge 3 neighbor vertex
+                !added_vertices[tri_verts_indices.x()],                                                                          // face owns vertex 1?
+                !added_vertices[tri_verts_indices.y()],                                                                          // face owns vertex 2?
+                !added_vertices[tri_verts_indices.z()],                                                                          // face owns vertex 3?
+                wingedgeA->second.first != -1,                                                                                   // face owns edge 1?
+                wingedgeB->second.first != -1,                                                                                   // face owns edge 2?
+                wingedgeC->second.first != -1,                                                                                   // face owns edge 3?
+                radius                                                                                                           // thickness
             );
 
             // Inject connected triangle
             shape_triangle->SetParentShape(shape_trimesh);
-            injectTriangleProxy(shape_triangle);
+            InjectTriangleProxy(shape_triangle);
 
             // Mark added vertices
-            added_vertices[mesh->m_face_v_indices[it].x()] = true;
-            added_vertices[mesh->m_face_v_indices[it].y()] = true;
-            added_vertices[mesh->m_face_v_indices[it].z()] = true;
+            added_vertices[tri_verts_indices.x()] = true;
+            added_vertices[tri_verts_indices.y()] = true;
+            added_vertices[tri_verts_indices.z()] = true;
 
-            // Mark added edges, setting to -1 the 'ti' id of 1st triangle in winged edge {{vi,vj}{ti,tj}}
+            // Mark added edges, setting to -1 the 'Ti' id of first triangle in winged edge {vi,vj}->{Ti,Tj}
             wingedgeA->second.first = -1;
             wingedgeB->second.first = -1;
             wingedgeC->second.first = -1;
@@ -561,7 +547,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
         PopulateBulletMesh(bullet_mesh, trimesh);
         auto bt_shape = chrono_types::make_shared<cbtBvhTriangleMeshShape_handlemesh>(bullet_mesh);
         bt_shape->setMargin(static_cast<cbtScalar>(safe_margin));
-        injectShape(shape_trimesh, bt_shape, frame);
+        InjectShape(shape_trimesh, bt_shape, frame);
         return;
     }
 
@@ -570,7 +556,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
         PopulateBulletMesh(bullet_mesh, trimesh);
         auto bt_shape = chrono_types::make_shared<cbtConvexTriangleMeshShape_handlemesh>(bullet_mesh);
         bt_shape->setMargin(static_cast<cbtScalar>(envelope));
-        injectShape(shape_trimesh, bt_shape, frame);
+        InjectShape(shape_trimesh, bt_shape, frame);
         return;
     }
 
@@ -582,15 +568,15 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACD>();
     decomposition->AddTriangleMesh(*trimesh);
     decomposition->SetParameters(2,      // clusters
-                                    0,      // no decimation
-                                    0.0,    // small cluster threshold
-                                    false,  // add faces points
-                                    false,  // add extra dist points
-                                    100.0,  // max concavity
-                                    30,     // cc connect dist
-                                    0.0,    // volume weight beta
-                                    0.0,    // compacity alpha
-                                    50      // vertices per cc
+                                 0,      // no decimation
+                                 0.0,    // small cluster threshold
+                                 false,  // add faces points
+                                 false,  // add extra dist points
+                                 100.0,  // max concavity
+                                 30,     // cc connect dist
+                                 0.0,    // volume weight beta
+                                 0.0,    // compacity alpha
+                                 50      // vertices per cc
     );
     */
 
@@ -605,41 +591,40 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
                                  0.0f,  // small cluster threshold
                                  1e-9f  // fuse tolerance
     );
-
     decomposition->ComputeConvexDecomposition();
 
     model->SetSafeMargin(0);
-    for (unsigned int j = 0; j < decomposition->GetHullCount(); j++) {
+    for (unsigned int j = 0; j < decomposition->GetHullCount(); ++j) {
         std::vector<ChVector3d> ptlist;
         decomposition->GetConvexHullResult(j, ptlist);
         if (ptlist.size() > 0) {
             auto shape_hull = chrono_types::make_shared<ChCollisionShapeConvexHull>(shape_trimesh->GetMaterial(), ptlist);
             shape_hull->SetParentShape(shape_trimesh);
-            injectConvexHull(shape_hull, frame);
+            InjectConvexHull(shape_hull, frame);
         }
     }
 }
 
-void ChCollisionModelBullet::injectTriangleProxy(std::shared_ptr<ChCollisionShapeMeshTriangle> shape_triangle) {
+void ChCollisionModelBullet::InjectTriangleProxy(std::shared_ptr<ChCollisionShapeConnectedTriangle> shape_triangle) {
     model->SetSafeMargin(shape_triangle->sradius);
 
-    auto bt_shape = chrono_types::make_shared<cbtCEtriangleShape>(shape_triangle->V1, shape_triangle->V2, shape_triangle->V3,              //
+    auto bt_shape = chrono_types::make_shared<cbtChTriangleShape>(shape_triangle->V1, shape_triangle->V2, shape_triangle->V3,              //
                                                                   shape_triangle->eP1, shape_triangle->eP2, shape_triangle->eP3,           //
                                                                   shape_triangle->ownsV1, shape_triangle->ownsV2, shape_triangle->ownsV3,  //
                                                                   shape_triangle->ownsE1, shape_triangle->ownsE2, shape_triangle->ownsE3,  //
                                                                   shape_triangle->sradius);
     bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
-    injectShape(shape_triangle, bt_shape, ChFrame<>());
+    InjectShape(shape_triangle, bt_shape, ChFrame<>());
 }
 
-void ChCollisionModelBullet::injectSegmentProxy(std::shared_ptr<ChCollisionShapeSegment> shape_seg) {
+void ChCollisionModelBullet::InjectSegmentProxy(std::shared_ptr<ChCollisionShapeSegment> shape_seg) {
     model->SetSafeMargin(shape_seg->radius);
 
     auto bt_shape = chrono_types::make_shared<cbtSegmentShape>(shape_seg->P1, shape_seg->P2, shape_seg->ownsP1, shape_seg->ownsP2, shape_seg->radius);
     bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
-    injectShape(shape_seg, bt_shape, ChFrame<>());
+    InjectShape(shape_seg, bt_shape, ChFrame<>());
 }
 
 // -----------------------------------------------------------------------------
@@ -671,20 +656,20 @@ ChAABB ChCollisionModelBullet::GetBoundingBox() const {
 }
 
 void ChCollisionModelBullet::SyncPosition() {
-    auto frame = GetContactable()->GetCollisionModelFrame();
-    const auto& R = frame.GetRotMat();
-    cbtMatrix3x3 basisA((cbtScalar)R(0, 0), (cbtScalar)R(0, 1), (cbtScalar)R(0, 2), (cbtScalar)R(1, 0), (cbtScalar)R(1, 1), (cbtScalar)R(1, 2), (cbtScalar)R(2, 0),
-                        (cbtScalar)R(2, 1), (cbtScalar)R(2, 2));
-
+    ChFramed frame = GetContactable()->GetCollisionModelFrame();
+    const ChMatrix33d& R = frame.GetRotMat();
+    cbtMatrix3x3 basisA((cbtScalar)R(0, 0), (cbtScalar)R(0, 1), (cbtScalar)R(0, 2),   //
+                        (cbtScalar)R(1, 0), (cbtScalar)R(1, 1), (cbtScalar)R(1, 2),   //
+                        (cbtScalar)R(2, 0), (cbtScalar)R(2, 1), (cbtScalar)R(2, 2));  //
     bt_collision_object->getWorldTransform().setOrigin(cbtVector3CH(frame.GetPos()));
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
 
 bool ChCollisionModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
-    if (m_bt_shapes.size() != 1)
+    if (m_shapes.size() != 1)
         return false;
 
-    if (cbtSphereShape* bt_sphere_shape = dynamic_cast<cbtSphereShape*>(m_bt_shapes[0].get())) {
+    if (cbtSphereShape* bt_sphere_shape = dynamic_cast<cbtSphereShape*>(m_shapes[0]->bt_shape.get())) {
         model->SetSafeMargin(coll_radius);
         model->SetEnvelope(out_envelope);
         bt_sphere_shape->setUnscaledRadius((cbtScalar)(coll_radius + out_envelope));

@@ -97,6 +97,6 @@
     },
 
     "Visualization": {
-        "Mesh": "M113/TrackShoeBandANCF.obj"
+        "Mesh": "vehicle/M113/TrackShoeBandANCF.obj"
     }
 }

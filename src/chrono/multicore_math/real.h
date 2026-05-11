@@ -12,31 +12,37 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Description: definition of a real number which can be defined as a float
-// (increased speed on some architectures) or a double (increased precision)
+// Definition of a real number which can be defined as a float (increased speed
+// on some architectures) or a double (increased precision).
 // =============================================================================
 
 #pragma once
 
-#include "chrono/core/ChApiCE.h"
-
-#include "chrono/ChConfig.h"
-
 #include <cmath>
 #include <cfloat>
+#include <algorithm>
 
-// If the user specified using doubles, define the real type as double
-// Also set some constants. The same is done if floats were specified.
-#if defined(USE_COLLISION_DOUBLE)
-    #include "chrono/multicore_math/real_double.h"
-#else
-    #include "chrono/multicore_math/real_single.h"
-#endif
+#include "chrono/core/ChApiCE.h"
+#include "chrono/ChConfig.h"
 
 namespace chrono {
 
 /// @addtogroup chrono_mc_math
 /// @{
+
+// Set `real` type, depending on selected precision.
+// Set corresponding constants.
+#if defined(USE_COLLISION_DOUBLE)
+typedef double real;
+    #define CH_REAL_MAX DBL_MAX
+    #define CH_REAL_MIN DBL_MIN
+    #define CH_REAL_EPSILON DBL_EPSILON
+#else
+typedef float real;
+    #define CH_REAL_MAX FLT_MAX
+    #define CH_REAL_MIN FLT_MIN
+    #define CH_REAL_EPSILON FLT_EPSILON
+#endif
 
 //  static inline real DegToRad(real t) {
 //    return t * C_DegToRad;
@@ -71,44 +77,35 @@ static inline T Cube(const T x) {
     return x * x * x;
 }
 
-/// Checks if the value is zero to within a certain epsilon
-/// in this case ZERO_EPSILON is defined based on what the base type of real is
-static inline bool IsZero(const real x) {
-    return Abs(x) < C_REAL_EPSILON;
+static inline real Min(const real a, const real b, const real c) {
+    return std::min(std::min(a, b), c);
 }
 
-// template <typename T>
-// inline T Min(T a, T b) {
-//    return a < b ? a : b;
-//}
-//
-// template <typename T>
-// inline T Max(T a, T b) {
-//    return a > b ? a : b;
-//}
+static inline real Max(const real a, const real b, const real c) {
+    return std::max(std::max(a, b), c);
+}
 
-// Check if two values are equal using a small delta/epsilon value.
-// Essentially a fuzzy comparison operator
-// template <typename T>
-// inline bool IsEqual(const T& x, const T& y) {
-//    return IsZero(x - y);
-//}
+/// Check if the value is zero to within a certain epsilon.
+/// ZERO_EPSILON is defined based on what the base type of real.
+static inline bool IsZero(const real x) {
+    return std::abs(x) < CH_REAL_EPSILON;
+}
 
 /// Check if two values are equal using a small delta/epsilon value.
 /// Essentially a fuzzy comparison operator
 template <typename T>
 static inline bool IsEqual(const T& _a, const T& _b) {
     real ab;
-    ab = Abs(_a - _b);
-    if (Abs(ab) < C_REAL_EPSILON)
+    ab = std::abs(_a - _b);
+    if (ab < CH_REAL_EPSILON)
         return 1;
     real a, b;
-    a = Abs(_a);
-    b = Abs(_b);
+    a = std::abs(_a);
+    b = std::abs(_b);
     if (b > a) {
-        return ab < C_REAL_EPSILON * b;
+        return ab < CH_REAL_EPSILON * b;
     } else {
-        return ab < C_REAL_EPSILON * a;
+        return ab < CH_REAL_EPSILON * a;
     }
 }
 
@@ -145,7 +142,11 @@ inline real Clamp(real x, real low, real high) {
     if (low > high) {
         Swap(low, high);
     }
-    return Max(low, Min(x, high));
+    if (x < low)
+        return low;
+    if (x > high)
+        return high;
+    return x;
 }
 
 /// Clamps a given value a between user specified minimum and maximum values.
@@ -160,11 +161,11 @@ inline void ClampValue(real& x, real low, real high) {
 }
 
 inline real ClampMin(real x, real low) {
-    return Max(low, x);
+    return std::max(low, x);
 }
 
 inline real ClampMax(real x, real high) {
-    return Min(x, high);
+    return std::min(x, high);
 }
 
 //=========MACROS

@@ -42,8 +42,6 @@
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "FEAvisualization.h"
 
 using namespace chrono;
@@ -68,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) the output directory
     const std::string out_dir = GetChronoOutputPath() + "FEA_BRICK9";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

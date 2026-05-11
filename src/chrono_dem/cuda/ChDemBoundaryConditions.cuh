@@ -19,7 +19,15 @@
 #include "chrono_dem/physics/ChDemBoundaryConditions.h"
 #include "chrono_dem/cuda/ChCudaMathUtils.cuh"
 #include "chrono_dem/cuda/ChDemHelpers.cuh"
-#include <math_constants.h>
+#if defined(CHRONO_USE_HIP)
+    #if __has_include(<hip/math_constants.h>)
+        #include <hip/math_constants.h>
+    #elif __has_include(<math_constants.h>)
+        #include <math_constants.h>
+    #endif
+#else
+    #include <math_constants.h>
+#endif
 using chrono::dem::CHDEM_TIME_INTEGRATOR;
 using chrono::dem::CHDEM_FRICTION_MODE;
 using chrono::dem::CHDEM_ROLLING_MODE;

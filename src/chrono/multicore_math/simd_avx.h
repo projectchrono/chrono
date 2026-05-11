@@ -98,7 +98,7 @@ inline real Dot4(__m256d a, __m256d b) {
 
 inline __m256d Normalize(const __m256d& v) {
     real t = simd::Dot4(v);
-    real dp = InvSqrt(t);
+    real dp = 1 / std::sqrt(t);
     return _mm256_mul_pd(v, _mm256_set1_pd(dp));
 }
 

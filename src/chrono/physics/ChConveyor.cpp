@@ -175,13 +175,14 @@ void ChConveyor::IntLoadResidual_CqL(const unsigned int off_L,
 void ChConveyor::IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
+                                     const double c_vel,  ///< the scaling factor if the constraint is at speed level
                                      bool do_clamp,
                                      double recovery_clamp) {
-    internal_link->IntLoadConstraint_C(off, Qc, c, do_clamp, recovery_clamp);
+    internal_link->IntLoadConstraint_C(off, Qc, c, c_vel, do_clamp, recovery_clamp);
 }
 
-void ChConveyor::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) {
-    internal_link->IntLoadConstraint_Ct(off, Qc, c);
+void ChConveyor::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
+    internal_link->IntLoadConstraint_Ct(off, Qc, c, c_vel);
 }
 
 // SOLVER INTERFACE

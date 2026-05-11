@@ -39,6 +39,8 @@ class ChSolver_Type_enum_mapper : public ChSolver {
     CH_ENUM_MAPPER_END(Type);
 };
 
+ChSolver::ChSolver() : conditioning_factor(1), verbose(false), write_matrix(false), output_dir(""), frame_id("") {}
+
 void ChSolver::EnableWrite(bool val, const std::string& frame, const std::string& out_dir) {
     write_matrix = val;
     output_dir = out_dir;

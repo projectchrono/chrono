@@ -42,7 +42,10 @@ ChSystemNSC::ChSystemNSC(const std::string& name) : ChSystem(name) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 }
 
-ChSystemNSC::ChSystemNSC(const ChSystemNSC& other) : ChSystem(other) {}
+ChSystemNSC::ChSystemNSC(const ChSystemNSC& other) : ChSystem(other) {
+    contact_container = chrono_types::make_shared<ChContactContainerNSC>();
+    contact_container->SetSystem(this);
+}
 
 void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
     if (std::dynamic_pointer_cast<ChContactContainerNSC>(container))

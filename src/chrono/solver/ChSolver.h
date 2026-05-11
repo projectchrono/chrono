@@ -117,7 +117,7 @@ class ChApi ChSolver {
     static std::string GetTypeAsString(Type type);
 
   protected:
-    ChSolver() : verbose(false), conditioning_factor(1) {}
+    ChSolver();
 
     double conditioning_factor;
 

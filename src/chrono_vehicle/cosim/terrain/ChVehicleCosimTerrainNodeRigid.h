@@ -99,10 +99,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     /// Return current total number of contacts.
     virtual unsigned int GetNumContacts() const override { return m_system->GetNumContacts(); }
 
+#ifdef CHRONO_FEA
     virtual void CreateMeshProxy(unsigned int i) override;
     virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) override;
     virtual void GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) override;
     void PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state);
+#endif
 
     virtual void CreateRigidProxy(unsigned int i) override;
     virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;

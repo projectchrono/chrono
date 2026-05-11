@@ -193,36 +193,23 @@ CH_MULTICORE_API
 void Orthogonalize(const real3& Vx, real3& Vy, real3& Vz);
 
 CH_MULTICORE_API
-void Compute_Jacobian(const quaternion& quat,
-                      const real3& U,
-                      const real3& V,
-                      const real3& W,
-                      const real3& point,
-                      real3& T1,
-                      real3& T2,
-                      real3& T3);
+void Compute_Jacobian(const quaternion& quat, const real3& U, const real3& V, const real3& W, const real3& point, real3& T1, real3& T2, real3& T3);
 
 CH_MULTICORE_API
-void Compute_Jacobian_Rolling(const quaternion& quat,
-                              const real3& U,
-                              const real3& V,
-                              const real3& W,
-                              real3& T1,
-                              real3& T2,
-                              real3& T3);
+void Compute_Jacobian_Rolling(const quaternion& quat, const real3& U, const real3& V, const real3& W, real3& T1, real3& T2, real3& T3);
 
-#define Loop_Over_Rigid_Neighbors(X)                     \
-    for (int p = 0; p < (signed)num_particles; p++) { \
-        int start = contact_counts[p];                   \
-        int end = contact_counts[p + 1];                 \
-        for (int index = start; index < end; index++) {  \
-            int i = index - start;                       \
-            X                                            \
-        }                                                \
+#define Loop_Over_Rigid_Neighbors(X)                    \
+    for (int p = 0; p < (signed)num_particles; p++) {   \
+        int start = contact_counts[p];                  \
+        int end = contact_counts[p + 1];                \
+        for (int index = start; index < end; index++) { \
+            int i = index - start;                      \
+            X                                           \
+        }                                               \
     }
 
-#define Loop_Over_Particle_Neighbors(X)                                                                           \
-    for (int body_a = 0; body_a < (signed)num_particles; body_a++) {                                        \
+#define Loop_Over_Particle_Neighbors(X)                                                                        \
+    for (int body_a = 0; body_a < (signed)num_particles; body_a++) {                                           \
         real3 pos_p = sorted_pos[body_a];                                                                      \
         for (int i = 0; i < data_manager->cd_data->c_counts_3dof_3dof[body_a]; i++) {                          \
             int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i]; \
@@ -245,42 +232,30 @@ CH_MULTICORE_API
 bool Cone_single_rigid(real& gamma_n, real& gamma_s, real mu);
 
 CH_MULTICORE_API
-void AppendRigidParticleBoundary(const real contact_mu,
-                              const uint num_particles,
-                              const uint body_offset,
-                              const uint start_boundary,
-                              ChMulticoreDataManager* data_manager);
+void AppendRigidParticleBoundary(const real contact_mu, const uint num_particles, const uint body_offset, const uint start_boundary, ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
 void ProjectRigidParticleBoundary(const real contact_mu,
-                               const real contact_cohesion,
-                               const uint num_particles,
-                               const uint start_boundary,
-                               real* gamma,
-                               ChMulticoreDataManager* data_manager);
+                                  const real contact_cohesion,
+                                  const uint num_particles,
+                                  const uint start_boundary,
+                                  real* gamma,
+                                  ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
-void ComplianceRigidParticleBoundary(const real contact_mu,
-                                  const real contact_compliance,
-                                  const real alpha,
-                                  const uint start_boundary,
-                                  ChMulticoreDataManager* data_manager);
+void ComplianceRigidParticleBoundary(const real contact_mu, const real contact_compliance, const real alpha, const uint start_boundary, ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
 void CorrectionRigidParticleBoundary(const real contact_mu,
-                                  const real contact_cohesion,
-                                  const real alpha,
-                                  const real contact_recovery_speed,
-                                  const uint num_particles,
-                                  const uint start_boundary,
-                                  ChMulticoreDataManager* data_manager);
+                                     const real contact_cohesion,
+                                     const real alpha,
+                                     const real contact_recovery_speed,
+                                     const uint num_particles,
+                                     const uint start_boundary,
+                                     ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
-void BuildRigidParticleBoundary(const real contact_mu,
-                             const uint num_particles,
-                             const uint body_offset,
-                             const uint start_boundary,
-                             ChMulticoreDataManager* data_manager);
+void BuildRigidParticleBoundary(const real contact_mu, const uint num_particles, const uint body_offset, const uint start_boundary, ChMulticoreDataManager* data_manager);
 
 /// @} multicore_constraint
 

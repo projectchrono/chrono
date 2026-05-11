@@ -231,7 +231,7 @@ void ChTdpfVisualizationVSG::CreateWaveMesh() {
     m_wave_mesh.trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     std::vector<ChVector3d>& vertices = m_wave_mesh.trimesh->GetCoordsVertices();
     std::vector<ChVector3d>& normals = m_wave_mesh.trimesh->GetCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = m_wave_mesh.trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_vertices = m_wave_mesh.trimesh->GetIndicesVertices();
     std::vector<ChVector3i>& idx_normals = m_wave_mesh.trimesh->GetIndicesNormals();
     std::vector<ChVector2d>& uv_coords = m_wave_mesh.trimesh->GetCoordsUV();
     std::vector<ChColor>& colors = m_wave_mesh.trimesh->GetCoordsColors();

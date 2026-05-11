@@ -28,10 +28,6 @@ namespace chrono {
 /// Uses a numerical differentiation method to compute the derivative
 /// of a generic function.
 class ChApi ChFunctionDerivative : public ChFunction {
-  private:
-    std::shared_ptr<ChFunction> m_operand_fun;
-    int m_der_order;  ///< derivative order
-
   public:
     ChFunctionDerivative() : m_der_order(1) {}
     ChFunctionDerivative(const ChFunctionDerivative& other);
@@ -55,13 +51,17 @@ class ChApi ChFunctionDerivative : public ChFunction {
     void SetOperandFunction(std::shared_ptr<ChFunction> operand_function) { m_operand_fun = operand_function; }
 
     /// Get the function to be differentiated.
-    std::shared_ptr<ChFunction> GetOperandFunction() { return m_operand_fun; }
+    std::shared_ptr<ChFunction> GetOperandFunction() const { return m_operand_fun; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::shared_ptr<ChFunction> m_operand_fun;
+    int m_der_order;  ///< derivative order
 };
 
 /// @} chrono_functions

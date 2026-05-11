@@ -28,12 +28,11 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChLoadsBeam.h"
+#include "chrono/fea/ChLoaderGravity.h"
 
 #ifdef CHRONO_POSTPROCESS
 #include "chrono_postprocess/ChGnuPlot.h"
 #endif
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "FEAvisualization.h"
 
@@ -71,7 +70,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "FEA_LOADS";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
@@ -157,7 +156,7 @@ int main(int argc, char* argv[]) {
             // Add gravity (constant volumetric load)
             std::cout << "   Gravity load (constant volumetric load).\n" << std::endl;
 
-            auto gravity_loader = chrono_types::make_shared<ChLoaderGravity>(elementA);
+            auto gravity_loader = chrono_types::make_shared<fea::ChLoaderGravity>(elementA);
             auto gravity_load = chrono_types::make_shared<ChLoad>(gravity_loader);
             load_container->Add(gravity_load);
 

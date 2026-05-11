@@ -10,6 +10,7 @@
 %include "../../../chrono/physics/ChUpdateFlags.h"
 
 // Make UpdateFlags visible in the fea namespace
+#ifdef CHRONO_FEA
 %inline %{
 namespace chrono {
 namespace fea {
@@ -17,3 +18,4 @@ typedef chrono::UpdateFlags UpdateFlags;
 }
 }
 %}
+#endif

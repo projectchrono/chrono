@@ -30,6 +30,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLoaderPressure.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "FEAvisualization.h"

@@ -68,7 +68,7 @@ class ChApi ChFunctionRepeat : public ChFunction {
     void SetRepeatedFunction(std::shared_ptr<ChFunction> func) { fa = func; }
 
     /// Get the function to be repeated.
-    std::shared_ptr<ChFunction> GetRepeatedFunction() { return fa; }
+    std::shared_ptr<ChFunction> GetRepeatedFunction() const { return fa; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -80,7 +80,7 @@ class ChApi ChFunctionRepeat : public ChFunction {
     double m_slice_start;  ///< slice start position
     double m_slice_width;  ///< slice width
     double m_slice_shift;  ///< slice shift
-    std::shared_ptr<ChFunction> fa;
+    std::shared_ptr<ChFunction> fa; ///< function to be repeated
 };
 
 /// @} chrono_functions

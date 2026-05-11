@@ -173,6 +173,12 @@ class ChApi ChPhysicsItem : public ChObj {
                                           const ChVectorDynamic<>& L  ///< L vector of reaction forces
     ) {}
 
+    /// Called at the end of a step, after the state has been updated. This can be used to perform any clean up or
+    /// finalization after a step is completed, or to update state variables that are not part of the state vector but
+    /// need to be updated only at the end of a step, like in plasticity.
+    virtual void IntStateOnEndStep(double T  ///< time
+    ) {}
+
     /// Computes x_new = x + Dt , using vectors at specified offsets.
     /// By default, when DOF = DOF_w, it does just the sum, but in some cases (ex when using quaternions
     /// for rotations) it could do more complex stuff, and children classes might overload it.
@@ -237,7 +243,8 @@ class ChApi ChPhysicsItem : public ChObj {
     ///    Qc += c*C
     virtual void IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
                                      ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
-                                     const double c,          ///< a scaling factor
+                                     const double c,          ///< the scaling factor
+                                     const double c_vel,      ///< the scaling factor if the constraint is at speed level
                                      bool do_clamp,           ///< apply clamping to c*C?
                                      double recovery_clamp    ///< value for min/max clamping of c*C
     ) {}
@@ -246,7 +253,8 @@ class ChApi ChPhysicsItem : public ChObj {
     ///    Qc += c*Ct
     virtual void IntLoadConstraint_Ct(const unsigned int off,  ///< offset in Qc residual
                                       ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*Ct
-                                      const double c           ///< a scaling factor
+                                      const double c,          ///< the scaling factor
+                                      const double c_vel       ///< the scaling factor if the constraint is at speed level
     ) {}
 
     /// Prepare variables and constraints to accommodate a solution:

@@ -38,6 +38,6 @@
 
   "Visualization":
   {
-      "Mesh":              "M113/meshes/SprocketSinglePin_R.obj"
+      "Mesh":              "vehicle/M113/meshes/SprocketSinglePin_R.obj"
   }
 }

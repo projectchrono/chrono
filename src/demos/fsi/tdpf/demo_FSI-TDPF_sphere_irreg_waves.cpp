@@ -32,8 +32,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -175,18 +173,18 @@ int main(int argc, char* argv[]) {
     std::string out_dir = GetChronoOutputPath() + "FSI-TDPF_sphere";
     std::string img_dir = out_dir + "/irreg_waves_img";
     std::string dbg_dir = out_dir + "/irreg_waves_dbg_" + sysMBS.GetSolver()->GetTypeAsString();
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
     if (snapshots) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
             std::cerr << "Error creating directory " << img_dir << std::endl;
             return 1;
         }
     }
     if (debug_sys) {
-        if (!filesystem::create_directory(filesystem::path(dbg_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(dbg_dir))) {
             std::cerr << "Error creating directory " << dbg_dir << std::endl;
             return 1;
         }

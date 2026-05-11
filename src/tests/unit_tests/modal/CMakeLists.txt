@@ -1,7 +1,13 @@
 set(TESTS
-    utest_MOD_eigensolver
-    utest_MOD_curved_beam
 )
+
+if(CH_ENABLE_MODULE_FEA)
+    set(TESTS ${TESTS}
+        utest_MOD_eigensolver
+        utest_MOD_curved_beam
+        utest_MOD_cache_reduced
+    )
+endif()
 
 set(LIBS Chrono_core Chrono_modal)
 

@@ -43,9 +43,9 @@ namespace mc_utils {
 template <class T>
 inline vec3 HashMin(const T& A, const real3& inv_bin_size_vec) {
     vec3 temp;
-    temp.x = (int)Floor(A.x * inv_bin_size_vec.x);
-    temp.y = (int)Floor(A.y * inv_bin_size_vec.y);
-    temp.z = (int)Floor(A.z * inv_bin_size_vec.z);
+    temp.x = (int)std::floor(A.x * inv_bin_size_vec.x);
+    temp.y = (int)std::floor(A.y * inv_bin_size_vec.y);
+    temp.z = (int)std::floor(A.z * inv_bin_size_vec.z);
     return temp;
 }
 
@@ -53,9 +53,9 @@ inline vec3 HashMin(const T& A, const real3& inv_bin_size_vec) {
 template <class T>
 inline vec3 HashMax(const T& A, const real3& inv_bin_size_vec) {
     vec3 temp;
-    temp.x = (int)Ceil(A.x * inv_bin_size_vec.x) - 1;
-    temp.y = (int)Ceil(A.y * inv_bin_size_vec.y) - 1;
-    temp.z = (int)Ceil(A.z * inv_bin_size_vec.z) - 1;
+    temp.x = (int)std::ceil(A.x * inv_bin_size_vec.x) - 1;
+    temp.y = (int)std::ceil(A.y * inv_bin_size_vec.y) - 1;
+    temp.z = (int)std::ceil(A.z * inv_bin_size_vec.z) - 1;
     return temp;
 }
 
@@ -264,7 +264,7 @@ inline real3 GetSupportPoint_Cylinder(const real3& B, const real3& n) {
     const real& hheight = B.z;
 
     // If direction along cone axis, support point arbitrary on base circumference
-    real s = Sqrt(n.x * n.x + n.y * n.y);
+    real s = std::sqrt(n.x * n.x + n.y * n.y);
     if (s < 1e-9)
         return real3(radius, 0, n.z < 0.0 ? -hheight : hheight);
 
@@ -292,12 +292,12 @@ inline real3 GetSupportPoint_Cone(const real3& B, const real3& n) {
     const real& hheight = B.z;
 
     // If direction close to cone axis, support point at apex
-    real sinAngle = (radius / Sqrt(radius * radius + 4 * hheight * hheight));
+    real sinAngle = (radius / std::sqrt(radius * radius + 4 * hheight * hheight));
     if (n.z > Length(n) * sinAngle)
         return real3(0, 0, hheight);
 
     // If direction along cone axis downwards, support point at center of base
-    real s = Sqrt(n.x * n.x + n.y * n.y);
+    real s = std::sqrt(n.x * n.x + n.y * n.y);
     if (s < 1e-9)
         return real3(0, 0, -hheight);
 
@@ -356,7 +356,7 @@ inline real3 GetSupportPoint_CylindricalShell(const real3& B, const real3& n) {
 
 /// Support point for a generic convex shape (for GJK and MPR).
 inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, const real3& n) {
-    real max_dot_p = -C_REAL_MAX;
+    real max_dot_p = -CH_REAL_MAX;
     real dot_p;
     real3 point = convex_data[0];
     for (int i = 0; i < size; i++) {
@@ -371,7 +371,7 @@ inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, co
 
 /// Support point for a tetrahedron (for GJK and MPR).
 inline real3 GetSupportPoint_Tetrahedron(const uvec4& indices, const real3* nodes, const real3& n) {
-    real max_dot_p = -C_REAL_MAX;
+    real max_dot_p = -CH_REAL_MAX;
     real dot_p;
     real3 point;
 
@@ -506,7 +506,7 @@ inline uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
 
     if (d2 > rad * rad) {
         code |= 2;
-        real d = Sqrt(d2);
+        real d = std::sqrt(d2);
         loc.x *= (rad / d);
         loc.y *= (rad / d);
     }
@@ -528,7 +528,7 @@ inline uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
 ///   - code = 7 indicates a corner
 inline uint box_closest_feature(const real3& dir, const real3& hdims) {
     real threshold = 0.01;  // corresponds to about 0.57 degrees
-    return ((Abs(dir.x) > threshold) << 0) | ((Abs(dir.y) > threshold) << 1) | ((Abs(dir.z) > threshold) << 2);
+    return ((std::abs(dir.x) > threshold) << 0) | ((std::abs(dir.y) > threshold) << 1) | ((std::abs(dir.z) > threshold) << 2);
 }
 
 /// This utility function snaps the specified location to a point on a box with given half-dimensions. The in/out
@@ -546,15 +546,15 @@ inline uint box_closest_feature(const real3& dir, const real3& hdims) {
 inline uint snap_to_box(const real3& hdims, real3& loc) {
     uint code = 0;
 
-    if (Abs(loc.x) > hdims.x) {
+    if (std::abs(loc.x) > hdims.x) {
         code |= 1;
         loc.x = (loc.x > 0) ? hdims.x : -hdims.x;
     }
-    if (Abs(loc.y) > hdims.y) {
+    if (std::abs(loc.y) > hdims.y) {
         code |= 2;
         loc.y = (loc.y > 0) ? hdims.y : -hdims.y;
     }
-    if (Abs(loc.z) > hdims.z) {
+    if (std::abs(loc.z) > hdims.z) {
         code |= 4;
         loc.z = (loc.z > 0) ? hdims.z : -hdims.z;
     }

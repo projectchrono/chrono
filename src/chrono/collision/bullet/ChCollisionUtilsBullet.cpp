@@ -314,45 +314,48 @@ bool IntersectSegmentCylinder(const cbtVector3& sC,  // segment center point
 
 // -----------------------------------------------------------------------------
 
-ChConvexHullLibraryWrapper::ChConvexHullLibraryWrapper() {}
+bool ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector3d>& points, ChTriangleMeshConnected& trimesh) {
+    if (points.empty()) {
+        return false;
+    }
 
-void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector3d>& points, ChTriangleMeshConnected& vshape) {
     HullLibrary hl;
     HullResult hresult;
     HullDesc desc;
 
     desc.SetHullFlag(QF_TRIANGLES);
 
-    cbtVector3* btpoints = new cbtVector3[points.size()];
-    for (unsigned int ip = 0; ip < points.size(); ++ip) {
-        btpoints[ip].setX((cbtScalar)points[ip].x());
-        btpoints[ip].setY((cbtScalar)points[ip].y());
-        btpoints[ip].setZ((cbtScalar)points[ip].z());
+    std::vector<cbtVector3> btpoints(points.size());
+    for (size_t ip = 0; ip < points.size(); ++ip) {
+        btpoints[ip].setX(static_cast<cbtScalar>(points[ip].x()));
+        btpoints[ip].setY(static_cast<cbtScalar>(points[ip].y()));
+        btpoints[ip].setZ(static_cast<cbtScalar>(points[ip].z()));
     }
-    desc.mVcount = (unsigned int)points.size();
-    desc.mVertices = btpoints;
+    desc.mVcount = static_cast<unsigned int>(points.size());
+    desc.mVertices = btpoints.data();
     desc.mVertexStride = sizeof(cbtVector3);
 
     HullError hret = hl.CreateConvexHull(desc, hresult);
 
+    bool success = false;
     if (hret == QE_OK) {
-        vshape.Clear();
+        trimesh.Clear();
 
-        vshape.GetIndicesVertexes().resize(hresult.mNumFaces);
+        trimesh.GetIndicesVertices().resize(hresult.mNumFaces);
         for (unsigned int it = 0; it < hresult.mNumFaces; ++it) {
-            vshape.GetIndicesVertexes()[it] =
-                ChVector3i(hresult.m_Indices[it * 3 + 0], hresult.m_Indices[it * 3 + 1], hresult.m_Indices[it * 3 + 2]);
+            trimesh.GetIndicesVertices()[it] = ChVector3i(hresult.m_Indices[it * 3 + 0], hresult.m_Indices[it * 3 + 1], hresult.m_Indices[it * 3 + 2]);
         }
-        vshape.GetCoordsVertices().resize(hresult.mNumOutputVertices);
+        trimesh.GetCoordsVertices().resize(hresult.mNumOutputVertices);
         for (unsigned int iv = 0; iv < hresult.mNumOutputVertices; ++iv) {
-            vshape.GetCoordsVertices()[iv] = ChVector3d(
-                hresult.m_OutputVertices[iv].x(), hresult.m_OutputVertices[iv].y(), hresult.m_OutputVertices[iv].z());
+            trimesh.GetCoordsVertices()[iv] = ChVector3d(hresult.m_OutputVertices[iv].x(), hresult.m_OutputVertices[iv].y(), hresult.m_OutputVertices[iv].z());
         }
+
+        success = true;
     }
 
-    delete[] btpoints;
-
     hl.ReleaseResult(hresult);
+
+    return success;
 }
 
 }  // namespace bt_utils

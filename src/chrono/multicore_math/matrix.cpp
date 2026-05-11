@@ -58,7 +58,9 @@ inline __m256d DotMM(const real* M) {
 
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
-}  // dot product of each column of a matrix with itself
+}
+
+// dot product of each column of a matrix with itself
 inline __m256d DotMM(const real* M, const real* N) {
     __m256d a = _mm256_loadu_pd(&M[0]);  // Load first column of M
     __m256d b = _mm256_loadu_pd(&M[4]);  // Load second column of M
@@ -88,6 +90,7 @@ inline __m256d DotMM(const real* M, const real* N) {
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
 }
+
 // http://fhtr.blogspot.com/2010/02/4x4-float-matrix-multiplication-using.html
 inline Mat33 MulMM(const real* M, const real* N) {
     Mat33 r;
@@ -215,6 +218,7 @@ inline Mat33 MAbs(const real* M) {
 }
 
 #elif defined(USE_SSE)
+
 inline real3 DotMM(const real* M) {
     real3 result;
     result.x = M[0] * M[0] + M[1] * M[1] + M[2] * M[2];
@@ -325,6 +329,7 @@ inline Mat33 MAbs(const real* M) {
     _mm_storeu_ps(&result.array[2 * 4], c);
     return result;
 }
+
 #else
 
 // dot product of each column of a matrix with itself
@@ -389,8 +394,7 @@ ChApi inline real3 MulMV(const real* M, const real* N) {
 }
 
 ChApi inline Mat33 OuterProductVV(const real* A, const real* B) {
-    return Mat33(A[0] * B[0], A[1] * B[0], A[2] * B[0], A[0] * B[1], A[1] * B[1], A[2] * B[1], A[0] * B[2], A[1] * B[2],
-                 A[2] * B[2]);
+    return Mat33(A[0] * B[0], A[1] * B[0], A[2] * B[0], A[0] * B[1], A[1] * B[1], A[2] * B[1], A[0] * B[2], A[1] * B[2], A[2] * B[2]);
 }
 
 ChApi inline Mat33 ScaleMat(const real* M, const real b) {
@@ -421,14 +425,16 @@ ChApi inline SymMat33 NormalEquations(const real* A) {
 }
 
 ChApi inline Mat33 MAbs(const real* M) {
-    return Mat33(Abs(M[0]), Abs(M[1]), Abs(M[2]), Abs(M[4]), Abs(M[5]), Abs(M[6]), Abs(M[8]), Abs(M[9]), Abs(M[10]));
+    return Mat33(std::abs(M[0]), std::abs(M[1]), std::abs(M[2]), std::abs(M[4]), std::abs(M[5]), std::abs(M[6]), std::abs(M[8]), std::abs(M[9]), std::abs(M[10]));
 }
 
 #endif
+
 //[0,4,8 ]
 //[1,5,9 ]
 //[2,6,10]
 //[3,7,11]
+
 ChApi real3 operator*(const Mat33& M, const real3& v) {
     return MulMV(M.array, v.array);
 }
@@ -440,14 +446,13 @@ ChApi Mat33 operator*(const Mat33& N, const real scale) {
 ChApi Mat33 operator*(const Mat33& M, const Mat33& N) {
     return MulMM(M.array, N.array);
 }
+
 ChApi Mat33 operator+(const Mat33& M, const Mat33& N) {
-    return Mat33(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[4] + N[4], M[5] + N[5], M[6] + N[6], M[8] + N[8], M[9] + N[9],
-                 M[10] + N[10]);
+    return Mat33(M[0] + N[0], M[1] + N[1], M[2] + N[2], M[4] + N[4], M[5] + N[5], M[6] + N[6], M[8] + N[8], M[9] + N[9], M[10] + N[10]);
 }
 
 ChApi Mat33 operator-(const Mat33& M, const Mat33& N) {
-    return Mat33(M[0] - N[0], M[1] - N[1], M[2] - N[2], M[4] - N[4], M[5] - N[5], M[6] - N[6], M[8] - N[8], M[9] - N[9],
-                 M[10] - N[10]);
+    return Mat33(M[0] - N[0], M[1] - N[1], M[2] - N[2], M[4] - N[4], M[5] - N[5], M[6] - N[6], M[8] - N[8], M[9] - N[9], M[10] - N[10]);
 }
 
 ChApi OPERATOR_EQUALSALT(*, real, Mat33)       //
@@ -455,23 +460,26 @@ ChApi OPERATOR_EQUALSALT(*, real, Mat33)       //
     ChApi OPERATOR_EQUALSALT(+, Mat33, Mat33)  //
     ChApi OPERATOR_EQUALSALT(-, Mat33, Mat33)  //
 
-    ChApi Mat33
-    operator-(const Mat33& M) {
+    ChApi Mat33 operator-(const Mat33& M) {
     return Mat33(-M[0], -M[1], -M[2], -M[4], -M[5], -M[6], -M[8], -M[9], -M[10]);
 }
 
 ChApi Mat33 operator*(const real s, const Mat33& a) {
     return a * s;
 }
+
 ChApi Mat33 Abs(const Mat33& m) {
     return MAbs(m.array);
 }
+
 ChApi Mat33 SkewSymmetric(const real3& r) {
     return Mat33(0, r[2], -r[1], -r[2], 0, r[0], r[1], -r[0], 0);
 }
+
 ChApi Mat33 SkewSymmetricAlt(const real3& r) {
     return Mat33(0, r[2], r[1], r[2], 0, r[0], r[1], r[0], 0);
 }
+
 ChApi Mat33 MultTranspose(const Mat33& M, const Mat33& N) {
     // Not a clean way to write this in AVX, might as well transpose first and then multiply
     return M * Transpose(N);
@@ -531,8 +539,7 @@ ChApi Mat33 AdjointTranspose(const Mat33& A) {
 }
 
 ChApi real Determinant(const Mat33& m) {
-    return m[0] * (m[5] * m[10] - m[9] * m[6]) - m[4] * (m[1] * m[10] - m[9] * m[2]) +
-           m[8] * (m[1] * m[6] - m[5] * m[2]);
+    return m[0] * (m[5] * m[10] - m[9] * m[6]) - m[4] * (m[1] * m[10] - m[9] * m[2]) + m[8] * (m[1] * m[6] - m[5] * m[2]);
 }
 
 ChApi Mat33 Inverse(const Mat33& A) {
@@ -564,14 +571,13 @@ ChApi Mat33 InverseTransposeUnsafe(const Mat33& A) {
     return AdjointTranspose(A) * real(1.0 / s);
 }
 ChApi real Norm(const Mat33& A) {
-    return Sqrt(Trace(A * Transpose(A)));
+    return std::sqrt(Trace(A * Transpose(A)));
 }
 ChApi real NormSq(const Mat33& A) {
     return Trace(A * Transpose(A));
 }
 ChApi real DoubleDot(const Mat33& A, const Mat33& B) {
-    return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] + A[8] * B[8] +
-           A[9] * B[9] + A[10] * B[10];
+    return A[0] * B[0] + A[1] * B[1] + A[2] * B[2] + A[4] * B[4] + A[5] * B[5] + A[6] * B[6] + A[8] * B[8] + A[9] * B[9] + A[10] * B[10];
 }
 
 ChApi real3 LargestColumnNormalized(const Mat33& A) {
@@ -589,8 +595,7 @@ ChApi real3 LargestColumnNormalized(const Mat33& A) {
 //// ========================================================================================
 
 ChApi Mat33 operator*(const DiagMat33& M, const Mat33& N) {
-    return Mat33(M.x11 * N[0], M.x22 * N[1], M.x33 * N[2], M.x11 * N[4], M.x22 * N[5], M.x33 * N[6], M.x11 * N[8],
-                 M.x22 * N[9], M.x33 * N[10]);
+    return Mat33(M.x11 * N[0], M.x22 * N[1], M.x33 * N[2], M.x11 * N[4], M.x22 * N[5], M.x33 * N[6], M.x11 * N[8], M.x22 * N[9], M.x33 * N[10]);
 }
 ChApi real3 operator*(const DiagMat33& M, const real3& v) {
     real3 result;

@@ -19,7 +19,7 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono_cascade/ChCascadeBodyEasy.h"
+#include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChVisualShapeCascade.h"
 
@@ -29,7 +29,7 @@
 using namespace chrono;
 using namespace chrono::cascade;
 
-TEST(ChCascadeBodyEasy, CreateCylinder) {
+TEST(ChBodyEasyCascade, CreateCylinder) {
     // Create the simulation system and add items
     ChSystemNSC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
@@ -50,7 +50,7 @@ TEST(ChCascadeBodyEasy, CreateCylinder) {
     // given the CAD shape. Also visualize it.
     auto vis_params = chrono_types::make_shared<ChCascadeTriangulate>(0.1, true, 0.5);
 
-    auto body = chrono_types::make_shared<ChCascadeBodyEasy>(
+    auto body = chrono_types::make_shared<ChBodyEasyCascade>(
         cylinder,   // the CAD shape
         1000,       // density
         vis_params, // visualization triangulation parameters

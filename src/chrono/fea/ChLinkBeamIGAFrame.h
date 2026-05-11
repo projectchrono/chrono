@@ -120,6 +120,7 @@ class ChApi ChLinkBeamIGAFrame : public ChLinkBase {
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,
+                                     const double c_vel,  ///< the scaling factor if the constraint is at speed level
                                      bool do_clamp,
                                      double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,

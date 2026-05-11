@@ -50,8 +50,6 @@
 #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include <chrono>
 
 #ifdef CHRONO_IRRLICHT
@@ -135,7 +133,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
@@ -170,7 +168,7 @@ int main(int argc, char* argv[]) {
         double scale_ratio = 0.8;
         auto rock_1_mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(rock1_obj_path, false, true);
         rock_1_mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-        rock_1_mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+        rock_1_mmesh->RepairDuplicateVertices(1e-9);                              // if meshes are not watertight
 
         // compute mass inertia from mesh
         double mmass;
@@ -225,7 +223,7 @@ int main(int argc, char* argv[]) {
         double scale_ratio = 0.45;
         auto rock_2_mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(rock2_obj_path, false, true);
         rock_2_mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-        rock_2_mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+        rock_2_mmesh->RepairDuplicateVertices(1e-9);                              // if meshes are not watertight
 
         // compute mass inertia from mesh
         double mmass;
@@ -280,7 +278,7 @@ int main(int argc, char* argv[]) {
         double scale_ratio = 0.45;
         auto rock_3_mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(rock3_obj_path, false, true);
         rock_3_mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-        rock_3_mmesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+        rock_3_mmesh->RepairDuplicateVertices(1e-9);                              // if meshes are not watertight
 
         // compute mass inertia from mesh
         double mmass;

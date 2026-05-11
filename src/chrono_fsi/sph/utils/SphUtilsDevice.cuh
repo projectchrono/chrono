@@ -18,7 +18,7 @@
 #ifndef CH_SPH_UTILS_DEVICE_H
 #define CH_SPH_UTILS_DEVICE_H
 
-#include <cuda_runtime.h>
+#include "chrono_fsi/sph/ChSphGpuRuntime.h"
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>

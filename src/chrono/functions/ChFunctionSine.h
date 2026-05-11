@@ -29,7 +29,7 @@ class ChApi ChFunctionSine : public ChFunction {
   public:
     ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_shift(0.0), m_angular_rate(0.0) {}
 
-    /// Create sine function given amplitude, frequency [Hz] and phase.
+    /// Create sine function given amplitude, frequency [Hz], phase and shift.
     ChFunctionSine(double ampl, double freq, double phase = 0, double shift = 0)
         : m_ampl(ampl), m_phase(phase), m_shift(shift), m_angular_rate(CH_2PI * freq) {}
 
@@ -47,21 +47,25 @@ class ChApi ChFunctionSine : public ChFunction {
     virtual double GetDer2(double x) const override;
     virtual double GetDer3(double x) const override;
 
-    void SetPhase(double phase) { m_phase = phase; };
+    void SetAmplitude(double ampl) { m_ampl = ampl; }
 
     void SetFrequency(double freq) { m_angular_rate = CH_2PI * freq; }
 
     void SetAngularRate(double ang_rate) { m_angular_rate = ang_rate; }
 
-    void SetAmplitude(double ampl) { m_ampl = ampl; }
+    void SetPhase(double phase) { m_phase = phase; }
 
-    double GetPhase() const { return m_phase; }
+    void SetShift(double shift) { m_shift = shift; }
+
+    double GetAmplitude() const { return m_ampl; }
 
     double GetFrequency() const { return m_angular_rate / CH_2PI; }
 
     double GetAngularRate() const { return m_angular_rate; }
+    
+    double GetPhase() const { return m_phase; }
 
-    double GetAmplitude() const { return m_ampl; }
+    double GetShift() const { return m_shift; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

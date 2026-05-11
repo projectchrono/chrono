@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/multicore_math/thrust.h"
 
 #include "chrono/collision/multicore/ChNarrowphase.h"
@@ -58,7 +60,7 @@ bool sphere_sphere(const real3& pos1,
         return false;
 
     // Generate contact information.
-    real dist = Sqrt(dist2);
+    real dist = std::sqrt(dist2);
     norm = delta / dist;
     pt1 = pos1 + norm * radius1;
     pt2 = pos2 - norm * radius2;
@@ -111,7 +113,7 @@ bool capsule_sphere(const real3& pos1,
         return false;
 
     // Generate contact information.
-    real dist = Sqrt(dist2);
+    real dist = std::sqrt(dist2);
     norm = delta / dist;
     pt1 = loc + norm * radius1;
     pt2 = pos2 - norm * radius2;
@@ -165,7 +167,7 @@ bool cylinder_sphere(const real3& pos1,
         return false;
 
     // Generate contact information
-    real dist = Sqrt(dist2);
+    real dist = std::sqrt(dist2);
     depth = dist - radius2;
     norm = Rotate(delta / dist, rot1);
     pt1 = TransformLocalToParent(pos1, rot1, cylPos);
@@ -236,7 +238,7 @@ bool roundedcyl_sphere(const real3& pos1,
         return false;
 
     // Generate contact information.
-    real dist = Sqrt(dist2);
+    real dist = std::sqrt(dist2);
     depth = dist - radSum;
     norm = Rotate(delta / dist, rot1);
     pt2 = pos2 - norm * radius2;
@@ -295,7 +297,7 @@ bool box_sphere(const real3& pos1,
         return false;
 
     // Generate contact information
-    real dist = Sqrt(dist2);
+    real dist = std::sqrt(dist2);
     depth = dist - radius2;
     norm = Rotate(delta / dist, rot1);
     pt1 = TransformLocalToParent(pos1, rot1, boxPos);
@@ -353,7 +355,7 @@ bool roundedbox_sphere(const real3& pos1,
         return false;
 
     // Generate contact information.
-    real dist = Sqrt(dist2);
+    real dist = std::sqrt(dist2);
     depth = dist - radSum;
     norm = Rotate(delta / dist, rot1);
     pt2 = pos2 - norm * radius2;
@@ -414,7 +416,7 @@ bool triangle_sphere(const real3& A1,
         if (dist2 >= radius2_s * radius2_s || dist2 <= 1e-12f)
             return false;
 
-        real dist = Sqrt(dist2);
+        real dist = std::sqrt(dist2);
         norm = delta / dist;
         depth = dist - radius2;
         eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
@@ -485,7 +487,7 @@ int capsule_capsule(const real3& pos1,
 
         // Find overlap of the two axes (as signed distances along the axis of
         // the first capsule).
-        real locs[2] = {Min(hlen1, pos.z + hlen2), Max(-hlen1, pos.z - hlen2)};
+        real locs[2] = {std::min(hlen1, pos.z + hlen2), std::max(-hlen1, pos.z - hlen2)};
 
         if (locs[0] > locs[1]) {
             // The two axes overlap. Both ends of the overlapping segment represent
@@ -547,7 +549,7 @@ int capsule_capsule(const real3& pos1,
             continue;
 
         // Generate contact information.
-        real dist = Sqrt(dist2);
+        real dist = std::sqrt(dist2);
         *(norm + j) = delta / dist;
         *(pt1 + j) = locs1[i] + (*(norm + j)) * radius1;
         *(pt2 + j) = locs2[i] - (*(norm + j)) * radius2;
@@ -596,49 +598,49 @@ int box_capsule(const real3& pos1,
     // this by clamping the capsule axis to the volume between two parallel
     // faces of the box, considering in turn the x, y, and z faces.
     real3 hdims1_exp = hdims1 + radius2_s;
-    real tMin = -C_REAL_MAX;
-    real tMax = C_REAL_MAX;
+    real tMin = -CH_REAL_MAX;
+    real tMax = CH_REAL_MAX;
 
-    if (Abs(W.x) < 1e-5) {
+    if (std::abs(W.x) < 1e-5) {
         // Capsule axis parallel to the box x-faces
-        if (Abs(pos.x) > hdims1_exp.x)
+        if (std::abs(pos.x) > hdims1_exp.x)
             return 0;
     } else {
         real t1 = (-hdims1_exp.x - pos.x) / W.x;
         real t2 = (hdims1_exp.x - pos.x) / W.x;
 
-        tMin = Max(tMin, Min(t1, t2));
-        tMax = Min(tMax, Max(t1, t2));
+        tMin = std::max(tMin, std::min(t1, t2));
+        tMax = std::min(tMax, std::max(t1, t2));
 
         if (tMin > tMax)
             return 0;
     }
 
-    if (Abs(W.y) < 1e-5) {
+    if (std::abs(W.y) < 1e-5) {
         // Capsule axis parallel to the box y-faces
-        if (Abs(pos.y) > hdims1_exp.y)
+        if (std::abs(pos.y) > hdims1_exp.y)
             return 0;
     } else {
         real t1 = (-hdims1_exp.y - pos.y) / W.y;
         real t2 = (hdims1_exp.y - pos.y) / W.y;
 
-        tMin = Max(tMin, Min(t1, t2));
-        tMax = Min(tMax, Max(t1, t2));
+        tMin = std::max(tMin, std::min(t1, t2));
+        tMax = std::min(tMax, std::max(t1, t2));
 
         if (tMin > tMax)
             return 0;
     }
 
-    if (Abs(W.z) < 1e-5) {
+    if (std::abs(W.z) < 1e-5) {
         // Capsule axis parallel to the box z-faces
-        if (Abs(pos.z) > hdims1_exp.z)
+        if (std::abs(pos.z) > hdims1_exp.z)
             return 0;
     } else {
         real t1 = (-hdims1_exp.z - pos.z) / W.z;
         real t2 = (hdims1_exp.z - pos.z) / W.z;
 
-        tMin = Max(tMin, Min(t1, t2));
-        tMax = Min(tMax, Max(t1, t2));
+        tMin = std::max(tMin, std::min(t1, t2));
+        tMax = std::min(tMax, std::max(t1, t2));
 
         if (tMin > tMax)
             return 0;
@@ -685,7 +687,7 @@ int box_capsule(const real3& pos1,
             continue;
 
         // Generate contact information.
-        real dist = Sqrt(dist2);
+        real dist = std::sqrt(dist2);
 
         *(depth + j) = dist - radius2;
         *(norm + j) = Rotate(delta / dist, rot1);
@@ -752,21 +754,21 @@ int box_cylshell(const real3& pos1,
                 continue;
 
             // clamp cylinder centerline to [i2,i3] box slabs
-            real tMin = -C_REAL_MAX;
-            real tMax = C_REAL_MAX;
+            real tMin = -CH_REAL_MAX;
+            real tMax = CH_REAL_MAX;
             if (a_abs[i2] > threshold_par) {
                 real t1 = (-hdims[i2] - c[i2]) / a[i2];
                 real t2 = (+hdims[i2] - c[i2]) / a[i2];
-                tMin = Max(tMin, Min(t1, t2));
-                tMax = Min(tMax, Max(t1, t2));
+                tMin = std::max(tMin, std::min(t1, t2));
+                tMax = std::min(tMax, std::max(t1, t2));
                 if (tMin > tMax)
                     return 0;
             }
             if (a_abs[i3] > threshold_par) {
                 real t1 = (-hdims[i3] - c[i3]) / a[i3];
                 real t2 = (+hdims[i3] - c[i3]) / a[i3];
-                tMin = Max(tMin, Min(t1, t2));
-                tMax = Min(tMax, Max(t1, t2));
+                tMin = std::max(tMin, std::min(t1, t2));
+                tMax = std::min(tMax, std::max(t1, t2));
                 if (tMin > tMax)
                     return 0;
             }
@@ -784,7 +786,7 @@ int box_cylshell(const real3& pos1,
                 uint code = snap_to_box(hdims, boxPoint);  // point on box (in box frame)
                 assert(code != 0);                         // point cannot be inside box
                 real3 u = locs[i] - boxPoint;              // collision direction (in box frame)
-                real u_nrm = Sqrt(Dot(u, u));              // distance between point on box and cylinder axis
+                real u_nrm = std::sqrt(Dot(u, u));              // distance between point on box and cylinder axis
                 assert(u_nrm > 0);                         // cylinder axis must be outside box
                 u = u / u_nrm;                             // collision normal (in box frame)
                 real3 cylPoint = locs[i] - radius * u;     // point on cylinder (in box frame)
@@ -831,7 +833,7 @@ int box_cylshell(const real3& pos1,
             // negative 'i2' edge
             discr = radius * radius - (c[i2] + hdims[i2]) * (c[i2] + hdims[i2]);
             if (discr > 0) {
-                real sqrt_discr = Sqrt(discr);
+                real sqrt_discr = std::sqrt(discr);
                 locs[nc][i2] = -hdims[i2];
                 locs[nc][i3] = Clamp(c[i2] + sqrt_discr, -hdims[i3], +hdims[i3]);
                 nc++;
@@ -847,7 +849,7 @@ int box_cylshell(const real3& pos1,
             // positive 'i2' edge
             discr = radius * radius - (c[i2] - hdims[i2]) * (c[i2] - hdims[i2]);
             if (discr > 0) {
-                real sqrt_discr = Sqrt(discr);
+                real sqrt_discr = std::sqrt(discr);
                 locs[nc][i2] = +hdims[i2];
                 locs[nc][i3] = Clamp(c[i2] + sqrt_discr, -hdims[i3], +hdims[i3]);
                 nc++;
@@ -863,7 +865,7 @@ int box_cylshell(const real3& pos1,
             // negative 'i3' edge
             discr = radius * radius - (c[i3] + hdims[i3]) * (c[i3] + hdims[i3]);
             if (discr > 0) {
-                real sqrt_discr = Sqrt(discr);
+                real sqrt_discr = std::sqrt(discr);
                 locs[nc][i3] = -hdims[i3];
                 locs[nc][i2] = Clamp(c[i3] + sqrt_discr, -hdims[i2], +hdims[i2]);
                 nc++;
@@ -879,7 +881,7 @@ int box_cylshell(const real3& pos1,
             // positive 'i3' edge
             discr = radius * radius - (c[i3] - hdims[i3]) * (c[i3] - hdims[i3]);
             if (discr > 0) {
-                real sqrt_discr = Sqrt(discr);
+                real sqrt_discr = std::sqrt(discr);
                 locs[nc][i3] = +hdims[i3];
                 locs[nc][i2] = Clamp(c[i3] + sqrt_discr, -hdims[i2], +hdims[i2]);
                 nc++;
@@ -990,7 +992,7 @@ int box_box(const real3& posT,
         *(ptT) = Rotate(cornerT, rotT) + posT;
         *(ptO) = Rotate(cornerO, rotO) + posO;
         real3 delta = penetrated * (*(ptO) - *(ptT));
-        real dist = Sqrt(Dot(delta, delta));
+        real dist = std::sqrt(Dot(delta, delta));
         *(norm) = delta / dist;
         *(depth) = penetrated * dist;
         *(eff_radius) = edge_radius / 2;
@@ -1014,7 +1016,7 @@ int box_box(const real3& posT,
             locO = Rotate(locO, rotT) + posT;
 
             real3 delta = penetrated * (locO - locT);
-            real dist = Sqrt(Dot(delta, delta));
+            real dist = std::sqrt(Dot(delta, delta));
 
             if (penetrated == 1 && dist > separation)
                 return 0;
@@ -1084,7 +1086,7 @@ int box_box(const real3& posT,
                     locO = Rotate(locO, rotT) + posT;
 
                     real3 delta = penetrated * (locO - locT);
-                    dist = Sqrt(Dot(delta, delta));
+                    dist = std::sqrt(Dot(delta, delta));
 
                     if (penetrated == 1 && dist > separation)
                         continue;
@@ -1142,7 +1144,7 @@ int box_box(const real3& posT,
                 locO = Rotate(locO, rotO) + posO;
 
                 real3 delta = penetrated * (locO - locT);
-                dist = Sqrt(Dot(delta, delta));
+                dist = std::sqrt(Dot(delta, delta));
 
                 if (penetrated == 1 && dist > separation)
                     continue;
@@ -1198,7 +1200,7 @@ int box_box(const real3& posT,
                 locO = Rotate(locO, rotT) + posT;
 
                 real3 delta = penetrated * (locO - locT);
-                dist = Sqrt(Dot(delta, delta));
+                dist = std::sqrt(Dot(delta, delta));
 
                 if (penetrated == 1 && dist > separation)
                     continue;
@@ -1301,18 +1303,18 @@ int triangle_box(const real3& pos1,
         real AB_len2 = Length2(AB);
 
         // Clamp triangle edge to extended box slabs i2 and i3
-        real tRange[2] = {-C_REAL_MAX, +C_REAL_MAX};
-        if (abs(AB[i2]) > threshold_par) {
+        real tRange[2] = {-CH_REAL_MAX, +CH_REAL_MAX};
+        if (std::abs(AB[i2]) > threshold_par) {
             real tA = (-hdims1s[i2] - A[i2]) / AB[i2];
             real tB = (+hdims1s[i2] - A[i2]) / AB[i2];
-            tRange[0] = Max(tRange[0], Min(tA, tB));
-            tRange[1] = Min(tRange[1], Max(tA, tB));
+            tRange[0] = std::max(tRange[0], std::min(tA, tB));
+            tRange[1] = std::min(tRange[1], std::max(tA, tB));
         }
-        if (abs(AB[i3]) > threshold_par) {
+        if (std::abs(AB[i3]) > threshold_par) {
             real tA = (-hdims1s[i3] - A[i3]) / AB[i3];
             real tB = (+hdims1s[i3] - A[i3]) / AB[i3];
-            tRange[0] = Max(tRange[0], Min(tA, tB));
-            tRange[1] = Min(tRange[1], Max(tA, tB));
+            tRange[0] = std::max(tRange[0], std::min(tA, tB));
+            tRange[1] = std::min(tRange[1], std::max(tA, tB));
         }
         if (tRange[0] > tRange[1])
             continue;
@@ -1333,8 +1335,8 @@ int triangle_box(const real3& pos1,
             real t = Clamp(Dot(tri_point - A, AB) / AB_len2, 0, 1);
             tri_point = A + t * AB;
 
-            if (abs(tri_point[i1]) > hdims1s[i1] || abs(tri_point[i2]) > hdims1s[i2] ||
-                abs(tri_point[i3]) > hdims1s[i3])
+            if (std::abs(tri_point[i1]) > hdims1s[i1] || std::abs(tri_point[i2]) > hdims1s[i2] ||
+                std::abs(tri_point[i3]) > hdims1s[i3])
                 continue;
 
             // Point on box

@@ -57,7 +57,7 @@ class ChApiPeridynamics ChMatterDataLiquid : public ChMatterDataPerNode {
 };
 
 /// Simple SPH-like material, with viscosity and compressibility.
-/// This material can interact with collisioon shapes and other peridynamic materials.
+/// This material can interact with collision shapes and other peridynamic materials.
 /// TODO: NOT READY. TO BE IMPROVED / REWRITTEN
 class ChApiPeridynamics ChMatterPeriLiquid : public ChMatterPeri<ChMatterDataLiquid, ChMatterDataPerBond> {
   public:

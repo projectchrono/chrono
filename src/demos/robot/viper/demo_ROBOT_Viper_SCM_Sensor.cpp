@@ -43,8 +43,6 @@
 #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -172,7 +170,7 @@ int main(int argc, char* argv[]) {
     // Initialize output
     std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_SCM_SENSOR";
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
@@ -253,7 +251,7 @@ int main(int argc, char* argv[]) {
         // triangular mesh
         auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj, false, true);
         mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scale_ratio));  // scale to a different size
-        mesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
+        mesh->RepairDuplicateVertices(1e-9);                              // if meshes are not watertight
         rock_mesh.push_back(mesh);
 
         // contact shape

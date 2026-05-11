@@ -46,7 +46,7 @@ class ChApi ChInertiaUtils {
                                    const std::vector<double>& masses,
                                    ChMatrix33<>& totJ,
                                    double& totmass,
-                                   ChVector3d& baricenter);
+                                   ChVector3d& barycenter);
 
     /// Rotate an inertia tensor, given a rotation matrix R
     static void RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix33<> R, ChMatrix33<>& inertiaOut);

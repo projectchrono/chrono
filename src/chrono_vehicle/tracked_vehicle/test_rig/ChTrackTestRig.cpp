@@ -33,7 +33,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
@@ -290,7 +290,7 @@ double ChTrackTestRig::GetRideHeight() const {
 
 // -----------------------------------------------------------------------------
 
-void ChTrackTestRig::Advance(double step) {
+void ChTrackTestRig::Advance(double step, bool do_collision) {
     double time = GetChTime();
 
     // Driver inputs
@@ -330,7 +330,7 @@ void ChTrackTestRig::Advance(double step) {
     }
 
     // Advance state of entire system
-    ChVehicle::Advance(step);
+    ChVehicle::Advance(step, do_collision);
 
     // Process contacts.
     m_contact_manager->Process(this);

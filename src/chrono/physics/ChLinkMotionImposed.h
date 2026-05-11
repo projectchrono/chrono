@@ -97,7 +97,7 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     ChFrame<> frameMb2;  ///< last updated value of the moving frame M respect to body 2
 
     virtual void Update(double time, UpdateFlags update_flags) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 };
 

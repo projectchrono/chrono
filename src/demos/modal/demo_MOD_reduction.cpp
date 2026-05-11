@@ -25,6 +25,9 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
+#include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
+#include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_modal/ChModalSolverUndamped.h"
@@ -35,8 +38,6 @@
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::modal;
@@ -49,10 +50,10 @@ const std::string out_dir = GetChronoOutputPath() + "MODAL_REDUCTION";
 int ID_current_example = 1;
 bool modal_analysis = true;
 
-double beam_Young = 100.e6;
+double beam_Young = 1200.e6;
 double beam_density = 1000;
 double beam_wz = 0.3;
-double beam_wy = 0.05;
+double beam_wy = 0.1;
 double beam_L = 6;
 int n_elements = 8;
 
@@ -60,27 +61,31 @@ int n_elements = 8;
 double damping_alpha = 0.0001;
 double damping_beta = 0.01;
 
-double step_size = 0.05;
+double step_size = 0.01;
 
 unsigned int num_modes = 12;
 bool USE_STATIC_CORRECTION = false;
 bool UPDATE_INTERNAL_NODES = true;
 bool USE_LINEAR_INERTIAL_TERM = true;
-bool USE_GRAVITY = false;
+bool USE_GRAVITY = true;
 
 // static stuff for GUI:
 bool UPDATE_EXAMPLE = false;
 bool FIX_SUBASSEMBLY = true;
 bool DO_MODAL_REDUCTION = true;
 bool ADD_INTERNAL_BODY = false;
+bool ADD_INTERNAL_BUSHING = false;
+bool ADD_INTERNAL_LOAD = false;
 bool ADD_BOUNDARY_BODY = false;
-bool ADD_FORCE = true;
+bool ADD_FORCE = false;
 bool ADD_OTHER_ASSEMBLY = false;
 
 void CreateCantilever(ChSystem& sys,
                       ChVisualSystemIrrlicht& vis,
                       bool do_modal_reduction,
                       bool add_internal_body,
+                      bool add_internal_bushing,
+                      bool add_internal_load,
                       bool add_boundary_body,
                       bool add_force,
                       bool add_other_assemblies,
@@ -88,8 +93,10 @@ void CreateCantilever(ChSystem& sys,
     std::cout << "\n\nTest parameters:\n"
               << "- reduced model: " << (do_modal_reduction ? "YES" : "NO") << "\n"
               << "- internal body: " << (add_internal_body ? "YES" : "NO") << "\n"
+              << "- internal bushing: " << (add_internal_bushing ? "YES" : "NO") << "\n"
+              << "- internal load: " << (add_internal_load ? "YES" : "NO") << "\n"
               << "- boundary body: " << (add_boundary_body ? "YES" : "NO") << "\n"
-              << "- force: " << (add_force ? "YES" : "NO") << "\n"
+              << "- tip force: "  << (add_force ? "YES" : "NO") << "\n"
               << "- other subassembly: " << (add_other_assemblies ? "YES" : "NO") << "\n"
               << "- fix_subassembly: " << (fix_subassembly ? "YES" : "NO") << std::endl;
 
@@ -196,9 +203,9 @@ void CreateCantilever(ChSystem& sys,
         // sys.Add(my_root);
     }
 
-    if (add_internal_body) {
+    if (add_internal_body || add_internal_bushing || add_internal_load) {
         // BODY: in the middle, as internal
-        auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(0.9, 1.4, 1.2, 100);
+        auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(0.3, 1.4, 1.2, 100);
         my_body_B->SetPos(ChVector3d(beam_L * 0.5, 0, 0));
         modal_assembly->AddInternal(my_body_B);
 
@@ -206,11 +213,42 @@ void CreateCantilever(ChSystem& sys,
         my_mid_constr->Initialize(builder.GetLastBeamNodes()[n_elements / 2], my_body_B,
                                   ChFrame<>(ChVector3d(beam_L * 0.5, 0, 0), QUNIT));
         modal_assembly->AddInternal(my_mid_constr);
+
+        if (add_internal_bushing) {
+            // BODY: will be connected via ChLoadBodyBody bushing
+            auto my_body_S = chrono_types::make_shared<ChBodyEasyBox>(0.4, 1.5, 1.3, 100);
+            my_body_S->SetPos(ChVector3d(beam_L * 0.42, 0, 0));
+            modal_assembly->AddInternal(my_body_S);
+
+            // BUSHING: will connect my_body_S to my_body_B
+            auto my_load_bushing = chrono_types::make_shared<ChLoadBodyBodyBushingMate>(my_body_S, my_body_B, ChFramed(my_body_S->GetPos()),
+                                                                                        ChVector3d(300000, 15000, 300000),  // bushing stiffness in x y z
+                                                                                        ChVector3d(0.2, 0.2, 0.2),          // bushing damping in x y z
+                                                                                        ChVector3d(4000, 4000, 4000),       // bushing rotational stiffness in x y z
+                                                                                        ChVector3d(0.8, 0.8, 0.8)           // bushing rotational damping in x y z
+            );
+            auto my_load_container = chrono_types::make_shared<ChLoadContainer>();
+            my_load_container->Add(my_load_bushing);
+            modal_assembly->AddInternal(my_load_container);
+        }
+
+        if (add_internal_load) {
+            // LOAD: apply a force as an internal  ChLoad to an internal ChBody:
+            auto my_load_force = chrono_types::make_shared<ChLoadBodyForce>(my_body_B,                // body to apply the force to
+                                                                            ChVector3d(0, 0, -1500),  // force F applied to body
+                                                                            false,                    // force vector F is in absolute frame (false) or in body frame (true)
+                                                                            VNULL,                    // position of application of the force
+                                                                            true);                    // position is in absolute frame (false) or in body frame (true)
+
+            auto my_load_container = chrono_types::make_shared<ChLoadContainer>();
+            my_load_container->Add(my_load_force);
+            modal_assembly->AddInternal(my_load_container);
+        }
     }
 
     if (add_boundary_body) {
         // BODY: in the end, as boundary
-        auto my_body_C = chrono_types::make_shared<ChBodyEasyBox>(0.8, 0.8, 0.8, 200);
+        auto my_body_C = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.7, 0.7, 200);
         my_body_C->SetPos(ChVector3d(beam_L, 0, 0));
         modal_assembly->Add(my_body_C);
 
@@ -268,13 +306,14 @@ void CreateCantilever(ChSystem& sys,
         // Add a force to internal nodes in the same way as in a full-state assembly
         auto my_node_internal =
             std::dynamic_pointer_cast<ChNodeFEAxyzrot>(modal_assembly->GetMeshesInternal().front()->GetNodes().back());
-        my_node_internal->SetForce(ChVector3d(0, -1, 0));
+        my_node_internal->SetForce(ChVector3d(0, 0, 1000));
         my_node_internal->SetTorque(ChVector3d(0, 2, 0));
+
     }
 
     // set gravity
     if (USE_GRAVITY)
-        sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));  // -Z axis
+        sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));  // -Z axis
     else
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
@@ -338,17 +377,25 @@ class MyEventReceiver : public irr::IEventReceiver {
                     return true;
                 case irr::KEY_KEY_3:
                     UPDATE_EXAMPLE = true;
-                    ADD_BOUNDARY_BODY = !ADD_BOUNDARY_BODY;
+                    ADD_INTERNAL_BUSHING = !ADD_INTERNAL_BUSHING;
                     return true;
                 case irr::KEY_KEY_4:
                     UPDATE_EXAMPLE = true;
-                    ADD_FORCE = !ADD_FORCE;
+                    ADD_INTERNAL_LOAD = !ADD_INTERNAL_LOAD;
                     return true;
                 case irr::KEY_KEY_5:
                     UPDATE_EXAMPLE = true;
-                    ADD_OTHER_ASSEMBLY = !ADD_OTHER_ASSEMBLY;
+                    ADD_BOUNDARY_BODY = !ADD_BOUNDARY_BODY;
                     return true;
                 case irr::KEY_KEY_6:
+                    UPDATE_EXAMPLE = true;
+                    ADD_FORCE = !ADD_FORCE;
+                    return true;
+                case irr::KEY_KEY_7:
+                    UPDATE_EXAMPLE = true;
+                    ADD_OTHER_ASSEMBLY = !ADD_OTHER_ASSEMBLY;
+                    return true;
+                case irr::KEY_KEY_8:
                     UPDATE_EXAMPLE = true;
                     FIX_SUBASSEMBLY = !FIX_SUBASSEMBLY;
                     return true;
@@ -367,7 +414,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Directory for output data
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
@@ -428,21 +475,23 @@ int main(int argc, char* argv[]) {
         my_gui_info->setText(                                                                          //
             (std::wstring(L"[Key 1] Reduced model: ") + (DO_MODAL_REDUCTION ? L"ON" : L"OFF") +        //
              std::wstring(L"\n[Key 2] Internal body: ") + (ADD_INTERNAL_BODY ? L"ON" : L"OFF") +       //
-             std::wstring(L"\n[Key 3] Boundary body: ") + (ADD_BOUNDARY_BODY ? L"ON" : L"OFF") +       //
-             std::wstring(L"\n[Key 4] Forces: ") + (ADD_FORCE ? L"ON" : L"OFF") +                      //
-             std::wstring(L"\n[Key 5] Other subassembly: ") + (ADD_OTHER_ASSEMBLY ? L"ON" : L"OFF") +  //
-             std::wstring(L"\n[Key 6] Fixed assembly: ") + (FIX_SUBASSEMBLY ? L"ON" : L"OFF"))         //
+             std::wstring(L"\n[Key 3] Internal bushing: ") + (ADD_INTERNAL_BUSHING ? L"ON" : L"OFF") + //
+             std::wstring(L"\n[Key 4] Internal load: ") + (ADD_INTERNAL_LOAD ? L"ON" : L"OFF") +       //
+             std::wstring(L"\n[Key 5] Boundary body: ") + (ADD_BOUNDARY_BODY ? L"ON" : L"OFF") +       //
+             std::wstring(L"\n[Key 6] Tip forces: ") + (ADD_FORCE ? L"ON" : L"OFF") +                  //
+             std::wstring(L"\n[Key 7] Other subassembly: ") + (ADD_OTHER_ASSEMBLY ? L"ON" : L"OFF") +  //
+             std::wstring(L"\n[Key 8] Fixed assembly: ") + (FIX_SUBASSEMBLY ? L"ON" : L"OFF"))         //
                 .c_str());                                                                             //
 
         if (UPDATE_EXAMPLE) {
-            CreateCantilever(sys, vis, DO_MODAL_REDUCTION, ADD_INTERNAL_BODY, ADD_BOUNDARY_BODY, ADD_FORCE,
+            CreateCantilever(sys, vis, DO_MODAL_REDUCTION, ADD_INTERNAL_BODY, ADD_INTERNAL_BUSHING, ADD_INTERNAL_LOAD, ADD_BOUNDARY_BODY, ADD_FORCE,
                              ADD_OTHER_ASSEMBLY, FIX_SUBASSEMBLY);
             UPDATE_EXAMPLE = false;
         }
 
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
+        tools::DrawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
 
         sys.DoStepDynamics(step_size);

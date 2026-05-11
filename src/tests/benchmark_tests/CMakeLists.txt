@@ -122,6 +122,12 @@ if(BUILD_BENCHMARKING_FSI_TDPF)
     add_subdirectory(fsi/tdpf)
 endif()
 
+option(BUILD_BENCHMARKING_GEOMETRY "Build benchmark tests for geometry module" TRUE)
+mark_as_advanced(FORCE BUILD_BENCHMARKING_GEOMETRY)
+if(BUILD_BENCHMARKING_GEOMETRY)
+    add_subdirectory(geometry)
+endif()
+
 option(BUILD_BENCHMARKING_SOA "Build benchmark tests for Chrono SOA module" TRUE)
 mark_as_advanced(FORCE BUILD_BENCHMARKING_SOA)
 if(BUILD_BENCHMARKING_SOA)

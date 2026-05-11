@@ -48,7 +48,7 @@
     "Shapes": [
         {
             "Type": "MESH",
-            "Filename": "VW_microbus/van_chassis_col.obj",
+            "Filename": "vehicle/VW_microbus/van_chassis_col.obj",
             "Location": [0, 0.0, 0.0],
             "Contact Radius": 0.0,
             "Material Index": 0
@@ -58,6 +58,6 @@
 
   "Visualization":
   {
-    "Mesh":  "VW_microbus/van_chassis.obj"
+    "Mesh":  "vehicle/VW_microbus/van_chassis.obj"
   }
 }

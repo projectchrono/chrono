@@ -62,6 +62,17 @@ double ChFunctionPoly23::GetDer2(double x) const {
     return ret;
 }
 
+double ChFunctionPoly23::GetDer3(double x) const {
+    double ret;
+    double A = (m_x_end - m_x_start);
+    if ((x < m_x_start) || (x > m_x_end))
+        ret = 0;
+    else {
+        ret = m_ampl * (-12.0 / (A * A * A));
+    }
+    return ret;
+}
+
 void ChFunctionPoly23::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChFunctionPoly23>();

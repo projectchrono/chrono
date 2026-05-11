@@ -31,7 +31,7 @@ requirements:
     - libglvnd-glx-cos7-x86_64 # [linux]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
-    - mkl-devel ==2025.2.0 # [not arm64]
+    - mkl-devel ==2025.2.0 # [linux64 or win64]
     - irrlicht
     - numpy
     - glew
@@ -50,9 +50,11 @@ requirements:
     - libcurand-dev # [not osx]
     - libcublas-dev # [not osx]
     - libcusparse-dev # [not osx]
+    - vulkanscenegraph ==1.1.11
+    - vsgxchange
   run:
     - python
-    - mkl ==2025.2.0 # [not arm64]
+    - mkl ==2025.2.0 # [linux64 or win64]
     - numpy
     - irrlicht
     - glew
@@ -65,6 +67,8 @@ requirements:
     - openmpi
     - yaml
     - tinyxml2
+    - vulkanscenegraph ==1.1.11
+    - vsgxchange
 
 about:
   home: https://github.com/projectchrono/chrono
