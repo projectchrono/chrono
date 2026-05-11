@@ -56,6 +56,7 @@ public:
 
     /// Implement interface to lower level stress material
     virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& C,         ///< output C tangent modulus, dP=C*dE
+                                        ChMatrixNM<double, 6, 6>* D,        ///< output D tangent modulus, as dS=C*d(E_dot) (maybe nullptr if IsSpatialVelocityGradientNeeded() is false)
                                         const ChMatrix33d& F,               ///< current deformation gradient tensor
                                         const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                         ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point

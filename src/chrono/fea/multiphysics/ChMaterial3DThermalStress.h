@@ -95,7 +95,9 @@ public:
     /// the tangent modulus for stress-strain relation (assuming PK2 stress and Green-Lagrange strain), the upper left 3x3
     /// block is about the tangent modulus for heat problem) 
 
-    virtual void ComputeTangentModulus(ChMatrixNM<double, 9, 9>& tangentModulus, ///< output C tangent modulus
+    virtual void ComputeTangentModulus(
+        ChMatrixNM<double, 9, 9>& C,    ///< output C tangent modulus, as dS=C*dE
+        ChMatrixNM<double, 6, 6>* D,    ///< output D tangent modulus, as dS=C*d(E_dot) (maybe nullptr if IsSpatialVelocityGradientNeeded() is false)
         const ChMatrix33d& F_def,       ///< current deformation gradient tensor F 
         const ChMatrix33d* l,           ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
         const ChVector3d T_grad         ///< current temperature gradient

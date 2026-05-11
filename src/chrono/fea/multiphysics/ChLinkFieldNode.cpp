@@ -425,5 +425,233 @@ void ChLinkFieldField::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChLinkFieldFrame)
+
+ChLinkFieldFrame::ChLinkFieldFrame() : m_react(VNULL), m_csys(CSYSNORM) {}
+
+ChLinkFieldFrame::ChLinkFieldFrame(const ChLinkFieldFrame& other) : ChLinkBase(other) {
+    m_csys = other.m_csys;
+    m_react = other.m_react;
+}
+
+ChFrame<> ChLinkFieldFrame::GetFrameNodeAbs() const {
+    return ChFrame<>(m_csys >> *m_body);
+}
+
+int ChLinkFieldFrame::Initialize(std::shared_ptr<ChNodeFEAbase> node,
+                                 std::shared_ptr<ChFieldDisplacement3D> field,
+                                 std::shared_ptr<ChBodyFrame> body,
+                                 const ChVector3d* pos) {
+    assert(node);
+    assert(field);
+    assert(body);
+    assert(field->IsNodeAdded(node));
+
+    m_node = node;
+    m_field = field;
+    m_body = body;
+
+    m_constraint1.SetVariables(&(field->GetNodeDataPointer(node)->GetVariable()), &(body->Variables()));
+    m_constraint2.SetVariables(&(field->GetNodeDataPointer(node)->GetVariable()), &(body->Variables()));
+    m_constraint3.SetVariables(&(field->GetNodeDataPointer(node)->GetVariable()), &(body->Variables()));
+
+    ChVector3d pos_abs = pos ? *pos : ((ChFieldDataPos3D*)(m_field->GetNodeDataPointer(m_node)))->GetPos();
+    SetAttachPositionInAbsoluteCoords(pos_abs);
+
+    return true;
+}
+
+
+
+void ChLinkFieldFrame::Update(double time, UpdateFlags update_flags) {
+    // Inherit time changes of parent class
+    ChPhysicsItem::Update(time, update_flags);
+
+    // update class data
+    // ...
+}
+
+ChVectorDynamic<> ChLinkFieldFrame::GetConstraintViolation() const {
+
+    ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
+    ChVector3d res = Arw.transpose() * (((ChFieldDataPos3D*)(m_field->GetNodeDataPointer(m_node)))->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVectorN<double, 3> C;
+    C(0) = res.x();
+    C(1) = res.y();
+    C(2) = res.z();
+    return C;
+}
+
+//// STATE BOOKKEEPING FUNCTIONS
+
+void ChLinkFieldFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+    L(off_L + 0) = m_react.x();
+    L(off_L + 1) = m_react.y();
+    L(off_L + 2) = m_react.z();
+}
+
+void ChLinkFieldFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+    m_react.x() = L(off_L + 0);
+    m_react.y() = L(off_L + 1);
+    m_react.z() = L(off_L + 2);
+}
+
+void ChLinkFieldFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                           ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                           const ChVectorDynamic<>& L,  // the L vector
+                                           const double c               // a scaling factor
+) {
+    if (!IsActive())
+        return;
+
+    m_constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    m_constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    m_constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
+}
+
+void ChLinkFieldFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                           ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                           const double c,            // a scaling factor
+                                           const double c_vel,        // the scaling factor if the constraint is at speed level
+                                           bool do_clamp,             // apply clamping to c*C?
+                                           double recovery_clamp      // value for min/max clamping of c*C
+) {
+    if (!IsActive())
+        return;
+
+    ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
+
+    ChVector3d res = Arw.transpose() * (((ChFieldDataPos3D*)(m_field->GetNodeDataPointer(m_node)))->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector3d cres = res * c;
+
+    if (do_clamp) {
+        cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
+        cres.y() = std::min(std::max(cres.y(), -recovery_clamp), recovery_clamp);
+        cres.z() = std::min(std::max(cres.z(), -recovery_clamp), recovery_clamp);
+    }
+    Qc(off_L + 0) += cres.x();
+    Qc(off_L + 1) += cres.y();
+    Qc(off_L + 2) += cres.z();
+}
+
+void ChLinkFieldFrame::IntToDescriptor(const unsigned int off_v,
+                                       const ChStateDelta& v,
+                                       const ChVectorDynamic<>& R,
+                                       const unsigned int off_L,
+                                       const ChVectorDynamic<>& L,
+                                       const ChVectorDynamic<>& Qc) {
+    if (!IsActive())
+        return;
+
+    m_constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    m_constraint2.SetLagrangeMultiplier(L(off_L + 1));
+    m_constraint3.SetLagrangeMultiplier(L(off_L + 2));
+
+    m_constraint1.SetRightHandSide(Qc(off_L + 0));
+    m_constraint2.SetRightHandSide(Qc(off_L + 1));
+    m_constraint3.SetRightHandSide(Qc(off_L + 2));
+}
+
+void ChLinkFieldFrame::IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) {
+    if (!IsActive())
+        return;
+
+    L(off_L + 0) = m_constraint1.GetLagrangeMultiplier();
+    L(off_L + 1) = m_constraint2.GetLagrangeMultiplier();
+    L(off_L + 2) = m_constraint3.GetLagrangeMultiplier();
+}
+
+// SOLVER INTERFACES
+
+void ChLinkFieldFrame::InjectConstraints(ChSystemDescriptor& descriptor) {
+    if (!IsActive())
+        return;
+
+    descriptor.InsertConstraint(&m_constraint1);
+    descriptor.InsertConstraint(&m_constraint2);
+    descriptor.InsertConstraint(&m_constraint3);
+}
+
+void ChLinkFieldFrame::ConstraintsBiReset() {
+    m_constraint1.SetRightHandSide(0.);
+    m_constraint2.SetRightHandSide(0.);
+    m_constraint3.SetRightHandSide(0.);
+}
+
+// OBSOLETE***
+void ChLinkFieldFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+    if (!IsActive())
+    	return;
+
+    if (!m_node)
+        return;
+
+    ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
+
+    ChVector3d res = Arw.transpose() * (((ChFieldDataPos3D*)(m_field->GetNodeDataPointer(m_node)))->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+
+    m_constraint1.SetRightHandSide(m_constraint1.GetRightHandSide() + factor * res.x());
+    m_constraint2.SetRightHandSide(m_constraint2.GetRightHandSide() + factor * res.y());
+    m_constraint3.SetRightHandSide(m_constraint3.GetRightHandSide() + factor * res.z());
+}
+
+// OBSOLETE***
+void ChLinkFieldFrame::ConstraintsBiLoad_Ct(double factor) {
+}
+
+void ChLinkFieldFrame::LoadConstraintJacobians() {
+    // compute jacobians
+    ChMatrix33<> Aro(m_csys.rot);
+    ChMatrix33<> Aow(m_body->GetRot());
+    ChMatrix33<> Arw = Aow * Aro;
+
+    ChMatrix33<> Jxn = Arw.transpose();
+
+    ChMatrix33<> Jxb = -Arw.transpose();
+
+    ChStarMatrix33<> atilde(Aow.transpose() * (((ChFieldDataPos3D*)(m_field->GetNodeDataPointer(m_node)))->GetPos() - m_body->GetPos()));
+    ChMatrix33<> Jrb = Aro.transpose() * atilde;
+
+    m_constraint1.Get_Cq_a().segment(0, 3) = Jxn.row(0);
+    m_constraint2.Get_Cq_a().segment(0, 3) = Jxn.row(1);
+    m_constraint3.Get_Cq_a().segment(0, 3) = Jxn.row(2);
+
+    m_constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
+    m_constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
+    m_constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
+
+    m_constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(0);
+    m_constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(1);
+    m_constraint3.Get_Cq_b().segment(3, 3) = Jrb.row(2);
+}
+
+void ChLinkFieldFrame::ConstraintsFetch_react(double factor) {
+    // From constraints to react vector:
+    m_react.x() = m_constraint1.GetLagrangeMultiplier() * factor;
+    m_react.y() = m_constraint2.GetLagrangeMultiplier() * factor;
+    m_react.z() = m_constraint3.GetLagrangeMultiplier() * factor;
+}
+
+// FILE I/O
+
+void ChLinkFieldFrame::ArchiveOut(ChArchiveOut& archive_out) {
+    //// TODO
+}
+
+void ChLinkFieldFrame::ArchiveIn(ChArchiveIn& archive_in) {
+    //// TODO
+}
+
+
+
+
+
 }  // end namespace fea
 }  // end namespace chrono

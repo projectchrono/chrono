@@ -297,6 +297,11 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
     std::shared_ptr<ChBody> GetBodyA() const;
     std::shared_ptr<ChBody> GetBodyB() const;
 
+    /// Compute the generalized load(s).
+    virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
+                          ChStateDelta* state_w  ///< state speed to evaluate Q
+                          ) override;
+
   protected:
     ChFrame<> loc_application_A;  ///< application point on body A (local)
     ChFrame<> loc_application_B;  ///< application point on body B (local)
@@ -305,10 +310,6 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
     ChFrameMoving<> frame_Aw;     ///< for results
     ChFrameMoving<> frame_Bw;     ///< for results
 
-    /// Compute the generalized load(s).
-    virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
-                          ChStateDelta* state_w  ///< state speed to evaluate Q
-                          ) override;
 };
 
 //------------------------------------------------------------------------------------------------
