@@ -1393,6 +1393,13 @@ set(Chrono_collision_convexdecompHACDv2_FILES
     )
 source_group(collision\\convexdecomp\\HACDv2 FILES ${Chrono_collision_convexdecompHACDv2_FILES})
 
+# VHACD group
+set(Chrono_collision_convexdecompVHACD_FILES
+    ../chrono_thirdparty/VHACD/VHACD.h
+    ../chrono_thirdparty/VHACD/VHACD.cpp
+    )
+source_group(collision\\convexdecomp\\VHACD FILES ${Chrono_collision_convexdecompVHACD_FILES})
+
 # TinyObj Group
 set(Chrono_tiny_obj_FILES
   ../chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
@@ -1471,6 +1478,7 @@ set(Chrono_HEADERS
 set(Chrono_thirdparty_FILES
     ${Chrono_collision_convexdecompHACD_FILES}
     ${Chrono_collision_convexdecompHACDv2_FILES}
+    ${Chrono_collision_convexdecompVHACD_FILES}
     ${Chrono_collision_gimpact_FILES}
     ${Chrono_tiny_obj_FILES}
     ${Chrono_libstl_FILES}
@@ -1492,18 +1500,21 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_collision_convexdecompHACD_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
+  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
 elseif(MSVC)
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_convexdecompHACD_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "/w")
+  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "/w")
 else()
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_convexdecompHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-w")
+  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-w")
 endif()
