@@ -95,7 +95,6 @@ then
     echo "  ... assimp"
     git clone -c advice.detachedHead=false --depth 1 --branch v6.0.4 "https://github.com/assimp/assimp" "download_vsg/assimp"
     sed -i -e '67s/.*/#include <cstring>\n/' download_vsg/assimp/code/Common/SceneCombiner.cpp
-    #sed -i  -e '997s/.*/    memcpy((unsigned char*)dest, old, sizeof(Type) * num);/' download_vsg/assimp/code/Common/SceneCombiner.cpp
     ASSIMP_SOURCE_DIR="download_vsg/assimp"
 
     echo "  ... draco"

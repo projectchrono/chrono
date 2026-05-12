@@ -99,9 +99,6 @@ then
     cd download_vsg/glslang/
     ./update_glslang_sources.py
     cd ../..
-
-    echo "Patch assimp"
-    sed -i -e '997s/.*/    ::memcpy((unsigned char*)dest, old, sizeof(Type) * num);/' download_vsg/assimp/code/Common/SceneCombiner.cpp
 else
     echo "Using provided source directories"
 fi
