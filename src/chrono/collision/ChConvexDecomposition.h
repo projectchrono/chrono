@@ -118,11 +118,11 @@ class ChApi ChConvexDecompositionHACD : public ChConvexDecomposition {
     /// Get the n-th computed convex hull, by filling a ChTriangleMesh object that is passed as a parameter.
     /// Note 1: passed ChTriangleMesh is cleared before populating it.
     /// Note 2: passed ChTriangleMesh is filled with disconnected triangles.
-    virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) override;
+    virtual bool GetConvexHullResult(unsigned int hull_index, ChTriangleMesh& convextrimesh) override;
 
     /// Get the n-th computed convex hull, by filling a vector with related vertices.
     /// Note: passed vector of points is cleared before populating it.
-    virtual bool GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull) override;
+    virtual bool GetConvexHullResult(unsigned int hull_index, std::vector<ChVector3d>& convexhull) override;
 
     /// Write the convex decomposition to a Wavefront '.obj' file, where each hull is a separate group.
     virtual void WriteConvexHullsAsWavefrontObj(std::ostream& stream) override;
@@ -178,11 +178,11 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
     /// Get the n-th computed convex hull, by filling a ChTriangleMesh object that is passed as a parameter.
     /// Note 1: passed ChTriangleMesh is cleared before populating it.
     /// Note 2: passed ChTriangleMesh is filled with disconnected triangles.
-    virtual bool GetConvexHullResult(unsigned int hullIndex, ChTriangleMesh& convextrimesh) override;
+    virtual bool GetConvexHullResult(unsigned int hull_index, ChTriangleMesh& convextrimesh) override;
 
     /// Get the n-th computed convex hull, by filling a vector with related vertices.
     /// Note: passed vector of points is cleared before populating it.
-    virtual bool GetConvexHullResult(unsigned int hullIndex, std::vector<ChVector3d>& convexhull) override;
+    virtual bool GetConvexHullResult(unsigned int hull_index, std::vector<ChVector3d>& convexhull) override;
 
     /// Write the convex decomposition to a Wavefront '.obj' file, where each hull is a separate group.
     virtual void WriteConvexHullsAsWavefrontObj(std::ostream& stream) override;
