@@ -284,7 +284,7 @@ CH_BM_SIMULATION_LOOP(SOAChain128, SOAChainTest<128>, NUM_SKIP_STEPS, NUM_SIM_ST
 
 // =============================================================================
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_VSG
@@ -311,7 +311,7 @@ void main(int argc, char* argv[]) {
             }
         }
 
-        return;
+        return 0;
     }
 #endif
 
