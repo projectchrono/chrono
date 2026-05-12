@@ -641,6 +641,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Create body label text.
     void CreateBodyLabel(const std::shared_ptr<ChBody>& body);
 
+    /// Create mobilized body label text.
+    void CreateBodyLabel(const std::shared_ptr<soa::ChSoaMobilizedBody>& mbody);
+
     /// Bind the link frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 

@@ -1724,26 +1724,6 @@ void ChVisualSystemVSG::BindAll() {
         BindAssembly(sys->GetAssembly());
     }
 
-/*
-    // Use default body and link names if not user provided
-    int body_num = 0;
-    int link_num = 0;
-    for (auto sys : m_systems) {
-        for (const auto& item : sys->GetOtherPhysicsItems()) {
-            if (const auto& assmbly = std::dynamic_pointer_cast<soa::ChSoaAssembly>(item)) {
-                for (const auto& mbody : assmbly->getBodies()) {
-                    std::string body_name = mbody->GetName();
-                    if (body_name.empty()) {
-                        body_num++;
-                        body_name = "_body_" + std::to_string(body_num);
-                    }
-                    m_body_labels.push_back(vsg::stringValue::create(body_name));
-                }
-            }
-        }
-    }
-*/
-
     std::vector<ChVector3d> c_pos;
     for (auto sys : m_systems)
         CollectActiveBodyCOMPositions(sys->GetAssembly(), c_pos);
@@ -1771,9 +1751,10 @@ void ChVisualSystemVSG::BindMobilizedBody(const std::shared_ptr<soa::ChSoaMobili
         BindReferenceFrame(mbody);
         BindCOMFrame(mbody);
         BindLinkFrame(mbody);
+        CreateBodyLabel(mbody);
     }
-    BindVisualShapesMutable(mbody, ObjectType::BODY);   // bind any mutable visual meshes in the body visual model
-    BindVisualShapesFixed(mbody, ObjectType::BODY);     // bind all other visual shapes in the body visual model
+    BindVisualShapesMutable(mbody, ObjectType::BODY);    // bind any mutable visual meshes in the body visual model
+    BindVisualShapesFixed(mbody, ObjectType::BODY);      // bind all other visual shapes in the body visual model
     BindCollisionShapesMutable(mbody, mbody->GetTag());  // bind any mutable collision meshes in the body collision model
     BindCollisionShapesFixed(mbody, mbody->GetTag());    // bind all other collision shapes in the body collision model
 }
@@ -2283,6 +2264,18 @@ void ChVisualSystemVSG::CreateBodyLabel(const std::shared_ptr<ChBody>& body) {
     }
     auto body_name_vsg = vsg::stringValue::create(body_name);
     m_body_labels.push_back(body_name_vsg);
+}
+
+void ChVisualSystemVSG::CreateBodyLabel(const std::shared_ptr<soa::ChSoaMobilizedBody>& mbody) {
+    // Use default body name if not set
+    static int mbody_num = 0;
+    std::string mbody_name = mbody->GetName();
+    if (mbody_name.empty()) {
+        mbody_num++;
+        mbody_name = "_mbody_" + std::to_string(mbody_num);
+    }
+    auto mbody_name_vsg = vsg::stringValue::create(mbody_name);
+    m_body_labels.push_back(mbody_name_vsg);
 }
 
 void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
