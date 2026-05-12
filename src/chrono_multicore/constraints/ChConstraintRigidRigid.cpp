@@ -322,51 +322,26 @@ void ChConstraintRigidRigid::Build_s() {
         return;
     }
 
-    vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
-    const SparseMatrixType& D_t_T = _DTT_.eval();
-    VectorType v_new;
-
     const VectorType& M_invk = data_manager->host_data.M_invk;
     const VectorType& gamma = data_manager->host_data.gamma;
-
+    const SparseMatrixType& D_T = data_manager->host_data.D_T;
     const SparseMatrixType& M_invD = data_manager->host_data.M_invD;
 
+    VectorType v_new;
     v_new.noalias() = M_invk + M_invD * gamma;
+
+    // Compute tangential velocity components for all contacts via a single SpMV
+    // instead of 12 per-element coeff() binary-search lookups per contact.
+    // Tangential rows occupy [num_r_c, 3*num_r_c) in D_T.
+    VectorType Dtv;
+    Dtv.noalias() = D_T.middleRows((int)num_rigid_contacts, 2 * (int)num_rigid_contacts) * v_new;
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_rigid_contacts; index++) {
-        real fric = data_manager->host_data.fric_rigid_rigid[index].x;
-        vec2 body_id = ids[index];
-
-        real s_v = D_t_T.coeff(index * 2 + 0, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] +
-                   D_t_T.coeff(index * 2 + 0, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
-                   D_t_T.coeff(index * 2 + 0, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] +
-                   D_t_T.coeff(index * 2 + 0, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
-                   D_t_T.coeff(index * 2 + 0, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] +
-                   D_t_T.coeff(index * 2 + 0, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
-
-                   D_t_T.coeff(index * 2 + 0, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] +
-                   D_t_T.coeff(index * 2 + 0, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
-                   D_t_T.coeff(index * 2 + 0, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] +
-                   D_t_T.coeff(index * 2 + 0, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
-                   D_t_T.coeff(index * 2 + 0, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
-                   D_t_T.coeff(index * 2 + 0, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
-
-        real s_w = D_t_T.coeff(index * 2 + 1, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] +
-                   D_t_T.coeff(index * 2 + 1, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
-                   D_t_T.coeff(index * 2 + 1, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] +
-                   D_t_T.coeff(index * 2 + 1, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
-                   D_t_T.coeff(index * 2 + 1, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] +
-                   D_t_T.coeff(index * 2 + 1, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
-
-                   D_t_T.coeff(index * 2 + 1, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] +
-                   D_t_T.coeff(index * 2 + 1, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
-                   D_t_T.coeff(index * 2 + 1, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] +
-                   D_t_T.coeff(index * 2 + 1, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
-                   D_t_T.coeff(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
-                   D_t_T.coeff(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
-
-        data_manager->host_data.s[index * 1 + 0] = std::sqrt(s_v * s_v + s_w * s_w) * fric;
+        const real fric = data_manager->host_data.fric_rigid_rigid[index].x;
+        const real s_v = Dtv[index * 2 + 0];
+        const real s_w = Dtv[index * 2 + 1];
+        data_manager->host_data.s[index] = std::sqrt(s_v * s_v + s_w * s_w) * fric;
     }
 }
 
@@ -517,9 +492,15 @@ void ChConstraintRigidRigid::GenerateSparsity() {
     if (solver_mode == SolverMode::SPINNING) {
         for (int index = 0; index < (signed)num_rigid_contacts; index++) {
             const vec2& body_id = ids[index];
-            int row = index;
-            int off = 3 * num_rigid_contacts;
-            D_T.reserve(Eigen::VectorXi::Constant(18, 0));
+            const int off = 3 * num_rigid_contacts;
+
+            AppendRow3(D_T, off + index * 3 + 0, body_id.x * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 1, body_id.x * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 2, body_id.x * 6 + 3, 0);
+
+            AppendRow3(D_T, off + index * 3 + 0, body_id.y * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 1, body_id.y * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 2, body_id.y * 6 + 3, 0);
         }
     }
 }

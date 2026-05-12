@@ -136,7 +136,7 @@ uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
 
             SchurProduct(ml_p, temp);
             mg_p = temp - r;
-            mf_p = ml_p.dot(0.5 * temp - r);
+            mf_p = 0.5 * ml_p.dot(temp) - ml_p.dot(r);
 
             f_hist.push_back(mf_p);
 

@@ -20,11 +20,7 @@ using namespace chrono;
 
 ChSolverMulticoreAPGD::ChSolverMulticoreAPGD()
     : ChSolverMulticore(),
-      mg_tmp_norm(0),
-      mb_tmp_norm(0),
-      obj1(0),
       obj2(0),
-      norm_ms(0),
       dot_g_temp(0),
       theta(1),
       theta_new(0),
@@ -81,9 +77,8 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
     theta = 1;
     theta_new = theta;
     beta_new = 0.0;
-    mb_tmp_norm = 0, mg_tmp_norm = 0;
-    obj1 = 0.0, obj2 = 0.0;
-    dot_g_temp = 0, norm_ms = 0;
+    obj2 = 0.0;
+    dot_g_temp = 0;
 
     // Is the initial projection necessary?
     // Project(gamma.data());
@@ -148,22 +143,21 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
         gamma_new = y - t * g;
         Project(gamma_new.data());
         SchurProduct(gamma_new, N_gamma_new);
-        obj2 = y.dot(0.5 * temp - r);
+        obj2 = 0.5 * y.dot(temp) - y.dot(r);
         temp = gamma_new - y;
-        while (gamma_new.dot(0.5 * N_gamma_new - r) > obj2 + temp.dot(g + 0.5 * L * temp)) {
+        while (0.5 * gamma_new.dot(N_gamma_new) - gamma_new.dot(r) > obj2 + temp.dot(g) + 0.5 * L * temp.squaredNorm()) {
             L = 2.0 * L;
             t = 1.0 / L;
             gamma_new = y - t * g;
             Project(gamma_new.data());
             SchurProduct(gamma_new, N_gamma_new);
-            obj1 = gamma_new.dot(0.5 * N_gamma_new - r);
             temp = gamma_new - y;
         }
         theta_new = (-std::pow(theta, 2.0) + theta * std::sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
         beta_new = theta * (1.0 - theta) / (std::pow(theta, 2.0) + theta_new);
 
         temp = gamma_new - gamma;
-        y = beta_new * temp + gamma_new;
+        y.noalias() = beta_new * temp + gamma_new;
         dot_g_temp = g.dot(temp);
 
         // Compute the residual
@@ -183,9 +177,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
             residual = res;
             gamma_hat = gamma_new;
 
-            // Compute the objective value
-            temp = 0.5 * N_gamma_new - r;
-            objective_value = gamma_new.dot(temp);
+            objective_value = 0.5 * gamma_new.dot(N_gamma_new) - gamma_new.dot(r);
         }
 
         AtIterationEnd(residual, objective_value);

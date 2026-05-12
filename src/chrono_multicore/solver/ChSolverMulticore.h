@@ -181,13 +181,12 @@ class CH_MULTICORE_API ChSolverMulticoreAPGD : public ChSolverMulticore {
     void UpdateR();
 
     // APGD specific vectors
-    VectorType obj2_temp, obj1_temp, temp, g, gamma_new, y, gamma_hat, N_gamma_new, _t_g;
+    VectorType temp, g, gamma_new, y, gamma_hat, N_gamma_new;
     real L, t;
     real g_diff;
     real theta, theta_new, beta_new;
-    real mb_tmp_norm, mg_tmp_norm;
-    real obj1, obj2;
-    real dot_g_temp, norm_ms;
+    real obj2;
+    real dot_g_temp;
 };
 
 /// Barzilai-Borwein solver.

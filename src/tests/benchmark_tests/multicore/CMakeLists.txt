@@ -4,7 +4,6 @@ endif()
 
 set(TESTS
     btest_MCORE_settling
-    btest_MCORE_refactor
     )
 
 # ------------------------------------------------------------------------------

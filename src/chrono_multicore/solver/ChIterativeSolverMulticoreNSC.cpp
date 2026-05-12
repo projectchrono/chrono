@@ -76,10 +76,15 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
 
     data_manager->node_container->PreSolve();
 
+    // Recompute M_invk using the velocity that PreSolve() may have updated,
+    // then use it for both R_full and ComputeImpulses() to avoid a second
+    // M_inv * hf product later.
+    data_manager->host_data.M_invk.noalias() =
+        data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf;
+
     if (data_manager->num_constraints > 0) {
-        // Right-hand side should be updated with latest velocity after pre-solve
         data_manager->host_data.R_full.noalias() =
-            -data_manager->host_data.b - data_manager->host_data.D_T * (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
+            -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
     }
     SchurProductFull.Setup(data_manager);
     SchurProductBilateral.Setup(data_manager);
@@ -342,19 +347,15 @@ void ChIterativeSolverMulticoreNSC::SetR() {
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeImpulses() {
-    const SparseMatrixType& M_inv = data_manager->host_data.M_inv;
+    // M_invk = v + M_inv*hf was refreshed in RunTimeStep() after PreSolve().
+    const VectorType& M_invk = data_manager->host_data.M_invk;
     const VectorType& gamma = data_manager->host_data.gamma;
-
-    const VectorType& hf = data_manager->host_data.hf;
     VectorType& v = data_manager->host_data.v;
 
     if (data_manager->num_constraints > 0) {
-        // Compute new velocity based on the Lagrange multipliers
-        v = v + M_inv * hf + data_manager->host_data.M_invD * gamma;
+        v.noalias() = M_invk + data_manager->host_data.M_invD * gamma;
     } else {
-        // When there are no constraints we need to still apply gravity and other
-        // body forces!
-        v = v + M_inv * hf;
+        v = M_invk;
     }
 }
 
