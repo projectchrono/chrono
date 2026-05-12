@@ -59,124 +59,173 @@ ChIterativeSolverMulticore::~ChIterativeSolverMulticore() {
 }
 
 void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
-    uint num_bodies    = data_manager->num_rigid_bodies;
-    uint num_shafts    = data_manager->num_shafts;
-    uint num_motors    = data_manager->num_motors;
-    uint num_particles = data_manager->num_particles;
-    uint num_dof       = data_manager->num_dof;
-    bool full_inr      = data_manager->settings.solver.use_full_inertia_tensor;
+    const int num_bodies    = (int)data_manager->num_rigid_bodies;
+    const int num_shafts    = (int)data_manager->num_shafts;
+    const int num_motors    = (int)data_manager->num_motors;
+    const int num_particles = (int)data_manager->num_particles;
+    const int num_dof       = (int)data_manager->num_dof;
+    const bool full_inr     = data_manager->settings.solver.use_full_inertia_tensor;
 
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
-    std::vector<std::shared_ptr<ChBody>>* body_list = data_manager->body_list;
+    std::vector<std::shared_ptr<ChBody>>& body_list = *data_manager->body_list;
     const VectorType& hf = data_manager->host_data.hf;
     const VectorType& v  = data_manager->host_data.v;
     VectorType& M_invk   = data_manager->host_data.M_invk;
     SparseMatrixType& M_inv = data_manager->host_data.M_inv;
+    const char* active = data_manager->host_data.active_rigid.data();
 
-    const bool needs_build = !M_inv.isCompressed() || M_inv.rows() != (int)num_dof;
+    const bool needs_build = !M_inv.isCompressed() || M_inv.rows() != num_dof;
+    const int s = num_bodies * 6, m = s + num_shafts;
 
     if (needs_build) {
         M_inv = SparseMatrixType(num_dof, num_dof);
-        M_inv.reserve(MassNNZ((int)num_dof, (int)num_bodies, (int)num_shafts,
-                              (int)num_motors, (int)num_particles,
+        M_inv.reserve(MassNNZ(num_dof, num_bodies, num_shafts, num_motors, num_particles,
                               full_inr, data_manager->host_data.active_rigid));
-    }
 
-    auto set = [&](int r, int c, real val) {
-        if (needs_build) M_inv.insert(r, c)   = val;
-        else             M_inv.coeffRef(r, c) = val;
-    };
-
-    for (int i = 0; i < (signed)num_bodies; i++) {
-        if (data_manager->host_data.active_rigid[i]) {
-            const real inv_mass = 1.0 / body_list->at(i)->GetMass();
-            const ChMatrix33<>& J = body_list->at(i)->GetInvInertia();
-            const int b = i * 6;
-            set(b, b, inv_mass);
-            set(b+1, b+1, inv_mass);
-            set(b+2, b+2, inv_mass);
-            set(b+3, b+3, J(0,0));
-            if (full_inr) {
-                set(b+3, b+4, J(0,1));
-                set(b+3, b+5, J(0,2));
-                set(b+4, b+3, J(1,0));
+        for (int i = 0; i < num_bodies; i++) {
+            if (active[i]) {
+                ChBody* body = body_list[i].get();
+                const real inv_mass = 1.0 / body->GetMass();
+                const ChMatrix33<>& J = body->GetInvInertia();
+                const int b = i * 6;
+                M_inv.insert(b,   b  ) = inv_mass;
+                M_inv.insert(b+1, b+1) = inv_mass;
+                M_inv.insert(b+2, b+2) = inv_mass;
+                M_inv.insert(b+3, b+3) = J(0,0);
+                if (full_inr) {
+                    M_inv.insert(b+3, b+4) = J(0,1);
+                    M_inv.insert(b+3, b+5) = J(0,2);
+                    M_inv.insert(b+4, b+3) = J(1,0);
+                }
+                M_inv.insert(b+4, b+4) = J(1,1);
+                if (full_inr) {
+                    M_inv.insert(b+4, b+5) = J(1,2);
+                    M_inv.insert(b+5, b+3) = J(2,0);
+                    M_inv.insert(b+5, b+4) = J(2,1);
+                }
+                M_inv.insert(b+5, b+5) = J(2,2);
             }
-            set(b+4, b+4, J(1,1));
-            if (full_inr) {
-                set(b+4, b+5, J(1,2));
-                set(b+5, b+3, J(2,0));
-                set(b+5, b+4, J(2,1));
-            }
-            set(b+5, b+5, J(2,2));
         }
+        for (int i = 0; i < num_shafts; i++) M_inv.insert(s+i, s+i) = shaft_inr[i];
+        for (int i = 0; i < num_motors; i++) M_inv.insert(m+i, m+i) = 1.0;
+
+        data_manager->node_container->ComputeInvMass(m + num_motors);
+        M_inv.makeCompressed();
+    } else {
+        // RowMajor CSR: outerIndexPtr[r] is the start index of row r in valuePtr.
+        // Pattern is fixed; bypass coeffRef's binary search with direct buffer writes.
+        real* vals       = M_inv.valuePtr();
+        const int* outer = M_inv.outerIndexPtr();
+
+        for (int i = 0; i < num_bodies; i++) {
+            if (active[i]) {
+                ChBody* body = body_list[i].get();
+                const real inv_mass = 1.0 / body->GetMass();
+                const ChMatrix33<>& J = body->GetInvInertia();
+                const int b = i * 6;
+                vals[outer[b]]   = inv_mass;
+                vals[outer[b+1]] = inv_mass;
+                vals[outer[b+2]] = inv_mass;
+                if (full_inr) {
+                    // rows b+3..b+5 each have 3 entries at cols [b+3, b+4, b+5]
+                    vals[outer[b+3]  ] = J(0,0); vals[outer[b+3]+1] = J(0,1); vals[outer[b+3]+2] = J(0,2);
+                    vals[outer[b+4]  ] = J(1,0); vals[outer[b+4]+1] = J(1,1); vals[outer[b+4]+2] = J(1,2);
+                    vals[outer[b+5]  ] = J(2,0); vals[outer[b+5]+1] = J(2,1); vals[outer[b+5]+2] = J(2,2);
+                } else {
+                    vals[outer[b+3]] = J(0,0);
+                    vals[outer[b+4]] = J(1,1);
+                    vals[outer[b+5]] = J(2,2);
+                }
+            }
+        }
+        for (int i = 0; i < num_shafts; i++) vals[outer[s+i]] = shaft_inr[i];
+        for (int i = 0; i < num_motors; i++) vals[outer[m+i]] = 1.0;
+
+        data_manager->node_container->ComputeInvMass(m + num_motors);
     }
-
-    const int s = (int)num_bodies * 6, m = s + (int)num_shafts;
-    for (int i = 0; i < (signed)num_shafts; i++) set(s + i, s + i, shaft_inr[i]);
-    for (int i = 0; i < (signed)num_motors; i++) set(m + i, m + i, 1.0);
-
-    data_manager->node_container->ComputeInvMass(m + (int)num_motors);
-    if (needs_build) M_inv.makeCompressed();
 
     M_invk.noalias() = v + M_inv * hf;
 }
 
 void ChIterativeSolverMulticore::ComputeMassMatrix() {
-    uint num_bodies    = data_manager->num_rigid_bodies;
-    uint num_shafts    = data_manager->num_shafts;
-    uint num_motors    = data_manager->num_motors;
-    uint num_particles = data_manager->num_particles;
-    uint num_dof       = data_manager->num_dof;
-    bool full_inr      = data_manager->settings.solver.use_full_inertia_tensor;
+    const int num_bodies    = (int)data_manager->num_rigid_bodies;
+    const int num_shafts    = (int)data_manager->num_shafts;
+    const int num_motors    = (int)data_manager->num_motors;
+    const int num_particles = (int)data_manager->num_particles;
+    const int num_dof       = (int)data_manager->num_dof;
+    const bool full_inr     = data_manager->settings.solver.use_full_inertia_tensor;
 
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
-    std::vector<std::shared_ptr<ChBody>>* body_list = data_manager->body_list;
+    std::vector<std::shared_ptr<ChBody>>& body_list = *data_manager->body_list;
     SparseMatrixType& M = data_manager->host_data.M;
+    const char* active = data_manager->host_data.active_rigid.data();
 
-    const bool needs_build = !M.isCompressed() || M.rows() != (int)num_dof;
+    const bool needs_build = !M.isCompressed() || M.rows() != num_dof;
+    const int s = num_bodies * 6, m = s + num_shafts;
 
     if (needs_build) {
         M = SparseMatrixType(num_dof, num_dof);
-        M.reserve(MassNNZ((int)num_dof, (int)num_bodies, (int)num_shafts,
-                          (int)num_motors, (int)num_particles,
+        M.reserve(MassNNZ(num_dof, num_bodies, num_shafts, num_motors, num_particles,
                           full_inr, data_manager->host_data.active_rigid));
-    }
 
-    auto set = [&](int r, int c, real val) {
-        if (needs_build) M.insert(r, c)   = val;
-        else             M.coeffRef(r, c) = val;
-    };
-
-    for (int i = 0; i < (signed)num_bodies; i++) {
-        if (data_manager->host_data.active_rigid[i]) {
-            const real mass = body_list->at(i)->GetMass();
-            const ChMatrix33<>& J = body_list->at(i)->GetInertia();
-            const int b = i * 6;
-            set(b, b, mass);
-            set(b+1, b+1, mass);
-            set(b+2, b+2, mass);
-            set(b+3, b+3, J(0,0));
-            if (full_inr) {
-                set(b+3, b+4, J(0,1));
-                set(b+3, b+5, J(0,2));
-                set(b+4, b+3, J(1,0));
+        for (int i = 0; i < num_bodies; i++) {
+            if (active[i]) {
+                ChBody* body = body_list[i].get();
+                const real mass = body->GetMass();
+                const ChMatrix33<>& J = body->GetInertia();
+                const int b = i * 6;
+                M.insert(b,   b  ) = mass;
+                M.insert(b+1, b+1) = mass;
+                M.insert(b+2, b+2) = mass;
+                M.insert(b+3, b+3) = J(0,0);
+                if (full_inr) {
+                    M.insert(b+3, b+4) = J(0,1);
+                    M.insert(b+3, b+5) = J(0,2);
+                    M.insert(b+4, b+3) = J(1,0);
+                }
+                M.insert(b+4, b+4) = J(1,1);
+                if (full_inr) {
+                    M.insert(b+4, b+5) = J(1,2);
+                    M.insert(b+5, b+3) = J(2,0);
+                    M.insert(b+5, b+4) = J(2,1);
+                }
+                M.insert(b+5, b+5) = J(2,2);
             }
-            set(b+4, b+4, J(1,1));
-            if (full_inr) {
-                set(b+4, b+5, J(1,2));
-                set(b+5, b+3, J(2,0));
-                set(b+5, b+4, J(2,1));
-            }
-            set(b+5, b+5, J(2,2));
         }
+        for (int i = 0; i < num_shafts; i++) M.insert(s+i, s+i) = 1.0 / shaft_inr[i];
+        for (int i = 0; i < num_motors; i++) M.insert(m+i, m+i) = 1.0;
+
+        data_manager->node_container->ComputeMass(m + num_motors);
+        M.makeCompressed();
+    } else {
+        real* vals       = M.valuePtr();
+        const int* outer = M.outerIndexPtr();
+
+        for (int i = 0; i < num_bodies; i++) {
+            if (active[i]) {
+                ChBody* body = body_list[i].get();
+                const real mass = body->GetMass();
+                const ChMatrix33<>& J = body->GetInertia();
+                const int b = i * 6;
+                vals[outer[b]]   = mass;
+                vals[outer[b+1]] = mass;
+                vals[outer[b+2]] = mass;
+                if (full_inr) {
+                    vals[outer[b+3]  ] = J(0,0); vals[outer[b+3]+1] = J(0,1); vals[outer[b+3]+2] = J(0,2);
+                    vals[outer[b+4]  ] = J(1,0); vals[outer[b+4]+1] = J(1,1); vals[outer[b+4]+2] = J(1,2);
+                    vals[outer[b+5]  ] = J(2,0); vals[outer[b+5]+1] = J(2,1); vals[outer[b+5]+2] = J(2,2);
+                } else {
+                    vals[outer[b+3]] = J(0,0);
+                    vals[outer[b+4]] = J(1,1);
+                    vals[outer[b+5]] = J(2,2);
+                }
+            }
+        }
+        for (int i = 0; i < num_shafts; i++) vals[outer[s+i]] = 1.0 / shaft_inr[i];
+        for (int i = 0; i < num_motors; i++) vals[outer[m+i]] = 1.0;
+
+        data_manager->node_container->ComputeMass(m + num_motors);
     }
-
-    const int s = (int)num_bodies * 6, m = s + (int)num_shafts;
-    for (int i = 0; i < (signed)num_shafts; i++) set(s + i, s + i, 1.0 / shaft_inr[i]);
-    for (int i = 0; i < (signed)num_motors; i++) set(m + i, m + i, 1.0);
-
-    data_manager->node_container->ComputeMass(m + (int)num_motors);
-    if (needs_build) M.makeCompressed();
 }
 
 void ChIterativeSolverMulticore::PerformStabilization() {
