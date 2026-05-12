@@ -11,13 +11,14 @@
 @rem Notes:
 @rem - The script accepts 1 optional argument to override the install directory.
 @rem - This script uses the following versions:
-@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.11
-@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.7
+@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.15
+@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.12
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
-@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
-@rem      assimp (github.com/assimp/assimp):                          Tag v5.4.3
+@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.13
+@rem      assimp (github.com/assimp/assimp):                          Tag v6.0.4
 @rem      draco (github.com/google/draco):                            Tag 1.5.7
-@rem      glslang (github.com/KhronosGroup/glslang.git):              Tag 15.4.0
+@rem      glslang (github.com/KhronosGroup/glslang.git):              Tag 16.1.0
+@rem      ktx (github.com/KhronosGroup/KTX-Software.git).        .....Tag v4.4.2
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -35,6 +36,7 @@ set BUILDDEBUG=ON
     set ASSIMP_SOURCE_DIR="C:/Sources/assimp"  
     set DRACO_SOURCE_DIR="C:/Sources/draco"
     set GLSLANG_SOURCE_DIR="C:/Sources/glslang"
+    set KTX_SOURCE_DIR="C:/Sources/ktx"
 )
 
 @rem ------------------------------------------------------------------------
@@ -54,11 +56,11 @@ if "%~1" NEQ "" (
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.11 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.15 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     set VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.7 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.12 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     set VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
@@ -66,11 +68,11 @@ if "%~1" NEQ "" (
     set VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
 
     echo "  ... vsgExamples"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.9 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.13 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.4 "https://github.com/assimp/assimp" "download_vsg/assimp"
     set ASSIMP_SOURCE_DIR="download_vsg/assimp"
 
     echo "  ... draco"
@@ -78,8 +80,12 @@ if "%~1" NEQ "" (
     set DRACO_SOURCE_DIR="download_vsg/draco"
 
     echo " ... glslang"
-    git clone -c advice.detachedHead=false --depth 1 --branch 15.4.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
+    git clone -c advice.detachedHead=false --depth 1 --branch 16.1.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
     set GLSLANG_SOURCE_DIR="download_vsg/glslang"
+
+    echo " ... ktx"
+    git clone -c advice.detachedHead=false --depth 1 --branch v4.4.2 "https://github.com/KhronosGroup/KTX-Software.git" "download_vsg/ktx"
+    set KTX_SOURCE_DIR="download_vsg/ktx"
 
     cd download_vsg/glslang/
     python update_glslang_sources.py
@@ -109,6 +115,21 @@ if %BUILDDEBUG% EQU ON (
     echo "No Debug build of glslang"
 )
 
+rem --- ktx --------------------------------------------------------------
+
+rmdir /S/Q build_ktx 2>nul
+cmake -B build_ktx -S %KTX_SOURCE_DIR% ^
+      -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+cmake --build build_ktx --config Release
+cmake --install build_ktx --config Release --prefix %VSG_INSTALL_DIR%
+if %BUILDDEBUG% EQU ON (
+    cmake --build build_ktx --config Debug
+    cmake --install build_ktx --config Debug --prefix %VSG_INSTALL_DIR%
+) else (
+    echo "No Debug build of ktx"
+)
 
 rem --- draco --------------------------------------------------------------
 
