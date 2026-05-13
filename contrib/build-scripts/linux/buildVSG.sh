@@ -180,7 +180,7 @@ fi
 
 echo "\n------------------------ Configure assimp\n"
 rm -rf build_assimp
-cmake -E env CXXFLAGS="-Wno-maybe-uninitialized" -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
+cmake -E env CXXFLAGS="-Wno-maybe-uninitialized" cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
       -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
       -DBUILD_SHARED_LIBS:BOOL=OFF \
       -DCMAKE_DEBUG_POSTFIX=_d \
