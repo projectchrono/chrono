@@ -33,7 +33,10 @@
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-using namespace chrono::vsg3d;
+#endif
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace chrono;
@@ -151,11 +154,11 @@ int main(int argc, char* argv[]) {
     auto container = AddContainer(&sys);
     AddFallingBalls(&sys);
 
-    // Perform the simulation
-    // ----------------------
-
 #ifdef CHRONO_VSG
-    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    // Create run-time visualization
+    // -----------------------------
+
+    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Balls NSC");
     vis->SetCameraVertical(CameraVerticalDir::Z);
@@ -168,28 +171,62 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();
     vis->Initialize();
+#else
+    double time_end = 10;
+#endif
+
+    // Set output
+    // ----------
+
+    const std::string out_dir = GetChronoOutputPath() + "MCORE_BALLS_NSC";
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    std::string out_file = out_dir + "/force.txt";
+
+    // Perform the simulation
+    // ----------------------
+
+    double time = 0;
+    double time_report = 2.5;
+    ChWriterCSV csv(" ");
 
     while (true) {
-        if (vis->Run()) {
-            sys.DoStepDynamics(time_step);
-            vis->Render();
-            ////  sys.CalculateContactForces();
-            ////  real3 frc = sys.GetBodyContactForce(container);
-            ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
-        } else {
+#ifdef CHRONO_VSG
+        if (!vis->Run())
             break;
-        }
-    }
+        vis->Render();
 #else
-    // Run simulation for specified time
-    double time_end = 2;
-    int num_steps = (int)std::ceil(time_end / time_step);
-    double time = 0;
+        if (time > time_end)
+            break;
+#endif
 
-    for (int i = 0; i < num_steps; i++) {
         sys.DoStepDynamics(time_step);
         time += time_step;
+
+        sys.CalculateContactForces();
+        real3 frc = sys.GetBodyContactForce(container);
+        csv << time << frc.x << frc.y << frc.z << std::endl;
+
+        if (time >= time_report && time < time_report + time_step)
+            std::cout << "Time = " << time << "  Vertical reaction force = " << frc.z << std::endl;
     }
+
+    csv.WriteToFile(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    // Plot results
+    // ------------
+
+    postprocess::ChGnuPlot gplot(out_dir + "/force.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Container reaction force";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("force (N)");
+    gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lc rgb'#00AAEE' ");
 #endif
 
     return 0;
