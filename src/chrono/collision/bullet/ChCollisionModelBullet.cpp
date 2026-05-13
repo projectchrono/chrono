@@ -563,23 +563,6 @@ void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShape
     // Fallback -----------------------------------------------
     // If none of the above conditions are met, resort to algorithmic convex decomposition
 
-    /*
-    // Use HACD convex decomposition
-    auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACD>();
-    decomposition->AddTriangleMesh(*trimesh);
-    decomposition->SetParameters(2,      // clusters
-                                 0,      // no decimation
-                                 0.0,    // small cluster threshold
-                                 false,  // add faces points
-                                 false,  // add extra dist points
-                                 100.0,  // max concavity
-                                 30,     // cc connect dist
-                                 0.0,    // volume weight beta
-                                 0.0,    // compacity alpha
-                                 50      // vertices per cc
-    );
-    */
-
     // Use HACDv2 convex decomposition
     auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACDv2>();
     decomposition->Reset();
