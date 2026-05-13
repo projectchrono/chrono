@@ -15,10 +15,10 @@
 @rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.12
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 @rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.13
-@rem      assimp (github.com/assimp/assimp):                          Tag v6.0.4
+@rem      assimp (github.com/assimp/assimp):                          Tag v6.0.5
 @rem      draco (github.com/google/draco):                            Tag 1.5.7
 @rem      glslang (github.com/KhronosGroup/glslang.git):              Tag 16.1.0
-@rem      ktx (github.com/KhronosGroup/KTX-Software.git).        .....Tag v4.4.2
+@rem      ktx (github.com/KhronosGroup/KTX-Software.git):             Tag v4.4.2
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -72,7 +72,7 @@ if "%~1" NEQ "" (
     set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.4 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
     set ASSIMP_SOURCE_DIR="download_vsg/assimp"
 
     echo "  ... draco"

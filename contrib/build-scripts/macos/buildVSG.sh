@@ -19,10 +19,10 @@
 #      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.12
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 #      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.13
-#      assimp (github.com/assimp/assimp):                          Tag v6.0.4
-#      draco (github.com/google/draco)                             Tag 1.5.7
+#      assimp (github.com/assimp/assimp):                          Tag v6.0.5
+#      draco (github.com/google/draco):                            Tag 1.5.7
 #      glslang (github.com/KhronosGroup/glslang.git):              Tag 16.1.0
-#      ktx (github.com/KhronosGroup/KTX-Software.git).        .....Tag v4.4.2
+#      ktx (github.com/KhronosGroup/KTX-Software.git):             Tag v4.4.2
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ then
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.4 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
     sed -i -e '67s/.*/#include <cstring>\n/' download_vsg/assimp/code/Common/SceneCombiner.cpp
     ASSIMP_SOURCE_DIR="download_vsg/assimp"
 
