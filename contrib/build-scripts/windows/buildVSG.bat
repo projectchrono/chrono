@@ -153,7 +153,6 @@ rmdir /S/Q build_assimp 2>nul
 cmake -B build_assimp -S %ASSIMP_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=OFF ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -DASSIMP_BUILD_TESTS:BOOL=OFF  ^
       -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF ^
       -DASSIMP_BUILD_ZLIB:BOOL=ON
@@ -173,8 +172,7 @@ rmdir /S/Q build_vsg 2>nul
 cmake -B build_vsg -S %VSG_SOURCE_DIR%  ^
       -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
-      -DCMAKE_DEBUG_POSTFIX=_d ^
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd  
+      -DCMAKE_DEBUG_POSTFIX=_d 
 
 cmake --build build_vsg --config Release
 cmake --install build_vsg --config Release --prefix %VSG_INSTALL_DIR%
@@ -192,7 +190,6 @@ cmake -B build_vsgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
       -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -Dassimp_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/assimp-5.3
 
@@ -218,7 +215,6 @@ cmake -B build_vsgImGui -S %VSGIMGUI_SOURCE_DIR% ^
       -DCMAKE_PREFIX_PATH=%VSG_INSTALL_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg
 cmake --build build_vsgImGui --config Release
 cmake --install build_vsgImGui --config Release --prefix %VSG_INSTALL_DIR%

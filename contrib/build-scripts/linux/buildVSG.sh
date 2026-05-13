@@ -143,8 +143,7 @@ echo "\n------------------------ Configure ktx\n"
 rm -rf build_draco
 cmake -G "${BUILDSYSTEM}" -B build_ktx -S ${KTX_SOURCE_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
-      -DCMAKE_DEBUG_POSTFIX="_d" \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX="_rd"
+      -DCMAKE_DEBUG_POSTFIX="_d"
 
 echo "\n------------------------ Build and install ktx\n"
 cmake --build build_ktx --config Release
@@ -181,10 +180,10 @@ fi
 
 echo "\n------------------------ Configure assimp\n"
 rm -rf build_assimp
-cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
+cmake -E env CXXFLAGS="-Wno-maybe-uninitialized" -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
+      -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
       -DBUILD_SHARED_LIBS:BOOL=OFF \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -DASSIMP_BUILD_TESTS:BOOL=OFF  \
       -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF \
       -DASSIMP_BUILD_ZLIB:BOOL=ON
@@ -207,8 +206,7 @@ rm -rf build_vsg
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
       -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
-      -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
+      -DCMAKE_DEBUG_POSTFIX=_d 
 
 echo "\n------------------------ Build and install vsg\n"
 cmake --build build_vsg --config Release
@@ -229,7 +227,6 @@ cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
       -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
       -Dassimp_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/assimp-5.2
 
@@ -252,7 +249,6 @@ cmake -G "${BUILDSYSTEM}" -B build_vsgImGui -S ${VSGIMGUI_SOURCE_DIR} \
       -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
 
 echo "\n------------------------ Build and install vsgImGui\n"
