@@ -1781,9 +1781,9 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/variant
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/VHACD
         DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
         DESTINATION include/chrono_thirdparty
