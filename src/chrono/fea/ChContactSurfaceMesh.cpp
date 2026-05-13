@@ -1051,7 +1051,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
                                                           mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map.count(mface_key);
+                size_t fcount = face_map.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
                     triangles_ptrs.push_back({{mface.GetNode(0), mface.GetNode(1), mface.GetNode(2)}});
@@ -1081,7 +1081,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
                                                           mface.GetNode(2).get(), mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map_brick.count(mface_key);
+                size_t fcount = face_map_brick.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
                     triangles_ptrs.push_back({{mface.GetNode(0), mface.GetNode(1), mface.GetNode(2)}});
@@ -1315,7 +1315,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdo
                                                                (ChNodeFEAfieldXYZ*)mface.GetNode(1).get(),
                                                                (ChNodeFEAfieldXYZ*)mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map.count(mface_key);
+                size_t fcount = face_map.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
                     triangles_ptrs.push_back({{std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(mface.GetNode(0)), 
@@ -1349,7 +1349,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdo
                 std::array<ChNodeFEAfieldXYZ*, 4> mface_key = {(ChNodeFEAfieldXYZ*)mface.GetNode(0).get(), (ChNodeFEAfieldXYZ*)mface.GetNode(1).get(),
                                                                (ChNodeFEAfieldXYZ*)mface.GetNode(2).get(), (ChNodeFEAfieldXYZ*)mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map_brick.count(mface_key);
+                size_t fcount = face_map_brick.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
                     triangles_ptrs.push_back({{std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(mface.GetNode(0)), 
