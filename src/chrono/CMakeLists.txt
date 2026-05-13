@@ -1298,36 +1298,6 @@ source_group(input_output FILES ${Chrono_inputoutput_SOURCES} ${Chrono_inputoutp
 # Third-party files
 # -------------------------------------------------------------------------------------------------
 
-# Gimpact group
-set(Chrono_collision_gimpact_FILES
-    collision/gimpact/GIMPACT/core/gim_box_set.cpp
-    collision/gimpact/GIMPACT/core/gim_contact.cpp
-    collision/gimpact/GIMPACT/core/gim_memory.cpp
-    collision/gimpact/GIMPACT/core/gim_tri_collision.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtContactProcessing.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGenericPoolAllocator.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactBvh.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactQuantizedBvh.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactShape.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtTriangleShapeEx.cpp
-    #collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.cpp
-    collision/gimpact/ConvexDecomposition/bestfit.cpp
-    collision/gimpact/ConvexDecomposition/bestfitobb.cpp
-    collision/gimpact/ConvexDecomposition/cd_hull.cpp
-    collision/gimpact/ConvexDecomposition/concavity.cpp
-    collision/gimpact/ConvexDecomposition/ConvexBuilder.cpp
-    collision/gimpact/ConvexDecomposition/ConvexDecomposition.cpp
-    collision/gimpact/ConvexDecomposition/fitsphere.cpp
-    collision/gimpact/ConvexDecomposition/float_math.cpp
-    collision/gimpact/ConvexDecomposition/meshvolume.cpp
-    collision/gimpact/ConvexDecomposition/planetri.cpp
-    collision/gimpact/ConvexDecomposition/raytri.cpp
-    collision/gimpact/ConvexDecomposition/splitplane.cpp
-    collision/gimpact/ConvexDecomposition/vlookup.cpp
-    )
-source_group(collision\\gimpact FILES ${Chrono_collision_gimpact_FILES})
-
 # HACDv2 group
 set(Chrono_collision_convexdecompHACDv2_FILES
     ../chrono_thirdparty/HACDv2/AutoGeometry.h
@@ -1456,7 +1426,6 @@ set(Chrono_HEADERS
 set(Chrono_thirdparty_FILES
     ${Chrono_collision_convexdecompHACDv2_FILES}
     ${Chrono_collision_convexdecompVHACD_FILES}
-    ${Chrono_collision_gimpact_FILES}
     ${Chrono_tiny_obj_FILES}
     ${Chrono_libstl_FILES}
 )
@@ -1477,19 +1446,16 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
 elseif(MSVC)
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "/w")
 else()
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-w")
 endif()
 
@@ -1520,12 +1486,10 @@ endif()
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src")
 list(APPEND CH_INCLUDES_BUILD "${PROJECT_BINARY_DIR}")
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet" )
-list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact" )
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
 
 list(APPEND CH_INCLUDES_INSTALL "include")
 list(APPEND CH_INCLUDES_INSTALL "include/chrono/collision/bullet")
-list(APPEND CH_INCLUDES_INSTALL "include/chrono/collision/gimpact")
 list(APPEND CH_INCLUDES_INSTALL "include/chrono_thirdparty/HACDv2")
 
 target_include_directories(Chrono_core PUBLIC

@@ -25,8 +25,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPointShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
-#include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
-#include "chrono/collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/geometry/ChLineSegment.h"
@@ -422,21 +420,6 @@ class cbtConvexTriangleMeshShape_handlemesh : public cbtConvexTriangleMeshShape 
     cbtConvexTriangleMeshShape_handlemesh(cbtStridingMeshInterface* meshInterface) : cbtConvexTriangleMeshShape(meshInterface), minterface(meshInterface) {};
 
     ~cbtConvexTriangleMeshShape_handlemesh() {
-        delete minterface;
-        minterface = 0;  // also delete the mesh interface
-    }
-};
-
-class cbtGImpactMeshShape_handlemesh : public cbtGImpactMeshShape {
-    cbtStridingMeshInterface* minterface;
-
-  public:
-    cbtGImpactMeshShape_handlemesh(cbtStridingMeshInterface* meshInterface)
-        : cbtGImpactMeshShape(meshInterface), minterface(meshInterface) {
-              // setLocalScaling(cbtVector3(1.f,1.f,1.f));
-          };
-
-    virtual ~cbtGImpactMeshShape_handlemesh() {
         delete minterface;
         minterface = 0;  // also delete the mesh interface
     }
