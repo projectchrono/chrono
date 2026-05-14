@@ -54,12 +54,13 @@ void ChConstraintBilateral::Build_D() {
     // taking into account the type of each constraint.
     // SparseMatrixType D_b_T = _DBT_;
     SparseMatrixType& D_b_T = data_manager->host_data.D_T;
+    int off = data_manager->num_unilaterals;
 
     // #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         int type = data_manager->host_data.bilateral_type[cntr];
-        int row = index;
+        int row = off + index;
 
         switch (type) {
             case BilateralType::BODY_BODY: {
@@ -161,73 +162,49 @@ void ChConstraintBilateral::Build_D() {
 }
 
 void ChConstraintBilateral::GenerateSparsity() {
-    // Grab the list of all bilateral constraints present in the system
-    // (note that this includes possibly inactive constraints)
+    // pre-insert zeros at each nonzero column position so subsequent Build_D()
+    // coeffRef() calls hit pre-allocated slots rather than triggering internal
+    // reallocations
 
     std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraints();
 
-    // Loop over the active constraints and fill in the sparsity pattern of the
-    // Jacobian, taking into account the type of each constraint.
-    // Note that the data for a Blaze compressed matrix must be filled in increasing
-    // order of the column index for each row. Recall that body states are always
-    // before shaft states.
-
     SparseMatrixType& D_b_T = data_manager->host_data.D_T;
+    const int rigid_dof_base = data_manager->num_rigid_bodies * 6;
     int off = data_manager->num_unilaterals;
+
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         int type = data_manager->host_data.bilateral_type[cntr];
         int row = off + index;
 
-        int col1;
-        int col2;
-        int col3;
-
         switch (type) {
             case BilateralType::BODY_BODY: {
                 ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
-
                 int idA = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetIndex();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetIndex();
-
-                if (idA < idB) {
-                    col1 = idA * 6;
-                    col2 = idB * 6;
-                } else {
-                    col1 = idB * 6;
-                    col2 = idA * 6;
-                }
-
-                D_b_T.reserve(Eigen::VectorXi::Constant(12, 1));
+                // eigen RowMajor insert() reqs ascending column order within each row.
+                int col_lo = std::min(idA, idB) * 6;
+                int col_hi = std::max(idA, idB) * 6;
+                for (int k = 0; k < 6; ++k) D_b_T.insert(row, col_lo + k) = 0.0;
+                for (int k = 0; k < 6; ++k) D_b_T.insert(row, col_hi + k) = 0.0;
             } break;
 
             case BilateralType::SHAFT_SHAFT: {
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
-
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
-
-                if (idA < idB) {
-                    col1 = data_manager->num_rigid_bodies * 6 + idA;
-                    col2 = data_manager->num_rigid_bodies * 6 + idB;
-                } else {
-                    col1 = data_manager->num_rigid_bodies * 6 + idB;
-                    col2 = data_manager->num_rigid_bodies * 6 + idA;
-                }
-
-                D_b_T.reserve(Eigen::VectorXi::Constant(2, 1));
+                if (idA > idB) std::swap(idA, idB);
+                D_b_T.insert(row, rigid_dof_base + idA) = 0.0;
+                D_b_T.insert(row, rigid_dof_base + idB) = 0.0;
             } break;
 
             case BilateralType::SHAFT_BODY: {
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
-
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetIndex();
-
-                col1 = idB * 6;
-                col2 = data_manager->num_rigid_bodies * 6 + idA;
-
-                D_b_T.reserve(Eigen::VectorXi::Constant(7, 1));
+                int colB = idB * 6;
+                for (int k = 0; k < 6; ++k) D_b_T.insert(row, colB + k) = 0.0;
+                D_b_T.insert(row, rigid_dof_base + idA) = 0.0;
             } break;
 
             case BilateralType::SHAFT_SHAFT_SHAFT: {
@@ -236,13 +213,10 @@ void ChConstraintBilateral::GenerateSparsity() {
                 ids[0] = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 ids[1] = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
                 ids[2] = ((ChVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetIndex();
-
                 std::sort(ids.begin(), ids.end());
-                col1 = data_manager->num_rigid_bodies * 6 + ids[0];
-                col2 = data_manager->num_rigid_bodies * 6 + ids[1];
-                col3 = data_manager->num_rigid_bodies * 6 + ids[2];
-
-                D_b_T.reserve(Eigen::VectorXi::Constant(3, 1));
+                D_b_T.insert(row, rigid_dof_base + ids[0]) = 0.0;
+                D_b_T.insert(row, rigid_dof_base + ids[1]) = 0.0;
+                D_b_T.insert(row, rigid_dof_base + ids[2]) = 0.0;
             } break;
 
             case BilateralType::SHAFT_SHAFT_BODY: {
@@ -250,17 +224,11 @@ void ChConstraintBilateral::GenerateSparsity() {
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
                 int idC = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetIndex();
-
-                col1 = idC * 6;
-                if (idA < idB) {
-                    col2 = data_manager->num_rigid_bodies * 6 + idA;
-                    col3 = data_manager->num_rigid_bodies * 6 + idB;
-                } else {
-                    col2 = data_manager->num_rigid_bodies * 6 + idB;
-                    col3 = data_manager->num_rigid_bodies * 6 + idA;
-                }
-
-                D_b_T.reserve(Eigen::VectorXi::Constant(8, 1));
+                int colC = idC * 6;
+                for (int k = 0; k < 6; ++k) D_b_T.insert(row, colC + k) = 0.0;
+                if (idA > idB) std::swap(idA, idB);
+                D_b_T.insert(row, rigid_dof_base + idA) = 0.0;
+                D_b_T.insert(row, rigid_dof_base + idB) = 0.0;
             } break;
         }
     }

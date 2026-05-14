@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono_multicore/solver/ChSolverMulticore.h"
-#include "chrono_thirdparty/rapidjson/reader.h"
 
 using namespace chrono;
 
@@ -44,21 +43,25 @@ void ChSchurProduct::Setup(ChMulticoreDataManager* data_container_) {
     const uint num_r_c = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
     const SolverMode solver_mode = data_manager->settings.solver.solver_mode;
 
-    if (num_r_c > 0) {
-        m_D_n_T = D_T.middleRows(0, num_r_c);
-        m_M_invD_n = M_invD.middleCols(0, num_r_c).topRows(num_rigid_dof);
+    // bil_dof = rigid + shaft + motor DOFs. the intermediate space used by both
+    // contact and bilateral submatrices so that all m_tmp contributions have the
+    // same size and can be accumulated
+    const uint bil_dof = num_rigid_dof + num_shaft_dof + num_motor_dof;
+
+    if (num_r_c > 0 && num_uni > 0) {
+        m_D_n_T = D_T.middleRows(0, num_r_c).leftCols(bil_dof);
+        m_M_invD_n = M_invD.middleCols(0, num_r_c).topRows(bil_dof);
 
         if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
-            m_D_t_T = D_T.middleRows(num_r_c, 2 * num_r_c);
-            m_M_invD_t = M_invD.middleCols(num_r_c, 2 * num_r_c).topRows(num_rigid_dof);
+            m_D_t_T = D_T.middleRows(num_r_c, 2 * num_r_c).leftCols(bil_dof);
+            m_M_invD_t = M_invD.middleCols(num_r_c, 2 * num_r_c).topRows(bil_dof);
         }
         if (solver_mode == SolverMode::SPINNING) {
-            m_D_s_T = D_T.middleRows(3 * num_r_c, 3 * num_r_c);
-            m_M_invD_s = M_invD.middleCols(3 * num_r_c, 3 * num_r_c).topRows(num_rigid_dof);
+            m_D_s_T = D_T.middleRows(3 * num_r_c, 3 * num_r_c).leftCols(bil_dof);
+            m_M_invD_s = M_invD.middleCols(3 * num_r_c, 3 * num_r_c).topRows(bil_dof);
         }
     }
     if (num_bil > 0) {
-        const uint bil_dof = num_rigid_dof + num_shaft_dof + num_motor_dof;
         m_D_b_T = D_T.middleRows(num_uni, num_bil).leftCols(bil_dof);
         m_M_invD_b = M_invD.middleCols(num_uni, num_bil).topRows(bil_dof);
     }
@@ -87,6 +90,13 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
         }
 
     } else {
+        // bil_dof is canonical intermediate DOF-space size used by all cached
+        // submatrices (topRows/leftCols in Setup). needed here so m_tmp can be
+        // zero-initialized to correct size regardless of which blocks present
+        const uint bil_dof = data_manager->num_rigid_bodies * 6 +
+                             data_manager->num_shafts +
+                             data_manager->num_motors;
+
         SubVectorType o_b = output.segment(num_unilaterals, num_bilaterals);
         ConstSubVectorType x_b = x.segment(num_unilaterals, num_bilaterals);
         ConstSubVectorType E_b = E.segment(num_unilaterals, num_bilaterals);
@@ -97,18 +107,28 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {
+                // BILATERAL pass always has bilaterals, so m_M_invD_b is set.
                 m_tmp.noalias() = m_M_invD_b * x_b;
                 o_b.noalias() = m_D_b_T * m_tmp;
                 o_b += E_b.cwiseProduct(x_b);
             } break;
 
             case SolverMode::NORMAL: {
-                m_tmp.noalias() = m_M_invD_b * x_b;
-                m_tmp.noalias() += m_M_invD_n * x_n;
-                o_b.noalias() = m_D_b_T * m_tmp;
-                o_b += E_b.cwiseProduct(x_b);
-                o_n.noalias() = m_D_n_T * m_tmp;
-                o_n += E_n.cwiseProduct(x_n);
+                // Either num_rigid_contacts or num_bilaterals can be 0 (e.g., no
+                // contacts on the first timestep, or no joints in the model).
+                // Zero-init m_tmp to bil_dof and accumulate only the present blocks.
+                m_tmp.setZero(bil_dof);
+                if (num_rigid_contacts > 0)
+                    m_tmp.noalias() += m_M_invD_n * x_n;
+                if (num_bilaterals > 0) {
+                    m_tmp.noalias() += m_M_invD_b * x_b;
+                    o_b.noalias() = m_D_b_T * m_tmp;
+                    o_b += E_b.cwiseProduct(x_b);
+                }
+                if (num_rigid_contacts > 0) {
+                    o_n.noalias() = m_D_n_T * m_tmp;
+                    o_n += E_n.cwiseProduct(x_n);
+                }
             } break;
 
             case SolverMode::SLIDING: {
@@ -116,15 +136,22 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
                 ConstSubVectorType x_t = x.segment(num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType E_t = E.segment(num_rigid_contacts, num_rigid_contacts * 2);
 
-                m_tmp.noalias() = m_M_invD_b * x_b;
-                m_tmp.noalias() += m_M_invD_n * x_n;
-                m_tmp.noalias() += m_M_invD_t * x_t;
-                o_b.noalias() = m_D_b_T * m_tmp;
-                o_b += E_b.cwiseProduct(x_b);
-                o_n.noalias() = m_D_n_T * m_tmp;
-                o_n += E_n.cwiseProduct(x_n);
-                o_t.noalias() = m_D_t_T * m_tmp;
-                o_t += E_t.cwiseProduct(x_t);
+                m_tmp.setZero(bil_dof);
+                if (num_rigid_contacts > 0) {
+                    m_tmp.noalias() += m_M_invD_n * x_n;
+                    m_tmp.noalias() += m_M_invD_t * x_t;
+                }
+                if (num_bilaterals > 0) {
+                    m_tmp.noalias() += m_M_invD_b * x_b;
+                    o_b.noalias() = m_D_b_T * m_tmp;
+                    o_b += E_b.cwiseProduct(x_b);
+                }
+                if (num_rigid_contacts > 0) {
+                    o_n.noalias() = m_D_n_T * m_tmp;
+                    o_n += E_n.cwiseProduct(x_n);
+                    o_t.noalias() = m_D_t_T * m_tmp;
+                    o_t += E_t.cwiseProduct(x_t);
+                }
 
             } break;
 
@@ -137,18 +164,25 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
                 ConstSubVectorType x_s = x.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
                 ConstSubVectorType E_s = E.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
 
-                m_tmp.noalias() = m_M_invD_b * x_b;
-                m_tmp.noalias() += m_M_invD_n * x_n;
-                m_tmp.noalias() += m_M_invD_t * x_t;
-                m_tmp.noalias() += m_M_invD_s * x_s;
-                o_b.noalias() = m_D_b_T * m_tmp;
-                o_b += E_b.cwiseProduct(x_b);
-                o_n.noalias() = m_D_n_T * m_tmp;
-                o_n += E_n.cwiseProduct(x_n);
-                o_t.noalias() = m_D_t_T * m_tmp;
-                o_t += E_t.cwiseProduct(x_t);
-                o_s.noalias() = m_D_s_T * m_tmp;
-                o_s += E_s.cwiseProduct(x_s);
+                m_tmp.setZero(bil_dof);
+                if (num_rigid_contacts > 0) {
+                    m_tmp.noalias() += m_M_invD_n * x_n;
+                    m_tmp.noalias() += m_M_invD_t * x_t;
+                    m_tmp.noalias() += m_M_invD_s * x_s;
+                }
+                if (num_bilaterals > 0) {
+                    m_tmp.noalias() += m_M_invD_b * x_b;
+                    o_b.noalias() = m_D_b_T * m_tmp;
+                    o_b += E_b.cwiseProduct(x_b);
+                }
+                if (num_rigid_contacts > 0) {
+                    o_n.noalias() = m_D_n_T * m_tmp;
+                    o_n += E_n.cwiseProduct(x_n);
+                    o_t.noalias() = m_D_t_T * m_tmp;
+                    o_t += E_t.cwiseProduct(x_t);
+                    o_s.noalias() = m_D_s_T * m_tmp;
+                    o_s += E_s.cwiseProduct(x_s);
+                }
 
             } break;
         }
