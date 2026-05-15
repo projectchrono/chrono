@@ -35,7 +35,10 @@
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-using namespace chrono::vsg3d;
+#endif
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace chrono;
@@ -95,25 +98,24 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticore* sys) {
-    // Shared contact materials
+    // Shared contact material
     auto ball_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     ball_mat->SetFriction(0.4f);
     ball_mat->SetRestitution(0.5f);
-    auto cyl_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
-    // Create the falling objects
-    for (int ix = -2; ix < 3; ix++) {
-        for (int iy = -2; iy < 3; iy++) {
-            ChVector3d b_pos(0.4 * ix, 0.4 * iy, 1);
-            ChVector3d c_pos(0.4 * ix, 0.4 * iy, 1.4);
+    // Create the falling balls
+    for (int ix = -3; ix < 4; ix++) {
+        for (int iy = -3; iy < 4; iy++) {
+            ChVector3d pos1(-0.1 + 0.2 * ix, -0.1 + 0.2 * iy, 1);
+            ChVector3d pos2(+0.1 + 0.2 * ix, +0.1 + 0.2 * iy, 1.4);
 
-            auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2000, ball_mat);
-            ball->SetPos(b_pos);
-            sys->AddBody(ball);
+            auto ball1 = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2000, ball_mat);
+            ball1->SetPos(pos1);
+            sys->AddBody(ball1);
 
-            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.1, 0.1, 2000, cyl_mat);
-            cyl->SetPos(c_pos);
-            sys->AddBody(cyl);
+            auto ball2 = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2000, ball_mat);
+            ball2->SetPos(pos2);
+            sys->AddBody(ball2);
         }
     }
 }
@@ -173,11 +175,11 @@ int main(int argc, char* argv[]) {
     auto mixer = AddContainer(&sys);
     AddFallingBalls(&sys);
 
-    // Perform the simulation
-    // ----------------------
-
 #ifdef CHRONO_VSG
-    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    // Create run-time visualization
+    // -----------------------------
+
+    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Mixer NSC");
     vis->SetCameraVertical(CameraVerticalDir::Z);
@@ -190,24 +192,59 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI / 6);
     vis->EnableShadows();
     vis->Initialize();
-
-    while (vis->Run()) {
-        sys.DoStepDynamics(time_step);
-        vis->Render();
-
-        ////auto frc = mixer->GetAppliedForce();
-        ////auto trq = mixer->GetAppliedTorque();
-        ////std::cout << sys.GetChTime() << "  force: " << frc << "  torque: " << trq << std::endl;
-    }
 #else
-    // Run simulation for specified time
     double time_end = 1;
-    int num_steps = (int)std::ceil(time_end / time_step);
+#endif
+
+    // Set output
+    // ----------
+
+    const std::string out_dir = GetChronoOutputPath() + "MCORE_MIXER_NSC";
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    std::string out_file = out_dir + "/force.txt";
+
+    // Perform the simulation
+    // ----------------------
+
     double time = 0;
-    for (int i = 0; i < num_steps; i++) {
+    ChWriterCSV csv(" ");
+
+    while (true) {
+#ifdef CHRONO_VSG
+        if (!vis->Run())
+            break;
+        vis->Render();
+#else
+        if (time > time_end)
+            break;
+#endif
+
         sys.DoStepDynamics(time_step);
         time += time_step;
+
+        sys.CalculateContactForces();
+        auto frc = mixer->GetAppliedForce();
+        auto trq = mixer->GetAppliedTorque();
+        csv << time << frc << trq << std::endl;
     }
+
+    csv.WriteToFile(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    // Plot results
+    // ------------
+
+    postprocess::ChGnuPlot gplot(out_dir + "/force.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Mixer reaction torque";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("torque (Nm)");
+    gplot.Plot(out_file, 1, 7, "", " with lines lt -1 lc rgb'#00AAEE' ");
 #endif
 
     return 0;

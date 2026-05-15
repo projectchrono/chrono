@@ -313,7 +313,7 @@ void CreateCantilever(ChSystem& sys,
 
     // set gravity
     if (USE_GRAVITY)
-        sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));  // -Z axis
+        sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));  // -Y axis
     else
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
