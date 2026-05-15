@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/fea/multiphysics/ChSurfaceOfDomain.h"
-#include "chrono/fea/multiphysics/ChDomain.h"
+#include "chrono/fea/multiphysics/ChSurfaceOfModel.h"
+#include "chrono/fea/multiphysics/ChFEModel.h"
 #include "chrono/fea/multiphysics/ChFieldElement.h"
 
 #include <unordered_set>
@@ -26,15 +26,15 @@ namespace fea {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSurfaceOfDomain)
+CH_FACTORY_REGISTER(ChSurfaceOfModel)
 
-void ChSurfaceOfDomain::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set) {
+void ChSurfaceOfModel::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set) {
 
     std::unordered_set<size_t> node_set_map;
     for (int i = 0; i < node_set.size(); ++i)
         node_set_map.insert((size_t)node_set[i].get());
 
-    for (auto ie = this->mdomain->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
+    for (auto ie = this->mmodel->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
         auto element =ie->get_element();
 
         if (auto vol_el = std::dynamic_pointer_cast<ChFieldElementVolume>(element)) {
@@ -67,12 +67,12 @@ void ChSurfaceOfDomain::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFE
     }
 }
 
-void ChSurfaceOfDomain::AddFacesFromBoundary() {
+void ChSurfaceOfModel::AddFacesFromBoundary() {
 
     // Boundary faces 
     std::multimap<std::array<ChNodeFEAbase*, 8>, std::shared_ptr<ChFieldElementSurface>> face_map_el;
 
-    for (auto ie = this->mdomain->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
+    for (auto ie = this->mmodel->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
         auto element = ie->get_element();
 
         if (auto vol_el = std::dynamic_pointer_cast<ChFieldElementVolume>(element)) {

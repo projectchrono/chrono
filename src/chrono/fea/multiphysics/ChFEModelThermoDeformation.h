@@ -12,11 +12,11 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHDOMAINTHERMODEFORMATION_H
-#define CHDOMAINTHERMODEFORMATION_H
+#ifndef CHFEMODELTHERMODEFORMATION_H
+#define CHFEMODELTHERMODEFORMATION_H
 
-#include "chrono/fea/multiphysics/ChDomain.h"
-#include "chrono/fea/multiphysics/ChDomainDeformation.h"
+#include "chrono/fea/multiphysics/ChFEModel.h"
+#include "chrono/fea/multiphysics/ChFEModelDeformation.h"
 #include "chrono/fea/multiphysics/ChMaterial3DThermalStress.h"
 #include "chrono/fea/multiphysics/ChMaterial3DThermalLinear.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressStVenant.h"
@@ -32,7 +32,7 @@ namespace fea {
 
 
 
-/// Auxiliary scratch data stored per each material point during the ChDomainThermoDeformation
+/// Auxiliary scratch data stored per each material point during the ChFEModelThermoDeformation
 /// computation. This can be plotted in postprocessing, etc.
 
 class ChApi ChFieldDataAuxiliaryThermoDeformation : public ChFieldDataNONE {
@@ -50,29 +50,29 @@ public:
     // ChMatrix33d F;
 };
 
-/// Domain for FEA nonlinear finite strain with thermal coupling. It is based on a vector field,
+/// Model for FEA nonlinear finite strain with thermal coupling. It is based on a vector field,
 /// (ChFieldDisplacement3D, that is used to store x, the absolute spatial position of nodes, NOT
 /// the displacement from the material reference position, d=x-X, as in some software) and
 /// a ChFieldTemperature. It solves the transient Poisson thermal equation together with 
 /// structural dynamics. 
-/// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChDomainThermoDeformation...", just keep all in .h
+/// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChFEModelThermoDeformation...", just keep all in .h
 
-class ChDomainThermoDeformation : public ChDomainIntegrating<
+class ChFEModelThermoDeformation : public ChFEModelIntegrating<
     std::tuple<ChFieldTemperature, ChFieldDisplacement3D>, 
     ChFieldDataAuxiliaryThermoDeformation,
     ChElementDataKRM> {
 public:
 
     // The following just to provide a shortcut in type naming.
-    using Base = ChDomainIntegrating<
+    using Base = ChFEModelIntegrating<
         std::tuple<ChFieldTemperature, ChFieldDisplacement3D>,
         ChFieldDataAuxiliaryThermoDeformation,   
         ChElementDataKRM
     >;
     using DataPerElement = typename Base::DataPerElement;
 
-    /// Construct the domain.
-    ChDomainThermoDeformation(std::shared_ptr<ChFieldTemperature> mthermalfield, std::shared_ptr<ChFieldDisplacement3D> melasticfield)
+    /// Construct the model.
+    ChFEModelThermoDeformation(std::shared_ptr<ChFieldTemperature> mthermalfield, std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : Base({ mthermalfield, melasticfield })
     {
         // attach  default materials to simplify user side
@@ -85,7 +85,7 @@ public:
         gravity_G_acceleration.Set(0, -9.81, 0);
     }
 
-    /// Thermal properties of this domain (conductivity, 
+    /// Thermal properties of this model (conductivity, 
     /// heat capacity constants etc.) 
     std::shared_ptr<ChMaterial3DThermalStress> material_thermalstress;
 
@@ -169,7 +169,7 @@ public:
         // To the discrete coordinates (elastic part): 
 
         ChMatrixDynamic<> B(6, n_ele_coords_deform);
-        ChDomainDeformation::ComputeB(B, dNdX, F_m);
+        ChFEModelDeformation::ComputeB(B, dNdX, F_m);
 
         // We have:             Fi = - sum (B' * S * w * |J|)
         // so here we compute  Fi += - B' * S * s
@@ -240,9 +240,9 @@ public:
         // be automatic when spreading H values to the system-level matrices.
         //  In this case,
         //  - the H_def-def  block has a size of 3*n_nodes x 3*n_nodes and
-        // corresponds to the same H matrix of the ChDomainDeformation problem.
+        // corresponds to the same H matrix of the ChFEModelDeformation problem.
         //  - the H_therm-therm  block has a size of 1*n_nodes x 1*n_nodes and
-        // corresponds to the same H matrix of the ChDomainThermal problem.
+        // corresponds to the same H matrix of the ChFEModelThermal problem.
         //  - the H_def_therm is 3*n_nodes x 1*n_nodes and H_therm-def is 1*n_nodes x 3*n_nodes and
         // represent the coupling between temp and deformation in implicit iterations, but these are ignored 
         // for simplicity, and not computed here.
@@ -310,7 +310,7 @@ public:
                 &data.element_data);
 
             ChMatrixDynamic<> B(6, n_ele_coords_deform);
-            ChDomainDeformation::ComputeB(B, dNdX, F_m);
+            ChFEModelDeformation::ComputeB(B, dNdX, F_m);
 
             H.block(n_ele_coords_thermal, n_ele_coords_thermal, n_ele_coords_deform, n_ele_coords_deform) += Kpfactor * (B.transpose() * C * B);
 
@@ -397,7 +397,7 @@ public:
     // INTERFACE to ChPhysicsItem 
     //
 
-    /// Usually not necessary to override ChPhysicsItem because the parent ChDomainIntegrating does all needed.
+    /// Usually not necessary to override ChPhysicsItem because the parent ChFEModelIntegrating does all needed.
     /// However, HERE WE OVERLOAD THE PARENT IMPLEMENTATION BECAUSE WE MAY ADD AUTOMATIC GRAVITY
     /// PER EACH ELEMENT.
     /// Takes the F force term, scale and adds to R at given offset:
@@ -409,7 +409,7 @@ public:
         this->Base::IntLoadResidual_F(off, R, c);
 
         // Do also gravity, automatic per each element:
-        // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
+        // loads on nodes connected by the elements of the model - here come the internal force vectors!!!
         if (this->automatic_gravity_load) {
             this->LoadAutomaticGravity(R, c);
         }
@@ -420,7 +420,7 @@ public:
     void LoadAutomaticGravity(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
         const double c           ///< a scaling factor
     ) {
-        unsigned int i_field = 1; //  ChFieldDisplacement is the second in the tuple of this domain
+        unsigned int i_field = 1; //  ChFieldDisplacement is the second in the tuple of this model
         int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel(); // should be 3 anyway
 
         auto mloadable_uvw = chrono_types::make_shared<ChFieldElementLoadableVolume>(nullptr, this->fields[i_field]);
@@ -528,7 +528,7 @@ public:
 
 protected:
 
-    /// Get the material of the domain. Called when creating auxiliary data per material point.
+    /// Get the material of the model. Called when creating auxiliary data per material point.
     virtual std::shared_ptr<ChMaterial> GetMaterial() override {
         return material_thermalstress;
     };

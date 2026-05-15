@@ -12,10 +12,10 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHDOMAINDEFORMATION_H
-#define CHDOMAINDEFORMATION_H
+#ifndef CHFEMODELDEFORMATION_H
+#define CHFEMODELDEFORMATION_H
 
-#include "chrono/fea/multiphysics/ChDomain.h"
+#include "chrono/fea/multiphysics/ChFEModel.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressStVenant.h"
 #include "chrono/fea/multiphysics/ChVisualDataExtractor.h"
 #include "chrono/fea/ChLoaderGravity.h"
@@ -29,7 +29,7 @@ namespace fea {
 /// @{
 
 
-/// Auxiliary data stored per each material point during the ChDomainDeformation
+/// Auxiliary data stored per each material point during the ChFEModelDeformation
 /// computation. This can be plotted in postprocessing, etc.
 /// If you need to append additional data per each matpoint, do not modify this, just 
 /// define your class with custom data and use it in my_material_class::T_per_materialpoint
@@ -41,30 +41,30 @@ public:
 };
 
 
-/// Domain for FEA large deformations (nonlinear finite strain theory). It is based on a vector field,
+/// Model for FEA large deformations (nonlinear finite strain theory). It is based on a vector field,
 /// ChFieldDisplacement3D, that is used to store x, the absolute spatial position of nodes (NOT
 /// the displacement from the material reference position, d=x-X, as in some software).
 /// Material properties are defined via a material from the ChMaterial3DStress subclasses
 /// (the simplest of these materials is the ChMaterial3DStressStVenant, that corresponds to 
 /// conventional linear elasticity for small strains). 
-/// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChDomainDeformation...", just keep all in .h
+/// Not copyable: don't do __declspec(dllexport), ie. "class ChApi ChFEModelDeformation...", just keep all in .h
 
-class ChDomainDeformation : public ChDomainIntegrating<
+class ChFEModelDeformation : public ChFEModelIntegrating<
     std::tuple<ChFieldDisplacement3D>, // per each node
-    ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by domain algos - materials can add other data too.
+    ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by model algos - materials can add other data too.
     ChElementDataKRM> {                // auxiliary data per each element (defaults to jacobian matrices K, R, M)
 public:
 
     // The following just to provide a shortcut in type naming.
-    using Base = ChDomainIntegrating<
+    using Base = ChFEModelIntegrating<
         std::tuple<ChFieldDisplacement3D>, // per each node
-        ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by domain algos - materials can add other data too.
+        ChFieldDataAuxiliaryDeformation,   // auxiliary scratch data per each quadrature point needed by model algos - materials can add other data too.
         ChElementDataKRM
     >;
     using DataPerElement = typename Base::DataPerElement;
 
-    /// Construct the domain
-    ChDomainDeformation(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
+    /// Construct the model
+    ChFEModelDeformation(std::shared_ptr<ChFieldDisplacement3D> melasticfield)
         : Base(melasticfield)
     {
         // attach  default materials to simplify user side
@@ -75,7 +75,7 @@ public:
         gravity_G_acceleration.Set(0, -9.81, 0);
     }
 
-    /// Elastic properties of this domain 
+    /// Elastic properties of this model 
     std::shared_ptr<ChMaterial3DStress>  material;
 
     // INTERFACES
@@ -131,14 +131,14 @@ public:
             &data.element_data);
 
         ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
-        ChDomainDeformation::ComputeB(B, dNdX, F);
+        ChFEModelDeformation::ComputeB(B, dNdX, F);
 
         // We have:             Fi = - sum (B' * S * w * |J|)
         // so here we compute  Fi += - B' * S * s
         Fi += -(B.transpose() * S_pk2) * s;
 
         // Store auxiliary data in material point data (ex. for postprocessing). This is 
-        // the F tensor in ChFieldDataAuxiliaryDeformation, the auxiliary data per each quadrature point required by domain.
+        // the F tensor in ChFieldDataAuxiliaryDeformation, the auxiliary data per each quadrature point required by model.
         data.matpoints_data_aux[i_point].F = F;
         data.matpoints_data_aux[i_point].S_pk2 = S_pk2;
     }
@@ -206,7 +206,7 @@ public:
                 &data.element_data);
 
             ChMatrixDynamic<> B(6, 3 * melement->GetNumNodes());
-            ChDomainDeformation::ComputeB(B, dNdX, F);
+            ChFEModelDeformation::ComputeB(B, dNdX, F);
 
             H += Kpfactor * (B.transpose() * C * B);
 
@@ -256,7 +256,7 @@ public:
     // INTERFACE to ChPhysicsItem 
     //
 
-    /// Usually not necessary to override ChPhysicsItem because the parent ChDomainImpl does all needed.
+    /// Usually not necessary to override ChPhysicsItem because the parent ChFEModelImpl does all needed.
     /// However, HERE WE OVERLOAD THE PARENT IMPLEMENTATION BECAUSE WE MAY ADD AUTOMATIC GRAVITY
     /// PER EACH ELEMENT.
     /// Takes the F force term, scale and adds to R at given offset:
@@ -268,7 +268,7 @@ public:
         this->Base::IntLoadResidual_F(off, R, c);
 
         // Do also gravity, automatic per each element:
-        // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
+        // loads on nodes connected by the elements of the model - here come the internal force vectors!!!
         if (this->automatic_gravity_load) {
             this->LoadAutomaticGravity(R, c);
         }
@@ -279,7 +279,7 @@ public:
     void LoadAutomaticGravity(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                               const double c           ///< a scaling factor
     ) {
-        unsigned int i_field = 0; // assume ChFieldDisplacement is the first in the tuple of this domain
+        unsigned int i_field = 0; // assume ChFieldDisplacement is the first in the tuple of this model
         int nfield_coords = this->fields[i_field]->GetNumFieldCoordsVelLevel(); // should be 3 anyway
 
         auto mloadable_uvw = chrono_types::make_shared<ChFieldElementLoadableVolume>(nullptr, this->fields[i_field]);
@@ -404,7 +404,7 @@ public:
 
 protected:
 
-    /// Get the material of the domain.
+    /// Get the material of the model.
     virtual std::shared_ptr<ChMaterial> GetMaterial() override {
         return material;
     };

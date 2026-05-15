@@ -78,7 +78,7 @@ public:
 
     /// Some material need info on the spatial velocity gradient  l=\nabla_x v ,
     /// where the time derivative of the deformation gradient F is  dF/dt = l*F.
-    /// Some others, do not need this info. For optimization reason, then, the ChDomainXXYY 
+    /// Some others, do not need this info. For optimization reason, then, the ChFEModelXXYY 
     /// queries this, and knows if the "l" parameter could be left to null when calling ComputeStress(...)
     virtual bool IsSpatialVelocityGradientNeeded() const = 0;
 

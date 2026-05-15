@@ -29,7 +29,7 @@ namespace fea {
 
 /// Face of an hexahedron.  Useful for visualization etc.
 /// When wrapped in a ChFieldElementLoadableSurface, this can be also used to apply UV loads 
-/// of ChLoaderUVdistributed type, for example ChLoaderPressure if referencing the ChDomainDeformation, 
+/// of ChLoaderUVdistributed type, for example ChLoaderPressure if referencing the ChFEModelDeformation, 
 /// or Neumann boundary in general like imposed heat flow, etc.
 /// Corner nodes, obtainable with GetNode(), are in counterclockwise order seen from the outside.
 

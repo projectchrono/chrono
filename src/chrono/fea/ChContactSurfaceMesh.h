@@ -25,7 +25,7 @@
 #ifdef CHRONO_FEA_MULTIPHYSICS
     #include "chrono/fea/multiphysics/ChNodeFEAfieldXYZ.h"
     #include "chrono/fea/multiphysics/ChField.h"
-    #include "chrono/fea/multiphysics/ChDomain.h"
+    #include "chrono/fea/multiphysics/ChFEModel.h"
 #endif
 
 namespace chrono {
@@ -667,15 +667,15 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     #ifdef CHRONO_FEA_MULTIPHYSICS
     /// Utility function to add all boundary faces of the specified FEA multiphysics mesh to this collision surface.
-    /// The function scans all the finite elements already added in the ChDomain and adds the faces
+    /// The function scans all the finite elements already added in the ChFEModel and adds the faces
     /// that are not shared (ie. the faces on the boundary 'skin').
     /// Currently supported elements that generate boundary skin:
     /// - solids:
     ///     - ChElementTetrahedron: all solid tetrahedrons
     ///     - ChElementHexahedron: all solid hexahedrons
-    /// Note: the meshdomain must already have a ChFieldDisplacement3D field added, and the nodes of that 
+    /// Note: the meshmodel must already have a ChFieldDisplacement3D field added, and the nodes of that 
     /// field will be used for the contact triangles.
-    void AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdomain,  ///< FEA mesh
+    void AddFacesFromBoundary(std::shared_ptr<ChFEModel> meshmodel,  ///< FEA mesh
                               double sphere_swept = 0.0           ///< radius of swept sphere
     );
     #endif
