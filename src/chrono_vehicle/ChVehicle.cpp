@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Davide Moricoli
 // =============================================================================
 //
 // Base class for a vehicle model.
@@ -206,29 +206,33 @@ void ChVehicle::Relocate(const ChVector2d& xy_pos, double yaw_angle) {
         throw std::runtime_error("Attempt to use ChVehicle::Relocate in a non-ISO world reference frame");
     }
 
-    auto old_veh_pos = GetPos();
-    auto old_veh_rot = GetRot();
-    auto old_veh_yaw = GetRot().GetCardanAnglesZYX().z();
+    auto old_X_GV = GetRefFrame();
+    auto old_X_VG = old_X_GV.GetInverse();
+    auto old_veh_pos = old_X_GV.GetPos();
+    auto old_veh_rot = old_X_GV.GetRot();
+    auto old_veh_yaw = old_veh_rot.GetCardanAnglesZYX().z();
 
     auto delta_rot = QuatFromAngleZ(yaw_angle - old_veh_yaw);
     auto new_veh_pos = ChVector3d(xy_pos.x(), xy_pos.y(), old_veh_pos.z());
     auto new_veh_rot = delta_rot * old_veh_rot;
 
-    auto old_X_GV = GetRefFrame();
-    auto old_X_VG = old_X_GV.GetInverse();
     auto new_X_GV = ChFrameMoving<>(new_veh_pos, new_veh_rot);
 
     auto bodies = GetBodyList();
     for (auto& body : bodies) {
-        auto old_X_GB = body->GetFrameCOMToAbs();  // (old) global -> body COM
-        auto X_VB = old_X_VG * old_X_GB;           // vehicle -> body COM
-        auto new_X_GB = new_X_GV * X_VB;           // (new) global -> body COM
+        auto old_X_GB = body->GetFrameCOMToAbs();          // (old) global -> body COM tranform
+        auto old_pos_dt = body->GetPosDt();                // (old) body linear velocity wrt global frame
+        auto old_ang_vel = body->GetAngVelParent();        // (old) body angular velocity wrt global frame
+        auto X_VB = old_X_VG * old_X_GB;                   // (constant) vehicle -> body COM transform
+        auto new_X_GB = new_X_GV * X_VB;                   // (new) global -> body COM transform
+        auto new_pos_dt = delta_rot.Rotate(old_pos_dt);    // (new) body linear velocity wrt global frame
+        auto new_ang_vel = delta_rot.Rotate(old_ang_vel);  // (new) body angular velocity wrt global frame
 
         body->SetPos(new_X_GB.GetPos());
         body->SetRot(new_X_GB.GetRot());
 
-        body->SetPosDt(delta_rot.Rotate(body->GetPosDt()));
-        body->SetAngVelParent(delta_rot.Rotate(body->GetAngVelParent()));
+        body->SetPosDt(new_pos_dt);
+        body->SetAngVelParent(new_ang_vel);
     }
 }
 
@@ -236,7 +240,7 @@ void ChVehicle::Relocate(const ChVector2d& xy_pos, double yaw_angle) {
 // Advance the state of the system.
 // -----------------------------------------------------------------------------
 
-void ChVehicle::Advance(double step) {
+void ChVehicle::Advance(double step, bool do_collision) {
     // Ensure the vehicle mass includes the mass of subsystems that may have been initialized after the vehicle
     if (!m_initialized) {
         InitializeInertiaProperties();
@@ -251,7 +255,7 @@ void ChVehicle::Advance(double step) {
     }
 
     if (m_ownsSystem) {
-        m_system->DoStepDynamics(step);
+        m_system->DoStepDynamics(step, do_collision);
     }
 
     // Update inertia properties

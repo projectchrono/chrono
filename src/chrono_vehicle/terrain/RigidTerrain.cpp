@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualShapeBox.h"
@@ -36,7 +37,6 @@
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_thirdparty/stb/stb.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace rapidjson;
 
@@ -261,7 +261,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
         patch->m_body->AddCollisionShape(ct_shape);
     }
 
-    auto mesh_name = filesystem::path(mesh_file).stem();
+    auto mesh_name = std::filesystem::path(mesh_file).stem().string();
 
     // Cache patch parameters
     patch->m_radius =
@@ -418,7 +418,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
         patch->m_body->AddCollisionShape(ct_shape);
     }
 
-    auto mesh_name = filesystem::path(heightmap_file).stem();
+    auto mesh_name = std::filesystem::path(heightmap_file).stem().string();
 
     // Cache patch parameters
     patch->m_radius = ChVector3d(length, width, (hMax - hMin)).Length() / 2;

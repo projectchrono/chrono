@@ -25,8 +25,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPointShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
-#include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
-#include "chrono/collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/geometry/ChLineSegment.h"
@@ -89,7 +87,6 @@ ChCollisionModelBullet::ChCollisionModelBullet(ChCollisionModel* collision_model
 
 ChCollisionModelBullet::~ChCollisionModelBullet() {
     m_shapes.clear();
-    m_bt_shapes.clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -236,56 +233,56 @@ void ChCollisionModelBullet::Populate() {
                 break;
         }
     }
-
-    // The number of total collision shapes must match the number of Bullet collision shapes
-    assert(m_shapes.size() == m_bt_shapes.size());
 }
 
 void ChCollisionModelBullet::InjectShape(std::shared_ptr<ChCollisionShape> shape, std::shared_ptr<cbtCollisionShape> bt_shape, const ChFrame<>& frame) {
-    auto full_margin = GetSuggestedFullMargin();
+    // Cache the colision shapes and attach shape information as Bullet user data
+    // This must be done first, to have access to the Bullet collision model's GetSafeMargin() and GetEnvelope()
+    auto shape_data = chrono_types::make_shared<ShapeData>();
+    shape_data->ch_shape = shape;
+    shape_data->bt_shape = bt_shape;
+    shape_data->bt_model = this;
+    m_shapes.push_back(shape_data);
+    bt_shape->setUserPointer(shape_data.get());
 
+    auto full_margin = GetSuggestedFullMargin();
     bool centered = (frame.GetPos().IsNull() && frame.GetRot().IsIdentity());
 
-    // This is needed so one can later access the model's GetSafeMargin() and GetEnvelope()
-    bt_shape->setUserPointer(this);
-
-    if (m_bt_shapes.size() == 0) {  // ----------------------------------- this is the first shape added to the model
-
-        // [in] shape vector: {}
-        // [out] shape vector: {centered shape} OR {off-center shape}
+    if (m_shapes.size() == 1) {
+        // this is the first shape added to the model
+        // shape vector: {centered shape} OR {off-center shape}
 
         if (centered) {
+            // add new shape as a centered shape
             bt_collision_object->setCollisionShape(bt_shape.get());
         } else {
+            // create a compound and add new shape to compound
             bt_compound_shape = chrono_types::make_shared<cbtCompoundShape>(true);
             bt_compound_shape->setMargin((cbtScalar)full_margin);
             bt_compound_shape->addChildShape(cbtTransformCH(frame), bt_shape.get());
             bt_collision_object->setCollisionShape(bt_compound_shape.get());
         }
 
-    } else if (!bt_compound_shape && m_bt_shapes.size() == 1) {  // ------ the model has only one centered shape
+    } else if (!bt_compound_shape && m_shapes.size() == 2) {
+        // the model has only one centered shape
+        // shape vector: {old centered shape | shape}
 
-        // [in] shape vector: {centered shape}
-        // [out] shape vector: {old centered shape | shape}
-
+        // create a compound and add existing (old) and new shapes to compound
         bt_compound_shape = chrono_types::make_shared<cbtCompoundShape>(true);
         bt_compound_shape->setMargin((cbtScalar)full_margin);
         cbtTransform identity;
         identity.setIdentity();
-        bt_compound_shape->addChildShape(identity, m_bt_shapes[0].get());
+        bt_compound_shape->addChildShape(identity, m_shapes[0]->bt_shape.get());
         bt_compound_shape->addChildShape(cbtTransformCH(frame), bt_shape.get());
         bt_collision_object->setCollisionShape(bt_compound_shape.get());
 
-    } else {  // --------------------------------------------------------- already working with a compound
+    } else {
+        // already working with a compound
+        // shape vector: {old shape | old shape | ... | new shape}
 
-        // [in] shape vector: {old shape | old shape | ...}
-        // [out] shape vector: {old shape | old shape | ... | new shape}
-
+        // add new shape to compound
         bt_compound_shape->addChildShape(cbtTransformCH(frame), bt_shape.get());
     }
-
-    m_shapes.push_back(shape);
-    m_bt_shapes.push_back(bt_shape);
 }
 
 void ChCollisionModelBullet::InjectPath2D(std::shared_ptr<ChCollisionShapePath2D> shape_path, const ChFrame<>& frame) {
@@ -428,21 +425,6 @@ class cbtConvexTriangleMeshShape_handlemesh : public cbtConvexTriangleMeshShape 
     }
 };
 
-class cbtGImpactMeshShape_handlemesh : public cbtGImpactMeshShape {
-    cbtStridingMeshInterface* minterface;
-
-  public:
-    cbtGImpactMeshShape_handlemesh(cbtStridingMeshInterface* meshInterface)
-        : cbtGImpactMeshShape(meshInterface), minterface(meshInterface) {
-              // setLocalScaling(cbtVector3(1.f,1.f,1.f));
-          };
-
-    virtual ~cbtGImpactMeshShape_handlemesh() {
-        delete minterface;
-        minterface = 0;  // also delete the mesh interface
-    }
-};
-
 void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShapeTriangleMesh> shape_trimesh, const ChFrame<>& frame) {
     const float envelope = GetEnvelope();
     const float safe_margin = GetSafeMargin();
@@ -564,23 +546,6 @@ void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShape
     // Fallback -----------------------------------------------
     // If none of the above conditions are met, resort to algorithmic convex decomposition
 
-    /*
-    // Use HACD convex decomposition
-    auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACD>();
-    decomposition->AddTriangleMesh(*trimesh);
-    decomposition->SetParameters(2,      // clusters
-                                 0,      // no decimation
-                                 0.0,    // small cluster threshold
-                                 false,  // add faces points
-                                 false,  // add extra dist points
-                                 100.0,  // max concavity
-                                 30,     // cc connect dist
-                                 0.0,    // volume weight beta
-                                 0.0,    // compacity alpha
-                                 50      // vertices per cc
-    );
-    */
-
     // Use HACDv2 convex decomposition
     auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACDv2>();
     decomposition->Reset();
@@ -667,10 +632,10 @@ void ChCollisionModelBullet::SyncPosition() {
 }
 
 bool ChCollisionModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
-    if (m_bt_shapes.size() != 1)
+    if (m_shapes.size() != 1)
         return false;
 
-    if (cbtSphereShape* bt_sphere_shape = dynamic_cast<cbtSphereShape*>(m_bt_shapes[0].get())) {
+    if (cbtSphereShape* bt_sphere_shape = dynamic_cast<cbtSphereShape*>(m_shapes[0]->bt_shape.get())) {
         model->SetSafeMargin(coll_radius);
         model->SetEnvelope(out_envelope);
         bt_sphere_shape->setUnscaledRadius((cbtScalar)(coll_radius + out_envelope));

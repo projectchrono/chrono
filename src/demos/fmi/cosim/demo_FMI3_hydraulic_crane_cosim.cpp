@@ -29,8 +29,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::fmi3;
 
@@ -151,7 +149,7 @@ int main(int argc, char* argv[]) {
     // Create (if needed) output directory
     std::string out_dir = GetChronoOutputPath() + "./DEMO_FMI3_HYDRAULIC_CRANE_COSIM";
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

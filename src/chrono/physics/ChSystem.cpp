@@ -1638,7 +1638,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
 //  Forward dynamics analysis
 // -----------------------------------------------------------------------------
 
-bool ChSystem::AdvanceDynamics() {
+bool ChSystem::AdvanceDynamics(bool do_collision) {
     CH_PROFILE("AdvanceDynamics");
 
     ResetTimers();
@@ -1655,7 +1655,7 @@ bool ChSystem::AdvanceDynamics() {
 
     // Compute contacts and create contact constraints
     unsigned int ncontacts_old = ncontacts;
-    if (collision_system)
+    if (do_collision && collision_system)
         ComputeCollisions();
 
     // Declare an NSC system as "out of date" if there are contacts
@@ -1717,13 +1717,13 @@ bool ChSystem::AdvanceDynamics() {
     return true;
 }
 
-int ChSystem::DoStepDynamics(double step_size) {
+int ChSystem::DoStepDynamics(double step_size, bool do_collision) {
     Initialize();
 
     applied_forces_current = false;
     step = step_size;
 
-    bool success = AdvanceDynamics();
+    bool success = AdvanceDynamics(do_collision);
 
     m_RTF = timer_step() / step;
 

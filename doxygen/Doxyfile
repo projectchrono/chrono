@@ -899,17 +899,15 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */src/demos/* \
                          */src/tests/* \
                          */src/chrono_thirdparty/cub \
-                         */src/chrono_thirdparty/Easy_BMP \
                          */src/chrono_thirdparty/flatbuffers \
                          */src/chrono_thirdparty/googlebenchmark \
                          */src/chrono_thirdparty/googletest \
-                         */src/chrono_thirdparty/HACD \
                          */src/chrono_thirdparty/HACDv2 \
+                         */src/chrono_thirdparty/VHACD \
                          */src/chrono_thirdparty/rapidjson \
                          */src/chrono_thirdparty/rapidxml \
                          */src/chrono_thirdparty/stb \
                          */src/chrono_thirdparty/tinyobjloader \
-                         */src/chrono_thirdparty/variant \
                          */src/chrono_thirdparty/filesystem \
                          */src/chrono_thirdparty/fast_matrix_market \
                          */src/chrono_thirdparty/fmu-forge/rapidxml \

@@ -37,8 +37,6 @@
 
 #include "chrono_postprocess/ChBlender.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace postprocess;
 

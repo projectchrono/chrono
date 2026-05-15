@@ -39,7 +39,6 @@
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #ifdef CHRONO_VSG
@@ -293,7 +292,7 @@ int main(int argc, char* argv[]) {
 
     // Set up output directory
     std::string base_dir = GetChronoOutputPath();
-    filesystem::create_directory(filesystem::path(base_dir));
+    CreateOutputDirectory(std::filesystem::path(base_dir));
 
     // Create output directory name with rheology model and parameters
     std::stringstream ss;
@@ -307,11 +306,11 @@ int main(int argc, char* argv[]) {
     }
     ss << "/";
     std::string out_dir = ss.str();
-    filesystem::create_directory(filesystem::path(out_dir));
+    CreateOutputDirectory(std::filesystem::path(out_dir));
 
     // Create snapshots directory if enabled
     if (snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "snapshots"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "snapshots"))) {
             std::cerr << "Error creating directory " << out_dir + "snapshots" << std::endl;
         }
     }

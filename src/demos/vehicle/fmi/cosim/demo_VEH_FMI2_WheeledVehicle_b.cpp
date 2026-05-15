@@ -36,8 +36,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_fmi/fmi2/ChFmuToolsImport.h"
 
 using namespace chrono;
@@ -250,7 +248,7 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    std::cout << filesystem::path(argv[0]).filename() << std::endl;
+    std::cout << std::filesystem::path(argv[0]).filename() << std::endl;
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n" << std::endl;
 
 #ifdef FMU_EXPORT_SUPPORT
@@ -301,24 +299,24 @@ int main(int argc, char* argv[]) {
     std::string driver_out_dir = out_dir + "/" + driver_instance_name;
     std::string tire_out_dir = out_dir + "/" + tire_instance_name;
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(vehicle_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(vehicle_out_dir))) {
         std::cout << "Error creating directory " << vehicle_out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(powertrain_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(powertrain_out_dir))) {
         std::cout << "Error creating directory " << powertrain_out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(driver_out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(driver_out_dir))) {
         std::cout << "Error creating directory " << driver_out_dir << std::endl;
         return 1;
     }
     for (int i = 0; i < 4; i++) {
-        if (!filesystem::create_directory(filesystem::path(tire_out_dir + "_" + std::to_string(i)))) {
+        if (!CreateOutputDirectory(std::filesystem::path(tire_out_dir + "_" + std::to_string(i)))) {
             std::cout << "Error creating directory " << tire_out_dir + "_" + std::to_string(i) << std::endl;
             return 1;
         }

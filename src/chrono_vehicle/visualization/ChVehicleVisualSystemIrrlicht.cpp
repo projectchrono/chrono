@@ -20,6 +20,8 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include <algorithm>
 #include <bitset>
 
@@ -28,8 +30,6 @@
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace irr;
 
@@ -517,7 +517,7 @@ ChVehicleVisualSystemIrrlicht::~ChVehicleVisualSystemIrrlicht() {
 }
 
 void ChVehicleVisualSystemIrrlicht::SetJoystickConfigFile(const std::string& filename) {
-    if (!filesystem::path(filename).exists()) {
+    if (!exists(std::filesystem::path(filename))) {
         std::cerr << "Error: the specified joystick configuration file " << filename << " does not exist.\n"
                   << "Using default configuration." << std::endl;
         return;

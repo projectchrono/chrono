@@ -51,35 +51,35 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     );
 
     /// Disable this element (disable constraints).
-    void SetDisabled(bool val) { active = !val; }
+    void SetDisabled(bool val) { m_active = !val; }
 
     /// Get the first shaft (carrier wheel).
-    ChShaft* GetShaft1() const { return shaft1; }
+    ChShaft* GetShaft1() const { return m_shaft1; }
 
     /// Get the second shaft.
-    ChShaft* GetShaft2() const { return shaft2; }
+    ChShaft* GetShaft2() const { return m_shaft2; }
 
     /// Get the third shaft.
-    ChShaft* GetShaft3() const { return shaft3; }
+    ChShaft* GetShaft3() const { return m_shaft3; }
 
     /// Return the speed of the first shaft (carrier wheel).
-    double GetSpeedShaft1() const { return shaft1->GetPosDt(); }
+    double GetSpeedShaft1() const { return m_shaft1->GetPosDt(); }
 
     /// Return the speed of the second shaft.
-    double GetSpeedShaft2() const { return shaft2->GetPosDt(); }
+    double GetSpeedShaft2() const { return m_shaft2->GetPosDt(); }
 
     /// Return the speed of the third shaft.
-    double GetSpeedShaft3() const { return shaft3->GetPosDt(); }
+    double GetSpeedShaft3() const { return m_shaft3->GetPosDt(); }
 
     /// Set the transmission ratios r1 r2 r3 as in r1*w1 + r2*w2 + r3*w3 = 0.
     /// For example, for the car differential, if you assume that shaft 1 is
     /// the carrier and shafts 2 and 3 go to the wheel hubs, you must use
     /// r1=-2, r2=1, r3=1 to satisfy the kinematics -2*w1+w2+w3=0 of the differential;
     /// equivalently, you may use r1=1, r2=-0.5, r3=-0.5 (the equation would hold the same).
-    void SetTransmissionRatios(double r_1, double r_2, double r_3) {
-        r1 = r_1;
-        r2 = r_2;
-        r3 = r_3;
+    void SetTransmissionRatios(double r1, double r2, double r3) {
+        m_r1 = r1;
+        m_r2 = r2;
+        m_r3 = r3;
     }
 
     /// Setting the transmission ratios r1 r2 r3 for  r1*w1 + r2*w2 + r3*w3 = 0
@@ -98,37 +98,37 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Note that t0 should be different from 1 (singularity).
     /// Once you get t0, simply use this function and it will set r1 r2 r3 automatically.
     void SetTransmissionRatioOrdinary(double t0) {
-        r1 = (1. - t0);
-        r2 = t0;
-        r3 = -1.0;
+        m_r1 = (1. - t0);
+        m_r2 = t0;
+        m_r3 = -1.0;
     }
 
     /// Get the t0 transmission ratio of the equivalent ordinary gearbox (i.e., the inverted planetary).
     /// This is the ratio  t0=w3'/w2' assuming that the carrier (shaft 1) is held fixed.
-    double GetTransmissionRatioOrdinary() const { return -r2 / r3; }
+    double GetTransmissionRatioOrdinary() const { return -m_r2 / m_r3; }
 
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0.
-    double GetTransmissionR1() const { return r1; }
+    double GetTransmissionR1() const { return m_r1; }
 
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0.
-    double GetTransmissionR2() const { return r2; }
+    double GetTransmissionR2() const { return m_r2; }
 
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0.
-    double GetTransmissionR3() const { return r3; }
+    double GetTransmissionR3() const { return m_r3; }
 
     /// Enable phase drift avoidance (default: true).
-    /// If true, phasing is always tracked and the constraint is satisfied also at the position level.
+    /// If true, phasing is always tracked and the m_constraint is satisfied also at the position level.
     /// If false, microslipping can accumulate (as in friction wheels).
-    void AvoidPhaseDrift(bool avoid) { avoid_phase_drift = avoid; }
+    void AvoidPhaseDrift(bool avoid) { m_avoid_phase_drift = avoid; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
-    double GetReaction1() const { return (r1 * torque_react); }
+    double GetReaction1() const { return (m_r1 * m_torque_react); }
 
     /// Get the reaction torque considered as applied to the 2nd axis.
-    double GetReaction2() const { return (r2 * torque_react); }
+    double GetReaction2() const { return (m_r2 * m_torque_react); }
 
     /// Get the reaction torque considered as applied to the 3rd axis.
-    double GetTorqueReactionOn3() const { return (r3 * torque_react); }
+    double GetTorqueReactionOn3() const { return (m_r3 * m_torque_react); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -137,24 +137,24 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    bool active;
+    bool m_active;
 
-    double r1;  ///< transmission ratios  as in   r1*w1 + r2*w2 + r3*w3 = 0
-    double r2;
-    double r3;
+    double m_r1;  ///< transmission ratios r1 in r1*w1 + r2*w2 + r3*w3 = 0
+    double m_r2;  ///< transmission ratios r2 in r1*w1 + r2*w2 + r3*w3 = 0
+    double m_r3;  ///< transmission ratios r3 in r1*w1 + r2*w2 + r3*w3 = 0
 
-    double torque_react;  ///< shaft reaction torque
+    double m_torque_react;  ///< shaft reaction torque
 
-    bool avoid_phase_drift;
-    double phase1;
-    double phase2;
-    double phase3;
+    bool m_avoid_phase_drift;
+    double m_phase1;
+    double m_phase2;
+    double m_phase3;
 
-    ChConstraintThreeGeneric constraint;  ///< used as an interface to the solver
+    ChConstraintThreeGeneric m_constraint;  ///< used as an interface to the solver
 
-    ChShaft* shaft1;  ///< first connected shaft
-    ChShaft* shaft2;  ///< second connected shaft
-    ChShaft* shaft3;  ///< third connected shaft
+    ChShaft* m_shaft1;  ///< first connected shaft
+    ChShaft* m_shaft2;  ///< second connected shaft
+    ChShaft* m_shaft3;  ///< third connected shaft
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual unsigned int GetNumAffectedCoords() const { return 3; }
@@ -167,26 +167,15 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     const double c_vel, 
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void LoadConstraintJacobians() override;

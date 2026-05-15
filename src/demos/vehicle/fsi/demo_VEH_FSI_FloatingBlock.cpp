@@ -38,8 +38,6 @@
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
@@ -246,29 +244,29 @@ int main(int argc, char* argv[]) {
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "VEH_FSI_FloatingBlock_" + std::to_string(ps_freq);
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphIntegrationSchemeString();
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     if (output) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/particles"))) {
             std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
             return 1;
         }
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/fsi"))) {
             std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
             return 1;
         }
     }
     if (snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/snapshots"))) {
             std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
             return 1;
         }

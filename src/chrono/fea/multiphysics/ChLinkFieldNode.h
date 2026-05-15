@@ -287,6 +287,146 @@ public:
 
 
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Constraint between a node with displacement field and a ChBodyFrame (ex a ChBody).
+
+class ChApi ChLinkFieldFrame : public ChLinkBase {
+  public:
+    ChLinkFieldFrame();
+    ChLinkFieldFrame(const ChLinkFieldFrame& other);
+    ~ChLinkFieldFrame() {} 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkFieldFrame* Clone() const override { return new ChLinkFieldFrame(*this); }
+
+    /// Get the number of scalar variables affected by constraints in this link.
+    virtual unsigned int GetNumAffectedCoords() override { return 3 + 7; }
+
+    /// Number of scalar constraints.
+    virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
+
+    // Get constraint violations.
+    virtual ChVectorDynamic<> GetConstraintViolation() const override;
+
+    /// Initialize the constraint, given the a multiphysics node, its displacement field,
+    /// and a ChBodyFrame
+    virtual int Initialize(std::shared_ptr<ChNodeFEAbase> node,         ///< node, associated to the displacement field
+                           std::shared_ptr<ChFieldDisplacement3D> field,///< displacement field of node 
+                           std::shared_ptr<ChBodyFrame> body,           ///< body (frame) to join
+                           const ChVector3d* pos = 0                    ///< optional attachment position in absolute coordinates.
+    );
+
+    /// Get the connected xyz node (point).
+    std::shared_ptr<fea::ChNodeFEAbase> GetConstrainedNode() { return m_node; }
+
+    /// Get the connected body (frame).
+    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameNodeAbs() const;
+
+    /// Get the attachment position, in the coordinates of the body.
+    const ChVector3d& GetAttachPosition() const { return m_csys.pos; }
+
+    /// Get the attachment reference, in the coordinates of the body.
+    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
+
+    /// Set the attachment position, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInBodyCoords(const ChVector3d& pos_loc) { m_csys.pos = pos_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) { m_csys.pos = m_body->TransformPointParentToLocal(pos_abs); }
+
+    /// Set the attachment reference, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) { m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs); }
+
+    /// Get the reaction force on the node, expressed in the link coordinate system.
+    ChVector3d GetReactionOnNode() const { return m_react; }
+
+    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
+    ChVector3d GetReactionOnBody() const { return -m_react; }
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double time, UpdateFlags update_flags) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
+
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     const double c_vel,  ///< the scaling factor if the constraint is at speed level
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
+
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
+
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void LoadConstraintJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
+
+  private:
+    ChVector3d m_react;
+
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric m_constraint1;
+    ChConstraintTwoGeneric m_constraint2;
+    ChConstraintTwoGeneric m_constraint3;
+
+    std::shared_ptr<fea::ChNodeFEAbase> m_node;
+    std::shared_ptr<fea::ChFieldDisplacement3D> m_field;
+    std::shared_ptr<ChBodyFrame> m_body;
+
+    // Coordinate system, attached to the body, whose origin is
+    // constrained to coincide with the node's position.
+    ChCoordsys<> m_csys;
+
+    // Provide dummy implementation for the following 4 members tht are meaningless anyway for this kind of link:
+
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
+
+    /// Get the link frame 2, on the body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
+
+    /// Get reaction force and torque on node, expressed on link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnNode(), VNULL}; }
+
+    /// Get reaction force and torque on frame, expressed on link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
+};
+
+
+
+
 /// @} fea_constraints
 
 }  // end namespace fea

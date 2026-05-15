@@ -26,8 +26,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/vehicle/WheeledVehicleJSON.h"
 #include "demos/SetChronoSolver.h"
 
@@ -166,11 +164,11 @@ int main(int argc, char* argv[]) {
     // Initialize output directories
     const std::string out_dir = GetChronoOutputPath() + "WHEELED_JSON";
     const std::string veh_dir = out_dir + "/" + vehicle_model->ModelName();
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(veh_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(veh_dir))) {
         std::cout << "Error creating directory " << veh_dir << std::endl;
         return 1;
     }

@@ -31,7 +31,7 @@ namespace fea {
 /// @{
 
 /// Base interface for the per-node and per-materialpoint properties of some material.
-/// Used, among others, in ChField and ChDomain.
+/// Used, among others, in ChField and ChFEModel.
 /// Suggestion: if you want to inherit from this, rather consider to inherit from 
 /// these ready-to-use helping subclasses: ChFieldDataStateless (if you just want to attach some 
 /// generic data structures) or ChFieldDataGeneric<int n> (if you want a n-dimensional 
@@ -328,13 +328,11 @@ public:
         F.setZero();
         mvariables.SetNodeMass(0);
     }
-    
-    static bool IsFirstOrderState() { return false; }
 
     // Custom properties, helpers etc.
 
     virtual ChVector3d GetPos() const { return ChVector3d(this->pos); }
-    virtual void SetPos(const ChVector3d mpos) { this->pos = mpos.eigen(); }
+    virtual void SetPos(const ChVector3d mpos) { this->pos = mpos.eigen(); this->vpos = this->pos; }
 
     virtual ChVector3d GetPosDt() const { return ChVector3d(this->pos_dt); }
     virtual void SetPosDt(const ChVector3d mposdt) { this->pos_dt = mposdt.eigen(); }
@@ -344,6 +342,9 @@ public:
 
     virtual ChVector3d GetLoad() const { return ChVector3d(this->F); }
     virtual void SetLoad(const ChVector3d mF) { this->F = mF.eigen(); }
+
+    // auxiliary, only for triangle collisions
+    ChVector3d& Vpos() { return this->vpos; }
 
     // interface
 
@@ -384,6 +385,7 @@ public:
                                     const double T) override {
         pos = x.segment(off_x, 3);
         pos_dt = v.segment(off_v, 3);
+        vpos = pos; // auxiliary, for triangle collisions
     }
 
     virtual void DataIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override {
@@ -433,6 +435,7 @@ private:
     ChVectorN<double, 3> pos_dt;
     ChVectorN<double, 3> pos_dtdt;
     ChVectorN<double, 3> F;
+    ChVector3d vpos;
 };
 
 //--------------------------------------------------------------------------------

@@ -36,13 +36,13 @@ class ChNodeFEAbase;
 
 
 /// Base class for finite elements over generic fields (scalrar, vectorial, etc), 
-/// to be used in the new PDE multiphysics system that uses ChField and ChDomain managers.
+/// to be used in the new PDE multiphysics system that uses ChField and ChFEModel managers.
 /// These elements are NOT of the same class of the old ones, that typically were inherited 
 /// from ChElementBase and ChElementGeneric, because the element here does not provide any
 /// constitutive law or material: it only provides shape function interpolation, 
 /// shape function derivatives, jacobian, list of nodes and quadrature schemes, and
-/// few ingredients that later one can take advantage of, say in a ChDomainDeformation 
-/// or ChDomainThermal, if some proper ChField is attached to the nodes.
+/// few ingredients that later one can take advantage of, say in a ChFEModelDeformation 
+/// or ChFEModelThermal, if some proper ChField is attached to the nodes.
 
 class ChApi ChFieldElement {
 public:

@@ -23,8 +23,6 @@
 
 #include "chrono_models/vehicle/marder/Marder_TrackShoeSinglePin.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 namespace chrono {
 namespace vehicle {
 namespace marder {

@@ -29,7 +29,7 @@ namespace fea {
 
 /// Face of an hexahedron.  Useful for visualization etc.
 /// When wrapped in a ChFieldElementLoadableSurface, this can be also used to apply UV loads 
-/// of ChLoaderUVdistributed type, for example ChLoaderPressure if referencing the ChDomainDeformation, 
+/// of ChLoaderUVdistributed type, for example ChLoaderPressure if referencing the ChFEModelDeformation, 
 /// or Neumann boundary in general like imposed heat flow, etc.
 /// Corner nodes, obtainable with GetNode(), are in counterclockwise order seen from the outside.
 
@@ -128,7 +128,7 @@ private:
 
     // utility
     static std::array<int, 4>& GetFaceNodeMapping(int faceId) {
-        static std::array<int, 4> ifa0 = { 0, 5, 7, 3 };
+        static std::array<int, 4> ifa0 = { 0, 4, 7, 3 };
         static std::array<int, 4> ifa1 = { 1, 5, 6, 2 };
         static std::array<int, 4> ifa2 = { 0, 1, 5, 4 };
         static std::array<int, 4> ifa3 = { 2, 3, 7, 6 };

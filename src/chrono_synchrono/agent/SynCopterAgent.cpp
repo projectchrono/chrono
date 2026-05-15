@@ -18,8 +18,9 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono_synchrono/agent/SynCopterAgent.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace synchrono {
@@ -101,7 +102,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> SynCopterAgent::CreateMeshZombieCompo
     if (!filename.empty()) {
         auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);
         trimesh->SetMesh(mesh);
-        trimesh->SetName(filesystem::path(filename).stem());
+        trimesh->SetName(std::filesystem::path(filename).stem().string());
     }
     return trimesh;
 }

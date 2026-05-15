@@ -37,8 +37,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "demos/SetChronoSolver.h"
 
 using namespace chrono;

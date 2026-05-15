@@ -26,7 +26,6 @@
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/ChCollisionAlgorithmsBullet.h"
-#include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.h"
 #include "chrono/collision/bullet/LinearMath/cbtIDebugDraw.h"
 
@@ -102,9 +101,6 @@ ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
                                                bt_collision_configuration->getCollisionAlgorithmCreateFunc(SPHERE_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE));  // just for speedup
     bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE, POINT_SHAPE_PROXYTYPE,
                                                bt_collision_configuration->getCollisionAlgorithmCreateFunc(BOX_SHAPE_PROXYTYPE, SPHERE_SHAPE_PROXYTYPE));  // just for speedup
-
-    // custom collision for GIMPACT mesh case too
-    cbtGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
 }
 
 ChCollisionSystemBullet::~ChCollisionSystemBullet() {
@@ -146,6 +142,21 @@ void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
                                                bt_model->model->GetFamilyMask());
     }
     bt_models.push_back(bt_model);
+
+    /*
+    std::cout << "ADDED NEW BULLET MODEL" << std::endl;
+    for (auto s : bt_model->m_shapes) {
+        std::cout << "ch shape:     " << s->ch_shape.get() << std::endl;
+        std::cout << "bt shape:     " << s->bt_shape.get() << std::endl;
+        std::cout << "bt model:     " << s->bt_model << std::endl;
+        std::cout << "user data:    " << s->bt_shape->getUserPointer() << std::endl;
+        auto d = (ChCollisionModelBullet::ShapeData*)(s->bt_shape->getUserPointer());
+        std::cout << "   ch shape:  " << d->ch_shape.get() << std::endl;
+        std::cout << "   bt shape:  " << d->bt_shape.get() << std::endl;
+        std::cout << "   bt model:  " << d->bt_model << std::endl;
+    }
+    std::cout << "======================" << std::endl;
+    */
 }
 
 void ChCollisionSystemBullet::Clear() {
@@ -220,12 +231,12 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* contact_contain
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
         cbtPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
-        const cbtCollisionObject* obA = contactManifold->getBody0();
-        const cbtCollisionObject* obB = contactManifold->getBody1();
-        contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
+        const cbtCollisionObject* objA = contactManifold->getBody0();
+        const cbtCollisionObject* objB = contactManifold->getBody1();
+        contactManifold->refreshContactPoints(objA->getWorldTransform(), objB->getWorldTransform());
 
-        auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
-        auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
+        auto bt_modelA = static_cast<ChCollisionModelBullet*>(objA->getUserPointer());
+        auto bt_modelB = static_cast<ChCollisionModelBullet*>(objB->getUserPointer());
 
         cinfo.modelA = bt_modelA->model;
         cinfo.modelB = bt_modelB->model;
@@ -266,14 +277,14 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* contact_contain
 
                     cinfo.reaction_cache = pt.reactions_cache;
 
-                    bool compoundA = (obA->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
-                    bool compoundB = (obB->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundA = (objA->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundB = (objB->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
 
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;
 
-                    cinfo.shapeA = bt_modelA->m_shapes[indexA].get();
-                    cinfo.shapeB = bt_modelB->m_shapes[indexB].get();
+                    cinfo.shapeA = bt_modelA->m_shapes[indexA]->ch_shape.get();
+                    cinfo.shapeB = bt_modelB->m_shapes[indexB]->ch_shape.get();
 
                     // Execute some user custom callback, if any
                     bool add_contact = true;
@@ -305,11 +316,11 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* proximity_
     for (int i = 0; i < numPairs; i++) {
         cbtBroadphasePair mp = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getOverlappingPairArray().at(i);
 
-        cbtCollisionObject* obA = static_cast<cbtCollisionObject*>(mp.m_pProxy0->m_clientObject);
-        cbtCollisionObject* obB = static_cast<cbtCollisionObject*>(mp.m_pProxy1->m_clientObject);
+        cbtCollisionObject* objA = static_cast<cbtCollisionObject*>(mp.m_pProxy0->m_clientObject);
+        cbtCollisionObject* objB = static_cast<cbtCollisionObject*>(mp.m_pProxy1->m_clientObject);
 
-        auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
-        auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
+        auto bt_modelA = static_cast<ChCollisionModelBullet*>(objA->getUserPointer());
+        auto bt_modelB = static_cast<ChCollisionModelBullet*>(objB->getUserPointer());
 
         ChCollisionModel* modelA = bt_modelA->model;
         ChCollisionModel* modelB = bt_modelB->model;

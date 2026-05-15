@@ -21,8 +21,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeDoublePin.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace rapidjson;
 
 namespace chrono {

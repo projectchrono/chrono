@@ -35,8 +35,6 @@
 #include "chrono/physics/ChMassProperties.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 using namespace chrono;
@@ -244,7 +242,7 @@ int main(int argc, char* argv[]) {
 
     terrain.PrintStats();
     std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_CRM/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

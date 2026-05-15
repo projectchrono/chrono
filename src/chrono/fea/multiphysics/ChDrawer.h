@@ -17,7 +17,7 @@
 
 #include "chrono/fea/multiphysics/ChVisualDataExtractor.h"
 #include "chrono/fea/multiphysics/ChFieldData.h"
-#include "chrono/fea/multiphysics/ChDomain.h"
+#include "chrono/fea/multiphysics/ChFEModel.h"
 #include "chrono/fea/multiphysics/ChNodeFEAfieldXYZ.h"
 #include "chrono/fea/multiphysics/ChFieldElementHexahedron8.h"
 #include "chrono/fea/multiphysics/ChFieldElementTetrahedron4.h"
@@ -135,7 +135,7 @@ public:
         // Setup triangles: vertex indexes per each triangle
         mmesh.GetIndicesVertices()[tri_offset+0] = ChVector3i((int)vert_offset + 0, (int)vert_offset + 1, (int)vert_offset + 2);
         mmesh.GetIndicesVertices()[tri_offset + 1] = ChVector3i((int)vert_offset + 1, (int)vert_offset + 3, (int)vert_offset + 2);
-        mmesh.GetIndicesVertices()[tri_offset + 2] = ChVector3i((int)vert_offset + 2, (int)vert_offset + 0, (int)vert_offset + 3);
+        mmesh.GetIndicesVertices()[tri_offset + 2] = ChVector3i((int)vert_offset + 2, (int)vert_offset + 3, (int)vert_offset + 0);
         mmesh.GetIndicesVertices()[tri_offset + 3] = ChVector3i((int)vert_offset + 3, (int)vert_offset + 1, (int)vert_offset + 0);
         
         // Normal indexes per each triangle. Assuming 4 normals, one per tetrahedron face.
@@ -283,17 +283,17 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Attach this visual asset to a ChPhysicsItem (ex.a ChDomain) in order to provide an automatic visualization 
+/// Attach this visual asset to a ChFEModel in order to provide an automatic visualization 
 /// of Gauss material points and finite element nodes, as 3D glyps (arrows, dots, etc.).
 /// If the visualization system supports glyphs, these will be rendered (ex. in Irrlicht 3d view,
 /// but also in Blender postprocessing etc.
 /// The system is modular and expandable, so that you can visualize properties such as stress, strain,
 /// speed, acceleration, temperature etc., by adding ChVisualDataExtractor objects to this visual asset.
 
-class ChVisualDomainGlyphs : public ChGlyphs {
+class ChVisualModelGlyphs : public ChGlyphs {
 public:
 
-    ChVisualDomainGlyphs(std::shared_ptr<ChDomain> adomain) : mdomain(adomain) , colormap(ChColormap::Type::PLASMA) {
+    ChVisualModelGlyphs(std::shared_ptr<ChFEModel> amodel) : mmodel(amodel) , colormap(ChColormap::Type::PLASMA) {
         is_mutable = true;
 
         ChPropertyColor my_colors;
@@ -308,7 +308,7 @@ public:
         draw_materialpoints = false;
         draw_nodes = false;
     }
-    virtual ~ChVisualDomainGlyphs() {}
+    virtual ~ChVisualModelGlyphs() {}
 
 
     /// Attach scalar property extractor. Also turns the glyph rendering into ChGlyph::GLYPH_POINT mode. 
@@ -408,25 +408,25 @@ protected:
     /// This Update() is called automatically by the parent ChPhysicsItem all time that 
     /// the system needs to update the visual assets.
     /// The main task of this Update is to generate/update the lists of glyps (vectors, poionts, etc.)
-    /// that represents the visualization of the nodes and material points of the domain.
+    /// that represents the visualization of the nodes and material points of the model.
     
     virtual void Update(ChObj* updater, const ChFrame<>& frame) override {
-        if (!mdomain)
+        if (!mmodel)
             return;
 
         // Count num of glyphs and..
         unsigned int tot_glyphs = 0;
         if (this->draw_nodes) {
             /*
-            for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
-                tot_glyphs += mdomain->GetField(ifield)->GetNumNodes();
+            for (int ifield = 0; ifield < mmodel->GetNumFields(); ++ifield) {
+                tot_glyphs += mmodel->GetField(ifield)->GetNumNodes();
             }
             */
-            // Assume all fields of this domain have the same number of nodes (not necessarily true in a general context.. maybe enforce this?)
-            tot_glyphs += mdomain->GetField(0)->GetNumNodes();
+            // Assume all fields of this model have the same number of nodes (not necessarily true in a general context.. maybe enforce this?)
+            tot_glyphs += mmodel->GetField(0)->GetNumNodes();
         }
         if (this->draw_materialpoints) {
-            auto ele_iter = mdomain->CreateIteratorOnElements();
+            auto ele_iter = mmodel->CreateIteratorOnElements();
             while (!ele_iter->is_end()) {
                 tot_glyphs += ele_iter->get_element()->GetNumMaterialPoints();
                 ele_iter->next();
@@ -446,9 +446,9 @@ protected:
             // via extractor_position, otherwise falls back to ChNodeFEAfieldXYZ reference position)
             
             bool has_position_fetched = false;
-            for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+            for (int ifield = 0; ifield < mmodel->GetNumFields(); ++ifield) {
                 i = 0;
-                auto mfield = mdomain->GetField(ifield);
+                auto mfield = mmodel->GetField(ifield);
 
                 auto node_iterator = mfield->CreateIteratorOnNodes();
                 while (!node_iterator->is_end()) {
@@ -472,9 +472,9 @@ protected:
 
             // Fill the properties of field nodes:
             
-            for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+            for (int ifield = 0; ifield < mmodel->GetNumFields(); ++ifield) {
                 i = 0;
-                auto mfield = mdomain->GetField(ifield);
+                auto mfield = mmodel->GetField(ifield);
 
                 auto node_iterator = mfield->CreateIteratorOnNodes();
                 while (!node_iterator->is_end()) {
@@ -499,7 +499,7 @@ protected:
 
         // Update from material points
         if (this->draw_materialpoints) {
-            auto ele_iter = mdomain->CreateIteratorOnElements();
+            auto ele_iter = mmodel->CreateIteratorOnElements();
             while (!ele_iter->is_end()) {
                 auto element = ele_iter->get_element();
 
@@ -509,7 +509,7 @@ protected:
                 // build the Xhat matrix, with all node xyz positions as columns, Xhat=[x1|x2|x3|...]
                 bool has_position_fetched = false;
                 if (extractor_position) {
-                    for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                    for (int ifield = 0; ifield < mmodel->GetNumFields(); ++ifield) {
                         for (unsigned int inode = 0; inode < ele_iter->get_element()->GetNumNodes(); ++inode) {
                             if (auto fetched_s = extractor_position->Extract(ele_iter->get_data_per_node(inode, ifield))) {
                                 Xhat.col(inode) = fetched_s.value().eigen();
@@ -596,7 +596,7 @@ protected:
     std::vector<std::pair<std::shared_ptr<ChVisualDataExtractorVectorBase>, ChPropertyVector*> > extractors_vector_properties;
     std::vector<std::pair<std::shared_ptr<ChVisualDataExtractorMatrix33Base>, std::pair<ChPropertyQuaternion*, ChPropertyVector*>> > extractors_tensor_properties;
 
-    std::shared_ptr<ChDomain> mdomain;
+    std::shared_ptr<ChFEModel> mmodel;
 
     ChColormap colormap;
     bool use_colormap;
@@ -613,8 +613,8 @@ protected:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Attach this visual asset to a ChPhysicsItem (ex.a ChDomain) in order to provide an automatic visualization 
-/// of finite elements of a ChDomain, as 3D triangle meshes that can be rendered.
+/// Attach this visual asset to a ChPhysicsItem (ex.a ChFEModel) in order to provide an automatic visualization 
+/// of finite elements of a ChFEModel, as 3D triangle meshes that can be rendered.
 /// If the visualization system supports ChVisualShapeTriangleMesh, this will be rendered (ex. in Irrlicht 3d view,
 /// but also in Blender postprocessing etc.)
 /// The system is modular and expandable, so that you can visualize properties such as stress, strain,
@@ -624,9 +624,9 @@ protected:
 /// then he also needs to implement the corresponding ChDrawerFoo class that generates its triangle mesh representation,
 /// and he also needs to register ChDrawerFoo into ChElementDrawerDispatcher, otherwise the element will be invisible.
 
-class ChVisualDomainMesh : public ChVisualShapeTriangleMesh {
+class ChVisualModelMesh : public ChVisualShapeTriangleMesh {
 public:
-    ChVisualDomainMesh(std::shared_ptr<ChDomain> adomain) : mdomain(adomain), colormap(ChColormap::Type::PLASMA) {
+    ChVisualModelMesh(std::shared_ptr<ChFEModel> amodel) : mmodel(amodel), colormap(ChColormap::Type::PLASMA) {
         is_mutable = true;
 
         i_vector_prop_colorized = -1;
@@ -641,7 +641,7 @@ public:
         shrink_elements = false;
         shrink_factor = 0.8;
     }
-    virtual ~ChVisualDomainMesh() {}
+    virtual ~ChVisualModelMesh() {}
 
 
     /// Attach a scalar property extractor. Every time step, the scalar values from the extractor will be fetched 
@@ -712,10 +712,10 @@ public:
     /// This Update() is called automatically by the parent ChPhysicsItem all time that 
     /// the system needs to update the visual assets.
     /// The main task of this Update is to generate/update the triangle mesh that represents 
-    /// the visualization of the finite elements of the domain.
+    /// the visualization of the finite elements of the model.
     
     virtual void Update(ChObj* updater, const ChFrame<>& frame) override {
-        if (!mdomain)
+        if (!mmodel)
             return;
 
         size_t n_vertexes = 0;
@@ -723,7 +723,7 @@ public:
         size_t n_normals = 0;
         
         // Resize buffers if necessary.
-        auto el_iter = mdomain->CreateIteratorOnElements();
+        auto el_iter = mmodel->CreateIteratorOnElements();
         while (!el_iter->is_end()) {
             
             elem_dispatcher.IncrementBufferSizes(*el_iter->get_element().get(), 
@@ -750,7 +750,7 @@ public:
         size_t offset_tri = 0;
         size_t offset_vert = 0;
         size_t offset_norm = 0;
-        auto ele_iter = mdomain->CreateIteratorOnElements();
+        auto ele_iter = mmodel->CreateIteratorOnElements();
         while (!ele_iter->is_end()) {
 
             unsigned int ele_num_nodes = ele_iter->get_element()->GetNumNodes();
@@ -760,7 +760,7 @@ public:
             // via extractor_position, otherwise falls back to ChNodeFEAfieldXYZ reference position)
             bool has_position_fetched = false;
             if (extractor_position) {
-                for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                for (int ifield = 0; ifield < mmodel->GetNumFields(); ++ifield) {
                     for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
                         if (auto fetched_s = extractor_position->Extract(ele_iter->get_data_per_node(inode, ifield))) {
                             this->GetMesh()->GetCoordsVertices()[offset_vert + inode] = fetched_s.value();
@@ -791,14 +791,14 @@ public:
             // Given N nodes in the element, fill the first N values in the std::vector 
             // embedded in this->GetMesh()->GetPropertiesPerVertex()  with the N values of property
             for (auto& mfetch_s : extractors_scalar_properties) {
-                for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                for (int ifield = 0; ifield < mmodel->GetNumFields(); ++ifield) {
                     for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
                         if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_node(inode, ifield))) {
                             mfetch_s.second->data[offset_vert + inode] = fetched_s.value();
                         }
                     }
                     // EXTRAPOLATE FROM GAUSSPOINTS - fast method
-                    if (mfetch_s.first->Extract(ele_iter->get_data_per_matpoint_aux(0))) { // bypass if type of extractor & domain not matching
+                    if (mfetch_s.first->Extract(ele_iter->get_data_per_matpoint_aux(0))) { // bypass if type of extractor & model not matching
                         ChRowVectorDynamic<> V_num(ele_iter->get_element()->GetNumNodes()); V_num.setZero();
                         ChRowVectorDynamic<> V_den(ele_iter->get_element()->GetNumNodes()); V_den.setZero();
                         bool extrapolate_gp = true;
@@ -824,7 +824,7 @@ public:
                         }
                     }
                     if (mfetch_s.first->Extract(ele_iter->get_data_per_matpoint(
-                            0))) {  // bypass if type of extractor & domain not matching
+                            0))) {  // bypass if type of extractor & model not matching
                         ChRowVectorDynamic<> V_num(ele_iter->get_element()->GetNumNodes());
                         V_num.setZero();
                         ChRowVectorDynamic<> V_den(ele_iter->get_element()->GetNumNodes());
@@ -857,7 +857,7 @@ public:
                 }
             }
             for (auto& mfetch_s : extractors_vector_properties) {
-                for (int ifield = 0; ifield < mdomain->GetNumFields(); ++ifield) {
+                for (int ifield = 0; ifield < mmodel->GetNumFields(); ++ifield) {
                     for (unsigned int inode = 0; inode < ele_num_nodes; ++inode) {
                         if (auto fetched_s = mfetch_s.first->Extract(ele_iter->get_data_per_node(inode, ifield))) {
                             mfetch_s.second->data[offset_vert + inode] = fetched_s.value();
@@ -900,7 +900,7 @@ public:
     std::vector<std::pair<std::shared_ptr<ChVisualDataExtractorScalarBase>, ChPropertyScalar*> > extractors_scalar_properties;
     std::vector<std::pair<std::shared_ptr<ChVisualDataExtractorVectorBase>, ChPropertyVector*> > extractors_vector_properties;
 
-    std::shared_ptr<ChDomain> mdomain;
+    std::shared_ptr<ChFEModel> mmodel;
 
     ChElementDrawerDispatcher elem_dispatcher;
 

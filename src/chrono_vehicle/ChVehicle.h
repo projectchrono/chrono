@@ -298,9 +298,9 @@ class CH_VEHICLE_API ChVehicle {
     ) {}
 
     /// Advance the state of this vehicle by the specified time step.
-    /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.
-    /// Otherwise, the caller is responsible for advancing the state of the entire system.
-    virtual void Advance(double step);
+    /// A call to ChSystem::DoStepDynamics() is done only if the vehicle owns the underlying Chrono system. In this case, the Chrono collision detection phase can optionally be
+    /// skipped for this step (if do_collision=false). Otherwise, the caller is responsible for advancing the state of the entire system.
+    virtual void Advance(double step, bool do_collision = true);
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}

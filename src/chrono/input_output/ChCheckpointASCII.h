@@ -53,6 +53,12 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
+    virtual void WriteDouble(double value) override;
+    virtual void WriteInteger(int value) override;
+    virtual void WriteVector(const std::vector<double>& vector) override;
+    virtual void WriteChVector3(const ChVector3d& vector) override;
+    virtual void WriteChQuaternion(const ChQuaterniond& quat) override;
+
     virtual void WriteFile(const std::string& filename) override;
 
     // Checkpoint import functions
@@ -71,6 +77,12 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
     virtual void ReadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
     virtual void ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
+
+    virtual void ReadDouble(double& value) override;
+    virtual void ReadInteger(int& value) override;
+    virtual void ReadVector(std::vector<double>& vector) override;
+    virtual void ReadChVector3(ChVector3d& vector) override;
+    virtual void ReadChQuaternion(ChQuaterniond& quat) override;
 
   private:
     void CheckIfOpen() const;

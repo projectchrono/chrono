@@ -19,6 +19,7 @@
 #include <cctype>
 #include <sstream>
 #include <iomanip>
+#include <filesystem>
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
@@ -28,8 +29,6 @@
 #include "chrono_vsg/impl/BaseEventHandlers.h"
 #include "chrono_vsg/impl/VSGnodes.h"
 #include "chrono_vsg/impl/VSGvisitors.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::cerr;
@@ -115,6 +114,11 @@ class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrappe
     EventHandlerWrapper(std::shared_ptr<ChEventHandlerVSG> component, ChVisualSystemVSG* app) : m_component(component), m_app(app) {}
 
     void apply(vsg::KeyPressEvent& keyPress) override { m_component->process(keyPress); }
+    void apply(vsg::KeyReleaseEvent& keyRelease) override { m_component->process(keyRelease); }
+    void apply(vsg::ButtonPressEvent& buttonPress) override { m_component->process(buttonPress); }
+    void apply(vsg::ButtonReleaseEvent& buttonRelease) override { m_component->process(buttonRelease); }
+    void apply(vsg::MoveEvent& moveEvent) override { m_component->process(moveEvent); }
+    void apply(vsg::TouchEvent& touchEvent) override { m_component->process(touchEvent); }
 
   private:
     std::shared_ptr<ChEventHandlerVSG> m_component;
@@ -2327,9 +2331,8 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             const auto& filename = model_file->GetFilename();
             const auto& scale = model_file->GetScale();
 
-            auto ext = filesystem::path(filename).extension();
-            std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
-            ChQuaterniond rot = (ext == "OBJ" || ext == "STL") ? QUNIT : QuatFromAngleX(-CH_PI_2);
+            auto ext = std::filesystem::path(filename).extension().string();
+            ChQuaterniond rot = (ext == ".obj" || ext == ".OBJ" || ext == ".stl" || ext == ".STL") ? QUNIT : QuatFromAngleX(-CH_PI_2);
 
             size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();

@@ -1030,33 +1030,42 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     // Avoid persistence of contacts in manifold
     resultOut->getPersistentManifold()->clearManifold();
 
-    const cbtChTriangleShape* triA = (cbtChTriangleShape*)triObj1Wrap->getCollisionShape();
-    const cbtChTriangleShape* triB = (cbtChTriangleShape*)triObj2Wrap->getCollisionShape();
-    const ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
-    const ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
+    auto triA = static_cast<const cbtChTriangleShape*>(triObj1Wrap->getCollisionShape());
+    auto triB = static_cast<const cbtChTriangleShape*>(triObj2Wrap->getCollisionShape());
+    auto tri_dataA = (ChCollisionModelBullet::ShapeData*)triA->getUserPointer();
+    auto tri_dataB = (ChCollisionModelBullet::ShapeData*)triB->getUserPointer();
+    const ChCollisionModelBullet* bt_modelA = tri_dataA->bt_model;
+    const ChCollisionModelBullet* bt_modelB = tri_dataB->bt_model;
+
+    auto tri_parentA = tri_dataA->ch_shape->GetParentShape();
+    auto tri_parentB = tri_dataB->ch_shape->GetParentShape();
 
     // Discard collisions between connected triangles
-    //// TODO: use collision families to bypass during broadphase?
-    if (triA->get_p1() == triB->get_p1() || triA->get_p1() == triB->get_p2() || triA->get_p1() == triB->get_p3())
-        return;
-    if (triA->get_p2() == triB->get_p1() || triA->get_p2() == triB->get_p2() || triA->get_p2() == triB->get_p3())
-        return;
-    if (triA->get_p3() == triB->get_p1() || triA->get_p3() == triB->get_p2() || triA->get_p3() == triB->get_p3())
-        return;
+    bool check = (tri_parentA == nullptr) ||  // 1st triangle from an FEA surface mesh
+                 (tri_parentB == nullptr) ||  // 2nd triangle from an FEA surface mesh
+                 (bt_modelA == bt_modelB);    // triangles from same connected trimesh
+    if (check) {
+        if (triA->get_p1() == triB->get_p1() || triA->get_p1() == triB->get_p2() || triA->get_p1() == triB->get_p3())
+            return;
+        if (triA->get_p2() == triB->get_p1() || triA->get_p2() == triB->get_p2() || triA->get_p2() == triB->get_p3())
+            return;
+        if (triA->get_p3() == triB->get_p1() || triA->get_p3() == triB->get_p2() || triA->get_p3() == triB->get_p3())
+            return;
+    }
 
     // Interval boundaries for the distances between vertex-face or edge-edge,
     // these intervals are used to reject distances, where the distance here is assumed for the naked triangles, i.e.
     // WITHOUT the shpereswept_r inflating!
-    const double max_allowed_dist = triModelA->GetEnvelope() + triModelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
-    const double min_allowed_dist = triA->sphereswept_r() + triB->sphereswept_r() - (triModelA->GetSafeMargin() + triModelB->GetSafeMargin());
+    const double max_allowed_dist = bt_modelA->GetEnvelope() + bt_modelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
+    const double min_allowed_dist = triA->sphereswept_r() + triB->sphereswept_r() - (bt_modelA->GetSafeMargin() + bt_modelB->GetSafeMargin());
     const double max_edge_dist_earlyout = std::max(max_allowed_dist, std::abs(min_allowed_dist));
 
     // Offsets for knowing where the contact points are respect to the points on the naked triangles
     //  - add the sphereswept_r values because one might want to work on the "inflated" triangles for robustness
     //  - TRICK!! offset also by outward 'envelope' because during ReportContacts()
     //    contact points are offset inward by envelope, to cope with GJK method.
-    const double offset_A = triA->sphereswept_r() + triModelA->GetEnvelope();
-    const double offset_B = triB->sphereswept_r() + triModelB->GetEnvelope();
+    const double offset_A = triA->sphereswept_r() + bt_modelA->GetEnvelope();
+    const double offset_B = triB->sphereswept_r() + bt_modelB->GetEnvelope();
 
     const cbtTransform& cbt_transfA = triObj1Wrap->getCollisionObject()->getWorldTransform();
     const cbtTransform& cbt_transfB = triObj2Wrap->getCollisionObject()->getWorldTransform();
@@ -1213,7 +1222,6 @@ void cbtChTriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                         }
                     }
                 }
-                // TODO (?): handle case of utils::ClosestLinesPoints() returning false (e.g. parallel lines)
             }
         }
     };
@@ -1317,19 +1325,29 @@ void cbtSegmentSegmentCollisionAlgorithm::processCollision(const cbtCollisionObj
     // Avoid persistence of contacts in manifold
     resultOut->getPersistentManifold()->clearManifold();
 
-    const cbtSegmentShape* segA = (cbtSegmentShape*)triObj1Wrap->getCollisionShape();
-    const cbtSegmentShape* segB = (cbtSegmentShape*)triObj2Wrap->getCollisionShape();
-    ChCollisionModelBullet* segModelA = (ChCollisionModelBullet*)segA->getUserPointer();
-    ChCollisionModelBullet* segModelB = (ChCollisionModelBullet*)segB->getUserPointer();
+    auto segA = static_cast<const cbtSegmentShape*>(triObj1Wrap->getCollisionShape());
+    auto segB = static_cast<const cbtSegmentShape*>(triObj2Wrap->getCollisionShape());
+    auto seg_dataA = (ChCollisionModelBullet::ShapeData*)segA->getUserPointer();
+    auto seg_dataB = (ChCollisionModelBullet::ShapeData*)segB->getUserPointer();
+    ChCollisionModelBullet* bt_modelA = seg_dataA->bt_model;
+    ChCollisionModelBullet* bt_modelB = seg_dataB->bt_model;
+
+    auto seg_parentA = seg_dataA->ch_shape->GetParentShape();
+    auto seg_parentB = seg_dataB->ch_shape->GetParentShape();
 
     // Discard collisions between connected segments
-    //// TODO: use collision families to bypass during broadphase?
-    if (segA->get_p1() == segB->get_p1() || segA->get_p1() == segB->get_p2())
-        return;
-    if (segA->get_p2() == segB->get_p1() || segA->get_p2() == segB->get_p2())
-        return;
+    bool check = (seg_parentA == nullptr) ||  // 1st segment from an FEA segment set
+                 (seg_parentB == nullptr) ||  // 2nd segment from an FEA segment set
+                 (bt_modelA == bt_modelB);    // segments from same connected segment set
+    if (check) {
+        if (segA->get_p1() == segB->get_p1() || segA->get_p1() == segB->get_p2())
+            return;
+        if (segA->get_p2() == segB->get_p1() || segA->get_p2() == segB->get_p2())
+            return;
+    }
 
     //// TODO
+    
     return;
 }
 
