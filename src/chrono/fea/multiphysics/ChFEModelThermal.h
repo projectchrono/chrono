@@ -12,10 +12,10 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHDOMAINTHERMAL_H
-#define CHDOMAINTHERMAL_H
+#ifndef CHFEMODELTHERMAL_H
+#define CHFEMODELTHERMAL_H
 
-#include "chrono/fea/multiphysics/ChDomain.h"
+#include "chrono/fea/multiphysics/ChFEModel.h"
 #include "chrono/fea/multiphysics/ChMaterial3DThermalLinear.h"
 #include "chrono/fea/multiphysics/ChVisualDataExtractor.h"
 
@@ -27,7 +27,7 @@ namespace chrono {
 /// @{
 
 
-/// Auxiliary data stored per each material point during the ChDomainThermal
+/// Auxiliary data stored per each material point during the ChFEModelThermal
 /// computation. This can be plotted in postprocessing, etc. 
 /// If you need to append additional data per each matpoint, do not modify this, just 
 /// define your class with custom data and use it in my_material_class::T_per_materialpoint
@@ -39,20 +39,20 @@ public:
 
 
 
-/// Domain for FEA thermal analysis. It is based on a scalar temperature field,
+/// Model for FEA thermal analysis. It is based on a scalar temperature field,
 /// that is ChFieldTemperature.
 /// Material properties are defined via a ChMaterial3DThermal.
-/// In case you need thermoelasticity, use ChDomainThermoelastic.
-/// Not copyable. So keep all in .h, hence don't do __declspec(dllexport), ie. "class ChApi ChDomainThermal..."
+/// In case you need thermoelasticity, use ChFEModelThermoelastic.
+/// Not copyable. So keep all in .h, hence don't do __declspec(dllexport), ie. "class ChApi ChFEModelThermal..."
 
-class ChDomainThermal : public ChDomainIntegrating<
+class ChFEModelThermal : public ChFEModelIntegrating<
     std::tuple<ChFieldTemperature>,
     ChFieldDataAuxiliaryThermal,
     ChElementDataKRM> {
 public:
     
     // The following just to provide a shortcut in type naming.
-    using Base = ChDomainIntegrating<
+    using Base = ChFEModelIntegrating<
         std::tuple<ChFieldTemperature>,
         ChFieldDataAuxiliaryThermal,
         ChElementDataKRM
@@ -60,8 +60,8 @@ public:
     using DataPerElement = typename Base::DataPerElement;
 
 
-    /// Construct the domain
-    ChDomainThermal(std::shared_ptr<ChFieldTemperature> mfield)
+    /// Construct the model
+    ChFEModelThermal(std::shared_ptr<ChFieldTemperature> mfield)
         : Base(mfield)
     {
         // attach a default material to simplify user side
@@ -69,7 +69,7 @@ public:
     }
 
 
-    /// Thermal properties of this domain (conductivity, 
+    /// Thermal properties of this model (conductivity, 
     /// heat capacity constants etc.) 
     std::shared_ptr<ChMaterial3DThermal> material;
 
@@ -199,7 +199,7 @@ public:
     }
 
 protected:
-    /// Get the material of the domain.
+    /// Get the material of the model.
     virtual std::shared_ptr<ChMaterial> GetMaterial() override {
         return material;
     };

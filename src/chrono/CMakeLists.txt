@@ -545,10 +545,10 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/multiphysics/ChMaterial3DStressOgden.cpp
     fea/multiphysics/ChMaterial3DThermalStress.cpp
     fea/multiphysics/ChMaterial3DStressParallel.cpp
-    fea/multiphysics/ChDomain.cpp
-    fea/multiphysics/ChDomainThermal.cpp
-    fea/multiphysics/ChDomainDeformation.cpp
-    fea/multiphysics/ChDomainThermoDeformation.cpp
+    fea/multiphysics/ChFEModel.cpp
+    fea/multiphysics/ChFEModelThermal.cpp
+    fea/multiphysics/ChFEModelDeformation.cpp
+    fea/multiphysics/ChFEModelThermoDeformation.cpp
     fea/multiphysics/ChVisualDataExtractor.cpp
     fea/multiphysics/ChDrawer.cpp
     fea/multiphysics/ChLoaderHeatFlux.cpp
@@ -557,7 +557,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/multiphysics/ChLoaderHeatVolumetricSource.cpp
     fea/multiphysics/ChBuilderVolume.cpp
     fea/multiphysics/ChLinkFieldNode.cpp
-    fea/multiphysics/ChSurfaceOfDomain.cpp
+    fea/multiphysics/ChSurfaceOfModel.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
     fea/multiphysics/ChNodeFEAfieldXYZ.h
@@ -585,10 +585,10 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/multiphysics/ChMaterial3DStressOgden.h
     fea/multiphysics/ChMaterial3DThermalStress.h
     fea/multiphysics/ChMaterial3DStressParallel.h
-    fea/multiphysics/ChDomain.h
-    fea/multiphysics/ChDomainThermal.h
-    fea/multiphysics/ChDomainDeformation.h
-    fea/multiphysics/ChDomainThermoDeformation.h
+    fea/multiphysics/ChFEModel.h
+    fea/multiphysics/ChFEModelThermal.h
+    fea/multiphysics/ChFEModelDeformation.h
+    fea/multiphysics/ChFEModelThermoDeformation.h
     fea/multiphysics/ChVisualDataExtractor.h
     fea/multiphysics/ChDrawer.h
     fea/multiphysics/ChLoaderHeatFlux.h
@@ -597,7 +597,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/multiphysics/ChLoaderHeatVolumetricSource.h
     fea/multiphysics/ChBuilderVolume.h
     fea/multiphysics/ChLinkFieldNode.h
-    fea/multiphysics/ChSurfaceOfDomain.h
+    fea/multiphysics/ChSurfaceOfModel.h
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 

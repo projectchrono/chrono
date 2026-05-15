@@ -13,7 +13,7 @@
 // =============================================================================
 
 
-#include "chrono/fea/multiphysics/ChDomainThermal.h"
+#include "chrono/fea/multiphysics/ChFEModelThermoDeformation.h"
 
 namespace chrono {
 namespace fea {

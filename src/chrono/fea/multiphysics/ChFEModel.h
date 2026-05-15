@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora 
 // =============================================================================
 
-#ifndef CHDOMAIN_H
-#define CHDOMAIN_H
+#ifndef CHFEMODEL_H
+#define CHFEMODEL_H
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
@@ -36,7 +36,7 @@ namespace fea {
 /// @{
 
 
-// This file contains  ChDomain , ChDomainImpl and some minor helper classes. A ChDomain
+// This file contains  ChFEModel , ChFEModelImpl and some minor helper classes. A ChFEModel
 // is the 'container' of a subset of ChFieldElement finite elements to whom a certain
 // material model is applied and computed. 
 
@@ -102,26 +102,26 @@ auto make_basearray_from_tuple(const std::tuple<Ts...>& t) {
 
 
 
-/// Base class for domains subject to a material model. Domains define (sub) regions of 
+/// Base class for models subject to a material model. Models define (sub) regions of 
 /// the mesh where the material has effect. That is, they operate on a set of finite elements.
-/// A ChDomain has these components:
-///   - a ChMaterial with properties for the domain material model (ex. ChMaterialPoisson)
+/// A ChFEModel has these components:
+///   - a ChMaterial with properties for the model material model (ex. ChMaterialPoisson)
 ///   - set of ChFieldElement finite elements subject to the model
 ///   - set of ChField fields (ex. temperature & displacement) needed for the material model
 ///   - additional data linked to finite elements and helper structures
-/// Children classes should specialize this, possibly inheriting from ChDomainImpl
+/// Children classes should specialize this, possibly inheriting from ChFEModelImpl
 
-class ChDomain : public ChPhysicsItem {
+class ChFEModel : public ChPhysicsItem {
 public:
 
-    /// Adds a finite element to this domain. Elements should not be shared among multiple 
-    /// domains (whereas nodes could be shared).
+    /// Adds a finite element to this model. Elements should not be shared among multiple 
+    /// models (whereas nodes could be shared).
     virtual void AddElement(std::shared_ptr<ChFieldElement> melement) = 0;
 
-    /// Removes a finite element from this domain. 
+    /// Removes a finite element from this model. 
     virtual void RemoveElement(std::shared_ptr<ChFieldElement> melement) = 0;
 
-    /// Returns true if the element is already in the domain.
+    /// Returns true if the element is already in the model.
     virtual bool IsElementAdded(std::shared_ptr<ChFieldElement> melement) = 0;
 
 
@@ -133,20 +133,20 @@ public:
     virtual int GetNumPerNodeCoordsPosLevel() = 0;
     /// Get the total coordinates per each node (summing the dofs per each field) 
     virtual int GetNumPerNodeCoordsVelLevel() { return GetNumPerNodeCoordsPosLevel(); }
-    /// Get the total number of nodes affected by this domain (some could be shared with other domains)
+    /// Get the total number of nodes affected by this model (some could be shared with other models)
     virtual int GetNumNodes() = 0;
 
-    /// Get the number of fields used by this domain
+    /// Get the number of fields used by this model
     virtual int GetNumFields() = 0;
     /// Get the n-th field
     virtual std::shared_ptr<ChFieldBase> GetField(int nfield) = 0;
 
-    /// Iterator for iterating on ChDomain finite elements (virtual iterator). Also, as a bonus,
+    /// Iterator for iterating on ChFEModel finite elements (virtual iterator). Also, as a bonus,
     /// it can return reference to the per-element data, per-materialpoint data, and shortcut
     /// references to per-node data for the referenced nodes; all those data retrieved as base classes, 
     /// so you may need downcasting. This data can be also obtained through the 
     /// ElementData(std::shared_ptr<ChFieldElement> melement) function, that does not require downcasting, 
-    /// but such function is not available here in ChDomain base class. 
+    /// but such function is not available here in ChFEModel base class. 
     class IteratorOnElements {
     public:
         virtual ~IteratorOnElements() = default;
@@ -162,13 +162,13 @@ public:
 
     /// Fills the S vector with the current i-th field states S_j at the nodes of the element.
     /// If the S vector size is not the proper size, it will be resized. 
-    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// This uses the n.th field, with proper ordering. Ex. if model has displacement field and temperature field
     /// then GetFieldStateBlock(myelement, S, 1)  will give [T_1; T_2; ....]
     virtual void GetFieldStateBlock(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& S, unsigned int i_field) = 0;
 
     /// Fills the dSdt vector with the current i-th field states dS_j/dt at the nodes of the element. with proper ordering.
     /// If the dSdt vector size is not the proper size, it will be resized.
-    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// This uses the n.th field, with proper ordering. Ex. if model has displacement field and temperature field
     /// then GetFieldStateBlockDt(myelement, dSdt, 1)  will give [dT/dt_1; dT/dt_2; ....]
     virtual void GetFieldStateBlockDt(std::shared_ptr<ChFieldElement> melement, ChVectorDynamic<>& dSdt, unsigned int i_field) = 0;
 
@@ -183,10 +183,10 @@ protected:
 //-----------------------------------------------------------------------------------------------
 
 
-/// Class for domains subject to a material model. Domains define (sub) regions of 
+/// Class for models subject to a material model. Models define (sub) regions of 
 /// the mesh where the material has effect. That is, they operate on a set of finite elements.
-/// A ChDomain has these components:
-///   - a ChMaterial with properties for the domain material model (ex. ChMaterialPoisson)
+/// A ChFEModel has these components:
+///   - a ChMaterial with properties for the model material model (ex. ChMaterialPoisson)
 ///   - set of ChFieldElement finite elements subject to the model
 ///   - set of ChField fields (ex. temperature & displacement) needed for the material model
 ///   - additional data linked to finite elements and helper structures
@@ -195,7 +195,7 @@ protected:
 ///   PointComputeKRMmatrices()
 /// The T_... types are used to carry type info about the per-node or per-element 
 /// or per-integration point data to instance. 
-/// Usable domains such as ChDomainThermal, ChDomainDeformation etc. are inherited 
+/// Usable models such as ChFEModelThermal, ChFEModelDeformation etc. are inherited 
 /// from this templated class.
 
 template <
@@ -203,10 +203,10 @@ template <
     typename T_per_matpoint_aux = ChFieldDataNONE,
     typename T_per_element = ChElementDataNONE
 >
-class ChDomainImpl : public ChDomain {
+class ChFEModelImpl : public ChFEModel {
 public:
 
-    // This data structure will be instantiated per each finite element of the domain.
+    // This data structure will be instantiated per each finite element of the model.
     class DataPerElement {
     public:
         DataPerElement(int n_matpoints = 0, int n_nodes = 0) :
@@ -241,8 +241,8 @@ public:
     };
 
 
-    /// Construct a domain, given a tuple of fields.
-    ChDomainImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFieldBase>(mfields); }
+    /// Construct a model, given a tuple of fields.
+    ChFEModelImpl(typename tuple_as_sharedptr<T_per_node>::type mfields) { fields = make_basearray_from_tuple<ChFieldBase>(mfields); }
 
     /// Access the DataPerElement associated to the element. This requires a lookup in a 
     /// the unordered_map container, that usually has a very small but not negligible overhead.
@@ -254,7 +254,7 @@ public:
     }
 
 
-    // INTERFACE to ChDomain
+    // INTERFACE to ChFEModel
     //
 
 
@@ -299,7 +299,7 @@ public:
             }
 
             if constexpr (std::is_same_v<T_per_matpoint_aux, ChFieldDataNONE>) {
-                mel.second.matpoints_data_aux.resize(0); // optimization to avoid wasting memory if NO domain-specific data at point
+                mel.second.matpoints_data_aux.resize(0); // optimization to avoid wasting memory if NO model-specific data at point
             }
             else {
                 mel.second.matpoints_data_aux.resize(mel.first->GetNumMaterialPoints());
@@ -335,7 +335,7 @@ public:
     virtual int GetNumFields() override { return (int)fields.size(); }
     virtual std::shared_ptr<ChFieldBase> GetField(int nfield) override { return fields[nfield]; }
 
-    class IteratorOnElements : public ChDomain::IteratorOnElements {
+    class IteratorOnElements : public ChFEModel::IteratorOnElements {
         using InternalIterator = typename std::unordered_map<std::shared_ptr<ChFieldElement>, DataPerElement>::iterator;
         InternalIterator it_;
         InternalIterator end_;
@@ -371,7 +371,7 @@ public:
             return it_ == end_;
         }
     };
-    std::unique_ptr<ChDomain::IteratorOnElements> CreateIteratorOnElements() override {
+    std::unique_ptr<ChFEModel::IteratorOnElements> CreateIteratorOnElements() override {
         return std::make_unique<IteratorOnElements>(element_datamap.begin(), element_datamap.end());
     }
 
@@ -401,7 +401,7 @@ public:
     /// Fills the S_hh matrix with the "packed" i-th field states S_j at the nodes of the element.
     /// The S_hh matrix has states values stacked side to side as columns! (NOT queued 
     /// one after the other in a vector as in GetFieldStateBlock. Also, it is a bit faster).
-    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// This uses the n.th field, with proper ordering. Ex. if model has displacement field and temperature field
     /// then GetFieldPackedStateBlock(myelement, data, S, 0)  will give [x_1 | x_2 | ....]
     virtual void GetFieldPackedStateBlock(std::shared_ptr<ChFieldElement> melement, DataPerElement& elementdata, ChMatrixDynamic<>& S_hh, unsigned int i_field)  {
         unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsPosLevel();
@@ -414,7 +414,7 @@ public:
     /// Fills the dSdt_hh matrix with the "packed" i-th field states dSdt_j at the nodes of the element.
     /// The S_hh matrix has states values stacked side to side as columns! (NOT queued 
     /// one after the other in a vector as in GetFieldStateBlockDt. Also, it is a bit faster).
-    /// This uses the n.th field, with proper ordering. Ex. if domain has displacement field and temperature field
+    /// This uses the n.th field, with proper ordering. Ex. if model has displacement field and temperature field
     /// then GetFieldPackedStateBlockDt(myelement, data, dSdt, 0)  will give [dx/dt_1 | dx/dt_2 | ....]
     virtual void GetFieldPackedStateBlockDt(std::shared_ptr<ChFieldElement> melement, DataPerElement& elementdata, ChMatrixDynamic<>& dSdt_hh, unsigned int i_field)  {
         unsigned int field_node_size = this->fields[i_field]->GetNumFieldCoordsVelLevel();
@@ -497,7 +497,7 @@ public:
                                     DataPerElement& data,
                                     const int i_point,
                                     const double time) {
-        // DO NOTHING by default. You can override this in your domain if you need to do some updates at the end of the
+        // DO NOTHING by default. You can override this in your model if you need to do some updates at the end of the
         // time step, ex. for plasticity, etc.
     }
     
@@ -725,7 +725,7 @@ public:
             }
         }
 
-        // loads on nodes connected by the elements of the domain - here come the internal force vectors!!!
+        // loads on nodes connected by the elements of the model - here come the internal force vectors!!!
         for (auto& mel : this->element_datamap) {
             ChVectorDynamic<> Fi; // will be resized and zeroed by ElementComputeInternalLoads
 
@@ -960,26 +960,26 @@ private:
 ////////////////////////////////////
 
 
-/// Class for all domains that computes internal loads and tangent matrices by integrating 
+/// Class for all models that computes internal loads and tangent matrices by integrating 
 /// at quadrature points. Specialized sub classes must implement the two methods
 /// PointComputeInternalLoads(...) and PointComputeKRMmatrices(...), that will be automatically called by the default
 /// implementation of ElementComputeInternalLoads(...) and ElementComputeKRMmatrices(...), that will do the quadrature
 /// loop and call the pointwise methods.
 /// BTW: if your elements are not based on quadrature, (ex. collocation, neural networks,etc.), it is enough to override
 /// ElementComputeInternalLoads(...) and ElementComputeKRMmatrices(...) directly, without using the default quadrature
-/// loop, or even better, for clarity: inherit from ChDomainGeneric
+/// loop, or even better, for clarity: inherit from ChFEModelGeneric
 
 template <typename T_per_node = std::tuple<ChFieldScalar>,
           typename T_per_matpoint_aux = ChFieldDataNONE,
           typename T_per_element = ChElementDataNONE>
-class ChDomainIntegrating : public ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
+class ChFEModelIntegrating : public ChFEModelImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
   public:
     // already in parent class, but need this redundant stuff for non-msvc compilers:
-    using DataPerElement = typename ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>::DataPerElement;
+    using DataPerElement = typename ChFEModelImpl<T_per_node, T_per_matpoint_aux, T_per_element>::DataPerElement;
 
-    /// Construct a domain, given a tuple of fields.
-    ChDomainIntegrating(typename tuple_as_sharedptr<T_per_node>::type mfields)
-        : ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
+    /// Construct a model, given a tuple of fields.
+    ChFEModelIntegrating(typename tuple_as_sharedptr<T_per_node>::type mfields)
+        : ChFEModelImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
 
     /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
     /// It operates quadrature on the element, calling PointComputeInternalLoads(...) at each quadrature point.
@@ -1027,7 +1027,7 @@ class ChDomainIntegrating : public ChDomainImpl<T_per_node, T_per_matpoint_aux, 
         }
     }
 
-    // SPECIFIC DOMAINS (THERMAL, ELASTIC etc.) LAWS MUST IMPLEMENT THESE TWO PURE VIRTUAL
+    // SPECIFIC MODEL (THERMAL, ELASTIC etc.) MUST IMPLEMENT THESE TWO PURE VIRTUAL
     // FUNCTIONS PointComputeInternalLoads PointComputeKRMmatrices ACCORDING TO SOME 
     // CONSTITUTIVE LAWS
 
@@ -1066,24 +1066,24 @@ class ChDomainIntegrating : public ChDomainImpl<T_per_node, T_per_matpoint_aux, 
 
 ////////////////////////////////////
 
-/// Class for all domains that computes internal loads and tangent matrices with 
+/// Class for all models that computes internal loads and tangent matrices with 
 /// generic procedures (collocation, analytical formulas, neural networks, etc), not necessarily integrating at
 /// quadrature points.
 /// Specialized sub classes must implement the two methods ElementComputeInternalLoads and ElementComputeKRMmatrices.
-/// BTW: If you use elements with quadrature, it is better that you inherit from ChDomainIntegrating instead, 
+/// BTW: If you use elements with quadrature, it is better that you inherit from ChFEModelIntegrating instead, 
 /// because it will do the quadrature loop for you and call the pointwise methods, so you can just focus on the
 /// constitutive law at the point level.
 
 template <typename T_per_node = std::tuple<ChFieldScalar>,
           typename T_per_matpoint_aux = ChFieldDataNONE,
           typename T_per_element = ChElementDataNONE>
-class ChDomainGeneric : public ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
+class ChFEModelGeneric : public ChFEModelImpl<T_per_node, T_per_matpoint_aux, T_per_element> {
   public:
-    /// Construct a domain, given a tuple of fields.
-    ChDomainGeneric(typename tuple_as_sharedptr<T_per_node>::type mfields)
-        : ChDomainImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
+    /// Construct a model, given a tuple of fields.
+    ChFEModelGeneric(typename tuple_as_sharedptr<T_per_node>::type mfields)
+        : ChFEModelImpl<T_per_node, T_per_matpoint_aux, T_per_element>(mfields) {};
 
-    // SPECIFIC DOMAINS (THERMAL, ELASTIC etc.) LAWS MUST IMPLEMENT THE TWO PURE VIRTUAL
+    // SPECIFIC MODELS (THERMAL, ELASTIC etc.) MUST IMPLEMENT THE TWO PURE VIRTUAL
     // FUNCTIONS ElementComputeInternalLoads  ElementComputeKRMmatrices ACCORDING TO SOME
     // CONSTITUTIVE LAWS
 

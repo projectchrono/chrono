@@ -13,12 +13,13 @@
 // =============================================================================
 
 
-#include "chrono/fea/multiphysics/ChDomain.h"
+#include "chrono/fea/multiphysics/ChFEModelDeformation.h"
 
 namespace chrono {
 namespace fea {
 
 
 
-}  // end namespace fea
+
+    }  // end namespace fea
 }  // end namespace chrono

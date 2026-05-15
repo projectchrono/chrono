@@ -18,7 +18,7 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/fea/multiphysics/ChFieldElementHexahedron8.h"
 #include "chrono/fea/multiphysics/ChFieldElementTetrahedron4.h"
-#include "chrono/fea/multiphysics/ChDomain.h"
+#include "chrono/fea/multiphysics/ChFEModel.h"
 #include "chrono/fea/multiphysics/ChField.h"
 
 namespace chrono {
@@ -114,7 +114,7 @@ class Ch3DArrayOfHexa8 : public Ch3DArrayOfItems<std::shared_ptr<ChFieldElementH
 
 /// For testing purposes.
 /// Utility class for creating a box filled with a 3d structured grid of hexahedral
-/// finite elements. Adding nodes and finite elements to fields and domains is up to you.
+/// finite elements. Adding nodes and finite elements to fields and models is up to you.
 
 class ChApi ChBuilderVolumeBox {
 
@@ -122,7 +122,7 @@ public:
     ChBuilderVolumeBox() {}
 
     /// Fills a box with origin (corner) at "frame", with finite elements. 
-    /// After calling this, you may want to call AddToDomain() 
+    /// After calling this, you may want to call AddToModel() 
     void BuildVolume(const ChFrame<>& frame,  ///< origin and rotation of the box being meshed
                     int nlayers_x,
                     int nlayers_y,
@@ -132,10 +132,10 @@ public:
                     double W_z);
 
     /// After you called BuildVolume(), the builder object has populated its
-    /// "nodes" and "elements" fields. Then you need to add all the elements to the domain, 
-    /// and add all the the nodes to the field(s) of the domain: you can do this by yourself or
-    /// use this AddDomain() shortcut.
-    void AddToDomain(std::shared_ptr<ChDomain> domain);
+    /// "nodes" and "elements" fields. Then you need to add all the elements to the model, 
+    /// and add all the the nodes to the field(s) of the model: you can do this by yourself or
+    /// use this AddToModel() shortcut.
+    void AddToModel(std::shared_ptr<ChFEModel> model);
 
     // results here:
 
@@ -157,7 +157,7 @@ public:
 
 /// For testing purposes.
 /// Utility class for creating a box filled with a 3d structured grid of tetrahedral
-/// finite elements. Adding nodes and finite elements to fields and domains is up to you.
+/// finite elements. Adding nodes and finite elements to fields and models is up to you.
 /// The Kuhn decomposition is used,so that each cubic cell of the 3d grid is split into 6 tetrahedrons.
 
 class ChApi ChBuilderVolumeBoxTetra {
@@ -167,7 +167,7 @@ public:
     ChBuilderVolumeBoxTetra() {}
 
     /// Fills a box with origin (corner) at "frame", with finite elements.
-    /// After calling this, you may want to call AddToDomain() 
+    /// After calling this, you may want to call AddToModel() 
     void BuildVolume(const ChFrame<>& frame,  ///< origin and rotation of the box being meshed
         int nlayers_x,
         int nlayers_y,
@@ -177,10 +177,10 @@ public:
         double W_z);
 
     /// After you called BuildVolume(), the builder object has populated its
-    /// "nodes" and "elements" fields. Then you need to add all the elements to the domain,
-    /// and add all the the nodes to the field(s) of the domain: you can do this by yourself or
-    /// use this AddDomain() shortcut.
-    void AddToDomain(std::shared_ptr<ChDomain> domain);
+    /// "nodes" and "elements" fields. Then you need to add all the elements to the model,
+    /// and add all the the nodes to the field(s) of the model: you can do this by yourself or
+    /// use this AddToModel() shortcut.
+    void AddToModel(std::shared_ptr<ChFEModel> model);
 
     // results here:
 
