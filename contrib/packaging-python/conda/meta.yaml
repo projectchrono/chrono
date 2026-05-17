@@ -50,7 +50,8 @@ requirements:
     - libcurand-dev # [not osx]
     - libcublas-dev # [not osx]
     - libcusparse-dev # [not osx]
-    - vulkanscenegraph ==1.1.11
+    - vulkanscenegraph ==1.1.15
+    - vsgimgui
     - vsgxchange
   run:
     - python
@@ -67,7 +68,8 @@ requirements:
     - openmpi
     - yaml
     - tinyxml2
-    - vulkanscenegraph ==1.1.11
+    - vulkanscenegraph ==1.1.15
+    - vsgimgui
     - vsgxchange
 
 about:

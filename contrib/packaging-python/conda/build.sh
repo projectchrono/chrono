@@ -14,18 +14,6 @@ cd ./build
 #   source $ROS_SETUP_SCRIPT
 # fi
 
-
-# Due to issues in https://github.com/conda-forge/vsgimgui-feedstock/issues/6, we need to build vsgImGui from source and link it statically.
-# This is a workaround until the issue is resolved.
-VSGIMGUI_SOURCE_DIR="$SRC_DIR/download_vsg/vsgImGui"
-VSG_INSTALL_DIR="$SRC_DIR/contrib/build-scripts/vsg_build"
-
-git clone -c advice.detachedHead=false --depth 1 --branch v0.7.0 "https://github.com/vsg-dev/vsgImGui" "$VSGIMGUI_SOURCE_DIR"
-cmake -G "Ninja" -B build_vsgImGui -S ${VSGIMGUI_SOURCE_DIR} -DBUILD_SHARED_LIBS:BOOL=OFF
-cmake --build build_vsgImGui --config Release
-cmake --install build_vsgImGui --config Release --prefix ${VSG_INSTALL_DIR}
-
-
 CONFIGURATION=Release
 
 if [ "$(uname -m)" = x86_64 ]; then
@@ -83,7 +71,6 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCH_ENABLE_MODULE_CASCADE=OFF \
  -DCH_ENABLE_MODULE_PARDISO_MKL=$PARDISO_MKL_ENABLE \
  -DIrrlicht_ROOT=$PREFIX/include/irrlicht \
- -DvsgImGui_DIR=$VSG_INSTALL_DIR/lib/cmake/vsgImGui/ \
  $CMAKE_PLATFORM_ARGS ./..
 
 #  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
