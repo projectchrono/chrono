@@ -22,11 +22,6 @@
 namespace chrono {
 namespace vsg3d {
 
-vsg::ref_ptr<vsg::Node> createQuad(const vsg::vec3& origin,
-                                   const vsg::vec3& horizontal,
-                                   const vsg::vec3& vertical,
-                                   vsg::ref_ptr<vsg::Data> sourceData = {});
-
 vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename,
                                      vsg::ref_ptr<vsg::Options> options,
                                      double azimuth_offset,
