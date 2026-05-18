@@ -38,6 +38,8 @@ ChPreciceAdapter::ChPreciceAdapter()
       m_initialized(false),
       m_verbose(false) {}
 
+// -----------------------------------------------------------------------------
+
 #ifdef CHRONO_HAS_YAML
 
 static std::string ToUpper(std::string in) {
@@ -152,6 +154,8 @@ void ChPreciceAdapter::ConfigureParticipant(const std::string& input_filename) {
 
 #endif
 
+// -----------------------------------------------------------------------------
+
 void ChPreciceAdapter::AddCouplingMeshInterface(const std::string& mesh_name,
                                                 CouplingMeshType data_type,
                                                 const std::vector<std::string>& data_write_names,
@@ -172,6 +176,8 @@ void ChPreciceAdapter::AddCouplingMeshInterface(const std::string& mesh_name,
 
     m_interfaces_created = true;
 }
+
+// -----------------------------------------------------------------------------
 
 void ChPreciceAdapter::RegisterParticipant(const std::string& precice_config_filename, int process_index, int process_size) {
     m_prefix1 = "[" + m_participant_name + "] ";

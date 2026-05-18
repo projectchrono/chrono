@@ -288,8 +288,8 @@ class ChApiPrecice ChPreciceAdapter {
     /// Definition of a coupling mesh.
     struct CouplingMeshInfo {
         CouplingMeshType type;        ///< mesh type (vertex semantics)
-        std::vector<int> vertex_ids;  ///< preCICE IDs of the mesh vertices
-        CouplingData data;            ///< list of data objects defined on this mesh
+        std::vector<int> vertex_ids;  ///< preCICE IDs of the coupling mesh vertices
+        CouplingData data;            ///< list of data objects defined on the coupling mesh
     };
 
     /// Data type to hold data for all coupling meshes, indexed by the mesh name.

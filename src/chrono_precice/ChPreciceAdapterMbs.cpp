@@ -57,7 +57,11 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     ChAssertAlways(yaml["precice_adapter_config"]);
     auto config = yaml["precice_adapter_config"];
 
-    // Read names of interface physics items and check that they are defined in the MBS
+    // Read configuration of data file specification
+    m_file_handler.SetReferenceDirectory(input_filename);
+    m_file_handler.Read(config);
+
+    // Read information on interface physics items and check that they are defined in the MBS
     if (config["bodies"]) {
         auto bodies = config["bodies"];
         ChAssertAlways(bodies.IsSequence());
@@ -65,15 +69,20 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
             ChAssertAlways(bodies[i]["name"]);
             auto body_name = bodies[i]["name"].as<std::string>();
             auto body = parser.FindBodyByName(body_name);
-            if (body) {
-                AddCouplingBody(body);
-            } else {
+            if (!body) {
                 cerr << "No body named '" << body_name << "' was found in the MBS" << endl;
                 throw std::runtime_error("Interface body not present in MBS");
             }
+            std::shared_ptr<ChTriangleMeshConnected> mesh = nullptr;
+            if (bodies[i]["mesh_file"]) {
+                auto mesh_file_name = bodies[i]["mesh_file"].as<std::string>();
+                mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(m_file_handler.GetFilename(mesh_file_name), false, false);
+            }
+            AddCouplingBody(body, mesh);
         }
     }
 
+    #ifdef CHRONO_FEA
     if (config["meshes1d"]) {
         //// TODO
     }
@@ -81,6 +90,7 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     if (config["meshes2d"]) {
         //// TODO
     }
+    #endif
 
     if (m_verbose) {
     }
@@ -89,13 +99,20 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
 
 ChPreciceAdapterMbs::~ChPreciceAdapterMbs() {}
 
-void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body) {
+void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, std::shared_ptr<ChTriangleMeshConnected> mesh) {
     auto c_body = chrono_types::make_shared<CouplingBody>();
     c_body->index = (int)m_coupling_bodies.size();
     c_body->body = body;
+    c_body->mesh = mesh;
     c_body->accumulator_index = body->AddAccumulator();
     m_coupling_bodies.push_back(c_body);
 }
+
+#ifdef CHRONO_FEA
+void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh) {
+    //// TODO
+}
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -149,8 +166,12 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 break;
             }
             case CouplingMeshType::RIGID_BODY_MESH_POINTS: {
-                ////break;
-                throw std::runtime_error("CouplingMeshType::RIGID_BODY_MESH_POINTS not yet implemented");
+                for (const auto& c_body : m_coupling_bodies) {
+                    ChAssertAlways(c_body->mesh);
+                    const auto& nodes = c_body->mesh->GetCoordsVertices();
+                    vertices.insert(vertices.end(), nodes.begin(), nodes.end());
+                }
+                break;
             }
             case CouplingMeshType::FEA_MESH1D_NODES: {
                 ////break;
@@ -286,33 +307,36 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
         const auto& data_info = mesh_info.data.at(data_name);
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
+        assert(data_values.size() == 3 * m_coupling_bodies.size());
         switch (data_type) {
-            case CouplingDataType::FORCES:
-                assert(data_values.size() == 3 * m_coupling_bodies.size());
-                for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
-                    auto& c_body = m_coupling_bodies[i];
-                    ChVector3d force;
-                    force.x() = data_values[3 * i + 0];
-                    force.y() = data_values[3 * i + 1];
-                    force.z() = data_values[3 * i + 2];
-                    c_body->body->AccumulateForce(c_body->accumulator_index, force, c_body->body->GetFrameRefToAbs().GetPos(), false);
+            case CouplingDataType::FORCES: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    ChVector3d force_abs;
+                    force_abs.x() = data_values[i_data + 0];
+                    force_abs.y() = data_values[i_data + 1];
+                    force_abs.z() = data_values[i_data + 2];
+                    i_data += 3;
+                    c_body->body->AccumulateForce(c_body->accumulator_index, force_abs, c_body->body->GetFrameRefToAbs().GetPos(), false);
                     if (m_verbose)
-                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | force:  " << force << endl;
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | force:  " << force_abs << endl;
                 }
                 break;
-            case CouplingDataType::TORQUES:
-                assert(data_values.size() == 3 * m_coupling_bodies.size());
-                for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
-                    auto& c_body = m_coupling_bodies[i];
-                    ChVector3d torque;
-                    torque.x() = data_values[3 * i + 0];
-                    torque.y() = data_values[3 * i + 1];
-                    torque.z() = data_values[3 * i + 2];
-                    c_body->body->AccumulateTorque(c_body->accumulator_index, torque, false);
+            }
+            case CouplingDataType::TORQUES: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    ChVector3d torque_abs;
+                    torque_abs.x() = data_values[i_data + 0];
+                    torque_abs.y() = data_values[i_data + 1];
+                    torque_abs.z() = data_values[i_data + 2];
+                    i_data += 3;
+                    c_body->body->AccumulateTorque(c_body->accumulator_index, torque_abs, false);
                     if (m_verbose)
-                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | torque: " << torque << endl;
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | torque: " << torque_abs << endl;
                 }
                 break;
+            }
             default:
                 throw std::runtime_error("Invalid read data type for MBS");
         }
@@ -324,31 +348,34 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
         auto& data_info = mesh_info.data[data_name];
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
+        assert(data_values.size() == 3 * m_coupling_bodies.size());
         switch (data_type) {
-            case CouplingDataType::POSITIONS:
-                assert(data_values.size() == 3 * m_coupling_bodies.size());
-                for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
-                    auto& c_body = m_coupling_bodies[i];
-                    const auto& pos = c_body->body->GetFrameRefToAbs().GetPos();
-                    data_values[3 * i + 0] = pos.x();
-                    data_values[3 * i + 1] = pos.y();
-                    data_values[3 * i + 2] = pos.z();
+            case CouplingDataType::POSITIONS: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    const auto& pos_abs = c_body->body->GetFrameRefToAbs().GetPos();
+                    data_values[i_data + 0] = pos_abs.x();
+                    data_values[i_data + 1] = pos_abs.y();
+                    data_values[i_data + 2] = pos_abs.z();
+                    i_data += 3;
                     if (m_verbose)
-                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | pos:  " << pos << endl;
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | pos:  " << pos_abs << endl;
                 }
                 break;
-            case CouplingDataType::VELOCITIES:
-                assert(data_values.size() == 3 * m_coupling_bodies.size());
-                for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
-                    auto& c_body = m_coupling_bodies[i];
-                    const auto& vel = c_body->body->GetFrameRefToAbs().GetPosDt();
-                    data_values[3 * i + 0] = vel.x();
-                    data_values[3 * i + 1] = vel.y();
-                    data_values[3 * i + 2] = vel.z();
+            }
+            case CouplingDataType::VELOCITIES: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    const auto& vel_abs = c_body->body->GetFrameRefToAbs().GetPosDt();
+                    data_values[i_data + 0] = vel_abs.x();
+                    data_values[i_data + 1] = vel_abs.y();
+                    data_values[i_data + 2] = vel_abs.z();
+                    i_data += 3;
                     if (m_verbose)
-                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | vel:  " << vel << endl;
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | vel:  " << vel_abs << endl;
                 }
                 break;
+            }
             default:
                 throw std::runtime_error("Invalid write data type for MBS");
         }
@@ -356,41 +383,83 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
 }
 
 void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
-    /*
     for (const auto& data_name : m_data_write[mesh_name]) {
         const auto& data_info = mesh_info.data.at(data_name);
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
+        assert(data_values.size() == GetNumVertices(mesh_name));
         switch (data_type) {
-            case CouplingDataType::FORCES:
-
+            case CouplingDataType::FORCES: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                        ChVector3d force_abs;
+                        force_abs.x() = data_values[i_data + 0];
+                        force_abs.y() = data_values[i_data + 1];
+                        force_abs.z() = data_values[i_data + 2];
+                        i_data += 3;
+                        ChVector3d pos_abs = c_body->body->TransformPointLocalToParent(pos_loc);
+                        c_body->body->AccumulateForce(c_body->accumulator_index, force_abs, pos_abs, false);
+                    }
+                }
                 break;
-            case CouplingDataType::TORQUES:
+            }
+            case CouplingDataType::TORQUES: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                        ChVector3d torque_abs;
+                        torque_abs.x() = data_values[i_data + 0];
+                        torque_abs.y() = data_values[i_data + 1];
+                        torque_abs.z() = data_values[i_data + 2];
+                        i_data += 3;
+                        c_body->body->AccumulateTorque(c_body->accumulator_index, torque_abs, false);
+                    }
+                }
                 break;
+            }
             default:
-                break;
+                throw std::runtime_error("Invalid read data type for MBS");
         }
     }
-    */
 }
 
 void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
-    /*
     for (const auto& data_name : m_data_write[mesh_name]) {
         auto& data_info = mesh_info.data[data_name];
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
         switch (data_type) {
-            case CouplingDataType::POSITIONS:
-
+            case CouplingDataType::POSITIONS: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                        ChVector3d pos_abs = c_body->body->TransformPointLocalToParent(pos_loc);
+                        data_values[i_data + 0] = pos_abs.x();
+                        data_values[i_data + 1] = pos_abs.y();
+                        data_values[i_data + 2] = pos_abs.z();
+                        i_data += 3;
+                    }
+                }
                 break;
-            case CouplingDataType::VELOCITIES:
+            }
+            case CouplingDataType::VELOCITIES: {
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                        ChVector3d vel_abs = c_body->body->PointSpeedLocalToParent(pos_loc);
+                        data_values[i_data + 0] = vel_abs.x();
+                        data_values[i_data + 1] = vel_abs.y();
+                        data_values[i_data + 2] = vel_abs.z();
+                        i_data += 3;
+                    }
+                }
                 break;
+            }
             default:
-                break;
+                throw std::runtime_error("Invalid write data type for MBS");
         }
     }
-    */
 }
 
 }  // end namespace ch_precice

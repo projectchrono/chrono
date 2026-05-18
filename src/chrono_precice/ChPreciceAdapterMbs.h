@@ -19,6 +19,7 @@
 
 #include "chrono/functions/ChFunction.h"
 #include "chrono/core/ChRealtimeStep.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -28,7 +29,13 @@
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkMotorLinear.h"
 #include "chrono/physics/ChLinkMotorRotation.h"
+
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+#endif
+
 #include "chrono/utils/ChBodyGeometry.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     #include "chrono_parsers/yaml/ChParserMbsYAML.h"
@@ -64,7 +71,10 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
 
-    void AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body);
+    void AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, std::shared_ptr<ChTriangleMeshConnected> mesh);
+#ifdef CHRONO_FEA
+    void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
+#endif
 
     virtual void InitializeParticipant() override;
     virtual void WriteCheckpoint(double time) override;
@@ -84,8 +94,16 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     struct CouplingBody {
         int index;
         std::shared_ptr<ChBodyAuxRef> body;
+        std::shared_ptr<ChTriangleMeshConnected> mesh;
         unsigned int accumulator_index;
     };
+
+#ifdef CHRONO_FEA
+    struct CouplingFEAMesh {
+        int index;
+        std::shared_ptr<fea::ChMesh> mesh;
+    };
+#endif
 
     void ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
@@ -103,6 +121,9 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     // Chrono physics items in coupling interface
     std::vector<std::shared_ptr<CouplingBody>> m_coupling_bodies;
+#ifdef CHRONO_FEA
+    std::vector<std::shared_ptr<fea::ChMesh>> m_coupling_fea;
+#endif
 
     // Run-time visualization
     struct VisParams {
@@ -115,6 +136,10 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
         bool enable_shadows;
     };
     VisParams m_vis;  ///< visualization parameters
+
+#if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
+    ChYamlFileHandler m_file_handler;  ///< handler for data file paths
+#endif
 
 #ifdef CHRONO_VSG
     std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;
