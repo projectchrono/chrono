@@ -26,8 +26,6 @@
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include <precice/precice.hpp>
 
 namespace chrono {

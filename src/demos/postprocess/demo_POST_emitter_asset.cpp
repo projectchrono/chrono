@@ -25,8 +25,6 @@
 
 #include "chrono_postprocess/ChPovRay.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 // Use the main namespaces of Chrono, and other chrono namespaces
 using namespace chrono;
 using namespace chrono::particlefactory;

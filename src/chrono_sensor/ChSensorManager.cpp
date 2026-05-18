@@ -23,6 +23,9 @@
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/sensors/ChOptixSensor.h"
 #endif
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
+#endif
 
 using std::cout;
 using std::cerr;
@@ -31,8 +34,7 @@ using std::endl;
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
-    : m_verbose(false), m_debug(false), m_optix_reflections(9) {
+CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verbose(false), m_debug(false), m_optix_reflections(9) {
     // Assign the Chrono system handle
     m_system = chrono_system;
     m_device_list = {0};
@@ -86,6 +88,31 @@ CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
 #endif
 }
 
+#ifdef CHRONO_FSI_SPH
+CH_SENSOR_API int ChSensorManager::AttachFsiSphSystem(std::shared_ptr<chrono::fsi::sph::ChFsiFluidSystemSPH> sys, const ChFsiSphRenderOptions& options) {
+    int handle = -1;
+    #ifdef CHRONO_HAS_OPTIX
+    handle = scene->AddFsiSphSystem(sys, options);
+    ReconstructScenes();
+    #endif
+    return handle;
+}
+
+CH_SENSOR_API void ChSensorManager::DetachFsiSphSystem(int handle) {
+    #ifdef CHRONO_HAS_OPTIX
+    scene->RemoveFsiSphSystem(handle);
+    #endif
+    ReconstructScenes();
+}
+
+CH_SENSOR_API void ChSensorManager::ClearFsiSphSystems() {
+    #ifdef CHRONO_HAS_OPTIX
+    scene->ClearFsiSphSystems();
+    #endif
+    ReconstructScenes();
+}
+#endif
+
 CH_SENSOR_API void ChSensorManager::SetMaxEngines(int num_groups) {
     if (num_groups > 0 && num_groups < 1000) {
         m_allowable_groups = num_groups;
@@ -117,8 +144,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
 
         // add the sensor to an engine with sensor of similar update frequencies
         for (auto engine : m_engines) {
-            if (!found_group && engine->GetSensor().size() > 0 &&
-                abs(engine->GetSensor()[0]->GetUpdateRate() - sensor->GetUpdateRate()) < 0.001) {
+            if (!found_group && engine->GetSensor().size() > 0 && abs(engine->GetSensor()[0]->GetUpdateRate() - sensor->GetUpdateRate()) < 0.001) {
                 found_group = true;
 
                 engine->AssignSensor(pOptixSensor);
@@ -134,9 +160,12 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                     // limits to 2 gpus, TODO: check if device supports CUDA
                     if (m_verbose)
                         cout << "Create new OptiX engine\n";
-                    
-                    auto engine = chrono_types::make_shared<ChOptixEngine>(
-                        m_system, m_device_list[(int)m_engines.size()], m_optix_reflections, m_verbose, m_debug);
+
+                    auto engine = chrono_types::make_shared<ChOptixEngine>(m_system, m_device_list[(int)m_engines.size()], m_optix_reflections, m_verbose, m_debug);
+
+    #ifdef CHRONO_FSI_SPH
+                    engine->SetFsiSphSources(&scene->GetFsiSphSources());
+    #endif
 
                     // engine->ConstructScene();
 

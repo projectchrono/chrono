@@ -51,62 +51,44 @@ if (MSVC)
 endif()
 
 #-----------------------------------------------------------------------------
-# Check for C++14 and C++17 support
+# Check for C++17 support
 #-----------------------------------------------------------------------------
 
 # This is a hack -- look for a more robust solution
-set(CH_CXX14 FALSE)
 set(CH_CXX17 FALSE)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
-      set(CH_CXX14 TRUE)
-    endif()
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0.0)
       set(CH_CXX17 TRUE)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Clang version:  ${CMAKE_CXX_COMPILER_VERSION}")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
-      set(CH_CXX14 TRUE)
-    endif()
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 7.0)
       set(CH_CXX17 TRUE)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     message(STATUS "Visual Studio version:  ${MSVC_VERSION}")
-    if(MSVC_VERSION GREATER 1800)
-      set(CH_CXX14 TRUE)
-    endif()
     if(MSVC_VERSION GREATER 1914)
       set(CH_CXX17 TRUE)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "PGI")
     # CMake's standard support flags behave strangely with PGI compilers, don't trust them
     message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
-      message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
-      set(CH_CXX14 TRUE)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.1)
+      message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++17 support")
+      set(CH_CXX17 TRUE)
     endif()
 endif()
 
-if(NOT CH_CXX14)
-   message(ERROR "Chrono requires at least C++14 support")
+if(NOT CH_CXX17)
+   message(ERROR "Chrono requires at least C++17 support")
    return()
 endif()
 
-message(STATUS "C++14 compiler support:  ${CH_CXX14}")
-message(STATUS "C++17 compiler support:  ${CH_CXX17}")
-
-## TODO DARIOM: cleanup
-if(CH_CXX17)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CHRONO_CXX_STANDARD cxx_std_17)
-elseif(CH_CXX14)
-    set(CMAKE_CXX_STANDARD 14)
-    set(CHRONO_CXX_STANDARD cxx_std_14)
-endif()
+message(STATUS "C++17 compiler support: ${CH_CXX17}")
+set(CMAKE_CXX_STANDARD 17)
+set(CHRONO_CXX_STANDARD cxx_std_17)
 
 #-----------------------------------------------------------------------------
 # Allow user to enable whole program optimization (MSVC only)
@@ -954,12 +936,6 @@ else()
   set(CHRONO_HAS_THRUST "#undef CHRONO_HAS_THRUST")
   set(CHRONO_THRUST_VERSION "#undef CHRONO_THRUST_VERSION")
   set(CHRONO_COLLISION "#undef CHRONO_COLLISION")
-endif()
-
-if(CH_CXX17)
-    set(CHRONO_HAS_CXX17 "#define CHRONO_HAS_CXX17")
-else()
-    set(CHRONO_HAS_CXX17 "#undef CHRONO_HAS_CXX17")
 endif()
 
 if(HDF5_FOUND)

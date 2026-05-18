@@ -37,8 +37,8 @@ ChParserYAML::ChParserYAML()
 // -----------------------------------------------------------------------------
 
 ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const std::string& yaml_filename) {
-    auto path = filesystem::path(yaml_filename);
-    if (!path.exists() || !path.is_file()) {
+    auto path = std::filesystem::path(yaml_filename);
+    if (!exists(path) || !is_regular_file(path)) {
         cerr << "Error: file '" << yaml_filename << "' not found." << endl;
         throw std::runtime_error("File not found");
     }
@@ -84,8 +84,8 @@ bool ChParserYAML::Output() const {
 }
 
 void ChParserYAML::SetOutputDir(const std::string& out_dir) {
-    auto p = filesystem::path(out_dir);
-    if (!p.exists() || !p.is_directory()) {
+    auto p = std::filesystem::path(out_dir);
+    if (!exists(p) || !is_directory(p)) {
         std::cerr << "The specified path " << out_dir << " is not a valid directory." << std::endl;
         throw std::runtime_error("Invalid directory");
     }

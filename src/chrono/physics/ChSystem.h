@@ -193,8 +193,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // ---- DYNAMICS
 
     /// Advance the dynamics simulation by a single time step of given length.
-    /// This function is typically called many times in a loop in order to simulate up to a desired end time.
-    int DoStepDynamics(double step_size);
+    /// Optionally, the collision detection phase can be skipped for this step (if do_collision=false).
+    int DoStepDynamics(double step_size, bool do_collision = true);
 
     /// Advance the dynamics simulation until the specified frame end time is reached.
     /// Integration proceeds with the specified time step size which may be adjusted to exactly reach the frame time.
@@ -833,7 +833,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool ManageSleepingBodies();
 
     /// Performs a single dynamics simulation step, advancing the system state by the current step size.
-    virtual bool AdvanceDynamics();
+    /// Optionally, the collision detection phase can be skipped for this step (if do_collision=false).
+    virtual bool AdvanceDynamics(bool do_collision = true);
 
     std::string m_name;                                     ///< system name
     ChAssembly assembly;                                    ///< underlying mechanical assembly

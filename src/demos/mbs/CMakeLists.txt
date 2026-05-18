@@ -15,6 +15,7 @@ set(DEMOS
   demo_MBS_collisionNSC
   demo_MBS_collisionSMC
   demo_MBS_collision_trimesh
+  demo_MBS_convex_decomp
   demo_MBS_earthquake
   demo_MBS_friction
   demo_MBS_motors

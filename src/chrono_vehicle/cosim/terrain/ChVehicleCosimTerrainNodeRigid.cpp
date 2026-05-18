@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <filesystem>
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -32,8 +33,6 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::endl;
@@ -252,7 +251,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
+        trimesh_shape->SetName(std::filesystem::path(b.m_mesh_filename).stem().string());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
 
         m_system->AddBody(body);

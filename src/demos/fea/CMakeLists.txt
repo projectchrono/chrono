@@ -24,6 +24,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
            demo_FEA_multiphysics
            demo_FEA_multiphysics_custom
            demo_FEA_multiphysics_contacts
+           demo_FEA_multiphysics_viscous
        )
     endif()
 endif()

@@ -23,7 +23,7 @@
 #ifdef CHRONO_FEA_MULTIPHYSICS
     #include "chrono/fea/multiphysics/ChNodeFEAfieldXYZ.h"
     #include "chrono/fea/multiphysics/ChField.h"
-    #include "chrono/fea/multiphysics/ChDomain.h"
+    #include "chrono/fea/multiphysics/ChFEModel.h"
 #endif
 
 namespace chrono {
@@ -430,7 +430,7 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
 
    #ifdef CHRONO_FEA_MULTIPHYSICS
 
-    ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChDomain* meshdomain);
+    ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChFEModel* meshmodel);
 
     /// Add a specific multiphysics node to this collision cloud.
     void AddNode(std::shared_ptr<ChNodeFEAfieldXYZ> node, std::shared_ptr<ChFieldDisplacement3D> field, const double point_radius = 0.001);
@@ -439,8 +439,8 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     void AddNode(ChFieldDataPos3D* nodedata, const double point_radius = 0.001);
 
     /// Utility function to add all nodes of the specified multiphysics mesh to this collision cloud. 
-    /// Works only if the ChDomain contains a ChFieldDisplacement3D
-    void AddAllNodes(std::shared_ptr<ChDomain> meshdomain, double point_radius = 0.001);
+    /// Works only if the ChFEModel contains a ChFieldDisplacement3D
+    void AddAllNodes(std::shared_ptr<ChFEModel> meshmodel, double point_radius = 0.001);
 
     /// Utility function to add all nodes of the specified multiphysics field to this collision cloud.
     void AddAllNodes(std::shared_ptr<ChFieldDisplacement3D> meshfield, double point_radius = 0.001);

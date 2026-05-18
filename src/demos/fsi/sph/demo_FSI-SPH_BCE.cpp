@@ -24,8 +24,6 @@
 
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
@@ -53,7 +51,7 @@ void BoxContainer();
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

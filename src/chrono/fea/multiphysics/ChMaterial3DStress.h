@@ -42,13 +42,13 @@ public:
     virtual ~ChMaterial3DStress() {}
 
 
-    /// Compute elastic stress from finite strain, passed as 3x3 deformation gradient tensor F_def.
+    /// Compute elastic stress from finite strain, passed as 3x3 deformation gradient tensor F.
     /// Assuming stress is 2nd Piola-Kirchhoff tensor "S_stress", in Voigt notation.
     /// Some materials could also make use of spatial velocity gradient "l", ex. for damping effects,
     /// and of the "data_per_point" auxiliary structure, that could contain states like in plasticity.
     
     virtual void ComputeStress(ChStressTensor<>& S_stress,          ///< output stress, PK2
-                                const ChMatrix33d& F_def,           ///< current deformation gradient tensor
+                                const ChMatrix33d& F,               ///< current deformation gradient tensor
                                 const ChMatrix33d* l,               ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 ChFieldData* data_per_point,        ///< pointer to auxiliary data (ex states), if any, per quadrature point
                                 ChElementData* data_per_element     ///< pointer to auxiliary data (ex states), if any, per element 
@@ -56,10 +56,12 @@ public:
 
     /// Computes the 6x6 tangent modulus for a given strain, assuming the definition  dS = C * dE, that maps   
     /// variations of S, 2nd Piola-Kirchhoff stress, and of E, Green Lagrange strains, both in Voigt notation.
-    /// Assuming current strain is a 3x3 deformation gradient tensor F_def. 
+    /// For viscous and velocity-dependent materials, it computes also the D tangent modulus for damping, as in dS = D * d(dE/dt) 
+    /// Assuming current strain is a 3x3 deformation gradient tensor F. 
 
     virtual void ComputeTangentModulus(ChMatrixNM<double, 6, 6>& C, ///< output C tangent modulus, as dS=C*dE
-                                const ChMatrix33d& F_def,       ///< current deformation gradient tensor
+                                       ChMatrixNM<double, 6, 6>* D, ///< output D tangent modulus, as dS=C*d(dE/dt) (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
+                                const ChMatrix33d& F,           ///< current deformation gradient tensor
                                 const ChMatrix33d* l,           ///< current spatial velocity gradient (might be nullptr if IsSpatialVelocityGradientNeeded() is false)
                                 ChFieldData* data_per_point,    ///< pointer to auxiliary data (ex states), if any, per quadrature point
                                 ChElementData* data_per_element ///< pointer to auxiliary data (ex states), if any, per element 
@@ -76,7 +78,7 @@ public:
 
     /// Some material need info on the spatial velocity gradient  l=\nabla_x v ,
     /// where the time derivative of the deformation gradient F is  dF/dt = l*F.
-    /// Some others, do not need this info. For optimization reason, then, the ChDomainXXYY 
+    /// Some others, do not need this info. For optimization reason, then, the ChFEModelXXYY 
     /// queries this, and knows if the "l" parameter could be left to null when calling ComputeStress(...)
     virtual bool IsSpatialVelocityGradientNeeded() const = 0;
 

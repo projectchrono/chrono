@@ -240,7 +240,7 @@ void ChVehicle::Relocate(const ChVector2d& xy_pos, double yaw_angle) {
 // Advance the state of the system.
 // -----------------------------------------------------------------------------
 
-void ChVehicle::Advance(double step) {
+void ChVehicle::Advance(double step, bool do_collision) {
     // Ensure the vehicle mass includes the mass of subsystems that may have been initialized after the vehicle
     if (!m_initialized) {
         InitializeInertiaProperties();
@@ -255,7 +255,7 @@ void ChVehicle::Advance(double step) {
     }
 
     if (m_ownsSystem) {
-        m_system->DoStepDynamics(step);
+        m_system->DoStepDynamics(step, do_collision);
     }
 
     // Update inertia properties

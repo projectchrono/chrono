@@ -17,11 +17,12 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono_synchrono/utils/SynDataPath.h"
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 

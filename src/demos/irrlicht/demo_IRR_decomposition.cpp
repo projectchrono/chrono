@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRandom.h"
 #include "chrono/collision/ChConvexDecomposition.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono

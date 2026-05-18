@@ -31,7 +31,7 @@ namespace fea {
 /// @{
 
 /// Base interface for the per-node and per-materialpoint properties of some material.
-/// Used, among others, in ChField and ChDomain.
+/// Used, among others, in ChField and ChFEModel.
 /// Suggestion: if you want to inherit from this, rather consider to inherit from 
 /// these ready-to-use helping subclasses: ChFieldDataStateless (if you just want to attach some 
 /// generic data structures) or ChFieldDataGeneric<int n> (if you want a n-dimensional 
@@ -328,8 +328,6 @@ public:
         F.setZero();
         mvariables.SetNodeMass(0);
     }
-    
-    static bool IsFirstOrderState() { return false; }
 
     // Custom properties, helpers etc.
 

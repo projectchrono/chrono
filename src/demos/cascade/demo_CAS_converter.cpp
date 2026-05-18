@@ -21,6 +21,7 @@
 #include "chrono/core/ChRandom.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_cascade/ChCascadeDoc.h"

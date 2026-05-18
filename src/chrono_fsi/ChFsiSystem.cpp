@@ -21,6 +21,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <thread>
+#include <filesystem>
 
 #include "chrono/core/ChTypes.h"
 
@@ -29,9 +30,6 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_fsi/ChFsiSystem.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_thirdparty/filesystem/resolver.h"
 
 using namespace rapidjson;
 
