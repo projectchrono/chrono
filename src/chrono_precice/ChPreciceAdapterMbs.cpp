@@ -50,7 +50,7 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     m_enforce_realtime = parser.EnforceRealtime();
 
     // Read in preCICE participant configuration
-    ConstructSolver(input_filename);
+    ConfigureParticipant(input_filename);
 
     // Check consistency between preCICE participant specification and the MBS
     YAML::Node yaml = YAML::LoadFile(input_filename);
@@ -130,35 +130,35 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     // - check that coupling data have dimension 3 (as reported by preCICE)
     // - set mesh vertices (depending on data type)
     // - register mesh with preCICE
-    for (const auto& mesh_name : GetMeshNames()) {
-        ChAssertAlways(GetMeshDimensions(mesh_name) == 3);
+    for (const auto& mesh_name : GetCouplingMeshNames()) {
+        ChAssertAlways(GetCouplingMeshDimensions(mesh_name) == 3);
 
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
-            ChAssertAlways(GetDataDimensions(mesh_name, data_name) == 3);
+            ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == 3);
         }
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
-            ChAssertAlways(GetDataDimensions(mesh_name, data_name) == 3);
+            ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == 3);
         }
 
         std::vector<ChVector3d> vertices;
         auto& mesh_info = m_coupling_meshes[mesh_name];
         switch (mesh_info.type) {
-            case MeshType::RIGID_BODY_REF_POINTS: {
+            case CouplingMeshType::RIGID_BODY_REF_POINTS: {
                 for (const auto& c_body : m_coupling_bodies)
                     vertices.push_back(c_body->body->GetFrameRefToAbs().GetPos());
                 break;
             }
-            case MeshType::RIGID_BODY_MESH_POINTS: {
+            case CouplingMeshType::RIGID_BODY_MESH_POINTS: {
                 ////break;
-                throw std::runtime_error("MeshType::RIGID_BODY_MESH_POINTS not yet implemented");
+                throw std::runtime_error("CouplingMeshType::RIGID_BODY_MESH_POINTS not yet implemented");
             }
-            case MeshType::FEA_MESH1D_NODES: {
+            case CouplingMeshType::FEA_MESH1D_NODES: {
                 ////break;
-                throw std::runtime_error("MeshType::FEA_MESH1D_NODES not yet implemented");
+                throw std::runtime_error("CouplingMeshType::FEA_MESH1D_NODES not yet implemented");
             }
-            case MeshType::FEA_MESH2D_NODES: {
+            case CouplingMeshType::FEA_MESH2D_NODES: {
                 ////break;
-                throw std::runtime_error("MeshType::FEA_MESH2D_NODES not yet implemented");
+                throw std::runtime_error("CouplingMeshType::FEA_MESH2D_NODES not yet implemented");
             }
         }
 
@@ -219,16 +219,16 @@ void ChPreciceAdapterMbs::ReadData() {
 
     for (const auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
-            case MeshType::RIGID_BODY_REF_POINTS:
+            case CouplingMeshType::RIGID_BODY_REF_POINTS:
                 ReadBodyRefData(mesh_name, mesh_info);
                 break;
-            case MeshType::RIGID_BODY_MESH_POINTS:
+            case CouplingMeshType::RIGID_BODY_MESH_POINTS:
+                ReadBodyMeshData(mesh_name, mesh_info);
+                break;
+            case CouplingMeshType::FEA_MESH1D_NODES:
                 //// TODO
                 break;
-            case MeshType::FEA_MESH1D_NODES:
-                //// TODO
-                break;
-            case MeshType::FEA_MESH2D_NODES:
+            case CouplingMeshType::FEA_MESH2D_NODES:
                 //// TODO
                 break;
         }
@@ -261,16 +261,16 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
 void ChPreciceAdapterMbs::WriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
-            case MeshType::RIGID_BODY_REF_POINTS:
+            case CouplingMeshType::RIGID_BODY_REF_POINTS:
                 WriteBodyRefData(mesh_name, mesh_info);
                 break;
-            case MeshType::RIGID_BODY_MESH_POINTS:
+            case CouplingMeshType::RIGID_BODY_MESH_POINTS:
+                WriteBodyMeshData(mesh_name, mesh_info);
+                break;
+            case CouplingMeshType::FEA_MESH1D_NODES:
                 //// TODO
                 break;
-            case MeshType::FEA_MESH1D_NODES:
-                //// TODO
-                break;
-            case MeshType::FEA_MESH2D_NODES:
+            case CouplingMeshType::FEA_MESH2D_NODES:
                 //// TODO
                 break;
         }
@@ -281,13 +281,13 @@ void ChPreciceAdapterMbs::WriteData() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const MeshInfo& mesh_info) {
+void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
     for (const auto& data_name : m_data_read[mesh_name]) {
         const auto& data_info = mesh_info.data.at(data_name);
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
         switch (data_type) {
-            case DataType::FORCES:
+            case CouplingDataType::FORCES:
                 assert(data_values.size() == 3 * m_coupling_bodies.size());
                 for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
                     auto& c_body = m_coupling_bodies[i];
@@ -300,7 +300,7 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Me
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | force:  " << force << endl;
                 }
                 break;
-            case DataType::TORQUES:
+            case CouplingDataType::TORQUES:
                 assert(data_values.size() == 3 * m_coupling_bodies.size());
                 for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
                     auto& c_body = m_coupling_bodies[i];
@@ -319,13 +319,13 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Me
     }
 }
 
-void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, MeshInfo& mesh_info) {
+void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
     for (const auto& data_name : m_data_write[mesh_name]) {
         auto& data_info = mesh_info.data[data_name];
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
         switch (data_type) {
-            case DataType::POSITIONS:
+            case CouplingDataType::POSITIONS:
                 assert(data_values.size() == 3 * m_coupling_bodies.size());
                 for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
                     auto& c_body = m_coupling_bodies[i];
@@ -337,7 +337,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, MeshInf
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | pos:  " << pos << endl;
                 }
                 break;
-            case DataType::VELOCITIES:
+            case CouplingDataType::VELOCITIES:
                 assert(data_values.size() == 3 * m_coupling_bodies.size());
                 for (size_t i = 0; i < m_coupling_bodies.size(); i++) {
                     auto& c_body = m_coupling_bodies[i];
@@ -353,6 +353,44 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, MeshInf
                 throw std::runtime_error("Invalid write data type for MBS");
         }
     }
+}
+
+void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
+    /*
+    for (const auto& data_name : m_data_write[mesh_name]) {
+        const auto& data_info = mesh_info.data.at(data_name);
+        auto data_type = data_info.type;
+        const auto& data_values = data_info.values;
+        switch (data_type) {
+            case CouplingDataType::FORCES:
+
+                break;
+            case CouplingDataType::TORQUES:
+                break;
+            default:
+                break;
+        }
+    }
+    */
+}
+
+void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
+    /*
+    for (const auto& data_name : m_data_write[mesh_name]) {
+        auto& data_info = mesh_info.data[data_name];
+        auto data_type = data_info.type;
+        auto& data_values = data_info.values;
+        switch (data_type) {
+            case CouplingDataType::POSITIONS:
+
+                break;
+            case CouplingDataType::VELOCITIES:
+                break;
+            default:
+                break;
+        }
+    }
+    */
 }
 
 }  // end namespace ch_precice

@@ -87,8 +87,11 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
         unsigned int accumulator_index;
     };
 
-    void ReadBodyRefData(const std::string& mesh_name, const MeshInfo& mesh_info);
-    void WriteBodyRefData(const std::string& mesh_name, MeshInfo& mesh_info);
+    void ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
+    void WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
+
+    void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
+    void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
     std::shared_ptr<ChSystem> m_sys;
     double m_time_step;

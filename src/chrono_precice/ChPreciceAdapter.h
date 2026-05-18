@@ -26,7 +26,7 @@
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 
-#include <precice/precice.hpp>
+#include "precice/precice.hpp"
 
 namespace chrono {
 namespace ch_precice {
@@ -38,7 +38,7 @@ namespace ch_precice {
 class ChApiPrecice ChPreciceAdapter {
   public:
     /// Chrono coupling mesh types (mesh vertex semantics).
-    enum class MeshType {
+    enum class CouplingMeshType {
         GENERIC,                 ///< generic mesh
         RIGID_BODY_REF_POINTS,   ///< set of points corresponding to rigid body reference frames
         RIGID_BODY_MESH_POINTS,  ///< set of points on rigid body meshes
@@ -47,7 +47,7 @@ class ChApiPrecice ChPreciceAdapter {
     };
 
     /// Chrono coupling data type.
-    enum class DataType {
+    enum class CouplingDataType {
         GENERIC,     ///< generic data
         POSITIONS,   ///< 3D positions
         VELOCITIES,  ///< 3D velocities
@@ -55,85 +55,38 @@ class ChApiPrecice ChPreciceAdapter {
         TORQUES      ///< 3D torques
     };
 
-    ChPreciceAdapter();
     virtual ~ChPreciceAdapter() {}
 
-    ChPreciceAdapter(const ChPreciceAdapter&) = delete;
-    void operator=(const ChPreciceAdapter&) = delete;
-
+    /// Enable verbose terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
-
-    // ---- preCICE solver construction
-
-#ifdef CHRONO_HAS_YAML
-    /// Get the participant name from the specified YAML input file.
-    static std::string GetParticipantName(const std::string& input_filename);
-
-    /// Construct the Chrono solver and its mesh interfaces for use with preCICE, using the specified input file.
-    /// The YAML input file must have a group named "precice_adapter_config" with the following parameters:
-    /// - participant_name:        name of the participant or solver
-    /// - interfaces:              list of interfaces, each with the following parameters:
-    ///    - mesh_name:  name of the coupling mesh
-    ///    - read_data:  data to read from preCICE on this mesh
-    ///    - write_data: data to write to preCICE on this mesh
-    void ConstructSolver(const std::string& input_filename);
-#endif
-
-    /// Set the participant name.
-    /// Used when the adapter is not constructed from a YAML specification file.
-    void SetParticipantName(const std::string& participant_name) { m_participant_name = participant_name; }
-
-    /// Set a coupling mesh with specified data type, using the given lists of data names for writing and reading.
-    /// Used when the adapter is not constructed from a YAML specification file. This function can be called more than once.
-    void SetMeshInterface(const std::string& mesh_name, MeshType data_type, const std::vector<std::string>& data_write_names, const std::vector<std::string>& data_read_names);
 
     // ---- preCICE participant registration
 
-    /// Register the solver with preCICE, using the specified preCICE configuration file, and the solver process size and index.
-    void RegisterSolver(const std::string& precice_config_filename, int process_index = 0, int process_size = 1);
-
-    // ---- Mesh specification
-
-    /// Register a 2D coupling mesh with preCICE, using the specified mesh name and its vertex positions (of ChVector2d type).
-    /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
-    void RegisterMesh(const std::string& mesh_name, const std::vector<ChVector2d>& positions);
-
-    /// Register a 3D coupling mesh with preCICE, using the specified mesh name and its vertex positions (of ChVector3d type).
-    /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
-    void RegisterMesh(const std::string& mesh_name, const std::vector<ChVector3d>& positions);
-
-    /// Register a coupling mesh with preCICE, using the specified mesh name and its vertex positions (as a flattened vector of doubles).
-    /// This method can be used for both 2D and 3D meshes by providing the appropriate positions vector.
-    /// The positions vector is expected to be in the format:
-    /// - (x0, y0, x1, y1, ...) for 2D meshes, and
-    /// - (x0, y0, z0, x1, y1, z1, ...) for 3D meshes.
-    /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
-    /// - scalar data (declared with <data:scalar ...>) has data_dimension = 1; e.g., temperature, pressure, etc.
-    /// - vector data (declared with <data:vector ...>) has data_dimension equal to the mesh dimension; e.g., velocity, displacement, etc.
-    void RegisterMesh(const std::string& mesh_name, const std::vector<double>& positions);
+    /// Register the participant with preCICE, using the specified preCICE configuration file, and the solver process size and index.
+    void RegisterParticipant(const std::string& precice_config_filename, int process_index = 0, int process_size = 1);
 
     // ---- Accessor functions
 
     /// Get the number of spatial dimensions for the mesh with specified name.
-    int GetMeshDimensions(const std::string& mesh_name) const;
+    int GetCouplingMeshDimensions(const std::string& mesh_name) const;
 
     /// Get the number of vertices for the mesh with specified name.
     size_t GetNumVertices(const std::string& mesh_name);
 
     /// Get the type (vertex semantics) for the mesh with specified name.
-    MeshType GetMeshType(const std::string& mesh_name) const;
+    CouplingMeshType GetCouplingMeshType(const std::string& mesh_name) const;
 
     /// Get the type (vertex semantics) for the mesh with specified name.
-    std::string GetMeshTypeAsString(const std::string& mesh_name) const;
+    std::string GetCouplingMeshTypeAsString(const std::string& mesh_name) const;
 
     /// Get the data dimensions for the data with specified name on the mesh with specified name.
-    int GetDataDimensions(const std::string& mesh_name, const std::string& data_name) const;
+    int GetCouplingDataDimensions(const std::string& mesh_name, const std::string& data_name) const;
 
     /// Get the type for the coupling data with specified name on the mesh with specified name.
-    DataType GetDataType(const std::string& mesh_name, const std::string& data_name) const;
+    CouplingDataType GetCouplingDataType(const std::string& mesh_name, const std::string& data_name) const;
 
     /// Get the type for the coupling data with specified name on the mesh with specified name.
-    std::string GetDataTypeAsString(const std::string& mesh_name, const std::string& data_name) const;
+    std::string GetCouplingDataTypeAsString(const std::string& mesh_name, const std::string& data_name) const;
 
     /// Get the maximum time step size from preCICE.
     double GetMaxTimeStepSize() const;
@@ -142,48 +95,13 @@ class ChApiPrecice ChPreciceAdapter {
     const std::string& GetParticipantName() const;
 
     /// Get the coupled mesh names on this participant.
-    std::vector<std::string> GetMeshNames() const;
+    std::vector<std::string> GetCouplingMeshNames() const;
 
     /// Get the data names for reading on the mesh with specified name.
     std::vector<std::string> GetReadDataNamesOnMesh(const std::string& mesh_name) const;
 
     /// Get the data names for writing on the mesh with specified name.
     std::vector<std::string> GetWriteDataNamesOnMesh(const std::string& mesh_name) const;
-
-    // ---- Checkpointing
-
-    /// Write the solver state to a checkpoint if required by preCICE.
-    /// If requested by preCISE, this function invokes the solver-specific checkpoint writing function.
-    /// The return value indicates whether a checkpoint was written.
-    bool WriteCheckpointIfRequired(double time);
-
-    /// Read the solver state from a checkpoint if required by preCICE.
-    /// If requested by preCISE, this function invokes the solver-specific checkpoint reading function.
-    /// The return value indicates whether a checkpoint was read.
-    bool ReadCheckpointIfRequired(double time);
-
-    // ---- Data exchange
-
-    // Set the (write) data vector for the specified mesh and data names.
-    void SetDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data);
-
-    /// Write (send) a block of data to preCICE.
-    void WriteDataBlock(const std::string& mesh_name, const std::string& data_name);
-
-    /// Set and write (send) a block of data to preCICE.
-    /// This is a convenience function that combines SetDataBlock and WriteDataBlock into a single call.
-    void WriteDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data);
-
-    /// Read (receive) a block of data from preCICE.
-    void ReadDataBlock(const std::string& mesh_name, const std::string& data_name, double relative_read_time);
-
-    /// Get the (read) data vector for the specified mesh and data names.
-    const std::vector<double>& GetDataBlock(const std::string& mesh_name, const std::string& data_name) const;
-
-    /// Read (receive) a block of data from preCICE and return the data vector.
-    /// This is a convenience function that combines ReadDataBlock and GetDataBlock into a single call.
-    /// It is assumed that the data is always read at the beginning of the time step (relative_read_time = 0).
-    const std::vector<double>& ReadDataBlock(const std::string& mesh_name, const std::string& data_name);
 
     // ---- Simulation control
 
@@ -214,7 +132,7 @@ class ChApiPrecice ChPreciceAdapter {
     /// - writes data
     /// - advances the preCICE coupling
     /// - reads a checkpoint if requested, otherwise advances time
-    void SimulationLoop();
+    void RunSimulation();
 
     /// Wrapper function for finalizing the coupled simulation for this participant.
     /// The operations performed by this function are:
@@ -222,16 +140,94 @@ class ChApiPrecice ChPreciceAdapter {
     /// - finalize preCICE coupling
     void FinalizeSimulation();
 
-    // ---- Utility functions
-
-    /// Convert a vector of ChVector2d to a vector of doubles in the format (x0, y0, x1, y1, ...).
-    static std::vector<double> SetVerticesToData(const std::vector<ChVector2d>& vertices);
-
-    /// Convert a vector of ChVector3d to a vector of doubles in the format (x0, y0, z0, x1, y1, z1, ...).
-    static std::vector<double> SetVerticesToData(const std::vector<ChVector3d>& vertices);
-
   protected:
-    // ---- Participant/Solver-specific functions to be implemented by derived classes
+    ChPreciceAdapter();
+    ChPreciceAdapter(const ChPreciceAdapter&) = delete;
+    void operator=(const ChPreciceAdapter&) = delete;
+
+    // ---- preCICE participant construction
+
+#ifdef CHRONO_HAS_YAML
+    /// Get the participant name from the specified YAML input file.
+    static std::string GetParticipantName(const std::string& input_filename);
+
+    /// Configure the Chrono participant/solver and its mesh interfaces for use with preCICE, using the specified input file.
+    /// The YAML input file must have a group named "precice_adapter_config" with the following parameters:
+    /// - participant_name: name of the participant or solver
+    /// - interfaces:       list of interfaces, each with the following parameters:
+    ///     - mesh_name:    name of the coupling mesh
+    ///     - read_data:    data to read from preCICE on this mesh
+    ///     - write_data:   data to write to preCICE on this mesh
+    void ConfigureParticipant(const std::string& input_filename);
+#endif
+
+    /// Set the participant name.
+    /// Used when the adapter is not constructed from a YAML specification file.
+    void SetParticipantName(const std::string& participant_name) { m_participant_name = participant_name; }
+
+    /// Add a coupling mesh with specified data type, using the given lists of data names for writing and reading.
+    /// Used when the adapter is not constructed from a YAML specification file. This function can be called more than once.
+    void AddCouplingMeshInterface(const std::string& mesh_name,
+                                  CouplingMeshType data_type,
+                                  const std::vector<std::string>& data_write_names,
+                                  const std::vector<std::string>& data_read_names);
+
+    // ---- Mesh specification
+
+    /// Register a 2D coupling mesh with preCICE, using the specified mesh name and its vertex positions (of ChVector2d type).
+    /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
+    void RegisterMesh(const std::string& mesh_name, const std::vector<ChVector2d>& positions);
+
+    /// Register a 3D coupling mesh with preCICE, using the specified mesh name and its vertex positions (of ChVector3d type).
+    /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
+    void RegisterMesh(const std::string& mesh_name, const std::vector<ChVector3d>& positions);
+
+    /// Register a coupling mesh with preCICE, using the specified mesh name and its vertex positions (as a flattened vector of doubles).
+    /// This method can be used for both 2D and 3D meshes by providing the appropriate positions vector.
+    /// The positions vector is expected to be in the format:
+    /// - (x0, y0, x1, y1, ...) for 2D meshes, and
+    /// - (x0, y0, z0, x1, y1, z1, ...) for 3D meshes.
+    /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
+    /// - scalar data (declared with <data:scalar ...>) has data_dimension = 1; e.g., temperature, pressure, etc.
+    /// - vector data (declared with <data:vector ...>) has data_dimension equal to the mesh dimension; e.g., velocity, displacement, etc.
+    void RegisterMesh(const std::string& mesh_name, const std::vector<double>& positions);
+
+    // ---- Data exchange
+
+    // Set the (write) data vector for the specified mesh and data names.
+    void SetDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data);
+
+    /// Write (send) a block of data to preCICE.
+    void WriteDataBlock(const std::string& mesh_name, const std::string& data_name);
+
+    /// Set and write (send) a block of data to preCICE.
+    /// This is a convenience function that combines SetDataBlock and WriteDataBlock into a single call.
+    void WriteDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data);
+
+    /// Read (receive) a block of data from preCICE.
+    void ReadDataBlock(const std::string& mesh_name, const std::string& data_name, double relative_read_time);
+
+    /// Get the (read) data vector for the specified mesh and data names.
+    const std::vector<double>& GetDataBlock(const std::string& mesh_name, const std::string& data_name) const;
+
+    /// Read (receive) a block of data from preCICE and return the data vector.
+    /// This is a convenience function that combines ReadDataBlock and GetDataBlock into a single call.
+    /// It is assumed that the data is always read at the beginning of the time step (relative_read_time = 0).
+    const std::vector<double>& ReadDataBlock(const std::string& mesh_name, const std::string& data_name);
+
+    // ---- Checkpointing
+
+    /// Write the solver state to a checkpoint if required by preCICE.
+    /// If requested by preCISE, this function invokes the solver-specific checkpoint writing function.
+    /// The return value indicates whether a checkpoint was written.
+    bool WriteCheckpointIfRequired(double time);
+
+    /// Read the solver state from a checkpoint if required by preCICE.
+    /// If requested by preCISE, this function invokes the solver-specific checkpoint reading function.
+    /// The return value indicates whether a checkpoint was read.
+    bool ReadCheckpointIfRequired(double time);
+
+    // ---- Participant/solver-specific functions to be implemented by derived classes
 
     /// Let the derived class perform any necessary operations during the simulation initialization.
     /// This function is called before the solver writes initial data (if requested) and before the preCICE coupling is initialized.
@@ -270,32 +266,40 @@ class ChApiPrecice ChPreciceAdapter {
     /// This function is called before the preCICE coupling is finalized.
     virtual void FinalizeParticipant();
 
+    // ---- Utility functions
+
+    /// Convert a vector of ChVector2d to a vector of doubles in the format (x0, y0, x1, y1, ...).
+    static std::vector<double> SetVerticesToData(const std::vector<ChVector2d>& vertices);
+
+    /// Convert a vector of ChVector3d to a vector of doubles in the format (x0, y0, z0, x1, y1, z1, ...).
+    static std::vector<double> SetVerticesToData(const std::vector<ChVector3d>& vertices);
+
     // ---- Member variables
 
     /// Definition of a coupling data block.
-    struct DataInfo {
-        DataType type;               ///< data type
+    struct CouplingDataInfo {
+        CouplingDataType type;       ///< data type
         std::vector<double> values;  ///< data values
     };
 
     /// Data type to hold information for all data blocks in a coupling mesh, indexed by the data name.
-    using CouplingData = std::map<std::string, DataInfo>;
+    using CouplingData = std::map<std::string, CouplingDataInfo>;
 
     /// Definition of a coupling mesh.
-    struct MeshInfo {
-        MeshType type;                ///< mesh type (vertex semantics)
+    struct CouplingMeshInfo {
+        CouplingMeshType type;        ///< mesh type (vertex semantics)
         std::vector<int> vertex_ids;  ///< preCICE IDs of the mesh vertices
         CouplingData data;            ///< list of data objects defined on this mesh
     };
 
     /// Data type to hold data for all coupling meshes, indexed by the mesh name.
-    using CouplingMeshes = std::map<std::string, MeshInfo>;
+    using CouplingMeshes = std::map<std::string, CouplingMeshInfo>;
 
     /// Data type to hold data names associated with a given mesh name.
     using MeshDataNames = std::map<std::string, std::vector<std::string>>;
 
     std::unique_ptr<precice::Participant> m_participant;  ///< preCICE instance
-    std::string m_participant_name;                       ///< name of the participant (solver)
+    std::string m_participant_name;                       ///< name of the participant/solver
     int m_process_size;                                   ///< number of processes used by an instance of this solver
     int m_process_index;                                  ///< index for each process used by this solver
 

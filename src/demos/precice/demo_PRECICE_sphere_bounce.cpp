@@ -76,9 +76,9 @@ int main(int argc, char* argv[]) {
 
 void RunParticipantMBS(const std::string& precice_config_filename, bool verbose) {
     ChPreciceAdapterMbs participant(GetChronoDataFile("precice/mbs/sphere/mbs.yaml"), verbose);
-    participant.RegisterSolver(precice_config_filename);
+    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
-    participant.SimulationLoop();
+    participant.RunSimulation();
     participant.FinalizeSimulation();
 }
 
@@ -108,19 +108,19 @@ class ParticipantCFD : public ChPreciceAdapter {
 
 ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
     SetVerbose(verbose);
-    ConstructSolver(GetChronoDataFile("precice/mbs/sphere/cfd.yaml"));
+    ConfigureParticipant(GetChronoDataFile("precice/mbs/sphere/cfd.yaml"));
 }
 
 void ParticipantCFD::InitializeParticipant() {
     ChPreciceAdapter::InitializeParticipant();
 
     // Check that the participant has the expected number of interfaces (1 mesh)
-    auto mesh_names = GetMeshNames();
+    auto mesh_names = GetCouplingMeshNames();
     ChAssertAlways(mesh_names.size() == 1);
 
     // Check the dimension of the one and only mesh
     mesh_name = mesh_names[0];
-    int mesh_dim = GetMeshDimensions(mesh_name);
+    int mesh_dim = GetCouplingMeshDimensions(mesh_name);
     ChAssertAlways(mesh_dim == 3);
 
     // Create the coupling mesh
@@ -185,8 +185,8 @@ void ParticipantCFD::WriteData() {
 void RunParticipantCFD(const std::string& precice_config_filename, bool verbose) {
     ParticipantCFD participant(verbose);
 
-    participant.RegisterSolver(precice_config_filename);
+    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
-    participant.SimulationLoop();
+    participant.RunSimulation();
     participant.FinalizeSimulation();
 }

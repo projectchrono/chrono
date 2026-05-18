@@ -61,7 +61,7 @@ class TestAdapter : public ChPreciceAdapter {
 
 TestAdapter::TestAdapter(const std::string& yaml_input, bool verbose) : ChPreciceAdapter(), solver_time(0), solver_state(0) {
     SetVerbose(verbose);
-    ConstructSolver(yaml_input);
+    ConfigureParticipant(yaml_input);
 }
 
 void TestAdapter::InitializeParticipant() {
@@ -71,12 +71,12 @@ void TestAdapter::InitializeParticipant() {
     id = (m_participant_name == "Solver1") ? 1 : 2;
 
     // Check that the participant has the expected number of interfaces (1 mesh)
-    auto mesh_names = GetMeshNames();
+    auto mesh_names = GetCouplingMeshNames();
     ChAssertAlways(mesh_names.size() == 1);
 
     // Get dimension of the one and only mesh
     mesh_name = mesh_names[0];
-    int mesh_dim = GetMeshDimensions(mesh_name);
+    int mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
     // Create a mock-up mesh for testing
     int num_vertices = 4;
@@ -148,7 +148,7 @@ void TestAdapter::AdvanceParticipant(double time, double time_step) {
 void TestAdapter::WriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         for (const auto& data_name : m_data_write[mesh_name]) {
-            auto data_dim = GetDataDimensions(mesh_name, data_name);
+            auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_dim) {
                 case 1:
                     mesh_info.data[data_name].values = solver_scalar_output;
@@ -194,13 +194,13 @@ int main(int argc, char* argv[]) {
     TestAdapter participant(input_filename, true);
 
     // Register solver with preCICE
-    participant.RegisterSolver(precice_config_filename);
+    participant.RegisterParticipant(precice_config_filename);
 
     // Initialize simulation
     participant.InitializeSimulation();
 
     // Perform simulation loop
-    participant.SimulationLoop();
+    participant.RunSimulation();
 
     // Finalize the preCICE coupling
     participant.FinalizeSimulation();
