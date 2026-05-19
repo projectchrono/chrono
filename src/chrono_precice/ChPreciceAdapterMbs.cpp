@@ -139,6 +139,7 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     #endif
 
     if (m_verbose) {
+        cout << "\n-------------------------------------------------\n" << endl;
     }
 }
 #endif

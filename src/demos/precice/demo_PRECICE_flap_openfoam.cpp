@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
 
     // Set up Chrono MBS participant
-    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/flap_openfoam/mbs.yaml"), verbose);
+    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/flap_openfoam/solid_chrono/mbs_participant.yaml"), verbose);
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
