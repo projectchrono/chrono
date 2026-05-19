@@ -190,23 +190,37 @@ bool ChPreciceAdapterMbs::EnableVisualization(double render_fps,
 void ChPreciceAdapterMbs::InitializeParticipant() {
     ChPreciceAdapter::InitializeParticipant();
 
-    // For each interface meshe:
+    // For each interface mesh:
     // - check that coupling meshes have dimension 2 or 3 (as reported by preCICE)
     // - check that coupling data have dimension equal to the mesh dimension (as reported by preCICE)
     // - set mesh vertices (depending on mesh type and dimension)
     // - register mesh with preCICE
     for (const auto& mesh_name : GetCouplingMeshNames()) {
         auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
-            // Forces and torques must have the same dimension as the coupling mesh
-            if (GetCouplingDataType(mesh_name, data_name) != CouplingDataType::GENERIC)
-                ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == mesh_dim);
+            auto data_type = GetCouplingDataType(mesh_name, data_name);
+            auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
+            switch (data_type) {
+                case CouplingDataType::FORCES:
+                    // Forces must have the same dimension as the coupling mesh
+                    ChAssertAlways(data_dim == mesh_dim);
+                    break;
+                case CouplingDataType::TORQUES:
+                    // Torques must be 3D for a 3D mesh and 1D for a 2D mesh
+                    ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
+                    break;
+            }
         }
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
-            // Positions and velocities must have the same simension as the coupling mesh
-            if (GetCouplingDataType(mesh_name, data_name) != CouplingDataType::GENERIC)
-                ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == mesh_dim);
+            auto data_type = GetCouplingDataType(mesh_name, data_name);
+            auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
+            switch (data_type) {
+                case CouplingDataType::POSITIONS:
+                case CouplingDataType::VELOCITIES:
+                    // Positions and velocities must have the same simension as the coupling mesh
+                    ChAssertAlways(data_dim == mesh_dim);
+                    break;
+            }
         }
 
         std::vector<ChVector3d> vertices;
@@ -225,10 +239,12 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 break;
             }
             case CouplingMeshType::FEA_MESH1D_NODES: {
+                //// TODO
                 ////break;
                 throw std::runtime_error("CouplingMeshType::FEA_MESH1D_NODES not yet implemented");
             }
             case CouplingMeshType::FEA_MESH2D_NODES: {
+                //// TODO
                 ////break;
                 throw std::runtime_error("CouplingMeshType::FEA_MESH2D_NODES not yet implemented");
             }
@@ -354,20 +370,31 @@ void ChPreciceAdapterMbs::WriteData() {
 // -----------------------------------------------------------------------------
 
 void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
+    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
+
     for (const auto& data_name : m_data_read[mesh_name]) {
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         const auto& data_info = mesh_info.data.at(data_name);
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
-        assert(data_values.size() == 3 * m_coupling_bodies.size());
+        assert(data_values.size() == data_dim * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::FORCES: {
+                assert(data_dim == mesh_dim);
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     ChVector3d force_abs;
-                    force_abs.x() = data_values[i_data + 0];
-                    force_abs.y() = data_values[i_data + 1];
-                    force_abs.z() = data_values[i_data + 2];
-                    i_data += 3;
+                    if (data_dim == 2) {
+                        force_abs.x() = data_values[i_data + 0];
+                        force_abs.y() = data_values[i_data + 1];
+                        force_abs.z() = 0;
+                        i_data += 2;
+                    } else {
+                        force_abs.x() = data_values[i_data + 0];
+                        force_abs.y() = data_values[i_data + 1];
+                        force_abs.z() = data_values[i_data + 2];
+                        i_data += 3;
+                    }
                     c_body->body->AccumulateForce(c_body->accumulator_index, force_abs, c_body->body->GetFrameRefToAbs().GetPos(), false);
                     if (m_verbose)
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | force:  " << force_abs << endl;
@@ -375,13 +402,21 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             case CouplingDataType::TORQUES: {
+                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     ChVector3d torque_abs;
-                    torque_abs.x() = data_values[i_data + 0];
-                    torque_abs.y() = data_values[i_data + 1];
-                    torque_abs.z() = data_values[i_data + 2];
-                    i_data += 3;
+                    if (data_dim == 1) {
+                        torque_abs.x() = 0;
+                        torque_abs.y() = 0;
+                        torque_abs.z() = data_values[i_data + 0];
+                        i_data += 1;
+                    } else {
+                        torque_abs.x() = data_values[i_data + 0];
+                        torque_abs.y() = data_values[i_data + 1];
+                        torque_abs.z() = data_values[i_data + 2];
+                        i_data += 3;
+                    }
                     c_body->body->AccumulateTorque(c_body->accumulator_index, torque_abs, false);
                     if (m_verbose)
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | torque: " << torque_abs << endl;
@@ -395,33 +430,50 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
 }
 
 void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
+    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
+
     for (const auto& data_name : m_data_write[mesh_name]) {
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         auto& data_info = mesh_info.data[data_name];
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
-        assert(data_values.size() == 3 * m_coupling_bodies.size());
+        assert(data_values.size() == data_dim * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
+                assert(data_dim == mesh_dim);
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& pos_abs = c_body->body->GetFrameRefToAbs().GetPos();
-                    data_values[i_data + 0] = pos_abs.x();
-                    data_values[i_data + 1] = pos_abs.y();
-                    data_values[i_data + 2] = pos_abs.z();
-                    i_data += 3;
+                    if (data_dim == 2) {
+                        data_values[i_data + 0] = pos_abs.x();
+                        data_values[i_data + 1] = pos_abs.y();
+                        i_data += 2;
+                    } else {
+                        data_values[i_data + 0] = pos_abs.x();
+                        data_values[i_data + 1] = pos_abs.y();
+                        data_values[i_data + 2] = pos_abs.z();
+                        i_data += 3;
+                    }
                     if (m_verbose)
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | pos:  " << pos_abs << endl;
                 }
                 break;
             }
             case CouplingDataType::VELOCITIES: {
+                assert(data_dim == mesh_dim);
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& vel_abs = c_body->body->GetFrameRefToAbs().GetPosDt();
-                    data_values[i_data + 0] = vel_abs.x();
-                    data_values[i_data + 1] = vel_abs.y();
-                    data_values[i_data + 2] = vel_abs.z();
-                    i_data += 3;
+                    if (data_dim == 2) {
+                        data_values[i_data + 0] = vel_abs.x();
+                        data_values[i_data + 1] = vel_abs.y();
+                        i_data += 2;
+                    } else {
+                        data_values[i_data + 0] = vel_abs.x();
+                        data_values[i_data + 1] = vel_abs.y();
+                        data_values[i_data + 2] = vel_abs.z();
+                        i_data += 3;
+                    }
                     if (m_verbose)
                         cout << m_prefix2 << "body: " << c_body->body->GetName() << " | vel:  " << vel_abs << endl;
                 }
@@ -434,21 +486,32 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
 }
 
 void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
+    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
+
     for (const auto& data_name : m_data_write[mesh_name]) {
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         const auto& data_info = mesh_info.data.at(data_name);
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
-        assert(data_values.size() == GetNumVertices(mesh_name));
+        assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
         switch (data_type) {
             case CouplingDataType::FORCES: {
+                assert(data_dim == mesh_dim);
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
                         ChVector3d force_abs;
-                        force_abs.x() = data_values[i_data + 0];
-                        force_abs.y() = data_values[i_data + 1];
-                        force_abs.z() = data_values[i_data + 2];
-                        i_data += 3;
+                        if (data_dim == 2) {
+                            force_abs.x() = data_values[i_data + 0];
+                            force_abs.y() = data_values[i_data + 1];
+                            force_abs.z() = 0;
+                            i_data += 2;
+                        } else {
+                            force_abs.x() = data_values[i_data + 0];
+                            force_abs.y() = data_values[i_data + 1];
+                            force_abs.z() = data_values[i_data + 2];
+                            i_data += 3;
+                        }
                         ChVector3d pos_abs = c_body->body->TransformPointLocalToParent(pos_loc);
                         c_body->body->AccumulateForce(c_body->accumulator_index, force_abs, pos_abs, false);
                     }
@@ -456,14 +519,22 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
                 break;
             }
             case CouplingDataType::TORQUES: {
+                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
                         ChVector3d torque_abs;
-                        torque_abs.x() = data_values[i_data + 0];
-                        torque_abs.y() = data_values[i_data + 1];
-                        torque_abs.z() = data_values[i_data + 2];
-                        i_data += 3;
+                        if (data_dim == 1) {
+                            torque_abs.x() = 0;
+                            torque_abs.y() = 0;
+                            torque_abs.z() = data_values[i_data + 0];
+                            i_data += 1;
+                        } else {
+                            torque_abs.x() = data_values[i_data + 0];
+                            torque_abs.y() = data_values[i_data + 1];
+                            torque_abs.z() = data_values[i_data + 2];
+                            i_data += 3;
+                        }
                         c_body->body->AccumulateTorque(c_body->accumulator_index, torque_abs, false);
                     }
                 }
@@ -476,33 +547,51 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
 }
 
 void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
+    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
+
     for (const auto& data_name : m_data_write[mesh_name]) {
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         auto& data_info = mesh_info.data[data_name];
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
+        assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
+                assert(data_dim == mesh_dim);
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
                         ChVector3d pos_abs = c_body->body->TransformPointLocalToParent(pos_loc);
-                        data_values[i_data + 0] = pos_abs.x();
-                        data_values[i_data + 1] = pos_abs.y();
-                        data_values[i_data + 2] = pos_abs.z();
-                        i_data += 3;
+                        if (data_dim == 2) {
+                            data_values[i_data + 0] = pos_abs.x();
+                            data_values[i_data + 1] = pos_abs.y();
+                            i_data += 2;
+                        } else {
+                            data_values[i_data + 0] = pos_abs.x();
+                            data_values[i_data + 1] = pos_abs.y();
+                            data_values[i_data + 2] = pos_abs.z();
+                            i_data += 3;
+                        }
                     }
                 }
                 break;
             }
             case CouplingDataType::VELOCITIES: {
+                assert(data_dim == mesh_dim);
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
                         ChVector3d vel_abs = c_body->body->PointSpeedLocalToParent(pos_loc);
-                        data_values[i_data + 0] = vel_abs.x();
-                        data_values[i_data + 1] = vel_abs.y();
-                        data_values[i_data + 2] = vel_abs.z();
-                        i_data += 3;
+                        if (data_dim == 2) {
+                            data_values[i_data + 0] = vel_abs.x();
+                            data_values[i_data + 1] = vel_abs.y();
+                            i_data += 2;
+                        } else {
+                            data_values[i_data + 0] = vel_abs.x();
+                            data_values[i_data + 1] = vel_abs.y();
+                            data_values[i_data + 2] = vel_abs.z();
+                            i_data += 3;
+                        }
                     }
                 }
                 break;

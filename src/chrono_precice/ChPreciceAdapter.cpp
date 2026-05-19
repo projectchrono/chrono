@@ -192,8 +192,9 @@ void ChPreciceAdapter::RegisterParticipant(const std::string& precice_config_fil
 
 void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vector<ChVector3d>& positions) {
     assert(m_participant_created);
+    assert(m_interfaces_created);
 
-    auto mesh_dim = m_participant->getMeshDimensions(mesh_name); 
+    auto mesh_dim = m_participant->getMeshDimensions(mesh_name);
     ChAssertAlways(mesh_dim == 2 || mesh_dim == 3);
 
     std::vector<double> pos_vec;
