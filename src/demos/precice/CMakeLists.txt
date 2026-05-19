@@ -3,12 +3,14 @@ message(STATUS "Add demo programs for preCICE adapters")
 #--------------------------------------------------------------
 # List of all MBS demos
 
-set(DEMOS demo_PRECICE_test)
+set(DEMOS "")
 
 if(CH_ENABLE_MODULE_PARSERS)
 
   set(DEMOS ${DEMOS}
-      demo_PRECICE_sphere_bounce)
+      demo_PRECICE_sphere_bounce
+      demo_PRECICE_flap_openfoam
+  )
   
   #if(CH_ENABLE_MODULE_FSI)
   #  set(DEMOS ${DEMOS} demo_PRECICE_fsi)
