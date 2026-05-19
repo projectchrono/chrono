@@ -1,0 +1,196 @@
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    object          blockMeshDict;
+}
+
+scale 1;
+
+b -0.1; // z-back
+f  0.1; // z-front
+
+// Vertices
+X1 -0.2; // pre rigid body 
+X2  0.0; // begin rigid body
+X3  0.2; // end rigid body
+X4  0.6; // wake
+
+Y1 -0.13; // distance to bottom
+Y2 -0.01; // half body height
+Y3  0.01; // half body height
+Y4  0.12; // distance to top
+
+// Blocks
+H1 12; 
+H2 14;
+H3 20;
+
+V1 12;
+V2 2;
+V3 11;
+
+G3 4;
+
+vertices
+(
+	// X1 layer back
+	($X1 $Y1 $b)  // 0
+	($X1 $Y2 $b)
+	($X1 $Y3 $b)
+	($X1 $Y4 $b)
+
+	// X1 layer front
+        ($X1 $Y1 $f)  // 4
+        ($X1 $Y2 $f)
+        ($X1 $Y3 $f)
+        ($X1 $Y4 $f)
+
+        // X2 layer back
+        ($X2 $Y1 $b)  // 8
+        ($X2 $Y2 $b)
+        ($X2 $Y3 $b)
+        ($X2 $Y4 $b)
+
+        // X2 layer front
+        ($X2 $Y1 $f)  // 12
+        ($X2 $Y2 $f)
+        ($X2 $Y3 $f)
+        ($X2 $Y4 $f)
+
+        // X3 layer back
+        ($X3 $Y1 $b)  // 16
+        ($X3 $Y2 $b)
+        ($X3 $Y3 $b)
+        ($X3 $Y4 $b)
+
+        // X3 layer front
+        ($X3 $Y1 $f)  // 20
+        ($X3 $Y2 $f)
+        ($X3 $Y3 $f)
+        ($X3 $Y4 $f)
+
+        // X4 layer back
+        ($X4 $Y1 $b)  // 24
+        ($X4 $Y2 $b)
+        ($X4 $Y3 $b)
+        ($X4 $Y4 $b)
+
+        // X4 layer front
+        ($X4 $Y1 $f)  // 28
+        ($X4 $Y2 $f)
+        ($X4 $Y3 $f)
+        ($X4 $Y4 $f)
+
+);
+
+blocks
+(
+	// Block 0-3
+   	hex ( 0  8  9  1  4  12 13 5) ($H1 $V1 1) simpleGrading (1 1 1)
+   	hex ( 1  9  10 2  5  13 14 6) ($H1 $V2 1) simpleGrading (1 1 1)
+   	hex ( 2  10 11 3  6  14 15 7) ($H1 $V3 1) simpleGrading (1 1 1)
+   	
+	// Block 4-6 \5
+	hex ( 8  16 17 9  12 20 21 13) ($H2 $V1 1) simpleGrading (1 1 1)
+	hex ( 10 18 19 11 14 22 23 15) ($H2 $V3 1) simpleGrading (1 1 1)
+
+	// Block 7-9
+	hex ( 16 24 25 17 20 28 29 21) ($H3 $V1 1) simpleGrading ($G3 1 1)
+	hex ( 17 25 26 18 21 29 30 22) ($H3 $V2 1) simpleGrading ($G3 1 1)
+	hex ( 18 26 27 19 22 30 31 23) ($H3 $V3 1) simpleGrading ($G3 1 1)
+
+);
+
+
+boundary
+(
+    back
+    {
+        type empty;
+        faces
+	(
+	(0 8 9 1)
+	(1 9 10 2)
+	(2 10 11 3)
+	(8 16 17 9)
+	(10 18 19 11)
+	(16 24 25 17)
+	(17 25 26 18)
+	(18 26 27 19)
+	);
+    }
+    
+    front
+    {
+        type empty;
+        faces
+        (
+        (4 12 13 5)
+        (5 13 14 6)
+        (6 14 15 7)
+        (12 20 21 13)
+        (14 22 23 15)
+        (20 28 29 21)
+        (21 29 30 22)
+        (22 30 31 23)
+        );
+    }
+
+    inlet
+    {
+	type patch;
+	faces
+	(
+	(0 4 5 1)
+	(1 5 6 2)
+	(2 6 7 3)
+	);
+    }
+
+    outlet
+    {
+	type patch;
+	faces
+	(
+	(24 28 29 25)
+	(25 29 30 26)
+	(26 30 31 27)
+	);
+    }
+
+    flap
+    {
+	type wall;
+	faces
+	(
+	(9 13 14 10)
+	(9 17 21 13)
+	(10 18 22 14)
+	(18 22 21 17)
+	);
+    }
+
+    bottom
+    {
+	type wall;
+	faces
+	(
+	(0 8 12 4)
+	(8 16 20 12)
+	(16 24 28 20)
+	);
+    }
+
+    top
+    {
+	type wall;
+	faces
+	(
+	(3 11 15 7)
+	(11 19 23 15)
+	(19 27 31 23)
+	);
+    }
+);

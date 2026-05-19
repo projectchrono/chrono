@@ -1,8 +1,8 @@
 chrono-version: 10.0
 type: MBS
 
-model:  "model_mbs.yaml"
-solver: "solver_mbs.yaml"
+model:  "mbs_model.yaml"
+solver: "mbs_solver.yaml"
 
 simulation:
   end_time: 100
@@ -13,7 +13,7 @@ output:
   fps: 20
 
 visualization:
-  type: Model_file
+  type: PRIMITIVES
 
 precice_adapter_config:
   participant_name: Solid

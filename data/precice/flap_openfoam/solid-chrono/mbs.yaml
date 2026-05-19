@@ -13,22 +13,24 @@ output:
   fps: 20
 
 visualization:
-  type: Model_file
+  type: MODEL_FILE
 
 precice_adapter_config:
   participant_name: Solid
-    
+      
   data_path:
     type: RELATIVE
-    root: "../../.."
+    root: "."
 
   bodies:
-  - name: ball
-    mesh_file: models/sphere.obj
+  - name: flap
+    #point: flap.obj
+    #points: flap.stl
+    points: flap.txt
 
   interfaces:
   - mesh_name: SolidMesh
-    mesh_type: RIGID_BODY_MESH_POINTS
+    data_type: RIGID_BODY_MESH_POINTS
     write_data:
     - name: positions
       type: POSITIONS

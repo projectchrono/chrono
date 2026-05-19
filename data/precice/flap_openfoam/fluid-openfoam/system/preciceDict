@@ -1,0 +1,39 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      preciceDict;
+}
+
+preciceConfig "../precice-config.xml";
+
+participant Fluid;
+
+modules (FSI);
+
+interfaces
+{
+  Interface1
+  {
+    mesh              Fluid-Mesh;
+    patches           (flap);
+    locations         faceCenters;
+    
+    readData
+    (
+      Displacement
+    );
+    
+    writeData
+    (
+      Force
+    );
+  };
+};
+
+FSI
+{
+  rho rho [1 -3 0 0 0 0 0] 1000;
+}

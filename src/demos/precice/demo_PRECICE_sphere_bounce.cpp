@@ -12,7 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Program for...
+// Demonstration for the Chrono MBS preCICE adapter, using a mock-up fluid solver
+// that only applies buoyancy and drag forces to a spherical object.
 //
 // =============================================================================
 
@@ -50,10 +51,10 @@ int main(int argc, char* argv[]) {
     cin >> foo;
 #endif
 
-    std::cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
     // Problem settings
-    std::string precice_config_filename = GetChronoDataFile("precice/mbs/sphere/buoyancy.xml");
+    std::string precice_config_filename = GetChronoDataFile("precice/sphere_bounce/precice_config_explicit.xml");
     bool verbose = true;
 
     // Get the participant type (MBS or CFD)
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
 // =============================================================================
 
 void RunParticipantMBS(const std::string& precice_config_filename, bool verbose) {
-    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/mbs/sphere/mbs.yaml"), verbose);
+    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_bounce/mbs_participant.yaml"), verbose);
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
@@ -108,7 +109,7 @@ class ParticipantCFD : public ChPreciceAdapter {
 
 ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
     SetVerbose(verbose);
-    ConfigureParticipant(GetChronoDataFile("precice/mbs/sphere/cfd.yaml"));
+    ConfigureParticipant(GetChronoDataFile("precice/sphere_bounce/cfd_participant.yaml"));
 }
 
 void ParticipantCFD::InitializeParticipant() {
