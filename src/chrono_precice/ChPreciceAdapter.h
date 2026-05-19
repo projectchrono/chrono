@@ -174,11 +174,8 @@ class ChApiPrecice ChPreciceAdapter {
 
     // ---- Mesh specification
 
-    /// Register a 2D coupling mesh with preCICE, using the specified mesh name and its vertex positions (of ChVector2d type).
-    /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
-    void RegisterMesh(const std::string& mesh_name, const std::vector<ChVector2d>& positions);
-
-    /// Register a 3D coupling mesh with preCICE, using the specified mesh name and its vertex positions (of ChVector3d type).
+    /// Register a coupling mesh with preCICE, using the specified mesh name and its vertex positions (of ChVector3d type).
+    /// If the mesh dimension is 2, the z component of the given position vectors is discarded.
     /// With the mesh size, the data maps inside the adapter initialize the relevant data vector to size of mesh_size*data_dimension.
     void RegisterMesh(const std::string& mesh_name, const std::vector<ChVector3d>& positions);
 

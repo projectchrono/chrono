@@ -190,28 +190,18 @@ void ChPreciceAdapter::RegisterParticipant(const std::string& precice_config_fil
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vector<ChVector2d>& positions) {
-    assert(m_participant_created);
-    ChAssertAlways(m_participant->getMeshDimensions(mesh_name) == 2);
-
-    std::vector<double> pos_vec;
-    for (const auto& pos : positions) {
-        pos_vec.push_back(pos.x());
-        pos_vec.push_back(pos.y());
-    }
-
-    RegisterMesh(mesh_name, pos_vec);
-}
-
 void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vector<ChVector3d>& positions) {
     assert(m_participant_created);
-    ChAssertAlways(m_participant->getMeshDimensions(mesh_name) == 3);
+
+    auto mesh_dim = m_participant->getMeshDimensions(mesh_name); 
+    ChAssertAlways(mesh_dim == 2 || mesh_dim == 3);
 
     std::vector<double> pos_vec;
     for (const auto& pos : positions) {
         pos_vec.push_back(pos.x());
         pos_vec.push_back(pos.y());
-        pos_vec.push_back(pos.z());
+        if (mesh_dim == 3)
+            pos_vec.push_back(pos.z());
     }
 
     RegisterMesh(mesh_name, pos_vec);
@@ -234,8 +224,8 @@ void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vec
     // Data dimension is the number of values per vertex for the data, which is determined by preCICE based on the configuration file
     // (e.g., scalar data has dimension 1, vector data has dimension equal to mesh dimension, etc.)
     for (auto& [data_name, data_info] : m_coupling_meshes[mesh_name].data) {
-        int data_dimension = m_participant->getDataDimensions(mesh_name, data_name);
-        data_info.values.resize(num_vertices * data_dimension);
+        int data_dim = m_participant->getDataDimensions(mesh_name, data_name);
+        data_info.values.resize(num_vertices * data_dim);
     }
 
     if (m_verbose) {
