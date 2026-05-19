@@ -25,6 +25,42 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
+// -----------------------------------------------------------------------------
+
+// Utility function to read a list of 3D vectors from a space-delimited file.
+static std::vector<ChVector3d> ReadPoints(const std::string& filename) {
+    // Open input file stream
+    std::ifstream ifile;
+    std::string line;
+    try {
+        ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
+        ifile.open(filename);
+    } catch (const std::exception&) {
+        cerr << "Cannot open input file '" << filename << "'" << endl;
+        throw std::invalid_argument("Cannot open input file");
+    }
+
+    // Read number of points
+    std::getline(ifile, line);
+    std::istringstream iss(line);
+    size_t num_points;
+    iss >> num_points;
+
+    // Read points
+    std::vector<ChVector3d> points;
+    for (size_t i = 0; i < num_points; i++) {
+        std::getline(ifile, line);
+        std::istringstream jss(line);
+        double x, y, z;
+        jss >> x >> y >> z;
+        points.push_back(ChVector3d(x, y, z));
+    }
+
+    return points;
+}
+
+// -----------------------------------------------------------------------------
+
 ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose) : m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
     SetVerbose(verbose);
 }
@@ -73,12 +109,22 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
                 cerr << "No body named '" << body_name << "' was found in the MBS" << endl;
                 throw std::runtime_error("Interface body not present in MBS");
             }
-            std::shared_ptr<ChTriangleMeshConnected> mesh = nullptr;
-            if (bodies[i]["mesh_file"]) {
-                auto mesh_file_name = bodies[i]["mesh_file"].as<std::string>();
-                mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(m_file_handler.GetFilename(mesh_file_name), false, false);
+            if (bodies[i]["points"]) {
+                auto points_file = bodies[i]["points"].as<std::string>();
+                auto points_ext = std::filesystem::path(points_file).extension().string();
+                if (points_ext == ".obj" || points_ext == ".OBJ") {
+                    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(m_file_handler.GetFilename(points_file), false, false);
+                    AddCouplingBody(body, mesh->GetCoordsVertices());
+                } else if (points_ext == ".stl" || points_ext == ".STL") {
+                    auto mesh = ChTriangleMeshConnected::CreateFromSTLFile(m_file_handler.GetFilename(points_file), false);
+                    AddCouplingBody(body, mesh->GetCoordsVertices());
+                } else {
+                    auto points = ReadPoints(m_file_handler.GetFilename(points_file));
+                    AddCouplingBody(body, points);
+                }
+            } else {
+                AddCouplingBody(body, std::vector<ChVector3d>());
             }
-            AddCouplingBody(body, mesh);
         }
     }
 
@@ -99,11 +145,13 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
 
 ChPreciceAdapterMbs::~ChPreciceAdapterMbs() {}
 
-void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, std::shared_ptr<ChTriangleMeshConnected> mesh) {
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, const std::vector<ChVector3d>& points) {
     auto c_body = chrono_types::make_shared<CouplingBody>();
     c_body->index = (int)m_coupling_bodies.size();
     c_body->body = body;
-    c_body->mesh = mesh;
+    c_body->points = points;
     c_body->accumulator_index = body->AddAccumulator();
     m_coupling_bodies.push_back(c_body);
 }
@@ -142,19 +190,23 @@ bool ChPreciceAdapterMbs::EnableVisualization(double render_fps,
 void ChPreciceAdapterMbs::InitializeParticipant() {
     ChPreciceAdapter::InitializeParticipant();
 
-    // Go through all interface meshes and
-    // - check that coupling meshes have dimension 3 (as reported by preCICE)
-    // - check that coupling data have dimension 3 (as reported by preCICE)
-    // - set mesh vertices (depending on data type)
+    // For each interface meshe:
+    // - check that coupling meshes have dimension 2 or 3 (as reported by preCICE)
+    // - check that coupling data have dimension equal to the mesh dimension (as reported by preCICE)
+    // - set mesh vertices (depending on mesh type and dimension)
     // - register mesh with preCICE
     for (const auto& mesh_name : GetCouplingMeshNames()) {
-        ChAssertAlways(GetCouplingMeshDimensions(mesh_name) == 3);
+        auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
-            ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == 3);
+            // Forces and torques must have the same dimension as the coupling mesh
+            if (GetCouplingDataType(mesh_name, data_name) != CouplingDataType::GENERIC)
+                ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == mesh_dim);
         }
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
-            ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == 3);
+            // Positions and velocities must have the same simension as the coupling mesh
+            if (GetCouplingDataType(mesh_name, data_name) != CouplingDataType::GENERIC)
+                ChAssertAlways(GetCouplingDataDimensions(mesh_name, data_name) == mesh_dim);
         }
 
         std::vector<ChVector3d> vertices;
@@ -167,9 +219,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
             }
             case CouplingMeshType::RIGID_BODY_MESH_POINTS: {
                 for (const auto& c_body : m_coupling_bodies) {
-                    ChAssertAlways(c_body->mesh);
-                    const auto& nodes = c_body->mesh->GetCoordsVertices();
-                    vertices.insert(vertices.end(), nodes.begin(), nodes.end());
+                    ChAssertAlways(!c_body->points.empty());
+                    vertices.insert(vertices.end(), c_body->points.begin(), c_body->points.end());
                 }
                 break;
             }
@@ -392,7 +443,7 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
             case CouplingDataType::FORCES: {
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
-                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                    for (const auto& pos_loc : c_body->points) {
                         ChVector3d force_abs;
                         force_abs.x() = data_values[i_data + 0];
                         force_abs.y() = data_values[i_data + 1];
@@ -407,7 +458,7 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
             case CouplingDataType::TORQUES: {
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
-                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                    for (const auto& pos_loc : c_body->points) {
                         ChVector3d torque_abs;
                         torque_abs.x() = data_values[i_data + 0];
                         torque_abs.y() = data_values[i_data + 1];
@@ -433,7 +484,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
             case CouplingDataType::POSITIONS: {
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
-                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                    for (const auto& pos_loc : c_body->points) {
                         ChVector3d pos_abs = c_body->body->TransformPointLocalToParent(pos_loc);
                         data_values[i_data + 0] = pos_abs.x();
                         data_values[i_data + 1] = pos_abs.y();
@@ -446,7 +497,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
             case CouplingDataType::VELOCITIES: {
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
-                    for (const auto& pos_loc : c_body->mesh->GetCoordsVertices()) {
+                    for (const auto& pos_loc : c_body->points) {
                         ChVector3d vel_abs = c_body->body->PointSpeedLocalToParent(pos_loc);
                         data_values[i_data + 0] = vel_abs.x();
                         data_values[i_data + 1] = vel_abs.y();

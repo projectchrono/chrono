@@ -71,7 +71,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
 
-    void AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, std::shared_ptr<ChTriangleMeshConnected> mesh);
+    void AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, const std::vector<ChVector3d>& points);
 #ifdef CHRONO_FEA
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
 #endif
@@ -94,7 +94,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     struct CouplingBody {
         int index;
         std::shared_ptr<ChBodyAuxRef> body;
-        std::shared_ptr<ChTriangleMeshConnected> mesh;
+        std::vector<ChVector3d> points;
         unsigned int accumulator_index;
     };
 
