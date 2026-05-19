@@ -95,6 +95,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
         int index;
         std::shared_ptr<ChBodyAuxRef> body;
         std::vector<ChVector3d> points;
+        ChFramed init_body_frame;
         unsigned int accumulator_index;
     };
 

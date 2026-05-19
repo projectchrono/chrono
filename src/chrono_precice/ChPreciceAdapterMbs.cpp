@@ -152,6 +152,7 @@ void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, co
     c_body->index = (int)m_coupling_bodies.size();
     c_body->body = body;
     c_body->points = points;
+    c_body->init_body_frame = body->GetFrameRefToAbs();
     c_body->accumulator_index = body->AddAccumulator();
     m_coupling_bodies.push_back(c_body);
 }
@@ -209,6 +210,10 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                     // Torques must be 3D for a 3D mesh and 1D for a 2D mesh
                     ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                     break;
+                case CouplingDataType::POSITIONS:
+                case CouplingDataType::DISPLACEMENTS:
+                case CouplingDataType::VELOCITIES:
+                    throw std::runtime_error("Incorrect Chrono read data type");
             }
         }
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
@@ -216,10 +221,14 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
                 case CouplingDataType::POSITIONS:
+                case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::VELOCITIES:
                     // Positions and velocities must have the same simension as the coupling mesh
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
+                case CouplingDataType::FORCES:
+                case CouplingDataType::TORQUES:
+                    throw std::runtime_error("Incorrect Chrono write data type");
             }
         }
 
@@ -459,6 +468,26 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 }
                 break;
             }
+            case CouplingDataType::DISPLACEMENTS: {
+                assert(data_dim == mesh_dim);
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    auto displ_abs = c_body->body->GetFrameRefToAbs().GetPos() - c_body->init_body_frame.GetPos();
+                    if (data_dim == 2) {
+                        data_values[i_data + 0] = displ_abs.x();
+                        data_values[i_data + 1] = displ_abs.y();
+                        i_data += 2;
+                    } else {
+                        data_values[i_data + 0] = displ_abs.x();
+                        data_values[i_data + 1] = displ_abs.y();
+                        data_values[i_data + 2] = displ_abs.z();
+                        i_data += 3;
+                    }
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | displ:  " << displ_abs << endl;
+                }
+                break;
+            }
             case CouplingDataType::VELOCITIES: {
                 assert(data_dim == mesh_dim);
                 size_t i_data = 0;
@@ -570,6 +599,26 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                             data_values[i_data + 0] = pos_abs.x();
                             data_values[i_data + 1] = pos_abs.y();
                             data_values[i_data + 2] = pos_abs.z();
+                            i_data += 3;
+                        }
+                    }
+                }
+                break;
+            }
+            case CouplingDataType::DISPLACEMENTS: {
+                assert(data_dim == mesh_dim);
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    for (const auto& pos_loc : c_body->points) {
+                        ChVector3d displ_abs = c_body->body->TransformPointLocalToParent(pos_loc) - c_body->init_body_frame.TransformPointLocalToParent(pos_loc);
+                        if (data_dim == 2) {
+                            data_values[i_data + 0] = displ_abs.x();
+                            data_values[i_data + 1] = displ_abs.y();
+                            i_data += 2;
+                        } else {
+                            data_values[i_data + 0] = displ_abs.x();
+                            data_values[i_data + 1] = displ_abs.y();
+                            data_values[i_data + 2] = displ_abs.z();
                             i_data += 3;
                         }
                     }

@@ -70,6 +70,8 @@ static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node&
         return ChPreciceAdapter::CouplingDataType::GENERIC;
     if (type == "POSITIONS")
         return ChPreciceAdapter::CouplingDataType::POSITIONS;
+    if (type == "DISPLACEMENTS")
+        return ChPreciceAdapter::CouplingDataType::DISPLACEMENTS;
     if (type == "VELOCITIES")
         return ChPreciceAdapter::CouplingDataType::VELOCITIES;
     if (type == "FORCES")
@@ -277,6 +279,8 @@ std::string ChPreciceAdapter::GetCouplingDataTypeAsString(const std::string& mes
             return "GENERIC";
         case CouplingDataType::POSITIONS:
             return "POSITIONS";
+        case CouplingDataType::DISPLACEMENTS:
+            return "DISPLACEMENTS";
         case CouplingDataType::VELOCITIES:
             return "VELOCITIES";
         case CouplingDataType::FORCES:

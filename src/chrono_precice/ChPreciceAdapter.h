@@ -48,11 +48,12 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Chrono coupling data type.
     enum class CouplingDataType {
-        GENERIC,     ///< generic data
-        POSITIONS,   ///< 3D positions
-        VELOCITIES,  ///< 3D velocities
-        FORCES,      ///< 3D forces
-        TORQUES      ///< 3D torques
+        GENERIC,        ///< generic data
+        POSITIONS,      ///< 3D positions (body reference, body points, of FEA nodes)
+        DISPLACEMENTS,  ///< 3D displacements (relative to initial position)
+        VELOCITIES,     ///< 3D velocities (of bodies, body points, or FEA nodes)
+        FORCES,         ///< 3D forces (on bodies, body points, or FEA nodes)
+        TORQUES         ///< 3D torques (on bodies or FEA nodes)
     };
 
     virtual ~ChPreciceAdapter() {}
