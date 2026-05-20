@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-set -e -u
-
-. ../../tools/log.sh
-exec > >(tee --append "$LOGFILE") 2>&1
+set -e
 
 blockMesh
 
-../../tools/run-openfoam.sh "$@"
-
-. ../../tools/openfoam-remove-empty-dirs.sh && openfoam_remove_empty_dirs
-
-close_log
+. "${WM_PROJECT_DIR}/bin/tools/RunFunctions"
+foam_solver=$(getApplication)
+if [ "${1:-}" = "-parallel" ]; then
+    num_procs=$(getNumberOfProcessors)
+    decomposePar -force
+    mpirun -np "${num_procs}" "${foam_solver}" -parallel
+    reconstructPar
+else
+    ${foam_solver}
+fi

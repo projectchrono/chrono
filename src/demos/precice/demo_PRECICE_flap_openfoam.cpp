@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     ////GenerateData();
 
     // Problem settings
-    std::string precice_config_filename = GetChronoDataFile("precice/flap_openfoam/precise_config.xml");
+    std::string precice_config_filename = GetChronoDataFile("precice/flap_openfoam/precice_config.xml");
     bool verbose = true;
 
     // Set up Chrono MBS participant

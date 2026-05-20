@@ -17,7 +17,7 @@ interfaces
 {
   Interface1
   {
-    mesh              Fluid-Mesh;
+    mesh              FluidMesh;
     patches           (flap);
     locations         faceCenters;
     

@@ -12,34 +12,34 @@
   <data:vector name="Force" />
   <data:vector name="Displacement" />
 
-  <mesh name="Fluid-Mesh" dimensions="2">
+  <mesh name="FluidMesh" dimensions="2">
     <use-data name="Force" />
     <use-data name="Displacement" />
   </mesh>
 
-  <mesh name="Solid-Mesh" dimensions="2">
+  <mesh name="SolidMesh" dimensions="2">
     <use-data name="Displacement" />
     <use-data name="Force" />
   </mesh>
 
   <participant name="Fluid">
-    <provide-mesh name="Fluid-Mesh" />
-    <receive-mesh name="Solid-Mesh" from="Solid" />
-    <read-data name="Displacement" mesh="Fluid-Mesh" />
-    <write-data name="Force" mesh="Fluid-Mesh" />
-    <mapping:rbf direction="read" from="Solid-Mesh" to="Fluid-Mesh" constraint="consistent">
+    <provide-mesh name="FluidMesh" />
+    <receive-mesh name="SolidMesh" from="Solid" />
+    <read-data name="Displacement" mesh="FluidMesh" />
+    <write-data name="Force" mesh="FluidMesh" />
+    <mapping:rbf direction="read" from="SolidMesh" to="FluidMesh" constraint="consistent">
       <basis-function:thin-plate-splines />
     </mapping:rbf>
-    <mapping:rbf direction="write" from="Fluid-Mesh" to="Solid-Mesh" constraint="conservative">
+    <mapping:rbf direction="write" from="FluidMesh" to="SolidMesh" constraint="conservative">
       <basis-function:thin-plate-splines />
     </mapping:rbf>
   </participant>
 
   <participant name="Solid">
-    <provide-mesh name="Solid-Mesh" />
-    <read-data name="Force" mesh="Solid-Mesh" />
-    <write-data name="Displacement" mesh="Solid-Mesh" />
-    <watch-point mesh="Solid-Mesh" name="Flap-Tip" coordinate="0.25;0.0" />
+    <provide-mesh name="SolidMesh" />
+    <read-data name="Force" mesh="SolidMesh" />
+    <write-data name="Displacement" mesh="SolidMesh" />
+    <watch-point mesh="SolidMesh" name="Flap-Tip" coordinate="0.25;0.0" />
     <export:vtu directory="precice-exports" />
   </participant>
 
@@ -49,7 +49,7 @@
     <time-window-size value="2.5e-2" />
     <max-time value="2.5" />
     <participants first="Solid" second="Fluid" />
-    <exchange data="Force" mesh="Solid-Mesh" from="Fluid" to="Solid" />
-    <exchange data="Displacement" mesh="Solid-Mesh" from="Solid" to="Fluid" />
+    <exchange data="Force" mesh="SolidMesh" from="Fluid" to="Solid" />
+    <exchange data="Displacement" mesh="SolidMesh" from="Solid" to="Fluid" />
   </coupling-scheme:serial-explicit>
 </precice-configuration>

@@ -24,20 +24,14 @@ precice_adapter_config:
 
   bodies:
   - name: flap
-    #point: flap.obj
-    #points: flap.stl
     points: flap.txt
 
   interfaces:
   - mesh_name: SolidMesh
     mesh_type: RIGID_BODY_MESH_POINTS
     write_data:
-    - name: displacements
+    - name: Displacement
       type: DISPLACEMENTS
-    - name: velocities
-      type: VELOCITIES
     read_data:
-    - name: forces
+    - name: Force
       type: FORCES
-    - name: torques
-      type: TORQUES
