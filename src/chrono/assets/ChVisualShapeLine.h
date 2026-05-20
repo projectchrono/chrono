@@ -32,7 +32,7 @@ class ChApi ChVisualShapeLine : public ChVisualShape {
     virtual ~ChVisualShapeLine() {}
 
     /// Access the line geometry.
-    std::shared_ptr<ChLine> GetLineGeometry() { return gline; }
+    std::shared_ptr<ChLine> GetLineGeometry() const { return gline; }
 
     /// Set the line geometry.
     void SetLineGeometry(std::shared_ptr<ChLine> mline) { gline = mline; }

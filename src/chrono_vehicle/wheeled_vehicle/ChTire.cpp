@@ -20,14 +20,13 @@
 // =============================================================================
 
 #include <cmath>
+#include <filesystem>
 
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
@@ -113,7 +112,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const st
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
+    trimesh_shape->SetName(std::filesystem::path(m_vis_mesh_file).stem().string());
     m_wheel->GetSpindle()->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, GetOffset(), 0), ChMatrix33<>(rot)));
 
     return trimesh_shape;

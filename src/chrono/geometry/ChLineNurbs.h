@@ -29,23 +29,16 @@ namespace chrono {
 /// Geometric object representing a NURBS spline.
 class ChApi ChLineNurbs : public ChLine {
   public:
-    std::vector<ChVector3d> m_points;
-    ChVectorDynamic<> m_weights;
-    ChVectorDynamic<> m_knots;
-    int m_p;
-
-  public:
     /// Constructor. By default, a segment (order = 1, two points on X axis, at -1, +1)
     ChLineNurbs();
 
     /// Constructor from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     /// If the weights are not provided, a constant weight vector is made.
-    ChLineNurbs(
-        int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
-        ChVectorDynamic<>* mknots = 0,  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-        ChVectorDynamic<>* weights = 0  ///< weights, size w. Required w=n. If not provided, all weights as 1.
+    ChLineNurbs(int order,                                  ///< order p: 1= linear, 2=quadratic, etc.
+                const std::vector<ChVector3d>& points,      ///< control points, size n. Required: at least n >= p+1
+                const ChVectorDynamic<>* knots = nullptr,   ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+                const ChVectorDynamic<>* weights = nullptr  ///< weights, size w. Required w=n. If not provided, all weights as 1.
     );
 
     ChLineNurbs(const ChLineNurbs& source);
@@ -62,38 +55,35 @@ class ChApi ChLineNurbs : public ChLine {
     /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
     virtual ChVector3d GetTangent(double parU) const override;
 
-    // NURBS specific functions
+    // NURBS specific functions ------------------------------------------------
 
-    /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
-    /// but knot range is not necessarily in 0..1. So you can convert u->U,
-    /// where u is in knot range, calling this:
+    /// When using Evaluate() etc. you need U parameter to be in 0..1 range, but knot range is not necessarily in 0..1.
+    /// So you can convert u->U, where u is in knot range, by calling this.
     double ComputeUfromKnotU(double u) const;
 
-    /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
-    /// but knot range is not necessarily in 0..1. So you can convert U->u,
-    /// where u is in knot range, calling this:
+    /// When using Evaluate() etc. you need U parameter to be in 0..1 range, but knot range is not necessarily in 0..1.
+    /// So you can convert U->u, where u is in knot range, by calling this.
     double ComputeKnotUfromU(double U) const;
 
-    /// Access the points
+    /// Access the points.
     std::vector<ChVector3d>& Points() { return m_points; }
 
-    /// Access the weights
+    /// Access the weights.
     ChVectorDynamic<>& Weights() { return m_weights; }
 
-    /// Access the knots
+    /// Access the knots.
     ChVectorDynamic<>& Knots() { return m_knots; }
 
-    /// Get the order of spline
+    /// Get the order of spline.
     int GetOrder() { return m_p; }
 
     /// Initial easy setup from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     /// If the weights are not provided, a constant weight vector is made.
-    virtual void Setup(
-        int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
-        std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
-        ChVectorDynamic<>* mknots = 0,  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-        ChVectorDynamic<>* weights = 0  ///< weights, size w. Required w=n. If not provided, all weights as 1.
+    virtual void Setup(int order,                                  ///< order p: 1= linear, 2=quadratic, etc.
+                       const std::vector<ChVector3d>& points,      ///< control points, size n. Required: at least n >= p+1
+                       const ChVectorDynamic<>* knots = nullptr,   ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+                       const ChVectorDynamic<>* weights = nullptr  ///< weights, size w. Required w=n. If not provided, all weights as 1.
     );
 
     /// Method to allow serialization of transient data to archives.
@@ -101,6 +91,12 @@ class ChApi ChLineNurbs : public ChLine {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::vector<ChVector3d> m_points;
+    ChVectorDynamic<> m_weights;
+    ChVectorDynamic<> m_knots;
+    int m_p;  ///< order
 };
 
 /// @} chrono_geometry

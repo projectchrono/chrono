@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <limits>
+#include <filesystem>
 
 #include "chrono/core/ChDataPath.h"
 
@@ -29,8 +30,6 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChBodyGeometry.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace utils {
@@ -282,7 +281,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_model_file, true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(vis_model_file).stem());
+        trimesh_shape->SetName(std::filesystem::path(vis_model_file).stem().string());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
         return;
     }

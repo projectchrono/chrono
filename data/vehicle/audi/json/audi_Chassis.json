@@ -27,6 +27,6 @@
 
   "Visualization":
   {
-    "Mesh":  "audi/audi_chassis.obj"
+    "Mesh":  "vehicle/audi/audi_chassis.obj"
   }
 }

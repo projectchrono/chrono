@@ -31,11 +31,9 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
@@ -271,7 +269,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------
 
     std::string out_dir = GetChronoOutputPath() + "CRM_Wheeled_Vehicle/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
@@ -437,6 +435,7 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
 
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+#ifdef CHRONO_FEA
             auto tire_fea = std::dynamic_pointer_cast<ChDeformableTire>(wheel->GetTire());
             if (tire_fea) {
                 auto mesh = tire_fea->GetMesh();
@@ -454,6 +453,9 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
             } else {
                 terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
             }
+#else
+            terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
+#endif
         }
     }
 }

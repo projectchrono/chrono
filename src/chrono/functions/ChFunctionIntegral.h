@@ -28,15 +28,6 @@ namespace chrono {
 /// The function returns a value equal to the offset for any value x<= x_start, while returns y(x_end) for any value x>=
 /// x_end. x_start and x_end are set through the SetStartArg() and SetEndArg() methods.
 class ChApi ChFunctionIntegral : public ChFunction {
-  private:
-    std::shared_ptr<ChFunction> m_integrand_fun;
-    int m_integration_order;     ///< integration order
-    double m_offset;             ///< initial value of the integral at x=m_x_start
-    double m_x_start;            ///< start of integration interval
-    double m_x_end;              ///< end of integration interval
-    unsigned int m_num_samples;  ///< number of samples for the numerical quadrature
-    ChArray<> m_cumintegral;     ///< precomputed integral values
-
   public:
     ChFunctionIntegral();
     ChFunctionIntegral(const ChFunctionIntegral& other);
@@ -97,6 +88,15 @@ class ChApi ChFunctionIntegral : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::shared_ptr<ChFunction> m_integrand_fun;
+    int m_integration_order;     ///< integration order
+    double m_offset;             ///< initial value of the integral at x=m_x_start
+    double m_x_start;            ///< start of integration interval
+    double m_x_end;              ///< end of integration interval
+    unsigned int m_num_samples;  ///< number of samples for the numerical quadrature
+    ChArray<> m_cumintegral;     ///< precomputed integral values
 };
 
 /// @} chrono_functions

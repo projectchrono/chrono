@@ -44,7 +44,7 @@
     "Shapes": [
       {
         "Type": "MESH",
-        "Filename": "truck/truck_chassis_col.obj",
+        "Filename": "vehicle/truck/truck_chassis_col.obj",
         "Location": [ 0, 0.0, 0.0 ],
         "Contact Radius": 0.0,
         "Material Index": 0
@@ -53,6 +53,6 @@
   },
 
   "Visualization": {
-    "Mesh": "truck/truck_chassis.obj"
+    "Mesh": "vehicle/truck/truck_chassis.obj"
   }
 }

@@ -43,8 +43,6 @@
     #include "chrono_sensor/filters/ChFilterVisualize.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::sensor;
 
@@ -263,7 +261,7 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

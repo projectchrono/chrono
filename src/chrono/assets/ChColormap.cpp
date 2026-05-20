@@ -70,6 +70,9 @@ void ChColormap::Load(Type type) {
 ChColor ChColormap::Get(double value) const {
     ChClampValue(value, 0.0, 1.0);
 
+    if (std::isnan(value))
+        return ChColor(0, 0, 0); // return black to signal "NaN" 
+        
     if (value <= m_map.front().first)
         return m_map.front().second;
 

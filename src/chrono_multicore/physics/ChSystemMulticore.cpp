@@ -70,7 +70,7 @@ ChSystemMulticore::~ChSystemMulticore() {
     delete data_manager;
 }
 
-bool ChSystemMulticore::AdvanceDynamics() {
+bool ChSystemMulticore::AdvanceDynamics(bool do_collision) {
     ResetTimers();
     timer_step.start();  // time elapsed for step (for RTF calculation)
 
@@ -90,7 +90,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
     data_manager->system_timer.stop("update");
 
     data_manager->system_timer.start("collision");
-    if (collision_system) {
+    if (do_collision && collision_system) {
         collision_system->PreProcess();
         collision_system->Run();
         collision_system->PostProcess();
@@ -643,7 +643,7 @@ void ChSystemMulticore::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
 
-unsigned int ChSystemMulticore::GetNumContacts() {
+unsigned int ChSystemMulticore::GetNumContacts() const {
     if (!data_manager->cd_data)
         return 0;
 

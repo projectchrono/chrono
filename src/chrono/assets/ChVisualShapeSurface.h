@@ -32,7 +32,7 @@ class ChApi ChVisualShapeSurface : public ChVisualShape {
     ~ChVisualShapeSurface() {}
 
     /// Get the surface  geometry.
-    std::shared_ptr<ChSurface> GetSurfaceGeometry() { return gsurface; }
+    std::shared_ptr<ChSurface> GetSurfaceGeometry() const { return gsurface; }
 
     /// Set the surface geometry.
     void SetSurfaceGeometry(std::shared_ptr<ChSurface> ms) { gsurface = ms; }
@@ -44,10 +44,10 @@ class ChApi ChVisualShapeSurface : public ChVisualShape {
     void SetWireframe(bool mw) { wireframe = mw; }
 
     /// Subdivision density for tessellation.
-    int GetResolutionU() { return resolution_U; }
+    int GetResolutionU() const { return resolution_U; }
 
     /// Subdivision density for tessellation.
-    int GetResolutionV() { return resolution_V; }
+    int GetResolutionV() const { return resolution_V; }
 
     /// Set u- subdivision density for tessellation.
     void SetResolutionU(int mr) { resolution_U = mr; }

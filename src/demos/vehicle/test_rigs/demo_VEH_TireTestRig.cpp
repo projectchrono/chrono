@@ -26,10 +26,12 @@
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#endif
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
@@ -37,8 +39,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
     #include "chrono_postprocess/ChBlender.h"
 #endif
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "demos/SetChronoSolver.h"
 
@@ -90,13 +90,17 @@ int main() {
     auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
     bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
-    bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    bool fea_tire = false;
+#ifdef CHRONO_FEA
+    fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+#endif
 
     if (handling_tire && terrain_type == ChTireTestRig::TerrainType::SCM) {
         cerr << "ERROR: Handling tire models cannot be used with SCM terrain." << endl;
         return 1;
     }
 
+#ifdef CHRONO_FEA
     // Set tire contact surface (relevant for FEA tires only)
     if (fea_tire) {
         int collision_family = 7;
@@ -108,6 +112,7 @@ int main() {
         }
         tire->SetContactSurfaceType(surface_type, surface_dim, collision_family);
     }
+#endif
 
     // ---------------------------------------------------------
     // Create system and set default solver and integrator types
@@ -118,9 +123,19 @@ int main() {
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
 
-    if (fea_tire) {
+    if (!fea_tire) {
+        sys = new ChSystemNSC;
+        step_size = 2e-4;
+        
+        solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+#ifdef CHRONO_FEA
+    else {
         sys = new ChSystemSMC;
         step_size = 5e-5;
+
+        solver_type = ChSolver::Type::PARDISO_MKL;
         ////solver_type = ChSolver::Type::PARDISO_MKL;
         ////solver_type = ChSolver::Type::SPARSE_QR;
         ////solver_type = ChSolver::Type::BICGSTAB;
@@ -128,12 +143,8 @@ int main() {
 
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
         ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    } else {
-        sys = new ChSystemNSC;
-        step_size = 2e-4;
-        solver_type = ChSolver::Type::BARZILAIBORWEIN;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
+#endif
 
     // Set collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -230,6 +241,7 @@ int main() {
     ////rig.Initialize(ChTireTestRig::Mode::DROP);
     rig.Initialize(ChTireTestRig::Mode::TEST, 0.05);
 
+#ifdef CHRONO_FEA
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
         auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
@@ -240,13 +252,14 @@ int main() {
         visFEA->SetSmoothFaces(true);
         tire_def->AddVisualShapeFEA(visFEA);
     }
+#endif
 
     // -----------------
     // Initialize output
     // -----------------
 
     const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
@@ -273,7 +286,7 @@ int main() {
 
     if (blender_output) {
         std::string blender_dir = out_dir + "/blender";
-        if (!filesystem::create_directory(filesystem::path(blender_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(blender_dir))) {
             cerr << "Error creating directory " << blender_dir << endl;
             return 1;
         }

@@ -52,7 +52,6 @@ class ChApi ChTimestepper {
     virtual ~ChTimestepper() {}
 
     /// Return type of the integration method.
-    /// Default is CUSTOM. Derived classes should override this function.
     virtual Type GetType() const = 0;
 
     /// Return the associated integrable object.

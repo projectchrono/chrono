@@ -18,8 +18,6 @@
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #include "chrono_parsers/yaml/ChParserCfdYAML.h"
 
-#include "chrono/assets/ChColormap.h"
-
 #include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
 #include "chrono_fsi/tdpf/ChFsiFluidSystemTDPF.h"
 
@@ -117,7 +115,6 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     };
 
   private:
-    static ChColormap::Type ReadColorMapType(const YAML::Node& a);
     static WaveType ReadWaveType(const YAML::Node& a);
 #ifdef CHRONO_VSG
     static fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ReadWaveColoringMode(const YAML::Node& a);

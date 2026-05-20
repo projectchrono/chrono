@@ -74,9 +74,30 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
   private:
     enum class WaveType { NONE, REGULAR, IRREGULAR };
 
+    // ----------
+
+    /// Load the given body and mesh node states in the TDPF data manager structures.
+    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the TDPF data
+    /// manager. LoadSolidStates is always called once during initialization. If the TDPF fluid solver is paired with
+    /// the generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at
+    /// each co-simulation data exchange. If using a custom TDPF FSI interface, MBS states are copied directly...
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states) override;
+
+    /// Store the body and mesh node forces from the TDPF data manager to the given vectors.
+    /// If the TDPF fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
+    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using a custom TDPF FSI
+    /// interface, MBS forces are copied directly...
+    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces) override;
+
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
+    // ----------
+
+    /// Initialize the TDPF fluid system with FSI support.
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states) override;
+
+ #ifdef CHRONO_FEA
     /// TDPF solver-specific actions taken when a 1D deformable solid is added as an FSI object.
     virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
 
@@ -108,6 +129,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) override;
+#endif
 
     // ----------
 

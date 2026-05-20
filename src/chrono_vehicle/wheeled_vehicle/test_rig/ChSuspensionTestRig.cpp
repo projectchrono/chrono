@@ -27,7 +27,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #ifdef CHRONO_POSTPROCESS

@@ -29,11 +29,7 @@ namespace chrono {
 namespace vehicle {
 
 ChTrackAssembly::ChTrackAssembly(const std::string& name, VehicleSide side)
-    : ChPart(name),
-      m_side(side),
-      m_idler_as_cylinder(true),
-      m_roller_as_cylinder(true),
-      m_roadwheel_as_cylinder(true) {}
+    : ChPart(name), m_side(side), m_idler_as_cylinder(true), m_roller_as_cylinder(true), m_roadwheel_as_cylinder(true) {}
 
 // -----------------------------------------------------------------------------
 // Get the complete state for the specified track shoe.
@@ -161,6 +157,7 @@ void ChTrackAssembly::UpdateInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
+
 ChTrackSuspension::ForceTorque ChTrackAssembly::ReportSuspensionForce(size_t id) const {
     return m_suspensions[id]->ReportSuspensionForce();
 }
@@ -172,6 +169,7 @@ double ChTrackAssembly::ReportTrackLength() const {
 }
 
 // -----------------------------------------------------------------------------
+
 void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
     GetSprocket()->SetVisualizationType(vis);
 }
@@ -211,9 +209,7 @@ void ChTrackAssembly::SetTrackShoeVisualizationType(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 
-void ChTrackAssembly::SetWheelCollisionType(bool roadwheel_as_cylinder,
-                                            bool idler_as_cylinder,
-                                            bool roller_as_cylinder) {
+void ChTrackAssembly::SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder, bool roller_as_cylinder) {
     m_roadwheel_as_cylinder = roadwheel_as_cylinder;
     m_idler_as_cylinder = idler_as_cylinder;
     m_roller_as_cylinder = roller_as_cylinder;
@@ -246,7 +242,7 @@ void ChTrackAssembly::Advance(double step) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChTrackAssembly::SetOutput(bool state) {
     m_output = state;
     GetSprocket()->SetOutput(state);
@@ -258,6 +254,39 @@ void ChTrackAssembly::SetOutput(bool state) {
         roller->SetOutput(state);
     if (GetNumTrackShoes() > 0)
         GetTrackShoe(0)->SetOutput(state);
+}
+
+// -----------------------------------------------------------------------------
+
+std::vector<std::shared_ptr<ChBody>> ChTrackAssembly::GetBodyList() const {
+    std::vector<std::shared_ptr<ChBody>> bodies;
+
+    {
+        auto b = GetSprocket()->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    {
+        auto b = m_idler->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    for (auto& suspension : m_suspensions) {
+        auto b = suspension->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    for (auto& roller : m_rollers) {
+        auto b = roller->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
+        auto b = GetTrackShoe(i)->GetBodyList();
+        bodies.insert(bodies.end(), b.begin(), b.end());
+    }
+
+    return bodies;
 }
 
 // -----------------------------------------------------------------------------

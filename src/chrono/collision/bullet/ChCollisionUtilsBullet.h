@@ -125,8 +125,10 @@ ChApi bool IntersectSegmentCylinder(const cbtVector3& sC,  ///< segment center p
 /// Wrapper for using and exporting the Bullet implementation of the convex hull library.
 class ChApi ChConvexHullLibraryWrapper {
   public:
-    ChConvexHullLibraryWrapper();
-    void ComputeHull(const std::vector<ChVector3d>& points, ChTriangleMeshConnected& vshape);
+    /// Compute 3D convex hull of given list of points and populate triangle mesh with result.
+    /// Return true if operation is successful.
+    /// Note: provided mesh is cleared of existing data.
+    static bool ComputeHull(const std::vector<ChVector3d>& points, ChTriangleMeshConnected& trimesh);
 };
 
 }  // namespace bt_utils

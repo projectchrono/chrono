@@ -446,8 +446,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revolute[side]->SetName(Name({"spindle_rev", side}));
         m_revolute[side]->SetTag(m_obj_tag);
-        m_revolute[side]->Initialize(m_spindle[side], abody,
-                                     ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_PI_2)));
+        m_revolute[side]->Initialize(m_spindle[side], abody, ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_revolute[side]);
 
         // Axle shaft
@@ -555,8 +554,7 @@ void ChGenericWheeledSuspension::UpdateInertiaProperties() {
     composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     for (const auto& item : m_susp_bodies)
-        composite.AddComponent(item.second.body->GetFrameCOMToAbs(), item.second.body->GetMass(),
-                               item.second.body->GetInertia());
+        composite.AddComponent(item.second.body->GetFrameCOMToAbs(), item.second.body->GetMass(), item.second.body->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.SetPos(m_xform.TransformPointParentToLocal(composite.GetCOM()));
@@ -589,8 +587,7 @@ std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensio
         ////std::cout << "  force:    " << tsda->GetForce() << "\n";
         ////std::cout << "  length:   " << tsda->GetLength() << "\n";
         ////std::cout << "  velocity: " << tsda->GetVelocity() << "\n";
-        forces.push_back(
-            ChSuspension::ForceTSDA(item.first.name, tsda->GetForce(), tsda->GetLength(), tsda->GetVelocity()));
+        forces.push_back(ChSuspension::ForceTSDA(item.first.name, tsda->GetForce(), tsda->GetLength(), tsda->GetVelocity()));
     }
 
     return forces;
@@ -603,8 +600,7 @@ std::vector<ChSuspension::ForceRSDA> ChGenericWheeledSuspension::ReportSuspensio
         if (item.first.side != side)
             continue;
         auto rsda = item.second.rsda;
-        torques.push_back(
-            ChSuspension::ForceRSDA(item.first.name, rsda->GetTorque(), rsda->GetAngle(), rsda->GetVelocity()));
+        torques.push_back(ChSuspension::ForceRSDA(item.first.name, rsda->GetTorque(), rsda->GetAngle(), rsda->GetVelocity()));
     }
 
     return torques;
@@ -682,11 +678,13 @@ void ChGenericWheeledSuspension::PopulateComponentList() {
     m_shafts.push_back(m_axle[0]);
     m_shafts.push_back(m_axle[1]);
 
+    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+
     m_joints.push_back(m_revolute[0]);
     m_joints.push_back(m_revolute[1]);
     for (const auto& item : m_susp_joints)
-        item.second.joint->IsKinematic() ? m_joints.push_back(item.second.joint->GetAsLink())
-                                         : m_body_loads.push_back(item.second.joint->GetAsBushing());
+        item.second.joint->IsKinematic() ? m_joints.push_back(item.second.joint->GetAsLink()) : m_body_loads.push_back(item.second.joint->GetAsBushing());
     for (const auto& item : m_susp_dists)
         m_joints.push_back(item.second.dist);
 
@@ -699,15 +697,10 @@ void ChGenericWheeledSuspension::PopulateComponentList() {
 
 // -----------------------------------------------------------------------------
 
-ChGenericWheeledSuspension::BodyIdentifier::BodyIdentifier(const std::string& part_name,
-                                                           int vehicle_side,
-                                                           bool is_chassis,
-                                                           bool is_subchassis,
-                                                           bool is_steering)
+ChGenericWheeledSuspension::BodyIdentifier::BodyIdentifier(const std::string& part_name, int vehicle_side, bool is_chassis, bool is_subchassis, bool is_steering)
     : name(part_name), side(vehicle_side), chassis(is_chassis), subchassis(is_subchassis), steering(is_steering) {}
 
-ChGenericWheeledSuspension::BodyIdentifier::BodyIdentifier()
-    : name(""), side(-1), chassis(false), subchassis(false), steering(false) {}
+ChGenericWheeledSuspension::BodyIdentifier::BodyIdentifier() : name(""), side(-1), chassis(false), subchassis(false), steering(false) {}
 
 ChGenericWheeledSuspension::ChassisIdentifier::ChassisIdentifier() : BodyIdentifier("", -1, true, false, false) {}
 ChGenericWheeledSuspension::SubchassisIdentifier::SubchassisIdentifier() : BodyIdentifier("", -1, false, true, false) {}

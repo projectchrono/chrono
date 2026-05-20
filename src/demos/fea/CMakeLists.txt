@@ -8,20 +8,25 @@ set(FEA_DEMOS
 
 # Add demos that require IRRLICHT run-time visualization
 if(CH_ENABLE_MODULE_IRRLICHT)
-
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_truss
     )
-
     if(CH_ENABLE_MODULE_PARDISO_MKL)
-    set(FEA_DEMOS ${FEA_DEMOS}
-        demo_FEA_beams_static
-        demo_FEA_beams_extrude
-        demo_FEA_beamsIGA
-        demo_FEA_cosimulate_load
-    )
+       set(FEA_DEMOS ${FEA_DEMOS}
+           demo_FEA_beams_static
+           demo_FEA_beams_extrude
+           demo_FEA_beamsIGA
+           demo_FEA_cosimulate_load
+       )
     endif()
-
+    if(CH_ENABLE_MODULE_PARDISO_MKL AND CH_ENABLE_MODULE_FEA_MULTIPHYSICS)
+       set(FEA_DEMOS ${FEA_DEMOS}
+           demo_FEA_multiphysics
+           demo_FEA_multiphysics_custom
+           demo_FEA_multiphysics_contacts
+           demo_FEA_multiphysics_viscous
+       )
+    endif()
 endif()
 
 # Add demos that require VSG run-time visualization
@@ -35,7 +40,6 @@ endif()
 
 # Add demos that require run-time visualization (IRRLICHT or VSG)
 if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
-
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_thermal
         demo_FEA_electrostatics
@@ -46,39 +50,34 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
         demo_FEA_hexaANCF_3813
         demo_FEA_loads_dynamics
     )
-    
     if(CH_ENABLE_MODULE_MUMPS)
-    set(FEA_DEMOS ${FEA_DEMOS}
-        demo_FEA_cablesMUMPS
-    )
+       set(FEA_DEMOS ${FEA_DEMOS}
+           demo_FEA_cablesMUMPS
+       )
     endif()
-
     if(CH_ENABLE_MODULE_MATLAB)
-    set(FEA_DEMOS ${FEA_DEMOS}
-        demo_FEA_cablesMATLAB
-    )
+       set(FEA_DEMOS ${FEA_DEMOS}
+           demo_FEA_cablesMATLAB
+       )
     endif()
-    
     if(CH_ENABLE_MODULE_PARDISO_MKL)
-    set(FEA_DEMOS ${FEA_DEMOS}
-        demo_FEA_beamsEuler
-        demo_FEA_beams_constr
-        demo_FEA_cablesMKL
-        demo_FEA_abaqus_wheel
-        demo_FEA_shellsReissner
-        demo_FEA_shellsBST
-        demo_FEA_contacts_NSC
-        demo_FEA_contactsANCF_SMC
-        demo_FEA_hexaANCF_3813_9
-        demo_FEA_beamsANCF
-    )
+       set(FEA_DEMOS ${FEA_DEMOS}
+           demo_FEA_beamsEuler
+           demo_FEA_beams_constr
+           demo_FEA_cablesMKL
+           demo_FEA_abaqus_wheel
+           demo_FEA_shellsReissner
+           demo_FEA_shellsBST
+           demo_FEA_contacts_NSC
+           demo_FEA_contactsANCF_SMC
+           demo_FEA_hexaANCF_3813_9
+           demo_FEA_beamsANCF
+       )
     endif()
-    
-    # Add demos that require MKL and postprocess
     if(CH_ENABLE_MODULE_PARDISO_MKL AND CH_ENABLE_MODULE_POSTPROCESS)
-    set(FEA_DEMOS ${FEA_DEMOS}
-        demo_FEA_beams_rotor
-    )
+       set(FEA_DEMOS ${FEA_DEMOS}
+           demo_FEA_beams_rotor
+       )
     endif()
 
 endif()

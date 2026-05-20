@@ -30,11 +30,9 @@
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace filesystem;
+using namespace std::filesystem;
 
 // Used to sort the Eigen matrix
 namespace Eigen {
@@ -266,7 +264,7 @@ void test_pendulum() {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawCoordsys(vis.get(), ChCoordsys<>(VNULL, QUNIT), 1.0);
+        tools::DrawCoordsys(vis.get(), ChCoordsys<>(VNULL, QUNIT), 1.0);
         vis->EndScene();
     }
 
@@ -665,7 +663,7 @@ void test_anchorchain() {
             while (vis->Run() && frame < Nframes) {
                 vis->BeginScene();
                 vis->Render();
-                tools::drawCoordsys(vis.get(), ChCoordsys<>({xC, 0, 0}, QUNIT), 1.0);
+                tools::DrawCoordsys(vis.get(), ChCoordsys<>({xC, 0, 0}, QUNIT), 1.0);
                 vis->EndScene();
 
                 // A short period later, the excitation force is removed to allow free vibration

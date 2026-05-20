@@ -19,22 +19,42 @@
 #ifndef CH_SPH_GENERAL_CUH
 #define CH_SPH_GENERAL_CUH
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <cuda_runtime_api.h>
-#include <device_launch_parameters.h>
+#if __has_include("chrono_fsi/sph/ChSphGpuRuntime.h")
+  #include "chrono_fsi/sph/ChSphGpuRuntime.h"
+#else
+  #include <cuda.h>
+  #include <cuda_runtime.h>
+  #include <cuda_runtime_api.h>
+#endif
+#if defined(__CUDACC__)
+  #include <device_launch_parameters.h>
+#endif
 
-#include "chrono_fsi/sph/physics/SphDataManager.cuh"
+#include <memory>
+
+#include "chrono_fsi/sph/ChFsiParamsSPH.h"
+#include "chrono_fsi/sph/math/SphCustomMath.cuh"
+
+#if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+  #include "chrono_fsi/sph/physics/SphDataManager.cuh"
+#endif
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
+/// @addtogroup fsisph_physics
+/// @{
+
+struct Counters;
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 // Declared as const variables static in order to be able to use them in a different translation units in the utils
 __constant__ static ChFsiParamsSPH paramsD;
+#if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 __constant__ static Counters countersD;
+#endif
 
 void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 
@@ -42,9 +62,6 @@ void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared
 
 #define INVPI Real(0.31830988618379)
 #define EPSILON Real(1e-8)
-
-/// @addtogroup fsisph_physics
-/// @{
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // Cubic Spline SPH kernel function

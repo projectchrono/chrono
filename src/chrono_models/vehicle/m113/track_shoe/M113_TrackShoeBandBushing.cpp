@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/input_output/ChWriterCSV.h"
@@ -23,8 +25,6 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_models/vehicle/m113/track_shoe/M113_TrackShoeBandBushing.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
@@ -102,7 +102,7 @@ void M113_TrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
             ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
+        trimesh_shape->SetName(std::filesystem::path(m_meshFile).stem().string());
         m_shoe->AddVisualShape(trimesh_shape);
     } else {
         ChTrackShoeBandBushing::AddVisualizationAssets(vis);

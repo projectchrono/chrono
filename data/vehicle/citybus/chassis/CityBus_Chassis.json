@@ -26,6 +26,6 @@
 
   "Visualization":
   {
-    "Mesh":  "citybus/CityBus_Vis.obj"
+    "Mesh":  "vehicle/citybus/CityBus_Vis.obj"
   }
 }

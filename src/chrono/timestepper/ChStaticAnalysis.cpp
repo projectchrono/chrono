@@ -56,7 +56,7 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
     //     [ Cq        0   ] [  l  ] = [-C]
 
     integrable->LoadResidual_F(R, 1.0);
-    integrable->LoadConstraint_C(Qc, 1.0);  //  C  (sign flipped later in StateSolveCorrection)
+    integrable->LoadConstraint_C(Qc, 1.0, 0.0);  //  C  (sign flipped later in StateSolveCorrection)
 
     integrable->StateSolveCorrection(       //
         Dx, L, R, Qc,                       //
@@ -74,6 +74,7 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
 
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);                        // -> system auxiliary data
+    integrable->StateOnEndStep(T);                               // finalize step, ex. for plasticity etc.
 }
 
 // -----------------------------------------------------------------------------
@@ -132,14 +133,14 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
     //      [ Cq         0   ] [-Dl  ] = [-C ]
 
     for (int i = 0; i < m_maxiters; ++i) {
-        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
         R.setZero();
         Qc.setZero();
         integrable->LoadResidual_F(R, 1.0);
         // integrable->LoadResidual_Mv(R, V, 1.0); // V is zero
         integrable->LoadResidual_CqL(R, L, 1.0);  // update the reaction forces
-        integrable->LoadConstraint_C(Qc, 1.0);    // Qc=C (sign flipped later in StateSolveCorrection)
-        // integrable->LoadConstraint_Ct(Qc, 1.0); // do not consider the rheonomic excitation because it constrains the
+        integrable->LoadConstraint_C(Qc, 1.0, 0.0);    // Qc=C (sign flipped later in StateSolveCorrection)
+        // integrable->LoadConstraint_Ct(Qc, 1.0, 0.0); // do not consider the rheonomic excitation because it constrains the
         // DOFs
 
         if (!m_use_correction_test) {
@@ -204,12 +205,14 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
 
         X = Xnew;
 
-        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
         integrable->StateScatterReactions(L);                        // -> system auxiliary data
+        integrable->StateOnEndStep(T);                               // finalize step, ex. for plasticity etc.
     }
 
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);                        // -> system auxiliary data
+    integrable->StateOnEndStep(T);                               // finalize step, ex. for plasticity etc.
 }
 
 void ChStaticNonLinearAnalysis::SetCorrectionTolerance(double reltol, double abstol) {
@@ -288,7 +291,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
     // Use Newton Raphson iteration
 
     for (int i = 0; i < m_maxiters; ++i) {
-        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
 
         // Update nonzero speeds and accelerations, if any, calling
         // the iteration callback, if any:
@@ -308,7 +311,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
 
             R.setZero(integrable->GetNumCoordsVelLevel());
             Qc.setZero(integrable->GetNumConstraints());
-            integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct  (sign flipped later in StateSolveCorrection)
+            integrable->LoadConstraint_Ct(Qc, 1.0, 0.0);  // Ct  (sign flipped later in StateSolveCorrection)
 
             // Solve linear system for correction
             integrable->StateSolveCorrection(       //
@@ -387,7 +390,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         integrable->LoadResidual_F(R, 1.0);
         integrable->LoadResidual_CqL(R, L, 1.0);
         integrable->LoadResidual_Mv(R, A, -1.0);
-        integrable->LoadConstraint_C(Qc, 1.0);  // C   (sign flipped later in StateSolveCorrection)
+        integrable->LoadConstraint_C(Qc, 1.0, 0.0);  // C   (sign flipped later in StateSolveCorrection)
 
         if (!m_use_correction_test) {
             // Evaluate residual norms
@@ -477,8 +480,8 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
             integrable->LoadResidual_F(R, 1.0);
             integrable->LoadResidual_CqL(R, L, 1.0);
             integrable->LoadResidual_Mv(R, A, -1.0);
-            // integrable->LoadConstraint_C(Qc, 1.0);  // C  (sign flipped later in StateSolveCorrection)
-            integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct  (sign flipped later in StateSolveCorrection)
+            // integrable->LoadConstraint_C(Qc, 1.0, 0.0);  // C  (sign flipped later in StateSolveCorrection)
+            integrable->LoadConstraint_Ct(Qc, 1.0, 0.0);  // Ct  (sign flipped later in StateSolveCorrection)
 
             // Solve linear system for correction
             integrable->StateSolveCorrection(       //
@@ -503,7 +506,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         R.setZero(integrable->GetNumCoordsVelLevel());
         Qc.setZero(integrable->GetNumConstraints());
         L_v.setZero(integrable->GetNumConstraints());
-        integrable->LoadConstraint_Ct(Qc, 1.0);  // Ct   (sign flipped later in StateSolveCorrection)
+        integrable->LoadConstraint_Ct(Qc, 1.0, 0.0);  // Ct   (sign flipped later in StateSolveCorrection)
 
         // Solve linear system for correction
         integrable->StateSolveCorrection(       //
@@ -526,12 +529,13 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
         std::cout << "V_last=\n"<< V << std::endl;
         */
 
-        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
         integrable->StateScatterAcceleration(A);
     }
 
     integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
     integrable->StateScatterReactions(L);                        // -> system auxiliary data
+    integrable->StateOnEndStep(T);                               // finalize step, ex. for plasticity etc.
 }
 
 void ChStaticNonLinearRheonomicAnalysis::SetCorrectionTolerance(double reltol, double abstol) {
@@ -640,12 +644,12 @@ void ChStaticNonLinearAnalysisIncremental::StaticAnalysis() {
         double R_norm_old = 0;
 
         for (int i = 0; i < max_newton_iters; ++i) {
-            integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+            integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
             R.setZero();
             Qc.setZero();
             integrable->LoadResidual_F(R, 1.0);       // put the F term in RHS  (where F = F_in + scaled_F_ext )
             integrable->LoadResidual_CqL(R, L, 1.0);  // put the Cq*L term in RHS
-            integrable->LoadConstraint_C(Qc, 1.0);    // put the C term in RHS
+            integrable->LoadConstraint_C(Qc, 1.0, 0.0); // put the C term in RHS
 
             // Evaluate residual norms
             double R_norm = R.lpNorm<Eigen::Infinity>();
@@ -741,10 +745,12 @@ void ChStaticNonLinearAnalysisIncremental::StaticAnalysis() {
 
         }  // end inner loop for Newton iteration
 
+        integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+        integrable->StateScatterReactions(L);                        // -> system auxiliary data
+        integrable->StateOnEndStep(T);  // finalize step, ex. for plasticity etc.
+
     }  // end outer loop incrementing external loads
 
-    integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
-    integrable->StateScatterReactions(L);                        // -> system auxiliary data
 }
 
 void ChStaticNonLinearAnalysisIncremental::SetCorrectionTolerance(double reltol, double abstol) {

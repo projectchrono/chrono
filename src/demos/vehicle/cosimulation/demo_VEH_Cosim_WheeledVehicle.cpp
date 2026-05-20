@@ -33,9 +33,11 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
+#endif
 #ifdef CHRONO_FSI_SPH
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
@@ -229,7 +231,7 @@ int main(int argc, char** argv) {
     // Prepare output directory
     std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_COSIM";
     if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;
@@ -239,7 +241,7 @@ int main(int argc, char** argv) {
               + ChVehicleCosimTireNode::GetTireTypeAsString(tire_type) + "_"  //
               + ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type);
     if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
             return 1;
@@ -355,7 +357,6 @@ int main(int argc, char** argv) {
 #endif
                 break;
             }
-
         }
     }
 
@@ -376,6 +377,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#ifdef CHRONO_FEA
             case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
                 auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, GetVehicleDataFile(vehicle_model.TireJSON()));
                 tire->EnableTirePressure(true);
@@ -419,6 +421,7 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+#endif
             default:
                 break;
         }

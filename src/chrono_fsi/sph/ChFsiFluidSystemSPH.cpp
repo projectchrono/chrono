@@ -351,8 +351,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
         }
         if (m_paramsH->mu0 > Real(0.001)) {
             cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
-                 << " but the viscosity model is not laminar. This parameter will have no influence on simulation."
-                 << endl;
+                 << " but the viscosity model is not laminar. This parameter will have no influence on simulation." << endl;
         }
     } else {
         if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_BILATERAL) {
@@ -364,17 +363,13 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
     }
 
     // Calculate default cMin and cMax
-    Real3 default_cMin =
-        mR3(-2 * m_paramsH->boxDims.x, -2 * m_paramsH->boxDims.y, -2 * m_paramsH->boxDims.z) - 10 * mR3(m_paramsH->h);
-    Real3 default_cMax =
-        mR3(+2 * m_paramsH->boxDims.x, +2 * m_paramsH->boxDims.y, +2 * m_paramsH->boxDims.z) + 10 * mR3(m_paramsH->h);
+    Real3 default_cMin = mR3(-2 * m_paramsH->boxDims.x, -2 * m_paramsH->boxDims.y, -2 * m_paramsH->boxDims.z) - 10 * mR3(m_paramsH->h);
+    Real3 default_cMax = mR3(+2 * m_paramsH->boxDims.x, +2 * m_paramsH->boxDims.y, +2 * m_paramsH->boxDims.z) + 10 * mR3(m_paramsH->h);
 
     // Check if user-defined cMin and cMax are much larger than defaults
-    if (m_paramsH->cMin.x < 2 * default_cMin.x || m_paramsH->cMin.y < 2 * default_cMin.y ||
-        m_paramsH->cMin.z < 2 * default_cMin.z || m_paramsH->cMax.x > 2 * default_cMax.x ||
+    if (m_paramsH->cMin.x < 2 * default_cMin.x || m_paramsH->cMin.y < 2 * default_cMin.y || m_paramsH->cMin.z < 2 * default_cMin.z || m_paramsH->cMax.x > 2 * default_cMax.x ||
         m_paramsH->cMax.y > 2 * default_cMax.y || m_paramsH->cMax.z > 2 * default_cMax.z) {
-        cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. "
-             << "This may slow down the simulation." << endl;
+        cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. " << "This may slow down the simulation." << endl;
     }
 
     // TODO: Add check for whether computational domain is larger than SPH + BCE layers
@@ -401,8 +396,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
 
     // Check shifting method and whether defaults have changed
     if (m_paramsH->shifting_method == ShiftingMethod::NONE) {
-        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 1.0 ||
-            m_paramsH->shifting_ppst_pull != 1.0) {
+        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 1.0 || m_paramsH->shifting_ppst_pull != 1.0) {
             cerr << "WARNING: Shifting method is NONE, but shifting parameters have been modified. These "
                     "changes will not take effect."
                  << endl;
@@ -555,8 +549,7 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->use_variable_time_step = sph_params.use_variable_time_step;
 }
 
-ChFsiFluidSystemSPH::LinSolverParameters::LinSolverParameters()
-    : type(SolverType::JACOBI), atol(0.0), rtol(0.0), max_num_iters(1000) {}
+ChFsiFluidSystemSPH::LinSolverParameters::LinSolverParameters() : type(SolverType::JACOBI), atol(0.0), rtol(0.0), max_num_iters(1000) {}
 
 void ChFsiFluidSystemSPH::SetLinSolverParameters(const LinSolverParameters& linsolv_params) {
     m_paramsH->LinearSolver = linsolv_params.type;
@@ -565,8 +558,7 @@ void ChFsiFluidSystemSPH::SetLinSolverParameters(const LinSolverParameters& lins
     m_paramsH->LinearSolver_Max_Iter = linsolv_params.max_num_iters;
 }
 
-ChFsiFluidSystemSPH::SplashsurfParameters::SplashsurfParameters()
-    : smoothing_length(1.5), cube_size(0.5), surface_threshold(0.6) {}
+ChFsiFluidSystemSPH::SplashsurfParameters::SplashsurfParameters() : smoothing_length(1.5), cube_size(0.5), surface_threshold(0.6) {}
 
 //------------------------------------------------------------------------------
 
@@ -604,6 +596,35 @@ std::string ChFsiFluidSystemSPH::GetSphIntegrationSchemeString() const {
 //------------------------------------------------------------------------------
 
 // Convert host data from the provided SOA to the data manager's AOS and copy to device.
+void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_states) {
+    size_t num_bodies = body_states.size();
+    for (size_t i = 0; i < num_bodies; i++) {
+        m_data_mgr->fsiBodyState_H->pos[i] = ToReal3(body_states[i].pos);
+        m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
+        m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
+        m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
+        m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
+        m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+    }
+
+    if (num_bodies > 0)
+        m_data_mgr->fsiBodyState_D->CopyFromH(*m_data_mgr->fsiBodyState_H);
+}
+
+// Copy from device and convert host data from the data manager's AOS to the output SOA
+void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces) {
+    auto forcesH = m_data_mgr->GetRigidForces();
+    auto torquesH = m_data_mgr->GetRigidTorques();
+
+    size_t num_bodies = body_forces.size();
+    for (size_t i = 0; i < num_bodies; i++) {
+        body_forces[i].force = ToChVector(forcesH[i]);
+        body_forces[i].torque = ToChVector(torquesH[i]);
+    }
+}
+
+#ifdef CHRONO_FEA
+// Convert host data from the provided SOA to the data manager's AOS and copy to device.
 void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_states,
                                           const std::vector<FsiMeshState>& mesh1D_states,
                                           const std::vector<FsiMeshState>& mesh2D_states) {
@@ -639,8 +660,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
         }
 
         if (num_meshes > 0) {
-            ChDebugLog(" mesh1D | host size: " << m_data_mgr->fsiMesh1DState_H->dir.size()
-                                               << " device size: " << m_data_mgr->fsiMesh1DState_D->dir.size());
+            ChDebugLog(" mesh1D | host size: " << m_data_mgr->fsiMesh1DState_H->dir.size() << " device size: " << m_data_mgr->fsiMesh1DState_D->dir.size());
             m_data_mgr->fsiMesh1DState_D->CopyFromH(*m_data_mgr->fsiMesh1DState_H);
             m_data_mgr->fsiMesh1DState_D->CopyDirectionsFromH(*m_data_mgr->fsiMesh1DState_H);
         }
@@ -663,8 +683,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
         }
 
         if (num_meshes > 0) {
-            ChDebugLog(" mesh2D | host size: " << m_data_mgr->fsiMesh2DState_H->dir.size()
-                                               << " device size: " << m_data_mgr->fsiMesh2DState_D->dir.size());
+            ChDebugLog(" mesh2D | host size: " << m_data_mgr->fsiMesh2DState_H->dir.size() << " device size: " << m_data_mgr->fsiMesh2DState_D->dir.size());
             m_data_mgr->fsiMesh2DState_D->CopyFromH(*m_data_mgr->fsiMesh2DState_H);
             m_data_mgr->fsiMesh2DState_D->CopyDirectionsFromH(*m_data_mgr->fsiMesh2DState_H);
         }
@@ -672,9 +691,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
-void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
-                                           std::vector<FsiMeshForce> mesh1D_forces,
-                                           std::vector<FsiMeshForce> mesh2D_forces) {
+void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces, std::vector<FsiMeshForce> mesh1D_forces, std::vector<FsiMeshForce> mesh2D_forces) {
     {
         auto forcesH = m_data_mgr->GetRigidForces();
         auto torquesH = m_data_mgr->GetRigidTorques();
@@ -724,18 +741,24 @@ void ChFsiFluidSystemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_
     m_pattern2D = pattern;
     m_remove_center2D = remove_center;
 }
+#endif
 
 //------------------------------------------------------------------------------
 
 void PrintDeviceProperties(const cudaDeviceProp& prop) {
     cout << "GPU device: " << prop.name << endl;
-    cout << "  Compute capability: " << prop.major << "." << prop.minor << endl;
     cout << "  Total global memory: " << prop.totalGlobalMem / (1024. * 1024. * 1024.) << " GB" << endl;
     cout << "  Total constant memory: " << prop.totalConstMem / 1024. << " KB" << endl;
     cout << "  Total available static shared memory per block: " << prop.sharedMemPerBlock / 1024. << " KB" << endl;
+    cout << "  Number of multiprocessors: " << prop.multiProcessorCount << endl;
+#if defined(CHRONO_USE_HIP)
+    cout << "  Warp/Wavefront size: " << prop.warpSize << endl;
+    cout << "  Max threads per block: " << prop.maxThreadsPerBlock << endl;
+#else
+    cout << "  Compute capability: " << prop.major << "." << prop.minor << endl;
     cout << "  Max. dynamic shared memory per block: " << prop.sharedMemPerBlockOptin / 1024. << " KB" << endl;
     cout << "  Total shared memory per multiprocessor: " << prop.sharedMemPerMultiprocessor / 1024. << " KB" << endl;
-    cout << "  Number of multiprocessors: " << prop.multiProcessorCount << endl;
+#endif
 }
 
 void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
@@ -923,8 +946,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  startFlexMarkers2D: " << counters.startFlexMarkers2D << endl;
 }
 
-void PrintRefArrays(const thrust::host_vector<int4>& referenceArray,
-                    const thrust::host_vector<int4>& referenceArray_FEA) {
+void PrintRefArrays(const thrust::host_vector<int4>& referenceArray, const thrust::host_vector<int4>& referenceArray_FEA) {
     cout << "Reference array (size: " << referenceArray.size() << ")" << endl;
     for (size_t i = 0; i < referenceArray.size(); i++) {
         const int4& num = referenceArray[i];
@@ -940,6 +962,12 @@ void PrintRefArrays(const thrust::host_vector<int4>& referenceArray,
 
 //------------------------------------------------------------------------------
 
+//// TODO FSI bodies:
+////   - give control over Cartesian / polar BCE distribution (where applicable)
+////   - eliminate duplicate BCE markers (from multiple volumes). Easiest if BCE created on a grid!
+//// TODO FSI meshes:
+////   - consider using monotone cubic Hermite interpolation instead of cubic Bezier
+
 void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
@@ -953,44 +981,7 @@ void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool c
     m_bodies.push_back(b);
 }
 
-void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
-    ChAssertAlways(!m_is_initialized);
-
-    FsiSphMesh1D m;
-    m.fsi_mesh = fsi_mesh;
-    m.check_embedded = check_embedded;
-
-    CreateBCEFsiMesh1D(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
-    m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
-    m_num_flex1D_elements += fsi_mesh->GetNumElements();
-
-    m_meshes1D.push_back(m);
-}
-
-void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
-    ChAssertAlways(!m_is_initialized);
-
-    FsiSphMesh2D m;
-    m.fsi_mesh = fsi_mesh;
-    m.check_embedded = check_embedded;
-
-    CreateBCEFsiMesh2D(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
-    m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
-    m_num_flex2D_elements += fsi_mesh->GetNumElements();
-
-    m_meshes2D.push_back(m);
-}
-
-//// TODO FSI bodies:
-////   - give control over Cartesian / polar BCE distribution (where applicable)
-////   - eliminate duplicate BCE markers (from multiple volumes). Easiest if BCE created on a grid!
-//// TODO FSI meshes:
-////   - consider using monotone cubic Hermite interpolation instead of cubic Bezier
-
-void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
-                                           std::vector<int>& bce_ids,
-                                           std::vector<ChVector3d>& bce_coords,
-                                           std::vector<ChVector3d>& bce) {
+void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce) {
     const auto& geometry = fsi_body->geometry;
     if (geometry) {
         for (const auto& sphere : geometry->coll_spheres) {
@@ -1018,18 +1009,45 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
 
         // Get global BCE positions
         const auto& X_G_R = fsi_body->body->GetFrameRefToAbs();
-        std::transform(bce_coords.begin(), bce_coords.end(), std::back_inserter(bce),
-                       [&X_G_R](ChVector3d& v) { return X_G_R.TransformPointLocalToParent(v); });
+        std::transform(bce_coords.begin(), bce_coords.end(), std::back_inserter(bce), [&X_G_R](ChVector3d& v) { return X_G_R.TransformPointLocalToParent(v); });
 
         // Get local BCE coordinates relative to centroidal frame
         bce_coords.clear();
         const auto& X_G_COM = fsi_body->body->GetFrameCOMToAbs();
-        std::transform(bce.begin(), bce.end(), std::back_inserter(bce_coords),
-                       [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v); });
+        std::transform(bce.begin(), bce.end(), std::back_inserter(bce_coords), [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v); });
 
         // Set BCE body association
         bce_ids.resize(bce_coords.size(), fsi_body->index);
     }
+}
+
+#ifdef CHRONO_FEA
+void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
+    ChAssertAlways(!m_is_initialized);
+
+    FsiSphMesh1D m;
+    m.fsi_mesh = fsi_mesh;
+    m.check_embedded = check_embedded;
+
+    CreateBCEFsiMesh1D(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
+    m_num_flex1D_elements += fsi_mesh->GetNumElements();
+
+    m_meshes1D.push_back(m);
+}
+
+void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
+    ChAssertAlways(!m_is_initialized);
+
+    FsiSphMesh2D m;
+    m.fsi_mesh = fsi_mesh;
+    m.check_embedded = check_embedded;
+
+    CreateBCEFsiMesh2D(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
+    m_num_flex2D_elements += fsi_mesh->GetNumElements();
+
+    m_meshes2D.push_back(m);
 }
 
 void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
@@ -1304,6 +1322,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
 
     ////ofile.close();
 }
+#endif
 
 //------------------------------------------------------------------------------
 
@@ -1326,62 +1345,172 @@ void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
     }
 }
 
-void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
-    const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
+//// TODO - eliminate code duplication in the two versions of Initialize()
 
-    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& seg : fsi_mesh->contact_surface->GetSegmentsXYZ()) {
-        auto node0_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(0));
-        auto node1_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(1));
-        m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
+void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_states) {
+    assert(body_states.size() == m_bodies.size());
+
+    // Process FSI solids - load BCE data to data manager
+    // Note: counters must be regenerated, as they are used as offsets for global indices
+    m_num_rigid_bodies = 0;
+    m_num_flex1D_nodes = 0;
+    m_num_flex1D_elements = 0;
+    m_num_flex2D_nodes = 0;
+    m_num_flex2D_elements = 0;
+
+    for (const auto& b : m_bodies) {
+        AddBCEFsiBody(b);
+        m_num_rigid_bodies++;
     }
 
-    // Add BCE markers and load their local coordinates and mesh associations
-    auto num_bce = fsisph_mesh.bce.size();
-    for (size_t i = 0; i < num_bce; i++) {
-        m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
-        m_data_mgr->flex1D_BCEcoords_H.push_back(ToReal3(fsisph_mesh.bce_coords[i]));
-        m_data_mgr->flex1D_BCEsolids_H.push_back(ToUint3(fsisph_mesh.bce_ids[i]));
+    // ----------------
+
+    // Hack to still allow time step size specified through JSON files
+    if (m_paramsH->dT < 0) {
+        m_paramsH->dT = GetStepSize();
+    } else {
+        SetStepSize(m_paramsH->dT);
     }
+
+    // Set kernel radius factor (based on kernel type)
+    switch (m_paramsH->kernel_type) {
+        case KernelType::QUADRATIC:
+            m_paramsH->h_multiplier = 2;
+            break;
+        case KernelType::CUBIC_SPLINE:
+            m_paramsH->h_multiplier = 2;
+            break;
+        case KernelType::QUINTIC_SPLINE:
+            m_paramsH->h_multiplier = 3;
+            break;
+        case KernelType::WENDLAND:
+            m_paramsH->h_multiplier = 2;
+            break;
+    }
+
+    // Initialize SPH particle mass and number of neighbors
+    {
+        Real sum = 0;
+        int count = 0;
+        int IDX = 10;
+        for (int i = -IDX; i <= IDX; i++) {
+            for (int j = -IDX; j <= IDX; j++) {
+                for (int k = -IDX; k <= IDX; k++) {
+                    Real3 pos = mR3(i, j, k) * m_paramsH->d0;
+                    Real W = W3h(m_paramsH->kernel_type, length(pos), m_paramsH->ooh);
+                    sum += W;
+                    if (W > 0)
+                        count++;
+                }
+            }
+        }
+        m_paramsH->markerMass = m_paramsH->rho0 / sum;
+        m_paramsH->num_neighbors = count;
+    }
+
+    if (m_paramsH->use_init_pressure) {
+        size_t numParticles = m_data_mgr->sphMarkers_H->rhoPresMuH.size();
+        for (int i = 0; i < numParticles; i++) {
+            double z = m_data_mgr->sphMarkers_H->posRadH[i].z;
+            double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
+            m_data_mgr->sphMarkers_H->rhoPresMuH[i].y = p;
+            if (m_paramsH->elastic_SPH) {
+                m_data_mgr->sphMarkers_H->tauXxYyZzH[i].x = -p;
+                m_data_mgr->sphMarkers_H->tauXxYyZzH[i].y = -p;
+                m_data_mgr->sphMarkers_H->tauXxYyZzH[i].z = -p;
+            }
+        }
+    }
+
+    // ----------------
+
+    // This means boundaries have not been set - just use an approximate domain size with no periodic sides
+    if (m_paramsH->use_default_limits) {
+        m_paramsH->cMin = mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->h);
+        m_paramsH->cMax = mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
+        m_paramsH->bc_type = BC_NONE;
+    }
+
+    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
+    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
+    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
+
+    // Set up subdomains for faster neighbor particle search
+    m_paramsH->Apply_BC_U = false;
+    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
+    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
+    m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
+    m_paramsH->binSize0 = binSize3.x;
+    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
+    m_paramsH->delta_pressure = mR3(0);
+    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
+                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
+    Real mBinSize = m_paramsH->binSize0;
+    m_paramsH->gridSize = SIDE;
+    m_paramsH->worldOrigin = m_paramsH->cMin;
+    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
+
+    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
+    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
+
+    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
+                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+    // Update the speed of sound
+    if (m_paramsH->elastic_SPH) {
+        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+    } else {
+        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    }
+
+    // ----------------
+
+    // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
+    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
+    m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
+                           m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+                           NodeDirections::NONE);
+
+    // Load the initial body and mesh node states
+    ChDebugLog("load initial states");
+    LoadSolidStates(body_states);
+
+    // Create BCE and SPH worker objects
+    m_bce_mgr = chrono_types::make_unique<SphBceManager>(*m_data_mgr, NodeDirections::NONE, m_verbose, m_check_errors);
+    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
+
+    // Initialize worker objects
+    m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
+    m_fluid_dynamics->Initialize();
+
+    /// If active domains are not used then don't overly resize the arrays
+    if (!m_paramsH->use_active_domain) {
+        m_data_mgr->SetGrowthFactor(1.0f);
+    }
+
+    // ----------------
+
+    // Check if GPU is available and initialize CUDA device information
+    int device;
+    cudaGetDevice(&device);
+    cudaCheckError();
+    m_data_mgr->cudaDeviceInfo->deviceID = device;
+    cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
+    cudaCheckError();
 
     if (m_verbose) {
-        cout << "Add BCE for 1D mesh" << endl;
-        cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
-        cout << "  Num. segments:    " << fsi_mesh->GetNumElements() << endl;
-        cout << "  Num. BCE markers: " << num_bce << endl;
+        PrintDeviceProperties(m_data_mgr->cudaDeviceInfo->deviceProp);
+        PrintParams(*m_paramsH, *m_data_mgr->countersH);
+        PrintRefArrays(m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);
     }
+
+    CheckSPHParameters();
 }
 
-void ChFsiFluidSystemSPH::AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh) {
-    const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
+#ifdef CHRONO_FEA
 
-    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& tri : fsi_mesh->contact_surface->GetTrianglesXYZ()) {
-        auto node0_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(0));
-        auto node1_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(1));
-        auto node2_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(2));
-        m_data_mgr->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
-    }
-
-    // Add BCE markers and load their local coordinates and mesh associations
-    auto num_bce = fsisph_mesh.bce.size();
-    for (size_t i = 0; i < num_bce; i++) {
-        m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX2D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
-        m_data_mgr->flex2D_BCEcoords_H.push_back(ToReal3(fsisph_mesh.bce_coords[i]));
-        m_data_mgr->flex2D_BCEsolids_H.push_back(ToUint3(fsisph_mesh.bce_ids[i]));
-    }
-
-    if (m_verbose) {
-        cout << "Add BCE for 2D mesh" << endl;
-        cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
-        cout << "  Num. faces:       " << fsi_mesh->GetNumElements() << endl;
-        cout << "  Num. BCE markers: " << num_bce << endl;
-    }
-}
-
-void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_states,
-                                     const std::vector<FsiMeshState>& mesh1D_states,
-                                     const std::vector<FsiMeshState>& mesh2D_states) {
+void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_states, const std::vector<FsiMeshState>& mesh1D_states, const std::vector<FsiMeshState>& mesh2D_states) {
     assert(body_states.size() == m_bodies.size());
     assert(mesh1D_states.size() == m_meshes1D.size());
     assert(mesh2D_states.size() == m_meshes2D.size());
@@ -1474,10 +1603,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     // This means boundaries have not been set - just use an approximate domain size with no periodic sides
     if (m_paramsH->use_default_limits) {
-        m_paramsH->cMin =
-            mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->h);
-        m_paramsH->cMax =
-            mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
+        m_paramsH->cMin = mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->h);
+        m_paramsH->cMax = mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
         m_paramsH->bc_type = BC_NONE;
     }
 
@@ -1490,15 +1617,12 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
                      (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
                      (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
-    Real3 binSize3 =
-        mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y,
-            (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
+    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
     m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
     m_paramsH->binSize0 = binSize3.x;
     m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
     m_paramsH->delta_pressure = mR3(0);
-    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1),
-                    int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
+    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
                     int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
     Real mBinSize = m_paramsH->binSize0;
     m_paramsH->gridSize = SIDE;
@@ -1506,11 +1630,9 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
 
     // Precompute grid min and max bounds considering whether we have periodic boundaries or not
-    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0,
-                                     m_paramsH->z_periodic ? INT_MIN : 0);
+    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
 
-    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1,
-                                     m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
+    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
                                      m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
     // Update the speed of sound
     if (m_paramsH->elastic_SPH) {
@@ -1577,6 +1699,60 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     CheckSPHParameters();
 }
 
+void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
+    const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
+
+    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
+    for (const auto& seg : fsi_mesh->contact_surface->GetSegmentsXYZ()) {
+        auto node0_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(0));
+        auto node1_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(1));
+        m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
+    }
+
+    // Add BCE markers and load their local coordinates and mesh associations
+    auto num_bce = fsisph_mesh.bce.size();
+    for (size_t i = 0; i < num_bce; i++) {
+        m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
+        m_data_mgr->flex1D_BCEcoords_H.push_back(ToReal3(fsisph_mesh.bce_coords[i]));
+        m_data_mgr->flex1D_BCEsolids_H.push_back(ToUint3(fsisph_mesh.bce_ids[i]));
+    }
+
+    if (m_verbose) {
+        cout << "Add BCE for 1D mesh" << endl;
+        cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
+        cout << "  Num. segments:    " << fsi_mesh->GetNumElements() << endl;
+        cout << "  Num. BCE markers: " << num_bce << endl;
+    }
+}
+
+void ChFsiFluidSystemSPH::AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh) {
+    const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
+
+    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
+    for (const auto& tri : fsi_mesh->contact_surface->GetTrianglesXYZ()) {
+        auto node0_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(0));
+        auto node1_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(1));
+        auto node2_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(2));
+        m_data_mgr->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
+    }
+
+    // Add BCE markers and load their local coordinates and mesh associations
+    auto num_bce = fsisph_mesh.bce.size();
+    for (size_t i = 0; i < num_bce; i++) {
+        m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX2D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
+        m_data_mgr->flex2D_BCEcoords_H.push_back(ToReal3(fsisph_mesh.bce_coords[i]));
+        m_data_mgr->flex2D_BCEsolids_H.push_back(ToUint3(fsisph_mesh.bce_ids[i]));
+    }
+
+    if (m_verbose) {
+        cout << "Add BCE for 2D mesh" << endl;
+        cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
+        cout << "  Num. faces:       " << fsi_mesh->GetNumElements() << endl;
+        cout << "  Num. BCE markers: " << num_bce << endl;
+    }
+}
+#endif
+
 //------------------------------------------------------------------------------
 double ChFsiFluidSystemSPH::GetCurrentStepSize() {
     // Variable time step requires the state from the previous time step.
@@ -1619,8 +1795,7 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Advance fluid particle states from `time` to `time+step`
     m_fluid_dynamics->DoStepDynamics(m_data_mgr->sortedSphMarkers2_D, time, step, m_paramsH->integration_scheme);
 
-    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::NON_SOLID, m_data_mgr->sortedSphMarkers2_D,
-                                           m_data_mgr->sphMarkers_D);
+    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::NON_SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
 
     ChDebugLog("GPU Memory usage: " << m_data_mgr->GetCurrentGPUMemoryUsage() / 1024.0 / 1024.0 << " MB");
 
@@ -1642,8 +1817,7 @@ void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
     m_bce_mgr->UpdateMeshMarker1DState();
     m_bce_mgr->UpdateMeshMarker2DState();
 
-    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::SOLID, m_data_mgr->sortedSphMarkers2_D,
-                                           m_data_mgr->sphMarkers_D);
+    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
 }
 
 void ChFsiFluidSystemSPH::SynchronizeCopyStream() const {
@@ -1682,11 +1856,7 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
     m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
 }
 
-void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
-                                         const ChVector3d& vel,
-                                         const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz,
-                                         const double pc) {
+void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos, const ChVector3d& vel, const ChVector3d& tauXxYyZz, const ChVector3d& tauXyXzYz, const double pc) {
     AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz, pc);
 }
 
@@ -1739,8 +1909,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsPlate(const ChVector2d&
     return bce;
 }
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxContainer(const ChVector3d& size,
-                                                                      const ChVector3i& faces) const {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxContainer(const ChVector3d& size, const ChVector3i& faces) const {
     std::vector<ChVector3d> bce;
 
     Real spacing = m_paramsH->d0;
@@ -2245,10 +2414,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad, double height, bool polar) const {
     return CreatePointsTruncatedConeInterior(rad, 0, height, polar);
 }
-std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeInterior(double rad,
-                                                                               double rad_tip,
-                                                                               double height,
-                                                                               bool polar) const {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeInterior(double rad, double rad_tip, double height, bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2325,10 +2491,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeInterior(d
 std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad, double height, bool polar) const {
     return CreatePointsTruncatedConeExterior(rad, 0, height, polar);
 }
-std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(double rad,
-                                                                               double rad_tip,
-                                                                               double height,
-                                                                               bool polar) const {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(double rad, double rad_tip, double height, bool polar) const {
     std::vector<ChVector3d> bce;
 
     double spacing = m_paramsH->d0;
@@ -2406,10 +2569,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(d
     return bce;
 }
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderAnnulus(double rad_inner,
-                                                                         double rad_outer,
-                                                                         double height,
-                                                                         bool polar) const {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderAnnulus(double rad_inner, double rad_outer, double height, bool polar) const {
     std::vector<ChVector3d> points;
 
     Real spacing = m_paramsH->d0;
@@ -2470,7 +2630,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsMesh(ChTriangleMeshConn
     Real spacing = m_paramsH->d0;
 
     // Ensure mesh if watertight
-    mesh.RepairDuplicateVertexes(1e-9);
+    mesh.RepairDuplicateVertices(1e-9);
     auto bbox = mesh.GetBoundingBox();
 
     const double EPSI = 1e-6;
@@ -2708,6 +2868,18 @@ std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame,
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions() const {
     SynchronizeCopyStream();
     return m_data_mgr->GetPositions();
+}
+
+ChFsiSphMarkerDeviceView ChFsiFluidSystemSPH::GetMarkerDeviceView() const {
+    ChFsiSphMarkerDeviceView view;
+
+    SynchronizeCopyStream();
+
+    const auto& pos_rad = m_data_mgr->sphMarkers_D->posRadD;
+    view.pos_rad = pos_rad.empty() ? nullptr : thrust::raw_pointer_cast(pos_rad.data());
+    view.num_fluid_markers = m_data_mgr->countersH->numFluidMarkers;
+
+    return view;
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities() const {

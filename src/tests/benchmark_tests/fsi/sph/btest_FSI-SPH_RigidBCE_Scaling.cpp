@@ -34,8 +34,6 @@
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;

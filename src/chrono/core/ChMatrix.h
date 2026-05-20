@@ -149,8 +149,7 @@ using ChMatrixRef = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dyna
 
 /// Constant reference to a dense matrix expression, with double coefficients.
 /// This allows writing non-template functions that can accept either a ChMatrixDynamic or a ChMatrixNM.
-using ChMatrixConstRef =
-    const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>&;
+using ChMatrixConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>&;
 
 /// Reference to a column vector expression, with double coefficients.
 /// This allows writing non-template functions that can accept either a ChVectorDynamic or a ChVectorN.
@@ -206,11 +205,7 @@ using ChComplexSparseMatrix = Eigen::SparseMatrix<std::complex<double>, Eigen::C
 /// \param[in] start_row The row index where the first element will be copied
 /// \param[in] start_col The column index where the first element will be copied
 /// \param[in] overwrite Indicate if the copied elements will overwrite existing elements or be summed to them
-inline void PasteMatrix(ChSparseMatrix& matrTo,
-                        ChMatrixConstRef matrFrom,
-                        int start_row,
-                        int start_col,
-                        bool overwrite = true) {
+inline void PasteMatrix(ChSparseMatrix& matrTo, ChMatrixConstRef matrFrom, int start_row, int start_col, bool overwrite = true) {
     if (overwrite) {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
@@ -233,11 +228,11 @@ inline void PasteMatrix(ChSparseMatrix& matrTo,
 #ifndef SWIG
 template <typename T = double>
 ChVectorDynamic<T> SliceVector(ChVectorConstRef v, ChArrayConstRef<int> indices) {
-#if EIGEN_VERSION_AT_LEAST(3, 4, 0)
+    #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
     return v(indices);
-#else
+    #else
     return indices.unaryExpr(v);
-#endif
+    #endif
 }
 #endif
 

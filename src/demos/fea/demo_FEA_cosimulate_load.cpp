@@ -86,14 +86,14 @@ void draw_affected_triangles(ChVisualSystemIrrlicht& vis,
         if (vert_hit == true) {
             std::vector<chrono::ChVector3d> fourpoints = {vert_pos[triangles[it].x()], vert_pos[triangles[it].y()],
                                                           vert_pos[triangles[it].z()], vert_pos[triangles[it].x()]};
-            tools::drawPolyline(&vis, fourpoints, ChColor(0.94f, 0.78f, 0.00f), true);
+            tools::DrawPolyline(&vis, fourpoints, ChColor(0.94f, 0.78f, 0.00f), true);
         }
     }
     if (forcescale > 0)
         for (int io = 0; io < vert_indexes.size(); ++io) {
             std::vector<chrono::ChVector3d> forceline = {vert_pos[vert_indexes[io]],
                                                          vert_pos[vert_indexes[io]] + vert_forces[io] * forcescale};
-            tools::drawPolyline(&vis, forceline, ChColor(0.94f, 0.00f, 0.00f), true);
+            tools::DrawPolyline(&vis, forceline, ChColor(0.94f, 0.00f, 0.00f), true);
         }
 }
 
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_X), ChColor(0.40f, 0.40f, 0.40f),
+        tools::DrawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_X), ChColor(0.40f, 0.40f, 0.40f),
                         true);
 
         vis->EndScene();

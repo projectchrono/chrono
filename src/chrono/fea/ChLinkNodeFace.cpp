@@ -190,7 +190,7 @@ void ChLinkNodeFace::CompleteInitialization() {
 
     bool is_into;
     ChVector3d p_projected;
-    m_d = utils::PointTriangleDistance(m_point->GetPos(), m_triangle->GetPos1(), m_triangle->GetPos2(),
+    m_d = utils::PointTrianglePlaneDistance(m_point->GetPos(), m_triangle->GetPos1(), m_triangle->GetPos2(),
                                        m_triangle->GetPos3(), m_s2, m_s3, is_into, p_projected);
     m_s1 = 1 - m_s2 - m_s3;
 }
@@ -231,6 +231,7 @@ void ChLinkNodeFace::IntLoadResidual_CqL(const unsigned int off_L,    // offset 
 void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                          const double c,            // a scaling factor
+                                         const double c_vel,        // the scaling factor if the constraint is at speed level
                                          bool do_clamp,             // apply clamping to c*C?
                                          double recovery_clamp      // value for min/max clamping of c*C
 ) {

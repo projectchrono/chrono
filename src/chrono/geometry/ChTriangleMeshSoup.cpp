@@ -37,7 +37,7 @@ std::shared_ptr<ChTriangleMeshSoup> ChTriangleMeshSoup::CreateFromWavefrontFile(
     return trimesh;
 }
 
-bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
+bool ChTriangleMeshSoup::LoadWavefrontMesh(const std::string& filename) {
     std::vector<tinyobj::shape_t> shapes;
     tinyobj::attrib_t att;
     std::vector<tinyobj::material_t> materials;
@@ -120,8 +120,8 @@ void ChTriangleMeshSoup::AddTriangle(const ChVector3d& vertex0, const ChVector3d
     m_triangles.push_back(tri);
 }
 
-void ChTriangleMeshSoup::Transform(const ChVector3d displ, const ChMatrix33<> rotscale) {
-    for (int i = 0; i < this->m_triangles.size(); ++i) {
+void ChTriangleMeshSoup::Transform(const ChVector3d& displ, const ChMatrix33d& rotscale) {
+    for (size_t i = 0; i < m_triangles.size(); ++i) {
         m_triangles[i].p1 = rotscale * m_triangles[i].p1;
         m_triangles[i].p1 += displ;
         m_triangles[i].p2 = rotscale * m_triangles[i].p2;

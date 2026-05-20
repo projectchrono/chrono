@@ -187,23 +187,23 @@ int main(int argc, char* argv[]) {
         vis->Render();
 
         // .. draw a grid
-        tools::drawGrid(vis.get(), 0.5, 0.5);
+        tools::DrawGrid(vis.get(), 0.5, 0.5);
         // .. draw a circle representing flywheel
-        tools::drawCircle(vis.get(), 2.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+        tools::DrawCircle(vis.get(), 2.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
         // .. draw a small circle representing joint BC
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
+        tools::DrawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw a small circle representing joint CD
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
+        tools::DrawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw a small circle representing joint DA
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
+        tools::DrawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw the rod (from joint BC to joint CD)
-        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
+        tools::DrawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
                            my_link_CD->GetMarker1()->GetAbsCoordsys().pos, ChColor(0, 1, 0));
         // .. draw the rocker (from joint CD to joint DA)
-        tools::drawSegment(vis.get(), my_link_CD->GetMarker1()->GetAbsCoordsys().pos,
+        tools::DrawSegment(vis.get(), my_link_CD->GetMarker1()->GetAbsCoordsys().pos,
                            my_link_DA->GetMarker1()->GetAbsCoordsys().pos, ChColor(1, 0, 0));
         // .. draw the trajectory of the rod-point
-        tools::drawPolyline(vis.get(), mtrajectory, ChColor(0, 0.5f, 0));
+        tools::DrawPolyline(vis.get(), mtrajectory, ChColor(0, 0.5f, 0));
 
         // We need to add another point to the array of 3d points describing the trajectory to be drawn..
         mtrajectory.push_back(my_body_C->TransformPointLocalToParent(ChVector3d(1, 1, 0)));

@@ -49,6 +49,18 @@ namespace chrono {
         }                                                                                                      \
     }
 
+/// Convert a string to upper case.
+inline std::string ChToUpper(std::string in) {
+    std::transform(in.begin(), in.end(), in.begin(), ::toupper);
+    return in;
+}
+
+/// Convert a string to lower case.
+inline std::string ChToLower(std::string in) {
+    std::transform(in.begin(), in.end(), in.begin(), ::tolower);
+    return in;
+}
+
 /// Clamp and modify the specified value to lie within the given limits.
 template <typename T>
 void ChClampValue(T& value, T limitMin, T limitMax) {

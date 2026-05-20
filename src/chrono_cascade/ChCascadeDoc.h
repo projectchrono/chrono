@@ -42,7 +42,7 @@ class ChApiCASCADE ChCascadeDoc {
 
     /// Populate the document with all shapes that are contained in the STEP file.
     /// Return true if load is successful.
-    bool LoadSTEP(const std::string& filename);
+    bool LoadSTEP(const std::string& filename) const;
 
     /// Dump the shapes hierarchy on given stream.
     void Dump(std::ostream& stream) const;

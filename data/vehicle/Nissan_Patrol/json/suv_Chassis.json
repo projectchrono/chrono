@@ -28,6 +28,6 @@
 
   "Visualization":
   {
-    "Mesh":  "Nissan_Patrol/suv_chassis.obj"
+    "Mesh":  "vehicle/Nissan_Patrol/suv_chassis.obj"
   }
 }

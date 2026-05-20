@@ -28,26 +28,26 @@ class ChApi ChTriangleMesh : public ChGeometry {
     ChTriangleMesh() {}
     virtual ~ChTriangleMesh() {}
 
-    /// Add a triangle to this triangle mesh, by specifying the three coordinates
+    /// Add a triangle to this triangle mesh, by specifying the three coordinates.
     virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) = 0;
 
-    /// Add a triangle to this triangle mesh, by specifying a ChTriangle
-    virtual void AddTriangle(const ChTriangle& atriangle) = 0;
+    /// Add a triangle to this triangle mesh, by specifying a ChTriangle.
+    virtual void AddTriangle(const ChTriangle& triangle) = 0;
 
-    /// Get the number of triangles already added to this mesh
+    /// Get the number of triangles already added to this mesh.
     virtual unsigned int GetNumTriangles() const = 0;
 
-    /// Get the n-th triangle in mesh
+    /// Get the n-th triangle in mesh.
     virtual ChTriangle GetTriangle(unsigned int index) const = 0;
 
-    /// Clear all data
+    /// Clear all data.
     virtual void Clear() = 0;
 
-    /// Transform all vertices, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) = 0;
+    /// Transform all vertices, by displacing and rotating (rotation via matrix, so also scaling if needed).
+    virtual void Transform(const ChVector3d& displ, const ChMatrix33d& rotscale) = 0;
 
-    /// Transform all vertices, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector3d displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0));
+    /// Transform all vertices, by displacing and rotating (rotation via matrix, so also scaling if needed).
+    virtual void Transform(const ChVector3d& displ, const ChQuaterniond& quat = ChQuaterniond(1, 0, 0, 0));
 
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::TRIANGLEMESH; }
@@ -56,9 +56,10 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual ChAABB GetBoundingBox() const override;
 
     //// TODO
-    //// virtual ChVector3d Baricenter() const override;
+    //// virtual ChVector3d Barycenter() const override;
 
-    /// This is a surface
+    /// Return dimensionality of this object.
+    /// For a surface, this is always 2.
     virtual int GetManifoldDimension() const override { return 2; }
 
     /// Method to allow serialization of transient data to archives.

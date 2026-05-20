@@ -534,6 +534,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementBeamTaperedTimoshenkoFPM)
 %DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementCableANCF)
 %DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementShellReissner4)
+%DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementShellBST)
 %DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementShellANCF_3423)
 %DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementShellANCF_3833)
 %DefSharedPtrDynamicCast(chrono::fea,ChElementBase,ChElementHexaANCF_3813)

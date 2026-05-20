@@ -16,16 +16,6 @@ endif()
 
 message(STATUS "\n==== Chrono VSG module ====\n")
 
-# VSG requires C++17 support. Disable module if not available
-if(NOT CH_CXX17)
-   message(WARNING "Chrono::VSG requires C++17 support which is not available; disabling Chrono::VSG")
-   set(CH_ENABLE_MODULE_VSG OFF CACHE BOOL "Enable the Chrono VSG module" FORCE)
-   mark_as_advanced(FORCE vsg_DIR)
-   mark_as_advanced(FORCE vsgXchange_DIR)
-   mark_as_advanced(FORCE vsgImGui_DIR)
-   return()
-endif()
-
 mark_as_advanced(CLEAR VSG_LIBRARY)
 mark_as_advanced(CLEAR VSG_ROOT)
 
@@ -137,8 +127,34 @@ target_compile_definitions(Chrono_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_C
 target_link_libraries(Chrono_vsg PRIVATE Chrono_core)
 target_link_libraries(Chrono_vsg PUBLIC
                       vsg::vsg
-                      vsgImGui::vsgImGui
                       vsgXchange::vsgXchange)
+
+# According to https://github.com/ocornut/imgui/issues/586, there should be only one copy of ImGui in the final executable.
+# If vsgImGui is a static library, we assume it includes ImGui and we do not add those files in the the Chrono library
+get_target_property(_vsgimgui_type vsgImGui::vsgImGui TYPE)
+if(_vsgimgui_type STREQUAL "STATIC_LIBRARY")
+    message(STATUS "vsgImGui is static; hide it behind Chrono_vsg")
+
+    target_link_libraries(Chrono_vsg
+        PRIVATE
+            "$<LINK_LIBRARY:WHOLE_ARCHIVE,vsgImGui::vsgImGui>"
+    )
+    # Header file access still needs to be exposed
+    target_include_directories(Chrono_vsg PUBLIC $<TARGET_PROPERTY:vsgImGui::vsgImGui,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_compile_definitions(Chrono_vsg PUBLIC $<TARGET_PROPERTY:vsgImGui::vsgImGui,INTERFACE_COMPILE_DEFINITIONS>)
+    target_compile_options(Chrono_vsg PUBLIC $<TARGET_PROPERTY:vsgImGui::vsgImGui,INTERFACE_COMPILE_OPTIONS>)
+
+    # Windows doesn't make symbols from static libraries available for export by default, so we need to explicitly enable that.
+    if(MSVC)
+        target_link_options(Chrono_vsg
+            PRIVATE
+                "$<$<CXX_COMPILER_ID:MSVC>:/OPT:NOREF>"
+        )
+    endif()
+else()
+    message(STATUS "vsgImGui is shared")
+    target_link_libraries(Chrono_vsg PUBLIC vsgImGui::vsgImGui)
+endif()
 
 install(TARGETS Chrono_vsg
         EXPORT ChronoTargets

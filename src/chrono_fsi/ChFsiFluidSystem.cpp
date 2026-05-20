@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <filesystem>
 
 #include "chrono/core/ChTypes.h"
 
@@ -24,9 +25,6 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_fsi/ChFsiFluidSystem.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_thirdparty/filesystem/resolver.h"
 
 using namespace rapidjson;
 
@@ -37,14 +35,7 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFsiFluidSystem::ChFsiFluidSystem()
-    : m_is_initialized(false),
-      m_verbose(false),
-      m_node_directions_mode(NodeDirectionsMode::NONE),
-      m_step(-1),
-      m_time(0),
-      m_frame(0),
-      m_RTF(0) {}
+ChFsiFluidSystem::ChFsiFluidSystem() : m_is_initialized(false), m_verbose(false), m_step(-1), m_time(0), m_frame(0), m_RTF(0), m_node_directions_mode(NodeDirectionsMode::NONE) {}
 
 ChFsiFluidSystem::~ChFsiFluidSystem() {}
 
@@ -57,7 +48,11 @@ void ChFsiFluidSystem::SetStepSize(double step) {
 }
 
 void ChFsiFluidSystem::Initialize() {
+#ifdef CHRONO_FEA
     Initialize(std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>());
+#else
+    Initialize(std::vector<FsiBodyState>());
+#endif
 }
 
 void ChFsiFluidSystem::DoStepDynamics(double step) {

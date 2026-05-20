@@ -29,9 +29,9 @@
 #include "chrono/physics/ChContactMaterial.h"
 
 // Ignore legacy keywords 'near' and 'far' in Visual Studio compiler
-#ifdef _WIN32 
-#undef near
-#undef far
+#ifdef _WIN32
+    #undef near
+    #undef far
 #endif
 #include <urdf_parser/urdf_parser.h>
 
@@ -169,8 +169,7 @@ class ChApiParsers ChParserURDF {
     /// Scan the URDF XML for all objects of the specified key and execute the Process() function of the provided
     /// callback object. Only direct children of the "robot" element in the input URDF are processed. The XML document
     /// may be augmented as the processed XML document is returned.
-    std::shared_ptr<tinyxml2::XMLDocument> CustomProcess(const std::string& key,
-                                                         std::shared_ptr<CustomProcessor> callback);
+    std::shared_ptr<tinyxml2::XMLDocument> CustomProcess(const std::string& key, std::shared_ptr<CustomProcessor> callback);
 
   private:
     ChColor toChColor(const urdf::Color& color);

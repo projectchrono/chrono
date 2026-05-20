@@ -15,7 +15,7 @@
 #pragma once
 
 #include <climits>
-#include <cuda_runtime.h>
+#include "chrono_dem/cuda/ChGpuRuntime.h"
 #include <cstdio>
 #include <cstdlib>
 #include <functional>

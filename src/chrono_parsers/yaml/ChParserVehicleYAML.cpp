@@ -19,15 +19,15 @@
 ////    For now, we assume that the YAML file and the vehicle JSON data files reside in the Chrono data directory.
 ////    Relax this constraint.
 
+#include <filesystem>
+
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 #include "chrono_parsers/yaml/ChParserVehicleYAML.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
 using std::cerr;
@@ -61,15 +61,8 @@ void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
     YAML::Node yaml;
 
     // Load VEHICLE YAML file
-    {
-        auto path = filesystem::path(yaml_filename);
-        if (!path.exists() || !path.is_file()) {
-            cerr << "Error: file '" << yaml_filename << "' not found." << endl;
-            throw std::runtime_error("File not found");
-        }
-        m_script_directory = path.parent_path().str();
-        yaml = YAML::LoadFile(yaml_filename);
-    }
+    yaml = YAML::LoadFile(yaml_filename);
+    m_file_handler.SetReferenceDirectory(yaml_filename);
 
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
@@ -87,9 +80,9 @@ void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
     {
         ChAssertAlways(yaml["model"]);
         auto model_fname = yaml["model"].as<std::string>();
-        auto model_filename = m_script_directory + "/" + model_fname;
-        auto path = filesystem::path(model_filename);
-        if (!path.exists() || !path.is_file()) {
+        auto model_filename = m_file_handler.GetReferenceDirectory() + "/" + model_fname;
+        auto path = std::filesystem::path(model_filename);
+        if (!exists(path) || !is_regular_file(path)) {
             cerr << "Error: file '" << model_filename << "' not found." << endl;
             throw std::runtime_error("File not found");
         }
@@ -107,9 +100,9 @@ void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
     {
         ChAssertAlways(yaml["solver"]);
         auto solver_fname = yaml["solver"].as<std::string>();
-        auto solver_filename = m_script_directory + "/" + solver_fname;
-        auto path = filesystem::path(solver_filename);
-        if (!path.exists() || !path.is_file()) {
+        auto solver_filename = m_file_handler.GetReferenceDirectory() + "/" + solver_fname;
+        auto path = std::filesystem::path(solver_filename);
+        if (!exists(path) || !is_regular_file(path)) {
             cerr << "Error: file '" << solver_filename << "' not found." << endl;
             throw std::runtime_error("File not found");
         }
@@ -145,12 +138,7 @@ void ChParserVehicleYAML::LoadModelData(const YAML::Node& yaml) {
     if (model["angle_degrees"])
         m_use_degrees = model["angle_degrees"].as<bool>();
 
-    if (model["data_path"]) {
-        ChAssertAlways(model["data_path"]["type"]);
-        m_data_path = ReadDataPathType(model["data_path"]["type"]);
-        if (model["data_path"]["root"])
-            m_rel_path = model["data_path"]["root"].as<std::string>();
-    }
+    m_file_handler.Read(model);
 
     ChAssertAlways(model["vehicle_json"]);
     ChAssertAlways(model["engine_json"]);
@@ -159,21 +147,21 @@ void ChParserVehicleYAML::LoadModelData(const YAML::Node& yaml) {
     auto engine_json = model["engine_json"].as<std::string>();
     auto transmission_json = model["transmission_json"].as<std::string>();
 
-    m_vehicle_json = GetDatafilePath(vehicle_json);
-    m_engine_json = GetDatafilePath(engine_json);
-    m_transmission_json = GetDatafilePath(transmission_json);
+    m_vehicle_json = m_file_handler.GetFilename(vehicle_json);
+    m_engine_json = m_file_handler.GetFilename(engine_json);
+    m_transmission_json = m_file_handler.GetFilename(transmission_json);
 
     m_vehicle_type = ReadVehicleType(GetChronoDataFile(m_vehicle_json));
 
     if (m_vehicle_type == VehicleType::WHEELED) {
         ChAssertAlways(model["tire_json"]);
         auto tire_json = model["tire_json"].as<std::string>();
-        m_tire_json = GetDatafilePath(tire_json);
+        m_tire_json = m_file_handler.GetFilename(tire_json);
     }
 
     if (yaml["terrain_json"]) {
         auto terrain_json = yaml["terrain_json"].as<std::string>();
-        m_terrain_json = GetDatafilePath(terrain_json);
+        m_terrain_json = m_file_handler.GetFilename(terrain_json);
     }
 
     if (yaml["initial_position"])
@@ -217,8 +205,7 @@ void ChParserVehicleYAML::CreateVehicle(ChSystem& sys) {
 
     switch (m_vehicle_type) {
         case VehicleType::WHEELED:
-            vehicleW = chrono_types::make_shared<vehicle::WheeledVehicle>(&sys, GetChronoDataFile(m_vehicle_json),
-                                                                          false, false);
+            vehicleW = chrono_types::make_shared<vehicle::WheeledVehicle>(&sys, GetChronoDataFile(m_vehicle_json), false, false);
             vehicleW->Initialize(ChCoordsys<>(m_init_position, QuatFromAngleZ(m_init_yaw)));
             vehicleW->GetChassis()->SetFixed(false);
 
@@ -284,7 +271,7 @@ void ChParserVehicleYAML::CreateVehicle(ChSystem& sys) {
 ChParserVehicleYAML::VehicleType ChParserVehicleYAML::ReadVehicleType(const std::string& vehicle_json) {
     // Peek in vehicle JSON file and infer type
     rapidjson::Document d;
-    vehicle::ReadFileJSON(vehicle_json, d);
+    ReadFileJSON(vehicle_json, d);
     ChAssertAlways(!d.IsNull());
     ChAssertAlways(d.HasMember("Type"));
     ChAssertAlways(d.HasMember("Template"));

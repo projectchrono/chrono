@@ -23,9 +23,7 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Operation between functions:
-///
-/// Math operation between two operand functions
+/// Math operation between two operand functions.
 class ChApi ChFunctionOperator : public ChFunction {
   public:
     ChFunctionOperator();
@@ -57,19 +55,19 @@ class ChApi ChFunctionOperator : public ChFunction {
     void SetOperationType(eChOperation m_op) { m_op_type = m_op; }
 
     /// Get the operation type between the two operands.
-    eChOperation GetOperationType() { return m_op_type; }
+    eChOperation GetOperationType() const { return m_op_type; }
 
     /// Set the first operand function.
     void SetFirstOperandFunction(std::shared_ptr<ChFunction> m_m_first_fun) { m_first_fun = m_m_first_fun; }
 
     /// Get the first operand function.
-    std::shared_ptr<ChFunction> GetFirstOperandFunction() { return m_first_fun; }
+    std::shared_ptr<ChFunction> GetFirstOperandFunction() const { return m_first_fun; }
 
     /// Set the second operand function.
     void SetSecondOperandFunction(std::shared_ptr<ChFunction> m_m_second_fun) { m_second_fun = m_m_second_fun; }
 
     /// Get the second operand function.
-    std::shared_ptr<ChFunction> GetSecondOperandFunction() { return m_second_fun; }
+    std::shared_ptr<ChFunction> GetSecondOperandFunction() const { return m_second_fun; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

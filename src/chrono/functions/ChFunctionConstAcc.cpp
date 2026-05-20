@@ -100,6 +100,10 @@ double ChFunctionConstAcc::GetDer2(double x) const {
     return ret;
 }
 
+double ChFunctionConstAcc::GetDer3(double x) const {
+    return 0.0;
+}
+
 void ChFunctionConstAcc::SetDuration(double duration) {
     if (duration < 0)
         throw std::invalid_argument("Duration should be greater than 0.");

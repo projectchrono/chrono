@@ -272,10 +272,11 @@ void ChLinkMotorLinearDriveline::IntLoadResidual_CqL(const unsigned int off_L,
 void ChLinkMotorLinearDriveline::IntLoadConstraint_C(const unsigned int off_L,
                                                      ChVectorDynamic<>& Qc,
                                                      const double c,
+                                                     const double c_vel, 
                                                      bool do_clamp,
                                                      double recovery_clamp) {
     // First, inherit to parent class
-    ChLinkMotorLinear::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
+    ChLinkMotorLinear::IntLoadConstraint_C(off_L, Qc, c, c_vel, do_clamp, recovery_clamp);
 
     unsigned int nc = mask.GetNumConstraints();
 
@@ -302,14 +303,14 @@ void ChLinkMotorLinearDriveline::IntLoadConstraint_C(const unsigned int off_L,
     Qc(off_L + nc + 2) += cnstr_violation2r;
 }
 
-void ChLinkMotorLinearDriveline::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+void ChLinkMotorLinearDriveline::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
     // First, inherit to parent class
-    ChLinkMotorLinear::IntLoadConstraint_Ct(off_L, Qc, c);
+    ChLinkMotorLinear::IntLoadConstraint_Ct(off_L, Qc, c, c_vel);
 
     unsigned int nc = mask.GetNumConstraints();
-    innerconstraint1lin->IntLoadConstraint_Ct(off_L + nc + 0, Qc, c);
-    innerconstraint2lin->IntLoadConstraint_Ct(off_L + nc + 1, Qc, c);
-    innerconstraint2rot->IntLoadConstraint_Ct(off_L + nc + 2, Qc, c);
+    innerconstraint1lin->IntLoadConstraint_Ct(off_L + nc + 0, Qc, c, c_vel);
+    innerconstraint2lin->IntLoadConstraint_Ct(off_L + nc + 1, Qc, c, c_vel);
+    innerconstraint2rot->IntLoadConstraint_Ct(off_L + nc + 2, Qc, c, c_vel);
 }
 
 void ChLinkMotorLinearDriveline::IntToDescriptor(const unsigned int off_v,

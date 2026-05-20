@@ -515,11 +515,13 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac02Tire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFialaTire)
 
+#ifdef CHRONO_FEA
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChDeformableTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChANCFTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFEATire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChReissnerTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChMBTire)
+#endif
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimple)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimpleMap)

@@ -14,6 +14,9 @@
 
 #include <cmath>
 
+#include <vsg/nodes/DepthSorted.h>
+#include <vsg/utils/ComputeBounds.h>
+
 #include "chrono_vsg/utils/ChDataUtilsVSG.h"
 #include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 #include "chrono_vsg/utils/ChShaderUtilsVSG.h"
@@ -25,6 +28,21 @@ using std::cos;
 
 namespace chrono {
 namespace vsg3d {
+
+namespace {
+/// Wrap a node in vsg::DepthSorted for correct back-to-front rendering of transparent objects.
+/// Must be called after geometry has been added as child so bounds can be computed.
+vsg::ref_ptr<vsg::Node> wrapIfTransparent(vsg::ref_ptr<vsg::Node> node, std::shared_ptr<ChVisualMaterial> material) {
+    bool use_blending = (material->GetOpacity() < 1.0) || (!material->GetOpacityTexture().empty());
+    if (!use_blending)
+        return node;
+
+    auto cb = vsg::visit<vsg::ComputeBounds>(node);
+    auto center = (cb.bounds.min + cb.bounds.max) * 0.5;
+    auto radius = vsg::length(cb.bounds.max - cb.bounds.min) * 0.5;
+    return vsg::DepthSorted::create(10, vsg::dsphere(center.x, center.y, center.z, radius), node);
+}
+}  // namespace
 
 ShapeBuilder::ShapeBuilder(vsg::ref_ptr<vsg::Options> options, int num_divs) : m_options(options) {
     // Create the primitive shape builders
@@ -81,7 +99,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
     vid->instanceCount = instanceCount;
 
     stategraph->addChild(vid);
-    transform->addChild(stategraph);
+    transform->addChild(wrapIfTransparent(stategraph, material));
     scenegraph->addChild(transform);
 
     if (m_compileTraversal)
@@ -247,7 +265,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChT
     const auto& uvs = mesh->GetCoordsUV();
     const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& c_indices = mesh->GetIndicesColors();
@@ -339,7 +357,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChT
 
     auto stategraph = createPbrStateGroup(m_options, chronoMat, double_faced, wireframe, wire_width);
     stategraph->addChild(vid);
-    transform->addChild(stategraph);
+    transform->addChild(wrapIfTransparent(stategraph, chronoMat));
 
     scenegraph->addChild(transform);
 
@@ -379,7 +397,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         colors_ok = false;
     }
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
 
     // create and fill the vsg buffers
     vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
@@ -420,7 +438,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
 
     auto stategraph = createPbrStateGroup(m_options, chronoMat, double_faced, wireframe, wire_width);
     stategraph->addChild(vid);
-    transform->addChild(stategraph);
+    transform->addChild(wrapIfTransparent(stategraph, chronoMat));
 
     scenegraph->addChild(transform);
 
@@ -446,7 +464,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
     const auto& normals = mesh->GetCoordsNormals();
     const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertices();
     const auto& n_indices = mesh->GetIndicesNormals();
     const auto& uv_indices = mesh->GetIndicesUV();
     const auto& m_indices = mesh->GetIndicesMaterials();
@@ -540,7 +558,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
 
         auto stategraph = createPbrStateGroup(m_options, chronoMat, double_faced, wireframe, wire_width);
         stategraph->addChild(vid);
-        transform->addChild(stategraph);
+        transform->addChild(wrapIfTransparent(stategraph, chronoMat));
     }
 
     if (m_compileTraversal)

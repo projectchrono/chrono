@@ -66,7 +66,7 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
     auto num_verts = trimesh->GetNumVertices();
     auto num_triangles = trimesh->GetNumTriangles();
     auto& verts = trimesh->GetCoordsVertices();
-    auto& idx_verts = trimesh->GetIndicesVertexes();
+    auto& idx_verts = trimesh->GetIndicesVertices();
     m_adjElements.resize(num_verts);
     std::vector<double> triArea(num_triangles);
     for (unsigned int ie = 0; ie < num_triangles; ie++) {
@@ -140,7 +140,7 @@ void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(ChWriterCSV& csv) {
     int num_triangles = m_tire_rgd->GetContactMesh()->GetNumTriangles();
     csv << num_triangles << endl;
 
-    const std::vector<ChVector3i>& triangles = m_tire_rgd->GetContactMesh()->GetIndicesVertexes();
+    const std::vector<ChVector3i>& triangles = m_tire_rgd->GetContactMesh()->GetIndicesVertices();
     for (int ie = 0; ie < num_triangles; ie++) {
         csv << triangles[ie] << endl;
     }

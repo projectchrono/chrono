@@ -1157,7 +1157,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
     auto trimesh = m_trimesh_shape->GetMesh();
     auto& vertices = trimesh->GetCoordsVertices();
     auto& normals = trimesh->GetCoordsNormals();
-    auto& idx_vertices = trimesh->GetIndicesVertexes();
+    auto& idx_vertices = trimesh->GetIndicesVertices();
     auto& idx_normals = trimesh->GetIndicesNormals();
     ////auto& uv_coords = trimesh->GetCoordsUV();
     auto& colors = trimesh->GetCoordsColors();

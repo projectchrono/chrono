@@ -26,6 +26,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualShapeLine.h"
@@ -35,8 +36,6 @@
 #include "chrono/core/ChRandom.h"
 
 #include "chrono_postprocess/ChBlender.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -156,7 +155,7 @@ int main(int argc, char* argv[]) {
     trimesh->GetMesh()->GetCoordsVertices() =
         std::vector<chrono::ChVector3d>{{2, 1, 0}, {3, 1, 0}, {3, 2, 0}, {2, 2, 0}};
     // ...two triangle faces, whose indexes point to the vertices above. Counterclockwise.
-    trimesh->GetMesh()->GetIndicesVertexes() = std::vector<chrono::ChVector3i>{
+    trimesh->GetMesh()->GetIndicesVertices() = std::vector<chrono::ChVector3i>{
         {0, 1, 2},
         {2, 3, 0},
     };

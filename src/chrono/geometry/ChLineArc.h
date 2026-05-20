@@ -35,11 +35,7 @@ class ChApi ChLineArc : public ChLine {
     bool counterclockwise;  ///< flag indicating arc direction
 
   public:
-    ChLineArc(const ChCoordsys<>& morigin = CSYSNULL,
-              double mradius = 1,
-              double mangle1 = CH_2PI,
-              double mangle2 = 0,
-              bool mcounterclockwise = false);
+    ChLineArc(const ChCoordsys<>& morigin = CSYSNULL, double mradius = 1, double mangle1 = CH_2PI, double mangle2 = 0, bool mcounterclockwise = false);
     ChLineArc(const ChLineArc& source);
     ~ChLineArc() {}
 

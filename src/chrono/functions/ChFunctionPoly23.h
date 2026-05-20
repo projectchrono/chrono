@@ -27,11 +27,6 @@ namespace chrono {
 /// with `x` in `[x_start, x_end]`.
 /// First derivatives at the start and end points are zero.
 class ChApi ChFunctionPoly23 : public ChFunction {
-  private:
-    double m_ampl;
-    double m_x_start;
-    double m_x_end;
-
   public:
     ChFunctionPoly23() : m_ampl(1.0), m_x_start(0.0), m_x_end(1.0) {}
     ChFunctionPoly23(double ampl, double x_start, double x_end) : m_ampl(ampl), m_x_start(x_start), m_x_end(x_end) {}
@@ -46,6 +41,7 @@ class ChApi ChFunctionPoly23 : public ChFunction {
     virtual double GetVal(double x) const override;
     virtual double GetDer(double x) const override;
     virtual double GetDer2(double x) const override;
+    virtual double GetDer3(double x) const override;
 
     /// Set the start of the step: GetVal(x_start) = 0.
     void SetStartArg(double x_start) { m_x_start = x_start; }
@@ -74,6 +70,11 @@ class ChApi ChFunctionPoly23 : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double m_ampl;
+    double m_x_start;
+    double m_x_end;
 };
 
 /// @} chrono_functions

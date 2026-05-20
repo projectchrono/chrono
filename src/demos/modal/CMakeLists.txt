@@ -1,17 +1,20 @@
 #--------------------------------------------------------------
 # List all MODAL demos 
 
-set(DEMOS
-    demo_MOD_slewing_beam
+set(DEMOS "")
+
+if(CH_ENABLE_MODULE_FEA)
+    set(DEMOS ${DEMOS}
+        demo_MOD_slewing_beam
     )
 
-# Add demos that require Irrlicht
-if(CH_ENABLE_MODULE_IRRLICHT)
-   set(DEMOS ${DEMOS}
-       demo_MOD_analysis
-       demo_MOD_reduction
-       demo_MOD_cache_reduced
-   )
+    if(CH_ENABLE_MODULE_IRRLICHT)
+        set(DEMOS ${DEMOS}
+            demo_MOD_analysis
+            demo_MOD_reduction
+            demo_MOD_cache_reduced
+        )
+    endif()
 endif()
 
 #--------------------------------------------------------------

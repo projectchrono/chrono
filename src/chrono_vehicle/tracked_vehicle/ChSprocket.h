@@ -103,9 +103,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void ApplyAxleTorque(double torque);
 
     /// Utility function to create a sprocket visualization mesh.
-    std::shared_ptr<ChTriangleMeshConnected> CreateVisualizationMesh(double radius,  ///< inner radius
-                                                                     double width,   ///< gear width
-                                                                     double delta,   ///< arclength between points
+    std::shared_ptr<ChTriangleMeshConnected> CreateVisualizationMesh(double radius,                    ///< inner radius
+                                                                     double width,                     ///< gear width
+                                                                     double delta,                     ///< arclength between points
                                                                      ChColor color = ChColor(1, 1, 1)  ///< mesh color
     ) const;
 
@@ -151,9 +151,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
     /// Return the custom collision callback object.
-    virtual std::shared_ptr<ChSystem::CustomCollisionCallback> GetCollisionCallback(
-        ChTrackAssembly* track  ///< [in] pointer to containing track assembly
-        ) = 0;
+    virtual std::shared_ptr<ChSystem::CustomCollisionCallback> GetCollisionCallback(ChTrackAssembly* track) = 0;
 
     virtual void PopulateComponentList() override;
 

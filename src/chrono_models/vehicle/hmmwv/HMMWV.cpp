@@ -23,16 +23,20 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCF4LumpedTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
+
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_MBTire.h"
+#ifdef CHRONO_FEA
+    #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
+    #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCF4LumpedTire.h"
+    #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+    #include "chrono_models/vehicle/hmmwv/tire/HMMWV_MBTire.h"
+#endif
 
 #include "chrono_vehicle/ChPowertrainAssembly.h"
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
@@ -108,12 +112,21 @@ void HMMWV::SetAerodynamicDrag(double Cd, double area, double air_density) {
     m_apply_drag = true;
 }
 
-void HMMWV::SetTireContactSurfaceType(ChTire::ContactSurfaceType surface_type,
-                                      double surface_dim,
-                                      int collision_family) {
+void HMMWV::SetTireContactSurfaceType(ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family) {
     m_tire_surface_type = surface_type;
     m_tire_surface_dim = surface_dim;
     m_tire_collision_family = collision_family;
+}
+
+void HMMWV::SetChassisCollisionGeometry(const utils::ChBodyGeometry& geometry) {
+    assert(geometry.HasCollision());
+    m_chassis_collision_geometry.materials = geometry.materials;
+    m_chassis_collision_geometry.coll_boxes = geometry.coll_boxes;
+    m_chassis_collision_geometry.coll_spheres = geometry.coll_spheres;
+    m_chassis_collision_geometry.coll_cylinders = geometry.coll_cylinders;
+    m_chassis_collision_geometry.coll_cones = geometry.coll_cones;
+    m_chassis_collision_geometry.coll_meshes = geometry.coll_meshes;
+    m_chassis_collision_geometry.coll_hulls = geometry.coll_hulls;
 }
 
 // -----------------------------------------------------------------------------
@@ -122,6 +135,8 @@ void HMMWV::Initialize() {
     m_vehicle = CreateVehicle();
     m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->SetInitWheelAngVel(m_initOmega);
+    if (m_chassis_collision_geometry.HasCollision())
+        std::static_pointer_cast<HMMWV_Chassis>(m_vehicle->GetChassis())->SetCollisionGeometry(m_chassis_collision_geometry);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // If specified, enable aerodynamic drag
@@ -266,6 +281,7 @@ void HMMWV::Initialize() {
             break;
         }
 
+#ifdef CHRONO_FEA
         case TireModelType::ANCF: {
             auto tire_FL = chrono_types::make_shared<HMMWV_ANCFTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_ANCFTire>("FR");
@@ -349,6 +365,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+#endif
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {
@@ -387,12 +404,10 @@ HMMWV_Full::HMMWV_Full(ChSystem* system) : HMMWV(system), m_rigidColumn(false), 
 
 HMMWV_Vehicle* HMMWV_Full::CreateVehicle() {
     if (m_system) {
-        return new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_brake_type, m_steeringType, m_use_tierod_bodies,
-                                     m_rigidColumn, m_chassisCollisionType);
+        return new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_brake_type, m_steeringType, m_use_tierod_bodies, m_rigidColumn, m_chassisCollisionType);
     }
 
-    return new HMMWV_VehicleFull(m_fixed, m_driveType, m_brake_type, m_steeringType, m_use_tierod_bodies, m_rigidColumn,
-                                 m_contactMethod, m_chassisCollisionType);
+    return new HMMWV_VehicleFull(m_fixed, m_driveType, m_brake_type, m_steeringType, m_use_tierod_bodies, m_rigidColumn, m_contactMethod, m_chassisCollisionType);
 }
 
 HMMWV_Reduced::HMMWV_Reduced() {
@@ -405,12 +420,10 @@ HMMWV_Reduced::HMMWV_Reduced(ChSystem* system) : HMMWV(system) {
 
 HMMWV_Vehicle* HMMWV_Reduced::CreateVehicle() {
     if (m_system) {
-        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_brake_type, m_steeringType,
-                                        m_chassisCollisionType);
+        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_brake_type, m_steeringType, m_chassisCollisionType);
     }
 
-    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_brake_type, m_steeringType, m_contactMethod,
-                                    m_chassisCollisionType);
+    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_brake_type, m_steeringType, m_contactMethod, m_chassisCollisionType);
 }
 
 }  // end namespace hmmwv

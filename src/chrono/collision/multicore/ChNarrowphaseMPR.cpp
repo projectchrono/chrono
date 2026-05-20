@@ -25,7 +25,7 @@ namespace chrono {
 
 using namespace chrono::mc_utils;
 
-#define MPR_TOLERANCE C_REAL_EPSILON
+#define MPR_TOLERANCE CH_REAL_EPSILON
 #define MAX_ITERATIONS 100
 #define WHILE_LOOP_MAX 1000
 
@@ -131,10 +131,7 @@ int portalReachTolerance(const simplex& portal, const real3& n) {
     real dot2 = dv4 - dv2;
     real dot3 = dv4 - dv3;
 
-    dot1 = Min(dot1, dot2);
-    dot1 = Min(dot1, dot3);
-
-    return IsEqual(dot1, MPR_TOLERANCE) || dot1 < MPR_TOLERANCE;
+    return IsEqual(std::min(dot1, dot2), MPR_TOLERANCE) || std::min(dot1, dot3) < MPR_TOLERANCE;
 }
 real Vec3Dist2(const real3 a, const real3 b) {
     real3 ab = a - b;
@@ -240,7 +237,7 @@ real Vec3PointTriDist2(const real3& P, const real3& V0, const real3& V1, const r
     real b0 = Dot(diff, edge0);
     real b1 = Dot(diff, edge1);
     real c = Dot(diff, diff);
-    real det = Abs(a00 * a11 - a01 * a01);
+    real det = std::abs(a00 * a11 - a01 * a01);
     real s = a01 * b1 - a11 * b0;
     real t = a01 * b0 - a00 * b1;
     real sqrDistance;
@@ -423,7 +420,7 @@ void FindPenetration(const ConvexBase* shapeA,
         // real delta = Dot((portal.s4.v - portal.s3.v), dir);
         // std::cout<<dir<<" "<<delta<<std::endl;
         if (portalReachTolerance(portal, dir) || i == MAX_ITERATIONS - 1) {
-            //         depth = -Sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));
+            //         depth = -std::sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));
             //         if (IsZero(n)) {
             //            n = dir;
             //         }

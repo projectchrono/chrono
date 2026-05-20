@@ -18,7 +18,7 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
 using namespace chrono::fea;
 using namespace rapidjson;

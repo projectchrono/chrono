@@ -20,17 +20,16 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLineNurbs)
 
 ChLineNurbs::ChLineNurbs() {
-    std::vector<ChVector3d> mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
-    this->Setup(1, mpoints);
+    std::vector<ChVector3d> points = { ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0) };
+    Setup(1, points);
 }
 
-ChLineNurbs::ChLineNurbs(
-    int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* weights         ///< weights, size w. Required w=n. If not provided, all weights as 1.
+ChLineNurbs::ChLineNurbs(int order,                              ///< order p: 1= linear, 2=quadratic, etc.
+                         const std::vector<ChVector3d>& points,  ///< control points, size n. Required: at least n >= p+1
+                         const ChVectorDynamic<>* knots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+                         const ChVectorDynamic<>* weights        ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
-    this->Setup(morder, mpoints, mknots, weights);
+    Setup(order, points, knots, weights);
 }
 
 ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {
@@ -75,30 +74,29 @@ ChVector3d ChLineNurbs::GetTangent(double parU) const {
     return dir;
 }
 
-void ChLineNurbs::Setup(
-    int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* weights         ///< weights, size w. Required w=n. If not provided, all weights as 1.
+void ChLineNurbs::Setup(int order,                              ///< order p: 1= linear, 2=quadratic, etc.
+                        const std::vector<ChVector3d>& points,  ///< control points, size n. Required: at least n >= p+1
+                        const ChVectorDynamic<>* knots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+                        const ChVectorDynamic<>* weights        ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
-    if (morder < 1)
+    if (order < 1)
         throw std::invalid_argument("ChLineNurbs::Setup requires order >= 1.");
 
-    if (mpoints.size() < morder + 1)
+    if (points.size() < order + 1)
         throw std::invalid_argument("ChLineNurbs::Setup requires at least order+1 control points.");
 
-    if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
+    if (knots && (size_t)knots->size() != (points.size() + order + 1))
         throw std::invalid_argument("ChLineNurbs::Setup knots must have size=n_points+order+1");
 
-    if (weights && (size_t)weights->size() != mpoints.size())
+    if (weights && (size_t)weights->size() != points.size())
         throw std::invalid_argument("ChLineNurbs::Setup weights must have size=n_points");
 
-    m_p = morder;
-    m_points = mpoints;
+    m_p = order;
+    m_points = points;
     int n = (int)m_points.size();
 
-    if (mknots)
-        m_knots = *mknots;
+    if (knots)
+        m_knots = *knots;
     else {
         m_knots.setZero(n + m_p + 1);
         ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(m_knots, m_p);
@@ -125,8 +123,8 @@ void ChLineNurbs::ArchiveOut(ChArchiveOut& archive_out) {
     ChLine::ArchiveOut(archive_out);
     // serialize all member data:
     archive_out << CHNVP(m_points);
-    ////archive_out << CHNVP(m_weights); //**TODO MATRIX DESERIALIZATION
-    ////archive_out << CHNVP(m_knots); //**TODO MATRIX DESERIALIZATION
+    archive_out << CHNVP(m_weights);
+    archive_out << CHNVP(m_knots);
     archive_out << CHNVP(m_p);
 }
 
@@ -137,8 +135,8 @@ void ChLineNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     ChLine::ArchiveIn(archive_in);
     // stream in all member data:
     archive_in >> CHNVP(m_points);
-    ////archive_in >> CHNVP(m_weights); //**TODO MATRIX DESERIALIZATION
-    ////archive_in >> CHNVP(m_knots); //**TODO MATRIX DESERIALIZATION
+    archive_in >> CHNVP(m_weights);
+    archive_in >> CHNVP(m_knots);
     archive_in >> CHNVP(m_p);
 }
 

@@ -139,9 +139,9 @@ while vis.Run():
     # Graphics
     vis.BeginScene()
     vis.Render()
-    chronoirr.drawCoordsys(vis, targetcoord, 0.1) # draw target
+    chronoirr.DrawCoordsys(vis, targetcoord, 0.1) # draw target
     for ii in keys:
-        chronoirr.drawCoordsys(vis, ii, 0.05) # draw key frames
+        chronoirr.DrawCoordsys(vis, ii, 0.05) # draw key frames
     vis.EndScene()
 
     # Impose following of trajectory through analytical IK, at run-time

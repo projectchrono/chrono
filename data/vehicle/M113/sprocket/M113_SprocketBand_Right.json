@@ -40,6 +40,6 @@
 
   "Visualization":
   {
-      "Mesh":              "M113/SprocketBand_R.obj"
+      "Mesh":              "vehicle/M113/SprocketBand_R.obj"
   }
 }

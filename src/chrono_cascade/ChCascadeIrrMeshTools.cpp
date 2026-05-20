@@ -1,0 +1,103 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+
+#include "chrono_cascade/ChCascadeIrrMeshTools.h"
+
+#include <BRepAdaptor_Surface.hxx>
+#include <BRep_Tool.hxx>
+#include <BRepTools.hxx>
+#include <Poly.hxx>
+#include <TopExp_Explorer.hxx>
+#include <BRepMesh_IncrementalMesh.hxx>
+
+namespace chrono {
+namespace cascade {
+
+void ChCascadeIrrMeshTools::FillIrrlichtMeshFromCascadeFace(irr::scene::IMesh* pMesh, const TopoDS_Face& F, irr::video::SColor clr) {
+    BRepAdaptor_Surface BS(F, Standard_False);
+    opencascade::handle<BRepAdaptor_Surface> gFace = new BRepAdaptor_Surface(BS);
+
+    opencascade::handle<Poly_Triangulation> T;
+    TopLoc_Location theLocation;
+    T = BRep_Tool::Triangulation(F, theLocation);
+
+    if (!T.IsNull()) {
+        irr::scene::SMeshBuffer* buffer = new irr::scene::SMeshBuffer();
+
+        buffer->Vertices.set_used(T->NbNodes());
+        buffer->Indices.set_used(T->NbTriangles() * 3);
+
+        const Poly_ArrayOfNodes& mNodes = T->InternalNodes();
+
+        Poly::ComputeNormals(T);
+        const auto& mNormals = T->InternalNormals();
+
+        int ivert = 0;
+        for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
+            gp_Pnt p;
+            gp_Dir pn;
+            p = mNodes.Value(j).Transformed(theLocation.Transformation());
+
+            chrono::ChVector3d pos(p.X(), p.Y(), p.Z());
+            chrono::ChVector3d nor(mNormals.Value(j).x(), mNormals.Value(j).y(), mNormals.Value(j).z());
+            if (F.Orientation() == TopAbs_REVERSED)
+                nor *= -1;
+
+            buffer->Vertices[ivert] =
+                irr::video::S3DVertex((irr::f32)pos.x(), (irr::f32)pos.y(), (irr::f32)pos.z(), (irr::f32)nor.x(), (irr::f32)nor.y(), (irr::f32)nor.z(), clr, 0, 0);
+            ivert++;
+        }
+
+        int itri = 0;
+        for (int j = 1; j <= T->NbTriangles(); ++j) {  // NB: opencascade indexing is [1, last]
+            Standard_Integer n[3];
+            if (F.Orientation() == TopAbs_REVERSED)
+                T->Triangle(j).Get(n[0], n[2], n[1]);
+            else
+                T->Triangle(j).Get(n[0], n[1], n[2]);
+            int ia = (n[0]) - 1;
+            int ib = (n[1]) - 1;
+            int ic = (n[2]) - 1;
+
+            buffer->Indices[itri * 3 + 0] = ia;
+            buffer->Indices[itri * 3 + 1] = ib;
+            buffer->Indices[itri * 3 + 2] = ic;
+
+            itri++;
+        }
+
+        irr::scene::SMesh* mmesh = dynamic_cast<irr::scene::SMesh*>(pMesh);
+        mmesh->addMeshBuffer(buffer);
+        mmesh->recalculateBoundingBox();
+    }
+}
+
+void ChCascadeIrrMeshTools::FillIrrlichtMeshFromCascade(irr::scene::IMesh* pMesh,
+                                                               const TopoDS_Shape& mshape,
+                                                               double deflection,
+                                                               bool relative_deflection,
+                                                               double angulardeflection,
+                                                               irr::video::SColor clr) {
+    BRepTools::Clean(mshape);
+    BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection, angulardeflection, true);
+    // std::cout << "    ..tessellation done" << std::endl;
+
+    // Loop on faces..
+    TopExp_Explorer ex;
+    for (ex.Init(mshape, TopAbs_FACE); ex.More(); ex.Next()) {
+        const TopoDS_Face& F = TopoDS::Face(ex.Current());
+        FillIrrlichtMeshFromCascadeFace(pMesh, F, clr);
+    }
+}
+
+}  // end namespace cascade
+} // end namespace chrono

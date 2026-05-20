@@ -118,6 +118,7 @@ void ChShaftsGear::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& 
 void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,
                                        ChVectorDynamic<>& Qc,
                                        const double c,
+                                       const double c_vel,  
                                        bool do_clamp,
                                        double recovery_clamp) {
     if (this->is_compliant) {

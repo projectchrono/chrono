@@ -22,6 +22,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <filesystem>
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono/assets/ChTexture.h"
@@ -29,8 +30,6 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
@@ -150,7 +149,7 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
             ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile(m_vis_mesh_file), true, true);
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
+        m_trimesh_shape->SetName(std::filesystem::path(m_vis_mesh_file).stem().string());
         m_spindle->AddVisualShape(m_trimesh_shape, ChFrame<>(ChVector3d(0, m_offset, 0), ChMatrix33<>(rot)));
         return;
     }

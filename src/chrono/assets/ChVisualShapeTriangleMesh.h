@@ -35,12 +35,13 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     ChVisualShapeTriangleMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials = true);
     ~ChVisualShapeTriangleMesh() {}
 
-    std::shared_ptr<ChTriangleMeshConnected> GetMesh() { return trimesh; }
-
     /// Associate the mesh asset with a triangle mesh geometry.
     /// Optionally, if `load_materials` is set to `true` and if the provided trimesh was loaded from a Wavefront OBJ
     /// file, associated material files are searched for and visualization materials loaded.
     void SetMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials = true);
+
+    /// Get triangle mesh geometry associated to visual shape.
+    std::shared_ptr<ChTriangleMeshConnected> GetMesh() const { return trimesh; }
 
     bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }
@@ -54,10 +55,11 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     const ChVector3d& GetScale() const { return scale; }
     void SetScale(const ChVector3d& mscale) { scale = mscale; }
 
+    bool IsFixedConnectivity() const { return fixed_connectivity; }
     void SetFixedConnectivity() { fixed_connectivity = true; }
-    bool FixedConnectivity() const { return fixed_connectivity; }
-    void SetModifiedVertices(std::vector<int> vertices) { modified_vertices = vertices; }
+
     const std::vector<int>& GetModifiedVertices() const { return modified_vertices; }
+    void SetModifiedVertices(const std::vector<int>& vertices) { modified_vertices = vertices; }
 
     /// Get the shape bounding box.
     virtual ChAABB GetBoundingBox() const override { return trimesh->GetBoundingBox(); }

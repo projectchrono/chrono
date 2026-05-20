@@ -49,8 +49,8 @@ class ChApi ChCone : public ChVolume {
     /// Return the radius of a bounding sphere for this geometry.
     virtual double GetBoundingSphereRadius() const override;
 
-    /// Compute the baricenter of the cone.
-    virtual ChVector3d Baricenter() const override { return ChVector3d(); }
+    /// Compute the barycenter of the cone.
+    virtual ChVector3d Barycenter() const override { return ChVector3d(); }
 
     /// Evaluate position in box volume.
     virtual ChVector3d Evaluate(double parU, double parV, double parW) const override {

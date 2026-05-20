@@ -32,8 +32,6 @@
 
 #include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -97,12 +95,12 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     std::string img_dir = out_dir + "/img";
-    if (!filesystem::create_directory(filesystem::path(img_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(img_dir))) {
         std::cout << "Error creating directory " << img_dir << std::endl;
         return 1;
     }

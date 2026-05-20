@@ -244,9 +244,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
-        ChVector3d baricenter;
+        ChVector3d barycenter;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, barycenter, inertia);
 
         // Create obstacle body
         auto body = chrono_types::make_shared<ChBody>();
@@ -347,6 +347,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, Te
     rigid_contact.moment = m_terrain->GetFsiBodyTorque(proxy->bodies[0]);
 }
 
+#ifdef CHRONO_FEA
 // -----------------------------------------------------------------------------
 // Create bodies with triangular contact geometry as proxies for the mesh faces.
 // Used for flexible bodies.
@@ -447,6 +448,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceMeshProxy(unsigned int i, Mes
     ////    cout << " num contact nodes: " << mesh_contact.nv << endl;
     ////}
 }
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -535,7 +537,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
     }
 }
 
+#ifdef CHRONO_FEA
 void ChVehicleCosimTerrainNodeGranularSPH::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {}
+#endif
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -109,8 +109,8 @@ int main(int argc, char* argv[]) {
         ChVector3d p0(0, 0, 0);
         ChVector3d p1(std::cos(min_angle), -std::sin(min_angle), 0);
         ChVector3d p2(std::cos(max_angle), -std::sin(max_angle), 0);
-        tools::drawSegment(vis.get(), p0, p0 + 4.0 * p1, ChColor(1, 0.5f, 0), true);
-        tools::drawSegment(vis.get(), p0, p0 + 4.0 * p2, ChColor(1, 0.5f, 0), true);
+        tools::DrawSegment(vis.get(), p0, p0 + 4.0 * p1, ChColor(1, 0.5f, 0), true);
+        tools::DrawSegment(vis.get(), p0, p0 + 4.0 * p2, ChColor(1, 0.5f, 0), true);
         vis->EndScene();
 
         sys.DoStepDynamics(1e-3);

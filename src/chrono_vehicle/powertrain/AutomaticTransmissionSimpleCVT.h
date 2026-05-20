@@ -6,7 +6,7 @@
 #define AUTOMATIC_TRANSMISSION_SIMPLE_CVT_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleCVT.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"

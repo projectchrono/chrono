@@ -121,20 +121,20 @@ int main(int argc, char* argv[]) {
         // .. draw items belonging to Irrlicht scene, if any
         vis->Render();
         // .. draw a grid
-        tools::drawGrid(vis.get(), 0.5, 0.5);
+        tools::DrawGrid(vis.get(), 0.5, 0.5);
         // .. draw GUI items belonging to Irrlicht screen, if any
         vis->GetGUIEnvironment()->drawAll();
 
         // .. draw the rod (from joint BC to joint CA)
-        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
+        tools::DrawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
                            my_link_CA->GetMarker1()->GetAbsCoordsys().pos, ChColor(0, 1, 0));
         // .. draw the crank (from joint AB to joint BC)
-        tools::drawSegment(vis.get(), my_link_AB->GetFrame2Abs().GetCoordsys().pos,
+        tools::DrawSegment(vis.get(), my_link_AB->GetFrame2Abs().GetCoordsys().pos,
                            my_link_BC->GetMarker1()->GetAbsCoordsys().pos, ChColor(1, 0, 0));
         // .. draw a small circle at crank origin
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+        tools::DrawCircle(vis.get(), 0.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
         // .. draw a small circle at rod end
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(my_link_CA->GetMarker1()->GetAbsCoordsys().pos, QUNIT),
+        tools::DrawCircle(vis.get(), 0.1, ChCoordsys<>(my_link_CA->GetMarker1()->GetAbsCoordsys().pos, QUNIT),
                           ChColor(1, 1, 0));
 
         /* test: delete a link after 10 seconds

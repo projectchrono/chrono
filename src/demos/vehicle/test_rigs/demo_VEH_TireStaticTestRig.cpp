@@ -27,7 +27,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireStaticTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
@@ -35,8 +35,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "demos/SetChronoSolver.h"
 
@@ -178,7 +176,7 @@ int main() {
     // -----------------
 
     const std::string out_dir = GetChronoOutputPath() + "TIRE_STATIC_TEST_RIG/";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }

@@ -424,10 +424,9 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
                 rs.polygonMode = VK_POLYGON_MODE_FILL;
             }
         }
-        void apply(vsg::DepthStencilState& dss) {
-            // Transparent surfaces must not write to depth buffer, otherwise geometry behind them is occluded
-            if (blending)
-                dss.depthWriteEnable = VK_FALSE;
+        void apply(vsg::DepthStencilState& /*dss*/) {
+            // Depth writes intentionally left enabled for transparent objects so they cast shadows.
+            // Correct visual rendering order is ensured by vsg::DepthSorted wrapping in ShapeBuilder.
         }
         void apply(vsg::InputAssemblyState& ias) {
             // if (wireframe) ias.topology = VK_POLYGON_MODE_LINE;

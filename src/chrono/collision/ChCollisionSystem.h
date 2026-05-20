@@ -48,6 +48,9 @@ class ChApi ChCollisionSystem {
 
     virtual ~ChCollisionSystem();
 
+    /// Return type of the collision system.
+    virtual Type GetType() const = 0;
+
     /// Test if the collision system was initialized.
     bool IsInitialized() const { return m_initialized; }
 

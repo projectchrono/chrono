@@ -29,8 +29,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -223,14 +221,14 @@ void ChTireStaticTestRig::Initialize(Mode mode) {
     // Create output directory (if needed)
     if (m_output) {
         m_outdir = m_outdir + m_tire->GetName() + "/";
-        if (!filesystem::create_directory(filesystem::path(m_outdir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(m_outdir))) {
             cerr << "Error creating directory. Disabling output " << m_outdir << endl;
             m_output = false;
         }
     }
     if (m_output) {
         m_outdir = m_outdir + ModeName(m_mode) + "/";
-        if (!filesystem::create_directory(filesystem::path(m_outdir))) {
+        if (!CreateOutputDirectory(std::filesystem::path(m_outdir))) {
             cerr << "Error creating directory. Disabling output " << m_outdir << endl;
             m_output = false;
         }

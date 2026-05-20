@@ -28,10 +28,6 @@ namespace chrono {
 /// `y(x - x_axis) = y(x + x_axis)`
 /// Mirrors a function about a vertical axis.
 class ChApi ChFunctionMirror : public ChFunction {
-  private:
-    std::shared_ptr<ChFunction> m_operand_fun;
-    double m_mirror_axis;  ///< symmetry axis position on x
-
   public:
     ChFunctionMirror();
     ChFunctionMirror(const ChFunctionMirror& other);
@@ -48,16 +44,20 @@ class ChApi ChFunctionMirror : public ChFunction {
     void SetMirrorAxis(double axis) { m_mirror_axis = axis; }
 
     /// Get the symmetry axis position on x.
-    double GetMirrorAxis() { return m_mirror_axis; }
+    double GetMirrorAxis() const { return m_mirror_axis; }
 
     void SetOperandFunction(std::shared_ptr<ChFunction> operand_fun) { m_operand_fun = operand_fun; }
-    std::shared_ptr<ChFunction> GetOperandFunction() { return m_operand_fun; }
+    std::shared_ptr<ChFunction> GetOperandFunction() const { return m_operand_fun; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::shared_ptr<ChFunction> m_operand_fun;
+    double m_mirror_axis;  ///< symmetry axis position on x
 };
 
 /// @} chrono_functions

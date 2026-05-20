@@ -435,7 +435,7 @@ void ChFluidContainer::PostSolve() {
             real3 xij = (pos_a - sorted_pos[body_b]);
 
             real dist = Length(xij);
-            corr += k * Pow(KERNEL(dist, h) / KERNEL(dq, h), n);
+            corr += k * std::pow(KERNEL(dist, h) / KERNEL(dq, h), n);
         }
 
         data_manager->host_data.gamma[start_density + body_a] += corr;

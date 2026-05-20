@@ -232,19 +232,19 @@ void ChParticleContainer::Build_b() {
 
         if (mu == 0) {
             Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;                 //
-                                      real bi = 0;                                              //
-                                      if (cohesion != 0) { depth = Min(depth, 0); }             //
-                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);  //
-                                      b[start_contact + index + 0] = bi;                        //
+                                         real bi = 0;                                              //
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }  //
+                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);  //
+                                         b[start_contact + index + 0] = bi;                        //
             );
         } else {
             Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;                   //
-                                      real bi = 0;                                                //
-                                      if (cohesion != 0) { depth = Min(depth, 0); }               //
-                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);    //
-                                      b[start_contact + index + 0] = bi;                          //
-                                      b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;  //
-                                      b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;  //
+                                         real bi = 0;                                                //
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }    //
+                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);    //
+                                         b[start_contact + index + 0] = bi;                          //
+                                         b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;  //
+                                         b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;  //
             );
         }
     }

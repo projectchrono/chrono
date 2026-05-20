@@ -31,8 +31,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/core/ChRandom.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
@@ -131,7 +129,7 @@ int main(int argc, char* argv[]) {
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/bulldozer/shoe_collision.obj"), false, true);
     mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
-    mmesh->RepairDuplicateVertexes(1e-9);
+    mmesh->RepairDuplicateVertices(1e-9);
 
     double mmass;
     ChVector3d mcog;

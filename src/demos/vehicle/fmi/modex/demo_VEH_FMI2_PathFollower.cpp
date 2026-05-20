@@ -44,8 +44,6 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 using namespace chrono;
 using namespace chrono::fmi2;
 using namespace chrono::vehicle;
@@ -295,8 +293,7 @@ int main(int argc, char* argv[]) {
         vis = vis_vsg;
 
         // Add a visualization grid
-        vis->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc + ChVector3d(0, 0, -0.05), QuatFromAngleZ(init_yaw)),
-                     ChColor(0.31f, 0.43f, 0.43f));
+        vis->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc + ChVector3d(0, 0, -0.05), QuatFromAngleZ(init_yaw)), ChColor(0.31f, 0.43f, 0.43f));
 
         // Add visualization of controller points (sentinel & target)
         auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -312,12 +309,12 @@ int main(int argc, char* argv[]) {
     // -------------------------
 
     const std::string out_dir = GetChronoOutputPath() + "DEMO_WHEELEDVEHICLE_FMI_MODEX";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     if (save_img) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/img"))) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir + "/img"))) {
             std::cout << "Error creating directory " << out_dir + "/img" << std::endl;
             return 1;
         }

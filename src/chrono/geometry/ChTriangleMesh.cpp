@@ -18,8 +18,8 @@
 
 namespace chrono {
 
-void ChTriangleMesh::Transform(const ChVector3d displ, const ChQuaternion<> mquat) {
-    this->Transform(displ, ChMatrix33<>(mquat));
+void ChTriangleMesh::Transform(const ChVector3d& displ, const ChQuaterniond& quat) {
+    Transform(displ, ChMatrix33d(quat));
 }
 
 ChAABB ChTriangleMesh::GetBoundingBox() const {

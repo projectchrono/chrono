@@ -116,7 +116,7 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
 
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;

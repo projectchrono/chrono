@@ -19,7 +19,6 @@
 #include <cstdio>
 
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"

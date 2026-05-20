@@ -23,6 +23,7 @@
 #include <algorithm>
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 
 namespace chrono {
 
