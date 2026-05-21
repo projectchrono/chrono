@@ -24,6 +24,7 @@
 #include "chrono/ChConfig.h"
 #include <thrust/transform.h>
 #include <thrust/transform_reduce.h>
+#include <thrust/pair.h>
 #include <thrust/sort.h>
 #include <thrust/sequence.h>
 #include <thrust/iterator/constant_iterator.h>
