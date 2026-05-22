@@ -72,7 +72,7 @@ void ChFsiSystemSPH::AddFsiBoundary(const std::vector<ChVector3d>& bce, const Ch
 }
 
 void ChFsiSystemSPH::SynchronizeDevice() {
-    synchronizeDevice();
+    gpuDeviceSynchronize();
 }
 
 void ChFsiSystemSPH::Initialize() {

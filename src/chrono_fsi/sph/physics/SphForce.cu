@@ -36,8 +36,8 @@ SphForce::~SphForce() {
 }
 
 void SphForce::Initialize() {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 // Use invasive to avoid one extra copy.

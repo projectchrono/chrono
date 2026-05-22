@@ -73,7 +73,7 @@ class SphFluidDynamics {
     void CopySortedToOriginal(MarkerGroup group, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2, std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Synchronize the async copy stream (used for the copySortedToOriginal function)
-    void SynchronizeCopyStream() { cudaStreamSynchronize(m_copy_stream); }
+    void SynchronizeCopyStream() { gpuStreamSynchronize(m_copy_stream); }
 
     /// Function to perform Shepard filtering.
     /// It calculates the densities directly, not based on the derivative of the density. This function is used in

@@ -918,8 +918,8 @@ void SphForceISPH::Initialize() {
 
     */
 
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     numAllMarkers = m_data_mgr.countersH->numAllMarkers;
     _sumWij_inv.resize(numAllMarkers);
@@ -1166,7 +1166,7 @@ void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
             //                uint Start_last = Contact_i[numAllMarkers];
             //                cublasDdot(cublasHandle, numAllMarkers, R1CAST(b1Vector), 1,
             //                           (double*)thrust::raw_pointer_cast(&AMatrix[Start_last]), 1, &sum_last);
-            //                cudaDeviceSynchronize();
+            //                gpuDeviceSynchronize();
             //                b1Vector[numAllMarkers] += b1Vector[0];
             //                q_new[numAllMarkers] = b1Vector[numAllMarkers] - sum_last -
             //                                       q_new[numAllMarkers] * AMatrix[Contact_i[numAllMarkers + 1] - 1];

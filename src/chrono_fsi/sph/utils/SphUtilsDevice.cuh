@@ -94,35 +94,35 @@ namespace sph {
 
 #define cudaMallocErrorFlag(error_flag_D)                \
     {                                                    \
-        cudaMalloc((void**)&error_flag_D, sizeof(bool)); \
+        gpuMalloc((void**)&error_flag_D, sizeof(bool));  \
     }
 
 #define cudaFreeErrorFlag(error_flag_D) \
     {                                   \
-        cudaFree(error_flag_D);         \
+        gpuFree(error_flag_D);          \
     }
 
 #define cudaResetErrorFlag(error_flag_D)                                              \
     {                                                                                 \
         bool error_flag_H = false;                                                    \
-        cudaMemcpy(error_flag_D, &error_flag_H, sizeof(bool), gpuMemcpyHostToDevice); \
+        gpuMemcpy(error_flag_D, &error_flag_H, sizeof(bool), gpuMemcpyHostToDevice);  \
     }
 
 #define cudaCheckErrorFlag(error_flag_D, kernel_name)                                                        \
     {                                                                                                        \
         bool error_flag_H;                                                                                   \
-        cudaDeviceSynchronize();                                                                             \
-        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), gpuMemcpyDeviceToHost);                        \
+        gpuDeviceSynchronize();                                                                              \
+        gpuMemcpy(&error_flag_H, error_flag_D, sizeof(bool), gpuMemcpyDeviceToHost);                         \
         if (error_flag_H) {                                                                                  \
             char buffer[256];                                                                                \
             sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);     \
             printf("%s\n", buffer);                                                                          \
             throw std::runtime_error(buffer);                                                                \
         }                                                                                                    \
-        gpuError e = cudaGetLastError();                                                                     \
+        gpuError e = gpuGetLastError();                                                                      \
         if (e != gpuSuccess) {                                                                               \
             char buffer[256];                                                                                \
-            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
+            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e));  \
             printf("%s\n", buffer);                                                                          \
             throw std::runtime_error(buffer);                                                                \
         }                                                                                                    \
@@ -130,11 +130,11 @@ namespace sph {
 
 #define cudaCheckError()                                                                                     \
     {                                                                                                        \
-        cudaDeviceSynchronize();                                                                             \
-        gpuError e = cudaGetLastError();                                                                     \
+        gpuDeviceSynchronize();                                                                              \
+        gpuError e = gpuGetLastError();                                                                      \
         if (e != gpuSuccess) {                                                                               \
             char buffer[256];                                                                                \
-            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
+            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e));  \
             printf("%s\n", buffer);                                                                          \
             throw std::runtime_error(buffer);                                                                \
         }                                                                                                    \
@@ -157,8 +157,6 @@ void computeGridSize(uint n,           ///< total number of elements
                      uint& numBlocks,  ///< number of blocks [output]
                      uint& numThreads  ///< number of threads [output]
 );
-
-void synchronizeDevice();
 
 // ----------------------------------------------------------------------------
 

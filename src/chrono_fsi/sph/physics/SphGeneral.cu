@@ -25,9 +25,9 @@ namespace fsi {
 namespace sph {
 
 void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
-    cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(&paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaCheckError();
-    cudaMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(&countersD, countersH.get(), sizeof(Counters));
     cudaCheckError();
 }
 

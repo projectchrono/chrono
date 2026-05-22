@@ -42,19 +42,19 @@ SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, SphBceManager& bce_
     else
         forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, bce_mgr, verbose, m_check_errors);
 
-    cudaStreamCreate(&m_copy_stream);
+    gpuStreamCreate(&m_copy_stream);
 }
 
 SphFluidDynamics::~SphFluidDynamics() {
-    cudaStreamDestroy(m_copy_stream);
+    gpuStreamDestroy(m_copy_stream);
 }
 
 // -----------------------------------------------------------------------------
 
 void SphFluidDynamics::Initialize() {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
-    cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyFromSymbol(m_data_mgr.paramsH.get(), &paramsD, sizeof(ChFsiParamsSPH));
 
     forceSystem->Initialize();
     collisionSystem->Initialize();
@@ -298,9 +298,7 @@ bool SphFluidDynamics::CheckActivityArrayResize() {
     // Copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
     uint lastPrefixVal = m_data_mgr.prefixSumExtendedActivityIdD[countersH->numAllMarkers - 1];
     int32_t lastFlagInt32;
-    cudaMemcpy(&lastFlagInt32,
-               thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
-               sizeof(int32_t), gpuMemcpyDeviceToHost);
+    gpuMemcpy(&lastFlagInt32, thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]), sizeof(int32_t), gpuMemcpyDeviceToHost);
     uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
 
     countersH->numExtendedParticles = lastPrefixVal + lastFlag;

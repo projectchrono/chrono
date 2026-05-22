@@ -307,8 +307,8 @@ SphCollisionSystem::SphCollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(da
 SphCollisionSystem::~SphCollisionSystem() {}
 
 void SphCollisionSystem::Initialize() {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,

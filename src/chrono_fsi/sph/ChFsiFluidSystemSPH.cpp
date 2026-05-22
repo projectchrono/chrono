@@ -1493,10 +1493,10 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     // Check if GPU is available and initialize CUDA device information
     int device;
-    cudaGetDevice(&device);
+    gpuGetDevice(&device);
     cudaCheckError();
     m_data_mgr->cudaDeviceInfo->deviceID = device;
-    cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
+    gpuGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
     cudaCheckError();
 
     if (m_verbose) {
@@ -1684,10 +1684,10 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     // Check if GPU is available and initialize CUDA device information
     int device;
-    cudaGetDevice(&device);
+    gpuGetDevice(&device);
     cudaCheckError();
     m_data_mgr->cudaDeviceInfo->deviceID = device;
-    cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
+    gpuGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
     cudaCheckError();
 
     if (m_verbose) {
