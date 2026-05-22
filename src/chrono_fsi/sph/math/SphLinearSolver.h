@@ -19,11 +19,12 @@
 #define CHFSILINEARSOLVER_H_
 
 #include <ctype.h>
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <typeinfo>
+
+#include "chrono/gpu/ChGpuRuntime.h"
 ////#include "cublas_v2.h"
 ////#include "cusparse_v2.h"
 

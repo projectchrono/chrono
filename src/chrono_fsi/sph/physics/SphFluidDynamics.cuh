@@ -70,9 +70,7 @@ class SphFluidDynamics {
     );
 
     /// Copy markers in the specified group from sorted arrays to original-order arrays.
-    void CopySortedToOriginal(MarkerGroup group,
-                              std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2,
-                              std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    void CopySortedToOriginal(MarkerGroup group, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2, std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Synchronize the async copy stream (used for the copySortedToOriginal function)
     void SynchronizeCopyStream() { cudaStreamSynchronize(m_copy_stream); }
@@ -101,8 +99,8 @@ class SphFluidDynamics {
     double computeTimeStep() const;
 
   private:
-    FsiDataManager& m_data_mgr;             ///< FSI data manager
-    std::shared_ptr<SphForce> forceSystem;  ///< force system object; calculates the force between particles
+    FsiDataManager& m_data_mgr;                           ///< FSI data manager
+    std::shared_ptr<SphForce> forceSystem;                ///< force system object; calculates the force between particles
     std::shared_ptr<SphCollisionSystem> collisionSystem;  ///< collision system for building neighbors list
 
     bool m_verbose;
@@ -117,7 +115,7 @@ class SphFluidDynamics {
     /// Apply boundary conditions on the sides of the computational domain.
     void ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
 
-    cudaStream_t m_copy_stream;  ///< stream for async copy operations
+    gpuStream m_copy_stream;  ///< stream for async copy operations
 };
 
 /// @} fsisph_physics

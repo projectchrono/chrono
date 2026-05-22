@@ -300,7 +300,7 @@ bool SphFluidDynamics::CheckActivityArrayResize() {
     int32_t lastFlagInt32;
     cudaMemcpy(&lastFlagInt32,
                thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
-               sizeof(int32_t), cudaMemcpyDeviceToHost);
+               sizeof(int32_t), gpuMemcpyDeviceToHost);
     uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
 
     countersH->numExtendedParticles = lastPrefixVal + lastFlag;

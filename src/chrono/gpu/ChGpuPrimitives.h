@@ -60,6 +60,7 @@ struct int4 { int x, y, z, w; };
 struct uint2 { unsigned int x, y; };
 struct uint3 { unsigned int x, y, z; };
 struct uint4 { unsigned int x, y, z, w; };
+struct longlong3 { long long x, y, z; };
 struct float2 { float x, y; };
 struct float3 { float x, y, z; };
 struct float4 { float x, y, z, w; };
@@ -73,6 +74,7 @@ constexpr inline int4 make_int4(int x, int y, int z, int w) { return {x, y, z, w
 constexpr inline uint2 make_uint2(unsigned int x, unsigned int y) { return {x, y}; }
 constexpr inline uint3 make_uint3(unsigned int x, unsigned int y, unsigned int z) { return {x, y, z}; }
 constexpr inline uint4 make_uint4(unsigned int x, unsigned int y, unsigned int z, unsigned int w) { return {x, y, z, w}; }
+constexpr inline longlong3 make_longlong3(long long x, long long y, long long z) { return {x, y, z}; }
 constexpr inline float2 make_float2(float x, float y) { return {x, y}; }
 constexpr inline float3 make_float3(float x, float y, float z) { return {x, y, z}; }
 constexpr inline float4 make_float4(float x, float y, float z, float w) { return {x, y, z, w}; }

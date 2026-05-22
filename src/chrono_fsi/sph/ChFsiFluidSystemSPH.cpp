@@ -745,7 +745,7 @@ void ChFsiFluidSystemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_
 
 //------------------------------------------------------------------------------
 
-void PrintDeviceProperties(const cudaDeviceProp& prop) {
+void PrintDeviceProperties(const gpuDeviceProp& prop) {
     cout << "GPU device: " << prop.name << endl;
     cout << "  Total global memory: " << prop.totalGlobalMem / (1024. * 1024. * 1024.) << " GB" << endl;
     cout << "  Total constant memory: " << prop.totalConstMem / 1024. << " KB" << endl;

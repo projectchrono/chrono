@@ -18,7 +18,7 @@
 #ifndef CH_SPH_UTILS_DEVICE_H
 #define CH_SPH_UTILS_DEVICE_H
 
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
+#include "chrono/gpu/ChGpuRuntime.h"
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
@@ -102,25 +102,25 @@ namespace sph {
         cudaFree(error_flag_D);         \
     }
 
-#define cudaResetErrorFlag(error_flag_D)                                               \
-    {                                                                                  \
-        bool error_flag_H = false;                                                     \
-        cudaMemcpy(error_flag_D, &error_flag_H, sizeof(bool), cudaMemcpyHostToDevice); \
+#define cudaResetErrorFlag(error_flag_D)                                              \
+    {                                                                                 \
+        bool error_flag_H = false;                                                    \
+        cudaMemcpy(error_flag_D, &error_flag_H, sizeof(bool), gpuMemcpyHostToDevice); \
     }
 
 #define cudaCheckErrorFlag(error_flag_D, kernel_name)                                                        \
     {                                                                                                        \
         bool error_flag_H;                                                                                   \
         cudaDeviceSynchronize();                                                                             \
-        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), cudaMemcpyDeviceToHost);                       \
+        cudaMemcpy(&error_flag_H, error_flag_D, sizeof(bool), gpuMemcpyDeviceToHost);                        \
         if (error_flag_H) {                                                                                  \
             char buffer[256];                                                                                \
             sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);     \
             printf("%s\n", buffer);                                                                          \
             throw std::runtime_error(buffer);                                                                \
         }                                                                                                    \
-        cudaError_t e = cudaGetLastError();                                                                  \
-        if (e != cudaSuccess) {                                                                              \
+        gpuError e = cudaGetLastError();                                                                     \
+        if (e != gpuSuccess) {                                                                               \
             char buffer[256];                                                                                \
             sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
             printf("%s\n", buffer);                                                                          \
@@ -131,8 +131,8 @@ namespace sph {
 #define cudaCheckError()                                                                                     \
     {                                                                                                        \
         cudaDeviceSynchronize();                                                                             \
-        cudaError_t e = cudaGetLastError();                                                                  \
-        if (e != cudaSuccess) {                                                                              \
+        gpuError e = cudaGetLastError();                                                                     \
+        if (e != gpuSuccess) {                                                                               \
             char buffer[256];                                                                                \
             sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, cudaGetErrorString(e)); \
             printf("%s\n", buffer);                                                                          \
@@ -166,7 +166,7 @@ void synchronizeDevice();
 /// This utility class encapsulates a simple timer for recording the time between a start and stop event.
 class GpuTimer {
   public:
-    GpuTimer(cudaStream_t stream = 0);
+    GpuTimer(gpuStream stream = 0);
     ~GpuTimer();
 
     /// Record the start time.
@@ -179,9 +179,9 @@ class GpuTimer {
     float Elapsed();
 
   private:
-    cudaStream_t m_stream;
-    cudaEvent_t m_start;
-    cudaEvent_t m_stop;
+    gpuStream m_stream;
+    gpuEvent m_start;
+    gpuEvent m_stop;
 };
 
 /// @} fsisph_utils

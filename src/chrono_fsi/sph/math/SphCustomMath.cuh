@@ -20,8 +20,9 @@
 #ifndef CH_SPH_CUSTOM_MATH_H
 #define CH_SPH_CUSTOM_MATH_H
 
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
 #include <cmath>
+
+#include "chrono/gpu/ChGpuRuntime.h"
 
 #include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 

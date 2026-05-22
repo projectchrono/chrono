@@ -23,7 +23,7 @@
 #include <cmath>
 #include <ostream>
 
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
+#include "chrono/gpu/ChGpuRuntime.h"
 
 #include "chrono_fsi/sph/ChFsiConfigSPH.h"
 

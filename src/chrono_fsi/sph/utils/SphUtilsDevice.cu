@@ -21,7 +21,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-GpuTimer::GpuTimer(cudaStream_t stream) : m_stream(stream) {
+GpuTimer::GpuTimer(gpuStream stream) : m_stream(stream) {
     cudaEventCreate(&m_start);
     cudaEventCreate(&m_stop);
 }

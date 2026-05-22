@@ -19,8 +19,8 @@
 #ifndef CH_SPH_GENERAL_CUH
 #define CH_SPH_GENERAL_CUH
 
-#if __has_include("chrono_fsi/sph/ChSphGpuRuntime.h")
-  #include "chrono_fsi/sph/ChSphGpuRuntime.h"
+#if __has_include("chrono/gpu/ChGpuRuntime.h")
+    #include "chrono/gpu/ChGpuRuntime.h"
 #else
   #include <cuda.h>
   #include <cuda_runtime.h>

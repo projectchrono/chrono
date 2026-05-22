@@ -19,7 +19,7 @@
 #ifndef CH_SPH_EXACT_SOLVERS_H
 #define CH_SPH_EXACT_SOLVERS_H
 
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
+#include "chrono/gpu/ChGpuRuntime.h"
 
 namespace chrono {
 namespace fsi {
