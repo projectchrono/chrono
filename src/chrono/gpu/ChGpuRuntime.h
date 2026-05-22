@@ -59,7 +59,7 @@ inline gpuError gpuMalloc(void** ptr, std::size_t bytes) {
 }
 template <class T>
 inline gpuError gpuMalloc(T** ptr, std::size_t bytes) {
-    return hipMalloc(reinterpret_cast<void**>(ptr), bytes);
+    return cudaMalloc(reinterpret_cast<void**>(ptr), bytes);
 }
 inline gpuError gpuFree(void* ptr) {
     return cudaFree(ptr);
