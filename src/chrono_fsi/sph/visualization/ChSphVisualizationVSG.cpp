@@ -23,6 +23,8 @@
 #include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
 
+#undef MemoryBarrier
+
 #include "chrono_vsg/utils/ChDataUtilsVSG.h"
 #include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 
