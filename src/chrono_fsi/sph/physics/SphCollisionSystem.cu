@@ -314,8 +314,8 @@ void SphCollisionSystem::Initialize() {
 void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                      std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     bool* error_flagD;
-    cudaMallocErrorFlag(error_flagD);
-    cudaResetErrorFlag(error_flagD);
+    gpuMallocErrorFlag(error_flagD);
+    gpuResetErrorFlag(error_flagD);
 
     m_sphMarkersD = sphMarkersD;  //// TODO RADU: why is this cached?!?!
 
@@ -339,7 +339,7 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
         U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD), mR4CAST(m_sphMarkersD->rhoPresMuD),
         (uint)m_data_mgr.countersH->numExtendedParticles, error_flagD);
-    cudaCheckErrorFlag(error_flagD, "calcHashD");
+    gpuCheckErrorFlag(error_flagD, "calcHashD");
 
     // Sort Particles based on Hash
     thrust::sort_by_key(
@@ -376,9 +376,9 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
         mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
         mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD), mR3CAST(m_sphMarkersD->pcEvSvD),
         INT_32CAST(m_data_mgr.activityIdentifierOriginalD), (uint)m_data_mgr.countersH->numExtendedParticles);
-    cudaCheckError();
+    gpuCheckError();
 
-    cudaFreeErrorFlag(error_flagD);
+    gpuFreeErrorFlag(error_flagD);
 }
 
 void SphCollisionSystem::NeighborSearch(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {

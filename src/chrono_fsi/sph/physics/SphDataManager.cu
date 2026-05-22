@@ -198,7 +198,7 @@ FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH
 
     markersProximity_D = chrono_types::make_shared<ProximityDataD>();
 
-    cudaDeviceInfo = chrono_types::make_shared<CudaDeviceInfo>();
+    gpuDeviceInfo = chrono_types::make_shared<GPUDeviceInfo>();
 
     // Resizing parameters
     m_max_extended_particles = 0;

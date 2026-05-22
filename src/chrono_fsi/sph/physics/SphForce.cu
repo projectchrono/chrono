@@ -28,11 +28,11 @@ namespace sph {
 
 SphForce::SphForce(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose)
     : m_data_mgr(data_mgr), m_bce_mgr(bce_mgr), m_verbose(verbose) {
-    cudaMallocErrorFlag(m_errflagD);
+    gpuMallocErrorFlag(m_errflagD);
 }
 
 SphForce::~SphForce() {
-    cudaFreeErrorFlag(m_errflagD);
+    gpuFreeErrorFlag(m_errflagD);
 }
 
 void SphForce::Initialize() {

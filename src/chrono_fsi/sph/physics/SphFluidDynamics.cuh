@@ -46,7 +46,7 @@ class SphFluidDynamics {
     SphFluidDynamics(FsiDataManager& data_mgr,  ///< FSI data manager
                      SphBceManager& bce_mgr,    ///< BCE manager
                      bool verbose,              ///< verbose output
-                     bool check_errors          ///< check CUDA errors
+                     bool check_errors          ///< check GPU errors
     );
 
     /// Destructor of the fluid/granular dynamics class.

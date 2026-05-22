@@ -240,7 +240,7 @@ void SphBceManager::CalcRigidBceAcceleration() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                 //
     );
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -257,7 +257,7 @@ void SphBceManager::CalcFlex1DBceAcceleration() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
     );
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -274,7 +274,7 @@ void SphBceManager::CalcFlex2DBceAcceleration() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
     );
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -540,7 +540,7 @@ void SphBceManager::Rigid_Forces_Torques() {
         m_data_mgr.paramsH->markerMass, (uint)m_data_mgr.countersH->startRigidMarkers);
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -568,7 +568,7 @@ void SphBceManager::Flex1D_Forces() {
         m_data_mgr.paramsH->markerMass);
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -596,7 +596,7 @@ void SphBceManager::Flex2D_Forces() {
         m_data_mgr.paramsH->markerMass);
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -685,7 +685,7 @@ void SphBceManager::UpdateBodyMarkerState() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -703,7 +703,7 @@ void SphBceManager::UpdateBodyMarkerStateInitial() {
         mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel));
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -965,7 +965,7 @@ void SphBceManager::UpdateMeshMarker1DState() {
     );
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -993,7 +993,7 @@ void SphBceManager::UpdateMeshMarker1DStateInitial() {
     );
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -1198,7 +1198,7 @@ void SphBceManager::UpdateMeshMarker2DState() {
     );
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -1226,7 +1226,7 @@ void SphBceManager::UpdateMeshMarker2DStateInitial() {
     );
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 

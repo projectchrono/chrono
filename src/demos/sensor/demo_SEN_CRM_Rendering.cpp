@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     CRMTerrain terrain(sys, initial_spacing);
     auto sysFSI = terrain.GetFsiSystemSPH();
     auto sysSPH = terrain.GetFluidSystemSPH();
-    sysSPH->EnableCudaErrorCheck(false);
+    sysSPH->EnableGPUErrorCheck(false);
     terrain.SetVerbose(verbose);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);

@@ -12,7 +12,8 @@
 // Author: Milad Rakhsha, Arman Pazouki, Radu Serban
 // =============================================================================
 //
-// Utilities for changing device arrays in non-cuda files
+// Utilities for GPU error testing and GPU timing
+//
 // =============================================================================
 
 #include "chrono_fsi/sph/utils/SphUtilsDevice.cuh"

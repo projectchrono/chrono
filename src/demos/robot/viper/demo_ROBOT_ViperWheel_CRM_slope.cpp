@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef NDEBUG
     std::cout << "Disable cuda error check in RELEASE mode" << std::endl;
-    sysSPH.EnableCudaErrorCheck(false);
+    sysSPH.EnableGPUErrorCheck(false);
 #endif
     ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 

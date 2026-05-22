@@ -672,16 +672,16 @@ void SphFluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
         INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
         if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.begin() + numActive,
                            check_infinite<Real4>()))
-            cudaThrowError("A particle position is NaN");
+            gpuThrowError("A particle position is NaN");
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.begin() + numActive,
                            check_infinite<Real4>()))
-            cudaThrowError("A particle density is NaN");
+            gpuThrowError("A particle density is NaN");
         // Even if one particle has this problem, we can't proceed
         if (error_occurred)
-            cudaThrowError("Rheology model failed");
+            gpuThrowError("Rheology model failed");
     }
 }
 
@@ -698,14 +698,14 @@ void SphFluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarker
         INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
         if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
-            cudaThrowError("A particle position is NaN");
+            gpuThrowError("A particle position is NaN");
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
-            cudaThrowError("A particle density is NaN");
+            gpuThrowError("A particle density is NaN");
         // Even if one particle has this problem, we can't proceed
         if (error_occurred)
-            cudaThrowError("Rheology model failed");
+            gpuThrowError("Rheology model failed");
     }
 }
 
@@ -809,7 +809,7 @@ void SphFluidDynamics::CopySortedToOriginal(MarkerGroup group,
             U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     }
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -949,7 +949,7 @@ void SphFluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> s
             ApplyPeriodicBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
             if (m_check_errors) {
-                cudaCheckError();
+                gpuCheckError();
             }
             break;
         case BCType::INLET_OUTLET:
@@ -957,7 +957,7 @@ void SphFluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> s
             // ApplyInletBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
             //                                                  mR3CAST(sphMarkersD->velMasD),
             //                                                  mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-            // cudaCheckError();
+            // gpuCheckError();
             break;
     }
 
@@ -966,7 +966,7 @@ void SphFluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> s
             ApplyPeriodicBoundaryY_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
             if (m_check_errors) {
-                cudaCheckError();
+                gpuCheckError();
             }
             break;
     }
@@ -976,7 +976,7 @@ void SphFluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> s
             ApplyPeriodicBoundaryZ_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
             if (m_check_errors) {
-                cudaCheckError();
+                gpuCheckError();
             }
             break;
     }
@@ -1067,7 +1067,7 @@ void SphFluidDynamics::DensityReinitialization() {
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.markersProximity_D->cellStartD),
         U1CAST(m_data_mgr.markersProximity_D->cellEndD));
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
     SphForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
                                                   m_data_mgr.markersProximity_D->gridMarkerIndexD);

@@ -61,7 +61,7 @@ class SphForceWCSPH : public SphForce {
 
     int density_initialization;
 
-    // CUDA execution configuration grid
+    // GPU execution configuration grid
     uint numActive;   ///< total number of threads
     uint numBlocks;   ///< number of blocks
     uint numThreads;  ///< number of threads per block

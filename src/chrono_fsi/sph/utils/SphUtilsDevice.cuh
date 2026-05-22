@@ -12,7 +12,8 @@
 // Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Radu Serban
 // =============================================================================
 //
-// Utilities for changing device arrays in non-cuda files
+// Utilities for GPU error testing and GPU timing
+//
 // =============================================================================
 
 #ifndef CH_SPH_UTILS_DEVICE_H
@@ -77,75 +78,61 @@ namespace sph {
 #define mR3BY3CAST(x) (Real3By3*)thrust::raw_pointer_cast(&x[0])
 
 // ----------------------------------------------------------------------------
-// editor stuff
-// ----------------------------------------------------------------------------
-#ifdef __CDT_PARSER__
-    #define __host__
-    #define __device__
-    #define __global__
-    #define __constant__
-    #define __shared__
-    #define CUDA_KERNEL_DIM(...) ()
-#else
-    #define CUDA_KERNEL_DIM(...) << <__VA_ARGS__>>>
-#endif
 
-// ----------------------------------------------------------------------------
-
-#define cudaMallocErrorFlag(error_flag_D)                \
-    {                                                    \
-        gpuMalloc((void**)&error_flag_D, sizeof(bool));  \
+#define gpuMallocErrorFlag(error_flag_D)                \
+    {                                                   \
+        gpuMalloc((void**)&error_flag_D, sizeof(bool)); \
     }
 
-#define cudaFreeErrorFlag(error_flag_D) \
-    {                                   \
-        gpuFree(error_flag_D);          \
+#define gpuFreeErrorFlag(error_flag_D) \
+    {                                  \
+        gpuFree(error_flag_D);         \
     }
 
-#define cudaResetErrorFlag(error_flag_D)                                              \
-    {                                                                                 \
-        bool error_flag_H = false;                                                    \
-        gpuMemcpy(error_flag_D, &error_flag_H, sizeof(bool), gpuMemcpyHostToDevice);  \
+#define gpuResetErrorFlag(error_flag_D)                                              \
+    {                                                                                \
+        bool error_flag_H = false;                                                   \
+        gpuMemcpy(error_flag_D, &error_flag_H, sizeof(bool), gpuMemcpyHostToDevice); \
     }
 
-#define cudaCheckErrorFlag(error_flag_D, kernel_name)                                                        \
-    {                                                                                                        \
-        bool error_flag_H;                                                                                   \
-        gpuDeviceSynchronize();                                                                              \
-        gpuMemcpy(&error_flag_H, error_flag_D, sizeof(bool), gpuMemcpyDeviceToHost);                         \
-        if (error_flag_H) {                                                                                  \
-            char buffer[256];                                                                                \
-            sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);     \
-            printf("%s\n", buffer);                                                                          \
-            throw std::runtime_error(buffer);                                                                \
-        }                                                                                                    \
-        gpuError e = gpuGetLastError();                                                                      \
-        if (e != gpuSuccess) {                                                                               \
-            char buffer[256];                                                                                \
-            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e));  \
-            printf("%s\n", buffer);                                                                          \
-            throw std::runtime_error(buffer);                                                                \
-        }                                                                                                    \
+#define gpuCheckErrorFlag(error_flag_D, kernel_name)                                                       \
+    {                                                                                                      \
+        bool error_flag_H;                                                                                 \
+        gpuDeviceSynchronize();                                                                            \
+        gpuMemcpy(&error_flag_H, error_flag_D, sizeof(bool), gpuMemcpyDeviceToHost);                       \
+        if (error_flag_H) {                                                                                \
+            char buffer[256];                                                                              \
+            sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);   \
+            printf("%s\n", buffer);                                                                        \
+            throw std::runtime_error(buffer);                                                              \
+        }                                                                                                  \
+        gpuError e = gpuGetLastError();                                                                    \
+        if (e != gpuSuccess) {                                                                             \
+            char buffer[256];                                                                              \
+            sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e)); \
+            printf("%s\n", buffer);                                                                        \
+            throw std::runtime_error(buffer);                                                              \
+        }                                                                                                  \
     }
 
-#define cudaCheckError()                                                                                     \
-    {                                                                                                        \
-        gpuDeviceSynchronize();                                                                              \
-        gpuError e = gpuGetLastError();                                                                      \
-        if (e != gpuSuccess) {                                                                               \
-            char buffer[256];                                                                                \
-            sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e));  \
-            printf("%s\n", buffer);                                                                          \
-            throw std::runtime_error(buffer);                                                                \
-        }                                                                                                    \
+#define gpuCheckError()                                                                                    \
+    {                                                                                                      \
+        gpuDeviceSynchronize();                                                                            \
+        gpuError e = gpuGetLastError();                                                                    \
+        if (e != gpuSuccess) {                                                                             \
+            char buffer[256];                                                                              \
+            sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e)); \
+            printf("%s\n", buffer);                                                                        \
+            throw std::runtime_error(buffer);                                                              \
+        }                                                                                                  \
     }
 
-#define cudaThrowError(message)                                                            \
-    {                                                                                      \
-        char buffer[256];                                                                  \
-        sprintf(buffer, "CUDA failure in %s:%d Message: %s", __FILE__, __LINE__, message); \
-        printf("%s\n", buffer);                                                            \
-        throw std::runtime_error(buffer);                                                  \
+#define gpuThrowError(message)                                                            \
+    {                                                                                     \
+        char buffer[256];                                                                 \
+        sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, message); \
+        printf("%s\n", buffer);                                                           \
+        throw std::runtime_error(buffer);                                                 \
     }
 
 // ----------------------------------------------------------------------------
@@ -160,7 +147,7 @@ void computeGridSize(uint n,           ///< total number of elements
 
 // ----------------------------------------------------------------------------
 
-/// Time recorder for cuda events.
+/// Time recorder for GPU events.
 /// This utility class encapsulates a simple timer for recording the time between a start and stop event.
 class GpuTimer {
   public:

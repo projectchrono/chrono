@@ -560,7 +560,7 @@ void SphForceWCSPH::Initialize() {
 }
 
 void SphForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) {
-    // Calculate CUDA execution configuration
+    // Calculate GPU execution configuration
     // All kernels in SphForceWCSPH work on a total of numExtendedParticles threads, in blocks of size 1024 (or 256)
     numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
@@ -1016,12 +1016,12 @@ void SphForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
             mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
     }
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
 void SphForceWCSPH::CfdApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
+    gpuResetErrorFlag(m_errflagD);
 
     if (m_data_mgr.paramsH->boundary_method == BoundaryMethod::ADAMI) {
         CfdAdamiBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
@@ -1041,7 +1041,7 @@ void SphForceWCSPH::CfdApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD));
     }
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -1606,7 +1606,7 @@ void SphForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
         mR3CAST(m_data_mgr.derivTauXyXzYzD), mR3CAST(sortedSphMarkersD->pcEvSvD), U1CAST(m_data_mgr.freeSurfaceIdD),
         R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD));
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -1853,7 +1853,7 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
 }
 
 void SphForceWCSPH::CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
+    gpuResetErrorFlag(m_errflagD);
 
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
@@ -1862,7 +1862,7 @@ void SphForceWCSPH::CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
         mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
         U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive,
         R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
-    cudaCheckErrorFlag(m_errflagD, "RhsCFD");
+    gpuCheckErrorFlag(m_errflagD, "RhsCFD");
 }
 
 // -----------------------------------------------------------------------------
@@ -2045,7 +2045,7 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 }
 
 void SphForceWCSPH::CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
+    gpuResetErrorFlag(m_errflagD);
 
     computeGridSize(numActive, 1024, numBlocks, numThreads);
 
@@ -2083,7 +2083,7 @@ void SphForceWCSPH::CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphM
                 U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
             break;
     }
-    cudaCheckErrorFlag(m_errflagD, "Calc_Shifting_D");
+    gpuCheckErrorFlag(m_errflagD, "Calc_Shifting_D");
 }
 
 }  // namespace sph

@@ -183,10 +183,10 @@ struct ProximityDataD {
     void resize(size_t s);
 };
 
-/// Struct to store CUDA device information.
-struct CudaDeviceInfo {
-    int deviceID;              ///< CUDA device ID
-    gpuDeviceProp deviceProp;  ///< CUDA device properties
+/// Struct to store GPU device information.
+struct GPUDeviceInfo {
+    int deviceID;              ///< GPU device ID
+    gpuDeviceProp deviceProp;  ///< GPU device properties
 };
 
 // -----------------------------------------------------------------------------
@@ -307,7 +307,7 @@ struct FsiDataManager {
 
     // ------------------------
 
-    std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
+    std::shared_ptr<GPUDeviceInfo> gpuDeviceInfo;  ///< GPU device information
 
     std::shared_ptr<ChFsiParamsSPH> paramsH;  ///< simulation parameters (host)
     std::shared_ptr<Counters> countersH;      ///< problem counters (host)
