@@ -24,7 +24,7 @@
 #include "chrono_dem/ChApiDem.h"
 #include "chrono_dem/ChDemDefines.h"
 #include "chrono_dem/physics/ChDemBoundaryConditions.h"
-#include "chrono_dem/cuda/ChDemCUDAalloc.hpp"
+#include "chrono_dem/gpu/ChDemGpuAlloc.h"
 
 typedef unsigned char not_stupid_bool;
 
@@ -48,7 +48,7 @@ class ChSolverStateData {
 
     /// vector of unsigned int that lives on the device; used by CUB or by anybody else that needs scrap space.
     /// Please pay attention to the type the vector stores.
-    std::vector<char, cudallocator<char>> deviceScratchSpace;
+    std::vector<char, gpuallocator<char>> deviceScratchSpace;
 
     /// current integration time step
     float crntStepSize_SU;  // DN: needs to be brought here from GranParams
@@ -351,9 +351,9 @@ class ChSystemDem_impl {
     float ComputeTotalKE();
 
     /// Return the squared sum of the 3 arrays.
-    float computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
-                                  std::vector<float, cudallocator<float>>& arrY,
-                                  std::vector<float, cudallocator<float>>& arrZ,
+    float computeArray3SquaredSum(std::vector<float, gpuallocator<float>>& arrX,
+                                  std::vector<float, gpuallocator<float>>& arrY,
+                                  std::vector<float, gpuallocator<float>>& arrZ,
                                   unsigned int num_spheres);
 
     /// Return particle position.
@@ -571,80 +571,80 @@ class ChSystemDem_impl {
     unsigned int nSDs;
 
     /// Store X positions relative to owner subdomain in unified memory
-    std::vector<int, cudallocator<int>> sphere_local_pos_X;
+    std::vector<int, gpuallocator<int>> sphere_local_pos_X;
     /// Store Y positions relative to owner subdomain in unified memory
-    std::vector<int, cudallocator<int>> sphere_local_pos_Y;
+    std::vector<int, gpuallocator<int>> sphere_local_pos_Y;
     /// Store Z positions relative to owner subdomain in unified memory
-    std::vector<int, cudallocator<int>> sphere_local_pos_Z;
+    std::vector<int, gpuallocator<int>> sphere_local_pos_Z;
     /// Store X velocity in unified memory
-    std::vector<float, cudallocator<float>> pos_X_dt;
+    std::vector<float, gpuallocator<float>> pos_X_dt;
     /// Store Y velocity in unified memory
-    std::vector<float, cudallocator<float>> pos_Y_dt;
+    std::vector<float, gpuallocator<float>> pos_Y_dt;
     /// Store Z velocity in unified memory
-    std::vector<float, cudallocator<float>> pos_Z_dt;
+    std::vector<float, gpuallocator<float>> pos_Z_dt;
 
     /// Store X angular velocity (axis and magnitude in one vector) in unified memory
-    std::vector<float, cudallocator<float>> sphere_Omega_X;
+    std::vector<float, gpuallocator<float>> sphere_Omega_X;
     /// Store Y angular velocity (axis and magnitude in one vector) in unified memory
-    std::vector<float, cudallocator<float>> sphere_Omega_Y;
+    std::vector<float, gpuallocator<float>> sphere_Omega_Y;
     /// Store Z angular velocity (axis and magnitude in one vector) in unified memory
-    std::vector<float, cudallocator<float>> sphere_Omega_Z;
+    std::vector<float, gpuallocator<float>> sphere_Omega_Z;
 
     /// Store X acceleration in unified memory
-    std::vector<float, cudallocator<float>> sphere_acc_X;
+    std::vector<float, gpuallocator<float>> sphere_acc_X;
     /// Store Y acceleration in unified memory
-    std::vector<float, cudallocator<float>> sphere_acc_Y;
+    std::vector<float, gpuallocator<float>> sphere_acc_Y;
     /// Store Z acceleration in unified memory
-    std::vector<float, cudallocator<float>> sphere_acc_Z;
+    std::vector<float, gpuallocator<float>> sphere_acc_Z;
 
     /// Store X angular acceleration (axis and magnitude in one vector) in unified memory
-    std::vector<float, cudallocator<float>> sphere_ang_acc_X;
+    std::vector<float, gpuallocator<float>> sphere_ang_acc_X;
     /// Store Y angular acceleration (axis and magnitude in one vector) in unified memory
-    std::vector<float, cudallocator<float>> sphere_ang_acc_Y;
+    std::vector<float, gpuallocator<float>> sphere_ang_acc_Y;
     /// Store Z angular acceleration (axis and magnitude in one vector) in unified memory
-    std::vector<float, cudallocator<float>> sphere_ang_acc_Z;
+    std::vector<float, gpuallocator<float>> sphere_ang_acc_Z;
 
     /// X acceleration history used for the Chung integrator in unified memory
-    std::vector<float, cudallocator<float>> sphere_acc_X_old;
+    std::vector<float, gpuallocator<float>> sphere_acc_X_old;
     /// Y acceleration history used for the Chung integrator in unified memory
-    std::vector<float, cudallocator<float>> sphere_acc_Y_old;
+    std::vector<float, gpuallocator<float>> sphere_acc_Y_old;
     /// Z acceleration history used for the Chung integrator in unified memory
-    std::vector<float, cudallocator<float>> sphere_acc_Z_old;
+    std::vector<float, gpuallocator<float>> sphere_acc_Z_old;
     /// X angular acceleration history used for the Chung integrator in unified memory
-    std::vector<float, cudallocator<float>> sphere_ang_acc_X_old;
+    std::vector<float, gpuallocator<float>> sphere_ang_acc_X_old;
     /// Y angular acceleration history used for the Chung integrator in unified memory
-    std::vector<float, cudallocator<float>> sphere_ang_acc_Y_old;
+    std::vector<float, gpuallocator<float>> sphere_ang_acc_Y_old;
     /// Z angular acceleration history used for the Chung integrator in unified memory
-    std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
+    std::vector<float, gpuallocator<float>> sphere_ang_acc_Z_old;
 
     /// Fixity of each sphere
-    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed;
+    std::vector<not_stupid_bool, gpuallocator<not_stupid_bool>> sphere_fixed;
 
     /// A buffer array that can store any derived quantity from particles. When users quarry a quantity (such as kinetic
     /// energy using GetParticleKineticEnergy), this array is used to store that particle-wise quantity, and then
     /// potentially reduced via CUB.
-    std::vector<float, cudallocator<float>> sphere_stats_buffer;
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_stats_buffer_int;
+    std::vector<float, gpuallocator<float>> sphere_stats_buffer;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_stats_buffer_int;
 
     /// Set of contact partners for each sphere. Only used in frictional simulations
-    std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
+    std::vector<unsigned int, gpuallocator<unsigned int>> contact_partners_map;
     /// Whether the frictional contact at an index is active
-    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> contact_active_map;
+    std::vector<not_stupid_bool, gpuallocator<not_stupid_bool>> contact_active_map;
     /// Tracks the tangential history vector for a given contact pair. Only used in multistep friction
-    std::vector<float3, cudallocator<float3>> contact_history_map;
+    std::vector<float3, gpuallocator<float3>> contact_history_map;
     /// Tracks the duration of contact between contact pairs. Only used in multistep friction
-    std::vector<float, cudallocator<float>> contact_duration;
+    std::vector<float, gpuallocator<float>> contact_duration;
     /// Tracks the normal contact force for a given contact pair
-    std::vector<float3, cudallocator<float3>> normal_contact_force;
+    std::vector<float3, gpuallocator<float3>> normal_contact_force;
     /// Tracks the tangential contact force for a given contact pair
-    std::vector<float3, cudallocator<float3>> tangential_friction_force;
+    std::vector<float3, gpuallocator<float3>> tangential_friction_force;
     /// Tracks the rolling resistance for a given contact pair
-    std::vector<float3, cudallocator<float3>> rolling_friction_torque;
+    std::vector<float3, gpuallocator<float3>> rolling_friction_torque;
     /////////////////////DEBUG PURPOSE///////////////////////////
     /// Tracks the characteristic contact time for a given contact pair
-    std::vector<float, cudallocator<float>> char_collision_time;
+    std::vector<float, gpuallocator<float>> char_collision_time;
     /// Tracks v_rot
-    std::vector<float3, cudallocator<float3>> v_rot_array;
+    std::vector<float3, gpuallocator<float3>> v_rot_array;
 
     /// X gravity in user units
     float X_accGrav;
@@ -654,16 +654,16 @@ class ChSystemDem_impl {
     float Z_accGrav;
 
     /// Entry "i" says how many spheres touch subdomain i
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_NumSpheresTouching;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SD_NumSpheresTouching;
     ///  Entry "i" says where spheres touching ith SD are stored in the big composite array (the offset)
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SD_SphereCompositeOffsets;
     /// Scratch area, needed to populate data in the big composite array
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets_ScratchPad;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SD_SphereCompositeOffsets_ScratchPad;
     /// Array with the IDs of the spheres touching each SD associated with the box; organized SD after SD
-    std::vector<unsigned int, cudallocator<unsigned int>> spheres_in_SD_composite;
+    std::vector<unsigned int, gpuallocator<unsigned int>> spheres_in_SD_composite;
 
     /// List of owner subdomains for each sphere
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_owner_SDs;
 
     /// User provided timestep in UU
     float stepSize_UU;
@@ -740,11 +740,11 @@ class ChSystemDem_impl {
     int64_t3 BD_rest_frame_SU;
 
     /// List of generalized boundary conditions that constrain sphere motion
-    std::vector<BC_type, cudallocator<BC_type>> BC_type_list;
+    std::vector<BC_type, gpuallocator<BC_type>> BC_type_list;
     /// Sim-unit (adimensional) details of boundary conditions
-    std::vector<BC_params_t<int64_t, int64_t3>, cudallocator<BC_params_t<int64_t, int64_t3>>> BC_params_list_SU;
+    std::vector<BC_params_t<int64_t, int64_t3>, gpuallocator<BC_params_t<int64_t, int64_t3>>> BC_params_list_SU;
     /// User-unit (dimensional) details of boundary conditions
-    std::vector<BC_params_t<float, float3>, cudallocator<BC_params_t<float, float3>>> BC_params_list_UU;
+    std::vector<BC_params_t<float, float3>, gpuallocator<BC_params_t<float, float3>>> BC_params_list_UU;
     /// Offset motions functions for boundary conditions -- used for moving walls, wavetanks, etc.
     std::vector<GranPositionFunction> BC_offset_function_list;
 

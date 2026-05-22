@@ -12,8 +12,8 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
 // =============================================================================
 
-#include "chrono_dem/cuda/ChDem_SMC_trimesh.cuh"
-#include "chrono_dem/cuda/ChDem_SMC.cuh"
+#include "chrono_dem/gpu/ChDemSMC.cuh"
+#include "chrono_dem/gpu/ChDemSMCtrimesh.cuh"
 #include "chrono_dem/physics/ChSystemDemMesh_impl.h"
 #include "chrono_dem/utils/ChDemUtilities.h"
 #if defined(CHRONO_USE_HIP)

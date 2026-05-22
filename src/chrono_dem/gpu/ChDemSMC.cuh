@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "chrono_dem/cuda/ChGpuRuntime.h"
+#include "chrono_dem/gpu/ChDemGpuRuntime.h"
 
 #if defined(CHRONO_USE_HIP)
     #include <hipcub/hipcub.hpp>
@@ -37,9 +37,9 @@
 
 #include "chrono_dem/ChDemDefines.h"
 #include "chrono_dem/physics/ChSystemDem_impl.h"
-#include "chrono_dem/cuda/ChCudaMathUtils.cuh"
-#include "chrono_dem/cuda/ChDemHelpers.cuh"
-#include "chrono_dem/cuda/ChDemBoundaryConditions.cuh"
+#include "chrono_dem/gpu/ChDemGpuMathUtils.cuh"
+#include "chrono_dem/gpu/ChDemHelpers.cuh"
+#include "chrono_dem/gpu/ChDemBoundaryConditions.cuh"
 //#include <math_constants.h>
 
 #define PI_F 3.1415926

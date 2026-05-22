@@ -16,15 +16,15 @@
 #include <numeric>
 #include <fstream>
 
-#include "chrono_dem/cuda/ChDem_SMC.cuh"
+#include "chrono_dem/gpu/ChDemSMC.cuh"
 #include "chrono_dem/utils/ChDemUtilities.h"
 
 namespace chrono {
 namespace dem {
 
-__host__ float ChSystemDem_impl::computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
-                                                         std::vector<float, cudallocator<float>>& arrY,
-                                                         std::vector<float, cudallocator<float>>& arrZ,
+__host__ float ChSystemDem_impl::computeArray3SquaredSum(std::vector<float, gpuallocator<float>>& arrX,
+                                                         std::vector<float, gpuallocator<float>>& arrY,
+                                                         std::vector<float, gpuallocator<float>>& arrZ,
                                                          unsigned int num_spheres) {
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
@@ -209,7 +209,7 @@ __host__ int3 ChSystemDem_impl::getSDTripletFromID(unsigned int SD_ID) const {
 /// ONLY DO AT BEGINNING OF SIMULATION
 __host__ void ChSystemDem_impl::defragment_initial_positions() {
     // key and value pointers
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_ids;
 
     // load sphere indices
     sphere_ids.resize(nSpheres);
@@ -219,20 +219,20 @@ __host__ void ChSystemDem_impl::defragment_initial_positions() {
     std::sort(sphere_ids.begin(), sphere_ids.end(),
               [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
 
-    std::vector<int, cudallocator<int>> sphere_pos_x_tmp;
-    std::vector<int, cudallocator<int>> sphere_pos_y_tmp;
-    std::vector<int, cudallocator<int>> sphere_pos_z_tmp;
+    std::vector<int, gpuallocator<int>> sphere_pos_x_tmp;
+    std::vector<int, gpuallocator<int>> sphere_pos_y_tmp;
+    std::vector<int, gpuallocator<int>> sphere_pos_z_tmp;
 
-    std::vector<float, cudallocator<float>> sphere_vel_x_tmp;
-    std::vector<float, cudallocator<float>> sphere_vel_y_tmp;
-    std::vector<float, cudallocator<float>> sphere_vel_z_tmp;
+    std::vector<float, gpuallocator<float>> sphere_vel_x_tmp;
+    std::vector<float, gpuallocator<float>> sphere_vel_y_tmp;
+    std::vector<float, gpuallocator<float>> sphere_vel_z_tmp;
 
-    std::vector<float, cudallocator<float>> sphere_angv_x_tmp;
-    std::vector<float, cudallocator<float>> sphere_angv_y_tmp;
-    std::vector<float, cudallocator<float>> sphere_angv_z_tmp;
+    std::vector<float, gpuallocator<float>> sphere_angv_x_tmp;
+    std::vector<float, gpuallocator<float>> sphere_angv_y_tmp;
+    std::vector<float, gpuallocator<float>> sphere_angv_z_tmp;
 
-    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
+    std::vector<not_stupid_bool, gpuallocator<not_stupid_bool>> sphere_fixed_tmp;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
     sphere_pos_y_tmp.resize(nSpheres);
@@ -295,7 +295,7 @@ __host__ void ChSystemDem_impl::defragment_initial_positions() {
 /// not calling it in most of our simulations.
 __host__ void ChSystemDem_impl::defragment_friction_history(unsigned int history_offset) {
     // key and value pointers
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_ids;
 
     // load sphere indices
     sphere_ids.resize(nSpheres);
@@ -305,8 +305,8 @@ __host__ void ChSystemDem_impl::defragment_friction_history(unsigned int history
     std::sort(sphere_ids.begin(), sphere_ids.end(),
               [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
 
-    std::vector<float3, cudallocator<float3>> history_tmp;
-    std::vector<unsigned int, cudallocator<unsigned int>> partners_tmp;
+    std::vector<float3, gpuallocator<float3>> history_tmp;
+    std::vector<unsigned int, gpuallocator<unsigned int>> partners_tmp;
 
     history_tmp.resize(history_offset * nSpheres);
     partners_tmp.resize(history_offset * nSpheres);
@@ -369,9 +369,9 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
             CHDEM_ERROR("Provided velocity array has length %zu, but there are %u spheres!\n", user_sphere_vel.size(),
                         nSpheres);
 
-        std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_X;
-        std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Y;
-        std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Z;
+        std::vector<int64_t, gpuallocator<int64_t>> sphere_global_pos_X;
+        std::vector<int64_t, gpuallocator<int64_t>> sphere_global_pos_Y;
+        std::vector<int64_t, gpuallocator<int64_t>> sphere_global_pos_Z;
 
         sphere_global_pos_X.resize(nSpheres);
         sphere_global_pos_Y.resize(nSpheres);

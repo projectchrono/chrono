@@ -17,13 +17,13 @@
 #include "chrono_dem/ChDemDefines.h"
 #include "chrono_dem/physics/ChSystemDemMesh_impl.h"
 
-#include "chrono_dem/cuda/ChDemHelpers.cuh"
-#include "chrono_dem/cuda/ChDemCUDAalloc.hpp"
+#include "chrono_dem/gpu/ChDemHelpers.cuh"
+#include "chrono_dem/gpu/ChDemGpuAlloc.h"
 
 // these define things that mess with cub
-#include "chrono_dem/cuda/ChDemCollision.cuh"
-#include "chrono_dem/cuda/ChDemBoxTriangle.cuh"
-#include "chrono_dem/cuda/ChCudaMathUtils.cuh"
+#include "chrono_dem/gpu/ChDemCollision.cuh"
+#include "chrono_dem/gpu/ChDemBoxTriangle.cuh"
+#include "chrono_dem/gpu/ChDemGpuMathUtils.cuh"
 
 using chrono::dem::ChSystemDem_impl;
 using chrono::dem::ChSystemDemMesh_impl;

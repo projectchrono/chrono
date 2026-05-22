@@ -12,11 +12,12 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Luning Fang, Radu Serban
 // =============================================================================
 
-#include "chrono_dem/cuda/ChGpuRuntime.h"
 #include <cmath>
 #include <vector>
 #include <algorithm>
 #include <climits>
+
+#include "chrono_dem/gpu/ChDemGpuRuntime.h"
 
 #include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChUtils.h"
@@ -25,7 +26,7 @@
 #include "chrono_dem/physics/ChSystemDem_impl.h"
 #include "chrono_dem/physics/ChDemBoundaryConditions.h"
 #include "chrono_dem/utils/ChDemUtilities.h"
-#include "chrono_dem/cuda/ChCudaMathUtils.cuh"
+#include "chrono_dem/gpu/ChDemGpuMathUtils.cuh"
 
 #ifdef USE_HDF5
     #include "H5Cpp.h"

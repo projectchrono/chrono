@@ -17,7 +17,7 @@
 #pragma once
 
 #include "chrono_dem/ChDemDefines.h"
-#include "chrono_dem/cuda/ChCudaMathUtils.cuh"
+#include "chrono_dem/gpu/ChDemGpuMathUtils.cuh"
 
 __device__ inline double chrono_dem_drcp_ru_compat(double value) {
 #if defined(CHRONO_USE_HIP)

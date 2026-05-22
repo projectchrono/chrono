@@ -13,6 +13,7 @@
 // =============================================================================
 
 #pragma once
+
 #include <cmath>
 
 #define MIN(a, b) ((a < b) ? a : b)
@@ -51,10 +52,9 @@ inline __device__ float Length2(const float3& v) {
     return Dot(v, v);
 }
 
-
-//Get normalized vector
-inline __device__ float3 Normalize(const float3& v){
-    float ratio = 1./sqrt(Dot(v,v));
+// Get normalized vector
+inline __device__ float3 Normalize(const float3& v) {
+    float ratio = 1. / sqrt(Dot(v, v));
     return make_float3(v.x * ratio, v.y * ratio, v.z * ratio);
 }
 

@@ -164,7 +164,6 @@ set(FSISPH_GPU_SOURCE_FILES
     utils/SphUtilsDevice.cu
     utils/SphUtilsPrint.cu
 )
-
 if(CHRONO_HIP_FOUND)
     set_source_files_properties(${FSISPH_GPU_SOURCE_FILES} PROPERTIES LANGUAGE HIP)
 endif()

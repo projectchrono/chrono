@@ -17,8 +17,8 @@
 #include "chrono_dem/ChDemDefines.h"
 #include "chrono_dem/physics/ChSystemDem_impl.h"
 #include "chrono_dem/physics/ChDemBoundaryConditions.h"
-#include "chrono_dem/cuda/ChCudaMathUtils.cuh"
-#include "chrono_dem/cuda/ChDemHelpers.cuh"
+#include "chrono_dem/gpu/ChDemGpuMathUtils.cuh"
+#include "chrono_dem/gpu/ChDemHelpers.cuh"
 #if defined(CHRONO_USE_HIP)
     #if __has_include(<hip/math_constants.h>)
         #include <hip/math_constants.h>

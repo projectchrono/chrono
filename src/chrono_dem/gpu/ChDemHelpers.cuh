@@ -17,10 +17,10 @@
 #pragma once
 
 #include "chrono_dem/physics/ChSystemDem_impl.h"
-#include "chrono_dem/cuda/ChCudaMathUtils.cuh"
+#include "chrono_dem/gpu/ChDemGpuMathUtils.cuh"
 #include "chrono_dem/ChDemDefines.h"
 
-#include "chrono_dem/cuda/ChGpuRuntime.h"
+#include "chrono_dem/gpu/ChDemGpuRuntime.h"
 
 using chrono::dem::ChSystemDem_impl;
 using chrono::dem::CHDEM_TIME_INTEGRATOR;
