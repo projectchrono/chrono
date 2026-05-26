@@ -36,8 +36,7 @@ SphForce::~SphForce() {
 }
 
 void SphForce::Initialize() {
-    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
 }
 
 // Use invasive to avoid one extra copy.

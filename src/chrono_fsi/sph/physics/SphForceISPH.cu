@@ -37,6 +37,16 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+void CopyParametersToDevice_SphForceISPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
+    gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuCheckError();
+    gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
+    gpuCheckError();
+}
+
+#endif
+
 __device__ void BCE_Vel_Acc(int i_idx,
                             Real3& myAcc,         // output: BCE marker acceleration
                             Real3& V_prescribed,  // output: BCE marker velocity
@@ -918,8 +928,8 @@ void SphForceISPH::Initialize() {
 
     */
 
-    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     numAllMarkers = m_data_mgr.countersH->numAllMarkers;
     _sumWij_inv.resize(numAllMarkers);

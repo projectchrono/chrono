@@ -25,6 +25,16 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+void CopyParametersToDevice_SphCollisionSystem(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
+    gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuCheckError();
+    gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
+    gpuCheckError();
+}
+
+#endif
+
 // =============================================================================
 
 // Create the active list
@@ -307,8 +317,8 @@ SphCollisionSystem::SphCollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(da
 SphCollisionSystem::~SphCollisionSystem() {}
 
 void SphCollisionSystem::Initialize() {
-    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
