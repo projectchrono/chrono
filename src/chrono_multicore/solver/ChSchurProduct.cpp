@@ -85,7 +85,8 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
             output.noalias() = Nschur * x;
             output += E.cwiseProduct(x);
         } else {
-            output.noalias() = D_T * (data_manager->host_data.M_invD * x);
+            m_tmp.noalias() = data_manager->host_data.M_invD * x;
+            output.noalias() = D_T * m_tmp;
             output += E.cwiseProduct(x);
         }
 

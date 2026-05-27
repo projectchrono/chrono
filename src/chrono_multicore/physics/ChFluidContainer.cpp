@@ -348,9 +348,15 @@ void ChFluidContainer::GenerateSparsity() {
     AppendRigidParticleBoundary(contact_mu, num_particles, body_offset, start_boundary, data_manager);
 
     if (data_manager->cd_data->num_particle_contacts > 0) {
+        // Eigen RowMajor insert() requires strictly ascending column indices within
+        // each row. neighbor_3dof_3dof is not sorted by body_b, so sort before AppendRow3.
+        // (Blaze's finalize() handled this implicitly; we do it explicitly here.)
         for (int body_a = 0; body_a < (signed)num_particles; body_a++) {
-            for (int i = 0; i < data_manager->cd_data->c_counts_3dof_3dof[body_a]; i++) {
-                int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
+            int cnt = data_manager->cd_data->c_counts_3dof_3dof[body_a];
+            const int* nbrs = &data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors];
+            std::vector<int> sorted_nbrs(nbrs, nbrs + cnt);
+            std::sort(sorted_nbrs.begin(), sorted_nbrs.end());
+            for (int body_b : sorted_nbrs) {
                 AppendRow3(D_T, start_density + body_a, body_offset + body_b * 3, 0);
             }
         }
@@ -358,18 +364,17 @@ void ChFluidContainer::GenerateSparsity() {
         // Code is repeated because there are three rows per viscosity constraint
         if (enable_viscosity) {
             for (int body_a = 0; body_a < (signed)num_particles; body_a++) {
-                for (int i = 0; i < data_manager->cd_data->c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
+                int cnt = data_manager->cd_data->c_counts_3dof_3dof[body_a];
+                const int* nbrs = &data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors];
+                std::vector<int> sorted_nbrs(nbrs, nbrs + cnt);
+                std::sort(sorted_nbrs.begin(), sorted_nbrs.end());
+                for (int body_b : sorted_nbrs) {
                     AppendRow3(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, 0);
                 }
-                //
-                for (int i = 0; i < data_manager->cd_data->c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
+                for (int body_b : sorted_nbrs) {
                     AppendRow3(D_T, start_viscous + body_a * 3 + 1, body_offset + body_b * 3, 0);
                 }
-                //
-                for (int i = 0; i < data_manager->cd_data->c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors + i];
+                for (int body_b : sorted_nbrs) {
                     AppendRow3(D_T, start_viscous + body_a * 3 + 2, body_offset + body_b * 3, 0);
                 }
             }

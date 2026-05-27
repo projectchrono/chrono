@@ -470,9 +470,13 @@ void ChConstraintRigidRigid::GenerateSparsity() {
         const vec2& body_id = ids[index];
         int row = index;
         int off = 0;
+        // Always insert lower body-index DOFs first so Eigen's RowMajor
+        // sequential-fill requirement (strictly ascending column indices) is met.
+        int lo = std::min(body_id.x, body_id.y);
+        int hi = std::max(body_id.x, body_id.y);
 
-        AppendRow6(D_T, off + row * 1, body_id.x * 6, 0);
-        AppendRow6(D_T, off + row * 1, body_id.y * 6, 0);
+        AppendRow6(D_T, off + row * 1, lo * 6, 0);
+        AppendRow6(D_T, off + row * 1, hi * 6, 0);
     }
 
     if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
@@ -480,12 +484,14 @@ void ChConstraintRigidRigid::GenerateSparsity() {
             const vec2& body_id = ids[index];
             int row = index;
             int off = num_rigid_contacts;
+            int lo = std::min(body_id.x, body_id.y);
+            int hi = std::max(body_id.x, body_id.y);
 
-            AppendRow6(D_T, off + row * 2 + 0, body_id.x * 6, 0);
-            AppendRow6(D_T, off + row * 2 + 0, body_id.y * 6, 0);
+            AppendRow6(D_T, off + row * 2 + 0, lo * 6, 0);
+            AppendRow6(D_T, off + row * 2 + 0, hi * 6, 0);
 
-            AppendRow6(D_T, off + row * 2 + 1, body_id.x * 6, 0);
-            AppendRow6(D_T, off + row * 2 + 1, body_id.y * 6, 0);
+            AppendRow6(D_T, off + row * 2 + 1, lo * 6, 0);
+            AppendRow6(D_T, off + row * 2 + 1, hi * 6, 0);
         }
     }
 
@@ -493,14 +499,16 @@ void ChConstraintRigidRigid::GenerateSparsity() {
         for (int index = 0; index < (signed)num_rigid_contacts; index++) {
             const vec2& body_id = ids[index];
             const int off = 3 * num_rigid_contacts;
+            int lo = std::min(body_id.x, body_id.y);
+            int hi = std::max(body_id.x, body_id.y);
 
-            AppendRow3(D_T, off + index * 3 + 0, body_id.x * 6 + 3, 0);
-            AppendRow3(D_T, off + index * 3 + 1, body_id.x * 6 + 3, 0);
-            AppendRow3(D_T, off + index * 3 + 2, body_id.x * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 0, lo * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 1, lo * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 2, lo * 6 + 3, 0);
 
-            AppendRow3(D_T, off + index * 3 + 0, body_id.y * 6 + 3, 0);
-            AppendRow3(D_T, off + index * 3 + 1, body_id.y * 6 + 3, 0);
-            AppendRow3(D_T, off + index * 3 + 2, body_id.y * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 0, hi * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 1, hi * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 2, hi * 6 + 3, 0);
         }
     }
 }

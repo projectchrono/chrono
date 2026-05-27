@@ -76,15 +76,17 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
 
     data_manager->node_container->PreSolve();
 
-    // Recompute M_invk using the velocity that PreSolve() may have updated,
-    // then use it for both R_full and ComputeImpulses() to avoid a second
-    // M_inv * hf product later.
-    data_manager->host_data.M_invk.noalias() =
-        data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf;
+    // // Recompute M_invk using the velocity that PreSolve() may have updated,
+    // // then use it for both R_full and ComputeImpulses() to avoid a second
+    // // M_inv * hf product later.
+    // data_manager->host_data.M_invk.noalias() =
+    //     data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf;
 
     if (data_manager->num_constraints > 0) {
         data_manager->host_data.R_full.noalias() =
-            -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
+            // -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
+            -data_manager->host_data.b - data_manager->host_data.D_T *
+                (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
     }
     SchurProductFull.Setup(data_manager);
     SchurProductBilateral.Setup(data_manager);
@@ -241,7 +243,26 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
 
     // Using transpose() function will do in place transpose and copy
     data_manager->host_data.D = D_T.transpose();
-    data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
+
+    // For diagonal M_inv (use_full_inertia_tensor=false), avoid the general
+    // sparse x sparse product by copying D then scaling each row by M_inv[i,i].
+    // This is O(nnz_D) instead of Eigen's general spGEMM with its symbolic phase.
+    if (!data_manager->settings.solver.use_full_inertia_tensor) {
+        M_invD = data_manager->host_data.D;
+        const int* M_inv_outer = M_inv.outerIndexPtr();
+        const real* M_inv_vals = M_inv.valuePtr();
+        const int* invD_outer = M_invD.outerIndexPtr();
+        real* invD_vals = M_invD.valuePtr();
+        const int n = (int)M_invD.outerSize();
+        for (int i = 0; i < n; i++) {
+            const real scale = (M_inv_outer[i] < M_inv_outer[i + 1])
+                               ? M_inv_vals[M_inv_outer[i]] : real(0);
+            for (int k = invD_outer[i]; k < invD_outer[i + 1]; k++)
+                invD_vals[k] *= scale;
+        }
+    } else {
+        M_invD = M_inv * data_manager->host_data.D;
+    }
     data_manager->system_timer.stop("ChIterativeSolverMulticore_D");
 }
 

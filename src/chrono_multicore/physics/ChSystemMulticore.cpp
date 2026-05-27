@@ -144,28 +144,13 @@ bool ChSystemMulticore::AdvanceDynamics(bool do_collision) {
             body->Variables().State()(4) = velocities[i * 6 + 4];
             body->Variables().State()(5) = velocities[i * 6 + 5];
 
-            // Integrate pos/rot directly on host_data arrays (same algorithm as
-            // ChBody::VariablesQbIncrementPosition but on contiguous arrays).
-            const real3 vel_abs(velocities[i * 6 + 0], velocities[i * 6 + 1], velocities[i * 6 + 2]);
-            const real3 omega_loc(velocities[i * 6 + 3], velocities[i * 6 + 4], velocities[i * 6 + 5]);
-
-            pos_pointer[i] += step * vel_abs;
-
-            const real3 omega_abs = Rotate(omega_loc, rot_pointer[i]);
-            const real omega_len = Length(omega_abs);
-            if (omega_len > (real)1e-12) {
-                const quaternion dq = QuatFromAngleAxis(omega_len * step, omega_abs / omega_len);
-                rot_pointer[i] = Normalize(Mult(dq, rot_pointer[i]));
-            }
-
-            // Push integrated state to ChBody so downstream virtual calls see it.
-            body->SetPos(ChVector3d(pos_pointer[i].x, pos_pointer[i].y, pos_pointer[i].z));
-            body->SetRot(ChQuaternion<>(rot_pointer[i].w, rot_pointer[i].x,
-                                        rot_pointer[i].y, rot_pointer[i].z));
-
+            body->VariablesQbIncrementPosition(step);
             body->VariablesQbSetSpeed(step);
             body->Update(ch_time, UpdateFlags::UPDATE_ALL);
-            // pos_pointer/rot_pointer already hold the integrated state; no readback needed.
+
+            pos_pointer[i] = real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z());
+            rot_pointer[i] = quaternion(body->GetRot().e0(), body->GetRot().e1(),
+                                        body->GetRot().e2(), body->GetRot().e3());
         }
     }
 
