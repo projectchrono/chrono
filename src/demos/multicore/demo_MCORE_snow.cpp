@@ -35,7 +35,10 @@
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-using namespace chrono::vsg3d;
+#endif
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace chrono;
@@ -45,7 +48,7 @@ using namespace chrono;
 double time_step = 1e-3;
 double kernel_radius = .016 * 2;
 
-void AddBody(ChSystemMulticoreNSC* sys) {
+std::shared_ptr<ChBody> AddBody(ChSystemMulticoreNSC* sys) {
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
@@ -61,53 +64,54 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     bin->GetCollisionModel()->DisallowCollisionsWith(2);
 
     sys->AddBody(bin);
+
+    return bin;
 }
 
-// Create the 3DOF container with spherical contact
-void AddContainer(ChSystemMulticoreNSC* sys) {
+std::shared_ptr<ChParticleContainer> AddSnowball(ChSystemMulticoreNSC* sys) {
 #if USE_RIGID
-    auto container = chrono_types::make_shared<ChParticleContainer>();
+    auto snow_ball = chrono_types::make_shared<ChParticleContainer>();
 #else
-    auto container = chrono_types::make_shared<ChFluidContainer>();
+    auto snow_ball = chrono_types::make_shared<ChFluidContainer>();
 #endif
-    sys->Add3DOFContainer(container);
+    sys->Add3DOFContainer(snow_ball);
 
     real youngs_modulus = 1.4e6;
     real poissons_ratio = 0.2;
     real rho = 400;
 
 #if USE_RIGID
-    container->mu = 0;
-    container->alpha = 0;
-    container->cohesion = 0.1;
+    snow_ball->mu = 0;
+    snow_ball->alpha = 0;
+    snow_ball->cohesion = 0.1;
 #else
-    container->tau = time_step * 4;
-    container->epsilon = 1e-3;
-    container->rho = rho;
-    container->viscosity = false;
-    container->artificial_pressure = false;
+    snow_ball->tau = time_step * 4;
+    snow_ball->epsilon = 1e-3;
+    snow_ball->rho = rho;
+    snow_ball->viscosity = false;
+    snow_ball->artificial_pressure = false;
 #endif
 
-    container->theta_c = 1;
-    container->theta_s = 1;
-    container->lame_lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
-    container->lame_mu = youngs_modulus / (2. * (1. + poissons_ratio));
-    container->youngs_modulus = youngs_modulus;
-    container->nu = poissons_ratio;
-    container->alpha_flip = .95;
-    container->hardening_coefficient = 10.0;
-    ////container->rho = 400;
-    container->mass = .01;
-    container->kernel_radius = kernel_radius;
-    container->collision_envelope = kernel_radius * 0.05;
-    container->contact_recovery_speed = 10;
-    container->contact_cohesion = 0;
-    container->contact_mu = 0;
-    container->max_velocity = 10;
-    container->compliance = 0;
+    snow_ball->theta_c = 1;
+    snow_ball->theta_s = 1;
+    snow_ball->lame_lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
+    snow_ball->lame_mu = youngs_modulus / (2. * (1. + poissons_ratio));
+    snow_ball->youngs_modulus = youngs_modulus;
+    snow_ball->nu = poissons_ratio;
+    snow_ball->alpha_flip = .95;
+    snow_ball->hardening_coefficient = 10.0;
+    ////snow_ball->rho = 400;
+    snow_ball->mass = .01;
+    snow_ball->kernel_radius = kernel_radius;
+    snow_ball->collision_envelope = kernel_radius * 0.05;
+    snow_ball->contact_recovery_speed = 10;
+    snow_ball->contact_cohesion = 0;
+    snow_ball->contact_mu = 0;
+    snow_ball->max_velocity = 10;
+    snow_ball->compliance = 0;
 
-    ////container->tau = time_step * 4;
-    ////container->epsilon = 1e-3;
+    ////snow_ball->tau = time_step * 4;
+    ////snow_ball->epsilon = 1e-3;
     real radius = .2;  //*5
     real3 origin(0, 0, .1);
 
@@ -121,11 +125,10 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
 #endif
 
     real vol = dist * dist * dist * .8;
-    container->mass = rho * vol;
+    snow_ball->mass = rho * vol;
 
     utils::ChHCPSampler<> sampler(dist);
-    utils::ChGenerator::PointVector points =
-        sampler.SampleSphere(ChVector3d(0, 0, radius + radius * .5), radius);  // ChVector3d(radius, radius, radius));
+    utils::ChGenerator::PointVector points = sampler.SampleSphere(ChVector3d(0, 0, radius + radius * .5), radius);  // ChVector3d(radius, radius, radius));
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
@@ -133,8 +136,8 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
         pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(0, 0, -5);
     }
-    container->UpdatePosition(0);
-    container->AddBodies(pos_fluid, vel_fluid);
+    snow_ball->UpdatePosition(0);
+    snow_ball->AddBodies(pos_fluid, vel_fluid);
 
     points = sampler.SampleBox(ChVector3d(1, 0, 0), ChVector3d(radius, radius, radius));
 
@@ -144,11 +147,21 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
         pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(-6, 0, 0);
     }
+
+    return snow_ball;
 }
 
-// -----------------------------------------------------------------------------
-// Create the system, specify simulation parameters, and run simulation loop.
-// -----------------------------------------------------------------------------
+ChVector3d CalculateCOM(std::shared_ptr<ChParticleContainer> snow_ball) {
+    ChVector3d com = VNULL;
+    auto n = snow_ball->GetNumParticles();
+    for (uint i = 0; i < n; i++) {
+        auto p = snow_ball->GetPos(i);
+        com += ChVector3d(p.x, p.y, p.z);
+    }
+    com /= n;
+    return com;
+}
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
@@ -179,20 +192,20 @@ int main(int argc, char* argv[]) {
     sys.ChangeSolverType(SolverType::BB);
     sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
-    AddContainer(&sys);
+    auto snow_ball = AddSnowball(&sys);
 
     sys.GetSettings()->collision.collision_envelope = kernel_radius * .05;
     sys.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
 
     // Create the fixed body
-    AddBody(&sys);
+    auto bin = AddBody(&sys);
 
     // Initialize system
     sys.Initialize();
 
-    // Perform the simulation
 #ifdef CHRONO_VSG
-    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    // Create run-time visualization
+    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Snow");
     vis->SetCameraVertical(CameraVerticalDir::Z);
@@ -204,21 +217,57 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(-CH_PI_2, CH_PI_4);
     vis->Initialize();
-
-    while (vis->Run()) {
-        sys.DoStepDynamics(time_step);
-        vis->Render();
-    }
 #else
-    // Run simulation for specified time
     double time_end = 1;
-    int num_steps = (int)std::ceil(time_end / time_step);
+#endif
+
+    // Set output
+    // ----------
+
+    const std::string out_dir = GetChronoOutputPath() + "MCORE_SNOW";
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    std::string out_file = out_dir + "/position.txt";
+
+    // Perform the simulation
+    // ----------------------
 
     double time = 0;
-    for (int i = 0; i < num_steps; i++) {
+    ChWriterCSV csv(" ");
+
+    while (true) {
+#ifdef CHRONO_VSG
+        if (!vis->Run())
+            break;
+        vis->Render();
+#else
+        if (time > time_end)
+            break;
+#endif
+
         sys.DoStepDynamics(time_step);
         time += time_step;
+
+        auto com = CalculateCOM(snow_ball);
+        csv << time << com << std::endl;
     }
+
+    csv.WriteToFile(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    // Plot results
+    // ------------
+
+    postprocess::ChGnuPlot gplot(out_dir + "/position.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Snowball COM";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("vertical position (m)");
+    gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lc rgb'#00AAEE' ");
 #endif
 
     return 0;

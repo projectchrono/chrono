@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     // Bullet convex hull ------------------------------------------------------
     {
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos({-1, 0, 0});
+        body->SetPos({0, 0, 0});
         body->AddVisualShape(chrono_types::make_shared<ChVisualShapeTriangleMesh>(trimesh));
         sys.Add(body);
 
@@ -64,32 +64,6 @@ int main(int argc, char* argv[]) {
         auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>(trimesh_chull);
         vshape->SetColor({1.f, 0.f, 0.f});
         body->AddVisualShape(vshape);
-    }
-
-    // HACD convex decomposition -----------------------------------------------
-    {
-        auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos({0, 0, 0});
-        body->AddVisualShape(chrono_types::make_shared<ChVisualShapeTriangleMesh>(trimesh));
-        sys.Add(body);
-
-        ChConvexDecompositionHACD hacd;
-        hacd.Reset();
-        hacd.AddTriangleMesh(*trimesh);
-        hacd.SetParameters(2, 0, 0.25, false, false, 100.0, 30.0, 0.0, 0.1, 32);
-        std::cout << "Computing HACD convex decomposition... ";
-        timer.start(true);
-        unsigned int hull_count = hacd.ComputeConvexDecomposition();
-        std::cout << " completed in " << timer.GetTimeMilliseconds() << " ms\n";
-        
-        for (unsigned int i = 0; i < hull_count; i++) {
-            auto chull_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-            hacd.GetConvexHullResult(i, *chull_mesh);
-
-            auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>(chull_mesh, false);
-            vshape->SetColor(ChColor(ChRandom::Get(), ChRandom::Get(), ChRandom::Get()));
-            body->AddVisualShape(vshape);
-        }
     }
 
     // HACDv2 convex decomposition ---------------------------------------------

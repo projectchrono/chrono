@@ -545,10 +545,10 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/multiphysics/ChMaterial3DStressOgden.cpp
     fea/multiphysics/ChMaterial3DThermalStress.cpp
     fea/multiphysics/ChMaterial3DStressParallel.cpp
-    fea/multiphysics/ChDomain.cpp
-    fea/multiphysics/ChDomainThermal.cpp
-    fea/multiphysics/ChDomainDeformation.cpp
-    fea/multiphysics/ChDomainThermoDeformation.cpp
+    fea/multiphysics/ChFEModel.cpp
+    fea/multiphysics/ChFEModelThermal.cpp
+    fea/multiphysics/ChFEModelDeformation.cpp
+    fea/multiphysics/ChFEModelThermoDeformation.cpp
     fea/multiphysics/ChVisualDataExtractor.cpp
     fea/multiphysics/ChDrawer.cpp
     fea/multiphysics/ChLoaderHeatFlux.cpp
@@ -557,7 +557,7 @@ set(Chrono_fea_multiphysics_SOURCES
     fea/multiphysics/ChLoaderHeatVolumetricSource.cpp
     fea/multiphysics/ChBuilderVolume.cpp
     fea/multiphysics/ChLinkFieldNode.cpp
-    fea/multiphysics/ChSurfaceOfDomain.cpp
+    fea/multiphysics/ChSurfaceOfModel.cpp
     )
 set(Chrono_fea_multiphysics_HEADERS
     fea/multiphysics/ChNodeFEAfieldXYZ.h
@@ -585,10 +585,10 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/multiphysics/ChMaterial3DStressOgden.h
     fea/multiphysics/ChMaterial3DThermalStress.h
     fea/multiphysics/ChMaterial3DStressParallel.h
-    fea/multiphysics/ChDomain.h
-    fea/multiphysics/ChDomainThermal.h
-    fea/multiphysics/ChDomainDeformation.h
-    fea/multiphysics/ChDomainThermoDeformation.h
+    fea/multiphysics/ChFEModel.h
+    fea/multiphysics/ChFEModelThermal.h
+    fea/multiphysics/ChFEModelDeformation.h
+    fea/multiphysics/ChFEModelThermoDeformation.h
     fea/multiphysics/ChVisualDataExtractor.h
     fea/multiphysics/ChDrawer.h
     fea/multiphysics/ChLoaderHeatFlux.h
@@ -597,7 +597,7 @@ set(Chrono_fea_multiphysics_HEADERS
     fea/multiphysics/ChLoaderHeatVolumetricSource.h
     fea/multiphysics/ChBuilderVolume.h
     fea/multiphysics/ChLinkFieldNode.h
-    fea/multiphysics/ChSurfaceOfDomain.h
+    fea/multiphysics/ChSurfaceOfModel.h
     )
 source_group(fea\\multiphysics FILES ${Chrono_fea_multiphysics_SOURCES} ${Chrono_fea_multiphysics_HEADERS})
 
@@ -1298,58 +1298,6 @@ source_group(input_output FILES ${Chrono_inputoutput_SOURCES} ${Chrono_inputoutp
 # Third-party files
 # -------------------------------------------------------------------------------------------------
 
-# Gimpact group
-set(Chrono_collision_gimpact_FILES
-    collision/gimpact/GIMPACT/core/gim_box_set.cpp
-    collision/gimpact/GIMPACT/core/gim_contact.cpp
-    collision/gimpact/GIMPACT/core/gim_memory.cpp
-    collision/gimpact/GIMPACT/core/gim_tri_collision.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtContactProcessing.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGenericPoolAllocator.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactBvh.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactQuantizedBvh.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactShape.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtTriangleShapeEx.cpp
-    #collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.cpp
-    collision/gimpact/ConvexDecomposition/bestfit.cpp
-    collision/gimpact/ConvexDecomposition/bestfitobb.cpp
-    collision/gimpact/ConvexDecomposition/cd_hull.cpp
-    collision/gimpact/ConvexDecomposition/concavity.cpp
-    collision/gimpact/ConvexDecomposition/ConvexBuilder.cpp
-    collision/gimpact/ConvexDecomposition/ConvexDecomposition.cpp
-    collision/gimpact/ConvexDecomposition/fitsphere.cpp
-    collision/gimpact/ConvexDecomposition/float_math.cpp
-    collision/gimpact/ConvexDecomposition/meshvolume.cpp
-    collision/gimpact/ConvexDecomposition/planetri.cpp
-    collision/gimpact/ConvexDecomposition/raytri.cpp
-    collision/gimpact/ConvexDecomposition/splitplane.cpp
-    collision/gimpact/ConvexDecomposition/vlookup.cpp
-    )
-source_group(collision\\gimpact FILES ${Chrono_collision_gimpact_FILES})
-
-# HACD group
-set(Chrono_collision_convexdecompHACD_FILES
-    ../chrono_thirdparty/HACD/hacdRaycastMesh.h
-    ../chrono_thirdparty/HACD/hacdMicroAllocator.h
-    ../chrono_thirdparty/HACD/hacdGraph.h
-    ../chrono_thirdparty/HACD/hacdMeshDecimator.h
-    ../chrono_thirdparty/HACD/hacdHACD.h
-    ../chrono_thirdparty/HACD/hacdManifoldMesh.h
-    ../chrono_thirdparty/HACD/hacdICHull.h
-    ../chrono_thirdparty/HACD/hacdSArray.h
-    ../chrono_thirdparty/HACD/hacdVector.h
-    ../chrono_thirdparty/HACD/hacdVersion.h
-    ../chrono_thirdparty/HACD/hacdRaycastMesh.cpp
-    ../chrono_thirdparty/HACD/hacdMicroAllocator.cpp
-    ../chrono_thirdparty/HACD/hacdGraph.cpp
-    ../chrono_thirdparty/HACD/hacdMeshDecimator.cpp
-    ../chrono_thirdparty/HACD/hacdHACD.cpp
-    ../chrono_thirdparty/HACD/hacdManifoldMesh.cpp
-    ../chrono_thirdparty/HACD/hacdICHull.cpp
-    )
-source_group(collision\\convexdecomp\\HACD FILES ${Chrono_collision_convexdecompHACD_FILES})
-
 # HACDv2 group
 set(Chrono_collision_convexdecompHACDv2_FILES
     ../chrono_thirdparty/HACDv2/AutoGeometry.h
@@ -1476,10 +1424,8 @@ set(Chrono_HEADERS
 )
 
 set(Chrono_thirdparty_FILES
-    ${Chrono_collision_convexdecompHACD_FILES}
     ${Chrono_collision_convexdecompHACDv2_FILES}
     ${Chrono_collision_convexdecompVHACD_FILES}
-    ${Chrono_collision_gimpact_FILES}
     ${Chrono_tiny_obj_FILES}
     ${Chrono_libstl_FILES}
 )
@@ -1498,24 +1444,18 @@ set(Chrono_FILES
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_collision_convexdecompHACD_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
 elseif(MSVC)
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_collision_convexdecompHACD_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "/w")
 else()
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_collision_convexdecompHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-w")
 endif()
 
@@ -1546,14 +1486,10 @@ endif()
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src")
 list(APPEND CH_INCLUDES_BUILD "${PROJECT_BINARY_DIR}")
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet" )
-list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact" )
-list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACD")
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
 
 list(APPEND CH_INCLUDES_INSTALL "include")
 list(APPEND CH_INCLUDES_INSTALL "include/chrono/collision/bullet")
-list(APPEND CH_INCLUDES_INSTALL "include/chrono/collision/gimpact")
-list(APPEND CH_INCLUDES_INSTALL "include/chrono_thirdparty/HACD")
 list(APPEND CH_INCLUDES_INSTALL "include/chrono_thirdparty/HACDv2")
 
 target_include_directories(Chrono_core PUBLIC
@@ -1647,11 +1583,19 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC)
         target_compile_definitions(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:_CRT_SECURE_NO_DEPRECATE>)  # avoids deprecation warnings
         target_compile_definitions(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:_SCL_SECURE_NO_DEPRECATE>)  # avoids deprecation warnings
-        target_compile_definitions(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX>) # do not use MSVC's min/max macros
-        target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/MP>) # perform parallel builds
+        target_compile_definitions(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX>)                  # do not use MSVC's min/max macros
+        target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/MP>)                           # perform parallel builds
 
+        # without this flag the memory alignment seems to be broken
         target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
-        target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:__cplusplus">) # without this flag the memory alignment seems to be broken
+        target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:__cplusplus">)
+
+        # CUDA 13+ CCCL headers require MSVC's conforming preprocessor
+        if(CHRONO_CUDA_FOUND AND ${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "13.0")
+          target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/Zc:preprocessor>)
+          target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:preprocessor">) # without this flag the memory alignment seems to be broken          
+        endif()
+
         target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/EHsc>) # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model        
 
         # excluding wrong runtime libraries from the link (LNK4098): https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098
@@ -1805,17 +1749,13 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cxxopts
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACD
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/variant
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/VHACD
         DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
         DESTINATION include/chrono_thirdparty

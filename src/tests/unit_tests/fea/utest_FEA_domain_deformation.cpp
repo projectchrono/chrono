@@ -15,7 +15,7 @@
 // Unit test for linear elasticity of continua.
 //
 // Successful execution of this unit test may validate: full lagrangian
-// finite elements of ChDomainDeformation.
+// finite elements of ChFEModelDeformation.
 //
 // =============================================================================
 
@@ -23,9 +23,9 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/fea/multiphysics/ChNodeFEAfieldXYZ.h"
-#include "chrono/fea/multiphysics/ChDomainDeformation.h"
+#include "chrono/fea/multiphysics/ChFEModelDeformation.h"
 #include "chrono/fea/multiphysics/ChDrawer.h"
-#include "chrono/fea/multiphysics/ChSurfaceOfDomain.h"
+#include "chrono/fea/multiphysics/ChSurfaceOfModel.h"
 #include "chrono/fea/multiphysics/ChFieldElementHexahedron8.h"
 #include "chrono/fea/multiphysics/ChFieldElementHexahedron8Face.h"
 #include "chrono/fea/multiphysics/ChFieldElementTetrahedron4.h"
@@ -53,17 +53,17 @@ bool test_box_uniaxial_pressure(std::shared_ptr<ChMaterial3DStress> test_materia
     auto displacement_field = chrono_types::make_shared<ChFieldDisplacement3D>();
     sys.Add(displacement_field);
 
-    auto elastic_domain = chrono_types::make_shared<ChDomainDeformation>(displacement_field);
-    sys.Add(elastic_domain);
+    auto elastic_model = chrono_types::make_shared<ChFEModelDeformation>(displacement_field);
+    sys.Add(elastic_model);
 
-    elastic_domain->SetAutomaticGravity(false);
+    elastic_model->SetAutomaticGravity(false);
 
-    elastic_domain->material = test_material;  // set the material in domain
+    elastic_model->material = test_material;  // set the material in model
 
     ChBuilderVolumeBox builder;
     builder.BuildVolume(ChFrame<>(), 10, 4, 4,  // N of elements in x,y,z direction
                         1, 0.5, 0.5);           // width in x,y,z direction
-    builder.AddToDomain(elastic_domain);
+    builder.AddToModel(elastic_model);
 
     // Set some node to fixed:
     std::shared_ptr<ChNodeFEAfieldXYZ> probed_node;
@@ -124,33 +124,33 @@ bool test_box_uniaxial_pressure(std::shared_ptr<ChMaterial3DStress> test_materia
         /*
         // POSTPROCESSING & VISUALIZATION (optional)
 
-        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(elastic_domain);
+        auto visual_nodes = chrono_types::make_shared<ChVisualModelGlyphs>(elastic_model);
         visual_nodes->SetGlyphsSize(0.1);
         visual_nodes->AddPositionExtractor(ExtractPos());
         visual_nodes->AddPropertyExtractor(ExtractPosDt(), 0.0, 2.0, "Vel");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
-        elastic_domain->AddVisualShape(visual_nodes);
+        elastic_model->AddVisualShape(visual_nodes);
 
-        auto visual_stress = chrono_types::make_shared<ChVisualDomainGlyphs>(elastic_domain);
+        auto visual_stress = chrono_types::make_shared<ChVisualModelGlyphs>(elastic_model);
         visual_stress->SetGlyphsSize(0.5);
         visual_stress->AddPositionExtractor(ExtractPos());
-        visual_stress->AddPropertyExtractor(ChDomainDeformation::ExtractEulerAlmansiStrain(), 0.0, 2.0, "e");
+        visual_stress->AddPropertyExtractor(ChFEModelDeformation::ExtractEulerAlmansiStrain(), 0.0, 2.0, "e");
         visual_stress->SetColormap(ChColormap(ChColormap::Type::JET));
-        elastic_domain->AddVisualShape(visual_stress);
+        elastic_model->AddVisualShape(visual_stress);
 
         // original undeformed
-        auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(elastic_domain);
+        auto visual_mesh = chrono_types::make_shared<ChVisualModelMesh>(elastic_model);
         visual_mesh->SetColormap(ChColor(1, 1, 1));
         visual_mesh->SetWireframe(true);
-        elastic_domain->AddVisualShape(visual_mesh);
+        elastic_model->AddVisualShape(visual_mesh);
 
-        auto visual_mesh2 = chrono_types::make_shared<ChVisualDomainMesh>(elastic_domain);
+        auto visual_mesh2 = chrono_types::make_shared<ChVisualModelMesh>(elastic_model);
         visual_mesh2->AddPositionExtractor(ExtractPos());
-        visual_mesh2->AddPropertyExtractor(ChDomainDeformation::ExtractEulerAlmansiStrain().VonMises(), -0.1, 0.1, "Stretch");
+        visual_mesh2->AddPropertyExtractor(ChFEModelDeformation::ExtractEulerAlmansiStrain().VonMises(), -0.1, 0.1, "Stretch");
         visual_mesh2->SetColormap(ChColormap(ChColormap::Type::JET));
         // visual_mesh2->SetWireframe(true);
         visual_mesh2->SetShrinkElements(true, 0.99);
-        elastic_domain->AddVisualShape(visual_mesh2);
+        elastic_model->AddVisualShape(visual_mesh2);
 
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

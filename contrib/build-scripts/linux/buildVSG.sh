@@ -14,13 +14,14 @@
 # Notes:
 # - The script accepts 1 optional argument to override the install directory.
 # - This script uses the following versions:
-#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.11
-#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.7
+#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.15
+#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.12
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
-#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
-#      assimp (github.com/assimp/assimp):                          Tag v5.4.3
+#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.13
+#      assimp (github.com/assimp/assimp):                          Tag v6.0.5
 #      draco (github.com/google/draco):                            Tag 1.5.7
-#      glslang (github.com/KhronosGroup/glslang.git):              Tag 15.4.0
+#      glslang (github.com/KhronosGroup/glslang.git):              Tag 16.1.0
+#      ktx (github.com/KhronosGroup/KTX-Software.git):             Tag v4.4.2
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ BUILDDEBUG=ON
 BUILDSYSTEM="Ninja Multi-Config"
 
 if [ ${DOWNLOAD} = OFF ]
-then    
+then
     VSG_SOURCE_DIR="$HOME/Sources/VulkanSceneGraph"
     VSGXCHANGE_SOURCE_DIR="$HOME/Sources/vsgXchange"
     VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
@@ -42,7 +43,8 @@ then
     ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
     DRACO_SOURCE_DIR="$HOME/Sources/draco"
     GLSLANG_SOURCE_DIR="$HOME/Sources/glslang"
-fi    
+    KTX_SOURCE_DIR="$HOME/Sources/ktx"
+fi
 
 # ------------------------------------------------------------------------
 # Allow overriding installation directory through command line argument
@@ -62,11 +64,11 @@ then
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.11 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.15 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.7 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.12 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
@@ -74,11 +76,11 @@ then
     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
     
     echo "  ... vsgExamples"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.9 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.13 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
     ASSIMP_SOURCE_DIR="download_vsg/assimp"
 
     echo "  ... draco"
@@ -86,16 +88,17 @@ then
     DRACO_SOURCE_DIR="download_vsg/draco"
 
     echo "  ... glslang"
-    git clone -c advice.detachedHead=false --depth 1 --branch 15.4.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
+    git clone -c advice.detachedHead=false --depth 1 --branch 16.1.0 "https://github.com/KhronosGroup/glslang.git" "download_vsg/glslang"
     GLSLANG_SOURCE_DIR="download_vsg/glslang"
+
+    echo "  ... ktx"
+    git clone -c advice.detachedHead=false --depth 1 --branch v4.4.2 "https://github.com/KhronosGroup/KTX-Software.git" "download_vsg/ktx"
+    KTX_SOURCE_DIR="download_vsg/ktx"
 
     echo "Get glslang dependencies"
     cd download_vsg/glslang/
     ./update_glslang_sources.py
     cd ../..
-
-    echo "Patch assimp"
-    sed -i -e '997s/.*/    ::memcpy((unsigned char*)dest, old, sizeof(Type) * num);/' download_vsg/assimp/code/Common/SceneCombiner.cpp
 else
     echo "Using provided source directories"
 fi
@@ -108,6 +111,7 @@ echo "  "  ${VSGEXAMPLES_SOURCE_DIR}
 echo "  "  ${ASSIMP_SOURCE_DIR}
 echo "  "  ${DRACO_SOURCE_DIR}
 echo "  "  ${GLSLANG_SOURCE_DIR}
+echo "  "  ${KTX_SOURCE_DIR}
 
 # ------------------------------------------------------------------------
 
@@ -133,6 +137,26 @@ else
     echo "No Debug build of glslang"
 fi
 
+# --- ktx --------------------------------------------------------------
+
+echo "\n------------------------ Configure ktx\n"
+rm -rf build_draco
+cmake -G "${BUILDSYSTEM}" -B build_ktx -S ${KTX_SOURCE_DIR} \
+      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+echo "\n------------------------ Build and install ktx\n"
+cmake --build build_ktx --config Release
+cmake --install build_ktx --config Release --prefix ${VSG_INSTALL_DIR}
+
+if [ ${BUILDDEBUG} = ON ]
+then
+    cmake --build build_ktx --config Debug
+    cmake --install build_ktx --config Debug --prefix ${VSG_INSTALL_DIR}
+else
+    echo "No Debug build of ktx"
+fi
+
 # --- draco -------------------------------------------------------------
 
 echo "\n------------------------ Configure draco\n"
@@ -156,10 +180,10 @@ fi
 
 echo "\n------------------------ Configure assimp\n"
 rm -rf build_assimp
-cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
+cmake -E env CXXFLAGS="-Wno-maybe-uninitialized" cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
+      -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
       -DBUILD_SHARED_LIBS:BOOL=OFF \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -DASSIMP_BUILD_TESTS:BOOL=OFF  \
       -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF \
       -DASSIMP_BUILD_ZLIB:BOOL=ON
@@ -182,8 +206,7 @@ rm -rf build_vsg
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
       -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
-      -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
+      -DCMAKE_DEBUG_POSTFIX=_d 
 
 echo "\n------------------------ Build and install vsg\n"
 cmake --build build_vsg --config Release
@@ -204,7 +227,6 @@ cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
       -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
       -Dassimp_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/assimp-5.2
 
@@ -227,7 +249,6 @@ cmake -G "${BUILDSYSTEM}" -B build_vsgImGui -S ${VSGIMGUI_SOURCE_DIR} \
       -DCMAKE_PREFIX_PATH=${VSG_INSTALL_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
 
 echo "\n------------------------ Build and install vsgImGui\n"

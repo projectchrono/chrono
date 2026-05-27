@@ -20,14 +20,14 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/fea/multiphysics/ChNodeFEAfieldXYZ.h"
-#include "chrono/fea/multiphysics/ChDomainDeformation.h"
-#include "chrono/fea/multiphysics/ChDomainThermal.h"
-#include "chrono/fea/multiphysics/ChDomainThermoDeformation.h"
+#include "chrono/fea/multiphysics/ChFEModelDeformation.h"
+#include "chrono/fea/multiphysics/ChFEModelThermal.h"
+#include "chrono/fea/multiphysics/ChFEModelThermoDeformation.h"
 #include "chrono/fea/multiphysics/ChMaterial3DThermalNonlinear.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressNeoHookean.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressOgden.h"
 #include "chrono/fea/multiphysics/ChDrawer.h"
-#include "chrono/fea/multiphysics/ChSurfaceOfDomain.h"
+#include "chrono/fea/multiphysics/ChSurfaceOfModel.h"
 #include "chrono/fea/multiphysics/ChFieldElementHexahedron8.h"
 #include "chrono/fea/multiphysics/ChFieldElementHexahedron8Face.h"
 #include "chrono/fea/multiphysics/ChFieldElementTetrahedron4.h"
@@ -72,22 +72,22 @@ int main(int argc, char* argv[]) {
         auto displacement_field = chrono_types::make_shared<ChFieldDisplacement3D>();
         sys.Add(displacement_field);
 
-        // DOMAIN
+        // MODEL
         //
-        // Create a "domain", which is a collection of finite elements operating over
-        // some field. In this case we create a ChDomainDeformation, referencing the displacement field:
+        // Create a "model", which is a collection of finite elements operating over
+        // some field. In this case we create a ChFEModelDeformation, referencing the displacement field:
 
-        auto elastic_domain = chrono_types::make_shared<ChDomainDeformation>(displacement_field);
-        sys.Add(elastic_domain);
+        auto elastic_model = chrono_types::make_shared<ChFEModelDeformation>(displacement_field);
+        sys.Add(elastic_model);
 
-        // This means that all finite elements of the domain, if solid, will automatically receive
+        // This means that all finite elements of the model, if solid, will automatically receive
         // a gravitational load:
 
-        elastic_domain->SetAutomaticGravity(true);
+        elastic_model->SetAutomaticGravity(true);
 
         // MATERIAL
         //
-        // Depending on the type of domain, you can set some properties for the material
+        // Depending on the type of model, you can set some properties for the material
         // to be used for the FEA. In this case we create a Neo-Hookean hyperelastic material, which
         // for small deformations acts like linear elasticity.
 
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
         elastic_material->SetYoungModulus(3e6);
         elastic_material->SetPoissonRatio(0.39);
 
-        elastic_domain->material = elastic_material;  // set the material in domain
+        elastic_model->material = elastic_material;  // set the material in model
 
         // CREATE FINITE ELEMENTS AND NODES
         //
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
         ChBuilderVolumeBox builder;
         builder.BuildVolume(ChFrame<>(), 8, 3, 3,  // N of elements in x,y,z direction
                             3, 0.5, 0.5);          // width in x,y,z direction
-        builder.AddToDomain(elastic_domain);
+        builder.AddToModel(elastic_model);
 
         // Set atomic force on some node.
         // Note that the ChNodeFEAfieldXYZ created in the volume builder are generic nodes that
@@ -130,34 +130,34 @@ int main(int argc, char* argv[]) {
         // POSTPROCESSING & VISUALIZATION (optional)
 
         // show dots at each node, colored as their velocity
-        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(elastic_domain);
+        auto visual_nodes = chrono_types::make_shared<ChVisualModelGlyphs>(elastic_model);
         visual_nodes->SetGlyphsSize(0.1);
         visual_nodes->AddPositionExtractor(ExtractPos());
         visual_nodes->AddPropertyExtractor(ExtractPosDt(), 0.0, 2.0, "Vel");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
-        elastic_domain->AddVisualShape(visual_nodes);
+        elastic_model->AddVisualShape(visual_nodes);
 
         // show tensors at each material point, as Euler-Almansi axes
-        auto visual_stress = chrono_types::make_shared<ChVisualDomainGlyphs>(elastic_domain);
+        auto visual_stress = chrono_types::make_shared<ChVisualModelGlyphs>(elastic_model);
         visual_stress->SetGlyphsSize(2.2);
         visual_stress->AddPositionExtractor(ExtractPos());
-        visual_stress->AddPropertyExtractor(ChDomainDeformation::ExtractEulerAlmansiStrain(), 0.0, 2.0, "e");
+        visual_stress->AddPropertyExtractor(ChFEModelDeformation::ExtractEulerAlmansiStrain(), 0.0, 2.0, "e");
         visual_stress->SetColormap(ChColormap(ChColormap::Type::JET));
-        elastic_domain->AddVisualShape(visual_stress);
+        elastic_model->AddVisualShape(visual_stress);
 
         // show mesh painted with jet colormap proportional to Euler-Almansi strain intensity
-        auto visual_mesh2 = chrono_types::make_shared<ChVisualDomainMesh>(elastic_domain);
+        auto visual_mesh2 = chrono_types::make_shared<ChVisualModelMesh>(elastic_model);
         visual_mesh2->AddPositionExtractor(ExtractPos());
-        visual_mesh2->AddPropertyExtractor(ChDomainDeformation::ExtractEulerAlmansiStrain().VonMises(), -0.1, 0.1, "Stretch");
+        visual_mesh2->AddPropertyExtractor(ChFEModelDeformation::ExtractEulerAlmansiStrain().VonMises(), -0.1, 0.1, "Stretch");
         visual_mesh2->SetColormap(ChColormap(ChColormap::Type::JET));
         visual_mesh2->SetShrinkElements(true, 0.9);
-        elastic_domain->AddVisualShape(visual_mesh2);
+        elastic_model->AddVisualShape(visual_mesh2);
 
         // show reference mesh
-        auto visual_mesh_ref = chrono_types::make_shared<ChVisualDomainMesh>(elastic_domain);
+        auto visual_mesh_ref = chrono_types::make_shared<ChVisualModelMesh>(elastic_model);
         visual_mesh_ref->SetColormap(ChColor(1, 1, 1));
         visual_mesh_ref->SetWireframe(true);
-        elastic_domain->AddVisualShape(visual_mesh_ref);
+        elastic_model->AddVisualShape(visual_mesh_ref);
 
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -205,13 +205,13 @@ int main(int argc, char* argv[]) {
         auto temperature_field = chrono_types::make_shared<ChFieldTemperature>();
         sys.Add(temperature_field);
 
-        // DOMAIN
+        // MODEL
         //
-        // Create a "domain", which is a collection of finite elements operating over
-        // some field. In this case we create a ChDomainThermal, referencing the temperature field:
+        // Create a "model", which is a collection of finite elements operating over
+        // some field. In this case we create a ChFEModelThermal, referencing the temperature field:
 
-        auto thermal_domain = chrono_types::make_shared<ChDomainThermal>(temperature_field);
-        sys.Add(thermal_domain);
+        auto thermal_model = chrono_types::make_shared<ChFEModelThermal>(temperature_field);
+        sys.Add(thermal_model);
 
         // MATERIAL
         //
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
         c_T->AddPoint(250, 0.17);
         c_T->AddPoint(300, 0.11);
         thermal_material->SetThermalConductivity(c_T);
-        thermal_domain->material = thermal_material;
+        thermal_model->material = thermal_material;
 
         // CREATE FINITE ELEMENTS AND NODES
         //
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
         ChBuilderVolumeBox builder;
         builder.BuildVolume(ChFrame<>(), 5, 1, 5,  // N of elements in x,y,z direction
                             3, 0.5, 3);            // width in x,y,z direction
-        builder.AddToDomain(thermal_domain);
+        builder.AddToModel(thermal_model);
 
         // EXAMPLE INITIAL CONDITIONS (initial temperature of some nodes)
 
@@ -303,24 +303,24 @@ int main(int argc, char* argv[]) {
 
         // POSTPROCESSING & VISUALIZATION (optional)
 
-        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(thermal_domain);
+        auto visual_nodes = chrono_types::make_shared<ChVisualModelGlyphs>(thermal_model);
         visual_nodes->SetGlyphsSize(0.05);
         visual_nodes->AddPropertyExtractor(ExtractTemperature(), 0.0, 500, "Temp");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
-        thermal_domain->AddVisualShape(visual_nodes);
+        thermal_model->AddVisualShape(visual_nodes);
 
-        auto visual_matpoints = chrono_types::make_shared<ChVisualDomainGlyphs>(thermal_domain);
+        auto visual_matpoints = chrono_types::make_shared<ChVisualModelGlyphs>(thermal_model);
         visual_matpoints->SetGlyphsSize(0.1);
         visual_matpoints->glyph_scalelenght = 0.01;
-        visual_matpoints->AddPropertyExtractor(ChDomainThermal::ExtractHeatFlux(), 0.0, 50, "q flux");
+        visual_matpoints->AddPropertyExtractor(ChFEModelThermal::ExtractHeatFlux(), 0.0, 50, "q flux");
         visual_matpoints->SetColormap(ChColormap(ChColormap::Type::JET));
-        thermal_domain->AddVisualShape(visual_matpoints);
+        thermal_model->AddVisualShape(visual_matpoints);
 
-        auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(thermal_domain);
+        auto visual_mesh = chrono_types::make_shared<ChVisualModelMesh>(thermal_model);
         visual_mesh->AddPropertyExtractor(ExtractTemperature(), 0.0, 500, "Temp");
         visual_mesh->SetColormap(ChColormap(ChColormap::Type::JET));
         visual_mesh->SetWireframe(true);
-        thermal_domain->AddVisualShape(visual_mesh);
+        thermal_model->AddVisualShape(visual_mesh);
 
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -373,22 +373,22 @@ int main(int argc, char* argv[]) {
         sys.Add(temperature_field);
         sys.Add(displacement_field);
 
-        // DOMAIN
+        // MODEL
         //
-        // Create a "domain", which is a collection of finite elements operating over
-        // some field. In this case we create a ChDomainThermal, that must operate on
+        // Create a "model", which is a collection of finite elements operating over
+        // some field. In this case we create a ChFEModelThermal, that must operate on
         // two fields: the temperature field and the displacement field.
-        // Note that you can look at the implementation of the ChDomainThermoDeformation
-        // and you can implement other types of coupled domains according to your needs (ex.
+        // Note that you can look at the implementation of the ChFEModelThermoDeformation
+        // and you can implement other types of coupled models according to your needs (ex.
         // thermochemical, or thermoelectric, piezoelectric, etc.)
 
-        auto domain = chrono_types::make_shared<ChDomainThermoDeformation>(temperature_field, displacement_field);
-        sys.Add(domain);
+        auto model = chrono_types::make_shared<ChFEModelThermoDeformation>(temperature_field, displacement_field);
+        sys.Add(model);
 
         // MATERIAL
         //
-        // The ChDomainThermoDeformation  uses a material of ChMaterial3DThermalStress type.
-        // The default ChMaterial3DThermalStress that is already in the domain, is made with two
+        // The ChFEModelThermoDeformation  uses a material of ChMaterial3DThermalStress type.
+        // The default ChMaterial3DThermalStress that is already in the model, is made with two
         // components: the material for the stress problem (which could be whatever ChMaterial3DStress model
         // like Ogden or StVenant) and the material for the elastic problem. Then you can also set the
         // thermal expansion coefficient, that causes the coupling. Example:
@@ -402,7 +402,7 @@ int main(int argc, char* argv[]) {
         c_T->AddPoint(300, 0.11);
         thermal_material->SetThermalConductivity(c_T);
 
-        domain->material_thermalstress->material_thermal = thermal_material;
+        model->material_thermalstress->material_thermal = thermal_material;
 
         auto elastic_material = chrono_types::make_shared<ChMaterial3DStressOgden>();
         elastic_material->SetDensity(1000);
@@ -413,9 +413,9 @@ int main(int argc, char* argv[]) {
         // elastic_material->SetYoungModulus(8e6);
         // elastic_material->SetPoissonRatio(0.3);
 
-        domain->material_thermalstress->material_stress = elastic_material;
+        model->material_thermalstress->material_stress = elastic_material;
 
-        domain->material_thermalstress->SetThermalExpansionCoefficient(20 * 10e-6);
+        model->material_thermalstress->SetThermalExpansionCoefficient(20 * 10e-6);
 
         // CREATE FINITE ELEMENTS AND NODES
         //
@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
         ChBuilderVolumeBox builder;
         builder.BuildVolume(ChFrame<>(), 5, 3, 5,  // N of elements in x,y,z direction
                             3, 0.5, 3);            // width in x,y,z direction
-        builder.AddToDomain(domain);
+        builder.AddToModel(model);
 
         // EXAMPLE DIRICHLET CONDITIONS (fixed positions of some nodes)
         for (auto mnode : builder.nodes.list()) {
@@ -450,9 +450,9 @@ int main(int argc, char* argv[]) {
         load_container->Add(heat_flux);
 
         // - IMPOSED CONVECTION ON THE ENTIRE BOUNDARY OF VOLUME
-        // We wìll use the ChSurfaceOfDomain to generate all faces of the boundary. Then, for all faces
+        // We wìll use the ChSurfaceOfModel to generate all faces of the boundary. Then, for all faces
         // create ChFieldElementLoadableSurface face wrappers to whom we can apply the convection load:
-        auto outer_surface = chrono_types::make_shared<ChSurfaceOfDomain>(domain.get());
+        auto outer_surface = chrono_types::make_shared<ChSurfaceOfModel>(model.get());
         outer_surface->AddFacesFromBoundary();
         for (auto msurf : outer_surface->GetFaces()) {
             auto exa_iface_loadable = chrono_types::make_shared<ChFieldElementLoadableSurface>(msurf, temperature_field);
@@ -464,27 +464,27 @@ int main(int argc, char* argv[]) {
 
         // POSTPROCESSING & VISUALIZATION (optional)
 
-        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(domain);
+        auto visual_nodes = chrono_types::make_shared<ChVisualModelGlyphs>(model);
         visual_nodes->SetGlyphsSize(0.05);
         visual_nodes->AddPositionExtractor(ExtractPos());
         visual_nodes->AddPropertyExtractor(ExtractTemperature(), 0.0, 500, "Temp");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
-        domain->AddVisualShape(visual_nodes);
+        model->AddVisualShape(visual_nodes);
 
-        // auto visual_matpoints = chrono_types::make_shared<ChVisualDomainGlyphs>(domain);
+        // auto visual_matpoints = chrono_types::make_shared<ChVisualModelGlyphs>(model);
         // visual_matpoints->SetGlyphsSize(0.1);
         // visual_matpoints->glyph_scalelenght = 0.01;
         // visual_matpoints->AddPositionExtractor(::ExtractPos());
-        // visual_matpoints->AddPropertyExtractor(ChDomainThermoDeformation::ExtractHeatFlux(), 0.0, 50, "q flux");
+        // visual_matpoints->AddPropertyExtractor(ChFEModelThermoDeformation::ExtractHeatFlux(), 0.0, 50, "q flux");
         // visual_matpoints->SetColormap(ChColormap(ChColormap::Type::JET));
-        // domain->AddVisualShape(visual_matpoints);
+        // model->AddVisualShape(visual_matpoints);
 
-        auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(domain);
+        auto visual_mesh = chrono_types::make_shared<ChVisualModelMesh>(model);
         visual_mesh->AddPositionExtractor(ExtractPos());
         visual_mesh->AddPropertyExtractor(ExtractTemperature(), 0.0, 500, "Temp");
         visual_mesh->SetColormap(ChColormap(ChColormap::Type::JET));
         visual_mesh->SetWireframe(true);
-        domain->AddVisualShape(visual_mesh);
+        model->AddVisualShape(visual_mesh);
 
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

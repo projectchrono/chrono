@@ -35,7 +35,9 @@
 #include "chrono/physics/ChMassProperties.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
+#endif
 
 #include "chrono_sensor/ChFsiSphRender.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -198,6 +200,7 @@ int main(int argc, char* argv[]) {
 
     // Create run-time visualization
     std::shared_ptr<ChVisualSystem> vis;
+#ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
@@ -221,6 +224,7 @@ int main(int argc, char* argv[]) {
         visVSG->Initialize();
         vis = visVSG;
     }
+#endif
 
     // Load regolith meshes
     std::string mesh_name_prefix = "models/regolith/particle_";
@@ -297,6 +301,7 @@ int main(int argc, char* argv[]) {
     while (time < tend) {
         rover->Update();
 
+#ifdef CHRONO_VSG
         // Run-time visualization
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
@@ -304,9 +309,9 @@ int main(int argc, char* argv[]) {
             vis->Render();
             render_frame++;
         }
-        if (!render) {
-            std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
-        }
+#else
+        std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
+#endif
 
         // Advance dynamics of multibody and fluid systems concurrently
         terrain.DoStepDynamics(exchange_info);
@@ -317,6 +322,7 @@ int main(int argc, char* argv[]) {
         time += exchange_info;
         sim_frame++;
     }
+
     std::cout << "Saving data..." << std::endl;
     sysSPH->SaveParticleData("particle_data");
 
