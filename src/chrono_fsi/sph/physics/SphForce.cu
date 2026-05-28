@@ -26,8 +26,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-SphForce::SphForce(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose)
-    : m_data_mgr(data_mgr), m_bce_mgr(bce_mgr), m_verbose(verbose) {
+SphForce::SphForce(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose) : m_data_mgr(data_mgr), m_bce_mgr(bce_mgr), m_verbose(verbose) {
     gpuMallocErrorFlag(m_errflagD);
 }
 
@@ -41,9 +40,7 @@ void SphForce::Initialize() {
 
 // Use invasive to avoid one extra copy.
 // However, keep in mind that sorted is changed.
-void SphForce::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
-                                                  thrust::device_vector<Real3>& sorted,
-                                                  const thrust::device_vector<uint>& gridMarkerIndex) {
+void SphForce::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original, thrust::device_vector<Real3>& sorted, const thrust::device_vector<uint>& gridMarkerIndex) {
     thrust::device_vector<uint> dummyMarkerIndex = gridMarkerIndex;
     thrust::sort_by_key(dummyMarkerIndex.begin(), dummyMarkerIndex.end(), sorted.begin());
     dummyMarkerIndex.clear();
@@ -51,17 +48,15 @@ void SphForce::CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& or
 }
 
 void SphForce::CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
-                                                     const thrust::device_vector<Real3>& sorted,
-                                                     const thrust::device_vector<uint>& gridMarkerIndex) {
+                                                   const thrust::device_vector<Real3>& sorted,
+                                                   const thrust::device_vector<uint>& gridMarkerIndex) {
     thrust::device_vector<Real3> dummySorted = sorted;
     CopySortedToOriginal_Invasive_R3(original, dummySorted, gridMarkerIndex);
 }
 
 // Use invasive to avoid one extra copy.
 // However, keep in mind that sorted is changed.
-void SphForce::CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
-                                                  thrust::device_vector<Real4>& sorted,
-                                                  const thrust::device_vector<uint>& gridMarkerIndex) {
+void SphForce::CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original, thrust::device_vector<Real4>& sorted, const thrust::device_vector<uint>& gridMarkerIndex) {
     thrust::device_vector<uint> dummyMarkerIndex = gridMarkerIndex;
     thrust::sort_by_key(dummyMarkerIndex.begin(), dummyMarkerIndex.end(), sorted.begin());
     dummyMarkerIndex.clear();
@@ -69,8 +64,8 @@ void SphForce::CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& or
 }
 
 void SphForce::CopySortedToOriginal_NonInvasive_R4(thrust::device_vector<Real4>& original,
-                                                     thrust::device_vector<Real4>& sorted,
-                                                     const thrust::device_vector<uint>& gridMarkerIndex) {
+                                                   thrust::device_vector<Real4>& sorted,
+                                                   const thrust::device_vector<uint>& gridMarkerIndex) {
     thrust::device_vector<Real4> dummySorted = sorted;
     CopySortedToOriginal_Invasive_R4(original, dummySorted, gridMarkerIndex);
 }

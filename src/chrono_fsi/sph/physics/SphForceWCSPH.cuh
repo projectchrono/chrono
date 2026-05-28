@@ -31,7 +31,7 @@ class SphForceWCSPH : public SphForce {
     /// Force class implemented using WCSPH with an explicit integrator.
     /// Supports for both fluid and granular material dynamics.
     SphForceWCSPH(FsiDataManager& data_mgr,  ///< FSI data manager
-                  SphBceManager& bce_mgr,       ///< BCE manager
+                  SphBceManager& bce_mgr,    ///< BCE manager
                   bool verbose,              ///< verbose output
                   bool check_errors          ///< check errors
     );

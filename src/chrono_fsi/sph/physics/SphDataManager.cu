@@ -46,8 +46,7 @@ namespace sph {
 //---------------------------------------------------------------------------------------
 
 zipIterSphD SphMarkerDataD::iterator(int offset) {
-    return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin() + offset, velMasD.begin() + offset,
-                                                        rhoPresMuD.begin() + offset, tauXxYyZzD.begin() + offset,
+    return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin() + offset, velMasD.begin() + offset, rhoPresMuD.begin() + offset, tauXxYyZzD.begin() + offset,
                                                         tauXyXzYzD.begin() + offset, pcEvSvD.begin() + offset));
 }
 
@@ -61,8 +60,7 @@ void SphMarkerDataD::resize(size_t s) {
 }
 
 zipIterSphH SphMarkerDataH::iterator(int offset) {
-    return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin() + offset, velMasH.begin() + offset,
-                                                        rhoPresMuH.begin() + offset, tauXxYyZzH.begin() + offset,
+    return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin() + offset, velMasH.begin() + offset, rhoPresMuH.begin() + offset, tauXxYyZzH.begin() + offset,
                                                         tauXyXzYzH.begin() + offset, pcEvSvH.begin() + offset));
 }
 
@@ -78,9 +76,8 @@ void SphMarkerDataH::resize(size_t s) {
 //---------------------------------------------------------------------------------------
 
 zipIterRigidH FsiBodyStateH::iterator(int offset) {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset,
-                                                        lin_acc.begin() + offset, rot.begin() + offset,
-                                                        ang_vel.begin() + offset, ang_acc.begin() + offset));
+    return thrust::make_zip_iterator(
+        thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset, lin_acc.begin() + offset, rot.begin() + offset, ang_vel.begin() + offset, ang_acc.begin() + offset));
 }
 
 void FsiBodyStateH::Resize(size_t s) {
@@ -93,9 +90,8 @@ void FsiBodyStateH::Resize(size_t s) {
 }
 
 zipIterRigidD FsiBodyStateD::iterator(int offset) {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset,
-                                                        lin_acc.begin() + offset, rot.begin() + offset,
-                                                        ang_vel.begin() + offset, ang_acc.begin() + offset));
+    return thrust::make_zip_iterator(
+        thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset, lin_acc.begin() + offset, rot.begin() + offset, ang_vel.begin() + offset, ang_acc.begin() + offset));
 }
 
 void FsiBodyStateD::Resize(size_t s) {
@@ -210,14 +206,7 @@ FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH
 
 FsiDataManager::~FsiDataManager() {}
 
-void FsiDataManager::AddSphParticle(Real3 pos,
-                                    Real rho,
-                                    Real pres,
-                                    Real mu,
-                                    Real3 vel,
-                                    Real3 tauXxYyZz,
-                                    Real3 tauXyXzYz,
-                                    Real pc) {
+void FsiDataManager::AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel, Real3 tauXxYyZz, Real3 tauXyXzYz, Real pc) {
     sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->h));
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
@@ -230,8 +219,7 @@ void FsiDataManager::AddSphParticle(Real3 pos,
     //// TODO: Make sure that the parameter is set (creates dependency on when AddSphParticle is called)
     Real confining_stress = pres;
     Real p1 = 1000;
-    Real Sv = paramsH->mcc_v_lambda - paramsH->mcc_lambda * std::log(pc / p1) +
-              paramsH->mcc_kappa * std::log(pc / confining_stress);
+    Real Sv = paramsH->mcc_v_lambda - paramsH->mcc_lambda * std::log(pc / p1) + paramsH->mcc_kappa * std::log(pc / confining_stress);
     sphMarkers_H->pcEvSvH.push_back(mR3(pc, 0.0, Sv));
 }
 
@@ -763,8 +751,7 @@ struct in_box {
             az.x * d.x + az.y * d.y + az.z * d.z   //
         );
         // Check w between all box limits
-        return (w.x >= -hsize.x && w.x <= +hsize.x) && (w.y >= -hsize.y && w.y <= +hsize.y) &&
-               (w.z >= -hsize.z && w.z <= +hsize.z);
+        return (w.x >= -hsize.x && w.x <= +hsize.x) && (w.y >= -hsize.y && w.y <= +hsize.y) && (w.z >= -hsize.z && w.z <= +hsize.z);
     }
 
     Real3 hsize;
@@ -774,11 +761,7 @@ struct in_box {
     Real3 az;
 };
 
-std::vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize,
-                                                    const Real3& pos,
-                                                    const Real3& ax,
-                                                    const Real3& ay,
-                                                    const Real3& az) {
+std::vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize, const Real3& pos, const Real3& ax, const Real3& ay, const Real3& az) {
     // Extract indices of SPH particles contained in the OBB
     auto& ref = referenceArray;
     auto& pos_D = sphMarkers_D->posRadD;

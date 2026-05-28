@@ -41,10 +41,7 @@ void CopyParametersToDevice_SphCollisionSystem(std::shared_ptr<ChFsiParamsSPH> p
 // Writes only if active - thus active list has all active particles at the front
 // The index's are the index of the original particle arrangement
 // After the active particles, random values that were initialized are stored
-__global__ void fillActiveListD(const uint* __restrict__ prefixSum,
-                                const int32_t* __restrict__ extendedActivityIdD,
-                                uint* __restrict__ activeListD,
-                                uint numAllMarkers) {
+__global__ void fillActiveListD(const uint* __restrict__ prefixSum, const int32_t* __restrict__ extendedActivityIdD, uint* __restrict__ activeListD, uint numAllMarkers) {
     uint tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= numAllMarkers)
         return;
@@ -241,8 +238,7 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
             for (int x = -1; x <= 1; x++) {
                 int3 neighborPos = gridPos + mI3(x, y, z);
                 // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
-                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
-                    neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
+                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x || neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
                     neighborPos.z < paramsD.minBounds.z || neighborPos.z > paramsD.maxBounds.z) {
                     continue;
                 }
@@ -286,8 +282,7 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
             for (int x = -1; x <= 1; x++) {
                 int3 neighborPos = gridPos + mI3(x, y, z);
                 // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
-                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
-                    neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
+                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x || neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
                     neighborPos.z < paramsD.minBounds.z || neighborPos.z > paramsD.maxBounds.z) {
                     continue;
                 }
@@ -321,8 +316,7 @@ void SphCollisionSystem::Initialize() {
     gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
-void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                     std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
+void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     bool* error_flagD;
     gpuMallocErrorFlag(error_flagD);
     gpuResetErrorFlag(error_flagD);
@@ -333,9 +327,8 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
-    fillActiveListD<<<numBlocks, numThreads>>>(
-        U1CAST(m_data_mgr.prefixSumExtendedActivityIdD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-        U1CAST(m_data_mgr.activeListD), (uint)m_data_mgr.countersH->numAllMarkers);
+    fillActiveListD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.prefixSumExtendedActivityIdD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
+                                               U1CAST(m_data_mgr.activeListD), (uint)m_data_mgr.countersH->numAllMarkers);
 
     // Reset cell size
     int3 cellsDim = m_data_mgr.paramsH->gridSize;
@@ -345,17 +338,14 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
 
     // Calculate Hash
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
-    calcHashD<<<numBlocks, numThreads>>>(
-        U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-        (uint)m_data_mgr.countersH->numExtendedParticles, error_flagD);
+    calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+                                         U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD), mR4CAST(m_sphMarkersD->rhoPresMuD),
+                                         (uint)m_data_mgr.countersH->numExtendedParticles, error_flagD);
     gpuCheckErrorFlag(error_flagD, "calcHashD");
 
     // Sort Particles based on Hash
-    thrust::sort_by_key(
-        m_data_mgr.markersProximity_D->gridMarkerHashD.begin(),
-        m_data_mgr.markersProximity_D->gridMarkerHashD.begin() + m_data_mgr.countersH->numExtendedParticles,
-        m_data_mgr.markersProximity_D->gridMarkerIndexD.begin());
+    thrust::sort_by_key(m_data_mgr.markersProximity_D->gridMarkerHashD.begin(), m_data_mgr.markersProximity_D->gridMarkerHashD.begin() + m_data_mgr.countersH->numExtendedParticles,
+                        m_data_mgr.markersProximity_D->gridMarkerIndexD.begin());
 
     // Find the start index and the end index of the sorted array in each cell
     thrust::fill(m_data_mgr.markersProximity_D->cellStartD.begin(), m_data_mgr.markersProximity_D->cellStartD.end(), 0);
@@ -364,28 +354,23 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
     // TODO - Check if 256 is optimal here
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 256, numBlocks, numThreads);
     uint smemSize = sizeof(uint) * (numThreads + 1);
-    findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-        U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        (uint)m_data_mgr.countersH->numExtendedParticles);
+    findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
+                                                           U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+                                                           (uint)m_data_mgr.countersH->numExtendedParticles);
 
     // Launch a kernel to find the location of original particles in the sorted arrays
     // This is faster than using thrust::sort_by_key()
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
-    OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
-                                                 U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+    OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
                                                  (uint)m_data_mgr.countersH->numExtendedParticles);
 
     // Reorder the arrays according to the sorted index of all particles
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     reorderDataD<<<numBlocks, numThreads>>>(
-        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(sortedSphMarkersD->posRadD),
-        mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-        mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
-        mR3CAST(sortedSphMarkersD->pcEvSvD), INT_32CAST(m_data_mgr.activityIdentifierSortedD),
-        mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-        mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD), mR3CAST(m_sphMarkersD->pcEvSvD),
-        INT_32CAST(m_data_mgr.activityIdentifierOriginalD), (uint)m_data_mgr.countersH->numExtendedParticles);
+        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+        mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(sortedSphMarkersD->pcEvSvD), INT_32CAST(m_data_mgr.activityIdentifierSortedD),
+        mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
+        mR3CAST(m_sphMarkersD->tauXyXzYzD), mR3CAST(m_sphMarkersD->pcEvSvD), INT_32CAST(m_data_mgr.activityIdentifierOriginalD), (uint)m_data_mgr.countersH->numExtendedParticles);
     gpuCheckError();
 
     gpuFreeErrorFlag(error_flagD);
@@ -401,23 +386,20 @@ void SphCollisionSystem::NeighborSearch(std::shared_ptr<SphMarkerDataD> sortedSp
 
     // start neighbor search
     // first pass
-    neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
-        U1CAST(m_data_mgr.numNeighborsPerPart));
+    neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                                           U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+                                                           U1CAST(m_data_mgr.numNeighborsPerPart));
 
     // In-place exclusive scan for num of neighbors
-    thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(),
-                           m_data_mgr.numNeighborsPerPart.begin());
+    thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), m_data_mgr.numNeighborsPerPart.begin());
     if (m_data_mgr.numNeighborsPerPart.back() > 0) {
         m_data_mgr.neighborList.resize(m_data_mgr.numNeighborsPerPart.back());
         thrust::fill(m_data_mgr.neighborList.begin(), m_data_mgr.neighborList.end(), 0);
 
         // second pass
-        neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-            U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-            numActive, U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList));
+        neighborSearchID<<<numBlocksShort, numThreadsShort>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                                              U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+                                                              U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList));
     }
 }
 

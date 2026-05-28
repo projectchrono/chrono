@@ -1615,7 +1615,7 @@ __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
 }
 
 __host__ __device__ inline Real3 calc_triangle_normal(const Real3& a, const Real3& b, const Real3& c) {
-    return get_normalized(cross(b-a, c-b));
+    return get_normalized(cross(b - a, c - b));
 }
 
 __host__ __device__ inline Real sgn(Real a) {

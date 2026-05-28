@@ -28,6 +28,11 @@
     #include <cuda_runtime.h>
     #include <cuda_runtime_api.h>
 
+// cudaMemcpyTo/FromSymbol need the actual device symbol token, not the address of that token. 
+// Current Chrono GPU code only uses the 3-argument forms, so map exactly those here.
+    #define gpuMemcpyToSymbolAsync(symbol, src, bytes) cudaMemcpyToSymbolAsync(symbol, src, bytes, 0, cudaMemcpyHostToDevice, 0)
+    #define gpuMemcpyFromSymbol(dst, symbol, bytes) cudaMemcpyFromSymbol(dst, symbol, bytes, 0, cudaMemcpyDeviceToHost)
+
 // Type aliases
 using gpuStream = cudaStream_t;
 using gpuEvent = cudaEvent_t;
@@ -69,13 +74,6 @@ inline gpuError gpuMemcpy(void* dst, const void* src, std::size_t bytes, gpuMemc
 inline gpuError gpuMemcpyAsync(void* dst, const void* src, std::size_t bytes, gpuMemcpyKind kind, gpuStream stream = 0) {
     return cudaMemcpyAsync(dst, src, bytes, kind, stream);
 }
-    // cudaMemcpyTo/FromSymbol need the actual device symbol token, not the address of that
-    // token. Keep these as macros so CUDA and HIP call sites use the same spelling.
-    // Current Chrono GPU code only uses the 3-argument forms, so map exactly those here.
-    #define gpuMemcpyToSymbolAsync(symbol, src, bytes) \
-        cudaMemcpyToSymbolAsync(symbol, src, bytes, 0, cudaMemcpyHostToDevice, 0)
-    #define gpuMemcpyFromSymbol(dst, symbol, bytes) \
-        cudaMemcpyFromSymbol(dst, symbol, bytes, 0, cudaMemcpyDeviceToHost)
 inline gpuError gpuMemset(void* dst, int value, std::size_t bytes) {
     return cudaMemset(dst, value, bytes);
 }
@@ -122,6 +120,13 @@ inline gpuError gpuEventElapsedTime(float* ms, gpuEvent start, gpuEvent stop) {
     #include <hip/hip_runtime_api.h>
     #define CHRONO_FSI_SPH_RUNTIME_IS_HIP 1
 
+// Important: HIP_SYMBOL must be applied at the call site to the actual device symbol token.
+// Wrapping hipMemcpyTo/FromSymbol in a C++ function template would apply HIP_SYMBOL to the function parameter `symbol`
+// and not to the original device symbol; that code would still compile but route symbol copies incorrectly at runtime.
+// Current Chrono GPU code only uses the 3-argument forms, so map exactly those here.
+    #define gpuMemcpyToSymbolAsync(symbol, src, bytes) hipMemcpyToSymbolAsync(HIP_SYMBOL(symbol), src, bytes, 0, hipMemcpyHostToDevice, 0)
+    #define gpuMemcpyFromSymbol(dst, symbol, bytes) hipMemcpyFromSymbol(dst, HIP_SYMBOL(symbol), bytes, 0, hipMemcpyDeviceToHost)
+
 // Type aliases
 using gpuStream = hipStream_t;
 using gpuEvent = hipEvent_t;
@@ -163,13 +168,6 @@ inline gpuError gpuMemcpy(void* dst, const void* src, std::size_t bytes, gpuMemc
 inline gpuError gpuMemcpyAsync(void* dst, const void* src, std::size_t bytes, gpuMemcpyKind kind, gpuStream stream = 0) {
     return hipMemcpyAsync(dst, src, bytes, kind, stream);
 }
-    // Important: HIP_SYMBOL must be applied at the call site to the actual device symbol token.
-    // Wrapping hipMemcpyTo/FromSymbol in a C++ function template would apply HIP_SYMBOL to the
-    // function parameter `symbol`, not to the original device symbol (e.g., paramsD/countersD),
-    // which can compile but route symbol copies incorrectly at runtime.
-    // Current Chrono GPU code only uses the 3-argument forms, so map exactly those here.
-    #define gpuMemcpyToSymbolAsync(symbol, src, bytes) hipMemcpyToSymbolAsync(HIP_SYMBOL(symbol), src, bytes, 0, hipMemcpyHostToDevice, 0)
-    #define gpuMemcpyFromSymbol(dst, symbol, bytes) hipMemcpyFromSymbol(dst, HIP_SYMBOL(symbol), bytes, 0, hipMemcpyDeviceToHost)
 inline gpuError gpuMemset(void* dst, int value, std::size_t bytes) {
     return hipMemset(dst, value, bytes);
 }

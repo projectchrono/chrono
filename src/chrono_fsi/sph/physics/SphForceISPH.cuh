@@ -30,7 +30,7 @@ class SphForceISPH : public SphForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator.
     SphForceISPH(FsiDataManager& data_mgr,  ///< FSI data manager
-                 SphBceManager& bce_mgr,       ///< BCE manager
+                 SphBceManager& bce_mgr,    ///< BCE manager
                  bool verbose,              ///< verbose output
                  bool check_errors          ///< check errors
     );

@@ -50,14 +50,8 @@ void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calc_A_tensor(Real* A_tensor,
-                              Real* G_tensor,
-                              Real4* sortedPosRad,
-                              Real4* sortedRhoPreMu,
-                              Real* sumWij_inv,
-                              uint* csrColInd,
-                              uint* numContacts,
-                              volatile bool* error_flag) {
+__global__ void
+calc_A_tensor(Real* A_tensor, Real* G_tensor, Real4* sortedPosRad, Real4* sortedRhoPreMu, Real* sumWij_inv, uint* csrColInd, uint* numContacts, volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -244,12 +238,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calcRho_kernel(Real4* sortedPosRad,
-                               Real4* sortedRhoPreMu,
-                               Real* sumWij_inv,
-                               const uint* neighborList,
-                               const uint* numNeighborsPerPart,
-                               volatile bool* error_flag) {
+__global__ void calcRho_kernel(Real4* sortedPosRad, Real4* sortedRhoPreMu, Real* sumWij_inv, const uint* neighborList, const uint* numNeighborsPerPart, volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers) {
         return;
@@ -292,10 +281,8 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
     sumWij_inv[i_idx] = m_i / sum_mW;
     sortedRhoPreMu[i_idx].x = sum_mW;
 
-    if ((sortedRhoPreMu[i_idx].x > 5 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < paramsD.rho0 / 5) &&
-        sortedRhoPreMu[i_idx].w == -1) {
-        printf("(calcRho_kernel) Warning: Density out of bounds for marker %d, rho=%f, sum_W=%f, m_i=%f\n", i_idx,
-               sortedRhoPreMu[i_idx].x, sum_W, m_i);
+    if ((sortedRhoPreMu[i_idx].x > 5 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < paramsD.rho0 / 5) && sortedRhoPreMu[i_idx].w == -1) {
+        printf("(calcRho_kernel) Warning: Density out of bounds for marker %d, rho=%f, sum_W=%f, m_i=%f\n", i_idx, sortedRhoPreMu[i_idx].x, sum_W, m_i);
     }
 }
 
@@ -376,8 +363,7 @@ __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,
     if (sortedRhoPreMu[i_idx].w == -3)
         normals[i_idx] *= -1;
 
-    Real Det = (mGi[0] * mGi[4] * mGi[8] - mGi[0] * mGi[5] * mGi[7] - mGi[1] * mGi[3] * mGi[8] +
-                mGi[1] * mGi[5] * mGi[6] + mGi[2] * mGi[3] * mGi[7] - mGi[2] * mGi[4] * mGi[6]);
+    Real Det = (mGi[0] * mGi[4] * mGi[8] - mGi[0] * mGi[5] * mGi[7] - mGi[1] * mGi[3] * mGi[8] + mGi[1] * mGi[5] * mGi[6] + mGi[2] * mGi[3] * mGi[7] - mGi[2] * mGi[4] * mGi[6]);
     if (abs(Det) < EPSILON && sortedRhoPreMu[i_idx].w != -3) {
         for (int i = 0; i < 9; i++) {
             G_i[i_idx * 9 + i] = 0.0;
@@ -520,16 +506,14 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,
                 A_L[count] = -comm;        // j
                 A_L[csrStartIdx] += comm;  // i
             } else {
-                Real comm = 2.0 / V_i * (V_j * V_j + V_i * V_i) * dot(rij, grad_ij) /
-                            (d * d + h_ij * h_ij * paramsD.epsMinMarkersDis);
+                Real comm = 2.0 / V_i * (V_j * V_j + V_i * V_i) * dot(rij, grad_ij) / (d * d + h_ij * h_ij * paramsD.epsMinMarkersDis);
                 A_L[count] = -comm;        // j
                 A_L[csrStartIdx] += comm;  // i
             }
         } else {
             Real commonterm = 1.0 / V_j * (V_j * V_j + V_i * V_i) *
-                              (Li[0] * eij.x * grad_ij.x + Li[1] * eij.x * grad_ij.y + Li[2] * eij.x * grad_ij.z +
-                               Li[1] * eij.y * grad_ij.x + Li[3] * eij.y * grad_ij.y + Li[4] * eij.y * grad_ij.z +
-                               Li[2] * eij.z * grad_ij.x + Li[4] * eij.z * grad_ij.y + Li[5] * eij.z * grad_ij.z);
+                              (Li[0] * eij.x * grad_ij.x + Li[1] * eij.x * grad_ij.y + Li[2] * eij.x * grad_ij.z + Li[1] * eij.y * grad_ij.x + Li[3] * eij.y * grad_ij.y +
+                               Li[4] * eij.y * grad_ij.z + Li[2] * eij.z * grad_ij.x + Li[4] * eij.z * grad_ij.y + Li[5] * eij.z * grad_ij.z);
 
             A_L[count] -= commonterm / (d + h_ij * paramsD.epsMinMarkersDis);        // j
             A_L[csrStartIdx] += commonterm / (d + h_ij * paramsD.epsMinMarkersDis);  // i
@@ -580,14 +564,7 @@ __global__ void Jacobi_SOR_Iter(Real4* sortedRhoPreMu,
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu,
-                                    Real3* V_old,
-                                    Real3* V_new,
-                                    Real* q_old,
-                                    Real* q_new,
-                                    Real* Residuals,
-                                    bool _3dvector,
-                                    volatile bool* error_flag) {
+__global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu, Real3* V_old, Real3* V_new, Real* q_old, Real* q_new, Real* Residuals, bool _3dvector, volatile bool* error_flag) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -609,11 +586,7 @@ __global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu,
     Residuals[i_idx] = res;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Initialize_Variables(Real4* sortedRhoPreMu,
-                                     Real* p_old,
-                                     Real3* sortedVelMas,
-                                     Real3* V_new,
-                                     volatile bool* error_flag) {
+__global__ void Initialize_Variables(Real4* sortedRhoPreMu, Real* p_old, Real3* sortedVelMas, Real3* V_new, volatile bool* error_flag) {
     const uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (i_idx >= countersD.numAllMarkers)
         return;
@@ -675,8 +648,7 @@ __global__ void UpdateDensity(Real3* vis_vel,
                     Real3 posj = mR3(sortedPosRad[j]);
                     Real3 dist3 = Distance(posi, posj);
                     Real d = length(dist3);
-                    if (d > paramsD.h_multiplier * h_i || sortedRhoPreMu[j].w <= -2 ||
-                        (sortedRhoPreMu[i_idx].w >= 0 && sortedRhoPreMu[j].w >= 0))
+                    if (d > paramsD.h_multiplier * h_i || sortedRhoPreMu[j].w <= -2 || (sortedRhoPreMu[i_idx].w >= 0 && sortedRhoPreMu[j].w >= 0))
                         continue;
                     Real3 Vel_j = sortedVelMas[j];
                     Real h_j = sortedPosRad[j].w;
