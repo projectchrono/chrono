@@ -95,11 +95,13 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
                 if (full_inr) {
                     M_inv.insert(b+3, b+4) = J(0,1);
                     M_inv.insert(b+3, b+5) = J(0,2);
-                    M_inv.insert(b+4, b+3) = J(1,0);
                 }
+                // Row b+4: col b+3 MUST precede diagonal b+4 for ascending order
+                if (full_inr) { M_inv.insert(b+4, b+3) = J(1,0); }
                 M_inv.insert(b+4, b+4) = J(1,1);
+                if (full_inr) { M_inv.insert(b+4, b+5) = J(1,2); }
+                // Row b+5: cols b+3, b+4 MUST precede diagonal b+5 for ascending order
                 if (full_inr) {
-                    M_inv.insert(b+4, b+5) = J(1,2);
                     M_inv.insert(b+5, b+3) = J(2,0);
                     M_inv.insert(b+5, b+4) = J(2,1);
                 }
@@ -177,15 +179,18 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
                 M.insert(b,   b  ) = mass;
                 M.insert(b+1, b+1) = mass;
                 M.insert(b+2, b+2) = mass;
+                // Row b+3: cols b+3 [, b+4, b+5] — already ascending
                 M.insert(b+3, b+3) = J(0,0);
                 if (full_inr) {
                     M.insert(b+3, b+4) = J(0,1);
                     M.insert(b+3, b+5) = J(0,2);
-                    M.insert(b+4, b+3) = J(1,0);
                 }
+                // Row b+4: col b+3 MUST precede diagonal b+4 for ascending order
+                if (full_inr) { M.insert(b+4, b+3) = J(1,0); }
                 M.insert(b+4, b+4) = J(1,1);
+                if (full_inr) { M.insert(b+4, b+5) = J(1,2); }
+                // Row b+5: cols b+3, b+4 MUST precede diagonal b+5 for ascending order
                 if (full_inr) {
-                    M.insert(b+4, b+5) = J(1,2);
                     M.insert(b+5, b+3) = J(2,0);
                     M.insert(b+5, b+4) = J(2,1);
                 }

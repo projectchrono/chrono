@@ -94,14 +94,11 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
 
         for (int i = 0; i < (signed)num_contacts; i++) {
             ml[offset + i] = ml[offset + i] - omega * D[offset + i] *
-                             Nschur.row(offset + i * 1 + 0).dot(ml) -
-                             r[offset + i];
+                             (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
             ml[nc + i * 2 + 0] = ml[nc + i * 2 + 0] - omega * D[nc + i * 2 + 0] *
-                                 Nschur.row(nc + i * 2 + 0).dot(ml) -
-                                 r[nc + i * 2 + 0];
+                                 (Nschur.row(nc + i * 2 + 0).dot(ml) - r[nc + i * 2 + 0]);
             ml[nc + i * 2 + 1] = ml[nc + i * 2 + 1] - omega * D[nc + i * 2 + 1] *
-                                 Nschur.row(nc + i * 2 + 1).dot(ml) -
-                                 r[nc + i * 2 + 1];
+                                 (Nschur.row(nc + i * 2 + 1).dot(ml) - r[nc + i * 2 + 1]);
 
             data_manager->rigid_rigid->Project_Single(i, ml.data());
         }
