@@ -60,9 +60,6 @@ class CH_VEHICLE_API ChClosedLoopDriver : public ChDriver {
     /// is above the threshold value) or by applying brakes (otherwise).
     void SetThresholdThrottle(double val) { m_throttle_threshold = val; }
 
-    /// Get the underlying speed controller object.
-    ChSpeedController& GetSpeedController() const { return *m_speed_controller; }
-
     /// Reset the underlying controllers.
     void Reset();
 
@@ -113,7 +110,7 @@ class CH_VEHICLE_API ChClosedLoopDriver : public ChDriver {
 /// Path-following driver system using a PID lateral steering controller.
 ///
 /// @sa ChPathSteeringControllerPID
-/// @sa ChSpeedController
+/// @sa ChSpeedControllerPID
 class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
@@ -140,6 +137,9 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
 
     ~ChPathFollowerDriver() {}
 
+    /// Access the underlying speed controller object.
+    ChSpeedControllerPID& GetSpeedController() const;
+
     /// Access the underlying steering controller object.
     ChPathSteeringControllerPID& GetSteeringController() const;
 };
@@ -154,7 +154,7 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
 /// ISBN 3-540-23139-0 Springer Berlin Heidelberg New York
 ///
 /// @sa ChPathSteeringControllerXT
-/// @sa ChSpeedController
+/// @sa ChSpeedControllerPID
 class CH_VEHICLE_API ChPathFollowerDriverXT : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
@@ -183,6 +183,9 @@ class CH_VEHICLE_API ChPathFollowerDriverXT : public ChClosedLoopDriver {
 
     ~ChPathFollowerDriverXT() {}
 
+    /// Access the underlying speed controller object.
+    ChSpeedControllerPID& GetSpeedController() const;
+
     /// Get the underlying steering controller object.
     ChPathSteeringControllerXT& GetSteeringController() const;
 };
@@ -192,7 +195,7 @@ class CH_VEHICLE_API ChPathFollowerDriverXT : public ChClosedLoopDriver {
 /// Path-following driver system using a P-like lateral steering controller with variable path prediction.
 ///
 /// @sa ChPathSteeringControllerSR
-/// @sa ChSpeedController
+/// @sa ChSpeedControllerPID
 class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
@@ -223,6 +226,9 @@ class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
 
     ~ChPathFollowerDriverSR() {}
 
+    /// Access the underlying speed controller object.
+    ChSpeedControllerPID& GetSpeedController() const;
+
     /// Get the underlying steering controller object.
     ChPathSteeringControllerSR& GetSteeringController() const;
 };
@@ -232,7 +238,7 @@ class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
 /// Path-following driver system using a lateral steering controller as used on the Stanley AV.
 ///
 /// @sa ChPathSteeringControllerStanley
-/// @sa ChSpeedController
+/// @sa ChSpeedControllerPID
 class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
@@ -261,6 +267,9 @@ class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
 
     ~ChPathFollowerDriverStanley() {}
 
+    /// Access the underlying speed controller object.
+    ChSpeedControllerPID& GetSpeedController() const;
+
     /// Get the underlying steering controller object.
     ChPathSteeringControllerStanley& GetSteeringController() const;
 };
@@ -270,7 +279,7 @@ class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
 /// Path-following driver system using a lateral steering controller as used on the Pure Pursuit AV.
 ///
 /// @sa ChPathSteeringControllerPP
-/// @sa ChSpeedController
+/// @sa ChSpeedControllerPID
 class CH_VEHICLE_API ChPathFollowerDriverPP : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
@@ -296,6 +305,9 @@ class CH_VEHICLE_API ChPathFollowerDriverPP : public ChClosedLoopDriver {
     );
 
     ~ChPathFollowerDriverPP() {}
+
+    /// Access the underlying speed controller object.
+    ChSpeedControllerPID& GetSpeedController() const;
 
     /// Get the underlying steering controller object.
     ChPathSteeringControllerPP& GetSteeringController() const;

@@ -40,9 +40,7 @@ ChClosedLoopDriver::ChClosedLoopDriver(ChVehicle& vehicle, const std::string& pa
       m_color(0.8f, 0.8f, 0.0f),
       m_throttle_threshold(0.2),
       m_zero_duration(zero_duration),
-      m_ramp_duration(ramp_duration) {
-    m_speed_controller = chrono_types::make_unique<ChSpeedController>();
-}
+      m_ramp_duration(ramp_duration) {}
 
 ChClosedLoopDriver::ChClosedLoopDriver(ChVehicle& vehicle,
                                        const std::string& speed_filename,
@@ -56,9 +54,7 @@ ChClosedLoopDriver::ChClosedLoopDriver(ChVehicle& vehicle,
       m_color(0.8f, 0.8f, 0.0f),
       m_throttle_threshold(0.2),
       m_zero_duration(zero_duration),
-      m_ramp_duration(ramp_duration) {
-    m_speed_controller = chrono_types::make_unique<ChSpeedController>(speed_filename);
-}
+      m_ramp_duration(ramp_duration) {}
 
 void ChClosedLoopDriver::Initialize() {
     // Create a fixed body to carry a visualization asset for the path
@@ -139,6 +135,7 @@ ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            double zero_duration,
                                            double ramp_duration)
     : ChClosedLoopDriver(vehicle, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerPID>(path);
     Reset();
 }
@@ -152,8 +149,13 @@ ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            double zero_duration,
                                            double ramp_duration)
     : ChClosedLoopDriver(vehicle, speed_filename, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerPID>(steering_filename, path);
     Reset();
+}
+
+ChSpeedControllerPID& ChPathFollowerDriver::GetSpeedController() const {
+    return static_cast<ChSpeedControllerPID&>(*m_speed_controller);
 }
 
 ChPathSteeringControllerPID& ChPathFollowerDriver::GetSteeringController() const {
@@ -170,6 +172,7 @@ ChPathFollowerDriverXT::ChPathFollowerDriverXT(ChVehicle& vehicle,
                                                double zero_duration,
                                                double ramp_duration)
     : ChClosedLoopDriver(vehicle, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerXT>(path, maxWheelTurnAngle);
     Reset();
 }
@@ -184,8 +187,13 @@ ChPathFollowerDriverXT::ChPathFollowerDriverXT(ChVehicle& vehicle,
                                                double zero_duration,
                                                double ramp_duration)
     : ChClosedLoopDriver(vehicle, speed_filename, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerXT>(steering_filename, path, maxWheelTurnAngle);
     Reset();
+}
+
+ChSpeedControllerPID& ChPathFollowerDriverXT::GetSpeedController() const {
+    return static_cast<ChSpeedControllerPID&>(*m_speed_controller);
 }
 
 ChPathSteeringControllerXT& ChPathFollowerDriverXT::GetSteeringController() const {
@@ -203,6 +211,7 @@ ChPathFollowerDriverSR::ChPathFollowerDriverSR(ChVehicle& vehicle,
                                                double zero_duration,
                                                double ramp_duration)
     : ChClosedLoopDriver(vehicle, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerSR>(path, maxWheelTurnAngle, axle_space);
     Reset();
 }
@@ -218,8 +227,13 @@ ChPathFollowerDriverSR::ChPathFollowerDriverSR(ChVehicle& vehicle,
                                                double zero_duration,
                                                double ramp_duration)
     : ChClosedLoopDriver(vehicle, speed_filename, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerSR>(steering_filename, path, maxWheelTurnAngle, axle_space);
     Reset();
+}
+
+ChSpeedControllerPID& ChPathFollowerDriverSR::GetSpeedController() const {
+    return static_cast<ChSpeedControllerPID&>(*m_speed_controller);
 }
 
 ChPathSteeringControllerSR& ChPathFollowerDriverSR::GetSteeringController() const {
@@ -236,6 +250,7 @@ ChPathFollowerDriverStanley::ChPathFollowerDriverStanley(ChVehicle& vehicle,
                                                          double zero_duration,
                                                          double ramp_duration)
     : ChClosedLoopDriver(vehicle, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerStanley>(path, maxWheelTurnAngle);
     Reset();
 }
@@ -250,8 +265,13 @@ ChPathFollowerDriverStanley::ChPathFollowerDriverStanley(ChVehicle& vehicle,
                                                          double zero_duration,
                                                          double ramp_duration)
     : ChClosedLoopDriver(vehicle, speed_filename, path_name, target_speed, zero_duration, ramp_duration) {
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerStanley>(steering_filename, path, maxWheelTurnAngle);
     Reset();
+}
+
+ChSpeedControllerPID& ChPathFollowerDriverStanley::GetSpeedController() const {
+    return static_cast<ChSpeedControllerPID&>(*m_speed_controller);
 }
 
 ChPathSteeringControllerStanley& ChPathFollowerDriverStanley::GetSteeringController() const {
@@ -272,6 +292,7 @@ ChPathFollowerDriverPP::ChPathFollowerDriverPP(chrono::vehicle::ChVehicle& vehic
         std::cout << "The Pure Pursuit Controller can actually not be used with tracked vehicles!" << std::endl;
         exit(99);
     }
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerPP>(path, veh->GetMaxSteeringAngle(), veh->GetWheelbase());
     Reset();
 }
@@ -290,8 +311,13 @@ ChPathFollowerDriverPP::ChPathFollowerDriverPP(ChVehicle& vehicle,
         std::cout << "The Pure Pursuit Controller can actually not be used with tracked vehicles!" << std::endl;
         exit(99);
     }
+    m_speed_controller = chrono_types::make_unique<ChSpeedControllerPID>();
     m_steering_controller = chrono_types::make_unique<ChPathSteeringControllerPP>(steering_filename, path, veh->GetMaxSteeringAngle(), veh->GetWheelbase());
     Reset();
+}
+
+ChSpeedControllerPID& ChPathFollowerDriverPP::GetSpeedController() const {
+    return static_cast<ChSpeedControllerPID&>(*m_speed_controller);
 }
 
 ChPathSteeringControllerPP& ChPathFollowerDriverPP::GetSteeringController() const {
