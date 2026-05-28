@@ -17,18 +17,12 @@
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
-// Call options:
-//    1) demo_VEH_HMMWV_DoubleLaneChange
-//        -> standard demo velkmh= 30km/h, ISO3888-1, left turn
-//
-//    2) demo_VEH_HMMWV_DoubleLaneChange VelKMH
-//        -> velkmh= VelKMH, ISO3888-1, left turn
-//
-//    3) demo_VEH_HMMWV_DoubleLaneChange VelKMH [1|2]
-//        -> velkmh= VelKMH, ISO variant set to 1 or 2, left turn
-//
-//    4) demo_VEH_HMMWV_DoubleLaneChange VelKMH [1|2] [L|R]
-//        -> velkmh= VelKMH, ISO variant set to 1 or 2, turn set to left or right
+// If the target speed is negative:
+// - set vehicle yaw angle to 180 deg
+// - set transmission to reverse
+// - use negative look-ahead distance
+// - flag rear steering
+// - place chase camera in front of the vehicle
 //
 // =============================================================================
 
@@ -55,6 +49,8 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -65,6 +61,7 @@ using std::endl;
 typedef enum { ISO3888_1, ISO3888_2 } DLC_Variant;
 
 // =============================================================================
+
 // Wrapper class for an ISO 3888 double lane change maneuver
 class ISO3888_Wrapper {
   public:
@@ -134,10 +131,7 @@ double tire_step_size = 1e-3;
 
 // =============================================================================
 
-void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
-                        const ISO3888_Wrapper& dlc,
-                        int& sentinelID,
-                        int& targetID) {
+void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis, const ISO3888_Wrapper& dlc, int& sentinelID, int& targetID) {
     // Add visualization of controller points (sentinel & target)
     auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -159,40 +153,56 @@ void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
 
 // =============================================================================
 
-int main(int argc, char* argv[]) {
-    cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n" << endl;
+bool GetProblemSpecs(int argc, char** argv, int& target_speed, bool& left_turn, int& variant) {
+    ChCLI cli(argv[0], "ISO double lane change");
 
-    DLC_Variant dlc_mode = ISO3888_1;
-    int velkmh = 30;
-    bool left_turn = true;
+    cli.AddOption<int>("", "target_speed", "Vehicle speed [km/h]", std::to_string(target_speed));
+    cli.AddOption<bool>("", "right_turn", "Right Turn");
+    cli.AddOption<int>("", "variant", "Test variant 1:DLC test 2:Moose test", std::to_string(variant));
 
-    switch (argc) {
-        case 1:
-        default:
-            break;
-        case 2:
-            velkmh = ChClamp(atoi(argv[1]), 10, 100);
-            break;
-        case 3:
-            velkmh = ChClamp(atoi(argv[1]), 10, 100);
-            dlc_mode = atoi(argv[2]) == 1 ? ISO3888_1 : ISO3888_2;
-            break;
-        case 4:
-            velkmh = ChClamp(atoi(argv[1]), 10, 100);
-            dlc_mode = atoi(argv[2]) == 1 ? ISO3888_1 : ISO3888_2;
-            left_turn = (argv[3][0] != '2') && (argv[3][0] != 'r') && (argv[3][0] != 'R');
-            break;
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
     }
 
-    std::string title = dlc_mode ? "ISO 3888-1 Double Lane Change Test" : "ISO 3888-2 Moose Test";
-    title += " - v = " + std::to_string(velkmh) + " km/h";
-    title += left_turn ? " - Left Turn" : " - Right Turn";
+    target_speed = cli.GetAsType<int>("target_speed");
+    left_turn = !cli.GetAsType<bool>("right_turn");
+    variant = cli.GetAsType<int>("variant");
 
-    double target_speed = velkmh / 3.6;  // [m/s]
+    return true;
+}
+
+int main(int argc, char* argv[]) {
+    cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n" << endl;
+
+    // ----------------------------
+    // Parse command line arguments
+    // ----------------------------
+
+    int dlc_variant_int = 1;
+    int target_speed_kph = -30;
+    bool left_turn = true;
+
+    if (!GetProblemSpecs(argc, argv, target_speed_kph, left_turn, dlc_variant_int)) {
+        return 1;
+    }
+
+    DLC_Variant dlc_variant = dlc_variant_int == 1 ? ISO3888_1 : ISO3888_1;
+    double target_speed = target_speed_kph / 3.6;  // [m/s]
+    std::string title = dlc_variant_int == 1 ? "ISO 3888-1 Double Lane Change Test" : "ISO 3888-2 Moose Test";
+    title += " | v = " + std::to_string(target_speed_kph) + " km/h";
+    title += left_turn ? " | Left Turn" : " | Right Turn";
+
+    bool forward = target_speed > 0;
+    bool reverse = !forward;
 
     // --------------
     // Create systems
     // --------------
+
+    // Orient vehicle based on target speed sign
+    ChVector3d vehicle_location = ChVector3d(-terrainLength / 2 + 5, 0, 0.7);
+    ChQuaternion vehicle_orientation = forward ? QUNIT : QuatFromAngleZ(CH_PI);
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
@@ -200,7 +210,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     hmmwv.SetContactMethod(ChContactMethod::SMC);
     hmmwv.SetChassisFixed(false);
-    hmmwv.SetInitPosition(ChCoordsys<>(ChVector3d(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
+    hmmwv.SetInitPosition(ChCoordsys<>(vehicle_location, vehicle_orientation));
     hmmwv.SetEngineType(engine_model);
     hmmwv.SetTransmissionType(transmission_model);
     hmmwv.SetDriveType(drive_type);
@@ -209,10 +219,19 @@ int main(int argc, char* argv[]) {
     hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
     hmmwv.Initialize();
 
-    // important vehicle data
+    // Put vehicle in reverse if needed
+    auto transmission = hmmwv.GetVehicle().GetPowertrainAssembly()->GetTransmission();
+    auto transmission_auto = transmission->asAutomatic();
+    auto transmission_manual = transmission->asManual();
+    if (reverse && transmission_auto)
+        transmission_auto->SetDriveMode(ChAutomaticTransmission::DriveMode::REVERSE);
+    if (reverse && transmission_manual)
+        transmission_manual->SetGear(-1);
+
+    // Extract vehicle data
     double wheel_base = hmmwv.GetVehicle().GetWheelbase();
     double vehicle_width = 2.16;
-    double steering_gear_ratio = 3.5 * 360.0 / 2;  // caution: estimated value 3.5 revolutions from left to right
+    double steering_gear_ratio = 3.5 * 360.0 / 2;  // estimated value 3.5 revolutions from left to right
 
     // Set subsystem visualization mode
     if (tire_model == TireModelType::RIGID_MESH)
@@ -224,7 +243,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetWheelVisualizationType(wheel_vis_type);
     hmmwv.SetTireVisualizationType(tire_vis_type);
 
-    ISO3888_Wrapper dlc(-accelerationLength + 5.0, accelerationLength, vehicle_width, dlc_mode, left_turn);
+    ISO3888_Wrapper dlc(-accelerationLength + 5.0, accelerationLength, vehicle_width, dlc_variant, left_turn);
     ////cout << "Maneuver Length = " << helper.GetManeuverLength() << " m" << endl;
 
     // Create the terrain
@@ -245,7 +264,8 @@ int main(int argc, char* argv[]) {
 
     auto path = dlc.GetPath();
     ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "my_path", target_speed);
-    driver.GetSteeringController().SetLookAheadDistance(5.0);
+    driver.GetSteeringController().SetLookAheadDistance(forward ? 5.0 : -5.0);
+    driver.GetSteeringController().SetRearSteering(forward ? false : true);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
@@ -264,7 +284,7 @@ int main(int argc, char* argv[]) {
     CreateSceneObjects(vis, dlc, sentinelID, targetID);
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5, forward ? 0.0 : 180.0);
     vis->Initialize();
 
     // ---------------
@@ -301,8 +321,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = hmmwv.GetSystem()->GetChTime();
         double speed = speed_filter.Add(hmmwv.GetVehicle().GetSpeed());
-        double accel =
-            accel_filter.Filter(hmmwv.GetVehicle().GetPointAcceleration(ChVector3d(-wheel_base / 2, 0, 0)).y());
+        double accel = accel_filter.Filter(hmmwv.GetVehicle().GetPointAcceleration(ChVector3d(-wheel_base / 2, 0, 0)).y());
 
         speed_recorder.AddPoint(time, speed);
         accel_recorder.AddPoint(time, accel);
@@ -373,9 +392,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-
-    std::string test_title = std::string(dlc_mode == ISO3888_1 ? "1" : "2") +
-                             std::string(left_turn ? " left turn test" : " right turn test");
+    std::string test_title = std::string(dlc_variant == ISO3888_1 ? "1" : "2") + std::string(left_turn ? " left turn test" : " right turn test");
 
     postprocess::ChGnuPlot gplot(out_dir + "/speed.gpl");
     gplot.SetGrid();
@@ -416,11 +433,7 @@ int main(int argc, char* argv[]) {
 // =============================================================================
 // Implementation of ISO3888_Wrapper
 
-ISO3888_Wrapper::ISO3888_Wrapper(double xmin,
-                                 double acc_length,
-                                 double vehicle_width,
-                                 DLC_Variant variant,
-                                 bool left_turn) {
+ISO3888_Wrapper::ISO3888_Wrapper(double xmin, double acc_length, double vehicle_width, DLC_Variant variant, bool left_turn) {
     switch (variant) {
         default:
         case ISO3888_1:
@@ -487,11 +500,9 @@ ISO3888_Wrapper::ISO3888_Wrapper(double xmin,
     m_lineC.back().y() += m_ofsC;
     m_lineR.back().y() += m_ofsC;
     // P6
-    m_lineL.push_back(
-        {xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, m_widthC / 2.0, 0});
+    m_lineL.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, m_widthC / 2.0, 0});
     m_lineC.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, 0, zl});
-    m_lineR.push_back(
-        {xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, -m_widthC / 2.0, 0});
+    m_lineR.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, -m_widthC / 2.0, 0});
     m_lineL.back().y() += m_ofsC;
     m_lineC.back().x() += 100.0;
     m_lineC.back().y() += m_ofsC;
