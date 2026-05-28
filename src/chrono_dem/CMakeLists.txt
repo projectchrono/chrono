@@ -82,7 +82,6 @@ set(DEM_GPU_FILES
     gpu/ChDemBoxTriangle.cuh
     gpu/ChDemGpuAlloc.h
     gpu/ChDemGpuMathUtils.cuh
-    gpu/ChDemGpuRuntime.h
     ../chrono/gpu/ChGpuPrimitives.h
     )
 source_group(gpu FILES ${DEM_GPU_FILES})

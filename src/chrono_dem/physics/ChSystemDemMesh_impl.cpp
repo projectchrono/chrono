@@ -43,10 +43,10 @@ ChSystemDemMesh_impl::ChSystemDemMesh_impl(float sphere_rad, float density, floa
       spinning_coeff_s2m_UU(0),
       adhesion_s2m_over_gravity(0) {
     // Allocate triangle collision parameters
-    demErrchk(cudaMallocManaged(&tri_params, sizeof(MeshParams), cudaMemAttachGlobal));
+    demErrchk(gpuMallocManaged(&tri_params, sizeof(MeshParams), gpuMemAttachGlobal));
 
     // Allocate the device soup storage
-    demErrchk(cudaMallocManaged(&meshSoup, sizeof(TriangleSoup), cudaMemAttachGlobal));
+    demErrchk(gpuMallocManaged(&meshSoup, sizeof(TriangleSoup), gpuMemAttachGlobal));
     // start with no triangles
     meshSoup->nTrianglesInSoup = 0;
     meshSoup->numTriangleFamilies = 0;
@@ -161,21 +161,21 @@ void ChSystemDemMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot
 }
 
 void ChSystemDemMesh_impl::cleanupTriMesh() {
-    demErrchk(cudaFree(meshSoup->triangleFamily_ID));
-    demErrchk(cudaFree(meshSoup->familyMass_SU));
+    demErrchk(gpuFree(meshSoup->triangleFamily_ID));
+    demErrchk(gpuFree(meshSoup->familyMass_SU));
 
-    demErrchk(cudaFree(meshSoup->node1));
-    demErrchk(cudaFree(meshSoup->node2));
-    demErrchk(cudaFree(meshSoup->node3));
+    demErrchk(gpuFree(meshSoup->node1));
+    demErrchk(gpuFree(meshSoup->node2));
+    demErrchk(gpuFree(meshSoup->node3));
 
-    demErrchk(cudaFree(meshSoup->vel));
-    demErrchk(cudaFree(meshSoup->omega));
+    demErrchk(gpuFree(meshSoup->vel));
+    demErrchk(gpuFree(meshSoup->omega));
 
-    demErrchk(cudaFree(meshSoup->generalizedForcesPerFamily));
-    demErrchk(cudaFree(tri_params->fam_frame_broad));
-    demErrchk(cudaFree(tri_params->fam_frame_narrow));
-    demErrchk(cudaFree(meshSoup));
-    demErrchk(cudaFree(tri_params));
+    demErrchk(gpuFree(meshSoup->generalizedForcesPerFamily));
+    demErrchk(gpuFree(tri_params->fam_frame_broad));
+    demErrchk(gpuFree(tri_params->fam_frame_narrow));
+    demErrchk(gpuFree(meshSoup));
+    demErrchk(gpuFree(tri_params));
 }
 
 void ChSystemDemMesh_impl::ApplyMeshMotion(unsigned int mesh_id,

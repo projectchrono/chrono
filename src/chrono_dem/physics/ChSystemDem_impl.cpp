@@ -17,8 +17,6 @@
 #include <algorithm>
 #include <climits>
 
-#include "chrono_dem/gpu/ChDemGpuRuntime.h"
-
 #include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -78,8 +76,8 @@ ChSystemDem_impl::ChSystemDem_impl(float sphere_rad, float density, float3 boxDi
       rolling_coeff_s2w_UU(0.0),
       spinning_coeff_s2s_UU(0.0),
       spinning_coeff_s2w_UU(0.0) {
-    demErrchk(cudaMallocManaged(&gran_params, sizeof(GranParams), cudaMemAttachGlobal));
-    demErrchk(cudaMallocManaged(&sphere_data, sizeof(SphereData), cudaMemAttachGlobal));
+    demErrchk(gpuMallocManaged(&gran_params, sizeof(GranParams), gpuMemAttachGlobal));
+    demErrchk(gpuMallocManaged(&sphere_data, sizeof(SphereData), gpuMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
     psi_L = PSI_L_DEFAULT;
     psi_R = PSI_R_DEFAULT;
@@ -134,7 +132,7 @@ void ChSystemDem_impl::CreateWallBCs() {
 }
 
 ChSystemDem_impl::~ChSystemDem_impl() {
-    demErrchk(cudaFree(gran_params));
+    demErrchk(gpuFree(gran_params));
 }
 
 size_t ChSystemDem_impl::EstimateMemUsage() const {
@@ -1205,17 +1203,17 @@ void ChSystemDem_impl::initializeSpheres() {
     INFO_PRINTF("Initial broadphase finished!\n");
 
     int dev_ID;
-    demErrchk(cudaGetDevice(&dev_ID));
+    demErrchk(gpuGetDevice(&dev_ID));
     // these two will be mostly read by everyone
 #if defined(CUDART_VERSION) && (CUDART_VERSION >= 13000)
     cudaMemLocation dev_location{};
     dev_location.type = cudaMemLocationTypeDevice;
     dev_location.id = dev_ID;
-    demErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_location));
-    demErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_location));
+    demErrchk(gpuMemAdvise(gran_params, sizeof(*gran_params), gpuMemAdviseSetReadMostly, dev_location));
+    demErrchk(gpuMemAdvise(sphere_data, sizeof(*sphere_data), gpuMemAdviseSetReadMostly, dev_location));
 #else
-    demErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID));
-    demErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
+    demErrchk(gpuMemAdvise(gran_params, sizeof(*gran_params), gpuMemAdviseSetReadMostly, dev_ID));
+    demErrchk(gpuMemAdvise(sphere_data, sizeof(*sphere_data), gpuMemAdviseSetReadMostly, dev_ID));
 #endif
 
     INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU,

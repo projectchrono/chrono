@@ -37,8 +37,8 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     determineCountOfSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
         meshSoup, Triangle_NumSDsTouching.data(), gran_params, tri_params);
 
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
 
     // do prefix scan
     size_t temp_storage_bytes = 0;
@@ -46,15 +46,15 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     unsigned int* in_ptr = Triangle_NumSDsTouching.data();
 
     // copy data into the tmp array
-    demErrchk(cudaMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    demErrchk(gpuMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), gpuMemcpyDeviceToDevice));
     demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, numTriangles));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 
     // get pointer to device memory; this memory block will be used internally by CUB, for scratch area
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run exclusive prefix sum
     demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, numTriangles));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     unsigned int numOfTriangleTouchingSD_instances;  // total number of instances in which a triangle touches an SD
     numOfTriangleTouchingSD_instances = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
 
@@ -68,7 +68,7 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     storeSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
         meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
         SDsTouchedByEachTriangle_composite.data(), TriangleIDS_ByMultiplicity.data(), gran_params, tri_params);
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 
     unsigned int* d_keys_in = SDsTouchedByEachTriangle_composite.data();
     unsigned int* d_keys_out = SDsTouchedByEachTriangle_composite_out.data();
@@ -84,21 +84,21 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // First, determine temporary device storage requirements; pass null, CUB tells us what it needs
     demErrchk(cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
                                                    d_values_out, numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 
     // get pointer to device memory; this memory block will be used internally by CUB
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     demErrchk(cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out,
                                                    d_values_in, d_values_out,
                                                    numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 
     // We started with SDs touching a triangle; we just flipped this through the key-value sort. That is, we now
     // know the collection of triangles that touch each SD; SD by SD.
     SD_trianglesInEachSD_composite.resize(TriangleIDS_ByMultiplicity_out.size());
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaMemcpy(SD_trianglesInEachSD_composite.data(), TriangleIDS_ByMultiplicity_out.data(),
-                         numOfTriangleTouchingSD_instances * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuMemcpy(SD_trianglesInEachSD_composite.data(), TriangleIDS_ByMultiplicity_out.data(),
+                         numOfTriangleTouchingSD_instances * sizeof(unsigned int), gpuMemcpyDeviceToDevice));
 
     // The CUB encode operation below will tell us what SDs are actually touched by triangles, and how many triangles
     // touch each SD.
@@ -120,24 +120,24 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // dry run, figure out the number of bytes that will be used in the actual run
     demErrchk(cub::DeviceRunLengthEncode::Encode(NULL, temp_storage_bytes, d_in, d_unique_out, d_counts_out,
                                                       d_num_runs_out, numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 
     d_scratch_space = TriangleIDS_ByMultiplicity.data();
     // Run the actual encoding operation
     demErrchk(cub::DeviceRunLengthEncode::Encode(d_scratch_space, temp_storage_bytes, d_in, d_unique_out,
                                                       d_counts_out, d_num_runs_out,
                                                       numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 
     // SD_numTrianglesTouching contains only zeros
     // compute offsets in SD_trianglesInEachSD_composite and also counts for how many triangles touch each SD.
     // Start by zeroing out, it's important since not all entries will be touched in
-    demErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, nSDs * sizeof(unsigned int)));
+    demErrchk(gpuMemset(SD_numTrianglesTouching.data(), 0, nSDs * sizeof(unsigned int)));
     nblocks = ((*d_num_runs_out) + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     if (nblocks > 0) {
         finalizeSD_numTrianglesTouching<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
                                                                              SD_numTrianglesTouching.data());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuDeviceSynchronize());
     }
 
     // Now assert that no SD has over max amount of triangles
@@ -146,10 +146,10 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // Just borrow the first element of SD_TrianglesCompositeOffsets to store the max value
     unsigned int* maxTriCount = SD_TrianglesCompositeOffsets.data();
     demErrchk(cub::DeviceReduce::Max(NULL, temp_storage_bytes, in_ptr, maxTriCount, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     demErrchk(cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, in_ptr, maxTriCount, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     if (*maxTriCount > MAX_TRIANGLE_COUNT_PER_SD)
         CHDEM_ERROR("ERROR! %u triangles are found in one of the SDs! The max allowance is %u.\n", *maxTriCount,
                     MAX_TRIANGLE_COUNT_PER_SD);
@@ -158,11 +158,11 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     in_ptr = SD_numTrianglesTouching.data();
     out_ptr = SD_TrianglesCompositeOffsets.data();
     demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run CUB exclusive prefix sum
     demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 }
 
 __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::TriangleSoupPtr d_triangleSoup,
@@ -710,7 +710,7 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
     unsigned int nsteps = (unsigned int)std::round(duration_SU / stepSize_SU);
 
     packSphereDataPointers();
-    // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
+    // gpuMemAdvise(gran_params, sizeof(*gran_params), gpuMemAdviseSetReadMostly, dev_ID);
 
     METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
@@ -727,10 +727,10 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
         resetBCForces();
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
             demErrchk(
-                cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
+                gpuMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
         }
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
             runTriangleBroadphase();
@@ -752,16 +752,16 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
                     sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                     (unsigned int)BC_params_list_SU.size());
             }
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
         }
         // frictional contact
         else if (gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP ||
                  gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
             METRICS_PRINTF("Frictional case.\n");
             if (gran_params->use_mat_based == true) {
                 METRICS_PRINTF("compute sphere-sphere and sphere-bc mat based\n");
@@ -775,8 +775,8 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
                     (unsigned int)BC_params_list_SU.size(), nSpheres);
             }
         }
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
@@ -797,13 +797,13 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
             }
         }
 
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
             const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
@@ -811,11 +811,11 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
             updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
                                                                                       gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
             updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
         }
 
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
