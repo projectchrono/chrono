@@ -177,7 +177,7 @@ void FmuComponent::CreateDriver() {
     auto path = ChBezierCurve::Read(path_file, false);
 
     speedPID = chrono_types::make_shared<ChSpeedController>();
-    steeringPID = chrono_types::make_shared<ChPathSteeringController>(path);
+    steeringPID = chrono_types::make_shared<ChPathSteeringControllerPID>(path);
 
     steeringPID->SetLookAheadDistance(look_ahead_dist);
     steeringPID->SetGains(Kp_steering, Ki_steering, Kd_steering);

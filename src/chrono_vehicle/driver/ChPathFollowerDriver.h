@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // A driver model that uses a path steering controller and a speed controller.
@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChClosedLoopDriver : public ChDriver {
     void SetThresholdThrottle(double val) { m_throttle_threshold = val; }
 
     /// Get the underlying speed controller object.
-    ChSpeedController& GetSpeedController() const { return *m_speedPID; }
+    ChSpeedController& GetSpeedController() const { return *m_speed_controller; }
 
     /// Reset the underlying controllers.
     void Reset();
@@ -98,21 +98,21 @@ class CH_VEHICLE_API ChClosedLoopDriver : public ChDriver {
                        double ramp_duration                ///< time to ramp up throttle from 0
     );
 
-    std::unique_ptr<ChSteeringController> m_steeringPID;  ///< steering controller
-    std::unique_ptr<ChSpeedController> m_speedPID;        ///< speed controller
-    double m_target_speed;                                ///< desired vehicle speed
-    std::string m_pathName;                               ///< for path visualization
-    ChColor m_color;                                      ///< for path visualization
-    double m_throttle_threshold;                          ///< throttle value below which brakes are applied
-    double m_zero_duration;                               ///< initial duration with zero driver outputs
-    double m_ramp_duration;                               ///< time to ramp up throttle from 0
+    std::unique_ptr<ChSteeringController> m_steering_controller;  ///< steering controller
+    std::unique_ptr<ChSpeedController> m_speed_controller;        ///< speed controller
+    double m_target_speed;                                        ///< desired vehicle speed
+    std::string m_pathName;                                       ///< for path visualization
+    ChColor m_color;                                              ///< for path visualization
+    double m_throttle_threshold;                                  ///< throttle value below which brakes are applied
+    double m_zero_duration;                                       ///< initial duration with zero driver outputs
+    double m_ramp_duration;                                       ///< time to ramp up throttle from 0
 };
 
 // --------------------------------------------------------------------------------------------------------------------
 
-/// Path-following driver system using a default PID lateral steering controller.
+/// Path-following driver system using a PID lateral steering controller.
 ///
-/// @sa ChPathSteeringController
+/// @sa ChPathSteeringControllerPID
 /// @sa ChSpeedController
 class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
   public:
@@ -141,7 +141,7 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
     ~ChPathFollowerDriver() {}
 
     /// Access the underlying steering controller object.
-    ChPathSteeringController& GetSteeringController() const;
+    ChPathSteeringControllerPID& GetSteeringController() const;
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -158,29 +158,27 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
 class CH_VEHICLE_API ChPathFollowerDriverXT : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
-    ChPathFollowerDriverXT(
-        ChVehicle& vehicle,                   ///< associated vehicle
-        std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
-        const std::string& path_name,         ///< name of the path curve
-        double target_speed,                  ///< constant target speed
-        double maxWheelTurnAngle = 0,         ///< needed for wheeled vehicles, use default for tracked vehicles
-        double zero_duration = 0,             ///< initial duration with zero driver outputs
-        double ramp_duration = 0              ///< time to ramp up throttle from 0
+    ChPathFollowerDriverXT(ChVehicle& vehicle,                   ///< associated vehicle
+                           std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
+                           const std::string& path_name,         ///< name of the path curve
+                           double target_speed,                  ///< constant target speed
+                           double maxWheelTurnAngle = 0,         ///< needed for wheeled vehicles, use default for tracked vehicles
+                           double zero_duration = 0,             ///< initial duration with zero driver outputs
+                           double ramp_duration = 0              ///< time to ramp up throttle from 0
     );
 
     /// Construct using JSON specification files.
     /// The two files must contain specification for the path-follower steering controller
     /// and the constant-speed controller, respectively.
-    ChPathFollowerDriverXT(
-        ChVehicle& vehicle,                    ///< associated vehicle
-        const std::string& steering_filename,  ///< JSON file with steering controller specification
-        const std::string& speed_filename,     ///< JSON file with speed controller specification
-        std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
-        const std::string& path_name,          ///< name of the path curve
-        double target_speed,                   ///< constant target speed
-        double maxWheelTurnAngle = 0,          ///< needed for wheeled vehicles, use default for tracked vehicles
-        double zero_duration = 0,              ///< initial duration with zero driver outputs
-        double ramp_duration = 0               ///< time to ramp up throttle from 0
+    ChPathFollowerDriverXT(ChVehicle& vehicle,                    ///< associated vehicle
+                           const std::string& steering_filename,  ///< JSON file with steering controller specification
+                           const std::string& speed_filename,     ///< JSON file with speed controller specification
+                           std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
+                           const std::string& path_name,          ///< name of the path curve
+                           double target_speed,                   ///< constant target speed
+                           double maxWheelTurnAngle = 0,          ///< needed for wheeled vehicles, use default for tracked vehicles
+                           double zero_duration = 0,              ///< initial duration with zero driver outputs
+                           double ramp_duration = 0               ///< time to ramp up throttle from 0
     );
 
     ~ChPathFollowerDriverXT() {}
@@ -198,31 +196,29 @@ class CH_VEHICLE_API ChPathFollowerDriverXT : public ChClosedLoopDriver {
 class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
-    ChPathFollowerDriverSR(
-        ChVehicle& vehicle,                   ///< associated vehicle
-        std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
-        const std::string& path_name,         ///< name of the path curve
-        double target_speed,                  ///< constant target speed
-        double maxWheelTurnAngle = 0.0,       ///< needed for wheeled vehicles, use default for tracked vehicles
-        double axle_space = 2.5,              ///< needed for course prediction
-        double zero_duration = 0,             ///< initial duration with zero driver outputs
-        double ramp_duration = 0              ///< time to ramp up throttle from 0
+    ChPathFollowerDriverSR(ChVehicle& vehicle,                   ///< associated vehicle
+                           std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
+                           const std::string& path_name,         ///< name of the path curve
+                           double target_speed,                  ///< constant target speed
+                           double maxWheelTurnAngle = 0.0,       ///< needed for wheeled vehicles, use default for tracked vehicles
+                           double axle_space = 2.5,              ///< needed for course prediction
+                           double zero_duration = 0,             ///< initial duration with zero driver outputs
+                           double ramp_duration = 0              ///< time to ramp up throttle from 0
     );
 
     /// Construct using JSON specification files.
     /// The two files must contain specification for the path-follower steering controller
     /// and the constant-speed controller, respectively.
-    ChPathFollowerDriverSR(
-        ChVehicle& vehicle,                    ///< associated vehicle
-        const std::string& steering_filename,  ///< JSON file with steering controller specification
-        const std::string& speed_filename,     ///< JSON file with speed controller specification
-        std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
-        const std::string& path_name,          ///< name of the path curve
-        double target_speed,                   ///< constant target speed
-        double maxWheelTurnAngle = 0.0,        ///< needed for wheeled vehicles, use default for tracked vehicles
-        double axle_space = 2.5,               ///< needed for course prediction
-        double zero_duration = 0,              ///< initial duration with zero driver outputs
-        double ramp_duration = 0               ///< time to ramp up throttle from 0
+    ChPathFollowerDriverSR(ChVehicle& vehicle,                    ///< associated vehicle
+                           const std::string& steering_filename,  ///< JSON file with steering controller specification
+                           const std::string& speed_filename,     ///< JSON file with speed controller specification
+                           std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
+                           const std::string& path_name,          ///< name of the path curve
+                           double target_speed,                   ///< constant target speed
+                           double maxWheelTurnAngle = 0.0,        ///< needed for wheeled vehicles, use default for tracked vehicles
+                           double axle_space = 2.5,               ///< needed for course prediction
+                           double zero_duration = 0,              ///< initial duration with zero driver outputs
+                           double ramp_duration = 0               ///< time to ramp up throttle from 0
     );
 
     ~ChPathFollowerDriverSR() {}
@@ -231,6 +227,8 @@ class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
     ChPathSteeringControllerSR& GetSteeringController() const;
 };
 
+// --------------------------------------------------------------------------------------------------------------------
+
 /// Path-following driver system using a lateral steering controller as used on the Stanley AV.
 ///
 /// @sa ChPathSteeringControllerStanley
@@ -238,29 +236,27 @@ class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
 class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
   public:
     /// Construct using the specified Bezier curve.
-    ChPathFollowerDriverStanley(
-        ChVehicle& vehicle,                   ///< associated vehicle
-        std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
-        const std::string& path_name,         ///< name of the path curve
-        double target_speed,                  ///< constant target speed
-        double maxWheelTurnAngle = 0,         ///< needed for wheeled vehicles, use default for tracked vehicles
-        double zero_duration = 0,             ///< initial duration with zero driver outputs
-        double ramp_duration = 0              ///< time to ramp up throttle from 0
+    ChPathFollowerDriverStanley(ChVehicle& vehicle,                   ///< associated vehicle
+                                std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
+                                const std::string& path_name,         ///< name of the path curve
+                                double target_speed,                  ///< constant target speed
+                                double maxWheelTurnAngle = 0,         ///< needed for wheeled vehicles, use default for tracked vehicles
+                                double zero_duration = 0,             ///< initial duration with zero driver outputs
+                                double ramp_duration = 0              ///< time to ramp up throttle from 0
     );
 
     /// Construct using JSON specification files.
     /// The two files must contain specification for the path-follower steering controller
     /// and the constant-speed controller, respectively.
-    ChPathFollowerDriverStanley(
-        ChVehicle& vehicle,                    ///< associated vehicle
-        const std::string& steering_filename,  ///< JSON file with steering controller specification
-        const std::string& speed_filename,     ///< JSON file with speed controller specification
-        std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
-        const std::string& path_name,          ///< name of the path curve
-        double target_speed,                   ///< constant target speed
-        double maxWheelTurnAngle = 0,          ///< needed for wheeled vehicles, use default for tracked vehicles
-        double zero_duration = 0,              ///< initial duration with zero driver outputs
-        double ramp_duration = 0               ///< time to ramp up throttle from 0
+    ChPathFollowerDriverStanley(ChVehicle& vehicle,                    ///< associated vehicle
+                                const std::string& steering_filename,  ///< JSON file with steering controller specification
+                                const std::string& speed_filename,     ///< JSON file with speed controller specification
+                                std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
+                                const std::string& path_name,          ///< name of the path curve
+                                double target_speed,                   ///< constant target speed
+                                double maxWheelTurnAngle = 0,          ///< needed for wheeled vehicles, use default for tracked vehicles
+                                double zero_duration = 0,              ///< initial duration with zero driver outputs
+                                double ramp_duration = 0               ///< time to ramp up throttle from 0
     );
 
     ~ChPathFollowerDriverStanley() {}
@@ -268,6 +264,8 @@ class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
     /// Get the underlying steering controller object.
     ChPathSteeringControllerStanley& GetSteeringController() const;
 };
+
+// --------------------------------------------------------------------------------------------------------------------
 
 /// Path-following driver system using a lateral steering controller as used on the Pure Pursuit AV.
 ///
