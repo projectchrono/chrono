@@ -44,6 +44,7 @@
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
+#include "chrono_sensor/filters/ChFilterSave.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -58,18 +59,19 @@ using std::endl;
 
 // ===================================================================================================================
 
-// CRM terrain patch type
-enum class PatchType { RECTANGULAR, HEIGHT_MAP };
-PatchType patch_type = PatchType::HEIGHT_MAP;
-
-// Terrain dimensions (for RECTANGULAR or HEIGHT_MAP patch type)
-double terrain_length = 12;
-double terrain_width = 3;
-
-int num_meshes = 3;
-std::vector<std::shared_ptr<ChVisualShapeTriangleMesh>> regolith_meshes;  // ChVisualShapeTriangleMesh
-
 int main(int argc, char* argv[]) {
+    // CRM terrain patch type
+    enum class PatchType { RECTANGULAR, HEIGHT_MAP };
+    PatchType patch_type = PatchType::RECTANGULAR;
+
+    double terrain_length = 8;
+    double terrain_width = 3;
+
+    ChVector3d init_loc(1.25, 0.0, 0.55);
+
+    int num_meshes = 3;
+    std::vector<std::shared_ptr<ChVisualShapeTriangleMesh>> regolith_meshes;
+
     double density = 100;
     double cohesion = 5e3;
     double friction = 0.7;
@@ -87,7 +89,28 @@ int main(int argc, char* argv[]) {
     bool visualization_bndry_bce = false;  // render boundary BCE markers
     bool visualization_rigid_bce = false;  // render wheel BCE markers
 
+    bool snapshots = false;
+
     bool verbose = true;
+
+    // Create output directories
+    std::string out_dir = GetChronoOutputPath() + "SEN_CRM_RENDER/";
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cerr << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (snapshots) {
+        std::string img_MBS_dir = out_dir + "img_MBS";
+        if (!CreateOutputDirectory(std::filesystem::path(img_MBS_dir))) {
+            std::cerr << "Error creating directory " << img_MBS_dir << std::endl;
+            return 1;
+        }
+        std::string img_SEN_dir = out_dir + "img_SEN";
+        if (!CreateOutputDirectory(std::filesystem::path(img_SEN_dir))) {
+            std::cerr << "Error creating directory " << img_SEN_dir << std::endl;
+            return 1;
+        }
+    }
 
     // Create the Chrono system and associated collision system
     ChSystemNSC sys;
@@ -105,7 +128,6 @@ int main(int argc, char* argv[]) {
                                     2e5f,   // kt
                                     20.0f   // gt
     );
-    ChVector3d init_loc(1.25, 0.0, 0.55);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     auto rover = chrono_types::make_shared<Viper>(&sys, wheel_type);
@@ -291,6 +313,9 @@ int main(int argc, char* argv[]) {
                                                          false);
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Third Person Camera"));
 
+    if (snapshots)
+        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "img_SEN/"));
+
     manager->AddSensor(cam);
 
     // Start the simulation
@@ -306,7 +331,15 @@ int main(int argc, char* argv[]) {
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
+
             vis->Render();
+
+            if (snapshots) {
+                std::ostringstream filename;
+                filename << out_dir << "/img_MBS/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
+                vis->WriteImageToFile(filename.str());
+            }
+
             render_frame++;
         }
 #else
@@ -324,14 +357,9 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Saving data..." << std::endl;
-    sysSPH->SaveParticleData("particle_data");
+    sysSPH->SaveParticleData(out_dir);
 
     terrain.PrintStats();
-    std::string out_dir = GetChronoOutputPath() + "ROBOT_Viper_CRM/";
-    if (!std::filesystem::create_directory(std::filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
     terrain.PrintTimeSteps(out_dir + "time_steps.txt");
 
     return 0;
