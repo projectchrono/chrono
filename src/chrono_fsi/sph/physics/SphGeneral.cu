@@ -24,11 +24,29 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+static void CopyParametersToDevice_SphGeneral(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
+    gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuCheckError();
+    gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
+    gpuCheckError();
+}
+#endif
+
 void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
-    gpuMemcpyToSymbolAsync(&paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+    CopyParametersToDevice_SphGeneral(paramsH, countersH);
+    CopyParametersToDevice_SphBceManager(paramsH, countersH);
+    CopyParametersToDevice_SphCollisionSystem(paramsH, countersH);
+    CopyParametersToDevice_SphFluidDynamics(paramsH, countersH);
+    CopyParametersToDevice_SphForceWCSPH(paramsH, countersH);
+    CopyParametersToDevice_SphForceISPH(paramsH, countersH);
+#else
+    gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
-    gpuMemcpyToSymbolAsync(&countersD, countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     gpuCheckError();
+#endif
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

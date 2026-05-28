@@ -27,7 +27,6 @@
 
     #include <cuda_runtime.h>
     #include <cuda_runtime_api.h>
-    #include <cuda/std/limits>
 
 // Type aliases
 using gpuStream = cudaStream_t;
@@ -70,15 +69,13 @@ inline gpuError gpuMemcpy(void* dst, const void* src, std::size_t bytes, gpuMemc
 inline gpuError gpuMemcpyAsync(void* dst, const void* src, std::size_t bytes, gpuMemcpyKind kind, gpuStream stream = 0) {
     return cudaMemcpyAsync(dst, src, bytes, kind, stream);
 }
-inline gpuError gpuMemcpyToSymbolAsync(const void* symbol, const void* src, size_t count, size_t offset, gpuMemcpyKind kind, gpuStream stream = 0) {
-    return cudaMemcpyToSymbolAsync(symbol, src, count, offset, kind, stream);
-}
-inline gpuError gpuMemcpyToSymbolAsync(const void* symbol, const void* src, size_t count) {
-    return cudaMemcpyToSymbolAsync(symbol, src, count, 0, cudaMemcpyHostToDevice, 0);
-}
-inline gpuError gpuMemcpyFromSymbol(void* dst, const void* symbol, size_t count, size_t offset = 0, gpuMemcpyKind kind = cudaMemcpyDeviceToHost) {
-    return cudaMemcpyFromSymbol(dst, symbol, count, offset, cudaMemcpyDeviceToHost);
-}
+    // cudaMemcpyTo/FromSymbol need the actual device symbol token, not the address of that
+    // token. Keep these as macros so CUDA and HIP call sites use the same spelling.
+    // Current Chrono GPU code only uses the 3-argument forms, so map exactly those here.
+    #define gpuMemcpyToSymbolAsync(symbol, src, bytes) \
+        cudaMemcpyToSymbolAsync(symbol, src, bytes, 0, cudaMemcpyHostToDevice, 0)
+    #define gpuMemcpyFromSymbol(dst, symbol, bytes) \
+        cudaMemcpyFromSymbol(dst, symbol, bytes, 0, cudaMemcpyDeviceToHost)
 inline gpuError gpuMemset(void* dst, int value, std::size_t bytes) {
     return cudaMemset(dst, value, bytes);
 }

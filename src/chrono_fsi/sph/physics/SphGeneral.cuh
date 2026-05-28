@@ -43,12 +43,23 @@ namespace sph {
 
 struct Counters;
 
-//--------------------------------------------------------------------------------------------------------------------------------
-
-// Declared as const variables static in order to be able to use them in a different translation units in the utils
+// Declared as static device constants so each GPU translation unit gets the
+// symbol used by the kernels compiled in that translation unit.
+//
+// CUDA accepted this pattern in the original code. HIP needs each TU-local
+// symbol initialized explicitly; the CopyParametersToDevice_* functions below
+// do that without relying on cross-TU device symbols or RDC.
 __constant__ static ChFsiParamsSPH paramsD;
 #if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 __constant__ static Counters countersD;
+#endif
+
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphCollisionSystem(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphForceWCSPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphForceISPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 #endif
 
 void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);

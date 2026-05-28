@@ -24,11 +24,10 @@
 
 #if defined(__CUDACC__) || defined(CHRONO_USE_CUDA)
     #include <cuda_runtime.h>
-    #include <cuda/std/limits>
 
-static constexpr double double_max = ::cuda::std::numeric_limits<double>::max();
-static constexpr float float_max = ::cuda::std::numeric_limits<float>::max();
-static constexpr int int_max = ::cuda::std::numeric_limits<int>::max();
+static constexpr double double_max = std::numeric_limits<double>::max();
+static constexpr float float_max = std::numeric_limits<float>::max();
+static constexpr int int_max = std::numeric_limits<int>::max();
 
 #elif defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
     #ifndef __HIP_PLATFORM_AMD__

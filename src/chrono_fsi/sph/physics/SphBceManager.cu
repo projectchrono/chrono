@@ -35,6 +35,16 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
+    gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuCheckError();
+    gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
+    gpuCheckError();
+}
+
+#endif
+
 SphBceManager::SphBceManager(FsiDataManager& data_mgr, NodeDirections node_directions_mode, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr),
       m_node_directions_mode(node_directions_mode),
@@ -51,8 +61,8 @@ SphBceManager::~SphBceManager() {}
 // -----------------------------------------------------------------------------
 
 void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
-    gpuMemcpyToSymbolAsync(&paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    gpuMemcpyToSymbolAsync(&countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
     m_totalForceRigid.resize(m_data_mgr.countersH->numFsiBodies);
