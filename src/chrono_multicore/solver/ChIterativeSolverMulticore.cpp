@@ -96,11 +96,9 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
                     M_inv.insert(b+3, b+4) = J(0,1);
                     M_inv.insert(b+3, b+5) = J(0,2);
                 }
-                // Row b+4: col b+3 MUST precede diagonal b+4 for ascending order
                 if (full_inr) { M_inv.insert(b+4, b+3) = J(1,0); }
                 M_inv.insert(b+4, b+4) = J(1,1);
                 if (full_inr) { M_inv.insert(b+4, b+5) = J(1,2); }
-                // Row b+5: cols b+3, b+4 MUST precede diagonal b+5 for ascending order
                 if (full_inr) {
                     M_inv.insert(b+5, b+3) = J(2,0);
                     M_inv.insert(b+5, b+4) = J(2,1);
@@ -114,8 +112,8 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
         data_manager->node_container->ComputeInvMass(m + num_motors);
         M_inv.makeCompressed();
     } else {
-        // RowMajor CSR: outerIndexPtr[r] is the start index of row r in valuePtr.
-        // Pattern is fixed; bypass coeffRef's binary search with direct buffer writes.
+        // in row major CSR, outerIndexPtr[r] is the start index of row r in valuePtr.
+        // pattern is fixed, so we can bypass coeffRef's binary search with direct buffer writes.
         real* vals       = M_inv.valuePtr();
         const int* outer = M_inv.outerIndexPtr();
 
@@ -129,10 +127,9 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
                 vals[outer[b+1]] = inv_mass;
                 vals[outer[b+2]] = inv_mass;
                 if (full_inr) {
-                    // rows b+3..b+5 each have 3 entries at cols [b+3, b+4, b+5]
-                    vals[outer[b+3]  ] = J(0,0); vals[outer[b+3]+1] = J(0,1); vals[outer[b+3]+2] = J(0,2);
-                    vals[outer[b+4]  ] = J(1,0); vals[outer[b+4]+1] = J(1,1); vals[outer[b+4]+2] = J(1,2);
-                    vals[outer[b+5]  ] = J(2,0); vals[outer[b+5]+1] = J(2,1); vals[outer[b+5]+2] = J(2,2);
+                    vals[outer[b+3]] = J(0,0); vals[outer[b+3]+1] = J(0,1); vals[outer[b+3]+2] = J(0,2);
+                    vals[outer[b+4]] = J(1,0); vals[outer[b+4]+1] = J(1,1); vals[outer[b+4]+2] = J(1,2);
+                    vals[outer[b+5]] = J(2,0); vals[outer[b+5]+1] = J(2,1); vals[outer[b+5]+2] = J(2,2);
                 } else {
                     vals[outer[b+3]] = J(0,0);
                     vals[outer[b+4]] = J(1,1);
@@ -179,17 +176,14 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
                 M.insert(b,   b  ) = mass;
                 M.insert(b+1, b+1) = mass;
                 M.insert(b+2, b+2) = mass;
-                // Row b+3: cols b+3 [, b+4, b+5] — already ascending
                 M.insert(b+3, b+3) = J(0,0);
                 if (full_inr) {
                     M.insert(b+3, b+4) = J(0,1);
                     M.insert(b+3, b+5) = J(0,2);
                 }
-                // Row b+4: col b+3 MUST precede diagonal b+4 for ascending order
                 if (full_inr) { M.insert(b+4, b+3) = J(1,0); }
                 M.insert(b+4, b+4) = J(1,1);
                 if (full_inr) { M.insert(b+4, b+5) = J(1,2); }
-                // Row b+5: cols b+3, b+4 MUST precede diagonal b+5 for ascending order
                 if (full_inr) {
                     M.insert(b+5, b+3) = J(2,0);
                     M.insert(b+5, b+4) = J(2,1);
@@ -216,9 +210,9 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
                 vals[outer[b+1]] = mass;
                 vals[outer[b+2]] = mass;
                 if (full_inr) {
-                    vals[outer[b+3]  ] = J(0,0); vals[outer[b+3]+1] = J(0,1); vals[outer[b+3]+2] = J(0,2);
-                    vals[outer[b+4]  ] = J(1,0); vals[outer[b+4]+1] = J(1,1); vals[outer[b+4]+2] = J(1,2);
-                    vals[outer[b+5]  ] = J(2,0); vals[outer[b+5]+1] = J(2,1); vals[outer[b+5]+2] = J(2,2);
+                    vals[outer[b+3]] = J(0,0); vals[outer[b+3]+1] = J(0,1); vals[outer[b+3]+2] = J(0,2);
+                    vals[outer[b+4]] = J(1,0); vals[outer[b+4]+1] = J(1,1); vals[outer[b+4]+2] = J(1,2);
+                    vals[outer[b+5]] = J(2,0); vals[outer[b+5]+1] = J(2,1); vals[outer[b+5]+2] = J(2,2);
                 } else {
                     vals[outer[b+3]] = J(0,0);
                     vals[outer[b+4]] = J(1,1);

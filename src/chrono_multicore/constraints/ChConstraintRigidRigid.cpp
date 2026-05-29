@@ -330,9 +330,6 @@ void ChConstraintRigidRigid::Build_s() {
     VectorType v_new;
     v_new.noalias() = M_invk + M_invD * gamma;
 
-    // Compute tangential velocity components for all contacts via a single SpMV
-    // instead of 12 per-element coeff() binary-search lookups per contact.
-    // Tangential rows occupy [num_r_c, 3*num_r_c) in D_T.
     VectorType Dtv;
     Dtv.noalias() = D_T.middleRows((int)num_rigid_contacts, 2 * (int)num_rigid_contacts) * v_new;
 
@@ -470,8 +467,6 @@ void ChConstraintRigidRigid::GenerateSparsity() {
         const vec2& body_id = ids[index];
         int row = index;
         int off = 0;
-        // Always insert lower body-index DOFs first so Eigen's RowMajor
-        // sequential-fill requirement (strictly ascending column indices) is met.
         int lo = std::min(body_id.x, body_id.y);
         int hi = std::max(body_id.x, body_id.y);
 
@@ -654,11 +649,4 @@ void ChConstraintRigidRigid::D_Tx(const VectorType& XYZUVW, VectorType& out_vect
     }
 
     //    // data_manager->PrintMatrix(data_manager->host_data.D);
-
-    //    VectorType compare =
-    //            data_manager->host_data.D_T * data_manager->host_data.D * data_manager->host_data.gamma;
-    //    std::cout << "nconstr " << compare.size() << std::endl;
-    //    for (int i = 0; i < compare.size(); i++) {
-    //        std::cout << compare[i] << " " << out_vector[i] << std::endl;
-    //    }
 }

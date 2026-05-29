@@ -138,7 +138,6 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
 
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         SchurProduct(y, temp);
-        // SchurProduct(y, g);
         g = temp - r;
         gamma_new = y - t * g;
         Project(gamma_new.data());

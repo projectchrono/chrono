@@ -138,23 +138,41 @@ unsigned int ChParticleContainer::GetNumNonZeros() {
 void ChParticleContainer::ComputeInvMass(int offset) {
     num_particles = data_manager->num_particles;
     SparseMatrixType& M_inv = data_manager->host_data.M_inv;
-
     real inv_mass = 1.0 / mass;
-    for (uint i = 0; i < num_particles; i++) {
-        M_inv.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
-        M_inv.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
-        M_inv.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
+    if (M_inv.isCompressed()) {
+        real* vals = M_inv.valuePtr();
+        const SparseMatrixType::StorageIndex* outer = M_inv.outerIndexPtr();
+        for (uint i = 0; i < num_particles; i++) {
+            vals[outer[offset + i * 3 + 0]] = inv_mass;
+            vals[outer[offset + i * 3 + 1]] = inv_mass;
+            vals[outer[offset + i * 3 + 2]] = inv_mass;
+        }
+    } else {
+        for (uint i = 0; i < num_particles; i++) {
+            M_inv.insert(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
+            M_inv.insert(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
+            M_inv.insert(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
+        }
     }
 }
 
 void ChParticleContainer::ComputeMass(int offset) {
     num_particles = data_manager->num_particles;
     SparseMatrixType& M = data_manager->host_data.M;
-
-    for (uint i = 0; i < num_particles; i++) {
-        M.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = mass;
-        M.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = mass;
-        M.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = mass;
+    if (M.isCompressed()) {
+        real* vals = M.valuePtr();
+        const SparseMatrixType::StorageIndex* outer = M.outerIndexPtr();
+        for (uint i = 0; i < num_particles; i++) {
+            vals[outer[offset + i * 3 + 0]] = mass;
+            vals[outer[offset + i * 3 + 1]] = mass;
+            vals[outer[offset + i * 3 + 2]] = mass;
+        }
+    } else {
+        for (uint i = 0; i < num_particles; i++) {
+            M.insert(offset + i * 3 + 0, offset + i * 3 + 0) = mass;
+            M.insert(offset + i * 3 + 1, offset + i * 3 + 1) = mass;
+            M.insert(offset + i * 3 + 2, offset + i * 3 + 2) = mass;
+        }
     }
 }
 

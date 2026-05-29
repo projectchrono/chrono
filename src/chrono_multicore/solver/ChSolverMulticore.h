@@ -68,9 +68,6 @@ class CH_MULTICORE_API ChSchurProduct {
     ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 
   protected:
-    // Submatrices cached in Setup() so operator() doesn't re-extract them each call.
-    // These blocks change only when D/M_invD are rebuilt (once per timestep), while
-    // operator() is called O(iterations) times per timestep.
     SparseMatrixType m_D_n_T, m_D_t_T, m_D_s_T, m_D_b_T;
     SparseMatrixType m_M_invD_n, m_M_invD_t, m_M_invD_s, m_M_invD_b;
     VectorType m_tmp;

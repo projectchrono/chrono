@@ -76,15 +76,8 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
 
     data_manager->node_container->PreSolve();
 
-    // // Recompute M_invk using the velocity that PreSolve() may have updated,
-    // // then use it for both R_full and ComputeImpulses() to avoid a second
-    // // M_inv * hf product later.
-    // data_manager->host_data.M_invk.noalias() =
-    //     data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf;
-
     if (data_manager->num_constraints > 0) {
         data_manager->host_data.R_full.noalias() =
-            // -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
             -data_manager->host_data.b - data_manager->host_data.D_T *
                 (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
     }
@@ -185,7 +178,7 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
             break;
     }
 
-    // Build per-row nnz counts for D_T
+    // build per row nnz counts for D_T
     D_T.resize(num_rows, num_dof);
     {
         Eigen::VectorXi d_nnz(num_rows);
@@ -240,13 +233,8 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     data_manager->node_container->Build_D();
 
     D_T.makeCompressed();
-
-    // Using transpose() function will do in place transpose and copy
     data_manager->host_data.D = D_T.transpose();
 
-    // For diagonal M_inv (use_full_inertia_tensor=false), avoid the general
-    // sparse x sparse product by copying D then scaling each row by M_inv[i,i].
-    // This is O(nnz_D) instead of Eigen's general spGEMM with its symbolic phase.
     if (!data_manager->settings.solver.use_full_inertia_tensor) {
         M_invD = data_manager->host_data.D;
         const int* M_inv_outer = M_inv.outerIndexPtr();
@@ -369,7 +357,6 @@ void ChIterativeSolverMulticoreNSC::SetR() {
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeImpulses() {
-    // M_invk = v + M_inv*hf was refreshed in RunTimeStep() after PreSolve().
     const VectorType& M_invk = data_manager->host_data.M_invk;
     const VectorType& gamma = data_manager->host_data.gamma;
     VectorType& v = data_manager->host_data.v;

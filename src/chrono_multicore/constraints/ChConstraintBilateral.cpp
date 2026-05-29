@@ -52,73 +52,45 @@ void ChConstraintBilateral::Build_D() {
 
     // Loop over the active constraints and fill in the rows of the Jacobian,
     // taking into account the type of each constraint.
-    // SparseMatrixType D_b_T = _DBT_;
     SparseMatrixType& D_b_T = data_manager->host_data.D_T;
     int off = data_manager->num_unilaterals;
+
+    double* vals = D_b_T.valuePtr();
+    const SparseMatrixType::StorageIndex* outer = D_b_T.outerIndexPtr();
 
     // #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         int type = data_manager->host_data.bilateral_type[cntr];
-        int row = off + index;
+        double* v = vals + outer[off + index];
 
         switch (type) {
             case BilateralType::BODY_BODY: {
                 ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
-
                 int idA = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetIndex();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetIndex();
-                int colA = idA * 6;
-                int colB = idB * 6;
-
-                D_b_T.coeffRef(row, colA + 0) = mbilateral->Get_Cq_a()(0);
-                D_b_T.coeffRef(row, colA + 1) = mbilateral->Get_Cq_a()(1);
-                D_b_T.coeffRef(row, colA + 2) = mbilateral->Get_Cq_a()(2);
-
-                D_b_T.coeffRef(row, colA + 3) = mbilateral->Get_Cq_a()(3);
-                D_b_T.coeffRef(row, colA + 4) = mbilateral->Get_Cq_a()(4);
-                D_b_T.coeffRef(row, colA + 5) = mbilateral->Get_Cq_a()(5);
-
-                D_b_T.coeffRef(row, colB + 0) = mbilateral->Get_Cq_b()(0);
-                D_b_T.coeffRef(row, colB + 1) = mbilateral->Get_Cq_b()(1);
-                D_b_T.coeffRef(row, colB + 2) = mbilateral->Get_Cq_b()(2);
-
-                D_b_T.coeffRef(row, colB + 3) = mbilateral->Get_Cq_b()(3);
-                D_b_T.coeffRef(row, colB + 4) = mbilateral->Get_Cq_b()(4);
-                D_b_T.coeffRef(row, colB + 5) = mbilateral->Get_Cq_b()(5);
+                const auto& cq_lo = (idA <= idB) ? mbilateral->Get_Cq_a() : mbilateral->Get_Cq_b();
+                const auto& cq_hi = (idA <= idB) ? mbilateral->Get_Cq_b() : mbilateral->Get_Cq_a();
+                for (int k = 0; k < 6; ++k) {
+                    v[k] = cq_lo(k); v[6 + k] = cq_hi(k);
+                }
             } break;
 
             case BilateralType::SHAFT_SHAFT: {
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
-
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
-
-                int colA = data_manager->num_rigid_bodies * 6 + idA;
-                int colB = data_manager->num_rigid_bodies * 6 + idB;
-
-                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
-                D_b_T.coeffRef(row, colB) = mbilateral->Get_Cq_b()(0);
+                if (idA <= idB) {
+                    v[0] = mbilateral->Get_Cq_a()(0); v[1] = mbilateral->Get_Cq_b()(0);
+                } else {
+                    v[0] = mbilateral->Get_Cq_b()(0); v[1] = mbilateral->Get_Cq_a()(0);
+                }
             } break;
 
             case BilateralType::SHAFT_BODY: {
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
-
-                int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
-                int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetIndex();
-
-                int colA = data_manager->num_rigid_bodies * 6 + idA;
-                int colB = idB * 6;
-
-                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
-
-                D_b_T.coeffRef(row, colB + 0) = mbilateral->Get_Cq_b()(0);
-                D_b_T.coeffRef(row, colB + 1) = mbilateral->Get_Cq_b()(1);
-                D_b_T.coeffRef(row, colB + 2) = mbilateral->Get_Cq_b()(2);
-
-                D_b_T.coeffRef(row, colB + 3) = mbilateral->Get_Cq_b()(3);
-                D_b_T.coeffRef(row, colB + 4) = mbilateral->Get_Cq_b()(4);
-                D_b_T.coeffRef(row, colB + 5) = mbilateral->Get_Cq_b()(5);
+                for (int k = 0; k < 6; ++k) v[k] = mbilateral->Get_Cq_b()(k);
+                v[6] = mbilateral->Get_Cq_a()(0);
             } break;
 
             case BilateralType::SHAFT_SHAFT_SHAFT: {
@@ -126,46 +98,33 @@ void ChConstraintBilateral::Build_D() {
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
                 int idC = ((ChVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetIndex();
-
-                int colA = data_manager->num_rigid_bodies * 6 + idA;
-                int colB = data_manager->num_rigid_bodies * 6 + idB;
-                int colC = data_manager->num_rigid_bodies * 6 + idC;
-
-                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
-                D_b_T.coeffRef(row, colB) = mbilateral->Get_Cq_b()(0);
-                D_b_T.coeffRef(row, colC) = mbilateral->Get_Cq_c()(0);
+                std::pair<int, double> entries[3] = {
+                    {idA, mbilateral->Get_Cq_a()(0)},
+                    {idB, mbilateral->Get_Cq_b()(0)},
+                    {idC, mbilateral->Get_Cq_c()(0)}
+                };
+                std::sort(entries, entries + 3, [](const auto& x, const auto& y) { return x.first < y.first; });
+                v[0] = entries[0].second;
+                v[1] = entries[1].second;
+                v[2] = entries[2].second;
             } break;
 
             case BilateralType::SHAFT_SHAFT_BODY: {
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
-                int idC = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetIndex();
-
-                int colA = data_manager->num_rigid_bodies * 6 + idA;
-                int colB = data_manager->num_rigid_bodies * 6 + idB;
-                int colC = idC * 6;
-
-                D_b_T.coeffRef(row, colA) = mbilateral->Get_Cq_a()(0);
-                D_b_T.coeffRef(row, colB) = mbilateral->Get_Cq_b()(0);
-
-                D_b_T.coeffRef(row, colC + 0) = mbilateral->Get_Cq_c()(0);
-                D_b_T.coeffRef(row, colC + 1) = mbilateral->Get_Cq_c()(1);
-                D_b_T.coeffRef(row, colC + 2) = mbilateral->Get_Cq_c()(2);
-
-                D_b_T.coeffRef(row, colC + 3) = mbilateral->Get_Cq_c()(3);
-                D_b_T.coeffRef(row, colC + 4) = mbilateral->Get_Cq_c()(4);
-                D_b_T.coeffRef(row, colC + 5) = mbilateral->Get_Cq_c()(5);
+                for (int k = 0; k < 6; ++k) v[k] = mbilateral->Get_Cq_c()(k);
+                if (idA <= idB) {
+                    v[6] = mbilateral->Get_Cq_a()(0); v[7] = mbilateral->Get_Cq_b()(0);
+                } else {
+                    v[6] = mbilateral->Get_Cq_b()(0); v[7] = mbilateral->Get_Cq_a()(0);
+                }
             } break;
         }
     }
 }
 
 void ChConstraintBilateral::GenerateSparsity() {
-    // pre-insert zeros at each nonzero column position so subsequent Build_D()
-    // coeffRef() calls hit pre-allocated slots rather than triggering internal
-    // reallocations
-
     std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraints();
 
     SparseMatrixType& D_b_T = data_manager->host_data.D_T;
@@ -182,7 +141,6 @@ void ChConstraintBilateral::GenerateSparsity() {
                 ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
                 int idA = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetIndex();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetIndex();
-                // eigen RowMajor insert() reqs ascending column order within each row.
                 int col_lo = std::min(idA, idB) * 6;
                 int col_hi = std::max(idA, idB) * 6;
                 for (int k = 0; k < 6; ++k) D_b_T.insert(row, col_lo + k) = 0.0;

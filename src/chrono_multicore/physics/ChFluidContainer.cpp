@@ -142,23 +142,41 @@ unsigned int ChFluidContainer::GetNumNonZeros() {
 void ChFluidContainer::ComputeInvMass(int offset) {
     num_particles = data_manager->num_particles;
     SparseMatrixType& M_inv = data_manager->host_data.M_inv;
-
     real inv_mass = 1.0 / mass;
-    for (int i = 0; i < (signed)num_particles; i++) {
-        M_inv.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
-        M_inv.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
-        M_inv.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
+    if (M_inv.isCompressed()) {
+        real* vals = M_inv.valuePtr();
+        const SparseMatrixType::StorageIndex* outer = M_inv.outerIndexPtr();
+        for (int i = 0; i < (signed)num_particles; i++) {
+            vals[outer[offset + i * 3 + 0]] = inv_mass;
+            vals[outer[offset + i * 3 + 1]] = inv_mass;
+            vals[outer[offset + i * 3 + 2]] = inv_mass;
+        }
+    } else {
+        for (int i = 0; i < (signed)num_particles; i++) {
+            M_inv.insert(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
+            M_inv.insert(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
+            M_inv.insert(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
+        }
     }
 }
 void ChFluidContainer::ComputeMass(int offset) {
     num_particles = data_manager->num_particles;
     SparseMatrixType& M = data_manager->host_data.M;
-
     real fluid_mass = mass;
-    for (int i = 0; i < (signed)num_particles; i++) {
-        M.coeffRef(offset + i * 3 + 0, offset + i * 3 + 0) = fluid_mass;
-        M.coeffRef(offset + i * 3 + 1, offset + i * 3 + 1) = fluid_mass;
-        M.coeffRef(offset + i * 3 + 2, offset + i * 3 + 2) = fluid_mass;
+    if (M.isCompressed()) {
+        real* vals = M.valuePtr();
+        const SparseMatrixType::StorageIndex* outer = M.outerIndexPtr();
+        for (int i = 0; i < (signed)num_particles; i++) {
+            vals[outer[offset + i * 3 + 0]] = fluid_mass;
+            vals[outer[offset + i * 3 + 1]] = fluid_mass;
+            vals[outer[offset + i * 3 + 2]] = fluid_mass;
+        }
+    } else {
+        for (int i = 0; i < (signed)num_particles; i++) {
+            M.insert(offset + i * 3 + 0, offset + i * 3 + 0) = fluid_mass;
+            M.insert(offset + i * 3 + 1, offset + i * 3 + 1) = fluid_mass;
+            M.insert(offset + i * 3 + 2, offset + i * 3 + 2) = fluid_mass;
+        }
     }
 }
 void ChFluidContainer::Setup3DOF(int start_constraint) {
@@ -348,9 +366,6 @@ void ChFluidContainer::GenerateSparsity() {
     AppendRigidParticleBoundary(contact_mu, num_particles, body_offset, start_boundary, data_manager);
 
     if (data_manager->cd_data->num_particle_contacts > 0) {
-        // Eigen RowMajor insert() requires strictly ascending column indices within
-        // each row. neighbor_3dof_3dof is not sorted by body_b, so sort before AppendRow3.
-        // (Blaze's finalize() handled this implicitly; we do it explicitly here.)
         for (int body_a = 0; body_a < (signed)num_particles; body_a++) {
             int cnt = data_manager->cd_data->c_counts_3dof_3dof[body_a];
             const int* nbrs = &data_manager->cd_data->neighbor_3dof_3dof[body_a * ChNarrowphase::max_neighbors];

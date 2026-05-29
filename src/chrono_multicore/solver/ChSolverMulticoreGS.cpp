@@ -36,8 +36,6 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
 
-    // Reuse Nschur already computed by ComputeN() when available; otherwise
-    // compute it locally (GS need it for diagonal preconditioning and row dots)
     SparseMatrixType nschur_local;
     if (!data_manager->settings.solver.compute_N) {
         nschur_local = data_manager->host_data.D_T * data_manager->host_data.M_invD;

@@ -23,15 +23,6 @@ ChSchurProduct::ChSchurProduct() {
 void ChSchurProduct::Setup(ChMulticoreDataManager* data_container_) {
     data_manager = data_container_;
 
-    // Cache sparse submatrix blocks so that operator(), called O(iterations)
-    // times per timestep, doesn't re-extract and copy them on every call.
-    // ComputeD() has already run and D_T is compressed at this point.
-    //
-    // IMPORTANT: only extract rows that actually exist in D_T. The layout depends
-    // on solver_mode:
-    //   NORMAL:   rows [0, num_r_c)  then bilateral
-    //   SLIDING:  rows [0, 3*num_r_c) then bilateral
-    //   SPINNING: rows [0, 6*num_r_c) then bilateral
     const SparseMatrixType& D_T = data_manager->host_data.D_T;
     const SparseMatrixType& M_invD = data_manager->host_data.M_invD;
 
@@ -43,9 +34,6 @@ void ChSchurProduct::Setup(ChMulticoreDataManager* data_container_) {
     const uint num_r_c = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
     const SolverMode solver_mode = data_manager->settings.solver.solver_mode;
 
-    // bil_dof = rigid + shaft + motor DOFs. the intermediate space used by both
-    // contact and bilateral submatrices so that all m_tmp contributions have the
-    // same size and can be accumulated
     const uint bil_dof = num_rigid_dof + num_shaft_dof + num_motor_dof;
 
     if (num_r_c > 0 && num_uni > 0) {
@@ -91,9 +79,6 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
         }
 
     } else {
-        // bil_dof is canonical intermediate DOF-space size used by all cached
-        // submatrices (topRows/leftCols in Setup). needed here so m_tmp can be
-        // zero-initialized to correct size regardless of which blocks present
         const uint bil_dof = data_manager->num_rigid_bodies * 6 +
                              data_manager->num_shafts +
                              data_manager->num_motors;
@@ -108,16 +93,12 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {
-                // BILATERAL pass always has bilaterals, so m_M_invD_b is set.
                 m_tmp.noalias() = m_M_invD_b * x_b;
                 o_b.noalias() = m_D_b_T * m_tmp;
                 o_b += E_b.cwiseProduct(x_b);
             } break;
 
             case SolverMode::NORMAL: {
-                // Either num_rigid_contacts or num_bilaterals can be 0 (e.g., no
-                // contacts on the first timestep, or no joints in the model).
-                // Zero-init m_tmp to bil_dof and accumulate only the present blocks.
                 m_tmp.setZero(bil_dof);
                 if (num_rigid_contacts > 0)
                     m_tmp.noalias() += m_M_invD_n * x_n;
