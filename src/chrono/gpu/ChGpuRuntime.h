@@ -24,16 +24,9 @@
 #include <cstdlib>
 #include <utility>
 
-// CUDA code in DEM historically used CUDART_PI_F from CUDA runtime headers.
-// HIP builds do not consistently provide that CUDA-named constant, so provide
-// a compatible fallback here in the backend-neutral runtime header.
-#ifndef CUDART_PI_F
-    #define CUDART_PI_F 3.141592654f
-#endif
-
-#ifndef CUDART_PI
-    #define CUDART_PI 3.14159265358979323846
-#endif
+// Single and double precision definitions of PI
+#define GPU_PI_F 3.141592654f
+#define GPU_PI 3.14159265358979323846
 
 // Device-side abort helper used by DEM macros such as ABORTABORTABORT.
 // Keep this in the shared runtime header so CUDA/HIP device code and host-only
@@ -137,21 +130,21 @@ inline gpuError gpuGetDeviceProperties(gpuDeviceProp* prop, int device) {
 }
 
 inline gpuError gpuMemAdvise(const void* ptr, std::size_t bytes, gpuMemoryAdvise advice, int device) {
-#if defined(CUDART_VERSION) && CUDART_VERSION >= 13000
+    #if defined(CUDART_VERSION) && CUDART_VERSION >= 13000
     cudaMemLocation location{};
     location.type = cudaMemLocationTypeDevice;
     location.id = device;
     return cudaMemAdvise(ptr, bytes, advice, location);
-#else
+    #else
     return cudaMemAdvise(ptr, bytes, advice, device);
-#endif
+    #endif
 }
 
-#if defined(CUDART_VERSION) && CUDART_VERSION >= 13000
+    #if defined(CUDART_VERSION) && CUDART_VERSION >= 13000
 inline gpuError gpuMemAdvise(const void* ptr, std::size_t bytes, gpuMemoryAdvise advice, cudaMemLocation location) {
     return cudaMemAdvise(ptr, bytes, advice, location);
 }
-#endif
+    #endif
 
 inline gpuError gpuStreamCreate(gpuStream* stream) {
     return cudaStreamCreate(stream);

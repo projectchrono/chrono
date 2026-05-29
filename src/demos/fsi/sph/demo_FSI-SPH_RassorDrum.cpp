@@ -381,9 +381,8 @@ int main(int argc, char* argv[]) {
     ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
-// Disable cuda error check in RELEASE mode
 #ifdef NDEBUG
-    std::cout << "Disable cuda error check in RELEASE mode" << std::endl;
+    std::cout << "Disable GPU error check in RELEASE mode" << std::endl;
     sysSPH.EnableGPUErrorCheck(false);
 #endif
 

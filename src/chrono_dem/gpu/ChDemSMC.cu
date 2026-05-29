@@ -397,8 +397,8 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
 
         packSphereDataPointers();
         // Figure our the number of blocks that need to be launched to cover the box
-        unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-        initializeLocalPositions<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+        unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
+        initializeLocalPositions<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(
             sphere_data, sphere_global_pos_X.data(), sphere_global_pos_Y.data(), sphere_global_pos_Z.data(), nSpheres,
             gran_params);
 
@@ -571,9 +571,9 @@ __host__ void ChSystemDem_impl::runSphereBroadphase() {
     resetBroadphaseInformation();
 
     // First stage of the computation in this function: Figure out the how many spheres touch each SD.
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    getNumberOfSpheresTouchingEachSD<CUDA_THREADS_PER_BLOCK>
-        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
+    getNumberOfSpheresTouchingEachSD<GPU_THREADS_PER_BLOCK>
+        <<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
     demErrchk(gpuDeviceSynchronize());
     demErrchk(gpuPeekAtLastError());
 
@@ -605,10 +605,10 @@ __host__ void ChSystemDem_impl::runSphereBroadphase() {
     demErrchk(gpuMemcpy(SD_SphereCompositeOffsets_ScratchPad.data(), SD_SphereCompositeOffsets.data(),
                          nSDs * sizeof(unsigned int), gpuMemcpyDeviceToDevice));
     // Populate the composite array; in the process, the content of the scratch pad will be modified
-    // nBlocks = (MAX_SDs_TOUCHED_BY_SPHERE * nSpheres + 2*CUDA_THREADS_PER_BLOCK - 1) / (2*CUDA_THREADS_PER_BLOCK);
-    // populateSpheresInEachSD<<<nBlocks, 2*CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
-    nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / (CUDA_THREADS_PER_BLOCK);
-    populateSpheresInEachSD<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    // nBlocks = (MAX_SDs_TOUCHED_BY_SPHERE * nSpheres + 2*GPU_THREADS_PER_BLOCK - 1) / (2*GPU_THREADS_PER_BLOCK);
+    // populateSpheresInEachSD<<<nBlocks, 2*GPU_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / (GPU_THREADS_PER_BLOCK);
+    populateSpheresInEachSD<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
     demErrchk(gpuDeviceSynchronize());
     demErrchk(gpuPeekAtLastError());
 }
@@ -638,7 +638,7 @@ __host__ void ChSystemDem_impl::updateBCPositions() {
         gran_params->BD_frame_Y = bd_offset_SU.y + BD_rest_frame_SU.y;
         gran_params->BD_frame_Z = bd_offset_SU.z + BD_rest_frame_SU.z;
 
-        unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+        unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
 
         int64_t3 offset_delta = {0, 0, 0};
 
@@ -651,7 +651,7 @@ __host__ void ChSystemDem_impl::updateBCPositions() {
 
         packSphereDataPointers();
 
-        applyBDFrameChange<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(offset_delta, sphere_data, nSpheres, gran_params);
+        applyBDFrameChange<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(offset_delta, sphere_data, nSpheres, gran_params);
 
         demErrchk(gpuPeekAtLastError());
         demErrchk(gpuDeviceSynchronize());
@@ -660,7 +660,7 @@ __host__ void ChSystemDem_impl::updateBCPositions() {
 
 __host__ double ChSystemDem_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
     // Settling simulation loop.
     float duration_SU = (float)(duration / TIME_SU2UU);
     unsigned int nsteps = (unsigned int)std::round(duration_SU / stepSize_SU);
@@ -694,12 +694,12 @@ __host__ double ChSystemDem_impl::AdvanceSimulation(float duration) {
             demErrchk(gpuDeviceSynchronize());
 
             if (gran_params->use_mat_based == true) {
-                computeSphereContactForces_matBased<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                computeSphereContactForces_matBased<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(
                     sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                     (unsigned int)BC_params_list_SU.size(), nSpheres);
 
             } else {
-                computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                computeSphereContactForces<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(
                     sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                     (unsigned int)BC_params_list_SU.size(), nSpheres);
             }
@@ -709,12 +709,12 @@ __host__ double ChSystemDem_impl::AdvanceSimulation(float duration) {
         }
 
         METRICS_PRINTF("Starting integrateSpheres!\n");
-        integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+        integrateSpheres<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         demErrchk(gpuPeekAtLastError());
         demErrchk(gpuDeviceSynchronize());
 
         if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
-            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            const unsigned int nThreadsUpdateHist = 2 * GPU_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
 
@@ -726,7 +726,7 @@ __host__ double ChSystemDem_impl::AdvanceSimulation(float duration) {
             demErrchk(gpuPeekAtLastError());
             demErrchk(gpuDeviceSynchronize());
             METRICS_PRINTF("Update angular velocity.\n");
-            updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            updateAngVels<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
             demErrchk(gpuPeekAtLastError());
             demErrchk(gpuDeviceSynchronize());
         }

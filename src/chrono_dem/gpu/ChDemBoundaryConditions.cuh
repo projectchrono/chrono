@@ -28,6 +28,7 @@
 #else
     #include <math_constants.h>
 #endif
+
 using chrono::dem::CHDEM_TIME_INTEGRATOR;
 using chrono::dem::CHDEM_FRICTION_MODE;
 using chrono::dem::CHDEM_ROLLING_MODE;
@@ -80,7 +81,7 @@ inline __device__ bool addBCForces_Sphere_matBased(unsigned int sphID,
         float sqrt_Rd = sqrt(penetration * (float)sphereRadius_SU);
         float Sn = 2 * gran_params->E_eff_s2w_SU * sqrt_Rd;
         float loge = (gran_params->COR_s2w_SU < EPSILON) ? log(EPSILON) : log(gran_params->COR_s2w_SU);
-        float beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
+        float beta = loge / sqrt(loge * loge + GPU_PI_F * GPU_PI_F);
 
         float kn = (2.0 / 3.0) * Sn;
         float gn = -2 * sqrt(5.0 / 6.0) * beta * sqrt(Sn * m_eff);
@@ -468,7 +469,7 @@ inline __device__ bool addBCForces_Plane_frictionless_mbased(const int64_t3& sph
 
         float Sn = 2 * gran_params->E_eff_s2w_SU * sqrt_Rd;
         float loge = (gran_params->COR_s2w_SU < EPSILON) ? log(EPSILON) : log(gran_params->COR_s2w_SU);
-        beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
+        beta = loge / sqrt(loge * loge + GPU_PI_F * GPU_PI_F);
 
         float kn = (2.0 / 3.0) * Sn;
         float gn = -2 * sqrt(5.0 / 6.0) * beta * sqrt(Sn * m_eff);
@@ -535,7 +536,7 @@ inline __device__ bool EvaluateRollingFriction(ChSystemDem_impl::GranParamsPtr g
     float d_coeff = gn_simple / (2.f * sqrtf(kn_simple * m_eff));
 
     if (d_coeff < 1) {
-        float t_collision = CUDART_PI_F * sqrtf(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
+        float t_collision = GPU_PI_F * sqrtf(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
         if (time_contact <= t_collision * powf(gran_params->LENGTH_UNIT, 0.25f)) {
 
             return false;
@@ -746,7 +747,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless_mbased(const int64_t3& sphP
 
         float Sn = 2 * gran_params->E_eff_s2w_SU * sqrt_Rd;
         float loge = (gran_params->COR_s2w_SU < EPSILON) ? log(EPSILON) : log(gran_params->COR_s2w_SU);
-        beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
+        beta = loge / sqrt(loge * loge + GPU_PI_F * GPU_PI_F);
 
         float kn = (2.0 / 3.0) * Sn;
         float gn = -2 * sqrt(5.0 / 6.0) * beta * sqrt(Sn * m_eff);

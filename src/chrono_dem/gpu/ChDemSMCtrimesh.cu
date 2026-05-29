@@ -33,8 +33,8 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
     unsigned int numTriangles = meshSoup->nTrianglesInSoup;
-    unsigned int nblocks = (numTriangles + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    determineCountOfSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
+    unsigned int nblocks = (numTriangles + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
+    determineCountOfSDsTouchedByEachTriangle<<<nblocks, GPU_THREADS_PER_BLOCK>>>(
         meshSoup, Triangle_NumSDsTouching.data(), gran_params, tri_params);
 
     demErrchk(gpuDeviceSynchronize());
@@ -65,7 +65,7 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     TriangleIDS_ByMultiplicity.resize(numOfTriangleTouchingSD_instances, NULL_CHDEM_ID);
 
     // sort key-value where the key is SD id, value is triangle ID in composite array
-    storeSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
+    storeSDsTouchedByEachTriangle<<<nblocks, GPU_THREADS_PER_BLOCK>>>(
         meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
         SDsTouchedByEachTriangle_composite.data(), TriangleIDS_ByMultiplicity.data(), gran_params, tri_params);
     demErrchk(gpuDeviceSynchronize());
@@ -133,9 +133,9 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // compute offsets in SD_trianglesInEachSD_composite and also counts for how many triangles touch each SD.
     // Start by zeroing out, it's important since not all entries will be touched in
     demErrchk(gpuMemset(SD_numTrianglesTouching.data(), 0, nSDs * sizeof(unsigned int)));
-    nblocks = ((*d_num_runs_out) + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    nblocks = ((*d_num_runs_out) + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
     if (nblocks > 0) {
-        finalizeSD_numTrianglesTouching<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
+        finalizeSD_numTrianglesTouching<<<nblocks, GPU_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
                                                                              SD_numTrianglesTouching.data());
         demErrchk(gpuDeviceSynchronize());
     }
@@ -325,7 +325,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
                 float Sn = 2. * mesh_params->E_eff_s2m_SU * sqrt_Rd;
 
                 float loge = (mesh_params->COR_s2m_SU < EPSILON) ? log(EPSILON) : log(mesh_params->COR_s2m_SU);
-                float beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
+                float beta = loge / sqrt(loge * loge + GPU_PI_F * GPU_PI_F);
 
                 // effective mass = mass_mesh * mass_sphere / (m_mesh + mass_sphere)
                 float fam_mass_SU = d_triangleSoup->familyMass_SU[fam];
@@ -703,7 +703,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
 
 __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
     float duration_SU = (float)(duration / TIME_SU2UU);
@@ -765,12 +765,12 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
             METRICS_PRINTF("Frictional case.\n");
             if (gran_params->use_mat_based == true) {
                 METRICS_PRINTF("compute sphere-sphere and sphere-bc mat based\n");
-                computeSphereContactForces_matBased<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                computeSphereContactForces_matBased<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(
                     sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                     (unsigned int)BC_params_list_SU.size(), nSpheres);
             } else {
                 METRICS_PRINTF("compute sphere-sphere and sphere-bc user defined\n");
-                computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                computeSphereContactForces<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(
                     sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                     (unsigned int)BC_params_list_SU.size(), nSpheres);
             }
@@ -801,19 +801,19 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
         demErrchk(gpuDeviceSynchronize());
 
         METRICS_PRINTF("Starting integrateSpheres!\n");
-        integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+        integrateSpheres<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         demErrchk(gpuPeekAtLastError());
         demErrchk(gpuDeviceSynchronize());
 
         if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
-            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            const unsigned int nThreadsUpdateHist = 2 * GPU_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
             updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
                                                                                       gran_params);
             demErrchk(gpuPeekAtLastError());
             demErrchk(gpuDeviceSynchronize());
-            updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            updateAngVels<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
             demErrchk(gpuPeekAtLastError());
             demErrchk(gpuDeviceSynchronize());
         }

@@ -47,7 +47,7 @@ using chrono::dem::CHDEM_TIME_INTEGRATOR;
 using chrono::dem::CHDEM_FRICTION_MODE;
 using chrono::dem::CHDEM_ROLLING_MODE;
 
-/// @addtogroup dem_cuda
+/// @addtogroup dem_gpu
 /// @{
 
 /// Convert position from its owner subdomain local frame to the global big domain frame
@@ -1530,4 +1530,4 @@ static __global__ void updateAngVels(const float stepsize_SU,
     sphere_data->sphere_Omega_Z[mySphereID] += omega_update_Z;
 }
 
-/// @} dem_cuda
+/// @} dem_gpu

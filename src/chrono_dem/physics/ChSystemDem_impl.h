@@ -90,7 +90,7 @@ class ChSystemDem_impl {
 
   protected:
     /// Structure with simulation parameters for sphere-based granular dynamics.
-    /// This structure is stored in CUDA unified memory so that it can be accessed from both host and device.
+    /// This structure is stored in GPU unified memory so that it can be accessed from both host and device.
     struct GranParams {
         float stepSize_SU;  ///< Timestep in SU
 

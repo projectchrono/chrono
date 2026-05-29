@@ -35,7 +35,7 @@ __device__ inline double chrono_dem_dmul_ru_compat(double lhs, double rhs) {
 #endif
 }
 
-/// @addtogroup dem_cuda
+/// @addtogroup dem_gpu
 /// @{
 
 /// This utility function takes the location 'P' and snaps it to the closest
@@ -177,4 +177,4 @@ __device__ bool face_sphere_cd(const double3& A,           ///< First vertex of 
     }
 }
 
-/// @} dem_cuda
+/// @} dem_gpu

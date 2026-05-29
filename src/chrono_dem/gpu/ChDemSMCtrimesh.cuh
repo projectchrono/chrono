@@ -28,7 +28,7 @@
 using chrono::dem::ChSystemDem_impl;
 using chrono::dem::ChSystemDemMesh_impl;
 
-/// @addtogroup dem_cuda
+/// @addtogroup dem_gpu
 /// @{
 
 // Triangle bounding box will be enlarged by 1/SAFETY_PARAM, ensuring triangles lie between 2 SDs
@@ -350,4 +350,4 @@ __global__ void finalizeSD_numTrianglesTouching(const unsigned int* d_SDs_touche
     }
 }
 
-/// @} dem_cuda
+/// @} dem_gpu
