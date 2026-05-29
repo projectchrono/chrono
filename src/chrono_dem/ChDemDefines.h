@@ -15,7 +15,7 @@
 #pragma once
 
 #include <climits>
-#include "chrono_dem/gpu/ChDemGpuRuntime.h"
+#include "chrono/gpu/ChGpuRuntime.h"
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
@@ -104,9 +104,9 @@ constexpr int warp_size = 32;
 ///
 #define demErrchk(ans) \
     { demAssert((ans), __FILE__, __LINE__); }
-inline void demAssert(cudaError_t code, const char* file, int line, bool abort = true) {
-    if (code != cudaSuccess) {
-        fprintf(stderr, "DEMassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+inline void demAssert(gpuError code, const char* file, int line, bool abort = true) {
+    if (code != gpuSuccess) {
+        fprintf(stderr, "DEMassert: %s %s %d\n", gpuGetErrorString(code), file, line);
         if (abort)
             exit(code);
     }

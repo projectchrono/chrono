@@ -55,10 +55,10 @@ class ChSolverStateData {
     float crntSimTime_SU;   // DN: needs to be brought here from GranParams
   public:
     ChSolverStateData() {
-        demErrchk(cudaMallocManaged(&pMaxNumberSpheresInAnySD, sizeof(unsigned int)));
+        demErrchk(gpuMallocManaged(&pMaxNumberSpheresInAnySD, sizeof(unsigned int)));
         largestMaxNumberSpheresInAnySD_thusFar = 0;
     }
-    ~ChSolverStateData() { demErrchk(cudaFree(pMaxNumberSpheresInAnySD)); }
+    ~ChSolverStateData() { demErrchk(gpuFree(pMaxNumberSpheresInAnySD)); }
     inline unsigned int* pMM_maxNumberSpheresInAnySD() {
         return pMaxNumberSpheresInAnySD;  ///< returns pointer to managed memory
     }

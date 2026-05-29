@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include "chrono_dem/gpu/ChDemGpuRuntime.h"
-
 #if defined(CHRONO_USE_HIP)
     #include <hipcub/hipcub.hpp>
     namespace cub = hipcub;

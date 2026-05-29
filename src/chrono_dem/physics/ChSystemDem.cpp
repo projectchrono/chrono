@@ -566,11 +566,11 @@ void ChSystemDemMesh::SetMeshes() {
     if (nTriangles != 0) {
         // Allocate all of the requisite pointers
         demErrchk(
-            cudaMallocManaged(&pMeshSoup->triangleFamily_ID, nTriangles * sizeof(unsigned int), cudaMemAttachGlobal));
+            gpuMallocManaged(&pMeshSoup->triangleFamily_ID, nTriangles * sizeof(unsigned int), gpuMemAttachGlobal));
 
-        demErrchk(cudaMallocManaged(&pMeshSoup->node1, nTriangles * sizeof(float3), cudaMemAttachGlobal));
-        demErrchk(cudaMallocManaged(&pMeshSoup->node2, nTriangles * sizeof(float3), cudaMemAttachGlobal));
-        demErrchk(cudaMallocManaged(&pMeshSoup->node3, nTriangles * sizeof(float3), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->node1, nTriangles * sizeof(float3), gpuMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->node2, nTriangles * sizeof(float3), gpuMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->node3, nTriangles * sizeof(float3), gpuMemAttachGlobal));
     }
 
     MESH_INFO_PRINTF("Done allocating nodes for %d triangles\n", nTriangles);
@@ -615,28 +615,28 @@ void ChSystemDemMesh::SetMeshes() {
     pMeshSoup->numTriangleFamilies = family;
 
     if (pMeshSoup->nTrianglesInSoup != 0) {
-        demErrchk(cudaMallocManaged(&pMeshSoup->familyMass_SU, family * sizeof(float), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->familyMass_SU, family * sizeof(float), gpuMemAttachGlobal));
 
         for (unsigned int i = 0; i < family; i++) {
             // NOTE The SU conversion is done in initialize after the scaling is determined
             pMeshSoup->familyMass_SU[i] = m_mesh_masses[i];
         }
 
-        demErrchk(cudaMallocManaged(&pMeshSoup->generalizedForcesPerFamily,
-                                    6 * pMeshSoup->numTriangleFamilies * sizeof(float), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->generalizedForcesPerFamily,
+                                    6 * pMeshSoup->numTriangleFamilies * sizeof(float), gpuMemAttachGlobal));
         // Allocate memory for the float and double frames
-        demErrchk(cudaMallocManaged(&sys_trimesh->getTriParams()->fam_frame_broad,
+        demErrchk(gpuMallocManaged(&sys_trimesh->getTriParams()->fam_frame_broad,
                                     pMeshSoup->numTriangleFamilies * sizeof(ChSystemDemMesh_impl::MeshFrame<float>),
-                                    cudaMemAttachGlobal));
-        demErrchk(cudaMallocManaged(&sys_trimesh->getTriParams()->fam_frame_narrow,
+                                    gpuMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&sys_trimesh->getTriParams()->fam_frame_narrow,
                                     pMeshSoup->numTriangleFamilies * sizeof(ChSystemDemMesh_impl::MeshFrame<double>),
-                                    cudaMemAttachGlobal));
+                                    gpuMemAttachGlobal));
 
         // Allocate memory for linear and angular velocity
         demErrchk(
-            cudaMallocManaged(&pMeshSoup->vel, pMeshSoup->numTriangleFamilies * sizeof(float3), cudaMemAttachGlobal));
+            gpuMallocManaged(&pMeshSoup->vel, pMeshSoup->numTriangleFamilies * sizeof(float3), gpuMemAttachGlobal));
         demErrchk(
-            cudaMallocManaged(&pMeshSoup->omega, pMeshSoup->numTriangleFamilies * sizeof(float3), cudaMemAttachGlobal));
+            gpuMallocManaged(&pMeshSoup->omega, pMeshSoup->numTriangleFamilies * sizeof(float3), gpuMemAttachGlobal));
 
         for (unsigned int i = 0; i < family; i++) {
             pMeshSoup->vel[i] = make_float3(0, 0, 0);

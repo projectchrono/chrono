@@ -20,14 +20,13 @@
 #include "chrono_dem/gpu/ChDemGpuMathUtils.cuh"
 #include "chrono_dem/ChDemDefines.h"
 
-#include "chrono_dem/gpu/ChDemGpuRuntime.h"
-
 using chrono::dem::ChSystemDem_impl;
 using chrono::dem::CHDEM_TIME_INTEGRATOR;
 using chrono::dem::CHDEM_FRICTION_MODE;
 using chrono::dem::CHDEM_ROLLING_MODE;
 
 // Print a user-given error message and crash
+#include "chrono/gpu/ChGpuRuntime.h"
 #define ABORTABORTABORT(...)      \
     {                             \
         printf(__VA_ARGS__);      \

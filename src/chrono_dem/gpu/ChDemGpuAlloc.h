@@ -26,7 +26,6 @@
 #include <utility>
 
 #include "chrono_dem/ChDemDefines.h"
-#include "chrono_dem/gpu/ChDemGpuRuntime.h"
 
 ////#if (__cplusplus >= 201703L)  // C++17 or newer
 ////template <class T>
@@ -86,8 +85,8 @@ class gpuallocator {
 
     pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
         void* vptr;
-        cudaError_t err = cudaMallocManaged(&vptr, n * sizeof(T), cudaMemAttachGlobal);
-        if (err == cudaErrorMemoryAllocation || err == cudaErrorNotSupported) {
+        gpuError err = gpuMallocManaged(&vptr, n * sizeof(T), gpuMemAttachGlobal);
+        if (err == gpuErrorMemoryAllocation || err == gpuErrorNotSupported) {
             throw std::bad_alloc();
         }
         return (T*)vptr;
@@ -95,7 +94,7 @@ class gpuallocator {
 
     void deallocate(pointer p, size_type n) {
         if (p) {
-            demErrchk(cudaFree(p));
+            demErrchk(gpuFree(p));
         }
     }
 
