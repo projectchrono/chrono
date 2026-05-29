@@ -27,8 +27,7 @@ namespace dem {
 // -----------------------------------------------------------------------------
 
 ChSystemDem::ChSystemDem(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O) {
-    m_sys = new ChSystemDem_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
-                                 make_float3(O.x(), O.y(), O.z()));
+    m_sys = new ChSystemDem_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()), make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemDem::ChSystemDem(const std::string& checkpoint) {
@@ -36,10 +35,8 @@ ChSystemDem::ChSystemDem(const std::string& checkpoint) {
     ReadCheckpointFile(checkpoint, true);
 }
 
-ChSystemDemMesh::ChSystemDemMesh(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O)
-    : mesh_verbosity(CHDEM_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemDemMesh_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
-                                     make_float3(O.x(), O.y(), O.z()));
+ChSystemDemMesh::ChSystemDemMesh(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O) : mesh_verbosity(CHDEM_MESH_VERBOSITY::QUIET) {
+    m_sys = new ChSystemDemMesh_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()), make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemDemMesh::ChSystemDemMesh(const std::string& checkpoint) : mesh_verbosity(CHDEM_MESH_VERBOSITY::QUIET) {
@@ -329,11 +326,7 @@ void ChSystemDemMesh::SetMeshVerbosity(CHDEM_MESH_VERBOSITY level) {
 
 // -----------------------------------------------------------------------------
 
-size_t ChSystemDem::CreateBCSphere(const ChVector3f& center,
-                                   float radius,
-                                   bool outward_normal,
-                                   bool track_forces,
-                                   float sphere_mass) {
+size_t ChSystemDem::CreateBCSphere(const ChVector3f& center, float radius, bool outward_normal, bool track_forces, float sphere_mass) {
     float sph_center[3] = {center.x(), center.y(), center.z()};
     return m_sys->CreateBCSphere(sph_center, radius, outward_normal, track_forces, sphere_mass);
 }
@@ -356,12 +349,7 @@ ChVector3f ChSystemDem::GetBCSphereVelocity(size_t sphere_bc_id) const {
     return ChVector3f(velo.x, velo.y, velo.z);
 }
 
-size_t ChSystemDem::CreateBCConeZ(const ChVector3f& tip,
-                                  float slope,
-                                  float hmax,
-                                  float hmin,
-                                  bool outward_normal,
-                                  bool track_forces) {
+size_t ChSystemDem::CreateBCConeZ(const ChVector3f& tip, float slope, float hmax, float hmin, bool outward_normal, bool track_forces) {
     float cone_tip[3] = {tip.x(), tip.y(), tip.z()};
     return m_sys->CreateBCConeZ(cone_tip, slope, hmax, hmin, outward_normal, track_forces);
 }
@@ -518,10 +506,7 @@ unsigned int ChSystemDemMesh::AddMesh(std::shared_ptr<ChTriangleMeshConnected> m
     return id;
 }
 
-unsigned int ChSystemDemMesh::AddMesh(const std::string& filename,
-                                      const ChVector3f& translation,
-                                      const ChMatrix33<float>& rotscale,
-                                      float mass) {
+unsigned int ChSystemDemMesh::AddMesh(const std::string& filename, const ChVector3f& translation, const ChMatrix33<float>& rotscale, float mass) {
     auto mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     bool flag = mesh->LoadWavefrontMesh(filename, true, false);
     if (!flag)
@@ -565,12 +550,11 @@ void ChSystemDemMesh::SetMeshes() {
     pMeshSoup->nTrianglesInSoup = nTriangles;
     if (nTriangles != 0) {
         // Allocate all of the requisite pointers
-        demErrchk(
-            cudaMallocManaged(&pMeshSoup->triangleFamily_ID, nTriangles * sizeof(unsigned int), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->triangleFamily_ID, nTriangles * sizeof(unsigned int), gpuMemAttachGlobal));
 
-        demErrchk(cudaMallocManaged(&pMeshSoup->node1, nTriangles * sizeof(float3), cudaMemAttachGlobal));
-        demErrchk(cudaMallocManaged(&pMeshSoup->node2, nTriangles * sizeof(float3), cudaMemAttachGlobal));
-        demErrchk(cudaMallocManaged(&pMeshSoup->node3, nTriangles * sizeof(float3), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->node1, nTriangles * sizeof(float3), gpuMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->node2, nTriangles * sizeof(float3), gpuMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->node3, nTriangles * sizeof(float3), gpuMemAttachGlobal));
     }
 
     MESH_INFO_PRINTF("Done allocating nodes for %d triangles\n", nTriangles);
@@ -615,28 +599,23 @@ void ChSystemDemMesh::SetMeshes() {
     pMeshSoup->numTriangleFamilies = family;
 
     if (pMeshSoup->nTrianglesInSoup != 0) {
-        demErrchk(cudaMallocManaged(&pMeshSoup->familyMass_SU, family * sizeof(float), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->familyMass_SU, family * sizeof(float), gpuMemAttachGlobal));
 
         for (unsigned int i = 0; i < family; i++) {
             // NOTE The SU conversion is done in initialize after the scaling is determined
             pMeshSoup->familyMass_SU[i] = m_mesh_masses[i];
         }
 
-        demErrchk(cudaMallocManaged(&pMeshSoup->generalizedForcesPerFamily,
-                                    6 * pMeshSoup->numTriangleFamilies * sizeof(float), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->generalizedForcesPerFamily, 6 * pMeshSoup->numTriangleFamilies * sizeof(float), gpuMemAttachGlobal));
         // Allocate memory for the float and double frames
-        demErrchk(cudaMallocManaged(&sys_trimesh->getTriParams()->fam_frame_broad,
-                                    pMeshSoup->numTriangleFamilies * sizeof(ChSystemDemMesh_impl::MeshFrame<float>),
-                                    cudaMemAttachGlobal));
-        demErrchk(cudaMallocManaged(&sys_trimesh->getTriParams()->fam_frame_narrow,
-                                    pMeshSoup->numTriangleFamilies * sizeof(ChSystemDemMesh_impl::MeshFrame<double>),
-                                    cudaMemAttachGlobal));
+        demErrchk(
+            gpuMallocManaged(&sys_trimesh->getTriParams()->fam_frame_broad, pMeshSoup->numTriangleFamilies * sizeof(ChSystemDemMesh_impl::MeshFrame<float>), gpuMemAttachGlobal));
+        demErrchk(
+            gpuMallocManaged(&sys_trimesh->getTriParams()->fam_frame_narrow, pMeshSoup->numTriangleFamilies * sizeof(ChSystemDemMesh_impl::MeshFrame<double>), gpuMemAttachGlobal));
 
         // Allocate memory for linear and angular velocity
-        demErrchk(
-            cudaMallocManaged(&pMeshSoup->vel, pMeshSoup->numTriangleFamilies * sizeof(float3), cudaMemAttachGlobal));
-        demErrchk(
-            cudaMallocManaged(&pMeshSoup->omega, pMeshSoup->numTriangleFamilies * sizeof(float3), cudaMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->vel, pMeshSoup->numTriangleFamilies * sizeof(float3), gpuMemAttachGlobal));
+        demErrchk(gpuMallocManaged(&pMeshSoup->omega, pMeshSoup->numTriangleFamilies * sizeof(float3), gpuMemAttachGlobal));
 
         for (unsigned int i = 0; i < family; i++) {
             pMeshSoup->vel[i] = make_float3(0, 0, 0);
@@ -645,11 +624,7 @@ void ChSystemDemMesh::SetMeshes() {
     }
 }
 
-void ChSystemDemMesh::ApplyMeshMotion(unsigned int mesh_id,
-                                      const ChVector3d& pos,
-                                      const ChQuaternion<>& rot,
-                                      const ChVector3d& lin_vel,
-                                      const ChVector3d& ang_vel) {
+void ChSystemDemMesh::ApplyMeshMotion(unsigned int mesh_id, const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& lin_vel, const ChVector3d& ang_vel) {
     ChSystemDemMesh_impl* sys_trimesh = static_cast<ChSystemDemMesh_impl*>(m_sys);
     sys_trimesh->ApplyMeshMotion(mesh_id, pos.data(), rot.data(), lin_vel.data(), ang_vel.data());
 }
@@ -679,9 +654,7 @@ static void convertChVector2Float3Vec(const std::vector<ChVector3f>& points, std
 }
 
 // Initialize particle positions, velocity and angular velocity in user units
-void ChSystemDem::SetParticles(const std::vector<ChVector3f>& points,
-                               const std::vector<ChVector3f>& vels,
-                               const std::vector<ChVector3f>& ang_vel) {
+void ChSystemDem::SetParticles(const std::vector<ChVector3f>& points, const std::vector<ChVector3f>& vels, const std::vector<ChVector3f>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
     std::vector<float3> angVelsFloat3;
@@ -1354,8 +1327,7 @@ void ChSystemDem::WriteCheckpointParams(std::ofstream& cpFile) const {
     paramStream << "radius: " << m_sys->sphere_radius_UU << "\n";
     paramStream << "boxSize: " << m_sys->box_size_X << " " << m_sys->box_size_Y << " " << m_sys->box_size_Z << "\n";
     paramStream << "BDFixed: " << (int)(m_sys->BD_is_fixed) << "\n";
-    paramStream << "BDCenter: " << m_sys->user_coord_O_X << " " << m_sys->user_coord_O_Y << " " << m_sys->user_coord_O_Z
-                << "\n";
+    paramStream << "BDCenter: " << m_sys->user_coord_O_X << " " << m_sys->user_coord_O_Y << " " << m_sys->user_coord_O_Z << "\n";
     paramStream << "verbosity: " << as_uint(m_sys->verbosity) << "\n";
     paramStream << "useMinLengthUnit: " << (int)(m_sys->use_min_length_unit) << "\n";
     paramStream << "recordContactInfo: " << (int)(m_sys->gran_params->recording_contactInfo) << "\n";
@@ -1515,12 +1487,9 @@ void ChSystemDem::WriteHstHistory(std::ofstream& histFile) const {
         // Write contact_history_map
         if (formatMode & 2) {
             for (unsigned int i = 0; i < MAX_SPHERES_TOUCHED_BY_SPHERE; i++) {
-                history_UU.x =
-                    m_sys->contact_history_map[MAX_SPHERES_TOUCHED_BY_SPHERE * n + i].x * m_sys->LENGTH_SU2UU;
-                history_UU.y =
-                    m_sys->contact_history_map[MAX_SPHERES_TOUCHED_BY_SPHERE * n + i].y * m_sys->LENGTH_SU2UU;
-                history_UU.z =
-                    m_sys->contact_history_map[MAX_SPHERES_TOUCHED_BY_SPHERE * n + i].z * m_sys->LENGTH_SU2UU;
+                history_UU.x = m_sys->contact_history_map[MAX_SPHERES_TOUCHED_BY_SPHERE * n + i].x * m_sys->LENGTH_SU2UU;
+                history_UU.y = m_sys->contact_history_map[MAX_SPHERES_TOUCHED_BY_SPHERE * n + i].y * m_sys->LENGTH_SU2UU;
+                history_UU.z = m_sys->contact_history_map[MAX_SPHERES_TOUCHED_BY_SPHERE * n + i].z * m_sys->LENGTH_SU2UU;
                 outstrstream << history_UU.x << " " << history_UU.y << " " << history_UU.z << " ";
             }
         }
@@ -1598,8 +1567,7 @@ void ChSystemDemMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
         return;
     }
     if (i >= m_meshes.size()) {
-        printf("WARNING: attempted to write mesh %u, yet only %zu meshes present. No mesh file generated.\n", i,
-               m_meshes.size());
+        printf("WARNING: attempted to write mesh %u, yet only %zu meshes present. No mesh file generated.\n", i, m_meshes.size());
         return;
     }
 
@@ -1624,15 +1592,13 @@ void ChSystemDemMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
     ostream << "POINTS " << mmesh->GetCoordsVertices().size() << " float" << std::endl;
     for (auto& v : mmesh->GetCoordsVertices()) {
         float3 point = make_float3(v.x(), v.y(), v.z());
-        sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[i].pos,
-                                         sys_trimesh->tri_params->fam_frame_broad[i].rot_mat);
+        sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[i].pos, sys_trimesh->tri_params->fam_frame_broad[i].rot_mat);
         ostream << point.x << " " << point.y << " " << point.z << std::endl;
     }
 
     // Writing faces
     ostream << "\n\n";
-    ostream << "CELLS " << mmesh->GetIndicesVertices().size() << " " << 4 * mmesh->GetIndicesVertices().size()
-            << std::endl;
+    ostream << "CELLS " << mmesh->GetIndicesVertices().size() << " " << 4 * mmesh->GetIndicesVertices().size() << std::endl;
     for (auto& f : mmesh->GetIndicesVertices())
         ostream << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
 
@@ -1729,8 +1695,7 @@ void ChSystemDemMesh::WriteMeshes(const std::string& outfilename) const {
     for (const auto& mmesh : m_meshes) {
         for (auto& v : mmesh->GetCoordsVertices()) {
             float3 point = make_float3(v.x(), v.y(), v.z());
-            sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[mesh_num].pos,
-                                             sys_trimesh->tri_params->fam_frame_broad[mesh_num].rot_mat);
+            sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[mesh_num].pos, sys_trimesh->tri_params->fam_frame_broad[mesh_num].rot_mat);
             ostream << point.x << " " << point.y << " " << point.z << std::endl;
         }
         mesh_num++;
@@ -1742,8 +1707,7 @@ void ChSystemDemMesh::WriteMeshes(const std::string& outfilename) const {
     mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
         for (auto& f : mmesh->GetIndicesVertices()) {
-            ostream << "3 " << f.x() + vertexOffset[mesh_num] << " " << f.y() + vertexOffset[mesh_num] << " "
-                    << f.z() + vertexOffset[mesh_num] << std::endl;
+            ostream << "3 " << f.x() + vertexOffset[mesh_num] << " " << f.y() + vertexOffset[mesh_num] << " " << f.z() + vertexOffset[mesh_num] << std::endl;
         }
         mesh_num++;
     }

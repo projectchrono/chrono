@@ -44,7 +44,7 @@ using std::endl;
 // -----------------------------------------------------------------------------
 
 // Dimensions of fluid domain
-ChVector3d fsize(0.8, 0.8, 1.2);
+ChVector3d fsize(0.8, 0.8, 1.0);
 
 // Object type
 enum class ObjectShape { BOX_PRIMITIVE, SPHERE_PRIMITIVE, CYLINDER_PRIMITIVE, MESH };
