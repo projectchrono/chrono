@@ -184,8 +184,7 @@ void ChSystemDem_impl::packSphereDataPointers() {
     sphere_data->SD_SphereCompositeOffsets_SP = SD_SphereCompositeOffsets_ScratchPad.data();
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
-    if (gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP ||
-        gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP) {
+    if (gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP || gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP) {
         sphere_data->contact_partners_map = contact_partners_map.data();
         sphere_data->contact_active_map = contact_active_map.data();
     }
@@ -241,9 +240,7 @@ void ChSystemDem_impl::WriteRawParticles(std::ofstream& ptFile) const {
         }
 
         if (GET_OUTPUT_SETTING(ABSV)) {
-            float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                                           pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                                 VEL_SU2UU);
+            float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) + pos_Z_dt.at(n) * pos_Z_dt.at(n)) * VEL_SU2UU);
 
             ptFile.write((const char*)&absv, sizeof(float));
         }
@@ -309,9 +306,7 @@ void ChSystemDem_impl::WriteCsvParticles(std::ofstream& ptFile) const {
         }
 
         if (GET_OUTPUT_SETTING(ABSV)) {
-            float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                                           pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                                 VEL_SU2UU);
+            float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) + pos_Z_dt.at(n) * pos_Z_dt.at(n)) * VEL_SU2UU);
             outstrstream << "," << absv;
         }
 
@@ -321,8 +316,7 @@ void ChSystemDem_impl::WriteCsvParticles(std::ofstream& ptFile) const {
         }
 
         if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-            outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU << ","
-                         << sphere_Omega_Z.at(n) / TIME_SU2UU;
+            outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
         }
 
         if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
@@ -402,9 +396,7 @@ void ChSystemDem_impl::WriteH5Particles(H5::H5File& ptFile) const {
     if (GET_OUTPUT_SETTING(ABSV)) {
         float* absv = new float[nSpheres];
         for (size_t n = 0; n < nSpheres; n++) {
-            absv[n] = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                           pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                      VEL_SU2UU;
+            absv[n] = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) + pos_Z_dt.at(n) * pos_Z_dt.at(n)) * VEL_SU2UU;
         }
         H5::DataSet ds_absv = ptFile.createDataSet("absv", H5::PredType::NATIVE_FLOAT, dataspace);
         ds_absv.write(absv, H5::PredType::NATIVE_FLOAT);
@@ -504,8 +496,7 @@ float3 ChSystemDem_impl::getRollingVrot(unsigned int i, unsigned int j) {
         unsigned int theirSphereID = contact_partners_map[theirSphereMappingID];
 
         if (theirSphereID == j) {
-            return make_float3(v_rot_array[theirSphereMappingID].x * LENGTH_SU2UU / TIME_SU2UU,
-                               v_rot_array[theirSphereMappingID].y * LENGTH_SU2UU / TIME_SU2UU,
+            return make_float3(v_rot_array[theirSphereMappingID].x * LENGTH_SU2UU / TIME_SU2UU, v_rot_array[theirSphereMappingID].y * LENGTH_SU2UU / TIME_SU2UU,
                                v_rot_array[theirSphereMappingID].z * LENGTH_SU2UU / TIME_SU2UU);
         }
     }
@@ -556,8 +547,7 @@ float3 ChSystemDem_impl::getSlidingFrictionForce(unsigned int i, unsigned int j)
         unsigned int theirSphereID = contact_partners_map[theirSphereMappingID];
 
         if (theirSphereID == j) {
-            return make_float3(tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU,
-                               tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU,
+            return make_float3(tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU, tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU,
                                tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU);
         }
     }
@@ -587,8 +577,7 @@ float3 ChSystemDem_impl::getNormalForce(unsigned int i, unsigned int j) {
         unsigned int theirSphereID = contact_partners_map[theirSphereMappingID];
 
         if (theirSphereID == j) {
-            return make_float3(normal_contact_force[theirSphereMappingID].x * FORCE_SU2UU,
-                               normal_contact_force[theirSphereMappingID].y * FORCE_SU2UU,
+            return make_float3(normal_contact_force[theirSphereMappingID].x * FORCE_SU2UU, normal_contact_force[theirSphereMappingID].y * FORCE_SU2UU,
                                normal_contact_force[theirSphereMappingID].z * FORCE_SU2UU);
         }
     }
@@ -596,8 +585,7 @@ float3 ChSystemDem_impl::getNormalForce(unsigned int i, unsigned int j) {
 }
 
 void ChSystemDem_impl::WriteContactInfoFile(const std::string& outfilename) const {
-    if ((gran_params->recording_contactInfo == false) ||
-        (gran_params->friction_mode == CHDEM_FRICTION_MODE::FRICTIONLESS)) {
+    if ((gran_params->recording_contactInfo == false) || (gran_params->friction_mode == CHDEM_FRICTION_MODE::FRICTIONLESS)) {
         CHDEM_ERROR("ERROR! You did not enable contact info recording or are using frictionless model!\n");
     } else {
         // write contact info as an csv style in the following format
@@ -630,16 +618,12 @@ void ChSystemDem_impl::WriteContactInfoFile(const std::string& outfilename) cons
 
                     if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
                         outstrstream << ", " << tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU << ", "
-                                     << tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU << ", "
-                                     << tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU;
+                                     << tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU << ", " << tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU;
                     }
 
                     if (gran_params->rolling_mode != CHDEM_ROLLING_MODE::NO_RESISTANCE) {
-                        outstrstream << ", "
-                                     << rolling_friction_torque[theirSphereMappingID].x * FORCE_SU2UU * LENGTH_SU2UU
-                                     << ", "
-                                     << rolling_friction_torque[theirSphereMappingID].y * FORCE_SU2UU * LENGTH_SU2UU
-                                     << ", "
+                        outstrstream << ", " << rolling_friction_torque[theirSphereMappingID].x * FORCE_SU2UU * LENGTH_SU2UU << ", "
+                                     << rolling_friction_torque[theirSphereMappingID].y * FORCE_SU2UU * LENGTH_SU2UU << ", "
                                      << rolling_friction_torque[theirSphereMappingID].z * FORCE_SU2UU * LENGTH_SU2UU;
                     }
                     outstrstream << "\n";
@@ -696,11 +680,7 @@ void ChSystemDem_impl::copyConstSphereDataToDevice() {
     gran_params->sphereInertia_by_r = (float)((2.0 / 5.0) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU);
 }
 
-size_t ChSystemDem_impl::CreateBCSphere(float center[3],
-                                        float radius,
-                                        bool outward_normal,
-                                        bool track_forces,
-                                        float mass) {
+size_t ChSystemDem_impl::CreateBCSphere(float center[3], float radius, bool outward_normal, bool track_forces, float mass) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.sphere_params.sphere_center.x = center[0];
@@ -740,12 +720,7 @@ size_t ChSystemDem_impl::CreateBCSphere(float center[3],
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemDem_impl::CreateBCConeZ(float cone_tip[3],
-                                       float slope,
-                                       float hmax,
-                                       float hmin,
-                                       bool outward_normal,
-                                       bool track_forces) {
+size_t ChSystemDem_impl::CreateBCConeZ(float cone_tip[3], float slope, float hmax, float hmin, bool outward_normal, bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.cone_params.cone_tip.x = cone_tip[0];
@@ -779,8 +754,7 @@ size_t ChSystemDem_impl::CreateBCPlane(float plane_pos[3], float plane_normal[3]
     p.plane_params.position.y = plane_pos[1];
     p.plane_params.position.z = plane_pos[2];
 
-    double len = std::sqrt(plane_normal[0] * plane_normal[0] + plane_normal[1] * plane_normal[1] +
-                           plane_normal[2] * plane_normal[2]);
+    double len = std::sqrt(plane_normal[0] * plane_normal[0] + plane_normal[1] * plane_normal[1] + plane_normal[2] * plane_normal[2]);
 
     p.plane_params.normal.x = (float)(plane_normal[0] / len);
     p.plane_params.normal.y = (float)(plane_normal[1] / len);
@@ -817,8 +791,7 @@ size_t ChSystemDem_impl::CreateCustomizedPlate(float plate_pos_center[3], float 
     p.plate_params.plate_center.y = plate_pos_center[1];
     p.plate_params.plate_center.z = plate_pos_center[2];
 
-    double len = std::sqrt(plate_normal[0] * plate_normal[0] + plate_normal[1] * plate_normal[1] +
-                           plate_normal[2] * plate_normal[2]);
+    double len = std::sqrt(plate_normal[0] * plate_normal[0] + plate_normal[1] * plate_normal[1] + plate_normal[2] * plate_normal[2]);
 
     p.plate_params.normal.x = (float)(plate_normal[0] / len);
     p.plate_params.normal.y = (float)(plate_normal[1] / len);
@@ -887,10 +860,7 @@ double ChSystemDem_impl::get_max_K() const {
 }
 
 // set the position of a BC and account for the offset
-void ChSystemDem_impl::setBCOffset(const BC_type& bc_type,
-                                   const BC_params_t<float, float3>& params_UU,
-                                   BC_params_t<int64_t, int64_t3>& params_SU,
-                                   double3 offset_UU) {
+void ChSystemDem_impl::setBCOffset(const BC_type& bc_type, const BC_params_t<float, float3>& params_UU, BC_params_t<int64_t, int64_t3>& params_SU, double3 offset_UU) {
     int64_t3 old_pos = {0, 0, 0};
     int64_t3 new_pos = {0, 0, 0};
     switch (bc_type) {
@@ -915,15 +885,11 @@ void ChSystemDem_impl::setBCOffset(const BC_type& bc_type,
                 params_SU.sphere_params.sphere_velo.y += velo_update_y;
                 params_SU.sphere_params.sphere_velo.z += velo_update_z;
 
-                params_SU.sphere_params.sphere_center.x +=
-                    (lround)(params_SU.sphere_params.sphere_velo.x * stepSize_SU);
-                params_SU.sphere_params.sphere_center.y +=
-                    (lround)(params_SU.sphere_params.sphere_velo.y * stepSize_SU);
-                params_SU.sphere_params.sphere_center.z +=
-                    (lround)(params_SU.sphere_params.sphere_velo.z * stepSize_SU);
+                params_SU.sphere_params.sphere_center.x += (lround)(params_SU.sphere_params.sphere_velo.x * stepSize_SU);
+                params_SU.sphere_params.sphere_center.y += (lround)(params_SU.sphere_params.sphere_velo.y * stepSize_SU);
+                params_SU.sphere_params.sphere_center.z += (lround)(params_SU.sphere_params.sphere_velo.z * stepSize_SU);
 
-                float sphere_inertia = 0.4f * params_SU.sphere_params.mass * params_SU.sphere_params.radius *
-                                       params_SU.sphere_params.radius;
+                float sphere_inertia = 0.4f * params_SU.sphere_params.mass * params_SU.sphere_params.radius * params_SU.sphere_params.radius;
 
                 float3 ang_acc = params_SU.sphere_params.reaction_torques * 1.f / sphere_inertia;
 
@@ -939,30 +905,22 @@ void ChSystemDem_impl::setBCOffset(const BC_type& bc_type,
 
         case BC_type::CONE: {
             old_pos = params_SU.cone_params.cone_tip;
-            params_SU.cone_params.cone_tip.x =
-                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.x + offset_UU.x));
-            params_SU.cone_params.cone_tip.y =
-                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.y + offset_UU.y));
-            params_SU.cone_params.cone_tip.z =
-                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.z + offset_UU.z));
+            params_SU.cone_params.cone_tip.x = convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.x + offset_UU.x));
+            params_SU.cone_params.cone_tip.y = convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.y + offset_UU.y));
+            params_SU.cone_params.cone_tip.z = convertToPosSU<int64_t, float>((float)(params_UU.cone_params.cone_tip.z + offset_UU.z));
             new_pos = params_SU.cone_params.cone_tip;
 
-            params_SU.cone_params.hmax =
-                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmax + offset_UU.z));
-            params_SU.cone_params.hmin =
-                convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmin + offset_UU.z));
+            params_SU.cone_params.hmax = convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmax + offset_UU.z));
+            params_SU.cone_params.hmin = convertToPosSU<int64_t, float>((float)(params_UU.cone_params.hmin + offset_UU.z));
 
             break;
         }
         case BC_type::PLANE: {
             old_pos = params_SU.plane_params.position;
 
-            params_SU.plane_params.position.x =
-                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.x + offset_UU.x));
-            params_SU.plane_params.position.y =
-                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.y + offset_UU.y));
-            params_SU.plane_params.position.z =
-                convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.z + offset_UU.z));
+            params_SU.plane_params.position.x = convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.x + offset_UU.x));
+            params_SU.plane_params.position.y = convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.y + offset_UU.y));
+            params_SU.plane_params.position.z = convertToPosSU<int64_t, float>((float)(params_UU.plane_params.position.z + offset_UU.z));
             new_pos = params_SU.plane_params.position;
 
             break;
@@ -970,12 +928,9 @@ void ChSystemDem_impl::setBCOffset(const BC_type& bc_type,
         case BC_type::CYLINDER: {
             old_pos = params_SU.cyl_params.center;
 
-            params_SU.cyl_params.center.x =
-                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.x + offset_UU.x));
-            params_SU.cyl_params.center.y =
-                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.y + offset_UU.y));
-            params_SU.cyl_params.center.z =
-                convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.z + offset_UU.z));
+            params_SU.cyl_params.center.x = convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.x + offset_UU.x));
+            params_SU.cyl_params.center.y = convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.y + offset_UU.y));
+            params_SU.cyl_params.center.z = convertToPosSU<int64_t, float>((float)(params_UU.cyl_params.center.z + offset_UU.z));
             new_pos = params_SU.cyl_params.center;
 
             break;
@@ -1087,20 +1042,16 @@ void ChSystemDem_impl::convertBCUnits() {
         switch (bc_type) {
             case BC_type::SPHERE: {
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
-                params_SU.sphere_params.radius =
-                    (unsigned int)convertToPosSU<int64_t, float>((params_UU.sphere_params.radius));
+                params_SU.sphere_params.radius = (unsigned int)convertToPosSU<int64_t, float>((params_UU.sphere_params.radius));
                 params_SU.sphere_params.normal_sign = (int64_t)params_UU.sphere_params.normal_sign;
 
                 // add BC mass
                 params_SU.sphere_params.mass = params_UU.sphere_params.mass / MASS_SU2UU;
 
                 // BC position
-                params_SU.sphere_params.sphere_center.x =
-                    (int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.x));
-                params_SU.sphere_params.sphere_center.y =
-                    (int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.y));
-                params_SU.sphere_params.sphere_center.z =
-                    (int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.z));
+                params_SU.sphere_params.sphere_center.x = (int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.x));
+                params_SU.sphere_params.sphere_center.y = (int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.y));
+                params_SU.sphere_params.sphere_center.z = (int)convertToPosSU<int64_t, float>((float)(params_UU.sphere_params.sphere_center.z));
 
                 // BC velocity
                 params_SU.sphere_params.sphere_velo.x = params_UU.sphere_params.sphere_velo.x / VEL_SU2UU;
@@ -1108,12 +1059,9 @@ void ChSystemDem_impl::convertBCUnits() {
                 params_SU.sphere_params.sphere_velo.z = params_UU.sphere_params.sphere_velo.z / VEL_SU2UU;
 
                 // BC angular velocity
-                params_SU.sphere_params.sphere_angularVelo.x =
-                    params_UU.sphere_params.sphere_angularVelo.x * TIME_SU2UU;
-                params_SU.sphere_params.sphere_angularVelo.y =
-                    params_UU.sphere_params.sphere_angularVelo.y * TIME_SU2UU;
-                params_SU.sphere_params.sphere_angularVelo.z =
-                    params_UU.sphere_params.sphere_angularVelo.z * TIME_SU2UU;
+                params_SU.sphere_params.sphere_angularVelo.x = params_UU.sphere_params.sphere_angularVelo.x * TIME_SU2UU;
+                params_SU.sphere_params.sphere_angularVelo.y = params_UU.sphere_params.sphere_angularVelo.y * TIME_SU2UU;
+                params_SU.sphere_params.sphere_angularVelo.z = params_UU.sphere_params.sphere_angularVelo.z * TIME_SU2UU;
 
                 // BC torque
                 params_SU.sphere_params.reaction_torques.x = 0.0f;
@@ -1145,12 +1093,9 @@ void ChSystemDem_impl::convertBCUnits() {
                 params_SU.plane_params.normal.y = (float)params_UU.plane_params.normal.y;
                 params_SU.plane_params.normal.z = (float)params_UU.plane_params.normal.z;
 
-                params_SU.plane_params.rotation_center.x =
-                    (int64_t)((float)params_UU.plane_params.rotation_center.x / LENGTH_SU2UU);
-                params_SU.plane_params.rotation_center.y =
-                    (int64_t)((float)params_UU.plane_params.rotation_center.x / LENGTH_SU2UU);
-                params_SU.plane_params.rotation_center.z =
-                    (int64_t)((float)params_UU.plane_params.rotation_center.x / LENGTH_SU2UU);
+                params_SU.plane_params.rotation_center.x = (int64_t)((float)params_UU.plane_params.rotation_center.x / LENGTH_SU2UU);
+                params_SU.plane_params.rotation_center.y = (int64_t)((float)params_UU.plane_params.rotation_center.x / LENGTH_SU2UU);
+                params_SU.plane_params.rotation_center.z = (int64_t)((float)params_UU.plane_params.rotation_center.x / LENGTH_SU2UU);
 
                 params_SU.plane_params.angular_acc.x = params_UU.plane_params.angular_acc.x * TIME_SU2UU;
                 params_SU.plane_params.angular_acc.y = params_UU.plane_params.angular_acc.y * TIME_SU2UU;
@@ -1216,15 +1161,12 @@ void ChSystemDem_impl::initializeSpheres() {
     demErrchk(gpuMemAdvise(sphere_data, sizeof(*sphere_data), gpuMemAdviseSetReadMostly, dev_ID));
 #endif
 
-    INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU,
-                stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
+    INFO_PRINTF("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
     INFO_PRINTF("running at approximate timestep %f\n", stepSize_SU * TIME_SU2UU);
 }
 
 // Set particle positions in UU
-void ChSystemDem_impl::SetParticles(const std::vector<float3>& points,
-                                    const std::vector<float3>& vels,
-                                    const std::vector<float3>& ang_vels) {
+void ChSystemDem_impl::SetParticles(const std::vector<float3>& points, const std::vector<float3>& vels, const std::vector<float3>& ang_vels) {
     user_sphere_positions = points;  // Copy points to class vector
     user_sphere_vel = vels;
     user_sphere_ang_vel = ang_vels;
@@ -1289,8 +1231,7 @@ void ChSystemDem_impl::SetParticlePosition(int nSphere, double3 position) {
     int sphere_pos_local_Y = (int)(sphCenter_Y_modified - (int64_t)ownerSD.y * gran_params->SD_size_Y_SU);
     int sphere_pos_local_Z = (int)(sphCenter_Z_modified - (int64_t)ownerSD.z * gran_params->SD_size_Z_SU);
 
-    unsigned int SDID =
-        ownerSD_x * gran_params->nSDs_Y * gran_params->nSDs_Z + ownerSD_y * gran_params->nSDs_Z + ownerSD_z;
+    unsigned int SDID = ownerSD_x * gran_params->nSDs_Y * gran_params->nSDs_Z + ownerSD_y * gran_params->nSDs_Z + ownerSD_z;
 
     // write local pos back to global memory
     sphere_data->sphere_local_pos_X[nSphere] = sphere_pos_local_X;
@@ -1324,8 +1265,7 @@ float ChSystemDem_impl::ComputeTotalKE() {
 
 // return absolute velocity
 float ChSystemDem_impl::getAbsVelocity(int nSphere) {
-    float absv_SU = std::sqrt(pos_X_dt[nSphere] * pos_X_dt[nSphere] + pos_Y_dt[nSphere] * pos_Y_dt[nSphere] +
-                              pos_Z_dt[nSphere] * pos_Z_dt[nSphere]);
+    float absv_SU = std::sqrt(pos_X_dt[nSphere] * pos_X_dt[nSphere] + pos_Y_dt[nSphere] * pos_Y_dt[nSphere] + pos_Z_dt[nSphere] * pos_Z_dt[nSphere]);
     float absv_UU = (float)(absv_SU * LENGTH_SU2UU / TIME_SU2UU);
     return absv_UU;
 }
@@ -1424,8 +1364,7 @@ void ChSystemDem_impl::partitionBD() {
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
 
-    INFO_PRINTF("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y,
-                gran_params->nSDs_Z);
+    INFO_PRINTF("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y, gran_params->nSDs_Z);
 
     // allocate mem for array saying for each SD how many spheres touch it
     TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
@@ -1437,11 +1376,9 @@ void ChSystemDem_impl::combineMaterialSurface() {
     // effective youngs modulus and shear modulus in user units
     double E_eff_s2s_uu, E_eff_s2w_uu, G_eff_s2s_uu, G_eff_s2w_uu;
 
-    materialPropertyCombine(YoungsModulus_sphere_UU, YoungsModulus_sphere_UU, PoissonRatio_sphere_UU,
-                            PoissonRatio_sphere_UU, E_eff_s2s_uu, G_eff_s2s_uu);
+    materialPropertyCombine(YoungsModulus_sphere_UU, YoungsModulus_sphere_UU, PoissonRatio_sphere_UU, PoissonRatio_sphere_UU, E_eff_s2s_uu, G_eff_s2s_uu);
 
-    materialPropertyCombine(YoungsModulus_sphere_UU, YoungsModulus_wall_UU, PoissonRatio_sphere_UU,
-                            PoissonRatio_wall_UU, E_eff_s2w_uu, G_eff_s2w_uu);
+    materialPropertyCombine(YoungsModulus_sphere_UU, YoungsModulus_wall_UU, PoissonRatio_sphere_UU, PoissonRatio_wall_UU, E_eff_s2w_uu, G_eff_s2w_uu);
 
     // unit conversion of youngs modulus
     double E_SU2UU = this->MASS_SU2UU / (this->LENGTH_SU2UU * this->TIME_SU2UU * this->TIME_SU2UU);
@@ -1475,17 +1412,13 @@ void ChSystemDem_impl::switchToSimUnits() {
     // old hooke way
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
     // new hertz way
-    this->LENGTH_SU2UU =
-        std::cbrt(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star)) /
-        psi_L;
+    this->LENGTH_SU2UU = std::cbrt(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star)) / psi_L;
     this->LENGTH_SU2UU = std::min((double)(sphere_radius_UU * psi_R), this->LENGTH_SU2UU);
 
     // If we can get better precision by just dividing the box as fine as possible
     // using single ints, do that. Conservative by a factor of 2.
     if (this->use_min_length_unit) {
-        this->LENGTH_SU2UU =
-            std::min((double)std::max(box_size_X, std::max(box_size_Y, box_size_Z)) / std::numeric_limits<int>::max(),
-                     this->LENGTH_SU2UU);
+        this->LENGTH_SU2UU = std::min((double)std::max(box_size_X, std::max(box_size_Y, box_size_Z)) / std::numeric_limits<int>::max(), this->LENGTH_SU2UU);
     }
 
     stepSize_SU = (float)(stepSize_UU / TIME_SU2UU);
@@ -1532,8 +1465,7 @@ void ChSystemDem_impl::switchToSimUnits() {
 
     // Handy debug output
     INFO_PRINTF("UU mass is %f\n", MASS_SU2UU);
-    INFO_PRINTF("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
-                gran_params->gravAcc_Z_SU);
+    INFO_PRINTF("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU, gran_params->gravAcc_Z_SU);
     INFO_PRINTF("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = (float)std::sqrt(massSphere / K_n_s2s_UU);
     INFO_PRINTF("CFL timestep is about %f\n", dt_safe_estimate);

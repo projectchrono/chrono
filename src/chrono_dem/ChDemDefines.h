@@ -99,8 +99,10 @@ constexpr int warp_size = 32;
 
 /// Error checking mechanism.
 /// Based on the approach at https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api.
-#define demErrchk(ans) \
-    { demAssert((ans), __FILE__, __LINE__); }
+#define demErrchk(ans)                        \
+    {                                         \
+        demAssert((ans), __FILE__, __LINE__); \
+    }
 inline void demAssert(gpuError code, const char* file, int line, bool abort = true) {
     if (code != gpuSuccess) {
         fprintf(stderr, "DEMassert: %s %s %d\n", gpuGetErrorString(code), file, line);

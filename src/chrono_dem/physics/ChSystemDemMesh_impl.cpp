@@ -67,8 +67,7 @@ double ChSystemDemMesh_impl::get_max_K() const {
         double sigma_wall = (1 - std::pow(PoissonRatio_wall_UU, 2)) / YoungsModulus_wall_UU;
         double sigma_mesh = (1 - std::pow(PoissonRatio_mesh_UU, 2)) / YoungsModulus_mesh_UU;
 
-        maxK = 4.0 / (3.0 * (sigma_sphere + std::min(std::min(sigma_sphere, sigma_wall), sigma_mesh))) *
-               std::sqrt(sphere_radius_UU);
+        maxK = 4.0 / (3.0 * (sigma_sphere + std::min(std::min(sigma_sphere, sigma_wall), sigma_mesh))) * std::sqrt(sphere_radius_UU);
         INFO_PRINTF("Use material based contact force model, maximum effective stiffness is %e\n", maxK);
         return maxK;
 
@@ -83,8 +82,7 @@ void ChSystemDemMesh_impl::combineMaterialSurface() {
     // effective youngs modulus and shear modulus in user units
     double E_eff_s2m_uu, G_eff_s2m_uu;
 
-    materialPropertyCombine(YoungsModulus_sphere_UU, YoungsModulus_mesh_UU, PoissonRatio_sphere_UU,
-                            PoissonRatio_mesh_UU, E_eff_s2m_uu, G_eff_s2m_uu);
+    materialPropertyCombine(YoungsModulus_sphere_UU, YoungsModulus_mesh_UU, PoissonRatio_sphere_UU, PoissonRatio_mesh_UU, E_eff_s2m_uu, G_eff_s2m_uu);
 
     // unit conversion of youngs modulus
     double E_SU2UU = this->MASS_SU2UU / (this->LENGTH_SU2UU * this->TIME_SU2UU * this->TIME_SU2UU);
@@ -178,11 +176,7 @@ void ChSystemDemMesh_impl::cleanupTriMesh() {
     demErrchk(gpuFree(tri_params));
 }
 
-void ChSystemDemMesh_impl::ApplyMeshMotion(unsigned int mesh_id,
-                                           const double* pos,
-                                           const double* rot,
-                                           const double* lin_vel,
-                                           const double* ang_vel) {
+void ChSystemDemMesh_impl::ApplyMeshMotion(unsigned int mesh_id, const double* pos, const double* rot, const double* lin_vel, const double* ang_vel) {
     // Set position and orientation
     tri_params->fam_frame_broad[mesh_id].pos[0] = (float)pos[0];
     tri_params->fam_frame_broad[mesh_id].pos[1] = (float)pos[1];

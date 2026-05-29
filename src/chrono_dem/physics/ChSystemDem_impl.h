@@ -218,14 +218,13 @@ class ChSystemDem_impl {
 
         not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
 
-        float* sphere_stats_buffer;  ///< A buffer array that can store any quantity that the user wish to reduce
-        unsigned int*
-            sphere_stats_buffer_int;  ///< A buffer array that stores int-valued sys info that the user quarries
+        float* sphere_stats_buffer;             ///< A buffer array that can store any quantity that the user wish to reduce
+        unsigned int* sphere_stats_buffer_int;  ///< A buffer array that stores int-valued sys info that the user quarries
 
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
-        float3* contact_history_map;  ///< Tangential history for a given contact pair. Only for multistep friction
-        float* contact_duration;      ///< Duration of persistent contact between pairs
+        float3* contact_history_map;          ///< Tangential history for a given contact pair. Only for multistep friction
+        float* contact_duration;              ///< Duration of persistent contact between pairs
 
         float3* normal_contact_force;       ///< Track normal contact force
         float3* tangential_friction_force;  ///< Track sliding friction force
@@ -254,12 +253,7 @@ class ChSystemDem_impl {
     size_t CreateBCSphere(float center[3], float radius, bool outward_normal, bool track_forces, float mass);
 
     /// Create an z-axis aligned cone boundary condition
-    size_t CreateBCConeZ(float cone_tip[3],
-                         float slope,
-                         float hmax,
-                         float hmin,
-                         bool outward_normal,
-                         bool track_forces);
+    size_t CreateBCConeZ(float cone_tip[3], float slope, float hmax, float hmin, bool outward_normal, bool track_forces);
 
     /// Create plane boundary condition
     /// Instead of always push_back, you can select a position in vector to store the BC info: this is for reserved BCs
@@ -399,9 +393,7 @@ class ChSystemDem_impl {
     bool GetBCReactionForces(size_t BC_id, float3& force) const;
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize.
-    void SetParticles(const std::vector<float3>& points,
-                      const std::vector<float3>& vels = std::vector<float3>(),
-                      const std::vector<float3>& ang_vels = std::vector<float3>());
+    void SetParticles(const std::vector<float3>& points, const std::vector<float3>& vels = std::vector<float3>(), const std::vector<float3>& ang_vels = std::vector<float3>());
 
     /// Set particle velocity, can be called during the simulation.
     void SetParticleVelocity(int id, const double3& velocity);
@@ -463,7 +455,7 @@ class ChSystemDem_impl {
     /// Get the maximum stiffness term in the system.
     virtual double get_max_K() const;
 
-    /// This method defines the mass, time, length Simulation Units. 
+    /// This method defines the mass, time, length Simulation Units.
     /// It also sets several other constants that enter the scaling of various physical quantities set by the user.
     virtual void switchToSimUnits();
 
@@ -471,10 +463,7 @@ class ChSystemDem_impl {
     void combineMaterialSurface();
 
     /// Set the position function of a boundary condition and account for the offset.
-    void setBCOffset(const BC_type&,
-                     const BC_params_t<float, float3>& params_UU,
-                     BC_params_t<int64_t, int64_t3>& params_SU,
-                     double3 offset_UU);
+    void setBCOffset(const BC_type&, const BC_params_t<float, float3>& params_UU, BC_params_t<int64_t, int64_t3>& params_SU, double3 offset_UU);
 
     /// Update positions of each boundary condition using prescribed functions.
     void updateBCPositions();

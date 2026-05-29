@@ -64,12 +64,7 @@ __device__ void convert_pos_UU2SU(T3& pos, ChSystemDem_impl::GranParamsPtr gran_
 }
 
 /// Takes in a triangle ID and figures out an SD AABB for broadphase use
-__inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
-                                                   const float3& vB,
-                                                   const float3& vC,
-                                                   int* L,
-                                                   int* U,
-                                                   ChSystemDem_impl::GranParamsPtr gran_params) {
+__inline__ __device__ void triangle_figureOutSDBox(const float3& vA, const float3& vB, const float3& vC, int* L, int* U, ChSystemDem_impl::GranParamsPtr gran_params) {
     int64_t min_pt_x = MIN(vA.x, MIN(vB.x, vC.x));
     int64_t min_pt_y = MIN(vA.y, MIN(vB.y, vC.y));
     int64_t min_pt_z = MIN(vA.z, MIN(vB.z, vC.z));
@@ -109,12 +104,9 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
 
     // Transform LRF to GRF
     unsigned int fam = triangleSoup->triangleFamily_ID[triangleID];
-    vA = apply_frame_transform<float, float3>(triangleSoup->node1[triangleID], tri_params->fam_frame_broad[fam].pos,
-                                              tri_params->fam_frame_broad[fam].rot_mat);
-    vB = apply_frame_transform<float, float3>(triangleSoup->node2[triangleID], tri_params->fam_frame_broad[fam].pos,
-                                              tri_params->fam_frame_broad[fam].rot_mat);
-    vC = apply_frame_transform<float, float3>(triangleSoup->node3[triangleID], tri_params->fam_frame_broad[fam].pos,
-                                              tri_params->fam_frame_broad[fam].rot_mat);
+    vA = apply_frame_transform<float, float3>(triangleSoup->node1[triangleID], tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+    vB = apply_frame_transform<float, float3>(triangleSoup->node2[triangleID], tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+    vC = apply_frame_transform<float, float3>(triangleSoup->node3[triangleID], tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
 
     // Convert UU to SU
     convert_pos_UU2SU<float3>(vA, gran_params);
@@ -201,12 +193,9 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
     // Transform LRF to GRF
     unsigned int fam = triangleSoup->triangleFamily_ID[triangleID];
-    vA = apply_frame_transform<float, float3>(triangleSoup->node1[triangleID], tri_params->fam_frame_broad[fam].pos,
-                                              tri_params->fam_frame_broad[fam].rot_mat);
-    vB = apply_frame_transform<float, float3>(triangleSoup->node2[triangleID], tri_params->fam_frame_broad[fam].pos,
-                                              tri_params->fam_frame_broad[fam].rot_mat);
-    vC = apply_frame_transform<float, float3>(triangleSoup->node3[triangleID], tri_params->fam_frame_broad[fam].pos,
-                                              tri_params->fam_frame_broad[fam].rot_mat);
+    vA = apply_frame_transform<float, float3>(triangleSoup->node1[triangleID], tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+    vB = apply_frame_transform<float, float3>(triangleSoup->node2[triangleID], tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
+    vC = apply_frame_transform<float, float3>(triangleSoup->node3[triangleID], tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
 
     // Convert UU to SU
     convert_pos_UU2SU<float3>(vA, gran_params);
@@ -280,17 +269,15 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     }
 }
 
-__global__ void determineCountOfSDsTouchedByEachTriangle(
-    const ChSystemDemMesh_impl::TriangleSoupPtr d_triangleSoup,
-    unsigned int* Triangle_NumSDsTouching,
-    ChSystemDem_impl::GranParamsPtr gran_params,
-    ChSystemDemMesh_impl::MeshParamsPtr mesh_params) {
+__global__ void determineCountOfSDsTouchedByEachTriangle(const ChSystemDemMesh_impl::TriangleSoupPtr d_triangleSoup,
+                                                         unsigned int* Triangle_NumSDsTouching,
+                                                         ChSystemDem_impl::GranParamsPtr gran_params,
+                                                         ChSystemDemMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (myTriangleID < d_triangleSoup->nTrianglesInSoup) {
-        Triangle_NumSDsTouching[myTriangleID] =
-            triangle_countTouchedSDs(myTriangleID, d_triangleSoup, gran_params, mesh_params);
+        Triangle_NumSDsTouching[myTriangleID] = triangle_countTouchedSDs(myTriangleID, d_triangleSoup, gran_params, mesh_params);
     }
 }
 
@@ -316,9 +303,7 @@ __global__ void storeSDsTouchedByEachTriangle(const ChSystemDemMesh_impl::Triang
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (myTriangleID < d_triangleSoup->nTrianglesInSoup) {
-        triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup,
-                                     Triangle_SDsComposite + TriangleSDCompositeOffsets[myTriangleID], gran_params,
-                                     mesh_params);
+        triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup, Triangle_SDsComposite + TriangleSDCompositeOffsets[myTriangleID], gran_params, mesh_params);
         unsigned int numSDsTouched = Triangle_NumSDsTouching[myTriangleID];
         unsigned int offsetInComposite = TriangleSDCompositeOffsets[myTriangleID];
         for (unsigned int i = 0; i < numSDsTouched; i++) {

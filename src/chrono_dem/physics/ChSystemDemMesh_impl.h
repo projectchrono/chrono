@@ -127,11 +127,7 @@ class ChSystemDemMesh_impl : public ChSystemDem_impl {
     void combineMaterialSurface();
 
     /// Apply rigid body motion to specified mesh.
-    void ApplyMeshMotion(unsigned int mesh_id,
-                         const double* pos,
-                         const double* rot,
-                         const double* lin_vel,
-                         const double* ang_vel);
+    void ApplyMeshMotion(unsigned int mesh_id, const double* pos, const double* rot, const double* lin_vel, const double* ang_vel);
 
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();

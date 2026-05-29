@@ -27,21 +27,18 @@ using chrono::dem::CHDEM_ROLLING_MODE;
 
 // Print a user-given error message and crash
 #include "chrono/gpu/ChGpuRuntime.h"
-#define ABORTABORTABORT(...)      \
-    {                             \
-        printf(__VA_ARGS__);      \
-        __threadfence();          \
-        CHGPU_DEVICE_ABORT();     \
+#define ABORTABORTABORT(...)  \
+    {                         \
+        printf(__VA_ARGS__);  \
+        __threadfence();      \
+        CHGPU_DEVICE_ABORT(); \
     }
 
 #define CHDEM_DEBUG_PRINTF(...) printf(__VA_ARGS__)
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
-inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
-                                      int64_t sphCenter_Y,
-                                      int64_t sphCenter_Z,
-                                      ChSystemDem_impl::GranParamsPtr gran_params) {
+inline __device__ int3 pointSDTriplet(int64_t sphCenter_X, int64_t sphCenter_Y, int64_t sphCenter_Z, ChSystemDem_impl::GranParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
 
     int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
@@ -60,20 +57,14 @@ inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
 
 // Decide which SD owns this point in space
 // Short form overload for regular ints
-inline __device__ int3 pointSDTriplet(int sphCenter_X,
-                                      int sphCenter_Y,
-                                      int sphCenter_Z,
-                                      ChSystemDem_impl::GranParamsPtr gran_params) {
+inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ChSystemDem_impl::GranParamsPtr gran_params) {
     // call the 64-bit overload
     return pointSDTriplet((int64_t)sphCenter_X, (int64_t)sphCenter_Y, (int64_t)sphCenter_Z, gran_params);
 }
 
 // Decide which SD owns this point in space
 // overload for doubles (used in triangle code)
-inline __device__ int3 pointSDTriplet(double sphCenter_X,
-                                      double sphCenter_Y,
-                                      double sphCenter_Z,
-                                      ChSystemDem_impl::GranParamsPtr gran_params) {
+inline __device__ int3 pointSDTriplet(double sphCenter_X, double sphCenter_Y, double sphCenter_Z, ChSystemDem_impl::GranParamsPtr gran_params) {
     // call the 64-bit overload
     return pointSDTriplet((int64_t)sphCenter_X, (int64_t)sphCenter_Y, (int64_t)sphCenter_Z, gran_params);
 }
@@ -102,10 +93,7 @@ inline __host__ __device__ int3 SDIDTriplet(unsigned int SD_ID, ChSystemDem_impl
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const int i,
-                                           const int j,
-                                           const int k,
-                                           ChSystemDem_impl::GranParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int i, const int j, const int k, ChSystemDem_impl::GranParamsPtr gran_params) {
     // if we're outside the BD in any direction, this is an invalid SD
     if (i < 0 || i >= gran_params->nSDs_X) {
         return NULL_CHDEM_ID;
@@ -134,7 +122,6 @@ inline __device__ size_t findContactPairInfo(ChSystemDem_impl::GranSphereDataPtr
                                              ChSystemDem_impl::GranParamsPtr gran_params,
                                              unsigned int body_A,
                                              unsigned int body_B) {
-
     // TODO this should be size_t everywhere
     size_t body_A_offset = (size_t)MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
     // first skim through and see if this contact pair is in the map
@@ -154,8 +141,7 @@ inline __device__ size_t findContactPairInfo(ChSystemDem_impl::GranSphereDataPtr
         if (sphere_data->contact_partners_map[contact_index] == NULL_CHDEM_ID || sphere_data->contact_partners_map[contact_index] == body_B) {
             // claim this slot for ourselves, atomically
             // if the CAS returns NULL_CHDEM_ID, it means that the spot was free and we claimed it
-            unsigned int body_B_returned =
-                atomicCAS(sphere_data->contact_partners_map + contact_index, NULL_CHDEM_ID, body_B);
+            unsigned int body_B_returned = atomicCAS(sphere_data->contact_partners_map + contact_index, NULL_CHDEM_ID, body_B);
             // did we get the spot? if so, claim it
             if (NULL_CHDEM_ID == body_B_returned || body_B == body_B_returned) {
                 // make sure this contact is marked active
@@ -171,21 +157,16 @@ inline __device__ size_t findContactPairInfo(ChSystemDem_impl::GranSphereDataPtr
     return NULL_CHDEM_ID;  // shouldn't get here anyways
 }
 
-
 inline __device__ bool checkLocalPointInSD(const int3& point, ChSystemDem_impl::GranParamsPtr gran_params) {
     // TODO verify that this is correct
     // TODO optimize me
     bool ret = (point.x >= 0) && (point.y >= 0) && (point.z >= 0);
-    ret = ret && (point.x <= gran_params->SD_size_X_SU) && (point.y <= gran_params->SD_size_Y_SU) &&
-          (point.z <= gran_params->SD_size_Z_SU);
+    ret = ret && (point.x <= gran_params->SD_size_X_SU) && (point.y <= gran_params->SD_size_Y_SU) && (point.z <= gran_params->SD_size_Z_SU);
     return ret;
 }
 
 // in integer, check whether a pair of spheres is in contact
-inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
-                                                  const int3& sphereB_pos,
-                                                  unsigned int thisSD,
-                                                  ChSystemDem_impl::GranParamsPtr gran_params) {
+inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos, const int3& sphereB_pos, unsigned int thisSD, ChSystemDem_impl::GranParamsPtr gran_params) {
     // Compute penetration to check for collision, we can use ints provided the diameter is small enough
     int64_t penetration_int = 0;
 
@@ -226,8 +207,7 @@ inline __device__ float3 computeRollingAngAcc(ChSystemDem_impl::GranSphereDataPt
                                               const float3& r_contact) {
     float3 delta_Ang_Acc = {0., 0., 0.};
 
-    if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS &&
-        gran_params->rolling_mode != CHDEM_ROLLING_MODE::NO_RESISTANCE) {
+    if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS && gran_params->rolling_mode != CHDEM_ROLLING_MODE::NO_RESISTANCE) {
         float3 omega_rel = their_omega - my_omega;
 
         switch (gran_params->rolling_mode) {
@@ -265,12 +245,10 @@ inline __device__ float3 computeRollingAngAcc(ChSystemDem_impl::GranSphereDataPt
 
 // Compute single-step friction displacement
 // set delta_t for the displacement
-inline __device__ void computeSingleStepDisplacement(ChSystemDem_impl::GranParamsPtr gran_params,
-                                                     const float3& rel_vel,
-                                                     float3& delta_t) {
+inline __device__ void computeSingleStepDisplacement(ChSystemDem_impl::GranParamsPtr gran_params, const float3& rel_vel, float3& delta_t) {
     delta_t = rel_vel * gran_params->stepSize_SU;
     float ut = Length(delta_t);
-}    
+}
 
 // Compute multi-step friction displacement
 // set delta_t for the displacement
@@ -280,7 +258,6 @@ inline __device__ void computeMultiStepDisplacement(ChSystemDem_impl::GranParams
                                                     const float3& vrel_t,
                                                     const float3& contact_normal,
                                                     float3& delta_t) {
-    
     // get the tangential displacement so far
     delta_t = sphere_data->contact_history_map[contact_id];
 
@@ -294,8 +271,6 @@ inline __device__ void computeMultiStepDisplacement(ChSystemDem_impl::GranParams
     sphere_data->contact_history_map[contact_id] = delta_t;
 }
 
-
-
 inline __device__ void updateMultiStepDisplacement(ChSystemDem_impl::GranSphereDataPtr sphere_data,
                                                    const size_t& contact_index,
                                                    const float3& vrel_t,
@@ -306,18 +281,17 @@ inline __device__ void updateMultiStepDisplacement(ChSystemDem_impl::GranSphereD
                                                    const float force_model_multiplier,
                                                    const float3& tangent_force) {
     // Reverse engineer the delta_t from the clamped force and update the map
-    sphere_data->contact_history_map[contact_index] =
-        ((tangent_force / force_model_multiplier) + gamma_t * m_eff * vrel_t) / -k_t;
+    sphere_data->contact_history_map[contact_index] = ((tangent_force / force_model_multiplier) + gamma_t * m_eff * vrel_t) / -k_t;
 }
 
 inline __device__ void updateMultiStepDisplacement_matBased(ChSystemDem_impl::GranSphereDataPtr sphere_data,
-                                                    const size_t& contact_index,
-                                                    const float3& vrel_t,
-                                                    const float kt,
-                                                    const float gt,
-                                                    const float3& tangent_force) {
-     // Reverse engineer the delta_t from the clamped force and update the map 
-     sphere_data->contact_history_map[contact_index] = (tangent_force + gt * vrel_t) / -kt;
+                                                            const size_t& contact_index,
+                                                            const float3& vrel_t,
+                                                            const float kt,
+                                                            const float gt,
+                                                            const float3& tangent_force) {
+    // Reverse engineer the delta_t from the clamped force and update the map
+    sphere_data->contact_history_map[contact_index] = (tangent_force + gt * vrel_t) / -kt;
 }
 
 // compute friction forces for a contact
@@ -358,8 +332,7 @@ inline __device__ float3 computeFrictionForces(ChSystemDem_impl::GranParamsPtr g
         // Scale tangent_force to coulomb condition and use stiffness portion of that to clamp displacement
         tangent_force = tangent_force * ft_max / ft;  // TODO stability
         if (gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
-            updateMultiStepDisplacement(sphere_data, contact_index, vrel_t, contact_normal, k_t, gamma_t, m_eff,
-                                        force_model_multiplier, tangent_force);
+            updateMultiStepDisplacement(sphere_data, contact_index, vrel_t, contact_normal, k_t, gamma_t, m_eff, force_model_multiplier, tangent_force);
         }
     }
 
@@ -386,11 +359,11 @@ inline __device__ float3 computeFrictionForces_matBased(ChSystemDem_impl::GranPa
     computeMultiStepDisplacement(gran_params, sphere_data, contact_index, vrel_t, contact_normal, delta_t);
     // evaluate kt and gt
     float kt = 8. * G_eff * sqrt_Rd;
-    float gt = -2. * beta *  std::sqrt(5./6. * m_eff * kt);
+    float gt = -2. * beta * std::sqrt(5. / 6. * m_eff * kt);
 
     // float3 tangent_force =  - kt * delta_t - gt * vrel_t; // this works for sph-sph and sph-bc contact
 
-    float3 tangent_force =  -kt * delta_t - gt * vrel_t;
+    float3 tangent_force = -kt * delta_t - gt * vrel_t;
 
     const float ft = Length(tangent_force);  // could be small
 
@@ -407,7 +380,7 @@ inline __device__ float3 computeFrictionForces_matBased(ChSystemDem_impl::GranPa
     if (ft > ft_max) {
         // Scale tangent_force to coulomb condition and use stiffness portion of that to clamp displacement
         tangent_force = tangent_force * ft_max / ft;  // TODO stability
-            updateMultiStepDisplacement_matBased(sphere_data, contact_index, vrel_t, kt, gt, tangent_force);
+        updateMultiStepDisplacement_matBased(sphere_data, contact_index, vrel_t, kt, gt, tangent_force);
     }
 
     // float velo_unit = gran_params->LENGTH_UNIT/gran_params->TIME_UNIT;
@@ -417,13 +390,12 @@ inline __device__ float3 computeFrictionForces_matBased(ChSystemDem_impl::GranPa
     // float damp_unit = gran_params->MASS_UNIT/gran_params->TIME_UNIT;
 
     // printf("%e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e\n", ft_max * force_unit,
-    // tangent_force.x * force_unit, tangent_force.y * force_unit, tangent_force.z * force_unit, kt * stiffness_unit, 
-    // delta_t.x * len_unit, delta_t.y * len_unit, delta_t.z * len_unit, gt * damp_unit, 
+    // tangent_force.x * force_unit, tangent_force.y * force_unit, tangent_force.z * force_unit, kt * stiffness_unit,
+    // delta_t.x * len_unit, delta_t.y * len_unit, delta_t.z * len_unit, gt * damp_unit,
     // vrel_t.x * velo_unit, vrel_t.y * velo_unit, vrel_t.z * velo_unit);
 
     return tangent_force;
 }
-
 
 // overload for if the body ids are given rather than contact id
 inline __device__ float3 computeFrictionForces(ChSystemDem_impl::GranParamsPtr gran_params,
@@ -444,26 +416,23 @@ inline __device__ float3 computeFrictionForces(ChSystemDem_impl::GranParamsPtr g
     if (gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
         contact_id = findContactPairInfo(sphere_data, gran_params, body_A_index, body_B_index);
     }
-    return computeFrictionForces(gran_params, sphere_data, contact_id, static_friction_coeff, k_t, gamma_t,
-                                 force_model_multiplier, m_eff, normal_force, rel_vel, contact_normal);
-
-
+    return computeFrictionForces(gran_params, sphere_data, contact_id, static_friction_coeff, k_t, gamma_t, force_model_multiplier, m_eff, normal_force, rel_vel, contact_normal);
 }
 
 // overload for if the body ids are given rather than contact id (for sphere-wall contact)
 inline __device__ float3 computeFrictionForces_matBased(ChSystemDem_impl::GranParamsPtr gran_params,
-                                               ChSystemDem_impl::GranSphereDataPtr sphere_data,
-                                               unsigned int body_A_index,
-                                               unsigned int body_B_index,
-                                               float static_friction_coeff,
-                                               float E_eff,
-                                               float G_eff,
-                                               float sqrt_Rd,
-                                               float beta,
-                                               const float3& normal_force,
-                                               const float3& rel_vel,
-                                               const float3& contact_normal,
-                                               const float m_eff) {
+                                                        ChSystemDem_impl::GranSphereDataPtr sphere_data,
+                                                        unsigned int body_A_index,
+                                                        unsigned int body_B_index,
+                                                        float static_friction_coeff,
+                                                        float E_eff,
+                                                        float G_eff,
+                                                        float sqrt_Rd,
+                                                        float beta,
+                                                        const float3& normal_force,
+                                                        const float3& rel_vel,
+                                                        const float3& contact_normal,
+                                                        const float m_eff) {
     size_t contact_id = 0;
 
     // if multistep, compute contact id, otherwise we don't care anyways
