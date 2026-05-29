@@ -82,8 +82,7 @@ struct SphMarkerDataD {
     thrust::device_vector<Real4> rhoPresMuD;  ///< Vector of the rho+pressure+mu+type of particles
     thrust::device_vector<Real3> tauXxYyZzD;  ///< Vector of the total stress (diagonal) of particles
     thrust::device_vector<Real3> tauXyXzYzD;  ///< Vector of the total stress (off-diagonal) of particles
-    thrust::device_vector<Real3>
-        pcEvSvD;  ///< Vector of the compressive pressure, volumetric strain rate, and specific volume of particles
+    thrust::device_vector<Real3> pcEvSvD;     ///< Vector of the compressive pressure, volumetric strain rate, and specific volume of particles
 
     zipIterSphD iterator(int offset);
     void resize(size_t s);
@@ -96,8 +95,7 @@ struct SphMarkerDataH {
     thrust::host_vector<Real4> rhoPresMuH;  ///< Vector of the rho+pressure+mu+type of particles
     thrust::host_vector<Real3> tauXxYyZzH;  ///< Vector of the total stress (diagonal) of particles
     thrust::host_vector<Real3> tauXyXzYzH;  ///< Vector of the total stress (off-diagonal) of particles
-    thrust::host_vector<Real3>
-        pcEvSvH;  ///< Vector of the compressive pressure, volumetric strain rate, and specific volume of particles
+    thrust::host_vector<Real3> pcEvSvH;     ///< Vector of the compressive pressure, volumetric strain rate, and specific volume of particles
     zipIterSphH iterator(int offset);
     void resize(size_t s);
 };
@@ -176,20 +174,19 @@ struct FsiMeshStateD {
 
 /// Struct to store neighbor search information on the device.
 struct ProximityDataD {
-    thrust::device_vector<uint> gridMarkerHashD;   ///< gridMarkerHash=s(i,j,k)= k*n_x*n_y + j*n_x + i (numAllMarkers);
-    thrust::device_vector<uint> gridMarkerIndexD;  ///< Marker's index, can be original or sorted (numAllMarkers);
-    thrust::device_vector<uint> cellStartD;  ///< Index of the particle starts a cell in sorted list (m_numGridCells)
-    thrust::device_vector<uint> cellEndD;    ///< Index of the particle ends a cell in sorted list (m_numGridCells)
-    thrust::device_vector<uint>
-        mapOriginalToSorted;  ///< Index mapping from the original to the sorted (numAllMarkers);
+    thrust::device_vector<uint> gridMarkerHashD;      ///< gridMarkerHash=s(i,j,k)= k*n_x*n_y + j*n_x + i (numAllMarkers);
+    thrust::device_vector<uint> gridMarkerIndexD;     ///< Marker's index, can be original or sorted (numAllMarkers);
+    thrust::device_vector<uint> cellStartD;           ///< Index of the particle starts a cell in sorted list (m_numGridCells)
+    thrust::device_vector<uint> cellEndD;             ///< Index of the particle ends a cell in sorted list (m_numGridCells)
+    thrust::device_vector<uint> mapOriginalToSorted;  ///< Index mapping from the original to the sorted (numAllMarkers);
 
     void resize(size_t s);
 };
 
-/// Struct to store CUDA device information.
-struct CudaDeviceInfo {
-    int deviceID;               ///< CUDA device ID
-    cudaDeviceProp deviceProp;  ///< CUDA device properties
+/// Struct to store GPU device information.
+struct GPUDeviceInfo {
+    int deviceID;              ///< GPU device ID
+    gpuDeviceProp deviceProp;  ///< GPU device properties
 };
 
 // -----------------------------------------------------------------------------
@@ -238,14 +235,7 @@ struct FsiDataManager {
     void SetGrowthFactor(float factor) { GROWTH_FACTOR = factor; }
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress.
-    void AddSphParticle(Real3 pos,
-                        Real rho,
-                        Real pres,
-                        Real mu,
-                        Real3 vel = mR3(0.0),
-                        Real3 tauXxYyZz = mR3(0.0),
-                        Real3 tauXyXzYz = mR3(0.0),
-                        Real pc = 1e3);
+    void AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel = mR3(0.0), Real3 tauXxYyZz = mR3(0.0), Real3 tauXyXzYz = mR3(0.0), Real pc = 1e3);
 
     /// Add a BCE marker of given type at the specified position and with specified velocity.
     void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);
@@ -260,11 +250,7 @@ struct FsiDataManager {
                     NodeDirections node_directions_mode);
 
     /// Find indices of all SPH particles inside the specified OBB.
-    std::vector<int> FindParticlesInBox(const Real3& hsize,
-                                        const Real3& pos,
-                                        const Real3& ax,
-                                        const Real3& ay,
-                                        const Real3& az);
+    std::vector<int> FindParticlesInBox(const Real3& hsize, const Real3& pos, const Real3& ax, const Real3& ay, const Real3& az);
 
     /// Extract positions of all markers (SPH and BCE).
     std::vector<Real3> GetPositions();
@@ -307,11 +293,7 @@ struct FsiDataManager {
     std::vector<Real3> GetFlex2dForces();
 
     void ConstructReferenceArray();
-    void SetCounters(unsigned int num_fsi_bodies,
-                     unsigned int num_fsi_nodes1D,
-                     unsigned int num_fsi_elements1D,
-                     unsigned int num_fsi_nodes2D,
-                     unsigned int num_fsi_elements2D);
+    void SetCounters(unsigned int num_fsi_bodies, unsigned int num_fsi_nodes1D, unsigned int num_fsi_elements1D, unsigned int num_fsi_nodes2D, unsigned int num_fsi_elements2D);
 
     /// Reset device data at beginning of a step.
     /// Initializes device vectors to zero.
@@ -325,7 +307,7 @@ struct FsiDataManager {
 
     // ------------------------
 
-    std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
+    std::shared_ptr<GPUDeviceInfo> gpuDeviceInfo;  ///< GPU device information
 
     std::shared_ptr<ChFsiParamsSPH> paramsH;  ///< simulation parameters (host)
     std::shared_ptr<Counters> countersH;      ///< problem counters (host)

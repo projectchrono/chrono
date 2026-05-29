@@ -19,24 +19,19 @@
 #ifndef CH_SPH_GENERAL_CUH
 #define CH_SPH_GENERAL_CUH
 
-#if __has_include("chrono_fsi/sph/ChSphGpuRuntime.h")
-  #include "chrono_fsi/sph/ChSphGpuRuntime.h"
-#else
-  #include <cuda.h>
-  #include <cuda_runtime.h>
-  #include <cuda_runtime_api.h>
-#endif
+#include <memory>
+
 #if defined(__CUDACC__)
-  #include <device_launch_parameters.h>
+    #include <device_launch_parameters.h>
 #endif
 
-#include <memory>
+#include "chrono/gpu/ChGpuRuntime.h"
 
 #include "chrono_fsi/sph/ChFsiParamsSPH.h"
 #include "chrono_fsi/sph/math/SphCustomMath.cuh"
 
 #if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
-  #include "chrono_fsi/sph/physics/SphDataManager.cuh"
+    #include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #endif
 
 namespace chrono {
@@ -48,12 +43,23 @@ namespace sph {
 
 struct Counters;
 
-//--------------------------------------------------------------------------------------------------------------------------------
-
-// Declared as const variables static in order to be able to use them in a different translation units in the utils
+// Declared as static device constants so each GPU translation unit gets the
+// symbol used by the kernels compiled in that translation unit.
+//
+// CUDA accepted this pattern in the original code. HIP needs each TU-local
+// symbol initialized explicitly; the CopyParametersToDevice_* functions below
+// do that without relying on cross-TU device symbols or RDC.
 __constant__ static ChFsiParamsSPH paramsD;
 #if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 __constant__ static Counters countersD;
+#endif
+
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphCollisionSystem(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphForceWCSPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice_SphForceISPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 #endif
 
 void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
@@ -223,8 +229,8 @@ inline __host__ __device__ Real3 GradW3h(KernelType type, Real3 d, Real invh) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-
 // Fluid equation of state
+
 inline __device__ Real Eos(Real rho, EosType eos_type) {
     switch (eos_type) {
         case EosType::TAIT: {
@@ -251,8 +257,7 @@ inline __device__ Real InvEos(Real pw, EosType eos_type) {
             Real gama = 7;
             Real B = paramsD.rho0 * paramsD.Cs * paramsD.Cs / gama;
             Real powerComp = (pw - paramsD.base_pressure) / B + 1.0;
-            Real rho = (powerComp > 0) ? paramsD.rho0 * pow(powerComp, 1.0 / gama)
-                                       : -paramsD.rho0 * pow(fabs(powerComp), 1.0 / gama);
+            Real rho = (powerComp > 0) ? paramsD.rho0 * pow(powerComp, 1.0 / gama) : -paramsD.rho0 * pow(fabs(powerComp), 1.0 / gama);
             return rho;
         }
 
@@ -265,8 +270,8 @@ inline __device__ Real InvEos(Real pw, EosType eos_type) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-
 // FerrariCi
+
 __device__ inline Real FerrariCi(Real rho) {
     int gama = 7;
     Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
@@ -274,6 +279,7 @@ __device__ inline Real FerrariCi(Real rho) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
 __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
     Real3 dist3 = a - b;
     b.x += ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
@@ -309,15 +315,13 @@ __device__ inline void RotationMatrixFromQuaternion(Real3& AD1, Real3& AD2, Real
     AD2 = 2 * mR3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
     AD3 = 2 * mR3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
 }
+
 //--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3& A1,
-                                                                   const Real3& A2,
-                                                                   const Real3& A3,
-                                                                   const Real3& r3) {
-    return mR3(A1.x * r3.x + A2.x * r3.y + A3.x * r3.z, A1.y * r3.x + A2.y * r3.y + A3.y * r3.z,
-               A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
+
+__device__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3& A1, const Real3& A2, const Real3& A3, const Real3& r3) {
+    return mR3(A1.x * r3.x + A2.x * r3.y + A3.x * r3.z, A1.y * r3.x + A2.y * r3.y + A3.y * r3.z, A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 __device__ inline int3 calcGridPos(Real3 p) {
     int3 gridPos;
 
@@ -326,29 +330,26 @@ __device__ inline int3 calcGridPos(Real3 p) {
     gridPos.z = (int)floor((p.z - paramsD.worldOrigin.z) / (paramsD.cellSize.z));
     return gridPos;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-__device__ inline uint calcGridHash(int3 gridPos) {
-    gridPos.x = (gridPos.x >= paramsD.gridSize.x && paramsD.x_periodic) ? gridPos.x - paramsD.gridSize.x : 
-                 (gridPos.x >= paramsD.gridSize.x && !paramsD.x_periodic) ? paramsD.gridSize.x - 1 : gridPos.x;
-    gridPos.y = (gridPos.y >= paramsD.gridSize.y && paramsD.y_periodic) ? gridPos.y - paramsD.gridSize.y : 
-                 (gridPos.y >= paramsD.gridSize.y && !paramsD.y_periodic) ? paramsD.gridSize.y - 1 : gridPos.y;
-    gridPos.z = (gridPos.z >= paramsD.gridSize.z && paramsD.z_periodic) ? gridPos.z - paramsD.gridSize.z : 
-                 (gridPos.z >= paramsD.gridSize.z && !paramsD.z_periodic) ? paramsD.gridSize.z - 1 : gridPos.z;
 
-    gridPos.x = (gridPos.x < 0 && paramsD.x_periodic) ? gridPos.x + paramsD.gridSize.x : 
-                 (gridPos.x < 0 && !paramsD.x_periodic) ? 0 : gridPos.x;
-    gridPos.y = (gridPos.y < 0 && paramsD.y_periodic) ? gridPos.y + paramsD.gridSize.y : 
-                 (gridPos.y < 0 && !paramsD.y_periodic) ? 0 : gridPos.y;
-    gridPos.z = (gridPos.z < 0 && paramsD.z_periodic) ? gridPos.z + paramsD.gridSize.z : 
-                 (gridPos.z < 0 && !paramsD.z_periodic) ? 0 : gridPos.z;
+__device__ inline uint calcGridHash(int3 gridPos) {
+    gridPos.x = (gridPos.x >= paramsD.gridSize.x && paramsD.x_periodic)    ? gridPos.x - paramsD.gridSize.x
+                : (gridPos.x >= paramsD.gridSize.x && !paramsD.x_periodic) ? paramsD.gridSize.x - 1
+                                                                           : gridPos.x;
+    gridPos.y = (gridPos.y >= paramsD.gridSize.y && paramsD.y_periodic)    ? gridPos.y - paramsD.gridSize.y
+                : (gridPos.y >= paramsD.gridSize.y && !paramsD.y_periodic) ? paramsD.gridSize.y - 1
+                                                                           : gridPos.y;
+    gridPos.z = (gridPos.z >= paramsD.gridSize.z && paramsD.z_periodic)    ? gridPos.z - paramsD.gridSize.z
+                : (gridPos.z >= paramsD.gridSize.z && !paramsD.z_periodic) ? paramsD.gridSize.z - 1
+                                                                           : gridPos.z;
+
+    gridPos.x = (gridPos.x < 0 && paramsD.x_periodic) ? gridPos.x + paramsD.gridSize.x : (gridPos.x < 0 && !paramsD.x_periodic) ? 0 : gridPos.x;
+    gridPos.y = (gridPos.y < 0 && paramsD.y_periodic) ? gridPos.y + paramsD.gridSize.y : (gridPos.y < 0 && !paramsD.y_periodic) ? 0 : gridPos.y;
+    gridPos.z = (gridPos.z < 0 && paramsD.z_periodic) ? gridPos.z + paramsD.gridSize.z : (gridPos.z < 0 && !paramsD.z_periodic) ? 0 : gridPos.z;
 
     return gridPos.z * paramsD.gridSize.y * paramsD.gridSize.x + gridPos.y * paramsD.gridSize.x + gridPos.x;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
-
 //// TODO (Huzaifa) check type consistency
-
 __device__ inline uint calcCellID(uint3 cellPos) {
     if (cellPos.x < paramsD.gridSize.x && cellPos.y < paramsD.gridSize.y && cellPos.z < paramsD.gridSize.z) {
         return cellPos.z * paramsD.gridSize.x * paramsD.gridSize.y + cellPos.y * paramsD.gridSize.x + cellPos.x;
@@ -358,7 +359,6 @@ __device__ inline uint calcCellID(uint3 cellPos) {
     }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline uint getCellPos(int trialCellPos, uint ub) {
     if (trialCellPos >= 0 && trialCellPos < ub) {
         return (uint)trialCellPos;
@@ -370,7 +370,6 @@ __device__ inline uint getCellPos(int trialCellPos, uint ub) {
     return (uint)trialCellPos;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
 inline __device__ uint getCenterCellID(const uint* numPartsInCenterCells, const uint threadID) {
     uint offsets[9] = {0};
     for (int i = 0; i < 8; ++i) {
@@ -391,7 +390,6 @@ inline __device__ uint getCenterCellID(const uint* numPartsInCenterCells, const 
     return left - 1;
 }
 
-// -------------------------------------------------------------------------------------------------------------------------------
 inline __device__ Real Strain_Rate(Real3 grad_ux, Real3 grad_uy, Real3 grad_uz) {
     grad_ux.y = (grad_uy.x + grad_ux.y) * 0.5;
     grad_ux.z = (grad_uz.x + grad_ux.z) * 0.5;
@@ -409,7 +407,6 @@ inline __device__ Real Strain_Rate(Real3 grad_ux, Real3 grad_uy, Real3 grad_uz) 
     );
 }
 
-// -------------------------------------------------------------------------------------------------------------------------------
 inline __device__ Real Tensor_Norm(Real* T) {
     return sqrt(                                          //
         0.5 * (T[0] * T[0] + T[1] * T[1] + T[2] * T[2] +  //
@@ -417,18 +414,17 @@ inline __device__ Real Tensor_Norm(Real* T) {
                T[6] * T[6] + T[7] * T[7] + T[8] * T[8])   //
     );
 }
-// -------------------------------------------------------------------------------------------------------------------------------
+
 inline __device__ Real Sym_Tensor_Norm(Real3 xx_yy_zz, Real3 xy_xz_yz) {
-    return sqrt(0.5 * (xx_yy_zz.x * xx_yy_zz.x + xx_yy_zz.y * xx_yy_zz.y + xx_yy_zz.z * xx_yy_zz.z +
-                       2 * xy_xz_yz.x * xy_xz_yz.x + 2 * xy_xz_yz.y * xy_xz_yz.y + 2 * xy_xz_yz.z * xy_xz_yz.z));
+    return sqrt(0.5 * (xx_yy_zz.x * xx_yy_zz.x + xx_yy_zz.y * xx_yy_zz.y + xx_yy_zz.z * xx_yy_zz.z + 2 * xy_xz_yz.x * xy_xz_yz.x + 2 * xy_xz_yz.y * xy_xz_yz.y +
+                       2 * xy_xz_yz.z * xy_xz_yz.z));
 }
-// -------------------------------------------------------------------------------------------------------------------------------
+
 inline __device__ Real Inertia_num(Real Strain_rate, Real rho, Real p, Real diam) {
     Real I = Strain_rate * diam * sqrt(rho / rmaxr(p, EPSILON));
     return rminr(1e3, I);
 }
 
-// -------------------------------------------------------------------------------------------------------------------------------
 inline __device__ Real mu_I(Real Strain_rate, Real I) {
     Real mu = 0;
     if (paramsD.mu_of_I == FrictionLaw::CONSTANT)
@@ -440,31 +436,24 @@ inline __device__ Real mu_I(Real Strain_rate, Real I) {
 
     return mu;
 }
-// -------------------------------------------------------------------------------------------------------------------------------
+
 inline __device__ Real mu_eff(Real Strain_rate, Real p, Real mu_I) {
     return rmaxr(mu_I * rmaxr(p, 0.0) / Strain_rate, paramsD.mu_max);
 }
 
-// -------------------------------------------------------------------------------------------------------------------------------
 inline __device__ Real Herschel_Bulkley_stress(Real Strain_rate, Real k, Real n, Real tau0) {
     Real tau = tau0 + k * pow(Strain_rate, n);
     return tau;
 }
-// -------------------------------------------------------------------------------------------------------------------------------
+
 inline __device__ Real Herschel_Bulkley_mu_eff(Real Strain_rate, Real k, Real n, Real tau0) {
     Real mu_eff = tau0 / Strain_rate + k * pow(Strain_rate, n - 1);
     return rminr(mu_eff, paramsD.mu_max);
 }
-// -------------------------------------------------------------------------------------------------------------------------------
-__global__ void calc_A_tensor(Real* A_tensor,
-                              Real* G_tensor,
-                              Real4* sortedPosRad,
-                              Real4* sortedRhoPreMu,
-                              Real* sumWij_inv,
-                              uint* cellStart,
-                              uint* cellEnd,
-                              volatile bool* error_flag);
-//--------------------------------------------------------------------------------------------------------------------------------
+
+__global__ void
+calc_A_tensor(Real* A_tensor, Real* G_tensor, Real4* sortedPosRad, Real4* sortedRhoPreMu, Real* sumWij_inv, uint* cellStart, uint* cellEnd, volatile bool* error_flag);
+
 __global__ void calc_L_tensor(Real* A_tensor,
                               Real* L_tensor,
                               Real* G_tensor,
@@ -475,7 +464,6 @@ __global__ void calc_L_tensor(Real* A_tensor,
                               uint* cellEnd,
                               volatile bool* error_flag);
 
-//--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calcRho_kernel(Real4* sortedPosRad,  // input: sorted positionsmin(
                                Real4* sortedRhoPreMu,
                                Real* sumWij_inv,
@@ -483,7 +471,6 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,  // input: sorted positionsm
                                const uint* mynumContacts,
                                volatile bool* error_flag);
 
-//--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  // input: sorted positions
                                                          Real3* sortedVelMas,
                                                          Real4* sortedRhoPreMu,
@@ -493,7 +480,7 @@ __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  /
                                                          const uint* csrColInd,
                                                          const uint* numContacts,
                                                          volatile bool* error_flag);
-//--------------------------------------------------------------------------------------------------------------------------------
+
 __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // input: sorted positions
                                                      Real3* sortedVelMas,
                                                      Real4* sortedRhoPreMu,
@@ -506,7 +493,7 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
                                                      uint* csrColInd,
                                                      uint* numContacts,
                                                      volatile bool* error_flag);
-//--------------------------------------------------------------------------------------------------------------------------------
+
 __global__ void Jacobi_SOR_Iter(Real4* sortedRhoPreMu,
                                 Real* A_Matrix,
                                 Real3* V_old,
@@ -519,23 +506,11 @@ __global__ void Jacobi_SOR_Iter(Real4* sortedRhoPreMu,
                                 const uint* numContacts,
                                 bool _3dvector,
                                 volatile bool* error_flag);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu,
-                                    Real3* V_old,
-                                    Real3* V_new,
-                                    Real* q_old,
-                                    Real* q_new,
-                                    Real* Residuals,
-                                    bool _3dvector,
-                                    volatile bool* error_flag);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Initialize_Variables(Real4* sortedRhoPreMu,
-                                     Real* p_old,
-                                     Real3* sortedVelMas,
-                                     Real3* V_new,
-                                     volatile bool* error_flag);
 
-//--------------------------------------------------------------------------------------------------------------------------------
+__global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu, Real3* V_old, Real3* V_new, Real* q_old, Real* q_new, Real* Residuals, bool _3dvector, volatile bool* error_flag);
+
+__global__ void Initialize_Variables(Real4* sortedRhoPreMu, Real* p_old, Real3* sortedVelMas, Real3* V_new, volatile bool* error_flag);
+
 __global__ void UpdateDensity(Real3* vis_vel,
                               Real3* XSPH_Vel,
                               Real3* new_vel,       // Write

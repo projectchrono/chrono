@@ -33,6 +33,16 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
+    gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuCheckError();
+    gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
+    gpuCheckError();
+}
+
+#endif
+
 SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors) {
     collisionSystem = chrono_types::make_shared<SphCollisionSystem>(data_mgr);
@@ -42,19 +52,19 @@ SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, SphBceManager& bce_
     else
         forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, bce_mgr, verbose, m_check_errors);
 
-    cudaStreamCreate(&m_copy_stream);
+    gpuStreamCreate(&m_copy_stream);
 }
 
 SphFluidDynamics::~SphFluidDynamics() {
-    cudaStreamDestroy(m_copy_stream);
+    gpuStreamDestroy(m_copy_stream);
 }
 
 // -----------------------------------------------------------------------------
 
 void SphFluidDynamics::Initialize() {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
-    cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(ChFsiParamsSPH));
 
     forceSystem->Initialize();
     collisionSystem->Initialize();
@@ -69,14 +79,10 @@ void SphFluidDynamics::ProximitySearch() {
 
 // -----------------------------------------------------------------------------
 
-void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
-                                         std::shared_ptr<SphMarkerDataD>& out) {
-    thrust::copy(in->posRadD.begin(), in->posRadD.begin() + m_data_mgr.countersH->numExtendedParticles,
-                 out->posRadD.begin());
-    thrust::copy(in->velMasD.begin(), in->velMasD.begin() + m_data_mgr.countersH->numExtendedParticles,
-                 out->velMasD.begin());
-    thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.begin() + m_data_mgr.countersH->numExtendedParticles,
-                 out->rhoPresMuD.begin());
+void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in, std::shared_ptr<SphMarkerDataD>& out) {
+    thrust::copy(in->posRadD.begin(), in->posRadD.begin() + m_data_mgr.countersH->numExtendedParticles, out->posRadD.begin());
+    thrust::copy(in->velMasD.begin(), in->velMasD.begin() + m_data_mgr.countersH->numExtendedParticles, out->velMasD.begin());
+    thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.begin() + m_data_mgr.countersH->numExtendedParticles, out->rhoPresMuD.begin());
     if (m_data_mgr.paramsH->elastic_SPH) {
         thrust::copy(in->tauXxYyZzD.begin(), in->tauXxYyZzD.end(), out->tauXxYyZzD.begin());
         thrust::copy(in->tauXyXzYzD.begin(), in->tauXyXzYzD.end(), out->tauXyXzYzD.begin());
@@ -87,12 +93,10 @@ void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& 
 double SphFluidDynamics::computeTimeStep() const {
     size_t valid_entries = m_data_mgr.countersH->numExtendedParticles;
     double min_courant_viscous_time_step =
-        static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(),
-                                           m_data_mgr.courantViscousTimeStepD.begin() + valid_entries,
+        static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(), m_data_mgr.courantViscousTimeStepD.begin() + valid_entries,
                                            std::numeric_limits<Real>::max(), thrust::minimum<Real>()));
     double min_acceleration_time_step =
-        static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(),
-                                           m_data_mgr.accelerationTimeStepD.begin() + valid_entries,
+        static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(), m_data_mgr.accelerationTimeStepD.begin() + valid_entries,
                                            std::numeric_limits<Real>::max(), thrust::minimum<Real>()));
 
     double adjusted_time_step = 0.3 * std::min(min_courant_viscous_time_step, min_acceleration_time_step);
@@ -265,11 +269,10 @@ void SphFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkers
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
-    UpdateActivityD<<<numBlocks, numThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
-        INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-        mR4CAST(sphMarkersD->rhoPresMuD), time);
+    UpdateActivityD<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+                                               mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
+                                               INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
+                                               mR4CAST(sphMarkersD->rhoPresMuD), time);
 }
 
 // -----------------------------------------------------------------------------
@@ -298,9 +301,7 @@ bool SphFluidDynamics::CheckActivityArrayResize() {
     // Copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
     uint lastPrefixVal = m_data_mgr.prefixSumExtendedActivityIdD[countersH->numAllMarkers - 1];
     int32_t lastFlagInt32;
-    cudaMemcpy(&lastFlagInt32,
-               thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
-               sizeof(int32_t), cudaMemcpyDeviceToHost);
+    gpuMemcpy(&lastFlagInt32, thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]), sizeof(int32_t), gpuMemcpyDeviceToHost);
     uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
 
     countersH->numExtendedParticles = lastPrefixVal + lastFlag;
@@ -597,8 +598,8 @@ __global__ void EulerStep_D(Real4* posRadD,
 
     if (paramsD.elastic_SPH) {
         // Euler step for tau and pressure update
-        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index],
-                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index], pcEvSvD[index], error_occurred);
+        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
+                     pcEvSvD[index], error_occurred);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -647,8 +648,8 @@ __global__ void MidpointStep_D(Real4* posRadD,
 
     if (paramsD.elastic_SPH) {
         // Euler step for tau and pressure update
-        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index],
-                     tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index], pcEvSvD[index], error_occurred);
+        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
+                     pcEvSvD[index], error_occurred);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -666,24 +667,20 @@ void SphFluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
     bool error_occurred = false;
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
-    EulerStep_D<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
-        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD),
-        mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
-        mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD),
-        INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
+    EulerStep_D<<<numBlocks, numThreads>>>(mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD), mR3CAST(sortedMarkers->tauXxYyZzD),
+                                           mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
+                                           mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD),
+                                           INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
 
     if (m_check_errors) {
-        cudaCheckError();
-        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.begin() + numActive,
-                           check_infinite<Real4>()))
-            cudaThrowError("A particle position is NaN");
-        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.begin() + numActive,
-                           check_infinite<Real4>()))
-            cudaThrowError("A particle density is NaN");
+        gpuCheckError();
+        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.begin() + numActive, check_infinite<Real4>()))
+            gpuThrowError("A particle position is NaN");
+        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.begin() + numActive, check_infinite<Real4>()))
+            gpuThrowError("A particle density is NaN");
         // Even if one particle has this problem, we can't proceed
         if (error_occurred)
-            cudaThrowError("Rheology model failed");
+            gpuThrowError("Rheology model failed");
     }
 }
 
@@ -693,21 +690,19 @@ void SphFluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarker
     computeGridSize(numActive, 256, numBlocks, numThreads);
     bool error_occurred = false;
     MidpointStep_D<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
-        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD),
-        mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
-        mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD),
-        INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
+        mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD), mR3CAST(sortedMarkers->tauXxYyZzD),
+        mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
+        mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
 
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
         if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
-            cudaThrowError("A particle position is NaN");
+            gpuThrowError("A particle position is NaN");
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
-            cudaThrowError("A particle density is NaN");
+            gpuThrowError("A particle density is NaN");
         // Even if one particle has this problem, we can't proceed
         if (error_occurred)
-            cudaThrowError("Rheology model failed");
+            gpuThrowError("Rheology model failed");
     }
 }
 
@@ -785,33 +780,25 @@ __global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
     pcEvSvOriginal[index] = sortedPcEvSv[id];
 }
 
-void SphFluidDynamics::CopySortedToOriginal(MarkerGroup group,
-                                            std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
-                                            std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+void SphFluidDynamics::CopySortedToOriginal(MarkerGroup group, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
     if (m_data_mgr.paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
         CopySortedToOriginalISPH_D<<<numBlocks, numThreads>>>(
-            group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
-            numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
-            mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-            mR4CAST(m_data_mgr.derivVelRhoOriginalD), mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original),
-            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
+            group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
+            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i), numActive, mR4CAST(sphMarkersD->posRadD),
+            mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD), mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
+            mR4CAST(m_data_mgr.derivVelRhoOriginalD), mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     } else {
         CopySortedToOriginalWCSPH_D<<<numBlocks, numThreads, 0, m_copy_stream>>>(
-            group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(sortedSphMarkersD->pcEvSvD),
-            mR4CAST(m_data_mgr.derivVelRhoD), numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
-            mR4CAST(sphMarkersD->rhoPresMuD), mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-            mR3CAST(sphMarkersD->pcEvSvD), mR4CAST(m_data_mgr.derivVelRhoOriginalD),
-            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
+            group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
+            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(sortedSphMarkersD->pcEvSvD), mR4CAST(m_data_mgr.derivVelRhoD), numActive, mR4CAST(sphMarkersD->posRadD),
+            mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD), mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD), mR3CAST(sphMarkersD->pcEvSvD),
+            mR4CAST(m_data_mgr.derivVelRhoOriginalD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     }
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -948,10 +935,9 @@ void SphFluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> s
 
     switch (m_data_mgr.paramsH->bc_type.x) {
         case BCType::PERIODIC:
-            ApplyPeriodicBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
-                                                                mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
+            ApplyPeriodicBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
             if (m_check_errors) {
-                cudaCheckError();
+                gpuCheckError();
             }
             break;
         case BCType::INLET_OUTLET:
@@ -959,26 +945,24 @@ void SphFluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> s
             // ApplyInletBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
             //                                                  mR3CAST(sphMarkersD->velMasD),
             //                                                  mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-            // cudaCheckError();
+            // gpuCheckError();
             break;
     }
 
     switch (m_data_mgr.paramsH->bc_type.y) {
         case BCType::PERIODIC:
-            ApplyPeriodicBoundaryY_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
-                                                                mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
+            ApplyPeriodicBoundaryY_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
             if (m_check_errors) {
-                cudaCheckError();
+                gpuCheckError();
             }
             break;
     }
 
     switch (m_data_mgr.paramsH->bc_type.z) {
         case BCType::PERIODIC:
-            ApplyPeriodicBoundaryZ_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
-                                                                mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
+            ApplyPeriodicBoundaryZ_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
             if (m_check_errors) {
-                cudaCheckError();
+                gpuCheckError();
             }
             break;
     }
@@ -1020,13 +1004,8 @@ __device__ void collideCellDensityReInit(Real& numerator,
 // Kernel for updating the density.
 // It calculates the density of the particle. It does include the normalization
 // close to the boundaries and free surface.
-__global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
-                                  Real4* sortedPosRad,
-                                  Real3* sortedVelMas,
-                                  Real4* sortedRhoPreMu,
-                                  uint* gridMarkerIndex,
-                                  uint* cellStart,
-                                  uint* cellEnd) {
+__global__ void
+ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real4* sortedPosRad, Real3* sortedVelMas, Real4* sortedRhoPreMu, uint* gridMarkerIndex, uint* cellStart, uint* cellEnd) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers)
         return;
@@ -1045,8 +1024,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
         for (int y = -1; y <= 1; y++) {
             for (int x = -1; x <= 1; x++) {
                 int3 neighbourPos = gridPos + mI3(x, y, z);
-                collideCellDensityReInit(numerator, denominator, neighbourPos, index, posRadA, sortedPosRad,
-                                         sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
+                collideCellDensityReInit(numerator, denominator, neighbourPos, index, posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
             }
         }
     }
@@ -1063,16 +1041,13 @@ void SphFluidDynamics::DensityReinitialization() {
     thrust::device_vector<Real4> dummySortedRhoPreMu(m_data_mgr.countersH->numAllMarkers);
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));
 
-    ReCalcDensityD_F1<<<numBlocks, numThreads>>>(
-        mR4CAST(dummySortedRhoPreMu), mR4CAST(m_data_mgr.sortedSphMarkers1_D->posRadD),
-        mR3CAST(m_data_mgr.sortedSphMarkers1_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers1_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.markersProximity_D->cellStartD),
-        U1CAST(m_data_mgr.markersProximity_D->cellEndD));
+    ReCalcDensityD_F1<<<numBlocks, numThreads>>>(mR4CAST(dummySortedRhoPreMu), mR4CAST(m_data_mgr.sortedSphMarkers1_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers1_D->velMasD),
+                                                 mR4CAST(m_data_mgr.sortedSphMarkers1_D->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+                                                 U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD));
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
-    SphForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
-                                                  m_data_mgr.markersProximity_D->gridMarkerIndexD);
+    SphForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu, m_data_mgr.markersProximity_D->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }
 

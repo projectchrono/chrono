@@ -127,11 +127,7 @@ class ChSystemDemMesh_impl : public ChSystemDem_impl {
     void combineMaterialSurface();
 
     /// Apply rigid body motion to specified mesh.
-    void ApplyMeshMotion(unsigned int mesh_id,
-                         const double* pos,
-                         const double* rot,
-                         const double* lin_vel,
-                         const double* ang_vel);
+    void ApplyMeshMotion(unsigned int mesh_id, const double* pos, const double* rot, const double* lin_vel, const double* ang_vel);
 
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
@@ -194,39 +190,39 @@ class ChSystemDemMesh_impl : public ChSystemDem_impl {
     bool mesh_collision_enabled = true;
 
     /// stores list of triangles touching each SD; goes SD by SD; size can change during simulation
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_trianglesInEachSD_composite;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SD_trianglesInEachSD_composite;
 
     /// the count of triangles touching each SD; size of vector should be # of SDs
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SD_numTrianglesTouching;
 
     /// offsets in the composite array for each SD; i.e., offset where each SD starts storing its triangles.
     /// Size of vector should be # of SDs.
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_TrianglesCompositeOffsets;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SD_TrianglesCompositeOffsets;
 
     /// Number of SDs that each triangle touches; stored triangle by triangle.
     /// Nonessential array, only needed to carry out broadphase for mesh
-    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_NumSDsTouching;
+    std::vector<unsigned int, gpuallocator<unsigned int>> Triangle_NumSDsTouching;
 
     /// Helper array that stores the prefix scan output done on Triangle_NumSDsTouching.
     /// Nonessential array, only needed to carry out broadphase for mesh
-    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
+    std::vector<unsigned int, gpuallocator<unsigned int>> Triangle_SDsCompositeOffsets;
 
     /// for each triangle, lists the collection of SDs that triangle touches; e.g., triangle 0 touches SDs 23, 32, 9,
     /// 199; triangle 0 touches SDs 23, 33, 109; triangle 2 touches SDs 991; triangle 3 touches 43, 23, etc.
     /// Nonessential array, only needed to carry out broadphase for mesh
-    std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite_out;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SDsTouchedByEachTriangle_composite_out;
 
     /// TriangleIDS_ByMultiplicity_out is mirroring the SDsTouchedByEachTriangle_composite_out vector. Its entries is
     /// the list of triangle IDs, with the right multiplicity. It's used for a sort by key operation needed to figure
     /// out what triangles are stored in each SD. Thus, for the example above, the entries would be
     /// 0,0,0,0,1,1,1,2,3,3,etc. Nonessential array, only needed to carry out broadphase for mesh
-    std::vector<unsigned int, cudallocator<unsigned int>> TriangleIDS_ByMultiplicity_out;
+    std::vector<unsigned int, gpuallocator<unsigned int>> TriangleIDS_ByMultiplicity_out;
 
     /// dummy vector used in the broadphase done for the mesh, to understand what SD contains what triangles
-    std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite;
+    std::vector<unsigned int, gpuallocator<unsigned int>> SDsTouchedByEachTriangle_composite;
 
     /// dummy vector used in the broadphase done for the mesh, to understand what SD contains what triangles
-    std::vector<unsigned int, cudallocator<unsigned int>> TriangleIDS_ByMultiplicity;
+    std::vector<unsigned int, gpuallocator<unsigned int>> TriangleIDS_ByMultiplicity;
 
   public:
     /// Get nicer handles to pointer names, enforce const-ness on the mesh params

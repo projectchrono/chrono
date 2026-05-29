@@ -26,15 +26,20 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+void CopyParametersToDevice_SphForceWCSPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
+    gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuCheckError();
+    gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
+    gpuCheckError();
+}
+
+#endif
+
 // =============================================================================
 
-__device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
-                                         Real3* sortedVelMas,
-                                         Real4* sortedRhoPreMu,
-                                         Real* G_i,
-                                         const uint* numNeighborsPerPart,
-                                         const uint* neighborList,
-                                         const uint numActive) {
+__device__ __inline__ void
+calc_G_Matrix(Real4* sortedPosRad, Real3* sortedVelMas, Real4* sortedRhoPreMu, Real* G_i, const uint* numNeighborsPerPart, const uint* neighborList, const uint numActive) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -79,8 +84,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
         mGi[8] -= rij.z * grw_vj.z;
     }
 
-    Real Det = (mGi[0] * mGi[4] * mGi[8] - mGi[0] * mGi[5] * mGi[7] - mGi[1] * mGi[3] * mGi[8] +
-                mGi[1] * mGi[5] * mGi[6] + mGi[2] * mGi[3] * mGi[7] - mGi[2] * mGi[4] * mGi[6]);
+    Real Det = (mGi[0] * mGi[4] * mGi[8] - mGi[0] * mGi[5] * mGi[7] - mGi[1] * mGi[3] * mGi[8] + mGi[1] * mGi[5] * mGi[6] + mGi[2] * mGi[3] * mGi[7] - mGi[2] * mGi[4] * mGi[6]);
     if (abs(Det) > 0.01) {
         Real OneOverDet = 1 / Det;
         G_i[0] = (mGi[4] * mGi[8] - mGi[5] * mGi[7]) * OneOverDet;
@@ -315,8 +319,7 @@ __global__ void calIndexOfIndex(uint* indexOfIndex, uint* identityOfIndex, uint*
         return;
 
     indexOfIndex[id] = id;
-    if (gridMarkerIndex[id] >= countersD.numFluidMarkers &&
-        gridMarkerIndex[id] < countersD.numFluidMarkers + countersD.numBoundaryMarkers) {
+    if (gridMarkerIndex[id] >= countersD.numFluidMarkers && gridMarkerIndex[id] < countersD.numFluidMarkers + countersD.numBoundaryMarkers) {
         identityOfIndex[id] = 1;
     } else {
         identityOfIndex[id] = 0;
@@ -486,14 +489,7 @@ __device__ inline Real3 CubicEigen(Real4 c1, Real4 c2, Real4 c3) {
 
 // -----------------------------------------------------------------------------
 
-__device__ inline Real3 GradientOperator(float G_i[9],
-                                         Real3 dist3,
-                                         Real4 posRadA,
-                                         Real4 posRadB,
-                                         Real fA,
-                                         Real fB,
-                                         Real4 rhoPresMuA,
-                                         Real4 rhoPresMuB) {
+__device__ inline Real3 GradientOperator(float G_i[9], Real3 dist3, Real4 posRadA, Real4 posRadB, Real fA, Real fB, Real4 rhoPresMuA, Real4 rhoPresMuB) {
     Real3 gradW = GradW3h(paramsD.kernel_type, dist3, paramsD.ooh);
     Real3 gradW_new;
     gradW_new.x = G_i[0] * gradW.x + G_i[1] * gradW.y + G_i[2] * gradW.z;
@@ -509,15 +505,7 @@ __device__ inline Real3 GradientOperator(float G_i[9],
     return mR3(Gra_ij_x, Gra_ij_y, Gra_ij_z);
 }
 
-__device__ inline Real4 LaplacianOperator(float G_i[9],
-                                          float L_i[9],
-                                          Real3 dist3,
-                                          Real4 posRadA,
-                                          Real4 posRadB,
-                                          Real fA,
-                                          Real fB,
-                                          Real4 rhoPresMuA,
-                                          Real4 rhoPresMuB) {
+__device__ inline Real4 LaplacianOperator(float G_i[9], float L_i[9], Real3 dist3, Real4 posRadA, Real4 posRadB, Real fA, Real fB, Real4 rhoPresMuA, Real4 rhoPresMuB) {
     Real3 gradW = GradW3h(paramsD.kernel_type, dist3, paramsD.ooh);
     Real d = length(dist3);
     Real3 eij = dist3 / d;
@@ -535,8 +523,7 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
     Real ez_Gwy = eij.z * gradW.y;
     Real ez_Gwz = eij.z * gradW.z;
 
-    Real Part1 = L_i[0] * ex_Gwx + L_i[1] * ex_Gwy + L_i[2] * ex_Gwz + L_i[3] * ey_Gwx + L_i[4] * ey_Gwy +
-                 L_i[5] * ey_Gwz + L_i[6] * ez_Gwx + L_i[7] * ez_Gwy + L_i[8] * ez_Gwz;
+    Real Part1 = L_i[0] * ex_Gwx + L_i[1] * ex_Gwy + L_i[2] * ex_Gwz + L_i[3] * ey_Gwx + L_i[4] * ey_Gwy + L_i[5] * ey_Gwz + L_i[6] * ez_Gwx + L_i[7] * ez_Gwy + L_i[8] * ez_Gwz;
     Real Part2 = fij / d * Vol;
     Real3 Part3 = mR3(-eij.x, -eij.y, -eij.z) * Vol;
 
@@ -555,12 +542,12 @@ SphForceWCSPH::~SphForceWCSPH() {}
 
 void SphForceWCSPH::Initialize() {
     SphForce::Initialize();
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
-    cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
+    gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
+    gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 void SphForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) {
-    // Calculate CUDA execution configuration
+    // Calculate GPU execution configuration
     // All kernels in SphForceWCSPH work on a total of numExtendedParticles threads, in blocks of size 1024 (or 256)
     numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
@@ -646,8 +633,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
     if ((density_reinit == 0) && (sortedRhoPreMu[index].w > -1.5) && (sortedRhoPreMu[index].w < -0.5))
         sortedRhoPreMu[index].x = sum_mW / sum_mW_rho;
 
-    if ((sortedRhoPreMu[index].x > 3 * paramsD.rho0 || sortedRhoPreMu[index].x < 0.01 * paramsD.rho0) &&
-        (sortedRhoPreMu[index].w > -1.5) && (sortedRhoPreMu[index].w < -0.5))
+    if ((sortedRhoPreMu[index].x > 3 * paramsD.rho0 || sortedRhoPreMu[index].x < 0.01 * paramsD.rho0) && (sortedRhoPreMu[index].w > -1.5) && (sortedRhoPreMu[index].w < -0.5))
         printf("(calcRho_kernel)density marker %d, sum_mW=%f, sum_W=%f\n", index, sum_mW, sum_W);
 }
 
@@ -655,9 +641,8 @@ void SphForceWCSPH::DensityReinitialization(std::shared_ptr<SphMarkerDataD> sort
     // Re-Initialize the density after several time steps if needed
     thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
     printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->density_reinit_steps);
-    calcRho_kernel<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, density_initialization);
+    calcRho_kernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
+                                              U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, density_initialization);
 }
 
 // -----------------------------------------------------------------------------
@@ -997,51 +982,42 @@ __global__ void CfdHolmesBC(const uint* numNeighborsPerPart,
 
 void SphForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     if (m_data_mgr.paramsH->boundary_method == BoundaryMethod::ADAMI) {
-        CrmAdamiBC<<<numBlocks, numThreads>>>(
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-            mR4CAST(sortedSphMarkersD->posRadD), numActive, mR3CAST(m_data_mgr.bceAcc),
-            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
+        CrmAdamiBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(sortedSphMarkersD->posRadD), numActive,
+                                              mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD),
+                                              mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
     } else {
         thrust::device_vector<Real2> sortedKernelSupport(numActive);
         // Calculate the kernel support of each particle
-        calcKernelSupport<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR2CAST(sortedKernelSupport),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive);
+        calcKernelSupport<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR2CAST(sortedKernelSupport),
+                                                     U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive);
         // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
-        CrmHolmesBC<<<numBlocks, numThreads>>>(
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-            mR4CAST(sortedSphMarkersD->posRadD), mR2CAST(sortedKernelSupport), numActive, mR3CAST(m_data_mgr.bceAcc),
-            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
+        CrmHolmesBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(sortedSphMarkersD->posRadD),
+                                               mR2CAST(sortedKernelSupport), numActive, mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                               mR3CAST(sortedSphMarkersD->velMasD), mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
     }
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
 void SphForceWCSPH::CfdApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
+    gpuResetErrorFlag(m_errflagD);
 
     if (m_data_mgr.paramsH->boundary_method == BoundaryMethod::ADAMI) {
-        CfdAdamiBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-                                              mR4CAST(sortedSphMarkersD->posRadD), numActive,
-                                              mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                              mR3CAST(sortedSphMarkersD->velMasD));
+        CfdAdamiBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(sortedSphMarkersD->posRadD), numActive,
+                                              mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD));
     } else {
         thrust::device_vector<Real2> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
         // Calculate the kernel support of each particle
-        calcKernelSupport<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR2CAST(sortedKernelSupport),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive);
+        calcKernelSupport<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR2CAST(sortedKernelSupport),
+                                                     U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive);
         // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
-        CfdHolmesBC<<<numBlocks, numThreads>>>(
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-            mR4CAST(sortedSphMarkersD->posRadD), mR2CAST(sortedKernelSupport), numActive, mR3CAST(m_data_mgr.bceAcc),
-            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD));
+        CfdHolmesBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(sortedSphMarkersD->posRadD),
+                                               mR2CAST(sortedKernelSupport), numActive, mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                               mR3CAST(sortedSphMarkersD->velMasD));
     }
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -1076,8 +1052,8 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
         // diffusion term in continuity equation, this helps smoothing out the large oscillation in pressure
         // field see S. Marrone et al., "delta-SPH model for simulating violent impact flows", Computer Methods in
         // Applied Mechanics and Engineering, 200(2011), pp 1526 --1542.
-        Real Psi = paramsD.density_delta * paramsD.h * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. *
-                   (rhoPresMuA.x - rhoPresMuB.x) / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
+        Real Psi = paramsD.density_delta * paramsD.h * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. * (rhoPresMuA.x - rhoPresMuB.x) /
+                   (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
         derivRho += Psi * dot(dist3, gradW);
     }
     /*if (IsFluidParticle(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w)) {
@@ -1106,14 +1082,11 @@ __device__ inline Real4 crmDvDt(const Real W_ini_inv,
     Real invRhoASq = 1 / (rhoPresMuA.x * rhoPresMuA.x);
     Real invRhoBSq = 1 / (rhoPresMuB.x * rhoPresMuB.x);
     Real3 MA_gradW = gradW * Mass;
-    Real derivVx = (tauXxYyZz_A.x * invRhoASq + tauXxYyZz_B.x * invRhoBSq) * MA_gradW.x +
-                   (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.y +
+    Real derivVx = (tauXxYyZz_A.x * invRhoASq + tauXxYyZz_B.x * invRhoBSq) * MA_gradW.x + (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.y +
                    (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.z;
-    Real derivVy = (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.x +
-                   (tauXxYyZz_A.y * invRhoASq + tauXxYyZz_B.y * invRhoBSq) * MA_gradW.y +
+    Real derivVy = (tauXyXzYz_A.x * invRhoASq + tauXyXzYz_B.x * invRhoBSq) * MA_gradW.x + (tauXxYyZz_A.y * invRhoASq + tauXxYyZz_B.y * invRhoBSq) * MA_gradW.y +
                    (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.z;
-    Real derivVz = (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.x +
-                   (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.y +
+    Real derivVz = (tauXyXzYz_A.y * invRhoASq + tauXyXzYz_B.y * invRhoBSq) * MA_gradW.x + (tauXyXzYz_A.z * invRhoASq + tauXyXzYz_B.z * invRhoBSq) * MA_gradW.y +
                    (tauXxYyZz_A.z * invRhoASq + tauXxYyZz_B.z * invRhoBSq) * MA_gradW.z;
     // TODO: Viscoplastic model
     // Real vel = length(velMasA);
@@ -1504,9 +1477,8 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 
         // Calculate dv/dt
         // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
-        derivVelRho +=
-            crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB,
-                    rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
+        derivVelRho += crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA,
+                               TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
         if (isFluid) {
             Real3 vBA = velMasB - velMasA;
 
@@ -1585,8 +1557,7 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 
     if (IsFluidParticle(rhoPresMuA.w)) {
         courantViscousTimeStepD[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
-        Real intermediate =
-            sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
+        Real intermediate = sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
         Real accT = sqrtf(paramsD.h / intermediate);
         accelerationTimeStepD[index] = accT;
     }
@@ -1598,15 +1569,13 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 void SphForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
-    CrmRHS<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-        mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-        numActive, mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
-        mR3CAST(m_data_mgr.derivTauXyXzYzD), mR3CAST(sortedSphMarkersD->pcEvSvD), U1CAST(m_data_mgr.freeSurfaceIdD),
-        R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD));
+    CrmRHS<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                      mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.numNeighborsPerPart),
+                                      U1CAST(m_data_mgr.neighborList), numActive, mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
+                                      mR3CAST(m_data_mgr.derivTauXyXzYzD), mR3CAST(sortedSphMarkersD->pcEvSvD), U1CAST(m_data_mgr.freeSurfaceIdD),
+                                      R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD));
     if (m_check_errors) {
-        cudaCheckError();
+        gpuCheckError();
     }
 }
 
@@ -1614,15 +1583,7 @@ void SphForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
 // CfdCalcRHS
 // -----------------------------------------------------------------------------
 
-__device__ inline Real4 cfdDvDt(Real3 dist3,
-                                Real d,
-                                Real4 posRadA,
-                                Real4 posRadB,
-                                Real3 velMasA,
-                                Real3 velMasB,
-                                Real4 rhoPresMuA,
-                                Real4 rhoPresMuB,
-                                Real* max_vel_diff) {
+__device__ inline Real4 cfdDvDt(Real3 dist3, Real d, Real4 posRadA, Real4 posRadB, Real3 velMasA, Real3 velMasB, Real4 rhoPresMuA, Real4 rhoPresMuB, Real* max_vel_diff) {
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0);
 
@@ -1635,8 +1596,8 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
         // diffusion term in continuity equation, this helps smoothing out the large oscillation in pressure
         // field see S. Marrone et al., "delta-SPH model for simulating violent impact flows", Computer Methods in
         // Applied Mechanics and Engineering, 200(2011), pp 1526 --1542.
-        Real Psi = paramsD.density_delta * paramsD.h * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. *
-                   (rhoPresMuA.x - rhoPresMuB.x) / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
+        Real Psi = paramsD.density_delta * paramsD.h * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. * (rhoPresMuA.x - rhoPresMuB.x) /
+                   (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
         derivRho += Psi * dot(dist3, gradW);
     }
 
@@ -1649,15 +1610,12 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
     switch (paramsD.viscosity_method) {
         case ViscosityMethod::ARTIFICIAL_UNILATERAL: {
             //  pressure component
-            derivV = -paramsD.markerMass *
-                     (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
-                     gradW;
+            derivV = -paramsD.markerMass * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW;
 
             // artificial viscosity part, see Monaghan 1997, mainly for water
             if (vAB_dot_rAB < 0) {
                 Real mu_ab = paramsD.h * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
-                Real Pi_ab = -paramsD.artificial_viscosity * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) *
-                             paramsD.markerMass * mu_ab;
+                Real Pi_ab = -paramsD.artificial_viscosity * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) * paramsD.markerMass * mu_ab;
                 derivV.x -= Pi_ab * gradW.x;
                 derivV.y -= Pi_ab * gradW.y;
                 derivV.z -= Pi_ab * gradW.z;
@@ -1670,11 +1628,8 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
             // Poiseulle flow, or oil, honey, etc
             Real rAB_Dot_GradWh = dot(dist3, gradW);
             Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
-            derivV = -paramsD.markerMass *
-                         (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
-                         gradW +
-                     paramsD.markerMass * 8.0f * paramsD.mu0 * rAB_Dot_GradWh_OverDist * (velMasA - velMasB) /
-                         square(rhoPresMuA.x + rhoPresMuB.x);
+            derivV = -paramsD.markerMass * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW +
+                     paramsD.markerMass * 8.0f * paramsD.mu0 * rAB_Dot_GradWh_OverDist * (velMasA - velMasB) / square(rhoPresMuA.x + rhoPresMuB.x);
             break;
         }
     }
@@ -1723,10 +1678,8 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
 
     if (paramsD.use_consistent_laplacian_discretization) {
         Real A_i[27] = {0};
-        calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList,
-                      numActive);
-        calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList,
-                      numActive);
+        calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList, numActive);
+        calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList, numActive);
     }
     float Gi[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     float Li[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
@@ -1786,24 +1739,16 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
         // }
         Real3 velMasB = sortedVelMas[j];
 
-        derivVelRho += cfdDvDt(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB,
-                               &max_vel_diff);
+        derivVelRho += cfdDvDt(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, &max_vel_diff);
 
         if (paramsD.use_consistent_gradient_discretization && paramsD.use_consistent_laplacian_discretization) {
-            preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y, rhoPresMuB.y,
-                                       rhoPresMuA, rhoPresMuB);
-            velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x, velMasB.x,
-                                        rhoPresMuA, rhoPresMuB);
-            velyGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y, velMasB.y,
-                                        rhoPresMuA, rhoPresMuB);
-            velzGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z, velMasB.z,
-                                        rhoPresMuA, rhoPresMuB);
-            velxLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x, velMasB.x,
-                                         rhoPresMuA, rhoPresMuB);
-            velyLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y, velMasB.y,
-                                         rhoPresMuA, rhoPresMuB);
-            velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z, velMasB.z,
-                                         rhoPresMuA, rhoPresMuB);
+            preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y, rhoPresMuB.y, rhoPresMuA, rhoPresMuB);
+            velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x, velMasB.x, rhoPresMuA, rhoPresMuB);
+            velyGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y, velMasB.y, rhoPresMuA, rhoPresMuB);
+            velzGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z, velMasB.z, rhoPresMuA, rhoPresMuB);
+            velxLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.x, velMasB.x, rhoPresMuA, rhoPresMuB);
+            velyLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.y, velMasB.y, rhoPresMuA, rhoPresMuB);
+            velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z, velMasB.z, rhoPresMuA, rhoPresMuB);
             if (d > paramsD.h * 1.0e-9)
                 sum_w_i = sum_w_i + W3h(paramsD.kernel_type, d, paramsD.ooh) * paramsD.volume0;
         }
@@ -1811,18 +1756,13 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
 
     if (paramsD.use_consistent_gradient_discretization && paramsD.use_consistent_laplacian_discretization) {
         Real nu = paramsD.mu0 / paramsD.rho0;
-        Real dvxdt = -preGra.x / rhoPresMuA.x +
-                     (velxLap.x + velxGra.x * velxLap.y + velxGra.y * velxLap.z + velxGra.z * velxLap.w) * nu;
-        Real dvydt = -preGra.y / rhoPresMuA.x +
-                     (velyLap.x + velyGra.x * velyLap.y + velyGra.y * velyLap.z + velyGra.z * velyLap.w) * nu;
-        Real dvzdt = -preGra.z / rhoPresMuA.x +
-                     (velzLap.x + velzGra.x * velzLap.y + velzGra.y * velzLap.z + velzGra.z * velzLap.w) * nu;
+        Real dvxdt = -preGra.x / rhoPresMuA.x + (velxLap.x + velxGra.x * velxLap.y + velxGra.y * velxLap.z + velxGra.z * velxLap.w) * nu;
+        Real dvydt = -preGra.y / rhoPresMuA.x + (velyLap.x + velyGra.x * velyLap.y + velyGra.y * velyLap.z + velyGra.z * velyLap.w) * nu;
+        Real dvzdt = -preGra.z / rhoPresMuA.x + (velzLap.x + velzGra.x * velzLap.y + velzGra.y * velzLap.z + velzGra.z * velzLap.w) * nu;
         Real drhodt = -paramsD.rho0 * (velxGra.x + velyGra.y + velzGra.z);
 
-        Real Det_G = (Gi[0] * Gi[4] * Gi[8] - Gi[0] * Gi[5] * Gi[7] - Gi[1] * Gi[3] * Gi[8] + Gi[1] * Gi[5] * Gi[6] +
-                      Gi[2] * Gi[3] * Gi[7] - Gi[2] * Gi[4] * Gi[6]);
-        Real Det_L = (Li[0] * Li[4] * Li[8] - Li[0] * Li[5] * Li[7] - Li[1] * Li[3] * Li[8] + Li[1] * Li[5] * Li[6] +
-                      Li[2] * Li[3] * Li[7] - Li[2] * Li[4] * Li[6]);
+        Real Det_G = (Gi[0] * Gi[4] * Gi[8] - Gi[0] * Gi[5] * Gi[7] - Gi[1] * Gi[3] * Gi[8] + Gi[1] * Gi[5] * Gi[6] + Gi[2] * Gi[3] * Gi[7] - Gi[2] * Gi[4] * Gi[6]);
+        Real Det_L = (Li[0] * Li[4] * Li[8] - Li[0] * Li[5] * Li[7] - Li[1] * Li[3] * Li[8] + Li[1] * Li[5] * Li[6] + Li[2] * Li[3] * Li[7] - Li[2] * Li[4] * Li[6]);
 
         if (IsSphParticle(rhoPresMuA.w)) {
             if (Det_G > 0.9 && Det_G < 1.1 && Det_L > 0.9 && Det_L < 1.1 && sum_w_i > 0.9) {
@@ -1844,8 +1784,7 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
 
     if (IsFluidParticle(rhoPresMuA.w)) {
         courantViscousTimeStep[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
-        Real intermediate =
-            sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
+        Real intermediate = sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
         Real accT = sqrtf(paramsD.h / intermediate);
         accelerationTimeStep[index] = accT;
     }
@@ -1853,16 +1792,14 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
 }
 
 void SphForceWCSPH::CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
+    gpuResetErrorFlag(m_errflagD);
 
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
-    CfdRHS<<<numBlocks, numThreads>>>(
-        mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive,
-        R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
-    cudaCheckErrorFlag(m_errflagD, "RhsCFD");
+    CfdRHS<<<numBlocks, numThreads>>>(mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+                                      mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.numNeighborsPerPart),
+                                      U1CAST(m_data_mgr.neighborList), numActive, R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
+    gpuCheckErrorFlag(m_errflagD, "RhsCFD");
 }
 
 // -----------------------------------------------------------------------------
@@ -1971,8 +1908,7 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
     }
 
     // Accumulate neighbor contribution
-    ShiftingAccumulateNeighborContrib<SHIFT>(index, posA, rhoPreMuA, velMasA, sortedPosRad, sortedVelMas,
-                                             sortedRhoPreMu, neighborList, NLStart, NLEnd, consider_bce, deltaV,
+    ShiftingAccumulateNeighborContrib<SHIFT>(index, posA, rhoPreMuA, velMasA, sortedPosRad, sortedVelMas, sortedRhoPreMu, neighborList, NLStart, NLEnd, consider_bce, deltaV,
                                              inner_sum, nabla_r);
 
     // Post-process depending on SHIFT
@@ -2045,7 +1981,7 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 }
 
 void SphForceWCSPH::CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
+    gpuResetErrorFlag(m_errflagD);
 
     computeGridSize(numActive, 1024, numBlocks, numThreads);
 
@@ -2053,37 +1989,32 @@ void SphForceWCSPH::CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphM
 
     switch (m_data_mgr.paramsH->shifting_method) {
         case ShiftingMethod::XSPH:
-            Calc_Shifting_D<ShiftingMethod::XSPH><<<numBlocks, numThreads>>>(
-                mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
-                mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
+            Calc_Shifting_D<ShiftingMethod::XSPH><<<numBlocks, numThreads>>>(mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
+                                                                             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                                                             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
             break;
         case ShiftingMethod::PPST:
-            Calc_Shifting_D<ShiftingMethod::PPST><<<numBlocks, numThreads>>>(
-                mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
-                mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
+            Calc_Shifting_D<ShiftingMethod::PPST><<<numBlocks, numThreads>>>(mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
+                                                                             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                                                             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
             break;
         case ShiftingMethod::PPST_XSPH:
-            Calc_Shifting_D<ShiftingMethod::PPST_XSPH><<<numBlocks, numThreads>>>(
-                mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
-                mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
+            Calc_Shifting_D<ShiftingMethod::PPST_XSPH><<<numBlocks, numThreads>>>(mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
+                                                                                  mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                                                                  U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
             break;
         case ShiftingMethod::DIFFUSION:
-            Calc_Shifting_D<ShiftingMethod::DIFFUSION><<<numBlocks, numThreads>>>(
-                mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
-                mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
+            Calc_Shifting_D<ShiftingMethod::DIFFUSION><<<numBlocks, numThreads>>>(mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
+                                                                                  mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                                                                                  U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
             break;
         case ShiftingMethod::DIFFUSION_XSPH:
-            Calc_Shifting_D<ShiftingMethod::DIFFUSION_XSPH><<<numBlocks, numThreads>>>(
-                mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD),
-                mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
+            Calc_Shifting_D<ShiftingMethod::DIFFUSION_XSPH>
+                <<<numBlocks, numThreads>>>(mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+                                            mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
             break;
     }
-    cudaCheckErrorFlag(m_errflagD, "Calc_Shifting_D");
+    gpuCheckErrorFlag(m_errflagD, "Calc_Shifting_D");
 }
 
 }  // namespace sph
