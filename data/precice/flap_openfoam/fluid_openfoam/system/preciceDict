@@ -7,7 +7,7 @@ FoamFile
     object      preciceDict;
 }
 
-preciceConfig "../precice-config.xml";
+preciceConfig "../precice_config.xml";
 
 participant Fluid;
 
