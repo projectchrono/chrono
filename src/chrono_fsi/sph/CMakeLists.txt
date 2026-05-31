@@ -70,7 +70,6 @@ endif()
 # --------------- SPH FSI FILES
 
 set(FSISPH_BASE_FILES
-    ChSphGpuRuntime.h
     ChFsiDataTypesSPH.h
     ChFsiDefinitionsSPH.h
     ChFsiParamsSPH.h
@@ -80,7 +79,7 @@ set(FSISPH_BASE_FILES
     ChFsiFluidSystemSPH.h
     ChFsiPrintUtilsSPH.h
     ChFsiSplashsurfSPH.h
-
+    #
     ChFsiProblemSPH.cpp
     ChFsiSystemSPH.cpp
     ChFsiInterfaceSPH.cpp
@@ -119,10 +118,10 @@ set(FSISPH_MATH_FILES
     math/SphLinearSolver.h
     #math/SphLinearSolverBiCGStab.h
     #math/SphLinearSolverGMRES.h
-
+    #
     math/SphCustomMath.cuh
     math/SphExactLinearSolvers.cuh
-
+    #
     #math/SphLinearSolverBiCGStab.cpp
     #math/SphLinearSolverGMRES.cpp
 )
@@ -137,6 +136,14 @@ set(FSISPH_UTILS_FILES
     utils/SphUtilsLogging.cuh
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
+
+set(FSISPH_GPU_FILES
+    ../../chrono/gpu/ChGpuRuntime.h
+    ../../chrono/gpu/ChGpuPrimitives.h
+)
+source_group("gpu" FILES ${FSISPH_GPU_FILES})
+
+# ------------------------------------------
 
 set(FSISPH_GPU_SOURCE_FILES
     ChFsiProblemSPH.cpp
@@ -157,11 +164,9 @@ set(FSISPH_GPU_SOURCE_FILES
     utils/SphUtilsDevice.cu
     utils/SphUtilsPrint.cu
 )
-
 if(CHRONO_HIP_FOUND)
     set_source_files_properties(${FSISPH_GPU_SOURCE_FILES} PROPERTIES LANGUAGE HIP)
 endif()
-
 
 # --------------- 3rd party STB FILES
 
@@ -220,6 +225,7 @@ add_library(Chrono_fsisph
     ${FSISPH_PHYSICS_FILES}
     ${FSISPH_MATH_FILES}
     ${FSISPH_UTILS_FILES}
+    ${FSISPH_GPU_FILES}
     ${FSISPH_STB_FILES}
     ${FSISPH_CONFIG_FILE}
 )

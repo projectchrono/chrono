@@ -61,8 +61,6 @@ void ChWheeledVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     }
     m_tire_force_scale =
         m_wvehicle->GetMass() * m_vehicle->GetSystem()->GetGravitationalAcceleration().Length() / num_tires;
-
-    std::cout << "FORCE SCALE = " << m_tire_force_scale << std::endl;
 }
 
 void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {

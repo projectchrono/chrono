@@ -136,8 +136,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     ChFsiFluidSystemSPH();
     ~ChFsiFluidSystemSPH();
 
-    /// Enable/disable CUDA error checks (default: enabled).
-    void EnableCudaErrorCheck(bool val) { m_check_errors = val; }
+    /// Enable/disable GPU error checks (default: enabled).
+    void EnableGPUErrorCheck(bool val) { m_check_errors = val; }
 
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);

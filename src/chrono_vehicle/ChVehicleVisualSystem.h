@@ -48,9 +48,10 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     virtual void AttachTerrain(ChTerrain* terrain);
 
     /// Set parameters for the underlying chase camera.
-    void SetChaseCamera(const ChVector3d& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
-                        double chaseDist,               ///< chase distance (behind tracked point)
-                        double chaseHeight              ///< chase height (above tracked point)
+    void SetChaseCamera(const ChVector3d& ref_point,  ///< tracked point on chassis body (in vehicle reference frame)
+                        double chase_dist,            ///< chase distance (behind tracked point)
+                        double chase_height,          ///< chase height (above tracked point)
+                        double angle = 0              ///< chase camera angle in degrees, in [0,180] (0: behind vehicle, 180: in front of vehicle)
     );
     
     /// Set the step size for integration of the chase-cam dynamics.
@@ -86,7 +87,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     const ChVehicle& GetVehicle() const { return *m_vehicle; }
     const ChTerrain* GetTerrain() const { return m_terrain; }
     ChDriver* GetDriver() { return m_driver; }
-    const utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }
+    utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }
     double GetSteering() const { return m_steering; }
     double GetThrottle() const { return m_throttle; }
     double GetBraking() const { return m_braking; }

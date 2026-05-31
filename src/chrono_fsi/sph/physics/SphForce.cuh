@@ -54,9 +54,7 @@ struct equal_invalid {
 struct Real4_x {
     const Real rest_val;
     Real4_x(Real _a) : rest_val(_a) {}
-    __host__ __device__ Real operator()(const Real4& input) const {
-        return (input.w != -1) ? Real(0) : abs(input.x - rest_val);
-    }
+    __host__ __device__ Real operator()(const Real4& input) const { return (input.w != -1) ? Real(0) : abs(input.x - rest_val); }
 };
 struct saxpy_functor {
     const Real a;
@@ -110,8 +108,8 @@ class SphForce {
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
     SphForce(FsiDataManager& data_mgr,  ///< FSI data manager
-               SphBceManager& bce_mgr,       ///< BCE manager
-               bool verbose               ///< verbose output
+             SphBceManager& bce_mgr,    ///< BCE manager
+             bool verbose               ///< verbose output
     );
 
     /// Destructor of the SphForce.
@@ -129,9 +127,7 @@ class SphForce {
     /// original data, where data is real3. The class is invasive, meaning that the sorted
     /// data will be modified (and will be equivalent to the original). Therefore, this
     /// function should be used whenever sorted data is not needed, but efficiency is preferred.
-    static void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
-                                                 thrust::device_vector<Real3>& sorted,
-                                                 const thrust::device_vector<uint>& gridMarkerIndex);
+    static void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original, thrust::device_vector<Real3>& sorted, const thrust::device_vector<uint>& gridMarkerIndex);
 
     /// Copy sorted data into original data (real3).
     /// This function copies the data that are sorted in the collision system, into the
@@ -146,9 +142,7 @@ class SphForce {
     /// original data, where data is real4. The class is invasive, meaning that the sorted
     /// data will be modified (and will be equivalent to the original). Therefore,  this
     /// function should be used whenever sorted data is not needed, but efficiency is preferred.
-    static void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original,
-                                                 thrust::device_vector<Real4>& sorted,
-                                                 const thrust::device_vector<uint>& gridMarkerIndex);
+    static void CopySortedToOriginal_Invasive_R4(thrust::device_vector<Real4>& original, thrust::device_vector<Real4>& sorted, const thrust::device_vector<uint>& gridMarkerIndex);
 
     /// Copy sorted data into original data (real4).
     /// This function copies the data that are sorted in the collision system, into the
@@ -163,7 +157,7 @@ class SphForce {
 
   protected:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
-    SphBceManager& m_bce_mgr;       ///< BCE manager
+    SphBceManager& m_bce_mgr;    ///< BCE manager
 
     bool m_verbose;
     bool* m_errflagD;

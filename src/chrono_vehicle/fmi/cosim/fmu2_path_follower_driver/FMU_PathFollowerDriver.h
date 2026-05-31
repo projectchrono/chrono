@@ -84,8 +84,8 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     /// This function is called after advancing dynamics of the vehicle.
     void CalculateDriverOutputs();
 
-    std::shared_ptr<chrono::vehicle::ChPathSteeringController> steeringPID;  ///< steering controller
-    std::shared_ptr<chrono::vehicle::ChSpeedController> speedPID;            ///< speed controller
+    std::shared_ptr<chrono::vehicle::ChPathSteeringControllerPID> steeringPID;  ///< steering controller
+    std::shared_ptr<chrono::vehicle::ChSpeedControllerPID> speedPID;            ///< speed controller
 
     std::string path_file;   ///< name of file with path Bezier curve data
     double look_ahead_dist;  ///< look ahead distance for lateral PID controller

@@ -183,7 +183,7 @@ class HMMWV_Driver : public ChDriver {
     void ExportPathPovray(const std::string& out_dir);
 
   private:
-    ChPathSteeringController m_steeringPID;
+    ChPathSteeringControllerPID m_steeringPID;
     double m_start;
     double m_end;
 };

@@ -302,10 +302,11 @@ set(CHRONO_GPU_BACKEND "AUTO" CACHE STRING "GPU backend for Chrono GPU modules: 
 set_property(CACHE CHRONO_GPU_BACKEND PROPERTY STRINGS AUTO CUDA HIP)
 set(CHRONO_CUDA_ARCHITECTURES "" CACHE STRING "Chrono CUDA architectures")
 set(CHRONO_HIP_ARCHITECTURES "" CACHE STRING "Chrono HIP architectures")
-set(CHRONO_ROCM_ROOT "" CACHE PATH "Explicit ROCm root for HIP builds")
-set(CHRONO_MIN_HIP_VERSION "5.7.0" CACHE STRING "Minimum HIP version required by Chrono")
 mark_as_advanced(FORCE CMAKE_CUDA_ARCHITECTURES)
 mark_as_advanced(FORCE CMAKE_HIP_ARCHITECTURES)
+
+set(CHRONO_ROCM_ROOT "" CACHE PATH "Explicit ROCm root for HIP builds")
+set(CHRONO_HIP_MIN_VERSION "5.7.0" CACHE STRING "Minimum HIP version required by Chrono")
 
 function(chrono_read_hip_version hip_header out_var)
   if(NOT EXISTS "${hip_header}")
@@ -389,7 +390,7 @@ elseif(CHRONO_GPU_BACKEND STREQUAL "CUDA")
   set(_chrono_try_cuda TRUE)
 elseif(CHRONO_GPU_BACKEND STREQUAL "AUTO")
   chrono_find_rocm(_chrono_rocm_root _chrono_rocm_ver)
-  if(_chrono_rocm_root AND _chrono_rocm_ver VERSION_GREATER_EQUAL CHRONO_MIN_HIP_VERSION)
+  if(_chrono_rocm_root AND _chrono_rocm_ver VERSION_GREATER_EQUAL CHRONO_HIP_MIN_VERSION)
     set(_chrono_try_hip TRUE)
   else()
     set(_chrono_try_cuda TRUE)
@@ -476,10 +477,21 @@ if(NOT CHRONO_HIP_FOUND AND (_chrono_try_cuda OR CHRONO_GPU_BACKEND STREQUAL "AU
 endif()
 
 set(CHRONO_GPU_BACKEND ${CHRONO_GPU_BACKEND_RESOLVED})
-#-----------------------------------------------------------------------------
-# HIP + Eigen alignment compatibility
-#-----------------------------------------------------------------------------
 
+# Hide (mark as advanced) variables
+
+if(CHRONO_CUDA_FOUND)
+  mark_as_advanced(FORCE CHRONO_HIP_ARCHITECTURES)
+  mark_as_advanced(FORCE CHRONO_HIP_MIN_VERSION)
+  mark_as_advanced(FORCE CHRONO_ROCM_ROOT)
+endif()
+
+if(CHRONO_HIP_FOUND)
+  mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
+endif()
+
+# HIP + Eigen alignment compatibility
+#
 # Some host-side Chrono classes contain fixed-size Eigen objects. With AVX,
 # Eigen may require 32-byte alignment; a few allocation paths used by demos,
 # visualization, or MBS coupling do not guarantee that in all environments.
@@ -487,12 +499,14 @@ set(CHRONO_GPU_BACKEND ${CHRONO_GPU_BACKEND_RESOLVED})
 # reached. Limiting Eigen's maximum static alignment to 16 bytes avoids the
 # fragile 32-byte over-alignment requirement while keeping ordinary
 # SSE-friendly vectorization and without touching CUDA/NVIDIA builds.
-set(CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES "16" CACHE STRING
-    "Maximum Eigen alignment in HIP builds; set to 0 to fully disable fixed-size Eigen over-alignment")
+
 if(CHRONO_HIP_FOUND)
+  set(CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES "16" CACHE STRING "Maximum Eigen alignment in HIP builds; set to 0 to fully disable fixed-size Eigen over-alignment")
+
   target_compile_definitions(Eigen3::Eigen INTERFACE
     EIGEN_MAX_ALIGN_BYTES=${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES}
     EIGEN_MAX_STATIC_ALIGN_BYTES=${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES})
+
   message(STATUS "  HIP Eigen max alignment: ${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES} bytes")
 endif()
 

@@ -29,6 +29,8 @@
 #include "chrono/ChConfig.h"
 #include <thrust/remove.h>
 #include <thrust/sort.h>
+#include <thrust/distance.h>
+#include <thrust/advance.h>
 #include <thrust/transform_reduce.h>
 #include <thrust/count.h>
 #include <thrust/iterator/constant_iterator.h>
