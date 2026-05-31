@@ -76,13 +76,27 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
 #endif
 
-    virtual void InitializeParticipant() override;
-    virtual void WriteCheckpoint(double time) override;
-    virtual void ReadCheckpoint(double time) override;
-    virtual void ReadData() override;
-    virtual double GetSolverTimeStep(double max_time_step) const override;
-    virtual void AdvanceParticipant(double time, double time_step) override;
-    virtual void WriteData() override;
+    /// Class to be used as a callback interface for user-defined actions to be performed before advancing MBS dynamics.
+    /// The `OnStepDynamics` is called at each step, before the call to `DoStepDynamics`.
+    class BeforeStepDynamicsCallback {
+      public:
+        virtual ~BeforeStepDynamicsCallback() {}
+        virtual void OnStepDynamics(double time, double step) = 0;
+    };
+
+    /// Class to be used as a callback interface for user-defined actions to be performed after advancing MBS dynamics.
+    /// The `OnStepDynamics` is called at each step, after the call to `DoStepDynamics`.
+    class AfterStepDynamicsCallback {
+      public:
+        virtual ~AfterStepDynamicsCallback() {}
+        virtual void OnStepDynamics(double time, double step) = 0;
+    };
+
+    /// Register a callback for operations to be performed before advancing dynamics at each step.
+    void RegisterBeforeStepDynamicsCallback(std::shared_ptr<BeforeStepDynamicsCallback> callback) { m_beforestep_callback = callback; }
+
+    /// Register a callback for operations to be performed after advancing dynamics at each step.
+    void RegisterAfterStepDynamicsCallback(std::shared_ptr<AfterStepDynamicsCallback> callback) { m_afterstep_callback = callback; }
 
   private:
     struct Checkpoint {
@@ -112,6 +126,15 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
+    // Implementation of base class virtual methods
+    virtual void InitializeParticipant() override;
+    virtual void WriteCheckpoint(double time) override;
+    virtual void ReadCheckpoint(double time) override;
+    virtual void ReadData() override;
+    virtual double GetSolverTimeStep(double max_time_step) const override;
+    virtual void AdvanceParticipant(double time, double time_step) override;
+    virtual void WriteData() override;
+
     std::shared_ptr<ChSystem> m_sys;
     double m_time_step;
     bool m_enforce_realtime;
@@ -125,6 +148,10 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 #ifdef CHRONO_FEA
     std::vector<std::shared_ptr<fea::ChMesh>> m_coupling_fea;
 #endif
+
+    // Dynamics callbacks
+    std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics
+    std::shared_ptr<AfterStepDynamicsCallback> m_afterstep_callback;    ///< operations performed after advancing dynamics
 
     // Run-time visualization
     struct VisParams {

@@ -350,7 +350,13 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
         }
     }
 
+    if (m_beforestep_callback)
+        m_beforestep_callback->OnStepDynamics(time, time_step);
+
     m_sys->DoStepDynamics(time_step);
+
+    if (m_afterstep_callback)
+        m_afterstep_callback->OnStepDynamics(time, time_step);
 
     if (m_enforce_realtime)
         m_rt_timer.Spin(time_step);
