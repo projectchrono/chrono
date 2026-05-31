@@ -27,10 +27,17 @@ model:
             color: [0.6, 0.2, 0.2]
 
   joints:
-    - name: rev_joint
+    - name: revolute
       type: REVOLUTE
       body1: ground
       body2: flap
       location: [0.0, 0.0, 0.0]
       axis: [0, 0, 1]
     
+  rsdas:
+    - name: rsda
+      body1: ground
+      body2: flap
+      location: [0.0, 0.0, 0.0]
+      axis: [0, 0, 1]
+      spring_coefficient: 25

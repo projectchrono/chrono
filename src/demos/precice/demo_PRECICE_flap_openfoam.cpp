@@ -15,10 +15,15 @@
 // Demonstration for the Chrono MBS preCICE adapter, using a flap mechanism
 // set up for co-simulation with OpenFOAM.
 //
+// This is an adaptation of the preCICE tutorial example for coupling a
+// muiltibody system to OpenFOAM (see https://precice.org/quickstart.html),
+// modified to use a Chrono MBS preCICE participant for the solid phase.
+//
 // =============================================================================
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtils.h"
+#include "chrono/utils/ChForceFunctors.h"
 
 #include "chrono_precice/ChPreciceAdapterMbs.h"
 
@@ -58,8 +63,32 @@ int main(int argc, char* argv[]) {
     std::string precice_config_filename = GetChronoDataFile("precice/flap_openfoam/precice_config.xml");
     bool verbose = true;
 
-    // Set up Chrono MBS participant
+    // Create the Chrono MBS participant
     ChPreciceAdapterMbs participant(GetChronoDataFile("precice/flap_openfoam/solid_chrono/mbs_participant.yaml"), verbose);
+
+    // Access RSDA in MBS model
+    auto& sys = participant.GetSystem();
+    auto rsda = std::dynamic_pointer_cast<ChLinkRSDA>(sys.SearchLink("rsda"));
+    ChAssertAlways(rsda);
+    auto functor = std::dynamic_pointer_cast<utils::LinearSpringTorque>(rsda->GetTorqueFunctor());
+    ChAssertAlways(functor);
+
+    // Add callback for pre-step operations
+    class SpringCoefficientCallback : public ChPreciceAdapterMbs::BeforeStepDynamicsCallback {
+      public:
+        SpringCoefficientCallback(std::shared_ptr<ChLinkRSDA> rsda) : rsda(rsda) {}
+        virtual void OnStepDynamics(double time, double step) override {
+            constexpr double spring_constant = 25;
+            constexpr double stiffening_factor = 8;
+            constexpr double switch_time = 1.5;
+            auto functor = std::static_pointer_cast<utils::LinearSpringTorque>(rsda->GetTorqueFunctor());
+            functor->SetSpringCoefficient((time < switch_time) ? spring_constant : spring_constant * stiffening_factor);
+        }
+        std::shared_ptr<ChLinkRSDA> rsda;
+    };
+    participant.RegisterBeforeStepDynamicsCallback(chrono_types::make_shared<SpringCoefficientCallback>(rsda));
+
+    // Register preCICE participant, initialize and run simulation
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
