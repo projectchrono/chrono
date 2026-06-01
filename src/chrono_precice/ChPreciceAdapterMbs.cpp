@@ -526,7 +526,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
 void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
-    for (const auto& data_name : m_data_write[mesh_name]) {
+    for (const auto& data_name : m_data_read[mesh_name]) {
         auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         const auto& data_info = mesh_info.data.at(data_name);
         auto data_type = data_info.type;
