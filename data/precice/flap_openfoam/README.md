@@ -2,7 +2,7 @@ Coupling of Chrono MBS with OpenFOAM
 ====================================
 
 This demo is adapted from the preCICE quickstart [tutorial](https://precice.org/quickstart.html). 
-The data files in the subdirectory `fluid_openfoam` are copied from the [precice/tutorial](https://github.com/precice/tutorials/tree/develop/quickstart/fluid-openfoam) GitHub repository, with a simplified `run.sh` bsh script file. See the [preCICE license](fluid_openfoam/LICENSE.txt).  
+The data files in the subdirectory `fluid_openfoam` are copied from the [precice/tutorial](https://github.com/precice/tutorials/tree/develop/quickstart/fluid-openfoam) GitHub repository, with simplified `run.sh` and `clean.sh` bash script files. See the [preCICE license](fluid_openfoam/LICENSE.txt).  
 
 The multibody system contains a single body (the _flap_) connected to ground with a revolute joint, with the single degree of freedom representing the deflection angle of the flap in the channel.
 A rotational spring is attached between the flap and ground at the joint location.
