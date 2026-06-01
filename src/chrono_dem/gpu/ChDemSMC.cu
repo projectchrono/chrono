@@ -16,31 +16,28 @@
 #include <numeric>
 #include <fstream>
 
-#include "chrono_dem/cuda/ChDem_SMC.cuh"
+#include "chrono_dem/gpu/ChDemSMC.cuh"
 #include "chrono_dem/utils/ChDemUtilities.h"
 
 namespace chrono {
 namespace dem {
 
-__host__ float ChSystemDem_impl::computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
-                                                         std::vector<float, cudallocator<float>>& arrY,
-                                                         std::vector<float, cudallocator<float>>& arrZ,
+__host__ float ChSystemDem_impl::computeArray3SquaredSum(std::vector<float, gpuallocator<float>>& arrX,
+                                                         std::vector<float, gpuallocator<float>>& arrY,
+                                                         std::vector<float, gpuallocator<float>>& arrZ,
                                                          unsigned int num_spheres) {
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalArray3Squared<float><<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, arrX.data(),
-                                                                arrY.data(), arrZ.data(), num_spheres);
-    demErrchk(cudaDeviceSynchronize());
+    elementalArray3Squared<float><<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, arrX.data(), arrY.data(), arrZ.data(), num_spheres);
+    demErrchk(gpuDeviceSynchronize());
 
     // Use CUB to reduce. And put the reduced result at the last element of sphere_stats_buffer array.
     size_t temp_storage_bytes = 0;
-    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                                      sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
+    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer, sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                                      sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer, sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer + num_spheres);
 }
 
@@ -51,27 +48,22 @@ __host__ double ChSystemDem_impl::GetMaxParticleZ(bool getMax) {
 
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalZLocalToGlobal<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, sphere_data, num_spheres,
-                                                          gran_params);
-    demErrchk(cudaDeviceSynchronize());
+    elementalZLocalToGlobal<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, sphere_data, num_spheres, gran_params);
+    demErrchk(gpuDeviceSynchronize());
 
     // Use CUB to find the max or min Z.
     size_t temp_storage_bytes = 0;
     if (getMax) {
-        demErrchk(cub::DeviceReduce::Max(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
+        demErrchk(cub::DeviceReduce::Max(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer, sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
         void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-        demErrchk(cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
+        demErrchk(cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer, sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
     } else {
-        demErrchk(cub::DeviceReduce::Min(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
+        demErrchk(cub::DeviceReduce::Min(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer, sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
         void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-        demErrchk(cub::DeviceReduce::Min(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                                          sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
+        demErrchk(cub::DeviceReduce::Min(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer, sphere_data->sphere_stats_buffer + num_spheres, num_spheres));
     }
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer + num_spheres);
 }
 
@@ -82,19 +74,16 @@ __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveZ(float ZValue) {
 
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalZAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, num_spheres,
-                                                       gran_params, ZValue);
-    demErrchk(cudaDeviceSynchronize());
+    elementalZAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, num_spheres, gran_params, ZValue);
+    demErrchk(gpuDeviceSynchronize());
 
     // Use CUB to find the max or min Z.
     size_t temp_storage_bytes = 0;
-    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
+    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int, sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int, sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer_int + num_spheres);
 }
 
@@ -105,73 +94,59 @@ __host__ unsigned int ChSystemDem_impl::GetNumParticleAboveX(float XValue) {
 
     const unsigned int threadsPerBlock = 1024;
     unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalXAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, num_spheres,
-                                                       gran_params, XValue);
-    demErrchk(cudaDeviceSynchronize());
+    elementalXAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, num_spheres, gran_params, XValue);
+    demErrchk(gpuDeviceSynchronize());
 
     // Use CUB to find the max or min X.
     size_t temp_storage_bytes = 0;
-    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
+    demErrchk(cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int, sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                                      sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int, sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres));
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
     return *(sphere_data->sphere_stats_buffer_int + num_spheres);
 }
 
 // Reset broadphase data structures
 void ChSystemDem_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero
-    demErrchk(cudaMemset(SD_NumSpheresTouching.data(), 0, SD_NumSpheresTouching.size() * sizeof(unsigned int)));
-    demErrchk(cudaMemset(SD_SphereCompositeOffsets.data(), 0, SD_SphereCompositeOffsets.size() * sizeof(unsigned int)));
+    demErrchk(gpuMemset(SD_NumSpheresTouching.data(), 0, SD_NumSpheresTouching.size() * sizeof(unsigned int)));
+    demErrchk(gpuMemset(SD_SphereCompositeOffsets.data(), 0, SD_SphereCompositeOffsets.size() * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_CHDEM_ID
-    demErrchk(cudaMemset(spheres_in_SD_composite.data(), NULL_CHDEM_ID,
-                         spheres_in_SD_composite.size() * sizeof(unsigned int)));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuMemset(spheres_in_SD_composite.data(), NULL_CHDEM_ID, spheres_in_SD_composite.size() * sizeof(unsigned int)));
+    demErrchk(gpuDeviceSynchronize());
 }
 
 // Reset sphere acceleration data structures
 void ChSystemDem_impl::resetSphereAccelerations() {
     // cache past acceleration data
     if (time_integrator == CHDEM_TIME_INTEGRATOR::CHUNG) {
-        demErrchk(cudaMemcpy(sphere_acc_X_old.data(), sphere_acc_X.data(), nSpheres * sizeof(float),
-                             cudaMemcpyDeviceToDevice));
-        demErrchk(cudaMemcpy(sphere_acc_Y_old.data(), sphere_acc_Y.data(), nSpheres * sizeof(float),
-                             cudaMemcpyDeviceToDevice));
-        demErrchk(cudaMemcpy(sphere_acc_Z_old.data(), sphere_acc_Z.data(), nSpheres * sizeof(float),
-                             cudaMemcpyDeviceToDevice));
+        demErrchk(gpuMemcpy(sphere_acc_X_old.data(), sphere_acc_X.data(), nSpheres * sizeof(float), gpuMemcpyDeviceToDevice));
+        demErrchk(gpuMemcpy(sphere_acc_Y_old.data(), sphere_acc_Y.data(), nSpheres * sizeof(float), gpuMemcpyDeviceToDevice));
+        demErrchk(gpuMemcpy(sphere_acc_Z_old.data(), sphere_acc_Z.data(), nSpheres * sizeof(float), gpuMemcpyDeviceToDevice));
         // if we have multistep AND friction, cache old alphas
         if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
-            demErrchk(cudaMemcpy(sphere_ang_acc_X_old.data(), sphere_ang_acc_X.data(), nSpheres * sizeof(float),
-                                 cudaMemcpyDeviceToDevice));
-            demErrchk(cudaMemcpy(sphere_ang_acc_Y_old.data(), sphere_ang_acc_Y.data(), nSpheres * sizeof(float),
-                                 cudaMemcpyDeviceToDevice));
-            demErrchk(cudaMemcpy(sphere_ang_acc_Z_old.data(), sphere_ang_acc_Z.data(), nSpheres * sizeof(float),
-                                 cudaMemcpyDeviceToDevice));
+            demErrchk(gpuMemcpy(sphere_ang_acc_X_old.data(), sphere_ang_acc_X.data(), nSpheres * sizeof(float), gpuMemcpyDeviceToDevice));
+            demErrchk(gpuMemcpy(sphere_ang_acc_Y_old.data(), sphere_ang_acc_Y.data(), nSpheres * sizeof(float), gpuMemcpyDeviceToDevice));
+            demErrchk(gpuMemcpy(sphere_ang_acc_Z_old.data(), sphere_ang_acc_Z.data(), nSpheres * sizeof(float), gpuMemcpyDeviceToDevice));
         }
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuDeviceSynchronize());
     }
 
     // reset current accelerations to zero to zero
-    demErrchk(cudaMemset(sphere_acc_X.data(), 0, nSpheres * sizeof(float)));
-    demErrchk(cudaMemset(sphere_acc_Y.data(), 0, nSpheres * sizeof(float)));
-    demErrchk(cudaMemset(sphere_acc_Z.data(), 0, nSpheres * sizeof(float)));
+    demErrchk(gpuMemset(sphere_acc_X.data(), 0, nSpheres * sizeof(float)));
+    demErrchk(gpuMemset(sphere_acc_Y.data(), 0, nSpheres * sizeof(float)));
+    demErrchk(gpuMemset(sphere_acc_Z.data(), 0, nSpheres * sizeof(float)));
 
     // reset torques to zero, if applicable
     if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
-        demErrchk(cudaMemset(sphere_ang_acc_X.data(), 0, nSpheres * sizeof(float)));
-        demErrchk(cudaMemset(sphere_ang_acc_Y.data(), 0, nSpheres * sizeof(float)));
-        demErrchk(cudaMemset(sphere_ang_acc_Z.data(), 0, nSpheres * sizeof(float)));
+        demErrchk(gpuMemset(sphere_ang_acc_X.data(), 0, nSpheres * sizeof(float)));
+        demErrchk(gpuMemset(sphere_ang_acc_Y.data(), 0, nSpheres * sizeof(float)));
+        demErrchk(gpuMemset(sphere_ang_acc_Z.data(), 0, nSpheres * sizeof(float)));
     }
 }
 
-__global__ void compute_absv(const unsigned int nSpheres,
-                             const float* velX,
-                             const float* velY,
-                             const float* velZ,
-                             float* d_absv) {
+__global__ void compute_absv(const unsigned int nSpheres, const float* velX, const float* velY, const float* velZ, float* d_absv) {
     unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
     if (my_sphere < nSpheres) {
         float v[3] = {velX[my_sphere], velY[my_sphere], velZ[my_sphere]};
@@ -183,20 +158,20 @@ __host__ float ChSystemDem_impl::get_max_vel() const {
     float* d_absv;
     float* d_max_vel;
     float h_max_vel;
-    demErrchk(cudaMalloc(&d_absv, nSpheres * sizeof(float)));
-    demErrchk(cudaMalloc(&d_max_vel, sizeof(float)));
+    demErrchk(gpuMalloc(&d_absv, nSpheres * sizeof(float)));
+    demErrchk(gpuMalloc(&d_max_vel, sizeof(float)));
 
     compute_absv<<<(nSpheres + 255) / 256, 256>>>(nSpheres, pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(), d_absv);
 
     void* d_temp_storage = NULL;
     size_t temp_storage_bytes = 0;
     demErrchk(cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nSpheres));
-    demErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+    demErrchk(gpuMalloc(&d_temp_storage, temp_storage_bytes));
     demErrchk(cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nSpheres));
-    demErrchk(cudaMemcpy(&h_max_vel, d_max_vel, sizeof(float), cudaMemcpyDeviceToHost));
+    demErrchk(gpuMemcpy(&h_max_vel, d_max_vel, sizeof(float), gpuMemcpyDeviceToHost));
 
-    demErrchk(cudaFree(d_absv));
-    demErrchk(cudaFree(d_max_vel));
+    demErrchk(gpuFree(d_absv));
+    demErrchk(gpuFree(d_max_vel));
 
     return h_max_vel;
 }
@@ -209,30 +184,29 @@ __host__ int3 ChSystemDem_impl::getSDTripletFromID(unsigned int SD_ID) const {
 /// ONLY DO AT BEGINNING OF SIMULATION
 __host__ void ChSystemDem_impl::defragment_initial_positions() {
     // key and value pointers
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_ids;
 
     // load sphere indices
     sphere_ids.resize(nSpheres);
     std::iota(sphere_ids.begin(), sphere_ids.end(), 0);
 
     // sort sphere ids by owner SD
-    std::sort(sphere_ids.begin(), sphere_ids.end(),
-              [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
+    std::sort(sphere_ids.begin(), sphere_ids.end(), [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
 
-    std::vector<int, cudallocator<int>> sphere_pos_x_tmp;
-    std::vector<int, cudallocator<int>> sphere_pos_y_tmp;
-    std::vector<int, cudallocator<int>> sphere_pos_z_tmp;
+    std::vector<int, gpuallocator<int>> sphere_pos_x_tmp;
+    std::vector<int, gpuallocator<int>> sphere_pos_y_tmp;
+    std::vector<int, gpuallocator<int>> sphere_pos_z_tmp;
 
-    std::vector<float, cudallocator<float>> sphere_vel_x_tmp;
-    std::vector<float, cudallocator<float>> sphere_vel_y_tmp;
-    std::vector<float, cudallocator<float>> sphere_vel_z_tmp;
+    std::vector<float, gpuallocator<float>> sphere_vel_x_tmp;
+    std::vector<float, gpuallocator<float>> sphere_vel_y_tmp;
+    std::vector<float, gpuallocator<float>> sphere_vel_z_tmp;
 
-    std::vector<float, cudallocator<float>> sphere_angv_x_tmp;
-    std::vector<float, cudallocator<float>> sphere_angv_y_tmp;
-    std::vector<float, cudallocator<float>> sphere_angv_z_tmp;
+    std::vector<float, gpuallocator<float>> sphere_angv_x_tmp;
+    std::vector<float, gpuallocator<float>> sphere_angv_y_tmp;
+    std::vector<float, gpuallocator<float>> sphere_angv_z_tmp;
 
-    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
+    std::vector<not_stupid_bool, gpuallocator<not_stupid_bool>> sphere_fixed_tmp;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
     sphere_pos_y_tmp.resize(nSpheres);
@@ -295,18 +269,17 @@ __host__ void ChSystemDem_impl::defragment_initial_positions() {
 /// not calling it in most of our simulations.
 __host__ void ChSystemDem_impl::defragment_friction_history(unsigned int history_offset) {
     // key and value pointers
-    std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
+    std::vector<unsigned int, gpuallocator<unsigned int>> sphere_ids;
 
     // load sphere indices
     sphere_ids.resize(nSpheres);
     std::iota(sphere_ids.begin(), sphere_ids.end(), 0);
 
     // sort sphere ids by owner SD
-    std::sort(sphere_ids.begin(), sphere_ids.end(),
-              [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
+    std::sort(sphere_ids.begin(), sphere_ids.end(), [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
 
-    std::vector<float3, cudallocator<float3>> history_tmp;
-    std::vector<unsigned int, cudallocator<unsigned int>> partners_tmp;
+    std::vector<float3, gpuallocator<float3>> history_tmp;
+    std::vector<unsigned int, gpuallocator<unsigned int>> partners_tmp;
 
     history_tmp.resize(history_offset * nSpheres);
     partners_tmp.resize(history_offset * nSpheres);
@@ -363,15 +336,13 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
         bool user_provided_fixed = user_sphere_fixed.size() != 0;
         bool user_provided_vel = user_sphere_vel.size() != 0;
         if (user_provided_fixed && user_sphere_fixed.size() != nSpheres)
-            CHDEM_ERROR("Provided fixity array has length %zu, but there are %u spheres!\n", user_sphere_fixed.size(),
-                        nSpheres);
+            CHDEM_ERROR("Provided fixity array has length %zu, but there are %u spheres!\n", user_sphere_fixed.size(), nSpheres);
         if (user_provided_vel && user_sphere_vel.size() != nSpheres)
-            CHDEM_ERROR("Provided velocity array has length %zu, but there are %u spheres!\n", user_sphere_vel.size(),
-                        nSpheres);
+            CHDEM_ERROR("Provided velocity array has length %zu, but there are %u spheres!\n", user_sphere_vel.size(), nSpheres);
 
-        std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_X;
-        std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Y;
-        std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Z;
+        std::vector<int64_t, gpuallocator<int64_t>> sphere_global_pos_X;
+        std::vector<int64_t, gpuallocator<int64_t>> sphere_global_pos_Y;
+        std::vector<int64_t, gpuallocator<int64_t>> sphere_global_pos_Z;
 
         sphere_global_pos_X.resize(nSpheres);
         sphere_global_pos_Y.resize(nSpheres);
@@ -397,13 +368,12 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
 
         packSphereDataPointers();
         // Figure our the number of blocks that need to be launched to cover the box
-        unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-        initializeLocalPositions<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-            sphere_data, sphere_global_pos_X.data(), sphere_global_pos_Y.data(), sphere_global_pos_Z.data(), nSpheres,
-            gran_params);
+        unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
+        initializeLocalPositions<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, sphere_global_pos_X.data(), sphere_global_pos_Y.data(), sphere_global_pos_Z.data(), nSpheres,
+                                                                     gran_params);
 
-        demErrchk(cudaDeviceSynchronize());
-        demErrchk(cudaPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
     }
 
     TRACK_VECTOR_RESIZE(sphere_acc_X, nSpheres, "sphere_acc_X", 0);
@@ -433,8 +403,7 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
         {
             bool user_provided_ang_vel = user_sphere_ang_vel.size() != 0;
             if (user_provided_ang_vel && user_sphere_ang_vel.size() != nSpheres)
-                CHDEM_ERROR("Provided angular velocity array has length %zu, but there are %u spheres!\n",
-                            user_sphere_ang_vel.size(), nSpheres);
+                CHDEM_ERROR("Provided angular velocity array has length %zu, but there are %u spheres!\n", user_sphere_ang_vel.size(), nSpheres);
             if (user_provided_ang_vel) {
                 for (unsigned int i = 0; i < nSpheres; i++) {
                     auto ang_vel = user_sphere_ang_vel.at(i);
@@ -467,25 +436,21 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
     }
 
     bool user_provided_internal_data = false;
-    if (gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP ||
-        gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP) {
-        TRACK_VECTOR_RESIZE(contact_partners_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_partners_map",
-                            NULL_CHDEM_ID);
+    if (gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP || gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP) {
+        TRACK_VECTOR_RESIZE(contact_partners_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_partners_map", NULL_CHDEM_ID);
         TRACK_VECTOR_RESIZE(contact_active_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_active_map", false);
 
         // If the user provides a checkpointed history array, we load it here
         bool user_provided_partner_map = user_partner_map.size() != 0;
         if (user_provided_partner_map && user_partner_map.size() != MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres)
-            CHDEM_ERROR("ERROR! The user provided contact partner map has size %zu. It needs to be %u * %u!\n",
-                        user_partner_map.size(), MAX_SPHERES_TOUCHED_BY_SPHERE, nSpheres);
+            CHDEM_ERROR("ERROR! The user provided contact partner map has size %zu. It needs to be %u * %u!\n", user_partner_map.size(), MAX_SPHERES_TOUCHED_BY_SPHERE, nSpheres);
 
         // Hope that using .at (instead of []) gives better err msg when things go wrong,
         // at the cost of some speed which is not important in I/O
         if (user_provided_partner_map) {
             for (unsigned int i = 0; i < nSpheres; i++) {
                 for (unsigned int j = 0; j < MAX_SPHERES_TOUCHED_BY_SPHERE; j++) {
-                    contact_partners_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j) =
-                        user_partner_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j);
+                    contact_partners_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j) = user_partner_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j);
                 }
             }
         }
@@ -495,15 +460,14 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
 
     if (gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
         float3 null_history = {0., 0., 0.};
-        TRACK_VECTOR_RESIZE(contact_history_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_history_map",
-                            null_history);
+        TRACK_VECTOR_RESIZE(contact_history_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_history_map", null_history);
         TRACK_VECTOR_RESIZE(contact_duration, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_duration", 0);
 
         // If the user provides a checkpointed history array, we load it here
         bool user_provided_friction_history = user_friction_history.size() != 0;
         if (user_provided_friction_history && user_friction_history.size() != MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres)
-            CHDEM_ERROR("ERROR! The user provided contact friction history has size %zu. It needs to be %u * %u!\n",
-                        user_friction_history.size(), MAX_SPHERES_TOUCHED_BY_SPHERE, nSpheres);
+            CHDEM_ERROR("ERROR! The user provided contact friction history has size %zu. It needs to be %u * %u!\n", user_friction_history.size(), MAX_SPHERES_TOUCHED_BY_SPHERE,
+                        nSpheres);
 
         if (user_provided_friction_history) {
             for (unsigned int i = 0; i < nSpheres; i++) {
@@ -530,24 +494,20 @@ __host__ void ChSystemDem_impl::setupSphereDataStructures() {
     // record normal contact force
     if (gran_params->recording_contactInfo == true) {
         float3 null_force = {0.0f, 0.0f, 0.0f};
-        TRACK_VECTOR_RESIZE(normal_contact_force, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "normal contact force",
-                            null_force);
+        TRACK_VECTOR_RESIZE(normal_contact_force, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "normal contact force", null_force);
     }
 
     // record friction force
     if (gran_params->recording_contactInfo == true && gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
         float3 null_force = {0.0f, 0.0f, 0.0f};
-        TRACK_VECTOR_RESIZE(tangential_friction_force, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres,
-                            "tangential contact force", null_force);
+        TRACK_VECTOR_RESIZE(tangential_friction_force, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "tangential contact force", null_force);
     }
 
     // record rolling friction torque
     if (gran_params->recording_contactInfo == true && gran_params->rolling_mode != CHDEM_ROLLING_MODE::NO_RESISTANCE) {
         float3 null_force = {0.0f, 0.0f, 0.0f};
-        TRACK_VECTOR_RESIZE(rolling_friction_torque, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres,
-                            "rolling friction torque", null_force);
-        TRACK_VECTOR_RESIZE(char_collision_time, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres,
-                            "characteristic collision time", 0);
+        TRACK_VECTOR_RESIZE(rolling_friction_torque, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "rolling friction torque", null_force);
+        TRACK_VECTOR_RESIZE(char_collision_time, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "characteristic collision time", 0);
         TRACK_VECTOR_RESIZE(v_rot_array, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "v rot", null_force);
     }
 
@@ -571,29 +531,28 @@ __host__ void ChSystemDem_impl::runSphereBroadphase() {
     resetBroadphaseInformation();
 
     // First stage of the computation in this function: Figure out the how many spheres touch each SD.
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    getNumberOfSpheresTouchingEachSD<CUDA_THREADS_PER_BLOCK>
-        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
+    getNumberOfSpheresTouchingEachSD<GPU_THREADS_PER_BLOCK><<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
 
     // Starting the second stage of this function call - the prefix scan operation
     unsigned int* out_ptr = SD_SphereCompositeOffsets.data();
     unsigned int* in_ptr = SD_NumSpheresTouching.data();
-    demErrchk(cudaMemcpy(out_ptr, in_ptr, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    demErrchk(gpuMemcpy(out_ptr, in_ptr, nSDs * sizeof(unsigned int), gpuMemcpyDeviceToDevice));
 
     // cold run; CUB determines the amount of storage it needs (since first argument is NULL pointer)
     size_t temp_storage_bytes = 0;
     demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs));
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
 
     // give CUB needed temporary storage on the device
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run the actual exclusive prefix sum
     demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs));
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
 
     // Beginning of the last stage of computation in this function: assembling the big composite array.
     // num_entries: total number of sphere entries to record in the big fat composite array
@@ -602,15 +561,14 @@ __host__ void ChSystemDem_impl::runSphereBroadphase() {
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
     // Copy the offsets in the scratch pad; the subsequent kernel call would step on the outcome of the prefix scan
-    demErrchk(cudaMemcpy(SD_SphereCompositeOffsets_ScratchPad.data(), SD_SphereCompositeOffsets.data(),
-                         nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    demErrchk(gpuMemcpy(SD_SphereCompositeOffsets_ScratchPad.data(), SD_SphereCompositeOffsets.data(), nSDs * sizeof(unsigned int), gpuMemcpyDeviceToDevice));
     // Populate the composite array; in the process, the content of the scratch pad will be modified
-    // nBlocks = (MAX_SDs_TOUCHED_BY_SPHERE * nSpheres + 2*CUDA_THREADS_PER_BLOCK - 1) / (2*CUDA_THREADS_PER_BLOCK);
-    // populateSpheresInEachSD<<<nBlocks, 2*CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
-    nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / (CUDA_THREADS_PER_BLOCK);
-    populateSpheresInEachSD<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    // nBlocks = (MAX_SDs_TOUCHED_BY_SPHERE * nSpheres + 2*GPU_THREADS_PER_BLOCK - 1) / (2*GPU_THREADS_PER_BLOCK);
+    // populateSpheresInEachSD<<<nBlocks, 2*GPU_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / (GPU_THREADS_PER_BLOCK);
+    populateSpheresInEachSD<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
 }
 
 __host__ void ChSystemDem_impl::updateBCPositions() {
@@ -638,7 +596,7 @@ __host__ void ChSystemDem_impl::updateBCPositions() {
         gran_params->BD_frame_Y = bd_offset_SU.y + BD_rest_frame_SU.y;
         gran_params->BD_frame_Z = bd_offset_SU.z + BD_rest_frame_SU.z;
 
-        unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+        unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
 
         int64_t3 offset_delta = {0, 0, 0};
 
@@ -651,21 +609,20 @@ __host__ void ChSystemDem_impl::updateBCPositions() {
 
         packSphereDataPointers();
 
-        applyBDFrameChange<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(offset_delta, sphere_data, nSpheres, gran_params);
+        applyBDFrameChange<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(offset_delta, sphere_data, nSpheres, gran_params);
 
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
     }
 }
 
 __host__ double ChSystemDem_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
     // Settling simulation loop.
     float duration_SU = (float)(duration / TIME_SU2UU);
     unsigned int nsteps = (unsigned int)std::round(duration_SU / stepSize_SU);
-    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
-                   stepSize_SU, nsteps, duration / nsteps);
+    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU, nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
     packSphereDataPointers();
@@ -681,54 +638,49 @@ __host__ double ChSystemDem_impl::AdvanceSimulation(float duration) {
 
         if (gran_params->friction_mode == CHDEM_FRICTION_MODE::FRICTIONLESS) {
             // Compute sphere-sphere forces
-            computeSphereForces_frictionless_matBased<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                (unsigned int)BC_params_list_SU.size());
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
-        } else if (gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP ||
-                   gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
+            computeSphereForces_frictionless_matBased<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                                                                                             (unsigned int)BC_params_list_SU.size());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
+        } else if (gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP || gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
 
             if (gran_params->use_mat_based == true) {
-                computeSphereContactForces_matBased<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                    (unsigned int)BC_params_list_SU.size(), nSpheres);
+                computeSphereContactForces_matBased<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                                                                                        (unsigned int)BC_params_list_SU.size(), nSpheres);
 
             } else {
-                computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                    (unsigned int)BC_params_list_SU.size(), nSpheres);
+                computeSphereContactForces<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                                                                               (unsigned int)BC_params_list_SU.size(), nSpheres);
             }
 
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
         }
 
         METRICS_PRINTF("Starting integrateSpheres!\n");
-        integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        integrateSpheres<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
-            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            const unsigned int nThreadsUpdateHist = 2 * GPU_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
 
             METRICS_PRINTF("Update Friction Data!\n");
 
-            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
-                                                                                      gran_params);
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data, gran_params);
 
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
             METRICS_PRINTF("Update angular velocity.\n");
-            updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            updateAngVels<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
         }
 
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time

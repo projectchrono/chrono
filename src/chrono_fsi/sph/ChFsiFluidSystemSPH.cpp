@@ -745,7 +745,7 @@ void ChFsiFluidSystemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_
 
 //------------------------------------------------------------------------------
 
-void PrintDeviceProperties(const cudaDeviceProp& prop) {
+void PrintDeviceProperties(const gpuDeviceProp& prop) {
     cout << "GPU device: " << prop.name << endl;
     cout << "  Total global memory: " << prop.totalGlobalMem / (1024. * 1024. * 1024.) << " GB" << endl;
     cout << "  Total constant memory: " << prop.totalConstMem / 1024. << " KB" << endl;
@@ -1491,16 +1491,16 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     // ----------------
 
-    // Check if GPU is available and initialize CUDA device information
+    // Check if GPU is available and initialize GPU device information
     int device;
-    cudaGetDevice(&device);
-    cudaCheckError();
-    m_data_mgr->cudaDeviceInfo->deviceID = device;
-    cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
-    cudaCheckError();
+    gpuGetDevice(&device);
+    gpuCheckError();
+    m_data_mgr->gpuDeviceInfo->deviceID = device;
+    gpuGetDeviceProperties(&m_data_mgr->gpuDeviceInfo->deviceProp, m_data_mgr->gpuDeviceInfo->deviceID);
+    gpuCheckError();
 
     if (m_verbose) {
-        PrintDeviceProperties(m_data_mgr->cudaDeviceInfo->deviceProp);
+        PrintDeviceProperties(m_data_mgr->gpuDeviceInfo->deviceProp);
         PrintParams(*m_paramsH, *m_data_mgr->countersH);
         PrintRefArrays(m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);
     }
@@ -1642,7 +1642,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
     // ----------------
 
-    // Hack to prevent bringing in Chrono core headers in CUDA code
+    // Hack to prevent bringing in Chrono core headers in GPU code
     // Copy from one enum class (NodeDirectionsMode) to another (NodeDirections)
     NodeDirections node_directions_mode = NodeDirections::NONE;
     switch (m_node_directions_mode) {
@@ -1682,16 +1682,16 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     // ----------------
 
-    // Check if GPU is available and initialize CUDA device information
+    // Check if GPU is available and initialize GPU device information
     int device;
-    cudaGetDevice(&device);
-    cudaCheckError();
-    m_data_mgr->cudaDeviceInfo->deviceID = device;
-    cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
-    cudaCheckError();
+    gpuGetDevice(&device);
+    gpuCheckError();
+    m_data_mgr->gpuDeviceInfo->deviceID = device;
+    gpuGetDeviceProperties(&m_data_mgr->gpuDeviceInfo->deviceProp, m_data_mgr->gpuDeviceInfo->deviceID);
+    gpuCheckError();
 
     if (m_verbose) {
-        PrintDeviceProperties(m_data_mgr->cudaDeviceInfo->deviceProp);
+        PrintDeviceProperties(m_data_mgr->gpuDeviceInfo->deviceProp);
         PrintParams(*m_paramsH, *m_data_mgr->countersH);
         PrintRefArrays(m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);
     }

@@ -95,9 +95,7 @@ void writeParticleFileCSV(const std::string& filename,
 /// Save current particle data to a JSON file for use with Splashsurf.
 /// Write particle positions.
 void writeParticleFileJSON(const std::string& filename, FsiDataManager& data_mgr);
-void writeParticleFileJSON(const std::string& filename,
-                           thrust::device_vector<Real4>& posRadD,
-                           thrust::host_vector<int4>& referenceArray);
+void writeParticleFileJSON(const std::string& filename, thrust::device_vector<Real4>& posRadD, thrust::host_vector<int4>& referenceArray);
 
 /// @} fsisph_utils
 

@@ -44,10 +44,10 @@
 
     @{
         @defgroup sensor_sensors Sensors
-        @defgroup sensor_buffers Sensor Data Buffers
-        @defgroup sensor_filters Sensor Filters
-        @defgroup sensor_cuda CUDA Wrapper Functions
-        @defgroup sensor_optix OptiX-Based Code
+        @defgroup sensor_buffers Sensor data buffers
+        @defgroup sensor_filters Sensor filters
+        @defgroup sensor_cuda CUDA wrapper functions
+        @defgroup sensor_optix OptiX-based code
         @defgroup sensor_scene Scene
         @defgroup sensor_utils Utilities
     @}

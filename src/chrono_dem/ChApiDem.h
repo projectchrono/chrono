@@ -53,7 +53,7 @@
     @defgroup dem_module DEM module
     @brief Module for DEM parallel simulation
 
-    This module provides support for granular dynamics on the DEM through CUDA.
+    This module provides support for granular dynamics on the GPU through CUDA or HIP.
     Currently, systems of mono-disperse spheres can interact via full-history frictional contact with both
     analytical boundary conditions and triangle meshes.
 
@@ -63,7 +63,7 @@
 
     @{
         @defgroup dem_physics Physics objects
-        @defgroup dem_cuda CUDA functions
+        @defgroup dem_gpu GPU functions
         @defgroup dem_utils Utilities
         @defgroup dem_visualization Run-time visualization
     @}
