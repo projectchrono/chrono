@@ -41,3 +41,4 @@ model:
       location: [0.0, 0.0, 0.0]
       axis: [0, 0, 1]
       spring_coefficient: 25
+      free_angle: 0
