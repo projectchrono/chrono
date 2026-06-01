@@ -66,6 +66,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Set path to Chrono data
+    SetChronoDataPath("../../../");
+
     // Problem settings
     std::string precice_config_filename = "../precice_config.xml";
     bool verbose = true;
