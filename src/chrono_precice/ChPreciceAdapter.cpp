@@ -272,8 +272,7 @@ ChPreciceAdapter::CouplingDataType ChPreciceAdapter::GetCouplingDataType(const s
     return m_coupling_meshes.at(mesh_name).data.at(data_name).type;
 }
 
-std::string ChPreciceAdapter::GetCouplingDataTypeAsString(const std::string& mesh_name, const std::string& data_name) const {
-    auto type = GetCouplingDataType(mesh_name, data_name);
+std::string ChPreciceAdapter::GetCouplingDataTypeAsString(CouplingDataType type) {
     switch (type) {
         case CouplingDataType::GENERIC:
             return "GENERIC";
@@ -289,6 +288,11 @@ std::string ChPreciceAdapter::GetCouplingDataTypeAsString(const std::string& mes
             return "TORQUES";
     }
     return "UNKNOWN";
+}
+
+std::string ChPreciceAdapter::GetCouplingDataTypeAsString(const std::string& mesh_name, const std::string& data_name) const {
+    auto type = GetCouplingDataType(mesh_name, data_name);
+    return GetCouplingDataTypeAsString(type);
 }
 
 int ChPreciceAdapter::GetCouplingMeshDimensions(const std::string& mesh_name) const {

@@ -440,6 +440,7 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             default:
+                cerr << "[ReadBodyRefData] Invalid read data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid read data type for MBS");
         }
     }
@@ -516,6 +517,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             default:
+                cerr << "[WriteBodyRefData] Invalid write data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid write data type for MBS");
         }
     }
@@ -577,6 +579,7 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
                 break;
             }
             default:
+                cerr << "[ReadBodyMeshData] Invalid read data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid read data type for MBS");
         }
     }
@@ -653,6 +656,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 break;
             }
             default:
+                cerr << "[WriteBodyMeshData] Invalid write data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid write data type for MBS");
         }
     }

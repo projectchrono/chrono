@@ -89,6 +89,9 @@ class ChApiPrecice ChPreciceAdapter {
     /// Get the type for the coupling data with specified name on the mesh with specified name.
     std::string GetCouplingDataTypeAsString(const std::string& mesh_name, const std::string& data_name) const;
 
+    /// Return the data type as a string.
+    static std::string GetCouplingDataTypeAsString(CouplingDataType type);
+
     /// Get the maximum time step size from preCICE.
     double GetMaxTimeStepSize() const;
 
