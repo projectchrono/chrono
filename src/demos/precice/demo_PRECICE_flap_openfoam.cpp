@@ -57,14 +57,21 @@ int main(int argc, char* argv[]) {
 
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
-    ////GenerateData();
+    // Ensure the program is run from the correct directory
+    auto crt_path = std::filesystem::current_path().string();
+    cout << "Working directory: " << crt_path << endl;
+    auto run_script = std::filesystem::path(crt_path + "/run.sh");
+    if (!exists(run_script)) {
+        cerr << "Incorrect working directory. Run through the 'run.sh' script in the data/precice/flap_openfoam/solid_chrono/ directory." << endl;
+        return 1;
+    }
 
     // Problem settings
-    std::string precice_config_filename = GetChronoDataFile("precice/flap_openfoam/precice_config.xml");
+    std::string precice_config_filename = "../precice_config.xml";
     bool verbose = true;
 
     // Create the Chrono MBS participant
-    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/flap_openfoam/solid_chrono/mbs_participant.yaml"), verbose);
+    ChPreciceAdapterMbs participant("./mbs_participant.yaml", verbose);
 
     // Access RSDA in MBS model
     auto& sys = participant.GetSystem();
