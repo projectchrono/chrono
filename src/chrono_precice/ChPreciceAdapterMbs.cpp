@@ -199,6 +199,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     // - register mesh with preCICE
     for (const auto& mesh_name : GetCouplingMeshNames()) {
         auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
+
+        // Check consistency of mesh dimension and read data dimension
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
@@ -214,9 +216,12 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::POSITIONS:
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::VELOCITIES:
-                    throw std::runtime_error("Incorrect Chrono read data type");
+                    cerr << "[InitializeParticipant] Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    throw std::runtime_error("Invalid Chrono MBS read data type");
             }
         }
+
+        // Check consistency of mesh dimension and read data dimension
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
@@ -229,10 +234,12 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                     break;
                 case CouplingDataType::FORCES:
                 case CouplingDataType::TORQUES:
-                    throw std::runtime_error("Incorrect Chrono write data type");
+                    cerr << "[InitializeParticipant] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    throw std::runtime_error("Invalid Chrono MBS write data type");
             }
         }
 
+        // Set mesh vertices, based on mesh type
         std::vector<ChVector3d> vertices;
         auto& mesh_info = m_coupling_meshes[mesh_name];
         switch (mesh_info.type) {
@@ -244,7 +251,10 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
             case CouplingMeshType::RIGID_BODY_MESH_POINTS: {
                 for (const auto& c_body : m_coupling_bodies) {
                     ChAssertAlways(!c_body->points.empty());
-                    vertices.insert(vertices.end(), c_body->points.begin(), c_body->points.end());
+                    for (const auto& pos_loc : c_body->points) {
+                        ChVector3d pos_abs = c_body->init_body_frame.TransformPointLocalToParent(pos_loc);
+                        vertices.push_back(pos_abs);
+                    }
                 }
                 break;
             }
@@ -260,7 +270,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
             }
         }
 
-        // Register coupling mesh with preCICE
+        // Register coupling mesh with preCICE, taking into account mesh dimension
         RegisterMesh(mesh_name, vertices);
     }
 
@@ -440,8 +450,8 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid read data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                throw std::runtime_error("Invalid read data type for MBS");
+                cerr << "[ReadBodyRefData] Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                throw std::runtime_error("Invalid Chrono MBS read data type");
         }
     }
 }
@@ -517,8 +527,8 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             default:
-                cerr << "[WriteBodyRefData] Invalid write data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                throw std::runtime_error("Invalid write data type for MBS");
+                cerr << "[WriteBodyRefData] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                throw std::runtime_error("Invalid Chrono MBS write data type");
         }
     }
 }
@@ -550,7 +560,7 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
                             force_abs.z() = data_values[i_data + 2];
                             i_data += 3;
                         }
-                        ChVector3d pos_abs = c_body->body->TransformPointLocalToParent(pos_loc);
+                        ChVector3d pos_abs = c_body->body->GetFrameRefToAbs().TransformPointLocalToParent(pos_loc);
                         c_body->body->AccumulateForce(c_body->accumulator_index, force_abs, pos_abs, false);
                     }
                 }
@@ -579,8 +589,8 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
                 break;
             }
             default:
-                cerr << "[ReadBodyMeshData] Invalid read data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                throw std::runtime_error("Invalid read data type for MBS");
+                cerr << "[ReadBodyMeshData] Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                throw std::runtime_error("Invalid Chrono MBS read data type");
         }
     }
 }
@@ -600,7 +610,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
-                        ChVector3d pos_abs = c_body->body->TransformPointLocalToParent(pos_loc);
+                        ChVector3d pos_abs = c_body->body->GetFrameRefToAbs().TransformPointLocalToParent(pos_loc);
                         if (data_dim == 2) {
                             data_values[i_data + 0] = pos_abs.x();
                             data_values[i_data + 1] = pos_abs.y();
@@ -620,7 +630,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
-                        ChVector3d displ_abs = c_body->body->TransformPointLocalToParent(pos_loc) - c_body->init_body_frame.TransformPointLocalToParent(pos_loc);
+                        ChVector3d displ_abs = c_body->body->GetFrameRefToAbs().TransformPointLocalToParent(pos_loc) - c_body->init_body_frame.TransformPointLocalToParent(pos_loc);
                         if (data_dim == 2) {
                             data_values[i_data + 0] = displ_abs.x();
                             data_values[i_data + 1] = displ_abs.y();
@@ -656,8 +666,8 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 break;
             }
             default:
-                cerr << "[WriteBodyMeshData] Invalid write data type for MBS (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                throw std::runtime_error("Invalid write data type for MBS");
+                cerr << "[WriteBodyMeshData] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                throw std::runtime_error("Invalid Chrono MBS write data type");
         }
     }
 }
