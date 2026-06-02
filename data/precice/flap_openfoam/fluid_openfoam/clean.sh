@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -e -u
 
-echo "\n---- Cleaning up OpenFOAM preCICE participant ----\n"
+echo "---- Cleaning up OpenFOAM preCICE participant ----"
 
 . ../cleaning-tools.sh
 

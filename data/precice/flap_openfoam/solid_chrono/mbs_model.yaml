@@ -11,6 +11,7 @@ model:
 
     - name: flap
       location: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0]
       mass: 40.0
       com: 
         location: [0.1, 0.0, 0.0]
@@ -22,7 +23,7 @@ model:
         shapes:
           - type: BOX
             dimensions: [0.2, 0.02, 0.01]
-            location: [0.0, 0.0, 0.0]
+            location: [0.1, 0.0, 0.0]
             orientation: [0.0, 0.0, 0.0]
             color: [0.6, 0.2, 0.2]
 

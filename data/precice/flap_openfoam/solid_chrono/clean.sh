@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -e -u
 
-echo "\n---- Cleaning up Chrono preCICE participant ----\n"
+echo "---- Cleaning up Chrono preCICE participant ----"
 
 . ../cleaning-tools.sh
 

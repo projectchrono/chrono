@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -e -u
 
-echo "\n---- Cleaning up Chrono-OpenFOAM preCICE ----\n"
+echo "---- Cleaning up Chrono-OpenFOAM preCICE ----"
 
 . cleaning-tools.sh
 
