@@ -10,11 +10,17 @@ simulation:
   gravity: [0, 0, 0]
   
 output:
-  type: NONE
+  type: ASCII
   fps: 20
 
 visualization:
   type: MODEL_FILE
+  render_fps: 120
+  enable_shadows: false
+  camera:
+    vertical: Y
+    location: [0.1, 0, 1]
+    target: [0.1, 0, 0]
 
 precice_adapter_config:
   participant_name: Solid

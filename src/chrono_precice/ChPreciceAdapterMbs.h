@@ -19,6 +19,7 @@
 
 #include "chrono/functions/ChFunction.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/input_output/ChOutput.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -62,12 +63,28 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     ChSystem& GetSystem() { return *m_sys; }
 
+    /// Enable Chrono MBS run-time visualization.
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, visualization parameters are read from that file.
     bool EnableVisualization(double render_fps,                  ///< rendering frequency
                              CameraVerticalDir camera_vertical,  ///< camera vertical direction (Y or Z)
                              const ChVector3d& camera_location,  ///< initial camera location
                              const ChVector3d& camera_target,    ///< initial camera look-at point
                              bool enable_shadows                 ///< enable dynamic shadows
     );
+
+    /// Enable Chrono MBS simulation output.
+    /// Notes:
+    /// - output is generated for all coupling bodies and FEA meshes.
+    /// - if the MBS preCICE participant is created from a YAML specification file, output parameters are read from that file.
+    bool EnableOutput(ChOutput::Type db_type,  ///< output DB type
+                      ChOutput::Mode mode,     ///< output mode
+                      double output_fps        ///< output frequency
+    );
+
+    /// Set root output directory (default: ".").
+    /// The specified directory must exist.
+    virtual void SetOutputDir(const std::string& out_dir);
 
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
 
@@ -99,12 +116,14 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void RegisterAfterStepDynamicsCallback(std::shared_ptr<AfterStepDynamicsCallback> callback) { m_afterstep_callback = callback; }
 
   private:
+    /// Checkpoint data.
     struct Checkpoint {
         double time;
         ChState x;
         ChStateDelta v;
     };
 
+    /// Coupling rigid body data.
     struct CouplingBody {
         int index;
         std::shared_ptr<ChBodyAuxRef> body;
@@ -114,17 +133,39 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     };
 
 #ifdef CHRONO_FEA
+    /// Coupling FEA mesh data.
     struct CouplingFEAMesh {
         int index;
         std::shared_ptr<fea::ChMesh> mesh;
     };
 #endif
 
-    void ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
-    void WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
+    /// Chrono MBS simulation output parameters.
+    struct OutputParameters {
+        OutputParameters();
+        ChOutput::Type type;
+        ChOutput::Mode mode;
+        double fps;
+    };
 
-    void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
-    void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
+    /// Collection of output physics items.
+    struct OutputData {
+        std::vector<std::shared_ptr<ChBody>> bodies;
+#ifdef CHRONO_FEA
+        std::vector<std::shared_ptr<fea::ChMesh>> meshes;
+#endif
+    };
+
+    /// Chrono MBS simulation run-time visualization parameters.
+    struct VisParameters {
+        VisParameters();
+        bool render;
+        double render_fps;
+        CameraVerticalDir camera_vertical;
+        ChVector3d camera_location;
+        ChVector3d camera_target;
+        bool enable_shadows;
+    };
 
     // Implementation of base class virtual methods
     virtual void InitializeParticipant() override;
@@ -135,42 +176,45 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     virtual void AdvanceParticipant(double time, double time_step) override;
     virtual void WriteData() override;
 
-    std::shared_ptr<ChSystem> m_sys;
-    double m_time_step;
-    bool m_enforce_realtime;
-    ChRealtimeStepTimer m_rt_timer;
+    void ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
+    void WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
-    // System checkpoint data
-    Checkpoint m_checkpoint;
+    void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
+    void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
+
+    void SaveOutput(int frame);
+
+    std::shared_ptr<ChSystem> m_sys;  ///< underlying Chrono system
+    double m_time_step;               ///< integration step size
+    bool m_enforce_realtime;          ///< flag indicating soft real-time
+    ChRealtimeStepTimer m_rt_timer;   ///< timer for enforcing soft real-time
+
+    Checkpoint m_checkpoint;  ///< Chrono system checkpoint data
 
     // Chrono physics items in coupling interface
-    std::vector<std::shared_ptr<CouplingBody>> m_coupling_bodies;
+    std::vector<std::shared_ptr<CouplingBody>> m_coupling_bodies;  ///< coupling rigid bodies
 #ifdef CHRONO_FEA
-    std::vector<std::shared_ptr<fea::ChMesh>> m_coupling_fea;
+    std::vector<std::shared_ptr<fea::ChMesh>> m_coupling_fea;  ///< coupling FEA meshes
 #endif
 
     // Dynamics callbacks
     std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics
     std::shared_ptr<AfterStepDynamicsCallback> m_afterstep_callback;    ///< operations performed after advancing dynamics
 
-    // Run-time visualization
-    struct VisParams {
-        VisParams();
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
-        ChVector3d camera_location;
-        ChVector3d camera_target;
-        bool enable_shadows;
-    };
-    VisParams m_vis;  ///< visualization parameters
+    VisParameters m_vis;  ///< visualization parameters
+
+    // Output
+    OutputParameters m_output;              ///< output specification
+    OutputData m_output_data;               ///< output data
+    std::string m_output_dir;               ///< output directory name
+    std::shared_ptr<ChOutput> m_output_db;  ///< output database
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths
 #endif
 
 #ifdef CHRONO_VSG
-    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualizatino system
 #endif
 };
 

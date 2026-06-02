@@ -58,7 +58,7 @@ class ChApiParsers ChParserYAML {
     virtual double GetOutputFPS() const { return m_output.fps; }
 
     /// Save simulation output results at the current time.
-    /// This base class implementation creates and initializes the output database. Derived classes must  
+    /// This base class implementation creates and initializes the output database.
     virtual void SaveOutput(int frame);
 
     /// Peek in specified YAML file and read the fluid system type.

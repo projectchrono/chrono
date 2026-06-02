@@ -14,7 +14,10 @@
 
 #include <algorithm>
 
-#include "chrono/utils/ChUtils.h"
+#include "chrono/input_output/ChOutputASCII.h"
+#ifdef CHRONO_HAS_HDF5
+    #include "chrono/input_output/ChOutputHDF5.h"
+#endif
 
 #include "chrono_precice/ChPreciceAdapterMbs.h"
 
@@ -61,12 +64,13 @@ static std::vector<ChVector3d> ReadPoints(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose) : m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
+    : m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_output_dir(".") {
     SetVerbose(verbose);
 }
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool verbose) {
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool verbose) : m_output_dir(".") {
     SetVerbose(verbose);
 
     // Create the MBS from the YAML specification file
@@ -156,17 +160,57 @@ void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, co
     c_body->init_body_frame = body->GetFrameRefToAbs();
     c_body->accumulator_index = body->AddAccumulator();
     m_coupling_bodies.push_back(c_body);
+
+    m_output_data.bodies.push_back(body);
 }
 
 #ifdef CHRONO_FEA
 void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh) {
     //// TODO
+
+    m_output_data.meshes.push_back(fea_mesh);
 }
 #endif
 
 // -----------------------------------------------------------------------------
 
-ChPreciceAdapterMbs::VisParams::VisParams()
+ChPreciceAdapterMbs::OutputParameters::OutputParameters() : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
+
+bool ChPreciceAdapterMbs::EnableOutput(ChOutput::Type db_type, ChOutput::Mode mode, double output_fps) {
+    m_output.type = db_type;
+    m_output.mode = mode;
+    m_output.fps = output_fps;
+    return (db_type != ChOutput::Type::NONE);
+}
+
+void ChPreciceAdapterMbs::SetOutputDir(const std::string& out_dir) {
+    auto p = std::filesystem::path(out_dir);
+    if (!exists(p) || !is_directory(p)) {
+        std::cerr << "The specified path " << out_dir << " is not a valid directory." << std::endl;
+        throw std::runtime_error("Invalid directory");
+    }
+
+    m_output_dir = out_dir;
+
+    if (m_verbose) {
+        auto filename = m_output_dir + "/mbs_results";
+        switch (m_output.type) {
+            case ChOutput::Type::ASCII:
+                filename += ".txt";
+                break;
+            case ChOutput::Type::HDF5:
+#ifdef CHRONO_HAS_HDF5
+                filename += ".h5";
+                break;
+#else
+                return;
+#endif
+        }
+        cout << "Output file: " << filename << endl;
+    }
+}
+
+ChPreciceAdapterMbs::VisParameters::VisParameters()
     : render(false), render_fps(120), camera_vertical(CameraVerticalDir::Z), camera_location({0, -1, 0}), camera_target({0, 0, 0}), enable_shadows(true) {}
 
 bool ChPreciceAdapterMbs::EnableVisualization(double render_fps,
@@ -360,6 +404,14 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
         }
     }
 
+    static int output_frame = 0;
+    if (m_output.type != ChOutput::Type::NONE) {
+        if (time >= output_frame / m_output.fps) {
+            SaveOutput(output_frame);
+            output_frame++;
+        }
+    }
+
     if (m_beforestep_callback)
         m_beforestep_callback->OnStepDynamics(time, time_step);
 
@@ -391,6 +443,37 @@ void ChPreciceAdapterMbs::WriteData() {
     }
 
     ChPreciceAdapter::WriteData();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapterMbs::SaveOutput(int frame) {
+    // Create the output DB if needed
+    if (!m_output_db) {
+        auto filename = m_output_dir + "/mbs_results";
+        switch (m_output.type) {
+            case ChOutput::Type::ASCII:
+                filename += ".txt";
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename);
+                break;
+            case ChOutput::Type::HDF5:
+#ifdef CHRONO_HAS_HDF5
+                filename += ".h5";
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename, m_output.mode);
+                break;
+#else
+                return;
+#endif
+        }
+
+        m_output_db->Initialize();
+    }
+
+    m_output_db->WriteBodies(m_output_data.bodies);
+#ifdef CHRONO_FEA
+    //// TODO
+    ////m_output_db->WriteFeaMeshes(m_output_data.meshes);
+#endif
 }
 
 // -----------------------------------------------------------------------------

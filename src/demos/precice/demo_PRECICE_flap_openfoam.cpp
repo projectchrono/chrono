@@ -21,15 +21,9 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChDataPath.h"
-#include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChForceFunctors.h"
 
 #include "chrono_precice/ChPreciceAdapterMbs.h"
-
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -97,6 +91,14 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChLinkRSDA> rsda;
     };
     participant.RegisterBeforeStepDynamicsCallback(chrono_types::make_shared<SpringCoefficientCallback>(rsda));
+
+    // Create and set ouput directory
+    std::string out_dir = "results";
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    participant.SetOutputDir(out_dir);
 
     // Register preCICE participant, initialize and run simulation
     participant.RegisterParticipant(precice_config_filename);

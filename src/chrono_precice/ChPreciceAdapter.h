@@ -25,6 +25,7 @@
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "precice/precice.hpp"
 
