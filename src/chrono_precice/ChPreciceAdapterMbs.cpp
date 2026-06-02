@@ -80,6 +80,10 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     parser.Populate(*m_sys);
 
     // Extract information from parsed YAML files
+    m_output.type = parser.GetOutputType();
+    m_output.mode = parser.GetOutputMode();
+    m_output.fps = parser.GetOutputFPS();
+    
     m_vis.render = parser.Render();
     m_vis.render_fps = parser.GetRenderFPS();
     m_vis.camera_vertical = parser.GetCameraVerticalDir();
