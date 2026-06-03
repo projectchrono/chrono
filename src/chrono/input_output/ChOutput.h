@@ -50,14 +50,19 @@ class ChApi ChOutput {
     ChOutput() {}
     virtual ~ChOutput() {}
 
-    virtual void Initialize(Mode mode) {
-        m_mode = mode;
+    virtual void Initialize(Mode mode) { m_mode = mode; }
+
+    virtual void WriteTime(int frame, double time) = 0;
+    virtual void WriteSection(const std::string& name) = 0;
+
+    void Write(double time, int frame, const ChAssembly::Components& components) {
+        WriteTime(frame, time);
+        Write(components);
     }
 
-    void Save(double time, int frame, ChAssembly::Components& components) {
+    void Write(const ChAssembly::Components& components) {
         switch (m_mode) {
             case Mode::FRAMES:
-                WriteTime(frame, time);
                 WriteBodies(components.bodies);
                 WriteShafts(components.shafts);
                 WriteJoints(components.joints);
@@ -101,8 +106,6 @@ class ChApi ChOutput {
   protected:
     // Functions for Mode::FRAMES
 
-    virtual void WriteTime(int frame, double time) = 0;
-    virtual void WriteSection(const std::string& name) = 0;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;

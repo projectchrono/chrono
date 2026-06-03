@@ -1978,7 +1978,7 @@ bool ChSystem::DoStaticRelaxing(double step_size, int num_iterations) {
 
 // -----------------------------------------------------------------------------
 
-void ChSystem::Output(int frame, ChOutput& database) const {
+void ChSystem::WriteOutput(int frame, ChOutput& database) const {
     ChAssembly::Components components;
 
     for (auto& b : GetBodies())
@@ -2010,7 +2010,7 @@ void ChSystem::Output(int frame, ChOutput& database) const {
         }
     }
 
-    database.Save(GetChTime(), frame, components);
+    database.Write(GetChTime(), frame, components);
 }
 
 // -----------------------------------------------------------------------------

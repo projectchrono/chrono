@@ -1267,7 +1267,7 @@ void ChParserMbsYAML::DoStepDynamics() {
 
 void ChParserMbsYAML::SaveOutput(double time, int frame) {
     ChParserYAML::SaveOutput(time, frame);
-    m_output_db->Save(time, frame, m_output_components);
+    m_output_db->Write(time, frame, m_output_components);
 }
 
 // -----------------------------------------------------------------------------
