@@ -21,6 +21,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChLinksAll.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLinkMotorLinear.h"
@@ -311,6 +312,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
         std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
         std::vector<std::shared_ptr<ChShaftsCouple>> couples;
         std::vector<std::shared_ptr<ChLink>> constraints;
+        std::vector<std::shared_ptr<ChShaftBodyRotation>> shaft_body_rot;
+        std::vector<std::shared_ptr<ChShaftBodyTranslation>> shaft_body_trans;
+        std::vector<std::shared_ptr<ChMarker>> markers;
         std::vector<std::shared_ptr<ChLinkTSDA>> tsdas;
         std::vector<std::shared_ptr<ChLinkRSDA>> rsdas;
         std::vector<std::shared_ptr<ChLoadCustom>> loads;
