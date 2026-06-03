@@ -2650,6 +2650,7 @@ See `demo_VEH_WheeledVehicle` and `demo_VEH_SuspensionTestRig` which can be modi
 
 For consistency, the following changes were made to some of the Chrono CMake configuration scripts:
   - Chrono::Irrlicht module: `IRRLICHT_INSTALL_DIR` replaces the old IRRLICHT_ROOT
+  - Chrono::Multicore module: `BLAZE_INSTALL_DIR` replaces the old BLAZE_DIR
   - Chrono::Vehicle module: `IRRKLANG_INSTALL_DIR` and `IRRKLANG_LIBRARY` replace the old CH_IRRKLANG_SDKDIR and CH_IRRKLANGLIB, respectively
   - Chrono::Synchrono module: `fastrtps_INSTALL_DIR` replaces the old fastrtps_ROOT
   - Chrono::OpenGL module: finding the necessary GL dependencies (GLEW and GLFW) now relies on CMake project configuration scripts for these libraries. As such, unless automatically detected, the user must set the CMake variables `GLEW_DIR` and `GLFW3_DIR`. For systems where default packages for GLEW and GLFW do *not* install their CMake project configuration scripts (e.g., Ubuntu), see below for information on building these libraries from sources.  For the headers-only GLM dependency, the user must set `GLM_INCLUDE_DIR`.
