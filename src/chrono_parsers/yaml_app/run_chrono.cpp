@@ -237,7 +237,7 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
 
         if (output) {
             if (time >= output_frame / output_fps) {
-                parser.SaveOutput(*sys, output_frame);
+                parser.SaveOutput(time, output_frame);
                 output_frame++;
             }
         }

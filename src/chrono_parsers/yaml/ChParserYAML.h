@@ -41,7 +41,7 @@ class ChApiParsers ChParserYAML {
     /// Set root output directory (default: ".").
     /// The specified directory must exist.
     virtual void SetOutputDir(const std::string& out_dir);
-    
+
     /// Return the name of the YAML model.
     const std::string& GetName() const { return m_name; }
 
@@ -58,8 +58,8 @@ class ChApiParsers ChParserYAML {
     virtual double GetOutputFPS() const { return m_output.fps; }
 
     /// Save simulation output results at the current time.
-    /// This base class implementation creates and initializes the output database. Derived classes must  
-    virtual void SaveOutput(int frame);
+    /// This base class implementation creates and initializes the output database. Derived classes must
+    virtual void SaveOutput(double time, int frame);
 
     /// Peek in specified YAML file and read the fluid system type.
     /// Throws a runtime error if the type is unknown.
@@ -82,13 +82,13 @@ class ChApiParsers ChParserYAML {
     /// Read the YAML file type.
     static YamlFileType ReadYamlFileType(const YAML::Node& a);
 
-    std::string m_name;    ///< name of the YAML model
-    bool m_verbose;        ///< verbose terminal output (default: false)
-    bool m_use_degrees;    ///< all angles given in degrees (default: true)
+    std::string m_name;  ///< name of the YAML model
+    bool m_verbose;      ///< verbose terminal output (default: false)
+    bool m_use_degrees;  ///< all angles given in degrees (default: true)
 
+    OutputParameters m_output;              ///< output parameters
     std::string m_output_dir;               ///< root output directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
-    OutputParameters m_output;              ///< output parameters
 
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths
 };

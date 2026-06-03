@@ -28,11 +28,7 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserYAML::ChParserYAML()
-    : m_name("model"),
-      m_verbose(false),
-      m_use_degrees(true),
-      m_output_dir(".") {}
+ChParserYAML::ChParserYAML() : m_name("model"), m_verbose(false), m_use_degrees(true), m_output_dir(".") {}
 
 // -----------------------------------------------------------------------------
 
@@ -64,8 +60,7 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
 
 // -----------------------------------------------------------------------------
 
-ChParserYAML::OutputParameters::OutputParameters()
-    : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
+ChParserYAML::OutputParameters::OutputParameters() : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
 
 void ChParserYAML::OutputParameters::PrintInfo() {
     if (type == ChOutput::Type::NONE) {
@@ -127,7 +122,7 @@ void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
         m_output.fps = a["fps"].as<double>();
 }
 
-void ChParserYAML::SaveOutput(int frame) {
+void ChParserYAML::SaveOutput(double time, int frame) {
     if (m_output.type == ChOutput::Type::NONE)
         return;
 
@@ -149,7 +144,7 @@ void ChParserYAML::SaveOutput(int frame) {
 #endif
         }
 
-        m_output_db->Initialize();
+        m_output_db->Initialize(m_output.mode);
     }
 }
 

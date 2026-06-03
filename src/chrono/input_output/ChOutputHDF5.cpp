@@ -132,7 +132,8 @@ ChOutputHDF5::~ChOutputHDF5() {
     delete m_fileHDF5;
 }
 
-void ChOutputHDF5::Initialize() {
+void ChOutputHDF5::Initialize(Mode mode) {
+    ChOutput::Initialize(mode);
     if (!m_initialized)
         m_impl->Initialize();
     m_initialized = true;

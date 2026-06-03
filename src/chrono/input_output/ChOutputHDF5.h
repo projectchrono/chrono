@@ -40,7 +40,9 @@ class ChApi ChOutputHDF5 : public ChOutput {
     ~ChOutputHDF5();
 
   private:
-    virtual void Initialize() override;
+    virtual void Initialize(Mode mode) override;
+
+    // Implementation oif virtual functions for Mode::FRAMES
     virtual void WriteTime(int frame, double time) override;
     virtual void WriteSection(const std::string& name) override;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;

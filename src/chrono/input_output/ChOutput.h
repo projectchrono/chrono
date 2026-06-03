@@ -19,22 +19,7 @@
 #ifndef CH_OUTPUT_H
 #define CH_OUTPUT_H
 
-#include <vector>
-#include <string>
-
-#include "chrono/core/ChApiCE.h"
-
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChMarker.h"
-#include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChLink.h"
-#include "chrono/physics/ChShaftsCouple.h"
-#include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRSDA.h"
-#include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChLinkMotorLinear.h"
-#include "chrono/physics/ChLinkMotorRotation.h"
+#include "chrono/physics/ChAssembly.h"
 
 namespace chrono {
 
@@ -44,7 +29,8 @@ namespace chrono {
 /// Base class for a Chrono output database.
 class ChApi ChOutput {
   public:
-    /// Output type. Currently supported options are ASCII and HDF5.
+    /// Output database type. 
+    /// Currently supported options are ASCII and HDF5.
     enum class Type {
         ASCII,  ///< ASCII text
         HDF5,   ///< HDF-5
@@ -64,20 +50,31 @@ class ChApi ChOutput {
     ChOutput() {}
     virtual ~ChOutput() {}
 
-    virtual void Initialize() = 0;
+    virtual void Initialize(Mode mode) {
+        m_mode = mode;
+    }
 
-    virtual void WriteTime(int frame, double time) = 0;
-    virtual void WriteSection(const std::string& name) = 0;
-    virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
-    virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
-    virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
-    virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;
-    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
-    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) = 0;
-    virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) = 0;
-    virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
-    virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
-    virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
+    void Save(double time, int frame, ChAssembly::Components& components) {
+        switch (m_mode) {
+            case Mode::FRAMES:
+                WriteTime(frame, time);
+                WriteBodies(components.bodies);
+                WriteShafts(components.shafts);
+                WriteJoints(components.joints);
+                WriteCouples(components.couples);
+                WriteBodyBodyLoads(components.bushings);
+                ////WriteConstraints(components.constraints);
+                WriteLinSprings(components.tsdas);
+                WriteRotSprings(components.rsdas);
+                WriteLinMotors(components.lin_motors);
+                WriteRotMotors(components.rot_motors);
+
+                break;
+            case Mode::SERIES:
+
+                break;
+        }
+    }
 
     static std::string GetOutputTypeAsString(Type type) {
         switch (type) {
@@ -100,6 +97,24 @@ class ChApi ChOutput {
         }
         return "FRAMES";
     }
+
+  protected:
+    // Functions for Mode::FRAMES
+
+    virtual void WriteTime(int frame, double time) = 0;
+    virtual void WriteSection(const std::string& name) = 0;
+    virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
+    virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
+    virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
+    virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;
+    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
+    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) = 0;
+    virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) = 0;
+    virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
+    virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
+    virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
+
+    Mode m_mode; ///< output mode
 };
 
 /// @} chrono_io
