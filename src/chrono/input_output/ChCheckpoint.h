@@ -81,14 +81,18 @@ class ChApi ChCheckpoint {
     /// Initialize the checkpoint DB.
     virtual void Initialize() = 0;
 
+    void SetTime(double time) { m_time = time; }
+    double GetTime() const { return m_time; }
+
     void Save(ChSystem* sys) {
         ChAssertAlways(m_type == Type::SYSTEM);
-        m_time = sys->GetChTime();
+        SetTime(sys->GetChTime());
         SaveState(sys);
     }
 
     void Save(double time, const ChAssembly::Components& components) {
-        m_time = time;
+        ChAssertAlways(m_type == Type::COMPONENT);
+        SetTime(time);
         Save(components);
     }
 
