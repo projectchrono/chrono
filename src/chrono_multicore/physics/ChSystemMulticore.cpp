@@ -336,8 +336,8 @@ void ChSystemMulticore::UpdateRigidBodies() {
 
 #pragma omp parallel for schedule(static)
     for (int i = 0; i < (signed)assembly.bodylist.size(); i++) {
-        if (i + 4 < (signed)assembly.bodylist.size())
-            __builtin_prefetch(assembly.bodylist[i + 4].get(), 0, 1);
+        // if (i + 4 < (signed)assembly.bodylist.size())
+        //     __builtin_prefetch(assembly.bodylist[i + 4].get(), 0, 1);
         auto& body = assembly.bodylist[i];
 
         body->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
