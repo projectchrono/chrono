@@ -145,7 +145,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
                    const ChFrame<>& frame    ///< [in] marker position relative to chassis reference frame
     );
 
-    const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return m_markers; }
+    const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return m_components.markers; }
 
     /// Set parameters and enable aerodynamic drag force calculation.
     /// By default, aerodynamic drag force calculation is disabled.

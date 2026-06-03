@@ -168,20 +168,20 @@ void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, std::ostream
 
 void ChVehicle::ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
     ChCheckpointASCII checkpoint_db(ChCheckpoint::Type::COMPONENT);
-    checkpoint_db.WriteTime(m_system->GetChTime());
+
+    checkpoint_db.SetTime(m_system->GetChTime());
+
     WriteCheckpoint(checkpoint_db);
     checkpoint_db.WriteFile(filename);
 }
 
 void ChVehicle::ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
-    double time;
-
     ChCheckpointASCII checkpoint_db(ChCheckpoint::Type::COMPONENT);
-    checkpoint_db.OpenFile(filename);
-    checkpoint_db.ReadTime(time);
+
+    checkpoint_db.ReadFile(filename);
     ReadCheckpoint(checkpoint_db);
 
-    GetSystem()->SetChTime(time);
+    GetSystem()->SetChTime(checkpoint_db.GetTime());
 }
 
 // -----------------------------------------------------------------------------
@@ -248,7 +248,7 @@ void ChVehicle::Advance(double step, bool do_collision) {
     }
 
     if (m_output_db && m_system->GetChTime() >= m_next_output_time) {
-        m_output_db->Initialize();
+        m_output_db->Initialize(ChOutput::Mode::FRAMES);
         Output(m_output_frame, *m_output_db);
         m_next_output_time += m_output_step;
         m_output_frame++;

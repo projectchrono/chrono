@@ -22,15 +22,8 @@
 #include <string>
 #include <vector>
 
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChJoint.h"
-#include "chrono/physics/ChShaftsCouple.h"
-#include "chrono/physics/ChShaftBodyConstraint.h"
-#include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRSDA.h"
-#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChContactMaterialNSC.h"
 #include "chrono/physics/ChContactMaterialSMC.h"
 
@@ -184,7 +177,7 @@ class CH_VEHICLE_API ChPart {
     void Initialize();
 
     /// Get the list of bodies.
-    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const { return m_bodies; }
+    virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const { return m_components.bodies; }
 
     /// Export the list of bodies to the specified JSON document.
     void ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies) const;
@@ -237,18 +230,7 @@ class CH_VEHICLE_API ChPart {
     ChFrame<> m_xform;                 ///< subsystem frame expressed in the global frame
     int m_obj_tag;                     ///< tag for part objects
 
-    std::vector<std::shared_ptr<ChBody>> m_bodies;
-    std::vector<std::shared_ptr<ChShaft>> m_shafts;
-    std::vector<std::shared_ptr<ChLink>> m_joints;
-    std::vector<std::shared_ptr<ChShaftsCouple>> m_couples;
-    std::vector<std::shared_ptr<ChShaftBodyRotation>> m_shaft_body_rot;
-    std::vector<std::shared_ptr<ChShaftBodyTranslation>> m_shaft_body_trans;
-    std::vector<std::shared_ptr<ChMarker>> m_markers;
-    std::vector<std::shared_ptr<ChLinkTSDA>> m_tsdas;
-    std::vector<std::shared_ptr<ChLinkRSDA>> m_rsdas;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> m_body_loads;
-    std::vector<std::shared_ptr<ChLinkMotorLinear>> m_lin_motors;
-    std::vector<std::shared_ptr<ChLinkMotorRotation>> m_rot_motors;
+    ChAssembly::Components m_components;
 
   private:
     bool m_initialized;  ///< specifies whether or not the part is fully constructed

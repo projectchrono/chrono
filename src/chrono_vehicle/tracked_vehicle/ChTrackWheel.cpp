@@ -102,9 +102,9 @@ void ChTrackWheel::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 
 void ChTrackWheel::PopulateComponentList() {
-    m_bodies.push_back(m_wheel);
+    m_components.bodies.push_back(m_wheel);
 
-    m_joints.push_back(m_revolute);
+    m_components.joints.push_back(m_revolute);
 }
 
 }  // end namespace vehicle
