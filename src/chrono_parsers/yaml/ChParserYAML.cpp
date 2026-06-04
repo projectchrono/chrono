@@ -60,22 +60,22 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
 
 // -----------------------------------------------------------------------------
 
-ChParserYAML::OutputParameters::OutputParameters() : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
+ChParserYAML::OutputParameters::OutputParameters() : format(ChOutput::Format::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
 
 void ChParserYAML::OutputParameters::PrintInfo() {
-    if (type == ChOutput::Type::NONE) {
+    if (format == ChOutput::Format::NONE) {
         cout << "no output" << endl;
         return;
     }
 
     cout << "output" << endl;
-    cout << "  type:                 " << ChOutput::GetOutputTypeAsString(type) << endl;
-    cout << "  mode:                 " << ChOutput::GetOutputModeAsString(mode) << endl;
+    cout << "  format:               " << ChOutput::GetFormatAsString(format) << endl;
+    cout << "  mode:                 " << ChOutput::GetModeAsString(mode) << endl;
     cout << "  output FPS:           " << fps << endl;
 }
 
 bool ChParserYAML::Output() const {
-    return m_output.type != ChOutput::Type::NONE;
+    return m_output.format != ChOutput::Format::NONE;
 }
 
 void ChParserYAML::SetOutputDir(const std::string& out_dir) {
@@ -89,11 +89,11 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
 
     if (m_verbose) {
         auto filename = m_output_dir + "/" + m_name;
-        switch (m_output.type) {
-            case ChOutput::Type::ASCII:
+        switch (m_output.format) {
+            case ChOutput::Format::ASCII:
                 filename += ".txt";
                 break;
-            case ChOutput::Type::HDF5:
+            case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
                 filename += ".h5";
                 break;
@@ -106,8 +106,8 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
 }
 
 void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
-    ChAssertAlways(a["type"]);
-    m_output.type = ReadOutputType(a["type"]);
+    ChAssertAlways(a["format"]);
+    m_output.format = ReadOutputFormat(a["format"]);
 #ifndef CHRONO_HAS_HDF5
     if (m_output.type == ChOutput::Type::HDF5) {
         std::cerr << "HDF5 output support not available.\nOutput disabled." << std::endl;
@@ -123,18 +123,18 @@ void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
 }
 
 void ChParserYAML::WriteOutput(double time, int frame) {
-    if (m_output.type == ChOutput::Type::NONE)
+    if (m_output.format == ChOutput::Format::NONE)
         return;
 
     // Create the output DB if needed
     if (!m_output_db) {
         auto filename = m_output_dir + "/" + m_name;
-        switch (m_output.type) {
-            case ChOutput::Type::ASCII:
+        switch (m_output.format) {
+            case ChOutput::Format::ASCII:
                 filename += ".txt";
                 m_output_db = chrono_types::make_shared<ChOutputASCII>(filename);
                 break;
-            case ChOutput::Type::HDF5:
+            case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
                 filename += ".h5";
                 m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename, m_output.mode);

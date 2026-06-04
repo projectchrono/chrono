@@ -49,7 +49,7 @@ class ChApiParsers ChParserYAML {
     virtual bool Output() const;
 
     /// Return the output type.
-    ChOutput::Type GetOutputType() const { return m_output.type; }
+    ChOutput::Format GetOutputFormat() const { return m_output.format; }
 
     /// Return the output mode.
     ChOutput::Mode GetOutputMode() const { return m_output.mode; }
@@ -71,7 +71,7 @@ class ChApiParsers ChParserYAML {
         OutputParameters();
         void PrintInfo();
 
-        ChOutput::Type type;
+        ChOutput::Format format;
         ChOutput::Mode mode;
         double fps;
     };

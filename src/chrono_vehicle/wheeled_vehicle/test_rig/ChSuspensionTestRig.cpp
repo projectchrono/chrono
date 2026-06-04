@@ -415,12 +415,12 @@ void ChSuspensionTestRig::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 
-void ChSuspensionTestRig::SetOutput(ChOutput::Type type,
+void ChSuspensionTestRig::SetOutput(ChOutput::Format format,
                                     ChOutput::Mode mode,
                                     const std::string& out_dir,
                                     const std::string& out_name,
                                     double output_step) {
-    m_vehicle->SetOutput(type, mode, out_dir, out_name, output_step);
+    m_vehicle->SetOutput(format, mode, out_dir, out_name, output_step);
 }
 
 void ChSuspensionTestRig::SetPlotOutput(double output_step) {

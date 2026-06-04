@@ -123,8 +123,8 @@ ChApi ChColormap::Type ReadColorMapType(const YAML::Node& a);
 /// Load and return a VisualizationType from the specified node.
 ChApi VisualizationType ReadVisualizationType(const YAML::Node& a);
 
-/// Load and return the output type from the specified node.
-ChApi ChOutput::Type ReadOutputType(const YAML::Node& a);
+/// Load and return the output format from the specified node.
+ChApi ChOutput::Format ReadOutputFormat(const YAML::Node& a);
 
 /// Load and return the output mode from the specified node.
 ChApi ChOutput::Mode ReadOutputMode(const YAML::Node& a);

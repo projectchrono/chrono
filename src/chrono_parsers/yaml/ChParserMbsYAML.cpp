@@ -1250,7 +1250,7 @@ void ChParserMbsYAML::DoStepDynamics() {
 
     // Generate output (if requested)
     static int output_frame = 0;
-    if (m_output.type != ChOutput::Type::NONE) {
+    if (m_output.format != ChOutput::Format::NONE) {
         if (time >= output_frame / m_output.fps) {
             WriteOutput(time, output_frame);
             output_frame++;

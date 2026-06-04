@@ -130,17 +130,17 @@ void ChVehicle::EnableRealtime(bool val) {
 // Enable output for this vehicle system.
 // -----------------------------------------------------------------------------
 
-void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, const std::string& out_dir, const std::string& out_name, double output_step) {
-    if (type == ChOutput::Type::NONE)
+void ChVehicle::SetOutput(ChOutput::Format format, ChOutput::Mode mode, const std::string& out_dir, const std::string& out_name, double output_step) {
+    if (format == ChOutput::Format::NONE)
         return;
 
     m_output_step = output_step;
 
-    switch (type) {
-        case ChOutput::Type::ASCII:
+    switch (format) {
+        case ChOutput::Format::ASCII:
             m_output_db = new ChOutputASCII(out_dir + "/" + out_name + ".txt");
             break;
-        case ChOutput::Type::HDF5:
+        case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
             m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5", mode);
 #endif
@@ -148,17 +148,17 @@ void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, const std::s
     }
 }
 
-void ChVehicle::SetOutput(ChOutput::Type type, ChOutput::Mode mode, std::ostream& out_stream, double output_step) {
-    if (type == ChOutput::Type::NONE)
+void ChVehicle::SetOutput(ChOutput::Format format, ChOutput::Mode mode, std::ostream& out_stream, double output_step) {
+    if (format == ChOutput::Format::NONE)
         return;
 
     m_output_step = output_step;
 
-    switch (type) {
-        case ChOutput::Type::ASCII:
+    switch (format) {
+        case ChOutput::Format::ASCII:
             m_output_db = new ChOutputASCII(out_stream);
             break;
-        case ChOutput::Type::HDF5:
+        case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
             //// TODO
 #endif

@@ -31,7 +31,7 @@ class ChApi ChOutput {
   public:
     /// Output database type. 
     /// Currently supported options are ASCII and HDF5.
-    enum class Type {
+    enum class Format {
         ASCII,  ///< ASCII text
         HDF5,   ///< HDF-5
         NONE    ///< no output
@@ -81,26 +81,26 @@ class ChApi ChOutput {
         }
     }
 
-    static std::string GetOutputTypeAsString(Type type) {
+    static std::string GetFormatAsString(Format type) {
         switch (type) {
-            case Type::NONE:
+            case Format::NONE:
                 return "NONE";
-            case Type::ASCII:
+            case Format::ASCII:
                 return "ASCII";
-            case Type::HDF5:
+            case Format::HDF5:
                 return "HDF5";
         }
-        return "NONE";
+        return "";
     }
 
-    static std::string GetOutputModeAsString(Mode mode) {
+    static std::string GetModeAsString(Mode mode) {
         switch (mode) {
             case Mode::FRAMES:
                 return "FRAMES";
             case Mode::SERIES:
                 return "SERIES";
         }
-        return "FRAMES";
+        return "";
     }
 
   protected:

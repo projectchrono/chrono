@@ -60,7 +60,7 @@ double render_fps = 50;
 double t_end = 20;
 
 // Record vehicle output
-ChOutput::Type vehicle_output = ChOutput::Type::HDF5;
+ChOutput::Format vehicle_output = ChOutput::Format::HDF5;
 ChOutput::Mode vehicle_output_mode = ChOutput::Mode::FRAMES;
 
 // Record debug test data
