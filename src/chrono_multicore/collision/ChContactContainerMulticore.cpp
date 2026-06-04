@@ -74,8 +74,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
 
     // NSC-specific
     auto mode = data_manager->settings.solver.local_solver_mode;
-    const DynamicVector<real>& gamma_u =
-        blaze::subvector(data_manager->host_data.gamma, 0, data_manager->num_unilaterals);
+    const VectorType& gamma_u = data_manager->host_data.gamma.segment(0, data_manager->num_unilaterals);
 
     // SMC-specific
     const auto& ct_force = data_manager->host_data.ct_force;
@@ -157,7 +156,7 @@ void ChContactContainerMulticore::ComputeContactForces() {
 ChVector3d ChContactContainerMulticore::GetContactableForce(ChContactable* contactable) {
     // If contactable is a body, defer to associated system
     if (auto body = dynamic_cast<ChBody*>(contactable)) {
-        std::shared_ptr<ChBody> pbody(body, [](ChBody*) {}); 
+        std::shared_ptr<ChBody> pbody(body, [](ChBody*) {});
         real3 frc = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactForce(pbody);
         return ToChVector(frc);
     }

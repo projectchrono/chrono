@@ -177,22 +177,6 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
             }
         }
     }
-    //  if (!passing) {
-    //    std::cout << "MPR:" << std::endl;
-    //    for (int i = 0; i < num_contacts_A; i++) {
-    //      vec2 id = msystem_A->data_manager->host_data.bids_rigid_rigid[i];
-    //      real depth = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
-    //      std::cout << id.x << " " << id.y << " " << depth << std::endl;
-    //    }
-    //    std::cout << "R:" << std::endl;
-    //    for (int i = 0; i < num_contacts_B; i++) {
-    //      vec2 id = msystem_B->data_manager->host_data.bids_rigid_rigid[i];
-    //      real depth = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
-    //      std::cout << id.x << " " << id.y << " " << depth << std::endl;
-    //    }
-    //
-    //    exit(1);
-    //  }
 
     return true;
 }

@@ -117,7 +117,6 @@ The Chrono distribution includes, in the directory `contrib/build-scripts` a set
 
 Currently, scripts are provided for the following packages:
 - Eigen3 -- the only external dependency of the core Chrono module
-- Blaze -- a linear algebra package required by Chrono::Multicore
 - GL and GLEW -- OpenGL packages (optionally) used in Chrono::Sensor
 - MUMPS -- a direct sparse linear solver required by Chrono::Mumps
 - OpenCRG -- a file format for road description used (optionally) in Chrono::Vehicle
@@ -140,7 +139,6 @@ With the exception of OpenCRG, all packages built and installed by these scripts
 An example of `CMAKE_PREFIX_PATH` (on a Windows machine) is:
 ```cpp
 E:\Packages\eigen\share\eigen3\cmake;
-E:\Packages\blaze\share\blaze\cmake;
 E:\Packages\vsg\lib\cmake;
 E:\Packages\urdf\lib\urdfdom\cmake;
 E:\Packages\urdf\CMake;
