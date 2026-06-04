@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a Chrono checkpoint database.
+// Implementation of an ASCII text Chrono checkpoint database.
 //
 // =============================================================================
 

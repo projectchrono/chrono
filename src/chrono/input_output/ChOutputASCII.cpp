@@ -12,15 +12,11 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a Chrono output database.
+// Implementation of ASCII Chrono output database.
 //
 // =============================================================================
 
 #include <iostream>
-
-#include "chrono/physics/ChLinkLock.h"
-#include "chrono/physics/ChLinkUniversal.h"
-#include "chrono/physics/ChLinkDistance.h"
 
 #include "chrono/input_output/ChOutputASCII.h"
 

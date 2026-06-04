@@ -47,7 +47,6 @@ class ChApi ChOutput {
       SERIES   ///< organize output on component-by-component basis
     };
 
-    ChOutput() {}
     virtual ~ChOutput() {}
 
     virtual void Initialize(Mode mode) { m_mode = mode; }
@@ -55,55 +54,17 @@ class ChApi ChOutput {
     virtual void WriteTime(int frame, double time) = 0;
     virtual void WriteSection(const std::string& name) = 0;
 
-    void Write(double time, int frame, const ChAssembly::Components& components) {
-        WriteTime(frame, time);
-        Write(components);
-    }
+    void Write(double time, int frame, const ChAssembly::Components& components);
 
-    void Write(const ChAssembly::Components& components) {
-        switch (m_mode) {
-            case Mode::FRAMES:
-                WriteBodies(components.bodies);
-                WriteShafts(components.shafts);
-                WriteJoints(components.joints);
-                WriteCouples(components.couples);
-                WriteBodyBodyLoads(components.bushings);
-                ////WriteConstraints(components.constraints);
-                WriteLinSprings(components.tsdas);
-                WriteRotSprings(components.rsdas);
-                WriteLinMotors(components.lin_motors);
-                WriteRotMotors(components.rot_motors);
+    void Write(const ChAssembly::Components& components);
 
-                break;
-            case Mode::SERIES:
+    static std::string GetFormatAsString(Format type);
 
-                break;
-        }
-    }
-
-    static std::string GetFormatAsString(Format type) {
-        switch (type) {
-            case Format::NONE:
-                return "NONE";
-            case Format::ASCII:
-                return "ASCII";
-            case Format::HDF5:
-                return "HDF5";
-        }
-        return "";
-    }
-
-    static std::string GetModeAsString(Mode mode) {
-        switch (mode) {
-            case Mode::FRAMES:
-                return "FRAMES";
-            case Mode::SERIES:
-                return "SERIES";
-        }
-        return "";
-    }
+    static std::string GetModeAsString(Mode mode);
 
   protected:
+    ChOutput() {}
+
     // Functions for Mode::FRAMES
 
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;

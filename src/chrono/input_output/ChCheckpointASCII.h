@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ASCII text Chrono checkpoint database.
+// Defintion of an ASCII text Chrono checkpoint database.
 //
 // =============================================================================
 

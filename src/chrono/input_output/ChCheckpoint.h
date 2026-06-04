@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a Chrono checkpoint database.
+// Definition of base class for a Chrono checkpoint database.
 //
 // =============================================================================
 
@@ -84,54 +84,17 @@ class ChApi ChCheckpoint {
     void SetTime(double time) { m_time = time; }
     double GetTime() const { return m_time; }
 
-    void Save(ChSystem* sys) {
-        ChAssertAlways(m_type == Type::SYSTEM);
-        SetTime(sys->GetChTime());
-        SaveState(sys);
-    }
+    void Save(ChSystem* sys);
 
-    void Save(double time, const ChAssembly::Components& components) {
-        ChAssertAlways(m_type == Type::COMPONENT);
-        SetTime(time);
-        Save(components);
-    }
+    void Save(double time, const ChAssembly::Components& components);
 
-    void Save(const ChAssembly::Components& components) {
-        ChAssertAlways(m_type == Type::COMPONENT);
-        SaveBodies(components.bodies);
-        SaveShafts(components.shafts);
-        SaveJoints(components.joints);
-        SaveCouples(components.couples);
-        SaveLinSprings(components.tsdas);
-        SaveRotSprings(components.rsdas);
-        SaveBodyBodyLoads(components.bushings);
-        SaveLinMotors(components.lin_motors);
-        SaveRotMotors(components.rot_motors);
-    }
+    void Save(const ChAssembly::Components& components);
 
-    void Load(ChSystem* sys) {
-        ChAssertAlways(m_type == Type::SYSTEM);
-        LoadState(sys);
-        sys->SetChTime(m_time);
-    }
+    void Load(ChSystem* sys);
 
-    void Load(double& time, ChAssembly::Components& components) {
-        Load(components);
-        time = m_time;
-    }
+    void Load(double& time, ChAssembly::Components& components);
 
-    void Load(ChAssembly::Components& components) {
-        ChAssertAlways(m_type == Type::COMPONENT);
-        LoadBodies(components.bodies);
-        LoadShafts(components.shafts);
-        LoadJoints(components.joints);
-        LoadCouples(components.couples);
-        LoadLinSprings(components.tsdas);
-        LoadRotSprings(components.rsdas);
-        LoadBodyBodyLoads(components.bushings);
-        LoadLinMotors(components.lin_motors);
-        LoadRotMotors(components.rot_motors);
-    }
+    void Load(ChAssembly::Components& components);
 
     /// Open the checkpoint database from the disk file with the specified name and read the checkpoint.
     virtual void ReadFile(const std::string& filename) = 0;
@@ -144,43 +107,19 @@ class ChApi ChCheckpoint {
     // ---------------
 
     /// Return the provided checkpoint format as a string.
-    static std::string GetFormatAsString(Format format) {
-        switch (format) {
-            case Format::ASCII:
-                return "ASCII";
-        }
-        return "";
-    }
+    static std::string GetFormatAsString(Format format);
 
     /// Return the provided checkpoint type as a string.
-    static std::string GetTypeAsString(Type type) {
-        switch (type) {
-            case Type::SYSTEM:
-                return "SYSTEM";
-            case Type::COMPONENT:
-                return "COMPONENT";
-        }
-        return "";
-    }
+    static std::string GetTypeAsString(Type type);
 
   protected:
-    ChCheckpoint(Type type) : m_type(type), m_time(0) {}
+    ChCheckpoint(Type type);
 
     /// Verify that the checkpoint is of type SYSTEM.
-    void CheckIfSystemType() const {
-        if (m_type != Type::SYSTEM) {
-            std::cerr << "Error: Invalid function call; not a SYSTEM checkpoint" << std::endl;
-            throw std::runtime_error("Invalid function call; not a SYSTEM checkpoint");
-        }
-    }
+    void CheckIfSystemType() const;
 
     /// Verify that the checkpoint is of type COMPONENT.
-    void CheckIfComponentType() const {
-        if (m_type != Type::COMPONENT) {
-            std::cerr << "Error: Invalid function call; not a COMPONENT checkpoint" << std::endl;
-            throw std::runtime_error("Invalid function call; not a COMPONENT checkpoint");
-        }
-    }
+    void CheckIfComponentType() const;
 
     // ---------------------------
     // Checkpoint export function
