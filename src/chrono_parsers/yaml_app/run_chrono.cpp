@@ -237,7 +237,7 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
 
         if (output) {
             if (time >= output_frame / output_fps) {
-                parser.SaveOutput(time, output_frame);
+                parser.WriteOutput(time, output_frame);
                 output_frame++;
             }
         }
@@ -481,12 +481,12 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
         }
 
         if (output_MBS && time >= output_frame_MBS / output_fps_MBS) {
-            parserMBS.SaveOutput(*sysMBS, output_frame_MBS);
+            parserMBS.WriteOutput(time, output_frame_MBS);
             output_frame_MBS++;
         }
 
         if (output_CFD && time >= output_frame_CFD / output_fps_CFD) {
-            parserCFD.SaveOutput(output_frame_CFD);
+            parserCFD.WriteOutput(time, output_frame_CFD);
             output_frame_CFD++;
         }
 

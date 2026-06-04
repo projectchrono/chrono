@@ -81,7 +81,7 @@ void ChDriver::SetClutch(double clutch) {
     m_clutch = ChClamp(clutch, 0.0, 1.0);
 }
 
-void ChDriver::ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
+void ChDriver::WriteCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
     switch (format) {
         case ChCheckpoint::Format::ASCII: {
             std::ofstream ofile(filename);
@@ -95,7 +95,7 @@ void ChDriver::ExportCheckpoint(ChCheckpoint::Format format, const std::string& 
     }
 }
 
-void ChDriver::ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
+void ChDriver::ReadCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
     switch (format) {
         case ChCheckpoint::Format::ASCII: {
             std::ifstream ifile;

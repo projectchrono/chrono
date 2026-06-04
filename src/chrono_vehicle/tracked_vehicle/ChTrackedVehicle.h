@@ -235,14 +235,14 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// This function is called at the end of each vehicle state advance.
     virtual void UpdateInertiaProperties() override final;
 
-    /// Output data for all modeling components in the vehicle system.
-    virtual void Output(int frame, ChOutput& database) const override;
+    /// Write output data for all modeling components in the tracked vehicle system.
+    virtual void WriteOutput(int frame, ChOutput& database) const override;
 
-    /// Checkpoint states of all modeling components in the wheeled vehicle system.
-    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
+    /// Checkpoint states of all modeling components in the tracked vehicle system.
+    virtual void SaveCheckpoint(ChCheckpoint& database) const override;
 
-    /// Read states of all modeling components in the vehicle system from the specified checkpoint database.
-    virtual void ReadCheckpoint(ChCheckpoint& database) override;
+    /// Load states of all modeling components in the vehicle system from the specified checkpoint database.
+    virtual void LoadCheckpoint(ChCheckpoint& database) override;
 
     std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
     std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem

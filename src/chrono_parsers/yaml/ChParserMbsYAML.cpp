@@ -1252,7 +1252,7 @@ void ChParserMbsYAML::DoStepDynamics() {
     static int output_frame = 0;
     if (m_output.type != ChOutput::Type::NONE) {
         if (time >= output_frame / m_output.fps) {
-            SaveOutput(time, output_frame);
+            WriteOutput(time, output_frame);
             output_frame++;
         }
     }
@@ -1265,8 +1265,8 @@ void ChParserMbsYAML::DoStepDynamics() {
         m_rt_timer.Spin(time_step);
 }
 
-void ChParserMbsYAML::SaveOutput(double time, int frame) {
-    ChParserYAML::SaveOutput(time, frame);
+void ChParserMbsYAML::WriteOutput(double time, int frame) {
+    ChParserYAML::WriteOutput(time, frame);
     m_output_db->Write(time, frame, m_output_components);
 }
 

@@ -222,9 +222,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
 
     virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const override;
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-    virtual void Output(ChOutput& database) const override;
-    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
-    virtual void ReadCheckpoint(ChCheckpoint& database) override;
+    virtual void WriteOutput(ChOutput& database) const override;
+    virtual void SaveCheckpoint(ChCheckpoint& database) const override;
+    virtual void LoadCheckpoint(ChCheckpoint& database) override;
 
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
     ChVector3d m_rel_loc;                   ///< assembly location relative to chassis

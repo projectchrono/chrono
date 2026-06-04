@@ -198,8 +198,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
                               std::shared_ptr<ChBody> chassis_body,
                               const ChColor& color);
 
-    /// Output data for all modeling components in the track test rig system.
-    virtual void Output(int frame, ChOutput& database) const override;
+    /// Write output data for all modeling components in the track test rig system to the output database with given name.
+    virtual void WriteOutput(int frame, ChOutput& database) const override;
 
     /// Collect data for plotting
     void CollectPlotData(double time);

@@ -67,17 +67,17 @@ void ChTrackSuspension::ExportComponentList(rapidjson::Document& jsonDocument) c
     }
 }
 
-void ChTrackSuspension::Output(ChOutput& database) const {
-    ChPart::Output(database);
+void ChTrackSuspension::WriteOutput(ChOutput& database) const {
+    ChPart::WriteOutput(database);
 
     database.WriteSection(m_road_wheel->GetName());
-    m_road_wheel->Output(database);
+    m_road_wheel->WriteOutput(database);
 }
 
-void ChTrackSuspension::WriteCheckpoint(ChCheckpoint& database) const {
-    ChPart::WriteCheckpoint(database);
+void ChTrackSuspension::SaveCheckpoint(ChCheckpoint& database) const {
+    ChPart::SaveCheckpoint(database);
 
-    m_road_wheel->WriteCheckpoint(database);
+    m_road_wheel->SaveCheckpoint(database);
 }
 
 }  // end namespace vehicle

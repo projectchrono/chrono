@@ -122,7 +122,7 @@ void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
         m_output.fps = a["fps"].as<double>();
 }
 
-void ChParserYAML::SaveOutput(double time, int frame) {
+void ChParserYAML::WriteOutput(double time, int frame) {
     if (m_output.type == ChOutput::Type::NONE)
         return;
 

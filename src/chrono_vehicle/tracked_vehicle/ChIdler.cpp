@@ -65,23 +65,23 @@ void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
     }
 }
 
-void ChIdler::Output(ChOutput& database) const {
-    ChPart::Output(database);
+void ChIdler::WriteOutput(ChOutput& database) const {
+    ChPart::WriteOutput(database);
 
     database.WriteSection(m_idler_wheel->GetName());
-    m_idler_wheel->Output(database);
+    m_idler_wheel->WriteOutput(database);
 }
 
-void ChIdler::WriteCheckpoint(ChCheckpoint& database) const {
-    ChPart::WriteCheckpoint(database);
+void ChIdler::SaveCheckpoint(ChCheckpoint& database) const {
+    ChPart::SaveCheckpoint(database);
 
-    m_idler_wheel->WriteCheckpoint(database);
+    m_idler_wheel->SaveCheckpoint(database);
 }
 
-void ChIdler::ReadCheckpoint(ChCheckpoint& database) {
-    ChPart::ReadCheckpoint(database);
+void ChIdler::LoadCheckpoint(ChCheckpoint& database) {
+    ChPart::LoadCheckpoint(database);
 
-    m_idler_wheel->ReadCheckpoint(database);
+    m_idler_wheel->LoadCheckpoint(database);
 }
 
 }  // end namespace vehicle

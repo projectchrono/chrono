@@ -113,20 +113,20 @@ class CH_VEHICLE_API ChPart {
     /// An assembly of parts should override this function and invoke ExportComponentList() for each component part.
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const;
 
-    /// Output data for this subsystem's components to the specified output database.
+    /// Write output data for this subsystem's components to the specified output database.
     /// This base class implementation outputs information for component physical items.
     /// An assembly of parts should override this function and invoke Output() for each component part.
-    virtual void Output(ChOutput& database) const;
+    virtual void WriteOutput(ChOutput& database) const;
 
-    /// Write states of this subsystem's components to the specified checkpoint database.
+    /// Save states of this subsystem's components to the specified checkpoint database.
     /// This base class implementation outputs states for component physical items.
-    /// An assembly of parts should override this function and invoke WriteCheckpoint() for each component part.
-    virtual void WriteCheckpoint(ChCheckpoint& database) const;
+    /// An assembly of parts should override this function and invoke SaveCheckpoint() for each component part.
+    virtual void SaveCheckpoint(ChCheckpoint& database) const;
 
-    /// Read states of this subsystem's components from the specified checkpoint database.
+    /// Load states of this subsystem's components from the specified checkpoint database.
     /// This base class implementation imports states for component physical items.
-    /// An assembly of parts should override this function and invoke ReadCheckpoint() for each component part.
-    virtual void ReadCheckpoint(ChCheckpoint& database);
+    /// An assembly of parts should override this function and invoke LoadCheckpoint() for each component part.
+    virtual void LoadCheckpoint(ChCheckpoint& database);
 
     /// Utility function for transforming inertia tensors between centroidal frames.
     /// It converts an inertia matrix specified in a centroidal frame aligned with the

@@ -345,79 +345,79 @@ void ChTrackAssembly::ExportComponentList(rapidjson::Document& jsonDocument) con
 
 // -----------------------------------------------------------------------------
 
-void ChTrackAssembly::Output(ChOutput& database) const {
-    ChPart::Output(database);
+void ChTrackAssembly::WriteOutput(ChOutput& database) const {
+    ChPart::WriteOutput(database);
 
     database.WriteSection(GetSprocket()->GetName());
-    GetSprocket()->Output(database);
+    GetSprocket()->WriteOutput(database);
 
     database.WriteSection(m_brake->GetName());
-    m_brake->Output(database);
+    m_brake->WriteOutput(database);
 
     database.WriteSection(m_idler->GetName());
-    m_idler->Output(database);
+    m_idler->WriteOutput(database);
 
     for (const auto& suspension : m_suspensions) {
         database.WriteSection(suspension->GetName());
-        suspension->Output(database);
+        suspension->WriteOutput(database);
         database.WriteSection(suspension->GetRoadWheel()->GetName());
-        suspension->GetRoadWheel()->Output(database);
+        suspension->GetRoadWheel()->WriteOutput(database);
     }
 
     for (const auto& roller : m_rollers) {
         database.WriteSection(roller->GetName());
-        roller->Output(database);
+        roller->WriteOutput(database);
     }
 
     if (GetNumTrackShoes() > 0) {
         database.WriteSection(GetTrackShoe(0)->GetName());
-        GetTrackShoe(0)->Output(database);
+        GetTrackShoe(0)->WriteOutput(database);
     }
 }
 
-void ChTrackAssembly::WriteCheckpoint(ChCheckpoint& database) const {
-    ChPart::WriteCheckpoint(database);
+void ChTrackAssembly::SaveCheckpoint(ChCheckpoint& database) const {
+    ChPart::SaveCheckpoint(database);
 
-    GetSprocket()->WriteCheckpoint(database);
+    GetSprocket()->SaveCheckpoint(database);
 
-    m_brake->WriteCheckpoint(database);
+    m_brake->SaveCheckpoint(database);
 
-    m_idler->WriteCheckpoint(database);
+    m_idler->SaveCheckpoint(database);
 
     for (const auto& suspension : m_suspensions) {
-        suspension->WriteCheckpoint(database);
-        suspension->GetRoadWheel()->WriteCheckpoint(database);
+        suspension->SaveCheckpoint(database);
+        suspension->GetRoadWheel()->SaveCheckpoint(database);
     }
 
     for (const auto roller : m_rollers) {
-        roller->WriteCheckpoint(database);
+        roller->SaveCheckpoint(database);
     }
 
     for (int i = 0; i < GetNumTrackShoes(); i++) {
-        GetTrackShoe(0)->WriteCheckpoint(database);
+        GetTrackShoe(0)->SaveCheckpoint(database);
     }
 }
 
-void ChTrackAssembly::ReadCheckpoint(ChCheckpoint& database) {
-    ChPart::ReadCheckpoint(database);
+void ChTrackAssembly::LoadCheckpoint(ChCheckpoint& database) {
+    ChPart::LoadCheckpoint(database);
 
-    GetSprocket()->ReadCheckpoint(database);
+    GetSprocket()->LoadCheckpoint(database);
 
-    m_brake->ReadCheckpoint(database);
+    m_brake->LoadCheckpoint(database);
 
-    m_idler->ReadCheckpoint(database);
+    m_idler->LoadCheckpoint(database);
 
     for (const auto& suspension : m_suspensions) {
-        suspension->ReadCheckpoint(database);
-        suspension->GetRoadWheel()->ReadCheckpoint(database);
+        suspension->LoadCheckpoint(database);
+        suspension->GetRoadWheel()->LoadCheckpoint(database);
     }
 
     for (const auto roller : m_rollers) {
-        roller->ReadCheckpoint(database);
+        roller->LoadCheckpoint(database);
     }
 
     for (int i = 0; i < GetNumTrackShoes(); i++) {
-        GetTrackShoe(0)->ReadCheckpoint(database);
+        GetTrackShoe(0)->LoadCheckpoint(database);
     }
 }
 

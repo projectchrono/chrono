@@ -201,9 +201,9 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     ///   not necessarily derived from ChMotorController).
     void ApplyMotorControllerActuations(const MotorControllerActuations& controller_loads);
 
-    /// Save simulation output results at the current time.
+    /// Write simulation output results at the current time.
     /// Note: this function is automatically called in ChParserMbsYAML::DoStepDynamics.
-    virtual void SaveOutput(double time, int frame) override;
+    virtual void WriteOutput(double time, int frame) override;
 
   private:
     /// Solver parameters.

@@ -521,67 +521,65 @@ void ChTrackedVehicle::ExportComponentList(const std::string& filename) const {
     of.close();
 }
 
-void ChTrackedVehicle::Output(int frame, ChOutput& database) const {
+void ChTrackedVehicle::WriteOutput(int frame, ChOutput& database) const {
     database.WriteTime(frame, m_system->GetChTime());
 
     if (m_chassis->OutputEnabled()) {
         database.WriteSection(m_chassis->GetName());
-        m_chassis->Output(database);
+        m_chassis->WriteOutput(database);
     }
 
     for (auto& c : m_chassis_rear) {
         if (c->OutputEnabled()) {
             database.WriteSection(c->GetName());
-            c->Output(database);
+            c->WriteOutput(database);
         }
     }
 
     if (m_tracks[LEFT]->OutputEnabled()) {
-        m_tracks[LEFT]->Output(database);
+        m_tracks[LEFT]->WriteOutput(database);
     }
 
     if (m_tracks[RIGHT]->OutputEnabled()) {
-        m_tracks[RIGHT]->Output(database);
+        m_tracks[RIGHT]->WriteOutput(database);
     }
 }
 
-void ChTrackedVehicle::WriteCheckpoint(ChCheckpoint& database) const {
-    m_chassis->WriteCheckpoint(database);
+void ChTrackedVehicle::SaveCheckpoint(ChCheckpoint& database) const {
+    m_chassis->SaveCheckpoint(database);
 
     for (auto& c : m_chassis_rear) {
-        c->WriteCheckpoint(database);
+        c->SaveCheckpoint(database);
     }
 
-    m_tracks[LEFT]->WriteCheckpoint(database);
-
-    m_tracks[RIGHT]->WriteCheckpoint(database);
+    m_tracks[LEFT]->SaveCheckpoint(database);
+    m_tracks[RIGHT]->SaveCheckpoint(database);
 
     if (m_driveline)
-        m_driveline->WriteCheckpoint(database);
+        m_driveline->SaveCheckpoint(database);
 
     if (m_powertrain_assembly) {
-        GetEngine()->WriteCheckpoint(database);
-        GetTransmission()->WriteCheckpoint(database);
+        GetEngine()->SaveCheckpoint(database);
+        GetTransmission()->SaveCheckpoint(database);
     }
 }
 
-void ChTrackedVehicle::ReadCheckpoint(ChCheckpoint& database) {
-    m_chassis->ReadCheckpoint(database);
+void ChTrackedVehicle::LoadCheckpoint(ChCheckpoint& database) {
+    m_chassis->LoadCheckpoint(database);
 
     for (auto& c : m_chassis_rear) {
-        c->ReadCheckpoint(database);
+        c->LoadCheckpoint(database);
     }
 
-    m_tracks[LEFT]->ReadCheckpoint(database);
-
-    m_tracks[RIGHT]->ReadCheckpoint(database);
+    m_tracks[LEFT]->LoadCheckpoint(database);
+    m_tracks[RIGHT]->LoadCheckpoint(database);
 
     if (m_driveline)
-        m_driveline->ReadCheckpoint(database);
+        m_driveline->LoadCheckpoint(database);
 
     if (m_powertrain_assembly) {
-        GetEngine()->ReadCheckpoint(database);
-        GetTransmission()->ReadCheckpoint(database);
+        GetEngine()->LoadCheckpoint(database);
+        GetTransmission()->LoadCheckpoint(database);
     }
 }
 

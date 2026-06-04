@@ -88,8 +88,7 @@ RigidTerrain CreateTerrain(ChSystem* sys, const std::vector<ChVector3d>& targets
             patch = terrain.AddPatch(patch_mat, csys, x_size, y_size);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, csys, GetVehicleDataFile("terrain/height_maps/test64.bmp"), x_size,
-                                     y_size, 0, 4);
+            patch = terrain.AddPatch(patch_mat, csys, GetVehicleDataFile("terrain/height_maps/test64.bmp"), x_size, y_size, 0, 4);
             break;
         case RigidTerrain::PatchType::MESH:
             patch = terrain.AddPatch(patch_mat, csys, GetVehicleDataFile("terrain/meshes/test.obj"));
@@ -104,8 +103,7 @@ RigidTerrain CreateTerrain(ChSystem* sys, const std::vector<ChVector3d>& targets
     auto target_shape = chrono_types::make_shared<ChVisualShapeCone>(0.5, 2.0);
     target_shape->SetColor(ChColor(1, 0, 0));
     for (const auto target : targets) {
-        patch->GetGroundBody()->GetVisualModel()->AddShape(
-            target_shape, ChFramed(target + ChVector3d(0, 0, 1.1), QuatFromAngleX(CH_PI)));
+        patch->GetGroundBody()->GetVisualModel()->AddShape(target_shape, ChFramed(target + ChVector3d(0, 0, 1.1), QuatFromAngleX(CH_PI)));
     }
 
     return terrain;
@@ -113,10 +111,7 @@ RigidTerrain CreateTerrain(ChSystem* sys, const std::vector<ChVector3d>& targets
 
 // =============================================================================
 
-void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
-                    const ChFrame<> target_pose,
-                    double target_speed,
-                    const std::string& dir) {
+void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model, const ChFrame<> target_pose, double target_speed, const std::string& dir) {
     cout << endl;
     cout << "Simulate single vehicle: " << vehicle_model->ModelName() << endl;
     cout << endl;
@@ -165,8 +160,7 @@ void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     vis_vsg->SetWindowTitle(vehicle_model->ModelName());
     vis_vsg->AttachVehicle(&vehicle);
     vis_vsg->AttachDriver(&driver);
-    vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
-                            vehicle_model->CameraHeight());
+    vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
     vis_vsg->SetWindowSize(1280, 800);
     vis_vsg->EnableSkyTexture(SkyMode::DOME);
     vis_vsg->SetCameraAngleDeg(40);
@@ -249,14 +243,13 @@ void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
     cout << "Output driver checkpoint file:  " << dir + "/driver_checkpoint.txt" << endl;
     cout << endl;
 
-    vehicle.ExportCheckpoint(ChCheckpoint::Format::ASCII, dir + "/vehicle_checkpoint.txt");
-    driver.ExportCheckpoint(ChCheckpoint::Format::ASCII, dir + "/driver_checkpoint.txt");
+    vehicle.WriteCheckpoint(ChCheckpoint::Format::ASCII, dir + "/vehicle_checkpoint.txt");
+    driver.WriteCheckpoint(ChCheckpoint::Format::ASCII, dir + "/driver_checkpoint.txt");
     int tire_id = 0;
     for (const auto& a : vehicle.GetAxles()) {
         for (const auto& w : a->GetWheels()) {
             if (w->GetTire()) {
-                w->GetTire()->ExportCheckpoint(ChCheckpoint::Format::ASCII,
-                                               dir + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
+                w->GetTire()->WriteCheckpoint(ChCheckpoint::Format::ASCII, dir + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
             }
         }
     }
@@ -264,10 +257,7 @@ void SimulateSingle(std::shared_ptr<WheeledVehicleModel> vehicle_model,
 
 // =============================================================================
 
-void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
-                  std::shared_ptr<WheeledVehicleModel> vehicle_model_2,
-                  const std::string& dir_1,
-                  const std::string& dir_2) {
+void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1, std::shared_ptr<WheeledVehicleModel> vehicle_model_2, const std::string& dir_1, const std::string& dir_2) {
     cout << endl;
     cout << "Simulate two vehicle: " << vehicle_model_1->ModelName() << " and " << vehicle_model_2->ModelName() << endl;
     cout << endl;
@@ -290,25 +280,23 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
 
     // Initialize vehicles and tires from checkpoint files
     {
-        vehicle_1.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/vehicle_checkpoint.txt");
+        vehicle_1.ReadCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/vehicle_checkpoint.txt");
         int tire_id = 0;
         for (const auto& a : vehicle_1.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
-                                                   dir_1 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
+                    w->GetTire()->ReadCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
         }
     }
     {
-        vehicle_2.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/vehicle_checkpoint.txt");
+        vehicle_2.ReadCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/vehicle_checkpoint.txt");
         int tire_id = 0;
         for (const auto& a : vehicle_2.GetAxles()) {
             for (const auto& w : a->GetWheels()) {
                 if (w->GetTire()) {
-                    w->GetTire()->ImportCheckpoint(ChCheckpoint::Format::ASCII,
-                                                   dir_2 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
+                    w->GetTire()->ReadCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/tire_" + std::to_string(tire_id++) + "_checkpoint.txt");
                 }
             }
         }
@@ -317,8 +305,8 @@ void SimulateBoth(std::shared_ptr<WheeledVehicleModel> vehicle_model_1,
     // Create the driver systems and initialize from checkpoint files
     ChDriver driver_1(vehicle_1);
     ChDriver driver_2(vehicle_2);
-    driver_1.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/driver_checkpoint.txt");
-    driver_2.ImportCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/driver_checkpoint.txt");
+    driver_1.ReadCheckpoint(ChCheckpoint::Format::ASCII, dir_1 + "/driver_checkpoint.txt");
+    driver_2.ReadCheckpoint(ChCheckpoint::Format::ASCII, dir_2 + "/driver_checkpoint.txt");
 
     // Create the terrain
     ChVector3d pos_1 = vehicle_1.GetPos();

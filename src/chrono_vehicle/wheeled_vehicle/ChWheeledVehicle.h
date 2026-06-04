@@ -270,14 +270,14 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This function is called at the end of each vehicle state advance.
     virtual void UpdateInertiaProperties() override final;
 
-    /// Output data for all modeling components in the wheeled vehicle system.
-    virtual void Output(int frame, ChOutput& database) const override;
+    /// Write output data for all modeling components in the wheeled vehicle system.
+    virtual void WriteOutput(int frame, ChOutput& database) const override;
 
     /// Checkpoint states of all modeling components in the wheeled vehicle system.
-    virtual void WriteCheckpoint(ChCheckpoint& database) const override;
+    virtual void SaveCheckpoint(ChCheckpoint& database) const override;
 
-    /// Read states of all modeling components in the vehicle system from the specified checkpoint database.
-    virtual void ReadCheckpoint(ChCheckpoint& database) override;
+    /// Load states of all modeling components in the vehicle system from the specified checkpoint database.
+    virtual void LoadCheckpoint(ChCheckpoint& database) override;
 
     ChSubchassisList m_subchassis;               ///< list of subchassis subsystems (typically empty)
     ChAxleList m_axles;                          ///< list of axle subsystems

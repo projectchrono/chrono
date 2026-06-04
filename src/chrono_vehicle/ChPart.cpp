@@ -464,17 +464,17 @@ void ChPart::ExportRotMotorList(rapidjson::Document& jsonDocument, std::vector<s
     //// TODO
 }
 
-void ChPart::Output(ChOutput& database) const {
+void ChPart::WriteOutput(ChOutput& database) const {
     if (!m_output)
         return;
     database.Write(m_components);
 }
 
-void ChPart::WriteCheckpoint(ChCheckpoint& database) const {
+void ChPart::SaveCheckpoint(ChCheckpoint& database) const {
     database.Save(m_components);
 }
 
-void ChPart::ReadCheckpoint(ChCheckpoint& database) {
+void ChPart::LoadCheckpoint(ChCheckpoint& database) {
     database.Load(m_components);
 }
 

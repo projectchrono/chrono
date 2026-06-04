@@ -401,11 +401,11 @@ void ChTrackTestRig::SetTrackAssemblyOutput(bool state) {
     m_track->SetOutput(state);
 }
 
-void ChTrackTestRig::Output(int frame, ChOutput& database) const {
+void ChTrackTestRig::WriteOutput(int frame, ChOutput& database) const {
     database.WriteTime(frame, m_system->GetChTime());
 
     if (m_track->OutputEnabled()) {
-        m_track->Output(database);
+        m_track->WriteOutput(database);
     }
 }
 
