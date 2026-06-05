@@ -36,15 +36,13 @@ class ChOutputHDF5_impl;
 /// HDF5 Chrono output database.
 class ChApi ChOutputHDF5 : public ChOutput {
   public:
-    ChOutputHDF5(const std::string& filename);
+    ChOutputHDF5(const std::string& filename, Mode mode);
     ~ChOutputHDF5();
 
     virtual void WriteTime(int frame, double time) override;
     virtual void WriteSection(const std::string& name) override;
 
   private:
-    virtual void Initialize(Mode mode) override;
-
     // Implementation oif virtual functions for Mode::FRAMES
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;

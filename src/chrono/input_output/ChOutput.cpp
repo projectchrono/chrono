@@ -20,7 +20,7 @@
 
 namespace chrono {
 
-ChOutput::ChOutput() : m_buf_allocated(false), m_num_times(0) {}
+ChOutput::ChOutput(Mode mode) : m_mode(mode), m_buf_allocated(false), m_num_times(0) {}
 
 void ChOutput::Write(double time, int frame, const ChAssembly::Components& components) {
     switch (m_mode) {

@@ -49,8 +49,6 @@ class ChApi ChOutput {
 
     virtual ~ChOutput() {}
 
-    virtual void Initialize(Mode mode) { m_mode = mode; }
-
     virtual void WriteTime(int frame, double time) = 0;
     virtual void WriteSection(const std::string& name) = 0;
 
@@ -63,7 +61,7 @@ class ChApi ChOutput {
     static std::string GetModeAsString(Mode mode);
 
   protected:
-    ChOutput();
+    ChOutput(Mode mode);
 
     Mode m_mode;  ///< output mode
 

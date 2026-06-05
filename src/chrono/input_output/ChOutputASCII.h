@@ -32,8 +32,8 @@ namespace chrono {
 /// ASCII text Chrono output database.
 class ChApi ChOutputASCII : public ChOutput {
   public:
-    ChOutputASCII(const std::string& filename);
-    ChOutputASCII(std::ostream& stream);
+    ChOutputASCII(const std::string& filename, Mode mode);
+    ChOutputASCII(std::ostream& stream, Mode mode);
     ~ChOutputASCII();
 
     virtual void WriteTime(int frame, double time) override;

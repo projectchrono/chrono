@@ -114,17 +114,8 @@ class ChOutputHDF5_frames : public ChOutputHDF5_impl {
 
 // -----------------------------------------------------------------------------
 
-ChOutputHDF5::ChOutputHDF5(const std::string& filename) {
+ChOutputHDF5::ChOutputHDF5(const std::string& filename, Mode mode) :ChOutput(mode) {
     m_fileHDF5 = new H5::H5File(filename, H5F_ACC_TRUNC);
-}
-
-ChOutputHDF5::~ChOutputHDF5() {
-    m_fileHDF5->close();
-    delete m_fileHDF5;
-}
-
-void ChOutputHDF5::Initialize(Mode mode) {
-    ChOutput::Initialize(mode);
     switch (m_mode) {
         case Mode::FRAMES:
             m_impl = chrono_types::make_unique<ChOutputHDF5_frames>(m_fileHDF5);
@@ -134,6 +125,11 @@ void ChOutputHDF5::Initialize(Mode mode) {
             break;
     }
     m_impl->Initialize();
+}
+
+ChOutputHDF5::~ChOutputHDF5() {
+    m_fileHDF5->close();
+    delete m_fileHDF5;
 }
 
 void ChOutputHDF5::WriteBuffers() {

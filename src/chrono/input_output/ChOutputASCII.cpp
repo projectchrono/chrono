@@ -24,9 +24,9 @@ using std::endl;
 
 namespace chrono {
 
-ChOutputASCII::ChOutputASCII(const std::string& filename) : m_file_stream(filename), m_stream(m_file_stream) {}
+ChOutputASCII::ChOutputASCII(const std::string& filename, Mode mode) : ChOutput(mode), m_file_stream(filename), m_stream(m_file_stream) {}
 
-ChOutputASCII::ChOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream) {}
+ChOutputASCII::ChOutputASCII(std::ostream& stream, Mode mode) : ChOutput(mode), m_file_stream(), m_stream(stream) {}
 
 ChOutputASCII::~ChOutputASCII() {
     if (m_mode == Mode::SERIES)

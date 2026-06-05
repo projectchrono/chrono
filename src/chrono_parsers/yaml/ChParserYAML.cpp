@@ -132,19 +132,17 @@ void ChParserYAML::WriteOutput(double time, int frame) {
         switch (m_output.format) {
             case ChOutput::Format::ASCII:
                 filename += ".txt";
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename);
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename, m_output.mode);
                 break;
             case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
                 filename += ".h5";
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename);
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename, m_output.mode);
                 break;
 #else
                 return;
 #endif
         }
-
-        m_output_db->Initialize(m_output.mode);
     }
 }
 
