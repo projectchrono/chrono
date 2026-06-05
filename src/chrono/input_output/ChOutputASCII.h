@@ -40,9 +40,7 @@ class ChApi ChOutputASCII : public ChOutput {
     virtual void WriteSection(const std::string& name) override;
 
   private:
-    virtual void Initialize(Mode mode) override;
-
-    // Implementation of virtual functions for Mode::FRAMES
+    // Implementation of functions for Mode::FRAMES
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
@@ -54,9 +52,11 @@ class ChApi ChOutputASCII : public ChOutput {
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
+    // Implementation of functions for Mode::SERIES
+    void WriteBuffers();
+
     std::ostream& m_stream;
     std::ofstream m_file_stream;
-    bool m_initialized;
 };
 
 /// @} chrono_io

@@ -114,17 +114,8 @@ class ChOutputHDF5_frames : public ChOutputHDF5_impl {
 
 // -----------------------------------------------------------------------------
 
-ChOutputHDF5::ChOutputHDF5(const std::string& filename, Mode mode) : m_mode(mode), m_initialized(false) {
+ChOutputHDF5::ChOutputHDF5(const std::string& filename) {
     m_fileHDF5 = new H5::H5File(filename, H5F_ACC_TRUNC);
-
-    switch (mode) {
-        case Mode::FRAMES:
-            m_impl = chrono_types::make_unique<ChOutputHDF5_frames>(m_fileHDF5);
-            break;
-        case Mode::SERIES:
-            m_impl = chrono_types::make_unique<ChOutputHDF5_series>(m_fileHDF5);
-            break;
-    }
 }
 
 ChOutputHDF5::~ChOutputHDF5() {
@@ -134,9 +125,19 @@ ChOutputHDF5::~ChOutputHDF5() {
 
 void ChOutputHDF5::Initialize(Mode mode) {
     ChOutput::Initialize(mode);
-    if (!m_initialized)
-        m_impl->Initialize();
-    m_initialized = true;
+    switch (m_mode) {
+        case Mode::FRAMES:
+            m_impl = chrono_types::make_unique<ChOutputHDF5_frames>(m_fileHDF5);
+            break;
+        case Mode::SERIES:
+            m_impl = chrono_types::make_unique<ChOutputHDF5_series>(m_fileHDF5);
+            break;
+    }
+    m_impl->Initialize();
+}
+
+void ChOutputHDF5::WriteBuffers() {
+    //// TODO
 }
 
 void ChOutputHDF5::WriteTime(int frame, double time) {
@@ -261,8 +262,7 @@ struct rotmotor_info {
 
 // -----------------------------------------------------------------------------
 
-ChOutputHDF5_frames::ChOutputHDF5_frames(H5::H5File* fileHDF5)
-    : ChOutputHDF5_impl(fileHDF5), m_frame_group(nullptr), m_section_group(nullptr) {
+ChOutputHDF5_frames::ChOutputHDF5_frames(H5::H5File* fileHDF5) : ChOutputHDF5_impl(fileHDF5), m_frame_group(nullptr), m_section_group(nullptr) {
     // Initialize the compound data types
     m_body_type = new H5::CompType(sizeof(body_info));
     m_body_type->insertMember("id", HOFFSET(body_info, id), H5::PredType::NATIVE_INT);
@@ -441,8 +441,7 @@ void ChOutputHDF5_frames::WriteMarkers(const std::vector<std::shared_ptr<ChMarke
         const ChVector3d& p = marker->GetAbsCoordsys().pos;
         const ChVector3d& pd = marker->GetAbsCoordsysDt().pos;
         const ChVector3d& pdd = marker->GetAbsCoordsysDt2().pos;
-        info.push_back(
-            {marker->GetIdentifier(), p.x(), p.y(), p.z(), pd.x(), pd.y(), pd.z(), pdd.x(), pdd.y(), pdd.z()});
+        info.push_back({marker->GetIdentifier(), p.x(), p.y(), p.z(), pd.x(), pd.y(), pd.z(), pdd.x(), pdd.y(), pdd.z()});
     }
 
     hsize_t dim[] = {markers.size()};
@@ -459,8 +458,7 @@ void ChOutputHDF5_frames::WriteShafts(const std::vector<std::shared_ptr<ChShaft>
 
     std::vector<shaft_info> info;
     for (const auto& shaft : shafts) {
-        info.push_back(
-            {shaft->GetIdentifier(), shaft->GetPos(), shaft->GetPosDt(), shaft->GetPosDt2(), shaft->GetAppliedLoad()});
+        info.push_back({shaft->GetIdentifier(), shaft->GetPos(), shaft->GetPosDt(), shaft->GetPosDt2(), shaft->GetAppliedLoad()});
     }
 
     hsize_t dim[] = {shafts.size()};
@@ -588,8 +586,7 @@ void ChOutputHDF5_frames::WriteRotMotors(const std::vector<std::shared_ptr<ChLin
 
     std::vector<linmotor_info> info;
     for (const auto& motor : motors) {
-        info.push_back(
-            {motor->GetIdentifier(), motor->GetMotorAngle(), motor->GetMotorAngleDt(), motor->GetMotorTorque()});
+        info.push_back({motor->GetIdentifier(), motor->GetMotorAngle(), motor->GetMotorAngleDt(), motor->GetMotorTorque()});
     }
 
     hsize_t dim[] = {motors.size()};

@@ -36,7 +36,7 @@ class ChOutputHDF5_impl;
 /// HDF5 Chrono output database.
 class ChApi ChOutputHDF5 : public ChOutput {
   public:
-    ChOutputHDF5(const std::string& filename, Mode mode = Mode::FRAMES);
+    ChOutputHDF5(const std::string& filename);
     ~ChOutputHDF5();
 
     virtual void WriteTime(int frame, double time) override;
@@ -57,10 +57,11 @@ class ChApi ChOutputHDF5 : public ChOutput {
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
+    // Implementation of functions for Mode::SERIES
+    void WriteBuffers();
+
     H5::H5File* m_fileHDF5;
-    Mode m_mode;
     std::unique_ptr<ChOutputHDF5_impl> m_impl;
-    bool m_initialized;
 };
 
 /// @} chrono_io

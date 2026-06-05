@@ -24,19 +24,52 @@ using std::endl;
 
 namespace chrono {
 
-ChOutputASCII::ChOutputASCII(const std::string& filename) : m_file_stream(filename), m_stream(m_file_stream), m_initialized(false) {}
+ChOutputASCII::ChOutputASCII(const std::string& filename) : m_file_stream(filename), m_stream(m_file_stream) {}
 
-ChOutputASCII::ChOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream), m_initialized(false) {}
+ChOutputASCII::ChOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream) {}
 
 ChOutputASCII::~ChOutputASCII() {
+    if (m_mode == Mode::SERIES)
+        WriteBuffers();
+
     if (m_file_stream.is_open())
         m_file_stream.close();
 }
 
-void ChOutputASCII::Initialize(Mode mode) {
-    ChOutput::Initialize(mode);
-    m_initialized = true;
+// -----------------------------------------------------------------------------
+
+void ChOutputASCII::WriteBuffers() {
+    for (size_t i = 0; i < m_num_times; i++) {
+        m_stream << m_time[i] << " ";
+
+        for (const auto& buf : m_body_buf) {
+            m_stream << buf.pos[i] << " " << buf.rot[i] << " ";
+            m_stream << buf.lin_vel[i] << " " << buf.ang_vel[i] << " ";
+        }
+
+        for (const auto& buf : m_shaft_buf) {
+            m_stream << buf.pos[i] << " " << buf.vel[i] << " ";
+        }
+
+        for (const auto& buf : m_joint_buf) {
+            m_stream << buf.react1[i].force << " " << buf.react1[i].torque;
+            m_stream << buf.react2[i].force << " " << buf.react2[i].torque;
+        }
+
+        for (const auto& buf : m_tsda_buf) {
+            m_stream << buf.point1[i] << " " << buf.point2[i];
+            m_stream << buf.len[i] << " " << buf.vel[i] << " " << buf.force[i];
+        }
+
+        for (const auto& buf : m_rsda_buf) {
+            m_stream << buf.ang[i] << " " << buf.vel[i] << " " << buf.torque[i];
+        }
+
+        m_stream << endl;
+    }
 }
+
+// -----------------------------------------------------------------------------
 
 void ChOutputASCII::WriteTime(int frame, double time) {
     m_stream << "=====================================\n";
@@ -49,7 +82,7 @@ void ChOutputASCII::WriteSection(const std::string& name) {
 
 void ChOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
     for (const auto& body : bodies) {
-        auto& ref_frame = body->GetFrameRefToAbs();
+        const auto& ref_frame = body->GetFrameRefToAbs();
 
         m_stream << "Body " << body->GetIdentifier() << " '" << body->GetName() << "'" << endl;
         m_stream << "  COM frame: " << body->GetPos() << "  |  " << body->GetRot() << endl;
