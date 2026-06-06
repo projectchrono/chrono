@@ -270,7 +270,7 @@ if(CHRONO_CUDA_FOUND)
   target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
   target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
-  set_target_properties(Chrono_fsisph PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+  set_target_properties(Chrono_fsisph PROPERTIES CUDA_ARCHITECTURES "${CHRONO_CUDA_ARCHITECTURES}")
 elseif(CHRONO_HIP_FOUND)
   find_package(hip QUIET CONFIG HINTS "${CHRONO_ROCM_ROOT}")
   if(TARGET hip::host)

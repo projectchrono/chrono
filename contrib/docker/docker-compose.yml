@@ -20,7 +20,7 @@ services:
         APT_DEPENDENCIES: "vim cmake-curses-gui"
         USER_SHELL_ADD_ONS: "alias python=python3"
 
-        CUDA_VERSION: "12-2"
+        CUDA_VERSION: "12-9"
         ROS_DISTRO: "humble"
         OPTIX_SCRIPT: "data/NVIDIA-OptiX-SDK-9.0.0-linux64-x86_64.sh" # Get optix script at https://developer.nvidia.com/designworks/optix/downloads/legacy
     volumes:
