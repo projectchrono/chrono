@@ -24,8 +24,7 @@ using std::endl;
 
 namespace chrono {
 
-ChOutputASCII::ChOutputASCII(const std::string& filename, Mode mode) : ChOutput(mode), m_file_stream(filename), m_stream(m_file_stream) {}
-
+ChOutputASCII::ChOutputASCII(const std::string& filename, Mode mode) : ChOutput(mode), m_file_stream(filename + "." + GetModeAsString(mode) + ".txt"), m_stream(m_file_stream) {}
 ChOutputASCII::ChOutputASCII(std::ostream& stream, Mode mode) : ChOutput(mode), m_file_stream(), m_stream(stream) {}
 
 ChOutputASCII::~ChOutputASCII() {
@@ -39,7 +38,7 @@ ChOutputASCII::~ChOutputASCII() {
 // -----------------------------------------------------------------------------
 
 void ChOutputASCII::WriteBuffers() {
-    for (size_t i = 0; i < m_num_times; i++) {
+    for (size_t i = 0; i < m_time.size(); i++) {
         m_stream << m_time[i] << " ";
 
         for (const auto& buf : m_body_buf) {
@@ -52,17 +51,17 @@ void ChOutputASCII::WriteBuffers() {
         }
 
         for (const auto& buf : m_joint_buf) {
-            m_stream << buf.react1[i].force << " " << buf.react1[i].torque;
-            m_stream << buf.react2[i].force << " " << buf.react2[i].torque;
+            m_stream << buf.react1[i].force << " " << buf.react1[i].torque << " ";
+            m_stream << buf.react2[i].force << " " << buf.react2[i].torque << " ";
         }
 
         for (const auto& buf : m_tsda_buf) {
             m_stream << buf.point1[i] << " " << buf.point2[i];
-            m_stream << buf.len[i] << " " << buf.vel[i] << " " << buf.force[i];
+            m_stream << buf.len[i] << " " << buf.vel[i] << " " << buf.force[i] << " ";
         }
 
         for (const auto& buf : m_rsda_buf) {
-            m_stream << buf.ang[i] << " " << buf.vel[i] << " " << buf.torque[i];
+            m_stream << buf.ang[i] << " " << buf.vel[i] << " " << buf.torque[i] << " ";
         }
 
         m_stream << endl;
@@ -71,13 +70,9 @@ void ChOutputASCII::WriteBuffers() {
 
 // -----------------------------------------------------------------------------
 
-void ChOutputASCII::WriteTime(int frame, double time) {
+void ChOutputASCII::WriteTimeStamp(int frame, double time) {
     m_stream << "=====================================\n";
     m_stream << "Time: " << time << endl;
-}
-
-void ChOutputASCII::WriteSection(const std::string& name) {
-    m_stream << "  \"" << name << "\"" << endl;
 }
 
 void ChOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {

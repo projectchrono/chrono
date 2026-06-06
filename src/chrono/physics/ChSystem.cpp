@@ -2010,7 +2010,7 @@ void ChSystem::WriteOutput(int frame, ChOutput& database) const {
         }
     }
 
-    database.Write(GetChTime(), frame, components);
+    database.Write(frame, GetChTime(), components);
 }
 
 // -----------------------------------------------------------------------------

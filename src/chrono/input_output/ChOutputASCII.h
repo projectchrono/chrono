@@ -32,15 +32,18 @@ namespace chrono {
 /// ASCII text Chrono output database.
 class ChApi ChOutputASCII : public ChOutput {
   public:
+    /// Create an output DB in ASCII format and associate it with an output file.
+    /// Note: the output file name will be `<filename>.[MODE].txt`.
     ChOutputASCII(const std::string& filename, Mode mode);
-    ChOutputASCII(std::ostream& stream, Mode mode);
-    ~ChOutputASCII();
 
-    virtual void WriteTime(int frame, double time) override;
-    virtual void WriteSection(const std::string& name) override;
+    /// Create an output DB in ASCII format and associate it with the given output stream.
+    ChOutputASCII(std::ostream& stream, Mode mode);
+
+    ~ChOutputASCII();
 
   private:
     // Implementation of functions for Mode::FRAMES
+    virtual void WriteTimeStamp(int frame, double time) override;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;

@@ -1265,9 +1265,9 @@ void ChParserMbsYAML::DoStepDynamics() {
         m_rt_timer.Spin(time_step);
 }
 
-void ChParserMbsYAML::WriteOutput(double time, int frame) {
-    ChParserYAML::WriteOutput(time, frame);
-    m_output_db->Write(time, frame, m_output_components);
+void ChParserMbsYAML::WriteOutput(int frame, double time) {
+    ChParserYAML::WriteOutput(frame, time);
+    m_output_db->Write(frame, time, m_output_components);
 }
 
 // -----------------------------------------------------------------------------

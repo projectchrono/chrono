@@ -59,7 +59,7 @@ class ChApiParsers ChParserYAML {
 
     /// Write simulation output results at the current time.
     /// This base class implementation creates and initializes the output database. Derived classes must
-    virtual void WriteOutput(double time, int frame);
+    virtual void WriteOutput(int frame, double time);
 
     /// Peek in specified YAML file and read the fluid system type.
     /// Throws a runtime error if the type is unknown.

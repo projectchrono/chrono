@@ -122,22 +122,19 @@ void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
         m_output.fps = a["fps"].as<double>();
 }
 
-void ChParserYAML::WriteOutput(double time, int frame) {
+void ChParserYAML::WriteOutput(int frame, double time) {
     if (m_output.format == ChOutput::Format::NONE)
         return;
 
     // Create the output DB if needed
     if (!m_output_db) {
-        auto filename = m_output_dir + "/" + m_name;
         switch (m_output.format) {
             case ChOutput::Format::ASCII:
-                filename += ".txt";
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(m_output_dir + "/" + m_name, m_output.mode);
                 break;
             case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                filename += ".h5";
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(m_output_dir + "/" + m_name, m_output.mode);
                 break;
 #else
                 return;

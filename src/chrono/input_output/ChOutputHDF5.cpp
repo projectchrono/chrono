@@ -28,164 +28,6 @@
 
 namespace chrono {
 
-// -----------------------------------------------------------------------------
-
-class ChOutputHDF5_impl {
-  public:
-    ChOutputHDF5_impl(H5::H5File* fileHDF5) : m_fileHDF5(fileHDF5) {}
-    virtual ~ChOutputHDF5_impl() {}
-
-    virtual void Initialize() = 0;
-
-    virtual void WriteTime(int frame, double time) = 0;
-    virtual void WriteSection(const std::string& name) = 0;
-    virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
-    virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
-    virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
-    virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;
-    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
-    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) = 0;
-    virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) = 0;
-    virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
-    virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
-    virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
-
-    H5::H5File* m_fileHDF5;
-};
-
-class ChOutputHDF5_series : public ChOutputHDF5_impl {
-  public:
-    ChOutputHDF5_series(H5::H5File* fileHDF5);
-    ~ChOutputHDF5_series();
-    virtual void Initialize() override;
-    virtual void WriteTime(int frame, double time) override {}
-    virtual void WriteSection(const std::string& name) override;
-    virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
-    virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override {}
-    virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override {}
-    virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;
-    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override {}
-    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) override;
-    virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) override;
-    virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override {}
-    virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
-    virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
-
-  private:
-    H5::Group OpenGroup(const std::string& name);
-
-    H5::Group m_section;
-    bool m_has_section;
-};
-
-class ChOutputHDF5_frames : public ChOutputHDF5_impl {
-  public:
-    ChOutputHDF5_frames(H5::H5File* fileHDF5);
-    ~ChOutputHDF5_frames();
-    virtual void Initialize() override;
-    virtual void WriteTime(int frame, double time) override;
-    virtual void WriteSection(const std::string& name) override;
-    virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
-    virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
-    virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
-    virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;
-    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
-    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) override;
-    virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) override;
-    virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
-    virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
-    virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
-
-  private:
-    H5::Group* m_frame_group;
-    H5::Group* m_section_group;
-
-    H5::CompType* m_body_type;
-    H5::CompType* m_shaft_type;
-    H5::CompType* m_marker_type;
-    H5::CompType* m_joint_type;
-    H5::CompType* m_couple_type;
-    H5::CompType* m_linspring_type;
-    H5::CompType* m_rotspring_type;
-    H5::CompType* m_bodyload_type;
-    H5::CompType* m_linmotor_type;
-    H5::CompType* m_rotmotor_type;
-};
-
-// -----------------------------------------------------------------------------
-
-ChOutputHDF5::ChOutputHDF5(const std::string& filename, Mode mode) :ChOutput(mode) {
-    m_fileHDF5 = new H5::H5File(filename, H5F_ACC_TRUNC);
-    switch (m_mode) {
-        case Mode::FRAMES:
-            m_impl = chrono_types::make_unique<ChOutputHDF5_frames>(m_fileHDF5);
-            break;
-        case Mode::SERIES:
-            m_impl = chrono_types::make_unique<ChOutputHDF5_series>(m_fileHDF5);
-            break;
-    }
-    m_impl->Initialize();
-}
-
-ChOutputHDF5::~ChOutputHDF5() {
-    m_fileHDF5->close();
-    delete m_fileHDF5;
-}
-
-void ChOutputHDF5::WriteBuffers() {
-    //// TODO
-}
-
-void ChOutputHDF5::WriteTime(int frame, double time) {
-    m_impl->WriteTime(frame, time);
-}
-void ChOutputHDF5::WriteSection(const std::string& name) {
-    m_impl->WriteSection(name);
-}
-
-void ChOutputHDF5::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
-    m_impl->WriteBodies(bodies);
-}
-void ChOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) {
-    m_impl->WriteMarkers(markers);
-}
-void ChOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
-    m_impl->WriteShafts(shafts);
-}
-void ChOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
-    m_impl->WriteJoints(joints);
-}
-void ChOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
-    m_impl->WriteCouples(couples);
-}
-void ChOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
-    m_impl->WriteLinSprings(springs);
-}
-void ChOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
-    m_impl->WriteRotSprings(springs);
-}
-void ChOutputHDF5::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
-    m_impl->WriteBodyBodyLoads(loads);
-}
-void ChOutputHDF5::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
-    m_impl->WriteLinMotors(motors);
-}
-void ChOutputHDF5::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
-    m_impl->WriteRotMotors(motors);
-}
-
-// -----------------------------------------------------------------------------
-
-std::string format_number(int num, int precision) {
-    std::ostringstream out;
-    out << std::internal << std::setfill('0') << std::setw(precision) << num;
-    return out.str();
-}
-
-// -----------------------------------------------------------------------------
-
-// ChOutputHDF5_frames implementation
-
 struct body_info {
     int id;                 // body identifier
     double x, y, z;         // position
@@ -258,7 +100,9 @@ struct rotmotor_info {
 
 // -----------------------------------------------------------------------------
 
-ChOutputHDF5_frames::ChOutputHDF5_frames(H5::H5File* fileHDF5) : ChOutputHDF5_impl(fileHDF5), m_frame_group(nullptr), m_section_group(nullptr) {
+ChOutputHDF5::ChOutputHDF5(const std::string& filename, Mode mode) : ChOutput(mode), m_frame_group(nullptr) {
+    m_fileHDF5 = new H5::H5File(filename + "." + GetModeAsString(mode) + ".h5", H5F_ACC_TRUNC);
+
     // Initialize the compound data types
     m_body_type = new H5::CompType(sizeof(body_info));
     m_body_type->insertMember("id", HOFFSET(body_info, id), H5::PredType::NATIVE_INT);
@@ -338,13 +182,11 @@ ChOutputHDF5_frames::ChOutputHDF5_frames(H5::H5File* fileHDF5) : ChOutputHDF5_im
     m_rotmotor_type->insertMember("x", HOFFSET(rotmotor_info, x), H5::PredType::NATIVE_DOUBLE);
     m_rotmotor_type->insertMember("xd", HOFFSET(rotmotor_info, xd), H5::PredType::NATIVE_DOUBLE);
     m_rotmotor_type->insertMember("torque", HOFFSET(rotmotor_info, t), H5::PredType::NATIVE_DOUBLE);
+
+    H5::Group frames_group(m_fileHDF5->createGroup("/Frames"));
 }
 
-ChOutputHDF5_frames::~ChOutputHDF5_frames() {
-    if (m_section_group) {
-        m_section_group->close();
-        delete m_section_group;
-    }
+ChOutputHDF5::~ChOutputHDF5() {
     if (m_frame_group) {
         m_frame_group->close();
         delete m_frame_group;
@@ -360,20 +202,26 @@ ChOutputHDF5_frames::~ChOutputHDF5_frames() {
     delete m_bodyload_type;
     delete m_linmotor_type;
     delete m_rotmotor_type;
+
+    m_fileHDF5->close();
+    delete m_fileHDF5;
 }
 
-void ChOutputHDF5_frames::Initialize() {
-    H5::Group frames_group(m_fileHDF5->createGroup("/Frames"));
+// -----------------------------------------------------------------------------
+
+void ChOutputHDF5::WriteBuffers() {
+    //// TODO
 }
 
-void ChOutputHDF5_frames::WriteTime(int frame, double time) {
-    // Close the currently open section group
-    if (m_section_group) {
-        m_section_group->close();
-        delete m_section_group;
-        m_section_group = nullptr;
-    }
+// -----------------------------------------------------------------------------
 
+std::string format_number(int num, int precision) {
+    std::ostringstream out;
+    out << std::internal << std::setfill('0') << std::setw(precision) << num;
+    return out.str();
+}
+
+void ChOutputHDF5::WriteTimeStamp(int frame, double time) {
     // Close the currently open frame group
     if (m_frame_group) {
         m_frame_group->close();
@@ -394,23 +242,17 @@ void ChOutputHDF5_frames::WriteTime(int frame, double time) {
     }
 }
 
-void ChOutputHDF5_frames::WriteSection(const std::string& name) {
-    // Close the currently open section group
-    if (m_section_group) {
-        m_section_group->close();
-        delete m_section_group;
-        m_section_group = nullptr;
-    }
-
-    // Create the group for this section in the current frame group
-    m_section_group = new H5::Group(m_frame_group->createGroup(name));
+static H5::DataSet getDataSet(H5::Group* group, const char* dataset_name, const H5::DataType& data_type, hsize_t* dims) {
+    H5::DataSet set = (H5Lexists(group->getId(), dataset_name, H5P_DEFAULT))                        //
+                          ? group->openDataSet(dataset_name, H5P_DEFAULT)                           //
+                          : group->createDataSet(dataset_name, data_type, H5::DataSpace(1, dims));  //
+    return set;
 }
 
-void ChOutputHDF5_frames::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
+void ChOutputHDF5::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
     if (bodies.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<body_info> info;
@@ -421,15 +263,14 @@ void ChOutputHDF5_frames::WriteBodies(const std::vector<std::shared_ptr<ChBody>>
     }
 
     hsize_t dim[] = {bodies.size()};
-    H5::DataSet set = crt_group->createDataSet("Bodies", *m_body_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Bodies", *m_body_type, dim);
     set.write(info.data(), *m_body_type);
 }
 
-void ChOutputHDF5_frames::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) {
+void ChOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) {
     if (markers.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<marker_info> info;
@@ -441,15 +282,14 @@ void ChOutputHDF5_frames::WriteMarkers(const std::vector<std::shared_ptr<ChMarke
     }
 
     hsize_t dim[] = {markers.size()};
-    H5::DataSet set = crt_group->createDataSet("Markers", *m_marker_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Markers", *m_marker_type, dim);
     set.write(info.data(), *m_marker_type);
 }
 
-void ChOutputHDF5_frames::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
+void ChOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
     if (shafts.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<shaft_info> info;
@@ -458,15 +298,14 @@ void ChOutputHDF5_frames::WriteShafts(const std::vector<std::shared_ptr<ChShaft>
     }
 
     hsize_t dim[] = {shafts.size()};
-    H5::DataSet set = crt_group->createDataSet("Shafts", *m_shaft_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Shafts", *m_shaft_type, dim);
     set.write(info.data(), *m_shaft_type);
 }
 
-void ChOutputHDF5_frames::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
+void ChOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
     if (joints.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<joint_info> info;
@@ -478,15 +317,14 @@ void ChOutputHDF5_frames::WriteJoints(const std::vector<std::shared_ptr<ChLink>>
     }
 
     hsize_t dim[] = {joints.size()};
-    H5::DataSet set = crt_group->createDataSet("Joints", *m_joint_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Joints", *m_joint_type, dim);
     set.write(info.data(), *m_joint_type);
 }
 
-void ChOutputHDF5_frames::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
+void ChOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     if (couples.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<couple_info> info;
@@ -499,15 +337,14 @@ void ChOutputHDF5_frames::WriteCouples(const std::vector<std::shared_ptr<ChShaft
     }
 
     hsize_t dim[] = {couples.size()};
-    H5::DataSet set = crt_group->createDataSet("Couples", *m_couple_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Couples", *m_couple_type, dim);
     set.write(info.data(), *m_couple_type);
 }
 
-void ChOutputHDF5_frames::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
+void ChOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     if (springs.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<linspring_info> info;
@@ -516,15 +353,14 @@ void ChOutputHDF5_frames::WriteLinSprings(const std::vector<std::shared_ptr<ChLi
     }
 
     hsize_t dim[] = {springs.size()};
-    H5::DataSet set = crt_group->createDataSet("Lin Springs", *m_linspring_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Lin Springs", *m_linspring_type, dim);
     set.write(info.data(), *m_linspring_type);
 }
 
-void ChOutputHDF5_frames::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
+void ChOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     if (springs.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<rotspring_info> info;
@@ -533,15 +369,14 @@ void ChOutputHDF5_frames::WriteRotSprings(const std::vector<std::shared_ptr<ChLi
     }
 
     hsize_t dim[] = {springs.size()};
-    H5::DataSet set = crt_group->createDataSet("Rot Springs", *m_rotspring_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Rot Springs", *m_rotspring_type, dim);
     set.write(info.data(), *m_rotspring_type);
 }
 
-void ChOutputHDF5_frames::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
+void ChOutputHDF5::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
     if (loads.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<bodyload_info> info;
@@ -552,15 +387,14 @@ void ChOutputHDF5_frames::WriteBodyBodyLoads(const std::vector<std::shared_ptr<C
     }
 
     hsize_t dim[] = {loads.size()};
-    H5::DataSet set = crt_group->createDataSet("Body-body Loads", *m_bodyload_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Body-body Loads", *m_bodyload_type, dim);
     set.write(info.data(), *m_bodyload_type);
 }
 
-void ChOutputHDF5_frames::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
+void ChOutputHDF5::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
     if (motors.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<linmotor_info> info;
@@ -569,15 +403,14 @@ void ChOutputHDF5_frames::WriteLinMotors(const std::vector<std::shared_ptr<ChLin
     }
 
     hsize_t dim[] = {motors.size()};
-    H5::DataSet set = crt_group->createDataSet("Lin Motors", *m_linmotor_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Lin Motors", *m_linmotor_type, dim);
     set.write(info.data(), *m_linmotor_type);
 }
 
-void ChOutputHDF5_frames::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
+void ChOutputHDF5::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
     if (motors.empty())
         return;
-    auto crt_group = m_section_group ? m_section_group : m_frame_group;
-    if (!crt_group)
+    if (!m_frame_group)
         return;
 
     std::vector<linmotor_info> info;
@@ -586,103 +419,8 @@ void ChOutputHDF5_frames::WriteRotMotors(const std::vector<std::shared_ptr<ChLin
     }
 
     hsize_t dim[] = {motors.size()};
-    H5::DataSet set = crt_group->createDataSet("Rot Motors", *m_rotmotor_type, H5::DataSpace(1, dim));
+    H5::DataSet set = getDataSet(m_frame_group, "Rot Motors", *m_rotmotor_type, dim);
     set.write(info.data(), *m_rotmotor_type);
-}
-
-// -----------------------------------------------------------------------------
-
-ChOutputHDF5_series::ChOutputHDF5_series(H5::H5File* fileHDF5) : ChOutputHDF5_impl(fileHDF5), m_has_section(false) {}
-
-ChOutputHDF5_series::~ChOutputHDF5_series() {}
-
-void ChOutputHDF5_series::Initialize() {}
-
-// Open and return the group with specified name.
-// Create the group if it does not exists.
-H5::Group ChOutputHDF5_series::OpenGroup(const std::string& name) {
-    H5::Group group;
-    auto cname = name.c_str();
-    if (m_has_section) {
-        // Look in current section group
-        if (H5Lexists(m_section.getId(), cname, H5P_DEFAULT))
-            group = m_section.openGroup(cname);
-        else
-            group = m_section.createGroup(cname);
-    } else {
-        // Look in top level
-        if (H5Lexists(m_fileHDF5->getId(), cname, H5P_DEFAULT))
-            group = m_fileHDF5->openGroup(cname);
-        else
-            group = m_fileHDF5->createGroup(cname);
-    }
-
-    return group;
-}
-
-void ChOutputHDF5_series::WriteSection(const std::string& name) {
-    // Close the currently open section group
-    if (m_has_section) {
-        m_section.close();
-        m_has_section = false;
-    }
-
-    // Create the group for this section, or open if already created
-    auto cname = name.c_str();
-    if (H5Lexists(m_fileHDF5->getId(), cname, H5P_DEFAULT))
-        m_section = m_fileHDF5->openGroup(cname);
-    else
-        m_section = m_fileHDF5->createGroup(cname);
-
-    m_has_section = true;
-}
-
-void ChOutputHDF5_series::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
-    if (bodies.empty())
-        return;
-
-    // Open the group for bodies (create if necessary)
-    H5::Group body_group = OpenGroup("/Bodies");
-}
-
-void ChOutputHDF5_series::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
-    if (joints.empty())
-        return;
-
-    // Open the group for joints (create if necessary)
-    H5::Group body_group = OpenGroup("/Joints");
-}
-
-void ChOutputHDF5_series::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
-    if (springs.empty())
-        return;
-
-    // Open the group for bodies (create if necessary)
-    H5::Group body_group = OpenGroup("/Lin springs");
-}
-
-void ChOutputHDF5_series::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
-    if (springs.empty())
-        return;
-
-    // Open the group for bodies (create if necessary)
-    H5::Group body_group = OpenGroup("/Rot springs");
-}
-
-void ChOutputHDF5_series::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
-    if (motors.empty())
-        return;
-
-    // Open the group for bodies (create if necessary)
-    H5::Group body_group = OpenGroup("/Lin motors");
-}
-
-void ChOutputHDF5_series::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
-    if (motors.empty())
-        return;
-
-    // Open the group for bodies (create if necessary)
-    H5::Group body_group = OpenGroup("/Rot motors");
 }
 
 }  // end namespace chrono

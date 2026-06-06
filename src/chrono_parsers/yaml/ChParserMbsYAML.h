@@ -203,7 +203,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     /// Write simulation output results at the current time.
     /// Note: this function is automatically called in ChParserMbsYAML::DoStepDynamics.
-    virtual void WriteOutput(double time, int frame) override;
+    virtual void WriteOutput(int frame, double time) override;
 
   private:
     /// Solver parameters.

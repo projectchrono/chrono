@@ -49,12 +49,8 @@ class ChApi ChOutput {
 
     virtual ~ChOutput() {}
 
-    virtual void WriteTime(int frame, double time) = 0;
-    virtual void WriteSection(const std::string& name) = 0;
-
-    void Write(double time, int frame, const ChAssembly::Components& components);
-
-    void Write(const ChAssembly::Components& components);
+    void Write(int frame, double time, const ChAssembly::Components& components);
+    void Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components);
 
     static std::string GetFormatAsString(Format type);
 
@@ -68,6 +64,7 @@ class ChApi ChOutput {
   protected:
     // Functions for Mode::FRAMES
 
+    virtual void WriteTimeStamp(int frame, double time) = 0;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
@@ -114,7 +111,6 @@ class ChApi ChOutput {
     };
 
     bool m_buf_allocated;                   ///< buffers allocated?
-    size_t m_num_times;                     ///< number of output times
     std::vector<double> m_time;             ///< time series
     std::vector<BodyBuffers> m_body_buf;    ///< body buffers
     std::vector<ShaftBuffers> m_shaft_buf;  ///< shaft buffers

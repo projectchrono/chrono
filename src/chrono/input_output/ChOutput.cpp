@@ -16,93 +16,116 @@
 //
 // =============================================================================
 
+#include<numeric>
+
 #include "chrono/input_output/ChOutput.h"
 
 namespace chrono {
 
-ChOutput::ChOutput(Mode mode) : m_mode(mode), m_buf_allocated(false), m_num_times(0) {}
+ChOutput::ChOutput(Mode mode) : m_mode(mode), m_buf_allocated(false) {}
 
-void ChOutput::Write(double time, int frame, const ChAssembly::Components& components) {
-    switch (m_mode) {
-        case Mode::FRAMES:
-            WriteTime(frame, time);
-            break;
-        case Mode::SERIES:
-            m_time.push_back(time);
-            break;
-    }
-
-    Write(components);
+void ChOutput::Write(int frame, double time, const ChAssembly::Components& components) {
+    Write(frame, time, {&components});
 }
 
-void ChOutput::Write(const ChAssembly::Components& components) {
+void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components) {
     switch (m_mode) {
         case Mode::FRAMES:
-            WriteBodies(components.bodies);
-            WriteShafts(components.shafts);
-            WriteJoints(components.joints);
-            WriteCouples(components.couples);
-            WriteBodyBodyLoads(components.bushings);
-            ////WriteConstraints(components.constraints);
-            WriteLinSprings(components.tsdas);
-            WriteRotSprings(components.rsdas);
-            WriteLinMotors(components.lin_motors);
-            WriteRotMotors(components.rot_motors);
+            WriteTimeStamp(frame, time);
 
+            for (auto c : components)
+                WriteBodies(c->bodies);
+            for (auto c : components)
+                WriteShafts(c->shafts);
+            for (auto c : components)
+                WriteJoints(c->joints);
+            for (auto c : components)
+                WriteCouples(c->couples);
+            for (auto c : components)
+                WriteBodyBodyLoads(c->bushings);
+            for (auto c : components)
+                WriteLinSprings(c->tsdas);
+            for (auto c : components)
+                WriteRotSprings(c->rsdas);
+            for (auto c : components)
+                WriteLinMotors(c->lin_motors);
+            for (auto c : components)
+                WriteRotMotors(c->rot_motors);
+            
             break;
+
         case Mode::SERIES:
             if (!m_buf_allocated) {
-                m_body_buf.resize(components.bodies.size());
-                m_shaft_buf.resize(components.shafts.size());
-                m_joint_buf.resize(components.joints.size());
-                m_tsda_buf.resize(components.tsdas.size());
-                m_rsda_buf.resize(components.rsdas.size());
+                size_t n_bodies = 0;
+                size_t n_shafts = 0;
+                size_t n_joints = 0;
+                size_t n_tsdas = 0;
+                size_t n_rsdas = 0;
+                for (auto c : components) {
+                    n_bodies += c->bodies.size();
+                    n_shafts += c->shafts.size();
+                    n_joints += c->joints.size();
+                    n_tsdas += c->tsdas.size();
+                    n_rsdas += c->rsdas.size();
+                }
+                m_body_buf.resize(n_bodies);
+                m_shaft_buf.resize(n_shafts);
+                m_joint_buf.resize(n_joints);
+                m_tsda_buf.resize(n_tsdas);
+                m_rsda_buf.resize(n_rsdas);
                 m_buf_allocated = true;
             }
 
-            for (size_t i = 0; i < components.bodies.size(); i++) {
-                const auto& body = *components.bodies[i];
-                auto& buf = m_body_buf[i];
-                const auto& ref_frame = body.GetFrameRefToAbs();
-                buf.pos.push_back(ref_frame.GetPos());
-                buf.rot.push_back(ref_frame.GetRot().GetCardanAnglesXYZ());
-                buf.lin_vel.push_back(ref_frame.GetPosDt());
-                buf.ang_vel.push_back(ref_frame.GetAngVelParent());
-            }
+            m_time.push_back(time);
 
-            for (size_t i = 0; i < components.shafts.size(); i++) {
-                const auto& shaft = *components.shafts[i];
-                auto& buf = m_shaft_buf[i];
-                buf.pos.push_back(shaft.GetPos());
-                buf.vel.push_back(shaft.GetPosDt());
-            }
+            size_t i_body = 0;
+            size_t i_shaft = 0;
+            size_t i_joint = 0;
+            size_t i_tsda = 0;
+            size_t i_rsda = 0;
+            for (auto c : components) {
+                for (const auto& body : c->bodies) {
+                    auto& buf = m_body_buf[i_body];
+                    const auto& ref_frame = body->GetFrameRefToAbs();
+                    buf.pos.push_back(ref_frame.GetPos());
+                    buf.rot.push_back(ref_frame.GetRot().GetCardanAnglesXYZ());
+                    buf.lin_vel.push_back(ref_frame.GetPosDt());
+                    buf.ang_vel.push_back(ref_frame.GetAngVelParent());
+                    i_body++;
+                }
 
-            for (size_t i = 0; i < components.joints.size(); i++) {
-                const auto& joint = *components.joints[i];
-                auto& buf = m_joint_buf[i];
-                buf.react1.push_back({joint.GetReaction1().force, joint.GetReaction1().torque});
-                buf.react2.push_back({joint.GetReaction2().force, joint.GetReaction2().torque});
-            }
+                for (const auto& shaft : c->shafts) {
+                    auto& buf = m_shaft_buf[i_shaft];
+                    buf.pos.push_back(shaft->GetPos());
+                    buf.vel.push_back(shaft->GetPosDt());
+                    i_shaft++;
+                }
 
-            for (size_t i = 0; i < components.tsdas.size(); i++) {
-                const auto& tsda = *components.tsdas[i];
-                auto& buf = m_tsda_buf[i];
-                buf.point1.push_back(tsda.GetPoint1Abs());
-                buf.point2.push_back(tsda.GetPoint2Abs());
-                buf.len.push_back(tsda.GetLength());
-                buf.vel.push_back(tsda.GetVelocity());
-                buf.force.push_back(tsda.GetForce());
-            }
+                for (const auto& joint : c->joints) {
+                    auto& buf = m_joint_buf[i_joint];
+                    buf.react1.push_back({joint->GetReaction1().force, joint->GetReaction1().torque});
+                    buf.react2.push_back({joint->GetReaction2().force, joint->GetReaction2().torque});
+                    i_joint++;
+                }
 
-            for (size_t i = 0; i < components.rsdas.size(); i++) {
-                const auto& rsda = *components.rsdas[i];
-                auto& buf = m_rsda_buf[i];
-                buf.ang.push_back(rsda.GetAngle());
-                buf.vel.push_back(rsda.GetVelocity());
-                buf.torque.push_back(rsda.GetTorque());
-            }
+                for (const auto& tsda : c->tsdas) {
+                    auto& buf = m_tsda_buf[i_tsda];
+                    buf.point1.push_back(tsda->GetPoint1Abs());
+                    buf.point2.push_back(tsda->GetPoint2Abs());
+                    buf.len.push_back(tsda->GetLength());
+                    buf.vel.push_back(tsda->GetVelocity());
+                    buf.force.push_back(tsda->GetForce());
+                    i_tsda++;
+                }
 
-            m_num_times++;
+                for (const auto& rsda : c->rsdas) {
+                    auto& buf = m_rsda_buf[i_rsda];
+                    buf.ang.push_back(rsda->GetAngle());
+                    buf.vel.push_back(rsda->GetVelocity());
+                    buf.torque.push_back(rsda->GetTorque());
+                    i_rsda++;
+                }
+            }
 
             break;
     }
