@@ -64,10 +64,7 @@ class ChTrackTestRigChassis : public ChRigidChassis {
 
 // -----------------------------------------------------------------------------
 
-ChTrackTestRig::ChTrackTestRig(const std::string& filename,
-                               bool create_track,
-                               ChContactMethod contact_method,
-                               bool detracking_control)
+ChTrackTestRig::ChTrackTestRig(const std::string& filename, bool create_track, ChContactMethod contact_method, bool detracking_control)
     : ChVehicle("TrackTestRig", contact_method),
       m_ride_height(-1),
       m_max_torque(0),
@@ -111,10 +108,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
-ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
-                               bool create_track,
-                               ChContactMethod contact_method,
-                               bool detracking_control)
+ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly, bool create_track, ChContactMethod contact_method, bool detracking_control)
     : ChVehicle("TrackTestRig", contact_method),
       m_track(assembly),
       m_ride_height(-1),
@@ -224,11 +218,9 @@ void ChTrackTestRig::Initialize() {
     m_track->SetTrackShoeVisualizationType(m_vis_shoe);
 
     // Set collisions
-    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) !=
-                                              0);
+    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
 
-    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) !=
-                                            0);
+    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
 
     bool collide_wheels = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackSuspensions(); ++i)
@@ -367,9 +359,7 @@ void ChTrackTestRig::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 
-void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
-                                          std::shared_ptr<ChBody> chassis,
-                                          const ChColor& color) {
+void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post, std::shared_ptr<ChBody> chassis, const ChColor& color) {
     auto mat = chrono_types::make_shared<ChVisualMaterial>();
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
@@ -401,12 +391,14 @@ void ChTrackTestRig::SetTrackAssemblyOutput(bool state) {
     m_track->SetOutput(state);
 }
 
-void ChTrackTestRig::WriteOutput(int frame, ChOutput& database) const {
-    database.WriteTime(frame, m_system->GetChTime());
+void ChTrackTestRig::InitializeOutput() {
+    if (m_track->OutputEnabled())
+        m_track->InitializeOutput(m_out_format, m_out_mode, m_out_dir, m_out_name);
+}
 
-    if (m_track->OutputEnabled()) {
-        m_track->WriteOutput(database);
-    }
+void ChTrackTestRig::WriteOutput(int frame, double time) const {
+    if (m_track->OutputEnabled())
+        m_track->WriteOutput(frame, time);
 }
 
 void ChTrackTestRig::SetPlotOutput(double output_step) {

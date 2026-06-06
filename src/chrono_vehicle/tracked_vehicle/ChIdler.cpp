@@ -65,13 +65,6 @@ void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
     }
 }
 
-void ChIdler::WriteOutput(ChOutput& database) const {
-    ChPart::WriteOutput(database);
-
-    database.WriteSection(m_idler_wheel->GetName());
-    m_idler_wheel->WriteOutput(database);
-}
-
 void ChIdler::SaveCheckpoint(ChCheckpoint& database) const {
     ChPart::SaveCheckpoint(database);
 

@@ -26,7 +26,6 @@
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/core/ChVector2.h"
-#include "chrono/input_output/ChOutput.h"
 #include "chrono/input_output/ChCheckpoint.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -34,6 +33,7 @@
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPowertrainAssembly.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/ChVehicleOutput.h"
 
 namespace chrono {
 namespace vehicle {
@@ -231,15 +231,8 @@ class CH_VEHICLE_API ChVehicle {
     void SetOutput(ChOutput::Format format,      ///< [in] format of output DB
                    ChOutput::Mode mode,          ///< [in] output mode
                    const std::string& out_dir,   ///< [in] output directory name
-                   const std::string& out_name,  ///< [in] rootname of output file
+                   const std::string& out_name,  ///< [in] rootname of output files
                    double output_step            ///< [in] interval between output times
-    );
-
-    /// Enable output for this vehicle system using an existing output stream.
-    void SetOutput(ChOutput::Format format,   ///< [in] format of output DB
-                   ChOutput::Mode mode,       ///< [in] output mode
-                   std::ostream& out_stream,  ///< [in] output stream
-                   double output_step         ///< [in] interval between output times
     );
 
     /// Initialize this vehicle at the specified global location and orientation.
@@ -350,8 +343,11 @@ class CH_VEHICLE_API ChVehicle {
         return val;
     }
 
+    /// Initialize output for the vehicle subsystems.
+    virtual void InitializeOutput() {}
+
     /// Write output data for all modeling components in the vehicle system to the specified output database.
-    virtual void WriteOutput(int frame, ChOutput& database) const {}
+    virtual void WriteOutput(int frame, double time) const {}
 
     /// Checkpoint states of all modeling components in the vehicle system to the specified checkpoint database.
     virtual void SaveCheckpoint(ChCheckpoint& database) const {}
@@ -367,10 +363,15 @@ class CH_VEHICLE_API ChVehicle {
     ChFrame<> m_com;         ///< current vehicle COM (relative to the vehicle reference frame)
     ChMatrix33<> m_inertia;  ///< current total vehicle inertia (Relative to the vehicle COM frame)
 
-    ChOutput* m_output_db;      ///< vehicle output database (no output if nullptr)
-    double m_output_step;       ///< output time step
-    double m_next_output_time;  ///< time for next output
-    int m_output_frame;         ///< current output frame
+    bool m_output;                  ///< write output from vehicle subsystems
+    bool m_output_initialized;      ///< output initialization flag
+    ChOutput::Format m_out_format;  ///< output format
+    ChOutput::Mode m_out_mode;      ///< output mode
+    std::string m_out_dir;          ///< output directory name
+    std::string m_out_name;         ///< rootname of output files
+    double m_out_step;              ///< output time step
+    double m_next_out_time;         ///< time for next output
+    int m_out_frame;                ///< current output frame
 
     std::shared_ptr<ChChassis> m_chassis;         ///< handle to the main chassis subsystem
     ChChassisRearList m_chassis_rear;             ///< list of rear chassis subsystems (can be empty)

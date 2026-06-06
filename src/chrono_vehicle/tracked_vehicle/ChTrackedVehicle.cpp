@@ -207,11 +207,6 @@ void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
     m_tracks[1]->SetTrackShoeVisualizationType(vis);
 }
 
-// Enable/disable output for the various subsystems
-void ChTrackedVehicle::SetTrackAssemblyOutput(VehicleSide side, bool state) {
-    m_tracks[side]->SetOutput(state);
-}
-
 // Enable/disable collision for the various subsystems
 void ChTrackedVehicle::SetSprocketCollide(bool state) {
     m_tracks[0]->GetSprocket()->EnableCollision(state);
@@ -521,29 +516,74 @@ void ChTrackedVehicle::ExportComponentList(const std::string& filename) const {
     of.close();
 }
 
-void ChTrackedVehicle::WriteOutput(int frame, ChOutput& database) const {
-    database.WriteTime(frame, m_system->GetChTime());
+// -----------------------------------------------------------------------------
 
-    if (m_chassis->OutputEnabled()) {
-        database.WriteSection(m_chassis->GetName());
-        m_chassis->WriteOutput(database);
-    }
-
-    for (auto& c : m_chassis_rear) {
-        if (c->OutputEnabled()) {
-            database.WriteSection(c->GetName());
-            c->WriteOutput(database);
-        }
-    }
-
-    if (m_tracks[LEFT]->OutputEnabled()) {
-        m_tracks[LEFT]->WriteOutput(database);
-    }
-
-    if (m_tracks[RIGHT]->OutputEnabled()) {
-        m_tracks[RIGHT]->WriteOutput(database);
-    }
+void ChTrackedVehicle::SetTrackAssemblyOutput(VehicleSide side, bool state) {
+    m_tracks[side]->SetOutput(state);
 }
+
+void ChTrackedVehicle::InitializeOutput() {
+    // Resize output structures
+    m_out_chassis_rear.resize(m_chassis_rear.size());
+
+    // For each vehicle subsystem, collect components from their parts
+    if (m_chassis->OutputEnabled())
+        m_out_chassis.comp.push_back(&m_chassis->GetComponents());
+    if (m_driveline && m_driveline->OutputEnabled())
+        m_out_driveline.comp.push_back(&m_driveline->GetComponents());
+    for (size_t i = 0; i < m_chassis_rear.size(); i++)
+        if (m_chassis_rear[i]->OutputEnabled())
+            m_out_chassis_rear[i].comp.push_back(&m_chassis_rear[i]->GetComponents());
+
+    // For each vehicle subsystem, create its output DB
+    switch (m_out_format) {
+        case ChOutput::Format::ASCII:
+            if (m_chassis->OutputEnabled())
+                m_out_chassis.db = chrono_types::make_unique<ChOutputASCII>(m_out_dir + "/" + m_out_name + "_chassis", m_out_mode);
+            if (m_driveline && m_driveline->OutputEnabled())
+                m_out_driveline.db = chrono_types::make_unique<ChOutputASCII>(m_out_dir + "/" + m_out_name + "_driveline", m_out_mode);
+            for (size_t i = 0; i < m_chassis_rear.size(); i++)
+                if (m_chassis_rear[i]->OutputEnabled())
+                    m_out_chassis_rear[i].db = chrono_types::make_unique<ChOutputASCII>(m_out_dir + "/" + m_out_name + "_chassis_rear_" + std::to_string(i), m_out_mode);
+            break;
+        case ChOutput::Format::HDF5:
+#ifdef CHRONO_HAS_HDF5
+            if (m_chassis->OutputEnabled())
+                m_out_chassis.db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir + "/" + m_out_name + "_chassis", m_out_mode);
+            if (m_driveline && m_driveline->OutputEnabled())
+                m_out_driveline.db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir + "/" + m_out_name + "_driveline", m_out_mode);
+            for (size_t i = 0; i < m_chassis_rear.size(); i++)
+                if (m_chassis_rear[i]->OutputEnabled())
+                    m_out_chassis_rear[i].db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir + "/" + m_out_name + "_chassis_rear_" + std::to_string(i), m_out_mode);
+#endif
+            break;
+    }
+
+    if (m_tracks[LEFT]->OutputEnabled())
+        m_tracks[LEFT]->InitializeOutput(m_out_format, m_out_mode, m_out_dir, m_out_name + "_LEFT");
+    if (m_tracks[RIGHT]->OutputEnabled())
+        m_tracks[RIGHT]->InitializeOutput(m_out_format, m_out_mode, m_out_dir, m_out_name + "_RIGHT");
+}
+
+void ChTrackedVehicle::WriteOutput(int frame, double time) const {
+    if (m_chassis->OutputEnabled())
+        m_out_chassis.Write(frame, time);
+
+    if (m_driveline && m_driveline->OutputEnabled())
+        m_out_driveline.Write(frame, time);
+
+    for (size_t i = 0; i < m_chassis_rear.size(); i++)
+        if (m_chassis_rear[i]->OutputEnabled())
+            m_out_chassis_rear[i].Write(frame, time);
+
+    if (m_tracks[LEFT]->OutputEnabled())
+        m_tracks[LEFT]->WriteOutput(frame, time);
+
+    if (m_tracks[RIGHT]->OutputEnabled())
+        m_tracks[RIGHT]->WriteOutput(frame, time);
+}
+
+// -----------------------------------------------------------------------------
 
 void ChTrackedVehicle::SaveCheckpoint(ChCheckpoint& database) const {
     m_chassis->SaveCheckpoint(database);

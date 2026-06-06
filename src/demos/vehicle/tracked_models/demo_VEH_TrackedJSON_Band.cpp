@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
             cout << "Error creating directory " << pov_dir << endl;
             return 1;
         }
-        terrain.ExportMeshPovray(out_dir);
+        terrain.ExportMeshPovray(pov_dir);
     }
 
     if (img_output) {

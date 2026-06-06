@@ -88,7 +88,6 @@ class CH_VEHICLE_API ChIdler : public ChPart {
                            ) = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-    virtual void WriteOutput(ChOutput& database) const override;
     virtual void SaveCheckpoint(ChCheckpoint& database) const override;
     virtual void LoadCheckpoint(ChCheckpoint& database) override;
 

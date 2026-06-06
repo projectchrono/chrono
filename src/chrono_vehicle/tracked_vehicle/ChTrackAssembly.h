@@ -32,6 +32,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+#include "chrono_vehicle/ChVehicleOutput.h"
 
 namespace chrono {
 namespace vehicle {
@@ -220,9 +221,16 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Remove all track shoes from assembly.
     virtual void RemoveTrackShoes() = 0;
 
+    void InitializeOutput(ChOutput::Format out_format,  ///< [in] format of output DB
+                          ChOutput::Mode out_mode,      ///< [in] output mode
+                          const std::string& out_dir,   ///< [in] output directory name
+                          const std::string& out_name   ///< [in] rootname of output files
+    );
+
+    void WriteOutput(int frame, double time) const;
+
     virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const override;
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
-    virtual void WriteOutput(ChOutput& database) const override;
     virtual void SaveCheckpoint(ChCheckpoint& database) const override;
     virtual void LoadCheckpoint(ChCheckpoint& database) override;
 
@@ -240,6 +248,13 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     // Used only in a co-simulation framework
     std::vector<std::shared_ptr<ChLoadBodyForce>> m_shoe_terrain_forces;    ///< terrain force loads on track shoes
     std::vector<std::shared_ptr<ChLoadBodyTorque>> m_shoe_terrain_torques;  ///< terrain torque loads on track shoes
+
+    OutputData m_out_sprocket;
+    OutputData m_out_brake;
+    OutputData m_out_idler;
+    OutputData m_out_shoe;
+    std::vector<OutputData> m_out_suspensions;
+    std::vector<OutputData> m_out_rollers;
 
     friend class ChTrackedVehicle;
     friend class ChTrackTestRig;

@@ -235,8 +235,11 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// This function is called at the end of each vehicle state advance.
     virtual void UpdateInertiaProperties() override final;
 
+    /// Initialize output for the tracked vehicle subsystems.
+    virtual void InitializeOutput() override;
+
     /// Write output data for all modeling components in the tracked vehicle system.
-    virtual void WriteOutput(int frame, ChOutput& database) const override;
+    virtual void WriteOutput(int frame, double time) const override;
 
     /// Checkpoint states of all modeling components in the tracked vehicle system.
     virtual void SaveCheckpoint(ChCheckpoint& database) const override;
@@ -249,6 +252,15 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     std::shared_ptr<ChTrackCollisionManager> m_collision_manager;  ///< manager for internal collisions
     std::shared_ptr<ChTrackContactManager> m_contact_manager;      ///< manager for internal contacts
+
+    OutputData m_out_chassis;
+    OutputData m_out_driveline;
+    std::vector<OutputData> m_out_chassis_rear;
+
+
+    std::unique_ptr<ChOutput> m_out_db_chassis;
+    std::unique_ptr<ChOutput> m_out_db_driveline;
+    std::vector<std::unique_ptr<ChOutput>> m_out_db_chassis_rear;
 
     friend class ChTrackedVehicleVisualSystemIrrlicht;
 };

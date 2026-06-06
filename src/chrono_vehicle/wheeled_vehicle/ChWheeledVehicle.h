@@ -160,24 +160,20 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This only controls collisions between the chassis and the wheel/tire systems.
     virtual void SetChassisVehicleCollide(bool state) override;
 
-    /// Enable/disable output from the suspension subsystems.
-    /// See also ChVehicle::SetOuput.
-    void SetSuspensionOutput(int id, bool state);
+    /// Enable/disable output from the axle subsystems.
+    /// See also ChVehicle::SetOutput.
+    void SetAxleOutput(int id, bool state);
 
     /// Enable/disable output from the steering subsystems.
-    /// See also ChVehicle::SetOuput.
+    /// See also ChVehicle::SetOutput.
     void SetSteeringOutput(int id, bool state);
 
     /// Enable/disable output from the subchassis subsystems.
-    /// See also ChVehicle::SetOuput.
+    /// See also ChVehicle::SetOutput.
     void SetSubchassisOutput(int id, bool state);
 
-    /// Enable/disable output from the anti-roll bar subsystems.
-    /// See also ChVehicle::SetOuput.
-    void SetAntirollbarOutput(int id, bool state);
-
     /// Enable/disable output from the driveline subsystem.
-    /// See also ChVehicle::SetOuput.
+    /// See also ChVehicle::SetOutput.
     void SetDrivelineOutput(bool state);
 
     /// Initialize the given tire and attach it to the specified wheel.
@@ -270,8 +266,11 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This function is called at the end of each vehicle state advance.
     virtual void UpdateInertiaProperties() override final;
 
+    /// Initialize output for the wheeled vehicle subsystems.
+    virtual void InitializeOutput() override;
+
     /// Write output data for all modeling components in the wheeled vehicle system.
-    virtual void WriteOutput(int frame, ChOutput& database) const override;
+    virtual void WriteOutput(int frame, double time) const override;
 
     /// Checkpoint states of all modeling components in the wheeled vehicle system.
     virtual void SaveCheckpoint(ChCheckpoint& database) const override;
@@ -284,6 +283,14 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChSteeringList m_steerings;                  ///< list of steering subsystems
     std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem
     bool m_parking_on;                           ///< indicates whether or not parking brake is engaged
+
+
+    OutputData m_out_chassis;
+    OutputData m_out_driveline;
+    std::vector<OutputData> m_out_chassis_rear;
+    std::vector<OutputData> m_out_subchassis;
+    std::vector<OutputData> m_out_steering;
+    std::vector<OutputData> m_out_axles;
 };
 
 /// @} vehicle_wheeled

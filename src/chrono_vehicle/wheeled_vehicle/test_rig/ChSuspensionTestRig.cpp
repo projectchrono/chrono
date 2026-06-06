@@ -234,11 +234,9 @@ void ChSuspensionTestRig::Initialize() {
             wheel->SetVisualizationType(m_vis_wheel);
             wheel->GetTire()->SetVisualizationType(m_vis_tire);
         }
+
         // Enable output
-        m_vehicle->SetSuspensionOutput(ia, true);
-        if (axle->m_antirollbar) {
-            m_vehicle->SetAntirollbarOutput(ia, true);
-        }
+        m_vehicle->SetAxleOutput(ia, true);
 
         // Initialize reference spindle vertical positions at design configuration.
         m_spindle_ref_L.push_back(axle->m_suspension->GetSpindlePos(LEFT).z());

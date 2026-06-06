@@ -29,11 +29,7 @@
 
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
-#include "chrono/input_output/ChOutputASCII.h"
 #include "chrono/input_output/ChCheckpointASCII.h"
-#ifdef CHRONO_HAS_HDF5
-    #include "chrono/input_output/ChOutputHDF5.h"
-#endif
 
 namespace chrono {
 namespace vehicle {
@@ -45,10 +41,13 @@ namespace vehicle {
 ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
-      m_output_db(nullptr),
-      m_output_step(0),
-      m_next_output_time(0),
-      m_output_frame(0),
+      m_output(false),
+      m_output_initialized(false),
+      m_out_format(ChOutput::Format::NONE),
+      m_out_mode(ChOutput::Mode::FRAMES),
+      m_out_step(0),
+      m_next_out_time(0),
+      m_out_frame(0),
       m_mass(0),
       m_inertia(0),
       m_realtime_force(false),
@@ -72,10 +71,13 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
     : m_name(name),
       m_system(system),
       m_ownsSystem(false),
-      m_output_db(nullptr),
-      m_output_step(0),
-      m_next_output_time(0),
-      m_output_frame(0),
+      m_output(false),
+      m_output_initialized(false),
+      m_out_format(ChOutput::Format::NONE),
+      m_out_mode(ChOutput::Mode::FRAMES),
+      m_out_step(0),
+      m_next_out_time(0),
+      m_out_frame(0),
       m_mass(0),
       m_inertia(0),
       m_realtime_force(false),
@@ -90,7 +92,6 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
 }
 
 ChVehicle::~ChVehicle() {
-    delete m_output_db;
     if (m_ownsSystem) {
         // Release references to the chassis, connectors, and powertrain
         m_powertrain_assembly = nullptr;
@@ -131,39 +132,12 @@ void ChVehicle::EnableRealtime(bool val) {
 // -----------------------------------------------------------------------------
 
 void ChVehicle::SetOutput(ChOutput::Format format, ChOutput::Mode mode, const std::string& out_dir, const std::string& out_name, double output_step) {
-    if (format == ChOutput::Format::NONE)
-        return;
-
-    m_output_step = output_step;
-
-    switch (format) {
-        case ChOutput::Format::ASCII:
-            m_output_db = new ChOutputASCII(out_dir + "/" + out_name + ".txt");
-            break;
-        case ChOutput::Format::HDF5:
-#ifdef CHRONO_HAS_HDF5
-            m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5", mode);
-#endif
-            break;
-    }
-}
-
-void ChVehicle::SetOutput(ChOutput::Format format, ChOutput::Mode mode, std::ostream& out_stream, double output_step) {
-    if (format == ChOutput::Format::NONE)
-        return;
-
-    m_output_step = output_step;
-
-    switch (format) {
-        case ChOutput::Format::ASCII:
-            m_output_db = new ChOutputASCII(out_stream);
-            break;
-        case ChOutput::Format::HDF5:
-#ifdef CHRONO_HAS_HDF5
-            //// TODO
-#endif
-            break;
-    }
+    m_output = (format != ChOutput::Format::NONE);
+    m_out_format = format;
+    m_out_mode = mode;
+    m_out_dir = out_dir;
+    m_out_name = out_name;
+    m_out_step = output_step;
 }
 
 void ChVehicle::WriteCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
@@ -247,11 +221,16 @@ void ChVehicle::Advance(double step, bool do_collision) {
         m_initialized = true;
     }
 
-    if (m_output_db && m_system->GetChTime() >= m_next_output_time) {
-        m_output_db->Initialize(ChOutput::Mode::FRAMES);
-        WriteOutput(m_output_frame, *m_output_db);
-        m_next_output_time += m_output_step;
-        m_output_frame++;
+    // Initialize output first time it is needed
+    if (m_output && !m_output_initialized) {
+        InitializeOutput();
+        m_output_initialized = true;
+    }
+
+    if (m_output && m_system->GetChTime() >= m_next_out_time) {
+        WriteOutput(m_out_frame, m_system->GetChTime());
+        m_next_out_time += m_out_step;
+        m_out_frame++;
     }
 
     if (m_ownsSystem) {

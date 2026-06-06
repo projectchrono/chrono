@@ -113,11 +113,6 @@ class CH_VEHICLE_API ChPart {
     /// An assembly of parts should override this function and invoke ExportComponentList() for each component part.
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const;
 
-    /// Write output data for this subsystem's components to the specified output database.
-    /// This base class implementation outputs information for component physical items.
-    /// An assembly of parts should override this function and invoke Output() for each component part.
-    virtual void WriteOutput(ChOutput& database) const;
-
     /// Save states of this subsystem's components to the specified checkpoint database.
     /// This base class implementation outputs states for component physical items.
     /// An assembly of parts should override this function and invoke SaveCheckpoint() for each component part.
@@ -175,6 +170,9 @@ class CH_VEHICLE_API ChPart {
     /// Initialize the part (populate components and mark as initialized).
     /// A derived class should call this at the end of its initialization phase.
     void Initialize();
+
+    /// Get reference to the components of the vehicle part.
+    const ChAssembly::Components& GetComponents() const { return m_components; }
 
     /// Get the list of bodies.
     virtual std::vector<std::shared_ptr<ChBody>> GetBodyList() const { return m_components.bodies; }
@@ -238,6 +236,7 @@ class CH_VEHICLE_API ChPart {
     friend class ChAxle;
     friend class ChWheeledVehicle;
     friend class ChTrackedVehicle;
+    friend class ChTrackAssembly;
 };
 
 /// @} vehicle
