@@ -28,10 +28,15 @@ if(CH_USE_SENSOR_OPTIX)
       )
   endif()
 
-  if(CH_ENABLE_MODULE_FSI_SPH)
+  # demo_SEN_CRM_Rendering uses chrono::vehicle::CRMTerrain directly, so it
+  # must only be built when the Vehicle module is enabled and it must link
+  # Chrono_vehicle explicitly (see target-specific link below).
+  if(CH_ENABLE_MODULE_FSI_SPH AND CH_ENABLE_MODULE_VEHICLE)
       set(DEMOS ${DEMOS}
         demo_SEN_CRM_Rendering
       )
+  elseif(CH_ENABLE_MODULE_FSI_SPH)
+    message(WARNING "Skipping demo_SEN_CRM_Rendering because it requires CH_ENABLE_MODULE_VEHICLE=ON")
   endif()
   
 endif()

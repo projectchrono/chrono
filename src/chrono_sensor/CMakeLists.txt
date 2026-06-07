@@ -532,6 +532,9 @@ if(CH_USE_SENSOR_OPTIX)
 
   if(CH_ENABLE_MODULE_FSI_SPH)
     target_link_libraries(Chrono_sensor PUBLIC Chrono_fsisph)
+    if(CH_ENABLE_MODULE_VEHICLE AND TARGET Chrono_vehicle)
+      target_link_libraries(Chrono_sensor PUBLIC Chrono_vehicle)
+    endif()
   endif()
 
 endif()
