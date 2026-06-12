@@ -1,18 +1,20 @@
 # SPDX-License-Identifier: MIT
 # This snippet installs necessary dependencies for Chrono::VSG
+# (Vulkan from the Ubuntu archive; the LunarG apt repository is discontinued)
 
 ARG CHRONO_DIR
 ARG PACKAGE_DIR
 ARG USERSHELLPROFILE
 
-# Check the image is Ubuntu, error out if not
-# RUN if [ ! -f /etc/os-release ] || ! grep -q 'ID=ubuntu' /etc/os-release; then echo "This snippet can only be used with an Ubuntu image."; exit 1; fi
-
-# Vulkan
-RUN wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc && \
-    UBUNTU_CODENAME=$(lsb_release -cs) && \
-    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan.list "http://packages.lunarg.com/vulkan/lunarg-vulkan-${UBUNTU_CODENAME}.list" && \
-    sudo apt update && sudo apt install vulkan-sdk -y && \
+# Vulkan development packages from the Ubuntu archive
+RUN sudo apt update && sudo apt install -y --no-install-recommends \
+    libvulkan-dev \
+    vulkan-tools \
+    vulkan-validationlayers \
+    spirv-tools \
+    glslang-tools \
+    glslang-dev \
+    libshaderc-dev && \
     sudo apt clean && sudo apt autoremove -y && sudo rm -rf /var/lib/apt/lists/*
 
 # Build the VSG dependencies

@@ -17,6 +17,9 @@ RUN sudo apt-get update && \
 # Built in a clean sub-shell so that any sourced ROS 2 environment variables
 # (AMENT_PREFIX_PATH, CMAKE_PREFIX_PATH, LD_LIBRARY_PATH) cannot cause CMake
 # to pick up the ROS-bundled FastDDS/FastCDR.
+# CMAKE_POLICY_VERSION_MINIMUM and "-include cstdint -Wno-error" keep these
+# 2021-era sources building with CMake >= 4 / GCC >= 13; drop them when
+# SynChrono moves to a current Fast-DDS.
 
 RUN env -i HOME="${USERHOME}" PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     bash -c ' \
@@ -28,6 +31,8 @@ RUN env -i HOME="${USERHOME}" PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/us
     git clone -c advice.detachedHead=false --depth 1 --branch v0.7-3 \
         https://github.com/foonathan/memory.git && \
     cmake -S memory -B memory/build -G Ninja \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCMAKE_CXX_FLAGS="-include cstdint -Wno-error" \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
         -DFOONATHAN_MEMORY_BUILD_TESTS=OFF \
         -DFOONATHAN_MEMORY_BUILD_TOOLS=ON \
@@ -40,6 +45,8 @@ RUN env -i HOME="${USERHOME}" PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/us
     git clone -c advice.detachedHead=false --depth 1 --branch v1.0.24 \
         https://github.com/eProsima/Fast-CDR.git && \
     cmake -S Fast-CDR -B Fast-CDR/build -G Ninja \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCMAKE_CXX_FLAGS="-include cstdint -Wno-error" \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
         -DCMAKE_BUILD_TYPE=Release && \
@@ -50,6 +57,8 @@ RUN env -i HOME="${USERHOME}" PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/us
     git clone -c advice.detachedHead=false --depth 1 --branch v2.4.0 \
         https://github.com/eProsima/Fast-DDS.git && \
     cmake -S Fast-DDS -B Fast-DDS/build -G Ninja \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCMAKE_CXX_FLAGS="-include cstdint -Wno-error" \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
         -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON \

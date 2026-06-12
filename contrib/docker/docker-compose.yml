@@ -14,14 +14,14 @@ services:
       args:
         PROJECT: "${COMPOSE_PROJECT_NAME}"
         IMAGE_BASE: "ubuntu"
-        IMAGE_TAG: "22.04"
+        IMAGE_TAG: "26.04"
         USER_GROUPS: "dialout video"
         PIP_REQUIREMENTS: "black"
         APT_DEPENDENCIES: "vim cmake-curses-gui"
         USER_SHELL_ADD_ONS: "alias python=python3"
 
-        CUDA_VERSION: "12-2"
-        ROS_DISTRO: "humble"
+        CUDA_VERSION: "13-1"
+        ROS_DISTRO: "lyrical"
         OPTIX_SCRIPT: "data/NVIDIA-OptiX-SDK-9.0.0-linux64-x86_64.sh" # Get optix script at https://developer.nvidia.com/designworks/optix/downloads/legacy
     volumes:
       - '../../:/home/${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}-dev'
