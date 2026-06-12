@@ -814,8 +814,8 @@ std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserSphYAML::GetVisualizatio
 
 // -----------------------------------------------------------------------------
 
-void ChParserSphYAML::WriteOutput(double time, int frame) {
-    ChParserYAML::WriteOutput(time, frame);
+void ChParserSphYAML::WriteOutput(int frame, double time) {
+    ChParserYAML::WriteOutput(frame, time);
 
     //// TODO
 }

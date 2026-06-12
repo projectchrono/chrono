@@ -276,8 +276,8 @@ std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserTdpfYAML::GetVisualizati
 
 // -----------------------------------------------------------------------------
 
-void ChParserTdpfYAML::WriteOutput(double time, int frame) {
-    ChParserYAML::WriteOutput(time, frame);
+void ChParserTdpfYAML::WriteOutput(int frame, double time) {
+    ChParserYAML::WriteOutput(frame, time);
 
     //// TODO
 }

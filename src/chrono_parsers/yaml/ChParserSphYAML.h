@@ -90,7 +90,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     // --------------
 
     /// Write simulation output results at the current time.
-    virtual void WriteOutput(double time, int frame) override;
+    virtual void WriteOutput(int frame, double time) override;
 
   private:  // ---- Data structures
     enum class GeometryType { CARTESIAN, CYLINDRICAL };
