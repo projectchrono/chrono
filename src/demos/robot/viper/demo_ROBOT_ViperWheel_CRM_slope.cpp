@@ -206,7 +206,6 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
 
     // Create wheel FSI body
     double inner_radius = wheel_radius;
-    double outer_radius = wheel_radius + grouser_height;
     auto bce = CreateWheelBCE(inner_radius, wheel_width - iniSpacing, grouser_height, grouser_wide, grouser_num,
                               iniSpacing, false);
     ChQuaternion<> wheel_Rot_bce = Q_ROTATE_Z_TO_Y;
@@ -613,7 +612,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Chrono::CRM single wheel test");
         visVSG->SetWindowSize(1280, 960);
         visVSG->AddCamera(ChVector3d(-bxDim / 2. + 1, -5 * byDim, 5 * bzDim), ChVector3d(-bxDim / 2. + 1, 0., 0));
-        visVSG->SetLightIntensity(0.9);
+        visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
         visVSG->Initialize();

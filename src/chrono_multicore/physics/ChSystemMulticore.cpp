@@ -131,8 +131,6 @@ bool ChSystemMulticore::AdvanceDynamics(bool do_collision) {
     custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
 
-    const real step = (real)GetStep();
-
 #pragma omp parallel for schedule(static)
     for (int i = 0; i < (signed)assembly.bodylist.size(); i++) {
         if (data_manager->host_data.active_rigid[i] != 0) {

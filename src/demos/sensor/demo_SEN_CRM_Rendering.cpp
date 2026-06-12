@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     regolith_material->SetUseSpecularWorkflow(true);
     regolith_material->SetRoughness(1.0f);
     // regolith_material->SetBSDF((unsigned int)BSDFType::HAPKE);
-    regolith_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f, 23.4f * (CH_PI / 180));
+    regolith_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f, 23.4f * float(CH_DEG_TO_RAD));
     regolith_material->SetClassID(30000);
     regolith_material->SetInstanceID(20000);
     for (auto& mesh : regolith_meshes) {
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
     float intensity = 1.0;
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
     manager->scene->AddPointLight({0.5, 1, 1}, {intensity, intensity, intensity}, 500);
-    manager->scene->SetAmbientLight({.1, .1, .1});
+    manager->scene->SetAmbientLight({0.1f, 0.1f, 0.1f});
     manager->SetVerbose(false);
     manager->SetRayRecursions(4);
 

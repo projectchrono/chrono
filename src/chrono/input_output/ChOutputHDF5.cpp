@@ -242,13 +242,6 @@ ChOutputHDF5::~ChOutputHDF5() {
 // -----------------------------------------------------------------------------
 
 void ChOutputHDF5::WriteBuffers() {
-    size_t num_times = m_time.size();
-    size_t num_bodies = m_body_buf.size();
-    size_t num_shafts = m_shaft_buf.size();
-    size_t num_joints = m_joint_buf.size();
-    size_t num_tsdas = m_tsda_buf.size();
-    size_t num_rsdas = m_rsda_buf.size();
-
     hsize_t N = m_time.size();
     std::array<hsize_t, 2> dims_N3 = {N, static_cast<hsize_t>(3)};
     H5::DataSpace data_space_N(1, &N);

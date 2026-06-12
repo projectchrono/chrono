@@ -109,9 +109,9 @@ void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
     ChAssertAlways(a["format"]);
     m_output.format = ReadOutputFormat(a["format"]);
 #ifndef CHRONO_HAS_HDF5
-    if (m_output.type == ChOutput::Format::HDF5) {
+    if (m_output.format == ChOutput::Format::HDF5) {
         std::cerr << "HDF5 output support not available.\nOutput disabled." << std::endl;
-        m_output.type = ChOutput::Format::NONE;
+        m_output.format = ChOutput::Format::NONE;
         return;
     }
 #endif
