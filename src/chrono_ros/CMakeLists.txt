@@ -173,9 +173,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_ros
         FILES_MATCHING PATTERN "*.h"
         PATTERN "node" EXCLUDE
-        PATTERN "tests_dev" EXCLUDE
-        PATTERN "handlers" EXCLUDE
-        PATTERN "ipc" EXCLUDE)
+        PATTERN "tests_dev" EXCLUDE)
 
 #-----------------------------------------------------------------------------
 # chrono_ros_node: the bridge subprocess (NO Chrono dependency)
