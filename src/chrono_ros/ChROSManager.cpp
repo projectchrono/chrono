@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -11,74 +11,69 @@
 // =============================================================================
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
-//
-// Manager for the ROS handlers
-//
-// =============================================================================
 
 #include "chrono_ros/ChROSManager.h"
-
-#include "chrono_ros/ChROSInterface.h"
+#include "chrono_ros/ChROSBridge.h"
 #include "chrono_ros/ChROSHandler.h"
-#include "chrono_ros/ChROSIPCInterface.h"
-#include "chrono_ros/ipc/ChROSIPCMessage.h"
 
-#include "chrono/core/ChTypes.h"
-#include <iostream>
+#include <stdexcept>
 
 namespace chrono {
 namespace ros {
 
-ChROSManager::ChROSManager(const std::string& node_name) {
-    // Always use IPC interface to keep it clean and avoid ROS symbol issues
-    m_interface = chrono_types::make_shared<ChROSIPCInterface>(node_name);
-    std::cout << "ChROSManager: Using IPC interface" << std::endl;
+ChROSManager::ChROSManager(const std::string& node_name) : m_bridge(std::make_shared<ChROSBridge>(node_name)) {}
+
+ChROSManager::~ChROSManager() {
+    m_bridge->Shutdown();
+}
+
+void ChROSManager::SetChannelCapacity(size_t sim_to_node_bytes, size_t node_to_sim_bytes) {
+    m_bridge->SetChannelCapacity(sim_to_node_bytes, node_to_sim_bytes);
 }
 
 void ChROSManager::Initialize() {
-    // Initialize the interface (launches subprocess in IPC mode)
-    m_interface->Initialize();
-
-    std::cout << "ChROSManager: IPC interface initialized" << std::endl;
+    if (m_initialized) {
+        return;
+    }
+    m_bridge->Initialize();
+    for (size_t i = 0; i < m_handlers.size(); i++) {
+        if (!m_handlers[i]->Initialize(*m_bridge)) {
+            throw std::runtime_error("Chrono::ROS: handler " + std::to_string(i) +
+                                     " (registration order) failed to initialize");
+        }
+    }
+    m_initialized = true;
 }
 
 bool ChROSManager::Update(double time, double step) {
-    // IPC mode: Generic handler data collection and transmission
-    // This approach works for ANY handler that implements GetSerializedData()
-    auto ipc_interface = std::dynamic_pointer_cast<ChROSIPCInterface>(m_interface);
-    if (ipc_interface) {
-        // OUTGOING: Send handler data to subprocess
-        for (auto handler : m_handlers) {
-            auto data = handler->GetSerializedData(time);
-            if (!data.empty()) {
-                ipc_interface->SendHandlerData(handler->GetMessageType(), data.data(), data.size());
-            }
-        }
-        static thread_local ipc::Message incoming_msg;
-        while (ipc_interface->ReceiveMessage(incoming_msg)) {
-            // Dispatch to handler using virtual method
-            bool handled = false;
-            for (auto handler : m_handlers) {
-                if (handler->SupportsIncomingMessages() && handler->GetMessageType() == incoming_msg.header.type) {
-                    handler->HandleIncomingMessage(incoming_msg);
-                    handled = true;
-                    break;
-                }
-            }
-            
-            if (!handled) {
-                std::cerr << "ChROSManager: No handler for incoming message type "
-                          << static_cast<int>(incoming_msg.header.type) << std::endl;
-            }
-        }
+    if (!m_initialized) {
+        throw std::runtime_error("Chrono::ROS: Update() called before Initialize()");
+    }
+    if (!m_bridge->IsNodeAlive()) {
+        return false;
     }
 
-    m_interface->SpinSome();
-    return true;  // Assume OK - subprocess handles ROS state
+    m_bridge->SetSimTime(time);
+    // Inbound first: commands received by ROS apply to this step's state
+    // before handlers extract and publish.
+    m_bridge->ProcessIncoming();
+    for (auto& handler : m_handlers) {
+        handler->Advance(time, step);
+    }
+    return true;
 }
 
 void ChROSManager::RegisterHandler(std::shared_ptr<ChROSHandler> handler) {
+    if (!handler) {
+        throw std::runtime_error("Chrono::ROS: RegisterHandler called with a null handler");
+    }
     m_handlers.push_back(handler);
+    if (m_initialized) {
+        if (!handler->Initialize(*m_bridge)) {
+            m_handlers.pop_back();
+            throw std::runtime_error("Chrono::ROS: handler failed to initialize");
+        }
+    }
 }
 
 }  // namespace ros

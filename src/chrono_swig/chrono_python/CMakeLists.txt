@@ -1183,9 +1183,18 @@ endif()
 
 #-----------------------------------------------------------------------------
 # MODULE for the ros python wrapper
+#
+# TEMPORARILY DISABLED: ChModuleROS.i targets the legacy Chrono::ROS API. It
+# is rewritten against the new schema-driven API in Phase 4 of the rewrite
+# (see src/chrono_ros/CLAUDE.md). CH_PYCHRONO_ROS_LEGACY is never defined, so
+# this block is skipped.
 #-----------------------------------------------------------------------------
 
-if(CH_ENABLE_MODULE_ROS)
+if(CH_ENABLE_MODULE_ROS AND NOT CH_PYCHRONO_ROS_LEGACY)
+  message(STATUS "Python ROS module skipped: pending rewrite on the new Chrono::ROS API (Phase 4)")
+endif()
+
+if(CH_ENABLE_MODULE_ROS AND CH_PYCHRONO_ROS_LEGACY)
   message(STATUS "Add python ROS module")
 
   # Force C++17, required by ROS Humble

@@ -1,28 +1,11 @@
 
+# NOTE (schema-driven rewrite, see src/chrono_ros/CLAUDE.md): only the custom
+# handler demo builds against the new Chrono::ROS API for now. The remaining
+# demos are restored in Phase 5 together with the re-delivered built-in
+# handlers (clock, TF, body, sensors, ...).
 set(DEMOS
-  demo_ROS_hydraulic_crane
+  demo_ROS_custom_handler
 )
-
-if (CH_ROS_HAS_INTERFACES)
-  list(APPEND DEMOS demo_ROS_viper)
-endif()
-
-if (CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
-  list(APPEND DEMOS demo_ROS_urdf)
-endif()
-
-if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
-  if (CH_ROS_HAS_INTERFACES)
-    list(APPEND DEMOS demo_ROS_vehicle)
-    list(APPEND DEMOS demo_ROS_two_managers)
-  endif()
-endif()
-
-if(CH_ENABLE_MODULE_SENSOR)
-  if(CH_USE_SENSOR_OPTIX)
-    list(APPEND DEMOS demo_ROS_sensor)
-  endif()
-endif()
 
 # ------------------------------------------------------------------------------
 # Include directories, compiler flags, libraries
