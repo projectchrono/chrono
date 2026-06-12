@@ -41,9 +41,6 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_SAE.h"
 #include "chrono_models/vehicle/unimog/U401.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
 using namespace chrono::vehicle::jeep;
 using namespace chrono::vehicle::bmw;
 using namespace chrono::vehicle::citybus;
@@ -60,11 +57,16 @@ using namespace chrono::vehicle::sedan;
 using namespace chrono::vehicle::uaz;
 using namespace chrono::vehicle::unimog;
 
+using namespace chrono;
+using namespace chrono::vehicle;
+
 // =============================================================================
 // Specification of a vehicle model from the Chrono::Vehicle model library
 
 class WheeledVehicleModel {
   public:
+    virtual ~WheeledVehicleModel() {}
+
     virtual std::string ModelName() const = 0;
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis = true) = 0;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis = true) = 0;
@@ -82,8 +84,7 @@ class WheeledVehicleModel {
     static std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> List();
 
   protected:
-    WheeledVehicleModel()
-        : collision_system_type(ChCollisionSystem::Type::BULLET), chassis_collision_type(CollisionType::NONE) {}
+    WheeledVehicleModel() : collision_system_type(ChCollisionSystem::Type::BULLET), chassis_collision_type(CollisionType::NONE) {}
 
     ChCollisionSystem::Type collision_system_type;
     CollisionType chassis_collision_type;
@@ -92,1013 +93,1033 @@ class WheeledVehicleModel {
 
 class Citybus_Model : public WheeledVehicleModel {
   public:
+    Citybus_Model() : car(nullptr) {}
+    ~Citybus_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "CITYBUS"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return bus->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        bus->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { bus->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 16.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    CityBus* bus;
+    CityBus* car;
 };
 
 class Duro_Model : public WheeledVehicleModel {
   public:
+    Duro_Model() : car(nullptr) {}
+    ~Duro_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "DURO"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return duro->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        duro->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { duro->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 0.75); }
     virtual double CameraDistance() const override { return 10.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    Duro* duro;
+    Duro* car;
 };
 
 class FEDA_Model : public WheeledVehicleModel {
   public:
+    FEDA_Model() : car(nullptr) {}
+    ~FEDA_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "FEDA"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return feda->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        feda->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { feda->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 0.75); }
     virtual double CameraDistance() const override { return 10.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    FEDA* feda;
+    FEDA* car;
 };
 
 class G500_Model : public WheeledVehicleModel {
   public:
+    G500_Model() : car(nullptr) {}
+    ~G500_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "G500"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return gclass->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        gclass->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { gclass->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    G500* gclass;
+    G500* car;
 };
 
 class Gator_Model : public WheeledVehicleModel {
   public:
+    Gator_Model() : car(nullptr) {}
+    ~Gator_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "GATOR"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return gator->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        gator->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { gator->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 7.0; }
     virtual double CameraHeight() const override { return 0.1; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    Gator* gator;
+    Gator* car;
 };
 
 class HMMWV_Model : public WheeledVehicleModel {
   public:
+    HMMWV_Model() : car(nullptr) {}
+    ~HMMWV_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return hmmwv->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        hmmwv->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { hmmwv->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    HMMWV_Full* hmmwv;
+    HMMWV_Full* car;
 };
 
 class HMMWV9_Model : public WheeledVehicleModel {
   public:
+    HMMWV9_Model() : car(nullptr) {}
+    ~HMMWV9_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "HMMWV9"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return hmmwv->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        hmmwv->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { hmmwv->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    HMMWV_Reduced* hmmwv;
+    HMMWV_Reduced* car;
 };
 
 class KRAZ_Model : public WheeledVehicleModel {
   public:
+    KRAZ_Model() : car(nullptr) {}
+    ~KRAZ_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "KRAZ"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return kraz->GetTractor(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        kraz->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { kraz->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetTractor(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 25.0; }
     virtual double CameraHeight() const override { return 1.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    Kraz* kraz;
+    Kraz* car;
 };
 
 class LMTV_Model : public WheeledVehicleModel {
   public:
+    LMTV_Model() : car(nullptr) {}
+    ~LMTV_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "LMTV"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return lmtv->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        lmtv->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { lmtv->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 12.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    LMTV* lmtv;
+    LMTV* car;
 };
 
 class MTV_Model : public WheeledVehicleModel {
   public:
+    MTV_Model() : car(nullptr) {}
+    ~MTV_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "MTV"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return mtv->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        mtv->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { mtv->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 12.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    MTV* mtv;
+    MTV* car;
 };
 
 class MAN5_Model : public WheeledVehicleModel {
   public:
+    MAN5_Model() : car(nullptr) {}
+    ~MAN5_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "MAN5t"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return man->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        man->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { man->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    MAN_5t* man;
+    MAN_5t* car;
 };
 
 class MAN7_Model : public WheeledVehicleModel {
   public:
+    MAN7_Model() : car(nullptr) {}
+    ~MAN7_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "MAN7t"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return man->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        man->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { man->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    MAN_7t* man;
+    MAN_7t* car;
 };
 
 class MAN10_Model : public WheeledVehicleModel {
   public:
+    MAN10_Model() : car(nullptr) {}
+    ~MAN10_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "MAN10t"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return man->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        man->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { man->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    MAN_10t* man;
+    MAN_10t* car;
 };
 
 class MROLE_Model : public WheeledVehicleModel {
   public:
+    MROLE_Model() : car(nullptr) {}
+    ~MROLE_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "MROLE"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return mrole->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        mrole->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { mrole->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    mrole_Full* mrole;
+    mrole_Full* car;
 };
 
 class Sedan_Model : public WheeledVehicleModel {
   public:
+    Sedan_Model() : car(nullptr) {}
+    ~Sedan_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "SEDAN"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return sedan->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        sedan->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { sedan->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.2; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    Sedan* sedan;
+    Sedan* car;
 };
 
 class BMW_E90_Model : public WheeledVehicleModel {
   public:
+    BMW_E90_Model() : car(nullptr) {}
+    ~BMW_E90_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "BMW_E90"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return bmw->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        bmw->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { bmw->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.2; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    BMW_E90* bmw;
+    BMW_E90* car;
 };
 
 class Cherokee_Model : public WheeledVehicleModel {
   public:
+    Cherokee_Model() : car(nullptr) {}
+    ~Cherokee_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "Cherokee"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return cherokee->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        cherokee->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { cherokee->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.2; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    Cherokee* cherokee;
+    Cherokee* car;
 };
 
 class UAZBUS_Model : public WheeledVehicleModel {
   public:
+    UAZBUS_Model() : car(nullptr) {}
+    ~UAZBUS_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "UAZBUS"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return uaz->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        uaz->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { uaz->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    UAZBUS* uaz;
+    UAZBUS* car;
 };
 
 class UAZBUSSAE_Model : public WheeledVehicleModel {
   public:
+    UAZBUSSAE_Model() : car(nullptr) {}
+    ~UAZBUSSAE_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "UAZBUSSAE"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return uaz->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        uaz->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { uaz->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    UAZBUS_SAE* uaz;
+    UAZBUS_SAE* car;
 };
 
 class U401_Model : public WheeledVehicleModel {
   public:
+    U401_Model() : car(nullptr) {}
+    ~U401_Model() { delete car; }
+
     virtual std::string ModelName() const override { return "UNIMOG"; }
     virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
     virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
-    virtual ChWheeledVehicle& GetVehicle() override { return u401->GetVehicle(); }
-    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
-        u401->Synchronize(time, driver_inputs, terrain);
-    }
-    virtual void Advance(double step) override { u401->Advance(step); }
+    virtual ChWheeledVehicle& GetVehicle() override { return car->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override { car->Synchronize(time, driver_inputs, terrain); }
+    virtual void Advance(double step) override { car->Advance(step); }
     virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
-    U401* u401;
+    U401* car;
 };
 
 // =============================================================================
 
 void Citybus_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    bus = new CityBus(system);
-    bus->SetInitPosition(init_pos);
+    car = new CityBus(system);
+    car->SetInitPosition(init_pos);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Citybus_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    bus = new CityBus();
-    bus->SetCollisionSystemType(collision_system_type);
-    bus->SetContactMethod(contact_method);
-    bus->SetInitPosition(init_pos);
+    car = new CityBus();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
+    car->SetInitPosition(init_pos);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Citybus_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    bus->SetChassisCollisionType(chassis_collision_type);
-    bus->SetChassisFixed(false);
-    bus->SetTireType(TireModelType::PAC02);
-    bus->SetTireCollisionType(tire_collision_type);
-    bus->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
-    bus->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetTireType(TireModelType::PAC02);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
+    car->Initialize();
 
-    bus->SetChassisVisualizationType(chassis_vis);
-    bus->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    bus->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    bus->SetWheelVisualizationType(VisualizationType::MESH);
-    bus->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void Cherokee_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    cherokee = new Cherokee(system);
+    car = new Cherokee(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Cherokee_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    cherokee = new Cherokee();
-    cherokee->SetCollisionSystemType(collision_system_type);
-    cherokee->SetContactMethod(contact_method);
+    car = new Cherokee();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Cherokee_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    cherokee->SetChassisCollisionType(chassis_collision_type);
-    cherokee->SetChassisFixed(false);
-    cherokee->SetInitPosition(init_pos);
-    cherokee->SetTireType(TireModelType::TMEASY);
-    cherokee->SetTireCollisionType(tire_collision_type);
-    cherokee->SetBrakeType(BrakeType::SHAFTS);
-    cherokee->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->Initialize();
 
-    cherokee->SetChassisVisualizationType(chassis_vis);
-    cherokee->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    cherokee->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    cherokee->SetWheelVisualizationType(VisualizationType::MESH);
-    cherokee->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void Duro_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    duro = new Duro(system);
+    car = new Duro(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Duro_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    duro = new Duro();
-    duro->SetCollisionSystemType(collision_system_type);
-    duro->SetContactMethod(contact_method);
+    car = new Duro();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Duro_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    duro->SetChassisCollisionType(chassis_collision_type);
-    duro->SetChassisFixed(false);
-    duro->SetInitPosition(init_pos);
-    duro->SetEngineType(EngineModelType::SHAFTS);
-    duro->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
-    duro->SetTireType(TireModelType::TMEASY);
-    duro->SetTireCollisionType(tire_collision_type);
-    duro->SetBrakeType(BrakeType::SHAFTS);
-    duro->SetInitFwdVel(0.0);
-    duro->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SHAFTS);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->SetInitFwdVel(0.0);
+    car->Initialize();
 
-    duro->SetChassisVisualizationType(chassis_vis);
-    duro->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    duro->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    duro->SetWheelVisualizationType(VisualizationType::NONE);
-    duro->SetTireVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::NONE);
+    car->SetTireVisualizationType(VisualizationType::PRIMITIVES);
 }
 
 // -----------------------------------------------------------------------------
 
 void FEDA_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    feda = new FEDA(system);
+    car = new FEDA(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void FEDA_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    feda = new FEDA();
-    feda->SetCollisionSystemType(collision_system_type);
-    feda->SetContactMethod(contact_method);
+    car = new FEDA();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void FEDA_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    feda->SetChassisCollisionType(chassis_collision_type);
-    feda->SetChassisFixed(false);
-    feda->SetInitPosition(init_pos);
-    feda->SetEngineType(EngineModelType::SIMPLE_MAP);
-    feda->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
-    feda->SetTireType(TireModelType::PAC02);
-    feda->SetTireCollisionType(tire_collision_type);
-    feda->SetBrakeType(BrakeType::SHAFTS);
-    feda->SetAerodynamicDrag(0.6, 3.8, 1.2041);
-    feda->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SIMPLE_MAP);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    car->SetTireType(TireModelType::PAC02);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->SetAerodynamicDrag(0.6, 3.8, 1.2041);
+    car->Initialize();
 
-    feda->SetChassisVisualizationType(chassis_vis);
-    feda->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    feda->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    feda->SetWheelVisualizationType(VisualizationType::MESH);
-    feda->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void G500_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    gclass = new G500(system);
+    car = new G500(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void G500_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    gclass = new G500();
-    gclass->SetCollisionSystemType(collision_system_type);
-    gclass->SetContactMethod(contact_method);
+    car = new G500();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void G500_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    gclass->SetChassisCollisionType(chassis_collision_type);
-    gclass->SetChassisFixed(false);
-    gclass->SetInitPosition(init_pos);
-    gclass->SetTireType(TireModelType::TMEASY);
-    gclass->SetTireCollisionType(tire_collision_type);
-    gclass->SetAerodynamicDrag(0.5, 5.0, 1.2);
-    gclass->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetAerodynamicDrag(0.5, 5.0, 1.2);
+    car->Initialize();
 
-    gclass->SetChassisVisualizationType(chassis_vis);
-    gclass->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    gclass->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    gclass->SetWheelVisualizationType(VisualizationType::MESH);
-    gclass->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void Gator_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    gator = new Gator(system);
+    car = new Gator(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Gator_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    gator = new Gator();
-    gator->SetCollisionSystemType(collision_system_type);
-    gator->SetContactMethod(contact_method);
+    car = new Gator();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Gator_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    gator->SetChassisCollisionType(chassis_collision_type);
-    gator->SetChassisFixed(false);
-    gator->SetInitPosition(init_pos);
-    gator->SetTireType(TireModelType::TMEASY);
-    gator->SetTireCollisionType(tire_collision_type);
-    gator->SetDrivelineType(DrivelineTypeWV::SIMPLE);
-    gator->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
-    gator->SetAerodynamicDrag(0.5, 5.0, 1.2);
-    gator->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetDrivelineType(DrivelineTypeWV::SIMPLE);
+    car->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
+    car->SetAerodynamicDrag(0.5, 5.0, 1.2);
+    car->Initialize();
 
-    gator->SetChassisVisualizationType(chassis_vis);
-    gator->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    gator->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    gator->SetWheelVisualizationType(VisualizationType::MESH);
-    gator->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void HMMWV_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    hmmwv = new HMMWV_Full(system);
+    car = new HMMWV_Full(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void HMMWV_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    hmmwv = new HMMWV_Full();
-    hmmwv->SetCollisionSystemType(collision_system_type);
-    hmmwv->SetContactMethod(contact_method);
+    car = new HMMWV_Full();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void HMMWV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    hmmwv->SetChassisCollisionType(chassis_collision_type);
-    hmmwv->SetChassisFixed(false);
-    hmmwv->SetInitPosition(init_pos);
-    hmmwv->SetEngineType(EngineModelType::SIMPLE_MAP);
-    hmmwv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_CVT);
-    hmmwv->SetDriveType(DrivelineTypeWV::AWD);
-    hmmwv->UseTierodBodies(true);
-    hmmwv->SetSteeringType(SteeringTypeWV::PITMAN_ARM);
-    hmmwv->SetBrakeType(BrakeType::SHAFTS);
-    hmmwv->SetTireType(TireModelType::TMEASY);
-    hmmwv->SetTireCollisionType(tire_collision_type);
-    hmmwv->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SIMPLE_MAP);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_CVT);
+    car->SetDriveType(DrivelineTypeWV::AWD);
+    car->UseTierodBodies(true);
+    car->SetSteeringType(SteeringTypeWV::PITMAN_ARM);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->Initialize();
 
-    hmmwv->SetChassisVisualizationType(chassis_vis);
-    hmmwv->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv->SetWheelVisualizationType(VisualizationType::MESH);
-    hmmwv->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void HMMWV9_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    hmmwv = new HMMWV_Reduced(system);
+    car = new HMMWV_Reduced(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void HMMWV9_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    hmmwv = new HMMWV_Reduced();
-    hmmwv->SetCollisionSystemType(collision_system_type);
-    hmmwv->SetContactMethod(contact_method);
+    car = new HMMWV_Reduced();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void HMMWV9_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    hmmwv->SetChassisFixed(false);
-    hmmwv->SetInitPosition(init_pos);
-    hmmwv->SetChassisCollisionType(chassis_collision_type);
-    hmmwv->SetEngineType(EngineModelType::SHAFTS);
-    hmmwv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
-    hmmwv->SetDriveType(DrivelineTypeWV::AWD);
-    hmmwv->SetTireType(TireModelType::PAC89);
-    hmmwv->SetTireCollisionType(tire_collision_type);
-    hmmwv->Initialize();
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetEngineType(EngineModelType::SHAFTS);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
+    car->SetDriveType(DrivelineTypeWV::AWD);
+    car->SetTireType(TireModelType::PAC89);
+    car->SetTireCollisionType(tire_collision_type);
+    car->Initialize();
 
-    hmmwv->SetChassisVisualizationType(chassis_vis);
-    hmmwv->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    hmmwv->SetWheelVisualizationType(VisualizationType::NONE);
-    hmmwv->SetTireVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::NONE);
+    car->SetTireVisualizationType(VisualizationType::PRIMITIVES);
 }
 
 // -----------------------------------------------------------------------------
 
 void KRAZ_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    kraz = new Kraz(system);
+    car = new Kraz(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void KRAZ_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    kraz = new Kraz();
-    kraz->SetCollisionSystemType(collision_system_type);
-    kraz->SetContactMethod(contact_method);
+    car = new Kraz();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void KRAZ_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    kraz->SetChassisCollisionType(chassis_collision_type);
-    kraz->SetChassisFixed(false);
-    kraz->SetInitPosition(init_pos);
-    kraz->SetInitFwdVel(0.0);
-    kraz->SetTireCollisionType(tire_collision_type);
-    kraz->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetInitFwdVel(0.0);
+    car->SetTireCollisionType(tire_collision_type);
+    car->Initialize();
 
-    kraz->SetChassisVisualizationType(chassis_vis, VisualizationType::PRIMITIVES);
-    kraz->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    kraz->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES, VisualizationType::PRIMITIVES);
-    kraz->SetWheelVisualizationType(VisualizationType::MESH, VisualizationType::MESH);
-    kraz->SetTireVisualizationType(VisualizationType::MESH, VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis, VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES, VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH, VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH, VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void LMTV_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    lmtv = new LMTV(system);
+    car = new LMTV(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void LMTV_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    lmtv = new LMTV();
-    lmtv->SetCollisionSystemType(collision_system_type);
-    lmtv->SetContactMethod(contact_method);
+    car = new LMTV();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void LMTV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    lmtv->SetChassisCollisionType(chassis_collision_type);
-    lmtv->SetChassisFixed(false);
-    lmtv->SetInitPosition(init_pos);
-    lmtv->SetEngineType(EngineModelType::SIMPLE_MAP);
-    lmtv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
-    lmtv->SetTireType(TireModelType::TMEASY);
-    lmtv->SetTireCollisionType(tire_collision_type);
-    lmtv->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SIMPLE_MAP);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->Initialize();
 
-    lmtv->SetChassisVisualizationType(chassis_vis);
-    lmtv->SetChassisRearVisualizationType(chassis_vis);
-    lmtv->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    lmtv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    lmtv->SetWheelVisualizationType(VisualizationType::MESH);
-    lmtv->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetChassisRearVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void MTV_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    mtv = new MTV(system);
+    car = new MTV(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MTV_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    mtv = new MTV();
-    mtv->SetCollisionSystemType(collision_system_type);
-    mtv->SetContactMethod(contact_method);
+    car = new MTV();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MTV_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    mtv->SetChassisCollisionType(chassis_collision_type);
-    mtv->SetChassisFixed(false);
-    mtv->SetInitPosition(init_pos);
-    mtv->UseWalkingBeamRearSuspension(false);
-    mtv->SetEngineType(EngineModelType::SIMPLE_MAP);
-    mtv->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
-    mtv->SetTireType(TireModelType::TMEASY);
-    mtv->SetTireCollisionType(tire_collision_type);
-    mtv->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->UseWalkingBeamRearSuspension(false);
+    car->SetEngineType(EngineModelType::SIMPLE_MAP);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->Initialize();
 
-    mtv->SetChassisVisualizationType(chassis_vis);
-    mtv->SetChassisRearVisualizationType(chassis_vis);
-    mtv->SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
-    mtv->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    mtv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    mtv->SetWheelVisualizationType(VisualizationType::MESH);
-    mtv->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetChassisRearVisualizationType(chassis_vis);
+    car->SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void MAN5_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    man = new MAN_5t(system);
+    car = new MAN_5t(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN5_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    man = new MAN_5t();
-    man->SetCollisionSystemType(collision_system_type);
-    man->SetContactMethod(contact_method);
+    car = new MAN_5t();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN5_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    man->SetChassisCollisionType(chassis_collision_type);
-    man->SetChassisFixed(false);
-    man->SetInitPosition(init_pos);
-    man->SetEngineType(EngineModelType::SIMPLE);
-    man->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
-    man->SetTireType(TireModelType::TMSIMPLE);
-    man->SetTireCollisionType(tire_collision_type);
-    man->SetBrakeType(BrakeType::SHAFTS);
-    man->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SIMPLE);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    car->SetTireType(TireModelType::TMSIMPLE);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->Initialize();
 
-    man->SetChassisVisualizationType(chassis_vis);
-    man->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    man->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    man->SetWheelVisualizationType(VisualizationType::MESH);
-    man->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void MAN7_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    man = new MAN_7t(system);
+    car = new MAN_7t(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN7_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    man = new MAN_7t();
-    man->SetCollisionSystemType(collision_system_type);
-    man->SetContactMethod(contact_method);
+    car = new MAN_7t();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN7_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    man->SetChassisCollisionType(chassis_collision_type);
-    man->SetChassisFixed(false);
-    man->SetInitPosition(init_pos);
-    man->SetEngineType(EngineModelType::SIMPLE);
-    man->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
-    man->SetTireType(TireModelType::TMSIMPLE);
-    man->SetTireCollisionType(tire_collision_type);
-    man->SetBrakeType(BrakeType::SHAFTS);
-    man->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SIMPLE);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    car->SetTireType(TireModelType::TMSIMPLE);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->Initialize();
 
-    man->SetChassisVisualizationType(chassis_vis);
-    man->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    man->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    man->SetWheelVisualizationType(VisualizationType::MESH);
-    man->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void MAN10_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    man = new MAN_10t(system);
+    car = new MAN_10t(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN10_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    man = new MAN_10t();
-    man->SetCollisionSystemType(collision_system_type);
-    man->SetContactMethod(contact_method);
+    car = new MAN_10t();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MAN10_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    man->SetChassisCollisionType(chassis_collision_type);
-    man->SetChassisFixed(false);
-    man->SetInitPosition(init_pos);
-    man->SetEngineType(EngineModelType::SIMPLE);
-    man->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
-    man->SetTireType(TireModelType::TMSIMPLE);
-    man->SetTireCollisionType(tire_collision_type);
-    man->SetBrakeType(BrakeType::SHAFTS);
-    man->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SIMPLE);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
+    car->SetTireType(TireModelType::TMSIMPLE);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->Initialize();
 
-    man->SetChassisVisualizationType(chassis_vis);
-    man->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    man->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    man->SetWheelVisualizationType(VisualizationType::MESH);
-    man->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void MROLE_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    mrole = new mrole_Full(system);
+    car = new mrole_Full(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MROLE_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    mrole = new mrole_Full();
-    mrole->SetCollisionSystemType(collision_system_type);
-    mrole->SetContactMethod(contact_method);
+    car = new mrole_Full();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void MROLE_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    mrole->SetChassisCollisionType(chassis_collision_type);
-    mrole->SetChassisFixed(false);
-    mrole->SetInitPosition(init_pos);
-    mrole->SetEngineType(EngineModelType::SHAFTS);
-    mrole->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
-    mrole->SetDriveType(DrivelineTypeWV::AWD6);
-    mrole->SetBrakeType(BrakeType::SHAFTS);
-    mrole->SetTireType(TireModelType::TMEASY);
-    mrole->SetTireCollisionType(tire_collision_type);
-    mrole->SelectRoadOperation();
-    mrole->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetEngineType(EngineModelType::SHAFTS);
+    car->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
+    car->SetDriveType(DrivelineTypeWV::AWD6);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SelectRoadOperation();
+    car->Initialize();
 
-    mrole->SetChassisVisualizationType(chassis_vis);
-    mrole->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    mrole->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    mrole->SetWheelVisualizationType(VisualizationType::MESH);
-    mrole->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void BMW_E90_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    bmw = new BMW_E90(system);
+    car = new BMW_E90(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void BMW_E90_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    bmw = new BMW_E90();
-    bmw->SetCollisionSystemType(collision_system_type);
-    bmw->SetContactMethod(contact_method);
+    car = new BMW_E90();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void BMW_E90_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    bmw->SetChassisCollisionType(chassis_collision_type);
-    bmw->SetChassisFixed(false);
-    bmw->SetInitPosition(init_pos);
-    bmw->SetTireType(TireModelType::TMEASY);
-    bmw->SetTireCollisionType(tire_collision_type);
-    bmw->SetBrakeType(BrakeType::SHAFTS);
-    bmw->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->Initialize();
 
-    bmw->SetChassisVisualizationType(chassis_vis);
-    bmw->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    bmw->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    bmw->SetWheelVisualizationType(VisualizationType::MESH);
-    bmw->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void Sedan_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    sedan = new Sedan(system);
+    car = new Sedan(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Sedan_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    sedan = new Sedan();
-    sedan->SetCollisionSystemType(collision_system_type);
-    sedan->SetContactMethod(contact_method);
+    car = new Sedan();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void Sedan_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    sedan->SetChassisCollisionType(chassis_collision_type);
-    sedan->SetChassisFixed(false);
-    sedan->SetInitPosition(init_pos);
-    sedan->SetTireType(TireModelType::PAC02);
-    sedan->SetBrakeType(BrakeType::SHAFTS);
-    sedan->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::PAC02);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->Initialize();
 
-    sedan->SetChassisVisualizationType(chassis_vis);
-    sedan->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    sedan->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    sedan->SetWheelVisualizationType(VisualizationType::MESH);
-    sedan->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void UAZBUS_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    uaz = new UAZBUS(system);
+    car = new UAZBUS(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void UAZBUS_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    uaz = new UAZBUS();
-    uaz->SetCollisionSystemType(collision_system_type);
-    uaz->SetContactMethod(contact_method);
+    car = new UAZBUS();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void UAZBUS_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    uaz->SetChassisCollisionType(chassis_collision_type);
-    uaz->SetChassisFixed(false);
-    uaz->SetInitPosition(init_pos);
-    uaz->SetTireType(TireModelType::PAC02);
-    uaz->SetTireCollisionType(tire_collision_type);
-    uaz->SetInitFwdVel(0.0);
-    uaz->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::PAC02);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetInitFwdVel(0.0);
+    car->Initialize();
 
-    uaz->SetChassisVisualizationType(chassis_vis);
-    uaz->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    uaz->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    uaz->SetWheelVisualizationType(VisualizationType::MESH);
-    uaz->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void UAZBUSSAE_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    uaz = new UAZBUS_SAE(system);
+    car = new UAZBUS_SAE(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void UAZBUSSAE_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    uaz = new UAZBUS_SAE();
-    uaz->SetCollisionSystemType(collision_system_type);
-    uaz->SetContactMethod(contact_method);
+    car = new UAZBUS_SAE();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void UAZBUSSAE_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    uaz->SetChassisCollisionType(chassis_collision_type);
-    uaz->SetChassisFixed(false);
-    uaz->SetInitPosition(init_pos);
-    uaz->SetTireType(TireModelType::TMEASY);
-    uaz->SetTireCollisionType(tire_collision_type);
-    uaz->SetInitFwdVel(0.0);
-    uaz->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetInitFwdVel(0.0);
+    car->Initialize();
 
-    uaz->SetChassisVisualizationType(chassis_vis);
-    uaz->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    uaz->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    uaz->SetWheelVisualizationType(VisualizationType::MESH);
-    uaz->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // -----------------------------------------------------------------------------
 
 void U401_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    u401 = new U401(system);
+    car = new U401(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void U401_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
-    u401 = new U401();
-    u401->SetCollisionSystemType(collision_system_type);
-    u401->SetContactMethod(contact_method);
+    car = new U401();
+    car->SetCollisionSystemType(collision_system_type);
+    car->SetContactMethod(contact_method);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
 }
 
 void U401_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
-    u401->SetChassisCollisionType(chassis_collision_type);
-    u401->SetChassisFixed(false);
-    u401->SetInitPosition(init_pos);
-    u401->SetTireType(TireModelType::TMEASY);
-    u401->SetTireCollisionType(tire_collision_type);
-    u401->SetBrakeType(BrakeType::SHAFTS);
-    u401->SetInitFwdVel(0.0);
-    u401->Initialize();
+    car->SetChassisCollisionType(chassis_collision_type);
+    car->SetChassisFixed(false);
+    car->SetInitPosition(init_pos);
+    car->SetTireType(TireModelType::TMEASY);
+    car->SetTireCollisionType(tire_collision_type);
+    car->SetBrakeType(BrakeType::SHAFTS);
+    car->SetInitFwdVel(0.0);
+    car->Initialize();
 
-    u401->SetChassisVisualizationType(chassis_vis);
-    u401->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    u401->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    u401->SetWheelVisualizationType(VisualizationType::MESH);
-    u401->SetTireVisualizationType(VisualizationType::MESH);
+    car->SetChassisVisualizationType(chassis_vis);
+    car->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    car->SetWheelVisualizationType(VisualizationType::MESH);
+    car->SetTireVisualizationType(VisualizationType::MESH);
 }
 
 // =============================================================================

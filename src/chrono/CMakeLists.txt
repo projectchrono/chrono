@@ -1270,7 +1270,9 @@ set(Chrono_inputoutput_HEADERS
     input_output/ChUtilsJSON.h
 )
 set(Chrono_inputoutput_SOURCES
+    input_output/ChOutput.cpp
     input_output/ChOutputASCII.cpp
+    input_output/ChCheckpoint.cpp
     input_output/ChCheckpointASCII.cpp
     input_output/ChWriterCSV.cpp
     input_output/ChUtilsInputOutput.cpp

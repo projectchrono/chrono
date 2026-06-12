@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// HDF5 Chrono output database.
+// Definition of an HDF5 Chrono output database.
 //
 // =============================================================================
 
@@ -36,13 +36,19 @@ class ChOutputHDF5_impl;
 /// HDF5 Chrono output database.
 class ChApi ChOutputHDF5 : public ChOutput {
   public:
-    ChOutputHDF5(const std::string& filename, Mode mode = Mode::FRAMES);
+    /// Create an output DB in HDF5 format and associate it with an output file.
+    /// Note: the output file name will be `<out_dir>/<out_file_stem>.<mode>.h5`.
+    ChOutputHDF5(const std::string& out_dir, const std::string& out_file_stem, Mode mode);
+
     ~ChOutputHDF5();
 
   private:
-    virtual void Initialize() override;
-    virtual void WriteTime(int frame, double time) override;
-    virtual void WriteSection(const std::string& name) override;
+    // Implementation of functions for Mode::SERIES
+    void WriteBuffers();
+
+  private:
+    // Implementation of virtual functions for Mode::FRAMES
+    virtual void WriteTimeStamp(int frame, double time) override;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
@@ -55,9 +61,18 @@ class ChApi ChOutputHDF5 : public ChOutput {
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
 
     H5::H5File* m_fileHDF5;
-    Mode m_mode;
-    std::unique_ptr<ChOutputHDF5_impl> m_impl;
-    bool m_initialized;
+    H5::Group* m_frame_group;
+
+    H5::CompType* m_body_type;
+    H5::CompType* m_shaft_type;
+    H5::CompType* m_marker_type;
+    H5::CompType* m_joint_type;
+    H5::CompType* m_couple_type;
+    H5::CompType* m_linspring_type;
+    H5::CompType* m_rotspring_type;
+    H5::CompType* m_bodyload_type;
+    H5::CompType* m_linmotor_type;
+    H5::CompType* m_rotmotor_type;
 };
 
 /// @} chrono_io

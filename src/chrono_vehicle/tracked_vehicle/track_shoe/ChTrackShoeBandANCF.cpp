@@ -493,7 +493,7 @@ ChVector3d ChTrackShoeBandANCF::GetTension() const {
 // -----------------------------------------------------------------------------
 
 void ChTrackShoeBandANCF::PopulateComponentList() {
-    m_bodies.push_back(m_shoe);
+    m_components.bodies.push_back(m_shoe);
 }
 
 }  // end namespace vehicle

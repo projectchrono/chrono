@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 
         if (output) {
             if (time >= output_frame / output_fps) {
-                parser.SaveOutput(*sys, output_frame);
+                parser.WriteOutput(output_frame, time);
                 output_frame++;
             }
         }
