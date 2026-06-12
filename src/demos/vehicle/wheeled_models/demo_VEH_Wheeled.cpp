@@ -22,7 +22,6 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/input_output/ChOutputASCII.h"
 #include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"

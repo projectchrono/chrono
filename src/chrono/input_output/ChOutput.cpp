@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include<numeric>
+#include <numeric>
 
 #include "chrono/input_output/ChOutput.h"
 
@@ -51,7 +51,7 @@ void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly:
                 WriteLinMotors(c->lin_motors);
             for (auto c : components)
                 WriteRotMotors(c->rot_motors);
-            
+
             break;
 
         case Mode::SERIES:
@@ -85,45 +85,57 @@ void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly:
             size_t i_rsda = 0;
             for (auto c : components) {
                 for (const auto& body : c->bodies) {
-                    auto& buf = m_body_buf[i_body];
                     const auto& ref_frame = body->GetFrameRefToAbs();
-                    buf.pos.push_back(ref_frame.GetPos());
-                    buf.rot.push_back(ref_frame.GetRot().GetCardanAnglesXYZ());
-                    buf.lin_vel.push_back(ref_frame.GetPosDt());
-                    buf.ang_vel.push_back(ref_frame.GetAngVelParent());
-                    i_body++;
+                    const auto& p = ref_frame.GetPos();
+                    const auto r = ref_frame.GetRot().GetCardanAnglesXYZ();
+                    const auto& v = ref_frame.GetPosDt();
+                    const auto w = ref_frame.GetAngVelParent();
+                    auto& buf = m_body_buf[i_body++];
+                    buf.name = body->GetName();
+                    buf.pos.insert(buf.pos.end(), {p.x(), p.y(), p.z()});
+                    buf.rot.insert(buf.rot.end(), {r.x(), r.y(), r.z()});
+                    buf.lin_vel.insert(buf.lin_vel.end(), {v.x(), v.y(), v.z()});
+                    buf.ang_vel.insert(buf.ang_vel.end(), {w.x(), w.y(), w.z()});
                 }
 
                 for (const auto& shaft : c->shafts) {
-                    auto& buf = m_shaft_buf[i_shaft];
+                    auto& buf = m_shaft_buf[i_shaft++];
+                    buf.name = shaft->GetName();
                     buf.pos.push_back(shaft->GetPos());
                     buf.vel.push_back(shaft->GetPosDt());
-                    i_shaft++;
                 }
 
                 for (const auto& joint : c->joints) {
-                    auto& buf = m_joint_buf[i_joint];
-                    buf.react1.push_back({joint->GetReaction1().force, joint->GetReaction1().torque});
-                    buf.react2.push_back({joint->GetReaction2().force, joint->GetReaction2().torque});
-                    i_joint++;
+                    const auto& f1 = joint->GetReaction1().force;
+                    const auto& t1 = joint->GetReaction1().torque;
+                    const auto& f2 = joint->GetReaction2().force;
+                    const auto& t2 = joint->GetReaction2().torque;
+                    auto& buf = m_joint_buf[i_joint++];
+                    buf.name = joint->GetName();
+                    buf.force1.insert(buf.force1.end(), {f1.x(), f1.y(), f1.z()});
+                    buf.torque1.insert(buf.torque1.end(), {t1.x(), t1.y(), t1.z()});
+                    buf.force2.insert(buf.force2.end(), {f2.x(), f2.y(), f2.z()});
+                    buf.torque2.insert(buf.torque2.end(), {t2.x(), t2.y(), t2.z()});
                 }
 
                 for (const auto& tsda : c->tsdas) {
-                    auto& buf = m_tsda_buf[i_tsda];
-                    buf.point1.push_back(tsda->GetPoint1Abs());
-                    buf.point2.push_back(tsda->GetPoint2Abs());
+                    const auto& p1 = tsda->GetPoint1Abs();
+                    const auto& p2 = tsda->GetPoint2Abs();
+                    auto& buf = m_tsda_buf[i_tsda++];
+                    buf.name = tsda->GetName();
+                    buf.point1.insert(buf.point1.end(), {p1.x(), p1.y(), p1.z()});
+                    buf.point2.insert(buf.point2.end(), {p2.x(), p2.y(), p2.z()});
                     buf.len.push_back(tsda->GetLength());
                     buf.vel.push_back(tsda->GetVelocity());
                     buf.force.push_back(tsda->GetForce());
-                    i_tsda++;
                 }
 
                 for (const auto& rsda : c->rsdas) {
-                    auto& buf = m_rsda_buf[i_rsda];
+                    auto& buf = m_rsda_buf[i_rsda++];
+                    buf.name = rsda->GetName();
                     buf.ang.push_back(rsda->GetAngle());
                     buf.vel.push_back(rsda->GetVelocity());
                     buf.torque.push_back(rsda->GetTorque());
-                    i_rsda++;
                 }
             }
 

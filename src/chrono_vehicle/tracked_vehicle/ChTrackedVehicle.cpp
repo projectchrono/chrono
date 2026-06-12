@@ -539,22 +539,22 @@ void ChTrackedVehicle::InitializeOutput() {
     switch (m_out_format) {
         case ChOutput::Format::ASCII:
             if (m_chassis->OutputEnabled())
-                m_out_chassis.db = chrono_types::make_unique<ChOutputASCII>(m_out_dir + "/" + m_out_name + "_chassis", m_out_mode);
+                m_out_chassis.db = chrono_types::make_unique<ChOutputASCII>(m_out_dir, m_out_name + "_chassis", m_out_mode);
             if (m_driveline && m_driveline->OutputEnabled())
-                m_out_driveline.db = chrono_types::make_unique<ChOutputASCII>(m_out_dir + "/" + m_out_name + "_driveline", m_out_mode);
+                m_out_driveline.db = chrono_types::make_unique<ChOutputASCII>(m_out_dir, m_out_name + "_driveline", m_out_mode);
             for (size_t i = 0; i < m_chassis_rear.size(); i++)
                 if (m_chassis_rear[i]->OutputEnabled())
-                    m_out_chassis_rear[i].db = chrono_types::make_unique<ChOutputASCII>(m_out_dir + "/" + m_out_name + "_chassis_rear_" + std::to_string(i), m_out_mode);
+                    m_out_chassis_rear[i].db = chrono_types::make_unique<ChOutputASCII>(m_out_dir, m_out_name + "_chassis_rear_" + std::to_string(i), m_out_mode);
             break;
         case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
             if (m_chassis->OutputEnabled())
-                m_out_chassis.db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir + "/" + m_out_name + "_chassis", m_out_mode);
+                m_out_chassis.db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir, m_out_name + "_chassis", m_out_mode);
             if (m_driveline && m_driveline->OutputEnabled())
-                m_out_driveline.db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir + "/" + m_out_name + "_driveline", m_out_mode);
+                m_out_driveline.db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir, m_out_name + "_driveline", m_out_mode);
             for (size_t i = 0; i < m_chassis_rear.size(); i++)
                 if (m_chassis_rear[i]->OutputEnabled())
-                    m_out_chassis_rear[i].db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir + "/" + m_out_name + "_chassis_rear_" + std::to_string(i), m_out_mode);
+                    m_out_chassis_rear[i].db = chrono_types::make_unique<ChOutputHDF5>(m_out_dir, m_out_name + "_chassis_rear_" + std::to_string(i), m_out_mode);
 #endif
             break;
     }

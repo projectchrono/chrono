@@ -80,31 +80,38 @@ class ChApi ChOutput {
     // Data and functions for Mode::SERIES
 
     struct BodyBuffers {
-        std::vector<ChVector3d> pos;      ///< REF position
-        std::vector<ChVector3d> rot;      ///< REF orientation (Tait-Bryan extrinsic X-Y-Z angles)
-        std::vector<ChVector3d> lin_vel;  ///< REF linear velocity
-        std::vector<ChVector3d> ang_vel;  ///< REF angular velocity
+        std::string name;             ///< body name
+        std::vector<double> pos;      ///< REF position
+        std::vector<double> rot;      ///< REF orientation (Tait-Bryan extrinsic X-Y-Z angles)
+        std::vector<double> lin_vel;  ///< REF linear velocity
+        std::vector<double> ang_vel;  ///< REF angular velocity
     };
 
     struct ShaftBuffers {
+        std::string name;         ///< shaft name
         std::vector<double> pos;  ///< position or angle
         std::vector<double> vel;  ///< linear or angular velocity
     };
 
     struct JointBuffers {
-        std::vector<ChWrenchd> react1;  ///< reaction wrench on body 1
-        std::vector<ChWrenchd> react2;  ///< reaction wrench on body 2
+        std::string name;             ///< joint name
+        std::vector<double> force1;   ///< reaction force on body 1
+        std::vector<double> torque1;  ///< reaction torque on body 1
+        std::vector<double> force2;   ///< reaction force on body 2
+        std::vector<double> torque2;  ///< reaction torque on body 2
     };
 
     struct TSDABuffers {
-        std::vector<ChVector3d> point1;  ///< position of point 1
-        std::vector<ChVector3d> point2;  ///< position of point 2
-        std::vector<double> len;         ///< length
-        std::vector<double> vel;         ///< linear velocity
-        std::vector<double> force;       ///< force
+        std::string name;            ///< TSDA name
+        std::vector<double> point1;  ///< position of point 1
+        std::vector<double> point2;  ///< position of point 2
+        std::vector<double> len;     ///< length
+        std::vector<double> vel;     ///< linear velocity
+        std::vector<double> force;   ///< force
     };
 
     struct RSDABuffers {
+        std::string name;            ///< RSDA name
         std::vector<double> ang;     ///< angle
         std::vector<double> vel;     ///< angular velocity
         std::vector<double> torque;  ///< torque

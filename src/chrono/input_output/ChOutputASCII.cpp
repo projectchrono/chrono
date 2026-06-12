@@ -24,7 +24,9 @@ using std::endl;
 
 namespace chrono {
 
-ChOutputASCII::ChOutputASCII(const std::string& filename, Mode mode) : ChOutput(mode), m_file_stream(filename + "." + GetModeAsString(mode) + ".txt"), m_stream(m_file_stream) {}
+ChOutputASCII::ChOutputASCII(const std::string& out_dir, const std::string& out_file_stem, Mode mode)
+    : ChOutput(mode), m_file_stream(out_dir + "/" + out_file_stem + "." + GetModeAsString(mode) + ".txt"), m_stream(m_file_stream) {}
+
 ChOutputASCII::ChOutputASCII(std::ostream& stream, Mode mode) : ChOutput(mode), m_file_stream(), m_stream(stream) {}
 
 ChOutputASCII::~ChOutputASCII() {
@@ -37,34 +39,62 @@ ChOutputASCII::~ChOutputASCII() {
 
 // -----------------------------------------------------------------------------
 
+static void write_data(std::ostream& stream, const std::string& name, const std::vector<double>& data) {
+    stream << name << " ";
+    for (auto v : data)
+        stream << v << " ";
+    stream << endl;
+}
+
 void ChOutputASCII::WriteBuffers() {
-    for (size_t i = 0; i < m_time.size(); i++) {
+    m_stream << "Num time frames " << m_time.size() << endl;
+    m_stream << "Num bodies:     " << m_body_buf.size() << endl;
+    m_stream << "Num shafts:     " << m_shaft_buf.size() << endl;
+    m_stream << "Num joints:     " << m_joint_buf.size() << endl;
+    m_stream << "Num TSDAs:      " << m_tsda_buf.size() << endl;
+    m_stream << "Num RSDAs:      " << m_rsda_buf.size() << endl;
+
+    m_stream << "Time ";
+    for (size_t i = 0; i < m_time.size(); i++)
         m_stream << m_time[i] << " ";
+    m_stream << endl;
 
-        for (const auto& buf : m_body_buf) {
-            m_stream << buf.pos[i] << " " << buf.rot[i] << " ";
-            m_stream << buf.lin_vel[i] << " " << buf.ang_vel[i] << " ";
-        }
+    for (const auto& buf : m_body_buf) {
+        m_stream << "Body " << buf.name << endl;
+        write_data(m_stream, "  pos", buf.pos);
+        write_data(m_stream, "  rot", buf.rot);
+        write_data(m_stream, "  lin_vel", buf.lin_vel);
+        write_data(m_stream, "  ang_vel", buf.ang_vel);
+    }
 
-        for (const auto& buf : m_shaft_buf) {
-            m_stream << buf.pos[i] << " " << buf.vel[i] << " ";
-        }
+    for (const auto& buf : m_shaft_buf) {
+        m_stream << "Shaft " << buf.name << endl;
+        write_data(m_stream, "  pos", buf.pos);
+        write_data(m_stream, "  vel", buf.vel);
+    }
 
-        for (const auto& buf : m_joint_buf) {
-            m_stream << buf.react1[i].force << " " << buf.react1[i].torque << " ";
-            m_stream << buf.react2[i].force << " " << buf.react2[i].torque << " ";
-        }
+    for (const auto& buf : m_joint_buf) {
+        m_stream << "Joint" << buf.name << endl;
+        write_data(m_stream, " rforce1", buf.force1);
+        write_data(m_stream, " rtorque1", buf.torque1);
+        write_data(m_stream, " rforce2", buf.force2);
+        write_data(m_stream, " rtorque2", buf.torque2);
+    }
 
-        for (const auto& buf : m_tsda_buf) {
-            m_stream << buf.point1[i] << " " << buf.point2[i];
-            m_stream << buf.len[i] << " " << buf.vel[i] << " " << buf.force[i] << " ";
-        }
+    for (const auto& buf : m_tsda_buf) {
+        m_stream << "TSDA " << buf.name << endl;
+        write_data(m_stream, " point1", buf.point1);
+        write_data(m_stream, " point2", buf.point2);
+        write_data(m_stream, " len", buf.len);
+        write_data(m_stream, " vel", buf.vel);
+        write_data(m_stream, " force", buf.force);
+    }
 
-        for (const auto& buf : m_rsda_buf) {
-            m_stream << buf.ang[i] << " " << buf.vel[i] << " " << buf.torque[i] << " ";
-        }
-
-        m_stream << endl;
+    for (const auto& buf : m_rsda_buf) {
+        m_stream << "RSDA " << buf.name << endl;
+        write_data(m_stream, " ang", buf.ang);
+        write_data(m_stream, " vel", buf.vel);
+        write_data(m_stream, " torque", buf.torque);
     }
 }
 

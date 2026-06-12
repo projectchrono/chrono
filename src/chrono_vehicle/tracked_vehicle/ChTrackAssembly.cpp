@@ -372,27 +372,27 @@ void ChTrackAssembly::InitializeOutput(ChOutput::Format output_format, ChOutput:
     // For each vehicle subsystem, create its output DB
     switch (output_format) {
         case ChOutput::Format::ASCII:
-            m_out_sprocket.db = chrono_types::make_unique<ChOutputASCII>(out_dir + "/" + out_name + "_sprocket", out_mode);
-            m_out_brake.db = chrono_types::make_unique<ChOutputASCII>(out_dir + "/" + out_name + "_brake", out_mode);
-            m_out_idler.db = chrono_types::make_unique<ChOutputASCII>(out_dir + "/" + out_name + "_idler", out_mode);
+            m_out_sprocket.db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_sprocket", out_mode);
+            m_out_brake.db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_brake", out_mode);
+            m_out_idler.db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_idler", out_mode);
             if (GetNumTrackShoes() > 0)
-                m_out_shoe.db = chrono_types::make_unique<ChOutputASCII>(out_dir + "/" + out_name + "_shoe_0", out_mode);
+                m_out_shoe.db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_shoe_0", out_mode);
             for (size_t i = 0; i < m_suspensions.size(); i++)
-                m_out_suspensions[i].db = chrono_types::make_unique<ChOutputASCII>(out_dir + "/" + out_name + "_suspension_" + std::to_string(i), out_mode);
+                m_out_suspensions[i].db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_suspension_" + std::to_string(i), out_mode);
             for (size_t i = 0; i < m_suspensions.size(); i++)
-                m_out_rollers[i].db = chrono_types::make_unique<ChOutputASCII>(out_dir + "/" + out_name + "_roller_" + std::to_string(i), out_mode);
+                m_out_rollers[i].db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_roller_" + std::to_string(i), out_mode);
             break;
         case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-            m_out_sprocket.db = chrono_types::make_unique<ChOutputHDF5>(out_dir + "/" + out_name + "_sprocket", out_mode);
-            m_out_brake.db = chrono_types::make_unique<ChOutputHDF5>(out_dir + "/" + out_name + "_brake", out_mode);
-            m_out_idler.db = chrono_types::make_unique<ChOutputHDF5>(out_dir + "/" + out_name + "_idler", out_mode);
+            m_out_sprocket.db = chrono_types::make_unique<ChOutputHDF5>(out_dir, out_name + "_sprocket", out_mode);
+            m_out_brake.db = chrono_types::make_unique<ChOutputHDF5>(out_dir, out_name + "_brake", out_mode);
+            m_out_idler.db = chrono_types::make_unique<ChOutputHDF5>(out_dir, out_name + "_idler", out_mode);
             if (GetNumTrackShoes() > 0)
-                m_out_shoe.db = chrono_types::make_unique<ChOutputHDF5>(out_dir + "/" + out_name + "_shoe_0", out_mode);
+                m_out_shoe.db = chrono_types::make_unique<ChOutputHDF5>(out_dir, out_name + "_shoe_0", out_mode);
             for (size_t i = 0; i < m_suspensions.size(); i++)
-                m_out_suspensions[i].db = chrono_types::make_unique<ChOutputHDF5>(out_dir + "/" + out_name + "_suspension_" + std::to_string(i), out_mode);
+                m_out_suspensions[i].db = chrono_types::make_unique<ChOutputHDF5>(out_dir, out_name + "_suspension_" + std::to_string(i), out_mode);
             for (size_t i = 0; i < m_rollers.size(); i++)
-                m_out_rollers[i].db = chrono_types::make_unique<ChOutputHDF5>(out_dir + "/" + out_name + "_roller_" + std::to_string(i), out_mode);
+                m_out_rollers[i].db = chrono_types::make_unique<ChOutputHDF5>(out_dir, out_name + "_roller_" + std::to_string(i), out_mode);
 #endif
             break;
     }

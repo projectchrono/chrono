@@ -37,13 +37,17 @@ class ChOutputHDF5_impl;
 class ChApi ChOutputHDF5 : public ChOutput {
   public:
     /// Create an output DB in HDF5 format and associate it with an output file.
-    /// Note: the output file name will be `<filename>.[MODE].h5`. 
-    ChOutputHDF5(const std::string& filename, Mode mode);
+    /// Note: the output file name will be `<out_dir>/<out_file_stem>.<mode>.h5`.
+    ChOutputHDF5(const std::string& out_dir, const std::string& out_file_stem, Mode mode);
 
     ~ChOutputHDF5();
 
   private:
-    // Implementation oif virtual functions for Mode::FRAMES
+    // Implementation of functions for Mode::SERIES
+    void WriteBuffers();
+
+  private:
+    // Implementation of virtual functions for Mode::FRAMES
     virtual void WriteTimeStamp(int frame, double time) override;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) override;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
@@ -55,9 +59,6 @@ class ChApi ChOutputHDF5 : public ChOutput {
     virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
-
-    // Implementation of functions for Mode::SERIES
-    void WriteBuffers();
 
     H5::H5File* m_fileHDF5;
     H5::Group* m_frame_group;

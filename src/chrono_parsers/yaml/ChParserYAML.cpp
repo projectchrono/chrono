@@ -130,11 +130,11 @@ void ChParserYAML::WriteOutput(int frame, double time) {
     if (!m_output_db) {
         switch (m_output.format) {
             case ChOutput::Format::ASCII:
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(m_output_dir + "/" + m_name, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(m_output_dir, m_name, m_output.mode);
                 break;
             case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(m_output_dir + "/" + m_name, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(m_output_dir, m_name, m_output.mode);
                 break;
 #else
                 return;

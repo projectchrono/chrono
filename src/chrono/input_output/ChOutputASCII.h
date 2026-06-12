@@ -33,8 +33,8 @@ namespace chrono {
 class ChApi ChOutputASCII : public ChOutput {
   public:
     /// Create an output DB in ASCII format and associate it with an output file.
-    /// Note: the output file name will be `<filename>.[MODE].txt`.
-    ChOutputASCII(const std::string& filename, Mode mode);
+    /// Note: the output file name will be `<out_dir>/<out_file_stem>.<mode>.txt`.
+    ChOutputASCII(const std::string& out_dir, const std::string& out_file_stem, Mode mode);
 
     /// Create an output DB in ASCII format and associate it with the given output stream.
     ChOutputASCII(std::ostream& stream, Mode mode);

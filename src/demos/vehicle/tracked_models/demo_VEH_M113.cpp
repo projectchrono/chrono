@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "chrono/input_output/ChUtilsInputOutput.h"
-#include "chrono/input_output/ChOutputASCII.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
