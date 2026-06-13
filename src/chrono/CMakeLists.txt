@@ -750,7 +750,7 @@ set(Chrono_assets_HEADERS
     assets/ChVisualShapeSurface.h
     )
 if(CH_ENABLE_MODULE_FEA)
-    set(Chrono_assets_HEADERS ${Chrono_assets_SOURCES}
+    set(Chrono_assets_SOURCES ${Chrono_assets_SOURCES}
         assets/ChVisualShapeFEA.cpp
     )
     set(Chrono_assets_HEADERS ${Chrono_assets_HEADERS}
