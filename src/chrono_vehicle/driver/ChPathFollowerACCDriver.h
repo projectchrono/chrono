@@ -41,7 +41,7 @@ namespace vehicle {
 /// path.  The output from the speed controller is used to adjust throttle and
 /// braking inputs in order to maintain the prescribed constant vehicle speed.
 ///
-/// @sa ChPathSteeringController
+/// @sa ChPathSteeringControllerPID
 /// @sa ChAdaptiveSpeedController
 class CH_VEHICLE_API ChPathFollowerACCDriver : public ChDriver {
   public:
@@ -92,10 +92,10 @@ class CH_VEHICLE_API ChPathFollowerACCDriver : public ChDriver {
     void SetThresholdThrottle(double val) { m_throttle_threshold = val; }
 
     /// Get the underlying steering controller object.
-    ChPathSteeringController& GetSteeringController() { return m_steeringPID; }
+    ChPathSteeringControllerPID& GetSteeringController() { return m_steering_controller; }
 
     /// Get the underlying speed controller object.
-    ChAdaptiveSpeedController& GetSpeedController() { return m_speedPID; }
+    ChAdaptiveSpeedController& GetSpeedController() { return m_speed_controller; }
 
     /// Reset the underlying controllers.
     void Reset();
@@ -109,14 +109,14 @@ class CH_VEHICLE_API ChPathFollowerACCDriver : public ChDriver {
   private:
     void Create();
 
-    ChPathSteeringController m_steeringPID;  ///< steering controller
-    ChAdaptiveSpeedController m_speedPID;    ///< speed controller
-    double m_target_speed;                   ///< desired vehicle speed
-    double m_target_following_time;          ///< desired min following time gap
-    double m_target_min_distance;            ///< desired min distance to the vehicle in front
-    double m_current_distance;               ///< current distance to the vehicle in front
-    std::string m_pathName;                  ///< for path visualization
-    double m_throttle_threshold;             ///< throttle value below which brakes are applied
+    ChPathSteeringControllerPID m_steering_controller;  ///< steering controller
+    ChAdaptiveSpeedController m_speed_controller;       ///< speed controller
+    double m_target_speed;                              ///< desired vehicle speed
+    double m_target_following_time;                     ///< desired min following time gap
+    double m_target_min_distance;                       ///< desired min distance to the vehicle in front
+    double m_current_distance;                          ///< current distance to the vehicle in front
+    std::string m_pathName;                             ///< for path visualization
+    double m_throttle_threshold;                        ///< throttle value below which brakes are applied
 };
 
 /// @} vehicle_driver

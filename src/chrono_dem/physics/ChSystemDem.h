@@ -191,12 +191,7 @@ class CH_DEM_API ChSystemDem {
     // void UpdateBCSpherePosition(size_t sphere_bc_id, ChVector3d position);
 
     /// Create a Z-axis aligned cone boundary condition.
-    size_t CreateBCConeZ(const ChVector3f& tip,
-                         float slope,
-                         float hmax,
-                         float hmin,
-                         bool outward_normal,
-                         bool track_forces);
+    size_t CreateBCConeZ(const ChVector3f& tip, float slope, float hmax, float hmin, bool outward_normal, bool track_forces);
 
     /// Create a plane boundary condition.
     size_t CreateBCPlane(const ChVector3f& pos, const ChVector3f& normal, bool track_forces);
@@ -418,10 +413,7 @@ class CH_DEM_API ChSystemDemMesh : public ChSystemDem {
     /// Add a trimesh from the specified Wavefront OBJ file to the granular system.
     /// The return value is a mesh identifier which can be used during the simulation to apply rigid body motion to the
     /// mesh; see ApplyMeshMotion(). This function must be called before Initialize().
-    unsigned int AddMesh(const std::string& filename,
-                         const ChVector3f& translation,
-                         const ChMatrix33<float>& rotscale,
-                         float mass);
+    unsigned int AddMesh(const std::string& filename, const ChVector3f& translation, const ChMatrix33<float>& rotscale, float mass);
 
     /// Add a set of trimeshes from Wavefront OBJ files into granular system.
     /// The return value is a vector of mesh identifiers which can be used during the simulation to apply rigid body
@@ -438,11 +430,7 @@ class CH_DEM_API ChSystemDemMesh : public ChSystemDem {
     void UseMeshNormals(bool val) { use_mesh_normals = val; }
 
     /// Apply rigid body motion to specified mesh.
-    void ApplyMeshMotion(unsigned int mesh_id,
-                         const ChVector3d& pos,
-                         const ChQuaternion<>& rot,
-                         const ChVector3d& lin_vel,
-                         const ChVector3d& ang_vel);
+    void ApplyMeshMotion(unsigned int mesh_id, const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& lin_vel, const ChVector3d& ang_vel);
 
     /// Return the number of meshes in the system.
     unsigned int GetNumMeshes() const;
@@ -525,13 +513,10 @@ class CH_DEM_API ChSystemDemMesh : public ChSystemDem {
     CHDEM_MESH_VERBOSITY mesh_verbosity;                             ///< mesh operations verbosity level
     std::vector<std::shared_ptr<ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in co-simulation
     std::vector<float> m_mesh_masses;                                ///< associated mesh masses
-    bool use_mesh_normals =
-        false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
+    bool use_mesh_normals = false;                                   ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
 
     /// DemMesh version of setting simulation params based on identifiers in the checkpoint file.
-    virtual bool SetParamsFromIdentifier(const std::string& identifier,
-                                         std::istringstream& iss1,
-                                         bool overwrite) override;
+    virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) override;
 
     /// DemMesh version of parameter writing subroutine
     void WriteCheckpointMeshParams(std::ofstream& cpFile) const;

@@ -17,7 +17,7 @@
 #ifndef CH_SPH_MARKER_TYPE_CUH
 #define CH_SPH_MARKER_TYPE_CUH
 
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
+#include "chrono/gpu/ChGpuRuntime.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiDataTypesSPH.h"

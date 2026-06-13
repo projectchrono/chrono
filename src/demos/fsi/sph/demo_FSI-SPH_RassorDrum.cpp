@@ -62,22 +62,6 @@ double wheel_radius = 0.2;
 double wheel_wide = 0.205;
 
 double wheel_slip = 0.0;
-// double wheel_vel = -0.05;
-// double wheel_AngVel = -0.7; // for rTot = 250mm, 0.4 rad/s ~ 0.1 m/s linear velocity
-
-// Test 4
-// double wheel_vel = 0.2;
-// double wheel_AngVel = 2.78;  // for rTot = 250mm, 0.4 rad/s ~ 0.1 m/s linear velocity
-
-// Test 3
-// double wheel_vel = 0.15;
-// double wheel_AngVel = 2.09;  // for rTot = 250mm, 0.4 rad/s ~ 0.1 m/s linear velocity
-
-// Test 2
-// double wheel_vel = 0.15;
-// double wheel_AngVel = 2.09;  // for rTot = 250mm, 0.4 rad/s ~ 0.1 m/s linear velocity
-
-// double total_mass = 2.5 * 2.;
 
 // Initial Position of wheel
 ChVector3d wheel_IniPos(-bxDim / 2 + wheel_radius * 1.2, 0.0, wheel_radius + bzDim / 2.0);
@@ -371,20 +355,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Update global variables to use the values from params
-    double wheel_vel = params.wheel_vel;
-    double wheel_AngVel = params.wheel_AngVel;
-    double total_mass = params.total_mass;
-
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
     ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(&sysMBS, &sysSPH);
 
-// Disable cuda error check in RELEASE mode
 #ifdef NDEBUG
-    std::cout << "Disable cuda error check in RELEASE mode" << std::endl;
-    sysSPH.EnableCudaErrorCheck(false);
+    std::cout << "Disable GPU error check in RELEASE mode" << std::endl;
+    sysSPH.EnableGPUErrorCheck(false);
 #endif
 
     sysFSI.SetVerbose(verbose_fsi);
@@ -606,7 +584,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Chrono::FSI single drum RASSOR demo");
         visVSG->SetWindowSize(1280, 960);
         visVSG->AddCamera(ChVector3d(0, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));
-        visVSG->SetLightIntensity(0.9);
+        visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
         visVSG->Initialize();

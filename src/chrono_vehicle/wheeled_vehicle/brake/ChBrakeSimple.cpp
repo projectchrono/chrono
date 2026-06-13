@@ -79,7 +79,7 @@ void ChBrakeSimple::Synchronize(double time, double braking) {
 // -----------------------------------------------------------------------------
 
 void ChBrakeSimple::PopulateComponentList() {
-    m_joints.push_back(m_brake);
+    m_components.joints.push_back(m_brake);
 }
 
 }  // end namespace vehicle

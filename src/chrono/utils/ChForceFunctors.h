@@ -53,6 +53,8 @@ class ChApi SpringForce : public ChLinkTSDA::ForceFunctor {
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
 
+    void SetPreload(double P) { m_P = P; }
+
   protected:
     double m_P;  ///< pre-tension
 
@@ -76,6 +78,8 @@ class ChApi LinearSpringForce : public SpringForce {
 #ifndef SWIG
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
+
+    void SetSpringCoefficient(double k) { m_k = k; }
 
   private:
     double m_k;
@@ -114,6 +118,8 @@ class ChApi LinearDamperForce : public ChLinkTSDA::ForceFunctor {
 #ifndef SWIG
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
+
+    void SetDampingCoefficient(double c) { m_c = c; }
 
   private:
     double m_c;
@@ -183,6 +189,9 @@ class ChApi LinearSpringDamperForce : public SpringForce {
 #ifndef SWIG
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
+
+    void SetSpringCoefficient(double k) { m_k = k; }
+    void SetDampingCoefficient(double c) { m_c = c; }
 
   private:
     double m_k;
@@ -256,6 +265,9 @@ class ChApi LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
 
+    void SetSpringCoefficient(double k) { m_k = k; }
+    void SetPreload(double P) { m_P = P; }
+
   private:
     double m_k;
     double m_P;
@@ -272,6 +284,8 @@ class ChApi NonlinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
 
+    void SetPreload(double P) { m_P = P; }
+
   private:
     ChFunctionInterp m_mapK;
     double m_P;
@@ -285,6 +299,8 @@ class ChApi LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
 #ifndef SWIG
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
+
+    void SetDampingCoefficient(double c) { m_c = c; }
 
   private:
     double m_c;
@@ -314,6 +330,10 @@ class ChApi LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor {
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
 
+    void SetSpringCoefficient(double k) { m_k = k; }
+    void SetDampingCoefficient(double c) { m_c = c; }
+    void SetPreload(double P) { m_P = P; }
+
   private:
     double m_k;
     double m_c;
@@ -333,6 +353,8 @@ class ChApi NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor {
 #ifndef SWIG
     virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 #endif
+
+    void SetPreload(double P) { m_P = P; }
 
   private:
     ChFunctionInterp m_mapK;

@@ -121,27 +121,24 @@ void AppendRigidParticleBoundary(const real contact_mu,
                               const uint body_offset,
                               const uint start_boundary,
                               ChMulticoreDataManager* data_manager) {
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     if (num_rigid_particle_contacts > 0) {
         custom_vector<int>& neighbor_rigid_particle = data_manager->cd_data->neighbor_rigid_particle;
         custom_vector<int>& contact_counts = data_manager->cd_data->c_counts_rigid_particle;
 
-        Loop_Over_Rigid_Neighbors(                                                         //
-            int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
-            AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);                     //
-            AppendRow3(D_T, start_boundary + index + 0, body_offset + p * 3, 0);           //
-            D_T.finalize(start_boundary + index + 0);                                      //
+        Loop_Over_Rigid_Neighbors(
+            int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+            AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
+            AppendRow3(D_T, start_boundary + index + 0, body_offset + p * 3, 0);
         );
         if (contact_mu != 0) {
-            Loop_Over_Rigid_Neighbors(                                                                               //
-                int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];                        //
-                AppendRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, rigid * 6, 0);            //
-                AppendRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, body_offset + p * 3, 0);  //
-                D_T.finalize(start_boundary + num_rigid_particle_contacts + index * 2 + 0);                             //
-                AppendRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, rigid * 6, 0);            //
-                AppendRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, body_offset + p * 3, 0);  //
-                D_T.finalize(start_boundary + num_rigid_particle_contacts + index * 2 + 1);                             //
+            Loop_Over_Rigid_Neighbors(
+                int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+                AppendRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, body_offset + p * 3, 0);
+                AppendRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, rigid * 6, 0);
+                AppendRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, body_offset + p * 3, 0);
             );
         }
     }
@@ -162,29 +159,29 @@ void ProjectRigidParticleBoundary(const real contact_mu,
 #pragma omp parallel for
         Loop_Over_Rigid_Neighbors(
             // rigid stored in first index
-            int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];                             //
-            float rigid_coh = data_manager->host_data.cohesion[rigid];                                                //
-            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, (float)contact_cohesion);  //
-            real3 gam;                                                                                                //
-            gam.x = gamma[start_boundary + index];                                                                    //
-            gam.x += cohesion;                                                                                        //
-            gam.x = gam.x < 0 ? 0 : gam.x - cohesion;                                                                 //
-            gamma[start_boundary + index] = gam.x;                                                                    //
+            int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+            float rigid_coh = data_manager->host_data.cohesion[rigid];
+            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, (float)contact_cohesion);
+            real3 gam;
+            gam.x = gamma[start_boundary + index];
+            gam.x += cohesion;
+            gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
+            gamma[start_boundary + index] = gam.x;
         );
     } else {
 #pragma omp parallel for
         Loop_Over_Rigid_Neighbors(
             // rigid stored in first index
-            int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];                             //
-            float rigid_coh = data_manager->host_data.cohesion[rigid];                                                //
-            float rigid_mu = data_manager->host_data.sliding_friction[rigid];                                         //
-            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, (float)contact_cohesion);  //
-            real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, (float)contact_mu);         //
+            int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+            float rigid_coh = data_manager->host_data.cohesion[rigid];
+            float rigid_mu = data_manager->host_data.sliding_friction[rigid];
+            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, (float)contact_cohesion);
+            real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, (float)contact_mu);
 
-            real3 gam;                                                                 //
-            gam.x = gamma[start_boundary + index];                                     //
-            gam.y = gamma[start_boundary + num_rigid_particle_contacts + index * 2 + 0];  //
-            gam.z = gamma[start_boundary + num_rigid_particle_contacts + index * 2 + 1];  //
+            real3 gam;
+            gam.x = gamma[start_boundary + index];
+            gam.y = gamma[start_boundary + num_rigid_particle_contacts + index * 2 + 0];
+            gam.z = gamma[start_boundary + num_rigid_particle_contacts + index * 2 + 1];
 
             gam.x += cohesion;
 
@@ -214,7 +211,7 @@ void ComplianceRigidParticleBoundary(const real contact_mu,
                                   const real alpha,
                                   const uint start_boundary,
                                   ChMulticoreDataManager* data_manager) {
-    DynamicVector<real>& E = data_manager->host_data.E;
+    VectorType& E = data_manager->host_data.E;
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     real inv_h = 1 / data_manager->settings.step_size;
     real inv_hpa = 1 / (data_manager->settings.step_size + alpha);
@@ -242,15 +239,15 @@ void ComplianceRigidParticleBoundary(const real contact_mu,
 
 CH_MULTICORE_API
 void CorrectionRigidParticleBoundary(const real contact_mu,
-                                  const real contact_cohesion,
-                                  const real alpha,
-                                  const real contact_recovery_speed,
-                                  const uint num_particles,
-                                  const uint start_boundary,
-                                  ChMulticoreDataManager* data_manager) {
+                                     const real contact_cohesion,
+                                     const real alpha,
+                                     const real contact_recovery_speed,
+                                     const uint num_particles,
+                                     const uint start_boundary,
+                                     ChMulticoreDataManager* data_manager) {
     real inv_hpa = 1 / (data_manager->settings.step_size + alpha);
 
-    DynamicVector<real>& b = data_manager->host_data.b;
+    VectorType& b = data_manager->host_data.b;
     custom_vector<real>& dpth_rigid_particle = data_manager->cd_data->dpth_rigid_particle;
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
 
@@ -259,21 +256,21 @@ void CorrectionRigidParticleBoundary(const real contact_mu,
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
-                                      real bi = 0;                                                                   //
-                                      if (contact_cohesion != 0) { depth = std::min(depth, real(0)); }               //
-                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);                       //
-                                      b[start_boundary + index + 0] = bi;                                            //
+            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+                                      real bi = 0;
+                                      if (contact_cohesion != 0) { depth = std::min(depth, real(0)); }
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                      b[start_boundary + index + 0] = bi;
             );
         } else {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
-                                      real bi = 0;                                                                   //
-                                      if (contact_cohesion != 0) { depth = std::min(depth, real(0)); }               //
-                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);                       //
-                                      b[start_boundary + index + 0] = bi;                                            //
-                                      b[start_boundary + num_rigid_particle_contacts + index * 2 + 0] = 0;           //
-                                      b[start_boundary + num_rigid_particle_contacts + index * 2 + 1] = 0;           //
+            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+                                      real bi = 0;
+                                      if (contact_cohesion != 0) { depth = std::min(depth, real(0)); }
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                      b[start_boundary + index + 0] = bi;
+                                      b[start_boundary + num_rigid_particle_contacts + index * 2 + 0] = 0;
+                                      b[start_boundary + num_rigid_particle_contacts + index * 2 + 1] = 0;
             );
         }
     }
@@ -287,7 +284,7 @@ void BuildRigidParticleBoundary(const real contact_mu,
                              ChMulticoreDataManager* data_manager) {
     uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     if (num_rigid_particle_contacts > 0) {
-        CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+        SparseMatrixType& D_T = data_manager->host_data.D_T;
         custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
         custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 
@@ -299,36 +296,36 @@ void BuildRigidParticleBoundary(const real contact_mu,
         if (contact_mu == 0) {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
-                int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
-                const real3& U = norm[p * ChNarrowphase::max_rigid_neighbors + i];             //
-                real3 V;                                                                       //
-                real3 W;                                                                       //
-                Orthogonalize(U, V, W);                                                        //
-                real3 T1; real3 T2; real3 T3;                                                  //
+                int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+                const real3& U = norm[p * ChNarrowphase::max_rigid_neighbors + i];
+                real3 V;
+                real3 W;
+                Orthogonalize(U, V, W);
+                real3 T1; real3 T2; real3 T3;
                 Compute_Jacobian(rot_rigid[rigid], U, V, W,
                                  cpta[p * ChNarrowphase::max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2, T3);
 
-                SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-                SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U););
+                SetRow6(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
+                SetRow3(D_T, start_boundary + index + 0, body_offset + p * 3, U););
         } else {
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
-                int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];  //
-                const real3& U = norm[p * ChNarrowphase::max_rigid_neighbors + i];             //
-                real3 V;                                                                       //
-                real3 W;                                                                       //
-                Orthogonalize(U, V, W);                                                        //
-                real3 T1; real3 T2; real3 T3;                                                  //
+                int rigid = neighbor_rigid_particle[p * ChNarrowphase::max_rigid_neighbors + i];
+                const real3& U = norm[p * ChNarrowphase::max_rigid_neighbors + i];
+                real3 V;
+                real3 W;
+                Orthogonalize(U, V, W);
+                real3 T1; real3 T2; real3 T3;
                 Compute_Jacobian(rot_rigid[rigid], U, V, W,
                                  cpta[p * ChNarrowphase::max_rigid_neighbors + i] - pos_rigid[rigid], T1, T2, T3);
 
-                SetRow6Check(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
-                SetRow6Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, rigid * 6, -V, T2);
-                SetRow6Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, rigid * 6, -W, T3);
+                SetRow6(D_T, start_boundary + index + 0, rigid * 6, -U, T1);
+                SetRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, rigid * 6, -V, T2);
+                SetRow6(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, rigid * 6, -W, T3);
 
-                SetRow3Check(D_T, start_boundary + index + 0, body_offset + p * 3, U);
-                SetRow3Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, body_offset + p * 3, V);
-                SetRow3Check(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, body_offset + p * 3, W););
+                SetRow3(D_T, start_boundary + index + 0, body_offset + p * 3, U);
+                SetRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 0, body_offset + p * 3, V);
+                SetRow3(D_T, start_boundary + num_rigid_particle_contacts + index * 2 + 1, body_offset + p * 3, W););
         }
     }
 }

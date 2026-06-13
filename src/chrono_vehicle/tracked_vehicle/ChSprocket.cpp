@@ -314,10 +314,10 @@ void ChSprocket::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 
 void ChSprocket::PopulateComponentList() {
-    m_bodies.push_back(m_gear);
-    m_shafts.push_back(m_axle);
-    m_joints.push_back(m_revolute);
-    m_shaft_body_rot.push_back(m_axle_to_spindle);
+    m_components.bodies.push_back(m_gear);
+    m_components.shafts.push_back(m_axle);
+    m_components.joints.push_back(m_revolute);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle);
 }
 
 }  // end namespace vehicle

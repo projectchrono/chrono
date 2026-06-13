@@ -284,13 +284,13 @@ VisualizationType ReadVisualizationType(const YAML::Node& a) {
     return VisualizationType::NONE;
 }
 
-ChOutput::Type ReadOutputType(const YAML::Node& a) {
+ChOutput::Format ReadOutputFormat(const YAML::Node& a) {
     auto type = ChToUpper(a.as<std::string>());
     if (type == "ASCII")
-        return ChOutput::Type::ASCII;
+        return ChOutput::Format::ASCII;
     if (type == "HDF5")
-        return ChOutput::Type::HDF5;
-    return ChOutput::Type::NONE;
+        return ChOutput::Format::HDF5;
+    return ChOutput::Format::NONE;
 }
 
 ChOutput::Mode ReadOutputMode(const YAML::Node& a) {

@@ -125,6 +125,7 @@ set(CV_BASE_FILES
     ChVehicle.cpp
     ChVehicleDataPath.h
     ChVehicleDataPath.cpp
+    ChVehicleOutput.h
     ChVehicleVisualSystem.h
     ChVehicleVisualSystem.cpp
     ChWorldFrame.cpp

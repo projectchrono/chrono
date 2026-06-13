@@ -31,27 +31,7 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// Implementation of the class ChSpeedController
-// -----------------------------------------------------------------------------
-ChSpeedController::ChSpeedController() : m_speed(0), m_err(0), m_errd(0), m_erri(0), m_csv(nullptr), m_collect(false) {
-    // Default PID controller gains all zero (no control).
-    SetGains(0, 0, 0);
-}
-
-ChSpeedController::ChSpeedController(const std::string& filename)
-    : m_speed(0), m_err(0), m_errd(0), m_erri(0), m_csv(nullptr), m_collect(false) {
-    Document d;
-    ReadFileJSON(filename, d);
-    if (d.IsNull())
-        return;
-
-    m_Kp = d["Gains"]["Kp"].GetDouble();
-    m_Ki = d["Gains"]["Ki"].GetDouble();
-    m_Kd = d["Gains"]["Kd"].GetDouble();
-
-    std::cout << "Loaded JSON " << filename << std::endl;
-}
+ChSpeedController::ChSpeedController() : m_speed(0), m_csv(nullptr), m_collect(false) {}
 
 ChSpeedController::~ChSpeedController() {
     delete m_csv;
@@ -62,31 +42,14 @@ void ChSpeedController::Reset(const ChFrameMoving<>& ref_frame) {
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
+
+    OnReset(ref_frame);
 }
 
 double ChSpeedController::Advance(const ChFrameMoving<>& ref_frame, double target_speed, double time, double step) {
-    // Current vehicle speed.
     m_speed = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX());
-
-    // If data collection is enabled, append current target and sentinel locations.
-    if (m_collect) {
-        *m_csv << time << target_speed << m_speed << std::endl;
-    }
-
-    // Calculate current error.
-    double err = target_speed - m_speed;
-
-    // Estimate error derivative (backward FD approximation).
-    m_errd = (err - m_err) / step;
-
-    // Calculate current error integral (trapezoidal rule).
-    m_erri += (err + m_err) * step / 2;
-
-    // Cache new error
-    m_err = err;
-
-    // Return PID output (steering value)
-    return m_Kp * m_err + m_Ki * m_erri + m_Kd * m_errd;
+    double speed = OnAdvance(ref_frame, target_speed, time, step);
+    return speed;
 }
 
 void ChSpeedController::StartDataCollection() {
@@ -112,6 +75,55 @@ void ChSpeedController::WriteOutputFile(const std::string& filename) {
     // Do nothing if data collection was never enabled.
     if (m_csv)
         m_csv->WriteToFile(filename);
+}
+
+// -----------------------------------------------------------------------------
+// Implementation of the class ChSpeedControllerPID
+// -----------------------------------------------------------------------------
+ChSpeedControllerPID::ChSpeedControllerPID() {
+    // Default PID controller gains all zero (no control).
+    SetGains(0, 0, 0);
+}
+
+ChSpeedControllerPID::ChSpeedControllerPID(const std::string& filename) {
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return;
+
+    m_Kp = d["Gains"]["Kp"].GetDouble();
+    m_Ki = d["Gains"]["Ki"].GetDouble();
+    m_Kd = d["Gains"]["Kd"].GetDouble();
+
+    std::cout << "Loaded JSON " << filename << std::endl;
+}
+
+ChSpeedControllerPID::~ChSpeedControllerPID() {
+    delete m_csv;
+}
+
+void ChSpeedControllerPID::OnReset(const ChFrameMoving<>& ref_frame) {}
+
+double ChSpeedControllerPID::OnAdvance(const ChFrameMoving<>& ref_frame, double target_speed, double time, double step) {
+    // If data collection is enabled, append current target and sentinel locations.
+    if (m_collect) {
+        *m_csv << time << target_speed << m_speed << std::endl;
+    }
+
+    // Calculate current error.
+    double err = target_speed - m_speed;
+
+    // Estimate error derivative (backward FD approximation).
+    m_errd = (err - m_err) / step;
+
+    // Calculate current error integral (trapezoidal rule).
+    m_erri += (err + m_err) * step / 2;
+
+    // Cache new error
+    m_err = err;
+
+    // Return PID output (speed value)
+    return m_Kp * m_err + m_Ki * m_erri + m_Kd * m_errd;
 }
 
 }  // end namespace vehicle

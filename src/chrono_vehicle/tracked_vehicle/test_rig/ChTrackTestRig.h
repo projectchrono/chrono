@@ -139,9 +139,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Return estimated resistive torque on the specified sprocket.
     /// This torque is available only if monitoring of contacts for that sprocket is enabled.
-    ChVector3d GetSprocketResistiveTorque(VehicleSide side) const {
-        return m_contact_manager->GetSprocketResistiveTorque(side);
-    }
+    ChVector3d GetSprocketResistiveTorque(VehicleSide side) const { return m_contact_manager->GetSprocketResistiveTorque(side); }
 
     /// Write contact information to file.
     /// If data collection was enabled and at least one subsystem is monitored,
@@ -194,12 +192,13 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     void Create(bool create_track, bool detracking_control);
 
     // Utility function to add visualization to post bodies.
-    void AddPostVisualization(std::shared_ptr<ChBody> post_body,
-                              std::shared_ptr<ChBody> chassis_body,
-                              const ChColor& color);
+    void AddPostVisualization(std::shared_ptr<ChBody> post_body, std::shared_ptr<ChBody> chassis_body, const ChColor& color);
 
-    /// Output data for all modeling components in the track test rig system.
-    virtual void Output(int frame, ChOutput& database) const override;
+    /// Initialize output for the track test rig system.
+    virtual void InitializeOutput() override;
+
+    /// Write output data for all modeling components in the track test rig system to the output database with given name.
+    virtual void WriteOutput(int frame, double time) const override;
 
     /// Collect data for plotting
     void CollectPlotData(double time);

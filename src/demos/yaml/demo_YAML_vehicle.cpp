@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
         parser.SetOutputDir(out_dir);
 
         double out_step = 1.0 / parser.GetOutputFPS();
-        vehicle->SetOutput(parser.GetOutputType(), parser.GetOutputMode(), out_dir, model_name, out_step);
+        vehicle->SetOutput(parser.GetOutputFormat(), parser.GetOutputMode(), out_dir, model_name, out_step);
     }
 
     // Simulation loop

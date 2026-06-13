@@ -161,11 +161,11 @@ void ChTranslationalIdler::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 
 void ChTranslationalIdler::PopulateComponentList() {
-    m_bodies.push_back(m_carrier);
+    m_components.bodies.push_back(m_carrier);
 
-    m_joints.push_back(m_prismatic);
+    m_components.joints.push_back(m_prismatic);
 
-    m_tsdas.push_back(m_tensioner);
+    m_components.tsdas.push_back(m_tensioner);
 }
 
 }  // end namespace vehicle

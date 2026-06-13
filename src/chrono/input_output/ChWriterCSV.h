@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// General output to a Comma - Separated Values ASCII file.
+// General output to a Comma Separated Values ASCII file.
 //
 // =============================================================================
 
