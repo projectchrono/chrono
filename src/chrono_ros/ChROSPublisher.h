@@ -22,6 +22,7 @@
 #define CH_ROS_PUBLISHER_H
 
 #include "chrono_ros/ChApiROS.h"
+#include <cstdint>
 #include "chrono_ros/ChROSMessage.h"
 #include "chrono_ros/ChROSQoS.h"
 

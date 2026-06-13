@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono_ros/core/transport/ChROSSharedMemory.h"
+#include <cstdint>
 
 #include <atomic>
 #include <cstring>
