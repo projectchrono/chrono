@@ -164,6 +164,18 @@ endif()
 mark_as_advanced(FORCE CH_COMPILER)
 
 #-----------------------------------------------------------------------------
+# GCC 13+ / recent libstdc++ no longer transitively include <cstdint>, so
+# sources that use fixed-width integer types (uint8_t, etc.) without including
+# it directly fail to compile. Force-include <cstdint> for C++ sources on
+# GCC/Clang so Chrono builds on modern toolchains. Scoped to CXX so device
+# (CUDA/HIP) compilation is unaffected.
+#-----------------------------------------------------------------------------
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-include> $<$<COMPILE_LANGUAGE:CXX>:cstdint>)
+endif()
+
+#-----------------------------------------------------------------------------
 # Specify locations of executables and libraries
 #-----------------------------------------------------------------------------
 
