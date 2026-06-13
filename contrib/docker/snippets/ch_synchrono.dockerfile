@@ -71,7 +71,17 @@ RUN env -i HOME="${USERHOME}" PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/us
     rm -rf "$TMPDIR" '
 
 # Update CMake options
+# SynChrono uses the MPI backend here: this image also enables Chrono::ROS,
+# and the standalone Fast-DDS 2.4.0 built above conflicts at configure time
+# with the Fast-DDS 3.x that ROS Lyrical brings in (shared imported target
+# eProsima_atomic). The DDS backend stays off until SynChrono is ported to
+# ROS's Fast-DDS version. To re-enable it (e.g. a ROS-free image), uncomment
+# the Fast-DDS options below (the *_DIR pins give them highest find_package
+# priority so they win over the ROS-bundled copies).
 ENV CMAKE_OPTIONS="${CMAKE_OPTIONS} \
-    -DCH_ENABLE_MODULE_SYNCHRONO=ON \
-    -DCH_USE_SYNCHRONO_FASTDDS=ON \
-    -DFastDDS_ROOT=${FASTDDS_INSTALL_DIR}"
+    -DCH_ENABLE_MODULE_SYNCHRONO=ON"
+#   -DCH_USE_SYNCHRONO_FASTDDS=ON \
+#   -DFastDDS_ROOT=${FASTDDS_INSTALL_DIR} \
+#   -Dfastrtps_DIR=${FASTDDS_INSTALL_DIR}/share/fastrtps/cmake \
+#   -Dfastcdr_DIR=${FASTDDS_INSTALL_DIR}/share/fastcdr/cmake \
+#   -Dfoonathan_memory_DIR=${FASTDDS_INSTALL_DIR}/lib/foonathan_memory/cmake
