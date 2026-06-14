@@ -19,22 +19,7 @@
 #ifndef CH_OUTPUT_H
 #define CH_OUTPUT_H
 
-#include <vector>
-#include <string>
-
-#include "chrono/core/ChApiCE.h"
-
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChMarker.h"
-#include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChLink.h"
-#include "chrono/physics/ChShaftsCouple.h"
-#include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRSDA.h"
-#include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChLinkMotorLinear.h"
-#include "chrono/physics/ChLinkMotorRotation.h"
+#include "chrono/physics/ChAssembly.h"
 
 namespace chrono {
 
@@ -44,8 +29,9 @@ namespace chrono {
 /// Base class for a Chrono output database.
 class ChApi ChOutput {
   public:
-    /// Output type. Currently supported options are ASCII and HDF5.
-    enum class Type {
+    /// Output database type.
+    /// Currently supported options are ASCII and HDF5.
+    enum class Format {
         ASCII,  ///< ASCII text
         HDF5,   ///< HDF-5
         NONE    ///< no output
@@ -57,17 +43,28 @@ class ChApi ChOutput {
     /// - SERIES: output is organized by model components, each of them containing time-series for their various output quantities;
     ///           suitable for plotting results.
     enum class Mode {
-      FRAMES,  ///< organize output on a frame-by-frame basis
-      SERIES   ///< organize output on component-by-component basis
+        FRAMES,  ///< organize output on a frame-by-frame basis
+        SERIES   ///< organize output on component-by-component basis
     };
 
-    ChOutput() {}
     virtual ~ChOutput() {}
 
-    virtual void Initialize() = 0;
+    void Write(int frame, double time, const ChAssembly::Components& components);
+    void Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components);
 
-    virtual void WriteTime(int frame, double time) = 0;
-    virtual void WriteSection(const std::string& name) = 0;
+    static std::string GetFormatAsString(Format type);
+
+    static std::string GetModeAsString(Mode mode);
+
+  protected:
+    ChOutput(Mode mode);
+
+    Mode m_mode;  ///< output mode
+
+  protected:
+    // Functions for Mode::FRAMES
+
+    virtual void WriteTimeStamp(int frame, double time) = 0;
     virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
@@ -79,27 +76,54 @@ class ChApi ChOutput {
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
 
-    static std::string GetOutputTypeAsString(Type type) {
-        switch (type) {
-            case Type::NONE:
-                return "NONE";
-            case Type::ASCII:
-                return "ASCII";
-            case Type::HDF5:
-                return "HDF5";
-        }
-        return "NONE";
-    }
+  protected:
+    // Data and functions for Mode::SERIES
 
-    static std::string GetOutputModeAsString(Mode mode) {
-        switch (mode) {
-            case Mode::FRAMES:
-                return "FRAMES";
-            case Mode::SERIES:
-                return "SERIES";
-        }
-        return "FRAMES";
-    }
+    struct BodyBuffers {
+        std::string name;             ///< body name
+        std::vector<double> pos;      ///< REF position
+        std::vector<double> rot;      ///< REF orientation (Tait-Bryan extrinsic X-Y-Z angles)
+        std::vector<double> lin_vel;  ///< REF linear velocity
+        std::vector<double> ang_vel;  ///< REF angular velocity
+    };
+
+    struct ShaftBuffers {
+        std::string name;         ///< shaft name
+        std::vector<double> pos;  ///< position or angle
+        std::vector<double> vel;  ///< linear or angular velocity
+    };
+
+    struct JointBuffers {
+        std::string name;             ///< joint name
+        std::vector<double> force1;   ///< reaction force on body 1
+        std::vector<double> torque1;  ///< reaction torque on body 1
+        std::vector<double> force2;   ///< reaction force on body 2
+        std::vector<double> torque2;  ///< reaction torque on body 2
+    };
+
+    struct TSDABuffers {
+        std::string name;            ///< TSDA name
+        std::vector<double> point1;  ///< position of point 1
+        std::vector<double> point2;  ///< position of point 2
+        std::vector<double> len;     ///< length
+        std::vector<double> vel;     ///< linear velocity
+        std::vector<double> force;   ///< force
+    };
+
+    struct RSDABuffers {
+        std::string name;            ///< RSDA name
+        std::vector<double> ang;     ///< angle
+        std::vector<double> vel;     ///< angular velocity
+        std::vector<double> torque;  ///< torque
+    };
+
+    bool m_buf_allocated;                   ///< buffers allocated?
+    std::vector<double> m_time;             ///< time series
+    std::vector<BodyBuffers> m_body_buf;    ///< body buffers
+    std::vector<ShaftBuffers> m_shaft_buf;  ///< shaft buffers
+    std::vector<JointBuffers> m_joint_buf;  ///< joint buffers
+    std::vector<TSDABuffers> m_tsda_buf;    ///< TSDA buffers
+    std::vector<RSDABuffers> m_rsda_buf;    ///< RSDA buffers
 };
 
 /// @} chrono_io

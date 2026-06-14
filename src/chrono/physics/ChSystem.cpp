@@ -2038,57 +2038,39 @@ bool ChSystem::DoStaticRelaxing(double step_size, int num_iterations) {
 
 // -----------------------------------------------------------------------------
 
-void ChSystem::Output(int frame, ChOutput& database) const {
-    std::vector<std::shared_ptr<ChBody>> bodies;
-    std::vector<std::shared_ptr<ChBodyAuxRef>> bodies_aux;
-    for (auto& b : GetBodies()) {
-        if (auto b_aux = std::dynamic_pointer_cast<ChBodyAuxRef>(b))
-            bodies_aux.push_back(b_aux);
-        else
-            bodies.push_back(b);
-    }
+void ChSystem::WriteOutput(int frame, ChOutput& database) const {
+    ChAssembly::Components components;
 
-    std::vector<std::shared_ptr<ChLink>> joints;
-    std::vector<std::shared_ptr<ChLinkTSDA>> tsdas;
-    std::vector<std::shared_ptr<ChLinkRSDA>> rsdas;
-    std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
-    std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
+    for (auto& b : GetBodies())
+        components.bodies.push_back(b);
+
+    components.shafts = GetShafts();
+
     for (auto& l : GetLinks()) {
         if (auto t = std::dynamic_pointer_cast<ChLinkTSDA>(l))
-            tsdas.push_back(t);
+            components.tsdas.push_back(t);
         else if (auto r = std::dynamic_pointer_cast<ChLinkRSDA>(l))
-            rsdas.push_back(r);
+            components.rsdas.push_back(r);
         else if (auto lm = std::dynamic_pointer_cast<ChLinkMotorLinear>(l))
-            lin_motors.push_back(lm);
+            components.lin_motors.push_back(lm);
         else if (auto rm = std::dynamic_pointer_cast<ChLinkMotorRotation>(l))
-            rot_motors.push_back(rm);
+            components.rot_motors.push_back(rm);
         else if (auto j = std::dynamic_pointer_cast<ChLink>(l))
-            joints.push_back(j);
+            components.joints.push_back(j);
     }
 
-    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
-    std::vector<std::shared_ptr<ChLoadBodyBody>> body_loads;
     for (auto& i : GetOtherPhysicsItems()) {
         if (auto c = std::dynamic_pointer_cast<ChShaftsCouple>(i))
-            couples.push_back(c);
+            components.couples.push_back(c);
         if (auto lc = std::dynamic_pointer_cast<ChLoadContainer>(i)) {
             for (auto& l : lc->GetLoadList()) {
                 if (auto bl = std::dynamic_pointer_cast<ChLoadBodyBody>(l))
-                    body_loads.push_back(bl);
+                    components.bushings.push_back(bl);
             }
         }
     }
 
-    database.WriteTime(frame, GetChTime());
-    database.WriteBodies(bodies);
-    database.WriteShafts(GetShafts());
-    database.WriteJoints(joints);
-    database.WriteCouples(couples);
-    database.WriteLinSprings(tsdas);
-    database.WriteRotSprings(rsdas);
-    database.WriteBodyBodyLoads(body_loads);
-    database.WriteLinMotors(lin_motors);
-    database.WriteRotMotors(rot_motors);
+    database.Write(frame, GetChTime(), components);
 }
 
 // -----------------------------------------------------------------------------

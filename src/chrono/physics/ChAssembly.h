@@ -20,7 +20,12 @@
 
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChLinksAll.h"
+#include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLinkMotorLinear.h"
+#include "chrono/physics/ChLinkMotorRotation.h"
 
 #ifdef CHRONO_FEA
     #include "chrono/fea/ChMesh.h"
@@ -349,6 +354,25 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Implemented as a friend (as opposed to a member function) so classes with a ChAssembly member can use ADL when
     /// implementing their own swap.
     friend ChApi void swap(ChAssembly& first, ChAssembly& second);
+
+  public:
+    /// List of assembly components.
+    struct Components {
+        std::vector<std::shared_ptr<ChBody>> bodies;
+        std::vector<std::shared_ptr<ChShaft>> shafts;
+        std::vector<std::shared_ptr<ChLink>> joints;
+        std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
+        std::vector<std::shared_ptr<ChShaftsCouple>> couples;
+        std::vector<std::shared_ptr<ChLink>> constraints;
+        std::vector<std::shared_ptr<ChShaftBodyRotation>> shaft_body_rot;
+        std::vector<std::shared_ptr<ChShaftBodyTranslation>> shaft_body_trans;
+        std::vector<std::shared_ptr<ChMarker>> markers;
+        std::vector<std::shared_ptr<ChLinkTSDA>> tsdas;
+        std::vector<std::shared_ptr<ChLinkRSDA>> rsdas;
+        std::vector<std::shared_ptr<ChLoadCustom>> loads;
+        std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
+        std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
+    };
 
   protected:
     virtual void SetupInitial() override;

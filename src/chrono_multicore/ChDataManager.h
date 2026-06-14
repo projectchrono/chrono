@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <Eigen/Core>
 #include <memory>
 
 #include "chrono/physics/ChContactContainer.h"
@@ -32,20 +33,13 @@
 #include "chrono_multicore/ChMeasures.h"
 
 // ATTENTION: It is important for these to be included after sse.h!
-// Blaze Includes
-#include <blaze/system/Version.h>
-#include <blaze/math/CompressedMatrix.h>
-#include <blaze/math/DynamicVector.h>
-#if BLAZE_MAJOR_VERSION == 2
-    #include <blaze/math/DenseSubvector.h>
-#elif BLAZE_MAJOR_VERSION == 3
-    #include <blaze/math/Subvector.h>
-#endif
+// Eigen Includes
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 
-using blaze::CompressedMatrix;
-using blaze::DynamicVector;
-using blaze::Submatrix;
-using blaze::Subvector;
+using Eigen::SparseMatrix;
+using Eigen::Matrix;
+using Eigen::VectorBlock;
 using custom_vector;
 
 namespace chrono {
@@ -65,17 +59,11 @@ class ChConstraintRigidRigid;
 class ChConstraintBilateral;
 class ChContactMaterialCompositionStrategy;
 
-#if BLAZE_MAJOR_VERSION == 2
-typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
-typedef blaze::DenseSubvector<DynamicVector<real>> SubVectorType;
-typedef blaze::SparseSubmatrix<const CompressedMatrix<real>> ConstSubMatrixType;
-typedef blaze::DenseSubvector<const DynamicVector<real>> ConstSubVectorType;
-#elif BLAZE_MAJOR_VERSION == 3
-typedef blaze::Submatrix<CompressedMatrix<real>> SubMatrixType;
-typedef blaze::Subvector<DynamicVector<real>> SubVectorType;
-typedef blaze::Submatrix<const CompressedMatrix<real>> ConstSubMatrixType;
-typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
-#endif
+using SparseMatrixType = SparseMatrix<real, Eigen::RowMajor>;
+using VectorType = Matrix<real, Eigen::Dynamic, 1>;
+
+using SubVectorType = VectorBlock<VectorType>;
+using ConstSubVectorType = VectorBlock<const VectorType>;
 
 // These defines are used in the submatrix calls below to keep them concise
 // They aren't names to be easy to understand, but for length
@@ -111,72 +99,89 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _E_ data_manager->host_data.E
 #define _gamma_ data_manager->host_data.gamma
 
-#define _DN_ submatrix(_D_, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
-#define _DT_ submatrix(_D_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
-#define _DS_ submatrix(_D_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
+#define _DN_ (_D_).middleCols(0, 1 * _num_r_c_).topRows(_num_rigid_dof_).eval()
+#define _DT_ (_D_).middleCols(_num_r_c_, 2 * _num_r_c_).topRows(_num_rigid_dof_).eval()
+#define _DS_ (_D_).middleCols(3 * _num_r_c_, 3 * _num_r_c_).topRows(_num_rigid_dof_).eval()
 // D Bilateral
-#define _DB_ submatrix(_D_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_bil_)
+#define _DB_ (_D_) \
+    .middleCols(_num_uni_, _num_bil_) \
+    .topRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_) \
+    .eval()
 // D Rigid Particle
-#define _DRFN_ submatrix(_D_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
-#define _DRFT_ submatrix(_D_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
-// D fluid density
-#define _DFFD_                                                                                                  \
-    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
-              _num_particle_dof_, _num_particles_)
-// D fluid viscosity
-#define _DFFV_                                                          \
-    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
-              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, _num_particle_dof_, 3 * _num_particles_)
+#define _DRFN_ (_D_).middleCols(_num_uni_ + _num_bil_, _num_rf_c_).topRows(_num_dof_).eval()
+#define _DRFT_ (_D_) \
+    .middleCols(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_) \
+    .topRows(_num_dof_) \
+    .eval()
+// D Fluid Density
+#define _DFFD_ (_D_) \
+    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_) \
+    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
+    .eval()
+// D Fluid Viscosity
+#define _DFFV_ (_D_) \
+    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
+    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
+    .eval()
 //======
-#define _MINVDN_ submatrix(_M_invD_, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
-#define _MINVDT_ submatrix(_M_invD_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
-#define _MINVDS_ submatrix(_M_invD_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
+#define _MINVDN_ (_M_invD_).middleCols(0, 1 * _num_r_c_).topRows(_num_rigid_dof_).eval()
+#define _MINVDT_ (_M_invD_).middleCols(_num_r_c_, 2 * _num_r_c_).topRows(_num_rigid_dof_).eval()
+#define _MINVDS_ (_M_invD_).middleCols(3 * _num_r_c_, 3 * _num_r_c_).topRows(_num_rigid_dof_).eval()
 // Bilateral
-#define _MINVDB_ submatrix(_M_invD_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_bil_)
+#define _MINVDB_ (_M_invD_) \
+    .middleCols(_num_uni_, _num_bil_) \
+    .topRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_) \
+    .eval()
 // Rigid Particle
-#define _MINVDRFN_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
-#define _MINVDRFT_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
+#define _MINVDRFN_ (_M_invD_).middleCols(_num_uni_ + _num_bil_, _num_rf_c_).topRows(_num_dof_).eval()
+#define _MINVDRFT_ (_M_invD_) \
+    .middleCols(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_) \
+    .topRows(_num_dof_) \
+    .eval()
 // Density
-#define _MINVDFFD_                                                                                                   \
-    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
-              _num_particle_dof_, _num_particles_)
+#define _MINVDFFD_ (_M_invD_) \
+    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_) \
+    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
+    .eval()
 // Viscosity
-#define _MINVDFFV_                                                           \
-    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
-              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, _num_particle_dof_, 3 * _num_particles_)
+#define _MINVDFFV_ (_M_invD_) \
+    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
+    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
+    .eval()
 //======
-#define _DNT_ submatrix(_D_T_, 0, 0, _num_r_c_, _num_rigid_dof_)
-#define _DTT_ submatrix(_D_T_, _num_r_c_, 0, 2 * _num_r_c_, _num_rigid_dof_)
-#define _DST_ submatrix(_D_T_, 3 * _num_r_c_, 0, 3 * _num_r_c_, _num_rigid_dof_)
-// Bilateral
-#define _DBT_ submatrix(_D_T_, _num_uni_, 0, _num_bil_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_)
-// Rigid Particle
-#define _DRFNT_ submatrix(_D_T_, _num_uni_ + _num_bil_, 0, _num_rf_c_, _num_dof_)
-#define _DRFTT_ submatrix(_D_T_, _num_uni_ + _num_bil_ + _num_rf_c_, 0, 2 * _num_rf_c_, _num_dof_)
-// Density
-#define _DFFDT_                                                                                                   \
-    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
-              _num_particles_, _num_particle_dof_)
-// Viscosity
-#define _DFFVT_                                                                \
-    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, \
-              _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, 3 * _num_particles_, _num_particle_dof_)
+#define _DNT_ (_D_T_).middleRows(0, _num_r_c_)
+#define _DTT_ (_D_T_).middleRows(_num_r_c_, 2 * _num_r_c_)
+#define _DST_ (_D_T_).middleRows(3 * _num_r_c_, 3 * _num_r_c_)
+#define _DBT_ (_D_T_) \
+    .middleRows(_num_uni_, _num_bil_) \
+    .leftCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_) \
+    .eval()
+#define _DRFNT_ (_D_T_).middleRows(_num_uni_ + _num_bil_, _num_rf_c_)
+#define _DRFTT_ (_D_T_).middleRows(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
+#define _DFFDT_ (_D_T_) \
+    .middleRows(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_) \
+    .middleCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
+    .eval()
+#define _DFFVT_ (_D_T_) \
+    .middleRows(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
+    .middleCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
+    .eval()
 //======
-#define _EN_ subvector(_E_, 0, _num_r_c_)
-#define _ET_ subvector(_E_, _num_r_c_, 2 * _num_r_c_)
-#define _ES_ subvector(_E_, 3 * _num_r_c_, 3 * _num_r_c_)
+#define _EN_   (_E_).segment(0, _num_r_c_)
+#define _ET_   (_E_).segment(_num_r_c_, 2 * _num_r_c_)
+#define _ES_   (_E_).segment(3 * _num_r_c_, 3 * _num_r_c_)
 // Bilateral
-#define _EB_ subvector(_E_, _num_uni_, _num_bil_)
+#define _EB_   (_E_).segment(_num_uni_, _num_bil_)
 // Rigid Particle
-#define _ERFN_ subvector(_E_, _num_uni_ + _num_bil_, _num_rf_c_)
-#define _ERFT_ subvector(_E_, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
+#define _ERFN_ (_E_).segment(_num_uni_ + _num_bil_, _num_rf_c_)
+#define _ERFT_ (_E_).segment(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
 // Density
-#define _EFFD_ subvector(_E_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_)
+#define _EFFD_ (_E_).segment(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_)
 // Viscosity
-#define _EFFV_ subvector(_E_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_)
+#define _EFFV_ (_E_).segment(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_)
 
 ////======
-// #define _GAMMAN_ subvector(_gamma_, 0, _num_r_c_)
+// #define _GAMMAN_ (_gamma_).segment(0, _num_r_c_)
 // #define _GAMMAT_ submatrix(_gamma_, _num_r_c_, 2 * _num_r_c_)
 // #define _GAMMAS_ submatrix(_gamma_, 3 * _num_r_c_, 3 * _num_r_c_)
 //// Bilateral
@@ -273,31 +278,31 @@ struct host_container {
     custom_vector<float> cohesion;          ///< constant cohesion forces
 
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
-    CompressedMatrix<real> Nschur;
+    SparseMatrixType Nschur;
     /// The D Matrix hold the Jacobian for the entire system.
-    CompressedMatrix<real> D;
+    SparseMatrixType D;
     /// D_T is the transpose of the D matrix, note that D_T is actually computed
     /// first and D is taken as the transpose. This is due to the way that blaze
     /// handles sparse matrix allocation, it is easier to do it on a per row basis.
-    CompressedMatrix<real> D_T;
+    SparseMatrixType D_T;
     /// Mass matrix; if holding the full inertia tensor, M is block diagonal.
-    CompressedMatrix<real> M;
+    SparseMatrixType M;
     /// M_inv is the inverse mass matrix; if holding the full inertia tensor, M_inv is block diagonal.
-    CompressedMatrix<real> M_inv;
+    SparseMatrixType M_inv;
     /// M_invD holds M_inv multiplied by D. This is done as a preprocessing step
     /// so that later, when the full matrix vector product is needed it can be
     /// performed in two steps, first R = Minv_D*x, and then D_T*R where R is just
     /// a temporary variable used here for illustrative purposes. In reality the
     /// entire operation happens inline without a temp variable.
-    CompressedMatrix<real> M_invD;
+    SparseMatrixType M_invD;
 
-    DynamicVector<real> R_full;  ///< The right hand side of the system
-    DynamicVector<real> R;       ///< The rhs of the system, changes during solve
-    DynamicVector<real> b;       ///< Correction terms
-    DynamicVector<real> s;
-    DynamicVector<real> M_invk;  ///< Result of M_inv multiplied by vector of forces
-    DynamicVector<real> v;       ///< This vector holds the velocities for all objects
-    DynamicVector<real> hf;      ///< This vector holds h*forces, h is time step
+    VectorType R_full;  ///< The right hand side of the system
+    VectorType R;       ///< The rhs of the system, changes during solve
+    VectorType b;       ///< Correction terms
+    VectorType s;
+    VectorType M_invk;  ///< Result of M_inv multiplied by vector of forces
+    VectorType v;       ///< This vector holds the velocities for all objects
+    VectorType hf;      ///< This vector holds h*forces, h is time step
 
     /// Contact impulses. These are the unknowns solved for in the NSC formulation.
     /// Depending on the selected SolverMode, gamma is organized as follows (N is the number of rigid contacts):
@@ -309,13 +314,13 @@ struct host_container {
     ///     n1 n2 ... nN | u1 v1 u2 v2 ... uN vN | tn1 tu1 tv1 tn2 tu2 tv2 ... tnN tuN tvN
     ///
     /// If there are any bilateral constraints, the corresponding impulses are stored at the end of `gamma`.
-    DynamicVector<real> gamma;
+    VectorType gamma;
 
     /// Compliance matrix elements.
     /// Note that E is a diagonal matrix and hence stored in a vector.
-    DynamicVector<real> E;
+    VectorType E;
 
-    DynamicVector<real> Fc;  ///< Contact forces (NSC)
+    VectorType Fc;  ///< Contact forces (NSC)
 };
 
 /// Global data manager for Chrono::Multicore.
@@ -369,15 +374,15 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     /// User-provided callback for overriding composite material properties.
     std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;
 
-    /// Output a vector (one dimensional matrix) from blaze to a file.
-    int OutputBlazeVector(DynamicVector<real> src, std::string filename);
-    /// Output a sparse blaze matrix to a file.
-    int OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename);
+    /// Output a vector (one dimensional matrix) from eigen to a file.
+    int OutputEigenVector(VectorType src, std::string filename);
+    /// Output a sparse eigen matrix to a file.
+    int OutputEigenMatrix(SparseMatrixType src, std::string filename);
     /// Utility debugging function that outputs all of the data associated for a system.
     int ExportCurrentSystem(std::string output_dir);
 
-    /// Print a sparse blaze matrix.
-    void PrintMatrix(CompressedMatrix<real> src);
+    /// Print a sparse eigen matrix.
+    void PrintMatrix(SparseMatrixType src);
 };
 
 /// @} multicore_module

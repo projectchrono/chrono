@@ -95,8 +95,7 @@ void calculateDirectionsMesh1D(FsiDataManager& data_mgr) {
 
     thrust::equal_to<int> binary_pred;
     add_dir binary_op;
-    thrust::reduce_by_key(key.begin(), key.end(), ext_dir.begin(), out_key.begin(), dir.begin(), binary_pred,
-                          binary_op);
+    thrust::reduce_by_key(key.begin(), key.end(), ext_dir.begin(), out_key.begin(), dir.begin(), binary_pred, binary_op);
 
     normalize_dir unary_op;
     thrust::transform(dir.begin(), dir.end(), dir.begin(), unary_op);
@@ -122,8 +121,7 @@ void calculateDirectionsMesh2D(FsiDataManager& data_mgr) {
 
     thrust::equal_to<int> binary_pred;
     add_dir binary_op;
-    thrust::reduce_by_key(key.begin(), key.end(), ext_dir.begin(), out_key.begin(), dir.begin(), binary_pred,
-                          binary_op);
+    thrust::reduce_by_key(key.begin(), key.end(), ext_dir.begin(), out_key.begin(), dir.begin(), binary_pred, binary_op);
 
     normalize_dir unary_op;
     thrust::transform(dir.begin(), dir.end(), dir.begin(), unary_op);

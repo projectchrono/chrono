@@ -20,8 +20,8 @@ uint ChSolverMulticoreMinRes::Solve(ChSchurProduct& SchurProduct,
                                     ChProjectConstraints& Project,
                                     const uint max_iter,
                                     const uint size,
-                                    const DynamicVector<real>& mb,
-                                    DynamicVector<real>& x) {
+                                    const VectorType& mb,
+                                    VectorType& x) {
     if (size == 0) {
         return 0;
     }
@@ -33,20 +33,20 @@ uint ChSolverMulticoreMinRes::Solve(ChSchurProduct& SchurProduct,
     v.resize(N);
     v_hat.resize(x.size());
     w.resize(N);
-    w = 0;
+    w.setZero();
     Av.resize(x.size());
 
     real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1, r2, r3;
     SchurProduct(x, v_hat);
     v_hat = mb - v_hat;
-    beta = std::sqrt((v_hat, v_hat));
+    beta = v_hat.norm();
     w_old = w;
     eta = beta;
     xMR = x;
     norm_rMR = beta;
     norm_r0 = beta;
-    v = 0;
-    w = 0;
+    v.setZero();
+    w.setZero();
 
     if (beta == 0 || norm_rMR / norm_r0 < data_manager->settings.solver.tol_speed) {
         return 0;
@@ -57,13 +57,13 @@ uint ChSolverMulticoreMinRes::Solve(ChSchurProduct& SchurProduct,
         v_old = v;
         v = 1.0 / beta * v_hat;
         SchurProduct(v, Av);
-        alpha = (v, Av);
+        alpha = v.dot(Av);
         ////v_hat = Av - alpha * v - beta * v_old;
         v_hat = Av - alpha * v;
         v_hat -= beta * v_old;
 
         beta_old = beta;
-        beta = std::sqrt((v_hat, v_hat));
+        beta = v_hat.norm();
 
         // QR factorization
         c_oold = c_old;

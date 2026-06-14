@@ -132,7 +132,7 @@ double ChChassis::GetTurnRate() const {
 }
 
 void ChChassis::PopulateComponentList() {
-    m_bodies.push_back(m_body);
+    m_components.bodies.push_back(m_body);
 }
 
 void ChChassis::Initialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family) {
@@ -188,7 +188,7 @@ void ChChassis::AddMarker(const std::string& name, const ChFrame<>& frame) {
     marker->SetName(m_name + " " + name);
     marker->ImposeRelativeTransform(frame_com);
     m_body->AddMarker(marker);
-    m_markers.push_back(marker);
+    m_components.markers.push_back(marker);
 }
 
 void ChChassis::AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load) {

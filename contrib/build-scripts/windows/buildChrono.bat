@@ -23,7 +23,6 @@ set INSTALL_DIR="C:/Install/chrono"
 
 set EIGEN3_INSTALL_DIR="C:/Packages/eigen"
 
-set BLAZE_ROOT="C:/Packages/blaze"
 set SPECTRA_INCLUDE_DIR="C:/Packages/spectra/include"
 set CRG_INSTALL_DIR="C:/Packages/openCRG"
 
@@ -76,7 +75,6 @@ cmake -G %BUILDSYSTEM% -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -DCH_USE_SYNCHRONO_FASTDDS:BOOL=ON ^
       -DEIGEN3_INCLUDE_DIR:PATH=%EIGEN3_INSTALL_DIR% ^
       -DIrrlicht_ROOT:PATH=%IRRLICHT_ROOT% ^
-      -DBlaze_ROOT:PATH=%BLAZE_ROOT% ^
       -DOptiX_INSTALL_DIR:PATH=%OPTIX_INSTALL_DIR% ^
       -DFastDDS_ROOT:PATH=%FASTDDS_INSTALL_DIR% ^
       -DGLEW_DIR=%GL_INSTALL_DIR%/lib/cmake/glew ^

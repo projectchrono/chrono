@@ -19,11 +19,12 @@
 #define CHFSILINEARSOLVER_H_
 
 #include <ctype.h>
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <typeinfo>
+
+#include "chrono/gpu/ChGpuRuntime.h"
 ////#include "cublas_v2.h"
 ////#include "cusparse_v2.h"
 
@@ -42,11 +43,7 @@ namespace sph {
 class LinearSolver {
   public:
     /// Constructor of the LinearSolver class.
-    LinearSolver(SolverType msolver,
-                      Real mrel_res = 1e-8,
-                      Real mabs_res = 1e-4,
-                      int mmax_iter = 1000,
-                      bool mverbose = false) {
+    LinearSolver(SolverType msolver, Real mrel_res = 1e-8, Real mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false) {
         rel_res = mrel_res;
         abs_res = mabs_res;
         max_iter = mmax_iter;

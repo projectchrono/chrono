@@ -234,11 +234,9 @@ void ChSuspensionTestRig::Initialize() {
             wheel->SetVisualizationType(m_vis_wheel);
             wheel->GetTire()->SetVisualizationType(m_vis_tire);
         }
+
         // Enable output
-        m_vehicle->SetSuspensionOutput(ia, true);
-        if (axle->m_antirollbar) {
-            m_vehicle->SetAntirollbarOutput(ia, true);
-        }
+        m_vehicle->SetAxleOutput(ia, true);
 
         // Initialize reference spindle vertical positions at design configuration.
         m_spindle_ref_L.push_back(axle->m_suspension->GetSpindlePos(LEFT).z());
@@ -415,12 +413,12 @@ void ChSuspensionTestRig::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 
-void ChSuspensionTestRig::SetOutput(ChOutput::Type type,
+void ChSuspensionTestRig::SetOutput(ChOutput::Format format,
                                     ChOutput::Mode mode,
                                     const std::string& out_dir,
                                     const std::string& out_name,
                                     double output_step) {
-    m_vehicle->SetOutput(type, mode, out_dir, out_name, output_step);
+    m_vehicle->SetOutput(format, mode, out_dir, out_name, output_step);
 }
 
 void ChSuspensionTestRig::SetPlotOutput(double output_step) {

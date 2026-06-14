@@ -489,11 +489,11 @@ int main(int argc, char* argv[]) {
     if (create_rigid_post) {
         double length = 0.8;
         double radius = 0.02;
-        auto body = CreateRigidPost(fsi.GetMultibodySystem(), ChVector3d(-csize.x() / 4, 0, 0), length);
+        auto post = CreateRigidPost(fsi.GetMultibodySystem(), ChVector3d(-csize.x() / 4, 0, 0), length);
         auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
         geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
-        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
-        fsi.AddRigidBody(body, geometry, true);
+        geometry->CreateVisualizationAssets(post, VisualizationType::COLLISION);
+        fsi.AddRigidBody(post, geometry, true);
     }
 
 #ifdef CHRONO_FEA

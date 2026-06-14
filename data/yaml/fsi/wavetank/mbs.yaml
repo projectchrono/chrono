@@ -9,7 +9,7 @@ simulation:
   enforce_realtime: true
   
 output:
-  type: NONE
+  format: NONE
   fps: 20
 
 visualization:

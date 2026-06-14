@@ -30,13 +30,14 @@ There are two prerequisites for building the Chrono VSG module:
   To address this issue, we provide a set of scripts (for both Windows and Linux) in the `contrib/build-scripts/vsg` directory of the Chrono source tree.  These scripts allow us to target specific releases of the VSG dependencies (i.e., tags in their respective GitHub repositories) and ensure compatibility with the current Chrono::VSG code.
 
   The current Chrono::VSG module requires the following versions of the VSG and dependent libraries:
-  - [vsg](github.com/vsg-dev/VulkanSceneGraph.git) 1.1.11
-  - [vsgXchange](github.com/vsg-dev/vsgXchange.git) 1.1.7
-  - [vsgExamples](github.com/vsg-dev/vsgExamples.git) 1.1.9
+  - [vsg](github.com/vsg-dev/VulkanSceneGraph.git) 1.1.15
+  - [vsgXchange](github.com/vsg-dev/vsgXchange.git) 1.1.12
+  - [vsgExamples](github.com/vsg-dev/vsgExamples.git) 1.1.13
   - [vsgImGui](github.com/vsg-dev/vsgImGui.git) 0.7.0
-  - [assimp](github.com/assimp/assimp) 5.4.3
+  - [assimp](github.com/assimp/assimp) 6.0.5
   - [draco](github.com/google/draco) 1.5.7
-  - [glslang](github.com/KhronosGroup/glslang.git) 15.4.0
+  - [glslang](github.com/KhronosGroup/glslang.git) 16.1.0
+  - [kts](github.com/KhronosGroup/KTX-Software.git) 4.4.2
 
   Because of this, we **strongly recommend** using the provided VSG build scripts, instead of `vsgFramework`. 
 

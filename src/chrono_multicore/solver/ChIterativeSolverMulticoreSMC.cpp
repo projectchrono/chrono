@@ -746,18 +746,15 @@ void ChIterativeSolverMulticoreSMC::ComputeD() {
     uint num_dof = data_manager->num_dof;
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    if (D_T.capacity() > 0) {
-        clear(D_T);
-    }
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
 
-    D_T.reserve(nnz_bilaterals);
-    D_T.resize(num_constraints, num_dof, false);
+    D_T = SparseMatrixType(num_constraints, num_dof);
+    D_T.reserve(Eigen::VectorXi::Constant(num_constraints, nnz_bilaterals));
 
     data_manager->bilateral->GenerateSparsity();
     data_manager->bilateral->Build_D();
 
-    data_manager->host_data.D = trans(D_T);
+    data_manager->host_data.D = D_T.transpose();
     data_manager->host_data.M_invD = data_manager->host_data.M_inv * data_manager->host_data.D;
 }
 
@@ -767,7 +764,7 @@ void ChIterativeSolverMulticoreSMC::ComputeE() {
     }
 
     data_manager->host_data.E.resize(data_manager->num_constraints);
-    reset(data_manager->host_data.E);
+    data_manager->host_data.E.setZero();
 
     data_manager->bilateral->Build_E();
 }
@@ -778,10 +775,10 @@ void ChIterativeSolverMulticoreSMC::ComputeR() {
     }
 
     data_manager->host_data.b.resize(data_manager->num_constraints);
-    reset(data_manager->host_data.b);
+    data_manager->host_data.b.setZero();
     data_manager->bilateral->Build_b();
 
-    data_manager->host_data.R_full =
+    data_manager->host_data.R_full.noalias() =
         -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
 }
 
@@ -827,7 +824,7 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
 
         // Set the initial guess for the iterative solver to zero.
         data_manager->host_data.gamma.resize(data_manager->num_constraints);
-        data_manager->host_data.gamma.reset();
+        data_manager->host_data.gamma.setZero();
 
         // Compute the jacobian matrix, the compliance matrix and the right hand side
         data_manager->system_timer.start("ChIterativeSolverMulticore_Matrices");
@@ -855,16 +852,16 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
 }
 
 void ChIterativeSolverMulticoreSMC::ComputeImpulses() {
-    DynamicVector<real>& v = data_manager->host_data.v;
-    const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    VectorType& v = data_manager->host_data.v;
+    const VectorType& M_invk = data_manager->host_data.M_invk;
+    const VectorType& gamma = data_manager->host_data.gamma;
 
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
     if (data_manager->num_constraints > 0) {
-        ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-        v = M_invk + data_manager->host_data.M_invD * gamma_b;
+        ConstSubVectorType gamma_b = gamma.segment(num_unilaterals, num_bilaterals);
+        v.noalias() = M_invk + data_manager->host_data.M_invD * gamma_b;
     } else {
         v = M_invk;
     }

@@ -257,12 +257,12 @@ void ChPitmanArm::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 
 void ChPitmanArm::PopulateComponentList() {
-    m_bodies.push_back(m_link);
-    m_bodies.push_back(m_arm);
+    m_components.bodies.push_back(m_link);
+    m_components.bodies.push_back(m_arm);
 
-    m_joints.push_back(m_revolute);
-    m_joints.push_back(m_revsph);
-    m_joints.push_back(m_universal);
+    m_components.joints.push_back(m_revolute);
+    m_components.joints.push_back(m_revsph);
+    m_components.joints.push_back(m_universal);
 }
 
 }  // end namespace vehicle

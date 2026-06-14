@@ -7,8 +7,6 @@ option(CH_ENABLE_MODULE_MULTICORE "Enable the Chrono Multicore module" OFF)
 # Return now if this module is not enabled
 
 if(NOT CH_ENABLE_MODULE_MULTICORE)
-  mark_as_advanced(FORCE blaze_INCLUDE_DIR)
-  mark_as_advanced(FORCE blaze_DIR)
   mark_as_advanced(FORCE CH_USE_MULTICORE_DOUBLE)
   return()
 endif()
@@ -28,23 +26,6 @@ if(NOT CHRONO_THRUST_FOUND)
   set(CH_ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
   return()
 endif()
-
-# Find Blaze
-find_package(Blaze REQUIRED)
-if(blaze_FOUND)
-  message(STATUS "Blaze include dir: ${blaze_INCLUDE_DIR}")
-  mark_as_advanced(FORCE blaze_INCLUDE_DIR)
-  mark_as_advanced(FORCE blaze_DIR)
-else()
-  message("ERROR: Blaze cannot be found. Set either blaze_INCLUDE_DIR to the location of the Blaze headers or provide location of blaze-config.cmake through blaze_DIR.")
-  set(blaze_INCLUDE_DIR "" CACHE PATH "Path to Blaze directory (should contain a subfolder named 'blaze'")
-  set(blaze_DIR "" CACHE PATH "Path to Blaze config file (should contain the 'blaze-config.cmake' file")
-  mark_as_advanced(CLEAR blaze_INCLUDE_DIR)
-  mark_as_advanced(CLEAR blaze_DIR)
-  return()
-endif()
-
-set(blaze_INCLUDE_DIR ${blaze_INCLUDE_DIR} PARENT_SCOPE)
 
 mark_as_advanced(CLEAR CH_USE_MULTICORE_DOUBLE)
 
@@ -105,7 +86,7 @@ set(Chrono_Multicore_PHYSICS
     )
 
 source_group(physics FILES ${Chrono_Multicore_PHYSICS})
-    
+
 set(Chrono_Multicore_SOLVER
     solver/ChIterativeSolverMulticore.h
     solver/ChIterativeSolverMulticore.cpp
@@ -176,7 +157,6 @@ if (CH_STATIC)
 endif()
 
 if(MSVC)
-  # for Blaze, unary minus operator applied to unsigned type, result still unsigned
   target_compile_options(Chrono_multicore PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4146>)
   set_target_properties(Chrono_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
@@ -184,15 +164,16 @@ endif()
 target_link_libraries(Chrono_multicore PRIVATE Chrono_core)
 target_link_libraries(Chrono_multicore PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(Chrono_multicore PUBLIC Thrust::Thrust)
-target_link_libraries(Chrono_multicore PUBLIC blaze::blaze)
 if(BOOST_REQUIRED)
   target_include_directories(Chrono_multicore PRIVATE "${Boost_INCLUDE_DIRS}")
 endif()
 
 target_compile_definitions(Chrono_multicore PRIVATE CH_API_COMPILE_MULTICORE)
 target_compile_definitions(Chrono_multicore PRIVATE BT_THREADSAFE)
+# Prevent Eigen from spawning OpenMP threads inside Chrono's OpenMP regions
+target_compile_definitions(Chrono_multicore PRIVATE EIGEN_DONT_PARALLELIZE)
 
-# ----- Configure Blaze and Thrust -----
+# ----- Configure Thrust -----
 target_compile_definitions(Chrono_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
 target_compile_definitions(Chrono_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")
 
@@ -213,5 +194,3 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         FILES_MATCHING PATTERN "*.h")
 
 # Install files for ChronoConfig (in both build and install trees)
-file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})

@@ -309,20 +309,17 @@ int main() {
         sim_time += sys->GetTimerStep();
 
         auto long_slip = rig.GetLongitudinalSlip();
-        auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
-        auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
+        auto slip_angle = rig.GetSlipAngle();
+        auto camber_angle = rig.GetCamberAngle();
 
-        if (gnuplot_output && time > rig.OutputEnabled()) {
+        if (gnuplot_output && rig.OutputEnabled()) {
             long_slip_fct.AddPoint(time, long_slip);
-            slip_angle_fct.AddPoint(time, slip_angle);
-            camber_angle_fct.AddPoint(time, camber_angle);
+            slip_angle_fct.AddPoint(time, slip_angle * CH_RAD_TO_DEG);
+            camber_angle_fct.AddPoint(time, camber_angle * CH_RAD_TO_DEG);
         }
 
         if (debug_output && rig.OutputEnabled()) {
             cout << time << endl;
-            auto long_slip = rig.GetLongitudinalSlip();
-            auto slip_angle = rig.GetSlipAngle();
-            auto camber_angle = rig.GetCamberAngle();
             cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
             auto tforce = rig.ReportTireForce();
             auto frc = tforce.force;

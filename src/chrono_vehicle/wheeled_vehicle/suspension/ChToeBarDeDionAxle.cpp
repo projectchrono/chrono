@@ -618,33 +618,33 @@ void ChToeBarDeDionAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle
 // -----------------------------------------------------------------------------
 
 void ChToeBarDeDionAxle::PopulateComponentList() {
-    m_bodies.push_back(m_spindle[0]);
-    m_bodies.push_back(m_spindle[1]);
-    m_bodies.push_back(m_axleTube);
-    m_bodies.push_back(m_tierod);
-    m_bodies.push_back(m_draglink);
-    m_bodies.push_back(m_knuckle[0]);
-    m_bodies.push_back(m_knuckle[1]);
+    m_components.bodies.push_back(m_spindle[0]);
+    m_components.bodies.push_back(m_spindle[1]);
+    m_components.bodies.push_back(m_axleTube);
+    m_components.bodies.push_back(m_tierod);
+    m_components.bodies.push_back(m_draglink);
+    m_components.bodies.push_back(m_knuckle[0]);
+    m_components.bodies.push_back(m_knuckle[1]);
 
-    m_shafts.push_back(m_axle[0]);
-    m_shafts.push_back(m_axle[1]);
+    m_components.shafts.push_back(m_axle[0]);
+    m_components.shafts.push_back(m_axle[1]);
 
-    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
-    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
-    m_joints.push_back(m_revolute[0]);
-    m_joints.push_back(m_revolute[1]);
-    m_joints.push_back(m_sphericalKnuckleTierod);
-    m_joints.push_back(m_sphericalDraglinkPitman);
-    m_joints.push_back(m_sphericalDraglinkKnuckle);
-    m_joints.push_back(m_universalTierod);
-    m_joints.push_back(m_revoluteKingpin[0]);
-    m_joints.push_back(m_revoluteKingpin[1]);
+    m_components.joints.push_back(m_revolute[0]);
+    m_components.joints.push_back(m_revolute[1]);
+    m_components.joints.push_back(m_sphericalKnuckleTierod);
+    m_components.joints.push_back(m_sphericalDraglinkPitman);
+    m_components.joints.push_back(m_sphericalDraglinkKnuckle);
+    m_components.joints.push_back(m_universalTierod);
+    m_components.joints.push_back(m_revoluteKingpin[0]);
+    m_components.joints.push_back(m_revoluteKingpin[1]);
 
-    m_tsdas.push_back(m_spring[0]);
-    m_tsdas.push_back(m_spring[1]);
-    m_tsdas.push_back(m_shock[0]);
-    m_tsdas.push_back(m_shock[1]);
+    m_components.tsdas.push_back(m_spring[0]);
+    m_components.tsdas.push_back(m_spring[1]);
+    m_components.tsdas.push_back(m_shock[0]);
+    m_components.tsdas.push_back(m_shock[1]);
 }
 
 }  // end namespace vehicle

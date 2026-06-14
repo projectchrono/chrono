@@ -12,8 +12,8 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
 // =============================================================================
 
-#include "chrono_dem/cuda/ChDem_SMC_trimesh.cuh"
-#include "chrono_dem/cuda/ChDem_SMC.cuh"
+#include "chrono_dem/gpu/ChDemSMC.cuh"
+#include "chrono_dem/gpu/ChDemSMCtrimesh.cuh"
 #include "chrono_dem/physics/ChSystemDemMesh_impl.h"
 #include "chrono_dem/utils/ChDemUtilities.h"
 #if defined(CHRONO_USE_HIP)
@@ -33,12 +33,11 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
     unsigned int numTriangles = meshSoup->nTrianglesInSoup;
-    unsigned int nblocks = (numTriangles + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    determineCountOfSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
-        meshSoup, Triangle_NumSDsTouching.data(), gran_params, tri_params);
+    unsigned int nblocks = (numTriangles + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
+    determineCountOfSDsTouchedByEachTriangle<<<nblocks, GPU_THREADS_PER_BLOCK>>>(meshSoup, Triangle_NumSDsTouching.data(), gran_params, tri_params);
 
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaPeekAtLastError());
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(gpuPeekAtLastError());
 
     // do prefix scan
     size_t temp_storage_bytes = 0;
@@ -46,15 +45,15 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     unsigned int* in_ptr = Triangle_NumSDsTouching.data();
 
     // copy data into the tmp array
-    demErrchk(cudaMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    demErrchk(gpuMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), gpuMemcpyDeviceToDevice));
     demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, numTriangles));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 
     // get pointer to device memory; this memory block will be used internally by CUB, for scratch area
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run exclusive prefix sum
     demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, numTriangles));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     unsigned int numOfTriangleTouchingSD_instances;  // total number of instances in which a triangle touches an SD
     numOfTriangleTouchingSD_instances = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
 
@@ -65,10 +64,9 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     TriangleIDS_ByMultiplicity.resize(numOfTriangleTouchingSD_instances, NULL_CHDEM_ID);
 
     // sort key-value where the key is SD id, value is triangle ID in composite array
-    storeSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
-        meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
-        SDsTouchedByEachTriangle_composite.data(), TriangleIDS_ByMultiplicity.data(), gran_params, tri_params);
-    demErrchk(cudaDeviceSynchronize());
+    storeSDsTouchedByEachTriangle<<<nblocks, GPU_THREADS_PER_BLOCK>>>(meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
+                                                                      SDsTouchedByEachTriangle_composite.data(), TriangleIDS_ByMultiplicity.data(), gran_params, tri_params);
+    demErrchk(gpuDeviceSynchronize());
 
     unsigned int* d_keys_in = SDsTouchedByEachTriangle_composite.data();
     unsigned int* d_keys_out = SDsTouchedByEachTriangle_composite_out.data();
@@ -82,23 +80,20 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // SDs:       23 23 23 89 89  89  89  107 107 107 etc.
     // Triangle:   5  9 17 43 67 108 221    6  12 298 etc.
     // First, determine temporary device storage requirements; pass null, CUB tells us what it needs
-    demErrchk(cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
-                                                   d_values_out, numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in, d_values_out, numOfTriangleTouchingSD_instances));
+    demErrchk(gpuDeviceSynchronize());
 
     // get pointer to device memory; this memory block will be used internally by CUB
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-    demErrchk(cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out,
-                                                   d_values_in, d_values_out,
-                                                   numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in, d_values_out, numOfTriangleTouchingSD_instances));
+    demErrchk(gpuDeviceSynchronize());
 
     // We started with SDs touching a triangle; we just flipped this through the key-value sort. That is, we now
     // know the collection of triangles that touch each SD; SD by SD.
     SD_trianglesInEachSD_composite.resize(TriangleIDS_ByMultiplicity_out.size());
-    demErrchk(cudaDeviceSynchronize());
-    demErrchk(cudaMemcpy(SD_trianglesInEachSD_composite.data(), TriangleIDS_ByMultiplicity_out.data(),
-                         numOfTriangleTouchingSD_instances * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    demErrchk(gpuDeviceSynchronize());
+    demErrchk(
+        gpuMemcpy(SD_trianglesInEachSD_composite.data(), TriangleIDS_ByMultiplicity_out.data(), numOfTriangleTouchingSD_instances * sizeof(unsigned int), gpuMemcpyDeviceToDevice));
 
     // The CUB encode operation below will tell us what SDs are actually touched by triangles, and how many triangles
     // touch each SD.
@@ -109,8 +104,7 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // d_unique_out stores a list of *unique* SDs with the following property: each SD in this list has at least one
     // triangle touching it. In terms of memory, this is pretty wasteful since it's unlikely that all SDs are touched by
     // at least one triangle; perhaps revisit later.
-    unsigned int* d_unique_out =
-        (unsigned int*)stateOfSolver_resources.pDeviceMemoryScratchSpace(nSDs * sizeof(unsigned int));
+    unsigned int* d_unique_out = (unsigned int*)stateOfSolver_resources.pDeviceMemoryScratchSpace(nSDs * sizeof(unsigned int));
     // squatting on SD_TrianglesCompositeOffsets device vector; its size is nSDs. Works in tandem with d_unique_out.
     // If d_unique_out[4]=72, d_counts_out[4] says how many triangles touch SD 72.
     unsigned int* d_counts_out = SD_TrianglesCompositeOffsets.data();
@@ -118,26 +112,22 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // Output value represents the number of SDs that have at last one triangle touching the SD
     unsigned int* d_num_runs_out = Triangle_SDsCompositeOffsets.data();
     // dry run, figure out the number of bytes that will be used in the actual run
-    demErrchk(cub::DeviceRunLengthEncode::Encode(NULL, temp_storage_bytes, d_in, d_unique_out, d_counts_out,
-                                                      d_num_runs_out, numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(cub::DeviceRunLengthEncode::Encode(NULL, temp_storage_bytes, d_in, d_unique_out, d_counts_out, d_num_runs_out, numOfTriangleTouchingSD_instances));
+    demErrchk(gpuDeviceSynchronize());
 
     d_scratch_space = TriangleIDS_ByMultiplicity.data();
     // Run the actual encoding operation
-    demErrchk(cub::DeviceRunLengthEncode::Encode(d_scratch_space, temp_storage_bytes, d_in, d_unique_out,
-                                                      d_counts_out, d_num_runs_out,
-                                                      numOfTriangleTouchingSD_instances));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(cub::DeviceRunLengthEncode::Encode(d_scratch_space, temp_storage_bytes, d_in, d_unique_out, d_counts_out, d_num_runs_out, numOfTriangleTouchingSD_instances));
+    demErrchk(gpuDeviceSynchronize());
 
     // SD_numTrianglesTouching contains only zeros
     // compute offsets in SD_trianglesInEachSD_composite and also counts for how many triangles touch each SD.
     // Start by zeroing out, it's important since not all entries will be touched in
-    demErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, nSDs * sizeof(unsigned int)));
-    nblocks = ((*d_num_runs_out) + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    demErrchk(gpuMemset(SD_numTrianglesTouching.data(), 0, nSDs * sizeof(unsigned int)));
+    nblocks = ((*d_num_runs_out) + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
     if (nblocks > 0) {
-        finalizeSD_numTrianglesTouching<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
-                                                                             SD_numTrianglesTouching.data());
-        demErrchk(cudaDeviceSynchronize());
+        finalizeSD_numTrianglesTouching<<<nblocks, GPU_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out, SD_numTrianglesTouching.data());
+        demErrchk(gpuDeviceSynchronize());
     }
 
     // Now assert that no SD has over max amount of triangles
@@ -146,23 +136,22 @@ __host__ void ChSystemDemMesh_impl::runTriangleBroadphase() {
     // Just borrow the first element of SD_TrianglesCompositeOffsets to store the max value
     unsigned int* maxTriCount = SD_TrianglesCompositeOffsets.data();
     demErrchk(cub::DeviceReduce::Max(NULL, temp_storage_bytes, in_ptr, maxTriCount, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     demErrchk(cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, in_ptr, maxTriCount, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     if (*maxTriCount > MAX_TRIANGLE_COUNT_PER_SD)
-        CHDEM_ERROR("ERROR! %u triangles are found in one of the SDs! The max allowance is %u.\n", *maxTriCount,
-                    MAX_TRIANGLE_COUNT_PER_SD);
+        CHDEM_ERROR("ERROR! %u triangles are found in one of the SDs! The max allowance is %u.\n", *maxTriCount, MAX_TRIANGLE_COUNT_PER_SD);
 
     // Lastly, we need to do a CUB prefix scan to get the offsets in the big composite array
     in_ptr = SD_numTrianglesTouching.data();
     out_ptr = SD_TrianglesCompositeOffsets.data();
     demErrchk(cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
     d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run CUB exclusive prefix sum
     demErrchk(cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs));
-    demErrchk(cudaDeviceSynchronize());
+    demErrchk(gpuDeviceSynchronize());
 }
 
 __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::TriangleSoupPtr d_triangleSoup,
@@ -212,24 +201,19 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
         sphereIDGlobal = sphere_data->spheres_in_SD_composite[offset_in_composite_Array];
 
         sphere_pos_local[sphereIDLocal] =
-            make_int3(sphere_data->sphere_local_pos_X[sphereIDGlobal], sphere_data->sphere_local_pos_Y[sphereIDGlobal],
-                      sphere_data->sphere_local_pos_Z[sphereIDGlobal]);
+            make_int3(sphere_data->sphere_local_pos_X[sphereIDGlobal], sphere_data->sphere_local_pos_Y[sphereIDGlobal], sphere_data->sphere_local_pos_Z[sphereIDGlobal]);
 
         unsigned int sphere_owner_SD = sphere_data->sphere_owner_SDs[sphereIDGlobal];
         // if this SD doesn't own that sphere, add an offset to account
         if (sphere_owner_SD != thisSD) {
-            sphere_pos_local[sphereIDLocal] =
-                sphere_pos_local[sphereIDLocal] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
+            sphere_pos_local[sphereIDLocal] = sphere_pos_local[sphereIDLocal] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
         }
 
         if (gran_params->friction_mode != chrono::dem::CHDEM_FRICTION_MODE::FRICTIONLESS) {
             omega[sphereIDLocal] =
-                make_float3(sphere_data->sphere_Omega_X[sphereIDGlobal], sphere_data->sphere_Omega_Y[sphereIDGlobal],
-                            sphere_data->sphere_Omega_Z[sphereIDGlobal]);
+                make_float3(sphere_data->sphere_Omega_X[sphereIDGlobal], sphere_data->sphere_Omega_Y[sphereIDGlobal], sphere_data->sphere_Omega_Z[sphereIDGlobal]);
         }
-        sphere_vel[sphereIDLocal] =
-            make_float3(sphere_data->pos_X_dt[sphereIDGlobal], sphere_data->pos_Y_dt[sphereIDGlobal],
-                        sphere_data->pos_Z_dt[sphereIDGlobal]);
+        sphere_vel[sphereIDLocal] = make_float3(sphere_data->pos_X_dt[sphereIDGlobal], sphere_data->pos_Y_dt[sphereIDGlobal], sphere_data->pos_Z_dt[sphereIDGlobal]);
     }
     // Populate the shared memory with mesh triangle data
     unsigned int tripsToCoverTriangles = (numSDTriangles + blockDim.x - 1) / blockDim.x;
@@ -238,8 +222,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
         if (local_ID < numSDTriangles) {
             size_t SD_composite_offset = SD_TrianglesCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_CHDEM_ID) {
-                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_CHDEM_ID,
-                                thisSD, numSDTriangles);
+                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_CHDEM_ID, thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
 
@@ -249,17 +232,14 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
             // Read node positions from global memory into shared memory
             // NOTE implicit cast from float to double here
             unsigned int fam = d_triangleSoup->triangleFamily_ID[globalID];
-            node1[local_ID] = apply_frame_transform<double, float3, double3>(
-                d_triangleSoup->node1[globalID], mesh_params->fam_frame_narrow[fam].pos,
-                mesh_params->fam_frame_narrow[fam].rot_mat);
+            node1[local_ID] =
+                apply_frame_transform<double, float3, double3>(d_triangleSoup->node1[globalID], mesh_params->fam_frame_narrow[fam].pos, mesh_params->fam_frame_narrow[fam].rot_mat);
 
-            node2[local_ID] = apply_frame_transform<double, float3, double3>(
-                d_triangleSoup->node2[globalID], mesh_params->fam_frame_narrow[fam].pos,
-                mesh_params->fam_frame_narrow[fam].rot_mat);
+            node2[local_ID] =
+                apply_frame_transform<double, float3, double3>(d_triangleSoup->node2[globalID], mesh_params->fam_frame_narrow[fam].pos, mesh_params->fam_frame_narrow[fam].rot_mat);
 
-            node3[local_ID] = apply_frame_transform<double, float3, double3>(
-                d_triangleSoup->node3[globalID], mesh_params->fam_frame_narrow[fam].pos,
-                mesh_params->fam_frame_narrow[fam].rot_mat);
+            node3[local_ID] =
+                apply_frame_transform<double, float3, double3>(d_triangleSoup->node3[globalID], mesh_params->fam_frame_narrow[fam].pos, mesh_params->fam_frame_narrow[fam].rot_mat);
 
             convert_pos_UU2SU<double3>(node1[local_ID], gran_params);
             convert_pos_UU2SU<double3>(node2[local_ID], gran_params);
@@ -291,18 +271,14 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
             {
                 double3 pt1;  // Contact point on triangle
                 // NOTE sphere_pos_local is relative to THIS SD, not its owner SD
-                double3 sphCntr =
-                    int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
-                valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
-                                               sphCntr, gran_params->sphereRadius_SU, normal, depth, pt1);
+                double3 sphCntr = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
+                valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID], sphCntr, gran_params->sphereRadius_SU, normal, depth, pt1);
 
-                valid_contact = valid_contact &&
-                                SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD;
+                valid_contact = valid_contact && SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD;
                 pt1_float = make_float3(pt1.x, pt1.y, pt1.z);
 
                 double3 meshCenter_double =
-                    make_double3(mesh_params->fam_frame_narrow[fam].pos[0], mesh_params->fam_frame_narrow[fam].pos[1],
-                                 mesh_params->fam_frame_narrow[fam].pos[2]);
+                    make_double3(mesh_params->fam_frame_narrow[fam].pos[0], mesh_params->fam_frame_narrow[fam].pos[1], mesh_params->fam_frame_narrow[fam].pos[2]);
                 convert_pos_UU2SU<double3>(meshCenter_double, gran_params);
 
                 double3 fromCenter_double = pt1 - meshCenter_double;
@@ -325,7 +301,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
                 float Sn = 2. * mesh_params->E_eff_s2m_SU * sqrt_Rd;
 
                 float loge = (mesh_params->COR_s2m_SU < EPSILON) ? log(EPSILON) : log(mesh_params->COR_s2m_SU);
-                float beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
+                float beta = loge / sqrt(loge * loge + GPU_PI_F * GPU_PI_F);
 
                 // effective mass = mass_mesh * mass_sphere / (m_mesh + mass_sphere)
                 float fam_mass_SU = d_triangleSoup->familyMass_SU[fam];
@@ -339,9 +315,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
                 float3 v_rel = sphere_vel[sphereIDLocal] - d_triangleSoup->vel[fam];
 
                 // assumes pos is the center of mass of the mesh
-                float3 meshCenter =
-                    make_float3(mesh_params->fam_frame_broad[fam].pos[0], mesh_params->fam_frame_broad[fam].pos[1],
-                                mesh_params->fam_frame_broad[fam].pos[2]);
+                float3 meshCenter = make_float3(mesh_params->fam_frame_broad[fam].pos[0], mesh_params->fam_frame_broad[fam].pos[1], mesh_params->fam_frame_broad[fam].pos[2]);
                 convert_pos_UU2SU<float3>(meshCenter, gran_params);
 
                 // NOTE depth is negative and normal points from triangle to sphere center
@@ -377,19 +351,16 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
                 if (gran_params->friction_mode != chrono::dem::CHDEM_FRICTION_MODE::FRICTIONLESS) {
                     // radius pointing from the contact point to the center of particle
                     float3 Rc = (gran_params->sphereRadius_SU + depth / 2.f) * normal;
-                    float3 roll_ang_acc = computeRollingAngAcc(
-                        sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU,
-                        force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], Rc);
+                    float3 roll_ang_acc = computeRollingAngAcc(sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU, force_accum,
+                                                               omega[sphereIDLocal], d_triangleSoup->omega[fam], Rc);
 
                     sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
 
                     unsigned int BC_histmap_label = triangleFamilyHistmapOffset + fam;
 
                     // compute tangent force
-                    float3 tangent_force = computeFrictionForces_matBased(
-                        gran_params, sphere_data, sphereIDGlobal, BC_histmap_label,
-                        mesh_params->static_friction_coeff_s2m, mesh_params->E_eff_s2m_SU, mesh_params->G_eff_s2m_SU,
-                        sqrt_Rd, beta, force_accum, vrel_t, normal, m_eff);
+                    float3 tangent_force = computeFrictionForces_matBased(gran_params, sphere_data, sphereIDGlobal, BC_histmap_label, mesh_params->static_friction_coeff_s2m,
+                                                                          mesh_params->E_eff_s2m_SU, mesh_params->G_eff_s2m_SU, sqrt_Rd, beta, force_accum, vrel_t, normal, m_eff);
 
                     ////float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT /
                     ////                   (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
@@ -397,8 +368,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemDemMesh_impl::T
                     ////float velocity_unit = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
 
                     force_accum = force_accum + tangent_force;
-                    sphere_AngAcc =
-                        sphere_AngAcc + Cross(-1.f * normal, tangent_force) / gran_params->sphereInertia_by_r;
+                    sphere_AngAcc = sphere_AngAcc + Cross(-1.f * normal, tangent_force) / gran_params->sphereInertia_by_r;
                 }
 
                 // Use the CD information to compute the force and torque on the family of this triangle
@@ -491,24 +461,19 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
         sphereIDGlobal = sphere_data->spheres_in_SD_composite[offset_in_composite_Array];
 
         sphere_pos_local[sphereIDLocal] =
-            make_int3(sphere_data->sphere_local_pos_X[sphereIDGlobal], sphere_data->sphere_local_pos_Y[sphereIDGlobal],
-                      sphere_data->sphere_local_pos_Z[sphereIDGlobal]);
+            make_int3(sphere_data->sphere_local_pos_X[sphereIDGlobal], sphere_data->sphere_local_pos_Y[sphereIDGlobal], sphere_data->sphere_local_pos_Z[sphereIDGlobal]);
 
         unsigned int sphere_owner_SD = sphere_data->sphere_owner_SDs[sphereIDGlobal];
         // if this SD doesn't own that sphere, add an offset to account
         if (sphere_owner_SD != thisSD) {
-            sphere_pos_local[sphereIDLocal] =
-                sphere_pos_local[sphereIDLocal] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
+            sphere_pos_local[sphereIDLocal] = sphere_pos_local[sphereIDLocal] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
         }
 
         if (gran_params->friction_mode != chrono::dem::CHDEM_FRICTION_MODE::FRICTIONLESS) {
             omega[sphereIDLocal] =
-                make_float3(sphere_data->sphere_Omega_X[sphereIDGlobal], sphere_data->sphere_Omega_Y[sphereIDGlobal],
-                            sphere_data->sphere_Omega_Z[sphereIDGlobal]);
+                make_float3(sphere_data->sphere_Omega_X[sphereIDGlobal], sphere_data->sphere_Omega_Y[sphereIDGlobal], sphere_data->sphere_Omega_Z[sphereIDGlobal]);
         }
-        sphere_vel[sphereIDLocal] =
-            make_float3(sphere_data->pos_X_dt[sphereIDGlobal], sphere_data->pos_Y_dt[sphereIDGlobal],
-                        sphere_data->pos_Z_dt[sphereIDGlobal]);
+        sphere_vel[sphereIDLocal] = make_float3(sphere_data->pos_X_dt[sphereIDGlobal], sphere_data->pos_Y_dt[sphereIDGlobal], sphere_data->pos_Z_dt[sphereIDGlobal]);
     }
     // Populate the shared memory with mesh triangle data
     unsigned int tripsToCoverTriangles = (numSDTriangles + blockDim.x - 1) / blockDim.x;
@@ -517,8 +482,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
         if (local_ID < numSDTriangles) {
             size_t SD_composite_offset = SD_TrianglesCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_CHDEM_ID) {
-                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_CHDEM_ID,
-                                thisSD, numSDTriangles);
+                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_CHDEM_ID, thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
 
@@ -528,17 +492,14 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
             // Read node positions from global memory into shared memory
             // NOTE implicit cast from float to double here
             unsigned int fam = d_triangleSoup->triangleFamily_ID[globalID];
-            node1[local_ID] = apply_frame_transform<double, float3, double3>(
-                d_triangleSoup->node1[globalID], mesh_params->fam_frame_narrow[fam].pos,
-                mesh_params->fam_frame_narrow[fam].rot_mat);
+            node1[local_ID] =
+                apply_frame_transform<double, float3, double3>(d_triangleSoup->node1[globalID], mesh_params->fam_frame_narrow[fam].pos, mesh_params->fam_frame_narrow[fam].rot_mat);
 
-            node2[local_ID] = apply_frame_transform<double, float3, double3>(
-                d_triangleSoup->node2[globalID], mesh_params->fam_frame_narrow[fam].pos,
-                mesh_params->fam_frame_narrow[fam].rot_mat);
+            node2[local_ID] =
+                apply_frame_transform<double, float3, double3>(d_triangleSoup->node2[globalID], mesh_params->fam_frame_narrow[fam].pos, mesh_params->fam_frame_narrow[fam].rot_mat);
 
-            node3[local_ID] = apply_frame_transform<double, float3, double3>(
-                d_triangleSoup->node3[globalID], mesh_params->fam_frame_narrow[fam].pos,
-                mesh_params->fam_frame_narrow[fam].rot_mat);
+            node3[local_ID] =
+                apply_frame_transform<double, float3, double3>(d_triangleSoup->node3[globalID], mesh_params->fam_frame_narrow[fam].pos, mesh_params->fam_frame_narrow[fam].rot_mat);
 
             convert_pos_UU2SU<double3>(node1[local_ID], gran_params);
             convert_pos_UU2SU<double3>(node2[local_ID], gran_params);
@@ -569,18 +530,14 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
             {
                 double3 pt1;  // Contact point on triangle
                 // NOTE sphere_pos_local is relative to THIS SD, not its owner SD
-                double3 sphCntr =
-                    int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
-                valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
-                                               sphCntr, gran_params->sphereRadius_SU, normal, depth, pt1);
+                double3 sphCntr = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
+                valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID], sphCntr, gran_params->sphereRadius_SU, normal, depth, pt1);
 
-                valid_contact = valid_contact &&
-                                SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD;
+                valid_contact = valid_contact && SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD;
                 pt1_float = make_float3(pt1.x, pt1.y, pt1.z);
 
                 double3 meshCenter_double =
-                    make_double3(mesh_params->fam_frame_narrow[fam].pos[0], mesh_params->fam_frame_narrow[fam].pos[1],
-                                 mesh_params->fam_frame_narrow[fam].pos[2]);
+                    make_double3(mesh_params->fam_frame_narrow[fam].pos[0], mesh_params->fam_frame_narrow[fam].pos[1], mesh_params->fam_frame_narrow[fam].pos[2]);
                 convert_pos_UU2SU<double3>(meshCenter_double, gran_params);
 
                 double3 fromCenter_double = pt1 - meshCenter_double;
@@ -610,9 +567,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
 
                 // TODO assumes pos is the center of mass of the mesh
                 // TODO can this be float?
-                float3 meshCenter =
-                    make_float3(mesh_params->fam_frame_broad[fam].pos[0], mesh_params->fam_frame_broad[fam].pos[1],
-                                mesh_params->fam_frame_broad[fam].pos[2]);
+                float3 meshCenter = make_float3(mesh_params->fam_frame_broad[fam].pos[0], mesh_params->fam_frame_broad[fam].pos[1], mesh_params->fam_frame_broad[fam].pos[2]);
                 convert_pos_UU2SU<float3>(meshCenter, gran_params);
 
                 // NOTE depth is negative and normal points from triangle to sphere center
@@ -645,19 +600,16 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
                 if (gran_params->friction_mode != chrono::dem::CHDEM_FRICTION_MODE::FRICTIONLESS) {
                     // radius pointing from the contact point to the center of particle
                     float3 Rc = (gran_params->sphereRadius_SU + depth / 2.f) * normal;
-                    float3 roll_ang_acc = computeRollingAngAcc(
-                        sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU,
-                        force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], Rc);
+                    float3 roll_ang_acc = computeRollingAngAcc(sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU, force_accum,
+                                                               omega[sphereIDLocal], d_triangleSoup->omega[fam], Rc);
 
                     sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
 
                     unsigned int BC_histmap_label = triangleFamilyHistmapOffset + fam;
 
                     // compute tangent force
-                    float3 tangent_force = computeFrictionForces(
-                        gran_params, sphere_data, sphereIDGlobal, BC_histmap_label,
-                        mesh_params->static_friction_coeff_s2m, mesh_params->K_t_s2m_SU, mesh_params->Gamma_t_s2m_SU,
-                        hertz_force_factor, m_eff, force_accum, v_rel, normal);
+                    float3 tangent_force = computeFrictionForces(gran_params, sphere_data, sphereIDGlobal, BC_histmap_label, mesh_params->static_friction_coeff_s2m,
+                                                                 mesh_params->K_t_s2m_SU, mesh_params->Gamma_t_s2m_SU, hertz_force_factor, m_eff, force_accum, v_rel, normal);
 
                     ////float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT /
                     ////                   (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
@@ -665,8 +617,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
                     ////float velocity_unit = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
 
                     force_accum = force_accum + tangent_force;
-                    sphere_AngAcc =
-                        sphere_AngAcc + Cross(-1.f * normal, tangent_force) / gran_params->sphereInertia_by_r;
+                    sphere_AngAcc = sphere_AngAcc + Cross(-1.f * normal, tangent_force) / gran_params->sphereInertia_by_r;
                 }
 
                 // Use the CD information to compute the force and torque on the family of this triangle
@@ -703,17 +654,16 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemDemMesh_impl::TriangleSo
 
 __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int nBlocks = (nSpheres + GPU_THREADS_PER_BLOCK - 1) / GPU_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
     float duration_SU = (float)(duration / TIME_SU2UU);
     unsigned int nsteps = (unsigned int)std::round(duration_SU / stepSize_SU);
 
     packSphereDataPointers();
-    // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
+    // gpuMemAdvise(gran_params, sizeof(*gran_params), gpuMemAdviseSetReadMostly, dev_ID);
 
-    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
-                   stepSize_SU, nsteps, duration / nsteps);
+    METRICS_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU, nsteps, duration / nsteps);
 
     METRICS_PRINTF("Starting Main Simulation loop!\n");
 
@@ -726,11 +676,10 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
         resetSphereAccelerations();
         resetBCForces();
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            demErrchk(
-                cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
+            demErrchk(gpuMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
         }
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
             runTriangleBroadphase();
@@ -742,80 +691,72 @@ __host__ double ChSystemDemMesh_impl::AdvanceSimulation(float duration) {
             // Compute sphere-sphere forces
             if (gran_params->use_mat_based == true) {
                 METRICS_PRINTF("use material based model\n");
-                computeSphereForces_frictionless_matBased<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                    sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                    (unsigned int)BC_params_list_SU.size());
+                computeSphereForces_frictionless_matBased<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                                                                                                 (unsigned int)BC_params_list_SU.size());
 
             } else {
                 METRICS_PRINTF("use user defined model\n");
-                computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                    sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                    (unsigned int)BC_params_list_SU.size());
+                computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                                                                                        (unsigned int)BC_params_list_SU.size());
             }
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
         }
         // frictional contact
-        else if (gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP ||
-                 gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
+        else if (gran_params->friction_mode == CHDEM_FRICTION_MODE::SINGLE_STEP || gran_params->friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
             METRICS_PRINTF("Frictional case.\n");
             if (gran_params->use_mat_based == true) {
                 METRICS_PRINTF("compute sphere-sphere and sphere-bc mat based\n");
-                computeSphereContactForces_matBased<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                    (unsigned int)BC_params_list_SU.size(), nSpheres);
+                computeSphereContactForces_matBased<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                                                                                        (unsigned int)BC_params_list_SU.size(), nSpheres);
             } else {
                 METRICS_PRINTF("compute sphere-sphere and sphere-bc user defined\n");
-                computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                    (unsigned int)BC_params_list_SU.size(), nSpheres);
+                computeSphereContactForces<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
+                                                                               (unsigned int)BC_params_list_SU.size(), nSpheres);
             }
         }
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
             // triangle labels come after BC labels numerically
-            unsigned int triangleFamilyHistmapOffset =
-                gran_params->nSpheres + 1 + (unsigned int)BC_params_list_SU.size() + 1;
+            unsigned int triangleFamilyHistmapOffset = gran_params->nSpheres + 1 + (unsigned int)BC_params_list_SU.size() + 1;
             // compute sphere-triangle forces
             if (tri_params->use_mat_based == true) {
-                interactionGranMat_TriangleSoup_matBased<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                    meshSoup, sphere_data, SD_trianglesInEachSD_composite.data(), SD_numTrianglesTouching.data(),
-                    SD_TrianglesCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
+                interactionGranMat_TriangleSoup_matBased<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(meshSoup, sphere_data, SD_trianglesInEachSD_composite.data(),
+                                                                                                SD_numTrianglesTouching.data(), SD_TrianglesCompositeOffsets.data(), gran_params,
+                                                                                                tri_params, triangleFamilyHistmapOffset);
             } else {
                 //   //              printf("compute sphere-mesh user defined\n");
 
-                interactionGranMat_TriangleSoup<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                    meshSoup, sphere_data, SD_trianglesInEachSD_composite.data(), SD_numTrianglesTouching.data(),
-                    SD_TrianglesCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
+                interactionGranMat_TriangleSoup<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(meshSoup, sphere_data, SD_trianglesInEachSD_composite.data(), SD_numTrianglesTouching.data(),
+                                                                                       SD_TrianglesCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
             }
         }
 
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         METRICS_PRINTF("Starting integrateSpheres!\n");
-        integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-        demErrchk(cudaPeekAtLastError());
-        demErrchk(cudaDeviceSynchronize());
+        integrateSpheres<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+        demErrchk(gpuPeekAtLastError());
+        demErrchk(gpuDeviceSynchronize());
 
         if (gran_params->friction_mode != CHDEM_FRICTION_MODE::FRICTIONLESS) {
-            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            const unsigned int nThreadsUpdateHist = 2 * GPU_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
-            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
-                                                                                      gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
-            updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-            demErrchk(cudaPeekAtLastError());
-            demErrchk(cudaDeviceSynchronize());
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data, gran_params);
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
+            updateAngVels<<<nBlocks, GPU_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            demErrchk(gpuPeekAtLastError());
+            demErrchk(gpuDeviceSynchronize());
         }
 
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time

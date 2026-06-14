@@ -33,11 +33,10 @@ namespace dem {
 /// The mesh must be stored in OBJ format and must consist of only triangles.
 /// Returns the number of spheres added as a result of the decomposition.
 template <typename Real>
-std::vector<ChVector3<Real>> MeshSphericalDecomposition(
-    std::string objfilename,  ///< OBJ mesh file path
-    ChVector3<Real> scaling,  ///< Scaling vector to apply to the mesh before decomposition
-    ChVector3<Real> offset,   ///< Displacement to apply to the mesh before decomposition
-    Real sphere_radius        ///< Radius to use for all spheres in the decomposition
+std::vector<ChVector3<Real>> MeshSphericalDecomposition(std::string objfilename,  ///< OBJ mesh file path
+                                                        ChVector3<Real> scaling,  ///< Scaling vector to apply to the mesh before decomposition
+                                                        ChVector3<Real> offset,   ///< Displacement to apply to the mesh before decomposition
+                                                        Real sphere_radius        ///< Radius to use for all spheres in the decomposition
 ) {
     std::vector<ChVector3<Real>> sphere_points;
     std::string mesh_filename = objfilename;

@@ -23,7 +23,7 @@
 #include <cmath>
 #include <ostream>
 
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
+#include "chrono/gpu/ChGpuRuntime.h"
 
 #include "chrono_fsi/sph/ChFsiConfigSPH.h"
 
@@ -37,8 +37,10 @@ namespace sph {
 /// Real type used in the SPH Chrono::FSI module (float or double).
 #ifdef CHRONO_SPH_USE_DOUBLE
 typedef double Real;
+static constexpr Real Real_max = double_max;
 #else
 typedef float Real;
+static constexpr Real Real_max = float_max;
 #endif
 
 /// Unsigned int type used in the SPH Chrono::FSI module.
@@ -71,13 +73,12 @@ struct Real4 {
 /// Axis-aligned bounding box (real coordinates).
 struct RealAABB {
     RealAABB() {
-        constexpr Real v = ::cuda::std::numeric_limits<Real>::max();
-        min.x = +v;
-        min.y = +v;
-        min.z = +v;
-        max.x = -v;
-        max.y = -v;
-        max.z = -v;
+        min.x = +Real_max;
+        min.y = +Real_max;
+        min.z = +Real_max;
+        max.x = -Real_max;
+        max.y = -Real_max;
+        max.z = -Real_max;
     }
     RealAABB(const Real3& aabb_min, const Real3& aabb_max) : min(aabb_min), max(aabb_max) {}
     Real3 min;  ///< low AABB corner
@@ -87,13 +88,12 @@ struct RealAABB {
 /// Axis-aligned bounding box (integer grid coordinates).
 struct IntAABB {
     IntAABB() {
-        constexpr int v = ::cuda::std::numeric_limits<int>::max();
-        min.x = +v;
-        min.y = +v;
-        min.z = +v;
-        max.x = -v;
-        max.y = -v;
-        max.z = -v;
+        min.x = +int_max;
+        min.y = +int_max;
+        min.z = +int_max;
+        max.x = -int_max;
+        max.y = -int_max;
+        max.z = -int_max;
     }
     IntAABB(const int3& aabb_min, const int3& aabb_max) : min(aabb_min), max(aabb_max) {}
     int3 min;  ///< low AABB corner

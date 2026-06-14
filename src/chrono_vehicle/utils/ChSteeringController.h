@@ -9,13 +9,13 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Utility classes implementing PID steering controllers. The base class
-// implements the basic functionality to control the error between the location
-// of a sentinel point (a point at a look-ahead distance in front of the vehicle)
-// and the current target point.
+// Utility classes implementing steering controllers. The base class implements
+// the basic functionality to control the error between the location of a
+// sentinel point (a point at a look-ahead distance in front of the vehicle) and
+// the current target point.
 //
 // Derived classes differ in how they specify the target point.  This can be the
 // closest point to the sentinel point on a pre-defined curve path (currently
@@ -47,7 +47,7 @@ namespace vehicle {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-/// Base class for all steering path-following PID controllers.
+/// Base class for all steering path-following controllers.
 /// The base class implements the basic functionality to control the error between the location of a sentinel point (a
 /// point at a look-ahead distance in front of the vehicle) and the current target point.
 ///
@@ -58,6 +58,9 @@ class CH_VEHICLE_API ChSteeringController {
   public:
     /// Destructor.
     virtual ~ChSteeringController();
+
+    /// Specify rear-axle steering (default: false).
+    void SetRearSteering(bool rear_steering) { m_rear_steering = rear_steering; }
 
     /// Specify the look-ahead distance.
     /// This defines the location of the "sentinel" point (in front of the vehicle, at the given distance from the
@@ -79,10 +82,10 @@ class CH_VEHICLE_API ChSteeringController {
     /// This function must be called at a configuration where a valid location for the sentinel point can be calculated.
     /// The default implementation in the base class simply calculates the new sentinel point location and sets all
     /// errors to 0.
-    virtual void Reset(const ChFrameMoving<>& ref_frame);
+    void Reset(const ChFrameMoving<>& ref_frame);
 
-    /// Advance the state of the PID controller.
-    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) = 0;
+    /// Advance the state of the PID controller and return the steering input.
+    double Advance(const ChFrameMoving<>& ref_frame, double time, double step);
 
     /// Start/restart data collection.
     void StartDataCollection();
@@ -103,15 +106,22 @@ class CH_VEHICLE_API ChSteeringController {
     /// Construct a steering controller with default parameters.
     ChSteeringController(std::shared_ptr<ChBezierCurve> path);
 
+    /// Perform controller-specific operations on a controller reset.
+    virtual void OnReset(const ChFrameMoving<>& ref_frame) {}
+
+    /// Perform controller-specific calculations to advance the state of the PID controller.
+    virtual double OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) = 0;
+
     /// Calculate the current target point location.
-    /// All derived classes must implement this function to calculate the current location of the target point,
-    /// expressed in the global frame. The location of the sentinel point at the current time is calculated and
-    /// available in m_sentinel.
+    /// All derived classes must implement this function to calculate the current location of the target point, expressed in the global frame.
+    /// The location of the sentinel point at the current time is calculated and available in m_sentinel.
     virtual void CalcTargetLocation() = 0;
 
-    std::shared_ptr<ChBezierCurve> m_path;  ///< tracked path (piecewise cubic Bezier curve)
+    std::shared_ptr<ChBezierCurve> m_path;            ///< tracked path (piecewise cubic Bezier curve)
+    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
 
     double m_dist;          ///< look-ahead distance
+    bool m_rear_steering;   ///< rear-axle steering?
     ChVector3d m_sentinel;  ///< position of sentinel point in global frame
     ChVector3d m_target;    ///< position of target point in global frame
 
@@ -119,8 +129,8 @@ class CH_VEHICLE_API ChSteeringController {
     double m_errd;  ///< error derivative
     double m_erri;  ///< integral of error
 
-    ChWriterCSV* m_csv;  ///< ChWriterCSV object for data collection
-    bool m_collect;             ///< flag indicating whether or not data is being collected
+    ChWriterCSV* m_csv;  ///< object for data collection
+    bool m_collect;      ///< flag indicating whether or not data is being collected
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -142,39 +152,35 @@ class CH_VEHICLE_API ChSteeringController {
 ///          "Lookahead Distance": 20.0
 ///      }
 /// </pre>
-class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
+class CH_VEHICLE_API ChPathSteeringControllerPID : public ChSteeringController {
   public:
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringController(std::shared_ptr<ChBezierCurve> path);
+    ChPathSteeringControllerPID(std::shared_ptr<ChBezierCurve> path);
 
     /// Construct a steering controller to track the specified path. This version reads controller gains and lookahead
     /// distance from the specified JSON file.
-    ChPathSteeringController(const std::string& filename, std::shared_ptr<ChBezierCurve> path);
+    ChPathSteeringControllerPID(const std::string& filename, std::shared_ptr<ChBezierCurve> path);
 
-    ~ChPathSteeringController() {}
+    ~ChPathSteeringControllerPID() {}
 
     /// Set the gains for the PID controller.
     void SetGains(double Kp, double Ki, double Kd);
-
-    /// Reset the PID controller.
-    /// This function resets the underlying path tracker using the current location
-    /// of the sentinel point.
-    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to
     /// the current location of the sentinel point.
     virtual void CalcTargetLocation() override;
 
+  private:
+    /// Reset the PID controller.
+    virtual void OnReset(const ChFrameMoving<>& ref_frame) override;
+
     /// Advance the state of the PID controller.
     /// This function performs the required integration for the integral component of the PID controller and returns the
     /// calculated steering value.
-    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
-
-  private:
-    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
+    virtual double OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
     double m_Kp;  ///< Proportional gain
     double m_Ki;  ///< Integral gain
@@ -198,15 +204,9 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the specified JSON file.
-    ChPathSteeringControllerXT(const std::string& filename,
-                               std::shared_ptr<ChBezierCurve> path,
-                               double max_wheel_turn_angle = 0.0);
+    ChPathSteeringControllerXT(const std::string& filename, std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle = 0.0);
 
     ~ChPathSteeringControllerXT() {}
-
-    /// Reset the PID controller.
-    /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Set the gains (weighting factors) for the eXTended controller.
     void SetGains(double Kp = 0.4, double W_y_err = 1.0, double W_heading_err = 1.0, double W_ackermann = 1.0);
@@ -216,15 +216,16 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     /// point.
     virtual void CalcTargetLocation() override;
 
-    /// Advance the state of the XT controller.
-    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
-
   private:
     double CalcHeadingError(ChVector3d& a, ChVector3d& b);
     int CalcCurvatureCode(ChVector3d& a, ChVector3d& b);
     double CalcAckermannAngle();
 
-    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
+    /// Reset the XT controller.
+    virtual void OnReset(const ChFrameMoving<>& ref_frame) override;
+
+    /// Advance the state of the XT controller.
+    virtual double OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
     double m_R_threshold;           ///< allowed minimal curve radius to be treated as straight line
     double m_max_wheel_turn_angle;  ///< max. possible turn angle of the front wheel (bicycle model)
@@ -263,10 +264,7 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringControllerSR(std::shared_ptr<ChBezierCurve> path,
-                               bool isClosedPath = false,
-                               double max_wheel_turn_angle = 0.0,
-                               double axle_space = 2.5);
+    ChPathSteeringControllerSR(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false, double max_wheel_turn_angle = 0.0, double axle_space = 2.5);
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the specified JSON file.
@@ -282,13 +280,6 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
 
     void SetPreviewTime(double Tp = 0.5);
 
-    /// Advance the state of the SR controller.
-    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
-
-    /// Reset the PID controller.
-    /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
-
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to the current location of the sentinel
     /// point.
@@ -296,6 +287,12 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
 
   private:
     void CalcPathPoints();  ///< extracts path points and direction vectors, make adjustments as needed
+
+    /// Reset the SR controller.
+    virtual void OnReset(const ChFrameMoving<>& ref_frame) override;
+
+    /// Advance the state of the SR controller.
+    virtual double OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
     bool m_isClosedPath;  ///< needed for point extraction
 
@@ -338,9 +335,7 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the specified JSON file.
-    ChPathSteeringControllerStanley(const std::string& filename,
-                                    std::shared_ptr<ChBezierCurve> path,
-                                    double max_wheel_turn_angle = 0.0);
+    ChPathSteeringControllerStanley(const std::string& filename, std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle = 0.0);
 
     ~ChPathSteeringControllerStanley() {}
 
@@ -348,13 +343,6 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     void SetGains(double Kp, double Ki, double Kd);
 
     void SetDeadZone(double dead_zone = 0.0) { m_deadZone = std::abs(dead_zone); }
-
-    /// Advance the state of the Stanley controller.
-    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
-
-    /// Reset the PID controller.
-    /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
 
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to the current location of the sentinel
@@ -364,8 +352,13 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     double CalcHeadingError(ChVector3d& a, ChVector3d& b);
 
   private:
+    /// Reset the Stanley controller.
+    virtual void OnReset(const ChFrameMoving<>& ref_frame) override;
+
+    /// Advance the state of the Stanley controller.
+    virtual double OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) override;
+
     std::shared_ptr<utils::ChFilterPT1> m_delayFilter;
-    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
 
     double m_pcurvature;    ///< local curvature
     ChVector3d m_ptangent;  ///< local path tangent
@@ -378,8 +371,8 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bicycle model of the vehicle)
     double m_umin;       ///< threshold where the controller gets active
     double m_Treset;     ///< the integral error gets reset after this time automatically, no wind-up should happen
-    double m_deadZone;  ///< lateral zone where no lateral error is recognized, reduces sensitivity to path disturbances
-    double m_Tdelay;    ///< delay time to consider driver reaction (around 0.4 sec)
+    double m_deadZone;   ///< lateral zone where no lateral error is recognized, reduces sensitivity to path disturbances
+    double m_Tdelay;     ///< delay time to consider driver reaction (around 0.4 sec)
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -395,16 +388,11 @@ class CH_VEHICLE_API ChPathSteeringControllerPP : public ChSteeringController {
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringControllerPP(std::shared_ptr<ChBezierCurve> path,
-                               double max_wheel_turn_angle = 0.0,
-                               double wheel_base = 2.0);
+    ChPathSteeringControllerPP(std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle = 0.0, double wheel_base = 2.0);
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the specified JSON file.
-    ChPathSteeringControllerPP(const std::string& filename,
-                               std::shared_ptr<ChBezierCurve> path,
-                               double max_wheel_turn_angle = 0.0,
-                               double wheel_base = 2.0);
+    ChPathSteeringControllerPP(const std::string& filename, std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle = 0.0, double wheel_base = 2.0);
 
     ~ChPathSteeringControllerPP() {}
 
@@ -415,13 +403,6 @@ class CH_VEHICLE_API ChPathSteeringControllerPP : public ChSteeringController {
 
     void SetStartSpeed(double v_start) { m_Vstart = v_start; }
 
-    /// Advance the state of the Stanley controller.
-    virtual double Advance(const ChFrameMoving<>& ref_frame, double time, double step) override;
-
-    /// Reset the PID controller.
-    /// This function resets the underlying path tracker using the current location of the sentinel point.
-    virtual void Reset(const ChFrameMoving<>& ref_frame) override;
-
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to the current location of the sentinel
     /// point.
@@ -430,14 +411,18 @@ class CH_VEHICLE_API ChPathSteeringControllerPP : public ChSteeringController {
     double CalcHeadingError(ChVector3d& a, ChVector3d& b);
 
   private:
-    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
+    /// Reset the PP controller.
+    virtual void OnReset(const ChFrameMoving<>& ref_frame) override;
+
+    /// Advance the state of the PP controller.
+    virtual double OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) override;
 
     double m_pcurvature;    ///< local curvature
     ChVector3d m_ptangent;  ///< local path tangent
 
     double m_deltaMax;  ///< Maximum wheel turn angle
     double m_L;         ///< Vehicle wheel base
-    double m_Kdd;        ///< Proportional gain for speed sensitivity
+    double m_Kdd;       ///< Proportional gain for speed sensitivity
     double m_Vstart;    ///< speed, at which the pure pursuit controller engages
 };
 

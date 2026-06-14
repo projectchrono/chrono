@@ -27,8 +27,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChAIDriver::ChAIDriver(ChVehicle& vehicle)
-    : ChDriver(vehicle), m_target_speed(0), m_last_time(0), m_last_speed(0), m_throttle_threshold(0.2) {
+ChAIDriver::ChAIDriver(ChVehicle& vehicle) : ChDriver(vehicle), m_target_speed(0), m_last_time(0), m_last_speed(0), m_throttle_threshold(0.2) {
     m_speedPID.Reset(m_vehicle.GetRefFrame());
 }
 

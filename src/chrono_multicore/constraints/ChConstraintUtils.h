@@ -25,168 +25,84 @@ namespace chrono {
 
 template <typename T>
 static void inline SetRow3(T& D, const int row, const int col, const real3& A) {
-    D.set(row, col + 0, A.x);
-    D.set(row, col + 1, A.y);
-    D.set(row, col + 2, A.z);
+    D.coeffRef(row, col + 0) = A.x;
+    D.coeffRef(row, col + 1) = A.y;
+    D.coeffRef(row, col + 2) = A.z;
 }
 template <typename T>
 static void inline SetRow6(T& D, const int row, const int col, const real3& A, const real3& B) {
-    D.set(row, col + 0, A.x);
-    D.set(row, col + 1, A.y);
-    D.set(row, col + 2, A.z);
+    D.coeffRef(row, col + 0) = A.x;
+    D.coeffRef(row, col + 1) = A.y;
+    D.coeffRef(row, col + 2) = A.z;
 
-    D.set(row, col + 3, B.x);
-    D.set(row, col + 4, B.y);
-    D.set(row, col + 5, B.z);
+    D.coeffRef(row, col + 3) = B.x;
+    D.coeffRef(row, col + 4) = B.y;
+    D.coeffRef(row, col + 5) = B.z;
 }
 template <typename T>
 static void inline AppendRow3(T& D, const int row, const int col, const real init) {
     // printf("Append %d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
-    D.append(row, col + 0, init);
-    D.append(row, col + 1, init);
-    D.append(row, col + 2, init);
+    D.insert(row, col + 0) = init;
+    D.insert(row, col + 1) = init;
+    D.insert(row, col + 2) = init;
 }
 template <typename T>
 static void inline AppendRow3(T& D, const int row, const int col, const real3 init) {
-    D.append(row, col + 0, init.x);
-    D.append(row, col + 1, init.y);
-    D.append(row, col + 2, init.z);
+    D.insert(row, col + 0) = init.x;
+    D.insert(row, col + 1) = init.y;
+    D.insert(row, col + 2) = init.z;
 }
 template <typename T>
 static void inline AppendRow6(T& D, const int row, const int col, const real init) {
     // printf("%d [%d %d %d] [%d %d %d]\n", row, col + 0, col + 1, col + 2, col + 3, col + 4, col + 5);
-    D.append(row, col + 0, init);
-    D.append(row, col + 1, init);
-    D.append(row, col + 2, init);
+    D.insert(row, col + 0) = init;
+    D.insert(row, col + 1) = init;
+    D.insert(row, col + 2) = init;
 
-    D.append(row, col + 3, init);
-    D.append(row, col + 4, init);
-    D.append(row, col + 5, init);
+    D.insert(row, col + 3) = init;
+    D.insert(row, col + 4) = init;
+    D.insert(row, col + 5) = init;
 }
 //
 template <typename T>
 static void inline AppendRow3Weak(T& D, const int row, const int col, const real init) {
-    D.weakAppend(row, col + 0, init);
-    D.weakAppend(row, col + 1, init);
-    D.weakAppend(row, col + 2, init);
+    D.coeffRef(row, col + 0) = init;
+    D.coeffRef(row, col + 1) = init;
+    D.coeffRef(row, col + 2) = init;
 }
 template <typename T>
 static void inline AppendRow6Weak(T& D, const int row, const int col, const real init) {
-    D.weakAppend(row, col + 0, init);
-    D.weakAppend(row, col + 1, init);
-    D.weakAppend(row, col + 2, init);
+    D.coeffRef(row, col + 0) = init;
+    D.coeffRef(row, col + 1) = init;
+    D.coeffRef(row, col + 2) = init;
 
-    D.weakAppend(row, col + 3, init);
-    D.weakAppend(row, col + 4, init);
-    D.weakAppend(row, col + 5, init);
+    D.coeffRef(row, col + 3) = init;
+    D.coeffRef(row, col + 4) = init;
+    D.coeffRef(row, col + 5) = init;
 }
 
-template <typename T>
-static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
-    //    printf("%d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
-    if (D.find(row, col + 0) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 0);
-        exit(1);
-    }
-    if (D.find(row, col + 1) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 1);
-        exit(1);
-    }
-    if (D.find(row, col + 2) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 2);
-        exit(1);
-    }
-
-    if (A.x != 0.0) {
-        D.set(row, col + 0, A.x);
-    }
-    if (A.y != 0.0) {
-        D.set(row, col + 1, A.y);
-    }
-    if (A.z != 0.0) {
-        D.set(row, col + 2, A.z);
-    }
-}
 template <typename T>
 static void inline SetRow3Weak(T& D, const int row, const int col, const real3& A) {
-    // assert(D.find( row, col + 0)!=D.end(row));
-    // assert(D.find( row, col + 1)!=D.end(row));
-    // assert(D.find( row, col + 2)!=D.end(row));
-
-    if (A.x != 0.0) {
-        D.weakSet(row, col + 0, A.x);
-    }
-    if (A.y != 0.0) {
-        D.weakSet(row, col + 1, A.y);
-    }
-    if (A.z != 0.0) {
-        D.weakSet(row, col + 2, A.z);
-    }
-}
-template <typename T>
-static void inline SetRow6Check(T& D, const int row, const int col, const real3& A, const real3& B) {
-    //    printf("%d [%d %d %d] [%d %d %d]\n", row, col + 0, col + 1, col + 2, col + 3, col + 4, col + 5);
-    if (D.find(row, col + 0) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 0);
-        exit(1);
-    }
-    if (D.find(row, col + 1) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 1);
-        exit(1);
-    }
-    if (D.find(row, col + 2) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 2);
-        exit(1);
-    }
-    if (D.find(row, col + 3) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 3);
-        exit(1);
-    }
-    if (D.find(row, col + 4) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 4);
-        exit(1);
-    }
-    if (D.find(row, col + 5) == D.end(row)) {
-        printf("fail: %d %d\n", row, col + 5);
-        exit(1);
-    }
-
-    if (A.x != 0.0) {
-        D.set(row, col + 0, A.x);
-    }
-    if (A.y != 0.0) {
-        D.set(row, col + 1, A.y);
-    }
-    if (A.z != 0.0) {
-        D.set(row, col + 2, A.z);
-    }
-
-    if (B.x != 0.0) {
-        D.set(row, col + 3, B.x);
-    }
-    if (B.y != 0.0) {
-        D.set(row, col + 4, B.y);
-    }
-    if (B.z != 0.0) {
-        D.set(row, col + 5, B.z);
-    }
+    if (A.x != 0.0) D.coeffRef(row, col + 0) = A.x;
+    if (A.y != 0.0) D.coeffRef(row, col + 1) = A.y;
+    if (A.z != 0.0) D.coeffRef(row, col + 2) = A.z;
 }
 
 template <typename T>
 static void inline SetCol3(T& D, const int row, const int col, const real3& A) {
-    D.set(row + 0, col, A.x);
-    D.set(row + 1, col, A.y);
-    D.set(row + 2, col, A.z);
+    D.insert(row + 0, col) = A.x;
+    D.insert(row + 1, col) = A.y;
+    D.insert(row + 2, col) = A.z;
 }
 template <typename T>
 static void inline SetCol6(T& D, const int row, const int col, const real3& A, const real3& B) {
-    D.set(row + 0, col, A.x);
-    D.set(row + 1, col, A.y);
-    D.set(row + 2, col, A.z);
+    D.insert(row + 0, col) = A.x;
+    D.insert(row + 1, col) = A.y;
+    D.insert(row + 2, col) = A.z;
 
-    D.set(row + 3, col, B.x);
-    D.set(row + 4, col, B.y);
-    D.set(row + 5, col, B.z);
+    D.insert(row + 3, col) = B.x;
+    D.insert(row + 4, col) = B.y;
+    D.insert(row + 5, col) = B.z;
 }
 
 CH_MULTICORE_API

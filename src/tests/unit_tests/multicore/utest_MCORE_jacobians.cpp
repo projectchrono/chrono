@@ -161,53 +161,53 @@ void CompareContacts(ChMulticoreDataManager* data_manager,
 
         int off = data_manager->cd_data->num_rigid_contacts;
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 0), -U.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 1), -U.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 2), -U.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.x * 6 + 0), -U.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.x * 6 + 1), -U.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.x * 6 + 2), -U.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 3), T3.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 4), T3.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 5), T3.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.x * 6 + 3), T3.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.x * 6 + 4), T3.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.x * 6 + 5), T3.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.y * 6 + 0), U.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.y * 6 + 1), U.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.y * 6 + 2), U.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.y * 6 + 0), U.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.y * 6 + 1), U.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.y * 6 + 2), U.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.y * 6 + 3), -T6.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.y * 6 + 4), -T6.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.y * 6 + 5), -T6.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.y * 6 + 3), -T6.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.y * 6 + 4), -T6.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(row * 1 + 0, body_id.y * 6 + 5), -T6.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.x * 6 + 0), -V.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.x * 6 + 1), -V.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.x * 6 + 2), -V.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.x * 6 + 0), -V.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.x * 6 + 1), -V.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.x * 6 + 2), -V.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.x * 6 + 3), T4.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.x * 6 + 4), T4.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.x * 6 + 5), T4.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.x * 6 + 3), T4.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.x * 6 + 4), T4.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.x * 6 + 5), T4.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.x * 6 + 0), -W.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.x * 6 + 1), -W.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.x * 6 + 2), -W.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.x * 6 + 0), -W.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.x * 6 + 1), -W.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.x * 6 + 2), -W.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.x * 6 + 3), T5.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.x * 6 + 4), T5.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.x * 6 + 5), T5.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.x * 6 + 3), T5.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.x * 6 + 4), T5.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.x * 6 + 5), T5.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.y * 6 + 0), V.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.y * 6 + 1), V.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.y * 6 + 2), V.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.y * 6 + 0), V.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.y * 6 + 1), V.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.y * 6 + 2), V.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.y * 6 + 3), -T7.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.y * 6 + 4), -T7.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 0, body_id.y * 6 + 5), -T7.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.y * 6 + 3), -T7.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.y * 6 + 4), -T7.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 0, body_id.y * 6 + 5), -T7.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.y * 6 + 0), W.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.y * 6 + 1), W.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.y * 6 + 2), W.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.y * 6 + 0), W.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.y * 6 + 1), W.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.y * 6 + 2), W.z);
 
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.y * 6 + 3), -T8.x);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.y * 6 + 4), -T8.y);
-        ASSERT_EQ((real)data_manager->host_data.D_T(off + row * 2 + 1, body_id.y * 6 + 5), -T8.z);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.y * 6 + 3), -T8.x);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.y * 6 + 4), -T8.y);
+        ASSERT_EQ((real)data_manager->host_data.D_T.coeff(off + row * 2 + 1, body_id.y * 6 + 5), -T8.z);
     }
 }
 
