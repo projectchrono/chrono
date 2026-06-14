@@ -36,7 +36,18 @@ ChPreciceAdapter::ChPreciceAdapter()
       m_participant_created(false),
       m_mesh_created(false),
       m_initialized(false),
-      m_verbose(false) {}
+      m_verbose(false),
+      m_output_dir(".") {}
+
+void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
+    auto p = std::filesystem::path(out_dir);
+    if (!exists(p) || !is_directory(p)) {
+        std::cerr << "The specified path " << out_dir << " is not a valid directory." << std::endl;
+        throw std::runtime_error("Invalid directory");
+    }
+
+    m_output_dir = out_dir;
+}
 
 // -----------------------------------------------------------------------------
 

@@ -43,11 +43,11 @@ void GenerateData();
 
 int main(int argc, char* argv[]) {
     // Debug pause to allow attaching a debugger before MPI initialization
-#ifdef _DEBUG
-    int foo;
-    cout << "Enter something to continue..." << endl;
-    cin >> foo;
-#endif
+    ////#ifdef _DEBUG
+    ////    int foo;
+    ////    cout << "Enter something to continue..." << endl;
+    ////    cin >> foo;
+    ////#endif
 
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
@@ -60,11 +60,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Set path to Chrono data
+    // Set path to Chrono data (based on assumed working directory)
     SetChronoDataPath("../../../");
 
-    // Problem settings
+    // Set path to preCICE configuration file (based on assumed working directory)
     std::string precice_config_filename = "../precice_config.xml";
+
+    // Enable verbose terminal output
     bool verbose = true;
 
     // Create the Chrono MBS participant

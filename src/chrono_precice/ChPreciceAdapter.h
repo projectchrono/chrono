@@ -62,6 +62,10 @@ class ChApiPrecice ChPreciceAdapter {
     /// Enable verbose terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Set root output directory (default: ".").
+    /// The specified directory must exist.
+    void SetOutputDir(const std::string& out_dir);
+
     // ---- preCICE participant registration
 
     /// Register the participant with preCICE, using the specified preCICE configuration file, and the solver process size and index.
@@ -153,7 +157,7 @@ class ChApiPrecice ChPreciceAdapter {
     // ---- preCICE participant construction
 
 #ifdef CHRONO_HAS_YAML
-    /// Get the participant name from the specified YAML input file.
+    /// Extract the participant name from the specified YAML input file.
     static std::string GetParticipantName(const std::string& input_filename);
 
     /// Configure the Chrono participant/solver and its mesh interfaces for use with preCICE, using the specified input file.
@@ -167,11 +171,14 @@ class ChApiPrecice ChPreciceAdapter {
 #endif
 
     /// Set the participant name.
-    /// Used when the adapter is not constructed from a YAML specification file.
+    /// Notes:
+    /// - if the Chrono preCICE participant is created from a YAML specification file, its name is read from that file.
     void SetParticipantName(const std::string& participant_name) { m_participant_name = participant_name; }
 
     /// Add a coupling mesh with specified data type, using the given lists of data names for writing and reading.
-    /// Used when the adapter is not constructed from a YAML specification file. This function can be called more than once.
+    /// This function can be called more than once.
+    /// Notes:
+    /// - if the Chrono preCICE participant is created from a YAML specification file, interface information is read from that file.
     void AddCouplingMeshInterface(const std::string& mesh_name,
                                   CouplingMeshType data_type,
                                   const std::vector<std::string>& data_write_names,
@@ -317,6 +324,8 @@ class ChApiPrecice ChPreciceAdapter {
     bool m_verbose;         ///< verbose terminal output
     std::string m_prefix1;  ///< prefix for terminal messages (first line)
     std::string m_prefix2;  ///< prefix for terminal messages (subsequent lines)
+
+    std::string m_output_dir;  ///< output directory name
 };
 
 /// @} precice_module

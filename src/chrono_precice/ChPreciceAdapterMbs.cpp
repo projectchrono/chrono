@@ -65,12 +65,12 @@ static std::vector<ChVector3d> ReadPoints(const std::string& filename) {
 // -----------------------------------------------------------------------------
 
 ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
-    : m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_output_dir(".") {
+    : m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
     SetVerbose(verbose);
 }
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool verbose) : m_output_dir(".") {
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool verbose) {
     SetVerbose(verbose);
 
     // Create the MBS from the YAML specification file
@@ -184,33 +184,6 @@ bool ChPreciceAdapterMbs::EnableOutput(ChOutput::Format format, ChOutput::Mode m
     m_output.mode = mode;
     m_output.fps = output_fps;
     return (format != ChOutput::Format::NONE);
-}
-
-void ChPreciceAdapterMbs::SetOutputDir(const std::string& out_dir) {
-    auto p = std::filesystem::path(out_dir);
-    if (!exists(p) || !is_directory(p)) {
-        std::cerr << "The specified path " << out_dir << " is not a valid directory." << std::endl;
-        throw std::runtime_error("Invalid directory");
-    }
-
-    m_output_dir = out_dir;
-
-    if (m_verbose) {
-        auto filename = m_output_dir + "/mbs_results" + "." + ChOutput::GetModeAsString(m_output.mode);
-        switch (m_output.format) {
-            case ChOutput::Format::ASCII:
-                filename += ".txt";
-                break;
-            case ChOutput::Format::HDF5:
-#ifdef CHRONO_HAS_HDF5
-                filename += ".h5";
-                break;
-#else
-                return;
-#endif
-        }
-        cout << "Output file: " << filename << endl;
-    }
 }
 
 ChPreciceAdapterMbs::VisParameters::VisParameters()

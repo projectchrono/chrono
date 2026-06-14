@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <fstream>
+
 #include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtils.h"
 
@@ -24,6 +26,10 @@
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -38,23 +44,32 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-void RunParticipantMBS(const std::string& precice_config_filename, bool verbose);
-void RunParticipantCFD(const std::string& precice_config_filename, bool verbose);
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose);
+void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose);
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
     // Debug pause to allow attaching a debugger before MPI initialization
-#ifdef _DEBUG
-    int foo;
-    cout << "Enter something to continue..." << endl;
-    cin >> foo;
-#endif
+    ////#ifdef _DEBUG
+    ////    int foo;
+    ////    cout << "Enter something to continue..." << endl;
+    ////    cin >> foo;
+    ////#endif
 
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
     // Problem settings
     std::string precice_config_filename = GetChronoDataFile("precice/sphere_bounce/precice_config_explicit.xml");
+
+    // Set root output directory
+    std::string out_dir = GetChronoOutputPath() + "PRECICE_SPHERE/";
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    // Enable verbose terminal output
     bool verbose = true;
 
     // Get the participant type (MBS or CFD)
@@ -64,9 +79,9 @@ int main(int argc, char* argv[]) {
         return 1;
     auto type = cli.GetAsType<std::string>("participant");
     if (type == "MBS")
-        RunParticipantMBS(precice_config_filename, verbose);
+        RunParticipantMBS(precice_config_filename, out_dir, verbose);
     else if (type == "CFD")
-        RunParticipantCFD(precice_config_filename, verbose);
+        RunParticipantCFD(precice_config_filename, out_dir, verbose);
     else
         cerr << "Unrecognized participant. Use 'MBS' or 'CFD'" << endl;
 
@@ -75,8 +90,14 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 
-void RunParticipantMBS(const std::string& precice_config_filename, bool verbose) {
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose) {
+    auto mbs_out_dir = out_dir + "mbs";
+    if (!CreateOutputDirectory(std::filesystem::path(mbs_out_dir))) {
+        std::cout << "Error creating directory " << mbs_out_dir << std::endl;
+        throw std::runtime_error("Error creating MBS output directory");
+    }
     ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_bounce/mbs_participant.yaml"), verbose);
+    participant.SetOutputDir(mbs_out_dir);
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
@@ -88,6 +109,7 @@ void RunParticipantMBS(const std::string& precice_config_filename, bool verbose)
 class ParticipantCFD : public ChPreciceAdapter {
   public:
     ParticipantCFD(bool verbose);
+    ~ParticipantCFD();
 
     virtual void InitializeParticipant() override;
     virtual void ReadData() override;
@@ -95,11 +117,15 @@ class ParticipantCFD : public ChPreciceAdapter {
     virtual void AdvanceParticipant(double time, double time_step) override;
     virtual void WriteData() override;
 
+    void PlotResults();
+
   private:
     std::string mesh_name;
     std::vector<double> position;
     std::vector<double> velocity;
     std::vector<double> force;
+
+    std::ofstream file;  // output file stream
 
     double radius = 0.2;  // sphere radius
     double cd = 0.47;     // sphere drag coefficient
@@ -110,6 +136,11 @@ class ParticipantCFD : public ChPreciceAdapter {
 ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
     SetVerbose(verbose);
     ConfigureParticipant(GetChronoDataFile("precice/sphere_bounce/cfd_participant.yaml"));
+}
+
+ParticipantCFD::~ParticipantCFD() {
+    if (file.is_open())
+        file.close();
 }
 
 void ParticipantCFD::InitializeParticipant() {
@@ -151,9 +182,8 @@ double ParticipantCFD::GetSolverTimeStep(double max_time_step) const {
 void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
     ChPreciceAdapter::AdvanceParticipant(time, time_step);
 
-    // Calculate fluid forces for current sphere positin and velocity
+    // Calculate fluid forces for current sphere position and velocity
     double h = radius - position[2];
-    double v = velocity[2];
     force[2] = 0;
     if (h > 0) {
         h = std::min(h, 2 * radius);
@@ -163,7 +193,8 @@ void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
         double frc_b = rho * g * volume;
 
         // Calculate dynamic viscous drag force
-        double frc_d = 0.5 * rho * v * v * cd * (4 * CH_PI * radius * radius);
+        double v = velocity[2];
+        double frc_d = 0.5 * cd * rho * v * v * (CH_PI * radius * radius);
 
         // Set total force
         force[2] = (v < 0) ? frc_b + frc_d : frc_b - frc_d;
@@ -171,6 +202,11 @@ void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
         if (m_verbose)
             cout << m_prefix2 << "h = " << h << "  buoyancy = " << frc_b << "  drag = " << frc_d << endl;
     }
+
+    // Write output
+    if (!file.is_open())
+        file.open(m_output_dir + "/cfd_results.txt");
+    file << time << " " << h << " " << velocity[2] << " " << force[2] << std::endl;
 }
 
 void ParticipantCFD::WriteData() {
@@ -181,13 +217,44 @@ void ParticipantCFD::WriteData() {
     }
 }
 
+void ParticipantCFD::PlotResults() {
+#ifdef CHRONO_POSTPROCESS
+    if (file.is_open())
+        file.close();
+
+    std::string out_filename = m_output_dir + "/cfd_results.txt";
+    std::string gpl_filename = m_output_dir + "/cfd_plot.gpl";
+
+    postprocess::ChGnuPlot gplot(gpl_filename);
+    gplot.SetCanvasSize(800, 600);
+    gplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("depth (m) and vel (m/s)");
+    gplot.SetLabelY2("force (N)");
+    gplot.SetCommand("set ytics 0.25 nomirror");
+    gplot.SetCommand("set y2tics 50.0 nomirror");
+    gplot.SetTitle("Bouncing sphere");
+    gplot.Plot(out_filename, 1, 2, "depth", " axes x1y1 with lines lt rgb '#FF5500' lw 2");
+    gplot.Plot(out_filename, 1, 3, "vel", " axes x1y1 with lines lt rgb '#0055FF' lw 2");
+    gplot.Plot(out_filename, 1, 4, "force", " axes x1y2 with lines lt rgb '#000000' lw 2");
+#endif
+}
+
 // -----------------------------------------------------------------------------
 
-void RunParticipantCFD(const std::string& precice_config_filename, bool verbose) {
-    ParticipantCFD participant(verbose);
+void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose) {
+    auto cfd_out_dir = out_dir + "cfd";
+    if (!CreateOutputDirectory(std::filesystem::path(cfd_out_dir))) {
+        std::cout << "Error creating directory " << cfd_out_dir << std::endl;
+        throw std::runtime_error("Error creating CFD output directory");
+    }
 
+    ParticipantCFD participant(verbose);
+    participant.SetOutputDir(cfd_out_dir);
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();
+
+    participant.PlotResults();
 }

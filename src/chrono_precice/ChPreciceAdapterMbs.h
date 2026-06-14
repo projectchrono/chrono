@@ -82,10 +82,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
                       double output_fps         ///< output frequency
     );
 
-    /// Set root output directory (default: ".").
-    /// The specified directory must exist.
-    virtual void SetOutputDir(const std::string& out_dir);
-
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
 
     void AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, const std::vector<ChVector3d>& points);
@@ -198,7 +194,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     // Output
     OutputParameters m_output;              ///< output specification
     ChAssembly::Components m_output_data;   ///< output data
-    std::string m_output_dir;               ///< output directory name
     std::unique_ptr<ChOutput> m_output_db;  ///< output database
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
