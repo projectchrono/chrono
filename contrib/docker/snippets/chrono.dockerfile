@@ -54,7 +54,11 @@ INCLUDE ./ch_vehicle.dockerfile
 INCLUDE ./ch_sensor.dockerfile
 INCLUDE ./ch_parser.dockerfile
 INCLUDE ./ch_python.dockerfile
-INCLUDE ./ch_synchrono.dockerfile
+# SynChrono disabled in this image: its Fast-DDS backend conflicts with the
+# ROS 2 Fast-DDS (see ch_synchrono.dockerfile) and its flatbuffers dependency
+# does not build under GCC 15. Not needed for Chrono::ROS. Re-enable by
+# uncommenting once SynChrono is updated for the new toolchain.
+# INCLUDE ./ch_synchrono.dockerfile
 
 
 # Install Chrono
