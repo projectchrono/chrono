@@ -17,6 +17,9 @@
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChArchiveBinary.h"
+#include <cstdint>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
 #include "chrono_multidomain/ChDomain.h"
@@ -27,6 +30,29 @@ namespace multidomain {
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemDescriptorMultidomain)
+
+namespace {
+constexpr bool kUseSharedKeyPacket = true;
+
+int SharedVarKeyDOF(std::uint64_t key) {
+    return static_cast<int>(key & 0x7FFFull);
+}
+
+class SharedVectsPacket {
+  public:
+    std::vector<std::uint64_t> keys;
+    ChVectorDynamic<> values;
+
+    void ArchiveOut(ChArchiveOut& archive_out) {
+        archive_out << CHNVP(keys);
+        archive_out << CHNVP(values);
+    }
+    void ArchiveIn(ChArchiveIn& archive_in) {
+        archive_in >> CHNVP(keys);
+        archive_in >> CHNVP(values);
+    }
+};
+}  // namespace
 
 ChSystemDescriptorMultidomain::ChSystemDescriptorMultidomain(std::shared_ptr<ChDomain> mdomain, ChDomainManager* mdomain_manager) {
     this->domain = mdomain;
@@ -39,16 +65,23 @@ void ChSystemDescriptorMultidomain::UpdateCountsAndOffsets() {
     // parent class update
     ChSystemDescriptor::UpdateCountsAndOffsets();
 
+    shared_vects.clear();
     shared_vects.reserve(this->domain->GetInterfaces().size() * 5);
     for (auto& interf : this->domain->GetInterfaces()) {
         int nsharedv = 0;
-        for (auto avar : interf.second.shared_vars) {
-            if (avar->IsActive()) {
-                nsharedv += avar->GetDOF();
+        for (auto* avar : interf.second.shared_vars) {
+            if (!avar || !avar->IsActive()) {
+                continue;
             }
+            nsharedv += avar->GetDOF();
         }
+
         shared_vects[interf.second.side_OUT->GetRank()].setZero(nsharedv);
     }
+
+    // Shared-variable offsets can change after repartition/migration; rebuild weights
+    // after counts/offsets are refreshed.
+    this->domain->ComputeSharedCoordsWeights(this->domain->CoordWeightsWv());
 }
 
 double ChSystemDescriptorMultidomain::globalVdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector, ChVectorDynamic<>* Wv_partition) {
@@ -292,15 +325,19 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(dou
 
         int nrank = interf.second.side_OUT->GetRank();
         ChVectorDynamic<> Dv_shared(shared_vects[nrank].size());
+        std::vector<std::uint64_t> active_keys;
+        active_keys.reserve(interf.second.shared_var_keys.size());
         int offset = 0;
-        for (auto avar : interf.second.shared_vars) {
-            if (avar->IsActive()) {
+        for (size_t i = 0; i < interf.second.shared_vars.size() && i < interf.second.shared_var_keys.size(); ++i) {
+            auto* avar = interf.second.shared_vars[i];
+            if (avar && avar->IsActive()) {
                 // compute delta as current variable state - last synced shared_state
                 Dv_shared.segment(offset, avar->GetDOF()) = avar->State() - shared_vects[nrank].segment(offset, avar->GetDOF());
+                active_keys.push_back(interf.second.shared_var_keys[i]);
                 offset += avar->GetDOF();
             }
         }
-        
+
         std::shared_ptr<ChArchiveOut> serializer;
         switch (this->domain_manager->serializer_type) {
         case DomainSerializerFormat::BINARY:
@@ -313,7 +350,14 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(dou
         }
         serializer->SetUseVersions(false);
 
-        *serializer << CHNVP(Dv_shared);
+        if (kUseSharedKeyPacket) {
+            SharedVectsPacket packet;
+            packet.keys = active_keys;
+            packet.values = Dv_shared;
+            *serializer << CHNVP(packet, "packet");
+        } else {
+            *serializer << CHNVP(Dv_shared);
+        }
 
         //***DEBUG***
         /*
@@ -347,20 +391,63 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(dou
         default: break;
         }
         deserializer->SetUseVersions(false);
+            if (kUseSharedKeyPacket) {
+                SharedVectsPacket packet;
+                *deserializer >> CHNVP(packet, "packet");
+                Dv_shared = packet.values;
+                std::vector<std::uint64_t> local_active_keys;
+                local_active_keys.reserve(interf.second.shared_var_keys.size());
+                for (size_t i = 0; i < interf.second.shared_vars.size() && i < interf.second.shared_var_keys.size(); ++i) {
+                    auto* avar = interf.second.shared_vars[i];
+                    if (avar && avar->IsActive())
+                        local_active_keys.push_back(interf.second.shared_var_keys[i]);
+                }
 
-        *deserializer >> CHNVP(Dv_shared);
+                if (!(packet.keys == local_active_keys && Dv_shared.size() == shared_vects[nrank].size())) {
+                    ChVectorDynamic<> reordered(shared_vects[nrank].size());
+                    reordered.setZero();
+                    std::unordered_map<std::uint64_t, int> incoming_offsets;
+                    int in_off = 0;
+                    bool incoming_layout_ok = true;
+                    for (auto key : packet.keys) {
+                        const int dof = SharedVarKeyDOF(key);
+                        if (dof <= 0 || in_off + dof > Dv_shared.size()) {
+                            incoming_layout_ok = false;
+                            break;
+                        }
+                        incoming_offsets[key] = in_off;
+                        in_off += dof;
+                    }
 
-        int offset = 0;
-        for (auto avar : interf.second.shared_vars) {
-            if (avar->IsActive()) {
-                // increment state as state + delta received from neighbour
-                avar->State() += omega * Dv_shared.segment(offset, avar->GetDOF());
-                // last, sync the shared_states to updates var state
-                shared_vects[nrank].segment(offset, avar->GetDOF()) = avar->State();
-                offset += avar->GetDOF();
+                    int local_off = 0;
+                    if (incoming_layout_ok) {
+                        for (auto key : local_active_keys) {
+                            const int dof = SharedVarKeyDOF(key);
+                            auto it = incoming_offsets.find(key);
+                            if (it != incoming_offsets.end() && it->second + dof <= Dv_shared.size() &&
+                                local_off + dof <= reordered.size()) {
+                                reordered.segment(local_off, dof) = Dv_shared.segment(it->second, dof);
+                            }
+                            local_off += dof;
+                        }
+                    }
+                    Dv_shared = reordered;
+                }
+            } else {
+                *deserializer >> CHNVP(Dv_shared);
+            }
+
+            // add to active variables, to recover global multibody state
+            int offset = 0;
+            for (auto avar : interf.second.shared_vars) {
+                if (avar->IsActive()) {
+                    avar->State() += omega * Dv_shared.segment(offset, avar->GetDOF());
+                    // update temporary buffer with latest values for subsequent interfaces
+                    shared_vects[nrank].segment(offset, avar->GetDOF()) = avar->State();
+                    offset += avar->GetDOF();
+                }
             }
         }
-    }
 }
 
 
@@ -395,7 +482,19 @@ void ChSystemDescriptorMultidomain::SharedVectsSwap() {
         }
 
         int nrank = interf.second.side_OUT->GetRank();
-        *serializer << CHNVP(this->shared_vects[nrank],"v");
+        if (kUseSharedKeyPacket) {
+            SharedVectsPacket packet;
+            packet.values = this->shared_vects[nrank];
+            packet.keys.reserve(interf.second.shared_var_keys.size());
+            for (size_t i = 0; i < interf.second.shared_vars.size() && i < interf.second.shared_var_keys.size(); ++i) {
+                auto* avar = interf.second.shared_vars[i];
+                if (avar && avar->IsActive())
+                    packet.keys.push_back(interf.second.shared_var_keys[i]);
+            }
+            *serializer << CHNVP(packet, "packet");
+        } else {
+            *serializer << CHNVP(this->shared_vects[nrank], "v");
+        }
     }
 
     this->domain_manager->DoDomainSendReceive(this->domain->GetRank());   // *** COMM + MULTITHREAD BARRIER ***
@@ -421,9 +520,77 @@ void ChSystemDescriptorMultidomain::SharedVectsSwap() {
         default: break;
         }
 
-        *deserializer >> CHNVP(incoming_vect,"v");
+        if (kUseSharedKeyPacket) {
+            SharedVectsPacket packet;
+            *deserializer >> CHNVP(packet, "packet");
+            incoming_vect = packet.values;
 
-        this->shared_vects[nrank] = incoming_vect;
+            std::vector<std::uint64_t> local_active_keys;
+            local_active_keys.reserve(interf.second.shared_var_keys.size());
+            for (size_t i = 0; i < interf.second.shared_vars.size() && i < interf.second.shared_var_keys.size(); ++i) {
+                auto* avar = interf.second.shared_vars[i];
+                if (avar && avar->IsActive())
+                    local_active_keys.push_back(interf.second.shared_var_keys[i]);
+            }
+
+            if (packet.keys == local_active_keys && incoming_vect.size() == this->shared_vects[nrank].size()) {
+                this->shared_vects[nrank] = incoming_vect;
+                continue;
+            }
+
+            // Fallback: remap by stable shared-variable keys when local/remote order differs.
+            ChVectorDynamic<> reordered(this->shared_vects[nrank].size());
+            reordered.setZero();
+
+            std::unordered_map<std::uint64_t, int> incoming_offsets;
+            int in_off = 0;
+            bool incoming_layout_ok = true;
+            for (auto key : packet.keys) {
+                const int dof = SharedVarKeyDOF(key);
+                if (dof <= 0 || in_off + dof > incoming_vect.size()) {
+                    incoming_layout_ok = false;
+                    break;
+                }
+                incoming_offsets[key] = in_off;
+                in_off += dof;
+            }
+
+            int local_off = 0;
+            int missing_keys = 0;
+            if (incoming_layout_ok) {
+                for (auto key : local_active_keys) {
+                    const int dof = SharedVarKeyDOF(key);
+                    auto it = incoming_offsets.find(key);
+                    if (it != incoming_offsets.end() && it->second + dof <= incoming_vect.size() &&
+                        local_off + dof <= reordered.size()) {
+                        reordered.segment(local_off, dof) = incoming_vect.segment(it->second, dof);
+                    } else {
+                        missing_keys++;
+                    }
+                    local_off += dof;
+                }
+            } else {
+                missing_keys = static_cast<int>(local_active_keys.size());
+            }
+
+            this->shared_vects[nrank] = reordered;
+
+            static std::unordered_set<std::uint64_t> warned_pairs;
+            const std::uint64_t pair_id =
+                (static_cast<std::uint64_t>(static_cast<std::uint32_t>(this->domain->GetRank())) << 32) |
+                static_cast<std::uint64_t>(static_cast<std::uint32_t>(nrank));
+            if (warned_pairs.insert(pair_id).second) {
+                std::stringstream msg;
+                msg << "Multidomain shared-vector key remap activated on interface " << this->domain->GetRank()
+                    << " <-> " << nrank << " (missing_keys=" << missing_keys
+                    << ", local_active_keys=" << local_active_keys.size()
+                    << ", remote_active_keys=" << packet.keys.size() << ")\n";
+                this->domain_manager->ConsoleOutSerialized(msg.str());
+            }
+        } else {
+            *deserializer >> CHNVP(incoming_vect, "v");
+            this->shared_vects[nrank] = incoming_vect;
+        }
     }
 }
 
@@ -435,27 +602,23 @@ void ChSystemDescriptorMultidomain::VectAdditiveToClipped(ChVectorDynamic<>& vec
 
 
 double ChSystemDescriptorMultidomain::SyncSharedStates(bool return_max_correction_error) {
+    ChVectorDynamic<> state;
+    this->FromVariablesToVector(state, true);
 
-    double maxerror = 0;
-
-    this->SharedVectsFromCurrentDomainStates();
-
-    this->SharedVectsSwap(); // *** COMM + MULTITHREAD BARRIER ***
-
-    for (auto& interf : this->domain->GetInterfaces()) {
-        int nrank = interf.second.side_OUT->GetRank();
-        int offset = 0;
-        for (auto avar : interf.second.shared_vars) {
-            if (avar->IsActive()) {
-                if (return_max_correction_error) {
-                    maxerror = std::max(maxerror, (avar->State() - shared_vects[nrank].segment(offset, avar->GetDOF())).lpNorm<Eigen::Infinity>());
-                }
-                avar->State().array() = avar->State().array().cwiseMin(shared_vects[nrank].segment(offset, avar->GetDOF()).array());
-                offset += avar->GetDOF();
-            }
-        }
+    ChVectorDynamic<> state_before;
+    if (return_max_correction_error) {
+        state_before = state;
     }
-    return maxerror;
+
+    // Average shared coordinates across interfaces and write back.
+    this->VectAdditiveToClipped(state, 1.0);
+    this->FromVectorToVariables(state);
+
+    if (!return_max_correction_error || state.size() == 0) {
+        return 0.0;
+    }
+
+    return (state - state_before).cwiseAbs().maxCoeff();
 }
 
 

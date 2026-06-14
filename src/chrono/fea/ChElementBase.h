@@ -18,6 +18,7 @@
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/serialization/ChArchive.h"
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 
@@ -35,8 +36,14 @@ struct ChStrainStress3D {
 /// Base class for all finite elements, that can be used in the ChMesh physics item.
 class ChApi ChElementBase {
   public:
-    ChElementBase() {}
+    ChElementBase() : m_tag(-1) {}
     virtual ~ChElementBase() {}
+
+    /// Set a user-defined integer tag (default: -1).
+    void SetTag(int tag) { m_tag = tag; }
+
+    /// Get the user-defined integer tag.
+    int GetTag() const { return m_tag; }
 
     /// Get the number of nodes used by this element.
     virtual unsigned int GetNumNodes() = 0;
@@ -155,22 +162,30 @@ class ChApi ChElementBase {
     /// WILL BE DEPRECATED
     virtual void VariablesFbIncrementMq() {}
 
+    /// Get the number of state variables used by this element.
+    /// Number of quadrature (Gauss) points, multiplied by number of state variables of constitutive model
+    virtual unsigned int GetNumStateVar() {return 0;}
+
+    /// Update the state variables of the constitutive model at the end of the step
+    virtual void EleUpdateStateVar() {}
+    
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) =0;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) { archive_out << CHNVP(m_tag); }
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) =0;
-
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) { archive_in >> CHNVP(m_tag); }
 
   private:
     /// Initial setup (called once before start of simulation).
     /// This is used mostly to precompute matrices that do not change during the simulation, i.e. the local stiffness of
     /// each element, if any, the mass, etc.
     virtual void SetupInitial(ChSystem* system) {}
+
+    int m_tag;
 
     friend class ChMesh;
 };

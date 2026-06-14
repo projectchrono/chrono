@@ -93,77 +93,95 @@ void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
 
 
 bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
-	assert(mrank == domain->GetRank());
+    assert(mrank == domain->GetRank());
 
-	int ninterfaces = domain->GetInterfaces().size();
-	ChMPIrequest* requests = new ChMPIrequest[ninterfaces];
-	ChMPIstatus* statuses = new ChMPIstatus[ninterfaces];
-	std::vector<std::string> send_strings(ninterfaces); // need to persist until all nonblocking sends are done 
+    int ninterfaces = domain->GetInterfaces().size();
+    ChMPIrequest* requests = new ChMPIrequest[ninterfaces];
+    ChMPIstatus* statuses = new ChMPIstatus[ninterfaces];
+    std::vector<std::string> send_strings(ninterfaces);  // need to persist until all nonblocking sends are done
 
-	int i_int = 0;
-	if (!(domain->IsMaster() && !this->master_domain_enabled)) {
-		for (auto& minterface : domain->GetInterfaces()) {
-			int other_rank = minterface.second.side_OUT->GetRank();
+    int i_int = 0;
+    if (this->verbose_partition) {
+        std::cerr << "[MDOM][rank " << domain->GetRank() << "] DoDomainSendReceive begin, interfaces=" << ninterfaces << " master_enabled=" << (this->master_domain_enabled ? 1 : 0)
+                  << std::endl;
+    }
+    if (!(domain->IsMaster() && !this->master_domain_enabled)) {
+        for (auto& minterface : domain->GetInterfaces()) {
+            int other_rank = minterface.second.side_OUT->GetRank();
 
-			if (minterface.second.side_OUT->IsMaster() && !this->master_domain_enabled)
-				continue;
+            if (minterface.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+                continue;
+            if (this->verbose_partition) {
+                std::cerr << "[MDOM][rank " << domain->GetRank() << "] send->" << other_rank << std::endl;
+            }
 
-			// A)
-			// non-blocking MPI send from this domain to neighbour domain:
-			// equivalent:   MPI_Isend
-			// A copy to a persistent std::string is needed, because minterface.second.buffer_sending 
-			// cannot be used directly for MPI send because it is a std::stringstream, that has no accessible buffer (maybe noncontiguous)
-			send_strings[i_int] = minterface.second.buffer_sending.rdbuf()->str(); 
-			mpi_engine.SendString_nonblocking(other_rank, send_strings[i_int], ChMPI::eCh_mpiCommMode::MPI_STANDARD, &requests[i_int]);
+            // A)
+            // non-blocking MPI send from this domain to neighbour domain:
+            // equivalent:   MPI_Isend
+            // A copy to a persistent std::string is needed, because minterface.second.buffer_sending
+            // cannot be used directly for MPI send because it is a std::stringstream, that has no accessible buffer (maybe noncontiguous)
+            send_strings[i_int] = minterface.second.buffer_sending.rdbuf()->str();
+            mpi_engine.SendString_nonblocking(other_rank, send_strings[i_int], ChMPI::eCh_mpiCommMode::MPI_STANDARD, &requests[i_int]);
 
-			++i_int;
-		}
-		
-		// Wait all non-blocking sends are done. If the receiving were non-blocking too, this could be after 
-		// receiving stuff below, aiming at highest performance with high communication overlap. Sadly, not possible as ReceiveString
-		// is only available in blocking version, because of the problem with receiving buffer size not known in advance.
-		mpi_engine.WaitAll(i_int, requests, statuses); 
-		
-		for (auto& minterface : domain->GetInterfaces()) {
-			int other_rank = minterface.second.side_OUT->GetRank();
+            ++i_int;
+        }
 
-			if (minterface.second.side_OUT->IsMaster() && !this->master_domain_enabled)
-				continue;
+        for (auto& minterface : domain->GetInterfaces()) {
+            int other_rank = minterface.second.side_OUT->GetRank();
 
-			// B)
-			// blocking MPI receive from neighbour domain to this domain:
-			// equivalent:  MPI_Probe+MPI_Recv   WILL BLOCK! at each interface. No need for later MPI_WaitAll
-			ChMPIstatus mstatus2;
-			std::string receive_string;
-			mpi_engine.ReceiveString_blocking(other_rank, receive_string, &mstatus2);
-			minterface.second.buffer_receiving << receive_string;
-		}
-	}
+            if (minterface.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+                continue;
+            if (this->verbose_partition) {
+                std::cerr << "[MDOM][rank " << domain->GetRank() << "] recv<-" << other_rank << " waiting" << std::endl;
+            }
 
-	if (this->verbose_variable_updates)
-		for (int i = 0; i < GetMPItotranks(); i++) {
-			this->mpi_engine.Barrier();							// WILL BLOCK ALL!
-			if (i == GetMPIrank()) {
-				if (!(domain->IsMaster() && !this->master_domain_enabled))
-					for (auto& interf : domain->GetInterfaces())
-					{
-						if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
-							continue;
-						std::cout << "\nBUFFERS  in domain " << this->domain->GetRank() << "\n -> sent to domain " << interf.second.side_OUT->GetRank() << "\n"; 
-						std::cout << interf.second.buffer_sending.str(); 
-						std::cout << "\n <- received from domain " << interf.second.side_OUT->GetRank() << "\n";
-						std::cout << interf.second.buffer_receiving.str();
-						std::cout.flush();
-					}
-			}
-			std::cout.flush();
-			this->mpi_engine.Barrier();							// WILL BLOCK ALL!
-		}
+            // B)
+            // blocking MPI receive from neighbour domain to this domain:
+            // equivalent:  MPI_Probe+MPI_Recv   WILL BLOCK! at each interface. No need for later MPI_WaitAll
+            ChMPIstatus mstatus2;
+            std::string receive_string;
+            mpi_engine.ReceiveString_blocking(other_rank, receive_string, &mstatus2);
+            minterface.second.buffer_receiving << receive_string;
+            if (this->verbose_partition) {
+                std::cerr << "[MDOM][rank " << domain->GetRank() << "] recv<-" << other_rank << " done" << std::endl;
+            }
+        }
 
-	delete[] requests;
-	delete[] statuses;
+        // Complete all outstanding nonblocking sends after receives are posted/consumed.
+        // This avoids rendezvous deadlocks for large payloads when all ranks would otherwise
+        // wait on Isend completion before entering any matching receive.
+        mpi_engine.WaitAll(i_int, requests, statuses);
+        if (this->verbose_partition) {
+            std::cerr << "[MDOM][rank " << domain->GetRank() << "] all sends completed, count=" << i_int << std::endl;
+        }
+    }
 
-	return true;
+    if (this->verbose_variable_updates)
+        for (int i = 0; i < GetMPItotranks(); i++) {
+            this->mpi_engine.Barrier();  // WILL BLOCK ALL!
+            if (i == GetMPIrank()) {
+                if (!(domain->IsMaster() && !this->master_domain_enabled))
+                    for (auto& interf : domain->GetInterfaces()) {
+                        if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+                            continue;
+                        std::cout << "\nBUFFERS  in domain " << this->domain->GetRank() << "\n -> sent to domain " << interf.second.side_OUT->GetRank() << "\n";
+                        std::cout << interf.second.buffer_sending.str();
+                        std::cout << "\n <- received from domain " << interf.second.side_OUT->GetRank() << "\n";
+                        std::cout << interf.second.buffer_receiving.str();
+                        std::cout.flush();
+                    }
+            }
+            std::cout.flush();
+            this->mpi_engine.Barrier();  // WILL BLOCK ALL!
+        }
+
+    delete[] requests;
+    delete[] statuses;
+    if (this->verbose_partition) {
+        std::cerr << "[MDOM][rank " << domain->GetRank() << "] DoDomainSendReceive end" << std::endl;
+    }
+
+    return true;
 }
 
 

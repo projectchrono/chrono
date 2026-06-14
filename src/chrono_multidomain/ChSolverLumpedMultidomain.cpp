@@ -14,6 +14,7 @@
 
 #include "chrono_multidomain/ChSolverLumpedMultidomain.h"
 #include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
+#include "chrono_multidomain/ChDomain.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 
 namespace chrono {
@@ -47,7 +48,28 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
     
     sysdMD.BuildFbVector(R); // rhs, applied forces (plus the penalty terms of constraints if timestepper in penalty ON mode)
 
-    // MULTIDOMAIN****************** this works only because node masses are split between shared domains with Wv weights. 
+    ChVectorDynamic<> diag_all;
+    sysdMD.BuildDiagonalVector(diag_all);
+    diagonal_M = diag_all.head(nv);
+
+    constexpr bool apply_partition_weights = false;
+    if (apply_partition_weights) {
+        if (auto domain = sysdMD.GetDomain()) {
+            domain->ComputeSharedCoordsWeights(domain->CoordWeightsWv());
+            const auto& wv = domain->CoordWeightsWv();
+            if (wv.size() >= nv) {
+                for (int i = 0; i < nv; ++i) {
+                    const double w = wv(i);
+                    R[i] *= w;
+                    diagonal_M[i] *= w;
+                }
+            }
+        }
+    }
+
+    // MULTIDOMAIN: assemble shared force and lumped mass prior to division.
+    // This avoids re-adding already divided accelerations across interfaces.
+    sysdMD.VectAdditiveToClipped(R);
     sysdMD.VectAdditiveToClipped(this->diagonal_M);
 
     // Compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
@@ -62,11 +84,8 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
             a[i] = 0; 
     }
 
-
-    // MULTIDOMAIN******************
-    // Sum the contribution to acceleration from other domains. Alternatively we could have summed R. 
-    // That's all. Lucky situation because we assume that the Md array is in clipped, not additive format.
-    sysdMD.VectAdditiveToClipped(a);  
+    // Synchronize shared accelerations via interface averaging.
+    sysdMD.VectAdditiveToClipped(a, 1.0);
 
     // Resulting dual variables:
     //sysd.FromVectorToConstraints(L);

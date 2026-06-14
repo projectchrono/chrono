@@ -158,6 +158,11 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Updates all [A] coord.systems for all (corotational) elements.
     virtual void Update(double m_time, UpdateFlags update_flags) override;
 
+    /// Update internal material state variables that must only be modified at the end of step.
+    /// Contrary to Update() above, this function must only be called at the end of the step
+    /// because it will otherwise corrupt the loading path of the material model
+//    virtual void EndOfStepInternalVariablesUpdate() override;
+
     /// Add the mesh contact surfaces (if any) to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
 

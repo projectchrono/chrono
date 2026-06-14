@@ -201,6 +201,14 @@ void ChMesh::Update(double m_time, UpdateFlags update_flags) {
     }
 }
 
+/*
+void ChMesh::EndOfStepInternalVariablesUpdate() {
+    for (unsigned int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleUpdateStateVar();
+    }
+}
+*/
+
 void ChMesh::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
     for (const auto& surf : vcontactsurfaces)
         surf->AddCollisionModelsToSystem(coll_sys);

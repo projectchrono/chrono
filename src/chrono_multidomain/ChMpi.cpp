@@ -107,7 +107,7 @@ int ChMPI::SendMatrix_blocking(int destID,
 	};
 	Matrixstruct mmatr; 
 	mmatr.rows = source_matr.rows();
-	mmatr.cols = source_matr.rows();
+	mmatr.cols = source_matr.cols();
 	mmatr.vals = source_matr.data();
 
 	MPI_Datatype Matrixtype;
@@ -116,12 +116,12 @@ int ChMPI::SendMatrix_blocking(int destID,
 	MPI_Aint disp[3];
 	MPI_Aint base;
 	// compute displacements of structure components 
-	MPI_Address( &mmatr.rows, disp);
-	MPI_Address( &mmatr.cols, disp+1);
-	MPI_Address( mmatr.vals,  disp+2);
+	MPI_Get_address(&mmatr.rows, disp);
+	MPI_Get_address(&mmatr.cols, disp + 1);
+	MPI_Get_address(mmatr.vals, disp + 2);
 	base = disp[0];
 	for (int i=0; i <3; i++) disp[i] -= base;
-	MPI_Type_struct( 3, blocklen, disp, type, &Matrixtype);
+	MPI_Type_create_struct(3, blocklen, disp, type, &Matrixtype);
 	MPI_Type_commit( &Matrixtype);
 	
 	int err = 0;
@@ -164,7 +164,7 @@ int ChMPI::SendMatrix_nonblocking(
 	};
 	Matrixstruct mmatr;
 	mmatr.rows = source_matr.rows();
-	mmatr.cols = source_matr.rows();
+	mmatr.cols = source_matr.cols();
 	mmatr.vals = source_matr.data();
 
 	MPI_Datatype Matrixtype;
@@ -173,12 +173,12 @@ int ChMPI::SendMatrix_nonblocking(
 	MPI_Aint disp[3];
 	MPI_Aint base;
 	// compute displacements of structure components 
-	MPI_Address(&mmatr.rows, disp);
-	MPI_Address(&mmatr.cols, disp + 1);
-	MPI_Address(mmatr.vals, disp + 2);
+	MPI_Get_address(&mmatr.rows, disp);
+	MPI_Get_address(&mmatr.cols, disp + 1);
+	MPI_Get_address(mmatr.vals, disp + 2);
 	base = disp[0];
 	for (int i = 0; i < 3; i++) disp[i] -= base;
-	MPI_Type_struct(3, blocklen, disp, type, &Matrixtype);
+	MPI_Type_create_struct(3, blocklen, disp, type, &Matrixtype);
 	MPI_Type_commit(&Matrixtype);
 
 	int err = 0;
@@ -228,12 +228,12 @@ int ChMPI::ReceiveMatrix_blocking( int sourceID,
 	MPI_Aint disp[3];
 	MPI_Aint base;
 	// compute displacements of structure components 
-	MPI_Address( &mmatr.rows, disp);
-	MPI_Address( &mmatr.cols, disp+1);
-	MPI_Address( mmatr.vals,  disp+2);
+	MPI_Get_address(&mmatr.rows, disp);
+	MPI_Get_address(&mmatr.cols, disp + 1);
+	MPI_Get_address(mmatr.vals, disp + 2);
 	base = disp[0];
 	for (int i=0; i <3; i++) disp[i] -= base;
-	MPI_Type_struct( 3, blocklen, disp, type, &Matrixtype);
+	MPI_Type_create_struct(3, blocklen, disp, type, &Matrixtype);
 	MPI_Type_commit( &Matrixtype);
 	
 	int err = MPI_Recv( &mmatr, 1, Matrixtype, sourceID, 1001, MPI_COMM_WORLD, (MPI_Status*)mstatus->mpistat);
@@ -270,12 +270,12 @@ int ChMPI::ReceiveMatrix_nonblocking(int sourceID,
 	MPI_Aint disp[3];
 	MPI_Aint base;
 	// compute displacements of structure components 
-	MPI_Address(&mmatr.rows, disp);
-	MPI_Address(&mmatr.cols, disp + 1);
-	MPI_Address(mmatr.vals, disp + 2);
+	MPI_Get_address(&mmatr.rows, disp);
+	MPI_Get_address(&mmatr.cols, disp + 1);
+	MPI_Get_address(mmatr.vals, disp + 2);
 	base = disp[0];
 	for (int i = 0; i < 3; i++) disp[i] -= base;
-	MPI_Type_struct(3, blocklen, disp, type, &Matrixtype);
+	MPI_Type_create_struct(3, blocklen, disp, type, &Matrixtype);
 	MPI_Type_commit(&Matrixtype);
 
 	int err = MPI_Irecv(&mmatr, 1, Matrixtype, sourceID, 1001, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);

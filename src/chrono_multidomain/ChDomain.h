@@ -15,9 +15,11 @@
 #ifndef CHDOMAIN_H
 #define CHDOMAIN_H
 
-#include <unordered_set>
-#include <unordered_map>
+#include <map>
+#include <cstdint>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/physics/ChSystem.h"
@@ -73,8 +75,11 @@ public:
     /// Get system used by this domain
     ChSystem* GetSystem() { return system; }
 
-    /// Compute a vector where each element is 1 if the dof is not 
-    /// shared, or n if shared among n domains
+    /// Partition-of-unity weights of domain coordinates (1 for non-shared, 1/n for n-way shared).
+    ChVectorDynamic<>& CoordWeightsWv() { return coord_weights_wv; }
+
+    /// Compute a vector where each element is 1 if the dof is not
+    /// shared, or n if shared among n domains.
     void ComputeSharedCoordsCounts(ChVectorDynamic<>& Nv);
     
     /// Compute the weighting vector (partition-of-unity) to split 
@@ -94,10 +99,8 @@ public:
 private:
     int rank = 0;
     ChSystem* system = nullptr;
-
-    std::unordered_map<int, ChDomainInterface>  interfaces; // key is rank of neighbour domain
-
-     
+    std::unordered_map<int, ChDomainInterface> interfaces;  // key is rank of neighbour domain
+    ChVectorDynamic<> coord_weights_wv;
 };
 
 
@@ -146,6 +149,7 @@ public:
         side_OUT = other.side_OUT;
         shared_items = other.shared_items;
         shared_nodes = other.shared_nodes;
+        shared_var_keys = other.shared_var_keys;
         buffer_sending << other.buffer_sending.rdbuf();
         buffer_receiving << other.buffer_receiving.rdbuf();
     };
@@ -154,6 +158,7 @@ public:
         side_OUT = other.side_OUT;
         shared_items = other.shared_items;
         shared_nodes = other.shared_nodes;
+        shared_var_keys = other.shared_var_keys;
         buffer_sending << other.buffer_sending.rdbuf();
         buffer_receiving << other.buffer_receiving.rdbuf();
         return *this;
@@ -175,6 +180,7 @@ public:
 
     // for the system descriptor:
     std::vector<ChVariables*> shared_vars;
+    std::vector<std::uint64_t> shared_var_keys;
 
 private:
 };

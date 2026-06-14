@@ -29,6 +29,68 @@ namespace multidomain {
 
 using namespace fea;
 
+static ChVector3d GetNodeCenter(const std::shared_ptr<ChNodeBase>& node) {
+    if (!node)
+        return ChVector3d(0, 0, 0);
+    if (auto nxyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node))
+        return nxyzrot->GetPos();
+    if (auto nxyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
+        return nxyz->GetPos();
+    return ChVector3d(0, 0, 0);
+}
+
+static ChVector3d GetNodeCenter(const std::shared_ptr<ChNodeFEAbase>& node) {
+    if (!node)
+        return ChVector3d(0, 0, 0);
+    if (auto nxyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node))
+        return nxyzrot->GetPos();
+    if (auto nxyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
+        return nxyz->GetPos();
+    return ChVector3d(0, 0, 0);
+}
+
+static ChVector3d GetElementCenter(const std::shared_ptr<ChElementBase>& element) {
+    if (!element)
+        return ChVector3d(0, 0, 0);
+    const int nnodes = static_cast<int>(element->GetNumNodes());
+    if (nnodes <= 0)
+        return ChVector3d(0, 0, 0);
+
+    ChVector3d center(0, 0, 0);
+    int count = 0;
+    for (int i = 0; i < nnodes; ++i) {
+        auto node = element->GetNode(i);
+        if (!node)
+            continue;
+        center += GetNodeCenter(node);
+        ++count;
+    }
+    if (count <= 0)
+        return ChVector3d(0, 0, 0);
+    return center / static_cast<double>(count);
+}
+
+static std::uint64_t MakeSharedVarKey(bool is_node, int tag, int local_var_index, int dof) {
+    // [63]=node/item, [62:31]=tag, [30:15]=local variable index, [14:0]=dof (capped to 15 bits)
+    const std::uint64_t type_bit = is_node ? (1ull << 63) : 0ull;
+    const std::uint64_t tag_bits = (static_cast<std::uint64_t>(static_cast<std::uint32_t>(tag)) & 0xFFFFFFFFull) << 31;
+    const std::uint64_t local_bits = (static_cast<std::uint64_t>(static_cast<std::uint32_t>(local_var_index)) & 0xFFFFull) << 15;
+    const std::uint64_t dof_bits = (static_cast<std::uint64_t>(static_cast<std::uint32_t>(dof)) & 0x7FFFull);
+    return type_bit | tag_bits | local_bits | dof_bits;
+}
+
+static bool SharedVarKeyIsNode(std::uint64_t key) {
+    return (key >> 63) != 0ull;
+}
+
+static int SharedVarKeyTag(std::uint64_t key) {
+    const std::uint32_t raw = static_cast<std::uint32_t>((key >> 31) & 0xFFFFFFFFull);
+    return static_cast<int>(raw);
+}
+
+static int SharedVarKeyLocalIndex(std::uint64_t key) {
+    return static_cast<int>((key >> 15) & 0xFFFFull);
+}
 
 
 
@@ -91,6 +153,8 @@ void ChDomain::DoUpdateSharedLeaving() {
 
 	if (this->IsMaster() && !this->domain_manager->master_domain_enabled)
 		return;
+
+	static int debug_print_leaving = 0;
 
 	// Select objects to sent to surrounding domains 
 	for (auto& interf : this->interfaces) {
@@ -278,7 +342,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 
 			// FEA NODES
 			for (const auto& node : mmesh->GetNodes()) {
-				ChVector3d node_pos = node->GetCenter();
+				ChVector3d node_pos = GetNodeCenter(node);
 				is_overlapping_IN  = interf.second.side_IN->IsInto(node_pos);
 				is_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
 				int mtag = node->GetTag();
@@ -296,45 +360,56 @@ void ChDomain::DoUpdateSharedLeaving() {
 				);
 			}
 
-			// FEA ELEMENTS
-			for (const auto& element : mmesh->GetElements()) {
-				ChVector3d reference = element->GetNode(0)->GetCenter();
-				bool is_referencein_IN  = interf.second.side_IN->IsInto(reference);
-				bool is_referencein_OUT = interf.second.side_OUT->IsInto(reference);
+					// FEA ELEMENTS
+					for (const auto& element : mmesh->GetElements()) {
+						const int nnodes = static_cast<int>(element->GetNumNodes());
+						if (nnodes <= 0)
+							continue;
 
-				if (is_referencein_OUT) {
+						// Use element centroid for ownership/migration so element-node ordering does not
+						// influence partitioning (GetNode(0) can cause unstable ownership flips).
+						const ChVector3d element_center = GetElementCenter(element);
+						const bool is_center_IN = interf.second.side_IN->IsInto(element_center);
+						const bool is_center_OUT = interf.second.side_OUT->IsInto(element_center);
 
-					// Serialize the element. Elements are never shared.
-					elements_migrating.push_back(ChIncrementalObj<ChElementBase>{mmesh->GetTag(), element});
+						bool element_overlaps_IN = false;
+						bool element_overlaps_OUT = false;
+						for (int i = 0; i < nnodes; ++i) {
+							const auto ref_node = element->GetNode(i);
+							if (!ref_node)
+								continue;
+							const ChVector3d node_pos = GetNodeCenter(ref_node);
+							element_overlaps_IN = element_overlaps_IN || interf.second.side_IN->IsInto(node_pos);
+							element_overlaps_OUT = element_overlaps_OUT || interf.second.side_OUT->IsInto(node_pos);
+						}
 
-				}
+						// Serialize element only when ownership center moved to OUT and no longer IN.
+						if (is_center_OUT && !is_center_IN) {
+							elements_migrating.push_back(ChIncrementalObj<ChElementBase>{mmesh->GetTag(), element});
+						}
 
-				// Also serialize and manage shared lists of the connected nodes.
-				for (int i = 0; i < (int)element->GetNumNodes(); ++i) {
-					const auto ref_node = element->GetNode(i);
-					int ref_tag = ref_node->GetTag();
-					ChVector3d node_pos;
-					if (const auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(ref_node))
-						node_pos = nodexyz->GetPos();
-					if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(ref_node))
-						node_pos = nodexyzrot->GetPos();
-					bool is_ref_overlapping_IN = interf.second.side_IN->IsInto(node_pos);
-					bool is_ref_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
-
-					InterfaceManageNodeSharedLeaving<ChNodeBase, ChNodeBase>(
-						ref_node,
-						is_ref_overlapping_IN  || is_referencein_IN, // ie. extend aabb of node to include element reference
-						is_ref_overlapping_OUT || is_referencein_OUT, // ie. extend aabb of node to include element reference
-						ref_tag,
-						parent_tag,
-						shared_ids,
-						sent_ids,
-						nodes_migrating,
-						interf.second.shared_nodes
-					);
-				}
-					
-			} // end fea elements
+						// Also serialize and manage shared lists of the connected nodes.
+						for (int i = 0; i < nnodes; ++i) {
+							const auto ref_node = element->GetNode(i);
+							if (!ref_node)
+								continue;
+							int ref_tag = ref_node->GetTag();
+	                        	ChVector3d node_pos = GetNodeCenter(ref_node);
+							bool is_ref_overlapping_IN = interf.second.side_IN->IsInto(node_pos);
+							bool is_ref_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
+							InterfaceManageNodeSharedLeaving<ChNodeBase, ChNodeBase>(
+								ref_node,
+								is_ref_overlapping_IN || element_overlaps_IN || is_center_IN,
+								is_ref_overlapping_OUT || element_overlaps_OUT || is_center_OUT,
+								ref_tag,
+								parent_tag,
+								shared_ids,
+								sent_ids,
+								nodes_migrating,
+								interf.second.shared_nodes
+							);
+						}
+					} // end fea elements
 
 		}
 
@@ -357,8 +432,12 @@ void ChDomain::DoUpdateSharedLeaving() {
 			if (shared_ids.find(mmesh->GetTag()) != shared_ids.end())
 				interf.second.shared_items[mmesh->GetTag()] = mmesh;
 			for (const auto& node : mmesh->GetNodes()) {
-				if (shared_ids.find(node->GetTag()) != shared_ids.end())
-					interf.second.shared_nodes[node->GetTag()] = node;
+				if (shared_ids.find(node->GetTag()) != shared_ids.end()) {
+					const int ntag = node->GetTag();
+					if (interf.second.shared_nodes.find(ntag) == interf.second.shared_nodes.end()) {
+						interf.second.shared_nodes.emplace(ntag, node);
+					}
+				}
 			}
 		}
 
@@ -390,7 +469,10 @@ void ChDomain::DoUpdateSharedLeaving() {
 		// case of nodes or bodies connected by a ChLink or a ChElement, where the link or element is in the 
 		// other domain). [To do: avoid storing in shared_ids the items that are aabb-overlapping on the interface, 
 		// as this can be inferred also by the neighbouring domain.]
-		*serializer << CHNVP(shared_ids, "shared_ids");
+		// NOTE: Chrono archive does not provide std::unordered_set serialization wrappers.
+		// Serialize shared IDs as a vector on the wire, then reconstruct a set on receive.
+		std::vector<int> shared_ids_wire(shared_ids.begin(), shared_ids.end());
+		*serializer << CHNVP(shared_ids_wire, "shared_ids");
 
 
 		//std::cout << "\nSERIALIZE domain " << this->GetRank() << " to interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
@@ -406,6 +488,8 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 	
 	if (this->IsMaster() && !this->domain_manager->master_domain_enabled)
 		return;
+
+	static int debug_print_received = 0;
 
 	// This will be populated by all interfaces with all neighbours
 	std::unordered_set<int> set_of_domainshared;
@@ -545,8 +629,12 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 		// their bounding box is not overlapping the interface (this is the case of nodes or bodies connected by a 
 		// ChLink or a ChElement, where the link or element is in the other domain).
 
+		std::vector<int> shared_ids_incoming_wire;
+		*deserializer >> CHNVP(shared_ids_incoming_wire, "shared_ids");
 		std::unordered_set<int> shared_ids_incoming;
-		*deserializer >> CHNVP(shared_ids_incoming,"shared_ids");
+		shared_ids_incoming.reserve(shared_ids_incoming_wire.size() * 2 + 1);
+		for (int sid : shared_ids_incoming_wire)
+			shared_ids_incoming.insert(sid);
 
 		for (const auto& body : system->GetBodies()) {
 			if (shared_ids_incoming.find(body->GetTag()) != shared_ids_incoming.end())
@@ -556,8 +644,12 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 			if (shared_ids_incoming.find(mmesh->GetTag()) != shared_ids_incoming.end())
 				interf.second.shared_items[mmesh->GetTag()] = mmesh;
 			for (const auto& node : mmesh->GetNodes()) {
-				if (shared_ids_incoming.find(node->GetTag()) != shared_ids_incoming.end())
-					interf.second.shared_nodes[node->GetTag()] = node;
+				if (shared_ids_incoming.find(node->GetTag()) != shared_ids_incoming.end()) {
+					const int ntag = node->GetTag();
+					if (interf.second.shared_nodes.find(ntag) == interf.second.shared_nodes.end()) {
+						interf.second.shared_nodes.emplace(ntag, node);
+					}
+				}
 			}
 		}
 		for (const auto& oitem : system->GetOtherPhysicsItems()) {
@@ -572,31 +664,91 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 			set_of_domainshared.insert(mn.first);
 
 
-		// KEEP TRACK OF SHARED VARS
-		//
-		// This builds the list of shared variables (ChVariable objects used by system descriptors)
-		// by selecting only those that belong to items that are in the shared maps.
-		// The shared_items containers are of ordered type, ordered by tag ID, so we can be sure 
-		// that the order of the variables in shared_vars is the same also on the other side, in the
-		// neighbouring domain. 
+            // KEEP TRACK OF SHARED VARS
+            //
+            // Preserve original variable ordering as injected by shared items/nodes.
+            // In parallel, assign a stable key per appended variable entry so multidomain
+            // exchange can validate/remap consistently across interfaces.
+            ChSystemDescriptor temp_descr;
+            interf.second.shared_var_keys.clear();
 
-		ChSystemDescriptor temp_descr;
-		
-		for (auto& mshitem : interf.second.shared_items) {
+            for (auto& mshitem : interf.second.shared_items) {
+                if (std::dynamic_pointer_cast<fea::ChMesh>(mshitem.second))
+                    continue;  // for meshes, share node vars explicitly via shared_nodes
 
-			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(mshitem.second))
-				continue; // if mesh, do not share all variables but later InjectVariables of shared nodes only
+                const size_t before = temp_descr.GetVariables().size();
+                mshitem.second->InjectVariables(temp_descr);
+                auto vars_now = temp_descr.GetVariables();
+                for (size_t iv = before; iv < vars_now.size(); ++iv) {
+                    const int local_idx = static_cast<int>(iv - before);
+                    interf.second.shared_var_keys.push_back(
+                        MakeSharedVarKey(false, mshitem.first, local_idx, vars_now[iv]->GetDOF()));
+                }
+            }
+            for (auto& mshnode : interf.second.shared_nodes) {
+                const size_t before = temp_descr.GetVariables().size();
+                mshnode.second->InjectVariables(temp_descr);
+                auto vars_now = temp_descr.GetVariables();
+                for (size_t iv = before; iv < vars_now.size(); ++iv) {
+                    const int local_idx = static_cast<int>(iv - before);
+                    interf.second.shared_var_keys.push_back(
+                        MakeSharedVarKey(true, mshnode.first, local_idx, vars_now[iv]->GetDOF()));
+                }
+            }
 
-			mshitem.second->InjectVariables(temp_descr);
-		}
-		for (auto& mshnode : interf.second.shared_nodes) {
-			mshnode.second->InjectVariables(temp_descr);
-		}
+            // Deduplicate shared variables (mesh + node injection can add repeated entries).
+            auto raw_shared_vars = temp_descr.GetVariables();
+            std::vector<ChVariables*> unique_shared_vars;
+            std::vector<std::uint64_t> unique_shared_keys;
+            unique_shared_vars.reserve(raw_shared_vars.size());
+            unique_shared_keys.reserve(raw_shared_vars.size());
+            std::unordered_set<ChVariables*> seen_shared_vars;
+            seen_shared_vars.reserve(raw_shared_vars.size() * 2 + 1);
+            std::unordered_set<std::uint64_t> seen_shared_keys;
+            seen_shared_keys.reserve(raw_shared_vars.size() * 2 + 1);
 
-		interf.second.shared_vars.clear();
-		interf.second.shared_vars = temp_descr.GetVariables();
+            for (size_t iv = 0; iv < raw_shared_vars.size(); ++iv) {
+                auto* v = raw_shared_vars[iv];
+                if (!v)
+                    continue;
 
-	}
+                std::uint64_t key = 0ull;
+                if (iv < interf.second.shared_var_keys.size())
+                    key = interf.second.shared_var_keys[iv];
+                if (key == 0ull) {
+                    key = MakeSharedVarKey(false, static_cast<int>(iv), 0, v->GetDOF());
+                }
+
+                bool keep = true;
+                if (key != 0ull) {
+                    keep = seen_shared_keys.insert(key).second;
+                } else {
+                    keep = seen_shared_vars.insert(v).second;
+                }
+                if (!keep)
+                    continue;
+
+                unique_shared_vars.push_back(v);
+                unique_shared_keys.push_back(key);
+            }
+
+            interf.second.shared_vars.swap(unique_shared_vars);
+            interf.second.shared_var_keys.swap(unique_shared_keys);
+
+			if (debug_print_received < 2) {
+				std::cout << "[mdom-received] rank=" << this->rank
+					<< " from=" << interf.second.side_OUT->GetRank()
+					<< " incoming_shared_ids=" << shared_ids_incoming.size()
+					<< " shared_items=" << interf.second.shared_items.size()
+					<< " shared_nodes=" << interf.second.shared_nodes.size()
+					<< " shared_vars=" << interf.second.shared_vars.size()
+					<< std::endl;
+			}
+
+        }
+
+	if (debug_print_received < 2)
+		++debug_print_received;
 
 	//
 	// Removal of objects that are not anymore overlapping this domain
@@ -606,31 +758,77 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 		std::vector<std::shared_ptr<chrono::fea::ChMesh>> meshes_to_remove;
 		for (const auto& mmesh : system->GetMeshes()) {
 
-			// remove nodes spilling outside
-			std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> nodes_to_remove;
+			// Build a conservative candidate set of nodes that are outside and not shared.
+			// Elements connected to any such node must be removed first to avoid dangling element-node connectivity.
+			std::unordered_set<int> outside_nonshared_node_tags;
 			for (const auto& node : mmesh->GetNodes()) {
-				ChVector3d node_pos = node->GetCenter();
+				ChVector3d node_pos = GetNodeCenter(node);
 				bool is_overlapping_IN = this->IsInto(node_pos);
 				bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
 				if (!is_overlapping_IN && !is_sharing) {
+					outside_nonshared_node_tags.insert(node->GetTag());
+				}
+			}
+
+			// remove elements spilling outside (or connected to outside nonshared nodes)
+			std::vector<std::shared_ptr<chrono::fea::ChElementBase>> elements_to_remove;
+			std::unordered_set<int> nodes_used_by_kept_elements;
+			for (const auto& element : mmesh->GetElements()) {
+				bool remove_element = false;
+				const int nnodes = static_cast<int>(element->GetNumNodes());
+				if (nnodes <= 0) {
+					remove_element = true;
+				}
+				for (int i = 0; i < nnodes && !remove_element; ++i) {
+					auto enode = element->GetNode(i);
+					if (!enode) {
+						remove_element = true;
+						break;
+					}
+					const int ntag = enode->GetTag();
+					if (outside_nonshared_node_tags.find(ntag) != outside_nonshared_node_tags.end()) {
+						remove_element = true;
+						break;
+					}
+				}
+
+						// Keep legacy ownership culling as an additional conservative filter.
+						if (!remove_element) {
+							ChVector3d reference = GetElementCenter(element);
+							bool is_reference_IN = this->IsInto(reference);
+							if (!is_reference_IN) {
+								remove_element = true;
+						}
+					}
+
+				if (remove_element) {
+					elements_to_remove.push_back(element);
+				} else {
+					for (int i = 0; i < nnodes; ++i) {
+						auto enode = element->GetNode(i);
+						if (enode) {
+							nodes_used_by_kept_elements.insert(enode->GetTag());
+						}
+					}
+				}
+			}
+			for (const auto& delelement : elements_to_remove)
+				mmesh->RemoveElement(delelement); // can be made more efficient - this require N searches in vector container
+
+			// remove nodes spilling outside, but keep nodes still used by kept elements
+			std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> nodes_to_remove;
+			for (const auto& node : mmesh->GetNodes()) {
+				ChVector3d node_pos = GetNodeCenter(node);
+				bool is_overlapping_IN = this->IsInto(node_pos);
+				bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
+				const bool is_used_by_kept_element =
+					(nodes_used_by_kept_elements.find(node->GetTag()) != nodes_used_by_kept_elements.end());
+				if (!is_overlapping_IN && !is_sharing && !is_used_by_kept_element) {
 					nodes_to_remove.push_back(node);
 				}
 			}
 			for (const auto& delnode : nodes_to_remove)
 				mmesh->RemoveNode(delnode); // can be made more efficient - this require N searches in vector container
-
-			// remove elements spilling outside
-			std::vector<std::shared_ptr<chrono::fea::ChElementBase>> elements_to_remove;
-			for (const auto& element : mmesh->GetElements()) {
-				ChVector3d reference = element->GetNode(0)->GetCenter();
-				bool is_reference_IN = this->IsInto(reference);
-				//bool is_sharing = (set_of_domainshared.find(element->GetTag()) != set_of_domainshared.end());
-				if (!is_reference_IN) {
-					elements_to_remove.push_back(element);
-				}
-			}
-			for (const auto& delelement : elements_to_remove)
-				mmesh->RemoveElement(delelement); // can be made more efficient - this require N searches in vector container
 
 			// remove the mesh container fully spilling outside 
 			auto mabb = mmesh->GetTotalAABB();
@@ -699,50 +897,140 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 	}
 
 	
-	// Update the vector with scaling weights for masses of shared variables .
-	// This is used because objects that are shared between N boundaries must 
-	// have their mass splitted too, if a FETI-like domain decomposition approach is used.
-	system->Setup();
-	this->ComputeSharedCoordsWeights(system->CoordWeightsWv());
-}
+			// Update the vector with scaling weights for masses of shared variables.
+			// This is used because objects that are shared between N boundaries must
+			// have their mass split too, if a FETI-like domain decomposition approach is used.
+			system->Setup();
+			// ChSystem::Setup updates assembly offsets but does not repopulate descriptor variables.
+			// Rebuild descriptor bookkeeping here so shared ChVariables have valid offsets.
+			auto descriptor = system->GetSystemDescriptor();
+			if (descriptor) {
+				descriptor->BeginInsertion();
+				system->InjectConstraints(*descriptor);
+				system->InjectVariables(*descriptor);
+				system->InjectKRMMatrices(*descriptor);
+				descriptor->EndInsertion();
+			}
+
+			// Diagnostic: validate that shared vars still belong to the active descriptor list
+			// after migration/setup; stale pointers would keep default offsets (typically 0).
+			static int debug_shared_var_membership = 0;
+			if (debug_shared_var_membership < 2) {
+				auto descriptor = system->GetSystemDescriptor();
+				std::unordered_set<ChVariables*> descriptor_vars;
+				if (descriptor) {
+					const auto& vars = descriptor->GetVariables();
+					descriptor_vars.reserve(vars.size() * 2 + 1);
+					for (auto* v : vars) {
+						if (v)
+							descriptor_vars.insert(v);
+					}
+				}
+
+				int shared_total = 0;
+				int shared_active = 0;
+				int shared_active_in_descriptor = 0;
+				int shared_active_off0 = 0;
+				int shared_active_nonzero = 0;
+				for (const auto& interf : this->interfaces) {
+					for (auto* v : interf.second.shared_vars) {
+						if (!v)
+							continue;
+						++shared_total;
+						if (!v->IsActive())
+							continue;
+						++shared_active;
+						if (v->GetOffset() == 0)
+							++shared_active_off0;
+						else
+							++shared_active_nonzero;
+						if (descriptor_vars.find(v) != descriptor_vars.end())
+							++shared_active_in_descriptor;
+					}
+				}
+
+				std::cout << "[mdom-shared-var-membership] rank=" << this->rank
+					<< " call=" << (debug_shared_var_membership + 1)
+					<< " descriptor_vars=" << descriptor_vars.size()
+					<< " shared_total=" << shared_total
+					<< " shared_active=" << shared_active
+					<< " shared_active_in_descriptor=" << shared_active_in_descriptor
+					<< " shared_active_off0=" << shared_active_off0
+					<< " shared_active_nonzero=" << shared_active_nonzero
+					<< std::endl;
+				++debug_shared_var_membership;
+			}
+
+			this->ComputeSharedCoordsWeights(this->CoordWeightsWv());
+			}
 
 
 
 
 void ChDomain::ComputeSharedCoordsCounts(ChVectorDynamic<>& N) {
+	N.setOnes(this->system->GetNumCoordsVelLevel());
 
-	N.setZero(this->system->GetNumCoordsVelLevel());
-	this->system->IntLoadIndicator(N);
-	
 	for (auto& interf : this->interfaces) {
-
 		if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
 			continue;
 
-		for (auto& mshitem : interf.second.shared_items) {
-
-			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(mshitem.second))
-				continue; // if mesh, do not share all variables but later InjectVariables of shared nodes only
-
-			if(mshitem.second->IsActive())
-				mshitem.second->IntLoadIndicator(mshitem.second->GetOffset_w(), N);
+		// Count each coordinate at most once per interface. This prevents duplicated
+		// shared_vars entries (from migration/serialization artifacts) from inflating
+		// multiplicity and softening the MDOM response.
+		std::unordered_set<int> counted_coords_this_interface;
+		counted_coords_this_interface.reserve(interf.second.shared_vars.size() * 4 + 1);
+		for (auto avar : interf.second.shared_vars) {
+			if (!avar->IsActive())
+				continue;
+			for (int i = 0; i < avar->GetDOF(); ++i) {
+				const int idx = avar->GetOffset() + i;
+				if (idx >= 0 && idx < N.size() && counted_coords_this_interface.insert(idx).second)
+					N(idx) += 1.0;
+			}
 		}
+	}
 
-		for (auto& mshnode : interf.second.shared_nodes) {
-			if (auto mfeanode = std::dynamic_pointer_cast<ChNodeFEAbase>(mshnode.second))
-				if (mfeanode->IsFixed())
-					continue;
-			mshnode.second->NodeIntLoadIndicator(mshnode.second->NodeGetOffsetVelLevel(), N);
+	// Diagnostic: local-only counters (no collective reduction here to avoid partition-update deadlocks).
+	static int diag_print_count = 0;
+	if (diag_print_count < 2) {
+		double local_shared = 0.0;
+		double local_ge3 = 0.0;
+		double local_sum_mult = 0.0;
+		double local_max_mult = 1.0;
+		for (int i = 0; i < N.size(); ++i) {
+			const double c = N(i);
+			if (c > local_max_mult)
+				local_max_mult = c;
+			if (c > 1.0) {
+				local_shared += 1.0;
+				local_sum_mult += c;
+				if (c >= 3.0)
+					local_ge3 += 1.0;
+			}
 		}
-
+		const double frac_shared = (N.size() > 0) ? (local_shared / static_cast<double>(N.size())) : 0.0;
+		const double avg_mult_shared = (local_shared > 0.0) ? (local_sum_mult / local_shared) : 1.0;
+		std::cout << "[mdom-shared-counts-local] rank=" << this->rank
+			<< " call=" << (diag_print_count + 1)
+			<< " total_coords=" << N.size()
+			<< " shared_coords=" << static_cast<long long>(local_shared)
+			<< " frac_shared=" << frac_shared
+			<< " avg_multiplicity_shared=" << avg_mult_shared
+			<< " coords_mult_ge3=" << static_cast<long long>(local_ge3)
+			<< " max_multiplicity=" << local_max_mult << std::endl;
+		diag_print_count++;
 	}
 }
 
 void ChDomain::ComputeSharedCoordsWeights(ChVectorDynamic<>&N) {
 
 	ComputeSharedCoordsCounts(N);
-	for (int i = 0; i < N.size(); ++i)
-		N(i) = 1.0 / N(i);
+	for (int i = 0; i < N.size(); ++i) {
+		if (N(i) > 0)
+			N(i) = 1.0 / N(i);
+		else
+			N(i) = 1.0;
+	}
 }
 
 }  // end namespace multidomain
