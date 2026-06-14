@@ -1595,7 +1595,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:__cplusplus">)
 
         # CUDA 13+ CCCL headers require MSVC's conforming preprocessor
-        if(CHRONO_CUDA_FOUND AND ${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "13.0")
+        if(CHRONO_CUDA_FOUND AND DEFINED CUDAToolkit_VERSION AND CUDAToolkit_VERSION VERSION_GREATER_EQUAL "13.0")
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/Zc:preprocessor>)
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:preprocessor">) # without this flag the memory alignment seems to be broken          
         endif()
