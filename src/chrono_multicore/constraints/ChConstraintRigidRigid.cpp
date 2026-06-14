@@ -322,51 +322,23 @@ void ChConstraintRigidRigid::Build_s() {
         return;
     }
 
-    vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
-    const SubMatrixType& D_t_T = _DTT_;
-    DynamicVector<real> v_new;
+    const VectorType& M_invk = data_manager->host_data.M_invk;
+    const VectorType& gamma = data_manager->host_data.gamma;
+    const SparseMatrixType& D_T = data_manager->host_data.D_T;
+    const SparseMatrixType& M_invD = data_manager->host_data.M_invD;
 
-    const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    const DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    VectorType v_new;
+    v_new.noalias() = M_invk + M_invD * gamma;
 
-    const CompressedMatrix<real, blaze::columnMajor>& M_invD = data_manager->host_data.M_invD;
-
-    v_new = M_invk + M_invD * gamma;
+    VectorType Dtv;
+    Dtv.noalias() = D_T.middleRows((int)num_rigid_contacts, 2 * (int)num_rigid_contacts) * v_new;
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_rigid_contacts; index++) {
-        real fric = data_manager->host_data.fric_rigid_rigid[index].x;
-        vec2 body_id = ids[index];
-
-        real s_v = D_t_T(index * 2 + 0, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] +
-                   D_t_T(index * 2 + 0, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
-                   D_t_T(index * 2 + 0, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] +
-                   D_t_T(index * 2 + 0, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
-                   D_t_T(index * 2 + 0, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] +
-                   D_t_T(index * 2 + 0, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
-
-                   D_t_T(index * 2 + 0, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] +
-                   D_t_T(index * 2 + 0, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
-                   D_t_T(index * 2 + 0, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] +
-                   D_t_T(index * 2 + 0, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
-                   D_t_T(index * 2 + 0, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
-                   D_t_T(index * 2 + 0, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
-
-        real s_w = D_t_T(index * 2 + 1, body_id.x * 6 + 0) * +v_new[body_id.x * 6 + 0] +
-                   D_t_T(index * 2 + 1, body_id.x * 6 + 1) * +v_new[body_id.x * 6 + 1] +
-                   D_t_T(index * 2 + 1, body_id.x * 6 + 2) * +v_new[body_id.x * 6 + 2] +
-                   D_t_T(index * 2 + 1, body_id.x * 6 + 3) * +v_new[body_id.x * 6 + 3] +
-                   D_t_T(index * 2 + 1, body_id.x * 6 + 4) * +v_new[body_id.x * 6 + 4] +
-                   D_t_T(index * 2 + 1, body_id.x * 6 + 5) * +v_new[body_id.x * 6 + 5] +
-
-                   D_t_T(index * 2 + 1, body_id.y * 6 + 0) * +v_new[body_id.y * 6 + 0] +
-                   D_t_T(index * 2 + 1, body_id.y * 6 + 1) * +v_new[body_id.y * 6 + 1] +
-                   D_t_T(index * 2 + 1, body_id.y * 6 + 2) * +v_new[body_id.y * 6 + 2] +
-                   D_t_T(index * 2 + 1, body_id.y * 6 + 3) * +v_new[body_id.y * 6 + 3] +
-                   D_t_T(index * 2 + 1, body_id.y * 6 + 4) * +v_new[body_id.y * 6 + 4] +
-                   D_t_T(index * 2 + 1, body_id.y * 6 + 5) * +v_new[body_id.y * 6 + 5];
-
-        data_manager->host_data.s[index * 1 + 0] = std::sqrt(s_v * s_v + s_w * s_w) * fric;
+        const real fric = data_manager->host_data.fric_rigid_rigid[index].x;
+        const real s_v = Dtv[index * 2 + 0];
+        const real s_w = Dtv[index * 2 + 1];
+        data_manager->host_data.s[index] = std::sqrt(s_v * s_v + s_w * s_w) * fric;
     }
 }
 
@@ -377,7 +349,7 @@ void ChConstraintRigidRigid::Build_E() {
         return;
 
     SolverMode solver_mode = data_manager->settings.solver.solver_mode;
-    DynamicVector<real>& E = data_manager->host_data.E;
+    VectorType& E = data_manager->host_data.E;
     uint num_contacts = num_rigid_contacts;
     const custom_vector<real4>& compliance = data_manager->host_data.compliance_rigid_rigid;
 
@@ -411,7 +383,7 @@ void ChConstraintRigidRigid::Build_D() {
     real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
     vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
 
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
 
     SolverMode solver_mode = data_manager->settings.solver.solver_mode;
 
@@ -442,8 +414,8 @@ void ChConstraintRigidRigid::Build_D() {
         real3 U_B = Rotate(U, q_b);
         T6 = Cross(U_B, sbar_b.v);
 
-        SetRow6Check(D_T, off + row * 1 + 0, body_id.x * 6, -U, T3);
-        SetRow6Check(D_T, off + row * 1 + 0, body_id.y * 6, U, -T6);
+        SetRow6(D_T, off + row * 1 + 0, body_id.x * 6, -U, T3);
+        SetRow6(D_T, off + row * 1 + 0, body_id.y * 6, U, -T6);
 
         if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
             off = num_rigid_contacts;
@@ -458,22 +430,22 @@ void ChConstraintRigidRigid::Build_D() {
             T7 = Cross(V_B, sbar_b.v);
             T8 = Cross(W_B, sbar_b.v);
 
-            SetRow6Check(D_T, off + row * 2 + 0, body_id.x * 6, -V, T4);
-            SetRow6Check(D_T, off + row * 2 + 1, body_id.x * 6, -W, T5);
+            SetRow6(D_T, off + row * 2 + 0, body_id.x * 6, -V, T4);
+            SetRow6(D_T, off + row * 2 + 1, body_id.x * 6, -W, T5);
 
-            SetRow6Check(D_T, off + row * 2 + 0, body_id.y * 6, V, -T7);
-            SetRow6Check(D_T, off + row * 2 + 1, body_id.y * 6, W, -T8);
+            SetRow6(D_T, off + row * 2 + 0, body_id.y * 6, V, -T7);
+            SetRow6(D_T, off + row * 2 + 1, body_id.y * 6, W, -T8);
 
             if (solver_mode == SolverMode::SPINNING) {
                 off = 3 * num_rigid_contacts;
 
-                SetRow3Check(D_T, off + row * 3 + 0, body_id.x * 6 + 3, -U_A);
-                SetRow3Check(D_T, off + row * 3 + 1, body_id.x * 6 + 3, -V_A);
-                SetRow3Check(D_T, off + row * 3 + 2, body_id.x * 6 + 3, -W_A);
+                SetRow3(D_T, off + row * 3 + 0, body_id.x * 6 + 3, -U_A);
+                SetRow3(D_T, off + row * 3 + 1, body_id.x * 6 + 3, -V_A);
+                SetRow3(D_T, off + row * 3 + 2, body_id.x * 6 + 3, -W_A);
 
-                SetRow3Check(D_T, off + row * 3 + 0, body_id.y * 6 + 3, U_B);
-                SetRow3Check(D_T, off + row * 3 + 1, body_id.y * 6 + 3, V_B);
-                SetRow3Check(D_T, off + row * 3 + 2, body_id.y * 6 + 3, W_B);
+                SetRow3(D_T, off + row * 3 + 0, body_id.y * 6 + 3, U_B);
+                SetRow3(D_T, off + row * 3 + 1, body_id.y * 6 + 3, V_B);
+                SetRow3(D_T, off + row * 3 + 2, body_id.y * 6 + 3, W_B);
             }
         }
     }
@@ -487,7 +459,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
     SolverMode solver_mode = data_manager->settings.solver.solver_mode;
 
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
 
     const vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
 
@@ -495,11 +467,11 @@ void ChConstraintRigidRigid::GenerateSparsity() {
         const vec2& body_id = ids[index];
         int row = index;
         int off = 0;
+        int lo = std::min(body_id.x, body_id.y);
+        int hi = std::max(body_id.x, body_id.y);
 
-        AppendRow6(D_T, off + row * 1, body_id.x * 6, 0);
-        AppendRow6(D_T, off + row * 1, body_id.y * 6, 0);
-
-        D_T.finalize(off + row * 1 + 0);
+        AppendRow6(D_T, off + row * 1, lo * 6, 0);
+        AppendRow6(D_T, off + row * 1, hi * 6, 0);
     }
 
     if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
@@ -507,58 +479,36 @@ void ChConstraintRigidRigid::GenerateSparsity() {
             const vec2& body_id = ids[index];
             int row = index;
             int off = num_rigid_contacts;
+            int lo = std::min(body_id.x, body_id.y);
+            int hi = std::max(body_id.x, body_id.y);
 
-            AppendRow6(D_T, off + row * 2 + 0, body_id.x * 6, 0);
-            AppendRow6(D_T, off + row * 2 + 0, body_id.y * 6, 0);
+            AppendRow6(D_T, off + row * 2 + 0, lo * 6, 0);
+            AppendRow6(D_T, off + row * 2 + 0, hi * 6, 0);
 
-            D_T.finalize(off + row * 2 + 0);
-
-            AppendRow6(D_T, off + row * 2 + 1, body_id.x * 6, 0);
-            AppendRow6(D_T, off + row * 2 + 1, body_id.y * 6, 0);
-
-            D_T.finalize(off + row * 2 + 1);
+            AppendRow6(D_T, off + row * 2 + 1, lo * 6, 0);
+            AppendRow6(D_T, off + row * 2 + 1, hi * 6, 0);
         }
     }
 
     if (solver_mode == SolverMode::SPINNING) {
         for (int index = 0; index < (signed)num_rigid_contacts; index++) {
             const vec2& body_id = ids[index];
-            int row = index;
-            int off = 3 * num_rigid_contacts;
-            D_T.append(off + row * 3 + 0, body_id.x * 6 + 3, 0);
-            D_T.append(off + row * 3 + 0, body_id.x * 6 + 4, 0);
-            D_T.append(off + row * 3 + 0, body_id.x * 6 + 5, 0);
+            const int off = 3 * num_rigid_contacts;
+            int lo = std::min(body_id.x, body_id.y);
+            int hi = std::max(body_id.x, body_id.y);
 
-            D_T.append(off + row * 3 + 0, body_id.y * 6 + 3, 0);
-            D_T.append(off + row * 3 + 0, body_id.y * 6 + 4, 0);
-            D_T.append(off + row * 3 + 0, body_id.y * 6 + 5, 0);
+            AppendRow3(D_T, off + index * 3 + 0, lo * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 1, lo * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 2, lo * 6 + 3, 0);
 
-            D_T.finalize(off + row * 3 + 0);
-
-            D_T.append(off + row * 3 + 1, body_id.x * 6 + 3, 0);
-            D_T.append(off + row * 3 + 1, body_id.x * 6 + 4, 0);
-            D_T.append(off + row * 3 + 1, body_id.x * 6 + 5, 0);
-
-            D_T.append(off + row * 3 + 1, body_id.y * 6 + 3, 0);
-            D_T.append(off + row * 3 + 1, body_id.y * 6 + 4, 0);
-            D_T.append(off + row * 3 + 1, body_id.y * 6 + 5, 0);
-
-            D_T.finalize(off + row * 3 + 1);
-
-            D_T.append(off + row * 3 + 2, body_id.x * 6 + 3, 0);
-            D_T.append(off + row * 3 + 2, body_id.x * 6 + 4, 0);
-            D_T.append(off + row * 3 + 2, body_id.x * 6 + 5, 0);
-
-            D_T.append(off + row * 3 + 2, body_id.y * 6 + 3, 0);
-            D_T.append(off + row * 3 + 2, body_id.y * 6 + 4, 0);
-            D_T.append(off + row * 3 + 2, body_id.y * 6 + 5, 0);
-
-            D_T.finalize(off + row * 3 + 2);
+            AppendRow3(D_T, off + index * 3 + 0, hi * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 1, hi * 6 + 3, 0);
+            AppendRow3(D_T, off + index * 3 + 2, hi * 6 + 3, 0);
         }
     }
 }
 
-void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<real>& XYZUVW) {
+void ChConstraintRigidRigid::Dx(const VectorType& gam, VectorType& XYZUVW) {
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
     real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
     ////custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
@@ -632,7 +582,7 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
     }
 }
 
-void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVector<real>& out_vector) {
+void ChConstraintRigidRigid::D_Tx(const VectorType& XYZUVW, VectorType& out_vector) {
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
     real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
     ////custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
@@ -699,11 +649,4 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
     }
 
     //    // data_manager->PrintMatrix(data_manager->host_data.D);
-
-    //    DynamicVector<real> compare =
-    //            data_manager->host_data.D_T * data_manager->host_data.D * data_manager->host_data.gamma;
-    //    std::cout << "nconstr " << compare.size() << std::endl;
-    //    for (int i = 0; i < compare.size(); i++) {
-    //        std::cout << compare[i] << " " << out_vector[i] << std::endl;
-    //    }
 }

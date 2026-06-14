@@ -11,7 +11,8 @@ simulation:
   enforce_realtime: true
   
 output:
-  type: HDF5
+  format: HDF5
+  mode: FRAMES
   fps: 20
 
 visualization:

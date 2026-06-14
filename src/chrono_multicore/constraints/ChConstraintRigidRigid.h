@@ -39,8 +39,8 @@ class CH_MULTICORE_API ChConstraintRigidRigid {
     void func_Project_normal(int index, const vec2* ids, const real* cohesion, real* gam);
     void func_Project_sliding(int index, const vec2* ids, const real3* fric, const real* cohesion, real* gam);
     void func_Project_spinning(int index, const vec2* ids, const real3* fric, real* gam);
-    void Dx(const DynamicVector<real>& x, DynamicVector<real>& output);
-    void D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output);
+    void Dx(const VectorType& x, VectorType& output);
+    void D_Tx(const VectorType& x, VectorType& output);
 
     /// Compute the vector of corrections.
     void Build_b();

@@ -9,7 +9,8 @@ simulation:
   enforce_realtime: true
   
 output:
-  type: NONE
+  format: HDF5
+  mode: SERIES
   fps: 20
 
 visualization:

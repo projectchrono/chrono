@@ -10,7 +10,8 @@ simulation:
   gravity: [0, 0, 0]
   
 output:
-  type: ASCII
+  format: HDF5
+  mode: SERIES
   fps: 20
 
 visualization:

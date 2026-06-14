@@ -319,26 +319,26 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
 // -----------------------------------------------------------------------------
 
 void ChSemiTrailingArm::PopulateComponentList() {
-    m_bodies.push_back(m_spindle[0]);
-    m_bodies.push_back(m_spindle[1]);
-    m_bodies.push_back(m_arm[0]);
-    m_bodies.push_back(m_arm[1]);
+    m_components.bodies.push_back(m_spindle[0]);
+    m_components.bodies.push_back(m_spindle[1]);
+    m_components.bodies.push_back(m_arm[0]);
+    m_components.bodies.push_back(m_arm[1]);
 
-    m_shafts.push_back(m_axle[0]);
-    m_shafts.push_back(m_axle[1]);
+    m_components.shafts.push_back(m_axle[0]);
+    m_components.shafts.push_back(m_axle[1]);
 
-    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
-    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
-    m_joints.push_back(m_revolute[0]);
-    m_joints.push_back(m_revolute[1]);
-    m_revoluteArm[0]->IsKinematic() ? m_joints.push_back(m_revoluteArm[0]->GetAsLink()) : m_body_loads.push_back(m_revoluteArm[0]->GetAsBushing());
-    m_revoluteArm[1]->IsKinematic() ? m_joints.push_back(m_revoluteArm[1]->GetAsLink()) : m_body_loads.push_back(m_revoluteArm[1]->GetAsBushing());
+    m_components.joints.push_back(m_revolute[0]);
+    m_components.joints.push_back(m_revolute[1]);
+    m_revoluteArm[0]->IsKinematic() ? m_components.joints.push_back(m_revoluteArm[0]->GetAsLink()) : m_components.bushings.push_back(m_revoluteArm[0]->GetAsBushing());
+    m_revoluteArm[1]->IsKinematic() ? m_components.joints.push_back(m_revoluteArm[1]->GetAsLink()) : m_components.bushings.push_back(m_revoluteArm[1]->GetAsBushing());
 
-    m_tsdas.push_back(m_spring[0]);
-    m_tsdas.push_back(m_spring[1]);
-    m_tsdas.push_back(m_shock[0]);
-    m_tsdas.push_back(m_shock[1]);
+    m_components.tsdas.push_back(m_spring[0]);
+    m_components.tsdas.push_back(m_spring[1]);
+    m_components.tsdas.push_back(m_shock[0]);
+    m_components.tsdas.push_back(m_shock[1]);
 }
 
 }  // end namespace vehicle

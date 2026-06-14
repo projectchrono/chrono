@@ -2215,14 +2215,7 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
 }
 
 void ChVisualSystemVSG::CreateBodyLabel(const std::shared_ptr<ChBody>& body) {
-    // Use default body name if not set
-    static int body_num = 0;
-    std::string body_name = body->GetName();
-    if (body_name.empty()) {
-        body_num++;
-        body_name = "_body_" + std::to_string(body_num);
-    }
-    auto body_name_vsg = vsg::stringValue::create(body_name);
+    auto body_name_vsg = vsg::stringValue::create(body->GetName());
     m_body_labels.push_back(body_name_vsg);
 }
 
@@ -2249,14 +2242,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
 }
 
 void ChVisualSystemVSG::CreateLinkLabel(const std::shared_ptr<ChLinkBase>& link) {
-    // Use default body name if not set
-    static int link_num = 0;
-    std::string link_name = link->GetName();
-    if (link_name.empty()) {
-        link_num++;
-        link_name = "_link_" + std::to_string(link_num);
-    }
-    auto link_name_vsg = vsg::stringValue::create(link_name);
+    auto link_name_vsg = vsg::stringValue::create(link->GetName());
     m_link_labels.push_back(link_name_vsg);
 }
 

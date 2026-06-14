@@ -80,10 +80,10 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     parser.Populate(*m_sys);
 
     // Extract information from parsed YAML files
-    m_output.type = parser.GetOutputType();
+    m_output.format = parser.GetOutputFormat();
     m_output.mode = parser.GetOutputMode();
     m_output.fps = parser.GetOutputFPS();
-    
+
     m_vis.render = parser.Render();
     m_vis.render_fps = parser.GetRenderFPS();
     m_vis.camera_vertical = parser.GetCameraVerticalDir();
@@ -171,20 +171,19 @@ void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, co
 #ifdef CHRONO_FEA
 void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh) {
     //// TODO
-
-    m_output_data.meshes.push_back(fea_mesh);
+    ////m_output_data.meshes.push_back(fea_mesh);
 }
 #endif
 
 // -----------------------------------------------------------------------------
 
-ChPreciceAdapterMbs::OutputParameters::OutputParameters() : type(ChOutput::Type::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
+ChPreciceAdapterMbs::OutputParameters::OutputParameters() : format(ChOutput::Format::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
 
-bool ChPreciceAdapterMbs::EnableOutput(ChOutput::Type db_type, ChOutput::Mode mode, double output_fps) {
-    m_output.type = db_type;
+bool ChPreciceAdapterMbs::EnableOutput(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
+    m_output.format = format;
     m_output.mode = mode;
     m_output.fps = output_fps;
-    return (db_type != ChOutput::Type::NONE);
+    return (format != ChOutput::Format::NONE);
 }
 
 void ChPreciceAdapterMbs::SetOutputDir(const std::string& out_dir) {
@@ -197,12 +196,12 @@ void ChPreciceAdapterMbs::SetOutputDir(const std::string& out_dir) {
     m_output_dir = out_dir;
 
     if (m_verbose) {
-        auto filename = m_output_dir + "/mbs_results";
-        switch (m_output.type) {
-            case ChOutput::Type::ASCII:
+        auto filename = m_output_dir + "/mbs_results" + "." + ChOutput::GetModeAsString(m_output.mode);
+        switch (m_output.format) {
+            case ChOutput::Format::ASCII:
                 filename += ".txt";
                 break;
-            case ChOutput::Type::HDF5:
+            case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
                 filename += ".h5";
                 break;
@@ -277,7 +276,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::POSITIONS:
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::VELOCITIES:
-                    // Positions and velocities must have the same simension as the coupling mesh
+                    // Positions and velocities must have the same dimension as the coupling mesh
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
                 case CouplingDataType::FORCES:
@@ -409,9 +408,9 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
     }
 
     static int output_frame = 0;
-    if (m_output.type != ChOutput::Type::NONE) {
+    if (m_output.format != ChOutput::Format::NONE) {
         if (time >= output_frame / m_output.fps) {
-            SaveOutput(output_frame);
+            WriteOutput(output_frame, time);
             output_frame++;
         }
     }
@@ -451,29 +450,24 @@ void ChPreciceAdapterMbs::WriteData() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterMbs::SaveOutput(int frame) {
+void ChPreciceAdapterMbs::WriteOutput(int frame, double time) {
     // Create the output DB if needed
     if (!m_output_db) {
-        auto filename = m_output_dir + "/mbs_results";
-        switch (m_output.type) {
-            case ChOutput::Type::ASCII:
-                filename += ".txt";
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(filename);
+        switch (m_output.format) {
+            case ChOutput::Format::ASCII:
+                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output.mode);
                 break;
-            case ChOutput::Type::HDF5:
+            case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                filename += ".h5";
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(filename, m_output.mode);
+                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output.mode);
                 break;
 #else
                 return;
 #endif
         }
-
-        m_output_db->Initialize();
     }
 
-    m_output_db->WriteBodies(m_output_data.bodies);
+    m_output_db->Write(frame, time, m_output_data);
 #ifdef CHRONO_FEA
     //// TODO
     ////m_output_db->WriteFeaMeshes(m_output_data.meshes);

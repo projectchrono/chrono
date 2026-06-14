@@ -16,7 +16,7 @@
 // set up for co-simulation with OpenFOAM.
 //
 // This is an adaptation of the preCICE tutorial example for coupling a
-// muiltibody system to OpenFOAM (see https://precice.org/quickstart.html),
+// multibody system to OpenFOAM (see https://precice.org/quickstart.html),
 // modified to use a Chrono MBS preCICE participant for the solid phase.
 //
 // =============================================================================
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     };
     participant.RegisterBeforeStepDynamicsCallback(chrono_types::make_shared<SpringCoefficientCallback>(rsda));
 
-    // Create and set ouput directory
+    // Create and set output directory
     std::string out_dir = "results";
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;

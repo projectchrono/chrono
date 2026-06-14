@@ -639,55 +639,55 @@ void ChHendricksonPRIMAXX::AddVisualizationTierod(std::shared_ptr<ChBody> tierod
 // -----------------------------------------------------------------------------
 
 void ChHendricksonPRIMAXX::PopulateComponentList() {
-    m_bodies.push_back(m_spindle[0]);
-    m_bodies.push_back(m_spindle[1]);
-    m_bodies.push_back(m_knuckle[0]);
-    m_bodies.push_back(m_knuckle[1]);
-    m_bodies.push_back(m_torquerod[0]);
-    m_bodies.push_back(m_torquerod[1]);
-    m_bodies.push_back(m_lowerbeam[0]);
-    m_bodies.push_back(m_lowerbeam[1]);
-    m_bodies.push_back(m_transversebeam);
-    m_bodies.push_back(m_axlehousing);
+    m_components.bodies.push_back(m_spindle[0]);
+    m_components.bodies.push_back(m_spindle[1]);
+    m_components.bodies.push_back(m_knuckle[0]);
+    m_components.bodies.push_back(m_knuckle[1]);
+    m_components.bodies.push_back(m_torquerod[0]);
+    m_components.bodies.push_back(m_torquerod[1]);
+    m_components.bodies.push_back(m_lowerbeam[0]);
+    m_components.bodies.push_back(m_lowerbeam[1]);
+    m_components.bodies.push_back(m_transversebeam);
+    m_components.bodies.push_back(m_axlehousing);
     if (UseTierodBodies()) {
-        m_bodies.push_back(m_tierod[0]);
-        m_bodies.push_back(m_tierod[1]);
+        m_components.bodies.push_back(m_tierod[0]);
+        m_components.bodies.push_back(m_tierod[1]);
     }
 
-    m_shafts.push_back(m_axle[0]);
-    m_shafts.push_back(m_axle[1]);
+    m_components.shafts.push_back(m_axle[0]);
+    m_components.shafts.push_back(m_axle[1]);
 
-    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
-    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
-    m_joints.push_back(m_revolute[0]);
-    m_joints.push_back(m_revolute[1]);
-    m_joints.push_back(m_revoluteKingpin[0]);
-    m_joints.push_back(m_revoluteKingpin[1]);
-    m_joints.push_back(m_sphericalTorquerod[0]);
-    m_joints.push_back(m_sphericalTorquerod[1]);
-    m_joints.push_back(m_revoluteTorquerod[0]);
-    m_joints.push_back(m_revoluteTorquerod[1]);
-    m_joints.push_back(m_sphericalLowerbeam[0]);
-    m_joints.push_back(m_sphericalLowerbeam[1]);
-    m_joints.push_back(m_revoluteLowerbeam[0]);
-    m_joints.push_back(m_revoluteLowerbeam[1]);
-    m_joints.push_back(m_sphericalTB[0]);
-    m_joints.push_back(m_sphericalTB[1]);
+    m_components.joints.push_back(m_revolute[0]);
+    m_components.joints.push_back(m_revolute[1]);
+    m_components.joints.push_back(m_revoluteKingpin[0]);
+    m_components.joints.push_back(m_revoluteKingpin[1]);
+    m_components.joints.push_back(m_sphericalTorquerod[0]);
+    m_components.joints.push_back(m_sphericalTorquerod[1]);
+    m_components.joints.push_back(m_revoluteTorquerod[0]);
+    m_components.joints.push_back(m_revoluteTorquerod[1]);
+    m_components.joints.push_back(m_sphericalLowerbeam[0]);
+    m_components.joints.push_back(m_sphericalLowerbeam[1]);
+    m_components.joints.push_back(m_revoluteLowerbeam[0]);
+    m_components.joints.push_back(m_revoluteLowerbeam[1]);
+    m_components.joints.push_back(m_sphericalTB[0]);
+    m_components.joints.push_back(m_sphericalTB[1]);
     if (UseTierodBodies()) {
-        m_sphericalTierod[0]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[0]->GetAsLink()) : m_body_loads.push_back(m_sphericalTierod[0]->GetAsBushing());
-        m_sphericalTierod[1]->IsKinematic() ? m_joints.push_back(m_sphericalTierod[1]->GetAsLink()) : m_body_loads.push_back(m_sphericalTierod[1]->GetAsBushing());
-        m_universalTierod[0]->IsKinematic() ? m_joints.push_back(m_universalTierod[0]->GetAsLink()) : m_body_loads.push_back(m_universalTierod[0]->GetAsBushing());
-        m_universalTierod[1]->IsKinematic() ? m_joints.push_back(m_universalTierod[1]->GetAsLink()) : m_body_loads.push_back(m_universalTierod[1]->GetAsBushing());
+        m_sphericalTierod[0]->IsKinematic() ? m_components.joints.push_back(m_sphericalTierod[0]->GetAsLink()) : m_components.bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? m_components.joints.push_back(m_sphericalTierod[1]->GetAsLink()) : m_components.bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? m_components.joints.push_back(m_universalTierod[0]->GetAsLink()) : m_components.bushings.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? m_components.joints.push_back(m_universalTierod[1]->GetAsLink()) : m_components.bushings.push_back(m_universalTierod[1]->GetAsBushing());
     } else {
-        m_joints.push_back(m_distTierod[0]);
-        m_joints.push_back(m_distTierod[1]);
+        m_components.joints.push_back(m_distTierod[0]);
+        m_components.joints.push_back(m_distTierod[1]);
     }
 
-    m_tsdas.push_back(m_shockLB[0]);
-    m_tsdas.push_back(m_shockLB[1]);
-    m_tsdas.push_back(m_shockAH[0]);
-    m_tsdas.push_back(m_shockAH[1]);
+    m_components.tsdas.push_back(m_shockLB[0]);
+    m_components.tsdas.push_back(m_shockLB[1]);
+    m_components.tsdas.push_back(m_shockAH[0]);
+    m_components.tsdas.push_back(m_shockAH[1]);
 }
 
 }  // end namespace vehicle

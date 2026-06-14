@@ -750,7 +750,7 @@ set(Chrono_assets_HEADERS
     assets/ChVisualShapeSurface.h
     )
 if(CH_ENABLE_MODULE_FEA)
-    set(Chrono_assets_HEADERS ${Chrono_assets_SOURCES}
+    set(Chrono_assets_SOURCES ${Chrono_assets_SOURCES}
         assets/ChVisualShapeFEA.cpp
     )
     set(Chrono_assets_HEADERS ${Chrono_assets_HEADERS}
@@ -1270,7 +1270,9 @@ set(Chrono_inputoutput_HEADERS
     input_output/ChUtilsJSON.h
 )
 set(Chrono_inputoutput_SOURCES
+    input_output/ChOutput.cpp
     input_output/ChOutputASCII.cpp
+    input_output/ChCheckpoint.cpp
     input_output/ChCheckpointASCII.cpp
     input_output/ChWriterCSV.cpp
     input_output/ChUtilsInputOutput.cpp

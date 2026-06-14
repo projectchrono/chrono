@@ -10,7 +10,6 @@ Notes
 
 Currently, scripts are provided for the following packages:
 - Eigen3 -- the only external dependency of the core Chrono module
-- Blaze -- a linear algebra package required by Chrono::Multicore
 - GL and GLEW -- OpenGL packages used in Chrono::OpenGL and (optionally) in Chrono::Sensor
 - MUMPS -- a direct sparse linear solver required by Chrono::Mumps
 - OpenCRG -- a file format for road description used (optionally) in Chrono::Vehicle
@@ -32,7 +31,7 @@ The general usage is as follows:
 
 With the exception of OpenCRG, all packages built and installed by these scripts provide CMake configuration scripts which are used during CMake Chrono configuration to find the respective dependencies. To simplify the Chrono CMake configuration process and avoid manually specifying package-specific information every time, we recommend setting the `CMNAKE_PREFIX_PATH` environment variable to add the directory containing the CMake project configuration scripts for each installed package. 
 An example of `CMAKE_PREFIX_PATH` (on a Windows machine) is:
-`E:\Packages\eigen\share\eigen3\cmake;E:\Packages\blaze\share\blaze\cmake;E:\Packages\vsg\lib\cmake;E:\Packages\urdf\lib\urdfdom\cmake;E:\Packages\urdf\CMake;E:\Packages\spectra\share\spectra\cmake;E:\Packages\gl\lib\cmake;E:\Packages\mumps\cmake;C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\cmake;C:\Program Files (x86)\Intel\oneAPI\mkl\2023.0.0\lib\cmake\mkl;`
+`E:\Packages\eigen\share\eigen3\cmake;E:\Packages\vsg\lib\cmake;E:\Packages\urdf\lib\urdfdom\cmake;E:\Packages\urdf\CMake;E:\Packages\spectra\share\spectra\cmake;E:\Packages\gl\lib\cmake;E:\Packages\mumps\cmake;C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\cmake;C:\Program Files (x86)\Intel\oneAPI\mkl\2023.0.0\lib\cmake\mkl;`
 
 Since many of these packages create and install shared libraries, the following steps may be required:
 - on Linux, run `ldconfig` (you will likely need root permissions) to cache the necessary link to the newly created shared libraries or set the `LD_LIBRARY_PATH` environment variable

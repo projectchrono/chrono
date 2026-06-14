@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
         ////rig->SetDriverLogFilename(out_dir + "/TTR_driver.txt");
 
         rig->SetTrackAssemblyOutput(true);
-        rig->SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, out_dir, "output", out_step_size);
+        rig->SetOutput(ChOutput::Format::ASCII, ChOutput::Mode::FRAMES, out_dir, "output", out_step_size);
 
         rig->SetPlotOutput(out_step_size * 0.1);
     }

@@ -130,7 +130,7 @@ void CreateTestDampedCantilever(ChSystem& sys, double damping, double z_offset) 
     // show mesh painted with solid color
     auto visual_mesh2 = chrono_types::make_shared<ChVisualModelMesh>(deformation_model);
     visual_mesh2->AddPositionExtractor(ExtractPos());
-    visual_mesh2->SetColor(ChColor(0.9, 0.4, 0));
+    visual_mesh2->SetColor(ChColor(0.9f, 0.4f, 0.0f));
     deformation_model->AddVisualShape(visual_mesh2);
 }
 

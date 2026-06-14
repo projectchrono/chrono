@@ -77,9 +77,9 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     /// Notes:
     /// - output is generated for all coupling bodies and FEA meshes.
     /// - if the MBS preCICE participant is created from a YAML specification file, output parameters are read from that file.
-    bool EnableOutput(ChOutput::Type db_type,  ///< output DB type
-                      ChOutput::Mode mode,     ///< output mode
-                      double output_fps        ///< output frequency
+    bool EnableOutput(ChOutput::Format format,  ///< output DB format
+                      ChOutput::Mode mode,      ///< output mode
+                      double output_fps         ///< output frequency
     );
 
     /// Set root output directory (default: ".").
@@ -143,17 +143,9 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     /// Chrono MBS simulation output parameters.
     struct OutputParameters {
         OutputParameters();
-        ChOutput::Type type;
+        ChOutput::Format format;
         ChOutput::Mode mode;
         double fps;
-    };
-
-    /// Collection of output physics items.
-    struct OutputData {
-        std::vector<std::shared_ptr<ChBody>> bodies;
-#ifdef CHRONO_FEA
-        std::vector<std::shared_ptr<fea::ChMesh>> meshes;
-#endif
     };
 
     /// Chrono MBS simulation run-time visualization parameters.
@@ -182,7 +174,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
-    void SaveOutput(int frame);
+    void WriteOutput(int frame, double time);
 
     std::shared_ptr<ChSystem> m_sys;  ///< underlying Chrono system
     double m_time_step;               ///< integration step size
@@ -205,16 +197,16 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     // Output
     OutputParameters m_output;              ///< output specification
-    OutputData m_output_data;               ///< output data
+    ChAssembly::Components m_output_data;   ///< output data
     std::string m_output_dir;               ///< output directory name
-    std::shared_ptr<ChOutput> m_output_db;  ///< output database
+    std::unique_ptr<ChOutput> m_output_db;  ///< output database
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths
 #endif
 
 #ifdef CHRONO_VSG
-    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualizatino system
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualization system
 #endif
 };
 
