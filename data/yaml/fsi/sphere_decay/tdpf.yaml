@@ -5,7 +5,7 @@ model:  "model_tdpf.yaml"
 solver: "solver_tdpf.yaml"
 
 output:
-    type: NONE
+    format: NONE
     mode: FRAMES
     fps: 20
 

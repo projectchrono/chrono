@@ -71,7 +71,7 @@ public:
     };
 
     /// Hyperelastic materials do not need info on the spatial velocity gradient  l=\nabla_x v ,
-    /// Returning false from this means that the ChDomainXXYY can know that the
+    /// Returning false from this means that the ChFEModelXXYY can know that the
     /// computation of the "l" parameter could be skipped left to null when calling ComputeStress(...)
     virtual bool IsSpatialVelocityGradientNeeded() const override { 
         return false;

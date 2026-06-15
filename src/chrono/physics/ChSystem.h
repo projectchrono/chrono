@@ -599,7 +599,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     // ---- OUTPUT
 
-    void Output(int frame, ChOutput& database) const;
+    /// Output data for all components in this system to the specified output database.
+    void WriteOutput(int frame, ChOutput& database) const;
 
     // ---- SERIALIZATION
 

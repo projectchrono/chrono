@@ -165,7 +165,7 @@ ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMa
 
 #ifdef CHRONO_FEA_MULTIPHYSICS
 
-ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChDomain* mesh) 
+ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChFEModel* mesh) 
     : ChContactSurface(material, mesh) {}
 
 void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAfieldXYZ> node, std::shared_ptr<ChFieldDisplacement3D> field, const double point_radius) {
@@ -199,10 +199,10 @@ void ChContactSurfaceNodeCloud::AddNode(ChFieldDataPos3D* nodedata, const double
 }
 
 /// Utility function to add all nodes of the specified multiphysics mesh to this collision cloud.
-/// Works only if the ChDomain contains a ChFieldDisplacement3D
-void ChContactSurfaceNodeCloud::AddAllNodes(std::shared_ptr<ChDomain> meshdomain, double point_radius) {
-    for (int ifield = 0; ifield < meshdomain->GetNumFields(); ++ifield)
-        if (auto field_disp = std::dynamic_pointer_cast<ChFieldDisplacement3D>(meshdomain->GetField(ifield))) {
+/// Works only if the ChFEModel contains a ChFieldDisplacement3D
+void ChContactSurfaceNodeCloud::AddAllNodes(std::shared_ptr<ChFEModel> meshmodel, double point_radius) {
+    for (int ifield = 0; ifield < meshmodel->GetNumFields(); ++ifield)
+        if (auto field_disp = std::dynamic_pointer_cast<ChFieldDisplacement3D>(meshmodel->GetField(ifield))) {
             for (auto& mnode : field_disp->GetNodeDataMap())
                 this->AddNode(&mnode.second, point_radius);
         }

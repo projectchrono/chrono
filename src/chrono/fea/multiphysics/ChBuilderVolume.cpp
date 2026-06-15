@@ -59,12 +59,12 @@ void chrono::fea::ChBuilderVolumeBox::BuildVolume(const ChFrame<>& frame, int nl
     }
 }
 
-void chrono::fea::ChBuilderVolumeBox::AddToDomain(std::shared_ptr<ChDomain> domain) {
+void chrono::fea::ChBuilderVolumeBox::AddToModel(std::shared_ptr<ChFEModel> model) {
     for (auto& created_element : this->elements.list())
-        domain->AddElement(created_element);
+        model->AddElement(created_element);
     for (auto& created_node : this->nodes.list())
-        for (int ifield = 0; ifield < domain->GetNumFields(); ++ifield)
-            domain->GetField(ifield)->AddNode(created_node);
+        for (int ifield = 0; ifield < model->GetNumFields(); ++ifield)
+            model->GetField(ifield)->AddNode(created_node);
 }
 
 
@@ -172,13 +172,13 @@ void chrono::fea::ChBuilderVolumeBoxTetra::BuildVolume(const ChFrame<>& frame, i
     }
 }
 
-void chrono::fea::ChBuilderVolumeBoxTetra::AddToDomain(std::shared_ptr<ChDomain> domain) {
+void chrono::fea::ChBuilderVolumeBoxTetra::AddToModel(std::shared_ptr<ChFEModel> model) {
     for (auto& created_elementc : this->elements.list())
         for (auto& created_element : created_elementc)
-            domain->AddElement(created_element);
+            model->AddElement(created_element);
     for (auto& created_node : this->nodes.list())
-        for (int ifield = 0; ifield < domain->GetNumFields(); ++ifield)
-            domain->GetField(ifield)->AddNode(created_node);
+        for (int ifield = 0; ifield < model->GetNumFields(); ++ifield)
+            model->GetField(ifield)->AddNode(created_node);
 }
 
 

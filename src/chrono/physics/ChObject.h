@@ -116,7 +116,7 @@ class ChApi ChObj {
 
     /// Perform any updates necessary at the current phase during the solution process.
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
-    /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
+    /// The default implementation updates the item's time stamp and its visualization assets (if any are defined and
     /// only if requested).
     virtual void Update(double time, UpdateFlags update_flags);
 

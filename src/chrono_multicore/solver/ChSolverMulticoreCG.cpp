@@ -16,7 +16,7 @@
 
 using namespace chrono;
 
-real Convergence_Norm(const DynamicVector<real>& r) {
+real Convergence_Norm(const VectorType& r) {
     real result = (real)0.;
     for (int i = 0; i < r.size(); i += 3) {
         real3 v(r[i + 0], r[i + 1], r[i + 2]);
@@ -29,8 +29,8 @@ uint ChSolverMulticoreCG::Solve(ChSchurProduct& SchurProduct,
                                 ChProjectConstraints& Project,
                                 const uint max_iter,
                                 const uint size,
-                                const DynamicVector<real>& b,
-                                DynamicVector<real>& x) {
+                                const VectorType& b,
+                                VectorType& x) {
     r.resize(b.size());
     q.resize(b.size());
     s.resize(b.size());
@@ -62,7 +62,7 @@ uint ChSolverMulticoreCG::Solve(ChSchurProduct& SchurProduct,
             break;
         }
 
-        real rho = (r, r);
+        real rho = r.squaredNorm();
         if (restart) {
             s = r;
         } else {
@@ -70,7 +70,7 @@ uint ChSolverMulticoreCG::Solve(ChSchurProduct& SchurProduct,
         }
         SchurProduct(s, q);
         // Project(r.data());
-        real s_dot_q = (s, q);
+        real s_dot_q = s.dot(q);
         real alpha = s_dot_q ? rho / s_dot_q : CH_REAL_MAX;
         x = alpha * s + x;
         r = -alpha * q + r;

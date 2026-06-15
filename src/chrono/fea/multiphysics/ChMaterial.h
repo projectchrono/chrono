@@ -29,7 +29,7 @@ namespace fea {
 /// Base class for all material properties of continua. 
 /// Materials inherited from this class are organized in a tree of subclasses that
 /// introduce interfaces for 3D elasticity, 3D thermal problems, etc., each specialized
-/// by additional subclasses. These are mostly used by ChDomain  objects for FEA problems.
+/// by additional subclasses. These are mostly used by ChFEModel  objects for FEA problems.
 
 class ChMaterial {
 public:

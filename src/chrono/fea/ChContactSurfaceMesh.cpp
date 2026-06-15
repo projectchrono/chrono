@@ -1051,7 +1051,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
                                                           mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map.count(mface_key);
+                size_t fcount = face_map.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
                     triangles_ptrs.push_back({{mface.GetNode(0), mface.GetNode(1), mface.GetNode(2)}});
@@ -1081,7 +1081,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
                                                           mface.GetNode(2).get(), mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map_brick.count(mface_key);
+                size_t fcount = face_map_brick.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
                     triangles_ptrs.push_back({{mface.GetNode(0), mface.GetNode(1), mface.GetNode(2)}});
@@ -1276,24 +1276,24 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
 
 #ifdef CHRONO_FEA_MULTIPHYSICS
 
-void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdomain, double sphere_swept) {
+void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChFEModel> meshmodel, double sphere_swept) {
     std::vector<std::array<std::shared_ptr<ChNodeFEAfieldXYZ>, 3>> triangles_ptrs;
 
     std::shared_ptr<ChFieldDisplacement3D> field;
-    for (int i= 0; i< meshdomain->GetNumFields(); ++i) {
-        if (auto mfield = std::dynamic_pointer_cast<ChFieldDisplacement3D>(meshdomain->GetField(i))) {
+    for (int i= 0; i< meshmodel->GetNumFields(); ++i) {
+        if (auto mfield = std::dynamic_pointer_cast<ChFieldDisplacement3D>(meshmodel->GetField(i))) {
             field = mfield;
             break;
         }
     } 
     if (!field) {
-        throw std::runtime_error("ChContactSurfaceMesh::AddFacesFromBoundary: No displacement field found in the mesh domain.");
+        throw std::runtime_error("ChContactSurfaceMesh::AddFacesFromBoundary: No displacement field found in the mesh model.");
     }
 
     // Boundary faces of TETRAHEDRONS
     std::multimap<std::array<ChNodeFEAfieldXYZ*, 3>, ChFieldElementTetrahedron4*> face_map;
     
-    for (auto ie = meshdomain->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
+    for (auto ie = meshmodel->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
         auto element = ie->get_element();
         if (auto mtetra = std::dynamic_pointer_cast<ChFieldElementTetrahedron4>(element)) {
             for (int nface = 0; nface < 4; ++nface) {
@@ -1306,7 +1306,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdo
             }
         }
     }
-    for (auto ie = meshdomain->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
+    for (auto ie = meshmodel->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
         auto element = ie->get_element();
         if (auto mtetra = std::dynamic_pointer_cast<ChFieldElementTetrahedron4>(element)) {
             for (int nface = 0; nface < 4; ++nface) {
@@ -1315,7 +1315,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdo
                                                                (ChNodeFEAfieldXYZ*)mface.GetNode(1).get(),
                                                                (ChNodeFEAfieldXYZ*)mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map.count(mface_key);
+                size_t fcount = face_map.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
                     triangles_ptrs.push_back({{std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(mface.GetNode(0)), 
@@ -1329,7 +1329,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdo
     // Boundary faces of HEXAHEDRONS
     std::multimap<std::array<ChNodeFEAfieldXYZ*, 4>, ChFieldElementHexahedron8*> face_map_brick;
 
-    for (auto ie = meshdomain->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
+    for (auto ie = meshmodel->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
         auto element = ie->get_element();
         if (auto mbrick = std::dynamic_pointer_cast<ChFieldElementHexahedron8>(element)) {
             for (int nface = 0; nface < 6; ++nface) {
@@ -1341,7 +1341,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdo
             }
         }
     }
-    for (auto ie = meshdomain->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
+    for (auto ie = meshmodel->CreateIteratorOnElements(); !ie->is_end(); ie->next()) {
         auto element = ie->get_element();
         if (auto mbrick = std::dynamic_pointer_cast<ChFieldElementHexahedron8>(element)) {
             for (int nface = 0; nface < 6; ++nface) {   // Each of the 6 faces of a brick
@@ -1349,7 +1349,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(std::shared_ptr<ChDomain> meshdo
                 std::array<ChNodeFEAfieldXYZ*, 4> mface_key = {(ChNodeFEAfieldXYZ*)mface.GetNode(0).get(), (ChNodeFEAfieldXYZ*)mface.GetNode(1).get(),
                                                                (ChNodeFEAfieldXYZ*)mface.GetNode(2).get(), (ChNodeFEAfieldXYZ*)mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
-                int fcount = face_map_brick.count(mface_key);
+                size_t fcount = face_map_brick.count(mface_key);
                 if (fcount == 1) {
                     // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
                     triangles_ptrs.push_back({{std::dynamic_pointer_cast<ChNodeFEAfieldXYZ>(mface.GetNode(0)), 

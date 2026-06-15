@@ -54,7 +54,6 @@ Chrono optional modules often rely on third-party libraries that might require a
 For some of these dependencies, we provide utility scripts that will download, configure, build, and install versions that are known to work with the current Chrono distribution. In each case, we provide both batch scripts (for Windows users) and bash scripts (for Linux/Mac users). Currently, utility scripts for the following dependencies are available (under the `contrib/build-scripts` subdirectory of the Chrono source tree, organized by OS):
 
 - Eigen3, required for the core Chrono module
-- Blaze, required for the Chrono::Multicore module
 - Spectra, required for the Chrono::Modal module 
 - VSG libraries, required for the Chrono::VSG module
 - URDF libraries, required for the URDF parser in the Chrono::Parsers module

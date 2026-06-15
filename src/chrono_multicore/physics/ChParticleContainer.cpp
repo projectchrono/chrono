@@ -137,30 +137,42 @@ unsigned int ChParticleContainer::GetNumNonZeros() {
 
 void ChParticleContainer::ComputeInvMass(int offset) {
     num_particles = data_manager->num_particles;
-    CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-
+    SparseMatrixType& M_inv = data_manager->host_data.M_inv;
     real inv_mass = 1.0 / mass;
-    for (uint i = 0; i < num_particles; i++) {
-        M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
-        M_inv.finalize(offset + i * 3 + 0);
-        M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_mass);
-        M_inv.finalize(offset + i * 3 + 1);
-        M_inv.append(offset + i * 3 + 2, offset + i * 3 + 2, inv_mass);
-        M_inv.finalize(offset + i * 3 + 2);
+    if (M_inv.isCompressed()) {
+        real* vals = M_inv.valuePtr();
+        const SparseMatrixType::StorageIndex* outer = M_inv.outerIndexPtr();
+        for (uint i = 0; i < num_particles; i++) {
+            vals[outer[offset + i * 3 + 0]] = inv_mass;
+            vals[outer[offset + i * 3 + 1]] = inv_mass;
+            vals[outer[offset + i * 3 + 2]] = inv_mass;
+        }
+    } else {
+        for (uint i = 0; i < num_particles; i++) {
+            M_inv.insert(offset + i * 3 + 0, offset + i * 3 + 0) = inv_mass;
+            M_inv.insert(offset + i * 3 + 1, offset + i * 3 + 1) = inv_mass;
+            M_inv.insert(offset + i * 3 + 2, offset + i * 3 + 2) = inv_mass;
+        }
     }
 }
 
 void ChParticleContainer::ComputeMass(int offset) {
     num_particles = data_manager->num_particles;
-    CompressedMatrix<real>& M = data_manager->host_data.M;
-
-    for (uint i = 0; i < num_particles; i++) {
-        M.append(offset + i * 3 + 0, offset + i * 3 + 0, mass);
-        M.finalize(offset + i * 3 + 0);
-        M.append(offset + i * 3 + 1, offset + i * 3 + 1, mass);
-        M.finalize(offset + i * 3 + 1);
-        M.append(offset + i * 3 + 2, offset + i * 3 + 2, mass);
-        M.finalize(offset + i * 3 + 2);
+    SparseMatrixType& M = data_manager->host_data.M;
+    if (M.isCompressed()) {
+        real* vals = M.valuePtr();
+        const SparseMatrixType::StorageIndex* outer = M.outerIndexPtr();
+        for (uint i = 0; i < num_particles; i++) {
+            vals[outer[offset + i * 3 + 0]] = mass;
+            vals[outer[offset + i * 3 + 1]] = mass;
+            vals[outer[offset + i * 3 + 2]] = mass;
+        }
+    } else {
+        for (uint i = 0; i < num_particles; i++) {
+            M.insert(offset + i * 3 + 0, offset + i * 3 + 0) = mass;
+            M.insert(offset + i * 3 + 1, offset + i * 3 + 1) = mass;
+            M.insert(offset + i * 3 + 2, offset + i * 3 + 2) = mass;
+        }
     }
 }
 
@@ -184,7 +196,7 @@ void ChParticleContainer::Initialize() {
 }
 
 void ChParticleContainer::Build_D() {
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
     BuildRigidParticleBoundary(contact_mu, num_particles, body_offset, start_boundary, data_manager);
 
     if (num_rigid_contacts > 0) {
@@ -192,11 +204,11 @@ void ChParticleContainer::Build_D() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Particle_Neighbors(                                                       //
-                real3 U = -Normalize(xij); real3 V; real3 W;                                 //
-                Orthogonalize(U, V, W);                                                      //
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);  //
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U);   //
+            Loop_Over_Particle_Neighbors(
+                real3 U = -Normalize(xij); real3 V; real3 W;
+                Orthogonalize(U, V, W);
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
             );
 
         } else {
@@ -205,14 +217,14 @@ void ChParticleContainer::Build_D() {
 
                 // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_a * 3);
 
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_a * 3, -V);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_a * 3, -W);
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_a * 3, -V);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_a * 3, -W);
                 // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_b * 3);
 
-                SetRow3Check(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_b * 3, V);
-                SetRow3Check(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
+                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_b * 3, V);
+                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
         }
     }
 }
@@ -220,7 +232,7 @@ void ChParticleContainer::Build_D() {
 void ChParticleContainer::Build_b() {
     real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
 
-    DynamicVector<real>& b = data_manager->host_data.b;
+    VectorType& b = data_manager->host_data.b;
 
     CorrectionRigidParticleBoundary(contact_mu, contact_cohesion, alpha, contact_recovery_speed, num_particles,
                                  start_boundary, data_manager);
@@ -231,27 +243,27 @@ void ChParticleContainer::Build_b() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;                 //
-                                         real bi = 0;                                              //
-                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }  //
-                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);  //
-                                         b[start_contact + index + 0] = bi;                        //
+            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;
+                                         real bi = 0;
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }
+                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                         b[start_contact + index + 0] = bi;
             );
         } else {
-            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;                   //
-                                         real bi = 0;                                                //
-                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }    //
-                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);    //
-                                         b[start_contact + index + 0] = bi;                          //
-                                         b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;  //
-                                         b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;  //
+            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;
+                                         real bi = 0;
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }
+                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                         b[start_contact + index + 0] = bi;
+                                         b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;
+                                         b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;
             );
         }
     }
 }
 
 void ChParticleContainer::Build_E() {
-    DynamicVector<real>& E = data_manager->host_data.E;
+    VectorType& E = data_manager->host_data.E;
 
     ComplianceRigidParticleBoundary(contact_mu, contact_compliance, alpha, start_boundary, data_manager);
     real inv_h = 1.0 / data_manager->settings.step_size;
@@ -311,7 +323,7 @@ void ChParticleContainer::Project(real* gamma) {
 }
 
 void ChParticleContainer::GenerateSparsity() {
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
     AppendRigidParticleBoundary(contact_mu, num_particles, body_offset, start_boundary, data_manager);
 
     if (num_rigid_contacts > 0) {
@@ -327,7 +339,6 @@ void ChParticleContainer::GenerateSparsity() {
                 AppendRow3(D_T, start_contact + index_n + 0, body_offset + body_a * 3, 0);
                 AppendRow3(D_T, start_contact + index_n + 0, body_offset + body_b * 3, 0);
 
-                D_T.finalize(start_contact + index_n + 0);
                 index_n++;
             }
         }
@@ -339,15 +350,18 @@ void ChParticleContainer::GenerateSparsity() {
                         continue;
                     }
 
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 0, body_offset + body_a * 3, 0);
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 0, body_offset + body_b * 3, 0);
-
-                    D_T.finalize(start_contact + num_rigid_contacts + index_t * 2 + 0);
-
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 1, body_offset + body_a * 3, 0);
-                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 1, body_offset + body_b * 3, 0);
-
-                    D_T.finalize(start_contact + num_rigid_contacts + index_t * 2 + 1);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 0,
+                               body_offset + body_a * 3, 0);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 0,
+                               body_offset + body_b * 3, 0);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 1,
+                               body_offset + body_a * 3, 0);
+                    AppendRow3(D_T,
+                               start_contact + num_rigid_contacts + index_t * 2 + 1,
+                               body_offset + body_b * 3, 0);
 
                     index_t++;
                 }
@@ -361,17 +375,17 @@ void ChParticleContainer::CalculateContactForces() {
         return;
     }
 
-    DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
+    VectorType& gamma = data_manager->host_data.gamma;
+    SubVectorType gamma_n = gamma.segment(start_boundary, _num_rf_c_);
 
-    contact_forces = submatrix(data_manager->host_data.D, 0, start_boundary, _num_dof_, _num_rf_c_) * gamma_n /
+    contact_forces = data_manager->host_data.D.middleCols(start_boundary, _num_rf_c_).topRows(_num_dof_) * gamma_n /
                      data_manager->settings.step_size;
 
     if (contact_mu != 0) {
-        SubVectorType gamma_t = subvector(gamma, start_boundary + _num_rf_c_, 2 * _num_rf_c_);
+        SubVectorType gamma_t = gamma.segment(start_boundary + _num_rf_c_, 2 * _num_rf_c_);
         contact_forces +=
-            submatrix(data_manager->host_data.D, 0, start_boundary + _num_rf_c_, _num_dof_, 2 * _num_rf_c_) * gamma_t /
-            data_manager->settings.step_size;
+            data_manager->host_data.D.middleCols(start_boundary + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_) *
+            gamma_t / data_manager->settings.step_size;
     }
 }
 
@@ -398,12 +412,12 @@ void ChParticleContainer::PostSolve() {}
 void ChParticleContainer::GetPressureForce(custom_vector<real3>& forc) {
     forc.resize(num_particles);
 
-    DynamicVector<real>& gamma = data_manager->host_data.gamma;
+    VectorType& gamma = data_manager->host_data.gamma;
 
-    SubVectorType gamma_n = subvector(gamma, start_contact, num_rigid_contacts);
+    SubVectorType gamma_n = gamma.segment(start_contact, num_rigid_contacts);
 
-    DynamicVector<real> pressure_forces =
-        submatrix(data_manager->host_data.D, body_offset, start_contact, num_particles * 3, num_rigid_contacts) *
+    VectorType pressure_forces =
+        data_manager->host_data.D.middleCols(start_contact, num_rigid_contacts).middleRows(body_offset, num_particles * 3) *
         gamma_n / data_manager->settings.step_size;
 
     for (int i = 0; i < (signed)num_particles; i++) {

@@ -56,11 +56,6 @@ void ChSystemMulticoreNSC::ChangeSolverType(SolverType type) {
 void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
     data_manager->node_container = container;
 
-    //// TODO: remove this
-    ////data_manager->cd_data->p_kernel_radius = container->kernel_radius;
-    ////data_manager->cd_data->p_collision_envelope = container->collision_envelope;
-    ////data_manager->cd_data->p_collision_family = container->family;
-
     container->SetSystem(this);
     container->data_manager = data_manager;
 
@@ -98,18 +93,18 @@ void ChSystemMulticoreNSC::CalculateContactForces() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_rigid_dof = data_manager->num_rigid_bodies * 6;
     uint num_contacts = data_manager->cd_data->num_rigid_contacts;
-    DynamicVector<real>& Fc = data_manager->host_data.Fc;
+    VectorType& Fc = data_manager->host_data.Fc;
 
     data_manager->Fc_current = true;
 
     if (num_contacts == 0) {
         Fc.resize(6 * data_manager->num_rigid_bodies);
-        Fc = 0;
+        Fc.setZero();
         return;
     }
 
-    const SubMatrixType& D_u = blaze::submatrix(data_manager->host_data.D, 0, 0, num_rigid_dof, num_unilaterals);
-    DynamicVector<real> gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, num_unilaterals);
+    const SparseMatrixType& D_u = data_manager->host_data.D.topLeftCorner(num_rigid_dof, num_unilaterals);
+    VectorType gamma_u = data_manager->host_data.gamma.segment(0, num_unilaterals);
     Fc = D_u * gamma_u / data_manager->settings.step_size;
 }
 

@@ -14,7 +14,7 @@
 //
 // Examples on how to develop your own multiphysics problem, that are not yet
 // available in the current Chrono API
-// Demonstrates how to implement a custom ChDomain for a custom problem, with
+// Demonstrates how to implement a custom ChFEModel for a custom problem, with
 // a custom ChField and ChFieldData.
 //
 // =============================================================================
@@ -23,12 +23,12 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/fea/multiphysics/ChDomainDeformation.h"
-#include "chrono/fea/multiphysics/ChDomainThermal.h"
-#include "chrono/fea/multiphysics/ChDomainThermoDeformation.h"
+#include "chrono/fea/multiphysics/ChFEModelDeformation.h"
+#include "chrono/fea/multiphysics/ChFEModelThermal.h"
+#include "chrono/fea/multiphysics/ChFEModelThermoDeformation.h"
 #include "chrono/fea/multiphysics/ChMaterial3DThermalNonlinear.h"
 #include "chrono/fea/multiphysics/ChDrawer.h"
-#include "chrono/fea/multiphysics/ChSurfaceOfDomain.h"
+#include "chrono/fea/multiphysics/ChSurfaceOfModel.h"
 #include "chrono/fea/multiphysics/ChFieldElementHexahedron8Face.h"
 #include "chrono/fea/multiphysics/ChFieldElementLoadableVolume.h"
 #include "chrono/fea/multiphysics/ChFieldElementLoadableSurface.h"
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     //    dc/dt = D *  div [D]*grad c
     //
     // with D the diffusion coefficient.
-    // In this example, we will show how to implement a custom ChDomain for this problem,
+    // In this example, we will show how to implement a custom ChFEModel for this problem,
     // with a custom ChField and ChFieldData.
 
     // 1) Let's implement a new FIELD DATA for some field.
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     // This is expressed as concentration c [mol/m^3], i.e. moles per volume.
     // At each point in the discretized field, this is the data that we simulate.
     // Being a scalar, we inherit from ChFieldDataScalar. (we could use directly
-    // a ChFieldDataScalar in our ChDomain, but for readability we do the following, that
+    // a ChFieldDataScalar in our ChFEModel, but for readability we do the following, that
     // also add two helper functions Concentration() etc.)
     // If this is used in 1D elements, concentration c [mol/m^3] is related to moles
     // per length n=[mol/m] as c=n/A, with A cross section.
@@ -96,28 +96,28 @@ int main(int argc, char* argv[]) {
 
     class ChFieldChemicalConcentration : public ChField<ChFieldDataChemicalConcentration> {};
 
-    // 3) Let's implement a new DOMAIN.
+    // 3) Let's implement a new MODEL.
     //
-    // Domains reference one or more field, and computes the physical laws that connect their variables.
-    // Here we implement the domain for the Fick chemical diffusivity problem in 3D.
+    // Models reference one or more field, and computes the physical laws that connect their variables.
+    // Here we implement the model for the Fick chemical diffusivity problem in 3D.
     // It is based on a scalar concentration field, that is ChFieldChemicalConcentration.
-    // To simplify things, this domain do not use a pluggable material object: the diffusivity constant
-    // is just a public data member of this domain (for advanced approach to materials, look later Example 2).
-    // Since we'll use tetrahedrons/hexahedron volume elements, we'll inherit from ChDomainIntegrating
+    // To simplify things, this model do not use a pluggable material object: the diffusivity constant
+    // is just a public data member of this model (for advanced approach to materials, look later Example 2).
+    // Since we'll use tetrahedrons/hexahedron volume elements, we'll inherit from ChFEModelIntegrating
     // and we'll implement PointComputeInternalLoads() and PointComputeKRMmatrices().
 
-    class ChDomainChemical3D : public ChDomainIntegrating<std::tuple<ChFieldChemicalConcentration>,  // the field(s) used by this domain, in this case just one.
+    class ChFEModelChemical3D : public ChFEModelIntegrating<std::tuple<ChFieldChemicalConcentration>,  // the field(s) used by this model, in this case just one.
                                                           ChFieldDataNONE,                           // data stored at material points as persistent scratch data
                                                           ChElementDataKRM> {                        // data stored at element level: default K,R,M matrices.
       public:
         // The following just to provide a shortcut in type naming.
-        using Base = ChDomainIntegrating<std::tuple<ChFieldChemicalConcentration>, ChFieldDataNONE, ChElementDataKRM>;
+        using Base = ChFEModelIntegrating<std::tuple<ChFieldChemicalConcentration>, ChFieldDataNONE, ChElementDataKRM>;
         using DataPerElement = typename Base::DataPerElement;
 
-        /// Construct the domain
-        ChDomainChemical3D(std::shared_ptr<ChFieldChemicalConcentration> mfield) : Base(mfield) { diffusivity = 1.0; }
+        /// Construct the model
+        ChFEModelChemical3D(std::shared_ptr<ChFieldChemicalConcentration> mfield) : Base(mfield) { diffusivity = 1.0; }
 
-        /// Get the material of the domain (not needed)
+        /// Get the material of the model (not needed)
         virtual std::shared_ptr<ChMaterial> GetMaterial() override { return nullptr; };
 
         /// INTERFACE that must be implemented!
@@ -216,10 +216,10 @@ int main(int argc, char* argv[]) {
     // chemical diffusivity in 3D, but what if we need also 1D diffusivity in a network of capillary
     // pipes? Here is how to do.
     // Note that we skip implementing the FIELD and FIELD DATA because the
-    // 1D domain will be based on the already defined field ((scalar value of concentration, one
+    // 1D model will be based on the already defined field ((scalar value of concentration, one
     // scalar per node) through the already defined classes ChFieldChemicalConcentration and
     // ChFieldDataChemicalConcentration of example above.
-    // We need to create a class for "edge" ELEMENT and the "1D" case of chemical DOMAIN.
+    // We need to create a class for "edge" ELEMENT and the "1D" case of chemical MODEL.
 
     // 1) Let's implement a new ELEMENT class.
     //
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
 
         // Tell how many material points are needed
         // - NOTE: THIS EXAMPLE DEMONSTRATES ELEMENTS WITHOUT QUADRATURE, BUT WE'LL RETURN "1" SO THAT
-        //   THE DOMAIN WILL ATTACH ONE MATERIAL DATA OBJECT TO THE ELEMENT
+        //   THE MODEL WILL ATTACH ONE MATERIAL DATA OBJECT TO THE ELEMENT
         virtual int GetNumQuadraturePointsForOrder(const int order) const override { return 1; }
 
         // Get i-th material point weight and parametric coordinates
@@ -301,11 +301,11 @@ int main(int argc, char* argv[]) {
         std::array<std::shared_ptr<ChNodeFEAfieldXYZ>, 2> nodes;
     };
 
-    // 2) Let's implement a MATERIAL for our domain
+    // 2) Let's implement a MATERIAL for our model
     //
     // Here: properties, constitutive equations, optional per-sample data. Assumed at each "sample" of the model.
-    // In a ChDomainIntegrating, that perform Gauss quadrature over a continuum, samples are made at each Gauss point.
-    // In a ChDomainGeneric, like in this example, samples are made where needed by elements.
+    // In a ChFEModelIntegrating, that perform Gauss quadrature over a continuum, samples are made at each Gauss point.
+    // In a ChFEModelGeneric, like in this example, samples are made where needed by elements.
 
     class ChMaterialChemicalDiffusion : public ChMaterial {
       public:
@@ -327,13 +327,13 @@ int main(int argc, char* argv[]) {
         virtual std::unique_ptr<ChFieldData> CreateMaterialPointData() const override { return nullptr; }
 
         /// (This is optional, but will be used later in EXAMPLE 2 when inheriting from this material to create "damage"
-        /// effects, so we won't need an additional version of ChDomainChemical1D).
+        /// effects, so we won't need an additional version of ChFEModelChemical1D).
         virtual void ComputeUpdateEndStep(ChFieldData* mat_point_data) { /* do nothing */ }
     };
 
-    // 3) Let's implement a new DOMAIN class
+    // 3) Let's implement a new MODEL class
     //
-    // Tip: now an auxiliary data is stored per each material point during the ChDomainChemical1D
+    // Tip: now an auxiliary data is stored per each material point during the ChFEModelChemical1D
     // computation. For example, scratch pad data to be plotted in postprocessing, etc.
     // If you need to append additional data per each material point, do not modify this, just
     // define your class with custom data and use it in my_material_class::T_per_materialpoint
@@ -343,27 +343,27 @@ int main(int argc, char* argv[]) {
         double molar_flux;  /// molar flux [mol/(m^2 s)]
     };
 
-    // Domain for FEA chemical analysis over the web of edges.
+    // Model for FEA chemical analysis over the web of edges.
     // It is based on a scalar field of chemical moles
 
-    class ChDomainChemical1D : public ChDomainGeneric<std::tuple<ChFieldChemicalConcentration>, ChFieldDataAuxiliaryChemical1D, ChElementDataKRM> {
+    class ChFEModelChemical1D : public ChFEModelGeneric<std::tuple<ChFieldChemicalConcentration>, ChFieldDataAuxiliaryChemical1D, ChElementDataKRM> {
       public:
         // The following just to provide a shortcut in type naming.
-        using Base = ChDomainGeneric<std::tuple<ChFieldChemicalConcentration>, ChFieldDataAuxiliaryChemical1D, ChElementDataKRM>;
+        using Base = ChFEModelGeneric<std::tuple<ChFieldChemicalConcentration>, ChFieldDataAuxiliaryChemical1D, ChElementDataKRM>;
         using DataPerElement = typename Base::DataPerElement;
 
-        /// Construct the domain
-        ChDomainChemical1D(std::shared_ptr<ChFieldChemicalConcentration> mfield) : Base(mfield) {
+        /// Construct the model
+        ChFEModelChemical1D(std::shared_ptr<ChFieldChemicalConcentration> mfield) : Base(mfield) {
             // attach a default material to simplify user side
             material = chrono_types::make_shared<ChMaterialChemicalDiffusion>();
         }
 
-        /// The material assigned to this domain
+        /// The material assigned to this model
         std::shared_ptr<ChMaterialChemicalDiffusion> material;
 
         /// For a given finite element, computes the internal loads Fi and set values in the Fi vector.
-        /// Since in this example we are NOT using quadrature-based domains, we must override this with our
-        /// custom implementation. See ChDomainIntegrating vs ChDomainGeneric.
+        /// Since in this example we are NOT using quadrature-based models, we must override this with our
+        /// custom implementation. See ChFEModelIntegrating vs ChFEModelGeneric.
         /// For our Fick 1D law, going from strong to weak discretized form, it is  d/dt c_i = Fi_i = J_i
         virtual void ElementComputeInternalLoads(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, ChVectorDynamic<>& Fi) override {
             int numelcoords = this->GetNumPerNodeCoordsVelLevel() * melement->GetNumNodes();
@@ -384,8 +384,8 @@ int main(int argc, char* argv[]) {
 
         /// For a given finite element, computes matrix H = Mfactor*M + Rfactor*dFi/dv + Kfactor*dFi/dx, as scaled
         /// sum of the tangent matrices M,R,K,: H = Mfactor*M + Rfactor*R + Kfactor*K.
-        /// Since in this example we are NOT using quadrature-based domains, we must override this with our
-        /// custom implementation. See ChDomainIntegrating vs ChDomainGeneric.
+        /// Since in this example we are NOT using quadrature-based models, we must override this with our
+        /// custom implementation. See ChFEModelIntegrating vs ChFEModelGeneric.
         virtual void ElementComputeKRMmatrices(std::shared_ptr<ChFieldElement> melement,
                                                DataPerElement& data,
                                                ChMatrixRef H,
@@ -411,14 +411,14 @@ int main(int argc, char* argv[]) {
         /// NOTE! Not needed for this EXAMPLE 1, but.. assume that in future (ex. in EXAMPLE 2) someone will
         /// implement a ChMaterialChemicalDiffusion that supports some custom per-material-point state update
         /// like damage or plasticity: here we call material->ComputeUpdateEndStep() anyway, so later we won't need
-        /// a custom version of ChDomainChemical1D for the damage case, but we can just inherit from this and
+        /// a custom version of ChFEModelChemical1D for the damage case, but we can just inherit from this and
         /// override the ComputeUpdateEndStep of the material.
         virtual void PointUpdateEndStep(std::shared_ptr<ChFieldElement> melement, DataPerElement& data, const int i_point, const double time) override {
             material->ComputeUpdateEndStep(data.matpoints_data.size() ? data.matpoints_data[i_point].get() : nullptr);
         }
 
       protected:
-        /// Get the material of the domain.
+        /// Get the material of the model.
         virtual std::shared_ptr<ChMaterial> GetMaterial() override { return material; };
     };
 
@@ -476,18 +476,18 @@ int main(int argc, char* argv[]) {
         auto chemical_field = chrono_types::make_shared<ChFieldChemicalConcentration>();
         sys.Add(chemical_field);
 
-        // DOMAIN
-        // Create the "domain", which is a collection of finite elements operating over
-        // some field(s). In this case we create a ChDomainChemical1D, field:
+        // MODEL
+        // Create the "model", which is a collection of finite elements operating over
+        // some field(s). In this case we create a ChFEModelChemical1D, field:
 
-        auto chemical_domain1d = chrono_types::make_shared<ChDomainChemical1D>(chemical_field);
-        sys.Add(chemical_domain1d);
+        auto chemical_model1d = chrono_types::make_shared<ChFEModelChemical1D>(chemical_field);
+        sys.Add(chemical_model1d);
 
         // MATERIAL
-        // Depending on the type of domain, you can set some properties for the material
+        // Depending on the type of model, you can set some properties for the material
 
         auto chemical_material = chrono_types::make_shared<ChMaterialChemicalDiffusion>();
-        chemical_domain1d->material = chemical_material;  // set the material in domain
+        chemical_model1d->material = chemical_material;  // set the material in model
         chemical_material->diffusivity = 0.01;
 
         // CREATE SOME FINITE ELEMENTS AND NODES
@@ -509,11 +509,11 @@ int main(int argc, char* argv[]) {
         auto element3 = chrono_types::make_shared<ChFieldElementChemicalEdge>(node3, node4);
         auto element4 = chrono_types::make_shared<ChFieldElementChemicalEdge>(node4, node1);
         auto element5 = chrono_types::make_shared<ChFieldElementChemicalEdge>(node1, node3);
-        chemical_domain1d->AddElement(element1);
-        chemical_domain1d->AddElement(element2);
-        chemical_domain1d->AddElement(element3);
-        chemical_domain1d->AddElement(element4);
-        chemical_domain1d->AddElement(element5);
+        chemical_model1d->AddElement(element1);
+        chemical_model1d->AddElement(element2);
+        chemical_model1d->AddElement(element3);
+        chemical_model1d->AddElement(element4);
+        chemical_model1d->AddElement(element5);
 
         // How to set some initial conditions: the initial concentration at node:
         // chemical_field->NodeData(node2).Concentration() = 4.0;  // initial concentration = 4 mole per m^3 at node 1
@@ -528,16 +528,16 @@ int main(int argc, char* argv[]) {
         constraint_c2->SetOffset(sine_concentr);
         sys.Add(constraint_c2);
 
-        // Just for testing, add also the 3D ChDomainChemical3D with volume elements, working together with
-        // the 1D domain ChDomainChemical1D because they'll share the same field, and elements will share one node.
-        auto chemical_domain3d = chrono_types::make_shared<ChDomainChemical3D>(chemical_field);
-        chemical_domain3d->diffusivity = 0.01;
-        sys.Add(chemical_domain3d);
+        // Just for testing, add also the 3D ChFEModelChemical3D with volume elements, working together with
+        // the 1D model ChFEModelChemical1D because they'll share the same field, and elements will share one node.
+        auto chemical_model3d = chrono_types::make_shared<ChFEModelChemical3D>(chemical_field);
+        chemical_model3d->diffusivity = 0.01;
+        sys.Add(chemical_model3d);
 
         ChBuilderVolumeBox builder;                                         // this helps creating grids of ChFieldElementHexahedron8 elements
         builder.BuildVolume(ChFrame<>(ChVector3d(0.1, -0.02, 0)), 4, 1, 1,  // N of elements in x,y,z direction
                             0.1, 0.02, 0.04);                               // width in x,y,z direction
-        builder.AddToDomain(chemical_domain3d);
+        builder.AddToModel(chemical_model3d);
 
         // make a ChFieldElementHexahedron8 element share "node2" created before for ChFieldElementChemicalEdge:
         chemical_field->RemoveNode((*builder.elements.list().begin())->GetHexahedronNode(3));
@@ -545,26 +545,26 @@ int main(int argc, char* argv[]) {
 
         // POSTPROCESSING & VISUALIZATION (optional)
 
-        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(chemical_domain1d);
+        auto visual_nodes = chrono_types::make_shared<ChVisualModelGlyphs>(chemical_model1d);
         visual_nodes->SetGlyphsSize(0.008);
         visual_nodes->AddPositionExtractor(ExtractPos());
         visual_nodes->AddPropertyExtractor(ExtractConcentration(), 0.0, 3.0, "Concentration");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
-        chemical_domain1d->AddVisualShape(visual_nodes);
+        chemical_model1d->AddVisualShape(visual_nodes);
 
-        auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(chemical_domain1d);
+        auto visual_mesh = chrono_types::make_shared<ChVisualModelMesh>(chemical_model1d);
         visual_mesh->GetElementDispatcher().RegisterDrawer<ChFieldElementChemicalEdge>(std::make_unique<ChDrawerChemicalEdge>());
         visual_mesh->AddPositionExtractor(ExtractPos());
         visual_mesh->AddPropertyExtractor(ExtractMolarFlux(), -0.3, 0.3, "Molar flux");
         visual_mesh->SetColormap(ChColormap(ChColormap::Type::JET));  // ChColor(0, 1, 0));
         visual_mesh->SetWireframe(true);
-        chemical_domain1d->AddVisualShape(visual_mesh);
+        chemical_model1d->AddVisualShape(visual_mesh);
 
-        auto visual_meshv = chrono_types::make_shared<ChVisualDomainMesh>(chemical_domain3d);
+        auto visual_meshv = chrono_types::make_shared<ChVisualModelMesh>(chemical_model3d);
         visual_meshv->AddPositionExtractor(ExtractPos());
         visual_meshv->AddPropertyExtractor(ExtractConcentration(), 0.0, 3.0, "Concentration");
         visual_meshv->SetColormap(ChColormap(ChColormap::Type::JET));
-        chemical_domain3d->AddVisualShape(visual_meshv);
+        chemical_model3d->AddVisualShape(visual_meshv);
 
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -623,7 +623,7 @@ int main(int argc, char* argv[]) {
         double step_flow_drift;  /// concept as the plastic flow in yeld. can be negative or positive.
     };
 
-    // 2) Let's implement a MATERIAL for our domain
+    // 2) Let's implement a MATERIAL for our model
     //
     // The material inherits from the previous ChMaterialChemicalDiffusion, but:
     // - override CreateMaterialPointData: returns our new "ChFieldDataChemicalDamage" class for storing the damage
@@ -657,7 +657,7 @@ int main(int argc, char* argv[]) {
             return J;
         }
 
-        /// In order to have the domain automatically instancing a damage data structure per each material point,
+        /// In order to have the model automatically instancing a damage data structure per each material point,
         /// we must override this function and return our ChFieldDataChemicalDamage:
         virtual std::unique_ptr<ChFieldData> CreateMaterialPointData() const override { return std::make_unique<ChFieldDataChemicalDamage>(); }
 
@@ -683,7 +683,7 @@ int main(int argc, char* argv[]) {
     //
     // Ok, that's all.
     // Now we can proceed as usual to create the model, this time to test the ChMaterialChemicalDiffusionDamaged
-    // We create a FIELD, a MATERIAL, a DOMAIN , NODES and FINITE ELEMENTS just like we did in EXAMPLE 1,
+    // We create a FIELD, a MATERIAL, a MODEL , NODES and FINITE ELEMENTS just like we did in EXAMPLE 1,
     // so we do not repeat comments. The big difference, however, is that now we use the
     // ChMaterialChemicalDiffusionDamaged material, that will cause damage if the chemical flow exceeds the max_flow
     // threshold.
@@ -698,15 +698,15 @@ int main(int argc, char* argv[]) {
         auto chemical_field = chrono_types::make_shared<ChFieldChemicalConcentration>();
         sys.Add(chemical_field);
 
-        // DOMAIN
+        // MODEL
 
-        auto chemical_domain1d = chrono_types::make_shared<ChDomainChemical1D>(chemical_field);
-        sys.Add(chemical_domain1d);
+        auto chemical_model1d = chrono_types::make_shared<ChFEModelChemical1D>(chemical_field);
+        sys.Add(chemical_model1d);
 
         // MATERIAL
 
         auto chemical_material = chrono_types::make_shared<ChMaterialChemicalDiffusionDamaged>();
-        chemical_domain1d->material = chemical_material;  // set the material in domain
+        chemical_model1d->material = chemical_material;  // set the material in model
         chemical_material->diffusivity = 0.01;
         chemical_material->max_flow = 0.02;        // NEW SETTING! cap the flow to this, if beyond, damage will accumulate
         chemical_material->damage_multiplier = 4;  // NEW SETTING! how much damage is generated by a flow > max_flow threshold
@@ -727,11 +727,11 @@ int main(int argc, char* argv[]) {
         auto element3 = chrono_types::make_shared<ChFieldElementChemicalEdge>(node3, node4);
         auto element4 = chrono_types::make_shared<ChFieldElementChemicalEdge>(node4, node1);
         auto element5 = chrono_types::make_shared<ChFieldElementChemicalEdge>(node1, node3);
-        chemical_domain1d->AddElement(element1);
-        chemical_domain1d->AddElement(element2);
-        chemical_domain1d->AddElement(element3);
-        chemical_domain1d->AddElement(element4);
-        chemical_domain1d->AddElement(element5);
+        chemical_model1d->AddElement(element1);
+        chemical_model1d->AddElement(element2);
+        chemical_model1d->AddElement(element3);
+        chemical_model1d->AddElement(element4);
+        chemical_model1d->AddElement(element5);
 
         // Set some initial conditions: the initial concentration at node1:
         // chemical_field->NodeData(node1).Concentration() = 4.0;  // initial concentration = 4 mole per m^3 at node 1
@@ -743,21 +743,21 @@ int main(int argc, char* argv[]) {
         constraint_c2->SetOffset(sine_concentr);
         sys.Add(constraint_c2);
 
-        auto visual_nodes = chrono_types::make_shared<ChVisualDomainGlyphs>(chemical_domain1d);
+        auto visual_nodes = chrono_types::make_shared<ChVisualModelGlyphs>(chemical_model1d);
         visual_nodes->SetGlyphsSize(0.01);
         visual_nodes->AddPositionExtractor(ExtractPos());
         visual_nodes->AddPropertyExtractor(ExtractConcentration(), 0.0, 3.0, "Concentration");
         visual_nodes->SetColormap(ChColormap(ChColormap::Type::JET));
-        chemical_domain1d->AddVisualShape(visual_nodes);
+        chemical_model1d->AddVisualShape(visual_nodes);
 
-        auto visual_mesh = chrono_types::make_shared<ChVisualDomainMesh>(chemical_domain1d);
+        auto visual_mesh = chrono_types::make_shared<ChVisualModelMesh>(chemical_model1d);
         visual_mesh->GetElementDispatcher().RegisterDrawer<ChFieldElementChemicalEdge>(std::make_unique<ChDrawerChemicalEdge>());
         visual_mesh->AddPositionExtractor(ExtractPos());
         // visual_mesh->AddPropertyExtractor(ExtractMolarFlux(), -3.0, 3.0, "Molar flux");
         visual_mesh->AddPropertyExtractor(ExtractChemicalDamage(), 0.0, 6.0, "Damage");
         visual_mesh->SetColormap(ChColormap(ChColormap::Type::JET));  // ChColor(0, 1, 0));
         visual_mesh->SetWireframe(true);
-        chemical_domain1d->AddVisualShape(visual_mesh);
+        chemical_model1d->AddVisualShape(visual_mesh);
 
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

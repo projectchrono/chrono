@@ -125,6 +125,7 @@ set(CV_BASE_FILES
     ChVehicle.cpp
     ChVehicleDataPath.h
     ChVehicleDataPath.cpp
+    ChVehicleOutput.h
     ChVehicleVisualSystem.h
     ChVehicleVisualSystem.cpp
     ChWorldFrame.cpp
@@ -1033,10 +1034,6 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         FILES_MATCHING PATTERN "*.h")
 
 # Install 3rd party headers       
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

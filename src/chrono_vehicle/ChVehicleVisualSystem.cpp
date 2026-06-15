@@ -79,14 +79,15 @@ void ChVehicleVisualSystem::Synchronize(double time, const DriverInputs& driver_
     m_clutch = driver_inputs.m_clutch;
 }
 
-void ChVehicleVisualSystem::SetChaseCamera(const ChVector3d& ptOnChassis, double chaseDist, double chaseHeight) {
-    m_camera_point = ptOnChassis;
-    m_camera_dist = chaseDist;
-    m_camera_height = chaseHeight;
+void ChVehicleVisualSystem::SetChaseCamera(const ChVector3d& ref_point, double chase_dist, double chase_height, double angle) {
+    m_camera_point = ref_point;
+    m_camera_dist = chase_dist;
+    m_camera_height = chase_height;
     if (m_camera) {
         m_camera->SetTargetPoint(m_camera_point);
         m_camera->SetChaseDistance(m_camera_dist);
         m_camera->SetChaseHeight(m_camera_height);
+        m_camera->SetCameraAngle(angle * CH_DEG_TO_RAD);
     }
 }
 void ChVehicleVisualSystem::SetStepsize(double val) {

@@ -9,13 +9,13 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Utility classes implementing PID steering controllers. The base class
-// implements the basic functionality to control the error between the location
-// of a sentinel point (a point at a look-ahead distance in front of the vehicle)
-// and the current target point.
+// Utility classes implementing steering controllers. The base class implements
+// the basic functionality to control the error between the location of a
+// sentinel point (a point at a look-ahead distance in front of the vehicle) and
+// the current target point.
 //
 // Derived classes differ in how they specify the target point.  This can be the
 // closest point to the sentinel point on a pre-defined curve path (currently
@@ -44,26 +44,37 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Implementation of the base class ChSteeringController
 // -----------------------------------------------------------------------------
+
 ChSteeringController::ChSteeringController(std::shared_ptr<ChBezierCurve> path)
-    : m_path(path),
-      m_dist(0),
-      m_sentinel(0, 0, 0),
-      m_target(0, 0, 0),
-      m_err(0),
-      m_erri(0),
-      m_errd(0),
-      m_csv(nullptr),
-      m_collect(false) {}
+    : m_path(path), m_dist(0), m_rear_steering(false), m_sentinel(0, 0, 0), m_target(0, 0, 0), m_err(0), m_erri(0), m_errd(0), m_csv(nullptr), m_collect(false) {
+    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
+}
 
 ChSteeringController::~ChSteeringController() {
     delete m_csv;
 }
 
 void ChSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
+    // Reset sentinel location
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
+
+    // Reset errors
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
+
+    // Reset the path tracker with the new sentinel location.
+    m_tracker->Reset(m_sentinel);
+
+    // Let derived class perform additional operations
+    OnReset(ref_frame);
+}
+
+double ChSteeringController::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
+    double steering = OnAdvance(ref_frame, time, step);
+    if (m_rear_steering)
+        steering *= -1;
+    return steering;
 }
 
 void ChSteeringController::StartDataCollection() {
@@ -92,19 +103,12 @@ void ChSteeringController::WriteOutputFile(const std::string& filename) {
 }
 
 // -----------------------------------------------------------------------------
-// Implementation of the derived class ChPathSteeringController.
+// Implementation of the derived class ChPathSteeringControllerPID.
 // -----------------------------------------------------------------------------
-ChPathSteeringController::ChPathSteeringController(std::shared_ptr<ChBezierCurve> path)
-    : ChSteeringController(path), m_Kp(0), m_Ki(0), m_Kd(0) {
-    // Create a tracker object associated with the given path.
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
-}
 
-ChPathSteeringController::ChPathSteeringController(const std::string& filename, std::shared_ptr<ChBezierCurve> path)
-    : ChSteeringController(path) {
-    // Create a tracker object associated with the given path.
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
+ChPathSteeringControllerPID::ChPathSteeringControllerPID(std::shared_ptr<ChBezierCurve> path) : ChSteeringController(path), m_Kp(0), m_Ki(0), m_Kd(0) {}
 
+ChPathSteeringControllerPID::ChPathSteeringControllerPID(const std::string& filename, std::shared_ptr<ChBezierCurve> path) : ChSteeringController(path) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -119,13 +123,15 @@ ChPathSteeringController::ChPathSteeringController(const std::string& filename, 
     std::cout << "Loaded JSON " << filename << std::endl;
 }
 
-void ChPathSteeringController::SetGains(double Kp, double Ki, double Kd) {
+void ChPathSteeringControllerPID::SetGains(double Kp, double Ki, double Kd) {
     m_Kp = Kp;
     m_Ki = Ki;
     m_Kd = Kd;
 }
 
-double ChPathSteeringController::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
+void ChPathSteeringControllerPID::OnReset(const ChFrameMoving<>& ref_frame) {}
+
+double ChPathSteeringControllerPID::OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) {
     // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
 
@@ -163,20 +169,13 @@ double ChPathSteeringController::Advance(const ChFrameMoving<>& ref_frame, doubl
     m_err = err;
 
     // Return PID output (steering value)
-    return m_Kp * m_err + m_Ki * m_erri + m_Kd * m_errd;
+    double steering = m_Kp * m_err + m_Ki * m_erri + m_Kd * m_errd;
+    return steering;
 }
 
-void ChPathSteeringController::CalcTargetLocation() {
+void ChPathSteeringControllerPID::CalcTargetLocation() {
     // Let the underlying tracker do its magic.
     m_tracker->CalcClosestPoint(m_sentinel, m_target);
-}
-
-void ChPathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
-    // Let the base class calculate the current location of the sentinel point.
-    ChSteeringController::Reset(ref_frame);
-
-    // Reset the path tracker with the new sentinel location.
-    m_tracker->Reset(m_sentinel);
 }
 
 // -----------------------------------------------------------------------------
@@ -201,16 +200,12 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(std::shared_ptr<ChBezierC
       m_Wh(1),
       m_Wa(1),
       m_res(0) {
-    // Create a tracker object associated with the given path.
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
     if (max_wheel_turn_angle > 0.0) {
         m_max_wheel_turn_angle = max_wheel_turn_angle;
     }
 }
 
-ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filename,
-                                                       std::shared_ptr<ChBezierCurve> path,
-                                                       double max_wheel_turn_angle)
+ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filename, std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle)
     : ChSteeringController(path),
       m_R_threshold(100000.0),
       m_max_wheel_turn_angle(25.0 * CH_DEG_TO_RAD),
@@ -221,8 +216,6 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filena
       m_Wh(1),
       m_Wa(1),
       m_res(0) {
-    // Create a tracker object associated with the given path.
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
     if (max_wheel_turn_angle > 0.0) {
         m_max_wheel_turn_angle = max_wheel_turn_angle;
     }
@@ -261,14 +254,6 @@ void ChPathSteeringControllerXT::CalcTargetLocation() {
     m_ptangent = tnb.GetRot().GetAxisX();
     m_pnormal = tnb.GetRot().GetAxisY();
     m_pbinormal = tnb.GetRot().GetAxisZ();
-}
-
-void ChPathSteeringControllerXT::Reset(const ChFrameMoving<>& ref_frame) {
-    // Let the base class calculate the current location of the sentinel point.
-    ChSteeringController::Reset(ref_frame);
-
-    // Reset the path tracker with the new sentinel location.
-    m_tracker->Reset(m_sentinel);
 }
 
 double ChPathSteeringControllerXT::CalcHeadingError(ChVector3d& a, ChVector3d& b) {
@@ -348,7 +333,11 @@ double ChPathSteeringControllerXT::CalcAckermannAngle() {
     return std::sin(m_res * m_max_wheel_turn_angle);
 }
 
-double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
+void ChPathSteeringControllerXT::OnReset(const ChFrameMoving<>& ref_frame) {
+    m_res = 0;
+}
+
+double ChPathSteeringControllerXT::OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) {
     // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
     m_vel = ref_frame.GetPosDt();
@@ -431,10 +420,8 @@ double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, dou
 // -----------------------------------------------------------------------------
 // Implementation of the derived class ChPathSteeringControllerSR.
 // -----------------------------------------------------------------------------
-ChPathSteeringControllerSR::ChPathSteeringControllerSR(std::shared_ptr<ChBezierCurve> path,
-                                                       bool isClosedPath,
-                                                       double max_wheel_turn_angle,
-                                                       double axle_space)
+
+ChPathSteeringControllerSR::ChPathSteeringControllerSR(std::shared_ptr<ChBezierCurve> path, bool isClosedPath, double max_wheel_turn_angle, double axle_space)
     : ChSteeringController(path),
       m_isClosedPath(isClosedPath),
       m_Klat(0),
@@ -454,13 +441,7 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
                                                        bool isClosedPath,
                                                        double max_wheel_turn_angle,
                                                        double axle_space)
-    : ChSteeringController(path),
-      m_isClosedPath(isClosedPath),
-      m_L(axle_space),
-      m_delta(0),
-      m_delta_max(max_wheel_turn_angle),
-      m_umin(1),
-      m_idx_curr(0) {
+    : ChSteeringController(path), m_isClosedPath(isClosedPath), m_L(axle_space), m_delta(0), m_delta_max(max_wheel_turn_angle), m_umin(1), m_idx_curr(0) {
     // retrieve points
     CalcPathPoints();
 
@@ -518,10 +499,9 @@ void ChPathSteeringControllerSR::CalcPathPoints() {
     }
 }
 
-void ChPathSteeringControllerSR::Reset(const ChFrameMoving<>& ref_frame) {
-    // Let the base class calculate the current location of the sentinel point.
-    ChSteeringController::Reset(ref_frame);
-
+void ChPathSteeringControllerSR::OnReset(const ChFrameMoving<>& ref_frame) {
+    m_delta = 0;
+    m_idx_curr = 0;
     m_Klat = 0;
     m_Kug = 0;
 }
@@ -535,7 +515,7 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
     m_Tp = ChClamp(Tp, 0.2, 4.0);
 }
 
-double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
+double ChPathSteeringControllerSR::OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) {
     const double g = 9.81;
 
     double u = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX());  // vehicle forward speed
@@ -625,33 +605,14 @@ double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, dou
 // Stanford University
 // Stanford, CA 94305, USA
 
-ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(std::shared_ptr<ChBezierCurve> path,
-                                                                 double max_wheel_turn_angle)
-    : m_delayFilter(nullptr),
-      ChSteeringController(path),
-      m_delta(0),
-      m_delta_max(max_wheel_turn_angle),
-      m_umin(1),
-      m_Treset(30.0),
-      m_deadZone(0.0),
-      m_Tdelay(0.4) {
+ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle)
+    : m_delayFilter(nullptr), ChSteeringController(path), m_delta(0), m_delta_max(max_wheel_turn_angle), m_umin(1), m_Treset(30.0), m_deadZone(0.0), m_Tdelay(0.4) {
     SetGains(0.0, 0.0, 0.0);
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
 }
 
-ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(const std::string& filename,
-                                                                 std::shared_ptr<ChBezierCurve> path,
-                                                                 double max_wheel_turn_angle)
-    : m_delayFilter(nullptr),
-      ChSteeringController(path),
-      m_delta(0),
-      m_delta_max(max_wheel_turn_angle),
-      m_umin(1),
-      m_Treset(30.0),
-      m_deadZone(0.0),
-      m_Tdelay(0.4) {
+ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(const std::string& filename, std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle)
+    : m_delayFilter(nullptr), ChSteeringController(path), m_delta(0), m_delta_max(max_wheel_turn_angle), m_umin(1), m_Treset(30.0), m_deadZone(0.0), m_Tdelay(0.4) {
     SetGains(0.0, 0.0, 0.0);
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -670,9 +631,8 @@ ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(const std::stri
     std::cout << "Loaded JSON " << filename << std::endl;
 }
 
-void ChPathSteeringControllerStanley::Reset(const ChFrameMoving<>& ref_frame) {
-    // Let the base class calculate the current location of the sentinel point.
-    ChSteeringController::Reset(ref_frame);
+void ChPathSteeringControllerStanley::OnReset(const ChFrameMoving<>& ref_frame) {
+    m_delta = 0;
 }
 
 void ChPathSteeringControllerStanley::SetGains(double Kp, double Ki, double Kd) {
@@ -681,7 +641,7 @@ void ChPathSteeringControllerStanley::SetGains(double Kp, double Ki, double Kd) 
     m_Kd = std::abs(Kd);
 }
 
-double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
+double ChPathSteeringControllerStanley::OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) {
     if (m_delayFilter == nullptr) {
         m_delayFilter = std::shared_ptr<utils::ChFilterPT1>(new utils::ChFilterPT1(step, m_Tdelay));
     }
@@ -779,22 +739,15 @@ double ChPathSteeringControllerStanley::CalcHeadingError(ChVector3d& a, ChVector
 // https://thomasfermi.github.io/Algorithms-for-Automated-Driving/Control/PurePursuit.html
 // Original algorithm documented at:
 // https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
-//
-ChPathSteeringControllerPP::ChPathSteeringControllerPP(std::shared_ptr<ChBezierCurve> path,
-                                                       double max_wheel_turn_angle,
-                                                       double wheel_base)
+
+ChPathSteeringControllerPP::ChPathSteeringControllerPP(std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle, double wheel_base)
     : m_Kdd(0), m_deltaMax(max_wheel_turn_angle), m_L(wheel_base), m_Vstart(2), ChSteeringController(path) {
     m_dist = 0;
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
 }
 
-ChPathSteeringControllerPP::ChPathSteeringControllerPP(const std::string& filename,
-                                                       std::shared_ptr<ChBezierCurve> path,
-                                                       double max_wheel_turn_angle,
-                                                       double wheel_base)
+ChPathSteeringControllerPP::ChPathSteeringControllerPP(const std::string& filename, std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle, double wheel_base)
     : m_Kdd(0), m_deltaMax(max_wheel_turn_angle), m_L(wheel_base), m_Vstart(2), ChSteeringController(path) {
     m_dist = 0;
-    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path));
 
     Document d;
     ReadFileJSON(filename, d);
@@ -824,7 +777,6 @@ void ChPathSteeringControllerPP::CalcTargetLocation() {
     // we need more information about the path properties here:
     ChFrame<> tnb;
 
-    m_tracker->CalcClosestPoint(m_sentinel, tnb, m_pcurvature);
     m_target = tnb.GetPos();
     m_ptangent = tnb.GetRot().GetAxisX();
 }
@@ -845,7 +797,7 @@ double ChPathSteeringControllerPP::CalcHeadingError(ChVector3d& a, ChVector3d& b
     return ang;
 }
 
-double ChPathSteeringControllerPP::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
+double ChPathSteeringControllerPP::OnAdvance(const ChFrameMoving<>& ref_frame, double time, double step) {
     double u = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX());  // vehicle forward speed
     // eff. preview distance can be influenced by m_Kdd, if desired
     double dist = std::max(m_Kdd * u, m_dist);
@@ -885,15 +837,14 @@ double ChPathSteeringControllerPP::Advance(const ChFrameMoving<>& ref_frame, dou
 
     // the pure pursuit controller gets more and more aggressive with speed
     // to lower aggressivity the preview distance can be increased
-    double delta =
-        std::atan(2.0 * m_L * std::sin(alpha) / (m_L + dist));  // predicted wheel turn angle to reach m_target
+    double delta = std::atan(2.0 * m_L * std::sin(alpha) / (m_L + dist));  // predicted wheel turn angle to reach m_target
 
     delta = ChClamp(delta, -m_deltaMax, m_deltaMax);  // clamp to allowed values
 
     return delta / m_deltaMax;  // return steering signal [-1:1]
 }
 
-void ChPathSteeringControllerPP::Reset(const ChFrameMoving<>& ref_frame) {}
+void ChPathSteeringControllerPP::OnReset(const ChFrameMoving<>& ref_frame) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

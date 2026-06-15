@@ -74,7 +74,7 @@ public:
     /*
     // NOTE: WE COULD PROVIDE A CONSTITUTIVE LAW  ComputeStressAndFlux  FOR THIS COMPOUND MATERIAL,
     // COMPUTING AT ONCE THE EFFECTS OF THERMAL AND DISPLACEMENT FIELD, BUT FOR SIMPLICITY AND 
-    // POSSIBLE SPEED OPTIMIZATION WE ASSUME IT IS UP TO THE ChDomainThermoDeformation THAT USES THIS COMPOUND MATERIAL
+    // POSSIBLE SPEED OPTIMIZATION WE ASSUME IT IS UP TO THE ChFEModelThermoDeformation THAT USES THIS COMPOUND MATERIAL
     // TO CALL SEPARATELY THE ChMaterial3DStress::ComputeStress() AND ChMaterial3DThermal::ComputeHeatFlux()
 
     /// Compute {heat flux, stress} from {temperature, deformation}.
@@ -121,7 +121,7 @@ public:
 
     /// Some material need info on the spatial velocity gradient  l=\nabla_x v ,
     /// where the time derivative of the deformation gradient F is  dF/dt = l*F.
-    /// Some others, do not need this info. For optimization reason, then, the ChDomainXXYY 
+    /// Some others, do not need this info. For optimization reason, then, the ChFEModelXXYY 
     /// queries this, and knows if the "l" parameter could be left to null when calling ComputeStress(...)
     virtual bool IsSpatialVelocityGradientNeeded() const {
         return material_stress->IsSpatialVelocityGradientNeeded(); // no need to do "or" with needs of the material_thermal, that never needs spatial velocity gradient.

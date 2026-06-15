@@ -39,7 +39,7 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
                                                  double target_min_distance,
                                                  double current_distance)
     : ChDriver(vehicle),
-      m_steeringPID(path),
+      m_steering_controller(path),
       m_target_speed(target_speed),
       m_target_following_time(target_following_time),
       m_target_min_distance(target_min_distance),
@@ -59,8 +59,8 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
                                                  double target_min_distance,
                                                  double current_distance)
     : ChDriver(vehicle),
-      m_steeringPID(steering_filename, path),
-      m_speedPID(speed_filename),
+      m_steering_controller(steering_filename, path),
+      m_speed_controller(speed_filename),
       m_target_speed(target_speed),
       m_target_following_time(target_following_time),
       m_target_min_distance(target_min_distance),
@@ -72,15 +72,15 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
 
 void ChPathFollowerACCDriver::Create() {
     // Reset the steering and speed controllers
-    m_steeringPID.Reset(m_vehicle.GetRefFrame());
-    m_speedPID.Reset(m_vehicle.GetRefFrame());
+    m_steering_controller.Reset(m_vehicle.GetRefFrame());
+    m_speed_controller.Reset(m_vehicle.GetRefFrame());
 
     // Create a fixed body to carry a visualization asset for the path
     auto road = chrono_types::make_shared<ChBody>();
     road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
-    auto bezier_curve = m_steeringPID.GetPath();
+    auto bezier_curve = m_steering_controller.GetPath();
     auto num_points = static_cast<unsigned int>(bezier_curve->GetNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(bezier_curve));
@@ -92,38 +92,38 @@ void ChPathFollowerACCDriver::Create() {
 }
 
 void ChPathFollowerACCDriver::Reset() {
-    m_steeringPID.Reset(m_vehicle.GetRefFrame());
-    m_speedPID.Reset(m_vehicle.GetRefFrame());
+    m_steering_controller.Reset(m_vehicle.GetRefFrame());
+    m_speed_controller.Reset(m_vehicle.GetRefFrame());
 }
 
 void ChPathFollowerACCDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID.Advance(m_vehicle.GetRefFrame(), m_target_speed, m_target_following_time,
-                                          m_target_min_distance, m_current_distance, m_vehicle.GetChTime(), step);
+    double out_speed =
+        m_speed_controller.Advance(m_vehicle.GetRefFrame(), m_target_speed, m_target_following_time, m_target_min_distance, m_current_distance, m_vehicle.GetChTime(), step);
     ChClampValue(out_speed, -1.0, 1.0);
 
-    if (out_speed > 0) {
+    if (m_target_speed * out_speed > 0) {
         // Vehicle moving too slow
         m_braking = 0;
-        m_throttle = out_speed;
+        m_throttle = std::abs(out_speed);
     } else if (m_throttle > m_throttle_threshold) {
         // Vehicle moving too fast: reduce throttle
         m_braking = 0;
-        m_throttle = 1 + out_speed;
+        m_throttle = 1 - std::abs(out_speed);
     } else {
         // Vehicle moving too fast: apply brakes
-        m_braking = -out_speed;
+        m_braking = std::abs(out_speed);
         m_throttle = 0;
     }
 
     // Set the steering value based on the output from the steering controller.
-    double out_steering = m_steeringPID.Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
+    double out_steering = m_steering_controller.Advance(m_vehicle.GetRefFrame(), m_vehicle.GetChTime(), step);
     ChClampValue(out_steering, -1.0, 1.0);
     m_steering = out_steering;
 }
 
 void ChPathFollowerACCDriver::ExportPathPovray(const std::string& out_dir) {
-    utils::WriteCurvePovray(*m_steeringPID.GetPath(), m_pathName, out_dir, 0.04, ChColor(0.8f, 0.5f, 0.0f));
+    utils::WriteCurvePovray(*m_steering_controller.GetPath(), m_pathName, out_dir, 0.04, ChColor(0.8f, 0.5f, 0.0f));
 }
 
 }  // end namespace vehicle

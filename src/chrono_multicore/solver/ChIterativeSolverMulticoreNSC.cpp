@@ -19,18 +19,6 @@ using namespace chrono;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
-    {                                            \
-        uint current = (uint)M.capacity();       \
-        if (current > 0) {                       \
-            clear(M);                            \
-        }                                        \
-        if (current < (unsigned)nnz) {           \
-            M.reserve(nnz*(size_t)1.1);          \
-        }                                        \
-        M.resize(rows, cols, false);             \
-    }
-
 void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     // Compute the offsets and number of constrains depending on the solver mode
     const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
@@ -54,10 +42,9 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
-    // ComputeMassMatrix();
 
     data_manager->host_data.gamma.resize(data_manager->num_constraints);
-    data_manager->host_data.gamma.reset();
+    data_manager->host_data.gamma.setZero();
 
     // Perform any setup tasks for all constraint types
     data_manager->rigid_rigid->Setup(data_manager);
@@ -90,9 +77,9 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     data_manager->node_container->PreSolve();
 
     if (data_manager->num_constraints > 0) {
-        // Right-hand side should be updated with latest velocity after pre-solve
-        data_manager->host_data.R_full =
-            -data_manager->host_data.b - data_manager->host_data.D_T * (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
+        data_manager->host_data.R_full.noalias() =
+            -data_manager->host_data.b - data_manager->host_data.D_T *
+                (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
     }
     SchurProductFull.Setup(data_manager);
     SchurProductBilateral.Setup(data_manager);
@@ -105,64 +92,38 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_normal > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::NORMAL;
             SetR();
-            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,                                    //
-                                                                           ProjectFull,                                         //
-                                                                           data_manager->settings.solver.max_iteration_normal,  //
-                                                                           data_manager->num_constraints,                       //
-                                                                           data_manager->host_data.R,                           //
-                                                                           data_manager->host_data.gamma);                      //
+            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,
+                                                                           ProjectFull,
+                                                                           data_manager->settings.solver.max_iteration_normal,
+                                                                           data_manager->num_constraints,
+                                                                           data_manager->host_data.R,
+                                                                           data_manager->host_data.gamma);
         }
     }
     if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING || data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         if (data_manager->settings.solver.max_iteration_sliding > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SLIDING;
             SetR();
-            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,                                     //
-                                                                           ProjectFull,                                          //
-                                                                           data_manager->settings.solver.max_iteration_sliding,  //
-                                                                           data_manager->num_constraints,                        //
-                                                                           data_manager->host_data.R,                            //
-                                                                           data_manager->host_data.gamma);                       //
+            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,
+                                                                           ProjectFull,
+                                                                           data_manager->settings.solver.max_iteration_sliding,
+                                                                           data_manager->num_constraints,
+                                                                           data_manager->host_data.R,
+                                                                           data_manager->host_data.gamma);
         }
     }
     if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         if (data_manager->settings.solver.max_iteration_spinning > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SPINNING;
             SetR();
-            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,                                      //
-                                                                           ProjectFull,                                           //
-                                                                           data_manager->settings.solver.max_iteration_spinning,  //
-                                                                           data_manager->num_constraints,                         //
-                                                                           data_manager->host_data.R,                             //
-                                                                           data_manager->host_data.gamma);                        //
+            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,
+                                                                           ProjectFull,
+                                                                           data_manager->settings.solver.max_iteration_spinning,
+                                                                           data_manager->num_constraints,
+                                                                           data_manager->host_data.R,
+                                                                           data_manager->host_data.gamma);
         }
     }
-
-    //    DynamicVector<real> temp(data_manager->num_rigid_bodies * 6, 0.0);
-    //    DynamicVector<real> output(num_rigid_contacts * 3, 0.0);
-    //
-    //    // DynamicVector<real> temp(data_manager->num_particles * 3, 0.0);
-    //    // DynamicVector<real> output(data_manager->num_particles, 0.0);
-    //
-    //    /////
-    //    double t1 = 0;
-    //    {
-    //        ChTimer timer;
-    //        timer.start();
-    //        rigid_rigid.Dx(data_manager->host_data.gamma, temp);
-    //        rigid_rigid.D_Tx(temp, output);
-    //        // data_manager->node_container->Dx(data_manager->host_data.gamma, temp);
-    //        // data_manager->node_container->D_Tx(temp, output);
-    //        timer.stop();
-    //        t1 = timer();
-    //    }
-    //    ChTimer timer;
-    //    timer.start();
-    //    DynamicVector<real> compare =
-    //        data_manager->host_data.D_T * data_manager->host_data.D * data_manager->host_data.gamma;
-    //    timer.stop();
-    //    std::cout << "time1: " << t1 << " time2: " << timer() << std::endl;
-    //    /////
 
     data_manager->Fc_current = false;
     data_manager->node_container->PostSolve();
@@ -170,6 +131,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     data_manager->system_timer.stop("ChIterativeSolverMulticore_Solve");
 
     ComputeImpulses();
+
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i], i);
     }
@@ -186,11 +148,8 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     uint num_dof = data_manager->num_dof;
     uint num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
     uint num_bilaterals = data_manager->num_bilaterals;
-    uint nnz_bilaterals = data_manager->nnz_bilaterals;
-
-    int nnz_normal = 6 * 2 * num_rigid_contacts;
-    int nnz_tangential = 6 * 4 * num_rigid_contacts;
-    int nnz_spinning = 6 * 3 * num_rigid_contacts;
+    uint num_unilaterals = data_manager->num_unilaterals;
+    SolverMode solver_mode = data_manager->settings.solver.solver_mode;
 
     int num_normal = 1 * num_rigid_contacts;
     int num_tangential = 2 * num_rigid_contacts;
@@ -199,52 +158,99 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     uint num_particle_particle = data_manager->node_container->GetNumConstraints();
     uint nnz_particle_particle = data_manager->node_container->GetNumNonZeros();
 
-    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
+    SparseMatrixType& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& M_invD = data_manager->host_data.M_invD;
+    const SparseMatrixType& M_inv = data_manager->host_data.M_inv;
 
-    int nnz_total = nnz_bilaterals + nnz_particle_particle;
     int num_rows = num_bilaterals + num_particle_particle;
 
-    switch (data_manager->settings.solver.solver_mode) {
+    switch (solver_mode) {
         case SolverMode::NORMAL:
-            nnz_total += nnz_normal;
             num_rows += num_normal;
             break;
         case SolverMode::SLIDING:
-            nnz_total += nnz_normal + nnz_tangential;
             num_rows += num_normal + num_tangential;
-
             break;
         case SolverMode::SPINNING:
-            nnz_total += nnz_normal + nnz_tangential + nnz_spinning;
             num_rows += num_normal + num_tangential + num_spinning;
             break;
         default:
             break;
     }
 
-    CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
-    CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
+    // build per row nnz counts for D_T
+    D_T.resize(num_rows, num_dof);
+    {
+        Eigen::VectorXi d_nnz(num_rows);
+        d_nnz.setZero();
+
+        d_nnz.segment(0, num_normal).setConstant(12);
+        if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
+            d_nnz.segment(num_normal, num_tangential).setConstant(12);
+        }
+        if (solver_mode == SolverMode::SPINNING) {
+            d_nnz.segment(3 * (int)num_rigid_contacts, num_spinning).setConstant(6);
+        }
+
+        {
+            int bil_off = (int)num_unilaterals;
+            for (int index = 0; index < (signed)num_bilaterals; index++) {
+                int cntr = data_manager->host_data.bilateral_mapping[index];
+                switch (data_manager->host_data.bilateral_type[cntr]) {
+                    case BilateralType::BODY_BODY:         d_nnz[bil_off + index] = 12; break;
+                    case BilateralType::SHAFT_SHAFT:       d_nnz[bil_off + index] = 2;  break;
+                    case BilateralType::SHAFT_BODY:        d_nnz[bil_off + index] = 7;  break;
+                    case BilateralType::SHAFT_SHAFT_SHAFT: d_nnz[bil_off + index] = 3;  break;
+                    case BilateralType::SHAFT_SHAFT_BODY:  d_nnz[bil_off + index] = 8;  break;
+                    default: break;
+                }
+            }
+        }
+
+        if (num_particle_particle > 0) {
+            int pp_off = (int)num_unilaterals + (int)num_bilaterals;
+            int avg_nnz = ((int)nnz_particle_particle + (int)num_particle_particle - 1) /
+                          (int)num_particle_particle;
+            d_nnz.segment(pp_off, (int)num_particle_particle).setConstant(avg_nnz);
+        }
+
+        D_T.reserve(d_nnz);
+    }
+
+    M_invD.resize(0, 0);
 
     data_manager->rigid_rigid->GenerateSparsity();
     data_manager->bilateral->GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
 
     // Move b code here so that it can be computed along side D
-    DynamicVector<real>& b = data_manager->host_data.b;
+    VectorType& b = data_manager->host_data.b;
     b.resize(data_manager->num_constraints);
-    reset(b);
+    b.setZero();
 
     data_manager->rigid_rigid->Build_D();
     data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
 
-    // using the .transpose(); function will do in place transpose and copy
-    data_manager->host_data.D = trans(D_T);
+    D_T.makeCompressed();
+    data_manager->host_data.D = D_T.transpose();
 
-    data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
-
+    if (!data_manager->settings.solver.use_full_inertia_tensor) {
+        M_invD = data_manager->host_data.D;
+        const int* M_inv_outer = M_inv.outerIndexPtr();
+        const real* M_inv_vals = M_inv.valuePtr();
+        const int* invD_outer = M_invD.outerIndexPtr();
+        real* invD_vals = M_invD.valuePtr();
+        const int n = (int)M_invD.outerSize();
+        for (int i = 0; i < n; i++) {
+            const real scale = (M_inv_outer[i] < M_inv_outer[i + 1])
+                               ? M_inv_vals[M_inv_outer[i]] : real(0);
+            for (int k = invD_outer[i]; k < invD_outer[i + 1]; k++)
+                invD_vals[k] *= scale;
+        }
+    } else {
+        M_invD = M_inv * data_manager->host_data.D;
+    }
     data_manager->system_timer.stop("ChIterativeSolverMulticore_D");
 }
 
@@ -255,7 +261,7 @@ void ChIterativeSolverMulticoreNSC::ComputeE() {
     }
 
     data_manager->host_data.E.resize(data_manager->num_constraints);
-    reset(data_manager->host_data.E);
+    data_manager->host_data.E.setZero();
 
     data_manager->rigid_rigid->Build_E();
     data_manager->bilateral->Build_E();
@@ -270,15 +276,11 @@ void ChIterativeSolverMulticoreNSC::ComputeR() {
         return;
     }
 
-    ////const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    ////const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-
-    DynamicVector<real>& R = data_manager->host_data.R_full;
+    VectorType& R = data_manager->host_data.R_full;
 
     // B is now resized in the Jacobian function
-
     R.resize(data_manager->num_constraints);
-    reset(R);
+    R.setZero();
 
     data_manager->rigid_rigid->Build_b();
     data_manager->bilateral->Build_b();
@@ -296,8 +298,8 @@ void ChIterativeSolverMulticoreNSC::ComputeN() {
     }
 
     data_manager->system_timer.start("ChIterativeSolverMulticore_N");
-    const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& Nschur = data_manager->host_data.Nschur;
+    const SparseMatrixType& D_T = data_manager->host_data.D_T;
+    SparseMatrixType& Nschur = data_manager->host_data.Nschur;
     Nschur = D_T * data_manager->host_data.M_invD;
     data_manager->system_timer.stop("ChIterativeSolverMulticore_N");
 }
@@ -307,8 +309,8 @@ void ChIterativeSolverMulticoreNSC::SetR() {
         return;
     }
 
-    DynamicVector<real>& R = data_manager->host_data.R;
-    const DynamicVector<real>& R_full = data_manager->host_data.R_full;
+    VectorType& R = data_manager->host_data.R;
+    const VectorType& R_full = data_manager->host_data.R_full;
 
     uint num_rigid_contacts = 0;
     uint num_rigid_particle = 0;
@@ -320,54 +322,49 @@ void ChIterativeSolverMulticoreNSC::SetR() {
     uint num_bilaterals = data_manager->num_bilaterals;
     uint num_particles = data_manager->num_particles;
     R.resize(data_manager->num_constraints);
-    reset(R);
+    R.setZero();
 
     if (data_manager->settings.solver.local_solver_mode == data_manager->settings.solver.solver_mode) {
         R = R_full;
     } else {
-        subvector(R, num_unilaterals, num_bilaterals) = subvector(R_full, num_unilaterals, num_bilaterals);
-        subvector(R, num_unilaterals + num_bilaterals, num_rigid_particle) = subvector(R_full, num_unilaterals + num_bilaterals, num_rigid_particle);
+        R.segment(num_unilaterals, num_bilaterals) = R_full.segment(num_unilaterals, num_bilaterals);
+        R.segment(num_unilaterals + num_bilaterals, num_rigid_particle) = R_full.segment(num_unilaterals + num_bilaterals, num_rigid_particle);
 
         // TODO: Set R in the associated 3dof container
-        subvector(R, num_unilaterals + num_bilaterals + num_rigid_particle, num_particles) =
-            subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_particle, num_particles);
+        R.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles) =
+            R_full.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles);
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {
             } break;
 
             case SolverMode::NORMAL: {
-                subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
+                R.segment(0, num_rigid_contacts) = R_full.segment(0, num_rigid_contacts);
             } break;
 
             case SolverMode::SLIDING: {
-                subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
-                subvector(R, num_rigid_contacts, num_rigid_contacts * 2) = subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
+                R.segment(0, num_rigid_contacts) = R_full.segment(0, num_rigid_contacts);
+                R.segment(num_rigid_contacts, num_rigid_contacts * 2) = R_full.segment(num_rigid_contacts, num_rigid_contacts * 2);
             } break;
 
             case SolverMode::SPINNING: {
-                subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
-                subvector(R, num_rigid_contacts, num_rigid_contacts * 2) = subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
-                subvector(R, num_rigid_contacts * 3, num_rigid_contacts * 3) = subvector(R_full, num_rigid_contacts * 3, num_rigid_contacts * 3);
+                R.segment(0, num_rigid_contacts) = R_full.segment(0, num_rigid_contacts);
+                R.segment(num_rigid_contacts, num_rigid_contacts * 2) = R_full.segment(num_rigid_contacts, num_rigid_contacts * 2);
+                R.segment(num_rigid_contacts * 3, num_rigid_contacts * 3) = R_full.segment(num_rigid_contacts * 3, num_rigid_contacts * 3);
             } break;
         }
     }
 }
 
 void ChIterativeSolverMulticoreNSC::ComputeImpulses() {
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-    const DynamicVector<real>& gamma = data_manager->host_data.gamma;
-
-    const DynamicVector<real>& hf = data_manager->host_data.hf;
-    DynamicVector<real>& v = data_manager->host_data.v;
+    const VectorType& M_invk = data_manager->host_data.M_invk;
+    const VectorType& gamma = data_manager->host_data.gamma;
+    VectorType& v = data_manager->host_data.v;
 
     if (data_manager->num_constraints > 0) {
-        // Compute new velocity based on the Lagrange multipliers
-        v = v + M_inv * hf + data_manager->host_data.M_invD * gamma;
+        v.noalias() = M_invk + data_manager->host_data.M_invD * gamma;
     } else {
-        // When there are no constraints we need to still apply gravity and other
-        // body forces!
-        v = v + M_inv * hf;
+        v = M_invk;
     }
 }
 

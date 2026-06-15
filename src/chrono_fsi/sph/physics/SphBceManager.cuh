@@ -39,7 +39,7 @@ class SphBceManager {
     SphBceManager(FsiDataManager& data_mgr,             ///< FSI data
                   NodeDirections node_directions_mode,  ///< enable/disable use of FEA node direction info
                   bool verbose,                         ///< verbose terminal output
-                  bool check_errors                     ///< check CUDA errors
+                  bool check_errors                     ///< check GPU errors
     );
 
     ~SphBceManager();

@@ -25,8 +25,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPointShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
-#include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
-#include "chrono/collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/geometry/ChLineSegment.h"
@@ -427,21 +425,6 @@ class cbtConvexTriangleMeshShape_handlemesh : public cbtConvexTriangleMeshShape 
     }
 };
 
-class cbtGImpactMeshShape_handlemesh : public cbtGImpactMeshShape {
-    cbtStridingMeshInterface* minterface;
-
-  public:
-    cbtGImpactMeshShape_handlemesh(cbtStridingMeshInterface* meshInterface)
-        : cbtGImpactMeshShape(meshInterface), minterface(meshInterface) {
-              // setLocalScaling(cbtVector3(1.f,1.f,1.f));
-          };
-
-    virtual ~cbtGImpactMeshShape_handlemesh() {
-        delete minterface;
-        minterface = 0;  // also delete the mesh interface
-    }
-};
-
 void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShapeTriangleMesh> shape_trimesh, const ChFrame<>& frame) {
     const float envelope = GetEnvelope();
     const float safe_margin = GetSafeMargin();
@@ -562,23 +545,6 @@ void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShape
 
     // Fallback -----------------------------------------------
     // If none of the above conditions are met, resort to algorithmic convex decomposition
-
-    /*
-    // Use HACD convex decomposition
-    auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACD>();
-    decomposition->AddTriangleMesh(*trimesh);
-    decomposition->SetParameters(2,      // clusters
-                                 0,      // no decimation
-                                 0.0,    // small cluster threshold
-                                 false,  // add faces points
-                                 false,  // add extra dist points
-                                 100.0,  // max concavity
-                                 30,     // cc connect dist
-                                 0.0,    // volume weight beta
-                                 0.0,    // compacity alpha
-                                 50      // vertices per cc
-    );
-    */
 
     // Use HACDv2 convex decomposition
     auto decomposition = chrono_types::make_shared<ChConvexDecompositionHACDv2>();

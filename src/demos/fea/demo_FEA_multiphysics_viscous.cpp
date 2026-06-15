@@ -18,13 +18,13 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/fea/multiphysics/ChDomainDeformation.h"
+#include "chrono/fea/multiphysics/ChFEModelDeformation.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressNeoHookean.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressParallel.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressViscoLinear.h"
 #include "chrono/fea/multiphysics/ChMaterial3DStressViscoNewton.h"
 #include "chrono/fea/multiphysics/ChDrawer.h"
-#include "chrono/fea/multiphysics/ChSurfaceOfDomain.h"
+#include "chrono/fea/multiphysics/ChSurfaceOfModel.h"
 #include "chrono/fea/multiphysics/ChBuilderVolume.h"
 #include "chrono/fea/multiphysics/ChLinkFieldNode.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -44,11 +44,11 @@ void CreateTestDampedCantilever(ChSystem& sys, double damping, double z_offset) 
     auto displacement_field = chrono_types::make_shared<ChFieldDisplacement3D>();
     sys.Add(displacement_field);
 
-    // DOMAIN
-    auto deformation_domain = chrono_types::make_shared<ChDomainDeformation>(displacement_field);
-    sys.Add(deformation_domain);
+    // MODEL
+    auto deformation_model = chrono_types::make_shared<ChFEModelDeformation>(displacement_field);
+    sys.Add(deformation_model);
 
-    deformation_domain->SetAutomaticGravity(true);
+    deformation_model->SetAutomaticGravity(true);
 
     // MATERIAL
     //
@@ -72,7 +72,7 @@ void CreateTestDampedCantilever(ChSystem& sys, double damping, double z_offset) 
     viscoelastic_material->SetMaterialA(elastic_material);
     viscoelastic_material->SetMaterialB(viscous_material);
 
-    deformation_domain->material = viscoelastic_material;  // set the material for domain
+    deformation_model->material = viscoelastic_material;  // set the material for model
 
     // FINITE ELEMENTS AND NODES
     // Build a test volume discretized with a regular grid of finite elements.
@@ -81,7 +81,7 @@ void CreateTestDampedCantilever(ChSystem& sys, double damping, double z_offset) 
     builder.BuildVolume(ChFrame<>(ChVector3d(0, 0, z_offset)), 
                         8, 3, 2,   // N of elements in x,y,z direction
                         vol_size_x, 0.3, 0.2);  // width in x,y,z direction
-    builder.AddToDomain(deformation_domain);
+    builder.AddToModel(deformation_model);
 
     // Set some node to fixed:
     for (auto mnode : builder.nodes.list()) {
@@ -128,10 +128,10 @@ void CreateTestDampedCantilever(ChSystem& sys, double damping, double z_offset) 
     // POSTPROCESSING & VISUALIZATION (optional)
 
     // show mesh painted with solid color
-    auto visual_mesh2 = chrono_types::make_shared<ChVisualDomainMesh>(deformation_domain);
+    auto visual_mesh2 = chrono_types::make_shared<ChVisualModelMesh>(deformation_model);
     visual_mesh2->AddPositionExtractor(ExtractPos());
-    visual_mesh2->SetColor(ChColor(0.9, 0.4, 0));
-    deformation_domain->AddVisualShape(visual_mesh2);
+    visual_mesh2->SetColor(ChColor(0.9f, 0.4f, 0.0f));
+    deformation_model->AddVisualShape(visual_mesh2);
 }
 
 

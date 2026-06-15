@@ -52,7 +52,7 @@ void ChChassisConnectorArticulated::Initialize(std::shared_ptr<ChChassis> front,
 }
 
 void ChChassisConnectorArticulated::PopulateComponentList() {
-    m_rot_motors.push_back(m_motor);
+    m_components.rot_motors.push_back(m_motor);
 }
 
 void ChChassisConnectorArticulated::Synchronize(double time, const DriverInputs& driver_inputs) {

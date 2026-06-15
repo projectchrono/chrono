@@ -11,7 +11,8 @@ simulation:
   gravity: [0, 0, -9.8]
 
 output:
-  type: HDF5
+  format: HDF5
+  mode: FRAMES
   fps: 10
 
 visualization:
