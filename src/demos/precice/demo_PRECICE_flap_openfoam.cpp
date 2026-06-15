@@ -102,6 +102,9 @@ int main(int argc, char* argv[]) {
     }
     participant.SetOutputDir(out_dir);
 
+    // Enable simulation output (if available and configured)
+    participant.EnableOutput(true);
+
     // Register preCICE participant, initialize and run simulation
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();

@@ -430,6 +430,8 @@ void ChPreciceAdapterMbs::WriteOutput(int frame, double time) {
 #else
                 return;
 #endif
+            case ChOutput::Format::NONE:
+                break;
         }
     }
 
