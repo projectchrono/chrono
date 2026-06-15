@@ -210,7 +210,17 @@ core::ValidateResultPayload ValidateSample(const std::string& type_name, const s
 
             serialization.deserialize_message(&incoming, storage.data());
 
-            rclcpp::SerializedMessage outgoing;
+            // Pre-size and zero the output buffer before re-serializing. CDR
+            // alignment-padding gaps are advanced over without being written by
+            // some rmw serializers (FastCDR leaves whatever was in the buffer),
+            // so without zeroing, interior padding bytes are uninitialized
+            // garbage and the byte comparison below gets false positives even
+            // though the two encodings are semantically identical (readers skip
+            // padding). Our codec zero-fills padding; zeroing here matches it.
+            // Capacity comfortably exceeds the message so no realloc occurs.
+            rclcpp::SerializedMessage outgoing(sample_cdr.size() + 64);
+            auto& rcl_pre = outgoing.get_rcl_serialized_message();
+            std::memset(rcl_pre.buffer, 0, rcl_pre.buffer_capacity);
             serialization.serialize_message(storage.data(), &outgoing);
             const auto& rcl_outgoing = outgoing.get_rcl_serialized_message();
             const uint8_t* out_data = rcl_outgoing.buffer;

@@ -1,30 +1,25 @@
 //////////////////////////////////////////////////
-//  
+//
 //   ChModuleROS.i
 //
-//   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+//   SWIG configuration file for the Chrono::ROS Python wrapper
+//   ('import pychrono.ros').
+//
+//   Schema-driven API (see src/chrono_ros/CLAUDE.md): the module wraps a small,
+//   fixed set of classes - manager, bridge, message, handles, callbacks - and
+//   links NO ROS libraries (the ROS side lives in the chrono_ros_node
+//   subprocess). New data pathways are authored entirely in Python by
+//   subclassing ChROSHandler / ChROSSubscriptionCallback (SWIG directors).
 //
 ///////////////////////////////////////////////////
 
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono.ros'
-
-
 %module(directors="1") ros
-
-
-// Turn on the documentation of members, for more intuitive IDE typing
 
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
-// Turn on the exception handling to intercept C++ exceptions
+// Intercept C++ exceptions (FieldError, runtime_error, ...) as Python exceptions.
 %include "exception.i"
-
 %exception {
   try {
     $action
@@ -33,248 +28,165 @@
   }
 }
 
+// Surface the real Python traceback when a director method (a user's
+// ChROSHandler.Initialize/Tick or ChROSSubscriptionCallback.OnMessage) raises,
+// instead of a generic "SWIG director method error".
+%feature("director:except") {
+    if ($error != NULL) {
+        PyErr_Print();
+        throw Swig::DirectorMethodException();
+    }
+}
 
-// For optional casting of polimorphic objects:
-%include "../chrono_cast.i" 
-
-// For supporting shared pointers:
+%include "../chrono_cast.i"
 %include <std_shared_ptr.i>
 
-
-
-// Include C++ headers this way...
-
+// ---------------------------------------------------------------------------
+// C++ headers for the generated wrapper
+// ---------------------------------------------------------------------------
 %{
-#include "chrono/physics/ChBody.h"
-#include "chrono/core/ChFrame.h"
+#include <cstdint>
 
 #include "chrono_ros/ChROSManager.h"
+#include "chrono_ros/ChROSBridge.h"
 #include "chrono_ros/ChROSHandler.h"
-#include "chrono_ros/ChROSInterface.h"
-#include "chrono_ros/handlers/ChROSClockHandler.h"
-#include "chrono_ros/handlers/ChROSBodyHandler.h"
-#include "chrono_ros/handlers/ChROSTFHandler.h"
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
-#include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
-
-#include "chrono_ros/handlers/mbs/ChROSCraneStateHandler.h"
-#include "chrono_ros/handlers/mbs/ChROSActuatorStateHandler.h"
-
-#ifdef CHRONO_SENSOR
-#include "chrono_sensor/sensors/ChSensor.h"
-#include "chrono_sensor/sensors/Sensor.h"
-#include "chrono_sensor/sensors/ChIMUSensor.h"
-
-#ifdef CHRONO_HAS_OPTIX
-#include "chrono_sensor/sensors/ChOptixSensor.h"
-#include "chrono_sensor/sensors/ChCameraSensor.h"
-#include "chrono_sensor/sensors/ChSegmentationCamera.h"
-#include "chrono_sensor/sensors/ChDepthCamera.h"
-#include "chrono_sensor/sensors/ChLidarSensor.h"
-#include "chrono_sensor/sensors/ChNormalCamera.h"
-#include "chrono_sensor/sensors/ChRadarSensor.h"
-#include "chrono_sensor/sensors/ChPhysCameraSensor.h"
-#endif
-
-#ifdef CHRONO_HAS_OPTIX
-#include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
-#endif
-
-#include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
-#endif
-
-#ifdef CHRONO_ROS_HAS_INTERFACES
-#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
-#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-#endif
+#include "chrono_ros/ChROSMessage.h"
+#include "chrono_ros/ChROSPublisher.h"
+#include "chrono_ros/ChROSSubscription.h"
+#include "chrono_ros/ChROSQoS.h"
 
 using namespace chrono;
 using namespace chrono::ros;
-
 %}
 
+// Director classes: subclass these in Python to add pathways / receive data.
 %feature("director") chrono::ros::ChROSHandler;
+%feature("director") chrono::ros::ChROSSubscriptionCallback;
 
-// Undefine ChApi and CH_ROS_API otherwise SWIG gives a syntax error
-#define ChApi
+// SWIG can't see Chrono's API export macros.
 #define CH_ROS_API
-#define CH_SENSOR_API
-
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-// Include other .i configuration files for SWIG. 
-// These are divided in many .i files, each per a
-// different c++ class, when possible.
+#define ChApi
 
 %include "std_string.i"
 %include "std_vector.i"
-%include "std_array.i"
 %include "stdint.i"
-%include "typemaps.i"
-%include "cpointer.i"
-%include "cdata.i"
 
-// This is to enable references to double,int,etc. types in function parameters
-%pointer_class(int,int_ptr);
-%pointer_class(double,double_ptr);
-%pointer_class(float,float_ptr);
+%template(vector_string) std::vector<std::string>;
 
-//
-// For each class, keep updated the  A, B, C sections: 
-// 
-
-
-//
-// A- ENABLE SHARED POINTERS
-//
-// Note that this must be done for almost all objects (not only those that are
-// handled by shered pointers in C++, but all their chidren and parent classes. It
-// is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
-// tree must be promoted to %shared_ptr too).
-
-//from core module:
-%shared_ptr(chrono::ChBody)
-%shared_ptr(chrono::ChFrame<double>)
-
-%shared_ptr(chrono::ros::ChROSManager)
+// ---------------------------------------------------------------------------
+// A - shared_ptr enablement (every public class handed around as shared_ptr)
+// ---------------------------------------------------------------------------
+%shared_ptr(chrono::ros::ChROSBridge)
 %shared_ptr(chrono::ros::ChROSHandler)
-%shared_ptr(chrono::ros::ChROSInterface)
-%shared_ptr(chrono::ros::ChROSClockHandler)
-%shared_ptr(chrono::ros::ChROSBodyHandler)
-%shared_ptr(chrono::ros::ChROSTFHandler)
-%shared_ptr(chrono::ros::ChROSRobotModelHandler)
+%shared_ptr(chrono::ros::ChROSSubscriptionCallback)
+%shared_ptr(chrono::ros::ChROSPublisher)
+%shared_ptr(chrono::ros::ChROSSubscription)
 
-%shared_ptr(chrono::ros::ChROSCraneStateHandler)
-%shared_ptr(chrono::ros::ChROSActuatorStateHandler)
+// ---------------------------------------------------------------------------
+// B - things SWIG must not wrap as-is
+// ---------------------------------------------------------------------------
+// The std::function overload of CreateSubscription cannot be wrapped; Python
+// uses the ChROSSubscriptionCallback director overload instead.
+%ignore chrono::ros::ChROSBridge::CreateSubscription(
+    const std::string&, const std::string&,
+    std::function<void(const ChROSMessageView&)>, const ChROSQoS&);
 
-#ifdef CHRONO_SENSOR
+// Wrapped below by a thin Python shim (section D) that pins the callback's
+// Python object to the returned subscription, so a callback constructed inline
+// (bridge.CreateSubscription(topic, type, MyCallback())) is not garbage-
+// collected while C++ still holds it. Expose the real binding under a private
+// name for the shim to call.
+%rename(_CreateSubscription) chrono::ros::ChROSBridge::CreateSubscription;
 
-#ifdef CHRONO_HAS_OPTIX
-%shared_ptr(chrono::ros::ChROSCameraHandler)
-%shared_ptr(chrono::ros::ChROSLidarHandler)
-#endif
+// Bulk blob I/O (camera/lidar) needs a Python buffer-protocol typemap and a
+// byte<->element-count conversion; that is the next Phase-4 iteration. For now
+// the raw-pointer/BlobView blob methods are hidden so the module builds cleanly
+// with only scalar/string/array fields exposed. (Phase 5 sensor handlers will
+// drive the numpy zero-copy blob work.)
+%ignore chrono::ros::ChROSMessage::SetBlob;
+%ignore chrono::ros::ChROSMessage::SetBlobCopy;
+%ignore chrono::ros::ChROSMessageView::GetBlob;
+%ignore chrono::ros::ChROSMessageView::CopyBlob;
 
-%shared_ptr(chrono::ros::ChROSAccelerometerHandler)
-%shared_ptr(chrono::ros::ChROSGPSHandler)
-%shared_ptr(chrono::ros::ChROSGyroscopeHandler)
-%shared_ptr(chrono::ros::ChROSMagnetometerHandler)
-%shared_ptr(chrono::ros::ChROSIMUHandler)
-#endif
+// ---------------------------------------------------------------------------
+// B2 - keep Python director objects alive once C++ owns them
+// ---------------------------------------------------------------------------
+// A handler is typically registered as a temporary:
+//     manager.RegisterHandler(MyHandler(...))
+// C++ holds it via shared_ptr, but without a Python reference the director's
+// Python 'self' is garbage-collected; the C++ director then upcalls into freed
+// (and reused) memory. Stash registered handlers on the manager so their Python
+// lifetime matches the C++ one. (Subscription callbacks get the same treatment
+// in section D, pinned to the subscription they belong to.)
+%feature("pythonappend") chrono::ros::ChROSManager::RegisterHandler %{
+    if not hasattr(self, "_kept_handlers"):
+        self._kept_handlers = []
+    self._kept_handlers.append(handler)
+%}
 
-#ifdef CHRONO_ROS_HAS_INTERFACES
-%shared_ptr(chrono::ros::ChROSDriverInputsHandler)
-%shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
-#endif
-
-
-//
-// B- INCLUDE HEADERS
-//
-//
-// 1) 
-//    When including with %include all the .i files, make sure that 
-// the .i of a derived class is included AFTER the .i of
-// a base class, otherwise SWIG is not able to build the type
-// infos. 
-//
-// 2)
-//    Then, this said, if one member function in Foo_B.i returns
-// an object of Foo_A.i (or uses it as a parameter) and yet you must %include
-// A before B, ex.because of rule 1), a 'forward reference' to A must be done in
-// B by. Seems that it is enough to write 
-//  mynamespace { class myclass; }
-// in the .i file, before the %include of the .h, even if already forwarded in .h
-
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
-
-#ifdef CHRONO_SENSOR
-%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChSensor.i"
-%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChIMUSensor.i"
-%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChGPSSensor.i"
-
-#ifdef CHRONO_HAS_OPTIX
-%import(module = "pychrono.sensor")  "chrono_swig/interface/sensor/ChOptixSensor.i"
-#endif
-
-#endif
-
+// ---------------------------------------------------------------------------
+// C - include the public headers (base classes before derived/users)
+// ---------------------------------------------------------------------------
+%include "../../../chrono_ros/core/ChROSQoSSpec.h"
+%include "../../../chrono_ros/ChROSQoS.h"
+%include "../../../chrono_ros/ChROSMessage.h"
+%include "../../../chrono_ros/ChROSPublisher.h"
+%include "../../../chrono_ros/ChROSSubscription.h"
+%include "../../../chrono_ros/ChROSHandler.h"
+%include "../../../chrono_ros/ChROSBridge.h"
 %include "../../../chrono_ros/ChROSManager.h"
 
-%include "../../../chrono_ros/ChROSHandler.h"
-%include "../../../chrono_ros/ChROSInterface.h"
-%include "../../../chrono_ros/handlers/ChROSClockHandler.h"
-%include "../../../chrono_ros/handlers/ChROSBodyHandler.h"
-%include "../../../chrono_ros/handlers/ChROSTFHandler.h"
-%include "../../../chrono_ros/handlers/ChROSHandlerUtilities.h"
-%include "../../../chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
+// ---------------------------------------------------------------------------
+// D - Pythonic sugar
+// ---------------------------------------------------------------------------
+#ifdef SWIGPYTHON
 
-%include "../../../chrono_ros/handlers/mbs/ChROSCraneStateHandler.h"
-%include "../../../chrono_ros/handlers/mbs/ChROSActuatorStateHandler.h"
-
-#ifdef CHRONO_SENSOR
-
-#ifdef CHRONO_HAS_OPTIX
-%include "../../../chrono_ros/handlers/sensor/ChROSCameraHandler.h"
-%include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
-#endif
-
-%include "../../../chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
-%include "../../../chrono_ros/handlers/sensor/ChROSGPSHandler.h"
-%include "../../../chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
-%include "../../../chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
-%include "../../../chrono_ros/handlers/sensor/ChROSIMUHandler.h"
-%include "../../../chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
-#endif
-
-#ifdef CHRONO_ROS_HAS_INTERFACES
-%include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
-%include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
-#endif
-
-//
-// C- CASTING OF SHARED POINTERS
-// 
-// This is not automatic in Python + SWIG, except if one uses the 
-// %downcast_output_sharedptr(...) macro, as above, but this causes
-// a lot of code bloat. 
-// Alternatively, in the following we create a set of Python-side
-// functions to perform casting by hand, thank to the macro 
-// %DefSharedPtrDynamicCast(base,derived). 
-// Do not specify the "chrono::" namespace before base or derived!
-// Later, in python, you can do the following:
-//  myvis = chrono.CastToChVisualizationShared(myasset)
-//  print ('Could be cast to visualization object?', !myvis.IsNull())
-
-//%DefSharedPtrDynamicCast2NS(chrono,chrono::fea,ChPhysicsItem,ChMesh)
-
-
-//
-// ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
-//
-
-%ignore chrono::ros::ChROSInterface::GetNode;
-
-#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
-//
-// ADD PYTHON CODE
-//
-
+// Keep a subscription's Python callback object alive for as long as the
+// subscription itself. The real binding is exposed as _CreateSubscription
+// (renamed in section B); this shim pins the callback onto the returned
+// subscription so an inline `bridge.CreateSubscription(t, ty, MyCallback())`
+// is safe. *args forwards the optional QoS argument unchanged.
+%extend chrono::ros::ChROSBridge {
 %pythoncode %{
-
-class ChROSPythonManager(ChROSManager):
-    def __init__(self, node_name="chrono_ros_node"):
-        super().__init__(node_name)
-
+    def CreateSubscription(self, topic, type_name, callback, *args):
+        subscription = self._CreateSubscription(topic, type_name, callback, *args)
+        if subscription is not None:
+            subscription._kept_callback = callback
+        return subscription
 %}
-#endif              // --------------------------------------------------------------------- PYTHON
+};
 
+// msg["header.frame_id"] = "cam";  msg["data"] = 42;  msg["is_dense"] = True
+// Dispatch on the Python value type to the right typed setter. bytes -> blob.
+%extend chrono::ros::ChROSMessage {
+%pythoncode %{
+    def __setitem__(self, path, value):
+        if isinstance(value, bool):
+            self.SetBool(path, value)
+        elif isinstance(value, int):
+            if value < 0:
+                self.SetInt(path, value)
+            else:
+                self.SetUInt(path, value)
+        elif isinstance(value, float):
+            self.SetDouble(path, value)
+        elif isinstance(value, str):
+            self.SetString(path, value)
+        elif isinstance(value, (list, tuple)):
+            self.SetStringArray(path, [str(v) for v in value])
+        else:
+            # bytes/numpy blob assignment is the next Phase-4 iteration.
+            raise TypeError("unsupported value type for ChROSMessage['%s']: %r" % (path, type(value)))
+%}
+};
+
+// Read-side: msg["linear.x"] returns a float for numeric fields; explicit
+// typed getters (GetString/GetInt/...) remain available for other types.
+%extend chrono::ros::ChROSMessageView {
+%pythoncode %{
+    def __getitem__(self, path):
+        return self.GetDouble(path)
+%}
+};
+
+#endif  // SWIGPYTHON

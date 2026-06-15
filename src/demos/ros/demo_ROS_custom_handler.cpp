@@ -45,46 +45,39 @@ using namespace chrono;
 using namespace chrono::ros;
 
 // =============================================================================
-// A publisher handler: extract state from Chrono, publish at a fixed rate.
-class BoxStateHandler : public ChROSHandler {
+// A custom publisher handler. Mirrors the Chrono 9.0 demo's MyCustomHandler
+// (publishes an incrementing Int64 on "~/my_topic" at 1 Hz) — the difference
+// is purely that you address the type by name and never touch rclcpp:
+//   9.0:  interface->GetNode()->create_publisher<std_msgs::msg::Int64>(topic, 1);
+//   now:  bridge.CreatePublisher(topic, "std_msgs/msg/Int64");
+class MyCustomHandler : public ChROSHandler {
   public:
-    BoxStateHandler(std::shared_ptr<ChBody> box, double rate) : ChROSHandler(rate), m_box(box) {}
+    MyCustomHandler(const std::string& topic) : ChROSHandler(1), m_topic(topic), m_ticker(0) {}
 
     bool Initialize(ChROSBridge& bridge) override {
-        m_height_pub = bridge.CreatePublisher("~/output/height", "std_msgs/msg/Float64");
-        m_pose_pub = bridge.CreatePublisher("~/output/pose", "geometry_msgs/msg/PoseStamped");
-
-        // Field discovery, straight from the running ROS installation:
-        std::cout << "PoseStamped layout:\n" << m_pose_pub->DescribeType() << std::endl;
+        std::cout << "Creating publisher for topic " << m_topic << " ..." << std::endl;
+        m_publisher = bridge.CreatePublisher(m_topic, "std_msgs/msg/Int64");
         return true;
     }
 
     void Tick(double time) override {
-        auto height = m_height_pub->NewMessage();
-        height.SetDouble("data", m_box->GetPos().z());
-        m_height_pub->Publish(height);
-
-        auto pose = m_pose_pub->NewMessage();
-        pose.SetTime("header.stamp", time);
-        pose.SetString("header.frame_id", "world");
-        pose.SetDouble("pose.position.x", m_box->GetPos().x());
-        pose.SetDouble("pose.position.y", m_box->GetPos().y());
-        pose.SetDouble("pose.position.z", m_box->GetPos().z());
-        const ChQuaternion<> rotation = m_box->GetRot();
-        pose.SetDouble("pose.orientation.w", rotation.e0());
-        pose.SetDouble("pose.orientation.x", rotation.e1());
-        pose.SetDouble("pose.orientation.y", rotation.e2());
-        pose.SetDouble("pose.orientation.z", rotation.e3());
-        m_pose_pub->Publish(pose);
+        std::cout << "Publishing " << m_ticker << " ..." << std::endl;
+        auto msg = m_publisher->NewMessage();
+        msg.SetInt("data", m_ticker);
+        m_publisher->Publish(msg);
+        m_ticker++;
     }
 
   private:
-    std::shared_ptr<ChBody> m_box;
-    std::shared_ptr<ChROSPublisher> m_height_pub;
-    std::shared_ptr<ChROSPublisher> m_pose_pub;
+    const std::string m_topic;
+    std::shared_ptr<ChROSPublisher> m_publisher;
+    int64_t m_ticker;
 };
 
 // =============================================================================
+// New in the schema-driven design: custom SUBSCRIBERS are just as easy (the
+// 9.0 demo had no custom subscriber). Receives a force command from ROS and
+// applies it to the box.
 // A subscriber handler: receive commands from ROS, apply them to Chrono.
 // The callback fires inside ChROSManager::Update() on this thread, so writing
 // to the Chrono system is safe.
@@ -93,6 +86,9 @@ class ForceCommandHandler : public ChROSHandler {
     explicit ForceCommandHandler(std::shared_ptr<ChBody> box) : ChROSHandler(0 /*every step*/), m_box(box) {}
 
     bool Initialize(ChROSBridge& bridge) override {
+        // One force/torque accumulator on the box, cleared and refilled each step.
+        m_force_accumulator = m_box->AddAccumulator();
+
         m_subscription = bridge.CreateSubscription(  //
             "~/input/force", "geometry_msgs/msg/Vector3", [this](const ChROSMessageView& message) {
                 m_force.x() = message.GetDouble("x");
@@ -104,13 +100,14 @@ class ForceCommandHandler : public ChROSHandler {
     }
 
     void Tick(double /*time*/) override {
-        m_box->EmptyAccumulators();
-        m_box->AccumulateForce(m_force, m_box->GetPos(), false);
+        m_box->EmptyAccumulator(m_force_accumulator);
+        m_box->AccumulateForce(m_force_accumulator, m_force, m_box->GetPos(), false);
     }
 
   private:
     std::shared_ptr<ChBody> m_box;
     std::shared_ptr<ChROSSubscription> m_subscription;
+    unsigned int m_force_accumulator = 0;
     ChVector3d m_force;
 };
 
@@ -140,9 +137,13 @@ int main(int argc, char* argv[]) {
 
     // ------------
 
-    // Create the ROS manager and register the custom handlers
+    // Create the ROS manager and register the handlers.
+    // NOTE: the 9.0 demo also registered the built-in ChROSClockHandler,
+    // ChROSBodyHandler(25, box, "~/box"), and ChROSTFHandler(100); those
+    // built-in handlers return in Phase 5 and this demo will register them
+    // again with their original call interfaces.
     auto ros_manager = chrono_types::make_shared<ChROSManager>("demo");
-    ros_manager->RegisterHandler(chrono_types::make_shared<BoxStateHandler>(box, 25 /*Hz*/));
+    ros_manager->RegisterHandler(chrono_types::make_shared<MyCustomHandler>("~/my_topic"));
     ros_manager->RegisterHandler(chrono_types::make_shared<ForceCommandHandler>(box));
     ros_manager->Initialize();
 

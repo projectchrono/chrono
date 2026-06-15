@@ -54,18 +54,22 @@ void EnsureRclcppInit() {
 /// or the wall-clock timeout expires. Returns the final value of done().
 template <typename DonePredicate>
 bool PumpUntil(ChROSManager& manager, rclcpp::Node::SharedPtr test_node, DonePredicate done, double timeout_s = 20.0) {
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(test_node);
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::duration<double>(timeout_s);
     double sim_time = 0;
     const double step = 1e-2;
     while (!done()) {
         if (std::chrono::steady_clock::now() > deadline) {
+            executor.remove_node(test_node);
             return false;
         }
         EXPECT_TRUE(manager.Update(sim_time, step));
         sim_time += step;
-        rclcpp::spin_some(test_node);
+        executor.spin_some();
         std::this_thread::sleep_for(2ms);
     }
+    executor.remove_node(test_node);
     return true;
 }
 
@@ -98,8 +102,13 @@ TEST(ChROSBridge, publish_reaches_ros) {
 
     ASSERT_TRUE(ok) << "ROS peer never received the bridged message";
     EXPECT_EQ(received, 42);
-    // Matched-endpoint reporting (CHANNEL_INFO) should have seen our peer.
-    EXPECT_GE(publisher->GetSubscriptionCount(), size_t(1));
+
+    // Matched-endpoint reporting (CHANNEL_INFO) is eventually-consistent: it
+    // depends on DDS discovery completing and the node's periodic poll, which
+    // can lag first delivery. Pump until it reflects our peer (with timeout).
+    const bool matched = PumpUntil(manager, test_node,
+                                   [&] { return publisher->GetSubscriptionCount() >= 1; }, 5.0);
+    EXPECT_TRUE(matched) << "publisher never reported its matched subscriber";
 }
 
 // -----------------------------------------------------------------------------
