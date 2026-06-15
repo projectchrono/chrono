@@ -37,6 +37,8 @@ ChPreciceAdapter::ChPreciceAdapter()
       m_mesh_created(false),
       m_initialized(false),
       m_verbose(false),
+      m_visualize(false),
+      m_output(false),
       m_output_dir(".") {}
 
 void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {

@@ -59,8 +59,16 @@ class ChApiPrecice ChPreciceAdapter {
 
     virtual ~ChPreciceAdapter() {}
 
-    /// Enable verbose terminal output (default: false).
+    /// Enable/disable verbose terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
+
+    /// Enable/disable run-time visualization (default: false).
+    /// A concrete Chrono preCICE adapter may or may not support run-time visualization.
+    void EnableVisualization(bool vis) { m_visualize = vis; }
+
+    /// Enable/disable simulation output (default: false).
+    /// A concrete Chrono preCICE adapter may or may not support simulation output.
+    void EnableOutput(bool out) { m_output = out; }
 
     /// Set root output directory (default: ".").
     /// The specified directory must exist.
@@ -100,7 +108,7 @@ class ChApiPrecice ChPreciceAdapter {
     /// Get the maximum time step size from preCICE.
     double GetMaxTimeStepSize() const;
 
-    /// Get the participant name from config
+    /// Get the preCICE participant name.
     const std::string& GetParticipantName() const;
 
     /// Get the coupled mesh names on this participant.
@@ -325,6 +333,8 @@ class ChApiPrecice ChPreciceAdapter {
     std::string m_prefix1;  ///< prefix for terminal messages (first line)
     std::string m_prefix2;  ///< prefix for terminal messages (subsequent lines)
 
+    bool m_visualize;          ///< enable/disable run-time visualization
+    bool m_output;             ///< enable/disable run-time output
     std::string m_output_dir;  ///< output directory name
 };
 

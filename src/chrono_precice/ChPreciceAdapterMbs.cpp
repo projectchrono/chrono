@@ -65,7 +65,7 @@ static std::vector<ChVector3d> ReadPoints(const std::string& filename) {
 // -----------------------------------------------------------------------------
 
 ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
-    : m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
+    : m_model_name(""), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
     SetVerbose(verbose);
 }
 
@@ -75,21 +75,22 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
 
     // Create the MBS from the YAML specification file
     parsers::ChParserMbsYAML parser(input_filename, verbose);
+    m_model_name = parser.GetName();
     m_sys = parser.CreateSystem();
     m_time_step = parser.GetTimestep();
     parser.Populate(*m_sys);
 
     // Extract information from parsed YAML files
-    m_output.format = parser.GetOutputFormat();
-    m_output.mode = parser.GetOutputMode();
-    m_output.fps = parser.GetOutputFPS();
+    m_output_params.format = parser.GetOutputFormat();
+    m_output_params.mode = parser.GetOutputMode();
+    m_output_params.fps = parser.GetOutputFPS();
 
-    m_vis.render = parser.Render();
-    m_vis.render_fps = parser.GetRenderFPS();
-    m_vis.camera_vertical = parser.GetCameraVerticalDir();
-    m_vis.camera_location = parser.GetCameraLocation();
-    m_vis.camera_target = parser.GetCameraTarget();
-    m_vis.enable_shadows = parser.EnableShadows();
+    m_vis_params.render = parser.Render();
+    m_vis_params.render_fps = parser.GetRenderFPS();
+    m_vis_params.camera_vertical = parser.GetCameraVerticalDir();
+    m_vis_params.camera_location = parser.GetCameraLocation();
+    m_vis_params.camera_target = parser.GetCameraTarget();
+    m_vis_params.enable_shadows = parser.EnableShadows();
 
     m_enforce_realtime = parser.EnforceRealtime();
 
@@ -177,36 +178,28 @@ void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_me
 
 // -----------------------------------------------------------------------------
 
-ChPreciceAdapterMbs::OutputParameters::OutputParameters() : format(ChOutput::Format::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
+ChPreciceAdapterMbs::OutputParameters::OutputParameters() : format(ChOutput::Format::ASCII), mode(ChOutput::Mode::SERIES), fps(100) {}
 
-bool ChPreciceAdapterMbs::EnableOutput(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
-    m_output.format = format;
-    m_output.mode = mode;
-    m_output.fps = output_fps;
-    return (format != ChOutput::Format::NONE);
+void ChPreciceAdapterMbs::SetOutputParameters(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
+    m_output_params.format = format;
+    m_output_params.mode = mode;
+    m_output_params.fps = output_fps;
 }
 
 ChPreciceAdapterMbs::VisParameters::VisParameters()
     : render(false), render_fps(120), camera_vertical(CameraVerticalDir::Z), camera_location({0, -1, 0}), camera_target({0, 0, 0}), enable_shadows(true) {}
 
-bool ChPreciceAdapterMbs::EnableVisualization(double render_fps,
-                                              CameraVerticalDir camera_vertical,
-                                              const ChVector3d& camera_location,
-                                              const ChVector3d& camera_target,
-                                              bool enable_shadows) {
-#ifdef CHRONO_VSG
-    m_vis.render_fps = render_fps;
-    m_vis.camera_vertical = camera_vertical;
-    m_vis.camera_location = camera_location;
-    m_vis.camera_target = camera_target;
-    m_vis.enable_shadows = enable_shadows;
-    m_vis.render = true;
-    return true;
-#else
-    cerr << "Chrono::VSG not enabled. Disabling run-time visualization" << endl;
-    m_vis.render = false;
-    return false;
-#endif
+void ChPreciceAdapterMbs::SetVisualizationParameters(double render_fps,
+                                                     CameraVerticalDir camera_vertical,
+                                                     const ChVector3d& camera_location,
+                                                     const ChVector3d& camera_target,
+                                                     bool enable_shadows) {
+    m_vis_params.render_fps = render_fps;
+    m_vis_params.camera_vertical = camera_vertical;
+    m_vis_params.camera_location = camera_location;
+    m_vis_params.camera_target = camera_target;
+    m_vis_params.enable_shadows = enable_shadows;
+    m_vis_params.render = true;
 }
 
 void ChPreciceAdapterMbs::InitializeParticipant() {
@@ -304,18 +297,18 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
 #ifdef CHRONO_VSG
     // Enable runtime visualization
-    if (m_vis.render) {
+    if (m_visualize && m_vis_params.render) {
         m_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vsg->AttachSystem(m_sys.get());
         m_vsg->SetWindowTitle("Chrono preCICE MBS participant - " + m_participant_name);
-        m_vsg->AddCamera(m_vis.camera_location, m_vis.camera_target);
+        m_vsg->AddCamera(m_vis_params.camera_location, m_vis_params.camera_target);
         m_vsg->SetWindowSize(1280, 800);
         m_vsg->SetWindowPosition(100, 100);
-        m_vsg->SetCameraVertical(m_vis.camera_vertical);
+        m_vsg->SetCameraVertical(m_vis_params.camera_vertical);
         m_vsg->SetCameraAngleDeg(40.0);
         m_vsg->SetLightIntensity(1.0f);
         m_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
-        m_vsg->EnableShadows(m_vis.enable_shadows);
+        m_vsg->EnableShadows(m_vis_params.enable_shadows);
         m_vsg->ToggleAbsFrameVisibility();
         m_vsg->Initialize();
     }
@@ -373,16 +366,16 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
     ChAssertAlways(time == m_sys->GetChTime());
 
     static int render_frame = 0;
-    if (m_vis.render && m_vsg->Run()) {
-        if (time >= render_frame / m_vis.render_fps) {
+    if (m_visualize && m_vis_params.render && m_vsg->Run()) {
+        if (time >= render_frame / m_vis_params.render_fps) {
             m_vsg->Render();
             render_frame++;
         }
     }
 
     static int output_frame = 0;
-    if (m_output.format != ChOutput::Format::NONE) {
-        if (time >= output_frame / m_output.fps) {
+    if (m_output) {
+        if (time >= output_frame / m_output_params.fps) {
             WriteOutput(output_frame, time);
             output_frame++;
         }
@@ -426,13 +419,13 @@ void ChPreciceAdapterMbs::WriteData() {
 void ChPreciceAdapterMbs::WriteOutput(int frame, double time) {
     // Create the output DB if needed
     if (!m_output_db) {
-        switch (m_output.format) {
+        switch (m_output_params.format) {
             case ChOutput::Format::ASCII:
-                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output.mode);
+                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output_params.mode);
                 break;
             case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output.mode);
+                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output_params.mode);
                 break;
 #else
                 return;

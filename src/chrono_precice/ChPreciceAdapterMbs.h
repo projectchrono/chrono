@@ -56,36 +56,55 @@ namespace ch_precice {
 class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
   public:
     ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose = false);
+
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     ChPreciceAdapterMbs(const std::string& input_filename, bool verbose = false);
 #endif
+
     ~ChPreciceAdapterMbs();
 
     ChSystem& GetSystem() { return *m_sys; }
 
-    /// Enable Chrono MBS run-time visualization.
+    /// Set the Chrono MBS model name.
     /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, the model name is read from that file.
+    void SetModelName(const std::string& name) { m_model_name = name; }
+
+    /// Set Chrono MBS run-time visualization parameters.
+    /// Notes:
+    /// - run-time visualization requires the Chrono::VSG module.
     /// - if the MBS preCICE participant is created from a YAML specification file, visualization parameters are read from that file.
-    bool EnableVisualization(double render_fps,                  ///< rendering frequency
-                             CameraVerticalDir camera_vertical,  ///< camera vertical direction (Y or Z)
-                             const ChVector3d& camera_location,  ///< initial camera location
-                             const ChVector3d& camera_target,    ///< initial camera look-at point
-                             bool enable_shadows                 ///< enable dynamic shadows
+    void SetVisualizationParameters(double render_fps,                  ///< rendering frequency
+                                    CameraVerticalDir camera_vertical,  ///< camera vertical direction (Y or Z)
+                                    const ChVector3d& camera_location,  ///< initial camera location
+                                    const ChVector3d& camera_target,    ///< initial camera look-at point
+                                    bool enable_shadows                 ///< enable dynamic shadows
     );
 
-    /// Enable Chrono MBS simulation output.
+    /// Set Chrono MBS simulation output parameters.
     /// Notes:
     /// - output is generated for all coupling bodies and FEA meshes.
     /// - if the MBS preCICE participant is created from a YAML specification file, output parameters are read from that file.
-    bool EnableOutput(ChOutput::Format format,  ///< output DB format
-                      ChOutput::Mode mode,      ///< output mode
-                      double output_fps         ///< output frequency
+    void SetOutputParameters(ChOutput::Format format,  ///< output DB format
+                             ChOutput::Mode mode,      ///< output mode
+                             double output_fps         ///< output frequency
     );
 
+    /// Get the name of the Chrono MBS model.
+    const std::string& GetModelName() const { return m_model_name; }
+
+    /// Enable/disable soft real-time for MBS simulation (default: false).
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
 
+    /// Add the specified body as a preCICE interface object.
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, const std::vector<ChVector3d>& points);
+
 #ifdef CHRONO_FEA
+    /// Add the specified FEA mesh as a preCICE interface object.
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
 #endif
 
@@ -172,11 +191,13 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     void WriteOutput(int frame, double time);
 
+    std::string m_model_name;         ///< name of the Chrono MBS model
     std::shared_ptr<ChSystem> m_sys;  ///< underlying Chrono system
     double m_time_step;               ///< integration step size
     bool m_enforce_realtime;          ///< flag indicating soft real-time
     ChRealtimeStepTimer m_rt_timer;   ///< timer for enforcing soft real-time
 
+    // Checkpointing
     Checkpoint m_checkpoint;  ///< Chrono system checkpoint data
 
     // Chrono physics items in coupling interface
@@ -189,19 +210,19 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics
     std::shared_ptr<AfterStepDynamicsCallback> m_afterstep_callback;    ///< operations performed after advancing dynamics
 
-    VisParameters m_vis;  ///< visualization parameters
+    // Run-time visualization
+    VisParameters m_vis_params;  ///< visualization parameters
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualization system
+#endif
 
     // Output
-    OutputParameters m_output;              ///< output specification
+    OutputParameters m_output_params;       ///< output specification
     ChAssembly::Components m_output_data;   ///< output data
     std::unique_ptr<ChOutput> m_output_db;  ///< output database
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths
-#endif
-
-#ifdef CHRONO_VSG
-    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualization system
 #endif
 };
 

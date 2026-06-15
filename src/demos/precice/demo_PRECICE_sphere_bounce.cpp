@@ -44,8 +44,8 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose);
-void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose);
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
+void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 
 // =============================================================================
 
@@ -62,15 +62,19 @@ int main(int argc, char* argv[]) {
     // Problem settings
     std::string precice_config_filename = GetChronoDataFile("precice/sphere_bounce/precice_config_explicit.xml");
 
-    // Set root output directory
-    std::string out_dir = GetChronoOutputPath() + "PRECICE_SPHERE/";
-    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-
     // Enable verbose terminal output
     bool verbose = true;
+    bool visualize = true;
+    bool output = true;
+
+    // Set root output directory
+    std::string out_dir = GetChronoOutputPath() + "PRECICE_SPHERE/";
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+    }
 
     // Get the participant type (MBS or CFD)
     ChCLI cli(argv[0], "");
@@ -79,9 +83,9 @@ int main(int argc, char* argv[]) {
         return 1;
     auto type = cli.GetAsType<std::string>("participant");
     if (type == "MBS")
-        RunParticipantMBS(precice_config_filename, out_dir, verbose);
+        RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output);
     else if (type == "CFD")
-        RunParticipantCFD(precice_config_filename, out_dir, verbose);
+        RunParticipantCFD(precice_config_filename, out_dir, verbose, visualize, output);
     else
         cerr << "Unrecognized participant. Use 'MBS' or 'CFD'" << endl;
 
@@ -90,14 +94,22 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 
-void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose) {
-    auto mbs_out_dir = out_dir + "mbs";
-    if (!CreateOutputDirectory(std::filesystem::path(mbs_out_dir))) {
-        std::cout << "Error creating directory " << mbs_out_dir << std::endl;
-        throw std::runtime_error("Error creating MBS output directory");
-    }
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
     ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_bounce/mbs_participant.yaml"), verbose);
-    participant.SetOutputDir(mbs_out_dir);
+
+    auto mbs_out_dir = out_dir + "mbs";
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(mbs_out_dir))) {
+            std::cout << "Error creating directory " << mbs_out_dir << std::endl;
+            throw std::runtime_error("Error creating MBS output directory");
+        }
+        participant.SetOutputDir(mbs_out_dir);
+    }
+
+    participant.EnableOutput(output);
+    participant.EnableVisualization(visualize);
+    participant.EnforceRealtime(visualize);
+
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
@@ -204,9 +216,11 @@ void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
     }
 
     // Write output
-    if (!file.is_open())
-        file.open(m_output_dir + "/cfd_results.txt");
-    file << time << " " << h << " " << velocity[2] << " " << force[2] << std::endl;
+    if (m_output) {
+        if (!file.is_open())
+            file.open(m_output_dir + "/cfd_results.txt");
+        file << time << " " << h << " " << velocity[2] << " " << force[2] << std::endl;
+    }
 }
 
 void ParticipantCFD::WriteData() {
@@ -218,6 +232,9 @@ void ParticipantCFD::WriteData() {
 }
 
 void ParticipantCFD::PlotResults() {
+    if (!m_output)
+        return;
+
 #ifdef CHRONO_POSTPROCESS
     if (file.is_open())
         file.close();
@@ -242,19 +259,25 @@ void ParticipantCFD::PlotResults() {
 
 // -----------------------------------------------------------------------------
 
-void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose) {
+void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
+    ParticipantCFD participant(verbose);
+
     auto cfd_out_dir = out_dir + "cfd";
-    if (!CreateOutputDirectory(std::filesystem::path(cfd_out_dir))) {
-        std::cout << "Error creating directory " << cfd_out_dir << std::endl;
-        throw std::runtime_error("Error creating CFD output directory");
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(cfd_out_dir))) {
+            std::cout << "Error creating directory " << cfd_out_dir << std::endl;
+            throw std::runtime_error("Error creating CFD output directory");
+        }
+        participant.SetOutputDir(cfd_out_dir);
     }
 
-    ParticipantCFD participant(verbose);
-    participant.SetOutputDir(cfd_out_dir);
+    participant.EnableOutput(output);
+    participant.EnableVisualization(visualize);
+
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();
-
+    
     participant.PlotResults();
 }
