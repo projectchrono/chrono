@@ -136,3 +136,9 @@ install(TARGETS Chrono_precice
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_precice
         FILES_MATCHING PATTERN "*.h")
+
+#-------------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_PARSERS AND CHRONO_YAML_ENABLED)
+    add_subdirectory(yaml_app)
+endif()

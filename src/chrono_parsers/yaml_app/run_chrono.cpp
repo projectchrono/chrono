@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Application for running Chrono simulations specified through YAML files.
+// Application for running a Chrono simulation specified through YAML files.
 //
 // =============================================================================
 
@@ -57,49 +57,49 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-bool ParseArgs(int argc,
-               char** argv,
-               std::string& yaml_filename,
-               std::string& out_dir,
-               bool& disable_output,
-               bool& disable_vis);
-bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis);
-bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis);
-bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis);
+bool ParseArgs(int argc, char** argv, std::string& yaml_filename, std::string& out_dir, bool& disable_verbose, bool& disable_output, bool& disable_vis);
+bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
-    // Proces command line arguments
+    // Process command line arguments
+    bool disable_verbose = false;
     bool disable_output = false;
     bool disable_vis = false;
     std::string yaml_filename = "";
     std::string out_dir = GetChronoOutputPath() + "YAML_CHRONO/";
-    if (!ParseArgs(argc, argv, yaml_filename, out_dir, disable_output, disable_vis))
+    if (!ParseArgs(argc, argv, yaml_filename, out_dir, disable_verbose, disable_output, disable_vis))
         return 1;
 
     cout << endl;
     cout << "YAML specification file: " << yaml_filename << endl;
-    cout << "Output directory:        " << out_dir << endl;
-    cout << "Disable output?          " << (disable_output ? "yes" : "no") << endl;
-    cout << "Disable visualization?   " << (disable_vis ? "yes" : "no") << endl;
+    cout << "Verbose?          " << (disable_verbose ? "no" : "yes") << endl;
+    cout << "Visualization?    " << (disable_vis ? "no" : "yes") << endl;
+    cout << "Output?           " << (disable_output ? "no" : "yes") << endl;
+    if (!disable_output)
+        cout << "Output directory: " << out_dir << endl;
 
     // Peek in file, read type, and call appropriate function for processing the YAML file
     auto type = ChParserYAML::ReadYamlFileType(yaml_filename);
     switch (type) {
         case ChParserYAML::YamlFileType::MBS:
-            RunMBS(yaml_filename, out_dir, disable_output, disable_vis);
+            RunMBS(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
             break;
         case ChParserYAML::YamlFileType::VEHICLE:
 #ifdef CHRONO_VEHICLE
-            RunVEHICLE(yaml_filename, out_dir, disable_output, disable_vis);
+            RunVEHICLE(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
 #else
             cerr << "The Chrono::Vehicle module is not available. Cannot process a vehicle YAML specification." << endl;
 #endif
             break;
         case ChParserYAML::YamlFileType::FSI:
 #ifdef CHRONO_FSI
-            RunFSI(yaml_filename, out_dir, disable_output, disable_vis);
+            RunFSI(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
 #else
             cerr << "The Chrono::FSI module is not available. Cannot process an FSI YAML specification." << endl;
 #endif
@@ -114,15 +114,11 @@ int main(int argc, char* argv[]) {
 
 // -----------------------------------------------------------------------------
 
-bool ParseArgs(int argc,
-               char** argv,
-               std::string& yaml_filename,
-               std::string& out_dir,
-               bool& disable_output,
-               bool& disable_vis) {
+bool ParseArgs(int argc, char** argv, std::string& yaml_filename, std::string& out_dir, bool& disable_verbose, bool& disable_output, bool& disable_vis) {
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "s,sim_file", "Simulation specification file (YAML format)");
     cli.AddOption<std::string>("", "o,out_dir", "Output directory", out_dir);
+    cli.AddOption<bool>("", "quiet", "Disable terminal output");
     cli.AddOption<bool>("", "no_output", "Disable output");
     cli.AddOption<bool>("", "no_visualization", "Disable run-time visualization");
 
@@ -137,6 +133,7 @@ bool ParseArgs(int argc,
         return false;
     }
 
+    disable_verbose = cli.GetAsType<bool>("quiet");
     disable_output = cli.GetAsType<bool>("no_output");
     disable_vis = cli.GetAsType<bool>("no_visualization");
 
@@ -147,14 +144,14 @@ bool ParseArgs(int argc,
 
 // -----------------------------------------------------------------------------
 
-bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis) {
+bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
     // Create YAML parser object, load the YAML file, then create a Chrono system and populate it
-    parsers::ChParserMbsYAML parser(yaml_filename, true);
+    parsers::ChParserMbsYAML parser(yaml_filename, !disable_verbose);
     auto sys = parser.CreateSystem();
     parser.Populate(*sys, ChFramed());
 
     // Print hierarchy of modeling components in ChSystem
-    ////std::cout << "Number of moidel instances: " << parser.GetNumInstances() << std::endl;
+    ////std::cout << "Number of model instances: " << parser.GetNumInstances() << std::endl;
     ////sys->ShowHierarchy(std::cout);
 
     // Extract information from parsed YAML files
@@ -170,9 +167,6 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
     bool enable_shadows = parser.EnableShadows();
     bool output = parser.Output() && !disable_output;
     double output_fps = parser.GetOutputFPS();
-
-    // Print system hierarchy
-    ////sys->ShowHierarchy(std::cout);
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
@@ -251,10 +245,10 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
     return true;
 }
 
-bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis) {
+bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
 #ifdef CHRONO_VEHICLE
     // Create the YAML parser object
-    parsers::ChParserVehicleYAML parser(yaml_filename, true);
+    parsers::ChParserVehicleYAML parser(yaml_filename, !disable_verbose);
 
     // Create Chrono system and vehicle model
     auto sys = parser.CreateSystem();
@@ -385,10 +379,10 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
 
 // -----------------------------------------------------------------------------
 
-bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis) {
+bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
 #ifdef CHRONO_FSI
     // Create the FSI YAML parser object
-    parsers::ChParserFsiYAML parser(yaml_filename, true);
+    parsers::ChParserFsiYAML parser(yaml_filename, !disable_verbose);
 
     // Create the FSI system and the underlying multibody and fluid systems
     parser.CreateFsiSystem();
