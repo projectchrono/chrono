@@ -107,10 +107,16 @@ def main():
     box.SetName("box")
     sys.AddBody(box)
 
-    # NOTE: the 9.0 demo also registered the built-in ChROSClockHandler,
-    # ChROSBodyHandler(25, box, "~/box"), and ChROSTFHandler(100); those
-    # return in Phase 5 and this demo will register them again.
+    # The first three are built-in handlers, registered exactly as in the
+    # Chrono 9.0 demo (same call interfaces): the clock (publishes /clock every
+    # step), the box state (pose/twist/accel at 25 Hz under ~/box), and tf
+    # (at 100 Hz).
     ros_manager = chros.ChROSManager("demo")
+    ros_manager.RegisterHandler(chros.ChROSClockHandler())
+    ros_manager.RegisterHandler(chros.ChROSBodyHandler(25, box, "~/box"))
+    ros_manager.RegisterHandler(chros.ChROSTFHandler(100))
+    # ... and the two application handlers: a custom Int64 publisher and the
+    # force-command subscriber (the latter is new to the schema-driven design).
     ros_manager.RegisterHandler(MyCustomHandler("~/my_topic"))
     ros_manager.RegisterHandler(ForceCommandHandler(box))
     ros_manager.Initialize()

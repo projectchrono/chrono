@@ -132,6 +132,42 @@ set(CH_ROS_API_FILES
 )
 source_group("api" FILES ${CH_ROS_API_FILES})
 
+# Built-in handlers (exemplary uses of the public API). Phase 5 ports these from
+# Chrono 9.0 with matching call interfaces; sensor/vehicle/robot handlers and
+# the URDF/sensor TF overloads return in later Phase-5 batches.
+set(CH_ROS_HANDLER_FILES
+  handlers/ChROSClockHandler.h
+  handlers/ChROSClockHandler.cpp
+  handlers/ChROSBodyHandler.h
+  handlers/ChROSBodyHandler.cpp
+  handlers/ChROSTFHandler.h
+  handlers/ChROSTFHandler.cpp
+)
+source_group("handlers" FILES ${CH_ROS_HANDLER_FILES})
+list(APPEND CH_ROS_API_FILES ${CH_ROS_HANDLER_FILES})
+
+# Sensor handlers: compiled only when the Chrono::Sensor module is enabled (they
+# accept a ChSensor and read its host buffers). Camera/lidar return in a later
+# Phase-5 batch.
+set(CH_ROS_SENSOR_HANDLER_FILES "")
+if(CH_ENABLE_MODULE_SENSOR)
+  set(CH_ROS_SENSOR_HANDLER_FILES
+    handlers/sensor/ChROSSensorHandlerUtilities.h
+    handlers/sensor/ChROSAccelerometerHandler.h
+    handlers/sensor/ChROSAccelerometerHandler.cpp
+    handlers/sensor/ChROSGyroscopeHandler.h
+    handlers/sensor/ChROSGyroscopeHandler.cpp
+    handlers/sensor/ChROSMagnetometerHandler.h
+    handlers/sensor/ChROSMagnetometerHandler.cpp
+    handlers/sensor/ChROSGPSHandler.h
+    handlers/sensor/ChROSGPSHandler.cpp
+    handlers/sensor/ChROSIMUHandler.h
+    handlers/sensor/ChROSIMUHandler.cpp
+  )
+  source_group("handlers\\sensor" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
+  list(APPEND CH_ROS_API_FILES ${CH_ROS_SENSOR_HANDLER_FILES})
+endif()
+
 add_library(Chrono_ros SHARED ${CH_ROS_API_FILES})
 add_library(Chrono::ros ALIAS Chrono_ros)
 
@@ -154,9 +190,19 @@ if(UNIX AND NOT APPLE)
   target_link_libraries(Chrono_ros PRIVATE dl)  # dladdr in ChROSNodeProcess
 endif()
 
-# Module dependency bookkeeping for the parent build. Sensor/vehicle-specific
-# built-in handlers return in Phase 5 and will reinstate those dependencies.
+# Sensor handlers link Chrono_sensor. PUBLIC: their public headers include
+# chrono_sensor headers, so consumers (demos, the PyChrono module) need its
+# include path. Chrono_sensor is sim-side and ROS-free, so this does not affect
+# the isolation invariant (I1).
+if(CH_ENABLE_MODULE_SENSOR)
+  target_link_libraries(Chrono_ros PUBLIC Chrono_sensor)
+endif()
+
+# Module dependency bookkeeping for the parent build (module short-names).
 set(DEPENDENCIES_ROS "")
+if(CH_ENABLE_MODULE_SENSOR)
+  list(APPEND DEPENDENCIES_ROS "SENSOR")
+endif()
 set(DEPENDENCIES_ROS ${DEPENDENCIES_ROS} PARENT_SCOPE)
 set(CH_ROS_HAS_INTERFACES FALSE PARENT_SCOPE)
 

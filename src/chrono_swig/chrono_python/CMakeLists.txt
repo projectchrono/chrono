@@ -1229,6 +1229,15 @@ if(CH_ENABLE_MODULE_ROS)
     target_compile_definitions(ros PRIVATE "CHRONO_HAS_OPTIX")
   endif()
 
+  # The ros module conditionally wraps the sensor handlers (guarded by
+  # CHRONO_SENSOR in ChModuleROS.i). SWIG sees -DCHRONO_SENSOR via the global
+  # CMAKE_SWIG_FLAGS; the generated wrapper's verbatim "#ifdef CHRONO_SENSOR"
+  # block needs the same define at C++ compile time, plus the sensor library.
+  if(CH_ENABLE_MODULE_SENSOR)
+    target_compile_definitions(ros PRIVATE "CHRONO_SENSOR")
+    target_link_libraries(ros PRIVATE Chrono_sensor)
+  endif()
+
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
     target_link_options(ros PRIVATE -flat_namespace -undefined dynamic_lookup)
@@ -1244,6 +1253,9 @@ if(CH_ENABLE_MODULE_ROS)
   add_dependencies(ros Chrono_core)
   add_dependencies(ros Chrono_ros)
   add_dependencies(ros core)
+  if(CH_ENABLE_MODULE_SENSOR)
+    add_dependencies(ros sensor)  # pychrono.sensor must exist for the runtime %import
+  endif()
 
   # Copy PY file in a package dir
   set(CHPY_ROS_PY_FILE "${CMAKE_SWIG_OUTDIR}/ros.py")

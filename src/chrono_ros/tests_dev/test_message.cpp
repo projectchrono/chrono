@@ -277,6 +277,53 @@ TEST(jointstate_string_and_float_sequences) {
     CHECK_EQ(zeros[2], 0.0);
 }
 
+TEST(set_blob_bytes_float_sequence) {
+    // Byte-sized entry point (the Python buffer-protocol path): 24 bytes of
+    // float64 -> count 3, derived from the schema's 8-byte element size.
+    auto schema = JointStateSchema();
+    MessageBuilder msg(schema);
+    const double positions[] = {0.1, -0.2, 0.3};
+    msg.SetBlobBytes("position", positions, sizeof(positions));
+
+    std::vector<uint8_t> out;
+    msg.SerializeTo(out);
+    MessageReader reader(schema, out.data(), out.size());
+    const BlobView pos = reader.GetBlob("position");
+    CHECK_EQ(pos.count, size_t(3));
+    CHECK_EQ(pos.element_size, size_t(8));
+    double readback[3];
+    std::memcpy(readback, pos.data, sizeof(readback));
+    CHECK_EQ(readback[0], 0.1);
+    CHECK_EQ(readback[2], 0.3);
+}
+
+TEST(set_blob_bytes_uint8_passthrough) {
+    // For a uint8[] field element size is 1, so byte length == element count.
+    auto schema = ImageSchema();
+    MessageBuilder msg(schema);
+    std::vector<uint8_t> pixels(8);
+    for (size_t i = 0; i < pixels.size(); i++)
+        pixels[i] = static_cast<uint8_t>(i + 1);
+    msg.SetBlobBytes("data", pixels.data(), pixels.size());
+
+    std::vector<uint8_t> out;
+    msg.SerializeTo(out);
+    MessageReader reader(schema, out.data(), out.size());
+    const BlobView view = reader.GetBlob("data");
+    CHECK_EQ(view.count, pixels.size());
+    CHECK(std::memcmp(view.data, pixels.data(), pixels.size()) == 0);
+}
+
+TEST(set_blob_bytes_rejects_misaligned_length) {
+    // 10 bytes is not a whole number of 8-byte float64 elements -> would
+    // otherwise over-read; must be rejected before reaching the codec.
+    auto schema = JointStateSchema();
+    MessageBuilder msg(schema);
+    const uint8_t junk[10] = {0};
+    CHECK_THROWS(msg.SetBlobBytes("position", junk, sizeof(junk)), FieldError,
+                 "not a whole number of 8-byte");
+}
+
 TEST(fully_default_message_parses) {
     auto schema = PointCloud2Schema();
     MessageBuilder msg(schema);

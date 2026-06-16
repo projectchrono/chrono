@@ -1,11 +1,16 @@
 
-# NOTE (schema-driven rewrite, see src/chrono_ros/CLAUDE.md): only the custom
-# handler demo builds against the new Chrono::ROS API for now. The remaining
-# demos are restored in Phase 5 together with the re-delivered built-in
-# handlers (clock, TF, body, sensors, ...).
+# NOTE (schema-driven rewrite, see src/chrono_ros/CLAUDE.md): demos are restored
+# in Phase 5 as the built-in handlers they exercise are re-delivered. Done so
+# far: custom handler (clock/body/tf + custom pub/sub) and the sensor demo
+# (IMU/GPS family). Camera/lidar, vehicle, viper, etc. return in later batches.
 set(DEMOS
   demo_ROS_custom_handler
 )
+
+# demo_ROS_sensor exercises the IMU/GPS sensor handlers, which require Chrono::Sensor.
+if(CH_ENABLE_MODULE_SENSOR)
+  list(APPEND DEMOS demo_ROS_sensor)
+endif()
 
 # ------------------------------------------------------------------------------
 # Include directories, compiler flags, libraries

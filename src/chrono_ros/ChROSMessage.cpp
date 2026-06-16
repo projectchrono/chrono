@@ -53,6 +53,9 @@ void ChROSMessage::SetBlob(const std::string& path, const void* data, size_t cou
 void ChROSMessage::SetBlobCopy(const std::string& path, const void* data, size_t count) {
     Node().SetBlobCopy(path, data, count);
 }
+void ChROSMessage::SetBlobBytes(const std::string& path, const void* data, size_t nbytes) {
+    Node().SetBlobBytes(path, data, nbytes);
+}
 void ChROSMessage::SetStringArray(const std::string& path, const std::vector<std::string>& value) {
     Node().SetStringArray(path, value);
 }

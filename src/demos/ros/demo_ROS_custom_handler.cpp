@@ -38,6 +38,10 @@
 #include "chrono_ros/ChROSHandler.h"
 #include "chrono_ros/ChROSManager.h"
 
+#include "chrono_ros/handlers/ChROSClockHandler.h"
+#include "chrono_ros/handlers/ChROSBodyHandler.h"
+#include "chrono_ros/handlers/ChROSTFHandler.h"
+
 #include <chrono>
 #include <iostream>
 
@@ -137,12 +141,16 @@ int main(int argc, char* argv[]) {
 
     // ------------
 
-    // Create the ROS manager and register the handlers.
-    // NOTE: the 9.0 demo also registered the built-in ChROSClockHandler,
-    // ChROSBodyHandler(25, box, "~/box"), and ChROSTFHandler(100); those
-    // built-in handlers return in Phase 5 and this demo will register them
-    // again with their original call interfaces.
+    // Create the ROS manager and register the handlers. The first three are
+    // built-in handlers, registered exactly as in the Chrono 9.0 demo (same
+    // call interfaces): the clock (publishes /clock every step), the box state
+    // (pose/twist/accel at 25 Hz under ~/box), and tf (at 100 Hz).
     auto ros_manager = chrono_types::make_shared<ChROSManager>("demo");
+    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
+    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSBodyHandler>(25, box, "~/box"));
+    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSTFHandler>(100));
+    // ... and the two application handlers: a custom Int64 publisher and the
+    // force-command subscriber (the latter is new to the schema-driven design).
     ros_manager->RegisterHandler(chrono_types::make_shared<MyCustomHandler>("~/my_topic"));
     ros_manager->RegisterHandler(chrono_types::make_shared<ForceCommandHandler>(box));
     ros_manager->Initialize();

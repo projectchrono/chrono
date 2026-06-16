@@ -97,6 +97,13 @@ class MessageBuilder {
     /// As SetBlob, but copies the data into the builder (safe lifetime).
     void SetBlobCopy(const std::string& path, const void* data, size_t count);
 
+    /// As SetBlobCopy, but sized in bytes rather than elements: the element
+    /// count is 'nbytes / element_size', and 'nbytes' must be a whole multiple
+    /// of the field's element size (else FieldError). Convenient for
+    /// byte-oriented sources (Python buffers, raw serialized blobs) that do not
+    /// carry the schema's element size themselves.
+    void SetBlobBytes(const std::string& path, const void* data, size_t nbytes);
+
     /// Set a string array/sequence.
     void SetStringArray(const std::string& path, const std::vector<std::string>& value);
 

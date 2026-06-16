@@ -59,6 +59,10 @@ class CH_ROS_API ChROSMessage {
     /// Publish() returns. Use SetBlobCopy when that is inconvenient.
     void SetBlob(const std::string& path, const void* data, size_t count);
     void SetBlobCopy(const std::string& path, const void* data, size_t count);
+    /// As SetBlobCopy, but sized in bytes (element count = nbytes / element_size,
+    /// which must divide evenly). For byte-oriented sources such as Python
+    /// buffer-protocol objects, where only the byte length is known.
+    void SetBlobBytes(const std::string& path, const void* data, size_t nbytes);
     void SetStringArray(const std::string& path, const std::vector<std::string>& value);
 
     // --- nested messages

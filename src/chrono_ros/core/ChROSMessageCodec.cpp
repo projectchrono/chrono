@@ -315,6 +315,26 @@ void MessageBuilder::SetBlobCopy(const std::string& path, const void* data, size
     SetBlobImpl(path, data, count, /*copy=*/true);
 }
 
+void MessageBuilder::SetBlobBytes(const std::string& path, const void* data, size_t nbytes) {
+    auto [owner, index] = Resolve(path);
+    const FieldRecord& field = owner->Field(index);
+    RejectWString(field, owner->Where(field));
+    if (!IsPrimitive(field.kind) || field.array_kind == ArrayKind::None) {
+        throw FieldError("'" + owner->Where(field) + "' is " + DescribeArray(field) + " of " +
+                         FieldKindName(field.kind) + "; SetBlob applies to primitive arrays/sequences");
+    }
+    const size_t element_size = PrimitiveSize(field.kind);
+    if (element_size == 0) {
+        throw FieldError("'" + owner->Where(field) + "': unknown element size for " + FieldKindName(field.kind));
+    }
+    if (nbytes % element_size != 0) {
+        throw FieldError("'" + owner->Where(field) + "': a buffer of " + std::to_string(nbytes) +
+                         " bytes is not a whole number of " + std::to_string(element_size) + "-byte " +
+                         FieldKindName(field.kind) + " elements");
+    }
+    SetBlobImpl(path, data, nbytes / element_size, /*copy=*/true);
+}
+
 void MessageBuilder::SetStringArray(const std::string& path, const std::vector<std::string>& value) {
     auto [owner, index] = Resolve(path);
     const FieldRecord& field = owner->Field(index);
