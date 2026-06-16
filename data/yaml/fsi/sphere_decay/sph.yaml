@@ -1,5 +1,5 @@
 chrono-version: 10.0
-tyype: SPH
+type: SPH
 
 model:  "model_sph.yaml"
 solver: "solver_sph.yaml"
