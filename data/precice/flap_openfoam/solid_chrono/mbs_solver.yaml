@@ -4,7 +4,7 @@ contact_method: SMC
   
 integrator:
   type: Euler_implicit_linearized
-  time_step: 1e-4
+  time_step: 0.025
   
 solver:
   type: Barzilai_Borwein
