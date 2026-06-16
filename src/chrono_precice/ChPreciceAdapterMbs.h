@@ -63,6 +63,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     ~ChPreciceAdapterMbs();
 
+    /// Get underlying Chrono multibody system.
     ChSystem& GetSystem() { return *m_sys; }
 
     /// Set the Chrono MBS model name.
@@ -133,25 +134,25 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
   private:
     /// Checkpoint data.
     struct Checkpoint {
-        double time;
-        ChState x;
-        ChStateDelta v;
+        double time;     ///< checkpointing time
+        ChState x;       ///< generalized positions
+        ChStateDelta v;  ///< generalized velocities
     };
 
     /// Coupling rigid body data.
     struct CouplingBody {
-        int index;
-        std::shared_ptr<ChBodyAuxRef> body;
-        std::vector<ChVector3d> points;
-        ChFramed init_body_frame;
-        unsigned int accumulator_index;
+        int index;                           ///< index of coupling body
+        std::shared_ptr<ChBodyAuxRef> body;  ///< coupling body
+        std::vector<ChVector3d> points;      ///< points on body expressed in local frame
+        ChFramed init_body_frame;            ///< initial body frame
+        unsigned int accumulator_index;      ///< index of associated force accumulator
     };
 
 #ifdef CHRONO_FEA
     /// Coupling FEA mesh data.
     struct CouplingFEAMesh {
-        int index;
-        std::shared_ptr<fea::ChMesh> mesh;
+        int index;                          ///< index of coupling FEA mesh
+        std::shared_ptr<fea::ChMesh> mesh;  ///< coupling FEA mesh
     };
 #endif
 
