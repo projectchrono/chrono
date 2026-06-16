@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 // =============================================================================
 
 void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
-    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_bounce/mbs_participant.yaml"), verbose);
+    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_bounce/solid_chrono/mbs_participant.yaml"), verbose);
 
     auto mbs_out_dir = out_dir + "mbs";
     if (output) {
@@ -147,7 +147,7 @@ class ParticipantCFD : public ChPreciceAdapter {
 
 ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
     SetVerbose(verbose);
-    ConfigureParticipant(GetChronoDataFile("precice/sphere_bounce/cfd_participant.yaml"));
+    ConfigureParticipant(GetChronoDataFile("precice/sphere_bounce/fluid_buoyancy/cfd_participant.yaml"));
 }
 
 ParticipantCFD::~ParticipantCFD() {

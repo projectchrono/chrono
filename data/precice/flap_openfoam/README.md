@@ -25,17 +25,19 @@ Requirements
 Running the coupled simulation
 ------------------------------
 
-The two simulations (MBS and CFD) must be run from two different terminal windows.
+The two simulations (MBS and CFD) must be run from two different terminal windows (two different processes).
 
 - Chrono MBS<br>
-  The multibody participant is executed like any other Chrono demo from the build tree (here, `<chrono_build_dir>`):
+  To run the Chrono participant, execute the `run.sh` script from its location in the Chrono data directory (here, `<chrono_data_dir>`):
   ```
-  cd <chrono_build_dir>
-  ./demo_PRECICE_flap_openfoam
+  cd <chrono_data_dir>/precice/flap_openfoam/solid_chrono
+  ./run.sh
   ```
 
+  **NOTE:** do _not_ run directly the `demo_PRECICE_flap_openfoam` executable from its location in the build or install tree.
+
 - OpenFOAM<br>
-  To run the CFD participant, execute the `run.sh` script from its locatioono in the Chrono data directory (here, `<chrono_data_dir>`):
+  To run the CFD participant, execute the `run.sh` script from its location in the Chrono data directory (here, `<chrono_data_dir>`):
   ```
   cd <chrono_data_dir>/precice/flap_openfoam/fluid_openfoam
   ./run.sh
