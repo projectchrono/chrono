@@ -94,19 +94,15 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
 
     m_enforce_realtime = parser.EnforceRealtime();
 
-    // Read in preCICE participant configuration
-    ConfigureParticipant(input_filename);
+    // Read common preCICE participant configuration (participant name, file handler, and coupling interfaces)
+    ReadParticipantConfigurationYAML(input_filename);
 
-    // Check consistency between preCICE participant specification and the MBS
+    // Read MBS-specific preCICE configuration (coupling physics items)
     YAML::Node yaml = YAML::LoadFile(input_filename);
     ChAssertAlways(yaml["precice_adapter_config"]);
     auto config = yaml["precice_adapter_config"];
 
-    // Read configuration of data file specification
-    m_file_handler.SetReferenceDirectory(input_filename);
-    m_file_handler.Read(config);
-
-    // Read information on interface physics items and check that they are defined in the MBS
+    // - read information on coupling bodies and check that they are defined in the MBS
     if (config["bodies"]) {
         auto bodies = config["bodies"];
         ChAssertAlways(bodies.IsSequence());
@@ -138,11 +134,8 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     }
 
     #ifdef CHRONO_FEA
-    if (config["meshes1d"]) {
-        //// TODO
-    }
-
-    if (config["meshes2d"]) {
+    // - read information on FEA meshes and check that they are defined in the MBS
+    if (config["meshes"]) {
         //// TODO
     }
     #endif
@@ -152,8 +145,6 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     }
 }
 #endif
-
-ChPreciceAdapterMbs::~ChPreciceAdapterMbs() {}
 
 // -----------------------------------------------------------------------------
 

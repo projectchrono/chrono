@@ -55,13 +55,19 @@ namespace ch_precice {
 /// preCICE adapter for Chrono MBS simulation.
 class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
   public:
+    /// Construct a Chrono MBS preCICE participant for the specified Chrono system.
+    /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
     ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
+    /// Construct a Chrono MBS preCICE participant configured from the specified YAML file.
+    /// The provided YAML file must be of type `MBS` and include a member `precice_adapter_configuration`.
+    /// The preCICE interfaces (coupling bodies and FEA meshes and their associated coupling meshes and mesh data)
+    /// are read from the YAML specification file.
     ChPreciceAdapterMbs(const std::string& input_filename, bool verbose = false);
 #endif
 
-    ~ChPreciceAdapterMbs();
+    ~ChPreciceAdapterMbs() {}
 
     /// Get underlying Chrono multibody system.
     ChSystem& GetSystem() { return *m_sys; }
@@ -221,10 +227,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     OutputParameters m_output_params;       ///< output specification
     ChAssembly::Components m_output_data;   ///< output data
     std::unique_ptr<ChOutput> m_output_db;  ///< output database
-
-#if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-    ChYamlFileHandler m_file_handler;  ///< handler for data file paths
-#endif
 };
 
 /// @} precice_module

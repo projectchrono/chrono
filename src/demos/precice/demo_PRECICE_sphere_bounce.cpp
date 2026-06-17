@@ -147,7 +147,7 @@ class ParticipantCFD : public ChPreciceAdapter {
 
 ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
     SetVerbose(verbose);
-    ConfigureParticipant(GetChronoDataFile("precice/sphere_bounce/fluid_buoyancy/cfd_participant.yaml"));
+    ReadParticipantConfigurationYAML(GetChronoDataFile("precice/sphere_bounce/fluid_buoyancy/cfd_participant.yaml"));
 }
 
 ParticipantCFD::~ParticipantCFD() {
@@ -278,6 +278,6 @@ void RunParticipantCFD(const std::string& precice_config_filename, const std::st
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();
-    
+
     participant.PlotResults();
 }

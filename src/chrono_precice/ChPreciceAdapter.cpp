@@ -96,7 +96,7 @@ static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node&
     throw std::runtime_error("Invalid data type");
 }
 
-std::string ChPreciceAdapter::GetParticipantName(const std::string& input_filename) {
+std::string ChPreciceAdapter::ReadParticipantNameYAML(const std::string& input_filename) {
     YAML::Node yaml = YAML::LoadFile(input_filename);
     ChAssertAlways(yaml["precice_adapter_config"]);
     auto config = yaml["precice_adapter_config"];
@@ -104,7 +104,7 @@ std::string ChPreciceAdapter::GetParticipantName(const std::string& input_filena
     return config["participant_name"].as<std::string>();
 }
 
-void ChPreciceAdapter::ConfigureParticipant(const std::string& input_filename) {
+void ChPreciceAdapter::ReadParticipantConfigurationYAML(const std::string& input_filename) {
     // Read YAML input file and search for preCICE adapter configuration
     YAML::Node yaml = YAML::LoadFile(input_filename);
     ChAssertAlways(yaml["precice_adapter_config"]);
@@ -113,6 +113,15 @@ void ChPreciceAdapter::ConfigureParticipant(const std::string& input_filename) {
     // Read participant name from the YAML configuration
     ChAssertAlways(config["participant_name"]);
     m_participant_name = config["participant_name"].as<std::string>();
+
+    // Read configuration of data file specification
+    m_file_handler.SetReferenceDirectory(input_filename);
+    m_file_handler.Read(config);
+
+    // Set angle units
+    m_use_degrees = true;
+    if (config["angle_degrees"])
+        m_use_degrees = config["angle_degrees"].as<bool>();
 
     // Read mesh interfaces and data names for writing and reading from the YAML configuration, and initialize the data maps for each mesh/data pair
     ChAssertAlways(config["interfaces"]);

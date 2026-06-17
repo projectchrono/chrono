@@ -27,6 +27,10 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChUtils.h"
 
+#ifdef CHRONO_HAS_YAML
+    #include "chrono/input_output/ChUtilsYAML.h"
+#endif
+
 #include "precice/precice.hpp"
 
 namespace chrono {
@@ -166,16 +170,19 @@ class ChApiPrecice ChPreciceAdapter {
 
 #ifdef CHRONO_HAS_YAML
     /// Extract the participant name from the specified YAML input file.
-    static std::string GetParticipantName(const std::string& input_filename);
+    static std::string ReadParticipantNameYAML(const std::string& input_filename);
 
-    /// Configure the Chrono participant/solver and its mesh interfaces for use with preCICE, using the specified input file.
-    /// The YAML input file must have a group named "precice_adapter_config" with the following parameters:
-    /// - participant_name: name of the participant or solver
-    /// - interfaces:       list of interfaces, each with the following parameters:
-    ///     - mesh_name:    name of the coupling mesh
-    ///     - read_data:    data to read from preCICE on this mesh
-    ///     - write_data:   data to write to preCICE on this mesh
-    void ConfigureParticipant(const std::string& input_filename);
+    /// Configure the Chrono participant/solver and its mesh interfaces for use with preCICE, using the specified YAML input file.
+    /// The YAML input file must have a group named "precice_adapter_config" with the following members:
+    /// - participant_name [required]: name of the participant or solver
+    /// - `data_path`      [optional]: file handler for data files
+    /// - `angle_degrees`  [optional]: indicate angle units (degrees or radians)
+    /// - `interfaces`     [required]: list of interfaces, each with the following required members:
+    ///     - `mesh_name`:    name of the coupling mesh
+    ///     - `read_data`:    data to read from preCICE on this mesh
+    ///     - `write_data`:   data to write to preCICE on this mesh
+    /// This function creates all coupling meshes and mesh data from the YAML specification.
+    void ReadParticipantConfigurationYAML(const std::string& input_filename);
 #endif
 
     /// Set the participant name.
@@ -336,6 +343,11 @@ class ChApiPrecice ChPreciceAdapter {
     bool m_visualize;          ///< enable/disable run-time visualization
     bool m_output;             ///< enable/disable run-time output
     std::string m_output_dir;  ///< output directory name
+
+#if defined(CHRONO_HAS_YAML)
+    ChYamlFileHandler m_file_handler;  ///< handler for data file paths in YAML file
+    bool m_use_degrees;                ///< angles provided in degrees in YAML file
+#endif
 };
 
 /// @} precice_module
