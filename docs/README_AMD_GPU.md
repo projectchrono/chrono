@@ -10,7 +10,7 @@ This guide is for machines whose **GPUs are AMD** (ROCm userland): **CPU PyChron
 |----------|-------------------|---------------------|
 | **A. CPU PyChrono** (core, vehicle, robot, multibody) | None in Chrono | **Not required**. You may still install **PyTorch ROCm** (or other ML stacks) for separate training code. |
 | **B. HIP FSI / SPH** (continuum GPU physics) | Yes — set **`CHRONO_GPU_BACKEND=HIP`** and enable **`CH_ENABLE_MODULE_FSI`** | Not used; build with **ROCm** (`hipcc`). |
-| **C. Chrono::Sensor** (ray-tracing / OptiX-oriented paths) | N/A | **Not an AMD GPU path** for OptiX features; use non–ray-tracing workflows until upstream documents a maintained alternative. |
+| **C. Chrono::Sensor**  | N/A | TBD. |
 
 If you only need **simulation + Python bindings** next to a **ROCm** ML stack, **workflow A** is usually enough.
 
