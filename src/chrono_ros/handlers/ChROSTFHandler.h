@@ -31,6 +31,15 @@
 #include <variant>
 #include <vector>
 
+// CHRONO_SENSOR comes from Chrono's ChConfig.h (pulled in by ChBody.h above).
+#ifdef CHRONO_SENSOR
+namespace chrono {
+namespace sensor {
+class ChSensor;
+}
+}  // namespace chrono
+#endif
+
 namespace chrono {
 namespace ros {
 
@@ -71,6 +80,17 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
                       const std::string& parent_frame_id,
                       chrono::ChFrame<double> child_frame,
                       const std::string& child_frame_id);
+
+#ifdef CHRONO_SENSOR
+    /// Publish the transform from a sensor's parent body to the sensor's own
+    /// frame (its offset pose). Convenience equivalent to
+    /// AddTransform(sensor->GetParent(), parent_frame_id, sensor->GetOffsetPose(),
+    /// child_frame_id). (Available only with the Chrono::Sensor module; not
+    /// wrapped for Python - use the AddTransform form there.)
+    void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
+                   const std::string& parent_frame_id,
+                   const std::string& child_frame_id);
+#endif
 
   protected:
     /// Recompute and publish all registered transforms.

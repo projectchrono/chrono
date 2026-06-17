@@ -55,7 +55,7 @@ bool ChROSGPSHandler::Initialize(ChROSBridge& bridge) {
 void ChROSGPSHandler::Tick(double time) {
     auto buffer = m_gps->GetMostRecentBuffer<UserGPSBufferPtr>();
     if (!buffer->Buffer) {
-        std::cout << "GPS buffer not ready. Not ticking." << std::endl;
+        std::cout << "GPS: waiting for first fix..." << std::endl;  // normal during warm-up
         return;
     }
 

@@ -55,7 +55,7 @@ bool ChROSMagnetometerHandler::Initialize(ChROSBridge& bridge) {
 void ChROSMagnetometerHandler::Tick(double time) {
     auto buffer = m_imu->GetMostRecentBuffer<UserMagnetBufferPtr>();
     if (!buffer->Buffer) {
-        std::cout << "Magnetometer buffer not ready. Not ticking." << std::endl;
+        std::cout << "Magnetometer: waiting for first sample..." << std::endl;  // normal during warm-up
         return;
     }
 

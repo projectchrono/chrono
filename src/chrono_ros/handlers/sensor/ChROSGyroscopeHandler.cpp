@@ -54,7 +54,7 @@ bool ChROSGyroscopeHandler::Initialize(ChROSBridge& bridge) {
 void ChROSGyroscopeHandler::Tick(double time) {
     auto buffer = m_imu->GetMostRecentBuffer<UserGyroBufferPtr>();
     if (!buffer->Buffer) {
-        std::cout << "Gyroscope buffer not ready. Not ticking." << std::endl;
+        std::cout << "Gyroscope: waiting for first sample..." << std::endl;  // normal during warm-up
         return;
     }
 

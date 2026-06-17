@@ -1232,9 +1232,11 @@ if(CH_ENABLE_MODULE_ROS)
   # The ros module conditionally wraps the sensor handlers (guarded by
   # CHRONO_SENSOR in ChModuleROS.i). SWIG sees -DCHRONO_SENSOR via the global
   # CMAKE_SWIG_FLAGS; the generated wrapper's verbatim "#ifdef CHRONO_SENSOR"
-  # block needs the same define at C++ compile time, plus the sensor library.
+  # block gets the same define at C++ compile time from Chrono's ChConfig.h
+  # (pulled in via the ChSystem header the wrapper includes before the guard) -
+  # no explicit compile-definition needed (adding one only triggers a
+  # "CHRONO_SENSOR redefined" warning against ChConfig.h).
   if(CH_ENABLE_MODULE_SENSOR)
-    target_compile_definitions(ros PRIVATE "CHRONO_SENSOR")
     target_link_libraries(ros PRIVATE Chrono_sensor)
   endif()
 

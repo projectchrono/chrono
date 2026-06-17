@@ -142,13 +142,14 @@ set(CH_ROS_HANDLER_FILES
   handlers/ChROSBodyHandler.cpp
   handlers/ChROSTFHandler.h
   handlers/ChROSTFHandler.cpp
+  handlers/robot/ChROSRobotModelHandler.h
+  handlers/robot/ChROSRobotModelHandler.cpp
 )
 source_group("handlers" FILES ${CH_ROS_HANDLER_FILES})
 list(APPEND CH_ROS_API_FILES ${CH_ROS_HANDLER_FILES})
 
 # Sensor handlers: compiled only when the Chrono::Sensor module is enabled (they
-# accept a ChSensor and read its host buffers). Camera/lidar return in a later
-# Phase-5 batch.
+# accept a ChSensor and read its host buffers).
 set(CH_ROS_SENSOR_HANDLER_FILES "")
 if(CH_ENABLE_MODULE_SENSOR)
   set(CH_ROS_SENSOR_HANDLER_FILES
@@ -163,6 +164,10 @@ if(CH_ENABLE_MODULE_SENSOR)
     handlers/sensor/ChROSGPSHandler.cpp
     handlers/sensor/ChROSIMUHandler.h
     handlers/sensor/ChROSIMUHandler.cpp
+    handlers/sensor/ChROSCameraHandler.h
+    handlers/sensor/ChROSCameraHandler.cpp
+    handlers/sensor/ChROSLidarHandler.h
+    handlers/sensor/ChROSLidarHandler.cpp
   )
   source_group("handlers\\sensor" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
   list(APPEND CH_ROS_API_FILES ${CH_ROS_SENSOR_HANDLER_FILES})

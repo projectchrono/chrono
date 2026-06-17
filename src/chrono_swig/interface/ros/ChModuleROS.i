@@ -67,6 +67,7 @@
 #include "chrono_ros/handlers/ChROSClockHandler.h"
 #include "chrono_ros/handlers/ChROSBodyHandler.h"
 #include "chrono_ros/handlers/ChROSTFHandler.h"
+#include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
 #ifdef CHRONO_SENSOR
 // Sensor handlers + the concrete sensor headers, so the shared_ptr cast helpers
@@ -80,6 +81,23 @@
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
+#endif
+
+#ifdef CHRONO_HAS_OPTIX
+// Camera/lidar handlers + the concrete OptiX sensor headers. Importing
+// ChOptixSensor.i (section C0) emits shared_ptr cast helpers for the whole
+// OptiX-sensor family it wraps (camera, segmentation, depth, lidar, normal,
+// radar, physcam); include their definitions here so those helpers compile.
+#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChSegmentationCamera.h"
+#include "chrono_sensor/sensors/ChDepthCamera.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChNormalCamera.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChPhysCameraSensor.h"
+#include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
+#include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #endif
 
 using namespace chrono;
@@ -121,12 +139,17 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSClockHandler)
 %shared_ptr(chrono::ros::ChROSBodyHandler)
 %shared_ptr(chrono::ros::ChROSTFHandler)
+%shared_ptr(chrono::ros::ChROSRobotModelHandler)
 #ifdef CHRONO_SENSOR
 %shared_ptr(chrono::ros::ChROSAccelerometerHandler)
 %shared_ptr(chrono::ros::ChROSGyroscopeHandler)
 %shared_ptr(chrono::ros::ChROSMagnetometerHandler)
 %shared_ptr(chrono::ros::ChROSGPSHandler)
 %shared_ptr(chrono::ros::ChROSIMUHandler)
+#endif
+#ifdef CHRONO_HAS_OPTIX
+%shared_ptr(chrono::ros::ChROSCameraHandler)
+%shared_ptr(chrono::ros::ChROSLidarHandler)
 #endif
 
 // ---------------------------------------------------------------------------
@@ -155,6 +178,15 @@ using namespace chrono::ros;
 %ignore chrono::ros::ChROSMessage::SetBlobBytes;
 %ignore chrono::ros::ChROSMessageView::GetBlob;
 %ignore chrono::ros::ChROSMessageView::CopyBlob;
+
+#ifdef CHRONO_SENSOR
+// ChROSTFHandler::AddSensor takes a base chrono::sensor::ChSensor. Wrapping it
+// would require importing ChSensor.i (-> ChSensorBuffer.i, whose bare-template
+// SensorBufferT %shared_ptr breaks under %import). Omit it from Python; the same
+// transform is available via AddTransform(sensor.GetParent(), pfid,
+// sensor.GetOffsetPose(), cfid) using already-wrapped types.
+%ignore chrono::ros::ChROSTFHandler::AddSensor;
+#endif
 
 // ---------------------------------------------------------------------------
 // B2 - keep Python director objects alive once C++ owns them
@@ -215,6 +247,14 @@ using namespace chrono::ros;
 %import(module = "pychrono.sensor") "chrono_swig/interface/sensor/ChIMUSensor.i"
 #endif
 
+#ifdef CHRONO_HAS_OPTIX
+// Camera/lidar handler ctors take ChCameraSensor / ChLidarSensor (OptiX sensors),
+// wrapped together in ChOptixSensor.i. It does not pull ChSensorBuffer.i (so no
+// SensorBufferT issue); the cast helpers it emits compile against the OptiX
+// sensor headers #included in the %{ %} block above.
+%import(module = "pychrono.sensor") "chrono_swig/interface/sensor/ChOptixSensor.i"
+#endif
+
 // ---------------------------------------------------------------------------
 // C - include the public headers (base classes before derived/users)
 // ---------------------------------------------------------------------------
@@ -231,6 +271,7 @@ using namespace chrono::ros;
 %include "../../../chrono_ros/handlers/ChROSClockHandler.h"
 %include "../../../chrono_ros/handlers/ChROSBodyHandler.h"
 %include "../../../chrono_ros/handlers/ChROSTFHandler.h"
+%include "../../../chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
 
 #ifdef CHRONO_SENSOR
 %include "../../../chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
@@ -238,6 +279,10 @@ using namespace chrono::ros;
 %include "../../../chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSIMUHandler.h"
+#endif
+#ifdef CHRONO_HAS_OPTIX
+%include "../../../chrono_ros/handlers/sensor/ChROSCameraHandler.h"
+%include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #endif
 
 // ---------------------------------------------------------------------------

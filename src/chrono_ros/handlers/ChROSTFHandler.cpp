@@ -22,6 +22,10 @@
 #include "chrono_ros/ChROSMessage.h"
 #include "chrono_ros/ChROSPublisher.h"
 
+#ifdef CHRONO_SENSOR
+    #include "chrono_sensor/sensors/ChSensor.h"
+#endif
+
 #include <iostream>
 
 namespace chrono {
@@ -65,6 +69,19 @@ void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
     ChFrameTransform child_tf(child_frame, child_frame_id);
     m_transforms.emplace_back(parent_tf, child_tf);
 }
+
+#ifdef CHRONO_SENSOR
+void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
+                              const std::string& parent_frame_id,
+                              const std::string& child_frame_id) {
+    if (!sensor) {
+        std::cerr << "ChROSTFHandler::AddSensor: sensor is null" << std::endl;
+        return;
+    }
+    // The sensor's offset pose is the child frame, expressed in its parent body.
+    AddTransform(sensor->GetParent(), parent_frame_id, sensor->GetOffsetPose(), child_frame_id);
+}
+#endif
 
 void ChROSTFHandler::Tick(double time) {
     auto msg = m_publisher->NewMessage();

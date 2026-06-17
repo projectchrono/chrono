@@ -55,7 +55,7 @@ bool ChROSAccelerometerHandler::Initialize(ChROSBridge& bridge) {
 void ChROSAccelerometerHandler::Tick(double time) {
     auto buffer = m_imu->GetMostRecentBuffer<UserAccelBufferPtr>();
     if (!buffer->Buffer) {
-        std::cout << "Accelerometer buffer not ready. Not ticking." << std::endl;
+        std::cout << "Accelerometer: waiting for first sample..." << std::endl;  // normal during warm-up
         return;
     }
 
