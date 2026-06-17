@@ -22,7 +22,7 @@ If you only need **simulation + Python bindings** next to a **ROCm** ML stack, *
 
 - **CMake** (see [install Chrono](https://api.projectchrono.org/tutorial_install_chrono.html)), **Ninja** (recommended on Linux).
 - **Eigen3** — e.g. `libeigen3-dev` on Debian/Ubuntu, or set `Eigen3_DIR` / `EIGEN3_INCLUDE_DIR` per the core install guide.
-- **SWIG** — required for PyChrono; use a distro package or install a version compatible with your Python.
+- **SWIG** — required for PyChrono; use a distribution package or install a version compatible with your Python.
 
 ### Workflow B (HIP / FSI)
 
