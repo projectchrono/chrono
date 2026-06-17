@@ -40,66 +40,6 @@ ChParserFsiYAML::~ChParserFsiYAML() {}
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<utils::ChBodyGeometry> ChParserFsiYAML::ReadCollisionGeometry(const YAML::Node& a) {
-    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-
-    size_t num_shapes = a.size();
-
-    for (size_t i = 0; i < num_shapes; i++) {
-        const YAML::Node& shape = a[i];
-        ChAssertAlways(shape["type"]);
-        std::string type = ChToUpper(shape["type"].as<std::string>());
-
-        if (type == "SPHERE") {
-            ChAssertAlways(shape["location"]);
-            ChAssertAlways(shape["radius"]);
-            ChVector3d pos = ReadVector(shape["location"]);
-            double radius = shape["radius"].as<double>();
-            geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, -1));
-        } else if (type == "BOX") {
-            ChAssertAlways(shape["location"]);
-            ChAssertAlways(shape["orientation"]);
-            ChAssertAlways(shape["dimensions"]);
-            ChVector3d pos = ReadVector(shape["location"]);
-            ChQuaterniond rot = ReadRotation(shape["orientation"], m_use_degrees);
-            ChVector3d dims = ReadVector(shape["dimensions"]);
-            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims, -1));
-        } else if (type == "CYLINDER") {
-            ChAssertAlways(shape["location"]);
-            ChAssertAlways(shape["axis"]);
-            ChAssertAlways(shape["radius"]);
-            ChAssertAlways(shape["length"]);
-            ChVector3d pos = ReadVector(shape["location"]);
-            ChVector3d axis = ReadVector(shape["axis"]);
-            double radius = shape["radius"].as<double>();
-            double length = shape["length"].as<double>();
-            geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length, -1));
-        } else if (type == "HULL") {
-            ChAssertAlways(shape["filename"]);
-            std::string filename = shape["filename"].as<std::string>();
-            geometry->coll_hulls.push_back(utils::ChBodyGeometry::ConvexHullsShape(m_file_handler.GetFilename(filename), -1));
-        } else if (type == "MESH") {
-            ChAssertAlways(shape["filename"]);
-            std::string filename = shape["filename"].as<std::string>();
-            ChVector3d pos = VNULL;
-            ChQuaterniond rot = QUNIT;
-            double scale = 1;
-            double radius = 0;
-            if (shape["location"])
-                pos = ReadVector(shape["location"]);
-            if (shape["orientation"])
-                rot = ReadRotation(shape["orientation"], m_use_degrees);
-            if (shape["scale"])
-                scale = shape["scale"].as<double>();
-            if (shape["contact_radius"])
-                radius = shape["contact_radius"].as<double>();
-            geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, rot, m_file_handler.GetFilename(filename), scale, radius, -1));
-        }
-    }
-
-    return geometry;
-}
-
 void ChParserFsiYAML::LoadFile(const std::string& yaml_filename) {
     YAML::Node yaml;
 
@@ -178,7 +118,7 @@ void ChParserFsiYAML::LoadFsiData(const YAML::Node& yaml) {
         for (int i = 0; i < fsi_bodies.size(); i++) {
             FsiBody fsi_body;
             fsi_body.name = fsi_bodies[i]["name"].as<std::string>();
-            fsi_body.geometry = ReadCollisionGeometry(fsi_bodies[i]["shapes"]);
+            fsi_body.geometry = ReadCollisionGeometry(fsi_bodies[i]["shapes"], m_file_handler, m_use_degrees);
             m_fsi_bodies.push_back(fsi_body);
         }
     }

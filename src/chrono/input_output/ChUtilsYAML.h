@@ -114,6 +114,26 @@ ChApi ChCoordsysd ReadCoordinateSystem(const YAML::Node& a, bool use_degrees);
 /// Load and return a ChFunction object from the specified node.
 ChApi std::shared_ptr<ChFunction> ReadFunction(const YAML::Node& a, bool use_degrees);
 
+/// Load and return a contact material specification from the specified node.
+ChApi ChContactMaterialData ReadContactMaterialData(const YAML::Node& a);
+
+/// Load and return a ChBodyGeometry from the specified node.
+/// The provided file handler is used to resolve paths to geometry files (e.g., OBJ data).
+/// The boolean `use_degrees` indicates whether angles used for orientation are given in degrees or radians.
+/// Visualization geometry is loaded if requested and if the YAML object has a member "visualization".
+/// Collision geometry is loaded if requested and if the YAML object has a member "contact".
+/// Contact material information is loaded if requested and if the "contact" object has a member "materials".
+ChApi std::shared_ptr<utils::ChBodyGeometry> ReadBodyGeometry(const YAML::Node& a,
+                                                              ChYamlFileHandler& file_handler,
+                                                              bool use_degrees,
+                                                              bool read_visualization = true,
+                                                              bool read_collision = true,
+                                                              bool read_contact_materials = true);
+
+/// Load and return a ChBodyGeometry with collision shapes from the specified node.
+/// Note that the returned ChBodyGeometry object has no contact materials and no visualization shapes.
+ChApi std::shared_ptr<utils::ChBodyGeometry> ReadCollisionGeometry(const YAML::Node& a, ChYamlFileHandler& file_handler, bool use_degrees);
+
 /// Load and return a ChColor from the specified node.
 ChApi ChColor ReadColor(const YAML::Node& a);
 

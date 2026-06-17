@@ -406,9 +406,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     };
 
   private:
-    /// Load and return a contact material specification from the specified node.
-    ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
-
     /// Load and return bushing data from the specified node.
     std::shared_ptr<ChJoint::BushingData> ReadBushingData(const YAML::Node& bd);
 
@@ -417,11 +414,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     /// Load and return joint coordinate system from the specified node.
     ChFramed ReadJointFrame(const YAML::Node& a);
-
-    /// Load and return a geometry structure from the specified node.
-    /// Collision geometry and contact material information is set in the return ChBodyGeometry object if the given
-    /// object has a member "Contact". Visualization geometry is loaded if the object has a member "Visualization".
-    std::shared_ptr<utils::ChBodyGeometry> ReadGeometry(const YAML::Node& d);
 
     /// Load and return a TSDA geometry structure from the specified node.
     std::shared_ptr<utils::ChTSDAGeometry> ReadTSDAGeometry(const YAML::Node& d);

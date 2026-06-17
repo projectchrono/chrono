@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
         instance2 = parser.Populate(*sys, frame2, prefix2);
 
     // Print hierarchy of modeling components in ChSystem
-    ////std::cout << "Number of moidel instances: " << parser.GetNumInstances() << std::endl;
+    ////std::cout << "Number of model instances: " << parser.GetNumInstances() << std::endl;
     ////sys->ShowHierarchy(std::cout);
 
     // Extract information from parsed YAML files

@@ -352,7 +352,7 @@ void ChParserMbsYAML::LoadModelData(const YAML::Node& yaml) {
             body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
         if (bodies[i]["inertia"]["products"])
             body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
-        body.geometry = ReadGeometry(bodies[i]);
+        body.geometry = ReadBodyGeometry(bodies[i], m_file_handler, m_use_degrees);
 
         if (m_verbose)
             body.PrintInfo(name);
@@ -1551,35 +1551,6 @@ void ChParserMbsYAML::MotorParams::PrintInfo(const std::string& name) {
 
 // =============================================================================
 
-ChContactMaterialData ChParserMbsYAML::ReadMaterialData(const YAML::Node& mat) {
-    ChContactMaterialData minfo;
-
-    if (mat["coefficient_of_friction"])
-        minfo.mu = mat["coefficient_of_friction"].as<float>();
-    if (mat["coefficient_of_restitution"])
-        minfo.cr = mat["coefficient_of_restitution"].as<float>();
-
-    if (mat["physical_properties"]) {
-        ChAssertAlways(mat["physical_properties"]["Young_modulus"]);
-        ChAssertAlways(mat["physical_properties"]["Poisson_ratio"]);
-        minfo.Y = mat["physical_properties"]["Young_modulus"].as<float>();
-        minfo.nu = mat["physical_properties"]["Poisson_ratio"].as<float>();
-    }
-
-    if (mat["coefficients"]) {
-        ChAssertAlways(mat["coefficients"]["normal_stiffness"]);
-        ChAssertAlways(mat["coefficients"]["normal_damping"]);
-        ChAssertAlways(mat["coefficients"]["tangential_stiffness"]);
-        ChAssertAlways(mat["coefficients"]["tangential_damping"]);
-        minfo.kn = mat["coefficients"]["normal_stiffness"].as<float>();
-        minfo.gn = mat["coefficients"]["normal_damping"].as<float>();
-        minfo.kt = mat["coefficients"]["tangential_stiffness"].as<float>();
-        minfo.gt = mat["coefficients"]["tangential_damping"].as<float>();
-    }
-
-    return minfo;
-}
-
 ChJoint::Type ChParserMbsYAML::ReadJointType(const YAML::Node& a) {
     std::string type = ChToUpper(a.as<std::string>());
     if (type == "LOCK") {
@@ -1661,164 +1632,6 @@ std::shared_ptr<ChJoint::BushingData> ChParserMbsYAML::ReadBushingData(const YAM
 }
 
 // -----------------------------------------------------------------------------
-
-int FindMaterial(const std::string& name, const std::unordered_map<std::string, size_t> materials) {
-    auto m = materials.find(name);
-    if (m == materials.end()) {
-        cerr << "Cannot find contact material with name: " << name << endl;
-        throw std::runtime_error("Invalid contact material name");
-    }
-    return (int)m->second;
-}
-
-std::shared_ptr<utils::ChBodyGeometry> ChParserMbsYAML::ReadGeometry(const YAML::Node& d) {
-    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-
-    // Read contact information
-    if (d["contact"]) {
-        ChAssertAlways(d["contact"]["materials"]);
-        ChAssertAlways(d["contact"]["shapes"]);
-
-        // Read contact material information
-        ChAssertAlways(d["contact"]["materials"].IsSequence());
-        size_t num_mats = d["contact"]["materials"].size();
-
-        std::unordered_map<std::string, size_t> materials;
-        for (size_t i = 0; i < num_mats; i++) {
-            ChAssertAlways(d["contact"]["materials"][i]["name"]);
-            ChContactMaterialData mat_data = ChParserMbsYAML::ReadMaterialData(d["contact"]["materials"][i]);
-            geometry->materials.push_back(mat_data);
-            materials.insert({d["contact"]["materials"][i]["name"].as<std::string>(), i});
-        }
-
-        // Read contact shapes
-        ChAssertAlways(d["contact"]["shapes"].IsSequence());
-        size_t num_shapes = d["contact"]["shapes"].size();
-
-        for (size_t i = 0; i < num_shapes; i++) {
-            const YAML::Node& shape = d["contact"]["shapes"][i];
-            ChAssertAlways(shape["type"]);
-            ChAssertAlways(shape["material"]);
-            std::string type = ChToUpper(shape["type"].as<std::string>());
-            int matID = FindMaterial(shape["material"].as<std::string>(), materials);
-
-            if (type == "SPHERE") {
-                ChAssertAlways(shape["location"]);
-                ChAssertAlways(shape["radius"]);
-                ChVector3d pos = ReadVector(shape["location"]);
-                double radius = shape["radius"].as<double>();
-                geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, matID));
-            } else if (type == "BOX") {
-                ChAssertAlways(shape["location"]);
-                ChAssertAlways(shape["orientation"]);
-                ChAssertAlways(shape["dimensions"]);
-                ChVector3d pos = ReadVector(shape["location"]);
-                ChQuaterniond rot = ReadRotation(shape["orientation"], m_use_degrees);
-                ChVector3d dims = ReadVector(shape["dimensions"]);
-                geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims, matID));
-            } else if (type == "CYLINDER") {
-                ChAssertAlways(shape["location"]);
-                ChAssertAlways(shape["axis"]);
-                ChAssertAlways(shape["radius"]);
-                ChAssertAlways(shape["length"]);
-                ChVector3d pos = ReadVector(shape["location"]);
-                ChVector3d axis = ReadVector(shape["axis"]);
-                double radius = shape["radius"].as<double>();
-                double length = shape["length"].as<double>();
-                geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length, matID));
-            } else if (type == "HULL") {
-                ChAssertAlways(shape["filename"]);
-                std::string filename = shape["filename"].as<std::string>();
-                geometry->coll_hulls.push_back(utils::ChBodyGeometry::ConvexHullsShape(m_file_handler.GetFilename(filename), matID));
-            } else if (type == "MESH") {
-                ChAssertAlways(shape["filename"]);
-                std::string filename = shape["filename"].as<std::string>();
-                ChVector3d pos = VNULL;
-                ChQuaterniond rot = QUNIT;
-                double scale = 1;
-                double radius = 0;
-                if (shape["location"])
-                    pos = ReadVector(shape["location"]);
-                if (shape["orientation"])
-                    rot = ReadRotation(shape["orientation"], m_use_degrees);
-                if (shape["scale"])
-                    scale = shape["scale"].as<double>();
-                if (shape["contact_radius"])
-                    radius = shape["contact_radius"].as<double>();
-                geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, rot, m_file_handler.GetFilename(filename), scale, radius, matID));
-            }
-        }
-    }
-
-    // Read visualization
-    if (d["visualization"]) {
-        if (d["visualization"]["model_file"]) {
-            std::string filename = d["visualization"]["model_file"].as<std::string>();
-            geometry->vis_model_file = m_file_handler.GetFilename(filename);
-        }
-        if (d["visualization"]["shapes"]) {
-            ChAssertAlways(d["visualization"]["shapes"].IsSequence());
-            size_t num_shapes = d["visualization"]["shapes"].size();
-
-            for (size_t i = 0; i < num_shapes; i++) {
-                const YAML::Node& shape = d["visualization"]["shapes"][i];
-                std::string type = ChToUpper(shape["type"].as<std::string>());
-                ChColor color(-1, -1, -1);
-                if (shape["color"]) {
-                    color = ReadColor(shape["color"]);
-                }
-                if (type == "SPHERE") {
-                    ChAssertAlways(shape["location"]);
-                    ChAssertAlways(shape["radius"]);
-                    ChVector3d pos = ReadVector(shape["location"]);
-                    double radius = shape["radius"].as<double>();
-                    auto sphere = utils::ChBodyGeometry::SphereShape(pos, radius);
-                    sphere.color = color;
-                    geometry->vis_spheres.push_back(sphere);
-                } else if (type == "BOX") {
-                    ChAssertAlways(shape["location"]);
-                    ChAssertAlways(shape["orientation"]);
-                    ChAssertAlways(shape["dimensions"]);
-                    ChVector3d pos = ReadVector(shape["location"]);
-                    ChQuaterniond rot = ReadRotation(shape["orientation"], m_use_degrees);
-                    ChVector3d dims = ReadVector(shape["dimensions"]);
-                    auto box = utils::ChBodyGeometry::BoxShape(pos, rot, dims);
-                    box.color = color;
-                    geometry->vis_boxes.push_back(box);
-                } else if (type == "CYLINDER") {
-                    ChAssertAlways(shape["location"]);
-                    ChAssertAlways(shape["axis"]);
-                    ChAssertAlways(shape["radius"]);
-                    ChAssertAlways(shape["length"]);
-                    ChVector3d pos = ReadVector(shape["location"]);
-                    ChVector3d axis = ReadVector(shape["axis"]);
-                    double radius = shape["radius"].as<double>();
-                    double length = shape["length"].as<double>();
-                    auto cylinder = utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length);
-                    cylinder.color = color;
-                    geometry->vis_cylinders.push_back(cylinder);
-                } else if (type == "MESH") {
-                    ChAssertAlways(shape["filename"]);
-                    std::string filename = shape["filename"].as<std::string>();
-                    ChVector3d pos = VNULL;
-                    ChQuaterniond rot = QUNIT;
-                    double scale = 1;
-                    if (shape["location"])
-                        pos = ReadVector(shape["location"]);
-                    if (shape["orientation"])
-                        rot = ReadRotation(shape["orientation"], m_use_degrees);
-                    if (shape["scale"])
-                        scale = shape["scale"].as<double>();
-                    auto mesh = utils::ChBodyGeometry::TrimeshShape(pos, rot, m_file_handler.GetFilename(filename), scale);
-                    mesh.color = color;
-                    geometry->vis_meshes.push_back(mesh);
-                }
-            }
-        }
-    }
-
-    return geometry;
-}
 
 std::shared_ptr<utils::ChTSDAGeometry> ChParserMbsYAML::ReadTSDAGeometry(const YAML::Node& d) {
     auto geometry = chrono_types::make_shared<utils::ChTSDAGeometry>();

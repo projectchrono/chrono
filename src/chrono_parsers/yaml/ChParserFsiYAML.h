@@ -119,8 +119,6 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
         bool enable_shadows;
     };
 
-    std::shared_ptr<utils::ChBodyGeometry> ReadCollisionGeometry(const YAML::Node& a);
-
     std::shared_ptr<ChParserMbsYAML> m_parserMBS;
     std::shared_ptr<ChParserCfdYAML> m_parserCFD;
 
