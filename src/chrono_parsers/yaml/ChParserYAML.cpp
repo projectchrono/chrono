@@ -87,8 +87,8 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
 
     m_output_dir = out_dir;
 
-    if (m_verbose) {
-        auto filename = m_output_dir + "/" + m_name;
+    if (m_verbose && m_output.format != ChOutput::Format::NONE) {
+        auto filename = m_output_dir + "/" + m_name + "." + ChOutput::GetModeAsString(m_output.mode);
         switch (m_output.format) {
             case ChOutput::Format::ASCII:
                 filename += ".txt";
@@ -140,6 +140,64 @@ void ChParserYAML::WriteOutput(int frame, double time) {
                 return;
 #endif
         }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+ChParserYAML::VisParams::VisParams()
+    : render(false),
+      render_fps(120),
+      camera_vertical(CameraVerticalDir::Z),
+      camera_location({0, -1, 0}),
+      camera_target({0, 0, 0}),
+      enable_shadows(true),
+      write_images(false),
+      image_dir(".") {}
+
+void ChParserYAML::VisParams::PrintInfo() {
+    if (!render) {
+        cout << "no run-time visualization" << endl;
+        return;
+    }
+
+    cout << "run-time visualization" << endl;
+    cout << "  render FPS:           " << render_fps << endl;
+    cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
+    cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+    cout << "  camera location:      " << camera_location << endl;
+    cout << "  camera target:        " << camera_target << endl;
+}
+
+void ChParserYAML::ReadVisParams(const YAML::Node& a) {
+    m_vis.render = true;
+    if (a["render_fps"])
+        m_vis.render_fps = a["render_fps"].as<double>();
+    if (a["enable_shadows"])
+        m_vis.enable_shadows = a["enable_shadows"].as<bool>();
+    if (a["camera"]) {
+        if (a["camera"]["vertical"]) {
+            auto camera_vertical = ChToUpper(a["camera"]["vertical"].as<std::string>());
+            if (camera_vertical == "Y")
+                m_vis.camera_vertical = CameraVerticalDir::Y;
+            else if (camera_vertical == "Z")
+                m_vis.camera_vertical = CameraVerticalDir::Z;
+            else {
+                cerr << "Incorrect camera vertical " << a["camera"]["vertical"].as<std::string>() << endl;
+                throw std::runtime_error("Incorrect camera vertical");
+            }
+        }
+        if (a["camera"]["location"])
+            m_vis.camera_location = ReadVector(a["camera"]["location"]);
+        if (a["camera"]["target"])
+            m_vis.camera_target = ReadVector(a["camera"]["target"]);
+    }
+    if (a["output"]) {
+        auto b = a["output"];
+        if (b["save_images"])
+            m_vis.write_images = b["save_images"].as<bool>();
+        if (b["output_directory"])
+            m_vis.image_dir = b["output_directory"].as<std::string>();
     }
 }
 

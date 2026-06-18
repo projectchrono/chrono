@@ -36,6 +36,3 @@ visualization:
        smoothing_length: 2.0
        cube_size: 0.3
        surface_threshold: 0.6
-    output:
-       save_images: false
-       output_directory: "."

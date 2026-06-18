@@ -143,32 +143,7 @@ void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis.render = true;
-        auto vis = yaml["visualization"];
-        ChAssertAlways(vis["render_fps"]);
-        m_vis.render_fps = vis["render_fps"].as<double>();
-        if (vis["enable_shadows"])
-            m_vis.enable_shadows = vis["enable_shadows"].as<bool>();
-        if (vis["camera"]) {
-            if (vis["camera"]["vertical"]) {
-                auto camera_vertical = ChToUpper(vis["camera"]["vertical"].as<std::string>());
-                if (camera_vertical == "Y")
-                    m_vis.camera_vertical = CameraVerticalDir::Y;
-                else if (camera_vertical == "Z")
-                    m_vis.camera_vertical = CameraVerticalDir::Z;
-                else {
-                    cerr << "Incorrect camera vertical " << vis["camera"]["vertical"].as<std::string>() << endl;
-                    throw std::runtime_error("Incorrect camera vertical");
-                }
-            }
-            if (vis["camera"]["location"])
-                m_vis.camera_location = ReadVector(vis["camera"]["location"]);
-            if (vis["camera"]["target"])
-                m_vis.camera_target = ReadVector(vis["camera"]["target"]);
-        }
-
-    } else {
-        m_vis.render = false;
+        ReadVisParams(yaml["visualization"]);
     }
 
     if (m_verbose) {
@@ -276,9 +251,29 @@ void ChParserFsiYAML::CreateFsiSystem() {
 
 // -----------------------------------------------------------------------------
 
+bool ChParserFsiYAML::Render() const {
+    if (!ChParserYAML::Render())
+        return false;
+
+    if (m_parserMBS && m_parserMBS->Render())
+        return true;
+
+    if (m_parserCFD && m_parserCFD->Render())
+        return true;
+
+    return false;
+}
+
 bool ChParserFsiYAML::Output() const {
-    if (m_parserMBS && m_parserCFD)
-        return m_parserMBS->Output() || m_parserCFD->Output();
+    if (!ChParserYAML::Output())
+        return false;
+
+    if (m_parserMBS && m_parserMBS->Output())
+        return true;
+
+    if (m_parserCFD && m_parserCFD->Output())
+        return true;
+
     return false;
 }
 
@@ -315,23 +310,6 @@ void ChParserFsiYAML::SimParams::PrintInfo() {
     cout << "   co-sim meta-step:  " << step << endl;
     cout << "   end time:          " << (end_time > 0 ? std::to_string(end_time) : "undefined") << endl;
     cout << "   gravitational acc: " << gravity << endl;
-}
-
-ChParserFsiYAML::VisParams::VisParams()
-    : render(false), render_fps(120), camera_vertical(CameraVerticalDir::Z), camera_location({0, -1, 0}), camera_target({0, 0, 0}), enable_shadows(true) {}
-
-void ChParserFsiYAML::VisParams::PrintInfo() {
-    if (!render) {
-        cout << "no run-time visualization" << endl;
-        return;
-    }
-
-    cout << "run-time visualization" << endl;
-    cout << "  render FPS:           " << render_fps << endl;
-    cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
-    cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
-    cout << "  camera location:      " << camera_location << endl;
-    cout << "  camera target:        " << camera_target << endl;
 }
 
 }  // namespace parsers

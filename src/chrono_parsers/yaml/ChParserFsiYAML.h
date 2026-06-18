@@ -75,18 +75,12 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     virtual void SetOutputDir(const std::string& out_dir) override;
 
     /// Return true if generating output.
+    /// This function returns true only if output is enabled for at least one of the two phases (MBS or CFD). 
     virtual bool Output() const override;
 
-    /// Indicate whether to enable run-time visualization.
-    bool Render() const { return m_vis.render; }
-
-    /// Return frequency (frames-per-second) for run-time visualization rendering.
-    double GetRenderFPS() const { return m_vis.render_fps; }
-
-    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
-    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
-    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
-    bool EnableShadows() const { return m_vis.enable_shadows; }
+    /// Return true if visualization is enabled.
+    /// This function returns true only if visualization is enabled for at least one of the two phases (MBS or CFD).
+    virtual bool Render() const override;
 
   private:
     /// FSI rigid body definition.
@@ -106,19 +100,6 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
         ChVector3d gravity;
     };
 
-    /// Run-time visualization settings.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
-
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
-        ChVector3d camera_location;
-        ChVector3d camera_target;
-        bool enable_shadows;
-    };
-
     std::shared_ptr<ChParserMbsYAML> m_parserMBS;
     std::shared_ptr<ChParserCfdYAML> m_parserCFD;
 
@@ -131,8 +112,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
 
     std::vector<FsiBody> m_fsi_bodies;
 
-    SimParams m_sim; ///< co-simulation settings
-        VisParams m_vis;  ///< visualization settings
+    SimParams m_sim;  ///< co-simulation settings
 };
 
 /// @} parsers_module

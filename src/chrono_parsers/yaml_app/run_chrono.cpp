@@ -395,19 +395,20 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
+
     bool render = parser.Render() && !disable_vis;
     double render_fps = parser.GetRenderFPS();
-
-    auto& parserMBS = parser.GetMbsParser();
     CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
     const ChVector3d& camera_location = parser.GetCameraLocation();
     const ChVector3d& camera_target = parser.GetCameraTarget();
-    bool output_MBS = parserMBS.Output() && !disable_output;
-    double output_fps_MBS = parser.GetOutputFPS();
+
+    auto& parserMBS = parser.GetMbsParser();
+    bool output_MBS = parser.Output() && parserMBS.Output() && !disable_output;
+    double output_fps_MBS = parserMBS.GetOutputFPS();
 
     auto& parserCFD = parser.GetCfdParser();
-    bool output_CFD = parserCFD.Output() && !disable_output;
-    double output_fps_CFD = parser.GetOutputFPS();
+    bool output_CFD = parser.Output() && parserCFD.Output() && !disable_output;
+    double output_fps_CFD = parserCFD.GetOutputFPS();
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;

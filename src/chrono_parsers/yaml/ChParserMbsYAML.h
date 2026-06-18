@@ -20,7 +20,6 @@
 
 #include "chrono_parsers/yaml/ChParserYAML.h"
 
-#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/functions/ChFunction.h"
 #include "chrono/utils/ChBodyGeometry.h"
@@ -128,13 +127,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
 
-    bool Render() const { return m_vis.render; }
-    double GetRenderFPS() const { return m_vis.render_fps; }
-    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
-    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
-    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
-    bool EnableShadows() const { return m_vis.enable_shadows; }
-
     // --------------
 
     /// Populate the given system with the cached Chrono components.
@@ -235,20 +227,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         int max_iterations;
         bool use_stepsize_control;
         bool use_modified_newton;
-    };
-
-    /// Run-time visualization parameters.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
-
-        VisualizationType type;
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
-        ChVector3d camera_location;
-        ChVector3d camera_target;
-        bool enable_shadows;
     };
 
     /// Simulation and run-time visualization parameters.
@@ -452,7 +430,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
   private:
     SimParams m_sim;  ///< solver and integrator parameters
-    VisParams m_vis;  ///< visualization parameters
 
     std::unordered_map<std::string, BodyParams> m_body_params;                     ///< bodies
     std::unordered_map<std::string, JointParams> m_joint_params;                   ///< joints
@@ -468,6 +445,8 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     std::shared_ptr<ChSystem> m_sys;
     ChRealtimeStepTimer m_rt_timer;
+
+    VisualizationType m_vis_type;  ///< body visualization type
 
     ChAssembly::Components m_output_components;  ///< output data
 

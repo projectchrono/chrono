@@ -46,3 +46,6 @@ visualization:
     vertical: Z
     location: [1.5, -1.5, 0.5]
     target: [0, 0, 0.0]
+  output:
+    save_images: false
+    output_directory: "."

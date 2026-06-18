@@ -43,7 +43,7 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-// PID controller for an inverted pendulum, implementing bothh the ChLoadController and ChMotorController interfaces.
+// PID controller for an inverted pendulum, implementing both the ChLoadController and ChMotorController interfaces.
 // This controller can therefore be used to either set a body load controller or a motor actuation.
 class InvertedPendulumController : public parsers::ChLoadController, public parsers::ChMotorController {
   public:

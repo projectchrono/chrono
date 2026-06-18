@@ -75,7 +75,6 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
 
     // --------------
 
-    bool Render() const { return m_vis.render; }
 #ifdef CHRONO_VSG
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
 #endif
@@ -85,28 +84,24 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     /// Write simulation output results at the current time.
     virtual void WriteOutput(int frame, double time) override;
 
-  private:  // ---- Data structures
+  private:
     enum class WaveColoringType { NONE, HEIGHT, VELOCITY };
 
     /// Wave types.
     enum class WaveType { NONE, REGULAR, IRREGULAR };
 
-    /// Run-time visualization parameters.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
+    /// TDPF visualization parameters.
+    struct VisParamsTdpf {
+        VisParamsTdpf();
+        void PrintInfo() const;
 
-        bool render;
-
-#ifdef CHRONO_VSG
-        fsi::tdpf::ChTdpfVisualizationVSG::ColorMode mode;  ///< mode for wave false coloring
-#endif
         ChColormap::Type colormap;  ///< colormap for wave false coloring
         ChVector2d range;           ///< data range for false coloring
         double update_fps;          ///< wave mesh update frequency (in FPS)
 
-        bool write_images;      ///< if true, save snapshots
-        std::string image_dir;  ///< directory for image files
+#ifdef CHRONO_VSG
+        fsi::tdpf::ChTdpfVisualizationVSG::ColorMode mode;  ///< mode for wave false coloring
+#endif
     };
 
     /// Output database.
@@ -116,14 +111,17 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
 
   private:
     static WaveType ReadWaveType(const YAML::Node& a);
+
 #ifdef CHRONO_VSG
+    void ReadVisParamsTdpf(const YAML::Node& a);
     static fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ReadWaveColoringMode(const YAML::Node& a);
 #endif
 
-    RegularWaveParams m_reg_wave_params;
-    IrregularWaveParams m_irreg_wave_params;
+  private:
+    RegularWaveParams m_reg_wave_params;      ///< regular wave settings
+    IrregularWaveParams m_irreg_wave_params;  ///< irregular wave settings
 
-    VisParams m_vis;                                             ///< visualization parameters
+    VisParamsTdpf m_visTDPF;                                     ///< TDPF visualization settings
     OutputData m_output_data;                                    ///< output data
     std::string m_h5_file;                                       ///< hydrodynamics input file (HDF5 format)
     ChVector3d m_gravity;                                        ///< gravitational acceleration

@@ -17,8 +17,9 @@
 
 #include "chrono_parsers/ChApiParsers.h"
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/input_output/ChUtilsYAML.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace parsers {
@@ -57,6 +58,15 @@ class ChApiParsers ChParserYAML {
     /// Return the output frequency.
     virtual double GetOutputFPS() const { return m_output.fps; }
 
+    /// Return true if visualization is enabled.
+    virtual bool Render() const { return m_vis.render; }
+
+    double GetRenderFPS() const { return m_vis.render_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
+    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
+    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
+    bool EnableShadows() const { return m_vis.enable_shadows; }
+
     /// Write simulation output results at the current time.
     /// This base class implementation creates and initializes the output database. Derived classes must
     virtual void WriteOutput(int frame, double time);
@@ -76,8 +86,27 @@ class ChApiParsers ChParserYAML {
         double fps;
     };
 
+    /// Run-time visualization parameters.
+    struct VisParams {
+        VisParams();
+        void PrintInfo();
+
+        bool render;
+        double render_fps;
+        CameraVerticalDir camera_vertical;
+        ChVector3d camera_location;
+        ChVector3d camera_target;
+        bool enable_shadows;
+
+        bool write_images;      ///< if true, save snapshots
+        std::string image_dir;  ///< directory for image files
+    };
+
     /// Read output settings from specified YAML node.
     void ReadOutputParams(const YAML::Node& a);
+
+    /// Read visualization settings from specified YAML node.
+    void ChParserYAML::ReadVisParams(const YAML::Node& a);
 
     /// Read the YAML file type.
     static YamlFileType ReadYamlFileType(const YAML::Node& a);
@@ -85,6 +114,8 @@ class ChApiParsers ChParserYAML {
     std::string m_name;  ///< name of the YAML model
     bool m_verbose;      ///< verbose terminal output (default: false)
     bool m_use_degrees;  ///< all angles given in degrees (default: true)
+
+    VisParams m_vis;  ///< visualization parameters
 
     OutputParameters m_output;              ///< output parameters
     std::string m_output_dir;               ///< root output directory

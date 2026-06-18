@@ -33,3 +33,6 @@ visualization:
     vertical: Z
     location: [20, -60, 20]
     target: [0, 0, 0]
+  output:
+    save_images: false
+    output_directory: "."
