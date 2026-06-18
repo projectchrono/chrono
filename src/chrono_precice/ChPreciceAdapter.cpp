@@ -19,6 +19,11 @@
     #include "chrono/input_output/ChUtilsYAML.h"
 #endif
 
+#include "chrono/input_output/ChOutputASCII.h"
+#ifdef CHRONO_HAS_HDF5
+    #include "chrono/input_output/ChOutputHDF5.h"
+#endif
+
 #include "chrono_precice/ChPreciceAdapter.h"
 
 using std::cout;
@@ -28,8 +33,9 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapter::ChPreciceAdapter()
-    : m_participant(nullptr),
+ChPreciceAdapter::ChPreciceAdapter(const std::string& model_name)
+    : m_model_name(model_name),
+      m_participant(nullptr),
       m_process_index(0),
       m_process_size(1),
       m_interfaces_created(false),
@@ -49,6 +55,14 @@ void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
     }
 
     m_output_dir = out_dir;
+}
+
+ChPreciceAdapter::OutputParameters::OutputParameters() : format(ChOutput::Format::ASCII), mode(ChOutput::Mode::SERIES), fps(100) {}
+
+void ChPreciceAdapter::SetOutputParameters(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
+    m_output_params.format = format;
+    m_output_params.mode = mode;
+    m_output_params.fps = output_fps;
 }
 
 // -----------------------------------------------------------------------------
@@ -483,6 +497,26 @@ void ChPreciceAdapter::AdvanceParticipant(double time, double time_step) {
 void ChPreciceAdapter::FinalizeParticipant() {
     if (m_verbose)
         cout << m_prefix1 << "Shutdown" << endl;
+}
+
+void ChPreciceAdapter::WriteOutput(int frame, double time) {
+    // Create the output DB if needed
+    if (!m_output_db) {
+        switch (m_output_params.format) {
+            case ChOutput::Format::ASCII:
+                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output_params.mode);
+                break;
+            case ChOutput::Format::HDF5:
+#ifdef CHRONO_HAS_HDF5
+                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output_params.mode);
+                break;
+#else
+                return;
+#endif
+            case ChOutput::Format::NONE:
+                break;
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

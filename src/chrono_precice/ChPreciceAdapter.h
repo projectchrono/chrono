@@ -78,6 +78,18 @@ class ChApiPrecice ChPreciceAdapter {
     /// The specified directory must exist.
     void SetOutputDir(const std::string& out_dir);
 
+    /// Set Chrono simulation output parameters.
+    void SetOutputParameters(ChOutput::Format format,  ///< output DB format
+                             ChOutput::Mode mode,      ///< output mode
+                             double output_fps         ///< output frequency
+    );
+
+    /// Set the Chrono model name.
+    void SetModelName(const std::string& name) { m_model_name = name; }
+
+    /// Get the name of the Chrono model.
+    const std::string& GetModelName() const { return m_model_name; }
+
     // ---- preCICE participant registration
 
     /// Register the participant with preCICE, using the specified preCICE configuration file, and the solver process size and index.
@@ -162,7 +174,7 @@ class ChApiPrecice ChPreciceAdapter {
     void FinalizeSimulation();
 
   protected:
-    ChPreciceAdapter();
+    ChPreciceAdapter(const std::string& model_name = "");
     ChPreciceAdapter(const ChPreciceAdapter&) = delete;
     void operator=(const ChPreciceAdapter&) = delete;
 
@@ -290,6 +302,11 @@ class ChApiPrecice ChPreciceAdapter {
     /// This function is called before the preCICE coupling is finalized.
     virtual void FinalizeParticipant();
 
+    /// Write output from the Chrono preCICE participant.
+    /// This base class creates the output DB if necessary.
+    /// Derived classes must first call the base class implementation and then write output to the DB.
+    virtual void WriteOutput(int frame, double time);
+
     // ---- Utility functions
 
     /// Convert a vector of ChVector2d to a vector of doubles in the format (x0, y0, x1, y1, ...).
@@ -322,6 +339,16 @@ class ChApiPrecice ChPreciceAdapter {
     /// Data type to hold data names associated with a given mesh name.
     using MeshDataNames = std::map<std::string, std::vector<std::string>>;
 
+    /// Chrono simulation output parameters.
+    struct OutputParameters {
+        OutputParameters();
+        ChOutput::Format format;
+        ChOutput::Mode mode;
+        double fps;
+    };
+
+    std::string m_model_name;  ///< Chrono model name
+
     std::unique_ptr<precice::Participant> m_participant;  ///< preCICE instance
     std::string m_participant_name;                       ///< name of the participant/solver
     int m_process_size;                                   ///< number of processes used by an instance of this solver
@@ -340,9 +367,12 @@ class ChApiPrecice ChPreciceAdapter {
     std::string m_prefix1;  ///< prefix for terminal messages (first line)
     std::string m_prefix2;  ///< prefix for terminal messages (subsequent lines)
 
-    bool m_visualize;          ///< enable/disable run-time visualization
-    bool m_output;             ///< enable/disable run-time output
-    std::string m_output_dir;  ///< output directory name
+    bool m_visualize;  ///< enable/disable run-time visualization
+
+    bool m_output;                          ///< enable/disable run-time output
+    std::string m_output_dir;               ///< output directory name
+    OutputParameters m_output_params;       ///< output specification
+    std::unique_ptr<ChOutput> m_output_db;  ///< output database
 
 #if defined(CHRONO_HAS_YAML)
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths in YAML file

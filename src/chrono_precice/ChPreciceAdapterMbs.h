@@ -72,11 +72,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     /// Get underlying Chrono multibody system.
     ChSystem& GetSystem() { return *m_sys; }
 
-    /// Set the Chrono MBS model name.
-    /// Notes:
-    /// - if the MBS preCICE participant is created from a YAML specification file, the model name is read from that file.
-    void SetModelName(const std::string& name) { m_model_name = name; }
-
     /// Set Chrono MBS run-time visualization parameters.
     /// Notes:
     /// - run-time visualization requires the Chrono::VSG module.
@@ -87,18 +82,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
                                     const ChVector3d& camera_target,    ///< initial camera look-at point
                                     bool enable_shadows                 ///< enable dynamic shadows
     );
-
-    /// Set Chrono MBS simulation output parameters.
-    /// Notes:
-    /// - output is generated for all coupling bodies and FEA meshes.
-    /// - if the MBS preCICE participant is created from a YAML specification file, output parameters are read from that file.
-    void SetOutputParameters(ChOutput::Format format,  ///< output DB format
-                             ChOutput::Mode mode,      ///< output mode
-                             double output_fps         ///< output frequency
-    );
-
-    /// Get the name of the Chrono MBS model.
-    const std::string& GetModelName() const { return m_model_name; }
 
     /// Enable/disable soft real-time for MBS simulation (default: false).
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
@@ -162,14 +145,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     };
 #endif
 
-    /// Chrono MBS simulation output parameters.
-    struct OutputParameters {
-        OutputParameters();
-        ChOutput::Format format;
-        ChOutput::Mode mode;
-        double fps;
-    };
-
     /// Chrono MBS simulation run-time visualization parameters.
     struct VisParameters {
         VisParameters();
@@ -189,6 +164,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
     virtual void WriteData() override;
+    virtual void WriteOutput(int frame, double time) override;
 
     void ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
@@ -196,9 +172,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
-    void WriteOutput(int frame, double time);
-
-    std::string m_model_name;         ///< name of the Chrono MBS model
     std::shared_ptr<ChSystem> m_sys;  ///< underlying Chrono system
     double m_time_step;               ///< integration step size
     bool m_enforce_realtime;          ///< flag indicating soft real-time
@@ -223,10 +196,8 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualization system
 #endif
 
-    // Output
-    OutputParameters m_output_params;       ///< output specification
-    ChAssembly::Components m_output_data;   ///< output data
-    std::unique_ptr<ChOutput> m_output_db;  ///< output database
+    // Output data
+    ChAssembly::Components m_output_data;   ///< output data for a Chrono MBS participant
 };
 
 /// @} precice_module

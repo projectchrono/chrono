@@ -14,11 +14,6 @@
 
 #include <algorithm>
 
-#include "chrono/input_output/ChOutputASCII.h"
-#ifdef CHRONO_HAS_HDF5
-    #include "chrono/input_output/ChOutputHDF5.h"
-#endif
-
 #include "chrono_precice/ChPreciceAdapterMbs.h"
 
 using std::cout;
@@ -65,7 +60,7 @@ static std::vector<ChVector3d> ReadPoints(const std::string& filename) {
 // -----------------------------------------------------------------------------
 
 ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
-    : m_model_name(""), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
+    : ChPreciceAdapter("model_MBS"), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
     SetVerbose(verbose);
 }
 
@@ -168,14 +163,6 @@ void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_me
 #endif
 
 // -----------------------------------------------------------------------------
-
-ChPreciceAdapterMbs::OutputParameters::OutputParameters() : format(ChOutput::Format::ASCII), mode(ChOutput::Mode::SERIES), fps(100) {}
-
-void ChPreciceAdapterMbs::SetOutputParameters(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
-    m_output_params.format = format;
-    m_output_params.mode = mode;
-    m_output_params.fps = output_fps;
-}
 
 ChPreciceAdapterMbs::VisParameters::VisParameters()
     : render(false), render_fps(120), camera_vertical(CameraVerticalDir::Z), camera_location({0, -1, 0}), camera_target({0, 0, 0}), enable_shadows(true) {}
@@ -408,23 +395,8 @@ void ChPreciceAdapterMbs::WriteData() {
 // -----------------------------------------------------------------------------
 
 void ChPreciceAdapterMbs::WriteOutput(int frame, double time) {
-    // Create the output DB if needed
-    if (!m_output_db) {
-        switch (m_output_params.format) {
-            case ChOutput::Format::ASCII:
-                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output_params.mode);
-                break;
-            case ChOutput::Format::HDF5:
-#ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output_params.mode);
-                break;
-#else
-                return;
-#endif
-            case ChOutput::Format::NONE:
-                break;
-        }
-    }
+    // Invoke first the base class function, to create the output DB if needed
+    ChPreciceAdapter::WriteOutput(frame, time);
 
     m_output_db->Write(frame, time, m_output_data);
 #ifdef CHRONO_FEA
