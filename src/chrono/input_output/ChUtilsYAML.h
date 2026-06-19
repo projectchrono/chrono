@@ -28,9 +28,10 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChRotation.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColormap.h"
-#include "chrono/input_output/ChOutput.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChBodyGeometry.h"
 #include "chrono/solver/ChSolver.h"
@@ -142,12 +143,6 @@ ChApi ChColormap::Type ReadColorMapType(const YAML::Node& a);
 
 /// Load and return a VisualizationType from the specified node.
 ChApi VisualizationType ReadVisualizationType(const YAML::Node& a);
-
-/// Load and return the output format from the specified node.
-ChApi ChOutput::Format ReadOutputFormat(const YAML::Node& a);
-
-/// Load and return the output mode from the specified node.
-ChApi ChOutput::Mode ReadOutputMode(const YAML::Node& a);
 
 /// Load and return the solver type from the specified node.
 ChApi ChSolver::Type ReadSolverType(const YAML::Node& a);

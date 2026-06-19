@@ -501,24 +501,6 @@ VisualizationType ReadVisualizationType(const YAML::Node& a) {
     return VisualizationType::NONE;
 }
 
-ChOutput::Format ReadOutputFormat(const YAML::Node& a) {
-    auto type = ChToUpper(a.as<std::string>());
-    if (type == "ASCII")
-        return ChOutput::Format::ASCII;
-    if (type == "HDF5")
-        return ChOutput::Format::HDF5;
-    return ChOutput::Format::NONE;
-}
-
-ChOutput::Mode ReadOutputMode(const YAML::Node& a) {
-    auto mode = ChToUpper(a.as<std::string>());
-    if (mode == "SERIES")
-        return ChOutput::Mode::SERIES;
-    if (mode == "FRAMES")
-        return ChOutput::Mode::FRAMES;
-    return ChOutput::Mode::FRAMES;
-}
-
 ChSolver::Type ReadSolverType(const YAML::Node& a) {
     auto type = ChToUpper(a.as<std::string>());
     if (type == "BARZILAI_BORWEIN")

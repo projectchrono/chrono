@@ -26,6 +26,13 @@
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
+// Forward declaration
+#ifdef CHRONO_HAS_YAML
+namespace YAML {
+class Node;
+}
+#endif
+
 namespace chrono {
 namespace fsi {
 namespace sph {
@@ -89,15 +96,12 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         ChParticleCloud* cloud = nullptr;
 
       private:
-        virtual ChColor get(unsigned int n, const ChParticleCloud& source_cloud) const override final {
-            return GetColor(n);
-        }
+        virtual ChColor get(unsigned int n, const ChParticleCloud& source_cloud) const override final { return GetColor(n); }
     };
 
     /// Set a callback for dynamic coloring of SPH particles.
     /// If none provided, SPH particles are rendered with a default color.
-    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor,
-                             ChColormap::Type type = ChColormap::Type::JET);
+    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor, ChColormap::Type type = ChColormap::Type::JET);
 
     /// Class to be used as a callback interface for dynamic visibility of SPH particles or BCE markers.
     class CH_FSI_API MarkerVisibilityCallback : public ChParticleCloud::VisibilityCallback {
@@ -148,18 +152,35 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     /// Return the internal Chrono system that holds visualization shapes.
     ChSystem* GetSystem() const { return m_sysMBS; }
 
+    /// SPH run-time visualization settings.
+    struct CH_FSI_API Settings {
+        enum class ParticleColoringType { NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE };
+
+        Settings();
+        Settings(const Settings& other);
+#ifdef CHRONO_HAS_YAML
+        Settings(const YAML::Node& a);
+        static Settings Read(const YAML::Node& a);
+#endif
+        Settings& operator=(const Settings& other);
+        void PrintInfo() const;
+
+        bool sph_markers;                                             ///< render fluid SPH particles?
+        bool bndry_bce_markers;                                       ///< render boundary BCE markers?
+        bool rigid_bce_markers;                                       ///< render rigid-body BCE markers?
+        bool flex_bce_markers;                                        ///< render flex-body markers?
+        bool active_boxes;                                            ///< render active boxes?
+        bool use_splashsurf;                                          ///< use splashsurf for mesh reconstruction?
+        ChFsiFluidSystemSPH::SplashsurfParameters splashsurf_params;  ///< splashsurf settings
+        ChColormap::Type colormap;                                    ///< colormap for coloring callback
+        std::shared_ptr<ChSphVisualizationVSG::ParticleColorCallback> color_callback;
+        std::shared_ptr<ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_sph;
+        std::shared_ptr<ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_bce;
+    };
+
   private:
     /// GPU shader modes supported by the SPH particle color compute path.
-    enum class ColorMode {
-        NONE = 0,
-        HEIGHT = 1,
-        VELOCITY_MAG = 2,
-        VELOCITY_X = 3,
-        VELOCITY_Y = 4,
-        VELOCITY_Z = 5,
-        DENSITY = 6,
-        PRESSURE = 7
-    };
+    enum class ColorMode { NONE = 0, HEIGHT = 1, VELOCITY_MAG = 2, VELOCITY_X = 3, VELOCITY_Y = 4, VELOCITY_Z = 5, DENSITY = 6, PRESSURE = 7 };
 
     /// Tags for different particle cloud types.
     enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
@@ -168,7 +189,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     struct GpuColoringResources {
         bool initialized = false;                                      ///< true once GPU buffers are allocated
         bool active = false;                                           ///< true when compute pass runs this frame
-        uint32_t workgroupSize = 256;                                  ///< compute workgroup size
+        uint32_t workgroupSize = 256;                                  ///< compute work group size
         vsg::ref_ptr<vsg::vec4Array> positionData;                     ///< staging buffer for positions
         vsg::ref_ptr<vsg::vec4Array> velocityData;                     ///< staging buffer for velocities
         vsg::ref_ptr<vsg::vec4Array> propertyData;                     ///< staging buffer for auxiliary properties
@@ -235,7 +256,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     std::shared_ptr<ParticleColorCallback> m_color_fun;         ///< color functor for SPH particles
     std::shared_ptr<MarkerVisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
-    std::shared_ptr<MarkerVisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for bndry BCE markers
+    std::shared_ptr<MarkerVisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for boundary BCE markers
 
     // Data for color and visibility functors
     std::vector<Real3> m_pos;   ///< SPH and BCE positions

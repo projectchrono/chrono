@@ -23,6 +23,10 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
+#ifdef CHRONO_HAS_YAML
+    #include "chrono/input_output/ChUtilsYAML.h"
+#endif
+
 namespace chrono {
 
 /// @addtogroup chrono_assets
@@ -50,6 +54,27 @@ class ChApi ChVisualSystem {
         VSG,       ///< Vulkan Scene Graph
         OptiX,     ///< OptiX
         NONE
+    };
+
+    /// Run-time visualization settings.
+    struct ChApi Settings {
+        Settings();
+        Settings(const Settings& other);
+#ifdef CHRONO_HAS_YAML
+        Settings(const YAML::Node& a);
+        static Settings Read(const YAML::Node& a);
+#endif
+        Settings& operator=(const Settings& other);
+        void PrintInfo() const;
+
+        bool render;
+        double render_fps;
+        CameraVerticalDir camera_vertical;
+        ChVector3d camera_location;
+        ChVector3d camera_target;
+        bool enable_shadows;
+        bool write_images;      ///< if true, save snapshots
+        std::string image_dir;  ///< directory for image files
     };
 
     virtual ~ChVisualSystem();

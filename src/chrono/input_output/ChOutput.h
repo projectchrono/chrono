@@ -21,6 +21,10 @@
 
 #include "chrono/physics/ChAssembly.h"
 
+#ifdef CHRONO_HAS_YAML
+    #include "chrono/input_output/ChUtilsYAML.h"
+#endif
+
 namespace chrono {
 
 /// @addtogroup chrono_io
@@ -45,6 +49,22 @@ class ChApi ChOutput {
     enum class Mode {
         FRAMES,  ///< organize output on a frame-by-frame basis
         SERIES   ///< organize output on component-by-component basis
+    };
+
+    /// Output parameters.
+    struct ChApi Settings {
+        Settings();
+        Settings(const Settings& other);
+#ifdef CHRONO_HAS_YAML
+        Settings(const YAML::Node& a);
+        static Settings Read(const YAML::Node& a);
+#endif
+        Settings& operator=(const Settings& other);
+        void PrintInfo() const;
+
+        ChOutput::Format format;
+        ChOutput::Mode mode;
+        double fps;
     };
 
     virtual ~ChOutput() {}

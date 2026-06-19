@@ -15,16 +15,15 @@
 #include <algorithm>
 
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/utils/ChUtils.h"
+
+using std::cout;
+using std::cerr;
+using std::endl;
 
 namespace chrono {
 
-ChVisualSystem ::ChVisualSystem()
-    : m_initialized(false),
-      m_background_color(ChColor(0.10f, 0.20f, 0.30f)),
-      m_verbose(false),
-      m_rtf(0),
-      m_write_images(false),
-      m_image_dir(".") {}
+ChVisualSystem ::ChVisualSystem() : m_initialized(false), m_background_color(ChColor(0.10f, 0.20f, 0.30f)), m_verbose(false), m_rtf(0), m_write_images(false), m_image_dir(".") {}
 
 ChVisualSystem ::~ChVisualSystem() {
     for (auto s : m_systems)
@@ -143,6 +142,96 @@ unsigned int ChVisualSystem::GetNumContacts() const {
         count += sys->GetNumContacts();
 
     return count;
+}
+
+// -----------------------------------------------------------------------------
+
+ChVisualSystem::Settings::Settings()
+    : render(false),
+      render_fps(120),
+      camera_vertical(CameraVerticalDir::Z),
+      camera_location({0, -1, 0}),
+      camera_target({0, 0, 0}),
+      enable_shadows(true),
+      write_images(false),
+      image_dir(".") {}
+
+ChVisualSystem::Settings::Settings(const Settings& other) {
+    render = other.render;
+    render_fps = other.render_fps;
+    camera_vertical = other.camera_vertical;
+    camera_location = other.camera_location;
+    camera_target = other.camera_target;
+    enable_shadows = other.enable_shadows;
+    write_images = other.write_images;
+    image_dir = other.image_dir;
+}
+
+ChVisualSystem::Settings& ChVisualSystem::Settings::operator=(const Settings& other) {
+    render = other.render;
+    render_fps = other.render_fps;
+    camera_vertical = other.camera_vertical;
+    camera_location = other.camera_location;
+    camera_target = other.camera_target;
+    enable_shadows = other.enable_shadows;
+    write_images = other.write_images;
+    image_dir = other.image_dir;
+    return *this;
+}
+
+#ifdef CHRONO_HAS_YAML
+
+ChVisualSystem::Settings::Settings(const YAML::Node& a) : Settings() {
+    render = true;
+    if (a["render_fps"])
+        render_fps = a["render_fps"].as<double>();
+    if (a["enable_shadows"])
+        enable_shadows = a["enable_shadows"].as<bool>();
+    if (a["camera"]) {
+        if (a["camera"]["vertical"]) {
+            auto vertical = ChToUpper(a["camera"]["vertical"].as<std::string>());
+            if (vertical == "Y")
+                camera_vertical = CameraVerticalDir::Y;
+            else if (vertical == "Z")
+                camera_vertical = CameraVerticalDir::Z;
+            else {
+                cerr << "Incorrect camera vertical " << a["camera"]["vertical"].as<std::string>() << endl;
+                throw std::runtime_error("Incorrect camera vertical");
+            }
+        }
+        if (a["camera"]["location"])
+            camera_location = ReadVector(a["camera"]["location"]);
+        if (a["camera"]["target"])
+            camera_target = ReadVector(a["camera"]["target"]);
+    }
+    if (a["output"]) {
+        auto b = a["output"];
+        if (b["save_images"])
+            write_images = b["save_images"].as<bool>();
+        if (b["output_directory"])
+            image_dir = b["output_directory"].as<std::string>();
+    }
+}
+
+ChVisualSystem::Settings ChVisualSystem::Settings::Read(const YAML::Node& a) {
+    Settings params(a);
+    return params;
+}
+
+#endif
+
+void ChVisualSystem::Settings::PrintInfo() const {
+    if (!render) {
+        cout << "no run-time visualization" << endl;
+        return;
+    }
+
+    cout << "run-time visualization" << endl;
+    cout << "  render FPS:           " << render_fps << endl;
+    cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
+    cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+    cout << "  camera location:      " << camera_location << endl;
+    cout << "  camera target:        " << camera_target << endl;
 }
 
 }  // namespace chrono
