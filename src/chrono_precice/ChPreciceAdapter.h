@@ -377,7 +377,7 @@ class ChApiPrecice ChPreciceAdapter {
 
     bool m_output;                          ///< enable/disable run-time output
     std::string m_output_dir;               ///< output directory name
-    ChOutput::Settings m_output_params;     ///< output specification
+    ChOutput::Settings m_output_settings;   ///< output settings
     std::unique_ptr<ChOutput> m_output_db;  ///< output database
 
 #ifdef CHRONO_VSG

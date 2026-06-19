@@ -138,10 +138,10 @@ void ChParserMbsYAML::LoadFile(const std::string& yaml_filename) {
     if (m_verbose) {
         m_sim.PrintInfo();
         cout << endl;
-        m_vis.PrintInfo();
+        m_vis_settings.PrintInfo();
         cout << "body visualization type: " << utils::ChBodyGeometry::GetVisualizationTypeAsString(m_vis_type) << endl;
         cout << endl;
-        m_output.PrintInfo();
+        m_output_settings.PrintInfo();
     }
 
     m_loaded = true;
@@ -162,11 +162,11 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
 
     // Output (optional)
     if (yaml["output"])
-        m_output = ChOutput::Settings::Read(yaml["output"]);
+        m_output_settings = ChOutput::Settings::Read(yaml["output"]);
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis = ChVisualSystem::Settings::Read(yaml["visualization"]);
+        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
         if (yaml["visualization"]["type"])
             m_vis_type = ReadVisualizationType(yaml["visualization"]["type"]);
     }
@@ -1227,8 +1227,8 @@ void ChParserMbsYAML::DoStepDynamics() {
 
     // Generate output (if requested)
     static int output_frame = 0;
-    if (m_output.format != ChOutput::Format::NONE) {
-        if (time >= output_frame / m_output.fps) {
+    if (m_output_settings.format != ChOutput::Format::NONE) {
+        if (time >= output_frame / m_output_settings.fps) {
             WriteOutput(output_frame, time);
             output_frame++;
         }

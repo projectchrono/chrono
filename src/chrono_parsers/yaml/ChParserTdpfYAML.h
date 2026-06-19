@@ -107,7 +107,7 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     ChVector3d m_gravity;      ///< gravitational acceleration
     WaveType m_wave_type;      ///< wave type
 #ifdef CHRONO_VSG
-    fsi::tdpf::ChTdpfVisualizationVSG::Settings m_visTDPF;  ///< TDPF visualization settings
+    fsi::tdpf::ChTdpfVisualizationVSG::Settings m_visTDPF_settings;  ///< TDPF visualization settings
 #endif
 
     std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> m_sysTDPF;  ///< underlying TDPF fluid solver

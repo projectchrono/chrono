@@ -103,12 +103,12 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
     }
 
     if (m_verbose) {
-        m_vis.PrintInfo();
+        m_vis_settings.PrintInfo();
 #ifdef CHRONO_VSG
-        m_visTDPF.PrintInfo();
+        m_visTDPF_settings.PrintInfo();
 #endif
         cout << endl;
-        m_output.PrintInfo();
+        m_output_settings.PrintInfo();
     }
 
     m_loaded = true;
@@ -117,13 +117,13 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
 void ChParserTdpfYAML::LoadSimData(const YAML::Node& yaml) {
     // Output (optional)
     if (yaml["output"])
-        m_output = ChOutput::Settings::Read(yaml["output"]);
+        m_output_settings = ChOutput::Settings::Read(yaml["output"]);
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis = ChVisualSystem::Settings::Read(yaml["visualization"]);
+        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
 #ifdef CHRONO_VSG
-        m_visTDPF = fsi::tdpf::ChTdpfVisualizationVSG::Settings::Read(yaml["visualization"]);
+        m_visTDPF_settings = fsi::tdpf::ChTdpfVisualizationVSG::Settings::Read(yaml["visualization"]);
 #else
         m_vis.render = false;
 #endif
@@ -249,9 +249,9 @@ std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserTdpfYAML::GetVisualizati
     auto vis = chrono_types::make_shared<fsi::tdpf::ChTdpfVisualizationVSG>(m_sysFSI.get());
 
     vis->SetWaveMeshVisibility(true);
-    vis->SetWaveMeshColormap(m_visTDPF.colormap, 0.95f);
-    vis->SetWaveMeshColorMode(m_visTDPF.mode, m_visTDPF.range);
-    vis->SetWaveMeshUpdateFrequency(m_visTDPF.update_fps);
+    vis->SetWaveMeshColormap(m_visTDPF_settings.colormap, 0.95f);
+    vis->SetWaveMeshColorMode(m_visTDPF_settings.mode, m_visTDPF_settings.range);
+    vis->SetWaveMeshUpdateFrequency(m_visTDPF_settings.update_fps);
 
     return vis;
 }

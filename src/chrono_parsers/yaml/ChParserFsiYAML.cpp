@@ -143,13 +143,13 @@ void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis = ChVisualSystem::Settings::Read(yaml["visualization"]);
+        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
     }
 
     if (m_verbose) {
         m_sim.PrintInfo();
         cout << endl;
-        m_vis.PrintInfo();
+        m_vis_settings.PrintInfo();
     }
 }
 

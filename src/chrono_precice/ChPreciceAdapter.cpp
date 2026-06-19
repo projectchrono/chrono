@@ -58,9 +58,9 @@ void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
 }
 
 void ChPreciceAdapter::SetOutputParameters(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
-    m_output_params.format = format;
-    m_output_params.mode = mode;
-    m_output_params.fps = output_fps;
+    m_output_settings.format = format;
+    m_output_settings.mode = mode;
+    m_output_settings.fps = output_fps;
 }
 
 #ifdef CHRONO_VSG
@@ -515,13 +515,13 @@ void ChPreciceAdapter::FinalizeParticipant() {
 void ChPreciceAdapter::WriteOutput(int frame, double time) {
     // Create the output DB if needed
     if (!m_output_db) {
-        switch (m_output_params.format) {
+        switch (m_output_settings.format) {
             case ChOutput::Format::ASCII:
-                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output_params.mode);
+                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output_settings.mode);
                 break;
             case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output_params.mode);
+                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output_settings.mode);
                 break;
 #else
                 return;

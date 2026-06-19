@@ -76,20 +76,11 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     parser.Populate(*m_sys);
 
     // Extract information from parsed YAML files
-    m_output_params.format = parser.GetOutputFormat();
-    m_output_params.mode = parser.GetOutputMode();
-    m_output_params.fps = parser.GetOutputFPS();
-
-    #ifdef CHRONO_VSG
-    m_vis_params.render = parser.Render();
-    m_vis_params.render_fps = parser.GetRenderFPS();
-    m_vis_params.camera_vertical = parser.GetCameraVerticalDir();
-    m_vis_params.camera_location = parser.GetCameraLocation();
-    m_vis_params.camera_target = parser.GetCameraTarget();
-    m_vis_params.enable_shadows = parser.EnableShadows();
-    #endif
-
     m_enforce_realtime = parser.EnforceRealtime();
+    m_output_settings = parser.GetOutputSettings();
+    #ifdef CHRONO_VSG
+    m_vis_params = parser.GetVisualizationSettings();
+    #endif
 
     // Read common preCICE participant configuration (participant name, file handler, and coupling interfaces)
     ReadParticipantConfigurationYAML(input_filename);
@@ -341,7 +332,7 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
 
     static int output_frame = 0;
     if (m_output) {
-        if (time >= output_frame / m_output_params.fps) {
+        if (time >= output_frame / m_output_settings.fps) {
             WriteOutput(output_frame, time);
             output_frame++;
         }

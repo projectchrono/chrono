@@ -49,23 +49,29 @@ class ChApiParsers ChParserYAML {
     /// Return true if generating output.
     virtual bool Output() const;
 
+    /// Return all output settings.
+    const ChOutput::Settings& GetOutputSettings() const { return m_output_settings; }
+
     /// Return the output type.
-    ChOutput::Format GetOutputFormat() const { return m_output.format; }
+    ChOutput::Format GetOutputFormat() const { return m_output_settings.format; }
 
     /// Return the output mode.
-    ChOutput::Mode GetOutputMode() const { return m_output.mode; }
+    ChOutput::Mode GetOutputMode() const { return m_output_settings.mode; }
 
     /// Return the output frequency.
-    virtual double GetOutputFPS() const { return m_output.fps; }
+    virtual double GetOutputFPS() const { return m_output_settings.fps; }
 
     /// Return true if visualization is enabled.
-    virtual bool Render() const { return m_vis.render; }
+    virtual bool Render() const { return m_vis_settings.render; }
 
-    double GetRenderFPS() const { return m_vis.render_fps; }
-    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
-    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
-    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
-    bool EnableShadows() const { return m_vis.enable_shadows; }
+    /// Return all visualization settings.
+    const ChVisualSystem::Settings& GetVisualizationSettings() const { return m_vis_settings; }
+
+    double GetRenderFPS() const { return m_vis_settings.render_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_vis_settings.camera_vertical; }
+    const ChVector3d& GetCameraLocation() const { return m_vis_settings.camera_location; }
+    const ChVector3d& GetCameraTarget() const { return m_vis_settings.camera_target; }
+    bool EnableShadows() const { return m_vis_settings.enable_shadows; }
 
     /// Write simulation output results at the current time.
     /// This base class implementation creates and initializes the output database. Derived classes must
@@ -83,9 +89,9 @@ class ChApiParsers ChParserYAML {
     bool m_verbose;      ///< verbose terminal output (default: false)
     bool m_use_degrees;  ///< all angles given in degrees (default: true)
 
-    ChVisualSystem::Settings m_vis;  ///< visualization parameters
+    ChVisualSystem::Settings m_vis_settings;  ///< visualization settings
 
-    ChOutput::Settings m_output;            ///< output parameters
+    ChOutput::Settings m_output_settings;   ///< output settings
     std::string m_output_dir;               ///< root output directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
 

@@ -77,8 +77,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     // --------------
 
 #ifdef CHRONO_VSG
-    bool UseSplashurf() const { return m_visSPH.use_splashsurf; }
+    const fsi::sph::ChSphVisualizationVSG::Settings& GetSphVisualizationSettings() const;
     const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters() const;
+    bool UseSplashurf() const { return m_visSPH_settings.use_splashsurf; }
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
 #endif
 
@@ -191,7 +192,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     Wavetank m_wavetank;            ///< wave tank settings
     SimParams m_sim;                ///< simulation settings
 #ifdef CHRONO_VSG
-    fsi::sph::ChSphVisualizationVSG::Settings m_visSPH;  ///< SPH visualization settings
+    fsi::sph::ChSphVisualizationVSG::Settings m_visSPH_settings;  ///< SPH visualization settings
 #endif
 
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> m_fsi_problem;  ///< underlying FSI problem

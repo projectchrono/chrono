@@ -61,7 +61,7 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
 // -----------------------------------------------------------------------------
 
 bool ChParserYAML::Output() const {
-    return m_output.format != ChOutput::Format::NONE;
+    return m_output_settings.format != ChOutput::Format::NONE;
 }
 
 void ChParserYAML::SetOutputDir(const std::string& out_dir) {
@@ -73,9 +73,9 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
 
     m_output_dir = out_dir;
 
-    if (m_verbose && m_output.format != ChOutput::Format::NONE) {
-        auto filename = m_output_dir + "/" + m_name + "." + ChOutput::GetModeAsString(m_output.mode);
-        switch (m_output.format) {
+    if (m_verbose && m_output_settings.format != ChOutput::Format::NONE) {
+        auto filename = m_output_dir + "/" + m_name + "." + ChOutput::GetModeAsString(m_output_settings.mode);
+        switch (m_output_settings.format) {
             case ChOutput::Format::ASCII:
                 filename += ".txt";
                 break;
@@ -92,18 +92,18 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
 }
 
 void ChParserYAML::WriteOutput(int frame, double time) {
-    if (m_output.format == ChOutput::Format::NONE)
+    if (m_output_settings.format == ChOutput::Format::NONE)
         return;
 
     // Create the output DB if needed
     if (!m_output_db) {
-        switch (m_output.format) {
+        switch (m_output_settings.format) {
             case ChOutput::Format::ASCII:
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(m_output_dir, m_name, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(m_output_dir, m_name, m_output_settings.mode);
                 break;
             case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(m_output_dir, m_name, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(m_output_dir, m_name, m_output_settings.mode);
                 break;
 #else
                 return;

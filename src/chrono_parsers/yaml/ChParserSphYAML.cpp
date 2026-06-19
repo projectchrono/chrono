@@ -113,12 +113,12 @@ void ChParserSphYAML::LoadFile(const std::string& yaml_filename) {
     if (m_verbose) {
         m_sim.PrintInfo();
         cout << endl;
-        m_vis.PrintInfo();
+        m_vis_settings.PrintInfo();
 #ifdef CHRONO_VSG
-        m_visSPH.PrintInfo();
+        m_visSPH_settings.PrintInfo();
 #endif
         cout << endl;
-        m_output.PrintInfo();
+        m_output_settings.PrintInfo();
     }
 
     m_loaded = true;
@@ -136,15 +136,15 @@ void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
 
     // Output (optional)
     if (yaml["output"])
-        m_output = ChOutput::Settings::Read(yaml["output"]);
+        m_output_settings = ChOutput::Settings::Read(yaml["output"]);
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis = ChVisualSystem::Settings::Read(yaml["visualization"]);
+        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
 #ifdef CHRONO_VSG
-        m_visSPH = fsi::sph::ChSphVisualizationVSG::Settings::Read(yaml["visualization"]);
+        m_visSPH_settings = fsi::sph::ChSphVisualizationVSG::Settings::Read(yaml["visualization"]);
 #else
-        m_vis.render = false;
+        m_vis_settings.render = false;
 #endif
     }
 }
@@ -685,25 +685,31 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
+
+const fsi::sph::ChSphVisualizationVSG::Settings& ChParserSphYAML::GetSphVisualizationSettings() const {
+    return m_visSPH_settings;
+}
+
 const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& ChParserSphYAML::GetSplashsurfParameters() const {
-    return m_visSPH.splashsurf_params;
+    return m_visSPH_settings.splashsurf_params;
 }
 
 std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserSphYAML::GetVisualizationPlugin() const {
     auto vis = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(m_fsi_problem->GetFsiSystemSPH().get());
 
-    vis->EnableFluidMarkers(m_visSPH.sph_markers);
-    vis->EnableBoundaryMarkers(m_visSPH.bndry_bce_markers);
-    vis->EnableRigidBodyMarkers(m_visSPH.rigid_bce_markers);
+    vis->EnableFluidMarkers(m_visSPH_settings.sph_markers);
+    vis->EnableBoundaryMarkers(m_visSPH_settings.bndry_bce_markers);
+    vis->EnableRigidBodyMarkers(m_visSPH_settings.rigid_bce_markers);
 
-    if (m_visSPH.color_callback)
-        vis->SetSPHColorCallback(m_visSPH.color_callback, m_visSPH.colormap);
-    if (m_visSPH.visibility_callback_sph)
-        vis->SetSPHVisibilityCallback(m_visSPH.visibility_callback_sph);
-    if (m_visSPH.visibility_callback_bce)
-        vis->SetBCEVisibilityCallback(m_visSPH.visibility_callback_bce);
+    if (m_visSPH_settings.color_callback)
+        vis->SetSPHColorCallback(m_visSPH_settings.color_callback, m_visSPH_settings.colormap);
+    if (m_visSPH_settings.visibility_callback_sph)
+        vis->SetSPHVisibilityCallback(m_visSPH_settings.visibility_callback_sph);
+    if (m_visSPH_settings.visibility_callback_bce)
+        vis->SetBCEVisibilityCallback(m_visSPH_settings.visibility_callback_bce);
     return vis;
 }
+
 #endif
 
 // -----------------------------------------------------------------------------
