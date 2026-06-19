@@ -42,10 +42,6 @@
     #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 #endif
 
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
-
 namespace chrono {
 namespace ch_precice {
 
@@ -71,17 +67,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     /// Get underlying Chrono multibody system.
     ChSystem& GetSystem() { return *m_sys; }
-
-    /// Set Chrono MBS run-time visualization parameters.
-    /// Notes:
-    /// - run-time visualization requires the Chrono::VSG module.
-    /// - if the MBS preCICE participant is created from a YAML specification file, visualization parameters are read from that file.
-    void SetVisualizationParameters(double render_fps,                  ///< rendering frequency
-                                    CameraVerticalDir camera_vertical,  ///< camera vertical direction (Y or Z)
-                                    const ChVector3d& camera_location,  ///< initial camera location
-                                    const ChVector3d& camera_target,    ///< initial camera look-at point
-                                    bool enable_shadows                 ///< enable dynamic shadows
-    );
 
     /// Enable/disable soft real-time for MBS simulation (default: false).
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
@@ -145,17 +130,6 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     };
 #endif
 
-    /// Chrono MBS simulation run-time visualization parameters.
-    struct VisParameters {
-        VisParameters();
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
-        ChVector3d camera_location;
-        ChVector3d camera_target;
-        bool enable_shadows;
-    };
-
     // Implementation of base class virtual methods
     virtual void InitializeParticipant() override;
     virtual void WriteCheckpoint(double time) override;
@@ -190,14 +164,8 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics
     std::shared_ptr<AfterStepDynamicsCallback> m_afterstep_callback;    ///< operations performed after advancing dynamics
 
-    // Run-time visualization
-    VisParameters m_vis_params;  ///< visualization parameters
-#ifdef CHRONO_VSG
-    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualization system
-#endif
-
     // Output data
-    ChAssembly::Components m_output_data;   ///< output data for a Chrono MBS participant
+    ChAssembly::Components m_output_data;  ///< output data for a Chrono MBS participant
 };
 
 /// @} precice_module

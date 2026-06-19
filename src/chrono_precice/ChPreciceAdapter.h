@@ -31,6 +31,10 @@
     #include "chrono/input_output/ChUtilsYAML.h"
 #endif
 
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+
 #include "precice/precice.hpp"
 
 namespace chrono {
@@ -83,6 +87,16 @@ class ChApiPrecice ChPreciceAdapter {
                              ChOutput::Mode mode,      ///< output mode
                              double output_fps         ///< output frequency
     );
+
+#ifdef CHRONO_VSG
+    /// Set Chrono run-time visualization parameters.
+    void SetVisualizationParameters(double render_fps,                  ///< rendering frequency
+                                    CameraVerticalDir camera_vertical,  ///< camera vertical direction (Y or Z)
+                                    const ChVector3d& camera_location,  ///< initial camera location
+                                    const ChVector3d& camera_target,    ///< initial camera look-at point
+                                    bool enable_shadows                 ///< enable dynamic shadows
+    );
+#endif
 
     /// Set the Chrono model name.
     void SetModelName(const std::string& name) { m_model_name = name; }
@@ -339,14 +353,6 @@ class ChApiPrecice ChPreciceAdapter {
     /// Data type to hold data names associated with a given mesh name.
     using MeshDataNames = std::map<std::string, std::vector<std::string>>;
 
-    /// Chrono simulation output parameters.
-    struct OutputParameters {
-        OutputParameters();
-        ChOutput::Format format;
-        ChOutput::Mode mode;
-        double fps;
-    };
-
     std::string m_model_name;  ///< Chrono model name
 
     std::unique_ptr<precice::Participant> m_participant;  ///< preCICE instance
@@ -371,8 +377,14 @@ class ChApiPrecice ChPreciceAdapter {
 
     bool m_output;                          ///< enable/disable run-time output
     std::string m_output_dir;               ///< output directory name
-    OutputParameters m_output_params;       ///< output specification
+    ChOutput::Settings m_output_params;     ///< output specification
     std::unique_ptr<ChOutput> m_output_db;  ///< output database
+
+#ifdef CHRONO_VSG
+    // Run-time visualization
+    ChVisualSystem::Settings m_vis_params;            ///< visualization parameters
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualization system
+#endif
 
 #if defined(CHRONO_HAS_YAML)
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths in YAML file

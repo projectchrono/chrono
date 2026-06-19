@@ -57,13 +57,26 @@ void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
     m_output_dir = out_dir;
 }
 
-ChPreciceAdapter::OutputParameters::OutputParameters() : format(ChOutput::Format::ASCII), mode(ChOutput::Mode::SERIES), fps(100) {}
-
 void ChPreciceAdapter::SetOutputParameters(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
     m_output_params.format = format;
     m_output_params.mode = mode;
     m_output_params.fps = output_fps;
 }
+
+#ifdef CHRONO_VSG
+void ChPreciceAdapter::SetVisualizationParameters(double render_fps,
+                                                  CameraVerticalDir camera_vertical,
+                                                  const ChVector3d& camera_location,
+                                                  const ChVector3d& camera_target,
+                                                  bool enable_shadows) {
+    m_vis_params.render_fps = render_fps;
+    m_vis_params.camera_vertical = camera_vertical;
+    m_vis_params.camera_location = camera_location;
+    m_vis_params.camera_target = camera_target;
+    m_vis_params.enable_shadows = enable_shadows;
+    m_vis_params.render = true;
+}
+#endif
 
 // -----------------------------------------------------------------------------
 

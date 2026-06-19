@@ -80,12 +80,14 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     m_output_params.mode = parser.GetOutputMode();
     m_output_params.fps = parser.GetOutputFPS();
 
+    #ifdef CHRONO_VSG
     m_vis_params.render = parser.Render();
     m_vis_params.render_fps = parser.GetRenderFPS();
     m_vis_params.camera_vertical = parser.GetCameraVerticalDir();
     m_vis_params.camera_location = parser.GetCameraLocation();
     m_vis_params.camera_target = parser.GetCameraTarget();
     m_vis_params.enable_shadows = parser.EnableShadows();
+    #endif
 
     m_enforce_realtime = parser.EnforceRealtime();
 
@@ -163,22 +165,6 @@ void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_me
 #endif
 
 // -----------------------------------------------------------------------------
-
-ChPreciceAdapterMbs::VisParameters::VisParameters()
-    : render(false), render_fps(120), camera_vertical(CameraVerticalDir::Z), camera_location({0, -1, 0}), camera_target({0, 0, 0}), enable_shadows(true) {}
-
-void ChPreciceAdapterMbs::SetVisualizationParameters(double render_fps,
-                                                     CameraVerticalDir camera_vertical,
-                                                     const ChVector3d& camera_location,
-                                                     const ChVector3d& camera_target,
-                                                     bool enable_shadows) {
-    m_vis_params.render_fps = render_fps;
-    m_vis_params.camera_vertical = camera_vertical;
-    m_vis_params.camera_location = camera_location;
-    m_vis_params.camera_target = camera_target;
-    m_vis_params.enable_shadows = enable_shadows;
-    m_vis_params.render = true;
-}
 
 void ChPreciceAdapterMbs::InitializeParticipant() {
     ChPreciceAdapter::InitializeParticipant();
@@ -343,6 +329,7 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
 
     ChAssertAlways(time == m_sys->GetChTime());
 
+#ifdef CHRONO_VSG
     static int render_frame = 0;
     if (m_visualize && m_vis_params.render && m_vsg->Run()) {
         if (time >= render_frame / m_vis_params.render_fps) {
@@ -350,6 +337,7 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
             render_frame++;
         }
     }
+#endif
 
     static int output_frame = 0;
     if (m_output) {
@@ -514,7 +502,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                         i_data += 3;
                     }
                     if (m_verbose)
-                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | displ:  " << displ_abs << endl;
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | displacement:  " << displ_abs << endl;
                 }
                 break;
             }
