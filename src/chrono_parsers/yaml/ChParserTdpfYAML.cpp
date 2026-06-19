@@ -104,7 +104,9 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
 
     if (m_verbose) {
         m_vis.PrintInfo();
+#ifdef CHRONO_VSG
         m_visTDPF.PrintInfo();
+#endif
         cout << endl;
         m_output.PrintInfo();
     }
@@ -115,13 +117,13 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
 void ChParserTdpfYAML::LoadSimData(const YAML::Node& yaml) {
     // Output (optional)
     if (yaml["output"])
-        ReadOutputParams(yaml["output"]);
+        m_output = ChOutput::Settings::Read(yaml["output"]);
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        ReadVisParams(yaml["visualization"]);
+        m_vis = ChVisualSystem::Settings::Read(yaml["visualization"]);
 #ifdef CHRONO_VSG
-        ReadVisParamsTdpf(yaml["visualization"]);
+        m_visTDPF = fsi::tdpf::ChTdpfVisualizationVSG::Settings::Read(yaml["visualization"]);
 #else
         m_vis.render = false;
 #endif
@@ -263,22 +265,6 @@ void ChParserTdpfYAML::WriteOutput(int frame, double time) {
     //// TODO
 }
 
-ChParserTdpfYAML::VisParamsTdpf::VisParamsTdpf() : colormap(ChColormap::Type::FAST), range({-1, 1}), update_fps(30) {
-#ifdef CHRONO_VSG
-    mode = fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE;
-#endif
-}
-
-void ChParserTdpfYAML::VisParamsTdpf::PrintInfo() const {
-#ifdef CHRONO_VSG
-    cout << "TDPF visualization" << endl;
-    cout << "  wave color mode:       " << fsi::tdpf::ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(mode) << endl;
-    cout << "  colormap:              " << ChColormap::GetTypeAsString(colormap) << endl;
-    cout << "  color data range:      " << range << endl;
-    cout << "  mesh update frequency: " << update_fps << endl;
-#endif
-}
-
 // =============================================================================
 
 ChParserTdpfYAML::WaveType ChParserTdpfYAML::ReadWaveType(const YAML::Node& a) {
@@ -289,35 +275,6 @@ ChParserTdpfYAML::WaveType ChParserTdpfYAML::ReadWaveType(const YAML::Node& a) {
         return WaveType::IRREGULAR;
     return WaveType::NONE;
 }
-
-#ifdef CHRONO_VSG
-
-fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ChParserTdpfYAML::ReadWaveColoringMode(const YAML::Node& a) {
-    auto val = ChToUpper(a.as<std::string>());
-    if (val == "HEIGHT")
-        return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::HEIGHT;
-    if (val == "VELOCITY")
-        return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::VELOCITY_MAG;
-    return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE;
-}
-
-void ChParserTdpfYAML::ReadVisParamsTdpf(const YAML::Node& a) {
-    if (a["update_fps"])
-        m_visTDPF.update_fps = a["update_fps"].as<double>();
-
-    if (a["color_map"]) {
-        ChAssertAlways(a["color_map"]["type"]);
-        m_visTDPF.mode = ReadWaveColoringMode(a["color_map"]["type"]);
-        if (a["color_map"]["map"])
-            m_visTDPF.colormap = ReadColorMapType(a["color_map"]["map"]);
-        if (a["color_map"]["min"])
-            m_visTDPF.range[0] = a["color_map"]["min"].as<double>();
-        if (a["color_map"]["max"])
-            m_visTDPF.range[1] = a["color_map"]["max"].as<double>();
-    }
-}
-
-#endif
 
 }  // namespace parsers
 }  // namespace chrono

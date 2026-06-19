@@ -162,11 +162,11 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
 
     // Output (optional)
     if (yaml["output"])
-        ReadOutputParams(yaml["output"]);
+        m_output = ChOutput::Settings::Read(yaml["output"]);
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        ReadVisParams(yaml["visualization"]);
+        m_vis = ChVisualSystem::Settings::Read(yaml["visualization"]);
         if (yaml["visualization"]["type"])
             m_vis_type = ReadVisualizationType(yaml["visualization"]["type"]);
     }
@@ -1280,7 +1280,7 @@ ChParserMbsYAML::SimParams::SimParams()
       end_time(-1),
       enforce_realtime(false) {}
 
-void ChParserMbsYAML::SolverParams::PrintInfo() {
+void ChParserMbsYAML::SolverParams::PrintInfo() const {
     cout << "solver" << endl;
     cout << "  type:                         " << ChSolver::GetTypeAsString(type) << endl;
     switch (type) {
@@ -1312,7 +1312,7 @@ void ChParserMbsYAML::SolverParams::PrintInfo() {
     }
 }
 
-void ChParserMbsYAML::IntegratorParams::PrintInfo() {
+void ChParserMbsYAML::IntegratorParams::PrintInfo() const {
     cout << "integrator" << endl;
     cout << "  time step:                    " << time_step << endl;
     cout << "  type:                         " << ChTimestepper::GetTypeAsString(type) << endl;
@@ -1335,7 +1335,7 @@ void ChParserMbsYAML::IntegratorParams::PrintInfo() {
     }
 }
 
-void ChParserMbsYAML::SimParams::PrintInfo() {
+void ChParserMbsYAML::SimParams::PrintInfo() const {
     cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
     cout << endl;
     cout << "simulation end time:    " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
@@ -1413,7 +1413,7 @@ static void PrintGeometry(const utils::ChBodyGeometry& geometry) {
     //// TODO
 }
 
-void ChParserMbsYAML::BodyParams::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::BodyParams::PrintInfo(const std::string& name) const {
     cout << "  name:        " << name << endl;
     cout << "    pos:       " << pos << endl;
     cout << "    rot:       " << rot << endl;
@@ -1426,7 +1426,7 @@ void ChParserMbsYAML::BodyParams::PrintInfo(const std::string& name) {
     PrintGeometry(*geometry);
 }
 
-void ChParserMbsYAML::JointParams::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::JointParams::PrintInfo(const std::string& name) const {
     cout << "  name:           " << name << endl;
     cout << "     type:        " << ChJoint::GetTypeString(type);
     cout << " (" << (is_kinematic ? "kinematic joint" : "bushing") << ")" << endl;
@@ -1435,7 +1435,7 @@ void ChParserMbsYAML::JointParams::PrintInfo(const std::string& name) {
     cout << "     joint frame: " << frame.GetPos() << " | " << frame.GetRot() << endl;
 }
 
-void ChParserMbsYAML::DistanceConstraintParams::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::DistanceConstraintParams::PrintInfo(const std::string& name) const {
     cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
@@ -1443,7 +1443,7 @@ void ChParserMbsYAML::DistanceConstraintParams::PrintInfo(const std::string& nam
     cout << "     point2:      " << point2 << endl;
 }
 
-void ChParserMbsYAML::TsdaParams::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::TsdaParams::PrintInfo(const std::string& name) const {
     cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
@@ -1452,7 +1452,7 @@ void ChParserMbsYAML::TsdaParams::PrintInfo(const std::string& name) {
     cout << "     free_length: " << free_length << endl;
 }
 
-void ChParserMbsYAML::RsdaParams::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::RsdaParams::PrintInfo(const std::string& name) const {
     cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
@@ -1461,7 +1461,7 @@ void ChParserMbsYAML::RsdaParams::PrintInfo(const std::string& name) {
     cout << "     free_angle:  " << free_angle << endl;
 }
 
-void ChParserMbsYAML::BodyLoadParams::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::BodyLoadParams::PrintInfo(const std::string& name) const {
     std::string type_str = "force";
     if (type == BodyLoadType::TORQUE)
         type_str = "torque";
@@ -1479,7 +1479,7 @@ void ChParserMbsYAML::BodyLoadParams::PrintInfo(const std::string& name) {
     }
 }
 
-void ChParserMbsYAML::MotorParams::PrintInfo(const std::string& name) {
+void ChParserMbsYAML::MotorParams::PrintInfo(const std::string& name) const {
     std::string type_str = "linear";
     if (type == MotorType::ROTATION)
         type_str = "rotation";

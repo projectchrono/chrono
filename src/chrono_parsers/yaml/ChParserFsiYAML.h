@@ -93,7 +93,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     /// Co-simulation settings.
     struct SimParams {
         SimParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         double step;
         double end_time;

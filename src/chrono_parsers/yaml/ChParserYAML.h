@@ -76,38 +76,6 @@ class ChApiParsers ChParserYAML {
     static YamlFileType ReadYamlFileType(const std::string& yaml_filename);
 
   protected:
-    /// Output parameters.
-    struct OutputParameters {
-        OutputParameters();
-        void PrintInfo();
-
-        ChOutput::Format format;
-        ChOutput::Mode mode;
-        double fps;
-    };
-
-    /// Run-time visualization parameters.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
-
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
-        ChVector3d camera_location;
-        ChVector3d camera_target;
-        bool enable_shadows;
-
-        bool write_images;      ///< if true, save snapshots
-        std::string image_dir;  ///< directory for image files
-    };
-
-    /// Read output settings from specified YAML node.
-    void ReadOutputParams(const YAML::Node& a);
-
-    /// Read visualization settings from specified YAML node.
-    void ChParserYAML::ReadVisParams(const YAML::Node& a);
-
     /// Read the YAML file type.
     static YamlFileType ReadYamlFileType(const YAML::Node& a);
 
@@ -115,9 +83,9 @@ class ChApiParsers ChParserYAML {
     bool m_verbose;      ///< verbose terminal output (default: false)
     bool m_use_degrees;  ///< all angles given in degrees (default: true)
 
-    VisParams m_vis;  ///< visualization parameters
+    ChVisualSystem::Settings m_vis;  ///< visualization parameters
 
-    OutputParameters m_output;              ///< output parameters
+    ChOutput::Settings m_output;            ///< output parameters
     std::string m_output_dir;               ///< root output directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
 

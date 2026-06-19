@@ -76,9 +76,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     // --------------
 
-    bool UseSplashurf() const { return m_visSPH.use_splashsurf; }
 #ifdef CHRONO_VSG
-    const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters();
+    bool UseSplashurf() const { return m_visSPH.use_splashsurf; }
+    const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters() const;
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
 #endif
 
@@ -89,7 +89,6 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
   private:
     enum class GeometryType { CARTESIAN, CYLINDRICAL };
-    enum class ParticleColoringType { NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE };
 
     /// Box domain (fluid or container, CARTESIAN).
     struct BoxDomain {
@@ -151,33 +150,10 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         double actuation_delay;
     };
 
-    /// SPH visualization parameters.
-    struct VisParamsSph {
-        VisParamsSph();
-        void PrintInfo() const;
-
-        bool use_splashsurf;
-
-        bool sph_markers;        ///< render fluid SPH particles?
-        bool bndry_bce_markers;  ///< render boundary BCE markers?
-        bool rigid_bce_markers;  ///< render rigid-body BCE markers?
-        bool flex_bce_markers;   ///< render flex-body markers?
-        bool active_boxes;       ///< render active boxes?
-
-        ChColormap::Type colormap;  ///< colormap for coloring callback
-
-#ifdef CHRONO_VSG
-        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::ParticleColorCallback> color_callback;
-        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_sph;
-        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_bce;
-        std::unique_ptr<fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters> splashsurf_params;
-#endif
-    };
-
     /// Simulation and run-time visualization parameters.
     struct SimParams {
         SimParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         double end_time;
         ChVector3d gravity;
@@ -207,13 +183,6 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     static fsi::sph::BCType ReadBoundaryConditionType(const YAML::Node& a);
 
-    static ParticleColoringType ReadParticleColoringType(const YAML::Node& a);
-
-#ifdef CHRONO_VSG
-    void ReadVisParamsSph(const YAML::Node& a);
-    static fsi::sph::MarkerPlanesVisibilityCallback::Mode ReadVisibilityMode(const YAML::Node& a);
-#endif
-
   private:
     GeometryType m_geometry_type;  ///< geometry coordinate system (Cartesian or cylindrical)
 
@@ -221,7 +190,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     ProblemGeometry m_geometry;     ///< fluid parameters
     Wavetank m_wavetank;            ///< wave tank settings
     SimParams m_sim;                ///< simulation settings
-    VisParamsSph m_visSPH;          ///< SPH visualization settings
+#ifdef CHRONO_VSG
+    fsi::sph::ChSphVisualizationVSG::Settings m_visSPH;  ///< SPH visualization settings
+#endif
 
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> m_fsi_problem;  ///< underlying FSI problem
 

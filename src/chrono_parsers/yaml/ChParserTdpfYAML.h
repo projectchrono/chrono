@@ -90,20 +90,6 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     /// Wave types.
     enum class WaveType { NONE, REGULAR, IRREGULAR };
 
-    /// TDPF visualization parameters.
-    struct VisParamsTdpf {
-        VisParamsTdpf();
-        void PrintInfo() const;
-
-        ChColormap::Type colormap;  ///< colormap for wave false coloring
-        ChVector2d range;           ///< data range for false coloring
-        double update_fps;          ///< wave mesh update frequency (in FPS)
-
-#ifdef CHRONO_VSG
-        fsi::tdpf::ChTdpfVisualizationVSG::ColorMode mode;  ///< mode for wave false coloring
-#endif
-    };
-
     /// Output database.
     struct OutputData {
         //// TODO
@@ -112,20 +98,18 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
   private:
     static WaveType ReadWaveType(const YAML::Node& a);
 
-#ifdef CHRONO_VSG
-    void ReadVisParamsTdpf(const YAML::Node& a);
-    static fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ReadWaveColoringMode(const YAML::Node& a);
-#endif
-
   private:
     RegularWaveParams m_reg_wave_params;      ///< regular wave settings
     IrregularWaveParams m_irreg_wave_params;  ///< irregular wave settings
 
-    VisParamsTdpf m_visTDPF;                                     ///< TDPF visualization settings
-    OutputData m_output_data;                                    ///< output data
-    std::string m_h5_file;                                       ///< hydrodynamics input file (HDF5 format)
-    ChVector3d m_gravity;                                        ///< gravitational acceleration
-    WaveType m_wave_type;                                        ///< wave type
+    OutputData m_output_data;  ///< output data
+    std::string m_h5_file;     ///< hydrodynamics input file (HDF5 format)
+    ChVector3d m_gravity;      ///< gravitational acceleration
+    WaveType m_wave_type;      ///< wave type
+#ifdef CHRONO_VSG
+    fsi::tdpf::ChTdpfVisualizationVSG::Settings m_visTDPF;  ///< TDPF visualization settings
+#endif
+
     std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> m_sysTDPF;  ///< underlying TDPF fluid solver
     std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> m_sysFSI;        ///< underlying FSI system
 

@@ -201,7 +201,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Solver parameters.
     struct SolverParams {
         SolverParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         ChSolver::Type type;
         bool lock_sparsity_pattern;
@@ -217,7 +217,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Integrator parameters.
     struct IntegratorParams {
         IntegratorParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         ChTimestepper::Type type;
         double time_step;
@@ -232,7 +232,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Simulation and run-time visualization parameters.
     struct SimParams {
         SimParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         ChVector3d gravity;
 
@@ -253,7 +253,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a body.
     struct BodyParams {
         BodyParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
         ChVector3d pos;                                   ///< body position (relative to instance frame)
@@ -271,7 +271,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a joint.
     struct JointParams {
         JointParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChJoint>> joint;  ///< underlying Chrono joints (one per instance)
         ChJoint::Type type;                           ///< joint type
@@ -285,7 +285,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a distance constraint.
     struct DistanceConstraintParams {
         DistanceConstraintParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkDistance>> dist;  ///< underlying Chrono constraints (one per instance)
         std::string body1;                                  ///< identifier of 1st body
@@ -297,7 +297,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a TsdaParams.
     struct TsdaParams {
         TsdaParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkTSDA>> tsda;    ///< underlying Chrono TSDAs (one per instance)
         std::string body1;                                ///< identifier of 1st body
@@ -312,7 +312,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of an RSDA.
     struct RsdaParams {
         RsdaParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkRSDA>> rsda;      ///< underlying Chrono RSDAs (one per instance)
         std::string body1;                                  ///< identifier of 1st body
@@ -329,7 +329,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a body load (applied force or torque).
     struct BodyLoadParams {
         BodyLoadParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
         BodyLoadType type;                                ///< load type: FORCE or TORQUE
@@ -355,7 +355,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a motor (linear or rotational).
     struct MotorParams {
         MotorParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkMotor>> motor;  ///< underlying Chrono linear motors (one per instance)
         MotorType type;                                   ///< motor type: LINEAR or ROTATION

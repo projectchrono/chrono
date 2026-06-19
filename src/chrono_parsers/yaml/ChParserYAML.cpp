@@ -60,20 +60,6 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
 
 // -----------------------------------------------------------------------------
 
-ChParserYAML::OutputParameters::OutputParameters() : format(ChOutput::Format::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
-
-void ChParserYAML::OutputParameters::PrintInfo() {
-    if (format == ChOutput::Format::NONE) {
-        cout << "no output" << endl;
-        return;
-    }
-
-    cout << "output" << endl;
-    cout << "  format:               " << ChOutput::GetFormatAsString(format) << endl;
-    cout << "  mode:                 " << ChOutput::GetModeAsString(mode) << endl;
-    cout << "  output FPS:           " << fps << endl;
-}
-
 bool ChParserYAML::Output() const {
     return m_output.format != ChOutput::Format::NONE;
 }
@@ -105,23 +91,6 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
     }
 }
 
-void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
-    ChAssertAlways(a["format"]);
-    m_output.format = ReadOutputFormat(a["format"]);
-#ifndef CHRONO_HAS_HDF5
-    if (m_output.format == ChOutput::Format::HDF5) {
-        std::cerr << "HDF5 output support not available.\nOutput disabled." << std::endl;
-        m_output.format = ChOutput::Format::NONE;
-        return;
-    }
-#endif
-
-    if (a["mode"])
-        m_output.mode = ReadOutputMode(a["mode"]);
-    if (a["fps"])
-        m_output.fps = a["fps"].as<double>();
-}
-
 void ChParserYAML::WriteOutput(int frame, double time) {
     if (m_output.format == ChOutput::Format::NONE)
         return;
@@ -140,64 +109,6 @@ void ChParserYAML::WriteOutput(int frame, double time) {
                 return;
 #endif
         }
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-ChParserYAML::VisParams::VisParams()
-    : render(false),
-      render_fps(120),
-      camera_vertical(CameraVerticalDir::Z),
-      camera_location({0, -1, 0}),
-      camera_target({0, 0, 0}),
-      enable_shadows(true),
-      write_images(false),
-      image_dir(".") {}
-
-void ChParserYAML::VisParams::PrintInfo() {
-    if (!render) {
-        cout << "no run-time visualization" << endl;
-        return;
-    }
-
-    cout << "run-time visualization" << endl;
-    cout << "  render FPS:           " << render_fps << endl;
-    cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
-    cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
-    cout << "  camera location:      " << camera_location << endl;
-    cout << "  camera target:        " << camera_target << endl;
-}
-
-void ChParserYAML::ReadVisParams(const YAML::Node& a) {
-    m_vis.render = true;
-    if (a["render_fps"])
-        m_vis.render_fps = a["render_fps"].as<double>();
-    if (a["enable_shadows"])
-        m_vis.enable_shadows = a["enable_shadows"].as<bool>();
-    if (a["camera"]) {
-        if (a["camera"]["vertical"]) {
-            auto camera_vertical = ChToUpper(a["camera"]["vertical"].as<std::string>());
-            if (camera_vertical == "Y")
-                m_vis.camera_vertical = CameraVerticalDir::Y;
-            else if (camera_vertical == "Z")
-                m_vis.camera_vertical = CameraVerticalDir::Z;
-            else {
-                cerr << "Incorrect camera vertical " << a["camera"]["vertical"].as<std::string>() << endl;
-                throw std::runtime_error("Incorrect camera vertical");
-            }
-        }
-        if (a["camera"]["location"])
-            m_vis.camera_location = ReadVector(a["camera"]["location"]);
-        if (a["camera"]["target"])
-            m_vis.camera_target = ReadVector(a["camera"]["target"]);
-    }
-    if (a["output"]) {
-        auto b = a["output"];
-        if (b["save_images"])
-            m_vis.write_images = b["save_images"].as<bool>();
-        if (b["output_directory"])
-            m_vis.image_dir = b["output_directory"].as<std::string>();
     }
 }
 

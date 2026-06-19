@@ -143,7 +143,7 @@ void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        ReadVisParams(yaml["visualization"]);
+        m_vis = ChVisualSystem::Settings::Read(yaml["visualization"]);
     }
 
     if (m_verbose) {
@@ -305,7 +305,7 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
 
 ChParserFsiYAML::SimParams::SimParams() : end_time(-1), gravity({0, 0, -9.8}) {}
 
-void ChParserFsiYAML::SimParams::PrintInfo() {
+void ChParserFsiYAML::SimParams::PrintInfo() const {
     cout << "co-simulation parameters" << endl;
     cout << "   co-sim meta-step:  " << step << endl;
     cout << "   end time:          " << (end_time > 0 ? std::to_string(end_time) : "undefined") << endl;

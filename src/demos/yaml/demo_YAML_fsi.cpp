@@ -172,12 +172,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (output_MBS && time >= output_frame_MBS / output_fps_MBS) {
-            parserMBS.WriteOutput(time, output_frame_MBS);
+            parserMBS.WriteOutput(output_frame_MBS, time);
             output_frame_MBS++;
         }
 
         if (output_CFD && time >= output_frame_CFD / output_fps_CFD) {
-            parserCFD.WriteOutput(time, output_frame_CFD);
+            parserCFD.WriteOutput(output_frame_CFD, time);
             output_frame_CFD++;
         }
 
