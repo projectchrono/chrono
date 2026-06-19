@@ -20,10 +20,15 @@
 #define CH_ROS_TF_HANDLER_H
 
 #include "chrono_ros/ChApiROS.h"
+#include "chrono_ros/ChConfigROS.h"
 #include "chrono_ros/ChROSHandler.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/core/ChFrame.h"
+
+#ifdef CHRONO_HAS_URDF
+    #include "chrono_parsers/ChParserURDF.h"
+#endif
 
 #include <memory>
 #include <string>
@@ -51,10 +56,6 @@ class ChROSPublisher;
 /// Publishes transforms as tf2_msgs/msg/TFMessage on the "/tf" topic (the topic
 /// tf2 consumers expect). Schema-driven equivalent of the Chrono 9.0 handler;
 /// the call interface (constructor and the AddTransform overloads) is unchanged.
-///
-/// NOTE: the URDF (AddURDF) and sensor (AddSensor) convenience overloads return
-/// together with the URDF and sensor demos later in Phase 5; the body/body and
-/// body/frame transforms below are the dependency-free core.
 class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     typedef std::pair<chrono::ChFrame<>, std::string> ChFrameTransform;
     typedef std::pair<std::shared_ptr<chrono::ChBody>, std::string> ChBodyTransform;
@@ -90,6 +91,14 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
                    const std::string& parent_frame_id,
                    const std::string& child_frame_id);
+#endif
+
+#ifdef CHRONO_HAS_URDF
+    /// Add a transform for every link in a parsed URDF, walking its kinematic
+    /// tree (parent link -> child link, per joint). Frame ids are the URDF link
+    /// names. Wrapped for Python: the ChParserURDF argument crosses from
+    /// pychrono.parsers via SWIG cross-module type sharing (see demo_ROS_urdf.py).
+    void AddURDF(chrono::parsers::ChParserURDF& parser);
 #endif
 
   protected:

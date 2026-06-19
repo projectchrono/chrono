@@ -100,6 +100,22 @@
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #endif
 
+#ifdef CHRONO_ROS_HAS_VEHICLE
+// DriverInputs handler. Its ctor takes a chrono::vehicle::ChDriver (wrapped in
+// pychrono.vehicle). We do NOT %import the vehicle module: SWIG treats ChDriver
+// as an opaque shared_ptr argument and the process-global SWIG type registry
+// resolves the veh.ChDriver proxy at runtime (the same cross-module mechanism
+// upstream 9.0 relied on). The header's #include of ChDriver.h is compiled by
+// the C++ compiler against the Chrono_vehicle include dirs the ros target links.
+#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
+#endif
+
+#ifdef CHRONO_ROS_HAS_ROBOT
+// Viper handler. Its ctor takes a chrono::viper::ViperDCMotorControl
+// (pychrono.robot); same opaque-argument / runtime-resolution approach.
+#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::ros;
 %}
@@ -151,6 +167,12 @@ using namespace chrono::ros;
 %shared_ptr(chrono::ros::ChROSCameraHandler)
 %shared_ptr(chrono::ros::ChROSLidarHandler)
 #endif
+#ifdef CHRONO_ROS_HAS_VEHICLE
+%shared_ptr(chrono::ros::ChROSDriverInputsHandler)
+#endif
+#ifdef CHRONO_ROS_HAS_ROBOT
+%shared_ptr(chrono::ros::ChROSViperDCMotorControlHandler)
+#endif
 
 // ---------------------------------------------------------------------------
 // B - things SWIG must not wrap as-is
@@ -180,13 +202,23 @@ using namespace chrono::ros;
 %ignore chrono::ros::ChROSMessageView::CopyBlob;
 
 #ifdef CHRONO_SENSOR
-// ChROSTFHandler::AddSensor takes a base chrono::sensor::ChSensor. Wrapping it
-// would require importing ChSensor.i (-> ChSensorBuffer.i, whose bare-template
-// SensorBufferT %shared_ptr breaks under %import). Omit it from Python; the same
-// transform is available via AddTransform(sensor.GetParent(), pfid,
-// sensor.GetOffsetPose(), cfid) using already-wrapped types.
+// ChROSTFHandler::AddSensor takes the BASE chrono::sensor::ChSensor by shared_ptr.
+// This is the one Chrono-type argument we do NOT wrap: unlike the concrete-type
+// arguments elsewhere (ChBody, ChDriver, ChParserURDF, leaf sensors), converting a
+// *derived* sensor proxy (e.g. sensor.ChCameraSensor) into shared_ptr<ChSensor>
+// needs ChSensor's shared_ptr hierarchy imported - which drags ChSensorBuffer.i's
+// bare-template SensorBufferT (breaks under %import). It would compile but not
+// reliably convert at runtime. The exact equivalent uses already-wrapped types:
+//   tf.AddTransform(sensor.GetParent(), pfid, sensor.GetOffsetPose(), cfid)
 %ignore chrono::ros::ChROSTFHandler::AddSensor;
 #endif
+
+// RobotModel's ChParserURDF ctor and TF AddURDF take a chrono::parsers::ChParserURDF
+// (a plain class wrapped in pychrono.parsers). They wrap like the vehicle/robot
+// handlers - the argument crosses opaquely and the global type registry resolves the
+// parsers.ChParserURDF proxy at runtime; no parsers %import. SWIG sees these methods
+// when -DCHRONO_HAS_URDF is passed (chrono_python/CMakeLists.txt, when the parsers
+// module + URDF are present). Used by demo_ROS_urdf.py.
 
 // ---------------------------------------------------------------------------
 // B2 - keep Python director objects alive once C++ owns them
@@ -283,6 +315,17 @@ using namespace chrono::ros;
 #ifdef CHRONO_HAS_OPTIX
 %include "../../../chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 %include "../../../chrono_ros/handlers/sensor/ChROSLidarHandler.h"
+#endif
+
+// Vehicle / robot handlers: SWIG parses each header with its Chrono-type ctor
+// argument (ChDriver / ViperDCMotorControl) left opaque - it emits a "nothing
+// known about <type>" warning and generates an opaque shared_ptr arg, resolved
+// across modules at runtime (see the %{ %} note above). No vehicle/robot %import.
+#ifdef CHRONO_ROS_HAS_VEHICLE
+%include "../../../chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
+#endif
+#ifdef CHRONO_ROS_HAS_ROBOT
+%include "../../../chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
 #endif
 
 // ---------------------------------------------------------------------------

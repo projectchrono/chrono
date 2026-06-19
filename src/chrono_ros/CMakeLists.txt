@@ -132,9 +132,9 @@ set(CH_ROS_API_FILES
 )
 source_group("api" FILES ${CH_ROS_API_FILES})
 
-# Built-in handlers (exemplary uses of the public API). Phase 5 ports these from
-# Chrono 9.0 with matching call interfaces; sensor/vehicle/robot handlers and
-# the URDF/sensor TF overloads return in later Phase-5 batches.
+# Built-in handlers (exemplary uses of the public API). Dependency-free handlers
+# are always built; sensor/vehicle/robot handlers are appended below under their
+# module guards.
 set(CH_ROS_HANDLER_FILES
   handlers/ChROSClockHandler.h
   handlers/ChROSClockHandler.cpp
@@ -173,6 +173,31 @@ if(CH_ENABLE_MODULE_SENSOR)
   list(APPEND CH_ROS_API_FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 endif()
 
+# Vehicle handlers: compiled only when the Chrono::Vehicle module is enabled
+# (they drive a ChDriver). DriverInputs also exercises the chrono_ros_interfaces
+# custom message package.
+set(CH_ROS_VEHICLE_HANDLER_FILES "")
+if(CH_ENABLE_MODULE_VEHICLE)
+  set(CH_ROS_VEHICLE_HANDLER_FILES
+    handlers/vehicle/ChROSDriverInputsHandler.h
+    handlers/vehicle/ChROSDriverInputsHandler.cpp
+  )
+  source_group("handlers\\vehicle" FILES ${CH_ROS_VEHICLE_HANDLER_FILES})
+  list(APPEND CH_ROS_API_FILES ${CH_ROS_VEHICLE_HANDLER_FILES})
+endif()
+
+# Robot-model handlers (Viper): need ChronoModels_robot for the ViperDCMotorControl
+# driver type. Gated on the target so a build without robot models still works.
+set(CH_ROS_ROBOT_MODEL_HANDLER_FILES "")
+if(TARGET ChronoModels_robot)
+  set(CH_ROS_ROBOT_MODEL_HANDLER_FILES
+    handlers/robot/viper/ChROSViperDCMotorControlHandler.h
+    handlers/robot/viper/ChROSViperDCMotorControlHandler.cpp
+  )
+  source_group("handlers\\robot\\viper" FILES ${CH_ROS_ROBOT_MODEL_HANDLER_FILES})
+  list(APPEND CH_ROS_API_FILES ${CH_ROS_ROBOT_MODEL_HANDLER_FILES})
+endif()
+
 add_library(Chrono_ros SHARED ${CH_ROS_API_FILES})
 add_library(Chrono::ros ALIAS Chrono_ros)
 
@@ -203,10 +228,33 @@ if(CH_ENABLE_MODULE_SENSOR)
   target_link_libraries(Chrono_ros PUBLIC Chrono_sensor)
 endif()
 
+# URDF support (RobotModel ChParserURDF ctor + TF AddURDF): link Chrono_parsers
+# when the parsers module is enabled with URDF. The CHRONO_HAS_URDF macro the
+# handlers guard on comes from ChConfigROS.h -> ChConfigParsers.h.
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  target_link_libraries(Chrono_ros PUBLIC Chrono_parsers)
+endif()
+
+# Vehicle handlers (DriverInputs) link Chrono_vehicle.
+if(CH_ENABLE_MODULE_VEHICLE)
+  target_link_libraries(Chrono_ros PUBLIC Chrono_vehicle)
+endif()
+
+# Robot-model handlers (Viper) link ChronoModels_robot.
+if(TARGET ChronoModels_robot)
+  target_link_libraries(Chrono_ros PUBLIC ChronoModels_robot)
+endif()
+
 # Module dependency bookkeeping for the parent build (module short-names).
 set(DEPENDENCIES_ROS "")
 if(CH_ENABLE_MODULE_SENSOR)
   list(APPEND DEPENDENCIES_ROS "SENSOR")
+endif()
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  list(APPEND DEPENDENCIES_ROS "PARSERS")
+endif()
+if(CH_ENABLE_MODULE_VEHICLE)
+  list(APPEND DEPENDENCIES_ROS "VEHICLE")
 endif()
 set(DEPENDENCIES_ROS ${DEPENDENCIES_ROS} PARENT_SCOPE)
 set(CH_ROS_HAS_INTERFACES FALSE PARENT_SCOPE)

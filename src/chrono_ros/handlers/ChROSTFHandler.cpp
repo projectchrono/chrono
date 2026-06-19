@@ -83,6 +83,22 @@ void ChROSTFHandler::AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
 }
 #endif
 
+#ifdef CHRONO_HAS_URDF
+void ChROSTFHandler::AddURDF(chrono::parsers::ChParserURDF& parser) {
+    auto model = parser.GetModelTree();
+    std::vector<urdf::LinkSharedPtr> links;
+    model->getLinks(links);
+    for (const auto& link : links) {
+        auto joint = link->parent_joint;
+        if (!joint)
+            continue;  // root link has no parent joint
+        auto parent = parser.GetChBody(joint->parent_link_name);
+        auto child = parser.GetChBody(joint->child_link_name);
+        AddTransform(parent, joint->parent_link_name, child, joint->child_link_name);
+    }
+}
+#endif
+
 void ChROSTFHandler::Tick(double time) {
     auto msg = m_publisher->NewMessage();
 

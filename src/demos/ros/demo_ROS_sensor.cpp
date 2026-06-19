@@ -153,8 +153,8 @@ int main(int argc, char* argv[]) {
     // ------------
 
     // ROS manager + built-in handlers (call interfaces match 9.0). Topic names
-    // follow the 9.0 demo. TF for the sensors returns with the ChROSTFHandler
-    // AddSensor overload in a follow-up.
+    // follow the 9.0 demo. Per-sensor TF frames are published below via the
+    // ChROSTFHandler AddSensor overload.
     auto ros_manager = chrono_types::make_shared<ChROSManager>();
     ros_manager->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
 
