@@ -1022,6 +1022,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, st
 }
 
 #ifdef CHRONO_FEA
+
 void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
@@ -1212,10 +1213,6 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    ////std::ofstream ofile("mesh2D.txt");
-    ////ofile << mesh->GetNumTriangles() << endl;
-    ////ofile << endl;
-
     // Traverse the contact surface faces:
     // - calculate their discretization number n
     //   (largest number that results in a discretization no coarser than the initial spacing on each edge)
@@ -1248,13 +1245,6 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
         ////cout << "  Median : " << n_median << " Max : " << n_max << endl;
 
         int n = n_median;
-
-        ////ofile << P0 << endl;
-        ////ofile << P1 << endl;
-        ////ofile << P2 << endl;
-        ////ofile << tri->OwnsNode(0) << " " << tri->OwnsNode(1) << " " << tri->OwnsNode(2) << endl;
-        ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
-        ////ofile << n << endl;
 
         int m_start = 0;
         int m_end = 0;
@@ -1311,17 +1301,12 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
                     bce.push_back(P + z_val * normal);
                     bce_coords.push_back({lambda[0], lambda[1], z_val});
                     bce_ids.push_back(ChVector3i(meshID, triID, m_num_flex2D_elements + triID));
-
-                    ////ofile << Q << endl;
                 }
             }
         }
-
-        ////ofile << endl;
     }
-
-    ////ofile.close();
 }
+
 #endif
 
 //------------------------------------------------------------------------------
@@ -1870,8 +1855,8 @@ void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3
     for (int i = 0; i < numPart; i++) {
         AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
                        ChVector3d(0),  // initial velocity
-                       ChVector3d(0),  // tauxxyyzz
-                       ChVector3d(0),  // tauxyxzyz
+                       ChVector3d(0),  // tau_xx_yy_zz
+                       ChVector3d(0),  // tau_xy_xz_yz
                        0);             // pc
     }
 }

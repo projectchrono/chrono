@@ -554,8 +554,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// SPH solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
-    /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the
-    /// given FSI rigid body.
+    /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the given FSI rigid body.
     void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce);
 
 #ifdef CHRONO_FEA
@@ -577,8 +576,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                          bool remove_center         ///< eliminate markers on surface
     );
 
-    /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
-    /// given FSI 1D mesh.
+    /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the given FSI 1D mesh.
     void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
                             BcePatternMesh1D pattern,
                             bool remove_center,
@@ -670,7 +668,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------
 
-    /// Synchronize the async copy stream (used for the copySortedToOriginal function)
+    /// Synchronize the async copy stream.
+    /// Used for the copySortedToOriginal function.
     void SynchronizeCopyStream() const;
 
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters

@@ -73,10 +73,10 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
-    /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape
-    /// surface). Generation of BCE markers on a uniform Cartesian grid can be enforced setting use_grid_bce=true.
-    /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are
-    /// pruned). To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape surface).
+    /// Generation of BCE markers on a uniform Cartesian grid can be enforced setting use_grid_bce=true.
+    /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are pruned).
+    /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     void AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded, bool use_grid_bce = false);
 
@@ -84,6 +84,12 @@ class CH_FSI_API ChFsiProblemSPH {
     void AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& pos, const ChVector3d& size);
     void AddRigidBodyCylinderX(std::shared_ptr<ChBody> body, const ChFramed& pos, double radius, double length, bool use_grid_bce = false);
     void AddRigidBodyMesh(std::shared_ptr<ChBody> body, const ChFramed& pos, const std::string& obj_file, const ChVector3d& interior_point, double scale);
+
+    /// Add a rigid body to the FSI problem with user-specified BCE markers.
+    /// The BCE markers can be specified relative to a frame different from the body reference frame.
+    /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// This function must be called before Initialize().
+    void AddRigidBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded);
 
     /// Return the number of BCE markers associated with the specified rigid body.
     size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
