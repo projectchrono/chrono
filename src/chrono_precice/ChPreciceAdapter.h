@@ -329,6 +329,9 @@ class ChApiPrecice ChPreciceAdapter {
     /// Convert a vector of ChVector3d to a vector of doubles in the format (x0, y0, z0, x1, y1, z1, ...).
     static std::vector<double> SetVerticesToData(const std::vector<ChVector3d>& vertices);
 
+    /// Read a set of 3D points from an ASCII file (one point per line, space-delimited).
+    static std::vector<ChVector3d> ReadPoints(const std::string& filename);
+
     // ---- Member variables
 
     /// Definition of a coupling data block.

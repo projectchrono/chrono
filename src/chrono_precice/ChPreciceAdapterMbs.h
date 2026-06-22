@@ -157,7 +157,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     // Chrono physics items in coupling interface
     std::vector<std::shared_ptr<CouplingBody>> m_coupling_bodies;  ///< coupling rigid bodies
 #ifdef CHRONO_FEA
-    std::vector<std::shared_ptr<fea::ChMesh>> m_coupling_fea;  ///< coupling FEA meshes
+    std::vector<std::shared_ptr<CouplingFEAMesh>> m_coupling_fea;  ///< coupling FEA meshes
 #endif
 
     // Dynamics callbacks

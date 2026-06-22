@@ -23,42 +23,6 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-// -----------------------------------------------------------------------------
-
-// Utility function to read a list of 3D vectors from a space-delimited file.
-static std::vector<ChVector3d> ReadPoints(const std::string& filename) {
-    // Open input file stream
-    std::ifstream ifile;
-    std::string line;
-    try {
-        ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        ifile.open(filename);
-    } catch (const std::exception&) {
-        cerr << "Cannot open input file '" << filename << "'" << endl;
-        throw std::invalid_argument("Cannot open input file");
-    }
-
-    // Read number of points
-    std::getline(ifile, line);
-    std::istringstream iss(line);
-    size_t num_points;
-    iss >> num_points;
-
-    // Read points
-    std::vector<ChVector3d> points;
-    for (size_t i = 0; i < num_points; i++) {
-        std::getline(ifile, line);
-        std::istringstream jss(line);
-        double x, y, z;
-        jss >> x >> y >> z;
-        points.push_back(ChVector3d(x, y, z));
-    }
-
-    return points;
-}
-
-// -----------------------------------------------------------------------------
-
 ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
     : ChPreciceAdapter("model_MBS"), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
     SetVerbose(verbose);
@@ -162,11 +126,12 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
     // For each interface mesh:
     // - check that coupling meshes have dimension 2 or 3 (as reported by preCICE)
-    // - check that coupling data have dimension equal to the mesh dimension (as reported by preCICE)
+    // - check that coupling data have dimension consistent with the mesh dimension (as reported by preCICE)
     // - set mesh vertices (depending on mesh type and dimension)
     // - register mesh with preCICE
     for (const auto& mesh_name : GetCouplingMeshNames()) {
         auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
+        ChAssertAlways(mesh_dim == 3 || mesh_dim == 2);
 
         // Check consistency of mesh dimension and read data dimension
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
@@ -270,6 +235,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 #endif
 }
 
+// -----------------------------------------------------------------------------
+
 void ChPreciceAdapterMbs::WriteCheckpoint(double time) {
     ChPreciceAdapter::WriteCheckpoint(time);
 
@@ -285,6 +252,8 @@ void ChPreciceAdapterMbs::ReadCheckpoint(double time) {
     ChAssertAlways(m_checkpoint.time == time);
     m_sys->StateScatter(m_checkpoint.x, m_checkpoint.v, m_checkpoint.time, UpdateFlags::UPDATE_ALL);
 }
+
+// -----------------------------------------------------------------------------
 
 void ChPreciceAdapterMbs::ReadData() {
     ChPreciceAdapter::ReadData();
@@ -311,45 +280,6 @@ void ChPreciceAdapterMbs::ReadData() {
     }
 }
 
-double ChPreciceAdapterMbs::GetSolverTimeStep(double max_time_step) const {
-    return std::min(m_time_step, max_time_step);
-}
-
-void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
-    ChPreciceAdapter::AdvanceParticipant(time, time_step);
-
-    ChAssertAlways(time == m_sys->GetChTime());
-
-#ifdef CHRONO_VSG
-    static int render_frame = 0;
-    if (m_visualize && m_vis_params.render && m_vsg->Run()) {
-        if (time >= render_frame / m_vis_params.render_fps) {
-            m_vsg->Render();
-            render_frame++;
-        }
-    }
-#endif
-
-    static int output_frame = 0;
-    if (m_output) {
-        if (time >= output_frame / m_output_settings.fps) {
-            WriteOutput(output_frame, time);
-            output_frame++;
-        }
-    }
-
-    if (m_beforestep_callback)
-        m_beforestep_callback->OnStepDynamics(time, time_step);
-
-    m_sys->DoStepDynamics(time_step);
-
-    if (m_afterstep_callback)
-        m_afterstep_callback->OnStepDynamics(time, time_step);
-
-    if (m_enforce_realtime)
-        m_rt_timer.Spin(time_step);
-}
-
 void ChPreciceAdapterMbs::WriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
@@ -370,21 +300,6 @@ void ChPreciceAdapterMbs::WriteData() {
 
     ChPreciceAdapter::WriteData();
 }
-
-// -----------------------------------------------------------------------------
-
-void ChPreciceAdapterMbs::WriteOutput(int frame, double time) {
-    // Invoke first the base class function, to create the output DB if needed
-    ChPreciceAdapter::WriteOutput(frame, time);
-
-    m_output_db->Write(frame, time, m_output_data);
-#ifdef CHRONO_FEA
-    //// TODO
-    ////m_output_db->WriteFeaMeshes(m_output_data.meshes);
-#endif
-}
-
-// -----------------------------------------------------------------------------
 
 void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
@@ -661,6 +576,60 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 throw std::runtime_error("Invalid Chrono MBS write data type");
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+
+double ChPreciceAdapterMbs::GetSolverTimeStep(double max_time_step) const {
+    return std::min(m_time_step, max_time_step);
+}
+
+void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
+    ChPreciceAdapter::AdvanceParticipant(time, time_step);
+
+    ChAssertAlways(time == m_sys->GetChTime());
+
+#ifdef CHRONO_VSG
+    static int render_frame = 0;
+    if (m_visualize && m_vis_params.render && m_vsg->Run()) {
+        if (time >= render_frame / m_vis_params.render_fps) {
+            m_vsg->Render();
+            render_frame++;
+        }
+    }
+#endif
+
+    static int output_frame = 0;
+    if (m_output) {
+        if (time >= output_frame / m_output_settings.fps) {
+            WriteOutput(output_frame, time);
+            output_frame++;
+        }
+    }
+
+    if (m_beforestep_callback)
+        m_beforestep_callback->OnStepDynamics(time, time_step);
+
+    m_sys->DoStepDynamics(time_step);
+
+    if (m_afterstep_callback)
+        m_afterstep_callback->OnStepDynamics(time, time_step);
+
+    if (m_enforce_realtime)
+        m_rt_timer.Spin(time_step);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapterMbs::WriteOutput(int frame, double time) {
+    // Invoke first the base class function, to create the output DB if needed
+    ChPreciceAdapter::WriteOutput(frame, time);
+
+    m_output_db->Write(frame, time, m_output_data);
+#ifdef CHRONO_FEA
+    //// TODO
+    ////m_output_db->WriteFeaMeshes(m_output_data.meshes);
+#endif
 }
 
 }  // end namespace ch_precice

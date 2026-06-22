@@ -617,5 +617,39 @@ std::vector<double> ChPreciceAdapter::SetVerticesToData(const std::vector<ChVect
     return data;
 }
 
+// -----------------------------------------------------------------------------
+
+std::vector<ChVector3d> ChPreciceAdapter::ReadPoints(const std::string& filename) {
+    // Open input file stream
+    std::ifstream ifile;
+    std::string line;
+    try {
+        ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
+        ifile.open(filename);
+    } catch (const std::exception&) {
+        cerr << "Cannot open input file '" << filename << "'" << endl;
+        throw std::invalid_argument("Cannot open input file");
+    }
+
+    // Read number of points
+    std::getline(ifile, line);
+    std::istringstream iss(line);
+    size_t num_points;
+    iss >> num_points;
+
+    // Read points
+    std::vector<ChVector3d> points;
+    for (size_t i = 0; i < num_points; i++) {
+        std::getline(ifile, line);
+        std::istringstream jss(line);
+        double x, y, z;
+        jss >> x >> y >> z;
+        points.push_back(ChVector3d(x, y, z));
+    }
+
+    return points;
+}
+
+
 }  // end namespace ch_precice
 }  // namespace chrono
