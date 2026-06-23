@@ -59,10 +59,10 @@ class ChApiPrecice ChPreciceAdapter {
     enum class CouplingDataType {
         GENERIC,             ///< generic data
         POSITIONS,           ///< 3D positions (of body ref frames, body points, or FEA nodes)
-        ORIENTATIONS,        ///< 3D orientation (of body ref frames)
+        ROTATIONS,           ///< 3D rotations (of body ref frames)
         DISPLACEMENTS,       ///< 3D displacements (relative to initial position)
         LINEAR_VELOCITIES,   ///< 3D velocities (of body ref frames, body points, or FEA nodes)
-        ANGULAR_VELOCITIES,  ///< 3D angular velocity (of body ref frames)
+        ANGULAR_VELOCITIES,  ///< 3D angular velocities (of body ref frames)
         FORCES,              ///< 3D forces (on body ref frames, body points, or FEA nodes)
         TORQUES              ///< 3D torques (on body ref frames)
     };
@@ -114,6 +114,7 @@ class ChApiPrecice ChPreciceAdapter {
     // ---- Accessor functions
 
     /// Get the number of spatial dimensions for the mesh with specified name.
+    /// This information is obtained from the preCICE configuration.
     int GetCouplingMeshDimensions(const std::string& mesh_name) const;
 
     /// Get the number of vertices for the mesh with specified name.
@@ -126,10 +127,15 @@ class ChApiPrecice ChPreciceAdapter {
     std::string GetCouplingMeshTypeAsString(const std::string& mesh_name) const;
 
     /// Get the data dimensions for the data with specified name on the mesh with specified name.
+    /// This information is obtained from the preCICE configuration.
     int GetCouplingDataDimensions(const std::string& mesh_name, const std::string& data_name) const;
 
     /// Get the type for the coupling data with specified name on the mesh with specified name.
     CouplingDataType GetCouplingDataType(const std::string& mesh_name, const std::string& data_name) const;
+
+    /// Get the `used` flag for the coupling data with specified name on the mesh with specified name.
+    /// Return true if the data block is referenced in the preCICE configuration file and false otherwise.
+    bool GetCouplingDataUsed(const std::string& mesh_name, const std::string& data_name) const;
 
     /// Get the type for the coupling data with specified name on the mesh with specified name.
     std::string GetCouplingDataTypeAsString(const std::string& mesh_name, const std::string& data_name) const;
@@ -338,6 +344,7 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Definition of a coupling data block.
     struct CouplingDataInfo {
+        bool used;                   ///< data referenced in preCICE configuration
         CouplingDataType type;       ///< data type
         std::vector<double> values;  ///< data values
     };
@@ -361,6 +368,7 @@ class ChApiPrecice ChPreciceAdapter {
     std::string m_model_name;  ///< Chrono model name
 
     std::unique_ptr<precice::Participant> m_participant;  ///< preCICE instance
+    std::string m_precice_config_filename;                ///< name of the preCICE configuration file
     std::string m_participant_name;                       ///< name of the participant/solver
     int m_process_size;                                   ///< number of processes used by an instance of this solver
     int m_process_index;                                  ///< index for each process used by this solver

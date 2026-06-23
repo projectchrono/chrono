@@ -24,6 +24,8 @@
     #include "chrono/input_output/ChOutputHDF5.h"
 #endif
 
+#include "chrono_thirdparty/rapidxml/rapidxml.hpp"
+
 #include "chrono_precice/ChPreciceAdapter.h"
 
 using std::cout;
@@ -110,8 +112,8 @@ static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node&
         return ChPreciceAdapter::CouplingDataType::GENERIC;
     if (type == "POSITIONS")
         return ChPreciceAdapter::CouplingDataType::POSITIONS;
-    if (type == "ORIENTATIONS")
-        return ChPreciceAdapter::CouplingDataType::ORIENTATIONS;
+    if (type == "ROTATIONS")
+        return ChPreciceAdapter::CouplingDataType::ROTATIONS;
     if (type == "DISPLACEMENTS")
         return ChPreciceAdapter::CouplingDataType::DISPLACEMENTS;
     if (type == "LINEAR_VELOCITIES")
@@ -180,7 +182,8 @@ void ChPreciceAdapter::ReadParticipantConfigurationYAML(const std::string& input
                 if (write_data[j]["type"])
                     data_type = ReadCouplingDataType(write_data[j]["type"]);
                 m_data_write[mesh_name].push_back(data_name);
-                mesh_info.data[data_name].type = data_type;
+                mesh_info.data[data_name].type = data_type;                // set data type
+                mesh_info.data[data_name].used = false;                    // initialize as not referenced
                 mesh_info.data[data_name].values = std::vector<double>();  // initialize empty vector
             }
         }
@@ -195,7 +198,8 @@ void ChPreciceAdapter::ReadParticipantConfigurationYAML(const std::string& input
                 if (read_data[j]["type"])
                     data_type = ReadCouplingDataType(read_data[j]["type"]);
                 m_data_read[mesh_name].push_back(data_name);
-                mesh_info.data[data_name].type = data_type;
+                mesh_info.data[data_name].type = data_type;                // set data type
+                mesh_info.data[data_name].used = false;                    // initialize as not referenced
                 mesh_info.data[data_name].values = std::vector<double>();  // initialize empty vector
             }
         }
@@ -221,10 +225,12 @@ void ChPreciceAdapter::AddCouplingMeshInterface(const std::string& mesh_name,
 
     for (const auto& data_name : data_write_names) {
         m_data_write[mesh_name].push_back(data_name);
+        mesh_info.data[data_name].used = false;                    // initialize as not referenced
         mesh_info.data[data_name].values = std::vector<double>();  // initialize empty vector
     }
     for (const auto& data_name : data_read_names) {
         m_data_read[mesh_name].push_back(data_name);
+        mesh_info.data[data_name].used = false;                    // initialize as not referenced
         mesh_info.data[data_name].values = std::vector<double>();  // initialize empty vector
     }
     m_coupling_meshes.insert({mesh_name, mesh_info});
@@ -241,6 +247,8 @@ void ChPreciceAdapter::RegisterParticipant(const std::string& precice_config_fil
     assert(m_participant == nullptr);
     m_participant = std::make_unique<precice::Participant>(m_participant_name, precice_config_filename, m_process_index, m_process_size);
     m_participant_created = true;
+
+    m_precice_config_filename = precice_config_filename;
 }
 
 // -----------------------------------------------------------------------------
@@ -280,7 +288,9 @@ void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vec
     // Data dimension is the number of values per vertex for the data, which is determined by preCICE based on the configuration file
     // (e.g., scalar data has dimension 1, vector data has dimension equal to mesh dimension, etc.)
     for (auto& [data_name, data_info] : m_coupling_meshes[mesh_name].data) {
-        int data_dim = m_participant->getDataDimensions(mesh_name, data_name);
+        if (!data_info.used)
+            continue;
+        int data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         data_info.values.resize(num_vertices * data_dim);
     }
 
@@ -290,12 +300,18 @@ void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vec
         cout << m_prefix2 << "num. vertices:    " << GetNumVertices(mesh_name) << endl;
         cout << m_prefix2 << "mesh type:        " << GetCouplingMeshTypeAsString(mesh_name) << endl;
         cout << m_prefix2 << "read interfaces:  ";
-        for (auto& data_name : GetReadDataNamesOnMesh(mesh_name))
+        for (auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
+            if (!GetCouplingDataUsed(mesh_name, data_name))
+                continue;
             cout << "'" << data_name << "' (" << GetCouplingDataDimensions(mesh_name, data_name) << "," << GetCouplingDataTypeAsString(mesh_name, data_name) << ")  ";
+        }
         cout << endl;
         cout << m_prefix2 << "write interfaces: ";
-        for (auto& data_name : GetWriteDataNamesOnMesh(mesh_name))
+        for (auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
+            if (!GetCouplingDataUsed(mesh_name, data_name))
+                continue;
             cout << "'" << data_name << "' (" << GetCouplingDataDimensions(mesh_name, data_name) << "," << GetCouplingDataTypeAsString(mesh_name, data_name) << ")  ";
+        }
         cout << endl;
     }
 }
@@ -325,12 +341,18 @@ ChPreciceAdapter::CouplingDataType ChPreciceAdapter::GetCouplingDataType(const s
     return m_coupling_meshes.at(mesh_name).data.at(data_name).type;
 }
 
+bool ChPreciceAdapter::GetCouplingDataUsed(const std::string& mesh_name, const std::string& data_name) const {
+    return m_coupling_meshes.at(mesh_name).data.at(data_name).used;
+}
+
 std::string ChPreciceAdapter::GetCouplingDataTypeAsString(CouplingDataType type) {
     switch (type) {
         case CouplingDataType::GENERIC:
             return "GENERIC";
         case CouplingDataType::POSITIONS:
             return "POSITIONS";
+        case CouplingDataType::ROTATIONS:
+            return "ROTATIONS";
         case CouplingDataType::DISPLACEMENTS:
             return "DISPLACEMENTS";
         case CouplingDataType::LINEAR_VELOCITIES:
@@ -470,12 +492,84 @@ void ChPreciceAdapter::FinalizeSimulation() {
 void ChPreciceAdapter::InitializeParticipant() {
     if (m_verbose)
         cout << m_prefix1 << "Initialization" << endl;
+
+    // Read preCICE configuration file and find coupling meshes and coupling data for each mesh.
+    // Set the `used` flag for data defined on each mesh by the Chrono preCICE adapter.
+    // If the data is referenced in the preCICE configuration, set used=true. Otherwise, set used=false.
+    if (m_verbose)
+        cout << m_prefix2 << "Parse preCICE XML file" << endl;
+
+    //// TODO - consider parsing the participant nodes in the XML file (instead of mesh nodes)
+
+    // - read the XML file into a vector
+    std::ifstream file(m_precice_config_filename);
+    if (!file.good()) {
+        cerr << "Cannot read preCICE configuration file: " + m_precice_config_filename << endl;
+        throw std::runtime_error("Cannot read preCICE configuration file.");
+    }
+    std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    buffer.push_back('\0');
+
+    // - parse the buffer using the XML file parsing library
+    rapidxml::xml_document<>* doc_ptr = new rapidxml::xml_document<>();
+    doc_ptr->parse<0>(&buffer[0]);
+
+    // - find the root node
+    auto root_node = doc_ptr->first_node("precice-configuration");
+    if (!root_node) {
+        cerr << "Invalid preCICE configuration file: " + m_precice_config_filename << endl;
+        cerr << "Missing <precice-configuration> XML node" << endl;
+        throw std::runtime_error("Invalid preCICE configuration file.");
+    }
+
+    // - find all mesh nodes
+    for (auto mesh_node = root_node->first_node(); mesh_node; mesh_node = mesh_node->next_sibling()) {
+        if (std::string(mesh_node->name()) != "mesh")
+            continue;
+
+        std::string mesh_name = mesh_node->first_attribute("name")->value();
+
+        auto mesh = m_coupling_meshes.find(mesh_name);
+        if (mesh == m_coupling_meshes.end())
+            continue;
+
+        if (m_verbose)
+            cout << m_prefix2 << "  process data for mesh '" << mesh_name << "'" << endl;
+
+        for (auto data_node = mesh_node->first_node(); data_node; data_node = data_node->next_sibling()) {
+            if (std::string(data_node->name()) != "use-data")
+                continue;
+
+            std::string data_name = data_node->first_attribute("name")->value();
+
+            auto data = mesh->second.data.find(data_name);
+            if (data == mesh->second.data.end())
+                continue;  //// TODO - should this be an error?
+
+            data->second.used = true;
+        }
+    }
+
+    // Report information
+    if (m_verbose) {
+        cout << m_prefix2 << "Coupling meshes and data" << endl;
+        for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
+            cout << m_prefix2 << "  MESH: " << mesh_name << endl;
+            for (auto& [data_name, data_info] : mesh_info.data) {
+                cout << m_prefix2 << "    DATA: " << data_name << endl;
+                cout << m_prefix2 << "      type: " << GetCouplingDataTypeAsString(data_info.type) << endl;
+                cout << m_prefix2 << "      used: " << data_info.used << endl;
+            }
+        }
+    }
 }
 
 void ChPreciceAdapter::WriteData() {
     std::string msg = m_prefix1 + "Write data\n";
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         for (const auto& data_name : m_data_write[mesh_name]) {
+            if (!GetCouplingDataUsed(mesh_name, data_name))
+                continue;
             auto data_dim = std::to_string(GetCouplingDataDimensions(mesh_name, data_name));
             msg += m_prefix2 + mesh_name + ":" + data_name + " (" + data_dim + "," + GetCouplingDataTypeAsString(mesh_name, data_name) + ")\n";
             WriteDataBlock(mesh_name, data_name, mesh_info.data[data_name].values);
@@ -489,6 +583,8 @@ void ChPreciceAdapter::ReadData() {
     std::string msg = m_prefix1 + "Read data\n";
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         for (const auto& data_name : m_data_read[mesh_name]) {
+            if (!GetCouplingDataUsed(mesh_name, data_name))
+                continue;
             auto data_dim = std::to_string(GetCouplingDataDimensions(mesh_name, data_name));
             msg += m_prefix2 + mesh_name + ":" + data_name + " (" + data_dim + "," + GetCouplingDataTypeAsString(mesh_name, data_name) + ")\n";
             mesh_info.data[data_name].values = ReadDataBlock(mesh_name, data_name);
@@ -655,7 +751,6 @@ std::vector<ChVector3d> ChPreciceAdapter::ReadPoints(const std::string& filename
 
     return points;
 }
-
 
 }  // end namespace ch_precice
 }  // namespace chrono

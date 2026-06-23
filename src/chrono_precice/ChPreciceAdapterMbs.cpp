@@ -129,13 +129,24 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     // - check that coupling data have dimension consistent with the mesh dimension (as reported by preCICE)
     // - set mesh vertices (depending on mesh type and dimension)
     // - register mesh with preCICE
+    if (m_verbose)
+        cout << m_prefix2 << "Check and register coupling meshes" << endl;
+
     for (const auto& mesh_name : GetCouplingMeshNames()) {
         auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
         ChAssertAlways(mesh_dim == 3 || mesh_dim == 2);
         auto& mesh_info = m_coupling_meshes[mesh_name];
 
+        if (m_verbose)
+            cout << m_prefix2 << "  mesh: '" << mesh_name << "'" << endl;
+
         // Check consistency of mesh dimension and read data dimension
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
+            if (!GetCouplingDataUsed(mesh_name, data_name)) {
+                if (m_verbose)
+                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                continue;
+            }
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -148,7 +159,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                     ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                     break;
                 case CouplingDataType::POSITIONS:
-                case CouplingDataType::ORIENTATIONS:
+                case CouplingDataType::ROTATIONS:
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
@@ -159,6 +170,11 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
         // Check consistency of mesh dimension and write data dimension
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
+            if (!GetCouplingDataUsed(mesh_name, data_name)) {
+                if (m_verbose)
+                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                continue;
+            }
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -168,7 +184,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                     // Positions, displacement, and velocities must have the same dimension as the coupling mesh
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
-                case CouplingDataType::ORIENTATIONS:
+                case CouplingDataType::ROTATIONS:
                 case CouplingDataType::ANGULAR_VELOCITIES:
                     if (mesh_info.type == CouplingMeshType::RIGID_BODY_REFS) {
                         ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
@@ -219,6 +235,9 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     }
 
     // Allocate space for checkpoint
+    if (m_verbose)
+        cout << m_prefix2 << "Set up checkpointing" << endl;
+
     m_sys->Setup();
     auto np = m_sys->GetNumCoordsPosLevel();
     auto nv = m_sys->GetNumCoordsVelLevel();
@@ -229,6 +248,9 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 #ifdef CHRONO_VSG
     // Enable runtime visualization
     if (m_visualize && m_vis_params.render) {
+        if (m_verbose)
+            cout << m_prefix2 << "Set up run-time visualization" << endl;
+
         m_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vsg->AttachSystem(m_sys.get());
         m_vsg->SetWindowTitle("Chrono preCICE MBS participant - " + m_participant_name);
@@ -316,10 +338,12 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
     for (const auto& data_name : m_data_read[mesh_name]) {
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         const auto& data_info = mesh_info.data.at(data_name);
+        if (!data_info.used)
+            continue;
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         assert(data_values.size() == data_dim * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::FORCES: {
@@ -377,10 +401,12 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
     for (const auto& data_name : m_data_write[mesh_name]) {
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         auto& data_info = mesh_info.data[data_name];
+        if (!data_info.used)
+            continue;
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         assert(data_values.size() == data_dim * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
@@ -403,7 +429,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 }
                 break;
             }
-            case CouplingDataType::ORIENTATIONS: {
+            case CouplingDataType::ROTATIONS: {
                 assert(data_dim == mesh_dim);
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
@@ -494,10 +520,12 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
     for (const auto& data_name : m_data_read[mesh_name]) {
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         const auto& data_info = mesh_info.data.at(data_name);
+        if (!data_info.used)
+            continue;
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
         switch (data_type) {
             case CouplingDataType::FORCES: {
@@ -556,10 +584,12 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
     for (const auto& data_name : m_data_write[mesh_name]) {
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         auto& data_info = mesh_info.data[data_name];
+        if (!data_info.used)
+            continue;
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
         assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
