@@ -48,21 +48,23 @@ class ChApiPrecice ChPreciceAdapter {
   public:
     /// Chrono coupling mesh types (mesh vertex semantics).
     enum class CouplingMeshType {
-        GENERIC,                 ///< generic mesh
-        RIGID_BODY_REF_POINTS,   ///< set of points corresponding to rigid body reference frames
-        RIGID_BODY_MESH_POINTS,  ///< set of points on rigid body meshes
-        FEA_MESH1D_NODES,        ///< set of points corresponding to 1D FEA meshes (segment nodes)
-        FEA_MESH2D_NODES         ///< set of points corresponding to 2D FEA meshes (surface mesh nodes)
+        GENERIC,            ///< generic mesh
+        RIGID_BODY_REFS,    ///< set of points corresponding to rigid body reference frames
+        RIGID_BODY_POINTS,  ///< set of points on rigid bodies
+        FEA_MESH_NODES,     ///< set of points corresponding FEA mesh nodes
+        FEA_MESH_POINTS     ///< set of points on FEA meshes
     };
 
     /// Chrono coupling data type.
     enum class CouplingDataType {
-        GENERIC,        ///< generic data
-        POSITIONS,      ///< 3D positions (body reference, body points, of FEA nodes)
-        DISPLACEMENTS,  ///< 3D displacements (relative to initial position)
-        VELOCITIES,     ///< 3D velocities (of bodies, body points, or FEA nodes)
-        FORCES,         ///< 3D forces (on bodies, body points, or FEA nodes)
-        TORQUES         ///< 3D torques (on bodies or FEA nodes)
+        GENERIC,             ///< generic data
+        POSITIONS,           ///< 3D positions (of body ref frames, body points, or FEA nodes)
+        ORIENTATIONS,        ///< 3D orientation (of body ref frames)
+        DISPLACEMENTS,       ///< 3D displacements (relative to initial position)
+        LINEAR_VELOCITIES,   ///< 3D velocities (of body ref frames, body points, or FEA nodes)
+        ANGULAR_VELOCITIES,  ///< 3D angular velocity (of body ref frames)
+        FORCES,              ///< 3D forces (on body ref frames, body points, or FEA nodes)
+        TORQUES              ///< 3D torques (on body ref frames)
     };
 
     virtual ~ChPreciceAdapter() {}

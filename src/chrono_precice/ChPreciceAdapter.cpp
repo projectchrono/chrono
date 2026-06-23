@@ -91,14 +91,14 @@ static ChPreciceAdapter::CouplingMeshType ReadCouplingMeshType(const YAML::Node&
     auto type = ChToUpper(a.as<std::string>());
     if (type == "GENERIC")
         return ChPreciceAdapter::CouplingMeshType::GENERIC;
-    if (type == "RIGID_BODY_REF_POINTS")
-        return ChPreciceAdapter::CouplingMeshType::RIGID_BODY_REF_POINTS;
-    if (type == "RIGID_BODY_MESH_POINTS")
-        return ChPreciceAdapter::CouplingMeshType::RIGID_BODY_MESH_POINTS;
-    if (type == "FEA_MESH1D_NODES")
-        return ChPreciceAdapter::CouplingMeshType::FEA_MESH1D_NODES;
-    if (type == "FEA_MESH2D_NODES")
-        return ChPreciceAdapter::CouplingMeshType::FEA_MESH2D_NODES;
+    if (type == "RIGID_BODY_REFS")
+        return ChPreciceAdapter::CouplingMeshType::RIGID_BODY_REFS;
+    if (type == "RIGID_BODY_POINTS")
+        return ChPreciceAdapter::CouplingMeshType::RIGID_BODY_POINTS;
+    if (type == "FEA_MESH_NODES")
+        return ChPreciceAdapter::CouplingMeshType::FEA_MESH_NODES;
+    if (type == "FEA_MESH_POINTS")
+        return ChPreciceAdapter::CouplingMeshType::FEA_MESH_POINTS;
 
     cerr << "Unknown mesh type: " << a.as<std::string>() << endl;
     throw std::runtime_error("Invalid mesh type");
@@ -110,10 +110,14 @@ static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node&
         return ChPreciceAdapter::CouplingDataType::GENERIC;
     if (type == "POSITIONS")
         return ChPreciceAdapter::CouplingDataType::POSITIONS;
+    if (type == "ORIENTATIONS")
+        return ChPreciceAdapter::CouplingDataType::ORIENTATIONS;
     if (type == "DISPLACEMENTS")
         return ChPreciceAdapter::CouplingDataType::DISPLACEMENTS;
-    if (type == "VELOCITIES")
-        return ChPreciceAdapter::CouplingDataType::VELOCITIES;
+    if (type == "LINEAR_VELOCITIES")
+        return ChPreciceAdapter::CouplingDataType::LINEAR_VELOCITIES;
+    if (type == "ANGULAR_VELOCITIES")
+        return ChPreciceAdapter::CouplingDataType::ANGULAR_VELOCITIES;
     if (type == "FORCES")
         return ChPreciceAdapter::CouplingDataType::FORCES;
     if (type == "TORQUES")
@@ -305,14 +309,14 @@ std::string ChPreciceAdapter::GetCouplingMeshTypeAsString(const std::string& mes
     switch (type) {
         case CouplingMeshType::GENERIC:
             return "GENERIC";
-        case CouplingMeshType::RIGID_BODY_REF_POINTS:
-            return "RIGID_BODY_REF_POINTS";
-        case CouplingMeshType::RIGID_BODY_MESH_POINTS:
-            return "RIGID_BODY_MESH_POINTS";
-        case CouplingMeshType::FEA_MESH1D_NODES:
-            return "FEA_MESH1D_NODES";
-        case CouplingMeshType::FEA_MESH2D_NODES:
-            return "FEA_MESH2D_NODES";
+        case CouplingMeshType::RIGID_BODY_REFS:
+            return "RIGID_BODY_REFS";
+        case CouplingMeshType::RIGID_BODY_POINTS:
+            return "RIGID_BODY_POINTS";
+        case CouplingMeshType::FEA_MESH_NODES:
+            return "FEA_MESH_NODES";
+        case CouplingMeshType::FEA_MESH_POINTS:
+            return "FEA_MESH_POINTS";
     }
     return "UNKNOWN";
 }
@@ -329,8 +333,10 @@ std::string ChPreciceAdapter::GetCouplingDataTypeAsString(CouplingDataType type)
             return "POSITIONS";
         case CouplingDataType::DISPLACEMENTS:
             return "DISPLACEMENTS";
-        case CouplingDataType::VELOCITIES:
-            return "VELOCITIES";
+        case CouplingDataType::LINEAR_VELOCITIES:
+            return "LINEAR_VELOCITIES";
+        case CouplingDataType::ANGULAR_VELOCITIES:
+            return "ANGULAR_VELOCITIES";
         case CouplingDataType::FORCES:
             return "FORCES";
         case CouplingDataType::TORQUES:

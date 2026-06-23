@@ -3,7 +3,7 @@ precice_adapter_config:
   
   interfaces:
   - mesh_name: FluidMesh
-    mesh_type: RIGID_BODY_REF_POINTS
+    mesh_type: RIGID_BODY_REFS
     write_data:
     - name: forces
       type: FORCES
@@ -13,4 +13,4 @@ precice_adapter_config:
     - name: positions
       type: POSITIONS
     - name: velocities
-      type: VELOCITIES
+      type: LINEAR_VELOCITIES

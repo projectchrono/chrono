@@ -118,7 +118,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
         int index;                           ///< index of coupling body
         std::shared_ptr<ChBodyAuxRef> body;  ///< coupling body
         std::vector<ChVector3d> points;      ///< points on body expressed in local frame
-        ChFramed init_body_frame;            ///< initial body frame
+        ChFramed init_body_frame;            ///< initial body reference frame (absolute)
         unsigned int accumulator_index;      ///< index of associated force accumulator
     };
 

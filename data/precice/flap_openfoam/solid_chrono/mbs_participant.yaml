@@ -36,7 +36,7 @@ precice_adapter_config:
 
   interfaces:
   - mesh_name: SolidMesh
-    mesh_type: RIGID_BODY_MESH_POINTS
+    mesh_type: RIGID_BODY_POINTS
     write_data:
     - name: Displacement
       type: DISPLACEMENTS
