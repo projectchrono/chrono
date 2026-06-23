@@ -210,6 +210,7 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
       m_image_dir("."),
       m_sph_cloud_index(-1) {  // ensure the SPH cloud lookup is re-validated on the first query
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
+    m_activeBoxScene = vsg::Switch::create();
 }
 
 ChSphVisualizationVSG::~ChSphVisualizationVSG() {
