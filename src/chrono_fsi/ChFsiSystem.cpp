@@ -176,7 +176,6 @@ std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChMesh
 
 void ChFsiSystem::Initialize() {
     ChAssertAlways(m_sysCFD);
-    ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_fsi_interface);
 
     if (m_step_CFD < 0)

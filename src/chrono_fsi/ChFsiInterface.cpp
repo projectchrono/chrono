@@ -106,7 +106,6 @@ void ChFsiInterface::AttachMultibodySystem(ChSystem* sys) {
 }
 
 std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded) {
-    ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
     ChAssertAlways(!geometry || geometry->HasCollision());
 
@@ -133,7 +132,6 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
 
 #ifdef CHRONO_FEA
 std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded) {
-    ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
 
     auto fsi_mesh = chrono_types::make_shared<FsiMesh1D>();
@@ -166,7 +164,6 @@ std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChC
 }
 
 std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded) {
-    ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_sysCFD);
 
     auto fsi_mesh = chrono_types::make_shared<FsiMesh2D>();

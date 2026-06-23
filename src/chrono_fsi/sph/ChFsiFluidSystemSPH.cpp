@@ -1312,8 +1312,6 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
-    const auto& fsi_body = fsisph_body.fsi_body;
-
     // Add BCE markers and load their local coordinates and body associations
     auto num_bce = fsisph_body.bce.size();
     for (size_t i = 0; i < num_bce; i++) {
