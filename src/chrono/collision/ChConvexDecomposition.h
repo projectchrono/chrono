@@ -16,7 +16,6 @@
 #define CH_CONVEX_DECOMPOSITION_H
 
 #include "chrono/core/ChApiCE.h"
-#include <cstdint>
 #include "chrono/geometry/ChTriangleMesh.h"
 
 #include "chrono_thirdparty/HACDv2/HACD.h"

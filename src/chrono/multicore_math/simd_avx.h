@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono/multicore_math/simd.h"
-#include <cstdint>
 #include "chrono/multicore_math/real.h"
 
 using namespace chrono;

@@ -16,7 +16,6 @@ subject to the following restrictions:
 #define BT_MATRIX3x3_H
 
 #include "cbtVector3.h"
-#include <cstdint>
 #include "cbtQuaternion.h"
 #include <stdio.h>
 

@@ -3,7 +3,6 @@
 #define BT_CPU_UTILITY_H
 
 #include "LinearMath/cbtScalar.h"
-#include <cstdint>
 
 #include <string.h>  //memset
 #ifdef USE_SIMD

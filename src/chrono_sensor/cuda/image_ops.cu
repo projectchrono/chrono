@@ -15,7 +15,6 @@
 // =============================================================================
 
 #include <iostream>
-#include <cstdint>
 #include <cuda.h>
 
 #include "image_ops.cuh"

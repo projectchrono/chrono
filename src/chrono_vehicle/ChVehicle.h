@@ -23,7 +23,6 @@
 #define CH_VEHICLE_H
 
 #include <numeric>
-#include <cstdint>
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/core/ChVector2.h"

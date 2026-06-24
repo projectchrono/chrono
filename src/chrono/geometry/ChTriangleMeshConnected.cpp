@@ -20,7 +20,6 @@
 //     This could be implemented such that the two new faces point to the same material.
 
 #include <algorithm>
-#include <cstdint>
 #include <cstdio>
 #include <fstream>
 #include <map>

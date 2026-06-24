@@ -22,7 +22,6 @@
 #endif
 
 #include <functional>
-#include <cstdint>
 #include <memory>
 #include <vector>
 

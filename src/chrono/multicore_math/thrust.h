@@ -24,7 +24,6 @@
 #undef _GLIBCXX_USE_INT128
 
 #include <iostream>
-#include <iterator>
 
 // -----------------------------------------------------------------------------
 // Thrust related defines
@@ -32,24 +31,12 @@
 
 // Always include ChConfig.h *before* any Thrust headers!
 #include "chrono/ChConfig.h"
-#include <thrust/version.h>
 #include <thrust/reduce.h>
 #include <thrust/gather.h>
 #include <thrust/scan.h>
 #include <thrust/fill.h>
 #include <thrust/copy.h>
 #include <thrust/iterator/counting_iterator.h>
-
-// CCCL/Thrust 3.x (CUDA 13.x) removed the tuple utilities from the thrust::
-// namespace (they now live in cuda::std) and dropped thrust::distance /
-// thrust::advance. Include the right tuple header for the available version;
-// the chrono::ch_thrust namespace alias below lets the multicore code use
-// tuple / make_tuple / get uniformly on both Thrust 2.x and 3.x.
-#if THRUST_VERSION >= 300000
-    #include <cuda/std/tuple>
-#else
-    #include <thrust/tuple.h>
-#endif
 
 #if defined(CHRONO_OPENMP_ENABLED)
     #include <thrust/system/omp/execution_policy.h>
@@ -65,13 +52,6 @@ namespace chrono {
 
 /// @addtogroup chrono_mc_math
 /// @{
-
-// Tuple utilities: cuda::std on Thrust 3.x, thrust on 2.x (see include block above).
-#if THRUST_VERSION >= 300000
-namespace ch_thrust = ::cuda::std;
-#else
-namespace ch_thrust = ::thrust;
-#endif
 
 #if defined(CHRONO_OPENMP_ENABLED)
     #define THRUST_PAR thrust::omp::par,
@@ -123,9 +103,9 @@ OutputIterator Thrust_Expand(InputIterator1 first1,
                              InputIterator1 last1,
                              InputIterator2 first2,
                              OutputIterator output) {
-    typedef typename std::iterator_traits<InputIterator1>::difference_type difference_type;
+    typedef typename thrust::iterator_difference<InputIterator1>::type difference_type;
 
-    difference_type input_size = std::distance(first1, last1);
+    difference_type input_size = thrust::distance(first1, last1);
     difference_type output_size = thrust::reduce(THRUST_PAR first1, last1);
 
     // scan the counts to obtain output offsets for each input element
@@ -144,11 +124,11 @@ OutputIterator Thrust_Expand(InputIterator1 first1,
 
     // gather input values according to index array (output = first2[output_indices])
     OutputIterator output_end = output;
-    std::advance(output_end, output_size);
+    thrust::advance(output_end, output_size);
     thrust::gather(THRUST_PAR output_indices.begin(), output_indices.end(), first2, output);
 
     // return output + output_size
-    std::advance(output, output_size);
+    thrust::advance(output, output_size);
     return output;
 }
 
