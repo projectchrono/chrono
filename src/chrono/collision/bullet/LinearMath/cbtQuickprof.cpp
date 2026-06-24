@@ -14,6 +14,7 @@
 // Ogre (www.ogre3d.org).
 
 #include "cbtQuickprof.h"
+#include <cstdint>
 #include "cbtThreads.h"
 
 #ifdef __CELLOS_LV2__
