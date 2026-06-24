@@ -43,12 +43,12 @@ set(Chrono_PRECICE_FILES
 #        ChPreciceAdapterCfd.cpp
 #    )
 #endif()
-#if(CH_ENABLE_MODULE_FSI_SPH)
-#    set(Chrono_PRECICE_FILES ${Chrono_PRECICE_FILES}
-#        ChPreciceAdapterSph.h
-#        ChPreciceAdapterSph.cpp
-#    )
-#endif()
+if(CH_ENABLE_MODULE_FSI_SPH)
+    set(Chrono_PRECICE_FILES ${Chrono_PRECICE_FILES}
+        ChPreciceAdapterSph.h
+        ChPreciceAdapterSph.cpp
+    )
+endif()
 #if(CH_ENABLE_MODULE_FSI_TDPF)
 #    set(Chrono_PRECICE_FILES ${Chrono_PRECICE_FILES}
 #        ChPreciceAdapterTdpf.h
