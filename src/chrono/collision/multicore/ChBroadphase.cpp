@@ -46,14 +46,14 @@ ChBroadphase::ChBroadphase()
 // -----------------------------------------------------------------------------
 
 // Inverted AABB (assumed associated with an active shape).
-auto inverted =
-    thrust::make_tuple(real3(+CH_REAL_MAX, +CH_REAL_MAX, +CH_REAL_MAX), real3(-CH_REAL_MAX, -CH_REAL_MAX, -CH_REAL_MAX), 0);
+auto inverted = ch_thrust::make_tuple(real3(+CH_REAL_MAX, +CH_REAL_MAX, +CH_REAL_MAX),
+                                      real3(-CH_REAL_MAX, -CH_REAL_MAX, -CH_REAL_MAX), uint(0));
 
 // Invert an AABB associated with an inactive shape or a shape on a non-colliding body.
 struct BoxInvert {
     BoxInvert(const std::vector<char>* collide) : m_collide(collide) {}
-    thrust::tuple<real3, real3, uint> operator()(const thrust::tuple<real3, real3, uint>& lhs) {
-        uint lhs_id = thrust::get<2>(lhs);
+    ch_thrust::tuple<real3, real3, uint> operator()(const ch_thrust::tuple<real3, real3, uint>& lhs) {
+        uint lhs_id = ch_thrust::get<2>(lhs);
         if (lhs_id == UINT_MAX || (*m_collide)[lhs_id] == 0)
             return inverted;
         else
@@ -64,18 +64,18 @@ struct BoxInvert {
 
 // AABB union reduction operator
 struct BoxReduce {
-    thrust::tuple<real3, real3, uint> operator()(const thrust::tuple<real3, real3, uint>& lhs,
-                                                 const thrust::tuple<real3, real3, uint>& rhs) {
-        real3 lhs_ll = thrust::get<0>(lhs);
-        real3 lhs_ur = thrust::get<1>(lhs);
+    ch_thrust::tuple<real3, real3, uint> operator()(const ch_thrust::tuple<real3, real3, uint>& lhs,
+                                                    const ch_thrust::tuple<real3, real3, uint>& rhs) {
+        real3 lhs_ll = ch_thrust::get<0>(lhs);
+        real3 lhs_ur = ch_thrust::get<1>(lhs);
 
-        real3 rhs_ll = thrust::get<0>(rhs);
-        real3 rhs_ur = thrust::get<1>(rhs);
+        real3 rhs_ll = ch_thrust::get<0>(rhs);
+        real3 rhs_ur = ch_thrust::get<1>(rhs);
 
         real3 ll = Min(lhs_ll, rhs_ll);
         real3 ur = Max(lhs_ur, rhs_ur);
 
-        return thrust::tuple<real3, real3, uint>(ll, ur, 0);
+        return ch_thrust::tuple<real3, real3, uint>(ll, ur, uint(0));
     }
 };
 
@@ -93,12 +93,12 @@ void ChBroadphase::RigidBoundingBox() {
 
     // Calculate union of all AABBs.
     // Excluded AABBs are inverted through the transform operation, prior to the reduction.
-    auto begin = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.begin(), aabb_max.begin(), id_rigid.begin()));
-    auto end = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.end(), aabb_max.end(), id_rigid.end()));
+    auto begin = thrust::make_zip_iterator(ch_thrust::make_tuple(aabb_min.begin(), aabb_max.begin(), id_rigid.begin()));
+    auto end = thrust::make_zip_iterator(ch_thrust::make_tuple(aabb_min.end(), aabb_max.end(), id_rigid.end()));
     auto result = thrust::transform_reduce(THRUST_PAR begin, end, BoxInvert(&collide_rigid), inverted, BoxReduce());
 
-    cd_data->rigid_min_bounding_point = thrust::get<0>(result);
-    cd_data->rigid_max_bounding_point = thrust::get<1>(result);
+    cd_data->rigid_min_bounding_point = ch_thrust::get<0>(result);
+    cd_data->rigid_max_bounding_point = ch_thrust::get<1>(result);
 }
 
 // AABB as the pair of its min and max corners.

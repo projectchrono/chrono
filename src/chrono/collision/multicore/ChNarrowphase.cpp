@@ -368,11 +368,13 @@ void ChNarrowphase::ProcessRigidRigid() {
     // Remove elements corresponding to inactive contacts. We do this in one step,
     // using zip iterators and removing all entries for which contact_active is 'false'.
     thrust::remove_if(
-        THRUST_PAR thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(),
-                                                                dpth_data.begin(), erad_data.begin(), bids_data.begin(),
-                                                                contact_shapeIDs.begin())),
-        thrust::make_zip_iterator(thrust::make_tuple(norm_data.end(), cpta_data.end(), cptb_data.end(), dpth_data.end(),
-                                                     erad_data.end(), bids_data.end(), contact_shapeIDs.end())),
+        THRUST_PAR thrust::make_zip_iterator(ch_thrust::make_tuple(norm_data.begin(), cpta_data.begin(),
+                                                                   cptb_data.begin(), dpth_data.begin(),
+                                                                   erad_data.begin(), bids_data.begin(),
+                                                                   contact_shapeIDs.begin())),
+        thrust::make_zip_iterator(ch_thrust::make_tuple(norm_data.end(), cpta_data.end(), cptb_data.end(),
+                                                        dpth_data.end(), erad_data.end(), bids_data.end(),
+                                                        contact_shapeIDs.end())),
         contact_rigid_active.begin(), thrust::logical_not<bool>());
 
     // Resize all lists so that we don't access invalid contacts
