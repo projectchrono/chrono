@@ -10,13 +10,13 @@ model:
   
   bodies:
     - name: ball
-      location: [0, 0, 0.3]
-      mass: 15
+      location: [0, 0, 0.18]
+      mass: 3.62
       inertia:
-        moments: [0.023, 0.023, 0.023]
+        moments: [0.021, 0.021, 0.021]
       visualization:
         shapes:
           - type: SPHERE
             location: [0, 0, 0]
-            radius: 0.2
+            radius: 0.12
             color: [0.6, 0.2, 0.2]

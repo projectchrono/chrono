@@ -12,8 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demonstration for the Chrono MBS preCICE adapter, using a mock-up fluid solver
-// that only applies buoyancy and drag forces to a spherical object.
+// Demonstration for Chrono preCICE adapters: simulation of a sphere dropped in
+// fluid. The fluid phase preCICE participant can be one of:
+// (a) a mock-up fluid solver that only applies buoyancy and drag forces
+// (b) a Chrono::SPH solver
 //
 // =============================================================================
 
@@ -23,6 +25,10 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_precice/ChPreciceAdapterMbs.h"
+
+#ifdef CHRONO_FSI_SPH
+    #include "chrono_precice/ChPreciceAdapterSph.h"
+#endif
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -46,21 +52,22 @@ using std::endl;
 
 void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
+void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+#ifdef _DEBUG
     // Debug pause to allow attaching a debugger before MPI initialization
-    ////#ifdef _DEBUG
-    ////    int foo;
-    ////    cout << "Enter something to continue..." << endl;
-    ////    cin >> foo;
-    ////#endif
+    int foo;
+    cout << "Enter something to continue..." << endl;
+    cin >> foo;
+#endif
 
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
     // Problem settings
-    std::string precice_config_filename = GetChronoDataFile("precice/sphere_bounce/precice_config_explicit.xml");
+    std::string precice_config_filename = GetChronoDataFile("precice/sphere_drop/precice_config_explicit.xml");
 
     // Enable verbose terminal output
     bool verbose = true;
@@ -76,18 +83,36 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Get the participant type (MBS or CFD)
-    ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "participant", "participant type (MBS or CFD)");
+    // Get the participant type from the command line arguments
+    std::string help =
+        "Specify the participant type, one of:\n"                                        //
+        " 'Solid'      - Chrono multibody solid phase\n"                                 //
+        " 'Fluid_SPH'  - Chrono::SPH fluid solver\n"                                     //
+        " 'Fluid_BUOY' - mock-up fluid solver that applies buoyancy and drag forces\n";  //
+
+    ChCLI cli(argv[0], help);
+    cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_BUOY, Fluid_SPH)");
+
     if (!cli.Parse(argc, argv, true))
         return 1;
-    auto type = cli.GetAsType<std::string>("participant");
-    if (type == "MBS")
+
+    std::string type;
+    try {
+        type = cli.GetAsType<std::string>("participant_type");
+    } catch (std::domain_error&) {
+        cli.Help();
+        return 1;
+    }
+
+    // Run the specified preCICE participant
+    if (type == "Solid")
         RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output);
-    else if (type == "CFD")
+    else if (type == "Fluid_BUOY")
         RunParticipantCFD(precice_config_filename, out_dir, verbose, visualize, output);
+    else if (type == "Fluid_SPH")
+        RunParticipantSPH(precice_config_filename, out_dir, verbose, visualize, output);
     else
-        cerr << "Unrecognized participant. Use 'MBS' or 'CFD'" << endl;
+        cerr << "Unrecognized participant. Use 'Solid', 'Fluid_BUOY', or 'Fluid_SPH'" << endl;
 
     return 0;
 }
@@ -95,7 +120,7 @@ int main(int argc, char* argv[]) {
 // =============================================================================
 
 void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
-    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_bounce/solid_chrono/mbs_participant.yaml"), verbose);
+    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"), verbose);
 
     auto mbs_out_dir = out_dir + "mbs";
     if (output) {
@@ -112,6 +137,43 @@ void RunParticipantMBS(const std::string& precice_config_filename, const std::st
 
     participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
+    participant.RunSimulation();
+    participant.FinalizeSimulation();
+}
+
+// =============================================================================
+
+void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
+#ifdef CHRONO_FSI_SPH
+    ChPreciceAdapterSph participant(GetChronoDataFile("precice/sphere_drop/fluid_sph/sph_participant.yaml"), verbose);
+
+    auto sph_out_dir = out_dir + "sph";
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(sph_out_dir))) {
+            std::cout << "Error creating directory " << sph_out_dir << std::endl;
+            throw std::runtime_error("Error creating SPH output directory");
+        }
+        participant.SetOutputDir(sph_out_dir);
+    }
+#else
+    cerr << "Chrono was not configured with FSI-SPH support!" << endl;
+    throw("Chrono was not configured with FSI-SPH support");
+#endif
+
+    participant.EnableOutput(output);
+    participant.EnableVisualization(visualize);
+
+    participant.RegisterParticipant(precice_config_filename);
+    participant.InitializeSimulation();
+
+    //// DEBUG - advance SPH participant with no data exchange
+    ////auto h = participant.GetSolverTimeStep(1000);
+    ////double t = 0;
+    ////for (int i = 0; i < 10000; i++) {
+    ////    participant.AdvanceParticipant(t, h);
+    ////    t += h;
+    ////}
+
     participant.RunSimulation();
     participant.FinalizeSimulation();
 }
@@ -139,15 +201,15 @@ class ParticipantCFD : public ChPreciceAdapter {
 
     std::ofstream file;  // output file stream
 
-    double radius = 0.2;  // sphere radius
-    double cd = 0.47;     // sphere drag coefficient
-    double rho = 1000;    // water density
-    double g = 9.81;      // gravitational acceleration
+    double radius = 0.12;  // sphere radius
+    double cd = 0.47;      // sphere drag coefficient
+    double rho = 1000;     // water density
+    double g = 9.81;       // gravitational acceleration
 };
 
 ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
     SetVerbose(verbose);
-    ReadParticipantConfigurationYAML(GetChronoDataFile("precice/sphere_bounce/fluid_buoyancy/cfd_participant.yaml"));
+    ReadParticipantConfigurationYAML(GetChronoDataFile("precice/sphere_drop/fluid_buoyancy/cfd_participant.yaml"));
 }
 
 ParticipantCFD::~ParticipantCFD() {

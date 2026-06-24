@@ -8,7 +8,7 @@ set(DEMOS "")
 if(CH_ENABLE_MODULE_PARSERS)
 
   set(DEMOS ${DEMOS}
-      demo_PRECICE_sphere_bounce
+      demo_PRECICE_sphere_drop
       demo_PRECICE_flap_openfoam
   )
   

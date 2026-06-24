@@ -59,7 +59,7 @@
 
   <coupling-scheme:serial-implicit>
     <participants first="Solid" second="Fluid" />
-    <max-time-windows value="500" />
+    <max-time-windows value="100" />
     <time-window-size value="0.01" />
     <max-iterations value="3" />
     <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>

@@ -15,6 +15,12 @@ output:
 
 visualization:
   type: PRIMITIVES
+  render_fps: 120
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [2, 2, 0.6]
+    target: [0, 0, -0.4]
 
 precice_adapter_config:
   participant_name: Solid
