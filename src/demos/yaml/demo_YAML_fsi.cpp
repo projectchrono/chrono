@@ -41,11 +41,12 @@ int main(int argc, char* argv[]) {
     std::string input;
     int model = 1;
     std::cout << "Options:\n";
-    std::cout << "  1. Object drop (SPH) [DEFAULT]" << std::endl;
-    std::cout << "  2. Baffle flow (SPH)" << std::endl;
-    std::cout << "  3. Wave tank (SPH)" << std::endl;
-    std::cout << "  4. Sphere decay (TDPF)" << std::endl;
-    std::cout << "  5. Other (user-provided YAML file)" << std::endl;
+    std::cout << "  1. Cylinder drop (SPH) [DEFAULT]" << std::endl;
+    std::cout << "  2. Sphere drop (SPH)" << std::endl;
+    std::cout << "  3. Baffle flow (SPH)" << std::endl;
+    std::cout << "  4. Wave tank (SPH)" << std::endl;
+    std::cout << "  5. Sphere decay (TDPF)" << std::endl;
+    std::cout << "  6. Other (user-provided YAML file)" << std::endl;
     std::cout << "\nSelect model: ";
     std::getline(std::cin, input);
     if (!input.empty()) {
@@ -58,18 +59,21 @@ int main(int argc, char* argv[]) {
     std::string yaml_filename;
     switch (model) {
         case 1:
-            yaml_filename = GetChronoDataFile("yaml/fsi/objectdrop/fsi_objectdrop.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/cylinder_drop/fsi_cylinder_drop.yaml");
             break;
         case 2:
-            yaml_filename = GetChronoDataFile("yaml/fsi/baffleflow/fsi_baffleflow.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_drop/fsi_sphere_drop.yaml");
             break;
         case 3:
-            yaml_filename = GetChronoDataFile("yaml/fsi/wavetank/fsi_wavetank.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/baffle_flow/fsi_baffle_flow.yaml");
             break;
         case 4:
-            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/wave_tank/fsi_wave_tank.yaml");
             break;
         case 5:
+            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+            break;
+        case 6:
             std::cout << "FSI YAML specification file name: ";
             std::getline(std::cin, yaml_filename);
             break;

@@ -28,7 +28,6 @@ model:
         shapes:
           - type: CYLINDER
             material: contact_material
-            dimensions: [0.9, 0.9, 0.15]
             location: [0, 0, 0]
             axis: [1, 0, 0]
             radius: 0.12
@@ -36,7 +35,6 @@ model:
       visualization:
         shapes:
           - type: CYLINDER
-            dimensions: [0.9, 0.9, 0.15]
             location: [0, 0, 0]
             axis: [1, 0, 0]
             radius: 0.12
