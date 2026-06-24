@@ -39,6 +39,7 @@ namespace fsi {
 
 /// Definition of a body state.
 struct FsiBodyState {
+    FsiBodyState() : rot(QUNIT) {}
     ChVector3d pos;      ///< global position
     ChQuaterniond rot;   ///< orientation with respect to global frame
     ChVector3d lin_vel;  ///< linear velocity, expressed in the global frame
