@@ -170,7 +170,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Set gravitational acceleration (9.8 m/s^2) in negative Z direction.
     void SetGravityZ() { G_acc = ChVector3d(0, 0, -9.8); }
 
-    /// Get the gravitatoinal acceleration vector.
+    /// Get the gravitational acceleration vector.
     const ChVector3d& GetGravitationalAcceleration() const { return G_acc; }
 
     /// Get the simulation time of this system.
@@ -228,7 +228,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Solve the position of static equilibrium (and the reactions).
     /// This function solves the equilibrium for the nonlinear problem (large displacements),
     /// but differently from DoStaticNonlinear it considers rheonomic constraints (ex. ChLinkMotorRotationSpeed)
-    /// that can impose steady-state speeds&accelerations to the mechanism, ex. to generate centrifugal forces in
+    /// that can impose steady-state speeds and accelerations to the mechanism, ex. to generate centrifugal forces in
     /// turbine blades. This version uses a nonlinear static analysis solver with default parameters.
     bool DoStaticNonlinearRheonomic(int max_num_iterations = 10, bool verbose = false, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback = nullptr);
 
@@ -251,7 +251,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// The assembling is performed by satisfying constraints at position, velocity, and acceleration levels.
     /// Position-level assembling requires Newton-Raphson iterations.
     /// Velocity-level assembling is performed by taking a small integration step.
-    /// Acceleration-level assembling is obtained through finite differentation.
+    /// Acceleration-level assembling is obtained through finite differentiation.
     /// Argument 'action' can be one of AssemblyLevel enum values (POSITION, VELOCITY, ACCELERATION, or FULL).
     /// These values can also be combined using bit operations.
     /// Returns true if the assembling converged, false otherwise (impossible assembly?)
@@ -443,7 +443,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void Clear();
 
     /// Return the contact method supported by this system.
-    /// Contactables (bodies, FEA nodes, FEA traiangles, etc.) added to this system must be compatible.
+    /// Contactables (bodies, FEA nodes, FEA triangles, etc.) added to this system must be compatible.
     virtual ChContactMethod GetContactMethod() const = 0;
 
     // UTILITY FUNCTIONS
@@ -546,7 +546,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Enable/disable debug output of system matrices.
     /// Set this to "true" to enable automatic saving of solver matrices at each time step, for debugging purposes.
-    /// Matrices will be saved in 'out_dir' (default to the the working directory of the executable).
+    /// Matrices will be saved in 'out_dir' (default to the working directory of the executable).
     /// The name pattern is solve_numstep_numsubstep_objectname.dat
     /// where 'objectname' can be either:
     /// - Z: the assembled optimization matrix [H, -Cq'; Cq, -E]
@@ -557,8 +557,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// - Dv: the state variation
     /// - Dl: the Lagrange multipliers variation
     /// if the solver is direct then also the following are output:
-    /// - f, b: subparts of 'rhs'
-    /// - H, Cq, E: the submatrices of Z
+    /// - f, b: sub-parts of 'rhs'
+    /// - H, Cq, E: the sub-matrices of Z
     /// as passed to the solver in the problem
     /// <pre>
     /// | H  Cq'|*| q|-| f|=|0|
@@ -582,7 +582,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Compute the system-level stiffness matrix and load in the provided sparse matrix.
     /// This is the Jacobian -dF/dq, where F are stiff loads.
-    /// Note that not all loads provide a jacobian, as this is optional in their implementation.
+    /// Note that not all loads provide a Jacobian, as this is optional in their implementation.
     void GetStiffnessMatrix(ChSparseMatrix& K);
 
     /// Compute the system-level damping matrix and load in the provided sparse matrix.
@@ -653,9 +653,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Register with the given system descriptor any ChKRMBlock objects associated with items in the system.
     void InjectKRMMatrices(ChSystemDescriptor& sys_descriptor);
 
-    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
-    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
-    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    /// Compute and load current stiffness (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified coefficients.
     void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);
 
     // Old bookkeeping system
@@ -697,7 +696,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// From state Y={x,v} to system. This also triggers an update operation.
     virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
 
-    /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
+    /// From system to state derivative (acceleration), some time steppers might need last computed accel.
     virtual void StateGatherAcceleration(ChStateDelta& a) override;
 
     /// From state derivative (acceleration) to system, sometimes might be needed

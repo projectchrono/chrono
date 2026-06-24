@@ -29,6 +29,8 @@ namespace ch_precice {
 
 class ChApiPrecice ChPreciceAdapterSph : public ChPreciceAdapter {
   public:
+    /// Construct a Chrono SPH preCICE participant for the specified Chrono::FSI-SPH system.
+    /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
     ChPreciceAdapterSph(std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
