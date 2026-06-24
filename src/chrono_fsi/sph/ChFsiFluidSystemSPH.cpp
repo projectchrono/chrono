@@ -612,7 +612,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
-void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces) {
+void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_forces) {
     auto forcesH = m_data_mgr->GetRigidForces();
     auto torquesH = m_data_mgr->GetRigidTorques();
 
@@ -691,7 +691,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
-void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces, std::vector<FsiMeshForce> mesh1D_forces, std::vector<FsiMeshForce> mesh2D_forces) {
+void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) {
     {
         auto forcesH = m_data_mgr->GetRigidForces();
         auto torquesH = m_data_mgr->GetRigidTorques();
