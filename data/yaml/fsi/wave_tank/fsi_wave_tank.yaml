@@ -33,4 +33,4 @@ visualization:
     target: [0, 0, 0.2]
   output:
     save_images: false
-    output_directory: "."
+    image_type: "bmp"

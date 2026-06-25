@@ -41,7 +41,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     void LoadFsiData(const YAML::Node& yaml);
 
     /// Load the simulation and visualization settings from the specified YAML node.
-    void LoadSimData(const YAML::Node& yaml);
+    void LoadSimData(const YAML::Node& yaml) override;
 
     /// Create and return a ChFsiSystem combining a Chrono MBS system and a fluid solver.
     void CreateFsiSystem();
@@ -72,15 +72,21 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     double GetEndtime() const { return m_sim.end_time; }
 
     /// Set root output directory (default: ".").
+    /// This function creates two additional subdirectories, `mbs` and `fluid`, respectively.
     virtual void SetOutputDir(const std::string& out_dir) override;
 
     /// Return true if generating output.
     /// This function returns true only if output is enabled for at least one of the two phases (MBS or CFD). 
-    virtual bool Output() const override;
+    virtual bool OutputEnabled() const override;
 
     /// Return true if visualization is enabled.
     /// This function returns true only if visualization is enabled for at least one of the two phases (MBS or CFD).
-    virtual bool Render() const override;
+    virtual bool VisualizationEnabled() const override;
+
+    /// Generate output at the current frame.
+    /// This override generates output for any of the two phases (MBS or CFD) for which output was enabled.
+    /// This function ensures that output occurs at the specified frequency.
+    virtual void Output(double time) override;
 
   private:
     /// FSI rigid body definition.

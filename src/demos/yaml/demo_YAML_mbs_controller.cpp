@@ -146,10 +146,11 @@ int main(int argc, char* argv[]) {
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
-    bool render = parser.Render();
-    double render_fps = parser.GetRenderFPS();
+
+    bool output = parser.OutputEnabled();
+    bool render = parser.VisualizationEnabled();
+
     bool enable_shadows = parser.EnableShadows();
-    bool output = parser.Output();
 
     // ------------------------------
 
@@ -212,25 +213,20 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
-    ChRealtimeStepTimer rt_timer;
     double time = 0;
-    int render_frame = 0;
 
     while (true) {
         if (render) {
-            if (!vis->Run())
+            if (!parser.Render(*vis, time))
                 break;
-            if (time >= render_frame / render_fps) {
-                vis->BeginScene();
-                vis->Render();
-                vis->EndScene();
-                render_frame++;
-            }
         } else {
             std::cout << "\rt = " << time;
             if (time_end > 0 && time >= time_end)
                 break;
         }
+
+        if (output)
+            parser.Output(time);
 
         // Advance multibody system dynamics (including controller)
         parser.DoStepDynamics();

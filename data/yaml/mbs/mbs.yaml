@@ -14,8 +14,8 @@ simulation:
   enforce_realtime: true
   
 output:
-  format: HDF5
-  mode: FRAMES
+  format: ASCII
+  mode: SERIES
   fps: 20
 
 visualization:
@@ -28,4 +28,4 @@ visualization:
     target: [2, 0, 0]
   output:
     save_images: false
-    output_directory: "."
+    image_type: "bmp"

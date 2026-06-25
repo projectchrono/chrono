@@ -5,7 +5,7 @@ mbs:   "mbs.yaml"
 fluid: "sph.yaml"
 
 fsi:
-  name: FSI object drop
+  name: sphere_drop
   angle_degrees: true
   
   data_path:
@@ -18,12 +18,12 @@ fsi:
         - type: SPHERE
           location: [0, 0, 0]
           radius: 0.12
-        
+
 simulation:
   time_step: 1e-4
   end_time: -1
   gravity: [0, 0, -9.8]
-  
+
 visualization:
   render_fps: 120
   enable_shadows: false
@@ -33,4 +33,4 @@ visualization:
     target: [0, 0, 0.6]
   output:
     save_images: false
-    output_directory: "."
+    image_type: "bmp"

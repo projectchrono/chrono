@@ -73,8 +73,9 @@ class ChApi ChVisualSystem {
         ChVector3d camera_location;
         ChVector3d camera_target;
         bool enable_shadows;
-        bool write_images;      ///< if true, save snapshots
-        std::string image_dir;  ///< directory for image files
+        bool write_images;       ///< if true, save snapshots
+        std::string image_dir;   ///< image output directory
+        std::string image_type;  ///< image type (specified by file extension)
     };
 
     virtual ~ChVisualSystem();

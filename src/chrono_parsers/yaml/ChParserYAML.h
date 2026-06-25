@@ -46,8 +46,10 @@ class ChApiParsers ChParserYAML {
     /// Return the name of the YAML model.
     const std::string& GetName() const { return m_name; }
 
+    // Output settings
+
     /// Return true if generating output.
-    virtual bool Output() const;
+    virtual bool OutputEnabled() const { return m_output_settings.format != ChOutput::Format::NONE; }
 
     /// Return all output settings.
     const ChOutput::Settings& GetOutputSettings() const { return m_output_settings; }
@@ -61,8 +63,10 @@ class ChApiParsers ChParserYAML {
     /// Return the output frequency.
     virtual double GetOutputFPS() const { return m_output_settings.fps; }
 
+    // Run-time visualization settings
+
     /// Return true if visualization is enabled.
-    virtual bool Render() const { return m_vis_settings.render; }
+    virtual bool VisualizationEnabled() const { return m_vis_settings.render; }
 
     /// Return all visualization settings.
     const ChVisualSystem::Settings& GetVisualizationSettings() const { return m_vis_settings; }
@@ -72,6 +76,13 @@ class ChApiParsers ChParserYAML {
     const ChVector3d& GetCameraLocation() const { return m_vis_settings.camera_location; }
     const ChVector3d& GetCameraTarget() const { return m_vis_settings.camera_target; }
     bool EnableShadows() const { return m_vis_settings.enable_shadows; }
+    bool WriteImages() const { return m_vis_settings.write_images; }
+    const std::string& GetImageDir() const { return m_vis_settings.image_dir; }
+
+    /// Load simulation settings for this parser from the specified YAML node.
+    /// This function reads settings common to all Chrono YAML parsers (run-time visualization and output).
+    /// A derived class must also read any additional parser-specific simulation settings.
+    virtual void LoadSimData(const YAML::Node& yaml);
 
     /// Write simulation output results at the current time.
     /// This base class implementation creates and initializes the output database. Derived classes must
@@ -80,6 +91,18 @@ class ChApiParsers ChParserYAML {
     /// Peek in specified YAML file and read the fluid system type.
     /// Throws a runtime error if the type is unknown.
     static YamlFileType ReadYamlFileType(const std::string& yaml_filename);
+
+    // Common utility functions
+
+    /// Generate output at the current frame.
+    /// This function ensures that output occurs at the specified frequency.
+    virtual void Output(double time);
+
+    /// Render the current frame using the specified visual system if run-time visualization is available and enabled.
+    /// Returns `false` if the visual system must shut down.
+    /// This function ensures that frames are rendered at the specified frequency.
+    /// If requested, snapshots are saved to disk.
+    virtual bool Render(ChVisualSystem& vis, double time);
 
   protected:
     /// Read the YAML file type.

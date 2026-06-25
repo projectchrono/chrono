@@ -69,9 +69,9 @@ int main(int argc, char* argv[]) {
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
+
     bool real_time = parser.EnforceRealtime();
-    bool render = parser.Render();
-    double render_fps = parser.GetRenderFPS();
+    bool render = parser.VisualizationEnabled();
     bool enable_shadows = parser.EnableShadows();
 
     const ChVector3d& chassis_point = parser.GetChassisPoint();
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Create output directory
-    if (parser.Output()) {
+    if (parser.OutputEnabled()) {
         std::string out_dir = GetChronoOutputPath() + "YAML_VEHICLE";
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -138,18 +138,11 @@ int main(int argc, char* argv[]) {
     vehicle->EnableRealtime(real_time);
 
     double time = 0;
-    int render_frame = 0;
 
     while (true) {
         if (render) {
-            if (!vis->Run())
+            if (!parser.Render(*vis, time))
                 break;
-            if (time >= render_frame / render_fps) {
-                vis->BeginScene();
-                vis->Render();
-                vis->EndScene();
-                render_frame++;
-            }
         } else {
             std::cout << "\rt = " << time;
             if (time_end > 0 && time >= time_end)

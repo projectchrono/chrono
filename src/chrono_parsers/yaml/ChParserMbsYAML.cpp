@@ -148,6 +148,9 @@ void ChParserMbsYAML::LoadFile(const std::string& yaml_filename) {
 }
 
 void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
+    // Read common simulation settings
+    ChParserYAML::LoadSimData(yaml);
+
     // Simulation settings (required)
     {
         ChAssertAlways(yaml["simulation"]);
@@ -160,13 +163,8 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
             m_sim.gravity = ReadVector(sim["gravity"]);
     }
 
-    // Output (optional)
-    if (yaml["output"])
-        m_output_settings = ChOutput::Settings::Read(yaml["output"]);
-
-    // Run-time visualization (optional)
+    // MBS-specific run-time visualization settings (optional)
     if (yaml["visualization"]) {
-        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
         if (yaml["visualization"]["type"])
             m_vis_type = ReadVisualizationType(yaml["visualization"]["type"]);
     }
@@ -1223,15 +1221,6 @@ void ChParserMbsYAML::DoStepDynamics() {
         auto actuation = motor_controller.second.controller->GetActuation();
         auto function = std::static_pointer_cast<ChFunctionSetpoint>(motor_controller.second.motor->GetMotorFunction());
         function->SetSetpoint(actuation, time);
-    }
-
-    // Generate output (if requested)
-    static int output_frame = 0;
-    if (m_output_settings.format != ChOutput::Format::NONE) {
-        if (time >= output_frame / m_output_settings.fps) {
-            WriteOutput(output_frame, time);
-            output_frame++;
-        }
     }
 
     // Advance multibody system dynamics

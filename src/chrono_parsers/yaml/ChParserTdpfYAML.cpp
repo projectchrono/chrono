@@ -115,13 +115,11 @@ void ChParserTdpfYAML::LoadFile(const std::string& yaml_filename) {
 }
 
 void ChParserTdpfYAML::LoadSimData(const YAML::Node& yaml) {
-    // Output (optional)
-    if (yaml["output"])
-        m_output_settings = ChOutput::Settings::Read(yaml["output"]);
+    // Read common simulation settings
+    ChParserYAML::LoadSimData(yaml);
 
-    // Run-time visualization (optional)
+    // TDPF-specific run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
 #ifdef CHRONO_VSG
         m_visTDPF_settings = fsi::tdpf::ChTdpfVisualizationVSG::Settings::Read(yaml["visualization"]);
 #else

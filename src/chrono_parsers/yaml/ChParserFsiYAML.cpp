@@ -131,6 +131,9 @@ void ChParserFsiYAML::LoadFsiData(const YAML::Node& yaml) {
 }
 
 void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
+    // Read common simulation settings
+    ChParserYAML::LoadSimData(yaml);
+
     // Simulation settings
     ChAssertAlways(yaml["simulation"]);
     auto sim = yaml["simulation"];
@@ -140,11 +143,6 @@ void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
         m_sim.end_time = sim["end_time"].as<double>();
     if (sim["gravity"])
         m_sim.gravity = ReadVector(sim["gravity"]);
-
-    // Run-time visualization (optional)
-    if (yaml["visualization"]) {
-        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
-    }
 
     if (m_verbose) {
         m_sim.PrintInfo();
@@ -251,27 +249,21 @@ void ChParserFsiYAML::CreateFsiSystem() {
 
 // -----------------------------------------------------------------------------
 
-bool ChParserFsiYAML::Render() const {
-    if (!ChParserYAML::Render())
-        return false;
-
-    if (m_parserMBS && m_parserMBS->Render())
+bool ChParserFsiYAML::VisualizationEnabled() const {
+    if (m_parserMBS && m_parserMBS->VisualizationEnabled())
         return true;
 
-    if (m_parserCFD && m_parserCFD->Render())
+    if (m_parserCFD && m_parserCFD->VisualizationEnabled())
         return true;
 
     return false;
 }
 
-bool ChParserFsiYAML::Output() const {
-    if (!ChParserYAML::Output())
-        return false;
-
-    if (m_parserMBS && m_parserMBS->Output())
+bool ChParserFsiYAML::OutputEnabled() const {
+    if (m_parserMBS && m_parserMBS->OutputEnabled())
         return true;
 
-    if (m_parserCFD && m_parserCFD->Output())
+    if (m_parserCFD && m_parserCFD->OutputEnabled())
         return true;
 
     return false;
@@ -298,6 +290,21 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
             std::cerr << "Error creating directory " << out_dir_CFD << std::endl;
             throw std::runtime_error("Could not create output directory");
         }
+    }
+}
+
+void ChParserFsiYAML::Output(double time) {
+    static int output_frame_MBS = 0;
+    static int output_frame_CFD = 0;
+
+    if (m_parserMBS->OutputEnabled() && time >= output_frame_MBS / m_parserMBS->GetOutputFPS()) {
+        m_parserMBS->WriteOutput(output_frame_MBS, time);
+        output_frame_MBS++;
+    }
+
+    if (m_parserCFD->OutputEnabled() && time >= output_frame_CFD / m_parserCFD->GetOutputFPS()) {
+        m_parserCFD->WriteOutput(output_frame_CFD, time);
+        output_frame_CFD++;
     }
 }
 

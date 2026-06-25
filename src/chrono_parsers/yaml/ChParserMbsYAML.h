@@ -105,7 +105,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     virtual void LoadFile(const std::string& yaml_filename);
 
     /// Load the simulation, output, and visualization settings from the specified YAML node.
-    virtual void LoadSimData(const YAML::Node& yaml);
+    virtual void LoadSimData(const YAML::Node& yaml) override;
 
     /// Load the MBS model from the specified YAML node.
     virtual void LoadModelData(const YAML::Node& yaml);
@@ -172,7 +172,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     /// Advance dynamics of the multibody system.
     /// - load controllers (if any are attached) are synchronized and their dynamics advanced in time;
-    /// - output is generated if requested in the simulation YAML file;
     /// - the dynamics of the underlying Chrono system is advanced in time;
     /// - soft real-time is enforced if requested in the simulation YAML file.
     void DoStepDynamics();
@@ -194,7 +193,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     void ApplyMotorControllerActuations(const MotorControllerActuations& controller_loads);
 
     /// Write simulation output results at the current time.
-    /// Note: this function is automatically called in ChParserMbsYAML::DoStepDynamics.
     virtual void WriteOutput(int frame, double time) override;
 
   private:

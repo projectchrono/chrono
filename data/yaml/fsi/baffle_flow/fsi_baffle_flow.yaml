@@ -48,4 +48,4 @@ visualization:
     target: [0, 0, 0.0]
   output:
     save_images: false
-    output_directory: "."
+    image_type: "bmp"

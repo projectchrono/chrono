@@ -125,6 +125,9 @@ void ChParserSphYAML::LoadFile(const std::string& yaml_filename) {
 }
 
 void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
+    // Read common simulation settings
+    ChParserYAML::LoadSimData(yaml);
+
     // Simulation settings (required)
     if (yaml["simulation"]) {
         auto sim = yaml["simulation"];
@@ -134,13 +137,8 @@ void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
             m_sim.gravity = ReadVector(sim["gravity"]);
     }
 
-    // Output (optional)
-    if (yaml["output"])
-        m_output_settings = ChOutput::Settings::Read(yaml["output"]);
-
-    // Run-time visualization (optional)
+    // SPH-specific run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
 #ifdef CHRONO_VSG
         m_visSPH_settings = fsi::sph::ChSphVisualizationVSG::Settings::Read(yaml["visualization"]);
 #else

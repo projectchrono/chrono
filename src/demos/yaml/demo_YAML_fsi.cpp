@@ -95,19 +95,13 @@ int main(int argc, char* argv[]) {
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
-    bool render = parser.Render();
-    double render_fps = parser.GetRenderFPS();
-    
-    auto& parserMBS = parser.GetMbsParser();
+
+    bool output = parser.OutputEnabled();
+    bool render = parser.VisualizationEnabled();
+
     CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
     const ChVector3d& camera_location = parser.GetCameraLocation();
     const ChVector3d& camera_target = parser.GetCameraTarget();
-    bool output_MBS = parserMBS.Output();
-    double output_fps_MBS = parser.GetOutputFPS();
-
-    auto& parserCFD = parser.GetCfdParser();
-    bool output_CFD = parserCFD.Output();
-    double output_fps_CFD = parser.GetOutputFPS();
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
@@ -127,7 +121,7 @@ int main(int argc, char* argv[]) {
         visVSG->EnableShadows(false);
         visVSG->SetAbsFrameScale(2.0);
 
-        auto plugin = parserCFD.GetVisualizationPlugin();
+        auto plugin = parser.GetCfdParser().GetVisualizationPlugin();
         if (plugin)
             visVSG->AttachPlugin(plugin);
 
@@ -139,7 +133,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Create output directory
-    if (output_MBS || output_CFD) {
+    if (output) {
         std::string out_dir = GetChronoOutputPath() + "YAML_FSI";
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -155,35 +149,19 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     double time = 0;
-    int render_frame = 0;
-    int output_frame_MBS = 0;
-    int output_frame_CFD = 0;
 
     while (true) {
         if (render) {
-            if (!vis->Run())
+            if (!parser.Render(*vis, time))
                 break;
-            if (time >= render_frame / render_fps) {
-                vis->BeginScene();
-                vis->Render();
-                vis->EndScene();
-                render_frame++;
-            }
         } else {
             std::cout << "\rt = " << time;
             if (time_end > 0 && time >= time_end)
                 break;
         }
 
-        if (output_MBS && time >= output_frame_MBS / output_fps_MBS) {
-            parserMBS.WriteOutput(output_frame_MBS, time);
-            output_frame_MBS++;
-        }
-
-        if (output_CFD && time >= output_frame_CFD / output_fps_CFD) {
-            parserCFD.WriteOutput(output_frame_CFD, time);
-            output_frame_CFD++;
-        }
+        if (output)
+            parser.Output(time);
 
         sysFSI->DoStepDynamics(time_step);
         time += time_step;

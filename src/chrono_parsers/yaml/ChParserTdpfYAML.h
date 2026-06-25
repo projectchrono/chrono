@@ -51,7 +51,7 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     void LoadFile(const std::string& yaml_filename);
 
     /// Load the simulation, output, and visualization settings from the specified YAML node.
-    void LoadSimData(const YAML::Node& yaml);
+    void LoadSimData(const YAML::Node& yaml) override;
 
     /// Load the MBS model from the specified YAML node.
     void LoadModelData(const YAML::Node& yaml);

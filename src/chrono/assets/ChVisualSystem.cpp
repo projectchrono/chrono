@@ -154,7 +154,8 @@ ChVisualSystem::Settings::Settings()
       camera_target({0, 0, 0}),
       enable_shadows(true),
       write_images(false),
-      image_dir(".") {}
+      image_dir("."),
+      image_type("bmp") {}
 
 ChVisualSystem::Settings::Settings(const Settings& other) {
     render = other.render;
@@ -165,6 +166,7 @@ ChVisualSystem::Settings::Settings(const Settings& other) {
     enable_shadows = other.enable_shadows;
     write_images = other.write_images;
     image_dir = other.image_dir;
+    image_type = other.image_type;
 }
 
 ChVisualSystem::Settings& ChVisualSystem::Settings::operator=(const Settings& other) {
@@ -176,6 +178,7 @@ ChVisualSystem::Settings& ChVisualSystem::Settings::operator=(const Settings& ot
     enable_shadows = other.enable_shadows;
     write_images = other.write_images;
     image_dir = other.image_dir;
+    image_type = other.image_type;
     return *this;
 }
 
@@ -208,8 +211,8 @@ ChVisualSystem::Settings::Settings(const YAML::Node& a) : Settings() {
         auto b = a["output"];
         if (b["save_images"])
             write_images = b["save_images"].as<bool>();
-        if (b["output_directory"])
-            image_dir = b["output_directory"].as<std::string>();
+        if (b["image_type"])
+            image_type = b["image_type"].as<std::string>();
     }
 }
 
