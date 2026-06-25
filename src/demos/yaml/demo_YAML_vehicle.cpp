@@ -140,14 +140,11 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
     while (true) {
-        if (render) {
-            if (!parser.Render(*vis, time))
-                break;
-        } else {
-            std::cout << "\rt = " << time;
-            if (time_end > 0 && time >= time_end)
-                break;
-        }
+        if (time_end > 0 && time > time_end)
+            break;
+
+        if (render && !parser.Render(*vis, time))
+            break;
 
         // Get driver inputs
         vehicle::DriverInputs driver_inputs = driver->GetInputs();

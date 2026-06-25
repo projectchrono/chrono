@@ -209,12 +209,11 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
     double time = 0;
 
     while (true) {
+        if (time_end > 0 && time > time_end)
+            break;
+
         if (render) {
             if (!parser.Render(*vis, time))
-                break;
-        } else {
-            std::cout << "\rt = " << time;
-            if (time_end > 0 && time >= time_end)
                 break;
         }
 
@@ -316,14 +315,11 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
     double time = 0;
 
     while (true) {
-        if (render) {
-            if (!parser.Render(*vis, time))
-                break;
-        } else {
-            std::cout << "\rt = " << time;
-            if (time_end > 0 && time >= time_end)
-                break;
-        }
+        if (time_end > 0 && time > time_end)
+            break;
+
+        if (render && !parser.Render(*vis, time))
+            break;
 
         // Get driver inputs
         vehicle::DriverInputs driver_inputs = driver->GetInputs();
@@ -428,14 +424,11 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
     double time = 0;
 
     while (true) {
-        if (render) {
-            if (!parser.Render(*vis, time))
-                break;
-        } else {
-            std::cout << "\rt = " << time;
-            if (time_end > 0 && time >= time_end)
-                break;
-        }
+        if (time_end > 0 && time > time_end)
+            break;
+
+        if (render && !parser.Render(*vis, time))
+            break;
 
         if (output)
             parser.Output(time);
