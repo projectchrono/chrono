@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     bool output = true;
 
     // Set root output directory
-    std::string out_dir = GetChronoOutputPath() + "PRECICE_SPHERE/";
+    std::string out_dir = GetChronoOutputPath() + "PRECICE_Sphere_Drop/";
     if (output) {
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -186,10 +186,13 @@ class ParticipantCFD : public ChPreciceAdapter {
     ~ParticipantCFD();
 
     virtual void InitializeParticipant() override;
+    virtual void WriteCheckpoint(double time) override {}
+    virtual void ReadCheckpoint(double time) override {}
     virtual void ReadData() override;
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
     virtual void WriteData() override;
+    virtual void WriteOutput(int frame, double time) override {}
 
     void PlotResults();
 
@@ -218,8 +221,6 @@ ParticipantCFD::~ParticipantCFD() {
 }
 
 void ParticipantCFD::InitializeParticipant() {
-    ChPreciceAdapter::InitializeParticipant();
-
     // Check that the participant has the expected number of interfaces (1 mesh)
     auto mesh_names = GetCouplingMeshNames();
     ChAssertAlways(mesh_names.size() == 1);
@@ -241,6 +242,7 @@ void ParticipantCFD::InitializeParticipant() {
 
 void ParticipantCFD::ReadData() {
     ChPreciceAdapter::ReadData();
+
     position = m_coupling_meshes[mesh_name].data["positions"].values;
     velocity = m_coupling_meshes[mesh_name].data["velocities"].values;
     if (m_verbose) {
@@ -254,8 +256,6 @@ double ParticipantCFD::GetSolverTimeStep(double max_time_step) const {
 }
 
 void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
-    ChPreciceAdapter::AdvanceParticipant(time, time_step);
-
     // Calculate fluid forces for current sphere position and velocity
     double h = radius - position[2];
     force[2] = 0;
@@ -287,10 +287,11 @@ void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
 
 void ParticipantCFD::WriteData() {
     m_coupling_meshes[mesh_name].data["forces"].values = force;
-    ChPreciceAdapter::WriteData();
     if (m_verbose) {
         cout << m_prefix2 << "force: " << force[0] << " " << force[1] << " " << force[2] << endl;
     }
+
+    ChPreciceAdapter::WriteData();
 }
 
 void ParticipantCFD::PlotResults() {

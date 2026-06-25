@@ -84,19 +84,32 @@ class ChApiPrecice ChPreciceAdapter {
     /// The specified directory must exist.
     void SetOutputDir(const std::string& out_dir);
 
-    /// Set Chrono simulation output parameters.
-    void SetOutputParameters(ChOutput::Format format,  ///< output DB format
-                             ChOutput::Mode mode,      ///< output mode
-                             double output_fps         ///< output frequency
+    /// Set Chrono simulation output settings.
+    /// Note: If the Chrono preCICE adapter is created from a YAML specification file, these settings are read from that file.
+    void SetOutputSettings(const ChOutput::Settings& settings);
+
+    /// Set Chrono simulation output settings.
+    /// Note: If the Chrono preCICE adapter is created from a YAML specification file, these settings are read from that file.
+    void SetOutputSettings(ChOutput::Format format,  ///< output DB format
+                           ChOutput::Mode mode,      ///< output mode
+                           double output_fps         ///< output frequency
     );
 
 #ifdef CHRONO_VSG
-    /// Set Chrono run-time visualization parameters.
-    void SetVisualizationParameters(double render_fps,                  ///< rendering frequency
-                                    CameraVerticalDir camera_vertical,  ///< camera vertical direction (Y or Z)
-                                    const ChVector3d& camera_location,  ///< initial camera location
-                                    const ChVector3d& camera_target,    ///< initial camera look-at point
-                                    bool enable_shadows                 ///< enable dynamic shadows
+    /// Set Chrono run-time visualization settings.
+    /// Note: If the Chrono preCICE adapter is created from a YAML specification file, these settings are read from that file.
+    void SetVisualizationSettings(const ChVisualSystem::Settings& settings);
+
+    /// Set Chrono run-time visualization settings.
+    /// Note: If the Chrono preCICE adapter is created from a YAML specification file, these settings are read from that file.
+    void SetVisualizationSettings(double render_fps,                  ///< rendering frequency
+                                  CameraVerticalDir camera_vertical,  ///< camera vertical direction (Y or Z)
+                                  const ChVector3d& camera_location,  ///< initial camera location
+                                  const ChVector3d& camera_target,    ///< initial camera look-at point
+                                  bool enable_shadows,                ///< enable dynamic shadows
+                                  bool write_images,                  ///< save image snapshots
+                                  const std::string& image_dir,       ///< image output directory
+                                  const std::string& image_type       ///< image type (file extension)
     );
 #endif
 
@@ -290,44 +303,56 @@ class ChApiPrecice ChPreciceAdapter {
     /// Let the derived class perform any necessary operations during the simulation initialization.
     /// This function is called before the solver writes initial data (if requested) and before the preCICE coupling is initialized.
     /// After the call to InitializeParticipant, it is assumed that the coupling meshes have been set.
-    virtual void InitializeParticipant();
+    virtual void InitializeParticipant() = 0;
 
     /// Let the derived class implement the actual checkpoint writing if required by preCICE.
-    virtual void WriteCheckpoint(double time);
+    virtual void WriteCheckpoint(double time) = 0;
 
     /// Let the derived class implement the actual checkpoint reading if required by preCICE.
     /// The solver from a derived class must restore its state at the values in the last saved checkpoint and, if needed, reset its internal time to the provided value.
-    virtual void ReadCheckpoint(double time);
+    virtual void ReadCheckpoint(double time) = 0;
 
     /// Read data from other solvers.
     /// A derived class must:
-    /// - call the base class implementation to receive data from preCICE
+    /// - *call* the base class function to receive data from preCICE
     /// - perform any necessary processing of the data now stored in m_coupling_meshes
     /// - only access data from entries with names in m_data_read
     virtual void ReadData() = 0;
+
+    /// Write data for other solvers.
+    /// A derived class must:
+    /// - prepare the data to be sent and load it in m_coupling_meshes
+    /// - only access data from entries with names in m_data_write
+    /// - *call* the base class function to send data to preCICE
+    virtual void WriteData() = 0;
 
     /// Let the derived class implement the actual computation of the solver time step based on the maximum time step provided by preCICE.
     /// The default implementation simply returns the maximum time step provided by preCICE, but derived classes can override this to implement custom time-stepping logic.
     virtual double GetSolverTimeStep(double max_time_step) const { return max_time_step; }
 
     /// Let the derived class implement the actual solver time-stepping by the given time step.
-    virtual void AdvanceParticipant(double time, double time_step);
-
-    /// Write data for other solvers.
-    /// A derived class must:
-    /// - prepare the data to be sent and load it in m_coupling_meshes
-    /// - only access data from entries with names in m_data_write
-    /// - call the base class implementation to send data to preCICE
-    virtual void WriteData() = 0;
+    virtual void AdvanceParticipant(double time, double time_step) = 0;
 
     /// Let the derived class perform any necessary operations during simulation shutdown.
     /// This function is called before the preCICE coupling is finalized.
-    virtual void FinalizeParticipant();
+    virtual void FinalizeParticipant() {}
 
     /// Write output from the Chrono preCICE participant.
-    /// This base class creates the output DB if necessary.
-    /// Derived classes must first call the base class implementation and then write output to the DB.
-    virtual void WriteOutput(int frame, double time);
+    /// A derived class must:
+    /// - *call* the base class function to create the output DB as necessary.
+    /// - write output to the DB
+    virtual void WriteOutput(int frame, double time) = 0;
+
+    // ---- Common functions
+
+    /// Save output at the current frame is output is enabled.
+    /// This function ensures that output occurs at the specified frequency.
+    void Output(double time);
+
+    /// Render the current frame if run-time visualization is available and enabled.
+    /// This function ensures that frames are rendered at the specified frequency.
+    /// If requested, snapshots are saved to disk.
+    void Render(double time);
 
     // ---- Utility functions
 
@@ -395,7 +420,7 @@ class ChApiPrecice ChPreciceAdapter {
 
 #ifdef CHRONO_VSG
     // Run-time visualization
-    ChVisualSystem::Settings m_vis_params;            ///< visualization parameters
+    ChVisualSystem::Settings m_vis_settings;          ///< visualization parameters
     std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsg;  ///< run-time visualization system
 #endif
 
@@ -403,6 +428,10 @@ class ChApiPrecice ChPreciceAdapter {
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths in YAML file
     bool m_use_degrees;                ///< angles provided in degrees in YAML file
 #endif
+
+  private:
+    /// Check consistency between the preCICE configuration and Chrono adapter configuration.
+    void CheckConsistency();
 };
 
 /// @} precice_module

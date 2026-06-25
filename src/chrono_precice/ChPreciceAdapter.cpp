@@ -50,33 +50,47 @@ ChPreciceAdapter::ChPreciceAdapter(const std::string& model_name)
       m_output_dir(".") {}
 
 void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
-    auto p = std::filesystem::path(out_dir);
+    m_output_dir = out_dir;
+
+    auto p = std::filesystem::path(m_output_dir);
     if (!exists(p) || !is_directory(p)) {
-        std::cerr << "The specified path " << out_dir << " is not a valid directory." << std::endl;
+        std::cerr << "The specified path " << m_output_dir << " is not a valid directory." << std::endl;
         throw std::runtime_error("Invalid directory");
     }
-
-    m_output_dir = out_dir;
 }
 
-void ChPreciceAdapter::SetOutputParameters(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
+void ChPreciceAdapter::SetOutputSettings(const ChOutput::Settings& settings) {
+    m_output_settings = settings;
+}
+
+void ChPreciceAdapter::SetOutputSettings(ChOutput::Format format, ChOutput::Mode mode, double output_fps) {
     m_output_settings.format = format;
     m_output_settings.mode = mode;
     m_output_settings.fps = output_fps;
 }
 
 #ifdef CHRONO_VSG
-void ChPreciceAdapter::SetVisualizationParameters(double render_fps,
-                                                  CameraVerticalDir camera_vertical,
-                                                  const ChVector3d& camera_location,
-                                                  const ChVector3d& camera_target,
-                                                  bool enable_shadows) {
-    m_vis_params.render_fps = render_fps;
-    m_vis_params.camera_vertical = camera_vertical;
-    m_vis_params.camera_location = camera_location;
-    m_vis_params.camera_target = camera_target;
-    m_vis_params.enable_shadows = enable_shadows;
-    m_vis_params.render = true;
+void ChPreciceAdapter::SetVisualizationSettings(const ChVisualSystem::Settings& settings) {
+    m_vis_settings = settings;
+}
+
+void ChPreciceAdapter::SetVisualizationSettings(double render_fps,
+                                                CameraVerticalDir camera_vertical,
+                                                const ChVector3d& camera_location,
+                                                const ChVector3d& camera_target,
+                                                bool enable_shadows,
+                                                bool write_images,
+                                                const std::string& image_dir,
+                                                const std::string& image_type) {
+    m_vis_settings.render_fps = render_fps;
+    m_vis_settings.camera_vertical = camera_vertical;
+    m_vis_settings.camera_location = camera_location;
+    m_vis_settings.camera_target = camera_target;
+    m_vis_settings.enable_shadows = enable_shadows;
+    m_vis_settings.render = true;
+    m_vis_settings.write_images = write_images;
+    m_vis_settings.image_dir = image_dir;
+    m_vis_settings.image_type = image_type;
 }
 #endif
 
@@ -438,14 +452,37 @@ void ChPreciceAdapter::InitializeSimulation() {
     assert(m_participant_created);
     assert(!m_initialized);
 
+    if (m_verbose)
+        cout << m_prefix1 << "Initialization" << endl;
+
+    // Disable output if not supported
+    if (m_output_settings.format == ChOutput::Format::NONE)
+        m_output = false;
+
+    // Disable visualization if not supported; otherwise, create image directory as needed
+    if (!m_vis_settings.render)
+        m_visualize = false;
+    else if (m_vis_settings.write_images) {
+        m_vis_settings.image_dir = m_output_dir + "/images";
+        if (!CreateOutputDirectory(std::filesystem::path(m_vis_settings.image_dir))) {
+            std::cerr << "Error creating image output directory " << m_vis_settings.image_dir << std::endl;
+            throw std::runtime_error("Could not create image output directory");
+        }
+    }
+
+    // Check mesh and data consistency
+    CheckConsistency();
+
+    // Initialize the concrete Chrono preCICE participant
     InitializeParticipant();
 
+    // Write initial data if required
     assert(m_mesh_created);
-
     if (m_participant->requiresInitialData()) {
         WriteData();
     }
 
+    // Initialize the preCICE participant and set up connections to other participants
     m_participant->initialize();
 
     m_initialized = true;
@@ -459,22 +496,26 @@ void ChPreciceAdapter::RunSimulation() {
 
     double time = 0;
     while (IsCouplingOngoing()) {
-        if (m_participant->requiresWritingCheckpoint())
-            WriteCheckpoint(time);
+        // Write checkpoint if required
+        WriteCheckpointIfRequired(time);
 
         // Agree on time step size
         double max_time_step = GetMaxTimeStepSize();
         double time_step = std::min(max_time_step, GetSolverTimeStep(max_time_step));
 
-        // Compute time step for solver and advance solver and coupling
+        // Read data, advance participant solver, write data, then advance preCICE coupling
         ReadData();
+
+        if (m_verbose)
+            cout << m_prefix1 << "Advance from " << time << " by " << time_step << endl;
         AdvanceParticipant(time, time_step);
+
         WriteData();
+
         m_participant->advance(time_step);
 
-        if (m_participant->requiresReadingCheckpoint())
-            ReadCheckpoint(time);
-        else
+        // Read checkpoint if required; if no checkpoint was read, advance time
+        if (!ReadCheckpointIfRequired(time))
             time += time_step;
     }
 }
@@ -483,16 +524,220 @@ void ChPreciceAdapter::FinalizeSimulation() {
     assert(m_participant_created);
     assert(m_initialized);
 
+    if (m_verbose)
+        cout << m_prefix1 << "Shutdown" << endl;
     FinalizeParticipant();
     m_participant->finalize();
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapter::InitializeParticipant() {
-    if (m_verbose)
-        cout << m_prefix1 << "Initialization" << endl;
+void ChPreciceAdapter::WriteData() {
+    std::string msg = m_prefix1 + "Write data\n";
+    for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
+        for (const auto& data_name : m_data_write[mesh_name]) {
+            if (!GetCouplingDataUsed(mesh_name, data_name))
+                continue;
+            auto data_dim = std::to_string(GetCouplingDataDimensions(mesh_name, data_name));
+            msg += m_prefix2 + mesh_name + ":" + data_name + " (" + data_dim + "," + GetCouplingDataTypeAsString(mesh_name, data_name) + ")\n";
+            WriteDataBlock(mesh_name, data_name, mesh_info.data[data_name].values);
+        }
+        if (m_verbose)
+            cout << msg;
+    }
+}
 
+void ChPreciceAdapter::ReadData() {
+    std::string msg = m_prefix1 + "Read data\n";
+    for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
+        for (const auto& data_name : m_data_read[mesh_name]) {
+            if (!GetCouplingDataUsed(mesh_name, data_name))
+                continue;
+            auto data_dim = std::to_string(GetCouplingDataDimensions(mesh_name, data_name));
+            msg += m_prefix2 + mesh_name + ":" + data_name + " (" + data_dim + "," + GetCouplingDataTypeAsString(mesh_name, data_name) + ")\n";
+            mesh_info.data[data_name].values = ReadDataBlock(mesh_name, data_name);
+        }
+        if (m_verbose)
+            cout << msg;
+    }
+}
+
+void ChPreciceAdapter::WriteOutput(int frame, double time) {
+    // Create the output DB if needed
+    if (!m_output_db) {
+        switch (m_output_settings.format) {
+            case ChOutput::Format::ASCII:
+                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output_settings.mode);
+                break;
+            case ChOutput::Format::HDF5:
+#ifdef CHRONO_HAS_HDF5
+                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output_settings.mode);
+                break;
+#else
+                return;
+#endif
+            case ChOutput::Format::NONE:
+                break;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapter::Output(double time) {
+    static int output_frame = 0;
+    if (m_output) {
+        if (time >= output_frame / m_output_settings.fps) {
+            WriteOutput(output_frame, time);
+            output_frame++;
+        }
+    }
+}
+
+void ChPreciceAdapter::Render(double time) {
+#ifdef CHRONO_VSG
+    static int render_frame = 0;
+    if (m_visualize && m_vis_settings.render && m_vsg->Run()) {
+        if (time >= render_frame / m_vis_settings.render_fps) {
+            m_vsg->Render();
+            if (m_vis_settings.write_images) {
+                std::ostringstream filename;
+                filename << m_vis_settings.image_dir << "/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << "." << m_vis_settings.image_type;
+                m_vsg->WriteImageToFile(filename.str());
+            }
+            render_frame++;
+        }
+    }
+#endif
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapter::SetDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data) {
+    auto it_mesh = m_coupling_meshes.find(mesh_name);
+    assert(it_mesh != m_coupling_meshes.end());
+    auto& mesh_info = it_mesh->second.data;
+
+    auto it_data = mesh_info.find(data_name);
+    assert(it_data != mesh_info.end());
+    it_data->second.values = data;
+}
+
+void ChPreciceAdapter::WriteDataBlock(const std::string& mesh_name, const std::string& data_name) {
+    const auto& vertex_ids = m_coupling_meshes[mesh_name].vertex_ids;
+    const auto& data_info = m_coupling_meshes[mesh_name].data[data_name];
+    m_participant->writeData(mesh_name, data_name, vertex_ids, data_info.values);
+}
+
+void ChPreciceAdapter::WriteDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data) {
+    SetDataBlock(mesh_name, data_name, data);
+    WriteDataBlock(mesh_name, data_name);
+}
+
+void ChPreciceAdapter::ReadDataBlock(const std::string& mesh_name, const std::string& data_name, double relative_read_time) {
+    const auto& vertex_ids = m_coupling_meshes[mesh_name].vertex_ids;
+    auto& data_info = m_coupling_meshes[mesh_name].data[data_name];
+    m_participant->readData(mesh_name, data_name, vertex_ids, relative_read_time, data_info.values);
+}
+
+const std::vector<double>& ChPreciceAdapter::GetDataBlock(const std::string& mesh_name, const std::string& data_name) const {
+    auto it_mesh = m_coupling_meshes.find(mesh_name);
+    assert(it_mesh != m_coupling_meshes.end());
+    auto& mesh_info = it_mesh->second.data;
+
+    auto it_data = mesh_info.find(data_name);
+    assert(it_data != mesh_info.end());
+    return it_data->second.values;
+}
+
+const std::vector<double>& ChPreciceAdapter::ReadDataBlock(const std::string& mesh_name, const std::string& data_name) {
+    ReadDataBlock(mesh_name, data_name, 0);
+    return GetDataBlock(mesh_name, data_name);
+}
+
+// -----------------------------------------------------------------------------
+
+bool ChPreciceAdapter::WriteCheckpointIfRequired(double time) {
+    assert(m_participant_created);
+    if (m_participant->requiresWritingCheckpoint()) {
+        if (m_verbose)
+            cout << m_prefix1 << "Write checkpoint at time = " << time << endl;
+        WriteCheckpoint(time);
+        return true;
+    }
+    return false;
+}
+
+bool ChPreciceAdapter::ReadCheckpointIfRequired(double time) {
+    assert(m_participant_created);
+    if (m_participant->requiresReadingCheckpoint()) {
+        if (m_verbose)
+            cout << m_prefix1 << "Read checkpoint for time = " << time << endl;
+        ReadCheckpoint(time);
+        return true;
+    }
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+
+std::vector<double> ChPreciceAdapter::SetVerticesToData(const std::vector<ChVector2d>& vertices) {
+    std::vector<double> data;
+    data.reserve(vertices.size() * 2);
+    for (const auto& v : vertices) {
+        data.push_back(v.x());
+        data.push_back(v.y());
+    }
+    return data;
+}
+
+std::vector<double> ChPreciceAdapter::SetVerticesToData(const std::vector<ChVector3d>& vertices) {
+    std::vector<double> data;
+    data.reserve(vertices.size() * 3);
+    for (const auto& v : vertices) {
+        data.push_back(v.x());
+        data.push_back(v.y());
+        data.push_back(v.z());
+    }
+    return data;
+}
+
+// -----------------------------------------------------------------------------
+
+std::vector<ChVector3d> ChPreciceAdapter::ReadPoints(const std::string& filename) {
+    // Open input file stream
+    std::ifstream ifile;
+    std::string line;
+    try {
+        ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
+        ifile.open(filename);
+    } catch (const std::exception&) {
+        cerr << "Cannot open input file '" << filename << "'" << endl;
+        throw std::invalid_argument("Cannot open input file");
+    }
+
+    // Read number of points
+    std::getline(ifile, line);
+    std::istringstream iss(line);
+    size_t num_points;
+    iss >> num_points;
+
+    // Read points
+    std::vector<ChVector3d> points;
+    for (size_t i = 0; i < num_points; i++) {
+        std::getline(ifile, line);
+        std::istringstream jss(line);
+        double x, y, z;
+        jss >> x >> y >> z;
+        points.push_back(ChVector3d(x, y, z));
+    }
+
+    return points;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapter::CheckConsistency() {
     // Read preCICE configuration file and find coupling meshes and coupling data for each mesh.
     // Set the `used` flag for data defined on each mesh by the Chrono preCICE adapter.
     // If the data is referenced in the preCICE configuration, set used=true. Otherwise, set used=false.
@@ -562,194 +807,6 @@ void ChPreciceAdapter::InitializeParticipant() {
             }
         }
     }
-}
-
-void ChPreciceAdapter::WriteData() {
-    std::string msg = m_prefix1 + "Write data\n";
-    for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
-        for (const auto& data_name : m_data_write[mesh_name]) {
-            if (!GetCouplingDataUsed(mesh_name, data_name))
-                continue;
-            auto data_dim = std::to_string(GetCouplingDataDimensions(mesh_name, data_name));
-            msg += m_prefix2 + mesh_name + ":" + data_name + " (" + data_dim + "," + GetCouplingDataTypeAsString(mesh_name, data_name) + ")\n";
-            WriteDataBlock(mesh_name, data_name, mesh_info.data[data_name].values);
-        }
-        if (m_verbose)
-            cout << msg;
-    }
-}
-
-void ChPreciceAdapter::ReadData() {
-    std::string msg = m_prefix1 + "Read data\n";
-    for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
-        for (const auto& data_name : m_data_read[mesh_name]) {
-            if (!GetCouplingDataUsed(mesh_name, data_name))
-                continue;
-            auto data_dim = std::to_string(GetCouplingDataDimensions(mesh_name, data_name));
-            msg += m_prefix2 + mesh_name + ":" + data_name + " (" + data_dim + "," + GetCouplingDataTypeAsString(mesh_name, data_name) + ")\n";
-            mesh_info.data[data_name].values = ReadDataBlock(mesh_name, data_name);
-        }
-        if (m_verbose)
-            cout << msg;
-    }
-}
-
-void ChPreciceAdapter::WriteCheckpoint(double time) {
-    if (m_verbose)
-        cout << m_prefix1 << "Write checkpoint at time = " << time << endl;
-}
-
-void ChPreciceAdapter::ReadCheckpoint(double time) {
-    if (m_verbose)
-        cout << m_prefix1 << "Read checkpoint for time = " << time << endl;
-}
-
-void ChPreciceAdapter::AdvanceParticipant(double time, double time_step) {
-    if (m_verbose)
-        cout << m_prefix1 << "Advance from " << time << " by " << time_step << endl;
-}
-
-void ChPreciceAdapter::FinalizeParticipant() {
-    if (m_verbose)
-        cout << m_prefix1 << "Shutdown" << endl;
-}
-
-void ChPreciceAdapter::WriteOutput(int frame, double time) {
-    // Create the output DB if needed
-    if (!m_output_db) {
-        switch (m_output_settings.format) {
-            case ChOutput::Format::ASCII:
-                m_output_db = chrono_types::make_unique<ChOutputASCII>(m_output_dir, "mbs_results", m_output_settings.mode);
-                break;
-            case ChOutput::Format::HDF5:
-#ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_unique<ChOutputHDF5>(m_output_dir, "mbs_results", m_output_settings.mode);
-                break;
-#else
-                return;
-#endif
-            case ChOutput::Format::NONE:
-                break;
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-void ChPreciceAdapter::SetDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data) {
-    auto it_mesh = m_coupling_meshes.find(mesh_name);
-    assert(it_mesh != m_coupling_meshes.end());
-    auto& mesh_info = it_mesh->second.data;
-
-    auto it_data = mesh_info.find(data_name);
-    assert(it_data != mesh_info.end());
-    it_data->second.values = data;
-}
-
-void ChPreciceAdapter::WriteDataBlock(const std::string& mesh_name, const std::string& data_name) {
-    const auto& vertex_ids = m_coupling_meshes[mesh_name].vertex_ids;
-    const auto& data_info = m_coupling_meshes[mesh_name].data[data_name];
-    m_participant->writeData(mesh_name, data_name, vertex_ids, data_info.values);
-}
-
-void ChPreciceAdapter::WriteDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data) {
-    SetDataBlock(mesh_name, data_name, data);
-    WriteDataBlock(mesh_name, data_name);
-}
-
-void ChPreciceAdapter::ReadDataBlock(const std::string& mesh_name, const std::string& data_name, double relative_read_time) {
-    const auto& vertex_ids = m_coupling_meshes[mesh_name].vertex_ids;
-    auto& data_info = m_coupling_meshes[mesh_name].data[data_name];
-    m_participant->readData(mesh_name, data_name, vertex_ids, relative_read_time, data_info.values);
-}
-
-const std::vector<double>& ChPreciceAdapter::GetDataBlock(const std::string& mesh_name, const std::string& data_name) const {
-    auto it_mesh = m_coupling_meshes.find(mesh_name);
-    assert(it_mesh != m_coupling_meshes.end());
-    auto& mesh_info = it_mesh->second.data;
-
-    auto it_data = mesh_info.find(data_name);
-    assert(it_data != mesh_info.end());
-    return it_data->second.values;
-}
-
-const std::vector<double>& ChPreciceAdapter::ReadDataBlock(const std::string& mesh_name, const std::string& data_name) {
-    ReadDataBlock(mesh_name, data_name, 0);
-    return GetDataBlock(mesh_name, data_name);
-}
-
-// -----------------------------------------------------------------------------
-
-bool ChPreciceAdapter::WriteCheckpointIfRequired(double time) {
-    assert(m_participant_created);
-    if (!m_participant->requiresWritingCheckpoint())
-        return false;
-    WriteCheckpoint(time);
-    return true;
-}
-
-bool ChPreciceAdapter::ReadCheckpointIfRequired(double time) {
-    assert(m_participant_created);
-    if (!m_participant->requiresReadingCheckpoint())
-        return false;
-    ReadCheckpoint(time);
-    return true;
-}
-
-// -----------------------------------------------------------------------------
-
-std::vector<double> ChPreciceAdapter::SetVerticesToData(const std::vector<ChVector2d>& vertices) {
-    std::vector<double> data;
-    data.reserve(vertices.size() * 2);
-    for (const auto& v : vertices) {
-        data.push_back(v.x());
-        data.push_back(v.y());
-    }
-    return data;
-}
-
-std::vector<double> ChPreciceAdapter::SetVerticesToData(const std::vector<ChVector3d>& vertices) {
-    std::vector<double> data;
-    data.reserve(vertices.size() * 3);
-    for (const auto& v : vertices) {
-        data.push_back(v.x());
-        data.push_back(v.y());
-        data.push_back(v.z());
-    }
-    return data;
-}
-
-// -----------------------------------------------------------------------------
-
-std::vector<ChVector3d> ChPreciceAdapter::ReadPoints(const std::string& filename) {
-    // Open input file stream
-    std::ifstream ifile;
-    std::string line;
-    try {
-        ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        ifile.open(filename);
-    } catch (const std::exception&) {
-        cerr << "Cannot open input file '" << filename << "'" << endl;
-        throw std::invalid_argument("Cannot open input file");
-    }
-
-    // Read number of points
-    std::getline(ifile, line);
-    std::istringstream iss(line);
-    size_t num_points;
-    iss >> num_points;
-
-    // Read points
-    std::vector<ChVector3d> points;
-    for (size_t i = 0; i < num_points; i++) {
-        std::getline(ifile, line);
-        std::istringstream jss(line);
-        double x, y, z;
-        jss >> x >> y >> z;
-        points.push_back(ChVector3d(x, y, z));
-    }
-
-    return points;
 }
 
 }  // end namespace ch_precice

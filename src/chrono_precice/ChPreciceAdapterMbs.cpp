@@ -43,7 +43,7 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     m_enforce_realtime = parser.EnforceRealtime();
     m_output_settings = parser.GetOutputSettings();
     #ifdef CHRONO_VSG
-    m_vis_params = parser.GetVisualizationSettings();
+    m_vis_settings = parser.GetVisualizationSettings();
     #endif
 
     // Read common preCICE participant configuration (participant name, file handler, and coupling interfaces)
@@ -122,8 +122,6 @@ void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_me
 // -----------------------------------------------------------------------------
 
 void ChPreciceAdapterMbs::InitializeParticipant() {
-    ChPreciceAdapter::InitializeParticipant();
-
     // For each interface mesh:
     // - check that coupling meshes have dimension 2 or 3 (as reported by preCICE)
     // - check that coupling data have dimension consistent with the mesh dimension (as reported by preCICE)
@@ -247,21 +245,21 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
 #ifdef CHRONO_VSG
     // Enable runtime visualization
-    if (m_visualize && m_vis_params.render) {
+    if (m_visualize && m_vis_settings.render) {
         if (m_verbose)
             cout << m_prefix2 << "Set up run-time visualization" << endl;
 
         m_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vsg->AttachSystem(m_sys.get());
         m_vsg->SetWindowTitle("Chrono preCICE MBS participant - " + m_participant_name);
-        m_vsg->AddCamera(m_vis_params.camera_location, m_vis_params.camera_target);
+        m_vsg->AddCamera(m_vis_settings.camera_location, m_vis_settings.camera_target);
         m_vsg->SetWindowSize(1280, 800);
         m_vsg->SetWindowPosition(100, 100);
-        m_vsg->SetCameraVertical(m_vis_params.camera_vertical);
+        m_vsg->SetCameraVertical(m_vis_settings.camera_vertical);
         m_vsg->SetCameraAngleDeg(40.0);
         m_vsg->SetLightIntensity(1.0f);
         m_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
-        m_vsg->EnableShadows(m_vis_params.enable_shadows);
+        m_vsg->EnableShadows(m_vis_settings.enable_shadows);
         m_vsg->ToggleAbsFrameVisibility();
         m_vsg->Initialize();
     }
@@ -271,8 +269,6 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 // -----------------------------------------------------------------------------
 
 void ChPreciceAdapterMbs::WriteCheckpoint(double time) {
-    ChPreciceAdapter::WriteCheckpoint(time);
-
     double sys_time;
     m_sys->StateGather(m_checkpoint.x, m_checkpoint.v, sys_time);
     assert(time == sys_time);
@@ -280,8 +276,6 @@ void ChPreciceAdapterMbs::WriteCheckpoint(double time) {
 }
 
 void ChPreciceAdapterMbs::ReadCheckpoint(double time) {
-    ChPreciceAdapter::ReadCheckpoint(time);
-
     ChAssertAlways(m_checkpoint.time == time);
     m_sys->StateScatter(m_checkpoint.x, m_checkpoint.v, m_checkpoint.time, UpdateFlags::UPDATE_ALL);
 }
@@ -666,28 +660,15 @@ double ChPreciceAdapterMbs::GetSolverTimeStep(double max_time_step) const {
 }
 
 void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
-    ChPreciceAdapter::AdvanceParticipant(time, time_step);
-
     ChAssertAlways(time == m_sys->GetChTime());
 
-#ifdef CHRONO_VSG
-    static int render_frame = 0;
-    if (m_visualize && m_vis_params.render && m_vsg->Run()) {
-        if (time >= render_frame / m_vis_params.render_fps) {
-            m_vsg->Render();
-            render_frame++;
-        }
-    }
-#endif
+    // Generate output (if enabled)
+    Output(time);
 
-    static int output_frame = 0;
-    if (m_output) {
-        if (time >= output_frame / m_output_settings.fps) {
-            WriteOutput(output_frame, time);
-            output_frame++;
-        }
-    }
+    // Render (if enabled)
+    Render(time);
 
+    // Execute pre-step callbacks, advance system dynamics, execute post-step callbacks
     if (m_beforestep_callback)
         m_beforestep_callback->OnStepDynamics(time, time_step);
 
@@ -696,6 +677,7 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
     if (m_afterstep_callback)
         m_afterstep_callback->OnStepDynamics(time, time_step);
 
+    // Enforce soft real-time
     if (m_enforce_realtime)
         m_rt_timer.Spin(time_step);
 }

@@ -40,7 +40,7 @@ ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool
     // Extract information from parsed YAML files
     m_output_settings = parser.GetOutputSettings();
     #ifdef CHRONO_VSG
-    m_vis_params = parser.GetVisualizationSettings();
+    m_vis_settings = parser.GetVisualizationSettings();
     m_visSPH_settings = parser.GetSphVisualizationSettings();
     #endif
 
@@ -133,8 +133,6 @@ void ChPreciceAdapterSph::AddCouplingBody(const std::string& name, const ChFrame
 // -----------------------------------------------------------------------------
 
 void ChPreciceAdapterSph::InitializeParticipant() {
-    ChPreciceAdapter::InitializeParticipant();
-
     // For each interface mesh:
     // - check that coupling meshes have dimension 3 (as reported by preCICE)
     // - check correct coupling data type (read and write)
@@ -244,7 +242,7 @@ void ChPreciceAdapterSph::InitializeParticipant() {
 
 #ifdef CHRONO_VSG
     // Enable runtime visualization
-    if (m_visualize && m_vis_params.render) {
+    if (m_visualize && m_vis_settings.render) {
         if (m_verbose)
             cout << m_prefix2 << "Set up run-time visualization" << endl;
 
@@ -267,8 +265,8 @@ void ChPreciceAdapterSph::InitializeParticipant() {
         m_vsg->SetWindowTitle("Chrono preCICE SPH participant - " + m_participant_name);
         m_vsg->SetWindowSize(1280, 800);
         m_vsg->SetWindowPosition(100, 100);
-        m_vsg->AddCamera(m_vis_params.camera_location, m_vis_params.camera_target);
-        m_vsg->SetCameraVertical(m_vis_params.camera_vertical);
+        m_vsg->AddCamera(m_vis_settings.camera_location, m_vis_settings.camera_target);
+        m_vsg->SetCameraVertical(m_vis_settings.camera_vertical);
         m_vsg->SetCameraAngleDeg(40.0);
         m_vsg->SetLightIntensity(0.9f);
         m_vsg->SetLightDirection(CH_PI_2, CH_PI / 6);
@@ -477,28 +475,15 @@ double ChPreciceAdapterSph::GetSolverTimeStep(double max_time_step) const {
 }
 
 void ChPreciceAdapterSph::AdvanceParticipant(double time, double time_step) {
-    ChPreciceAdapter::AdvanceParticipant(time, time_step);
-
     ChAssertAlways(time == m_sysSPH->GetSimTime());
 
-#ifdef CHRONO_VSG
-    static int render_frame = 0;
-    if (m_visualize && m_vis_params.render && m_vsg->Run()) {
-        if (time >= render_frame / m_vis_params.render_fps) {
-            m_vsg->Render();
-            render_frame++;
-        }
-    }
-#endif
+    // Generate output (if enabled)
+    Output(time);
 
-    static int output_frame = 0;
-    if (m_output) {
-        if (time >= output_frame / m_output_settings.fps) {
-            WriteOutput(output_frame, time);
-            output_frame++;
-        }
-    }
+    // Render (if enabled)
+    Render(time);
 
+    // Advance system dynamics
     m_sysSPH->DoStepDynamics(time_step);
 }
 

@@ -22,6 +22,9 @@ visualization:
     vertical: Y
     location: [0.1, 0, 1]
     target: [0.1, 0, 0]
+  output:
+    save_images: false
+    image_type: "bmp"
 
 precice_adapter_config:
   participant_name: Solid

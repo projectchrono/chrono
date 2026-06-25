@@ -21,6 +21,9 @@ visualization:
     vertical: Z
     location: [2, 2, 0.6]
     target: [0, 0, -0.4]
+  output:
+    save_images: false
+    image_type: "bmp"
 
 precice_adapter_config:
   participant_name: Solid
