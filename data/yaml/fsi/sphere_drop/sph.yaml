@@ -22,7 +22,7 @@ visualization:
        type: VELOCITY
        map: FAST
        min: 0.0
-       max: 1.0
+       max: 1.5
     visibility:
        SPH: true
        BCE: true

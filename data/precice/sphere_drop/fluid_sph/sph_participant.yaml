@@ -18,7 +18,7 @@ visualization:
   camera:
     vertical: Z
     location: [2, 2, 0.6]
-    target: [0, 0, -0.4]
+    target: [0, 0, -0.6]
   output:
     save_images: false
     image_type: "bmp"
@@ -32,7 +32,7 @@ visualization:
     type: VELOCITY
     map: FAST
     min: 0.0
-    max: 3.5
+    max: 1.5
   visibility:
     SPH: true
     BCE: true

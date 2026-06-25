@@ -20,7 +20,7 @@ fsi:
           radius: 0.12
 
 simulation:
-  time_step: 1e-4
+  time_step: 1e-3
   end_time: -1
   gravity: [0, 0, -9.8]
 
