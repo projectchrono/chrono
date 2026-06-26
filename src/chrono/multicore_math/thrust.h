@@ -24,7 +24,7 @@
 #undef _GLIBCXX_USE_INT128
 
 #include <iostream>
-#include <iterator>
+#include <iterator>  // std::distance / std::advance / std::iterator_traits (used in Thrust_Expand)
 
 // -----------------------------------------------------------------------------
 // Thrust related defines
@@ -32,24 +32,13 @@
 
 // Always include ChConfig.h *before* any Thrust headers!
 #include "chrono/ChConfig.h"
-#include <thrust/version.h>
 #include <thrust/reduce.h>
 #include <thrust/gather.h>
 #include <thrust/scan.h>
 #include <thrust/fill.h>
 #include <thrust/copy.h>
 #include <thrust/iterator/counting_iterator.h>
-
-// CCCL/Thrust 3.x (CUDA 13.x) removed the tuple utilities from the thrust::
-// namespace (they now live in cuda::std) and dropped thrust::distance /
-// thrust::advance. Include the right tuple header for the available version;
-// the chrono::ch_thrust namespace alias below lets the multicore code use
-// tuple / make_tuple / get uniformly on both Thrust 2.x and 3.x.
-#if THRUST_VERSION >= 300000
-    #include <cuda/std/tuple>
-#else
-    #include <thrust/tuple.h>
-#endif
+#include <thrust/tuple.h>  // Thrust 3.x (CUDA 13+) no longer pulls tuple in transitively via the algorithm headers
 
 #if defined(CHRONO_OPENMP_ENABLED)
     #include <thrust/system/omp/execution_policy.h>
@@ -65,13 +54,6 @@ namespace chrono {
 
 /// @addtogroup chrono_mc_math
 /// @{
-
-// Tuple utilities: cuda::std on Thrust 3.x, thrust on 2.x (see include block above).
-#if THRUST_VERSION >= 300000
-namespace ch_thrust = ::cuda::std;
-#else
-namespace ch_thrust = ::thrust;
-#endif
 
 #if defined(CHRONO_OPENMP_ENABLED)
     #define THRUST_PAR thrust::omp::par,
