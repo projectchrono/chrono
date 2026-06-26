@@ -15,11 +15,9 @@
 // Authors: Colin Vanden Heuvel
 // =============================================================================
 
-#ifndef CUDALLOC_HPP
-#define CUDALLOC_HPP
+#ifndef CH_DEM_GPU_APPLOC_H
+#define CH_DEM_GPU_APPLOC_H
 
-#include "chrono_dem/ChDemDefines.h"
-#include "chrono_dem/cuda/ChGpuRuntime.h"
 #include <climits>
 #include <iostream>
 #include <memory>
@@ -27,14 +25,16 @@
 #include <type_traits>
 #include <utility>
 
+#include "chrono_dem/ChDemDefines.h"
+
 ////#if (__cplusplus >= 201703L)  // C++17 or newer
 ////template <class T>
-////struct cudallocator {
+////struct gpuallocator {
 ////  public:
 ////    std::true_type is_always_equal;
 ////#else  // C++14 or older
 template <class T>
-class cudallocator {
+class gpuallocator {
   public:
     typedef T* pointer;
     typedef T& reference;
@@ -43,7 +43,7 @@ class cudallocator {
 
     template <class U>
     struct rebind {
-        typedef typename ::cudallocator<U> other;
+        typedef typename ::gpuallocator<U> other;
     };
 
 #if (__cplusplus >= 201402L)  // C++14
@@ -51,27 +51,27 @@ class cudallocator {
     std::false_type propagate_on_container_move_assignment;
     std::false_type propagate_on_container_swap;
 #endif
-////#endif
+    ////#endif
 
     typedef T value_type;
     typedef std::size_t size_type;
     typedef std::ptrdiff_t difference_type;
 
-////#if (__cplusplus > 201703L)  // newer than (but not including) C++17
-////    constexpr cudallocator() noexcept {};
-////    constexpr cudallocator(const cudallocator& other) noexcept {}
-////
-////    template <class U>
-////    constexpr cudallocator(const cudallocator<U>& other) noexcept {}
-////#else  // C++17 or older
-    cudallocator() noexcept {}
-    cudallocator(const cudallocator& other) noexcept {}
+    ////#if (__cplusplus > 201703L)  // newer than (but not including) C++17
+    ////    constexpr gpuallocator() noexcept {};
+    ////    constexpr gpuallocator(const gpuallocator& other) noexcept {}
+    ////
+    ////    template <class U>
+    ////    constexpr gpuallocator(const gpuallocator<U>& other) noexcept {}
+    ////#else  // C++17 or older
+    gpuallocator() noexcept {}
+    gpuallocator(const gpuallocator& other) noexcept {}
 
     template <class U>
-    cudallocator(const cudallocator<U>& other) noexcept {}
-////#endif
+    gpuallocator(const gpuallocator<U>& other) noexcept {}
+    ////#endif
 
-////#if (__cplusplus < 201703L)  // before C++17
+    ////#if (__cplusplus < 201703L)  // before C++17
     pointer address(reference x) const noexcept { return &x; }
 
     size_type max_size() const noexcept { return ULLONG_MAX / sizeof(T); }
@@ -81,12 +81,12 @@ class cudallocator {
         ::new ((void*)p) T(std::forward<Args>(args)...);
     }
     void destroy(T* p) { p->~T(); }
-////#endif
+    ////#endif
 
     pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
         void* vptr;
-        cudaError_t err = cudaMallocManaged(&vptr, n * sizeof(T), cudaMemAttachGlobal);
-        if (err == cudaErrorMemoryAllocation || err == cudaErrorNotSupported) {
+        gpuError err = gpuMallocManaged(&vptr, n * sizeof(T), gpuMemAttachGlobal);
+        if (err == gpuErrorMemoryAllocation || err == gpuErrorNotSupported) {
             throw std::bad_alloc();
         }
         return (T*)vptr;
@@ -94,12 +94,12 @@ class cudallocator {
 
     void deallocate(pointer p, size_type n) {
         if (p) {
-            demErrchk(cudaFree(p));
+            demErrchk(gpuFree(p));
         }
     }
 
-    bool operator==(const cudallocator& other) const { return true; }
-    bool operator!=(const cudallocator& other) const { return false; }
+    bool operator==(const gpuallocator& other) const { return true; }
+    bool operator!=(const gpuallocator& other) const { return false; }
 };
 
 #endif

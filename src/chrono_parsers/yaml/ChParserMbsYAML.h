@@ -23,6 +23,9 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/functions/ChFunction.h"
+#include "chrono/utils/ChBodyGeometry.h"
+#include "chrono/input_output/ChOutput.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -32,7 +35,6 @@
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkMotorLinear.h"
 #include "chrono/physics/ChLinkMotorRotation.h"
-#include "chrono/utils/ChBodyGeometry.h"
 
 namespace chrono {
 namespace parsers {
@@ -169,16 +171,12 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Attach the external controller for the load controller with given name.
     /// This function can be called only after the MBS model was loaded and the model specification must include
     /// parameters for a load controller with specified name.
-    void AttachLoadController(std::shared_ptr<ChLoadController> controller,
-                              const std::string& name,
-                              int model_instance);
+    void AttachLoadController(std::shared_ptr<ChLoadController> controller, const std::string& name, int model_instance);
 
     /// Attach the external controller for the motor controller with given name.
     /// This function can be called only after the MBS model was loaded, the model specification must include
     /// parameters for a motor with specified name, and that motor was set as externally actuated.
-    void AttachMotorController(std::shared_ptr<ChMotorController> controller,
-                               const std::string& name,
-                               int model_instance);
+    void AttachMotorController(std::shared_ptr<ChMotorController> controller, const std::string& name, int model_instance);
 
     /// Advance dynamics of the multibody system.
     /// - load controllers (if any are attached) are synchronized and their dynamics advanced in time;
@@ -203,9 +201,9 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     ///   not necessarily derived from ChMotorController).
     void ApplyMotorControllerActuations(const MotorControllerActuations& controller_loads);
 
-    /// Save simulation output results at the current time.
+    /// Write simulation output results at the current time.
     /// Note: this function is automatically called in ChParserMbsYAML::DoStepDynamics.
-    void SaveOutput(ChSystem& sys, int frame);
+    virtual void WriteOutput(int frame, double time) override;
 
   private:
     /// Solver parameters.
@@ -407,21 +405,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         std::shared_ptr<ChMotorController> controller;  ///< externally-provided controller
     };
 
-    /// Output database.
-    struct OutputData {
-        std::vector<std::shared_ptr<ChBody>> bodies;
-        std::vector<std::shared_ptr<ChShaft>> shafts;
-        std::vector<std::shared_ptr<ChLink>> joints;
-        std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
-        std::vector<std::shared_ptr<ChShaftsCouple>> couples;
-        std::vector<std::shared_ptr<ChLink>> constraints;
-        std::vector<std::shared_ptr<ChLinkTSDA>> tsdas;
-        std::vector<std::shared_ptr<ChLinkRSDA>> rsdas;
-        std::vector<std::shared_ptr<ChLoadCustom>> loads;
-        std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
-        std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
-    };
-
   private:
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
@@ -494,7 +477,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     std::shared_ptr<ChSystem> m_sys;
     ChRealtimeStepTimer m_rt_timer;
 
-    OutputData m_output_data;  ///< output data
+    ChAssembly::Components m_output_components;  ///< output data
 
     bool m_loaded;         ///< YAML simulation file loaded
     bool m_solver_loaded;  ///< YAML solver file loaded

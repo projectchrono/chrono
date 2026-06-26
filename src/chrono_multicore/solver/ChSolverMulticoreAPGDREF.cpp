@@ -18,7 +18,7 @@
 
 using namespace chrono;
 
-real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, DynamicVector<real>& gamma, const DynamicVector<real>& r) {
+real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, VectorType& gamma, const VectorType& r) {
     real gdiff = 1.0 / std::pow(data_manager->num_constraints, 2.0);
     SchurProduct(gamma, tmp);
     tmp = tmp - r;
@@ -26,15 +26,15 @@ real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct, ChProjectConst
     Project(tmp.data());
     tmp = (1.0 / gdiff) * (gamma - tmp);
 
-    return std::sqrt((tmp, tmp));
+    return tmp.norm();
 }
 
 uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
                                      ChProjectConstraints& Project,
                                      const uint max_iter,
                                      const uint size,
-                                     const DynamicVector<real>& r,
-                                     DynamicVector<real>& gamma) {
+                                     const VectorType& r,
+                                     VectorType& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -63,10 +63,10 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
 
     // (1) gamma_0 = zeros(nc,1)
     if (!useWarmStarting)
-        gamma = 0.0;
+        gamma.setZero();
 
     // (2) gamma_hat_0 = ones(nc,1)
-    gamma_hat = 1.0;
+    gamma_hat.setOnes();
 
     // (3) y_0 = gamma_0
     y = gamma;
@@ -80,10 +80,11 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
 
     // (5) L_k = norm(N * (gamma_0 - gamma_hat_0)) / norm(gamma_0 - gamma_hat_0)
     tmp = gamma - gamma_hat;
-    L = std::sqrt((tmp, tmp));
+    // L = std::sqrt((tmp, tmp));
+    L = tmp.norm();
     if (L > 0) {
         SchurProduct(tmp, tmp);
-        L = std::sqrt((tmp, tmp)) / L;
+        L = tmp.norm() / L;
     } else {
         L = 1;
     }
@@ -109,11 +110,11 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
         // (10) while 0.5 * gamma_(k+1)' * N * gamma_(k+1) - gamma_(k+1)' * r >= 0.5 * y_k' * N * y_k - y_k' * r + g' *
         // (gamma_(k+1) - y_k) + 0.5 * L_k * norm(gamma_(k+1) - y_k)^2
         SchurProduct(gammaNew, tmp);  // Here tmp is equal to N*gammaNew;
-        obj1 = 0.5 * (gammaNew, tmp) - (gammaNew, r);
+        obj1 = 0.5 * tmp.dot(gammaNew) - r.dot(gammaNew);
         SchurProduct(y, tmp);  // Here tmp is equal to N*y;
-        obj2 = 0.5 * (y, tmp) - (y, r);
+        obj2 = 0.5 * y.dot(tmp) - y.dot(r);
         tmp = gammaNew - y;  // Here tmp is equal to gammaNew - y
-        obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
+        obj2 = obj2 + g.dot(tmp) + 0.5 * L * tmp.dot(tmp);
 
         while (obj1 >= obj2) {
             // (11) L_k = 2 * L_k
@@ -128,11 +129,11 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
 
             // Update the components of the while condition
             SchurProduct(gammaNew, tmp);  // Here tmp is equal to N*gammaNew;
-            obj1 = 0.5 * (gammaNew, tmp) - (gammaNew, r);
+            obj1 = 0.5 * gammaNew.dot(tmp) - gammaNew.dot(r);
             SchurProduct(y, tmp);  // Here tmp is equal to N*y;
-            obj2 = 0.5 * (y, tmp) - (y, r);
+            obj2 = 0.5 * y.dot(tmp) - y.dot(r);
             tmp = gammaNew - y;  // Here tmp is equal to gammaNew - y
-            obj2 = obj2 + (g, tmp) + 0.5 * L * (tmp, tmp);
+            obj2 = obj2 + g.dot(tmp) + 0.5 * L * tmp.dot(tmp);
 
             // (14) endwhile
         }
@@ -164,10 +165,10 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
         if (verbose)
             std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
 
-        DynamicVector<real> Nl(gammaNew.size());
+        VectorType Nl(gammaNew.size());
         SchurProduct(gammaNew, Nl);        // 1)  g_tmp = N*l_candidate
         Nl = 0.5 * Nl - r;                 // 2) 0.5*N*l_candidate-b_schur
-        objective_value = (gammaNew, Nl);  // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_schur)
+        objective_value = gammaNew.dot(Nl);  // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_schur)
 
         AtIterationEnd(residual, objective_value);
         if (residual < data_manager->settings.solver.tol_speed) {
@@ -178,7 +179,7 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
         }
 
         // (26) if g' * (gamma_(k+1) - gamma_k) > 0
-        if ((g, gammaNew - gamma) > 0) {
+        if (g.dot(gammaNew - gamma) > 0) {
             // (27) y_(k+1) = gamma_(k+1)
             yNew = gammaNew;
 

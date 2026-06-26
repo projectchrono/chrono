@@ -20,8 +20,9 @@
 #ifndef CH_SPH_CUSTOM_MATH_H
 #define CH_SPH_CUSTOM_MATH_H
 
-#include "chrono_fsi/sph/ChSphGpuRuntime.h"
 #include <cmath>
+
+#include "chrono/gpu/ChGpuRuntime.h"
 
 #include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
@@ -78,14 +79,14 @@ inline __host__ __device__ Real quintic(Real a) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// implementations of basic cuda types
+// implementations of basic GPU types
 ////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__CUDACC_RTC__)
     #define __VECTOR_FUNCTIONS_DECL__ __host__ __device__
-#else /* !__CUDACC_RTC__ */
+#else
     #define __VECTOR_FUNCTIONS_DECL__ static __inline__ __host__ __device__
-#endif /* __CUDACC_RTC__ */
+#endif
 
 /// Make a vector with two unsigned integer elements.
 __VECTOR_FUNCTIONS_DECL__ uint2 make_uint2(unsigned int x, unsigned int y) {
@@ -1614,7 +1615,7 @@ __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
 }
 
 __host__ __device__ inline Real3 calc_triangle_normal(const Real3& a, const Real3& b, const Real3& c) {
-    return get_normalized(cross(b-a, c-b));
+    return get_normalized(cross(b - a, c - b));
 }
 
 __host__ __device__ inline Real sgn(Real a) {

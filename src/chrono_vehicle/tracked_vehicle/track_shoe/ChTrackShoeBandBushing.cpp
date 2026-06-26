@@ -209,10 +209,10 @@ void ChTrackShoeBandBushing::PopulateComponentList() {
     if (!m_output)
         return;
 
-    m_bodies.push_back(m_shoe);
-    m_bodies.insert(m_bodies.end(), m_web_segments.begin(), m_web_segments.end());
+    m_components.bodies.push_back(m_shoe);
+    m_components.bodies.insert(m_components.bodies.end(), m_web_segments.begin(), m_web_segments.end());
 
-    m_body_loads.insert(m_body_loads.end(), m_web_bushings.begin(), m_web_bushings.end());
+    m_components.bushings.insert(m_components.bushings.end(), m_web_bushings.begin(), m_web_bushings.end());
 }
 
 }  // end namespace vehicle

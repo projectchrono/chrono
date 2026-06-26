@@ -114,8 +114,8 @@ class DriverSystem {
     const ChFrameMoving<>& GetRefFrame() const { return ref_frame; }
 
   private:
-    std::shared_ptr<chrono::vehicle::ChPathSteeringController> steeringPID;
-    std::shared_ptr<chrono::vehicle::ChSpeedController> speedPID;
+    std::shared_ptr<chrono::vehicle::ChPathSteeringControllerPID> steeringPID;
+    std::shared_ptr<chrono::vehicle::ChSpeedControllerPID> speedPID;
     double target_speed;
     double throttle_threshold;
     ChVector3d init_loc;
@@ -129,8 +129,8 @@ class DriverSystem {
 DriverSystem::DriverSystem(ChSystem& sys, const std::string& path_filename) : target_speed(10), steering(0), braking(0), throttle(0) {
     auto path = ChBezierCurve::Read(path_filename, false);
 
-    speedPID = chrono_types::make_shared<ChSpeedController>();
-    steeringPID = chrono_types::make_shared<ChPathSteeringController>(path);
+    speedPID = chrono_types::make_shared<ChSpeedControllerPID>();
+    steeringPID = chrono_types::make_shared<ChPathSteeringControllerPID>(path);
     throttle_threshold = 0.2;
 
     double look_ahead_dist = 5.0;

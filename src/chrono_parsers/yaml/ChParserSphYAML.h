@@ -89,8 +89,8 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     // --------------
 
-    /// Save simulation output results at the current time.
-    virtual void SaveOutput(int frame) override;
+    /// Write simulation output results at the current time.
+    virtual void WriteOutput(int frame, double time) override;
 
   private:  // ---- Data structures
     enum class GeometryType { CARTESIAN, CYLINDRICAL };

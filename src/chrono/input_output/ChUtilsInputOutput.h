@@ -14,7 +14,7 @@
 //
 // Utility functions for input/output file operations.
 //
-// WriteCheckpoint and ReadCheckpoint
+// WriteBodyShapesCheckpoint and ReadBodyShapesCheckpoint
 //  these functions write and read, respectively, a checkpoint file.
 //  Limitations:
 //    - it is assumed that the visualization asset geometry exactly matches the

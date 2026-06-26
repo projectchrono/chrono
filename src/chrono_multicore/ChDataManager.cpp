@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono_multicore/ChDataManager.h"
+#include <iomanip>
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 using namespace chrono;
@@ -44,7 +45,7 @@ ChMulticoreDataManager::ChMulticoreDataManager()
 
 ChMulticoreDataManager::~ChMulticoreDataManager() {}
 
-int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
+int ChMulticoreDataManager::OutputEigenVector(VectorType src, std::string filename) {
     std::ofstream stream(filename);
     stream << std::setprecision(16) << std::scientific;
 
@@ -54,14 +55,14 @@ int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::stri
     return 0;
 }
 
-int ChMulticoreDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename) {
+int ChMulticoreDataManager::OutputEigenMatrix(SparseMatrixType src, std::string filename) {
     std::ofstream stream(filename);
     stream << std::setprecision(16) << std::scientific;
 
-    stream << src.rows() << " " << src.columns() << std::endl;
+    stream << src.rows() << " " << src.cols() << std::endl;
     for (int i = 0; i < src.rows(); ++i) {
-        for (CompressedMatrix<real>::Iterator it = src.begin(i); it != src.end(i); ++it) {
-            stream << i << " " << it->index() << " " << it->value() << std::endl;
+        for (SparseMatrixType::InnerIterator it(src, i); it; ++it) {
+            stream << it.row() << " " << it.col() << " " << it.value() << std::endl;
         }
     }
 
@@ -79,7 +80,7 @@ int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
     }
 
     // fill in the information for constraints and friction
-    DynamicVector<real> fric(num_constraints, -2.0);
+    VectorType fric(num_constraints, -2);
     for (unsigned int i = 0; i < cd_data->num_rigid_contacts; i++) {
         if (settings.solver.solver_mode == SolverMode::NORMAL) {
             fric[i] = host_data.fric_rigid_rigid[i].x;
@@ -99,34 +100,34 @@ int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
 
     // output r
     std::string filename = output_dir + "dump_r.dat";
-    OutputBlazeVector(host_data.R, filename);
+    OutputEigenVector(host_data.R, filename);
 
     // output b
     filename = output_dir + "dump_b.dat";
-    OutputBlazeVector(host_data.b, filename);
+    OutputEigenVector(host_data.b, filename);
 
     // output friction data
     filename = output_dir + "dump_fric.dat";
-    OutputBlazeVector(fric, filename);
+    OutputEigenVector(fric, filename);
 
-    CompressedMatrix<real> D_T;
+    SparseMatrixType D_T;
 
     filename = output_dir + "dump_D.dat";
-    OutputBlazeMatrix(host_data.D_T, filename);
+    OutputEigenMatrix(host_data.D_T, filename);
 
     // output M_inv
     filename = output_dir + "dump_Minv.dat";
-    OutputBlazeMatrix(host_data.M_inv, filename);
+    OutputEigenMatrix(host_data.M_inv, filename);
 
     return 0;
 }
 
-void ChMulticoreDataManager::PrintMatrix(CompressedMatrix<real> src) {
-    std::cout << src.rows() << " " << src.columns() << std::endl;
+void ChMulticoreDataManager::PrintMatrix(SparseMatrixType src) {
+    std::cout << src.rows() << " " << src.cols() << std::endl;
     for (int i = 0; i < src.rows(); ++i) {
         std::cout << i << " ";
-        for (int j = 0; j < src.columns(); j++) {
-            std::cout << src(i, j) << " ";
+        for (int j = 0; j < src.cols(); j++) {
+            std::cout << src.coeff(i, j) << " ";
         }
         std::cout << std::endl;
     }

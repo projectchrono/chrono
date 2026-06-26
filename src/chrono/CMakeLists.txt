@@ -750,7 +750,7 @@ set(Chrono_assets_HEADERS
     assets/ChVisualShapeSurface.h
     )
 if(CH_ENABLE_MODULE_FEA)
-    set(Chrono_assets_HEADERS ${Chrono_assets_SOURCES}
+    set(Chrono_assets_SOURCES ${Chrono_assets_SOURCES}
         assets/ChVisualShapeFEA.cpp
     )
     set(Chrono_assets_HEADERS ${Chrono_assets_HEADERS}
@@ -1270,7 +1270,9 @@ set(Chrono_inputoutput_HEADERS
     input_output/ChUtilsJSON.h
 )
 set(Chrono_inputoutput_SOURCES
+    input_output/ChOutput.cpp
     input_output/ChOutputASCII.cpp
+    input_output/ChCheckpoint.cpp
     input_output/ChCheckpointASCII.cpp
     input_output/ChWriterCSV.cpp
     input_output/ChUtilsInputOutput.cpp
@@ -1591,7 +1593,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:__cplusplus">)
 
         # CUDA 13+ CCCL headers require MSVC's conforming preprocessor
-        if(CHRONO_CUDA_FOUND AND ${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "13.0")
+        if(CHRONO_CUDA_FOUND AND CUDAToolkit_VERSION VERSION_GREATER_EQUAL "13.0")
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/Zc:preprocessor>)
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:preprocessor">) # without this flag the memory alignment seems to be broken          
         endif()

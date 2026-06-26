@@ -15,7 +15,7 @@
 #pragma once
 
 #include <climits>
-#include "chrono_dem/cuda/ChGpuRuntime.h"
+#include "chrono/gpu/ChGpuRuntime.h"
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
@@ -92,21 +92,20 @@ constexpr size_t NUM_RESERVED_BC_IDS = 6;
 /// Maximum number of triangles that an SD can touch
 #define MAX_TRIANGLE_COUNT_PER_SD 512u
 /// Number of threads in a block when that number is allowed to vary.
-#define CUDA_THREADS_PER_BLOCK 128
+#define GPU_THREADS_PER_BLOCK 128
 
 // NOTE this may change in the future, but until then this is sufficient
 constexpr int warp_size = 32;
 
-/// Set up some error checking mechanism to ensure CUDA didn't complain about things.
-///  This approach suggested <a
-/// href="https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api">elsewhere</a>.
-///  Some nice suggestions for how to use the mechanism are provided at the above link.
-///
-#define demErrchk(ans) \
-    { demAssert((ans), __FILE__, __LINE__); }
-inline void demAssert(cudaError_t code, const char* file, int line, bool abort = true) {
-    if (code != cudaSuccess) {
-        fprintf(stderr, "DEMassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+/// Error checking mechanism.
+/// Based on the approach at https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api.
+#define demErrchk(ans)                        \
+    {                                         \
+        demAssert((ans), __FILE__, __LINE__); \
+    }
+inline void demAssert(gpuError code, const char* file, int line, bool abort = true) {
+    if (code != gpuSuccess) {
+        fprintf(stderr, "DEMassert: %s %s %d\n", gpuGetErrorString(code), file, line);
         if (abort)
             exit(code);
     }

@@ -670,29 +670,29 @@ void ChGenericWheeledSuspension::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 
 void ChGenericWheeledSuspension::PopulateComponentList() {
-    m_bodies.push_back(m_spindle[0]);
-    m_bodies.push_back(m_spindle[1]);
+    m_components.bodies.push_back(m_spindle[0]);
+    m_components.bodies.push_back(m_spindle[1]);
     for (const auto& item : m_susp_bodies)
-        m_bodies.push_back(item.second.body);
+        m_components.bodies.push_back(item.second.body);
 
-    m_shafts.push_back(m_axle[0]);
-    m_shafts.push_back(m_axle[1]);
+    m_components.shafts.push_back(m_axle[0]);
+    m_components.shafts.push_back(m_axle[1]);
 
-    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
-    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
-    m_joints.push_back(m_revolute[0]);
-    m_joints.push_back(m_revolute[1]);
+    m_components.joints.push_back(m_revolute[0]);
+    m_components.joints.push_back(m_revolute[1]);
     for (const auto& item : m_susp_joints)
-        item.second.joint->IsKinematic() ? m_joints.push_back(item.second.joint->GetAsLink()) : m_body_loads.push_back(item.second.joint->GetAsBushing());
+        item.second.joint->IsKinematic() ? m_components.joints.push_back(item.second.joint->GetAsLink()) : m_components.bushings.push_back(item.second.joint->GetAsBushing());
     for (const auto& item : m_susp_dists)
-        m_joints.push_back(item.second.dist);
+        m_components.joints.push_back(item.second.dist);
 
     for (const auto& item : m_susp_tsdas)
-        m_tsdas.push_back(item.second.tsda);
+        m_components.tsdas.push_back(item.second.tsda);
 
     for (const auto& item : m_susp_rsdas)
-        m_rsdas.push_back(item.second.rsda);
+        m_components.rsdas.push_back(item.second.rsda);
 }
 
 // -----------------------------------------------------------------------------

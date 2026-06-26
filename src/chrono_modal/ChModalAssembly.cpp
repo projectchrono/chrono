@@ -43,6 +43,7 @@ ChModalAssembly::ChModalAssembly()
       m_internal_nodes_update(true),
       m_modal_automatic_gravity(true) {
     m_solver_invKIIc = chrono_types::make_shared<ChSolverSparseQR>();
+    m_solver_invKIIc->LockSparsityPattern(false);
 }
 
 ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(other) {
@@ -86,6 +87,7 @@ void ChModalAssembly::FlagModelAsReduced() {
 
 void ChModalAssembly::SetModalSolver(std::shared_ptr<ChDirectSolverLS> newsolver) {
     m_solver_invKIIc = newsolver;
+    m_solver_invKIIc->LockSparsityPattern(false);
 }
 
 std::shared_ptr<ChDirectSolverLS> ChModalAssembly::GetModalSolver() const {
@@ -2467,7 +2469,6 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
                     for (auto& load : loadcontainer->GetLoadList()) {
                         if (!load->IsStiff()) {
                             if (auto bload = std::dynamic_pointer_cast<ChLoadBodyForce>(load)) {
-                                chrono::ChVectorN<double, 6> mQ;
                                 bload->ComputeQ(nullptr, nullptr);
                                 auto body = std::dynamic_pointer_cast<ChBody>(bload->loadable);
                                 auto boffset = body_to_offset.find(body.get());
@@ -2475,7 +2476,6 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
                                     m_full_forces_internal.segment(boffset->second, 6) += bload->GetQ();
                             }
                             if (auto bload = std::dynamic_pointer_cast<ChLoadBodyTorque>(load)) {
-                                chrono::ChVectorN<double, 6> mQ;
                                 bload->ComputeQ(nullptr, nullptr);
                                 auto body = std::dynamic_pointer_cast<ChBody>(bload->loadable);
                                 auto boffset = body_to_offset.find(body.get());
@@ -2483,7 +2483,6 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
                                     m_full_forces_internal.segment(boffset->second, 6) += bload->GetQ();
                             }
                             if (auto bload = std::dynamic_pointer_cast<ChLoadBodyBody>(load)) {
-                                chrono::ChVectorN<double, 12> mQ;
                                 bload->ComputeQ(nullptr, nullptr);
                                 auto bodyA = std::dynamic_pointer_cast<ChBody>(bload->GetBodyA());
                                 auto bodyB = std::dynamic_pointer_cast<ChBody>(bload->GetBodyB());

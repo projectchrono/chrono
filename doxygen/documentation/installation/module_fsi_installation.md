@@ -30,10 +30,12 @@ The **FSI-TDPF module** allows users to:
 
 ## Requirements
 
-- To **build** the FSI-SPH module and related applications, a CUDA installation and appropriate compiler are required.<br>
+- To **build** the FSI-SPH module and related applications with **CUDA**, an NVIDIA CUDA installation and appropriate compiler are required.<br>
   The FSI-SPH module requires CUDA version 12.9 (**NOTE**: CUDA 13 is not yet supported).
+- To **build** the FSI-SPH module with **HIP** (AMD GPUs), install **ROCm** and configure CMake with **`CHRONO_GPU_BACKEND=HIP`** (see the [HIP section](@ref tutorial_install_chrono) of the core install guide and **`docs/README_AMD_GPU.md`** in the repository root).
 - To **build** the FSI-TDPF module and related applications, HDF5 support is required and must be enabled (`CH_ENABLE_HDF5`).
-- To **run** applications based on the FSI-SPH module an NVIDIA GPU card is required.
+- To **run** FSI-SPH applications on **CUDA**, an NVIDIA GPU is required.
+- To **run** FSI-SPH applications on **HIP**, an AMD GPU with a supported ROCm stack is required.
 
 
 ## Building instructions

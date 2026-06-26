@@ -45,8 +45,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-SphParticleRelocator::SphParticleRelocator(FsiDataManager& data_mgr, const DefaultProperties& props)
-    : m_data_mgr(data_mgr), m_props(props) {}
+SphParticleRelocator::SphParticleRelocator(FsiDataManager& data_mgr, const DefaultProperties& props) : m_data_mgr(data_mgr), m_props(props) {}
 
 // Relocation function to shift marker position by a given vector.
 // Implements a Thrust unary function to be used with thrust::for_each.
@@ -89,8 +88,7 @@ void SphParticleRelocator::Shift(MarkerType type, const Real3& shift) {
     }
 
     // Transform all markers in the specified range
-    thrust::for_each(m_data_mgr.sphMarkers_D->iterator(start_idx), m_data_mgr.sphMarkers_D->iterator(end_idx),
-                     shift_op(shift, m_props));
+    thrust::for_each(m_data_mgr.sphMarkers_D->iterator(start_idx), m_data_mgr.sphMarkers_D->iterator(end_idx), shift_op(shift, m_props));
 }
 
 // Selector function to find particles in a given AABB.
@@ -118,8 +116,7 @@ struct inaabb_op {
 // Implements a Thrust unary function to be used with thrust::for_each.
 // Operates on a tuple {index, data_tuple}.
 struct togrid_op {
-    togrid_op(const IntAABB& aabb_dest, Real spacing, const SphParticleRelocator::DefaultProperties& props)
-        : aabb(aabb_dest), delta(spacing), p(props) {}
+    togrid_op(const IntAABB& aabb_dest, Real spacing, const SphParticleRelocator::DefaultProperties& props) : aabb(aabb_dest), delta(spacing), p(props) {}
 
     template <typename T>
     __device__ T operator()(const T& t) const {
@@ -160,10 +157,7 @@ struct togrid_op {
     SphParticleRelocator::DefaultProperties p;
 };
 
-void SphParticleRelocator::MoveAABB2AABB(MarkerType type,
-                                         const RealAABB& aabb_src,
-                                         const IntAABB& aabb_dest,
-                                         Real spacing) {
+void SphParticleRelocator::MoveAABB2AABB(MarkerType type, const RealAABB& aabb_src, const IntAABB& aabb_dest, Real spacing) {
     // Get start and end indices in marker data vectors based on specified type
     int start_idx = 0;
     int end_idx = 0;
@@ -179,13 +173,11 @@ void SphParticleRelocator::MoveAABB2AABB(MarkerType type,
     }
 
     // Move markers to be relocated at beginning of data structure
-    auto middle = thrust::partition(m_data_mgr.sphMarkers_D->iterator(start_idx),
-                                    m_data_mgr.sphMarkers_D->iterator(end_idx), inaabb_op(aabb_src));
+    auto middle = thrust::partition(m_data_mgr.sphMarkers_D->iterator(start_idx), m_data_mgr.sphMarkers_D->iterator(end_idx), inaabb_op(aabb_src));
 
     auto n_move = (int)(middle - m_data_mgr.sphMarkers_D->iterator(start_idx));
 
-    ChDebugLog("Num candidate markers: " << m_data_mgr.sphMarkers_D->iterator(end_idx) -
-                                                m_data_mgr.sphMarkers_D->iterator(start_idx));
+    ChDebugLog("Num candidate markers: " << m_data_mgr.sphMarkers_D->iterator(end_idx) - m_data_mgr.sphMarkers_D->iterator(start_idx));
     ChDebugLog("Num moved markers:     " << n_move);
 
     // Relocate markers based on their index
@@ -195,8 +187,7 @@ void SphParticleRelocator::MoveAABB2AABB(MarkerType type,
     auto data_first = m_data_mgr.sphMarkers_D->iterator(start_idx);
     auto data_last = m_data_mgr.sphMarkers_D->iterator(start_idx + n_move);
 
-    thrust::for_each(thrust::make_zip_iterator(thrust::make_tuple(idx_first, data_first)),
-                     thrust::make_zip_iterator(thrust::make_tuple(idx_last, data_last)),
+    thrust::for_each(thrust::make_zip_iterator(thrust::make_tuple(idx_first, data_first)), thrust::make_zip_iterator(thrust::make_tuple(idx_last, data_last)),
                      togrid_op(aabb_dest, spacing, m_props));
 }
 

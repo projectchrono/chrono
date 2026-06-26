@@ -39,7 +39,7 @@
 #     - PARDISO_MKL (Apple Silicon)
 #     - PARDISO_PROJECT (Apple Silicon)
 #     - OPENGL (broken due to unsupported shader programs)
-# 
+#
 # -----------------------------------------------------------------------------------------
 # 1. As needed, use the provided scripts to build and install various dependencies.
 # 2. Edit this script to specify the installation directories for the various dependencies.
@@ -58,7 +58,6 @@ INSTALL_DIR="$HOME/Install/chrono"
 EIGEN3_INSTALL_DIR="$HOMEBREW_PREFIX/include/eigen3"
 IRRLICHT_ROOT="$HOMEBREW_PREFIX/include/irrlicht"
 
-BLAZE_ROOT="$HOME/Packages/blaze-3.8"
 THRUST_INCLUDE_DIR="$HOME/Packages/thrust"
 CRG_INSTALL_DIR="$HOME/Packages/OpenCRG"
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
@@ -102,7 +101,6 @@ cmake -G "${BUILDSYSTEM}" -B "${BUILD_DIR}" -S "${SOURCE_DIR}" \
       -DOpenMP_CXX_LIB_NAMES:STRING=libomp \
       -DOpenMP_libomp_LIBRARY:FILEPATH="$HOMEBREW_PREFIX/opt/libomp/lib/libomp.dylib" \
       -DTHRUST_INCLUDE_DIR:PATH=${THRUST_INCLUDE_DIR} \
-      -DBlaze_ROOT:PATH=${BLAZE_ROOT} \
       -DIrrlicht_ROOT:PATH=${IRRLICHT_ROOT} \
       -DOpenCRG_INCLUDE_DIR:PATH=${CRG_INSTALL_DIR}/include \
       -DOpenCRG_LIBRARY:FILEPATH=${CRG_INSTALL_DIR}/lib/libOpenCRG.a \
@@ -115,7 +113,7 @@ cmake -G "${BUILDSYSTEM}" -B "${BUILD_DIR}" -S "${SOURCE_DIR}" \
       -DPYTHON_INCLUDE_DIR:PATH=$HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR/$BREW_PY_VER/Frameworks/Python.framework/Versions/$BREW_PY_MAJOR/include/python$BREW_PY_MAJOR \
       -DPYTHON_LIBRARY:PATH=$HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR/$BREW_PY_VER/Frameworks/Python.framework/Versions/$BREW_PY_MAJOR/lib/python$BREW_PY_MAJOR/config-$BREW_PY_MAJOR-darwin/libpython$BREW_PY_MAJOR.dylib
 
- 
+
 # ------------------------------------------------------------------------
 
 # --- Build Chrono modules (command line)
@@ -128,4 +126,3 @@ cmake -G "${BUILDSYSTEM}" -B "${BUILD_DIR}" -S "${SOURCE_DIR}" \
 
 #cd ${BUILD_DIR}
 #open Chrono.xcodeproj
-

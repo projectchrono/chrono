@@ -71,28 +71,33 @@ set(DEM_PHYSICS_FILES
     )
 source_group(physics FILES ${DEM_PHYSICS_FILES})
 
-set(DEM_CUDA_FILES
-    cuda/ChDem_SMC.cu
-    cuda/ChDem_SMC.cuh
-    cuda/ChDem_SMC_trimesh.cu
-    cuda/ChDem_SMC_trimesh.cuh
-    cuda/ChDemCollision.cuh
-    cuda/ChDemBoundaryConditions.cuh
-    cuda/ChDemHelpers.cuh
-    cuda/ChDemBoxTriangle.cuh
-    cuda/ChDemCUDAalloc.hpp
-    cuda/ChCudaMathUtils.cuh
+set(DEM_GPU_FILES
+    gpu/ChDemSMC.cu
+    gpu/ChDemSMC.cuh
+    gpu/ChDemSMCtrimesh.cu
+    gpu/ChDemSMCtrimesh.cuh
+    gpu/ChDemCollision.cuh
+    gpu/ChDemBoundaryConditions.cuh
+    gpu/ChDemHelpers.cuh
+    gpu/ChDemBoxTriangle.cuh
+    gpu/ChDemGpuAlloc.h
+    gpu/ChDemGpuMathUtils.cuh
+    ../chrono/gpu/ChGpuRuntime.h
+    ../chrono/gpu/ChGpuPrimitives.h
     )
-source_group(cuda FILES ${DEM_CUDA_FILES})
+source_group(gpu FILES ${DEM_GPU_FILES})
+
+# ------------------------------------------
 
 set(DEM_GPU_SOURCE_FILES
-    cuda/ChDem_SMC.cu
-    cuda/ChDem_SMC_trimesh.cu
+    gpu/ChDemSMC.cu
+    gpu/ChDemSMCtrimesh.cu
     )
-
 if(CHRONO_HIP_FOUND)
     set_source_files_properties(${DEM_GPU_SOURCE_FILES} PROPERTIES LANGUAGE HIP)
 endif()
+
+# --------------- DEM UTILITIES
 
 set(DEM_UTILITY_FILES
     utils/ChDemUtilities.h
@@ -133,7 +138,7 @@ message(STATUS "Add Chrono_dem library")
 add_library(Chrono_dem
             ${DEM_BASE_FILES}
             ${DEM_PHYSICS_FILES}
-            ${DEM_CUDA_FILES}
+            ${DEM_GPU_FILES}
             ${DEM_UTILITY_FILES}
             ${DEM_CONFIG_FILE}
 )

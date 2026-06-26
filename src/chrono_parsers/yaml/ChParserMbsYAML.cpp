@@ -833,7 +833,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         body->SetAngVelLocal(item.second.ang_vel);
         sys.AddBody(body);
         item.second.body.push_back(body);
-        m_output_data.bodies.push_back(body);
+        m_output_components.bodies.push_back(body);
     }
 
     // Create joints (kinematic or bushings)
@@ -850,10 +850,10 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
                                                         item.second.bdata);
         if (joint->IsKinematic()) {
             sys.AddLink(joint->GetAsLink());
-            m_output_data.joints.push_back(joint->GetAsLink());
+            m_output_components.joints.push_back(joint->GetAsLink());
         } else {
             load_container->Add(joint->GetAsBushing());
-            m_output_data.bushings.push_back(joint->GetAsBushing());
+            m_output_components.bushings.push_back(joint->GetAsBushing());
         }
         item.second.joint.push_back(joint);
     }
@@ -870,7 +870,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         dist->Initialize(body1, body2, false, model_frame * item.second.point1, model_frame * item.second.point2);
         sys.AddLink(dist);
         item.second.dist.push_back(dist);
-        m_output_data.constraints.push_back(dist);
+        m_output_components.constraints.push_back(dist);
     }
 
     // Create TSDAs
@@ -886,7 +886,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         tsda->RegisterForceFunctor(item.second.force);
         sys.AddLink(tsda);
         item.second.tsda.push_back(tsda);
-        m_output_data.tsdas.push_back(tsda);
+        m_output_components.tsdas.push_back(tsda);
     }
 
     // Create RSDAs
@@ -907,7 +907,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         rsda->RegisterTorqueFunctor(item.second.torque);
         sys.AddLink(rsda);
         item.second.rsda.push_back(rsda);
-        m_output_data.rsdas.push_back(rsda);
+        m_output_components.rsdas.push_back(rsda);
     }
 
     // Create body loads
@@ -935,7 +935,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         load->SetName(model_prefix + item.first);
         load_container->Add(load);
         item.second.load.push_back(load);
-        m_output_data.loads.push_back(load);
+        m_output_components.loads.push_back(load);
     }
 
     // Create external body load controllers
@@ -955,7 +955,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         load->SetName(model_prefix + item.first);
         load_container->Add(load);
         item.second.load.push_back(load);
-        m_output_data.loads.push_back(load);
+        m_output_components.loads.push_back(load);
     }
 
     // Create motors
@@ -989,7 +989,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
                 motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
                 sys.AddLink(motor);
                 item.second.motor.push_back(motor);
-                m_output_data.lin_motors.push_back(motor);
+                m_output_components.lin_motors.push_back(motor);
 
                 break;
             }
@@ -1013,7 +1013,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
                 motor->Initialize(body1, body2, model_frame * ChFramed(item.second.pos, quat));
                 sys.AddLink(motor);
                 item.second.motor.push_back(motor);
-                m_output_data.rot_motors.push_back(motor);
+                m_output_components.rot_motors.push_back(motor);
 
                 break;
             }
@@ -1250,9 +1250,9 @@ void ChParserMbsYAML::DoStepDynamics() {
 
     // Generate output (if requested)
     static int output_frame = 0;
-    if (m_output.type != ChOutput::Type::NONE) {
+    if (m_output.format != ChOutput::Format::NONE) {
         if (time >= output_frame / m_output.fps) {
-            SaveOutput(*m_sys, output_frame);
+            WriteOutput(time, output_frame);
             output_frame++;
         }
     }
@@ -1265,20 +1265,9 @@ void ChParserMbsYAML::DoStepDynamics() {
         m_rt_timer.Spin(time_step);
 }
 
-void ChParserMbsYAML::SaveOutput(ChSystem& sys, int frame) {
-    ChParserYAML::SaveOutput(frame);
-
-    // Output simulation results at current frame
-    m_output_db->WriteTime(frame, sys.GetChTime());
-
-    m_output_db->WriteBodies(m_output_data.bodies);
-    m_output_db->WriteJoints(m_output_data.joints);
-    m_output_db->WriteBodyBodyLoads(m_output_data.bushings);
-    ////m_output_db->WriteConstraints(m_output_data.constraints);
-    m_output_db->WriteLinSprings(m_output_data.tsdas);
-    m_output_db->WriteRotSprings(m_output_data.rsdas);
-    m_output_db->WriteLinMotors(m_output_data.lin_motors);
-    m_output_db->WriteRotMotors(m_output_data.rot_motors);
+void ChParserMbsYAML::WriteOutput(int frame, double time) {
+    ChParserYAML::WriteOutput(frame, time);
+    m_output_db->Write(frame, time, m_output_components);
 }
 
 // -----------------------------------------------------------------------------
