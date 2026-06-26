@@ -23,6 +23,7 @@
 #define CH_CHASSIS_H
 
 #include "chrono/physics/ChSystem.h"
+#include <cstdint>
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLoadContainer.h"
 

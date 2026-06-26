@@ -20,6 +20,7 @@
 #define CH_PART_H
 
 #include <string>
+#include <cstdint>
 #include <vector>
 
 #include "chrono/physics/ChAssembly.h"
