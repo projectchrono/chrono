@@ -20,6 +20,7 @@
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
@@ -46,8 +47,8 @@ class Model1 {
         section->SetRayleighDamping(0.000);
 
         // Create the nodes
-        auto node1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, -0.2), ChVector3d(1, 0, 0));
-        auto node2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_L, 0, -0.2), ChVector3d(1, 0, 0));
+        auto node1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, -0.2, 0), ChVector3d(1, 0, 0));
+        auto node2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_L, -0.2, 0), ChVector3d(1, 0, 0));
         mesh->AddNode(node1);
         mesh->AddNode(node2);
 
@@ -59,7 +60,7 @@ class Model1 {
 
         // Fix node1 and apply a force to node2
         node1->SetFixed(true);
-        node2->SetForce(ChVector3d(0, 3, 0));
+        node2->SetForce(ChVector3d(0, 0, 3));
 
         // Add a rigid body connected to the end of the beam
         body = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.02, 0.02, 1000);
@@ -110,8 +111,8 @@ class Model2 {
         builder.BuildBeam(mesh,                       // container FEA mesh
                           section,                    // cable section
                           10,                         // number of cable elements
-                          ChVector3d(0, 0, -0.1),     // point A (beginning of beam)
-                          ChVector3d(0.5, 0, -0.1));  // point B (end of beam)
+                          ChVector3d(0, -0.1, 0),     // point A (beginning of beam)
+                          ChVector3d(0.5, -0.1, 0));  // point B (end of beam)
 
         // Apply a force on the first node of the beam
         builder.GetLastBeamNodes().front()->SetForce(ChVector3d(1.0, 0, 0));
@@ -151,11 +152,11 @@ class Model3 {
             builder.BuildBeam(mesh,                                   // container FEA mesh
                               section,                                // cable section
                               1 + j,                                  // number of cable elements
-                              ChVector3d(0, 0, -0.1 * j),             // point A (beginning of beam)
-                              ChVector3d(0.1 + 0.1 * j, 0, -0.1 * j)  // point B (end of beam)
+                              ChVector3d(0, -0.1 * j, 0),             // point A (beginning of beam)
+                              ChVector3d(0.1 + 0.1 * j, -0.1 * j, 0)  // point B (end of beam)
             );
 
-            builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, -0.2, 0));
+            builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, 0, -0.2));
 
             auto constraint_hinge = chrono_types::make_shared<ChLinkNodeFrame>();
             constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), ground);
@@ -182,8 +183,8 @@ class Model3 {
             builder.BuildBeam(mesh,                                                                         // container FEA mesh
                               section,                                                                      // cable section
                               1 + (n_chains - j),                                                           // number of cable elements
-                              ChVector3d(mid_body->GetPos().x() + 0.1, 0, -0.1 * j),                        // point A (beginning of beam)
-                              ChVector3d(mid_body->GetPos().x() + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  // point B (end of beam)
+                              ChVector3d(mid_body->GetPos().x() + 0.1, -0.1 * j, 0),                        // point A (beginning of beam)
+                              ChVector3d(mid_body->GetPos().x() + 0.1 + 0.1 * (n_chains - j), -0.1 * j, 0)  // point B (end of beam)
             );
 
             auto constraint_pos2 = chrono_types::make_shared<ChLinkNodeFrame>();

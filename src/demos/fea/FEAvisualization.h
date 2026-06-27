@@ -91,7 +91,7 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle(title);
-            vis_vsg->EnableSkyTexture(SkyMode::BOX);
+            vis_vsg->EnableSkyTexture(SkyMode::DOME);
             vis_vsg->AddCamera(cam_pos, cam_target);
             vis_vsg->SetCameraAngleDeg(50);
             vis_vsg->SetLightIntensity(1.0f);
@@ -102,9 +102,8 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
                 vis_vsg->AddGuiColorbar(colorbar_title, colorbar_range, colormap_type, false, 300);
             }
 
-            // optionally decouple the visualisation updates so less cpu-gpu work - comment out to test for performance
-            // change
-            // - testing shows a reduction in vsg Render() calls to 1/2 or less
+            // Optionally decouple the visualization updates so less cpu-gpu work.
+            // Comment out to test for performance change. Testing shows a reduction in vsg Render() calls by a factor of 2 or more.
             vis_vsg->SetTargetRenderFPS(60); 
             vis_vsg->Initialize();
 
