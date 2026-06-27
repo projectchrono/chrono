@@ -6,10 +6,10 @@ ARG CHRONO_DIR
 ARG PACKAGE_DIR
 ARG USERSHELLPROFILE
 
-# Vulkan development packages from the Ubuntu archive
 RUN sudo apt update && sudo apt install -y --no-install-recommends \
     libvulkan-dev \
     vulkan-tools \
+    mesa-vulkan-drivers \
     vulkan-validationlayers \
     spirv-tools \
     glslang-tools \

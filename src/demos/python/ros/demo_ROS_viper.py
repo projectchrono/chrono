@@ -19,7 +19,11 @@
 #
 #   ros2 topic echo /chrono_ros_node/output/rover/state/pose
 #
+# Opens a VSG window by default; pass --headless to run without one.
+#
 # =============================================================================
+
+import sys
 
 import pychrono as ch
 import pychrono.robot as robot
@@ -54,12 +58,31 @@ def main():
     ros_manager.RegisterHandler(chros.ChROSBodyHandler(25, rover.GetChassis().GetBody(), "~/output/rover/state"))
     ros_manager.Initialize()
 
+    # Optional run-time visualization (pass --headless to skip the window). VSG
+    # needs a Vulkan ICD: a GPU driver, or the lavapipe software fallback
+    # (mesa-vulkan-drivers). Imported lazily so --headless needs no Vulkan at all.
+    vis = None
+    if "--headless" not in sys.argv:
+        import pychrono.vsg3d as vsg
+        vis = vsg.ChVisualSystemVSG()
+        vis.AttachSystem(system)
+        vis.AddCamera(ch.ChVector3d(3, 3, 1))
+        vis.SetWindowTitle("Viper Rover on Rigid Terrain")
+        vis.Initialize()
+
     # Simulation loop.
     time = 0
     time_step = 1e-3
     time_end = 30
 
     while time < time_end:
+        if vis is not None:
+            if not vis.Run():
+                break
+            vis.BeginScene()
+            vis.Render()
+            vis.EndScene()
+
         time = system.GetChTime()
 
         rover.Update()
