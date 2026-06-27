@@ -65,8 +65,17 @@ void ChROSViperDCMotorControlHandler::Tick(double time) {
             m_driver->SetSteering(s.angle);
     }
     m_driver->SetLifting(m_lifting);
-    m_driver->SetMotorStallTorque(m_stall_torque, static_cast<ViperWheelID>(m_stall_wheel));
-    m_driver->SetMotorNoLoadSpeed(m_no_load_speed, static_cast<ViperWheelID>(m_no_load_wheel));
+
+    // wheel_id V_UNDEFINED (4) means "all wheels", mirroring the SetSteering
+    // convention above. The driver has no all-wheels overload for torque/speed,
+    // so loop the four wheels. Out-of-range ids are ignored (ViperWheelID only
+    // defines 0..3, so this also avoids an out-of-bounds write in the driver).
+    for (uint8_t id = 0; id < 4; id++) {
+        if (m_stall_wheel == VIPER_WHEEL_UNDEFINED || m_stall_wheel == id)
+            m_driver->SetMotorStallTorque(m_stall_torque, static_cast<ViperWheelID>(id));
+        if (m_no_load_wheel == VIPER_WHEEL_UNDEFINED || m_no_load_wheel == id)
+            m_driver->SetMotorNoLoadSpeed(m_no_load_speed, static_cast<ViperWheelID>(id));
+    }
 }
 
 }  // namespace ros
