@@ -9,11 +9,22 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
-// =============================================================================
 
-#include "chrono/fea/ChBeamSectionCable.h"
+#include "chrono/fea/ChBeamSectionCableANCF.h"
 
 namespace chrono {
-namespace fea {}  // end namespace fea
+namespace fea {
+
+ChBeamSectionCableANCF::ChBeamSectionCableANCF() : E(1e7), density(1000), rdamping(0.01) {
+    SetDiameter(0.01);
+}
+
+void ChBeamSectionCableANCF::SetDiameter(double diameter) {
+    this->Area = CH_PI * std::pow((0.5 * diameter), 2);
+    this->I = (CH_PI / 4.0) * std::pow((0.5 * diameter), 4);
+
+    this->SetDrawCircularRadius(diameter / 2);
+}
+
+}  // end namespace fea
 }  // end namespace chrono

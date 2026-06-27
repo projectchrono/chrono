@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHELEMENTBEAM_H
-#define CHELEMENTBEAM_H
+#ifndef CH_ELEMENT_BEAM_H
+#define CH_ELEMENT_BEAM_H
 
 #include "chrono/fea/ChElementGeneric.h"
 
@@ -23,43 +23,39 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Base class for most structural elements of 'beam' type.
+/// Base class for beam structural elements.
 class ChApi ChElementBeam : public ChElementGeneric {
   public:
     ChElementBeam() : length(1), mass(1) {}
 
     virtual ~ChElementBeam() {}
 
-    /// Gets the xyz displacement of a point on the beam line,
-    /// and the rotation RxRyRz of section plane, at abscissa 'eta'.
+    /// Evaluate the displacement of a point on the beam line and the rotation of section plane.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) = 0;
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& displ, ChVector3d& rot) = 0;
 
-    /// Gets the absolute xyz position of a point on the beam line,
-    /// and the absolute rotation of section plane, at abscissa 'eta'.
+    /// Evaluate the absolute position of a point on the beam line and the absolute rotation of the section plane.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) = 0;
 
-    /// Gets the force (traction x, shear y, shear z) and the
-    /// torque (torsion on x, bending on y, on bending on z) at a section along
-    /// the beam line, at abscissa 'eta'.
+    /// Evaluate the force (traction x, shear y, shear z) and the torque (torsion on x, bending on y, on bending on z) at a section along the beam line.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) = 0;
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& force, ChVector3d& torque) = 0;
 
-    /// Gets the axial and bending strain of the ANCF "cable" element
-    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) = 0;
+    /// Evaluate the axial and bending strain of the beam element.
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& strain) = 0;
 
-    /// The full mass of the beam, (with const. section, density, etc.)
-    double GetMass() { return mass; }
+    /// Return the full mass of the beam element.
+    double GetMass() const { return mass; }
 
-    /// The rest length of the bar
-    double GetRestLength() { return length; }
+    /// Return the rest length of the beam element.
+    double GetRestLength() const { return length; }
 
-    /// Set the rest length of the bar (usually this should be automatically done
-    /// when SetupInitial is called on beams element, given the current state, but one
-    /// might need to override this, ex for precompressed beams etc).
-    void SetRestLength(double ml) { length = ml; }
+    /// Set the rest length of the bar.
+    /// This is automatically done when SetupInitial is called on beams element, given the current state.
+    /// This function allows overriding the calculated value, e.g., for pre-compressed beams.
+    void SetRestLength(double l) { length = l; }
 
   protected:
     double mass;

@@ -40,7 +40,7 @@ class Model1 {
 
         // Create a section, i.e. thickness and material properties
         // for beams. This will be shared among some beams.
-        auto section = chrono_types::make_shared<ChBeamSectionCable>();
+        auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
         section->SetDiameter(beam_diameter);
         section->SetYoungModulus(0.01e9);
         section->SetRayleighDamping(0.000);
@@ -100,7 +100,7 @@ class Model2 {
         ground->SetFixed(true);
 
         // Create a section, i.e. thickness and material properties for beams.
-        auto section = chrono_types::make_shared<ChBeamSectionCable>();
+        auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
         section->SetDiameter(0.015);
         section->SetYoungModulus(0.01e9);
         section->SetRayleighDamping(0.000);
@@ -136,7 +136,7 @@ class Model2 {
 class Model3 {
   public:
     Model3(ChSystem& system, std::shared_ptr<ChMesh> mesh, int n_chains = 6) : bodies(n_chains) {
-        auto section = chrono_types::make_shared<ChBeamSectionCable>();
+        auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
         section->SetDiameter(0.015);
         section->SetYoungModulus(0.01e9);
         section->SetRayleighDamping(0.000);
@@ -179,12 +179,11 @@ class Model3 {
             system.Add(constraint_dir);
 
             // Create a second beam
-            builder.BuildBeam(
-                mesh,                                                   // container FEA mesh
-                section,                                                // cable section
-                1 + (n_chains - j),                                     // number of cable elements
-                ChVector3d(mid_body->GetPos().x() + 0.1, 0, -0.1 * j),  // point A (beginning of beam)
-                ChVector3d(mid_body->GetPos().x() + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  // point B (end of beam)
+            builder.BuildBeam(mesh,                                                                         // container FEA mesh
+                              section,                                                                      // cable section
+                              1 + (n_chains - j),                                                           // number of cable elements
+                              ChVector3d(mid_body->GetPos().x() + 0.1, 0, -0.1 * j),                        // point A (beginning of beam)
+                              ChVector3d(mid_body->GetPos().x() + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  // point B (end of beam)
             );
 
             auto constraint_pos2 = chrono_types::make_shared<ChLinkNodeFrame>();

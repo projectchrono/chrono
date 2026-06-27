@@ -14,12 +14,12 @@
 // ANCF gradient-deficient cable element.
 // =============================================================================
 
-#ifndef CHELEMENTCABLEANCF_H
-#define CHELEMENTCABLEANCF_H
+#ifndef CH_ELEMENT_CABLE_ANCF_H
+#define CH_ELEMENT_CABLE_ANCF_H
 
 #include "chrono/core/ChVector3.h"
 
-#include "chrono/fea/ChBeamSectionCable.h"
+#include "chrono/fea/ChBeamSectionCableANCF.h"
 #include "chrono/fea/ChElementANCF.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
@@ -30,7 +30,7 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Simple beam element with two nodes and ANCF gradient-deficient formulation.
+/// Simple ANCF beam element with two nodes and gradient-deficient formulation.
 /// For this element, constant section and constant material are assumed along the beam coordinate. Torsional stiffness
 /// is impossible because of the formulation.  Based on the formulation in: "Analysis of Thin Beams and Cables Using the
 /// Absolute Nodal Coordinate Formulation", J. Gerstmayr, A. Shabana, Nonlinear Dynamics (2006) 45: 109-130,
@@ -54,14 +54,10 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
-        return m_nodes[n]->GetNumCoordsPosLevel();
-    }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
-        return m_nodes[n]->GetNumCoordsPosLevelActive();
-    }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
@@ -71,10 +67,10 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
 
     /// Set the section & material of beam element.
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(std::shared_ptr<ChBeamSectionCable> section) { m_section = section; }
+    void SetSection(std::shared_ptr<ChBeamSectionCableANCF> section) { m_section = section; }
 
     /// Get the section & material of the element.
-    std::shared_ptr<ChBeamSectionCable> GetSection() { return m_section; }
+    std::shared_ptr<ChBeamSectionCableANCF> GetSection() { return m_section; }
 
     /// Get the first node (beginning).
     std::shared_ptr<ChNodeFEAxyzD> GetNodeA() { return m_nodes[0]; }
@@ -85,50 +81,47 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     /// Get element length.
     double GetCurrLength() { return (m_nodes[1]->GetPos() - m_nodes[0]->GetPos()).Length(); }
 
-    /// Fills the N shape function matrix with the values of shape functions at abscissa 'xi'.
+    /// Fill the N shape function matrix with the values of shape functions at abscissa 'xi'.
     /// Note, xi=0 at node1, xi=+1 at node2.
     /// N should be a 3x12 parse matrix, N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)],
     /// but is stored here in a compressed form: only the s1 s2 s3 s4 values in a 4x1 column vector.
     virtual void ShapeFunctions(ShapeVector& N, double xi);
 
-    /// Fills the N shape function derivative matrix with the values of shape function derivatives at abscissa 'xi'.
+    /// Fill the N shape function derivative matrix with the values of shape function derivatives at abscissa 'xi'.
     /// Note, xi=0 at node1, xi=+1 at node2.
     /// In a compressed form, only four values are stored in a 4x1 column vector.
     virtual void ShapeFunctionsDerivatives(ShapeVector& Nd, double xi);
 
-    /// Fills the N shape function derivative matrix with the values of shape function 2nd derivatives at abscissa 'xi'.
+    /// Fill the N shape function derivative matrix with the values of shape function 2nd derivatives at abscissa 'xi'.
     /// Note, xi=0 at node1, xi=+1 at node2.
     /// In a compressed form, only four values are stored in a 4x1 column vector.
     virtual void ShapeFunctionsDerivatives2(ShapeVector& Ndd, double xi);
 
     virtual void Update() override;
 
-    /// Fills the D vector  with the current field values at the nodes of the element, with proper ordering. If the D
+    /// Fill the D vector  with the current field values at the nodes of the element, with proper ordering. If the D
     /// vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     /// {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
-    /// Computes the stiffness matrix of the element:
+    /// Compute the stiffness matrix of the element.
     /// K = integral( .... ),
     /// Note: in this 'basic' implementation, constant section and constant material are assumed.
     virtual void ComputeInternalJacobians(double Kfactor, double Rfactor);
 
-    /// Computes the mass matrix of the element.
+    /// Compute the mass matrix of the element.
     /// Note: in this 'basic' implementation, constant section and constant material are assumed.
     virtual void ComputeMassMatrix();
 
-    /// Sets M as the global mass matrix.
+    /// Set M as the global mass matrix.
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { M = m_MassMatrix; }
 
-    /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also superimposes global
-    /// damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,
-                                          double Kfactor,
-                                          double Rfactor = 0,
-                                          double Mfactor = 0) override;
+    /// Set H as the global stiffness matrix K, scaled  by Kfactor.
+    /// Optionally, also superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override;
 
-    /// Computes the internal forces and set values in the Fi vector.
-    /// (e.g. the actual position of nodes is not in relaxed reference position).
+    /// Compute the internal forces and set values in the Fi vector.
+    /// Note that the actual position of nodes is not in relaxed reference position.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
@@ -136,31 +129,32 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
 
     // Beam-specific functions
 
-    /// Gets the xyz displacement of a point on the beam line and the rotation RxRyRz of section plane, at abscissa
-    /// 'eta'. Note, eta=-1 at node1, eta=+1 at node2. Note that 'displ' is the displ.state of 2 nodes, e.g. get it as
-    /// GetStateBlock() Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) override;
+    /// Evaluate the xyz displacement of a point on the beam line and the rotation RxRyRz of section plane.
+    /// Note, eta=-1 at node1, eta=+1 at node2. Note that 'displ' is the displ.state of 2 nodes, e.g. get it as GetStateBlock() Results are not corotated.
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& displ, ChVector3d& rot) override;
 
-    /// Gets the absolute xyz position of a point on the beam line and the absolute rotation of section plane, at
-    /// abscissa 'eta'. Note, eta=-1 at node1, eta=+1 at node2. Note that 'displ' is the displ.state of 2 nodes,
-    /// e.g. get it as GetStateBlock() Results are corotated (expressed in world reference)
+    /// Evaluate the absolute xyz position of a point on the beam line and the absolute rotation of section plane.
+    /// Results are corotated (expressed in world reference).
+    /// Notes:
+    /// - eta=-1 at node1, eta=+1 at node2.
+    /// - 'displ' is the displ.state of 2 nodes, e.g. get it as GetStateBlock().
     virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) override;
 
-    /// Gets the force (traction x, shear y, shear z) and the torque (torsion on x, bending on y, on bending on z)
-    /// at a section along the beam line, at abscissa 'eta'.
-    /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note that 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
+    /// Evaluate the force (traction x, shear y, shear z) and the torque (torsion on x, bending on y, on bending on z) at a section along the beam line.
     /// Results are not corotated, and are expressed in the reference system of beam.
     /// This is not mandatory for the element to work, but it can be useful for plotting, showing results, etc.
-    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) override;
+    /// Notes:
+    /// - eta=-1 at node1, eta=+1 at node2.
+    /// - 'displ' is the displ.state of 2 nodes, e.g., obtained via GetStateBlock().
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& force, ChVector3d& torque) override;
 
-    /// Gets the axial and bending strain of the ANCF element torque (torsion on x, bending on y, on bending on z)
-    /// at a section along the beam line, at abscissa 'eta'.
-    /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note that 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
+    /// Evaluate the axial and bending strain of the ANCF element torque (torsion on x, bending on y, on bending on z) at a section along the beam line.
     /// Results are not corotated, and are expressed in the reference system of beam.
     /// This is not mandatory for the element to work, but it can be useful for plotting, showing results, etc.
-    virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) override;
+    /// Notes:
+    /// - eta=-1 at node1, eta=+1 at node2.
+    /// - 'displ' is the displ.state of 2 nodes, e.g., obtained via GetStateBlock().
+    virtual void EvaluateSectionStrain(const double eta, ChVector3d& strain) override;
 
     /// Set structural damping.
     void SetAlphaDamp(double a);
@@ -170,35 +164,29 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
 
     // Functions for ChLoadable interface
 
-    /// Gets the number of DOFs affected by this element (position part).
+    /// Get the number of DOFs affected by this element (position part).
     virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 2 * 6; }
 
-    /// Gets the number of DOFs affected by this element (speed part).
+    /// Get the number of DOFs affected by this element (speed part).
     virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 2 * 6; }
 
-    /// Gets all the DOFs packed in a single vector (position part).
+    /// Get all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
-    /// Gets all the DOFs packed in a single vector (speed part)
+    /// Get all the DOFs packed in a single vector (speed part).
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x,
-                                        ChState& x_new,
-                                        const ChState& x,
-                                        const unsigned int off_v,
-                                        const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
 
-    /// Number of coordinates in the interpolated field.
+    /// Return the number of coordinates in the interpolated field.
     virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
-        return m_nodes[nblock]->NodeGetOffsetVelLevel();
-    }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
@@ -206,16 +194,16 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     /// Check if the specified sub-block of DOFs is active.
     virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
-    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    /// Get the pointers to the contained ChVariables, appending to the vector of variables.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
     /// Evaluate N'*F , where N is some type of shape function evaluated at U,V coordinates of the surface,
     /// each ranging in -1..+1.  F is a load, N'*F is the resulting generalized load.
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in line
-                           ChVectorDynamic<>& Qi,       ///< Return result of Q = N'*F  here
-                           double& detJ,                ///< Return det[J] here
-                           const ChVectorDynamic<>& F,  ///< Input F vector, size is =n. field coords.
+                           ChVectorDynamic<>& Qi,       ///< result of Q = N'*F
+                           double& detJ,                ///< Jacobian determinant
+                           const ChVectorDynamic<>& F,  ///< input F vector, size equal to number of field coordinates
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override;
@@ -226,10 +214,10 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
                            const double V,              ///< parametric coordinate in volume
                            const double W,              ///< parametric coordinate in volume
-                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
-                           double& detJ,                ///< Return det[J] here
-                           const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
-                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>& Qi,       ///< result of N'*F, maybe with offset block_offset
+                           double& detJ,                ///< Jacobian determinant
+                           const ChVectorDynamic<>& F,  ///< input F vector, size equal to number of field coordinates
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (position part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override;
 
@@ -254,11 +242,11 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
                                     ChVectorDynamic<>& Fi);
 
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
-    std::shared_ptr<ChBeamSectionCable> m_section;
-    ChVectorN<double, 12> m_GenForceVec0;
-    ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
-    ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
-    ChVectorN<double, 4> m_GravForceScale;        ///< scaling matrix used to get the generalized force due to gravity
+    std::shared_ptr<ChBeamSectionCableANCF> m_section;     ///< section properties
+    ChVectorN<double, 12> m_GenForceVec0;                  ///< internal forces at initial configuration
+    ChMatrixNM<double, 12, 12> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 12, 12> m_MassMatrix;               ///< mass matrix
+    ChVectorN<double, 4> m_GravForceScale;                 ///< scaling matrix used to get the generalized force due to gravity
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

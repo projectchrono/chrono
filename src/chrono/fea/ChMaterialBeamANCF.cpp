@@ -11,11 +11,14 @@
 // =============================================================================
 // Authors: Michael Taylor, Antonio Recuero, Radu Serban
 // =============================================================================
-// Material class for ANCF beam elements using the Enhanced Continuum Mechanics based method
+// Material class for ANCF beam elements using the Enhanced Continuum Mechanics
+// method.
 //
-// A description of the Enhanced Continuum Mechanics based method can be found in: K. Nachbagauer, P. Gruber, and J.
-// Gerstmayr. Structural and Continuum Mechanics Approaches for a 3D Shear Deformable ANCF Beam Finite Element :
-// Application to Static and Linearized Dynamic Examples.J.Comput.Nonlinear Dynam, 8 (2) : 021004, 2012.
+// A description of the Enhanced Continuum Mechanics based method can be found
+// in: K. Nachbagauer, P. Gruber, and J. Gerstmayr. Structural and Continuum
+// Mechanics Approaches for a 3D Shear Deformable ANCF Beam Finite Element:
+// Application to Static and Linearized Dynamic Examples.J.Comput.Nonlin. Dyn.,
+// 8 (2) : 021004, 2012.
 // =============================================================================
 
 #include "chrono/fea/ChMaterialBeamANCF.h"
@@ -115,6 +118,7 @@ void ChMaterialBeamANCF::Calc_E_eps(const ChVector3d& E,
     m_E_eps(4, 4) = G.y() * k2;  // This works for Z axis loading
     m_E_eps(5, 5) = G.z();
 }
+
 void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G) {
     double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
                    (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();

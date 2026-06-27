@@ -254,8 +254,7 @@ int main(int argc, char* argv[]) {
                 if (verbose)
                     std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".png";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".png";
                 vis->WriteImageToFile(filename.str());
             }
 
@@ -286,16 +285,11 @@ void CreateContainer(ChFsiProblemSPH& fsi, std::shared_ptr<ChBody> ground, const
     auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
 
     // Add collision geometry
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x(), csize.y(), 0.1),
-                          ChVector3d(0, 0, -0.05));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2),
-                          ChVector3d(+csize.x() / 2 + 0.05, 0, csize.z() / 2));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2),
-                          ChVector3d(-csize.x() / 2 - 0.05, 0, csize.z() / 2));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2),
-                          ChVector3d(0, +csize.y() / 2 + 0.05, csize.z() / 2), QUNIT, false);
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2),
-                          ChVector3d(0, -csize.y() / 2 - 0.05, csize.z() / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x(), csize.y(), 0.1), ChVector3d(0, 0, -0.05));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2), ChVector3d(+csize.x() / 2 + 0.05, 0, csize.z() / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2), ChVector3d(-csize.x() / 2 - 0.05, 0, csize.z() / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2), ChVector3d(0, +csize.y() / 2 + 0.05, csize.z() / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2), ChVector3d(0, -csize.y() / 2 - 0.05, csize.z() / 2), QUNIT, false);
 }
 
 const double beam_length = 0.6;
@@ -307,7 +301,7 @@ std::shared_ptr<ChMesh> CreateANCFCable(ChSystem& sysMBS, double x, int n) {
     double density = 8000;
     double BeamRayleighDamping = 0.1;
 
-    auto section = chrono_types::make_shared<ChBeamSectionCable>();
+    auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
     section->SetDiameter(section_dim);
     section->SetYoungModulus(E);
     section->SetDensity(density);
@@ -328,8 +322,7 @@ std::shared_ptr<ChMesh> CreateANCFCable(ChSystem& sysMBS, double x, int n) {
 
         mesh->AddNode(chrono_types::make_shared<ChNodeFEAxyzD>(p, dir));
         auto element = chrono_types::make_shared<ChElementCableANCF>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i + 1)));
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i)), std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i + 1)));
         element->SetSection(section);
         element->SetRestLength(length);
         mesh->AddElement(element);
@@ -422,10 +415,8 @@ std::shared_ptr<ChMesh> CreateANCF3333Beam(ChSystem& sysMBS, double x, int n) {
     mesh->AddNode(nodeA);
 
     for (int i = 1; i <= n; i++) {
-        auto nodeB =
-            chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 0)), dir1, dir2);
-        auto nodeC =
-            chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 1)), dir1, dir2);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 0)), dir1, dir2);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 1)), dir1, dir2);
         mesh->AddNode(nodeB);
         mesh->AddNode(nodeC);
 

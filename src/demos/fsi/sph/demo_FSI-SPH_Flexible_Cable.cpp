@@ -118,10 +118,8 @@ int main(int argc, char* argv[]) {
     bool snapshots = false;
     int ps_freq = 1;
     std::string boundary_method = "adami";
-    std::string viscosity_method =
-        (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_method, viscosity_method)) {
+    std::string viscosity_method = (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq, boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -356,8 +354,7 @@ int main(int argc, char* argv[]) {
 
     // Initial position of top most node
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
-    std::cout << "Initial position of top node: " << node->GetPos().x() << " " << node->GetPos().y() << " "
-              << node->GetPos().z() << std::endl;
+    std::cout << "Initial position of top node: " << node->GetPos().x() << " " << node->GetPos().y() << " " << node->GetPos().z() << std::endl;
     ChVector3d init_pos = node->GetPos();
 
     std::string out_file = out_dir + "/results.txt";
@@ -389,8 +386,7 @@ int main(int argc, char* argv[]) {
                 if (verbose)
                     cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
 
@@ -428,18 +424,14 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS,
-                                            double loc_x,
-                                            double E,
-                                            int num_elements,
-                                            std::shared_ptr<ChBody> ground) {
+std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, double E, int num_elements, std::shared_ptr<ChBody> ground) {
     double length_cable = 0.8;
 
     // Material Properties
     double density = 8000;
     double rayleigh_damping = 0.02;
 
-    auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    auto section_cable = chrono_types::make_shared<ChBeamSectionCableANCF>();
     section_cable->SetDiameter(0.02);
     section_cable->SetYoungModulus(E);
     section_cable->SetDensity(density);
@@ -500,14 +492,10 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
     ground->SetFixed(true);
     ground->EnableCollision(true);
     utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(cxDim, cyDim, 0.1), ChVector3d(0, 0, -0.05));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, cyDim, czDim + 0.2),
-                          ChVector3d(+cxDim / 2 + 0.05, 0, czDim / 2));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, cyDim, czDim + 0.2),
-                          ChVector3d(-cxDim / 2 - 0.05, 0, czDim / 2));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(cxDim + 0.2, 0.1, czDim + 0.2),
-                          ChVector3d(0, +cyDim / 2 + 0.05, czDim / 2), QUNIT, false);
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(cxDim + 0.2, 0.1, czDim + 0.2),
-                          ChVector3d(0, -cyDim / 2 - 0.05, czDim / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, cyDim, czDim + 0.2), ChVector3d(+cxDim / 2 + 0.05, 0, czDim / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, cyDim, czDim + 0.2), ChVector3d(-cxDim / 2 - 0.05, 0, czDim / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(cxDim + 0.2, 0.1, czDim + 0.2), ChVector3d(0, +cyDim / 2 + 0.05, czDim / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(cxDim + 0.2, 0.1, czDim + 0.2), ChVector3d(0, -cyDim / 2 - 0.05, czDim / 2), QUNIT, false);
     sysMBS.AddBody(ground);
 
     // Create a fixed cylindrical post
@@ -551,8 +539,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
 
         auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
         geometry->materials.push_back(contact_material_info);
-        geometry->coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length, 0));
+        geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length, 0));
         geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
         geometry->CreateCollisionShapes(cylinder, 1, sysMBS.GetContactMethod());
 
@@ -605,8 +592,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
     cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", boundary_method);
-    cli.AddOption<std::string>("Physics", "viscosity_method",
-                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_method);
+    cli.AddOption<std::string>("Physics", "viscosity_method", "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_method);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
