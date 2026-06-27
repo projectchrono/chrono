@@ -17,8 +17,7 @@
 // A description of the Enhanced Continuum Mechanics based method can be found
 // in: K. Nachbagauer, P. Gruber, and J. Gerstmayr. Structural and Continuum
 // Mechanics Approaches for a 3D Shear Deformable ANCF Beam Finite Element:
-// Application to Static and Linearized Dynamic Examples.J.Comput.Nonlin. Dyn.,
-// 8 (2) : 021004, 2012.
+// Application to Static and Linearized Dynamic Examples. JCND, 8(2):021004, 2012.
 // =============================================================================
 
 #include "chrono/fea/ChMaterialBeamANCF.h"
@@ -33,7 +32,7 @@ ChMaterialBeamANCF::ChMaterialBeamANCF(double rho,  // material density
                                        double k1,   // Shear correction factor along beam local y axis
                                        double k2    // Shear correction factor along beam local z axis
                                        )
-    : m_rho(rho) {
+    : ChMaterialFEA(rho) {
     double G = 0.5 * E / (1 + nu);
     Calc_D0_Dv(ChVector3d(E), ChVector3d(nu), ChVector3d(G), k1, k2);
     Calc_E_eps(ChVector3d(E), ChVector3d(nu), ChVector3d(G), k1, k2);  //(For compatibility with ChElementBeam only)
@@ -48,7 +47,7 @@ ChMaterialBeamANCF::ChMaterialBeamANCF(double rho,            // material densit
                                        double k1,             // Shear correction factor along beam local y axis
                                        double k2              // Shear correction factor along beam local z axis
                                        )
-    : m_rho(rho) {
+    : ChMaterialFEA(rho) {
     Calc_D0_Dv(E, nu, G, k1, k2);
     Calc_E_eps(E, nu, G, k1, k2);  //(For compatibility with ChElementBeam only)
     Calc_E_eps_Nu(E, nu, G);       //(For compatibility with ChElementBeam only)
@@ -56,11 +55,7 @@ ChMaterialBeamANCF::ChMaterialBeamANCF(double rho,            // material densit
 
 // Calculate the matrix form of two stiffness tensors used by the ANCF beam for selective reduced integration of the
 // Poisson effect when utilizing the Enhanced Continuum Mechanics based method
-void ChMaterialBeamANCF::Calc_D0_Dv(const ChVector3d& E,
-                                    const ChVector3d& nu,
-                                    const ChVector3d& G,
-                                    double k1,
-                                    double k2) {
+void ChMaterialBeamANCF::Calc_D0_Dv(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G, double k1, double k2) {
     // orthotropic material ref: http://homes.civil.aau.dk/lda/Continuum/material.pdf
     // except position of the shear terms is different to match the original ANCF reference paper
     //
@@ -99,11 +94,7 @@ void ChMaterialBeamANCF::Calc_D0_Dv(const ChVector3d& E,
 // Calculate the matrix of elastic coefficients.
 // Always assume that the material could be orthotropic: E_0
 //(For compatibility with ChElementBeam only)
-void ChMaterialBeamANCF::Calc_E_eps(const ChVector3d& E,
-                                    const ChVector3d& nu,
-                                    const ChVector3d& G,
-                                    double k1,
-                                    double k2) {
+void ChMaterialBeamANCF::Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G, double k1, double k2) {
     m_E_eps.setZero();
     m_E_eps(0, 0) = E.x();
     m_E_eps(1, 1) = E.y();
@@ -120,8 +111,7 @@ void ChMaterialBeamANCF::Calc_E_eps(const ChVector3d& E,
 }
 
 void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G) {
-    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
-                   (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
+    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() - (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
     m_E_eps_Nu.setZero();
     m_E_eps_Nu(0, 0) = E.x() * ((1.0 - (nu.z() * nu.z()) * E.z() / E.y()) / delta - 1.0);
     m_E_eps_Nu(1, 1) = E.y() * ((1.0 - (nu.y() * nu.y()) * E.z() / E.x()) / delta - 1.0);

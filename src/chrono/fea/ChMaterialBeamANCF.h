@@ -17,14 +17,14 @@
 // A description of the Enhanced Continuum Mechanics based method can be found
 // in: K. Nachbagauer, P. Gruber, and J. Gerstmayr. Structural and Continuum
 // Mechanics Approaches for a 3D Shear Deformable ANCF Beam Finite Element:
-// Application to Static and Linearized Dynamic Examples.J.Comput.Nonlin. Dyn.,
-// 8 (2) : 021004, 2012.
+// Application to Static and Linearized Dynamic Examples. JCND, 8(2):021004, 2012.
 // =============================================================================
 
 #ifndef CH_BEAM_SECTION_ANCF_H
 #define CH_BEAM_SECTION_ANCF_H
 
 #include "chrono/fea/ChElementBeam.h"
+#include "chrono/fea/ChMaterialFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -33,7 +33,7 @@ namespace fea {
 /// @{
 
 /// Definition of materials to be used for ANCF beams utilizing the Enhanced Continuum Mechanics based method.
-class ChApi ChMaterialBeamANCF {
+class ChApi ChMaterialBeamANCF : public ChMaterialFEA {
   public:
     /// Construct an isotropic material.
     ChMaterialBeamANCF(double rho,  ///< material density
@@ -51,9 +51,6 @@ class ChApi ChMaterialBeamANCF {
                        double k1,             ///< Shear correction factor along beam local y axis
                        double k2              ///< Shear correction factor along beam local z axis
     );
-
-    /// Return the material density.
-    double GetDensity() const { return m_rho; }
 
   private:
     /// Upper 3x3 block of the elasticity matrix with the terms contributing to the Poisson effect.
@@ -85,7 +82,6 @@ class ChApi ChMaterialBeamANCF {
     /// (For compatibility with ChElementBeam only.)
     void Calc_E_eps_Nu(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
-    double m_rho;                   ///< density
     ChVectorN<double, 6> m_D0;      ///< diagonal components of 6x6 elasticity matrix form without Poisson effect terms
     ChMatrixNM<double, 3, 3> m_Dv;  ///< upper 3x3 block of the elasticity matrix with Poisson effect terms
     ChMatrix66d m_E_eps;            ///< matrix of elastic coefficients (For compatibility with ChElementBeam only)

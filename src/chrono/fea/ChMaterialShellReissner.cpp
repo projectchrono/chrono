@@ -218,7 +218,7 @@ void ChElasticityReissnerIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
 
 //--------------------------------------------------------------
 
-/// Construct an orthotropic material
+// Construct an orthotropic material
 ChElasticityReissnerOrthotropic::ChElasticityReissnerOrthotropic(double m_E_x,
                                                                  double m_E_y,
                                                                  double m_nu_xy,
@@ -237,11 +237,8 @@ ChElasticityReissnerOrthotropic::ChElasticityReissnerOrthotropic(double m_E_x,
     beta = m_beta;
 }
 
-ChElasticityReissnerOrthotropic::ChElasticityReissnerOrthotropic(double m_E,
-                                                                 double m_nu,
-                                                                 double m_alpha,
-                                                                 double m_beta) {
-    double m_G = m_E / (2. * (1. + m_nu));  // default value of G for special subcase of isotropic constructor
+ChElasticityReissnerOrthotropic::ChElasticityReissnerOrthotropic(double m_E, double m_nu, double m_alpha, double m_beta) {
+    double m_G = m_E / (2. * (1. + m_nu));  // default value of G for special case of isotropic constructor
     this->E_x = m_E;
     this->E_y = m_E;
     this->nu_xy = m_nu;
@@ -294,7 +291,7 @@ void ChElasticityReissnerOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
 
     mC.setZero();
 
-    // Compute Qm_local for inplane stresses as in sigma_local = Qm_local * eps_local
+    // Compute Qm_local for in-plane stresses as in sigma_local = Qm_local * eps_local
     double nu_yx = this->GetPoissonRatioYX();  // follows xy as it must be nu_yx*E_x = nu_xy*E_y
     ChMatrixNM<double, 4, 4> Qm_local;
     Qm_local.setZero();
@@ -433,18 +430,17 @@ ChElasticityReissnerGeneric::ChElasticityReissnerGeneric() {
     mE.setIdentity();
 }
 
-void ChElasticityReissnerGeneric::ComputeStress(
-    ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
-    ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
-    ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
-    ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
-    const ChVector3d& eps_u,  ///< strains along \e u direction
-    const ChVector3d& eps_v,  ///< strains along \e v direction
-    const ChVector3d& kur_u,  ///< curvature along \e u direction
-    const ChVector3d& kur_v,  ///< curvature along \e v direction
-    const double z_inf,       ///< layer lower z value (along thickness coord)
-    const double z_sup,       ///< layer upper z value (along thickness coord)
-    const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+void ChElasticityReissnerGeneric::ComputeStress(ChVector3d& n_u,          // forces along \e u direction (per unit length)
+                                                ChVector3d& n_v,          // forces along \e v direction (per unit length)
+                                                ChVector3d& m_u,          // torques along \e u direction (per unit length)
+                                                ChVector3d& m_v,          // torques along \e v direction (per unit length)
+                                                const ChVector3d& eps_u,  // strains along \e u direction
+                                                const ChVector3d& eps_v,  // strains along \e v direction
+                                                const ChVector3d& kur_u,  // curvature along \e u direction
+                                                const ChVector3d& kur_v,  // curvature along \e v direction
+                                                const double z_inf,       // layer lower z value (along thickness coordinate)
+                                                const double z_sup,       // layer upper z value (along thickness coordinate)
+                                                const double angle        // layer angle respect to x (if needed) -not used in this, isotropic
 ) {
     ChVectorN<double, 12> mstrain;
     ChVectorN<double, 12> mstress;
@@ -459,15 +455,14 @@ void ChElasticityReissnerGeneric::ComputeStress(
     m_v = mstress.segment(9, 3);
 }
 
-void ChElasticityReissnerGeneric::ComputeStiffnessMatrix(
-    ChMatrixRef mC,           ///< tangent matrix
-    const ChVector3d& eps_u,  ///< strains along \e u direction
-    const ChVector3d& eps_v,  ///< strains along \e v direction
-    const ChVector3d& kur_u,  ///< curvature along \e u direction
-    const ChVector3d& kur_v,  ///< curvature along \e v direction
-    const double z_inf,       ///< layer lower z value (along thickness coord)
-    const double z_sup,       ///< layer upper z value (along thickness coord)
-    const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+void ChElasticityReissnerGeneric::ComputeStiffnessMatrix(ChMatrixRef mC,           // tangent matrix
+                                                         const ChVector3d& eps_u,  // strains along \e u direction
+                                                         const ChVector3d& eps_v,  // strains along \e v direction
+                                                         const ChVector3d& kur_u,  // curvature along \e u direction
+                                                         const ChVector3d& kur_v,  // curvature along \e v direction
+                                                         const double z_inf,       // layer lower z value (along thickness coordinate)
+                                                         const double z_sup,       // layer upper z value (along thickness coordinate)
+                                                         const double angle        // layer angle respect to x (if needed) -not used in this, isotropic
 ) {
     mC = this->mE;
 }
@@ -477,16 +472,15 @@ void ChElasticityReissnerGeneric::ComputeStiffnessMatrix(
 ChPlasticityReissner::ChPlasticityReissner() : section(nullptr), nr_yeld_tolerance(1e-7), nr_yeld_maxiters(5) {}
 
 void ChPlasticityReissner::ComputeStiffnessMatrixElastoplastic(
-    ChMatrixRef K,            ///< 12x12 material elastoplastic stiffness matrix values here
-    const ChVector3d& eps_u,  ///< strains along \e u direction
-    const ChVector3d& eps_v,  ///< strains along \e v direction
-    const ChVector3d& kur_u,  ///< curvature along \e u direction
-    const ChVector3d& kur_v,  ///< curvature along \e v direction
-    const ChShellReissnerInternalData&
-        data,  ///< updated material internal variables, at this point including {p_strain_e, p_strain_k, p_strain_acc}
-    const double z_inf,  ///< layer lower z value (along thickness coord)
-    const double z_sup,  ///< layer upper z value (along thickness coord)
-    const double angle   ///< layer angle respect to x (if needed)
+    ChMatrixRef K,                            // 12x12 material elastoplastic stiffness matrix values here
+    const ChVector3d& eps_u,                  // strains along \e u direction
+    const ChVector3d& eps_v,                  // strains along \e v direction
+    const ChVector3d& kur_u,                  // curvature along \e u direction
+    const ChVector3d& kur_v,                  // curvature along \e v direction
+    const ChShellReissnerInternalData& data,  // updated material internal variables, at this point including {p_strain_e, p_strain_k, p_strain_acc}
+    const double z_inf,                       // layer lower z value (along thickness coordinate)
+    const double z_sup,                       // layer upper z value (along thickness coordinate)
+    const double angle                        // layer angle respect to x (if needed)
 ) {
     ChVector3d n_u;
     ChVector3d n_v;
@@ -498,14 +492,12 @@ void ChPlasticityReissner::ComputeStiffnessMatrixElastoplastic(
     std::vector<std::unique_ptr<ChShellReissnerInternalData>> b_plastic_data;
     this->CreatePlasticityData(1, b_plastic_data);
 
-    bool in_plastic = ComputeStressWithReturnMapping(n_u, n_v, m_u, m_v, *a_plastic_data[0], eps_u, eps_v, kur_u, kur_v,
-                                                     data, z_inf, z_sup, angle);
+    bool in_plastic = ComputeStressWithReturnMapping(n_u, n_v, m_u, m_v, *a_plastic_data[0], eps_u, eps_v, kur_u, kur_v, data, z_inf, z_sup, angle);
 
     if (!in_plastic) {
         // if no return mapping is needed at this strain state, just use elastic matrix:
 
-        return this->section->GetElasticity()->ComputeStiffnessMatrix(K, eps_u, eps_v, kur_u, kur_v, z_inf, z_sup,
-                                                                      angle);
+        return this->section->GetElasticity()->ComputeStiffnessMatrix(K, eps_u, eps_v, kur_u, kur_v, z_inf, z_sup, angle);
 
     } else {
         // if return mapping is needed at this strain state, compute the elastoplastic stiffness by brute force BDF
@@ -530,8 +522,7 @@ void ChPlasticityReissner::ComputeStiffnessMatrixElastoplastic(
             ChVector3d deps_v(strain_0.segment(3, 3));
             ChVector3d dkur_u(strain_0.segment(6, 3));
             ChVector3d dkur_v(strain_0.segment(9, 3));
-            this->ComputeStressWithReturnMapping(n_u, n_v, m_u, m_v, *b_plastic_data[0], deps_u, deps_v, dkur_u, dkur_v,
-                                                 data, z_inf, z_sup, angle);
+            this->ComputeStressWithReturnMapping(n_u, n_v, m_u, m_v, *b_plastic_data[0], deps_u, deps_v, dkur_u, dkur_v, data, z_inf, z_sup, angle);
             ChVectorN<double, 12> stress_1;
             stress_1.segment(0, 3) = n_u.eigen();
             stress_1.segment(3, 3) = n_v.eigen();
@@ -544,9 +535,7 @@ void ChPlasticityReissner::ComputeStiffnessMatrixElastoplastic(
     }
 }
 
-void ChPlasticityReissner::CreatePlasticityData(
-    int numpoints,
-    std::vector<std::unique_ptr<ChShellReissnerInternalData>>& plastic_data) {
+void ChPlasticityReissner::CreatePlasticityData(int numpoints, std::vector<std::unique_ptr<ChShellReissnerInternalData>>& plastic_data) {
     plastic_data.resize(numpoints);
     for (int i = 0; i < numpoints; ++i) {
         plastic_data[i] = std::unique_ptr<ChShellReissnerInternalData>(new ChShellReissnerInternalData());
@@ -555,15 +544,14 @@ void ChPlasticityReissner::CreatePlasticityData(
 
 //-----------------------------------------------------------------------
 
-void ChDampingReissner::ComputeDampingMatrix(
-    ChMatrixRef R,             // 12x12 material damping matrix values here
-    const ChVector3d& deps_u,  // time derivative of strains along \e u direction
-    const ChVector3d& deps_v,  // time derivative of strains along \e v direction
-    const ChVector3d& dkur_u,  // time derivative of curvature along \e u direction
-    const ChVector3d& dkur_v,  // time derivative of curvature along \e v direction
-    const double z_inf,        // layer lower z value (along thickness coord)
-    const double z_sup,        // layer upper z value (along thickness coord)
-    const double angle         // layer angle respect to x (if needed) -not used in this, isotropic+
+void ChDampingReissner::ComputeDampingMatrix(ChMatrixRef R,             // 12x12 material damping matrix values here
+                                             const ChVector3d& deps_u,  // time derivative of strains along \e u direction
+                                             const ChVector3d& deps_v,  // time derivative of strains along \e v direction
+                                             const ChVector3d& dkur_u,  // time derivative of curvature along \e u direction
+                                             const ChVector3d& dkur_v,  // time derivative of curvature along \e v direction
+                                             const double z_inf,        // layer lower z value (along thickness coordinate)
+                                             const double z_sup,        // layer upper z value (along thickness coordinate)
+                                             const double angle         // layer angle respect to x (if needed) -not used in this, isotropic+
 ) {
     assert(R.rows() == 12);
     assert(R.cols() == 12);
@@ -606,29 +594,26 @@ void ChDampingReissner::ComputeDampingMatrix(
 
 // -----------------------------------------------------------------------------
 
-ChDampingReissnerRayleigh::ChDampingReissnerRayleigh(std::shared_ptr<ChElasticityReissner> melasticity,
-                                                     const double& mbeta) {
+ChDampingReissnerRayleigh::ChDampingReissnerRayleigh(std::shared_ptr<ChElasticityReissner> melasticity, const double& mbeta) {
     this->beta = mbeta;
     this->section_elasticity = melasticity;
     this->updated = false;
 }
 
-void ChDampingReissnerRayleigh::ComputeStress(
-    ChVector3d& n_u,           ///< forces along \e u direction (per unit length)
-    ChVector3d& n_v,           ///< forces along \e v direction (per unit length)
-    ChVector3d& m_u,           ///< torques along \e u direction (per unit length)
-    ChVector3d& m_v,           ///< torques along \e v direction (per unit length)
-    const ChVector3d& deps_u,  ///< time derivative of strains along \e u direction
-    const ChVector3d& deps_v,  ///< time derivative of strains along \e v direction
-    const ChVector3d& dkur_u,  ///< time derivative of curvature along \e u direction
-    const ChVector3d& dkur_v,  ///< time derivative of curvature along \e v direction
-    const double z_inf,        ///< layer lower z value (along thickness coord)
-    const double z_sup,        ///< layer upper z value (along thickness coord)
-    const double angle         ///< layer angle respect to x (if needed)
+void ChDampingReissnerRayleigh::ComputeStress(ChVector3d& n_u,           // forces along \e u direction (per unit length)
+                                              ChVector3d& n_v,           // forces along \e v direction (per unit length)
+                                              ChVector3d& m_u,           // torques along \e u direction (per unit length)
+                                              ChVector3d& m_v,           // torques along \e v direction (per unit length)
+                                              const ChVector3d& deps_u,  // time derivative of strains along \e u direction
+                                              const ChVector3d& deps_v,  // time derivative of strains along \e v direction
+                                              const ChVector3d& dkur_u,  // time derivative of curvature along \e u direction
+                                              const ChVector3d& dkur_v,  // time derivative of curvature along \e v direction
+                                              const double z_inf,        // layer lower z value (along thickness coordinate)
+                                              const double z_sup,        // layer upper z value (along thickness coordinate)
+                                              const double angle         // layer angle respect to x (if needed)
 ) {
     if (!this->updated && this->section_elasticity->section) {
-        this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL, VNULL, VNULL, z_inf, z_sup,
-                                                         angle);
+        this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL, VNULL, VNULL, z_inf, z_sup, angle);
         this->updated = true;
     }
     ChVectorN<double, 12> mdstrain;
@@ -644,15 +629,14 @@ void ChDampingReissnerRayleigh::ComputeStress(
     m_v = mstress.segment(9, 3);
 }
 
-void ChDampingReissnerRayleigh::ComputeDampingMatrix(
-    ChMatrixRef R,             ///< 12x12 material damping matrix values here
-    const ChVector3d& deps_u,  ///< time derivative of strains along \e u direction
-    const ChVector3d& deps_v,  ///< time derivative of strains along \e v direction
-    const ChVector3d& dkur_u,  ///< time derivative of curvature along \e u direction
-    const ChVector3d& dkur_v,  ///< time derivative of curvature along \e v direction
-    const double z_inf,        ///< layer lower z value (along thickness coord)
-    const double z_sup,        ///< layer upper z value (along thickness coord)
-    const double angle         ///< layer angle respect to x (if needed) -not used in this, isotropic
+void ChDampingReissnerRayleigh::ComputeDampingMatrix(ChMatrixRef R,             // 12x12 material damping matrix values here
+                                                     const ChVector3d& deps_u,  // time derivative of strains along \e u direction
+                                                     const ChVector3d& deps_v,  // time derivative of strains along \e v direction
+                                                     const ChVector3d& dkur_u,  // time derivative of curvature along \e u direction
+                                                     const ChVector3d& dkur_v,  // time derivative of curvature along \e v direction
+                                                     const double z_inf,        // layer lower z value (along thickness coordinate)
+                                                     const double z_sup,        // layer upper z value (along thickness coordinate)
+                                                     const double angle         // layer angle respect to x (if needed) -not used in this, isotropic
 ) {
     R = this->beta * this->E_const;
 }
@@ -663,8 +647,7 @@ ChMaterialShellReissner::ChMaterialShellReissner(std::shared_ptr<ChElasticityRei
     this->SetElasticity(melasticity);
 }
 
-ChMaterialShellReissner::ChMaterialShellReissner(std::shared_ptr<ChElasticityReissner> melasticity,
-                                                 std::shared_ptr<ChPlasticityReissner> mplasticity) {
+ChMaterialShellReissner::ChMaterialShellReissner(std::shared_ptr<ChElasticityReissner> melasticity, std::shared_ptr<ChPlasticityReissner> mplasticity) {
     this->SetElasticity(melasticity);
     this->SetPlasticity(mplasticity);
 }
@@ -697,8 +680,7 @@ void ChMaterialShellReissner::ComputeStress(ChVector3d& n_u,
     if (!plasticity || !mdata || !mdata_new)
         this->elasticity->ComputeStress(n_u, n_v, m_u, m_v, eps_u, eps_v, kur_u, kur_v, z_inf, z_sup, angle);
     else {
-        this->plasticity->ComputeStressWithReturnMapping(n_u, n_v, m_u, m_v, *mdata_new, eps_u, eps_v, kur_u, kur_v,
-                                                         *mdata, z_inf, z_sup, angle);
+        this->plasticity->ComputeStressWithReturnMapping(n_u, n_v, m_u, m_v, *mdata_new, eps_u, eps_v, kur_u, kur_v, *mdata, z_inf, z_sup, angle);
     }
 }
 
@@ -714,8 +696,7 @@ void ChMaterialShellReissner::ComputeStiffnessMatrix(ChMatrixRef K,
     if (!plasticity || !mdata)
         this->elasticity->ComputeStiffnessMatrix(K, eps_u, eps_v, kur_u, kur_v, z_inf, z_sup, angle);
     else {
-        this->plasticity->ComputeStiffnessMatrixElastoplastic(K, eps_u, eps_v, kur_u, kur_v, *mdata, z_inf, z_sup,
-                                                              angle);
+        this->plasticity->ComputeStiffnessMatrixElastoplastic(K, eps_u, eps_v, kur_u, kur_v, *mdata, z_inf, z_sup, angle);
     }
 }
 

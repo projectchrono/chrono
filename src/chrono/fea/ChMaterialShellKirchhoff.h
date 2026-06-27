@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "chrono/fea/ChElementShell.h"
+#include "chrono/fea/ChMaterialFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -390,18 +391,18 @@ class ChApi ChDampingKirchhoffRayleigh : public ChDampingKirchhoff {
 ///
 /// Thickness is defined when adding a ChMaterialShellKirchhoff material as a layer in a shell finite element.
 /// A material can be shared between multiple layers.
-class ChApi ChMaterialShellKirchhoff {
+class ChApi ChMaterialShellKirchhoff : public ChMaterialFEA {
   public:
-    ChMaterialShellKirchhoff(std::shared_ptr<ChElasticityKirchhoff> melasticity  ///< elasticity model
+    ChMaterialShellKirchhoff(std::shared_ptr<ChElasticityKirchhoff> elasticity  ///< elasticity model
     );
 
-    ChMaterialShellKirchhoff(std::shared_ptr<ChElasticityKirchhoff> melasticity,  ///< elasticity model
-                             std::shared_ptr<ChPlasticityKirchhoff> mplasticity   ///< plasticity model, if any
+    ChMaterialShellKirchhoff(std::shared_ptr<ChElasticityKirchhoff> elasticity,  ///< elasticity model
+                             std::shared_ptr<ChPlasticityKirchhoff> plasticity   ///< plasticity model, if any
     );
 
-    ChMaterialShellKirchhoff(std::shared_ptr<ChElasticityKirchhoff> melasticity,  ///< elasticity model
-                             std::shared_ptr<ChPlasticityKirchhoff> mplasticity,  ///< plasticity model, if any
-                             std::shared_ptr<ChDampingKirchhoff> mdamping         ///< damping model, if any
+    ChMaterialShellKirchhoff(std::shared_ptr<ChElasticityKirchhoff> elasticity,  ///< elasticity model
+                             std::shared_ptr<ChPlasticityKirchhoff> plasticity,  ///< plasticity model, if any
+                             std::shared_ptr<ChDampingKirchhoff> damping         ///< damping model, if any
     );
 
     virtual ~ChMaterialShellKirchhoff() {}
@@ -466,16 +467,10 @@ class ChApi ChMaterialShellKirchhoff {
     /// By default no damping.
     std::shared_ptr<ChDampingKirchhoff> GetDamping() { return this->damping; }
 
-    /// Set the density of the shell (kg/m^3)
-    void SetDensity(double md) { this->density = md; }
-    double GetDensity() const { return this->density; }
-
   private:
     std::shared_ptr<ChElasticityKirchhoff> elasticity;
     std::shared_ptr<ChPlasticityKirchhoff> plasticity;
     std::shared_ptr<ChDampingKirchhoff> damping;
-
-    double density;
 };
 
 /// @} fea_elements

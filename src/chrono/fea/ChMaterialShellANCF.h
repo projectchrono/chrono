@@ -14,10 +14,11 @@
 // Material for ANCF shells
 // =============================================================================
 
-#ifndef CHMATERIALSHELLANCF_H
-#define CHMATERIALSHELLANCF_H
+#ifndef CH_MATERIAL_SHELL_ANCF_H
+#define CH_MATERIAL_SHELL_ANCF_H
 
 #include "chrono/fea/ChElementShell.h"
+#include "chrono/fea/ChMaterialFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +28,7 @@ namespace fea {
 
 /// Definition of materials to be used for ANCF shells.
 /// This class implements material properties for a layer.
-class ChApi ChMaterialShellANCF {
+class ChApi ChMaterialShellANCF : public ChMaterialFEA {
   public:
     /// Construct an isotropic material.
     ChMaterialShellANCF(double rho,  ///< material density
@@ -42,9 +43,6 @@ class ChApi ChMaterialShellANCF {
                         const ChVector3d& G    ///< shear moduli (G_xy, G_xz, G_yz)
     );
 
-    /// Return the material density.
-    double GetDensity() const { return m_rho; }
-
   private:
     /// Return the matrix of elastic coefficients.
     const ChMatrix66d& Get_E_eps() const { return m_E_eps; }
@@ -52,7 +50,6 @@ class ChApi ChMaterialShellANCF {
     /// Calculate the matrix of elastic coefficients.
     void Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
-    double m_rho;         ///< density
     ChMatrix66d m_E_eps;  ///< matrix of elastic coefficients
 
     friend class ChElementShellANCF_3833;

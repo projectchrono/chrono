@@ -475,6 +475,7 @@ set(Chrono_fea_materials_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
+    fea/ChMaterialFEA.h
     fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h
     fea/ChMaterialHexaANCF.h

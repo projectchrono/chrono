@@ -22,7 +22,7 @@ ChMaterialShellANCF::ChMaterialShellANCF(double rho,  // material density
                                          double E,    // Young's modulus
                                          double nu    // Poisson ratio
                                          )
-    : m_rho(rho) {
+    : ChMaterialFEA(rho) {
     double G = 0.5 * E / (1 + nu);
     Calc_E_eps(ChVector3d(E), ChVector3d(nu), ChVector3d(G));
 }
@@ -33,15 +33,14 @@ ChMaterialShellANCF::ChMaterialShellANCF(double rho,            // material dens
                                          const ChVector3d& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
                                          const ChVector3d& G    // shear moduli (G_xy, G_xz, G_yz)
                                          )
-    : m_rho(rho) {
+    : ChMaterialFEA(rho) {
     Calc_E_eps(E, nu, G);
 }
 
 // Calculate the matrix of elastic coefficients.
 // Always assume that the material could be orthotropic
 void ChMaterialShellANCF::Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G) {
-    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
-                   (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
+    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() - (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
     m_E_eps.setZero();
     m_E_eps(0, 0) = E.x() * (1.0 - (nu.z() * nu.z()) * E.z() / E.y()) / delta;
     m_E_eps(1, 1) = E.y() * (1.0 - (nu.y() * nu.y()) * E.z() / E.x()) / delta;

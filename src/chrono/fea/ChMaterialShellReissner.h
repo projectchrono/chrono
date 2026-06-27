@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "chrono/fea/ChElementShell.h"
+#include "chrono/fea/ChMaterialFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -456,7 +457,7 @@ class ChApi ChDampingReissnerRayleigh : public ChDampingReissner {
 ///
 /// Thickness is defined when adding a ChMaterialShellReissner material as a layer in a shell finite element (ex. ChElementShellReissner4).
 /// A material can be shared between multiple layers.
-class ChApi ChMaterialShellReissner {
+class ChApi ChMaterialShellReissner : public ChMaterialFEA {
   public:
     ChMaterialShellReissner(std::shared_ptr<ChElasticityReissner> melasticity  ///< elasticity model
     );
@@ -534,16 +535,10 @@ class ChApi ChMaterialShellReissner {
     /// By default no damping.
     std::shared_ptr<ChDampingReissner> GetDamping() { return this->damping; }
 
-    /// Set the density of the shell (kg/m^3)
-    void SetDensity(double md) { this->density = md; }
-    double GetDensity() const { return this->density; }
-
   private:
     std::shared_ptr<ChElasticityReissner> elasticity;
     std::shared_ptr<ChPlasticityReissner> plasticity;
     std::shared_ptr<ChDampingReissner> damping;
-
-    double density;
 };
 
 //------------------------------------------------------------------
@@ -557,14 +552,14 @@ class ChApi ChMaterialShellReissner {
 class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
   public:
     /// Construct an isotropic material.
-    ChMaterialShellReissnerIsothropic(double mdensity,     ///< material density
+    ChMaterialShellReissnerIsothropic(double density,      ///< material density
                                       double E,            ///< Young's modulus
                                       double nu,           ///< Poisson ratio
                                       double alpha = 1.0,  ///< shear factor
                                       double beta = 0.1    ///< torque factor
                                       )
         : ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerIsothropic>(E, nu, alpha, beta)) {
-        this->SetDensity(mdensity);
+        SetDensity(density);
     }
 };
 
@@ -573,7 +568,7 @@ class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
 class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner {
   public:
     /// Construct an orthotropic material
-    ChMaterialShellReissnerOrthotropic(double mdensity,       ///< material density
+    ChMaterialShellReissnerOrthotropic(double density,        ///< material density
                                        double m_E_x,          ///< Young's modulus on x
                                        double m_E_y,          ///< Young's modulus on y
                                        double m_nu_xy,        ///< Poisson ratio xy (for yx it holds: nu_yx*E_x = nu_xy*E_y)
@@ -584,18 +579,18 @@ class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner 
                                        double m_beta = 0.1    ///< torque factor
                                        )
         : ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerOrthotropic>(m_E_x, m_E_y, m_nu_xy, m_G_xy, m_G_xz, m_G_yz, m_alpha, m_beta)) {
-        this->SetDensity(mdensity);
+        SetDensity(density);
     }
 
     /// Construct an orthotropic material as sub case isotropic
-    ChMaterialShellReissnerOrthotropic(double mdensity,       ///< material density
+    ChMaterialShellReissnerOrthotropic(double density,        ///< material density
                                        double m_E,            ///< Young's modulus on x
                                        double m_nu,           ///< Poisson ratio
                                        double m_alpha = 1.0,  ///< shear factor
                                        double m_beta = 0.1    ///< torque factor
                                        )
         : ChMaterialShellReissner(chrono_types::make_shared<ChElasticityReissnerOrthotropic>(m_E, m_nu, m_alpha, m_beta)) {
-        this->SetDensity(mdensity);
+        SetDensity(density);
     }
 };
 
