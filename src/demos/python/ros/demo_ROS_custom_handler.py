@@ -15,9 +15,8 @@
 # Demo: how to create a custom Chrono::ROS handler in Python.
 #
 # Subclass chros.ChROSHandler (a SWIG director) and address any installed ROS 2
-# message type by its type-name string - no rclpy, no bridge code. This is the
-# same handler as the Chrono 9.0 demo (an incrementing Int64 at 1 Hz), but it now
-# runs through the schema bridge instead of in-process rclcpp.
+# message type by its type-name string - no rclpy, no bridge code. The handler
+# below publishes an incrementing Int64 at 1 Hz.
 #
 #   ros2 topic echo /chrono_ros_node/my_topic
 #

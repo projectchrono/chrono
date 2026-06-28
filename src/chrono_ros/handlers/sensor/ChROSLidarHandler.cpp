@@ -61,7 +61,7 @@ bool ChROSLidarHandler::Initialize(ChROSBridge& bridge) {
 }
 
 void ChROSLidarHandler::Tick(double time) {
-    // Big-sensor optimization (§8): skip extraction + transfer when unsubscribed.
+    // Skip extraction + transfer when no ROS subscriber is connected.
     if (m_publisher->GetSubscriptionCount() == 0)
         return;
 
@@ -78,8 +78,6 @@ void ChROSLidarHandler::Tick(double time) {
 // --- PointCloud2 -------------------------------------------------------------
 
 bool ChROSLidarHandler::InitPointCloud2(ChROSBridge& bridge) {
-    // NOTE: 9.0's PointCloud2 impl skipped this filter check (only LaserScan
-    // checked); added here so a missing access filter fails fast (R1).
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterXYZIAccess, ChFilterXYZIAccessName>(m_lidar)) {
         return false;
     }
@@ -148,8 +146,7 @@ void ChROSLidarHandler::TickLaserScan(double time) {
     auto msg = m_publisher->NewMessage();
     msg.SetString("header.frame_id", m_lidar->GetName());
     msg.SetTime("header.stamp", time);
-    // NOTE: 9.0 set angle_min = angle_max = HFOV/2 (a bug - the scan would have
-    // zero angular span); corrected to a symmetric [-HFOV/2, +HFOV/2] sweep.
+    // Symmetric sweep about the sensor's forward axis: [-HFOV/2, +HFOV/2].
     msg.SetDouble("angle_min", -hfov / 2.0);
     msg.SetDouble("angle_max", hfov / 2.0);
     msg.SetDouble("angle_increment", m_width > 0 ? hfov / m_width : 0.0);

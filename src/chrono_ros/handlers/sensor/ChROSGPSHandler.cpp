@@ -64,7 +64,7 @@ void ChROSGPSHandler::Tick(double time) {
 
     auto msg = m_publisher->NewMessage();
     msg.SetString("header.frame_id", m_gps->GetName());
-    msg.SetTime("header.stamp", data.Time);  // sensor timestamp (matches 9.0)
+    msg.SetTime("header.stamp", data.Time);  // sensor timestamp, not the sim step time
     msg.SetDouble("latitude", data.Latitude);
     msg.SetDouble("longitude", data.Longitude);
     msg.SetDouble("altitude", data.Altitude);
@@ -75,7 +75,7 @@ void ChROSGPSHandler::Tick(double time) {
 
 std::array<double, 9> ChROSGPSHandler::CalculateCovariance(const GPSData& gps_data) {
     // The ChGPSSensor does not emit covariance; approximate it from a running mean
-    // of the position in local ENU coordinates (matches 9.0).
+    // of the position in local ENU coordinates.
     auto gps_coord = chrono::ChVector3d(gps_data.Latitude, gps_data.Longitude, gps_data.Altitude);
     auto gps_reference = m_gps->GetGPSReference();
     chrono::sensor::GPS2Cartesian(gps_coord, gps_reference);

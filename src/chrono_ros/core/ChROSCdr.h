@@ -25,9 +25,9 @@
 //   - nested message: its fields in order
 //
 // This codec has zero dependencies (no ROS, no Chrono). Correctness against the
-// actual middleware is enforced at runtime by the VALIDATE_TYPE handshake (see
-// CLAUDE.md section 6.2), which round-trips a sample through the real rmw
-// serialization support and byte-compares.
+// actual middleware is enforced at runtime by the VALIDATE_TYPE handshake, which
+// round-trips a sample through the real rmw serialization support and
+// byte-compares.
 //
 // =============================================================================
 

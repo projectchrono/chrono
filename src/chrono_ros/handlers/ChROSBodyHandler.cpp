@@ -46,10 +46,7 @@ void ChROSBodyHandler::PublishPose(double time) {
     msg.SetDouble("pose.position.y", pos.y());
     msg.SetDouble("pose.position.z", pos.z());
 
-    // ROS geometry_msgs/Quaternion is (x, y, z, w); Chrono is (e0=w, e1=x, e2=y,
-    // e3=z). NOTE: the Chrono 9.0 ChROSBodyHandler mapped these off-by-one
-    // (orientation.x = e0, ... orientation.w = e3), publishing a wrong rotation;
-    // corrected here to match the ROS convention and the TF handler.
+    // ROS geometry_msgs/Quaternion is (x, y, z, w); Chrono is (e0=w, e1=x, e2=y, e3=z).
     msg.SetDouble("pose.orientation.x", rot.e1());
     msg.SetDouble("pose.orientation.y", rot.e2());
     msg.SetDouble("pose.orientation.z", rot.e3());

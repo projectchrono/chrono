@@ -51,7 +51,7 @@ class ChROSSensorHandlerUtilities {
     }
 
     /// Rolling pseudo-covariance of a sample about its running mean (Chrono sensors do not
-    /// emit covariance, so handlers approximate it). Matches the Chrono 9.0 computation.
+    /// emit covariance, so handlers approximate it).
     template <typename T = double, unsigned long N = 3>
     static std::array<T, N * N> CalculateCovariance(const std::array<T, N>& data,
                                                     const std::array<T, N>& mean,

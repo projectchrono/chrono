@@ -36,9 +36,9 @@ class ChROSPublisher;
 /// @{
 
 /// Publishes a ChCameraSensor as sensor_msgs/msg/Image (rgba8). The camera must
-/// carry a ChFilterRGBA8Access filter. Constructors match 9.0. The pixel buffer
-/// is moved to the message as one bulk blob (zero-copy into the codec); the
-/// extraction is skipped entirely when no ROS subscriber is connected.
+/// carry a ChFilterRGBA8Access filter. The pixel buffer is moved to the message as
+/// one bulk blob (zero-copy into the codec); the extraction is skipped entirely
+/// when no ROS subscriber is connected.
 class CH_ROS_API ChROSCameraHandler : public ChROSHandler {
   public:
     /// Tick at the sensor's own update rate.

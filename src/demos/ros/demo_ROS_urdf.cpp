@@ -20,8 +20,8 @@
 //   /tf                 (tf2_msgs/TFMessage)        - per-link transforms
 //   /clock              (rosgraph_msgs/Clock)
 //
-// A Chrono VSG/Irrlicht window is also opened (as in 9.0/10.0); on a headless
-// host it degrades to running without the window.
+// A Chrono VSG/Irrlicht window is also opened; on a headless host it degrades to
+// running without the window.
 //
 // =============================================================================
 

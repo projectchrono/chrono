@@ -19,7 +19,6 @@
 // (see ChROSControl.h); PUBLISH/RECEIVED frames carry a ROS serialized
 // message verbatim. The dispatcher switches on these kinds and nothing else -
 // per-topic extensibility lives entirely in the data, never in this enum.
-// (See CLAUDE.md section 5.)
 //
 // =============================================================================
 

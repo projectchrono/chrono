@@ -20,7 +20,7 @@
 //  - ValidateSample: round-trip a CDR sample through the real rmw
 //    serialization support and byte-compare, so a sim-side encoding bug or a
 //    middleware format change aborts initialization instead of corrupting
-//    topics (CLAUDE.md section 6.2).
+//    topics.
 //
 // =============================================================================
 

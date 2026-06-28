@@ -40,8 +40,6 @@ class ChROSPublisher;
 ///     <topic>/twist  geometry_msgs/msg/TwistStamped  (linear + angular velocity)
 ///     <topic>/accel  geometry_msgs/msg/AccelStamped  (linear + angular accel.)
 /// With the default base topic "~/" these resolve to ~/pose, ~/twist, ~/accel.
-/// Schema-driven equivalent of the Chrono 9.0 handler; the call interface is
-/// unchanged.
 class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
   public:
     /// @param update_rate publish rate (Hz, sim time); 0 = every step.

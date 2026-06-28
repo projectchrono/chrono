@@ -3,16 +3,15 @@
 #
 # Cannot be used stand-alone (it is loaded by the parent CMake configuration)
 #
-# Schema-driven architecture (see CLAUDE.md in this directory):
+# Schema-driven architecture:
 #   chrono_ros_core   internal STATIC lib - protocol, CDR codec, schema,
 #                     message codec, shm transport. Depends on NEITHER
 #                     Chrono NOR ROS.
 #   Chrono_ros        the simulation-side SHARED lib - public API (manager,
 #                     bridge, handlers). Links Chrono + chrono_ros_core.
-#                     Contains ZERO ROS symbols (invariant I1).
+#                     Contains ZERO ROS symbols.
 #   chrono_ros_node   the bridge subprocess - generic rclcpp node. Links
-#                     ROS + chrono_ros_core. Contains ZERO Chrono symbols
-#                     (invariant I8).
+#                     ROS + chrono_ros_core. Contains ZERO Chrono symbols.
 #=============================================================================
 
 option(CH_ENABLE_MODULE_ROS "Enable the Chrono::ROS module" OFF)
@@ -222,8 +221,8 @@ endif()
 
 # Sensor handlers link Chrono_sensor. PUBLIC: their public headers include
 # chrono_sensor headers, so consumers (demos, the PyChrono module) need its
-# include path. Chrono_sensor is sim-side and ROS-free, so this does not affect
-# the isolation invariant (I1).
+# include path. Chrono_sensor is sim-side and ROS-free, so this keeps the sim
+# process free of ROS symbols.
 if(CH_ENABLE_MODULE_SENSOR)
   target_link_libraries(Chrono_ros PUBLIC Chrono_sensor)
 endif()

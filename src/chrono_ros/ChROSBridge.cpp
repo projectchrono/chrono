@@ -59,7 +59,7 @@ bool SchemaContainsWString(const core::Schema& schema) {
 
 /// Fill every field of a message deterministically, exercising each
 /// alignment/sequence path of the sim-side serializer. Used to build the
-/// VALIDATE_TYPE sample (CLAUDE.md section 6.2).
+/// VALIDATE_TYPE sample.
 void FillSampleMessage(core::MessageBuilder& builder, const core::Schema& schema, int32_t type_index, uint32_t& seed) {
     for (const auto& field : schema.At(type_index).fields) {
         seed++;

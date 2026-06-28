@@ -5,11 +5,11 @@
 //   SWIG configuration file for the Chrono::ROS Python wrapper
 //   ('import pychrono.ros').
 //
-//   Schema-driven API (see src/chrono_ros/CLAUDE.md): the module wraps a small,
-//   fixed set of classes - manager, bridge, message, handles, callbacks - and
-//   links NO ROS libraries (the ROS side lives in the chrono_ros_node
-//   subprocess). New data pathways are authored entirely in Python by
-//   subclassing ChROSHandler / ChROSSubscriptionCallback (SWIG directors).
+//   Schema-driven API: the module wraps a small, fixed set of classes - manager,
+//   bridge, message, handles, callbacks - and links NO ROS libraries (the ROS
+//   side lives in the chrono_ros_node subprocess). New data pathways are authored
+//   entirely in Python by subclassing ChROSHandler / ChROSSubscriptionCallback
+//   (SWIG directors).
 //
 ///////////////////////////////////////////////////
 
@@ -104,9 +104,9 @@
 // DriverInputs handler. Its ctor takes a chrono::vehicle::ChDriver (wrapped in
 // pychrono.vehicle). We do NOT %import the vehicle module: SWIG treats ChDriver
 // as an opaque shared_ptr argument and the process-global SWIG type registry
-// resolves the veh.ChDriver proxy at runtime (the same cross-module mechanism
-// upstream 9.0 relied on). The header's #include of ChDriver.h is compiled by
-// the C++ compiler against the Chrono_vehicle include dirs the ros target links.
+// resolves the veh.ChDriver proxy at runtime. The header's #include of
+// ChDriver.h is compiled by the C++ compiler against the Chrono_vehicle include
+// dirs the ros target links.
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 #endif
 

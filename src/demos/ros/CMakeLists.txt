@@ -1,8 +1,7 @@
 
-# NOTE (schema-driven rewrite, see src/chrono_ros/CLAUDE.md): demos are restored
-# in Phase 5 as the built-in handlers they exercise are re-delivered. Each demo
-# is gated on the Chrono modules its handlers require, so the set scales with the
-# enabled modules. Core demos (custom handler, hydraulic crane) are always built.
+# Each demo is gated on the Chrono modules its handlers require, so the set scales
+# with the enabled modules. Core demos (custom handler, hydraulic crane) are always
+# built.
 set(DEMOS
   demo_ROS_custom_handler
   demo_ROS_hydraulic_crane

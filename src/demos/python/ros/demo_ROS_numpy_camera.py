@@ -20,13 +20,13 @@
 # copied in one shot, never element-by-element. On the receive side the data is
 # read back without copying via msg.GetMemoryView(...), wrapped in
 # numpy.frombuffer. This is the same mechanism the built-in camera/lidar
-# handlers (Phase 5) use; nothing here is camera-specific.
+# handlers use; nothing here is camera-specific.
 #
 # Watch it live with:
 #   ros2 topic hz /camera/image
 #   rviz2   (add an Image display on /camera/image)
 #
-# For the performance proof, bump WIDTH/HEIGHT to 3840x2160 (4K) below.
+# To check throughput at 4K, bump WIDTH/HEIGHT to 3840x2160 below.
 #
 # =============================================================================
 

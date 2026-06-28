@@ -54,8 +54,7 @@ class ChROSPublisher;
 /// @{
 
 /// Publishes transforms as tf2_msgs/msg/TFMessage on the "/tf" topic (the topic
-/// tf2 consumers expect). Schema-driven equivalent of the Chrono 9.0 handler;
-/// the call interface (constructor and the AddTransform overloads) is unchanged.
+/// tf2 consumers expect).
 class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     typedef std::pair<chrono::ChFrame<>, std::string> ChFrameTransform;
     typedef std::pair<std::shared_ptr<chrono::ChBody>, std::string> ChBodyTransform;

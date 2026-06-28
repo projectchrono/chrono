@@ -36,8 +36,8 @@ ChROSDriverInputsHandler::ChROSDriverInputsHandler(double update_rate,
     : ChROSHandler(update_rate), m_driver(driver), m_topic_name(topic_name) {}
 
 bool ChROSDriverInputsHandler::Initialize(ChROSBridge& bridge) {
-    // The callback fires inside ChROSManager::Update() on the simulation thread
-    // (invariant I5), the same thread as Tick(), so the stored inputs need no lock.
+    // The callback fires inside ChROSManager::Update() on the simulation thread,
+    // the same thread as Tick(), so the stored inputs need no lock.
     m_subscription = bridge.CreateSubscription(
         m_topic_name, "chrono_ros_interfaces/msg/DriverInputs",
         [this](const ChROSMessageView& msg) {

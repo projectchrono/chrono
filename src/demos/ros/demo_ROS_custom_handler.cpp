@@ -16,11 +16,8 @@
 //
 // Chrono::ROS is schema-driven: a handler addresses any installed ROS 2 message
 // type by its type-name string and sets fields by name - no bridge code, no
-// recompiling Chrono, no rclcpp. The custom handler below is the same one as the
-// Chrono 9.0 demo (an incrementing Int64 at 1 Hz on "~/my_topic"); only the
-// publish call changed:
-//   9.0:  interface->GetNode()->create_publisher<std_msgs::msg::Int64>(topic, 1);
-//   now:  bridge.CreatePublisher(topic, "std_msgs/msg/Int64");
+// recompiling Chrono, no rclcpp. The custom handler below publishes an
+// incrementing Int64 at 1 Hz on "~/my_topic".
 //
 //   ros2 topic echo /chrono_ros_node/my_topic
 //

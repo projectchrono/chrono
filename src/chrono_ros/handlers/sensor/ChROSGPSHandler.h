@@ -38,7 +38,6 @@ class ChROSPublisher;
 
 /// Publishes a ChGPSSensor as sensor_msgs/msg/NavSatFix. The position covariance
 /// is approximated from a running mean in ENU space (the sensor emits none).
-/// Constructors match 9.0.
 class CH_ROS_API ChROSGPSHandler : public ChROSHandler {
   public:
     /// Tick at the sensor's own update rate.

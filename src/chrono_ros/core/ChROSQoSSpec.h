@@ -15,7 +15,7 @@
 // Quality-of-service specification shared by the simulation process and
 // chrono_ros_node. Deliberately minimal (reliability, durability, depth):
 // these three cover every built-in handler and the common user cases. The
-// node maps this onto rclcpp::QoS. (See CLAUDE.md section 6.3.)
+// node maps this onto rclcpp::QoS.
 //
 // =============================================================================
 

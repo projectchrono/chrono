@@ -22,12 +22,12 @@
 //   ros2 topic hz   /chrono_ros_node/output/camera/data/image
 //   ros2 topic echo /chrono_ros_node/output/lidar/data/pointcloud --field width
 //
-// NOTE on visualization: like the 9.0/10.0 demos, this pushes Chrono's own
-// ChFilterVisualize (camera) and ChFilterVisualizePointCloud (lidar) preview
-// windows alongside the data-access filters the ROS handlers read. On a headless
-// host (e.g. inside Docker) these log "XDG_RUNTIME_DIR is invalid" but the
-// simulation and ROS publishing continue normally - the preview windows simply
-// don't open. Drop those two PushFilter calls if you want to silence the warning.
+// NOTE on visualization: this pushes Chrono's own ChFilterVisualize (camera) and
+// ChFilterVisualizePointCloud (lidar) preview windows alongside the data-access
+// filters the ROS handlers read. On a headless host (e.g. inside Docker) these
+// log "XDG_RUNTIME_DIR is invalid" but the simulation and ROS publishing continue
+// normally - the preview windows simply don't open. Drop those two PushFilter
+// calls if you want to silence the warning.
 //
 // =============================================================================
 
@@ -110,9 +110,9 @@ int main(int argc, char* argv[]) {
     b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
     sensor_manager->scene->SetBackground(b);
 
-    // Camera (bump to 3840x2160 for the 4K throughput benchmark). The
+    // Camera (bump to 3840x2160 for a 4K throughput check). The
     // ChFilterRGBA8Access feeds the ROS handler; ChFilterVisualize is Chrono's
-    // own preview window (as in the 9.0/10.0 demos).
+    // own preview window.
     auto cam = chrono_types::make_shared<ChCameraSensor>(ground_body, 30, offset_pose, 1280, 720, CH_PI / 3.);
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720));
@@ -152,9 +152,8 @@ int main(int argc, char* argv[]) {
 
     // ------------
 
-    // ROS manager + built-in handlers (call interfaces match 9.0). Topic names
-    // follow the 9.0 demo. Per-sensor TF frames are published below via the
-    // ChROSTFHandler AddSensor overload.
+    // ROS manager + built-in handlers. Per-sensor TF frames are published below
+    // via the ChROSTFHandler AddSensor overload.
     auto ros_manager = chrono_types::make_shared<ChROSManager>();
     ros_manager->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
 
@@ -184,7 +183,7 @@ int main(int argc, char* argv[]) {
     ros_manager->RegisterHandler(chrono_types::make_shared<ChROSGPSHandler>(gps, "~/output/gps/data"));
 
     // One TF handler broadcasting each sensor's frame (its offset pose) relative
-    // to the body it's mounted on (matches the 9.0 demo).
+    // to the body it's mounted on.
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
     tf_handler->AddSensor(cam, ground_body->GetName(), "camera");
     tf_handler->AddSensor(lidar, ground_body->GetName(), "lidar");

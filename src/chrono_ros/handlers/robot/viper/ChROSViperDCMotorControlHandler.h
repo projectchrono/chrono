@@ -41,9 +41,8 @@ class ChROSSubscription;
 /// Subscribes to chrono_ros_interfaces/msg/ViperDCMotorControl and applies the
 /// received steering / lifting / motor-parameter commands to a Viper
 /// ViperDCMotorControl driver. Another example of custom message-package support
-/// (addressed by type-name string; no compiled message types). Call interface
-/// matches 9.0. Wrapped for Python (pychrono.ros): the ViperDCMotorControl
-/// argument crosses from pychrono.robot via SWIG cross-module type sharing.
+/// (addressed by type-name string; no compiled message types). Wrapped for Python
+/// (pychrono.ros): the ViperDCMotorControl argument crosses from pychrono.robot.
 class CH_ROS_API ChROSViperDCMotorControlHandler : public ChROSHandler {
   public:
     ChROSViperDCMotorControlHandler(double update_rate,
@@ -61,7 +60,7 @@ class CH_ROS_API ChROSViperDCMotorControlHandler : public ChROSHandler {
     std::shared_ptr<ChROSSubscription> m_subscription;
 
     // Most recent commands (written in the callback, applied in Tick; both run on
-    // the simulation thread inside ChROSManager::Update(), so no lock - cf. I5).
+    // the simulation thread inside ChROSManager::Update(), so no lock).
     struct SteeringCommand {
         double angle;
         uint8_t wheel_id;  // ViperWheelID value; V_UNDEFINED (=4) means "all wheels"

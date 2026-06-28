@@ -39,8 +39,7 @@ class ChROSIMUHandler;
 /// @{
 
 /// Publishes a ChAccelerometerSensor as sensor_msgs/msg/Imu (only the linear
-/// acceleration fields are populated). Schema-driven port of the 9.0 handler;
-/// the constructors match 9.0.
+/// acceleration fields are populated).
 class CH_ROS_API ChROSAccelerometerHandler : public ChROSHandler {
   public:
     /// Tick at the sensor's own update rate.

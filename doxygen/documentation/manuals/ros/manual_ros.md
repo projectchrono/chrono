@@ -7,13 +7,16 @@ Chrono::ROS Reference Manual {#manual_ros}
 
 More coming soon...
 
-## Changelog as of Chrono 9.0
+## Changelog as of Chrono 10.0
 
-The Chrono::ROS module has been refactored to resolve and prevent any future symbol collisions between the ROS 2 and Chrono process spaces. The new version moves the ROS 2 node into a separate process and serializes data from Chrono to ROS via shared memory (SHM). This enhances the separation between Chrono and ROS, further avoiding ROS-induced simulation slowdowns.
-
+The Chrono::ROS bridge is now schema-driven. A message type is identified by its ROS type-name string (e.g. `sensor_msgs/msg/Image`) and serialized to and from CDR by Chrono itself over the shared-memory transport; the ROS subprocess is generic and is no longer compiled per message type. Message fields are set and read by name.
 
 ### How does this change impact me?
 
-If you did not use any custom handlers in your project by implementing and overriding the `custom_handler` class, this change does not impact your project. Any project that only uses Sensor/Vehicle/Body handlers built into Chrono::ROS will continue to function without any API changes.
+If your project only uses the built-in handlers (Clock, Body, TF, sensor, vehicle, robot), their constructor and method interfaces are unchanged and your project continues to work as before.
 
-If you did implement a custom handler, you will have to port your handler to follow the new design. Please follow the step-by-step guide here: [Chrono::ROS page on Custom Handlers](@ref custom_handlers).
+If you implemented a custom handler against the previous design, it must be rewritten. A handler is now a single `ChROSHandler` subclass that creates publishers and subscriptions on a `ChROSBridge` and sets message fields by name — there is no IPC struct, message-type enum, subprocess file, or Chrono rebuild involved. Custom handlers can now also be written in Python. See the [Custom Handlers](@ref custom_handlers) guide.
+
+## Changelog as of Chrono 9.0
+
+The Chrono::ROS module was refactored to resolve and prevent symbol collisions between the ROS 2 and Chrono process spaces, moving the ROS 2 node into a separate process connected to the simulation over shared memory. This separation is retained by the schema-driven bridge above.

@@ -35,8 +35,7 @@ class ChROSPublisher;
 
 /// Publishes rosgraph_msgs/msg/Clock at each simulation step (by default), so
 /// that ROS nodes consuming /clock advance on simulation time rather than wall
-/// time. Schema-driven equivalent of the Chrono 9.0 handler of the same name;
-/// the call interface is unchanged.
+/// time.
 class CH_ROS_API ChROSClockHandler : public ChROSHandler {
   public:
     /// The update rate defaults to 0 (tick on every simulation step). The topic

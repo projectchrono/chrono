@@ -55,9 +55,9 @@ void ChROSIMUHandler::SetMagnetometerHandler(std::shared_ptr<ChROSMagnetometerHa
 }
 
 void ChROSIMUHandler::Tick(double time) {
-    // 9.0 required all three sub-handlers to be set before ticking. The magnetometer
-    // is consumed only to preserve that contract - sensor_msgs/Imu has no magnetic
-    // field, so its data is not packed (candidate to relax: make mag optional).
+    // All three sub-handlers are required before ticking. The magnetometer is only
+    // checked for presence - sensor_msgs/Imu has no magnetic field, so its data is
+    // not packed.
     if (!m_accel_handler || !m_gyro_handler || !m_mag_handler) {
         std::cerr << "IMU handler not fully configured (needs accelerometer, gyroscope, and "
                      "magnetometer sub-handlers). Not ticking."

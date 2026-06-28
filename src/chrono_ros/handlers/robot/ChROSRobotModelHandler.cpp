@@ -34,7 +34,7 @@ namespace ros {
 
 #ifdef CHRONO_HAS_URDF
 // Re-emits the URDF with every mesh/texture filename rewritten to an absolute
-// file:// URI, which is what RViz requires. Ported from the Chrono 9.0 handler.
+// file:// URI, which is what RViz requires.
 namespace {
 class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::CustomProcessor {
   public:
@@ -90,9 +90,7 @@ class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::Cu
 #endif
 
 // update_rate 0 -> Tick runs every step, but we publish exactly once (the model
-// is static) and rely on the latched QoS to deliver to late subscribers. (9.0
-// passed a huge update_rate, which actually republished the string every step;
-// this is the efficient equivalent.)
+// is static) and rely on the latched QoS to deliver to late subscribers.
 ChROSRobotModelHandler::ChROSRobotModelHandler(const std::string& robot_model, const std::string& topic_name)
     : ChROSHandler(0), m_topic_name(topic_name), m_robot_model(robot_model) {}
 

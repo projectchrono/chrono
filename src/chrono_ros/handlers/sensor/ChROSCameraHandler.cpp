@@ -54,9 +54,7 @@ bool ChROSCameraHandler::Initialize(ChROSBridge& bridge) {
 }
 
 void ChROSCameraHandler::Tick(double time) {
-    // Big-sensor optimization (§8): skip extraction + transfer entirely when no
-    // ROS subscriber is connected (the new design exposes the subscription count;
-    // the 9.0 handler always paid the per-frame copy).
+    // Skip extraction + transfer entirely when no ROS subscriber is connected.
     if (m_publisher->GetSubscriptionCount() == 0)
         return;
 

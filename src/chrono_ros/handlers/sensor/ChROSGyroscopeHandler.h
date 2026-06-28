@@ -39,7 +39,7 @@ class ChROSIMUHandler;
 /// @{
 
 /// Publishes a ChGyroscopeSensor as sensor_msgs/msg/Imu (only the angular
-/// velocity fields are populated). Constructors match 9.0.
+/// velocity fields are populated).
 class CH_ROS_API ChROSGyroscopeHandler : public ChROSHandler {
   public:
     ChROSGyroscopeHandler(std::shared_ptr<chrono::sensor::ChGyroscopeSensor> imu, const std::string& topic_name);

@@ -17,7 +17,7 @@
 // Owns the IPC channel and the chrono_ros_node subprocess; fetches runtime
 // type schemas, validates the wire encoding per type at initialization, and
 // pumps serialized messages in both directions. Contains zero ROS code - the
-// ROS side lives entirely in the subprocess (see CLAUDE.md sections 3-6).
+// ROS side lives entirely in the subprocess.
 //
 // Thread model: NOT thread-safe; call everything from the simulation thread.
 // Subscription callbacks fire synchronously inside ProcessIncoming() (i.e.

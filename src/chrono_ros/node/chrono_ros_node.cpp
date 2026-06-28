@@ -19,7 +19,7 @@
 // publishers/subscriptions on Advertise, and pumps opaque serialized message
 // bytes between the IPC channel and the ROS graph. It contains no
 // per-message-type code and no Chrono code, and never needs to be modified
-// to support new topics or message packages (CLAUDE.md sections 3-5).
+// to support new topics or message packages.
 //
 // =============================================================================
 

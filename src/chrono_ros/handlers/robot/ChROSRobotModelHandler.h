@@ -41,8 +41,7 @@ class ChROSPublisher;
 /// Publishes a robot model (a URDF string) on /robot_description as
 /// std_msgs/msg/String with latched (transient-local) QoS, so late-joining
 /// consumers such as RViz still receive it. The model is static, so it is
-/// published once and the latched QoS handles late subscribers. Schema-driven
-/// port of the 9.0 handler; the string-ctor interface is unchanged. A second
+/// published once and the latched QoS handles late subscribers. A second
 /// convenience ctor takes a ChParserURDF and resolves mesh URIs (below).
 class CH_ROS_API ChROSRobotModelHandler : public ChROSHandler {
   public:

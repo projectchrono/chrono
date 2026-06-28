@@ -110,7 +110,7 @@ def main():
 
     sensor_manager.Update()
 
-    # ROS manager + built-in handlers (call interfaces match 9.0).
+    # ROS manager + built-in handlers.
     ros_manager = chros.ChROSManager()
     ros_manager.RegisterHandler(chros.ChROSClockHandler())
 

@@ -38,7 +38,8 @@ ChROSViperDCMotorControlHandler::ChROSViperDCMotorControlHandler(double update_r
     : ChROSHandler(update_rate), m_driver(driver), m_topic_name(topic_name) {}
 
 bool ChROSViperDCMotorControlHandler::Initialize(ChROSBridge& bridge) {
-    // Callback fires on the simulation thread inside Update() (I5) - no lock.
+    // Callback fires on the simulation thread inside Update(), the same thread as
+    // Tick(), so the stored commands need no lock.
     m_subscription = bridge.CreateSubscription(
         m_topic_name, "chrono_ros_interfaces/msg/ViperDCMotorControl",
         [this](const ChROSMessageView& msg) {

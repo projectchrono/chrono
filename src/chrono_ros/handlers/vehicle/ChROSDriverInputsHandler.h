@@ -39,10 +39,10 @@ class ChROSSubscription;
 /// steering/throttle/braking to a ChVehicle ChDriver. This exercises a CUSTOM
 /// ROS message package (chrono_ros_interfaces) end-to-end through the schema
 /// bridge - addressed purely by type-name string, no compiled message types in
-/// Chrono. Call interface matches 9.0.
+/// Chrono.
 ///
 /// Wrapped for Python (pychrono.ros): the ChDriver argument crosses from
-/// pychrono.vehicle via SWIG's cross-module type sharing - see demo_ROS_vehicle.py.
+/// pychrono.vehicle - see demo_ROS_vehicle.py.
 class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
   public:
     /// Tick every simulation step (update_rate 0).

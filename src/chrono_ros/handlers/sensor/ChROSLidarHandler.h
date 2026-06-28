@@ -35,14 +35,13 @@ class ChROSPublisher;
 /// @addtogroup ros_sensor_handlers
 /// @{
 
-/// Output message type for ChROSLidarHandler (matches 9.0).
+/// Output message type for ChROSLidarHandler.
 enum class ChROSLidarHandlerMessageType { LASER_SCAN, POINT_CLOUD2 };
 
 /// Publishes a ChLidarSensor as either sensor_msgs/msg/PointCloud2 (xyzi point
 /// cloud, the default) or sensor_msgs/msg/LaserScan (a single ring of ranges +
 /// intensities). PointCloud2 requires a ChFilterXYZIAccess filter; LaserScan
-/// requires a ChFilterDIAccess filter. Constructors match 9.0. (9.0 used a pimpl
-/// per message type; this folds the two into one class with a mode switch.)
+/// requires a ChFilterDIAccess filter.
 class CH_ROS_API ChROSLidarHandler : public ChROSHandler {
   public:
     /// Tick at the sensor's own update rate.

@@ -18,7 +18,7 @@
 // rosidl introspection typesupport of a message type, then shipped to the
 // simulation process as a compact binary blob (the TYPE_SCHEMA payload).
 // The simulation process uses it to serialize/deserialize CDR without any
-// ROS code or compiled message types (see CLAUDE.md section 6).
+// ROS code or compiled message types.
 //
 // The blob format is internal to chrono_ros: both endpoints are always built
 // from this same header, so it carries a version field for sanity checking

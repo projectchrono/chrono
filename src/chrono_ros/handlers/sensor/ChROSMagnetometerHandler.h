@@ -38,7 +38,7 @@ class ChROSIMUHandler;
 /// @addtogroup ros_sensor_handlers
 /// @{
 
-/// Publishes a ChMagnetometerSensor as sensor_msgs/msg/MagneticField. Constructors match 9.0.
+/// Publishes a ChMagnetometerSensor as sensor_msgs/msg/MagneticField.
 class CH_ROS_API ChROSMagnetometerHandler : public ChROSHandler {
   public:
     ChROSMagnetometerHandler(std::shared_ptr<chrono::sensor::ChMagnetometerSensor> imu, const std::string& topic_name);

@@ -41,7 +41,7 @@ class ChROSMagnetometerHandler;
 /// handler into one sensor_msgs/msg/Imu. The sub-handlers are registered with
 /// the manager separately (they tick and publish independently); this handler
 /// just reads their most recent extracted values. Set the sub-handlers' rate
-/// >= this handler's rate so their data is fresh. Call/interface match 9.0.
+/// >= this handler's rate so their data is fresh.
 class CH_ROS_API ChROSIMUHandler : public ChROSHandler {
   public:
     ChROSIMUHandler(double update_rate, const std::string& topic_name, const std::string& frame_id = "imu");
