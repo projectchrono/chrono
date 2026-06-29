@@ -248,21 +248,41 @@ void SCMTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCa
 // Initialize the terrain as a flat grid.
 void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
     m_loader->Initialize(sizeX, sizeY, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
+
 }
 
 // Initialize the terrain from a specified height map.
 void SCMTerrain::Initialize(const std::string& heightmap_file, double sizeX, double sizeY, double hMin, double hMax, double delta) {
     m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
+
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
 void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
     m_loader->Initialize(mesh_file, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
+
 }
 
 // Initialize the terrain from a specified triangular mesh file.
 void SCMTerrain::Initialize(const ChTriangleMeshConnected& trimesh, double delta) {
     m_loader->Initialize(trimesh, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
+
 }
 
 // Get the heights of modified grid nodes.
@@ -1374,18 +1394,10 @@ void SCMLoader::ComputeInternalForces() {
 #ifdef CHRONO_VEHICLE_SCM_GPU
     bool scm_used_gpu = false;
     if (scm_gpu::Enabled() && !m_soil_fun && hits.size() >= scm_gpu_min_hits()) {
-        std::vector<ChVector2i> keys;
-        std::vector<scm_gpu::ScmHitRecord> hit_vec;
-        keys.reserve(hits.size());
-        hit_vec.reserve(hits.size());
-        for (const auto& h : hits) {
-            keys.push_back(h.first);
-            hit_vec.push_back(h.second);
-        }
         std::vector<double> patch_oob(contact_patches.size());
         for (size_t ip = 0; ip < contact_patches.size(); ++ip)
             patch_oob[ip] = contact_patches[ip].oob;
-        scm_used_gpu = ComputeContactForcesGpu(keys, hit_vec, patch_oob);
+        scm_used_gpu = ComputeContactForcesGpu(hits, patch_oob);
     }
     if (!scm_used_gpu) {
 #endif

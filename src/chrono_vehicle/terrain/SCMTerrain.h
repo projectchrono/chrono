@@ -559,8 +559,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     void ComputeInternalForces();
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
-    bool ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
-                                 const std::vector<scm_gpu::ScmHitRecord>& hits,
+    bool ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits,
                                  const std::vector<double>& patch_oob);
 #endif
 

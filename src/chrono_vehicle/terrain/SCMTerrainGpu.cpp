@@ -1,8 +1,11 @@
-// SCMTerrainGpu.cpp — SCMLoader::ComputeContactForcesGpu implementation.
+// SCMTerrainGpu.cpp — SCMLoader::ComputeContactForcesGpu (v2: fused pack/scatter, dense body reduce).
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
 
+#include <chrono>
+#include <cstdio>
 #include <cstdlib>
+#include <unordered_map>
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
@@ -21,25 +24,46 @@ bool Enabled() {
 
 static ScmGpuContext* GpuContext() {
     static ScmGpuContext* ctx = scm_gpu_create(0);
+    static bool primed = false;
+    if (!primed) {
+        scm_gpu_reserve(ctx, scm_gpu_reserve_hits());
+        scm_gpu_warmup(ctx);
+        primed = true;
+    }
     return ctx;
+}
+
+void PrimeBuffers() {
+    if (!Enabled())
+        return;
+    (void)GpuContext();
+}
+
+static int32_t BodySlot(std::vector<ChBody*>& bodies, ChBody* body) {
+    for (std::size_t i = 0; i < bodies.size(); ++i) {
+        if (bodies[i] == body)
+            return static_cast<int32_t>(i);
+    }
+    bodies.push_back(body);
+    return static_cast<int32_t>(bodies.size() - 1);
 }
 
 }  // namespace scm_gpu
 
-bool SCMLoader::ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
-                                        const std::vector<scm_gpu::ScmHitRecord>& hits,
-                                        const std::vector<double>& patch_oob) {
+bool SCMLoader::ComputeContactForcesGpu(
+    const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits,
+    const std::vector<double>& patch_oob) {
+    using Clock = std::chrono::steady_clock;
+
     const std::size_t n = hits.size();
-    if (n == 0 || keys.size() != n)
+    if (n == 0)
         return true;
 
     if (n < scm_gpu_min_hits())
         return false;
 
-    for (const auto& rec : hits) {
-        if (!dynamic_cast<ChBody*>(rec.contactable))
-            return false;
-    }
+    const bool profile = (std::getenv("CHRONO_SCM_GPU_PROFILE") && std::getenv("CHRONO_SCM_GPU_PROFILE")[0] == '1');
+    const auto t0 = Clock::now();
 
     ScmGpuContext* ctx = scm_gpu::GpuContext();
     scm::gpu::HitInput* batch_in = scm_gpu_prepare_input(ctx, n);
@@ -47,7 +71,10 @@ bool SCMLoader::ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
     if (!batch_in || !batch_out)
         return false;
 
-    std::vector<ChBody*> bodies(n);
+    std::vector<ChBody*> bodies;
+    bodies.reserve(64);
+    std::vector<ChVector2i> keys;
+    keys.reserve(n);
 
     scm::gpu::SoilParams soil{};
     soil.bekker_kphi = m_Bekker_Kphi;
@@ -61,20 +88,24 @@ bool SCMLoader::ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
     soil.area = m_area;
     soil.dt = GetSystem()->GetStep();
 
-    for (std::size_t idx = 0; idx < n; ++idx) {
-        const auto& rec = hits[idx];
-        const ChVector2i& ij = keys[idx];
+    std::size_t idx = 0;
+    for (const auto& h : hits) {
+        auto* body = dynamic_cast<ChBody*>(h.second.contactable);
+        if (!body)
+            return false;
+
+        const ChVector2i& ij = h.first;
+        keys.push_back(ij);
+        const int32_t bid = scm_gpu::BodySlot(bodies, body);
+
         auto& nr = m_grid_map.at(ij);
         const double ca = nr.normal.z();
 
-        ChBody* body = dynamic_cast<ChBody*>(rec.contactable);
-        bodies[idx] = body;
+        const auto hit_point_loc = m_frame.TransformPointParentToLocal(h.second.abs_point);
 
-        auto hit_point_loc = m_frame.TransformPointParentToLocal(rec.abs_point);
-
-        ChVector3d point_local(ij.x() * m_delta, ij.y() * m_delta, nr.level);
-        ChVector3d point_abs = m_frame.TransformPointLocalToParent(point_local);
-        ChVector3d speed_abs = rec.contactable->GetContactPointSpeed(point_abs);
+        const ChVector3d point_local(ij.x() * m_delta, ij.y() * m_delta, nr.level);
+        const ChVector3d point_abs = m_frame.TransformPointLocalToParent(point_local);
+        const ChVector3d speed_abs = h.second.contactable->GetContactPointSpeed(point_abs);
 
         ChVector3d N = m_frame.TransformDirectionLocalToParent(nr.normal);
         const double Vn = Vdot(speed_abs, N);
@@ -82,8 +113,8 @@ bool SCMLoader::ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
         T.Normalize();
 
         double patch_oob_val = 0.0;
-        if (rec.patch_id >= 0 && rec.patch_id < static_cast<int>(patch_oob.size()))
-            patch_oob_val = patch_oob[static_cast<std::size_t>(rec.patch_id)];
+        if (h.second.patch_id >= 0 && h.second.patch_id < static_cast<int>(patch_oob.size()))
+            patch_oob_val = patch_oob[static_cast<std::size_t>(h.second.patch_id)];
 
         scm::gpu::HitInput& in = batch_in[idx];
         in = {};
@@ -109,32 +140,43 @@ bool SCMLoader::ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
         in.bx = body->GetPos().x();
         in.by = body->GetPos().y();
         in.bz = body->GetPos().z();
-        in.body_id = static_cast<int32_t>(idx);
+        in.body_id = bid;
         in.active = 1;
 
-        if (auto cprops = rec.contactable->GetUserData<SCMContactableData>()) {
+        if (auto cprops = body->GetUserData<SCMContactableData>()) {
             in.c_cohesion = cprops->Mohr_cohesion;
             in.c_mu = cprops->Mohr_mu;
             in.c_janosi = cprops->Janosi_shear;
             in.area_ratio = cprops->area_ratio;
         }
+
+        ++idx;
     }
+
+    const auto t1 = Clock::now();
 
     const int gpu_rc = scm_gpu_compute_forces_staged(ctx, soil, n);
     if (gpu_rc != 0) {
-        std::fprintf(stderr, "SCM GPU: scm_gpu_compute_forces_staged failed rc=%d n=%zu\n", gpu_rc,
-                     static_cast<std::size_t>(n));
+        std::fprintf(stderr, "SCM GPU: scm_gpu_compute_forces_staged failed rc=%d n=%zu\n", gpu_rc, n);
         return false;
     }
 
+    const auto t2 = Clock::now();
+
+    const std::size_t n_bodies = bodies.size();
+    std::vector<ChVector3d> force_acc(n_bodies, ChVector3d(0, 0, 0));
+    std::vector<ChVector3d> moment_acc(n_bodies, ChVector3d(0, 0, 0));
+
     m_body_forces.clear();
+    m_modified_nodes.reserve(m_modified_nodes.size() + n);
 
     for (std::size_t i = 0; i < n; ++i) {
         const scm::gpu::HitOutput& o = batch_out[i];
         if (!o.active)
             continue;
 
-        auto& nr = m_grid_map.at(keys[i]);
+        const auto& ij = keys[i];
+        auto& nr = m_grid_map.at(ij);
         const double ca = nr.normal.z();
 
         nr.hit_level = batch_in[i].hit_level;
@@ -148,18 +190,37 @@ bool SCMLoader::ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
         nr.step_plastic_flow = o.step_plastic_flow;
         nr.level = nr.level_initial - nr.sinkage / ca;
 
-        m_modified_nodes.push_back(keys[i]);
+        m_modified_nodes.push_back(ij);
 
-        ChVector3d force(o.fn_x + o.ft_x, o.fn_y + o.ft_y, o.fn_z + o.ft_z);
-        ChVector3d moment = Vcross(ChVector3d(batch_in[i].px, batch_in[i].py, batch_in[i].pz) - bodies[i]->GetPos(),
-                                  force);
+        const int32_t bid = batch_in[i].body_id;
+        const ChVector3d force(o.fn_x + o.ft_x, o.fn_y + o.ft_y, o.fn_z + o.ft_z);
+        const ChVector3d moment =
+            Vcross(ChVector3d(batch_in[i].px - batch_in[i].bx, batch_in[i].py - batch_in[i].by,
+                              batch_in[i].pz - batch_in[i].bz),
+                   force);
 
-        auto itr = m_body_forces.find(bodies[i]);
-        if (itr == m_body_forces.end())
-            m_body_forces.insert(std::make_pair(bodies[i], std::make_pair(force, moment)));
-        else {
-            itr->second.first += force;
-            itr->second.second += moment;
+        force_acc[static_cast<std::size_t>(bid)] += force;
+        moment_acc[static_cast<std::size_t>(bid)] += moment;
+    }
+
+    for (std::size_t b = 0; b < n_bodies; ++b)
+        m_body_forces.emplace(bodies[b], std::make_pair(force_acc[b], moment_acc[b]));
+
+    const auto t3 = Clock::now();
+
+    if (profile) {
+        static int n_profile = 0;
+        if (n_profile < 8) {
+            const double pack_ms =
+                std::chrono::duration<double, std::milli>(t1 - t0).count();
+            const double gpu_ms =
+                std::chrono::duration<double, std::milli>(t2 - t1).count();
+            const double scatter_ms =
+                std::chrono::duration<double, std::milli>(t3 - t2).count();
+            std::fprintf(stderr,
+                         "SCM GPU profile n=%zu pack_ms=%.3f gpu_ms=%.3f scatter_ms=%.3f\n",
+                         n, pack_ms, gpu_ms, scatter_ms);
+            ++n_profile;
         }
     }
 
