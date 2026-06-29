@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHBEAMSECTIONTAPEREDTIMOSHENKO_H
-#define CHBEAMSECTIONTAPEREDTIMOSHENKO_H
+#ifndef CH_BEAM_SECTION_TAPERED_TIMOSHENKO_H
+#define CH_BEAM_SECTION_TAPERED_TIMOSHENKO_H
 
 #include "chrono/core/ChFrame.h"
 #include "chrono/fea/ChBeamSectionEuler.h"
@@ -24,17 +24,13 @@ namespace fea {
 /// @addtogroup fea_utils
 /// @{
 
-/// This damping model supports you to assign different Rayleigh damping coefficients for different dimensions,
-/// which would be helpful for those anisotropic material, such as wind turbine blade.
-/// Note, the square of these four parameters(bx/by/bz/bt) are the beta coefficient of Rayleigh damping model of beam
-/// element.
-/// alpha is the mass-proportional damping coefficient. Because the mass matrix might be lumped or consistent type,
-/// for the sake of simplification, the mass-proportional damping matrix is evaluated simply as Rm+=alpha*M, instead
-/// of four different values as stiffness-proportional term.
-/// This damping model is used in ChElementBeamTaperedTimoshenko and ChElementBeamTaperedTimoshenkoFPM.
-/// For more background theory, please refer to:
-/// [1]. Hansen, M. H. (2001). Anisotropic damping of Timoshenko beam elements. (Denmark. Forskningscenter Risoe.
-///      Risoe-R; No. 1267(EN)).
+/// Damping model coefficients.
+/// These parameters support different Rayleigh damping coefficients for different dimensions, useful for anisotropic materials.
+/// Note, the square of these four parameters(bx/by/bz/bt) are the beta coefficient of Rayleigh damping model of beam element.
+/// alpha is the mass-proportional damping coefficient. Because the mass matrix might be lumped or consistent type, for the sake of simplicity,
+/// the mass-proportional damping matrix is evaluated simply as Rm+=alpha*M, instead of four different values as stiffness-proportional term.
+/// This damping model is used in ChElementBeamTaperedTimoshenko and ChElementBeamTaperedTimoshenkoFPM. For the background theory, refer to
+/// Hansen, M. H. (2001). Anisotropic damping of Timoshenko beam elements. (Denmark. Forskningscenter Risoe. Risoe-R; No. 1267(EN)).
 struct DampingCoefficients {
     double bx;           ///< damping coefficient along x axis (axial)
     double by;           ///< damping coefficient along y axis (shear) and about z axis (bending)
@@ -43,7 +39,7 @@ struct DampingCoefficients {
     double alpha = 0.0;  ///< mass-proportional damping coefficient, be zero as default
 };
 
-/// The average section properties of tapered section could be stored in this struct.
+/// Average section properties of tapered section could be stored in this struct.
 struct AverageSectionParameters {
     double mu;     ///< mass per unit length
     double alpha;  ///< section rotation about elastic center[rad]
@@ -66,10 +62,10 @@ struct AverageSectionParameters {
     double Jmzz;      ///< inertia Jzz per unit length, in mass center reference, measured along mass principal axes
     double Jmyz;      ///< inertia Jyz per unit length, in mass center reference, measured along mass principal axes
     double Jmxx;      ///< inertia Jxx per unit length, in mass center reference, measured along mass principal axes
-    double Qmy;  ///< mass moment of area along yy, in mass center reference, measured along mass principal axes, which
-                 ///< is exactly zero in theory.
-    double Qmz;  ///< mass moment of area along zz, in mass center reference, measured along mass principal axes, which
-                 ///< is exactly zero in theory.
+    double Qmy;       ///< mass moment of area along yy, in mass center reference, measured along mass principal axes, which
+                      ///< is exactly zero in theory.
+    double Qmz;       ///< mass moment of area along zz, in mass center reference, measured along mass principal axes, which
+                      ///< is exactly zero in theory.
 
     double EA;    ///< axial rigidity
     double GJ;    ///< torsion rigidity
@@ -129,48 +125,28 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
         rdamping_coeff.alpha = 0.0;  // default alpha damping coefficient for mass-proportional term
     }
 
-    ChBeamSectionTimoshenkoAdvancedGeneric(
-        const double mAx,                          ///< axial rigidity
-        const double mTxx,                         ///< torsion rigidity
-        const double mByy,                         ///< bending rigidity about yy
-        const double mBzz,                         ///< bending rigidity about zz
-        const double mGAyy,                        ///< shear rigidity along yy
-        const double mGAzz,                        ///< shear rigidity along zz
-        const DampingCoefficients mdamping_coeff,  ///< damping coefficients
-        const double malpha,                       ///< section rotation about elastic center [rad]
-        const double mCy,                          ///< elastic center y displacement respect to centerline
-        const double mCz,                          ///< elastic center z displacement respect to centerline
-        const double mSy,                          ///< shear center y displacement respect to centerline
-        const double mSz,                          ///< shear center z displacement respect to centerline
-        const double mmu,                          ///< mass per unit length
-        const double
-            mJyy,  ///< inertia Jyy per unit length, in centerline reference, measured along centerline main axes
-        const double
-            mJzz,  ///< inertia Jzz per unit length, in centerline reference, measured along centerline main axes
-        const double mJyz =
-            0,  ///< inertia Jyz per unit length, in centerline reference, measured along centerline main axes const
-        const double mQy =
-            0,  ///< inertia Qy per unit length, in centerline reference, measured along centerline main axes
-        const double mQz =
-            0,  ///< inertia Qz per unit length, in centerline reference, measured along centerline main axes
-        const double mMy = 0,  ///< mass center y displacement respect to centerline
-        const double mMz = 0   ///< mass center z displacement respect to centerline
-        )
-        : ChBeamSectionRayleighAdvancedGeneric(mAx,
-                                               mTxx,
-                                               mByy,
-                                               mBzz,
-                                               malpha,
-                                               mCy,
-                                               mCz,
-                                               mSy,
-                                               mSz,
-                                               mmu,
-                                               mJyy,
-                                               mJzz,
-                                               mJyz,
-                                               mMy,
-                                               mMz),
+    ChBeamSectionTimoshenkoAdvancedGeneric(const double mAx,                          ///< axial rigidity
+                                           const double mTxx,                         ///< torsion rigidity
+                                           const double mByy,                         ///< bending rigidity about yy
+                                           const double mBzz,                         ///< bending rigidity about zz
+                                           const double mGAyy,                        ///< shear rigidity along yy
+                                           const double mGAzz,                        ///< shear rigidity along zz
+                                           const DampingCoefficients mdamping_coeff,  ///< damping coefficients
+                                           const double malpha,                       ///< section rotation about elastic center [rad]
+                                           const double mCy,                          ///< elastic center y displacement respect to centerline
+                                           const double mCz,                          ///< elastic center z displacement respect to centerline
+                                           const double mSy,                          ///< shear center y displacement respect to centerline
+                                           const double mSz,                          ///< shear center z displacement respect to centerline
+                                           const double mmu,                          ///< mass per unit length
+                                           const double mJyy,                         ///< inertia Jyy per unit length, in centerline reference, measured along centerline main axes
+                                           const double mJzz,                         ///< inertia Jzz per unit length, in centerline reference, measured along centerline main axes
+                                           const double mJyz = 0,  ///< inertia Jyz per unit length, in centerline reference, measured along centerline main axes const
+                                           const double mQy = 0,   ///< inertia Qy per unit length, in centerline reference, measured along centerline main axes
+                                           const double mQz = 0,   ///< inertia Qz per unit length, in centerline reference, measured along centerline main axes
+                                           const double mMy = 0,   ///< mass center y displacement respect to centerline
+                                           const double mMz = 0    ///< mass center z displacement respect to centerline
+                                           )
+        : ChBeamSectionRayleighAdvancedGeneric(mAx, mTxx, mByy, mBzz, malpha, mCy, mCz, mSy, mSz, mmu, mJyy, mJzz, mJyz, mMy, mMz),
           GAyy(mGAyy),
           GAzz(mGAzz),
           Qy(mQy),
@@ -209,23 +185,14 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5)
     /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
     /// It is not needed to enter also Jxx because Jxx=(Jzz+Jyy) by the polar theorem.
-    virtual void SetInertiasPerUnitLength(const double mJyy,
-                                          const double mJzz,
-                                          const double mJyz,
-                                          const double mQy,
-                                          const double mQz);
+    virtual void SetInertiasPerUnitLength(const double mJyy, const double mJzz, const double mJyz, const double mQy, const double mQz);
 
     /// Set inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference"
     /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
     /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$,
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    virtual void SetMainInertiasInMassReference(const double Jmyy,
-                                                const double Jmzz,
-                                                const double Jmyz,
-                                                const double mass_phi,
-                                                const double Qmy,
-                                                const double Qmz);
+    virtual void SetMainInertiasInMassReference(const double Jmyy, const double Jmzz, const double Jmyz, const double mass_phi, const double Qmy, const double Qmz);
 
     /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation
     /// phi of that frame,
@@ -233,16 +200,10 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$,
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    virtual void GetMainInertiasInMassReference(double& Jmyy,
-                                                double& Jmzz,
-                                                double& Jmyz,
-                                                double& mass_phi,
-                                                double& Qmy,
-                                                double& Qmz);
-    /// Get inertia moment per unit length Jxx_massref, as assumed computed in the "mass reference"
-    /// frame, ie. centered at the center of mass
-    /// NOTE: To be safe, it is recommended to  use GetMainInertiasInMassReference() instead,
-    /// because Qmy,Qmz are ignored, although they are exactly zero in theory.
+    virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& Jmyz, double& mass_phi, double& Qmy, double& Qmz);
+
+    /// Get inertia moment per unit length Jxx_massref, as assumed computed in the "mass reference" frame, ie. centered at the center of mass.
+    /// NOTE: To be safe, it is recommended to  use GetMainInertiasInMassReference() instead, because Qmy,Qmz are ignored, although they are exactly zero in theory.
     virtual double GetInertiaJxxPerUnitLengthInMassReference() const {
         std::cerr << "WARNING: it is recommended to use GetMainInertiasInMassReference() instead, "
                   << "and do calculation: Jmxx = Jmyy+Jmzz" << std::endl;
@@ -285,8 +246,8 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
 class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
   public:
     ChBeamSectionTaperedTimoshenkoAdvancedGeneric()
-        : length(1.0),                  // default length of two sections.
-          use_lumped_mass_matrix(true)  // lumped mass matrix is used as default
+        : length(1.0),                  ///< default length of two sections.
+          use_lumped_mass_matrix(true)  ///< lumped mass matrix is used as default
     {
         this->avg_sec_par = std::make_shared<AverageSectionParameters>();
     }
@@ -301,18 +262,22 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     /// Set the type of mass matrix:
     /// - true: lumped mass matrix, which is default.
     /// - false: consistent mass matrix.
-    void SetLumpedMassMatrixType(bool mv) { use_lumped_mass_matrix = mv; };
+    void SetLumpedMassMatrixType(bool mv) { use_lumped_mass_matrix = mv; }
+
     /// Get the type of mass matrix：
     /// - true: lumped mass matrix.
     /// - false: consistent mass matrix.
-    bool GetLumpedMassMatrixType() const { return use_lumped_mass_matrix; };
+    bool GetLumpedMassMatrixType() const { return use_lumped_mass_matrix; }
 
     /// Set the section & material of beam element at end A.
     void SetSectionA(std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGeneric> my_material) { sectionA = my_material; }
+
     /// Set the section & material of beam element at end B.
     void SetSectionB(std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGeneric> my_material) { sectionB = my_material; }
+
     /// Get the section & material of the element at end A.
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGeneric> GetSectionA() { return sectionA; }
+
     /// Get the section & material of the element at end B.
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGeneric> GetSectionB() { return sectionB; }
 
@@ -323,22 +288,20 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
 
     /// Compute the 12x12 local inertial-damping (gyroscopic damping) matrix.
     /// The lumped format is used, need to multiple 0.5 * length to obtain the final inertial-damping matrix
-    virtual void ComputeInertiaDampingMatrix(
-        ChMatrixNM<double, 12, 12>& Ri,  ///< 12x12 sectional inertial-damping matrix values here
-        const ChVector3d& mW_A,          ///< current angular velocity of section of node A, in material frame
-        const ChVector3d& mW_B           ///< current angular velocity of section of node B, in material frame
+    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 12, 12>& Ri,  ///< 12x12 sectional inertial-damping matrix values here
+                                             const ChVector3d& mW_A,          ///< current angular velocity of section of node A, in material frame
+                                             const ChVector3d& mW_B           ///< current angular velocity of section of node B, in material frame
     );
 
     /// Compute the 12x12 local inertial-stiffness matrix.
     /// The lumped format is used, need to multiple 0.5 * length to obtain the final inertial-stiffness matrix
-    virtual void ComputeInertiaStiffnessMatrix(
-        ChMatrixNM<double, 12, 12>& Ki,  ///< 12x12 sectional inertial-stiffness matrix values here
-        const ChVector3d& mWvel_A,       ///< current angular velocity of section of node A, in material frame
-        const ChVector3d& mWacc_A,       ///< current angular acceleration of section of node A, in material frame
-        const ChVector3d& mXacc_A,       ///< current acceleration of section of node A, in material frame)
-        const ChVector3d& mWvel_B,       ///< current angular velocity of section of node B, in material frame
-        const ChVector3d& mWacc_B,       ///< current angular acceleration of section of node B, in material frame
-        const ChVector3d& mXacc_B        ///< current acceleration of section of node B, in material frame
+    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 12, 12>& Ki,  ///< 12x12 sectional inertial-stiffness matrix values here
+                                               const ChVector3d& mWvel_A,       ///< current angular velocity of section of node A, in material frame
+                                               const ChVector3d& mWacc_A,       ///< current angular acceleration of section of node A, in material frame
+                                               const ChVector3d& mXacc_A,       ///< current acceleration of section of node A, in material frame)
+                                               const ChVector3d& mWvel_B,       ///< current angular velocity of section of node B, in material frame
+                                               const ChVector3d& mWacc_B,       ///< current angular acceleration of section of node B, in material frame
+                                               const ChVector3d& mXacc_B        ///< current acceleration of section of node B, in material frame
     );
 
     /// Get the average damping parameters of this tapered cross-section.
@@ -370,12 +333,13 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     bool compute_ave_sec_par = false;
 
   protected:
-    /// The length of beam element with two sections.
+    /// Length of beam element with two sections.
     double length;
 
-    /// The section & material of beam element at end A.
+    /// Section and material of beam element at end A.
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGeneric> sectionA;
-    /// The section & material of beam element at end B.
+
+    /// Section and material of beam element at end B.
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGeneric> sectionB;
 
     /// The type of mass matrix:
@@ -383,30 +347,26 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     /// - false: consistent mass matrix.
     bool use_lumped_mass_matrix;
 
-    // Some important average section parameters, to calculate only once, enable to access them conveniently.
+    // Average section parameters, to calculate only once, enable to access them conveniently.
     std::shared_ptr<AverageSectionParameters> avg_sec_par;
 
-    /// Compute the 12x12 sectional inertia matrix in lumped format, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
+    /// Compute the 12x12 sectional inertia matrix in lumped format, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}.
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
-    virtual void ComputeLumpedInertiaMatrix(ChMatrixNM<double, 12, 12>& M  ///< 12x12 sectional mass matrix values here
+    virtual void ComputeLumpedInertiaMatrix(ChMatrixNM<double, 12, 12>& M
     );
 
     // A quick algorithm to derive the mass matrix via a simple transformation in case of mass axis orientation and mass
     // center offset. But, it has been validated to be WRONG. It is kept here only to remind you not to try this simple
     // method again.
-    virtual void ComputeSimpleConsistentInertiaMatrix(
-        ChMatrixNM<double, 12, 12>& M  ///< 12x12 sectional mass matrix values here
+    virtual void ComputeSimpleConsistentInertiaMatrix(ChMatrixNM<double, 12, 12>& M
     );
 
     /// A very generic implementation for consistent mass matrix, considering mass center offset and axis orientation.
     /// The transformation of mass center offset and mass principal axis orientation is hard-coded.
-    virtual void ComputeConsistentInertiaMatrix(
-        ChMatrixNM<double, 12, 12>& M  ///< 12x12 sectional mass matrix values here
+    virtual void ComputeConsistentInertiaMatrix(ChMatrixNM<double, 12, 12>& M
     );
 
   public:
-    // If fixed-size matrix of EIGEN3 library is used, we need to add this macro
-    // to address the possibility of alignment problems
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 

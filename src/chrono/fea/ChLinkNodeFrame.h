@@ -78,9 +78,7 @@ class ChApi ChLinkNodeFrame : public ChLinkBase {
 
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
-    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) {
-        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
-    }
+    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) { m_csys.pos = m_body->TransformPointParentToLocal(pos_abs); }
 
     /// Set the attachment reference, expressed in the coordinates of the body.
     /// This function may be called only after initialization.
@@ -88,9 +86,7 @@ class ChApi ChLinkNodeFrame : public ChLinkBase {
 
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
-    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs);
-    }
+    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) { m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs); }
 
     /// Get the reaction force on the node, expressed in the link coordinate system.
     ChVector3d GetReactionOnNode() const { return m_react; }
@@ -111,26 +107,15 @@ class ChApi ChLinkNodeFrame : public ChLinkBase {
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     const double c_vel,   
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
@@ -174,7 +159,7 @@ class ChApi ChLinkNodeFrame : public ChLinkBase {
 
 /// Constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
 /// The node position is constrained to a given coordinate system CSYS that moves with the ChBodyFrame. The movements of
-/// the node respect to X, Y, Z  axes of such CSYS can be costrained or not,  depending on three boolean toggles. By
+/// the node respect to X, Y, Z  axes of such CSYS can be constrained or not,  depending on three boolean toggles. By
 /// default, XYZ are all constrained and the node follows the center of CSYS,  s it is completely locked to it, but
 /// other options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
 /// you just enable XY constraints (so the node moves along the Z direction), etc.
@@ -191,9 +176,7 @@ class ChApi ChLinkNodeFrameGeneric : public ChLinkBase {
     virtual unsigned int GetNumAffectedCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual unsigned int GetNumConstraintsBilateral() override {
-        return ((unsigned int)c_x + (unsigned int)c_y + (unsigned int)c_z);
-    }
+    virtual unsigned int GetNumConstraintsBilateral() override { return ((unsigned int)c_x + (unsigned int)c_y + (unsigned int)c_z); }
 
     // Get constraint violations.
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
@@ -209,23 +192,21 @@ class ChApi ChLinkNodeFrameGeneric : public ChLinkBase {
     ChFrame<> GetFrameNodeAbs() const;
 
     /// Initialize this constraint, given the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
+    /// The attachment position is the actual position of the node (unless otherwise defined, using the optional 'pos' parameter).
     /// Note: the node and body must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< node (point) to join
                            std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
                            ChVector3d* pos = 0                  ///< attachment position in absolute coordinates
     );
 
     /// Initialize this constraint, given the node and body frame to join.
-    /// The constraint frame is a coordinate system passed with the csys parameter,
-    /// where csys is expressed in absolute coordinates
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
+    /// The constraint frame is a coordinate system expressed in absolute coordinates
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< node (point) to join
                            std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
                            chrono::ChCoordsys<> csys_abs        ///< attachment position in absolute coordinates
     );
 
-    /// Get the connected xyz node (point).
+    /// Get the connected node (point).
     std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNode() { return m_node; }
 
     /// Get the connected body (frame).
@@ -243,9 +224,7 @@ class ChApi ChLinkNodeFrameGeneric : public ChLinkBase {
 
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
-    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) {
-        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
-    }
+    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) { m_csys.pos = m_body->TransformPointParentToLocal(pos_abs); }
 
     /// Set the attachment reference, expressed in the coordinates of the body.
     /// This function may be called only after initialization.
@@ -253,9 +232,7 @@ class ChApi ChLinkNodeFrameGeneric : public ChLinkBase {
 
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
-    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs);
-    }
+    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) { m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs); }
 
     /// Get the reaction force on the node, expressed in the link coordinate system.
     ChVector3d GetReactionOnNode() const { return m_react; }
@@ -276,26 +253,15 @@ class ChApi ChLinkNodeFrameGeneric : public ChLinkBase {
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     const double c_vel,   
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
