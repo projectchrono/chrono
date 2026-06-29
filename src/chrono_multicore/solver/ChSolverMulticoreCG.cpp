@@ -25,12 +25,7 @@ real Convergence_Norm(const VectorType& r) {
     }
     return result;
 }
-uint ChSolverMulticoreCG::Solve(ChSchurProduct& SchurProduct,
-                                ChProjectConstraints& Project,
-                                const uint max_iter,
-                                const uint size,
-                                const VectorType& b,
-                                VectorType& x) {
+uint ChSolverMulticoreCG::Solve(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, const uint max_iter, const uint size, const VectorType& b, VectorType& x) {
     r.resize(b.size());
     q.resize(b.size());
     s.resize(b.size());

@@ -100,8 +100,7 @@ void ChCollisionSystemChronoMulticore::PostProcess() {
     // If needed, remap particle velocities and load sorted particle velocities.
     if (data_manager->node_container) {
         data_manager->host_data.sorted_vel_3dof.resize(data_manager->num_particles);
-        const int body_offset =
-            data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors;
+        const int body_offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors;
         auto& v = data_manager->host_data.v;
 #pragma omp parallel for
         for (int i = 0; i < (signed)data_manager->num_particles; i++) {

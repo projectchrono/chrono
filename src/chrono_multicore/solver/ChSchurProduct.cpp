@@ -79,9 +79,7 @@ void ChSchurProduct::operator()(const VectorType& x, VectorType& output) {
         }
 
     } else {
-        const uint bil_dof = data_manager->num_rigid_bodies * 6 +
-                             data_manager->num_shafts +
-                             data_manager->num_motors;
+        const uint bil_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors;
 
         SubVectorType o_b = output.segment(num_unilaterals, num_bilaterals);
         ConstSubVectorType x_b = x.segment(num_unilaterals, num_bilaterals);

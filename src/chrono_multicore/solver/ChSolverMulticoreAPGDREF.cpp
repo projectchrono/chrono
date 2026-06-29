@@ -29,12 +29,7 @@ real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct, ChProjectConst
     return tmp.norm();
 }
 
-uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
-                                     ChProjectConstraints& Project,
-                                     const uint max_iter,
-                                     const uint size,
-                                     const VectorType& r,
-                                     VectorType& gamma) {
+uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, const uint max_iter, const uint size, const VectorType& r, VectorType& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -166,8 +161,8 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
             std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
 
         VectorType Nl(gammaNew.size());
-        SchurProduct(gammaNew, Nl);        // 1)  g_tmp = N*l_candidate
-        Nl = 0.5 * Nl - r;                 // 2) 0.5*N*l_candidate-b_schur
+        SchurProduct(gammaNew, Nl);          // 1)  g_tmp = N*l_candidate
+        Nl = 0.5 * Nl - r;                   // 2) 0.5*N*l_candidate-b_schur
         objective_value = gammaNew.dot(Nl);  // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_schur)
 
         AtIterationEnd(residual, objective_value);

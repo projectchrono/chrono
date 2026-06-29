@@ -53,41 +53,40 @@ using namespace chrono;
 // therefore duplicated in the output arrays, once for each body involved in the
 // contact (with opposite signs for the two bodies).
 // -----------------------------------------------------------------------------
-void function_CalcContactForces(
-    int index,                                            // index of this contact pair
-    vec2* body_pairs,                                     // indices of the body pair in contact
-    vec2* shape_pairs,                                    // indices of the shape pair in contact
-    ChSystemSMC::ContactForceModel contact_model,         // contact force model
-    ChSystemSMC::AdhesionForceModel adhesion_model,       // adhesion force model
-    ChSystemSMC::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
-    bool use_mat_props,                                   // flag specifying how coefficients are obtained
-    real char_vel,                                        // characteristic velocity (Hooke)
-    real min_slip_vel,                                    // threshold tangential velocity
-    real min_roll_vel,                                    // threshold rolling velocity
-    real min_spin_vel,                                    // threshold spinning velocity
-    real dT,                                              // integration time step
-    real* body_mass,                                      // body masses (per body)
-    real3* pos,                                           // body positions
-    quaternion* rot,                                      // body orientations
-    real* vel,                                            // body linear and angular velocities
-    real3* friction,                                      // eff. coefficients of friction (per contact)
-    real2* modulus,                                       // eff. elasticity and shear modulus (per contact)
-    real3* adhesion,                                      // eff. adhesion parameters (per contact)
-    real* cr,                                             // eff. coefficient of restitution (per contact)
-    real4* smc_params,                                    // eff. SMC parameters k and g (per contact)
-    real3* pt1,                                           // point on shape 1 (per contact)
-    real3* pt2,                                           // point on shape 2 (per contact)
-    real3* normal,                                        // contact normal (per contact)
-    real* depth,                                          // penetration depth (per contact)
-    real* eff_radius,                                     // effective contact radius (per contact)
-    vec3* shear_neigh,                                    // neighbor list of contacting bodies and shapes (per body)
-    char* shear_touch,                                    // flag if contact in neighbor list is persistent (per body)
-    real3* shear_disp,                                    // accumulated shear displacement for each neighbor (per body)
-    real* contact_relvel_init,                            // initial relative normal velocity per contact pair
-    real* contact_duration,                               // duration of persistent contact between contact pairs
-    int* ct_bid,                                          // [output] body IDs (two per contact)
-    real3* ct_force,                                      // [output] body force (two per contact)
-    real3* ct_torque                                      // [output] body torque (two per contact)
+void function_CalcContactForces(int index,                                            // index of this contact pair
+                                vec2* body_pairs,                                     // indices of the body pair in contact
+                                vec2* shape_pairs,                                    // indices of the shape pair in contact
+                                ChSystemSMC::ContactForceModel contact_model,         // contact force model
+                                ChSystemSMC::AdhesionForceModel adhesion_model,       // adhesion force model
+                                ChSystemSMC::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
+                                bool use_mat_props,                                   // flag specifying how coefficients are obtained
+                                real char_vel,                                        // characteristic velocity (Hooke)
+                                real min_slip_vel,                                    // threshold tangential velocity
+                                real min_roll_vel,                                    // threshold rolling velocity
+                                real min_spin_vel,                                    // threshold spinning velocity
+                                real dT,                                              // integration time step
+                                real* body_mass,                                      // body masses (per body)
+                                real3* pos,                                           // body positions
+                                quaternion* rot,                                      // body orientations
+                                real* vel,                                            // body linear and angular velocities
+                                real3* friction,                                      // eff. coefficients of friction (per contact)
+                                real2* modulus,                                       // eff. elasticity and shear modulus (per contact)
+                                real3* adhesion,                                      // eff. adhesion parameters (per contact)
+                                real* cr,                                             // eff. coefficient of restitution (per contact)
+                                real4* smc_params,                                    // eff. SMC parameters k and g (per contact)
+                                real3* pt1,                                           // point on shape 1 (per contact)
+                                real3* pt2,                                           // point on shape 2 (per contact)
+                                real3* normal,                                        // contact normal (per contact)
+                                real* depth,                                          // penetration depth (per contact)
+                                real* eff_radius,                                     // effective contact radius (per contact)
+                                vec3* shear_neigh,                                    // neighbor list of contacting bodies and shapes (per body)
+                                char* shear_touch,                                    // flag if contact in neighbor list is persistent (per body)
+                                real3* shear_disp,                                    // accumulated shear displacement for each neighbor (per body)
+                                real* contact_relvel_init,                            // initial relative normal velocity per contact pair
+                                real* contact_duration,                               // duration of persistent contact between contact pairs
+                                int* ct_bid,                                          // [output] body IDs (two per contact)
+                                real3* ct_force,                                      // [output] body force (two per contact)
+                                real3* ct_torque                                      // [output] body torque (two per contact)
 ) {
     // Identify the two bodies in contact (global body IDs).
     int b1 = body_pairs[index].x;
@@ -202,8 +201,7 @@ void function_CalcContactForces(
         // Check if contact history already exists. If not, initialize new contact history.
         for (i = 0; i < max_shear; i++) {
             int ctIdUnrolled = max_shear * shear_body1 + i;
-            if (shear_neigh[ctIdUnrolled].x == shear_body2 && shear_neigh[ctIdUnrolled].y == shear_shape1 &&
-                shear_neigh[ctIdUnrolled].z == shear_shape2) {
+            if (shear_neigh[ctIdUnrolled].x == shear_body2 && shear_neigh[ctIdUnrolled].y == shear_shape1 && shear_neigh[ctIdUnrolled].z == shear_shape2) {
                 contact_duration[ctIdUnrolled] += dT;
                 contact_id = i;
                 newcontact = false;
@@ -402,10 +400,8 @@ void function_CalcContactForces(
                     real rc = r1 * r1 - xc * xc;
                     rc = (rc < eps) ? eps : std::sqrt(rc);
 
-                    m_spin1 = muSpin_eff * rc *
-                              RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b1]) / Length(rel_o);
-                    m_spin2 = muSpin_eff * rc *
-                              RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b2]) / Length(rel_o);
+                    m_spin1 = muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b1]) / Length(rel_o);
+                    m_spin2 = muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b2]) / Length(rel_o);
                 }
 
                 // Account for adhesion
@@ -523,10 +519,8 @@ void function_CalcContactForces(
         real rc = r1 * r1 - xc * xc;
         rc = (rc < eps) ? eps : std::sqrt(rc);
 
-        m_spin1 =
-            muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b1]) / Length(rel_o);
-        m_spin2 =
-            muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b2]) / Length(rel_o);
+        m_spin1 = muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b1]) / Length(rel_o);
+        m_spin2 = muSpin_eff * rc * RotateT(Dot(rel_o, forceN_mag * normal[index]) * normal[index], rot[b2]) / Length(rel_o);
     }
 
     // Account for adhesion
@@ -562,41 +556,40 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
                                                            custom_vector<char>& shear_touch) {
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->cd_data->num_rigid_contacts; index++) {
-        function_CalcContactForces(
-            index,                                                  // index of this contact pair
-            data_manager->cd_data->bids_rigid_rigid.data(),         // indices of the body pair in contact
-            shape_pairs.data(),                                     // indices of the shape pair in contact
-            data_manager->settings.solver.contact_force_model,      // contact force model
-            data_manager->settings.solver.adhesion_force_model,     // adhesion force model
-            data_manager->settings.solver.tangential_displ_mode,    // type of tangential displacement history
-            data_manager->settings.solver.use_material_properties,  // flag specifying how coefficients are obtained
-            data_manager->settings.solver.characteristic_vel,       // characteristic velocity (Hooke)
-            data_manager->settings.solver.min_slip_vel,             // threshold tangential velocity
-            data_manager->settings.solver.min_roll_vel,             // threshold rolling velocity
-            data_manager->settings.solver.min_spin_vel,             // threshold spinning velocity
-            data_manager->settings.step_size,                       // integration time step
-            data_manager->host_data.mass_rigid.data(),              // body masses
-            data_manager->host_data.pos_rigid.data(),               // body positions
-            data_manager->host_data.rot_rigid.data(),               // body orientations
-            data_manager->host_data.v.data(),                       // body linear and angular velocities
-            data_manager->host_data.fric_rigid_rigid.data(),        // eff. coefficients of friction (per contact)
-            data_manager->host_data.modulus_rigid_rigid.data(),     // eff. elasticity and shear modulus (per contact)
-            data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion parameters (per contact)
-            data_manager->host_data.cr_rigid_rigid.data(),          // eff. coefficient of restitution (per contact)
-            data_manager->host_data.smc_rigid_rigid.data(),         // eff. SMC parameters k and g (per contact)
-            data_manager->cd_data->cpta_rigid_rigid.data(),         // point on shape 1 (per contact)
-            data_manager->cd_data->cptb_rigid_rigid.data(),         // point on shape 2 (per contact)
-            data_manager->cd_data->norm_rigid_rigid.data(),         // contact normal (per contact)
-            data_manager->cd_data->dpth_rigid_rigid.data(),         // penetration depth (per contact)
-            data_manager->cd_data->erad_rigid_rigid.data(),         // effective contact radius (per contact)
-            data_manager->host_data.shear_neigh.data(),  // neighbor list of contacting bodies and shapes (per body)
-            shear_touch.data(),                          // flag if contact in neighbor list is persistent (per body)
-            data_manager->host_data.shear_disp.data(),   // accumulated shear displacement for each neighbor (per body)
-            data_manager->host_data.contact_relvel_init.data(),  // initial relative normal velocity per contact pair
-            data_manager->host_data.contact_duration.data(),     // duration of persistent contact between contact pairs
-            ct_bid.data(),                                       // [output] body IDs (two per contact)
-            ct_force.data(),                                     // [output] body force (two per contact)
-            ct_torque.data()                                     // [output] body torque (two per contact)
+        function_CalcContactForces(index,                                                  // index of this contact pair
+                                   data_manager->cd_data->bids_rigid_rigid.data(),         // indices of the body pair in contact
+                                   shape_pairs.data(),                                     // indices of the shape pair in contact
+                                   data_manager->settings.solver.contact_force_model,      // contact force model
+                                   data_manager->settings.solver.adhesion_force_model,     // adhesion force model
+                                   data_manager->settings.solver.tangential_displ_mode,    // type of tangential displacement history
+                                   data_manager->settings.solver.use_material_properties,  // flag specifying how coefficients are obtained
+                                   data_manager->settings.solver.characteristic_vel,       // characteristic velocity (Hooke)
+                                   data_manager->settings.solver.min_slip_vel,             // threshold tangential velocity
+                                   data_manager->settings.solver.min_roll_vel,             // threshold rolling velocity
+                                   data_manager->settings.solver.min_spin_vel,             // threshold spinning velocity
+                                   data_manager->settings.step_size,                       // integration time step
+                                   data_manager->host_data.mass_rigid.data(),              // body masses
+                                   data_manager->host_data.pos_rigid.data(),               // body positions
+                                   data_manager->host_data.rot_rigid.data(),               // body orientations
+                                   data_manager->host_data.v.data(),                       // body linear and angular velocities
+                                   data_manager->host_data.fric_rigid_rigid.data(),        // eff. coefficients of friction (per contact)
+                                   data_manager->host_data.modulus_rigid_rigid.data(),     // eff. elasticity and shear modulus (per contact)
+                                   data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion parameters (per contact)
+                                   data_manager->host_data.cr_rigid_rigid.data(),          // eff. coefficient of restitution (per contact)
+                                   data_manager->host_data.smc_rigid_rigid.data(),         // eff. SMC parameters k and g (per contact)
+                                   data_manager->cd_data->cpta_rigid_rigid.data(),         // point on shape 1 (per contact)
+                                   data_manager->cd_data->cptb_rigid_rigid.data(),         // point on shape 2 (per contact)
+                                   data_manager->cd_data->norm_rigid_rigid.data(),         // contact normal (per contact)
+                                   data_manager->cd_data->dpth_rigid_rigid.data(),         // penetration depth (per contact)
+                                   data_manager->cd_data->erad_rigid_rigid.data(),         // effective contact radius (per contact)
+                                   data_manager->host_data.shear_neigh.data(),             // neighbor list of contacting bodies and shapes (per body)
+                                   shear_touch.data(),                                     // flag if contact in neighbor list is persistent (per body)
+                                   data_manager->host_data.shear_disp.data(),              // accumulated shear displacement for each neighbor (per body)
+                                   data_manager->host_data.contact_relvel_init.data(),     // initial relative normal velocity per contact pair
+                                   data_manager->host_data.contact_duration.data(),        // duration of persistent contact between contact pairs
+                                   ct_bid.data(),                                          // [output] body IDs (two per contact)
+                                   ct_force.data(),                                        // [output] body force (two per contact)
+                                   ct_torque.data()                                        // [output] body torque (two per contact)
         );
     }
 }
@@ -638,10 +631,8 @@ void ChIterativeSolverMulticoreSMC::host_SetContactForcesMap(uint ct_body_count,
 
 // Binary operation for adding two-object tuples
 struct sum_tuples {
-    thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3>& a,
-                                           const thrust::tuple<real3, real3>& b) const {
-        return thrust::tuple<real3, real3>(thrust::get<0>(a) + thrust::get<0>(b),
-                                           thrust::get<1>(a) + thrust::get<1>(b));
+    thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3>& a, const thrust::tuple<real3, real3>& b) const {
+        return thrust::tuple<real3, real3>(thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
     }
 };
 
@@ -671,8 +662,7 @@ void ChIterativeSolverMulticoreSMC::ProcessContacts() {
         Thrust_Fill(shear_touch, false);
 #pragma omp parallel for
         for (int i = 0; i < (signed)num_rigid_contacts; i++) {
-            vec2 pair = I2(int(data_manager->cd_data->contact_shapeIDs[i] >> 32),
-                           int(data_manager->cd_data->contact_shapeIDs[i] & 0xffffffff));
+            vec2 pair = I2(int(data_manager->cd_data->contact_shapeIDs[i] >> 32), int(data_manager->cd_data->contact_shapeIDs[i] & 0xffffffff));
             shape_pairs[i] = pair;
         }
     }
@@ -699,8 +689,7 @@ void ChIterativeSolverMulticoreSMC::ProcessContacts() {
     //    involved in at least one contact, by reducing the contact forces and
     //    torques from all contacts these bodies are involved in. The number of
     //    bodies that experience at least one contact is 'ct_body_count'.
-    thrust::sort_by_key(THRUST_PAR ct_bid.begin(), ct_bid.end(),
-                        thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())));
+    thrust::sort_by_key(THRUST_PAR ct_bid.begin(), ct_bid.end(), thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())));
 
     custom_vector<int> ct_body_id(data_manager->num_rigid_bodies);
     custom_vector<real3>& ct_body_force = data_manager->host_data.ct_body_force;
@@ -712,14 +701,12 @@ void ChIterativeSolverMulticoreSMC::ProcessContacts() {
     // Reduce contact forces from all contacts and count bodies currently involved
     // in contact. We do this simultaneously for contact forces and torques, using
     // zip iterators.
-    auto end_range = thrust::reduce_by_key(
-        THRUST_PAR ct_bid.begin(), ct_bid.end(),
-        thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())), ct_body_id.begin(),
-        thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
+    auto end_range = thrust::reduce_by_key(THRUST_PAR ct_bid.begin(), ct_bid.end(), thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())),
+                                           ct_body_id.begin(), thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
 #if defined _WIN32
-        thrust::equal_to<int64_t>(), sum_tuples()  // Windows compilers require an explicit-width type
+                                           thrust::equal_to<int64_t>(), sum_tuples()  // Windows compilers require an explicit-width type
 #else
-        thrust::equal_to<int>(), sum_tuples()
+                                           thrust::equal_to<int>(), sum_tuples()
 #endif
     );
 
@@ -778,8 +765,7 @@ void ChIterativeSolverMulticoreSMC::ComputeR() {
     data_manager->host_data.b.setZero();
     data_manager->bilateral->Build_b();
 
-    data_manager->host_data.R_full.noalias() =
-        -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
+    data_manager->host_data.R_full.noalias() = -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
 }
 
 // -----------------------------------------------------------------------------
@@ -845,8 +831,7 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
     ComputeImpulses();
 
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
-        AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
-                       i);
+        AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i], i);
     }
     m_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 }

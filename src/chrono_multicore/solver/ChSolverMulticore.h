@@ -97,19 +97,15 @@ class CH_MULTICORE_API ChSolverMulticore {
     void Setup(ChMulticoreDataManager* data_container_) { data_manager = data_container_; }
 
     /// Compute rhs value with relaxation term.
-    void ComputeSRhs(custom_vector<real>& gamma,
-                     const custom_vector<real>& rhs,
-                     custom_vector<real3>& vel_data,
-                     custom_vector<real3>& omg_data,
-                     custom_vector<real>& b);
+    void ComputeSRhs(custom_vector<real>& gamma, const custom_vector<real>& rhs, custom_vector<real3>& vel_data, custom_vector<real3>& omg_data, custom_vector<real>& b);
 
     /// Call this function with an associated solver type to solve the system.
     virtual uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
                        ChProjectConstraints& Project,  ///< Constraints
                        const uint max_iter,            ///< Maximum number of iterations
                        const uint size,                ///< Number of unknowns
-                       const VectorType& b,   ///< Rhs vector
-                       VectorType& x          ///< The vector of unknowns
+                       const VectorType& b,            ///< Rhs vector
+                       VectorType& x                   ///< The vector of unknowns
                        ) = 0;
 
     void AtIterationEnd(real maxd, real maxdeltalambda) {
@@ -144,15 +140,15 @@ class CH_MULTICORE_API ChSolverMulticoreAPGDREF : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& r,   ///< Rhs vector
-               VectorType& gamma      ///< The vector of unknowns
+               const VectorType& r,            ///< Rhs vector
+               VectorType& gamma               ///< The vector of unknowns
     );
 
     /// Compute the residual for the solver.
     real Res4(ChSchurProduct& SchurProduct,   ///< Schur product
               ChProjectConstraints& Project,  ///< Constraints
-              VectorType& gamma,     ///< The vector of unknowns
-              const VectorType& r    ///< Rhs vector
+              VectorType& gamma,              ///< The vector of unknowns
+              const VectorType& r             ///< Rhs vector
     );
 
     /// APGD specific vectors.
@@ -171,8 +167,8 @@ class CH_MULTICORE_API ChSolverMulticoreAPGD : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& b,   ///< Rhs vector
-               VectorType& x          ///< The vector of unknowns
+               const VectorType& b,            ///< Rhs vector
+               VectorType& x                   ///< The vector of unknowns
     );
 
     void UpdateR();
@@ -197,8 +193,8 @@ class CH_MULTICORE_API ChSolverMulticoreBB : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& b,   ///< Rhs vector
-               VectorType& x          ///< The vector of unknowns
+               const VectorType& b,            ///< Rhs vector
+               VectorType& x                   ///< The vector of unknowns
     );
 
     void UpdateR();
@@ -219,8 +215,8 @@ class CH_MULTICORE_API ChSolverMulticoreMinRes : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& b,   ///< Rhs vector
-               VectorType& x          ///< The vector of unknowns
+               const VectorType& b,            ///< Rhs vector
+               VectorType& x                   ///< The vector of unknowns
     );
 
     VectorType v, v_hat, w, w_old, xMR, v_old, Av, w_oold;
@@ -237,8 +233,8 @@ class CH_MULTICORE_API ChSolverMulticoreSPGQP : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& b,   ///< Rhs vector
-               VectorType& x          ///< The vector of unknowns
+               const VectorType& b,            ///< Rhs vector
+               VectorType& x                   ///< The vector of unknowns
     );
 
     void UpdateR();
@@ -260,8 +256,8 @@ class CH_MULTICORE_API ChSolverMulticoreCG : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& b,   ///< Rhs vector
-               VectorType& x          ///< The vector of unknowns
+               const VectorType& b,            ///< Rhs vector
+               VectorType& x                   ///< The vector of unknowns
     );
 
     VectorType r, q, s;
@@ -278,8 +274,8 @@ class CH_MULTICORE_API ChSolverMulticoreJacobi : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& b,   ///< Rhs vector
-               VectorType& x          ///< The vector of unknowns
+               const VectorType& b,            ///< Rhs vector
+               VectorType& x                   ///< The vector of unknowns
     );
     VectorType ml_old, ml;
 };
@@ -295,8 +291,8 @@ class CH_MULTICORE_API ChSolverMulticoreGS : public ChSolverMulticore {
                ChProjectConstraints& Project,  ///< Constraints
                const uint max_iter,            ///< Maximum number of iterations
                const uint size,                ///< Number of unknowns
-               const VectorType& b,   ///< Rhs vector
-               VectorType& x          ///< The vector of unknowns
+               const VectorType& b,            ///< Rhs vector
+               VectorType& x                   ///< The vector of unknowns
     );
     VectorType ml_old, ml;
 };
