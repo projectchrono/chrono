@@ -2381,8 +2381,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
         unsigned int num_coords_pos_bou_mod = m_num_coords_pos_boundary + m_num_coords_modal;
         unsigned int num_coords_vel_bou_mod = m_num_coords_vel_boundary + m_num_coords_modal;
 
-        // 1-
-        // Add elastic forces from current modal deformations
+        // 1. add elastic forces from current modal deformations
         ChVectorDynamic<> u_locred(num_coords_vel_bou_mod);
         ChVectorDynamic<> e_locred(num_coords_vel_bou_mod);
         ChVectorDynamic<> edt_locred(num_coords_vel_bou_mod);
@@ -2398,8 +2397,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
         // note: - sign
         R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) -= c * f_mod;
 
-        // 2-
-        // Add quadratic velocity term
+        // 2. add quadratic velocity term
         {
             double fooT;
             ChState x_mod;       // =[qB; eta]
@@ -2459,68 +2457,37 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
                 // ChVectorDynamic<> g_nonlinorig = (mat_M - mat_M.transpose()) * v_mod;
                 // g_quadvel += g_nonlinorig;
 
-                ChMatrixDynamic<> V;
-                V.setZero(num_coords_vel_bou_mod, 6);
-                for (unsigned int i_bou = 0; i_bou < (m_num_coords_vel_boundary / 6.); i_bou++) {
-                    V.block<3, 3>(6 * i_bou, 3) = ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_bou, 3)));
+                // FAST IMPLEMENTATION
+
+                ChVectorDynamic<> g_nonlinA = TransformAbsToCorotational(v_mod);
+                g_nonlinA = Q_0 * g_nonlinA;
+                g_nonlinA = P_F * g_nonlinA;
+                ChVectorDynamic<> g_nonlinA_temp(num_coords_vel_bou_mod);
+                g_nonlinA_temp.setZero();
+                ChVectorN<double, 3> g_nonlinA_tail = g_nonlinA.tail(3);
+                for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary; i_bou += 6) {
+                    g_nonlinA_temp.segment(i_bou, 3) = (floating_frame_F.GetRotMat().transpose() * v_mod.segment(i_bou, 3)).cross(g_nonlinA_tail);
                 }
-                ChMatrixDynamic<> mat_M = GetCorotationalTransformation(M_red * V * P_F * Q_0);
-                ChVectorDynamic<> g_nonlinorig = (mat_M - mat_M.transpose()) * v_mod;
-                m_g_nonlinorig.stop();
-                std::cout << "g_nonlinorig.norm(): " << g_nonlinorig.norm() << std::endl;
+                g_nonlinA = M_red * g_nonlinA_temp;
+                g_nonlinA = TransformCorotationalToAbs(g_nonlinA);
 
-                g_quadvel += g_nonlinorig;
-
-
-                {
-                    m_g_nonlin.start();
-
-                    ////////
-                    ChVectorDynamic<> g_nonlinA = TransformAbsToCorotational(v_mod);
-                    std::cout << "1 g_nonlinA.norm(): " << g_nonlinA.norm() << std::endl;
-                    g_nonlinA = Q_0 * g_nonlinA;
-                    std::cout << "2 g_nonlinA.norm(): " << g_nonlinA.norm() << std::endl;
-                    g_nonlinA = P_F * g_nonlinA;
-                    std::cout << "3 g_nonlinA.norm(): " << g_nonlinA.norm() << std::endl;
-                    ChVectorDynamic<> g_nonlinA_temp(num_coords_vel_bou_mod);
-                    g_nonlinA_temp.setZero();
-                    ChVectorN<double, 3> g_nonlinA_head = g_nonlinA.head(3);
-                    for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary; i_bou += 6) {
-                        g_nonlinA_temp.segment(i_bou, 3) = (floating_frame_F.GetRotMat().transpose() * v_mod.segment(i_bou, 3)).cross(g_nonlinA_head);
-                    }
-                    std::cout << "4 g_nonlinA_temp.norm(): " << g_nonlinA_temp.norm() << std::endl;
-                    g_nonlinA = M_red * g_nonlinA_temp;
-                    std::cout << "5 g_nonlinA.norm(): " << g_nonlinA.norm() << std::endl;
-                    g_nonlinA = TransformCorotationalToAbs(g_nonlinA);
-
-                    std::cout << "6 g_nonlinA.norm(): " << g_nonlinA.norm() << std::endl;
-
-
-                    ChVectorDynamic<> g_nonlinB = TransformAbsToCorotational(v_mod);
-                    g_nonlinB = M_red.transpose() * g_nonlinB;
-                    ChVectorDynamic<> g_nonlinB_temp(6);
-                    g_nonlinB_temp.setZero();
-                    for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary; i_bou += 6) {
-                        ChVectorN<double, 3> g_nonlinB_p = g_nonlinB.segment(i_bou, 3);
-                        g_nonlinB_temp.head(3) += g_nonlinB_p.cross(floating_frame_F.GetRotMat().transpose() * v_mod.segment(i_bou, 3));
-                    }
-                    g_nonlinB = P_F.transpose() * g_nonlinB_temp;
-                    g_nonlinB = Q_0.transpose() * g_nonlinB;
-                    g_nonlinB = TransformCorotationalToAbs(g_nonlinB);
-
-
-                    ChVectorDynamic<> g_nonlin = g_nonlinA - g_nonlinB;
-                    m_g_nonlin.stop();
-
-
-                    std::cout << "g_nonlin.norm: " << g_nonlin.norm() << std::endl;
-                    std::cout << "Delta: " << (g_nonlin - g_nonlinorig).norm() << std::endl;
+                ChVectorDynamic<> g_nonlinB = TransformAbsToCorotational(v_mod);
+                g_nonlinB = M_red.transpose() * g_nonlinB;
+                ChVectorDynamic<> g_nonlinB_temp(6);
+                g_nonlinB_temp.setZero();
+                for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary; i_bou += 6) {
+                    ChVectorN<double, 3> g_nonlinB_p = g_nonlinB.segment(i_bou, 3);
+                    g_nonlinB_temp.tail(3) += g_nonlinB_p.cross(floating_frame_F.GetRotMat().transpose() * v_mod.segment(i_bou, 3));
                 }
                 g_nonlinB = P_F.transpose() * g_nonlinB_temp;
                 g_nonlinB = Q_0.transpose() * g_nonlinB;
                 g_nonlinB = TransformCorotationalToAbs(g_nonlinB);
 
                 ChVectorDynamic<> g_nonlin = g_nonlinA - g_nonlinB;
+<<<<<<< HEAD
+=======
+                m_g_nonlin.stop();
+>>>>>>> 0c5c5e693a (ChModalAssembly: improved performance of non linear inertia term)
 
                 g_quadvel += g_nonlin;
 
@@ -2539,8 +2506,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) -= c * g_quadvel;
         }
 
-        // 3-
-        // Update the external forces imposed on the internal nodes.
+        // 3. update the external forces imposed on the internal nodes.
         // Note: the below code requires that the internal bodies and internal nodes are inserted in sequence.
         {
             std::unordered_map<ChBody*, unsigned int> body_to_offset;
@@ -2611,8 +2577,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             }
         }
 
-        // 4-
-        // Update the gravitational force on the internal bodies and nodes
+        // 4. update the gravitational force on the internal bodies and nodes
         if (m_modal_automatic_gravity) {
             ChVectorDynamic<> g_acc_loc;
             g_acc_loc.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal);
@@ -2688,8 +2653,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             }
         }
 
-        // 5-
-        // Add the collected forces of internal items (bodies, nodes) on the generalized coordinates
+        // 5. add the collected forces of internal items (bodies, nodes) on the generalized coordinates
         if (!m_full_forces_internal.isZero()) {
             ChVectorDynamic<> f_loc(m_num_coords_vel_internal);
             for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; ++i_node) {
