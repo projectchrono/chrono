@@ -353,8 +353,8 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
     if (m_verbose) {
         ChVector3d pos_F = floating_frame_F.GetPos();
         ChVector3d theta_F = floating_frame_F.GetRot().GetRotVec() * CH_RAD_TO_DEG;
-        std::cout << "floating_frame_F: pos: " << pos_F.x() << "  " << pos_F.y() << "  " << pos_F.z() << "  rot[deg]: " << theta_F.x() << "  " << theta_F.y() << "  "
-                  << theta_F.z() << std::endl;
+        std::cout << "floating_frame_F: pos: " << pos_F.x() << "  " << pos_F.y() << "  " << pos_F.z() << "  rot[deg]: " << theta_F.x() << "  " << theta_F.y() << "  " << theta_F.z()
+                  << std::endl;
     }
 
     // store the old configuration of the floating frame F
@@ -740,22 +740,22 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
     M_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction) = MBI_PsiST_MII * Psi_D;
     M_red.block(m_num_coords_vel_boundary, 0, m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary) =
         M_red.block(0, m_num_coords_vel_boundary, m_num_coords_vel_boundary,
-                          m_num_coords_modal - m_num_coords_static_correction)
+                    m_num_coords_modal - m_num_coords_static_correction)
             .transpose();  // symmetric block
-    M_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction,
-                      m_num_coords_modal - m_num_coords_static_correction) = Psi_D.transpose() * M_II_loc * Psi_D;
+    M_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction, m_num_coords_modal - m_num_coords_static_correction) =
+        Psi_D.transpose() * M_II_loc * Psi_D;
     if (m_num_coords_static_correction) {  // static correction blocks
         M_red.block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction) =
             MBI_PsiST_MII * Psi_Cor;
-        M_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) = Psi_D.transpose() * M_II_loc * Psi_Cor;
+        M_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_modal - m_num_coords_static_correction,
+                    m_num_coords_static_correction) = Psi_D.transpose() * M_II_loc * Psi_Cor;
 
         M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, 0, m_num_coords_static_correction, m_num_coords_vel_boundary) =
             M_red.block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction)
                 .transpose();  // symmetric block
 
         M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction) =
+                    m_num_coords_modal - m_num_coords_static_correction) =
             M_red
                 .block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
                        m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
@@ -765,16 +765,15 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
     }
 
     K_red.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
-    K_red.topLeftCorner(m_num_coords_vel_boundary, m_num_coords_vel_boundary) =
-        K_BB_loc + K_BI_loc * Psi_S + Psi_S.transpose() * K_IB_loc + Psi_S.transpose() * K_II_loc * Psi_S;
-    K_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction,
-                      m_num_coords_modal - m_num_coords_static_correction) = Psi_D.transpose() * K_II_loc * Psi_D;
+    K_red.topLeftCorner(m_num_coords_vel_boundary, m_num_coords_vel_boundary) = K_BB_loc + K_BI_loc * Psi_S + Psi_S.transpose() * K_IB_loc + Psi_S.transpose() * K_II_loc * Psi_S;
+    K_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction, m_num_coords_modal - m_num_coords_static_correction) =
+        Psi_D.transpose() * K_II_loc * Psi_D;
     if (m_num_coords_static_correction) {  // static correction blocks
-        K_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) = Psi_D.transpose() * K_II_loc * Psi_Cor;
+        K_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_modal - m_num_coords_static_correction,
+                    m_num_coords_static_correction) = Psi_D.transpose() * K_II_loc * Psi_Cor;
 
         K_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction) =
+                    m_num_coords_modal - m_num_coords_static_correction) =
             K_red
                 .block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
                        m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
@@ -940,15 +939,15 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
         // Update the blocks of reduced mass matrix corresponding to the static correction mode
         M_red.block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction) =
             MBI_PsiST_MII * Psi_Cor;
-        M_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) = Psi_D.transpose() * M_II_loc * Psi_Cor;
+        M_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_modal - m_num_coords_static_correction,
+                    m_num_coords_static_correction) = Psi_D.transpose() * M_II_loc * Psi_Cor;
 
         M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, 0, m_num_coords_static_correction, m_num_coords_vel_boundary) =
             M_red.block(0, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction)
                 .transpose();  // symmetric block
 
         M_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction) =
+                    m_num_coords_modal - m_num_coords_static_correction) =
             M_red
                 .block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
                        m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
@@ -959,11 +958,11 @@ void ChModalAssembly::ComputeModalKRMmatricesGlobal(double Kfactor, double Rfact
 
     if (m_num_coords_static_correction) {
         // Update the blocks of reduced stiffness matrix corresponding to the static correction mode
-        K_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction) = Psi_D.transpose() * K_II_loc * Psi_Cor;
+        K_red.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_modal - m_num_coords_static_correction,
+                    m_num_coords_static_correction) = Psi_D.transpose() * K_II_loc * Psi_Cor;
 
         K_red.block(m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction, m_num_coords_vel_boundary, m_num_coords_static_correction,
-                          m_num_coords_modal - m_num_coords_static_correction) =
+                    m_num_coords_modal - m_num_coords_static_correction) =
             K_red
                 .block(m_num_coords_vel_boundary, m_num_coords_vel_boundary + m_num_coords_modal - m_num_coords_static_correction,
                        m_num_coords_modal - m_num_coords_static_correction, m_num_coords_static_correction)
