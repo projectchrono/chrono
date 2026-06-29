@@ -118,6 +118,12 @@ ChVector3d ReadVector(const YAML::Node& a) {
     return ChVector3d(a[0].as<double>(), a[1].as<double>(), a[2].as<double>());
 }
 
+ChVector2d ReadVector2(const YAML::Node& a) {
+    ChAssertAlways(a.IsSequence());
+    ChAssertAlways(a.size() == 2);
+    return ChVector2d(a[0].as<double>(), a[1].as<double>());
+}
+
 ChQuaterniond ReadRotation(const YAML::Node& a, bool use_degrees) {
     ChAssertAlways(a.IsSequence());
     ChAssertAlways(a.size() == 3 || a.size() == 4);

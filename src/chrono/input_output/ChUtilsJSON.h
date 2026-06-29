@@ -28,6 +28,7 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono/core/ChVector2.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChFrame.h"
@@ -54,6 +55,9 @@ ChApi void ReadFileJSON(const std::string& filename, rapidjson::Document& d);
 
 /// Load and return a ChVector3d from the specified JSON array.
 ChApi ChVector3d ReadVectorJSON(const rapidjson::Value& a);
+
+/// Load and return a ChVector2d from the specified JSON array.
+ChApi ChVector2d ReadVector2JSON(const rapidjson::Value& a);
 
 ///  Load and return a ChQuaternion from the specified JSON array.
 ChApi ChQuaternion<> ReadQuaternionJSON(const rapidjson::Value& a);

@@ -27,6 +27,8 @@
 #include "chrono/ChVersion.h"
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector2.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChRotation.h"
 #include "chrono/assets/ChColor.h"
@@ -97,6 +99,9 @@ ChApi void CheckVersion(const YAML::Node& a);
 
 /// Load and return a ChVector3d from the specified node.
 ChApi ChVector3d ReadVector(const YAML::Node& a);
+
+/// Load and return a ChVector2d from the specified node.
+ChApi ChVector2d ReadVector2(const YAML::Node& a);
 
 /// Load and return a ChQuaternion from the specified node.
 ChApi ChQuaterniond ReadQuaternion(const YAML::Node& a);

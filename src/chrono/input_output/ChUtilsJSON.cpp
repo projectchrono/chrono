@@ -54,6 +54,12 @@ ChVector3d ReadVectorJSON(const Value& a) {
     return ChVector3d(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
 
+ChVector2d ReadVector2JSON(const Value& a) {
+    assert(a.IsArray());
+    assert(a.Size() == 2);
+    return ChVector2d(a[0u].GetDouble(), a[1u].GetDouble());
+}
+
 ChQuaternion<> ReadQuaternionJSON(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 4);
@@ -183,18 +189,15 @@ utils::ChBodyGeometry ReadBodyGeometryJSON(const rapidjson::Value& d) {
                 ChVector3d axis = ReadVectorJSON(shape["Axis"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
-                geometry.coll_cylinders.push_back(
-                    utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length, matID));
+                geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length, matID));
             } else if (type.compare("HULL") == 0) {
                 std::string filename = shape["Filename"].GetString();
-                geometry.coll_hulls.push_back(
-                    utils::ChBodyGeometry::ConvexHullsShape(GetChronoDataFile(filename), matID));
+                geometry.coll_hulls.push_back(utils::ChBodyGeometry::ConvexHullsShape(GetChronoDataFile(filename), matID));
             } else if (type.compare("MESH") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Contact Radius"].GetDouble();
-                geometry.coll_meshes.push_back(
-                    utils::ChBodyGeometry::TrimeshShape(pos, QUNIT, GetChronoDataFile(filename), 1.0, radius, matID));
+                geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, QUNIT, GetChronoDataFile(filename), 1.0, radius, matID));
             }
         }
     }
@@ -260,8 +263,7 @@ utils::ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d) {
             if (vis.HasMember("Turns") && vis["Turns"].IsNumber()) {
                 turns = vis["Turns"].GetDouble();
             }
-            geometry.vis_spring =
-                chrono_types::make_shared<utils::ChTSDAGeometry::SpringShape>(radius, resolution, turns);
+            geometry.vis_spring = chrono_types::make_shared<utils::ChTSDAGeometry::SpringShape>(radius, resolution, turns);
         }
     }
 
@@ -271,17 +273,7 @@ utils::ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d) {
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::Value& tsda, double& free_length) {
-    enum class FunctorType {
-        LinearSpring,
-        NonlinearSpring,
-        LinearDamper,
-        NonlinearDamper,
-        DegressiveDamper,
-        LinearSpringDamper,
-        NonlinearSpringDamper,
-        MapSpringDamper,
-        Unknown
-    };
+    enum class FunctorType { LinearSpring, NonlinearSpring, LinearDamper, NonlinearDamper, DegressiveDamper, LinearSpringDamper, NonlinearSpringDamper, MapSpringDamper, Unknown };
 
     FunctorType type = FunctorType::Unknown;
     free_length = 0;
@@ -455,15 +447,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
 }
 
 std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::Value& rsda, double& free_angle) {
-    enum class FunctorType {
-        LinearSpring,
-        NonlinearSpring,
-        LinearDamper,
-        NonlinearDamper,
-        LinearSpringDamper,
-        NonlinearSpringDamper,
-        Unknown
-    };
+    enum class FunctorType { LinearSpring, NonlinearSpring, LinearDamper, NonlinearDamper, LinearSpringDamper, NonlinearSpringDamper, Unknown };
 
     FunctorType type = FunctorType::Unknown;
     free_angle = 0;
