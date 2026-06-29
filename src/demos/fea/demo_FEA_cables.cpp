@@ -152,6 +152,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
+
         sys.DoStepDynamics(step);
     }
 
