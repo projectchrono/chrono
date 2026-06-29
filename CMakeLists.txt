@@ -3,7 +3,7 @@
 # CMake configuration file for the Chrono Project
 #
 #=============================================================================
-# --- amd-chronos SCM GPU (Phase 2c) ---
+# --- Optional HIP SCM contact-force backend (vehicle) ---
 option(CH_ENABLE_VEHICLE_SCM_GPU "Enable HIP SCM contact-force backend" OFF)
 
 #-----------------------------------------------------------------------------
