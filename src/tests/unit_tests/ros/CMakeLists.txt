@@ -23,3 +23,20 @@ set(CMAKE_CXX_STANDARD 17)
 
 MESSAGE(STATUS "Add unit test programs for ROS module")
 build_utests(YES "${TESTS}" "ros" "${LIBS}")
+
+# Core unit tests: the dependency-free CDR / schema / message / transport suites
+# from chrono_ros/tests_dev, registered with CTest here. They link the internal
+# chrono_ros_core static library and use a minimal return-code harness (not
+# googletest), so each is registered directly with add_test. The same sources
+# also build under Address/UB sanitizers via chrono_ros/tests_dev/run_dev_tests.sh
+# for the fast dev loop.
+if(TARGET chrono_ros_core)
+  set(CH_ROS_TESTS_DEV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../chrono_ros/tests_dev)
+  foreach(t cdr message schema transport)
+    add_executable(utest_ROS_${t} ${CH_ROS_TESTS_DEV_DIR}/test_${t}.cpp)
+    target_link_libraries(utest_ROS_${t} chrono_ros_core)
+    target_include_directories(utest_ROS_${t} PRIVATE ${CH_ROS_TESTS_DEV_DIR})
+    set_property(TARGET utest_ROS_${t} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:utest_ROS_${t}>")
+    add_test(NAME utest_ROS_${t} COMMAND utest_ROS_${t})
+  endforeach()
+endif()

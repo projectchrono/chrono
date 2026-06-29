@@ -47,9 +47,11 @@ class CH_ROS_API ChROSGPSHandler : public ChROSHandler {
                     std::shared_ptr<chrono::sensor::ChGPSSensor> gps,
                     const std::string& topic_name);
 
+    /// Creates the NavSatFix publisher.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Reads the GPS buffer and publishes the fix with approximated covariance.
     virtual void Tick(double time) override;
 
   private:

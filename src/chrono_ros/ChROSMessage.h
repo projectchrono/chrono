@@ -47,10 +47,15 @@ namespace ros {
 class CH_ROS_API ChROSMessage {
   public:
     // --- scalars
+    /// Set a bool-typed field.
     void SetBool(const std::string& path, bool value);
+    /// Set a signed-integer field (any int width; range-checked against the schema type).
     void SetInt(const std::string& path, int64_t value);
+    /// Set an unsigned-integer field (any width; range-checked against the schema type).
     void SetUInt(const std::string& path, uint64_t value);
+    /// Set a floating-point field (float32 or float64).
     void SetDouble(const std::string& path, double value);
+    /// Set a string field.
     void SetString(const std::string& path, const std::string& value);
 
     // --- arrays / sequences
@@ -58,11 +63,13 @@ class CH_ROS_API ChROSMessage {
     /// the element count). Zero-copy: the memory must stay valid until
     /// Publish() returns. Use SetBlobCopy when that is inconvenient.
     void SetBlob(const std::string& path, const void* data, size_t count);
+    /// As SetBlob, but copies the elements immediately (no lifetime requirement on 'data').
     void SetBlobCopy(const std::string& path, const void* data, size_t count);
     /// As SetBlobCopy, but sized in bytes (element count = nbytes / element_size,
     /// which must divide evenly). For byte-oriented sources such as Python
     /// buffer-protocol objects, where only the byte length is known.
     void SetBlobBytes(const std::string& path, const void* data, size_t nbytes);
+    /// Set a string array/sequence field.
     void SetStringArray(const std::string& path, const std::vector<std::string>& value);
 
     // --- nested messages
@@ -103,11 +110,17 @@ class CH_ROS_API ChROSMessage {
 /// a copy of the view object is safe and cheap).
 class CH_ROS_API ChROSMessageView {
   public:
+    /// Read a bool-typed field.
     bool GetBool(const std::string& path) const;
+    /// Read a signed-integer field.
     int64_t GetInt(const std::string& path) const;
+    /// Read an unsigned-integer field.
     uint64_t GetUInt(const std::string& path) const;
+    /// Read a floating-point field.
     double GetDouble(const std::string& path) const;
+    /// Read a string field.
     std::string GetString(const std::string& path) const;
+    /// Read a string array/sequence field.
     std::vector<std::string> GetStringArray(const std::string& path) const;
 
     /// Zero-copy view of a primitive array/sequence (camera pixels, lidar

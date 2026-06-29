@@ -54,9 +54,11 @@ class CH_ROS_API ChROSLidarHandler : public ChROSHandler {
                       const std::string& topic_name,
                       ChROSLidarHandlerMessageType msg_type = ChROSLidarHandlerMessageType::POINT_CLOUD2);
 
+    /// Creates the PointCloud2 or LaserScan publisher per the configured message type.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Publishes the latest scan (skipped while no subscriber is connected).
     virtual void Tick(double time) override;
 
   private:

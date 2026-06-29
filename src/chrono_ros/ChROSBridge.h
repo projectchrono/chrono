@@ -57,7 +57,10 @@ class ChROSNodeProcess;
 
 class CH_ROS_API ChROSBridge : public std::enable_shared_from_this<ChROSBridge> {
   public:
+    /// Construct a bridge for a node of the given name; usually created by
+    /// ChROSManager rather than directly.
     explicit ChROSBridge(const std::string& node_name = "chrono_ros_node");
+    /// Runs Shutdown().
     ~ChROSBridge();
 
     ChROSBridge(const ChROSBridge&) = delete;
@@ -78,6 +81,7 @@ class CH_ROS_API ChROSBridge : public std::enable_shared_from_this<ChROSBridge> 
     /// failure (ROS not sourced, executable missing, version mismatch, ...).
     void Initialize();
 
+    /// True once Initialize() has completed successfully.
     bool IsInitialized() const { return m_initialized; }
 
     /// True while the bridge subprocess is alive.

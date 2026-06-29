@@ -55,7 +55,9 @@ class CH_ROS_API ChROSHandler {
     /// @param time current simulation time in seconds
     virtual void Tick(double time) = 0;
 
+    /// Configured update rate in Hz (sim time); 0 means every step.
     double GetUpdateRate() const { return m_update_rate; }
+    /// Number of times Tick() has been called.
     uint64_t GetTickCount() const { return m_tick_count; }
 
   private:

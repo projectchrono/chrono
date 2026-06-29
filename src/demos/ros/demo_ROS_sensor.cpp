@@ -110,9 +110,8 @@ int main(int argc, char* argv[]) {
     b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
     sensor_manager->scene->SetBackground(b);
 
-    // Camera (bump to 3840x2160 for a 4K throughput check). The
-    // ChFilterRGBA8Access feeds the ROS handler; ChFilterVisualize is Chrono's
-    // own preview window.
+    // Camera -> Image. ChFilterRGBA8Access feeds the ROS handler; ChFilterVisualize
+    // is Chrono's own preview window.
     auto cam = chrono_types::make_shared<ChCameraSensor>(ground_body, 30, offset_pose, 1280, 720, CH_PI / 3.);
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720));

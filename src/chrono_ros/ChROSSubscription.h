@@ -67,10 +67,14 @@ class CH_ROS_API ChROSSubscription {
     /// the time-synchronization notes in the module documentation.
     bool WaitForMessage(double timeout_seconds);
 
+    /// Topic this subscription listens on.
     const std::string& GetTopic() const { return m_topic; }
+    /// ROS message type name of this subscription.
     const std::string& GetTypeName() const { return m_type_name; }
+    /// Pretty-print this type's field layout (for discovery/debugging).
     std::string DescribeType() const;
 
+    /// Unadvertises the subscription in the bridge subprocess.
     ~ChROSSubscription();
     ChROSSubscription(const ChROSSubscription&) = delete;
     ChROSSubscription& operator=(const ChROSSubscription&) = delete;

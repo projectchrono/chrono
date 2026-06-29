@@ -48,9 +48,11 @@ class CH_ROS_API ChROSCameraHandler : public ChROSHandler {
                        std::shared_ptr<chrono::sensor::ChCameraSensor> camera,
                        const std::string& topic_name);
 
+    /// Creates the Image publisher and caches the image dimensions.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Publishes the latest frame (skipped while no subscriber is connected).
     virtual void Tick(double time) override;
 
   private:

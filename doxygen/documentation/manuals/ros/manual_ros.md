@@ -3,9 +3,11 @@ Chrono::ROS Reference Manual {#manual_ros}
 
 * [Install and build Chrono::ROS](@ref module_ros_installation)
 * [Chrono::ROS overview](@ref module_ros_overview)
+* [How to create a custom handler](@ref custom_handlers)
+* [Internal IPC protocol and schema](@ref ros_protocol)
+* [Time synchronization & sim-to-real best practices](@ref ros_sim_to_real)
+* [PyChrono (Python)](@ref pychrono_introduction)
 * [Chrono::ROS tutorials](@ref tutorial_table_of_content_chrono_ros)
-
-More coming soon...
 
 ## Changelog as of Chrono 10.0
 

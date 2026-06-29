@@ -50,9 +50,11 @@ class CH_ROS_API ChROSAccelerometerHandler : public ChROSHandler {
                               std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu,
                               const std::string& topic_name);
 
+    /// Creates the Imu publisher.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Reads the accelerometer buffer and publishes the linear acceleration.
     virtual void Tick(double time) override;
 
   private:

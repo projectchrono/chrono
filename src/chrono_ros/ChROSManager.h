@@ -53,6 +53,7 @@ class CH_ROS_API ChROSManager {
     /// One manager = one bridge node. Multiple managers (each with a unique
     /// node name) may coexist in one simulation.
     explicit ChROSManager(const std::string& node_name = "chrono_ros_node");
+    /// Shuts the bridge node down.
     ~ChROSManager();
 
     ChROSManager(const ChROSManager&) = delete;
@@ -82,7 +83,10 @@ class CH_ROS_API ChROSManager {
 
     /// Access the bridge for direct publisher/subscription creation and
     /// type discovery (DescribeType).
-    std::shared_ptr<ChROSBridge> GetBridge() { return m_bridge; }
+    std::shared_ptr<ChROSBridge> GetBridge() const { return m_bridge; }
+
+    /// True once Initialize() has completed successfully.
+    bool IsInitialized() const { return m_initialized; }
 
   private:
     std::shared_ptr<ChROSBridge> m_bridge;

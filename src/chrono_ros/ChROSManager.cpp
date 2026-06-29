@@ -16,10 +16,20 @@
 #include "chrono_ros/ChROSBridge.h"
 #include "chrono_ros/ChROSHandler.h"
 
+#include <csignal>
 #include <stdexcept>
 
 namespace chrono {
 namespace ros {
+
+namespace {
+// Help clean shutdown
+volatile std::sig_atomic_t g_interrupt_requested = 0;
+bool g_signal_handler_installed = false;
+void HandleInterrupt(int /*signum*/) {
+    g_interrupt_requested = 1;
+}
+}  // namespace
 
 ChROSManager::ChROSManager(const std::string& node_name) : m_bridge(std::make_shared<ChROSBridge>(node_name)) {}
 
@@ -36,6 +46,13 @@ void ChROSManager::Initialize() {
         return;
     }
     m_bridge->Initialize();
+
+    if (!g_signal_handler_installed) {
+        g_signal_handler_installed = true;
+        std::signal(SIGINT, HandleInterrupt);
+        std::signal(SIGTERM, HandleInterrupt);
+    }
+
     for (size_t i = 0; i < m_handlers.size(); i++) {
         if (!m_handlers[i]->Initialize(*m_bridge)) {
             throw std::runtime_error("Chrono::ROS: handler " + std::to_string(i) +
@@ -49,8 +66,8 @@ bool ChROSManager::Update(double time, double step) {
     if (!m_initialized) {
         throw std::runtime_error("Chrono::ROS: Update() called before Initialize()");
     }
-    if (!m_bridge->IsNodeAlive()) {
-        return false;
+    if (g_interrupt_requested || !m_bridge->IsNodeAlive()) {
+        return false;  // Ctrl-C / SIGTERM, or the node exited
     }
 
     m_bridge->SetSimTime(time);

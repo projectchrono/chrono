@@ -41,14 +41,18 @@ class ChROSIMUHandler;
 /// Publishes a ChMagnetometerSensor as sensor_msgs/msg/MagneticField.
 class CH_ROS_API ChROSMagnetometerHandler : public ChROSHandler {
   public:
+    /// Tick at the sensor's own update rate.
     ChROSMagnetometerHandler(std::shared_ptr<chrono::sensor::ChMagnetometerSensor> imu, const std::string& topic_name);
+    /// Tick at an explicit rate.
     ChROSMagnetometerHandler(double update_rate,
                              std::shared_ptr<chrono::sensor::ChMagnetometerSensor> imu,
                              const std::string& topic_name);
 
+    /// Creates the MagneticField publisher.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Reads the magnetometer buffer and publishes the magnetic field.
     virtual void Tick(double time) override;
 
   private:

@@ -44,15 +44,23 @@ class ChROSMagnetometerHandler;
 /// >= this handler's rate so their data is fresh.
 class CH_ROS_API ChROSIMUHandler : public ChROSHandler {
   public:
+    /// @param update_rate publish rate (Hz, sim time); 0 = every step.
+    /// @param topic_name Imu topic to publish on.
+    /// @param frame_id header frame_id stamped into the message.
     ChROSIMUHandler(double update_rate, const std::string& topic_name, const std::string& frame_id = "imu");
 
+    /// Creates the Imu publisher.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
+    /// Set the accelerometer sub-handler (required). Its rate should be >= this handler's.
     void SetAccelerometerHandler(std::shared_ptr<ChROSAccelerometerHandler> accel_handler);
+    /// Set the gyroscope sub-handler (required). Its rate should be >= this handler's.
     void SetGyroscopeHandler(std::shared_ptr<ChROSGyroscopeHandler> gyro_handler);
+    /// Set the magnetometer sub-handler (required for presence, though its data is not packed).
     void SetMagnetometerHandler(std::shared_ptr<ChROSMagnetometerHandler> mag_handler);
 
   protected:
+    /// Assembles one Imu message from the sub-handlers' latest values and publishes it.
     virtual void Tick(double time) override;
 
   private:

@@ -45,13 +45,18 @@ class ChROSSubscription;
 /// (pychrono.ros): the ViperDCMotorControl argument crosses from pychrono.robot.
 class CH_ROS_API ChROSViperDCMotorControlHandler : public ChROSHandler {
   public:
+    /// @param update_rate tick rate (Hz, sim time); 0 = every step.
+    /// @param driver the Viper driver the received commands are applied to.
+    /// @param topic_name ViperDCMotorControl topic to subscribe to.
     ChROSViperDCMotorControlHandler(double update_rate,
                                     std::shared_ptr<chrono::viper::ViperDCMotorControl> driver,
                                     const std::string& topic_name);
 
+    /// Creates the ViperDCMotorControl subscription.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Applies the most recently received commands to the driver.
     virtual void Tick(double time) override;
 
   private:

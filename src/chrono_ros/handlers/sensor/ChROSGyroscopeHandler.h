@@ -42,14 +42,18 @@ class ChROSIMUHandler;
 /// velocity fields are populated).
 class CH_ROS_API ChROSGyroscopeHandler : public ChROSHandler {
   public:
+    /// Tick at the sensor's own update rate.
     ChROSGyroscopeHandler(std::shared_ptr<chrono::sensor::ChGyroscopeSensor> imu, const std::string& topic_name);
+    /// Tick at an explicit rate.
     ChROSGyroscopeHandler(double update_rate,
                           std::shared_ptr<chrono::sensor::ChGyroscopeSensor> imu,
                           const std::string& topic_name);
 
+    /// Creates the Imu publisher.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Reads the gyroscope buffer and publishes the angular velocity.
     virtual void Tick(double time) override;
 
   private:

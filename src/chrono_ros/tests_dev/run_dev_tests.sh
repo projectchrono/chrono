@@ -4,9 +4,8 @@
 #
 # Compiles the dependency-free core sources together with each test executable
 # under strict warnings and Address/UB sanitizers, then runs them. This is the
-# fast inner loop for working on the core; the same tests are intended to be
-# registered with Chrono's CTest/googletest harness once the module's CMake is
-# finalized (see CLAUDE.md, Phase 1/6).
+# fast inner loop for working on the core; the same tests are also registered
+# with Chrono's CTest harness (src/tests/unit_tests/ros) for CI.
 #
 # Usage: ./run_dev_tests.sh [extra g++ flags...]
 # =============================================================================

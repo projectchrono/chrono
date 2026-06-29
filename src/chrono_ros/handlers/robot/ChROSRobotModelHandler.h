@@ -58,9 +58,11 @@ class CH_ROS_API ChROSRobotModelHandler : public ChROSHandler {
                            const std::string& topic_name = "/robot_description");
 #endif
 
+    /// Creates the latched /robot_description publisher.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Publishes the model string once (latched QoS serves later subscribers).
     virtual void Tick(double time) override;
 
   private:

@@ -61,6 +61,7 @@ class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     typedef std::variant<ChBodyTransform, ChFrameTransform> ChROSTransform;
 
   public:
+    /// @param update_rate publish rate (Hz, sim time); 0 = every step.
     ChROSTFHandler(double update_rate);
 
     /// Creates the /tf publisher.

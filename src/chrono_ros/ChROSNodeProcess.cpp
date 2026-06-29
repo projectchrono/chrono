@@ -15,7 +15,9 @@
 #include "chrono_ros/ChROSNodeProcess.h"
 #include "chrono_ros/ChConfigROS.h"
 
+#include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -102,6 +104,21 @@ void ChROSNodeProcess::Launch(const std::string& node_name, const std::string& c
         throw std::runtime_error("chrono_ros_node is already running");
     }
     m_executable = FindExecutable();
+
+    // Pre-flight: the node inherits this process's environment, which is how a sourced ROS 2
+    // workspace reaches it. AMENT_PREFIX_PATH being unset means ROS is almost certainly not
+    // sourced for the launching process (the one that created the ChROSManager - terminal, IDE,
+    // service, or Python interpreter - not necessarily a shell). Warn, don't fail: the binary may
+    // still resolve via rpath, and a genuine failure to start is reported precisely by the HELLO
+    // handshake (ChROSBridge::AwaitFrame).
+    if (const char* ament = std::getenv("AMENT_PREFIX_PATH"); ament == nullptr || ament[0] == '\0') {
+        std::cerr << "[Chrono::ROS] warning: AMENT_PREFIX_PATH is not set; the ROS 2 environment looks "
+                     "unsourced for the process launching the bridge node. The node inherits this process's "
+                     "environment, not a separate shell's, so if it fails to start, source ROS 2 "
+                     "('source /opt/ros/<distro>/setup.bash' plus any workspace overlays) in whatever starts "
+                     "the simulation: a terminal, IDE launch config, service file, or Python interpreter."
+                  << std::endl;
+    }
 
     const std::vector<std::string> arguments = {"--node-name", node_name, "--channel-name", channel_name};
 

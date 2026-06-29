@@ -52,9 +52,11 @@ class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
                              std::shared_ptr<chrono::vehicle::ChDriver> driver,
                              const std::string& topic_name);
 
+    /// Creates the DriverInputs subscription.
     virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
+    /// Applies the most recently received inputs to the driver.
     virtual void Tick(double time) override;
 
   private:

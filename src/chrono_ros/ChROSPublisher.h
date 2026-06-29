@@ -53,12 +53,15 @@ class CH_ROS_API ChROSPublisher {
     /// nobody is listening.
     size_t GetSubscriptionCount() const;
 
+    /// Topic this publisher writes to.
     const std::string& GetTopic() const { return m_topic; }
+    /// ROS message type name of this publisher.
     const std::string& GetTypeName() const { return m_type_name; }
 
     /// Pretty-print this type's field layout (for discovery/debugging).
     std::string DescribeType() const;
 
+    /// Unadvertises the topic in the bridge subprocess.
     ~ChROSPublisher();
     ChROSPublisher(const ChROSPublisher&) = delete;
     ChROSPublisher& operator=(const ChROSPublisher&) = delete;
