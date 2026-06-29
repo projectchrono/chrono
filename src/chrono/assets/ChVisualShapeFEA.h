@@ -20,6 +20,13 @@
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
+// Forward declaration
+#ifdef CHRONO_HAS_YAML
+namespace YAML {
+class Node;
+}
+#endif
+
 namespace chrono {
 
 /// @addtogroup chrono_assets
@@ -143,7 +150,7 @@ class ChApi ChVisualShapeFEA {
     /// Note: experimental feature.
     void SetSmoothFaces(bool smooth) { smooth_faces = smooth; }
 
-    /// Draw the mesh in its underformed (reference) configuration.
+    /// Draw the mesh in its undeformed (reference) configuration.
     void SetDrawInUndeformedReference(bool undeformed) { undeformed_reference = undeformed; }
 
     /// Set as wireframe visualization.
@@ -179,11 +186,31 @@ class ChApi ChVisualShapeFEA {
     /// Update the triangle visualization mesh so that it matches with the FEM mesh.
     void Update(ChObj* updater, const ChFrame<>& frame);
 
+    /// FEA run-time visualization settings.
+    struct ChApi Settings {
+        Settings();
+        Settings(const Settings& other);
+#ifdef CHRONO_HAS_YAML
+        Settings(const YAML::Node& a);
+        static Settings Read(const YAML::Node& a);
+#endif
+        Settings& operator=(const Settings& other);
+        void PrintInfo() const;
+
+        DataType data_type;
+        ChVector2d data_range;
+        ChColormap::Type colormap;
+        bool smooth_faces;
+        bool wireframe;
+
+        GlyphType glyph_type;
+        double glyph_size;
+        ChColor glyph_color;
+    };
+
   private:
-    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyz> node,
-                               std::shared_ptr<fea::ChElementBase> element) const;
-    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyzP> node,
-                               std::shared_ptr<fea::ChElementBase> element) const;
+    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyz> node, std::shared_ptr<fea::ChElementBase> element) const;
+    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyzP> node, std::shared_ptr<fea::ChElementBase> element) const;
     ChColor ComputeFalseColor(double value) const;
 
     // Helper functions for updating buffers of specific element types

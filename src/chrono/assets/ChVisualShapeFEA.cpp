@@ -36,6 +36,13 @@
 #include "chrono/fea/ChHexahedronFace.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#ifdef CHRONO_HAS_YAML
+    #include "chrono/input_output/ChUtilsYAML.h"
+#endif
+
+using std::cout;
+using std::cerr;
+using std::endl;
 
 namespace chrono {
 
@@ -114,8 +121,7 @@ ChColor ChVisualShapeFEA::ComputeFalseColor(double value) const {
     return m_colormap->Get(value, colorscale_min, colorscale_max);
 }
 
-double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> node,
-                                             std::shared_ptr<ChElementBase> element) const {
+double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> node, std::shared_ptr<ChElementBase> element) const {
     switch (fem_data_type) {
         case DataType::SURFACE:
             return 1e30;  // to force 'white' in false color scale. Hack, to be improved.
@@ -170,8 +176,7 @@ double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> node,
     return 0;
 }
 
-double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> node,
-                                             std::shared_ptr<ChElementBase> element) const {
+double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> node, std::shared_ptr<ChElementBase> element) const {
     switch (fem_data_type) {
         case DataType::SURFACE:
             return 1e30;  // to force 'white' in false color scale. Hack, to be improved.
@@ -203,14 +208,8 @@ void TriangleNormalsReset(std::vector<ChVector3d>& normals, std::vector<int>& ac
     }
 }
 
-void TriangleNormalsCompute(ChVector3i norm_indexes,
-                            ChVector3i vert_indexes,
-                            std::vector<ChVector3d>& vertices,
-                            std::vector<ChVector3d>& normals,
-                            std::vector<int>& accumulators) {
-    ChVector3d tnorm = Vcross(vertices[vert_indexes.y()] - vertices[vert_indexes.x()],
-                              vertices[vert_indexes.z()] - vertices[vert_indexes.x()])
-                           .GetNormalized();
+void TriangleNormalsCompute(ChVector3i norm_indexes, ChVector3i vert_indexes, std::vector<ChVector3d>& vertices, std::vector<ChVector3d>& normals, std::vector<int>& accumulators) {
+    ChVector3d tnorm = Vcross(vertices[vert_indexes.y()] - vertices[vert_indexes.x()], vertices[vert_indexes.z()] - vertices[vert_indexes.x()]).GetNormalized();
     normals[norm_indexes.x()] += tnorm;
     normals[norm_indexes.y()] += tnorm;
     normals[norm_indexes.z()] += tnorm;
@@ -480,11 +479,9 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
     } else if (auto beamTimoshenkoFPM = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(beam)) {
         sectionshape = beamTimoshenkoFPM->GetTaperedSection()->GetSectionA()->GetDrawShape();
     } else if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(beam)) {
-        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3243->GetThicknessY(),
-                                                                                beam3243->GetThicknessZ());
+        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3243->GetThicknessY(), beam3243->GetThicknessZ());
     } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(beam)) {
-        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3333->GetThicknessY(),
-                                                                                beam3333->GetThicknessZ());
+        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3333->GetThicknessY(), beam3333->GetThicknessZ());
     }
 
     if (sectionshape) {
@@ -537,6 +534,10 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
                     beam->EvaluateSectionStrain(eta, vresult);
                     sresult = vresult.y();
                     break;
+                case DataType::NODE_SPEED_NORM:
+                    beam->EvaluateSectionVelocity(eta, vresult, vresultB);
+                    sresult = vresult.Length();
+                    break;
                 default:
                     break;
             }
@@ -545,12 +546,10 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
             int subline_stride = 0;
 
             for (unsigned int il = 0; il < sectionshape->GetNumLines(); ++il) {
-                std::vector<ChVector3d> msubline_pts(
-                    sectionshape->GetNumPoints(il));  // suboptimal temp - better store&transform in place
-                std::vector<ChVector3d> msubline_normals(
-                    sectionshape->GetNumPoints(il));  // suboptimal temp - better store&transform in place
+                std::vector<ChVector3d> msubline_pts(sectionshape->GetNumPoints(il));      // suboptimal temp - better store and transform in place
+                std::vector<ChVector3d> msubline_normals(sectionshape->GetNumPoints(il));  // suboptimal temp - better store and transform in place
 
-                // compute the point yz coords and yz normals in sectional frame
+                // compute the point y and z coordinates and y and z normals in sectional frame
                 sectionshape->GetPoints(il, msubline_pts);
                 sectionshape->GetNormals(il, msubline_normals);
 
@@ -570,27 +569,22 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
                 // store face connectivity
                 if (in > 0) {
                     ChVector3i ivert_offset(ivert_el, ivert_el, ivert_el);
-                    ChVector3i islice_offset((in - 1) * n_section_pts, (in - 1) * n_section_pts,
-                                             (in - 1) * n_section_pts);
+                    ChVector3i islice_offset((in - 1) * n_section_pts, (in - 1) * n_section_pts, (in - 1) * n_section_pts);
                     for (size_t is = 0; is < msubline_pts.size() - 1; ++is) {
                         int ipa = int(is) + subline_stride;
                         int ipb = int(is + 1) + subline_stride;  // % n_section_pts; if wrapped - not needed here;
                         int ipaa = ipa + n_section_pts;
                         int ipbb = ipb + n_section_pts;
 
-                        trianglemesh.GetIndicesVertices()[i_triindex] =
-                            ChVector3i(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
+                        trianglemesh.GetIndicesVertices()[i_triindex] = ChVector3i(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
                         if (smooth_faces) {
-                            trianglemesh.GetIndicesNormals()[i_triindex] =
-                                ChVector3i(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
+                            trianglemesh.GetIndicesNormals()[i_triindex] = ChVector3i(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
                         }
                         ++i_triindex;
 
-                        trianglemesh.GetIndicesVertices()[i_triindex] =
-                            ChVector3i(ipa, ipb, ipbb) + islice_offset + ivert_offset;
+                        trianglemesh.GetIndicesVertices()[i_triindex] = ChVector3i(ipa, ipb, ipbb) + islice_offset + ivert_offset;
                         if (smooth_faces) {
-                            trianglemesh.GetIndicesNormals()[i_triindex] =
-                                ChVector3i(ipa, ipb, ipbb) + islice_offset + ivert_offset;
+                            trianglemesh.GetIndicesNormals()[i_triindex] = ChVector3i(ipa, ipb, ipbb) + islice_offset + ivert_offset;
                         }
                         ++i_triindex;
                     }
@@ -651,20 +645,12 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
 
                 if (iu < shell_resolution - 1) {
                     if (iv > 0) {
-                        trianglemesh.GetIndicesVertices()[i_triindex] =
-                            ChVector3i(triangle_pt, triangle_pt - 1, triangle_pt + shell_resolution - iu - 1) +
-                            ivert_offset;
-                        trianglemesh.GetIndicesVertices()[i_triindex + 1] =
-                            ChVector3i(triangle_pt - 1, triangle_pt, triangle_pt + shell_resolution - iu - 1) +
-                            ivert_offset;
+                        trianglemesh.GetIndicesVertices()[i_triindex] = ChVector3i(triangle_pt, triangle_pt - 1, triangle_pt + shell_resolution - iu - 1) + ivert_offset;
+                        trianglemesh.GetIndicesVertices()[i_triindex + 1] = ChVector3i(triangle_pt - 1, triangle_pt, triangle_pt + shell_resolution - iu - 1) + ivert_offset;
 
                         if (smooth_faces) {
-                            trianglemesh.GetIndicesNormals()[i_triindex] =
-                                ChVector3i(triangle_pt, triangle_pt - 1, triangle_pt + shell_resolution - iu - 1) +
-                                inorm_offset;
-                            trianglemesh.GetIndicesNormals()[i_triindex + 1] =
-                                ChVector3i(triangle_pt - 1, triangle_pt, triangle_pt + shell_resolution - iu - 1) +
-                                inorm_offset;
+                            trianglemesh.GetIndicesNormals()[i_triindex] = ChVector3i(triangle_pt, triangle_pt - 1, triangle_pt + shell_resolution - iu - 1) + inorm_offset;
+                            trianglemesh.GetIndicesNormals()[i_triindex + 1] = ChVector3i(triangle_pt - 1, triangle_pt, triangle_pt + shell_resolution - iu - 1) + inorm_offset;
                         }
                         ++i_triindex;
                         ++i_triindex;
@@ -672,28 +658,23 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
 
                     if (iv > 1) {
                         trianglemesh.GetIndicesVertices()[i_triindex] =
-                            ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
-                                                      triangle_pt + shell_resolution - iu - 1);
+                            ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2, triangle_pt + shell_resolution - iu - 1);
                         trianglemesh.GetIndicesVertices()[i_triindex + 1] =
-                            ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
-                                                      triangle_pt + shell_resolution - iu - 2);
+                            ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1, triangle_pt + shell_resolution - iu - 2);
 
                         if (smooth_faces) {
                             trianglemesh.GetIndicesNormals()[i_triindex] =
-                                inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
-                                                          triangle_pt + shell_resolution - iu - 1);
+                                inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2, triangle_pt + shell_resolution - iu - 1);
                             trianglemesh.GetIndicesNormals()[i_triindex + 1] =
-                                inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
-                                                          triangle_pt + shell_resolution - iu - 2);
+                                inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1, triangle_pt + shell_resolution - iu - 2);
                         }
 
                         i_triindex += 2;
                     }
                 }
                 ++triangle_pt;
-
-            }  // end for(iv)
-        }  // end for(iu)
+            }
+        }
 
     } else {
         // Non-triangular shell
@@ -724,26 +705,21 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
 
                 if (iu > 0 && iv > 0) {
                     trianglemesh.GetIndicesVertices()[i_triindex] =
-                        ivert_offset + ChVector3i(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-                                                  iu * shell_resolution + iv - 1);
+                        ivert_offset + ChVector3i(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv, iu * shell_resolution + iv - 1);
                     trianglemesh.GetIndicesVertices()[i_triindex + 1] =
-                        ivert_offset + ChVector3i(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-                                                  (iu - 1) * shell_resolution + iv - 1);
+                        ivert_offset + ChVector3i(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv, (iu - 1) * shell_resolution + iv - 1);
 
                     if (smooth_faces) {
                         trianglemesh.GetIndicesNormals()[i_triindex] =
-                            inorm_offset + ChVector3i(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-                                                      iu * shell_resolution + iv - 1);
+                            inorm_offset + ChVector3i(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv, iu * shell_resolution + iv - 1);
                         trianglemesh.GetIndicesNormals()[i_triindex + 1] =
-                            inorm_offset + ChVector3i(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-                                                      (iu - 1) * shell_resolution + iv - 1);
+                            inorm_offset + ChVector3i(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv, (iu - 1) * shell_resolution + iv - 1);
                     }
 
                     i_triindex += 2;
                 }
-
-            }  // end for(iv)
-        }  // end for(iu)
+            }
+        }
     }  // end triangular shell
 }
 
@@ -922,17 +898,14 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
                         sectionshape = beamIGA->GetSection()->GetDrawShape();
                     } else if (auto beamTimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(beam)) {
                         sectionshape = beamTimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                    } else if (auto beamTimoshenkoFPM =
-                                   std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(beam)) {
+                    } else if (auto beamTimoshenkoFPM = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(beam)) {
                         sectionshape = beamTimoshenkoFPM->GetTaperedSection()->GetSectionA()->GetDrawShape();
                     } else if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(beam)) {
                         // TODO use ChBeamSection also in ANCF beam
-                        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
-                            beam3243->GetThicknessY(), beam3243->GetThicknessZ());
+                        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3243->GetThicknessY(), beam3243->GetThicknessZ());
                     } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(beam)) {
                         // TODO use ChBeamSection also in ANCF beam
-                        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
-                            beam3333->GetThicknessY(), beam3333->GetThicknessZ());
+                        sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(beam3333->GetThicknessY(), beam3333->GetThicknessZ());
                     }
                     if (sectionshape) {
                         for (unsigned int il = 0; il < sectionshape->GetNumLines(); ++il) {
@@ -995,15 +968,13 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
             break;
         case DataType::LOADSURFACES:
             for (const auto& surface : FEMmesh->GetMeshSurfaces()) {
-                UpdateBuffers_LoadSurface(surface, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex,
-                                          need_automatic_smoothing);
+                UpdateBuffers_LoadSurface(surface, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex, need_automatic_smoothing);
             }
             break;
         case DataType::CONTACTSURFACES:
             for (const auto& surface : FEMmesh->GetContactSurfaces()) {
                 if (std::dynamic_pointer_cast<ChContactSurfaceMesh>(surface))
-                    UpdateBuffers_ContactSurfaceMesh(surface, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex,
-                                                     need_automatic_smoothing);
+                    UpdateBuffers_ContactSurfaceMesh(surface, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex, need_automatic_smoothing);
                 //// TODO: other types of contact surfaces
             }
             break;
@@ -1011,20 +982,15 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
             // Colormap drawing
             for (const auto& element : FEMmesh->GetElements()) {
                 if (std::dynamic_pointer_cast<ChElementTetrahedron>(element))
-                    UpdateBuffers_Tetrahedron(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex,
-                                              need_automatic_smoothing);
+                    UpdateBuffers_Tetrahedron(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex, need_automatic_smoothing);
                 else if (std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(element))
-                    UpdateBuffers_Tetra_4_P(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex,
-                                            need_automatic_smoothing);
+                    UpdateBuffers_Tetra_4_P(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex, need_automatic_smoothing);
                 else if (std::dynamic_pointer_cast<ChElementHexahedron>(element))
-                    UpdateBuffers_Hex(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex,
-                                      need_automatic_smoothing);
+                    UpdateBuffers_Hex(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex, need_automatic_smoothing);
                 else if (std::dynamic_pointer_cast<ChElementBeam>(element))
-                    UpdateBuffers_Beam(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex,
-                                       need_automatic_smoothing);
+                    UpdateBuffers_Beam(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex, need_automatic_smoothing);
                 else if (std::dynamic_pointer_cast<ChElementShell>(element))
-                    UpdateBuffers_Shell(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex,
-                                        need_automatic_smoothing);
+                    UpdateBuffers_Shell(element, *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex, need_automatic_smoothing);
                 //// TODO: other types of elements
             }
             break;
@@ -1032,9 +998,8 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
 
     if (need_automatic_smoothing) {
         for (unsigned int itri = 0; itri < trianglemesh->GetIndicesVertices().size(); ++itri)
-            TriangleNormalsCompute(trianglemesh->GetIndicesNormals()[itri], trianglemesh->GetIndicesVertices()[itri],
-                                   trianglemesh->GetCoordsVertices(), trianglemesh->GetCoordsNormals(),
-                                   normal_accumulators);
+            TriangleNormalsCompute(trianglemesh->GetIndicesNormals()[itri], trianglemesh->GetIndicesVertices()[itri], trianglemesh->GetCoordsVertices(),
+                                   trianglemesh->GetCoordsNormals(), normal_accumulators);
 
         TriangleNormalsSmooth(trianglemesh->GetCoordsNormals(), normal_accumulators);
     }
@@ -1045,7 +1010,7 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
 
     // D - GLYPHS
 
-    m_glyphs_shape->Reserve(0);  // unoptimal, should reuse buffers as much as possible
+    m_glyphs_shape->Reserve(0);  // not optimal, should reuse buffers as much as possible
     m_glyphs_shape->SetGlyphsSize(symbols_thickness);
     m_glyphs_shape->SetZbufferHide(zbuffer_hide);
 
@@ -1072,26 +1037,23 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(FEMmesh->GetNode(inode))) {
                     m_glyphs_shape->SetGlyphCoordsys(inode, mynode->Frame().GetCoordsys());
                 }
-                // else if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(FEMmesh->GetNode(inode))) {
-                //	m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetSlope1() * symbols_scale,
-                // symbolscolor );
-                //}
+                ////else if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(FEMmesh->GetNode(inode))) {
+                ////    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetSlope1() * symbols_scale, symbolscolor);
+                ////}
             }
             break;
         case GlyphType::NODE_VECT_SPEED:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
             for (unsigned int inode = 0; inode < FEMmesh->GetNumNodes(); ++inode)
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(FEMmesh->GetNode(inode))) {
-                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDt() * symbols_scale,
-                                                   symbolscolor);
+                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDt() * symbols_scale, symbolscolor);
                 }
             break;
         case GlyphType::NODE_VECT_ACCEL:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
             for (unsigned int inode = 0; inode < FEMmesh->GetNumNodes(); ++inode)
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(FEMmesh->GetNode(inode))) {
-                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDt2() * symbols_scale,
-                                                   symbolscolor);
+                    m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDt2() * symbols_scale, symbolscolor);
                 }
             break;
         case GlyphType::ELEM_VECT_DP:
@@ -1103,8 +1065,7 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
                     auto n1 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNode(1));
                     auto n2 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNode(2));
                     auto n3 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNode(3));
-                    ChVector3d mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) *
-                                        0.25;  // to do: better placement in Gauss point
+                    ChVector3d mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;  // to do: better placement in Gauss point
                     m_glyphs_shape->SetGlyphVector(iel, mPoint, mvP * symbols_scale, symbolscolor);
                 }
             break;
@@ -1127,14 +1088,11 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
                     auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(3));
                     //// TODO: better placement in Gauss point
                     ChVector3d mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
-                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale,
-                                                   ComputeFalseColor(e1));
+                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale, ComputeFalseColor(e1));
                     ++nglyvect;
-                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * symbols_scale,
-                                                   ComputeFalseColor(e2));
+                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * symbols_scale, ComputeFalseColor(e2));
                     ++nglyvect;
-                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * symbols_scale,
-                                                   ComputeFalseColor(e3));
+                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * symbols_scale, ComputeFalseColor(e3));
                     ++nglyvect;
                 }
             break;
@@ -1157,14 +1115,11 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
                     auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(3));
                     //// TODO: better placement in Gauss point
                     ChVector3d mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
-                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale,
-                                                   ComputeFalseColor(e1));
+                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale, ComputeFalseColor(e1));
                     ++nglyvect;
-                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * symbols_scale,
-                                                   ComputeFalseColor(e2));
+                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v2 * e2 * symbols_scale, ComputeFalseColor(e2));
                     ++nglyvect;
-                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * symbols_scale,
-                                                   ComputeFalseColor(e3));
+                    m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v3 * e3 * symbols_scale, ComputeFalseColor(e3));
                     ++nglyvect;
                 }
             break;
@@ -1182,32 +1137,27 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
                     m_glyphs_shape->GetNumberOfGlyphs();
                     m_glyphs_shape->SetGlyphCoordsys(
                         (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
-                        ChCoordsys<>((myshell->GetNodeA()->GetPos() + myshell->GetNodeB()->GetPos() +
-                                      myshell->GetNodeC()->GetPos() + myshell->GetNodeD()->GetPos()) *
-                                         0.25,
+                        ChCoordsys<>((myshell->GetNodeA()->GetPos() + myshell->GetNodeB()->GetPos() + myshell->GetNodeC()->GetPos() + myshell->GetNodeD()->GetPos()) * 0.25,
                                      myshell->GetAvgRot()));
                 }
-                // gauss point coordsys
+                // Gauss point coordinate system
                 if (false) {
                     m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
                     for (int igp = 0; igp < 4; ++igp) {
                         m_glyphs_shape->GetNumberOfGlyphs();
-                        m_glyphs_shape->SetGlyphCoordsys(
-                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
-                            ChCoordsys<>(myshell->EvaluateGP(igp), myshell->T_i[igp].GetQuaternion()));
+                        m_glyphs_shape->SetGlyphCoordsys((unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
+                                                         ChCoordsys<>(myshell->EvaluateGP(igp), myshell->T_i[igp].GetQuaternion()));
                     }
                 }
-                // gauss point weights
+                // Gauss point weights
                 if (false) {
                     m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                     for (int igp = 0; igp < 4; ++igp) {
                         m_glyphs_shape->GetNumberOfGlyphs();
-                        m_glyphs_shape->SetGlyphVector((unsigned int)m_glyphs_shape->GetNumberOfGlyphs(),
-                                                       myshell->EvaluateGP(igp),
-                                                       ChVector3d(0, myshell->alpha_i[igp] * 4, 0));
+                        m_glyphs_shape->SetGlyphVector((unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp), ChVector3d(0, myshell->alpha_i[igp] * 4, 0));
                     }
                 }
-                // gauss curvatures
+                // Gauss curvatures
                 if (false) {
                     for (int igp = 0; igp < 4; ++igp) {
                         m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
@@ -1222,30 +1172,174 @@ void ChVisualShapeFEA::Update(ChObj* updater, const ChFrame<>& frame) {
                             myshell->T_i[igp].Rotate(myshell->kur_v_tilde[igp]*50), ChColor(0,1,0) );
                         */
                         m_glyphs_shape->GetNumberOfGlyphs();
-                        m_glyphs_shape->SetGlyphVector(
-                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
-                            myshell->T_i[igp] * ((myshell->k_tilde_1_i[igp] + myshell->k_tilde_2_i[igp]) * 50),
-                            ChColor(0, 0, 0));
+                        m_glyphs_shape->SetGlyphVector((unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                                                       myshell->T_i[igp] * ((myshell->k_tilde_1_i[igp] + myshell->k_tilde_2_i[igp]) * 50), ChColor(0, 0, 0));
                     }
                 }
-                // gauss strains
+                // Gauss strains
                 if (true) {
                     for (int igp = 0; igp < 4; ++igp) {
                         m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                         double scale = 1;
                         m_glyphs_shape->GetNumberOfGlyphs();
-                        m_glyphs_shape->SetGlyphVector(
-                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
-                            myshell->T_i[igp] * (myshell->eps_tilde_1_i[igp] * scale), ChColor(1, 0, 0));
+                        m_glyphs_shape->SetGlyphVector((unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                                                       myshell->T_i[igp] * (myshell->eps_tilde_1_i[igp] * scale), ChColor(1, 0, 0));
                         m_glyphs_shape->GetNumberOfGlyphs();
-                        m_glyphs_shape->SetGlyphVector(
-                            (unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
-                            myshell->T_i[igp] * (myshell->eps_tilde_2_i[igp] * scale), ChColor(0, 0, 1));
+                        m_glyphs_shape->SetGlyphVector((unsigned int)m_glyphs_shape->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                                                       myshell->T_i[igp] * (myshell->eps_tilde_2_i[igp] * scale), ChColor(0, 0, 1));
                         m_glyphs_shape->GetNumberOfGlyphs();
                     }
                 }
             }
         }
 }
+
+// -----------------------------------------------------------------------------
+
+ChVisualShapeFEA::Settings::Settings()
+    : data_type(DataType::NONE),
+      colormap(ChColormap::Type::FAST),
+      data_range({0, 1}),
+      smooth_faces(true),
+      wireframe(false),
+      glyph_type(GlyphType::NONE),
+      glyph_size(0.002),
+      glyph_color({1, 1, 1}) {}
+
+ChVisualShapeFEA::Settings::Settings(const Settings& other) {
+    data_type = other.data_type;
+    colormap = other.colormap;
+    data_range = other.data_range;
+    smooth_faces = other.smooth_faces;
+    wireframe = other.wireframe;
+
+    glyph_type = other.glyph_type;
+    glyph_size = other.glyph_size;
+    glyph_color = other.glyph_color;
+}
+
+ChVisualShapeFEA::Settings& ChVisualShapeFEA::Settings::operator=(const Settings& other) {
+    data_type = other.data_type;
+    colormap = other.colormap;
+    data_range = other.data_range;
+    smooth_faces = other.smooth_faces;
+    wireframe = other.wireframe;
+
+    glyph_type = other.glyph_type;
+    glyph_size = other.glyph_size;
+    glyph_color = other.glyph_color;
+
+    return *this;
+}
+
+#ifdef CHRONO_HAS_YAML
+
+static ChVisualShapeFEA::DataType ReadDataType(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+
+    if (val == "NONE")
+        return ChVisualShapeFEA::DataType::NONE;
+
+    if (val == "SURFACE")
+        return ChVisualShapeFEA::DataType::SURFACE;
+
+    if (val == "NODE_DISP_NORM")
+        return ChVisualShapeFEA::DataType::NODE_DISP_NORM;
+    if (val == "NODE_SPEED_NORM")
+        return ChVisualShapeFEA::DataType::NODE_SPEED_NORM;
+    if (val == "NODE_ACCEL_NORM")
+        return ChVisualShapeFEA::DataType::NODE_ACCEL_NORM;
+    if (val == "NODE_FIELD_VALUE")
+        return ChVisualShapeFEA::DataType::NODE_FIELD_VALUE;
+
+    if (val == "ELEM_STRAIN_VONMISES")
+        return ChVisualShapeFEA::DataType::ELEM_STRAIN_VONMISES;
+    if (val == "ELEM_STRESS_VONMISES")
+        return ChVisualShapeFEA::DataType::ELEM_STRESS_VONMISES;
+
+    if (val == "ELEM_BEAM_MX")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_MX;
+    if (val == "ELEM_BEAM_MY")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_MY;
+    if (val == "ELEM_BEAM_MX")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_MX;
+
+    if (val == "ELEM_BEAM_TX")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_TX;
+    if (val == "ELEM_BEAM_TY")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_TY;
+    if (val == "ELEM_BEAM_TX")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_TX;
+
+    if (val == "ANCF_BEAM_AX")
+        return ChVisualShapeFEA::DataType::ANCF_BEAM_AX;
+    if (val == "ANCF_BEAM_BD")
+        return ChVisualShapeFEA::DataType::ANCF_BEAM_BD;
+
+    return ChVisualShapeFEA::DataType::NONE;
+}
+
+static ChVisualShapeFEA::GlyphType ReadGlyphType(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+
+    if (val == "NONE")
+        return ChVisualShapeFEA::GlyphType::NONE;
+    if (val == "NODE_DOT_POS")
+        return ChVisualShapeFEA::GlyphType::NODE_DOT_POS;
+    if (val == "NODE_CSYS")
+        return ChVisualShapeFEA::GlyphType::NODE_CSYS;
+    if (val == "NODE_VECT_SPEED")
+        return ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED;
+    if (val == "NODE_VECT_ACCEL")
+        return ChVisualShapeFEA::GlyphType::NODE_VECT_ACCEL;
+    if (val == "ELEM_TENS_STRAIN")
+        return ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN;
+    if (val == "ELEM_TENS_STRESS")
+        return ChVisualShapeFEA::GlyphType::ELEM_TENS_STRESS;
+    if (val == "ELEM_VECT_DP")
+        return ChVisualShapeFEA::GlyphType::ELEM_VECT_DP;
+
+    return ChVisualShapeFEA::GlyphType::NONE;
+}
+
+ChVisualShapeFEA::Settings::Settings(const YAML::Node& a) : Settings() {
+    if (a["data"]) {
+        auto b = a["data"];
+        ChAssertAlways(b["type"]);
+        data_type = ReadDataType(b["type"]);
+        if (b["range"])
+            data_range = ReadVector2(b["range"]);
+        if (b["colormap"])
+            colormap = ReadColorMapType(b["colormap"]);
+        if (b["smooth_faces"])
+            smooth_faces = b["smooth_faces"].as<bool>();
+        if (b["wireframe"])
+            wireframe = b["wireframe"].as<bool>();
+    }
+
+    if (a["glyphs"]) {
+        auto b = a["glyphs"];
+        ChAssertAlways(b["type"]);
+        glyph_type = ReadGlyphType(b["type"]);
+        if (b["size"])
+            glyph_size = b["size"].as<double>();
+        if (b["color"])
+            glyph_color = ReadColor(b["color"]);
+    }
+}
+
+ChVisualShapeFEA::Settings ChVisualShapeFEA::Settings::Read(const YAML::Node& a) {
+    Settings params(a);
+    return params;
+}
+
+void ChVisualShapeFEA::Settings::PrintInfo() const {
+    cout << "SPH visualization" << endl;
+    cout << "  smooth faces:  " << smooth_faces << endl;
+    cout << "  wireframe:     " << wireframe << endl;
+    //// TODO
+}
+
+#endif
 
 }  // end namespace chrono
