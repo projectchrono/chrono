@@ -18,6 +18,7 @@
 //// - add support for other constraints (composite joints: rev-sph and rev-prismatic)
 //// - add support for point-point actuators (hydraulic, FMU, external)
 //// - what is the best way to deal with collision families?
+//// - complete FEA parsing
 
 #include <algorithm>
 #include <filesystem>
@@ -33,6 +34,26 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
+
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChBuilderBeam.h"
+
+    #include "chrono/fea/ChBeamSectionEuler.h"
+    #include "chrono/fea/ChBeamSectionCableANCF.h"
+    #include "chrono/fea/ChBeamSectionCosserat.h"
+    #include "chrono/fea/ChBeamSectionTaperedTimoshenko.h"
+
+    #include "chrono/fea/ChMaterialBeamANCF.h"
+    #include "chrono/fea/ChMaterialHexaANCF.h"
+    #include "chrono/fea/ChMaterialShellANCF.h"
+    #include "chrono/fea/ChMaterialShellKirchhoff.h"
+    #include "chrono/fea/ChMaterialShellReissner.h"
+
+    #include "chrono/fea/ChLinkNodeFrame.h"
+    #include "chrono/fea/ChLinkNodeSlopeFrame.h"
+    #include "chrono/fea/ChLinkNodeNode.h"
+    #include "chrono/fea/ChLinkNodeFace.h"
+#endif
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
@@ -282,13 +303,51 @@ void ChParserMbsYAML::LoadModelData(const YAML::Node& yaml) {
         m_file_handler.PrintInfo();
     }
 
-    // Read bodies
-    ChAssertAlways(model["bodies"]);
-    auto bodies = model["bodies"];
-    ChAssertAlways(bodies.IsSequence());
-    if (m_verbose) {
-        cout << "\nbodies: " << bodies.size() << endl;
+    if (model["bodies"])
+        LoadBodies(model["bodies"]);
+
+    if (model["joints"])
+        LoadJoints(model["joints"]);
+
+    if (model["constraints"])
+        LoadConstraints(model["constraints"]);
+
+    if (model["tsdas"])
+        LoadTSDAs(model["tsdas"]);
+
+    if (model["rsdas"])
+        LoadRSDAs(model["rsdas"]);
+
+    if (model["body_loads"])
+        LoadBodyLoads(model["body_loads"]);
+
+    if (model["load_controllers"])
+        LoadControllers(model["load_controllers"]);
+
+    if (model["motors"])
+        LoadMotors(model["motors"]);
+
+    if (model["FEA"]) {
+#ifdef CHRONO_FEA
+        auto fea = model["FEA"];
+        if (fea["beams"])
+            LoadFEABeams(fea);
+        if (fea["shells"])
+            LoadFEAShells(fea);
+        if (fea["constraints"])
+            LoadFEAConstraints(fea);
+#else
+        cerr << "Chrono::FEA not enabled. All FEA components will be ignored." << endl;
+#endif
     }
+
+    m_model_loaded = true;
+}
+
+void ChParserMbsYAML::LoadBodies(const YAML::Node& bodies) {
+    ChAssertAlways(bodies.IsSequence());
+    if (m_verbose)
+        cout << "\nbodies: " << bodies.size() << endl;
 
     for (size_t i = 0; i < bodies.size(); i++) {
         ChAssertAlways(bodies[i]["name"]);
@@ -323,10 +382,11 @@ void ChParserMbsYAML::LoadModelData(const YAML::Node& yaml) {
                 com_rot = ReadRotation(bodies[i]["com"]["orientation"], m_use_degrees);
             body.com = ChFramed(com_pos, com_rot);
         }
-        if (!body.is_fixed)
+        if (!body.is_fixed) {
             body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
-        if (bodies[i]["inertia"]["products"])
-            body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
+            if (bodies[i]["inertia"]["products"])
+                body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
+        }
         body.geometry = ReadBodyGeometry(bodies[i], m_file_handler, m_use_degrees);
 
         if (m_verbose)
@@ -334,265 +394,555 @@ void ChParserMbsYAML::LoadModelData(const YAML::Node& yaml) {
 
         m_body_params.insert({name, body});
     }
-
-    // Read joints
-    if (model["joints"]) {
-        auto joints = model["joints"];
-        ChAssertAlways(joints.IsSequence());
-        if (m_verbose) {
-            cout << "\njoints: " << joints.size() << endl;
-        }
-        for (size_t i = 0; i < joints.size(); i++) {
-            ChAssertAlways(joints[i]["name"]);
-            ChAssertAlways(joints[i]["type"]);
-            ChAssertAlways(joints[i]["body1"]);
-            ChAssertAlways(joints[i]["body2"]);
-            ChAssertAlways(joints[i]["location"]);
-
-            auto name = joints[i]["name"].as<std::string>();
-
-            JointParams joint;
-            joint.type = ReadJointType(joints[i]["type"]);
-            joint.body1 = joints[i]["body1"].as<std::string>();
-            joint.body2 = joints[i]["body2"].as<std::string>();
-
-            std::shared_ptr<ChJoint::BushingData> bushing_data = nullptr;
-            if (joints[i]["bushing_data"]) {
-                joint.bdata = ReadBushingData(joints[i]["bushing_data"]);
-                joint.is_kinematic = false;
-            }
-
-            joint.frame = ReadJointFrame(joints[i]);
-
-            if (m_verbose)
-                joint.PrintInfo(name);
-
-            m_joint_params.insert({name, joint});
-        }
-    }
-
-    // Read constraints
-    if (model["constraints"]) {
-        auto constraints = model["constraints"];
-        ChAssertAlways(constraints.IsSequence());
-        if (m_verbose) {
-            cout << "\nconstraints: " << constraints.size() << endl;
-        }
-        for (size_t i = 0; i < constraints.size(); i++) {
-            ChAssertAlways(constraints[i]["name"]);
-            ChAssertAlways(constraints[i]["type"]);
-            ChAssertAlways(constraints[i]["body1"]);
-            ChAssertAlways(constraints[i]["body2"]);
-            auto name = constraints[i]["name"].as<std::string>();
-            auto type = ChToUpper(constraints[i]["type"].as<std::string>());
-
-            if (type == "DISTANCE") {
-                DistanceConstraintParams dist;
-                ChAssertAlways(constraints[i]["point1"]);
-                ChAssertAlways(constraints[i]["point2"]);
-                dist.body1 = constraints[i]["body1"].as<std::string>();
-                dist.body2 = constraints[i]["body2"].as<std::string>();
-                dist.point1 = ReadVector(constraints[i]["point1"]);
-                dist.point2 = ReadVector(constraints[i]["point2"]);
-
-                if (m_verbose)
-                    dist.PrintInfo(name);
-
-                m_distcnstr_params.insert({name, dist});
-
-            } else if (type == "REVOLUTE-SPHERICAL") {
-                //// TODO
-            } else if (type == "REVOLUTE-TRANSLATIONAL") {
-                //// TODO
-            }
-        }
-    }
-
-    // Read TSDA force elements
-    if (model["tsdas"]) {
-        auto tsdas = model["tsdas"];
-        ChAssertAlways(tsdas.IsSequence());
-        if (m_verbose) {
-            cout << "\nTSDA (translational spring dampers): " << tsdas.size() << endl;
-        }
-
-        for (size_t i = 0; i < tsdas.size(); i++) {
-            ChAssertAlways(tsdas[i]["name"]);
-            ChAssertAlways(tsdas[i]["body1"]);
-            ChAssertAlways(tsdas[i]["body2"]);
-            ChAssertAlways(tsdas[i]["point1"]);
-            ChAssertAlways(tsdas[i]["point2"]);
-
-            auto name = tsdas[i]["name"].as<std::string>();
-
-            TsdaParams tsda;
-            tsda.body1 = tsdas[i]["body1"].as<std::string>();
-            tsda.body2 = tsdas[i]["body2"].as<std::string>();
-            tsda.point1 = ReadVector(tsdas[i]["point1"]);
-            tsda.point2 = ReadVector(tsdas[i]["point2"]);
-            tsda.force = ReadTSDAFunctor(tsdas[i], tsda.free_length);
-            tsda.geometry = ReadTSDAGeometry(tsdas[i]);
-
-            if (m_verbose)
-                tsda.PrintInfo(name);
-
-            m_tsda_params.insert({name, tsda});
-        }
-    }
-
-    // Read RSDA force elements
-    if (model["rsdas"]) {
-        auto rsdas = model["rsdas"];
-        ChAssertAlways(rsdas.IsSequence());
-        if (m_verbose) {
-            cout << "\nRSDA (rotational spring dampers): " << rsdas.size() << endl;
-        }
-
-        for (size_t i = 0; i < rsdas.size(); i++) {
-            ChAssertAlways(rsdas[i]["name"]);
-            ChAssertAlways(rsdas[i]["body1"]);
-            ChAssertAlways(rsdas[i]["body2"]);
-            ChAssertAlways(rsdas[i]["axis"]);
-
-            auto name = rsdas[i]["name"].as<std::string>();
-
-            RsdaParams rsda;
-            rsda.body1 = rsdas[i]["body1"].as<std::string>();
-            rsda.body2 = rsdas[i]["body2"].as<std::string>();
-            rsda.axis = ReadVector(rsdas[i]["axis"]);
-            rsda.axis.Normalize();
-            if (rsdas[i]["location"])
-                rsda.pos = ReadVector(rsdas[i]["location"]);
-            rsda.torque = ReadRSDAFunctor(rsdas[i], rsda.free_angle);
-            if (m_use_degrees)
-                rsda.free_angle *= CH_DEG_TO_RAD;
-
-            if (m_verbose)
-                rsda.PrintInfo(name);
-
-            m_rsda_params.insert({name, rsda});
-        }
-    }
-
-    // Read applied body loads
-    if (model["body_loads"]) {
-        auto loads = model["body_loads"];
-        ChAssertAlways(loads.IsSequence());
-        if (m_verbose) {
-            cout << "\nbody loads: " << loads.size() << endl;
-        }
-        for (size_t i = 0; i < loads.size(); i++) {
-            ChAssertAlways(loads[i]["name"]);
-            ChAssertAlways(loads[i]["type"]);
-            ChAssertAlways(loads[i]["body"]);
-
-            auto name = loads[i]["name"].as<std::string>();
-
-            BodyLoadParams load;
-            load.type = ReadBodyLoadType(loads[i]["type"]);
-            load.body = loads[i]["body"].as<std::string>();
-            if (loads[i]["local_load"])
-                load.local_load = loads[i]["local_load"].as<bool>();
-            if (loads[i]["load"])
-                load.value = ReadVector(loads[i]["load"]);
-            if (load.type == BodyLoadType::FORCE) {
-                load.local_point = loads[i]["local_point"].as<bool>();
-                load.point = ReadVector(loads[i]["point"]);
-            }
-            if (loads[i]["modulation_function"])
-                load.modulation = ReadFunction(loads[i]["modulation_function"], m_use_degrees);
-
-            if (m_verbose)
-                load.PrintInfo(name);
-
-            m_bodyload_params.insert({name, load});
-        }
-    }
-
-    // Read external load controllers
-    if (model["load_controllers"]) {
-        auto controllers = model["load_controllers"];
-        ChAssertAlways(controllers.IsSequence());
-        if (m_verbose) {
-            cout << "\nexternal load controllers: " << controllers.size() << endl;
-        }
-        for (size_t i = 0; i < controllers.size(); i++) {
-            ChAssertAlways(controllers[i]["name"]);
-            ChAssertAlways(controllers[i]["type"]);
-            ChAssertAlways(controllers[i]["body"]);
-
-            auto name = controllers[i]["name"].as<std::string>();
-
-            BodyLoadParams load;
-            load.type = ReadBodyLoadType(controllers[i]["type"]);
-            load.body = controllers[i]["body"].as<std::string>();
-            if (controllers[i]["local_load"])
-                load.local_load = controllers[i]["local_load"].as<bool>();
-            if (load.type == BodyLoadType::FORCE) {
-                load.local_point = controllers[i]["local_point"].as<bool>();
-                load.point = ReadVector(controllers[i]["point"]);
-            }
-            load.value = 0;
-
-            if (m_verbose)
-                load.PrintInfo(name);
-
-            m_load_controller_params.insert({name, load});
-        }
-    }
-
-    // Read motors
-    if (model["motors"]) {
-        auto motors = model["motors"];
-        ChAssertAlways(motors.IsSequence());
-        if (m_verbose) {
-            cout << "\nmotors: " << motors.size() << endl;
-        }
-        for (size_t i = 0; i < motors.size(); i++) {
-            ChAssertAlways(motors[i]["name"]);
-            ChAssertAlways(motors[i]["type"]);
-            ChAssertAlways(motors[i]["body1"]);
-            ChAssertAlways(motors[i]["body2"]);
-            ChAssertAlways(motors[i]["location"]);
-            ChAssertAlways(motors[i]["axis"]);
-            ChAssertAlways(motors[i]["actuation_type"]);
-            ChAssertAlways(motors[i]["actuation_function"]);
-
-            auto name = motors[i]["name"].as<std::string>();
-
-            MotorParams motor;
-            motor.type = ReadMotorType(motors[i]["type"]);
-            motor.body1 = motors[i]["body1"].as<std::string>();
-            motor.body2 = motors[i]["body2"].as<std::string>();
-            motor.pos = ReadVector(motors[i]["location"]);
-            motor.axis = ReadVector(motors[i]["axis"]);
-            motor.actuation_type = ReadMotorActuationType(motors[i]["actuation_type"]);
-            motor.actuation_function = ReadFunction(motors[i]["actuation_function"], m_use_degrees);
-
-            switch (motor.type) {
-                case MotorType::LINEAR:
-                    if (motors[i]["guide"])
-                        motor.guide = ReadMotorGuideType(motors[i]["guide"]);
-                    break;
-                case MotorType::ROTATION:
-                    if (motors[i]["spindle"])
-                        motor.spindle = ReadMotorSpindleType(motors[i]["spindle"]);
-                    break;
-            }
-
-            // A ChFunctionSetpoint actuation function indicates an external controller
-            if (std::dynamic_pointer_cast<ChFunctionSetpoint>(motor.actuation_function))
-                motor.has_controller = true;
-
-            if (m_verbose)
-                motor.PrintInfo(name);
-
-            m_motor_params.insert({name, motor});
-        }
-    }
-
-    m_model_loaded = true;
 }
+
+void ChParserMbsYAML::LoadJoints(const YAML::Node& joints) {
+    ChAssertAlways(joints.IsSequence());
+    if (m_verbose)
+        cout << "\njoints: " << joints.size() << endl;
+
+    for (size_t i = 0; i < joints.size(); i++) {
+        ChAssertAlways(joints[i]["name"]);
+        ChAssertAlways(joints[i]["type"]);
+        ChAssertAlways(joints[i]["body1"]);
+        ChAssertAlways(joints[i]["body2"]);
+        ChAssertAlways(joints[i]["location"]);
+
+        auto name = joints[i]["name"].as<std::string>();
+
+        JointParams joint;
+        joint.type = ReadJointType(joints[i]["type"]);
+        joint.body1 = joints[i]["body1"].as<std::string>();
+        joint.body2 = joints[i]["body2"].as<std::string>();
+
+        std::shared_ptr<ChJoint::BushingData> bushing_data = nullptr;
+        if (joints[i]["bushing_data"]) {
+            joint.bdata = ReadBushingData(joints[i]["bushing_data"]);
+            joint.is_kinematic = false;
+        }
+
+        joint.frame = ReadJointFrame(joints[i]);
+
+        if (m_verbose)
+            joint.PrintInfo(name);
+
+        m_joint_params.insert({name, joint});
+    }
+}
+
+void ChParserMbsYAML::LoadConstraints(const YAML::Node& constraints) {
+    ChAssertAlways(constraints.IsSequence());
+    if (m_verbose)
+        cout << "\nconstraints: " << constraints.size() << endl;
+
+    for (size_t i = 0; i < constraints.size(); i++) {
+        ChAssertAlways(constraints[i]["name"]);
+        ChAssertAlways(constraints[i]["type"]);
+        ChAssertAlways(constraints[i]["body1"]);
+        ChAssertAlways(constraints[i]["body2"]);
+        auto name = constraints[i]["name"].as<std::string>();
+        auto type = ChToUpper(constraints[i]["type"].as<std::string>());
+
+        if (type == "DISTANCE") {
+            DistanceConstraintParams dist;
+            ChAssertAlways(constraints[i]["point1"]);
+            ChAssertAlways(constraints[i]["point2"]);
+            dist.body1 = constraints[i]["body1"].as<std::string>();
+            dist.body2 = constraints[i]["body2"].as<std::string>();
+            dist.point1 = ReadVector(constraints[i]["point1"]);
+            dist.point2 = ReadVector(constraints[i]["point2"]);
+
+            if (m_verbose)
+                dist.PrintInfo(name);
+
+            m_distcnstr_params.insert({name, dist});
+
+        } else if (type == "REVOLUTE-SPHERICAL") {
+            //// TODO
+        } else if (type == "REVOLUTE-TRANSLATIONAL") {
+            //// TODO
+        }
+    }
+}
+
+void ChParserMbsYAML::LoadTSDAs(const YAML::Node& tsdas) {
+    ChAssertAlways(tsdas.IsSequence());
+    if (m_verbose)
+        cout << "\nTSDA (translational spring dampers): " << tsdas.size() << endl;
+
+    for (size_t i = 0; i < tsdas.size(); i++) {
+        ChAssertAlways(tsdas[i]["name"]);
+        ChAssertAlways(tsdas[i]["body1"]);
+        ChAssertAlways(tsdas[i]["body2"]);
+        ChAssertAlways(tsdas[i]["point1"]);
+        ChAssertAlways(tsdas[i]["point2"]);
+
+        auto name = tsdas[i]["name"].as<std::string>();
+
+        TsdaParams tsda;
+        tsda.body1 = tsdas[i]["body1"].as<std::string>();
+        tsda.body2 = tsdas[i]["body2"].as<std::string>();
+        tsda.point1 = ReadVector(tsdas[i]["point1"]);
+        tsda.point2 = ReadVector(tsdas[i]["point2"]);
+        tsda.force = ReadTSDAFunctor(tsdas[i], tsda.free_length);
+        tsda.geometry = ReadTSDAGeometry(tsdas[i]);
+
+        if (m_verbose)
+            tsda.PrintInfo(name);
+
+        m_tsda_params.insert({name, tsda});
+    }
+}
+
+void ChParserMbsYAML::LoadRSDAs(const YAML::Node& rsdas) {
+    ChAssertAlways(rsdas.IsSequence());
+    if (m_verbose)
+        cout << "\nRSDA (rotational spring dampers): " << rsdas.size() << endl;
+
+    for (size_t i = 0; i < rsdas.size(); i++) {
+        ChAssertAlways(rsdas[i]["name"]);
+        ChAssertAlways(rsdas[i]["body1"]);
+        ChAssertAlways(rsdas[i]["body2"]);
+        ChAssertAlways(rsdas[i]["axis"]);
+
+        auto name = rsdas[i]["name"].as<std::string>();
+
+        RsdaParams rsda;
+        rsda.body1 = rsdas[i]["body1"].as<std::string>();
+        rsda.body2 = rsdas[i]["body2"].as<std::string>();
+        rsda.axis = ReadVector(rsdas[i]["axis"]);
+        rsda.axis.Normalize();
+        if (rsdas[i]["location"])
+            rsda.pos = ReadVector(rsdas[i]["location"]);
+        rsda.torque = ReadRSDAFunctor(rsdas[i], rsda.free_angle);
+        if (m_use_degrees)
+            rsda.free_angle *= CH_DEG_TO_RAD;
+
+        if (m_verbose)
+            rsda.PrintInfo(name);
+
+        m_rsda_params.insert({name, rsda});
+    }
+}
+
+void ChParserMbsYAML::LoadBodyLoads(const YAML::Node& loads) {
+    ChAssertAlways(loads.IsSequence());
+    if (m_verbose)
+        cout << "\nbody loads: " << loads.size() << endl;
+
+    for (size_t i = 0; i < loads.size(); i++) {
+        ChAssertAlways(loads[i]["name"]);
+        ChAssertAlways(loads[i]["type"]);
+        ChAssertAlways(loads[i]["body"]);
+
+        auto name = loads[i]["name"].as<std::string>();
+
+        BodyLoadParams load;
+        load.type = ReadBodyLoadType(loads[i]["type"]);
+        load.body = loads[i]["body"].as<std::string>();
+        if (loads[i]["local_load"])
+            load.local_load = loads[i]["local_load"].as<bool>();
+        if (loads[i]["load"])
+            load.value = ReadVector(loads[i]["load"]);
+        if (load.type == BodyLoadType::FORCE) {
+            load.local_point = loads[i]["local_point"].as<bool>();
+            load.point = ReadVector(loads[i]["point"]);
+        }
+        if (loads[i]["modulation_function"])
+            load.modulation = ReadFunction(loads[i]["modulation_function"], m_use_degrees);
+
+        if (m_verbose)
+            load.PrintInfo(name);
+
+        m_bodyload_params.insert({name, load});
+    }
+}
+
+void ChParserMbsYAML::LoadControllers(const YAML::Node& controllers) {
+    ChAssertAlways(controllers.IsSequence());
+    if (m_verbose)
+        cout << "\nexternal load controllers: " << controllers.size() << endl;
+
+    for (size_t i = 0; i < controllers.size(); i++) {
+        ChAssertAlways(controllers[i]["name"]);
+        ChAssertAlways(controllers[i]["type"]);
+        ChAssertAlways(controllers[i]["body"]);
+
+        auto name = controllers[i]["name"].as<std::string>();
+
+        BodyLoadParams load;
+        load.type = ReadBodyLoadType(controllers[i]["type"]);
+        load.body = controllers[i]["body"].as<std::string>();
+        if (controllers[i]["local_load"])
+            load.local_load = controllers[i]["local_load"].as<bool>();
+        if (load.type == BodyLoadType::FORCE) {
+            load.local_point = controllers[i]["local_point"].as<bool>();
+            load.point = ReadVector(controllers[i]["point"]);
+        }
+        load.value = 0;
+
+        if (m_verbose)
+            load.PrintInfo(name);
+
+        m_load_controller_params.insert({name, load});
+    }
+}
+
+void ChParserMbsYAML::LoadMotors(const YAML::Node& motors) {
+    ChAssertAlways(motors.IsSequence());
+    if (m_verbose) {
+        cout << "\nmotors: " << motors.size() << endl;
+    }
+
+    for (size_t i = 0; i < motors.size(); i++) {
+        ChAssertAlways(motors[i]["name"]);
+        ChAssertAlways(motors[i]["type"]);
+        ChAssertAlways(motors[i]["body1"]);
+        ChAssertAlways(motors[i]["body2"]);
+        ChAssertAlways(motors[i]["location"]);
+        ChAssertAlways(motors[i]["axis"]);
+        ChAssertAlways(motors[i]["actuation_type"]);
+        ChAssertAlways(motors[i]["actuation_function"]);
+
+        auto name = motors[i]["name"].as<std::string>();
+
+        MotorParams motor;
+        motor.type = ReadMotorType(motors[i]["type"]);
+        motor.body1 = motors[i]["body1"].as<std::string>();
+        motor.body2 = motors[i]["body2"].as<std::string>();
+        motor.pos = ReadVector(motors[i]["location"]);
+        motor.axis = ReadVector(motors[i]["axis"]);
+        motor.actuation_type = ReadMotorActuationType(motors[i]["actuation_type"]);
+        motor.actuation_function = ReadFunction(motors[i]["actuation_function"], m_use_degrees);
+
+        switch (motor.type) {
+            case MotorType::LINEAR:
+                if (motors[i]["guide"])
+                    motor.guide = ReadMotorGuideType(motors[i]["guide"]);
+                break;
+            case MotorType::ROTATION:
+                if (motors[i]["spindle"])
+                    motor.spindle = ReadMotorSpindleType(motors[i]["spindle"]);
+                break;
+        }
+
+        // A ChFunctionSetpoint actuation function indicates an external controller
+        if (std::dynamic_pointer_cast<ChFunctionSetpoint>(motor.actuation_function))
+            motor.has_controller = true;
+
+        if (m_verbose)
+            motor.PrintInfo(name);
+
+        m_motor_params.insert({name, motor});
+    }
+}
+
+#ifdef CHRONO_FEA
+
+using MaterialsMap = std::unordered_map<std::string, size_t>;
+using SectionsMap = std::unordered_map<std::string, size_t>;
+
+// Find the given FEA material name in the provided map and return the associated index
+static int FindMaterialFEA(const std::string& name, const MaterialsMap materials) {
+    auto m = materials.find(name);
+    if (m == materials.end()) {
+        cerr << "Cannot find the FEA material with name '" << name << "' in the provided map" << endl;
+        throw std::runtime_error("Invalid FEA material name in map");
+    }
+    return (int)m->second;
+}
+
+// Find the given FEA beam section in the provided map and return the associated index
+static int FindBeamSection(const std::string& name, const SectionsMap sections) {
+    auto m = sections.find(name);
+    if (m == sections.end()) {
+        cerr << "Cannot find the beam section with name '" << name << "' in the provided map" << endl;
+        throw std::runtime_error("Invalid beam section name in map");
+    }
+    return (int)m->second;
+}
+
+void ChParserMbsYAML::LoadFEABeams(const YAML::Node& fea) {
+    // Maps from a material or beam section name to the index in the corresponding array
+    MaterialsMap materials_map;
+    SectionsMap sections_map;
+
+    // Read beam sections
+    if (fea["beam_sections"]) {
+        auto sections = fea["beam_sections"];
+        ChAssertAlways(sections.IsSequence());
+        size_t num_sections = sections.size();
+        if (m_verbose)
+            cout << "\nFEA beam sections: " << num_sections << endl;
+
+        for (size_t i = 0; i < num_sections; i++) {
+            ChAssertAlways(sections[i]["name"]);
+            ChAssertAlways(sections[i]["type"]);
+            auto section_name = sections[i]["name"].as<std::string>();
+            auto section_type = ReadFEABeamSectionType(sections[i]["type"]);
+            std::shared_ptr<fea::ChBeamSection> section;
+            switch (section_type) {
+                case FEABeamSectionType::EULER_SIMPLE: {
+                  auto section_beam = chrono_types::make_shared<fea::ChBeamSectionEulerSimple>();
+                  //// TODO
+                  section = section_beam;
+                  throw std::runtime_error("NOT YET IMPLEMENTED");
+                    break;
+                }
+                case FEABeamSectionType::ANCF_CABLE: {
+                    auto diameter = sections[i]["diameter"].as<double>();
+                    auto modulus = sections[i]["Young_modulus"].as<double>();
+                    auto density = sections[i]["density"].as<double>();
+                    auto damping = sections[i]["Rayleight_damping"].as<double>();
+                    auto section_cable = chrono_types::make_shared<fea::ChBeamSectionCableANCF>();
+                    section_cable->SetDiameter(diameter);
+                    section_cable->SetYoungModulus(modulus);
+                    section_cable->SetDensity(density);
+                    section_cable->SetRayleighDamping(damping);
+                    section = section_cable;
+                    break;
+                }
+                case FEABeamSectionType::COSSERAT: {
+                    //// TODO
+                    throw std::runtime_error("NOT YET IMPLEMENTED");
+                    break;
+                }
+                case FEABeamSectionType::TIMOSHENKO: {
+                    //// TODO
+                    throw std::runtime_error("NOT YET IMPLEMENTED");
+                    break;
+                }
+            }
+            m_beam_sections.push_back(section);
+            sections_map.insert({section_name, i});
+        }
+    }
+
+    // Read FEA materials - process only beam materials
+    if (fea["materials"]) {
+        auto materials = fea["materials"];
+        ChAssertAlways(materials.IsSequence());
+        size_t num_materials = materials.size();
+        if (m_verbose)
+            cout << "\nFEA materials: " << num_materials << endl;
+
+        for (int i = 0; i < num_materials; i++) {
+            ChAssertAlways(materials[i]["name"]);
+            ChAssertAlways(materials[i]["type"]);
+            auto material_name = materials[i]["name"].as<std::string>();
+            auto material_type = ReadFEAMaterialType(materials[i]["type"]);
+            std::shared_ptr<fea::ChMaterialFEA> material;
+            switch (material_type) {
+                case FEAMaterialType::BEAM_ANCF: {
+                    //// TODO
+                    throw std::runtime_error("NOT YET IMPLEMENTED");
+                    break;
+                }
+            }
+            m_fea_materials.push_back(material);
+            materials_map.insert({material_name, i});
+        }
+    }
+
+    // Read FEA beams
+    auto beams = fea["beams"];
+
+    ChAssertAlways(beams.IsSequence());
+    if (m_verbose)
+        cout << "\nFEA beams: " << beams.size() << endl;
+
+    for (size_t i = 0; i < beams.size(); i++) {
+        ChAssertAlways(beams[i]["name"]);
+        ChAssertAlways(beams[i]["type"]);
+        ChAssertAlways(beams[i]["num_elements"]);
+        ChAssertAlways(beams[i]["start_point"]);
+        ChAssertAlways(beams[i]["end_point"]);
+
+        auto name = beams[i]["name"].as<std::string>();
+
+        FEABeamParams beam;
+        beam.type = ReadFEABeamType(beams[i]["type"]);
+        beam.num_elements = beams[i]["num_elements"].as<int>();
+        beam.start = ReadVector(beams[i]["start_point"]);
+        beam.end = ReadVector(beams[i]["end_point"]);
+
+        //// TODO - more comprehensive error checking
+        switch (beam.type) {
+            case FEABeamType::EULER: {
+                ChAssertAlways(beams[i]["section"]);
+                auto section_name = beams[i]["section"].as<std::string>();
+                auto section_index = FindBeamSection(section_name, sections_map);
+                beam.section = m_beam_sections[section_index];
+                beam.material = nullptr;
+                ChAssertAlways(beams[i]["up"]);
+                beam.up = ReadVector(beams[i]["up"]);
+                break;
+            }
+            case FEABeamType::ANCF_CABLE: {
+                ChAssertAlways(beams[i]["section"]);
+                auto section_name = beams[i]["section"].as<std::string>();
+                auto section_index = FindBeamSection(section_name, sections_map);
+                beam.section = m_beam_sections[section_index];
+                beam.material = nullptr;
+                break;
+            }
+            case FEABeamType::ANCF_3243: {
+                ChAssertAlways(beams[i]["material"]);
+                auto material_name = beams[i]["material"].as<std::string>();
+                auto material_index = FindMaterialFEA(material_name, materials_map);
+                beam.material = m_fea_materials[material_index];
+                beam.section = nullptr;
+                break;
+            }
+            case FEABeamType::ANCF_3333: {
+                ChAssertAlways(beams[i]["material"]);
+                auto material_name = beams[i]["material"].as<std::string>();
+                auto material_index = FindMaterialFEA(material_name, materials_map);
+                beam.material = m_fea_materials[material_index];
+                beam.section = nullptr;
+                break;
+            }
+            case FEABeamType::IGA: {
+                ChAssertAlways(beams[i]["section"]);
+                auto section_name = beams[i]["section"].as<std::string>();
+                auto section_index = FindBeamSection(section_name, sections_map);
+                beam.section = m_beam_sections[section_index];
+                beam.material = nullptr;
+                break;
+            }
+            case FEABeamType::TIMOSHENKO: {
+                ChAssertAlways(beams[i]["section"]);
+                auto section_name = beams[i]["section"].as<std::string>();
+                auto section_index = FindBeamSection(section_name, sections_map);
+                beam.section = m_beam_sections[section_index];
+                beam.material = nullptr;
+                break;
+            }
+        }
+
+        if (beams[i]["visualization"])
+            beam.visualization = ChVisualShapeFEA::Settings::Read(beams[i]["visualization"]);
+
+        if (m_verbose)
+            beam.PrintInfo(name);
+
+        m_beam_params.insert({name, beam});
+    }
+}
+
+void ChParserMbsYAML::LoadFEAShells(const YAML::Node& fea) {
+    MaterialsMap materials_map;
+
+    // Read FEA materials - process only shell materials
+    if (fea["materials"]) {
+        auto materials = fea["materials"];
+        ChAssertAlways(materials.IsSequence());
+        size_t num_materials = materials.size();
+        if (m_verbose)
+            cout << "\nFEA materials: " << num_materials << endl;
+
+        for (int i = 0; i < num_materials; i++) {
+            ChAssertAlways(materials[i]["name"]);
+            ChAssertAlways(materials[i]["type"]);
+            auto material_name = materials[i]["name"].as<std::string>();
+            auto material_type = ReadFEAMaterialType(materials[i]["type"]);
+            std::shared_ptr<fea::ChMaterialFEA> material;
+            switch (material_type) {
+                case FEAMaterialType::SHELL_ANCF: {
+                    //// TODO
+                    throw std::runtime_error("NOT YET IMPLEMENTED");
+                    break;
+                }
+                case FEAMaterialType::SHELL_KIRCHHOFF: {
+                    //// TODO
+                    throw std::runtime_error("NOT YET IMPLEMENTED");
+                    break;
+                }
+                case FEAMaterialType::SHELL_REISSNER: {
+                    //// TODO
+                    throw std::runtime_error("NOT YET IMPLEMENTED");
+                    break;
+                }
+            }
+            m_fea_materials.push_back(material);
+            materials_map.insert({material_name, i});
+        }
+    }
+
+    // Read FEA shells
+    auto shells = fea["shells"];
+
+    ChAssertAlways(shells.IsSequence());
+    if (m_verbose)
+        cout << "\nFEA shells: " << shells.size() << endl;
+
+    //// TODO
+    throw std::runtime_error("NOT YET IMPLEMENTED");
+}
+
+void ChParserMbsYAML::LoadFEAConstraints(const YAML::Node& fea) {
+    auto constraints = fea["constraints"];
+    ChAssertAlways(constraints.IsSequence());
+    size_t num_constraints = constraints.size();
+    if (m_verbose)
+        cout << "\nFEA constraints: " << num_constraints << endl;
+
+    for (size_t i = 0; i < num_constraints; i++) {
+        ChAssertAlways(constraints[i]["name"]);
+        ChAssertAlways(constraints[i]["type"]);
+
+        auto name = constraints[i]["name"].as<std::string>();
+
+        FEAConstraintParams constraint;
+        constraint.type = ReadFEAConstraintType(constraints[i]["type"]);
+
+        switch (constraint.type) {
+            case FEAConstraintType::NODE_FRAME: {
+                ChAssertAlways(constraints[i]["node"]);
+                ChAssertAlways(constraints[i]["body"]);
+                auto node_mesh = constraints[i]["node"]["mesh"].as<std::string>();
+                auto node_id = constraints[i]["node"]["index"].as<int>();
+                constraint.node1 = {node_mesh, node_id};
+                constraint.body = constraints[i]["body"].as<std::string>();
+                break;
+            }
+            case FEAConstraintType::NODESLOPE_FRAME: {
+                ChAssertAlways(constraints[i]["node"]);
+                ChAssertAlways(constraints[i]["body"]);
+                ChAssertAlways(constraints[i]["body_direction"]);
+                auto node_mesh = constraints[i]["node"]["mesh"].as<std::string>();
+                auto node_id = constraints[i]["node"]["index"].as<int>();
+                constraint.node1 = {node_mesh, node_id};
+                constraint.body = constraints[i]["body"].as<std::string>();
+                constraint.direction = ReadVector(constraints[i]["body_direction"]);
+                break;
+            }
+            case FEAConstraintType::NODE_NODE: {
+                ChAssertAlways(constraints[i]["node1"]);
+                ChAssertAlways(constraints[i]["node2"]);
+                auto node1_mesh = constraints[i]["node1"]["mesh"].as<std::string>();
+                auto node1_id = constraints[i]["node1"]["index"].as<int>();
+                constraint.node1 = {node1_mesh, node1_id};
+                auto node2_mesh = constraints[i]["node2"]["mesh"].as<std::string>();
+                auto node2_id = constraints[i]["node2"]["index"].as<int>();
+                constraint.node2 = {node2_mesh, node2_id};
+                break;
+            }
+            case FEAConstraintType::NODE_FACE: {
+                //// TODO
+                throw std::runtime_error("NOT YET IMPLEMENTED");
+                break;
+            }
+        }
+
+        if (m_verbose)
+            constraint.PrintInfo(name);
+
+        m_fea_constraint_params.insert({name, constraint});
+    }
+}
+
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -726,25 +1076,26 @@ std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBodyByName(const std::string&
 }
 
 std::shared_ptr<ChBodyAuxRef> ChParserMbsYAML::FindBodyByName(const std::string& name, int model_instance) const {
-    auto b = m_body_params.find(name);
-    if (b == m_body_params.end()) {
-        cerr << "[ChParserMbsYAML::FindBodyByName] Error: Cannot find body with name: " << name << endl;
-        throw std::runtime_error("Invalid body name");
-    }
     if (model_instance >= GetNumInstances()) {
         cerr << "[ChParserMbsYAML::FindBodyByName] Error: incorrect model instance number" << endl;
         throw std::runtime_error("Incorrect model instance number");
     }
-    return b->second.body[model_instance];
+
+    auto b = m_body_params.find(name);
+    if (b != m_body_params.end())
+        return b->second.body[model_instance];
+
+    cerr << "[ChParserMbsYAML::FindBodyByName] Error: Cannot find body with name: " << name << endl;
+    throw std::runtime_error("Invalid body name");
 }
 
 std::vector<std::shared_ptr<ChBodyAuxRef>> ChParserMbsYAML::FindBodiesByName(const std::string& name) const {
     auto b = m_body_params.find(name);
-    if (b == m_body_params.end()) {
-        std::vector<std::shared_ptr<ChBodyAuxRef>> empty;
-        return empty;
-    }
-    return b->second.body;
+    if (b != m_body_params.end())
+        return b->second.body;
+
+    std::vector<std::shared_ptr<ChBodyAuxRef>> empty;
+    return empty;
 }
 
 std::shared_ptr<ChLinkMotor> ChParserMbsYAML::FindMotorByName(const std::string& name) const {
@@ -752,26 +1103,98 @@ std::shared_ptr<ChLinkMotor> ChParserMbsYAML::FindMotorByName(const std::string&
 }
 
 std::shared_ptr<ChLinkMotor> ChParserMbsYAML::FindMotorByName(const std::string& name, int model_instance) const {
-    auto m = m_motor_params.find(name);
-    if (m == m_motor_params.end()) {
-        cerr << "[ChParserMbsYAML::FindMotorByName] Error: Cannot find motor with name: " << name << endl;
-        throw std::runtime_error("Invalid motor name");
-    }
     if (model_instance >= GetNumInstances()) {
         cerr << "[ChParserMbsYAML::FindMotorByName] Error: incorrect model instance number" << endl;
         throw std::runtime_error("Incorrect model instance number");
     }
-    return m->second.motor[model_instance];
+
+    auto m = m_motor_params.find(name);
+    if (m != m_motor_params.end())
+        return m->second.motor[model_instance];
+
+    cerr << "[ChParserMbsYAML::FindMotorByName] Error: Cannot find motor with name: " << name << endl;
+    throw std::runtime_error("Invalid motor name");
 }
 
 std::vector<std::shared_ptr<ChLinkMotor>> ChParserMbsYAML::FindMotorsByName(const std::string& name) const {
     auto m = m_motor_params.find(name);
-    if (m == m_motor_params.end()) {
-        std::vector<std::shared_ptr<ChLinkMotor>> empty;
-        return empty;
-    }
-    return m->second.motor;
+    if (m != m_motor_params.end())
+        return m->second.motor;
+
+    std::vector<std::shared_ptr<ChLinkMotor>> empty;
+    return empty;
 }
+
+#ifdef CHRONO_FEA
+
+std::shared_ptr<fea::ChMesh> ChParserMbsYAML::FindMeshByName(const std::string& name) const {
+    return FindMeshByName(name, m_crt_instance);
+}
+
+std::shared_ptr<fea::ChMesh> ChParserMbsYAML::FindMeshByName(const std::string& name, int model_instance) const {
+    if (model_instance >= GetNumInstances()) {
+        cerr << "[ChParserMbsYAML::FindMeshByName] Error: incorrect model instance number" << endl;
+        throw std::runtime_error("Incorrect model instance number");
+    }
+
+    auto b = m_beam_params.find(name);
+    if (b != m_beam_params.end())
+        return b->second.mesh[model_instance];
+    //// TODO
+    ////auto s = m_shell_params.find(name);
+    ////if (s != m_shell_params.end())
+    ////    return s->second.mesh[model_instance];
+
+    cerr << "[ChParserMbsYAML::FindMeshByName] Error: Cannot find FEA mesh with name: " << name << endl;
+    throw std::runtime_error("Invalid body name");
+}
+
+std::vector<std::shared_ptr<fea::ChMesh>> ChParserMbsYAML::FindMeshesByName(const std::string& name) const {
+    auto b = m_beam_params.find(name);
+    if (b != m_beam_params.end())
+        return b->second.mesh;
+    //// TODO
+    ////auto s = m_shell_params.find(name);
+    ////if (s != m_shell_params.end())
+    ////    return s->second.mesh;
+
+    std::vector<std::shared_ptr<fea::ChMesh>> empty;
+    return empty;
+}
+
+std::shared_ptr<fea::ChNodeFEAxyz> ChParserMbsYAML::FindNodeXYZ(const std::string& mesh_name, int node_index) const {
+    return FindNodeXYZ(mesh_name, node_index, m_crt_instance);
+}
+
+std::shared_ptr<fea::ChNodeFEAxyz> ChParserMbsYAML::FindNodeXYZ(const std::string& mesh_name, int node_index, int model_instance) const {
+    if (model_instance >= GetNumInstances()) {
+        cerr << "[ChParserMbsYAML::FindNodeXYZ] Error: incorrect model instance number" << endl;
+        throw std::runtime_error("Incorrect model instance number");
+    }
+    auto b = m_beam_params.find(mesh_name);
+    if (b != m_beam_params.end())
+        return b->second.nodesXYZ[node_index];
+    cerr << "[ChParserMbsYAML::FindNodeXYZ] Error: Cannot find FEA mesh with name: " << mesh_name << endl;
+    throw std::runtime_error("Invalid body name");
+}
+
+std::shared_ptr<fea::ChNodeFEAxyzrot> ChParserMbsYAML::FindNodeXYZrot(const std::string& mesh_name, int node_index) const {
+    return FindNodeXYZrot(mesh_name, node_index, m_crt_instance);
+}
+
+std::shared_ptr<fea::ChNodeFEAxyzrot> ChParserMbsYAML::FindNodeXYZrot(const std::string& mesh_name, int node_index, int model_instance) const {
+    if (model_instance >= GetNumInstances()) {
+        cerr << "[ChParserMbsYAML::FindNodeXYZrot] Error: incorrect model instance number" << endl;
+        throw std::runtime_error("Incorrect model instance number");
+    }
+    auto b = m_beam_params.find(mesh_name);
+    if (b != m_beam_params.end())
+        return b->second.nodesXYZrot[node_index];
+    cerr << "[ChParserMbsYAML::FindNodeXYZrot] Error: Cannot find FEA mesh with name: " << mesh_name << endl;
+    throw std::runtime_error("Invalid body name");
+}
+
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -995,6 +1418,126 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         }
     }
 
+#ifdef CHRONO_FEA
+
+    // Create FEA beams
+    if (m_verbose && !m_beam_params.empty())
+        cout << "create FEA beams...                      " << m_beam_params.size() << endl;
+
+    for (auto& item : m_beam_params) {
+        auto mesh = chrono_types::make_shared<fea::ChMesh>();
+
+        switch (item.second.type) {
+            case FEABeamType::EULER: {
+                fea::ChBuilderBeamEuler builder;
+                builder.BuildBeam(mesh,                                                                    // container FEA mesh
+                                  std::static_pointer_cast<fea::ChBeamSectionEuler>(item.second.section),  // cable section
+                                  item.second.num_elements,                                                // number of cable elements
+                                  item.second.start,                                                       // point A (start of beam)
+                                  item.second.end,                                                         // point B (end of beam)
+                                  item.second.up                                                           // beam up direction
+                );
+                for (const auto& n : builder.GetLastBeamNodes())
+                    item.second.nodesXYZrot.push_back(n);
+                for (const auto& e : builder.GetLastBeamElements())
+                    item.second.elements.push_back(e);
+                break;
+            }
+            case FEABeamType::ANCF_CABLE: {
+                fea::ChBuilderCableANCF builder;
+                builder.BuildBeam(mesh,                                                                        // container FEA mesh
+                                  std::static_pointer_cast<fea::ChBeamSectionCableANCF>(item.second.section),  // cable section
+                                  item.second.num_elements,                                                    // number of cable elements
+                                  item.second.start,                                                           // point A (start of beam)
+                                  item.second.end                                                              // point B (end of beam)
+                );
+                for (const auto& n : builder.GetLastBeamNodes())
+                    item.second.nodesXYZ.push_back(n);
+                for (const auto& e : builder.GetLastBeamElements())
+                    item.second.elements.push_back(e);
+                break;
+            }
+            case FEABeamType::ANCF_3243: {
+                //// TODO
+                throw std::runtime_error("NOT YET IMPLEMENTED");
+                break;
+            }
+            case FEABeamType::ANCF_3333: {
+                //// TODO
+                throw std::runtime_error("NOT YET IMPLEMENTED");
+                break;
+            }
+            case FEABeamType::IGA: {
+                //// TODO
+                throw std::runtime_error("NOT YET IMPLEMENTED");
+                break;
+            }
+            case FEABeamType::TIMOSHENKO: {
+                //// TODO
+                throw std::runtime_error("NOT YET IMPLEMENTED");
+                break;
+            }
+        }
+
+        sys.AddMesh(mesh);
+        item.second.mesh.push_back(mesh);
+    }
+
+    // Create FEA shells
+    //// TODO
+    ////if (m_verbose && !m_shell_params.empty())
+    ////    cout << "create FEA shells...                     " << m_shell_params.size() << endl;
+    ////
+    ////for (auto& item : m_beam_params) {
+    ////    auto mesh = chrono_types::make_shared<fea::ChMesh>();
+    ////
+    ////    switch (item.second.type) {
+    ////        //// TODO
+    ////    }
+    ////
+    ////    sys.AddMesh(mesh);
+    ////    item.second.mesh.push_back(mesh);
+    ////}
+
+    // Create FEA constraints
+    if (m_verbose && !m_fea_constraint_params.empty())
+        cout << "create FEA constraints...                " << m_beam_params.size() << endl;
+
+    for (auto& item : m_fea_constraint_params) {
+        switch (item.second.type) {
+            case FEAConstraintType::NODE_FRAME: {
+                auto node = FindNodeXYZ(item.second.node1.first, item.second.node1.second - 1);
+                auto body = FindBodyByName(item.second.body);
+                auto constraint = chrono_types::make_shared<fea::ChLinkNodeFrame>();
+                constraint->Initialize(std::static_pointer_cast<fea::ChNodeFEAxyz>(node), body);
+                sys.Add(constraint);
+                break;
+            }
+            case FEAConstraintType::NODESLOPE_FRAME: {
+                auto node = FindNodeXYZ(item.second.node1.first, item.second.node1.second - 1);
+                auto body = FindBodyByName(item.second.body);
+                const auto& dir = item.second.direction;
+                auto constraint = chrono_types::make_shared<fea::ChLinkNodeSlopeFrame>();
+                constraint->Initialize(std::static_pointer_cast<fea::ChNodeFEAxyzD>(node), body);
+                constraint->SetDirectionInBodyCoords(dir);
+                sys.Add(constraint);
+                break;
+            }
+            case FEAConstraintType::NODE_NODE: {
+                //// TODO
+                throw std::runtime_error("NOT YET IMPLEMENTED");
+                break;
+            }
+            case FEAConstraintType::NODE_FACE: {
+                //// TODO
+                throw std::runtime_error("NOT YET IMPLEMENTED");
+                break;
+            }
+        }
+    }
+
+#endif
+
     if (m_verbose)
         cout << endl;
 
@@ -1011,6 +1554,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         item.second.geometry->CreateVisualizationAssets(item.second.tsda[m_crt_instance]);
     for (auto& item : m_distcnstr_params)
         item.second.dist[m_crt_instance]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+#ifdef CHRONO_FEA
+    CreateFEAVisualizationAssets();
+#endif
 
     return m_crt_instance;
 }
@@ -1491,6 +2037,88 @@ void ChParserMbsYAML::MotorParams::PrintInfo(const std::string& name) const {
     }
 }
 
+#ifdef CHRONO_FEA
+
+ChParserMbsYAML::FEABeamParams::FEABeamParams() : type(FEABeamType::EULER), num_elements(0) {}
+
+ChParserMbsYAML::FEAConstraintParams::FEAConstraintParams() : type(FEAConstraintType::NODE_NODE) {}
+
+void ChParserMbsYAML::FEABeamParams::PrintInfo(const std::string& name) const {
+    std::string type_str;
+    switch (type) {
+        case FEABeamType::EULER:
+            type_str = "Euler";
+            break;
+        case FEABeamType::ANCF_CABLE:
+            type_str = "ANCF_cable";
+            break;
+        case FEABeamType::ANCF_3243:
+            type_str = "ANCF_3243";
+            break;
+        case FEABeamType::ANCF_3333:
+            type_str = "ANCF_3333";
+            break;
+        case FEABeamType::IGA:
+            type_str = "IGA";
+            break;
+        case FEABeamType::TIMOSHENKO:
+            type_str = "Timoshenko";
+            break;
+        default:
+            type_str = "UNKNOWN";
+            break;
+    }
+
+    cout << "  name:            " << name << endl;
+    cout << "     type:         " << type_str << endl;
+    cout << "     start:        " << start << endl;
+    cout << "     end:          " << end << endl;
+    cout << "     num elements: " << num_elements << endl;
+}
+
+void ChParserMbsYAML::FEAConstraintParams::PrintInfo(const std::string& name) const {
+    std::string type_str;
+    switch (type) {
+        case FEAConstraintType::NODE_FRAME:
+            type_str = "node - body";
+            break;
+        case FEAConstraintType::NODESLOPE_FRAME:
+            type_str = "node slope - body direction";
+            break;
+        case FEAConstraintType::NODE_NODE:
+            type_str = "node - node";
+            break;
+        case FEAConstraintType::NODE_FACE:
+            type_str = "node - face";
+            break;
+    }
+
+    cout << "  name:            " << name << endl;
+    cout << "     type:         " << type_str << endl;
+
+    switch (type) {
+        case FEAConstraintType::NODE_FRAME:
+            type_str = "node - body";
+            cout << "     node:         " << node1.second << " on " << node1.first << endl;
+            cout << "     body:         " << body << endl;
+            break;
+        case FEAConstraintType::NODESLOPE_FRAME:
+            cout << "     node:         " << node1.second << " on " << node1.first << endl;
+            cout << "     body:         " << body << endl;
+            cout << "     body_dir:     " << direction << endl;
+            break;
+        case FEAConstraintType::NODE_NODE:
+            cout << "     node1:        " << node1.second << " on " << node1.first << endl;
+            cout << "     node2:        " << node2.second << " on " << node2.first << endl;
+            break;
+        case FEAConstraintType::NODE_FACE:
+            cout << "     node:         " << node1.second << " on " << node1.first << endl;
+            break;
+    }
+}
+
+#endif
+
 // =============================================================================
 
 ChJoint::Type ChParserMbsYAML::ReadJointType(const YAML::Node& a) {
@@ -1907,56 +2535,157 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChParserMbsYAML::ReadRSDAFunctor(cons
 
 ChParserMbsYAML::BodyLoadType ChParserMbsYAML::ReadBodyLoadType(const YAML::Node& a) {
     std::string type = ChToUpper(a.as<std::string>());
-    if (type == "TORQUE")
+    if ((type == "FORCE"))
+        return BodyLoadType::FORCE;
+    else if (type == "TORQUE")
         return BodyLoadType::TORQUE;
-    return BodyLoadType::FORCE;
+
+    throw std::runtime_error("Unknown body load type");
 }
 
 ChParserMbsYAML::MotorType ChParserMbsYAML::ReadMotorType(const YAML::Node& a) {
     std::string type = ChToUpper(a.as<std::string>());
-    if (type == "LINEAR")
+    if (type == "ROTATION")
+        return MotorType::ROTATION;
+    else if (type == "LINEAR")
         return MotorType::LINEAR;
-    return MotorType::ROTATION;
+
+    throw std::runtime_error("Unknown motor type");
 }
 
 ChParserMbsYAML::MotorActuation ChParserMbsYAML::ReadMotorActuationType(const YAML::Node& a) {
     std::string type = ChToUpper(a.as<std::string>());
-    if (type == "POSITION") {
+    if (type == "POSITION")
         return MotorActuation::POSITION;
-    } else if (type == "SPEED") {
+    else if (type == "SPEED")
         return MotorActuation::SPEED;
-    } else if (type == "FORCE") {
+    else if (type == "FORCE")
         return MotorActuation::FORCE;
-    } else {
-        return MotorActuation::NONE;
-    }
+
+    return MotorActuation::NONE;
 }
 
 ChLinkMotorLinear::GuideConstraint ChParserMbsYAML::ReadMotorGuideType(const YAML::Node& a) {
     std::string type = ChToUpper(a.as<std::string>());
-    if (type == "FREE") {
+    if (type == "FREE")
         return ChLinkMotorLinear::GuideConstraint::FREE;
-    } else if (type == "PRISMATIC") {
+    else if (type == "PRISMATIC")
         return ChLinkMotorLinear::GuideConstraint::PRISMATIC;
-    } else if (type == "SPHERICAL") {
+    else if (type == "SPHERICAL")
         return ChLinkMotorLinear::GuideConstraint::SPHERICAL;
-    } else {
-        return ChLinkMotorLinear::GuideConstraint::PRISMATIC;
-    }
+
+    throw std::runtime_error("Unknown motor guide constraint type");
 }
 
 ChLinkMotorRotation::SpindleConstraint ChParserMbsYAML::ReadMotorSpindleType(const YAML::Node& a) {
     std::string type = ChToUpper(a.as<std::string>());
-    if (type == "FREE") {
+    if (type == "FREE")
         return ChLinkMotorRotation::SpindleConstraint::FREE;
-    } else if (type == "REVOLUTE") {
+    else if (type == "REVOLUTE")
         return ChLinkMotorRotation::SpindleConstraint::REVOLUTE;
-    } else if (type == "CYLINDRICAL") {
+    else if (type == "CYLINDRICAL")
         return ChLinkMotorRotation::SpindleConstraint::CYLINDRICAL;
-    } else {
-        return ChLinkMotorRotation::SpindleConstraint::REVOLUTE;
-    }
+
+    throw std::runtime_error("Unknown motor spindle constraint type");
 }
+
+#ifdef CHRONO_FEA
+
+ChParserMbsYAML::FEAMaterialType ChParserMbsYAML::ReadFEAMaterialType(const YAML::Node& a) {
+    std::string type = ChToUpper(a.as<std::string>());
+    if (type == "BEAM_ANCF")
+        return FEAMaterialType::BEAM_ANCF;
+    else if (type == "HEXA_ANCF")
+        return FEAMaterialType::HEXA_ANCF;
+    else if (type == "SHELL_ANCF")
+        return FEAMaterialType::SHELL_ANCF;
+    else if (type == "SHELL_KIRCHHOFF")
+        return FEAMaterialType::SHELL_KIRCHHOFF;
+    else if (type == "SHELL_REISSNER")
+        return FEAMaterialType::SHELL_REISSNER;
+
+    throw std::runtime_error("Unknown FEA element material type");
+}
+
+ChParserMbsYAML::FEABeamSectionType ChParserMbsYAML::ReadFEABeamSectionType(const YAML::Node& a) {
+    std::string type = ChToUpper(a.as<std::string>());
+    if (type == "EULER_SIMPLE")
+        return FEABeamSectionType::EULER_SIMPLE;
+    else if (type == "ANCF_CABLE")
+        return FEABeamSectionType::ANCF_CABLE;
+    else if (type == "COSSERAT")
+        return FEABeamSectionType::COSSERAT;
+    else if (type == "TIMOSHENKO")
+        return FEABeamSectionType::TIMOSHENKO;
+
+    throw std::runtime_error("Unknown FEA beam section type");
+}
+
+ChParserMbsYAML::FEABeamType ChParserMbsYAML::ReadFEABeamType(const YAML::Node& a) {
+    std::string type = ChToUpper(a.as<std::string>());
+    if (type == "EULER")
+        return FEABeamType::EULER;
+    else if (type == "ANCF_CABLE")
+        return FEABeamType::ANCF_CABLE;
+    else if (type == "ANCF_3243")
+        return FEABeamType::ANCF_3243;
+    else if (type == "ANCF_3333")
+        return FEABeamType::ANCF_3333;
+    else if (type == "IGA")
+        return FEABeamType::IGA;
+    else if (type == "TIMOSHENKO")
+        return FEABeamType::TIMOSHENKO;
+
+    throw std::runtime_error("Unknown FEA beam type");
+}
+
+ChParserMbsYAML::FEAConstraintType ChParserMbsYAML::ReadFEAConstraintType(const YAML::Node& a) {
+    std::string type = ChToUpper(a.as<std::string>());
+    if (type == "NODE_FRAME")
+        return FEAConstraintType::NODE_FRAME;
+    else if (type == "NODESLOPE_FRAME")
+        return FEAConstraintType::NODESLOPE_FRAME;
+    else if (type == "NODE_NODE")
+        return FEAConstraintType::NODE_NODE;
+    else if (type == "NODE_FACE")
+        return FEAConstraintType::NODE_FACE;
+
+    throw std::runtime_error("Unknown FEA constraint type");
+}
+
+void ChParserMbsYAML::CreateFEAVisualizationAssets() {
+    // Visualization of FEA beams
+    for (auto& item : m_beam_params) {
+        const auto& vis_settings = item.second.visualization;
+
+        if (vis_settings.data_type != ChVisualShapeFEA::DataType::NONE) {
+            auto vis = chrono_types::make_shared<ChVisualShapeFEA>();
+            vis->SetFEMdataType(vis_settings.data_type);
+            vis->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NONE);
+            vis->SetColormap(vis_settings.colormap);
+            vis->SetColormapRange(vis_settings.data_range);
+            vis->SetSmoothFaces(vis_settings.smooth_faces);
+            vis->SetWireframe(vis_settings.wireframe);
+            for (auto& mesh : item.second.mesh)
+                mesh->AddVisualShapeFEA(vis);
+        }
+
+        if (vis_settings.glyph_type != ChVisualShapeFEA::GlyphType::NONE) {
+            auto vis = chrono_types::make_shared<ChVisualShapeFEA>();
+            vis->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+            vis->SetFEMglyphType(vis_settings.glyph_type);
+            vis->SetSymbolsThickness(vis_settings.glyph_size);
+            vis->SetDefaultSymbolsColor(vis_settings.glyph_color);
+            for (auto& mesh : item.second.mesh)
+                mesh->AddVisualShapeFEA(vis);
+        }
+    }
+
+    // Visualization of FEA shells
+    //// TODO
+}
+
+#endif
 
 }  // namespace parsers
 }  // namespace chrono

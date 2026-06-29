@@ -28,12 +28,22 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkMotorLinear.h"
 #include "chrono/physics/ChLinkMotorRotation.h"
+
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+    #include "chrono/fea/ChNodeFEAxyz.h"
+    #include "chrono/fea/ChNodeFEAxyzrot.h"
+    #include "chrono/fea/ChElementBeam.h"
+    #include "chrono/fea/ChBeamSection.h"
+    #include "chrono/fea/ChMaterialFEA.h"
+#endif
 
 namespace chrono {
 namespace parsers {
@@ -140,23 +150,48 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Return the number of instances created from the YAML model file.
     int GetNumInstances() const { return m_crt_instance + 1; }
 
-    /// Find and return the body with specified name in the current model instance.
+    /// Find and return the body with specified name, in the current model instance.
     std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name) const;
 
-    /// Find and return the body with specified name in the given model instance.
+    /// Find and return the body with specified name, in the given model instance.
     std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name, int model_instance) const;
 
     /// Find and return bodies with given base name from all model instances.
     std::vector<std::shared_ptr<ChBodyAuxRef>> FindBodiesByName(const std::string& name) const;
 
-    /// Find and return the motor with specified name in the current model instance.
+    /// Find and return the motor with specified name, in the current model instance.
     std::shared_ptr<ChLinkMotor> FindMotorByName(const std::string& name) const;
 
-    /// Find and return the motor with specified name in the given model instance.
+    /// Find and return the motor with specified name, in the given model instance.
     std::shared_ptr<ChLinkMotor> FindMotorByName(const std::string& name, int model_instance) const;
 
     /// Find and return motors with given base name from all model instances.
     std::vector<std::shared_ptr<ChLinkMotor>> FindMotorsByName(const std::string& name) const;
+
+#ifdef CHRONO_FEA
+
+    /// Find and return the FEA mesh with specified name, in the current model instance.
+    std::shared_ptr<fea::ChMesh> FindMeshByName(const std::string& name) const;
+
+    /// Find and return the FEA mesh with specified name, in the given model instance.
+    std::shared_ptr<fea::ChMesh> FindMeshByName(const std::string& name, int model_instance) const;
+
+    /// Find and return FEA meshes with given base name from all model instances.
+    std::vector<std::shared_ptr<fea::ChMesh>> FindMeshesByName(const std::string& name) const;
+
+    /// Find the XYZ node with given index in the FEA mesh with specified name, in the current model instance.
+    std::shared_ptr<fea::ChNodeFEAxyz> FindNodeXYZ(const std::string& mesh_name, int node_index) const;
+
+    /// Find the XYZ node with given index in the FEA mesh with specified name, in the given model instance.
+    std::shared_ptr<fea::ChNodeFEAxyz> ChParserMbsYAML::FindNodeXYZ(const std::string& mesh_name, int node_index, int model_instance) const;
+
+    /// Find the XYZrot node with given index in the FEA mesh with specified name, in the current model instance.
+    std::shared_ptr<fea::ChNodeFEAxyzrot> FindNodeXYZrot(const std::string& mesh_name, int node_index) const;
+
+    /// Find the XYZrot node with given index in the FEA mesh with specified name, in the given model instance.
+    std::shared_ptr<fea::ChNodeFEAxyzrot> ChParserMbsYAML::FindNodeXYZrot(const std::string& mesh_name, int node_index, int model_instance) const;
+
+#endif
 
     // --------------
 
@@ -368,6 +403,60 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         bool has_controller;                              ///< true if using a controller
     };
 
+#ifdef CHRONO_FEA
+
+    /// FEA element material type.
+    enum class FEAMaterialType { BEAM_ANCF, HEXA_ANCF, SHELL_ANCF, SHELL_KIRCHHOFF, SHELL_REISSNER };
+
+    //// TODO - additional beam section types
+
+    /// FEA beam section type.
+    enum class FEABeamSectionType { EULER_SIMPLE, ANCF_CABLE, COSSERAT, TIMOSHENKO };
+
+    /// FEA beam type.
+    enum class FEABeamType { EULER, ANCF_CABLE, ANCF_3243, ANCF_3333, IGA, TIMOSHENKO };
+
+    /// FEA constraint types.
+    enum class FEAConstraintType { NODE_FRAME, NODESLOPE_FRAME, NODE_NODE, NODE_FACE };
+
+    /// Internal specification of an FEA beam.
+    struct FEABeamParams {
+        FEABeamParams();
+        void PrintInfo(const std::string& name) const;
+
+        FEABeamType type;                          ///< FEA beam element type
+        ChVector3d start;                          ///< beam start point
+        ChVector3d end;                            ///< beam end point
+        ChVector3d up;                             ///< beam up direction
+        int num_elements;                          ///< number of elements along beam
+        ChVisualShapeFEA::Settings visualization;  ///< run-time visualization settings
+
+        std::vector<std::shared_ptr<fea::ChMesh>> mesh;  ///< underlying Chrono FEA meshes (one per instance)
+
+        //// TODO - deal with multiple instances
+        std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> nodesXYZ;        ///< FEA XYZ nodes (if present)
+        std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot>> nodesXYZrot;  ///< FEA XYZrot nodes (if present)
+        std::vector<std::shared_ptr<fea::ChElementBeam>> elements;       ///< FEA elements
+
+        std::shared_ptr<fea::ChBeamSection> section;   ///< beam section (if used by the FEA element type)
+        std::shared_ptr<fea::ChMaterialFEA> material;  ///< beam material (if used by the FEA element type)
+    };
+
+    /// Internal specification of FEA constraints.
+    struct FEAConstraintParams {
+        FEAConstraintParams();
+        void PrintInfo(const std::string& name) const;
+
+        FEAConstraintType type;             ///< constraint type
+        std::pair<std::string, int> node1;  ///< node specification
+        std::pair<std::string, int> node2;  ///< node specification (for NODE_NODE)
+        std::pair<std::string, int> face;   ///< face specification (for NODE_FACE)
+        std::string body;                   ///< body (for NODE_FRAME and NODESLOPE_FRAME)
+        ChVector3d direction;               ///< direction of a NODESLOPE_FRAME constraint (in body frame)
+    };
+
+#endif
+
     /// Wrapper for a load controllers.
     struct LoadController {
         int model_instance;                            ///< model instance containing the loaded body
@@ -380,6 +469,21 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         std::shared_ptr<ChLinkMotor> motor;             ///< actuated motor
         std::shared_ptr<ChMotorController> controller;  ///< externally-provided controller
     };
+
+  private:
+    void LoadBodies(const YAML::Node& bodies);
+    void LoadJoints(const YAML::Node& joints);
+    void LoadConstraints(const YAML::Node& constraints);
+    void LoadTSDAs(const YAML::Node& tsdas);
+    void LoadRSDAs(const YAML::Node& rsdas);
+    void LoadBodyLoads(const YAML::Node& loads);
+    void LoadControllers(const YAML::Node& controllers);
+    void LoadMotors(const YAML::Node& motors);
+#ifdef CHRONO_FEA
+    void LoadFEABeams(const YAML::Node& fea);
+    void LoadFEAShells(const YAML::Node& fea);
+    void LoadFEAConstraints(const YAML::Node& fea);
+#endif
 
   private:
     /// Load and return bushing data from the specified node.
@@ -417,6 +521,24 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Load and return a rotation motor spindle constraint type from the specified node.
     ChLinkMotorRotation::SpindleConstraint ReadMotorSpindleType(const YAML::Node& a);
 
+#ifdef CHRONO_FEA
+
+    /// Load and return the FEA element material type from the specified node.
+    FEAMaterialType ReadFEAMaterialType(const YAML::Node& a);
+
+    /// Load and return the FEA beam section type from the specified node.
+    FEABeamSectionType ReadFEABeamSectionType(const YAML::Node& a);
+
+    /// Load and return the FEA beam type from the specified node.
+    FEABeamType ReadFEABeamType(const YAML::Node& a);
+
+    /// Load and return the FEA constraint type from the specified node.
+    FEAConstraintType ReadFEAConstraintType(const YAML::Node& a);
+
+    void CreateFEAVisualizationAssets();
+
+#endif
+
     /// Set Chrono solver parameters.
     void SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso);
 
@@ -437,6 +559,13 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     std::unordered_map<std::string, BodyLoadParams> m_bodyload_params;             ///< body loads
     std::unordered_map<std::string, BodyLoadParams> m_load_controller_params;      ///< external body load controllers
     std::unordered_map<std::string, MotorParams> m_motor_params;                   ///< motors
+#ifdef CHRONO_FEA
+    std::unordered_map<std::string, FEABeamParams> m_beam_params;                  ///< FEA beams
+    std::unordered_map<std::string, FEAConstraintParams> m_fea_constraint_params;  ///< FEA constraints
+
+    std::vector<std::shared_ptr<fea::ChMaterialFEA>> m_fea_materials;  ///< list of FEA materials
+    std::vector<std::shared_ptr<fea::ChBeamSection>> m_beam_sections;  ///< list of FEA beam sections
+#endif
 
     std::unordered_map<std::string, LoadController> m_load_controllers;
     std::unordered_map<std::string, MotorController> m_motor_controllers;
