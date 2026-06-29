@@ -130,30 +130,31 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     // Beam-specific functions
 
     /// Evaluate the xyz displacement of a point on the beam line and the rotation RxRyRz of section plane.
-    /// Note, eta=-1 at node1, eta=+1 at node2. Note that 'displ' is the displ.state of 2 nodes, e.g. get it as GetStateBlock() Results are not corotated.
+    /// Notes:
+    /// - eta=-1 at node1, eta=+1 at node2.
+    /// - 'displ' is the displacement state of 2 nodes (for example, obtained via GetStateBlock()).
+    /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& displ, ChVector3d& rot) override;
+
+    /// Evaluate the linear and angular velocity of a point on the beam line.
+    /// Note that eta=-1 at node1, eta=+1 at node2.
+    virtual void EvaluateSectionVelocity(const double eta, ChVector3d& lin_vel, ChVector3d& ang_vel) override;
 
     /// Evaluate the absolute xyz position of a point on the beam line and the absolute rotation of section plane.
     /// Results are corotated (expressed in world reference).
-    /// Notes:
-    /// - eta=-1 at node1, eta=+1 at node2.
-    /// - 'displ' is the displ.state of 2 nodes, e.g. get it as GetStateBlock().
+    /// Notes that eta=-1 at node1, eta=+1 at node2.
     virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) override;
 
     /// Evaluate the force (traction x, shear y, shear z) and the torque (torsion on x, bending on y, on bending on z) at a section along the beam line.
     /// Results are not corotated, and are expressed in the reference system of beam.
     /// This is not mandatory for the element to work, but it can be useful for plotting, showing results, etc.
-    /// Notes:
-    /// - eta=-1 at node1, eta=+1 at node2.
-    /// - 'displ' is the displ.state of 2 nodes, e.g., obtained via GetStateBlock().
+    /// Note that eta=-1 at node1, eta=+1 at node2.
     virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& force, ChVector3d& torque) override;
 
     /// Evaluate the axial and bending strain of the ANCF element torque (torsion on x, bending on y, on bending on z) at a section along the beam line.
     /// Results are not corotated, and are expressed in the reference system of beam.
     /// This is not mandatory for the element to work, but it can be useful for plotting, showing results, etc.
-    /// Notes:
-    /// - eta=-1 at node1, eta=+1 at node2.
-    /// - 'displ' is the displ.state of 2 nodes, e.g., obtained via GetStateBlock().
+    /// Note that eta=-1 at node1, eta=+1 at node2.
     virtual void EvaluateSectionStrain(const double eta, ChVector3d& strain) override;
 
     /// Set structural damping.

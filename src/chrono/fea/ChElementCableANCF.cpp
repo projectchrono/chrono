@@ -647,6 +647,23 @@ void ChElementCableANCF::EvaluateSectionDisplacement(const double eta, ChVector3
     u_rotaz = VNULL;  //(not needed in ANCF? )
 }
 
+void ChElementCableANCF::EvaluateSectionVelocity(const double eta, ChVector3d& lin_vel, ChVector3d& ang_vel) {
+    ShapeVector N;
+    double xi = (eta + 1.0) * 0.5;
+    ShapeFunctions(N, xi);  // because ShapeFunctions() works in 0..1 range
+
+    ChVector3d vpA = m_nodes[0]->GetPosDt();
+    ChVector3d vdA = m_nodes[0]->GetSlope1Dt();
+    ChVector3d vpB = m_nodes[1]->GetPosDt();
+    ChVector3d vdB = m_nodes[1]->GetSlope1Dt();
+
+    lin_vel.x() = N(0) * vpA.x() + N(1) * vdA.x() + N(2) * vpB.x() + N(3) * vdB.x();
+    lin_vel.y() = N(0) * vpA.y() + N(1) * vdA.y() + N(2) * vpB.y() + N(3) * vdB.y();
+    lin_vel.z() = N(0) * vpA.z() + N(1) * vdA.z() + N(2) * vpB.z() + N(3) * vdB.z();
+
+    ang_vel = VNULL;
+}
+
 void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) {
     ChVector3d u_displ;
     ChVector3d u_rotaz;

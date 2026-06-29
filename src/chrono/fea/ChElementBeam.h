@@ -34,6 +34,13 @@ class ChApi ChElementBeam : public ChElementGeneric {
     /// Note, eta=-1 at node1, eta=+1 at node2.
     virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& displ, ChVector3d& rot) = 0;
 
+    /// Evaluate the linear and angular velocity of a point on the beam line.
+    /// Note, eta=-1 at node1, eta=+1 at node2.
+    virtual void EvaluateSectionVelocity(const double eta, ChVector3d& lin_vel, ChVector3d& ang_vel) {
+        lin_vel = VNULL;
+        ang_vel = VNULL;
+    }
+
     /// Evaluate the absolute position of a point on the beam line and the absolute rotation of the section plane.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) = 0;
