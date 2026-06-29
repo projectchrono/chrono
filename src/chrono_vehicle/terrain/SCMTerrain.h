@@ -37,6 +37,11 @@
 #endif
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    #include <unordered_map>
+    #include <vector>
+#endif
+
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
@@ -45,6 +50,19 @@ namespace chrono {
 namespace vehicle {
 
 class SCMLoader;
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+namespace scm_gpu {
+bool Enabled();
+void PrimeBuffers();
+struct ScmHitRecord {
+    ChContactable* contactable = nullptr;
+    ChVector3d abs_point;
+    int patch_id = -1;
+};
+}  // namespace scm_gpu
+#endif
+
 
 /// @addtogroup vehicle_terrain
 /// @{
@@ -539,6 +557,13 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Reset the list of forces and fill it with forces from the soil contact model.
     // This is called automatically during timestepping (only at the beginning of each step).
     void ComputeInternalForces();
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    bool ComputeContactForcesGpu(const std::vector<ChVector2i>& keys,
+                                 const std::vector<scm_gpu::ScmHitRecord>& hits,
+                                 const std::vector<double>& patch_oob);
+#endif
+
 
     // Override the ChLoadContainer method for computing the generalized force F term:
     virtual void IntLoadResidual_F(const unsigned int off,  // offset in R residual

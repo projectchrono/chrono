@@ -38,6 +38,11 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    #include "scm_gpu.h"
+#endif
+
+
 #include "chrono_thirdparty/stb/stb.h"
 
 namespace chrono {
@@ -1129,6 +1134,16 @@ void SCMLoader::ComputeInternalForces() {
     // -------------------------
 
     // Information of vertices with ray-cast hits
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    using HitRecord = scm_gpu::ScmHitRecord;
+#else
+    struct HitRecord {
+        ChContactable* contactable;  // pointer to hit object
+        ChVector3d abs_point;        // hit point, expressed in global frame
+        int patch_id;                // index of associated patch id
+    };
+#endif
     struct HitRecord {
         ChContactable* contactable;  // pointer to hit object
         ChVector3d abs_point;        // hit point, expressed in global frame
@@ -1356,6 +1371,26 @@ void SCMLoader::ComputeInternalForces() {
 
     m_timer_contact_forces.start();
 
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    bool scm_used_gpu = false;
+    if (scm_gpu::Enabled() && !m_soil_fun && hits.size() >= scm_gpu_min_hits()) {
+        std::vector<ChVector2i> keys;
+        std::vector<scm_gpu::ScmHitRecord> hit_vec;
+        keys.reserve(hits.size());
+        hit_vec.reserve(hits.size());
+        for (const auto& h : hits) {
+            keys.push_back(h.first);
+            hit_vec.push_back(h.second);
+        }
+        std::vector<double> patch_oob(contact_patches.size());
+        for (size_t ip = 0; ip < contact_patches.size(); ++ip)
+            patch_oob[ip] = contact_patches[ip].oob;
+        scm_used_gpu = ComputeContactForcesGpu(keys, hit_vec, patch_oob);
+    }
+    if (!scm_used_gpu) {
+#endif
+
+
     // Initialize local values for the soil parameters
     double Bekker_Kphi = m_Bekker_Kphi;
     double Bekker_Kc = m_Bekker_Kc;
@@ -1519,6 +1554,11 @@ void SCMLoader::ComputeInternalForces() {
         nr.level = nr.level_initial - nr.sinkage / ca;
 
     }  // end loop on ray hits
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    }  // end CPU contact-force path
+#endif
+
 
     // Create loads for bodies and nodes to apply the accumulated terrain force/torque for each of them
     if (!m_cosim_mode) {

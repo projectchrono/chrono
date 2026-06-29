@@ -226,6 +226,12 @@ set(CV_TERRAIN_FILES
     terrain/GranularTerrain.h
     terrain/GranularTerrain.cpp
 )
+if(CH_ENABLE_VEHICLE_SCM_GPU)
+    list(APPEND CV_TERRAIN_FILES
+        terrain/SCMTerrainGpu.h
+        terrain/SCMTerrainGpu.cpp
+    )
+endif()
 if(CH_ENABLE_MODULE_FEA)
     set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
         terrain/FEATerrain.h
@@ -899,6 +905,16 @@ endif()
 if(CH_ENABLE_MODULE_FSI_SPH)
   target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsi)
   target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsisph)
+endif()
+
+if(CH_ENABLE_VEHICLE_SCM_GPU)
+  target_compile_definitions(Chrono_vehicle PRIVATE CHRONO_VEHICLE_SCM_GPU)
+  target_include_directories(Chrono_vehicle PRIVATE ${CHRONO_SCM_GPU_INCLUDE_DIR})
+  target_link_directories(Chrono_vehicle PRIVATE ${CHRONO_SCM_GPU_LIB_DIR})
+  target_link_libraries(Chrono_vehicle PRIVATE scm_gpu_core)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER MATCHES "hipcc")
+    target_link_options(Chrono_vehicle PRIVATE -fopenmp)
+  endif()
 endif()
 
 target_compile_definitions(Chrono_vehicle INTERFACE 
