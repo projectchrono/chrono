@@ -82,6 +82,8 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
 }
 
 RTSCamera::~RTSCamera() {
+    removeAll();
+    remove();
     device->drop();
 }
 

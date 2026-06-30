@@ -344,6 +344,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     class ChIrrNodeVisual : public irr::scene::ISceneNode {
       public:
         ChIrrNodeVisual(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr) : irr::scene::ISceneNode(parent, mgr, 0) {}
+        virtual ~ChIrrNodeVisual() {
+            removeAll();
+            remove();
+        }
         virtual void render() override {}
         virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return m_box; }
         irr::core::aabbox3d<irr::f32> m_box;
@@ -382,15 +386,12 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
         ChColor col;
     };
 
+    /// WARNING: any element managed by a shared pointer that is added to the SceneManager (i.e. any ISceneNode) shall unregister itself from the SceneManager.
+    /// If not, the SceneManager will try to delete it during m_device destruction; if they are already destroyed, a crash will occur.
+    std::vector<std::shared_ptr<RTSCamera>> m_cameras;                            ///< list of cameras defined for the scene
+    std::vector<GridData> m_grids;                                                ///< list of visualization grids
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;  ///< scene nodes for physics items
     std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models
-
-    // WARNING: by moving the declaration of these two vectors (m_cameras, m_grids) on top of m_nodes it triggers a very
-    // awkward behavior for which the Children of CEmptySceneNode gets invalidated, thus triggering an exception when
-    // the destructor of CEmptySceneNode is later called during deletion of the m_device, usually triggered by m_cameras
-    // (if this order is preserved).
-    std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
-    std::vector<GridData> m_grids;                      ///< list of visualization grids
 
     bool m_yup;                                        ///< use Y-up if true, Z-up if false
     std::string m_win_title;                           ///< window title
