@@ -24,6 +24,7 @@
 #undef _GLIBCXX_USE_INT128
 
 #include <iostream>
+#include <iterator>  // std::distance / std::advance / std::iterator_traits (used in Thrust_Expand)
 
 // -----------------------------------------------------------------------------
 // Thrust related defines
@@ -37,6 +38,7 @@
 #include <thrust/fill.h>
 #include <thrust/copy.h>
 #include <thrust/iterator/counting_iterator.h>
+#include <thrust/tuple.h>  // Thrust 3.x (CUDA 13+) no longer pulls tuple in transitively via the algorithm headers
 
 #if defined(CHRONO_OPENMP_ENABLED)
     #include <thrust/system/omp/execution_policy.h>
@@ -103,9 +105,9 @@ OutputIterator Thrust_Expand(InputIterator1 first1,
                              InputIterator1 last1,
                              InputIterator2 first2,
                              OutputIterator output) {
-    typedef typename thrust::iterator_difference<InputIterator1>::type difference_type;
+    typedef typename std::iterator_traits<InputIterator1>::difference_type difference_type;
 
-    difference_type input_size = thrust::distance(first1, last1);
+    difference_type input_size = std::distance(first1, last1);
     difference_type output_size = thrust::reduce(THRUST_PAR first1, last1);
 
     // scan the counts to obtain output offsets for each input element
@@ -124,11 +126,11 @@ OutputIterator Thrust_Expand(InputIterator1 first1,
 
     // gather input values according to index array (output = first2[output_indices])
     OutputIterator output_end = output;
-    thrust::advance(output_end, output_size);
+    std::advance(output_end, output_size);
     thrust::gather(THRUST_PAR output_indices.begin(), output_indices.end(), first2, output);
 
     // return output + output_size
-    thrust::advance(output, output_size);
+    std::advance(output, output_size);
     return output;
 }
 

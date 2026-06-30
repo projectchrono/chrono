@@ -15,6 +15,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include "chrono/utils/ChSocket.h"
+#include <cstdint>
 
 namespace chrono {
 namespace utils {
