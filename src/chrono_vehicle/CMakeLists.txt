@@ -9,6 +9,7 @@ option(CH_ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 # Return now if this module is not enabled
 if(NOT CH_ENABLE_MODULE_VEHICLE)
    mark_as_advanced(FORCE CH_ENABLE_OPENCRG)
+   mark_as_advanced(FORCE CH_ENABLE_VEHICLE_SCM_GPU)
    return()
 endif()
 
@@ -18,6 +19,34 @@ mark_as_advanced(CLEAR CH_ENABLE_OPENCRG)
 
 # Provide option to add OpenCRG support.
 option(CH_ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
+
+# ----------------------------------------------------------------------------
+# Optional SCM GPU contact-force backend (external scm_gpu_core)
+# ----------------------------------------------------------------------------
+
+option(CH_ENABLE_VEHICLE_SCM_GPU "Enable HIP SCM contact-force backend" OFF)
+
+set(CH_USE_SCM_GPU OFF)
+
+if(CH_ENABLE_VEHICLE_SCM_GPU)
+  find_package(HIP QUIET)
+  find_package(ScmGpu QUIET)
+
+  if(HIP_FOUND AND ScmGpu_FOUND)
+    message(STATUS "SCM GPU: HIP found; scm_gpu_core: ${ScmGpu_LIBRARIES}")
+    set(CH_USE_SCM_GPU ON)
+  else()
+    if(NOT HIP_FOUND)
+      message(WARNING "SCM GPU requested but HIP/ROCm was not found; disabling CH_ENABLE_VEHICLE_SCM_GPU")
+    endif()
+    if(NOT ScmGpu_FOUND)
+      message(WARNING "SCM GPU requested but scm_gpu_core was not found (set CHRONO_SCM_GPU_LIB_DIR); disabling CH_ENABLE_VEHICLE_SCM_GPU")
+    endif()
+    set(CH_USE_SCM_GPU OFF)
+    set(CH_ENABLE_VEHICLE_SCM_GPU OFF CACHE BOOL "Enable HIP SCM contact-force backend" FORCE)
+  endif()
+endif()
+
 
 # ----------------------------------------------------------------------------
 # Find the OpenCRG library
@@ -75,6 +104,13 @@ else()
 endif()
 
 # Generate the configuration header file using substitution variables.
+
+if(CH_USE_SCM_GPU)
+  set(CHRONO_SCM_GPU "#define CHRONO_HAS_SCM_GPU")
+else()
+  set(CHRONO_SCM_GPU "#undef CHRONO_HAS_SCM_GPU")
+endif()
+
 
 set(CV_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h)
 
@@ -245,6 +281,16 @@ if(CH_ENABLE_MODULE_FSI_SPH)
     )
 endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
+if(CH_USE_SCM_GPU)
+    list(APPEND CV_TERRAIN_FILES
+        terrain/SCMGpu.h
+        terrain/SCMGpuTypes.h
+        terrain/SCMTerrainGpu.h
+        terrain/SCMTerrainGpu.cpp
+    )
+endif()
+
+
 
 set(CV_UTILS_FILES
     utils/ChSteeringController.h
@@ -900,6 +946,15 @@ if(CH_ENABLE_MODULE_FSI_SPH)
   target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsi)
   target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsisph)
 endif()
+
+if(CH_USE_SCM_GPU)
+  target_compile_definitions(Chrono_vehicle PRIVATE CHRONO_VEHICLE_SCM_GPU)
+  target_link_libraries(Chrono_vehicle PRIVATE ${ScmGpu_LIBRARIES})
+  if(TARGET OpenMP::OpenMP_CXX)
+    target_link_libraries(Chrono_vehicle PRIVATE OpenMP::OpenMP_CXX)
+  endif()
+endif()
+
 
 target_compile_definitions(Chrono_vehicle INTERFACE 
     $<BUILD_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/vehicle/\">

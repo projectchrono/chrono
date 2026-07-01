@@ -29,4 +29,7 @@
 // If OpenCRG support was enabled, define CHRONO_HAS_OPENCRG
 @CHRONO_OPENCRG@
 
+// If SCM GPU support was enabled, define CHRONO_HAS_SCM_GPU
+@CHRONO_SCM_GPU@
+
 #endif

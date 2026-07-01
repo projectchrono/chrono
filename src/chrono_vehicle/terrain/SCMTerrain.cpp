@@ -38,6 +38,10 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    #include "chrono_vehicle/terrain/SCMGpu.h"
+#endif
+
 #include "chrono_thirdparty/stb/stb.h"
 
 namespace chrono {
@@ -243,21 +247,37 @@ void SCMTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCa
 // Initialize the terrain as a flat grid.
 void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
     m_loader->Initialize(sizeX, sizeY, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
 }
 
 // Initialize the terrain from a specified height map.
 void SCMTerrain::Initialize(const std::string& heightmap_file, double sizeX, double sizeY, double hMin, double hMax, double delta) {
     m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
 void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
     m_loader->Initialize(mesh_file, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
 }
 
 // Initialize the terrain from a specified triangular mesh file.
 void SCMTerrain::Initialize(const ChTriangleMeshConnected& trimesh, double delta) {
     m_loader->Initialize(trimesh, delta);
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::PrimeBuffers();
+#endif
 }
 
 // Get the heights of modified grid nodes.
@@ -1129,11 +1149,16 @@ void SCMLoader::ComputeInternalForces() {
     // -------------------------
 
     // Information of vertices with ray-cast hits
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    using HitRecord = scm_gpu::ScmHitRecord;
+#else
     struct HitRecord {
         ChContactable* contactable;  // pointer to hit object
         ChVector3d abs_point;        // hit point, expressed in global frame
         int patch_id;                // index of associated patch id
     };
+#endif
 
     // Hash-map for vertices with ray-cast hits
     std::unordered_map<ChVector2i, HitRecord, CoordHash> hits;
@@ -1356,169 +1381,184 @@ void SCMLoader::ComputeInternalForces() {
 
     m_timer_contact_forces.start();
 
-    // Initialize local values for the soil parameters
-    double Bekker_Kphi = m_Bekker_Kphi;
-    double Bekker_Kc = m_Bekker_Kc;
-    double Bekker_n = m_Bekker_n;
-    double Mohr_cohesion = m_Mohr_cohesion;
-    double Mohr_mu = m_Mohr_mu;
-    double Janosi_shear = m_Janosi_shear;
-    double elastic_K = m_elastic_K;
-    double damping_R = m_damping_R;
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    bool scm_used_gpu = false;
+    if (scm_gpu::Enabled() && !m_soil_fun && hits.size() >= scm_gpu_min_hits()) {
+        std::vector<double> patch_oob(contact_patches.size());
+        for (size_t ip = 0; ip < contact_patches.size(); ++ip)
+            patch_oob[ip] = contact_patches[ip].oob;
+        scm_used_gpu = ComputeContactForcesGpu(hits, patch_oob);
+    }
+    if (!scm_used_gpu) {
+#endif
 
-    // Process only hit nodes
-    for (auto& h : hits) {
-        ChVector2d ij = h.first;
+        // Initialize local values for the soil parameters
+        double Bekker_Kphi = m_Bekker_Kphi;
+        double Bekker_Kc = m_Bekker_Kc;
+        double Bekker_n = m_Bekker_n;
+        double Mohr_cohesion = m_Mohr_cohesion;
+        double Mohr_mu = m_Mohr_mu;
+        double Janosi_shear = m_Janosi_shear;
+        double elastic_K = m_elastic_K;
+        double damping_R = m_damping_R;
 
-        auto& nr = m_grid_map.at(ij);      // node record
-        const double& ca = nr.normal.z();  // cosine of angle between local normal and SCM plane vertical
+        // Process only hit nodes
+        for (auto& h : hits) {
+            ChVector2d ij = h.first;
 
-        ChContactable* contactable = h.second.contactable;
-        const ChVector3d& hit_point_abs = h.second.abs_point;
-        int patch_id = h.second.patch_id;
+            auto& nr = m_grid_map.at(ij);      // node record
+            const double& ca = nr.normal.z();  // cosine of angle between local normal and SCM plane vertical
 
-        auto hit_point_loc = m_frame.TransformPointParentToLocal(hit_point_abs);
+            ChContactable* contactable = h.second.contactable;
+            const ChVector3d& hit_point_abs = h.second.abs_point;
+            int patch_id = h.second.patch_id;
 
-        if (m_soil_fun) {
-            double Mohr_friction;
-            m_soil_fun->Set(hit_point_loc, Bekker_Kphi, Bekker_Kc, Bekker_n, Mohr_cohesion, Mohr_friction, Janosi_shear, elastic_K, damping_R);
-            Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
-        }
+            auto hit_point_loc = m_frame.TransformPointParentToLocal(hit_point_abs);
 
-        nr.hit_level = hit_point_loc.z();                              // along SCM z axis
-        double p_hit_offset = ca * (nr.level_initial - nr.hit_level);  // along local normal direction
-
-        // Elastic try (along local normal direction)
-        nr.sigma = elastic_K * (p_hit_offset - nr.sinkage_plastic);
-
-        // Handle uni-laterality
-        if (nr.sigma < 0) {
-            nr.sigma = 0;
-            continue;
-        }
-
-        // Mark current node as modified
-        m_modified_nodes.push_back(ij);
-
-        // Calculate velocity at touched grid node
-        ChVector3d point_local(ij.x() * m_delta, ij.y() * m_delta, nr.level);
-        ChVector3d point_abs = m_frame.TransformPointLocalToParent(point_local);
-        ChVector3d speed_abs = contactable->GetContactPointSpeed(point_abs);
-
-        // Calculate normal and tangent directions (expressed in absolute frame)
-        ChVector3d N = m_frame.TransformDirectionLocalToParent(nr.normal);
-        double Vn = Vdot(speed_abs, N);
-        ChVector3d T = -(speed_abs - Vn * N);
-        T.Normalize();
-
-        // Update total sinkage and current level for this hit node
-        nr.sinkage = p_hit_offset;
-        nr.level = nr.hit_level;
-
-        // Accumulate shear for Janosi-Hanamoto (along local tangent direction)
-        nr.kshear += Vdot(speed_abs, -T) * GetSystem()->GetStep();
-
-        // Plastic correction (along local normal direction)
-        if (nr.sigma > nr.sigma_yield) {
-            // Bekker formula
-            nr.sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * std::pow(nr.sinkage, Bekker_n);
-            nr.sigma_yield = nr.sigma;
-            double old_sinkage_plastic = nr.sinkage_plastic;
-            nr.sinkage_plastic = nr.sinkage - nr.sigma / elastic_K;
-            nr.step_plastic_flow = (nr.sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
-        }
-
-        // Elastic sinkage (along local normal direction)
-        nr.sinkage_elastic = nr.sinkage - nr.sinkage_plastic;
-
-        // Add compressive speed-proportional damping (not clamped by pressure yield)
-        ////if (Vn < 0) {
-        nr.sigma += -Vn * damping_R;
-        ////}
-
-        // Mohr-Coulomb
-        double tau_max = Mohr_cohesion + nr.sigma * Mohr_mu;
-
-        // Janosi-Hanamoto (along local tangent direction)
-        nr.tau = tau_max * (1.0 - std::exp(-(nr.kshear / Janosi_shear)));
-
-        // Calculate normal and tangential forces (in local node directions).
-        // If specified, combine properties for soil-contactable interaction and soil-soil interaction.
-        ChVector3d Fn = N * m_area * nr.sigma;
-        ChVector3d Ft;
-
-        //// TODO:  take into account "tread height" (add to SCMContactableData)?
-
-        if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
-            // Use weighted sum of soil-contactable and soil-soil parameters
-            double c_tau_max = cprops->Mohr_cohesion + nr.sigma * cprops->Mohr_mu;
-            double c_tau = c_tau_max * (1.0 - std::exp(-(nr.kshear / cprops->Janosi_shear)));
-            double ratio = cprops->area_ratio;
-            Ft = T * m_area * ((1 - ratio) * nr.tau + ratio * c_tau);
-        } else {
-            // Use only soil-soil parameters
-            Ft = T * m_area * nr.tau;
-        }
-
-        if (ChBody* body = dynamic_cast<ChBody*>(contactable)) {
-            // Accumulate resultant force and torque (expressed in global frame) for this rigid body.
-            // The resultant force is assumed to be applied at the body COM.
-            ChVector3d force = Fn + Ft;
-            ChVector3d moment = Vcross(point_abs - body->GetPos(), force);
-
-            auto itr = m_body_forces.find(body);
-            if (itr == m_body_forces.end()) {
-                // Create new entry and initialize generalized force
-                auto frc = std::make_pair(force, moment);
-                m_body_forces.insert(std::make_pair(body, frc));
-            } else {
-                // Update generalized force
-                itr->second.first += force;
-                itr->second.second += moment;
+            if (m_soil_fun) {
+                double Mohr_friction;
+                m_soil_fun->Set(hit_point_loc, Bekker_Kphi, Bekker_Kc, Bekker_n, Mohr_cohesion, Mohr_friction, Janosi_shear, elastic_K, damping_R);
+                Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
             }
-        }
-#ifdef CHRONO_FEA
-        else if (fea::ChContactTriangleXYZ* tri = dynamic_cast<fea::ChContactTriangleXYZ*>(contactable)) {
-            // Accumulate forces (expressed in global frame) for the nodes of this contact triangle.
-            ChVector3d force = Fn + Ft;
 
-            double s[3];
-            tri->ComputeUVfromP(point_abs, s[1], s[2]);
-            s[0] = 1 - s[1] - s[2];
+            nr.hit_level = hit_point_loc.z();                              // along SCM z axis
+            double p_hit_offset = ca * (nr.level_initial - nr.hit_level);  // along local normal direction
 
-            for (int i = 0; i < 3; i++) {
-                auto node = tri->GetNode(i);
-                auto node_force = s[i] * force;
-                auto itr = m_node_forces.find(node);
-                if (itr == m_node_forces.end()) {
-                    // Create new entry and initialize force
-                    m_node_forces.insert(std::make_pair(node, node_force));
+            // Elastic try (along local normal direction)
+            nr.sigma = elastic_K * (p_hit_offset - nr.sinkage_plastic);
+
+            // Handle uni-laterality
+            if (nr.sigma < 0) {
+                nr.sigma = 0;
+                continue;
+            }
+
+            // Mark current node as modified
+            m_modified_nodes.push_back(ij);
+
+            // Calculate velocity at touched grid node
+            ChVector3d point_local(ij.x() * m_delta, ij.y() * m_delta, nr.level);
+            ChVector3d point_abs = m_frame.TransformPointLocalToParent(point_local);
+            ChVector3d speed_abs = contactable->GetContactPointSpeed(point_abs);
+
+            // Calculate normal and tangent directions (expressed in absolute frame)
+            ChVector3d N = m_frame.TransformDirectionLocalToParent(nr.normal);
+            double Vn = Vdot(speed_abs, N);
+            ChVector3d T = -(speed_abs - Vn * N);
+            T.Normalize();
+
+            // Update total sinkage and current level for this hit node
+            nr.sinkage = p_hit_offset;
+            nr.level = nr.hit_level;
+
+            // Accumulate shear for Janosi-Hanamoto (along local tangent direction)
+            nr.kshear += Vdot(speed_abs, -T) * GetSystem()->GetStep();
+
+            // Plastic correction (along local normal direction)
+            if (nr.sigma > nr.sigma_yield) {
+                // Bekker formula
+                nr.sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * std::pow(nr.sinkage, Bekker_n);
+                nr.sigma_yield = nr.sigma;
+                double old_sinkage_plastic = nr.sinkage_plastic;
+                nr.sinkage_plastic = nr.sinkage - nr.sigma / elastic_K;
+                nr.step_plastic_flow = (nr.sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
+            }
+
+            // Elastic sinkage (along local normal direction)
+            nr.sinkage_elastic = nr.sinkage - nr.sinkage_plastic;
+
+            // Add compressive speed-proportional damping (not clamped by pressure yield)
+            ////if (Vn < 0) {
+            nr.sigma += -Vn * damping_R;
+            ////}
+
+            // Mohr-Coulomb
+            double tau_max = Mohr_cohesion + nr.sigma * Mohr_mu;
+
+            // Janosi-Hanamoto (along local tangent direction)
+            nr.tau = tau_max * (1.0 - std::exp(-(nr.kshear / Janosi_shear)));
+
+            // Calculate normal and tangential forces (in local node directions).
+            // If specified, combine properties for soil-contactable interaction and soil-soil interaction.
+            ChVector3d Fn = N * m_area * nr.sigma;
+            ChVector3d Ft;
+
+            //// TODO:  take into account "tread height" (add to SCMContactableData)?
+
+            if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
+                // Use weighted sum of soil-contactable and soil-soil parameters
+                double c_tau_max = cprops->Mohr_cohesion + nr.sigma * cprops->Mohr_mu;
+                double c_tau = c_tau_max * (1.0 - std::exp(-(nr.kshear / cprops->Janosi_shear)));
+                double ratio = cprops->area_ratio;
+                Ft = T * m_area * ((1 - ratio) * nr.tau + ratio * c_tau);
+            } else {
+                // Use only soil-soil parameters
+                Ft = T * m_area * nr.tau;
+            }
+
+            if (ChBody* body = dynamic_cast<ChBody*>(contactable)) {
+                // Accumulate resultant force and torque (expressed in global frame) for this rigid body.
+                // The resultant force is assumed to be applied at the body COM.
+                ChVector3d force = Fn + Ft;
+                ChVector3d moment = Vcross(point_abs - body->GetPos(), force);
+
+                auto itr = m_body_forces.find(body);
+                if (itr == m_body_forces.end()) {
+                    // Create new entry and initialize generalized force
+                    auto frc = std::make_pair(force, moment);
+                    m_body_forces.insert(std::make_pair(body, frc));
                 } else {
-                    // Update force
-                    itr->second += node_force;
+                    // Update generalized force
+                    itr->second.first += force;
+                    itr->second.second += moment;
                 }
             }
-        }
+#ifdef CHRONO_FEA
+            else if (fea::ChContactTriangleXYZ* tri = dynamic_cast<fea::ChContactTriangleXYZ*>(contactable)) {
+                // Accumulate forces (expressed in global frame) for the nodes of this contact triangle.
+                ChVector3d force = Fn + Ft;
+
+                double s[3];
+                tri->ComputeUVfromP(point_abs, s[1], s[2]);
+                s[0] = 1 - s[1] - s[2];
+
+                for (int i = 0; i < 3; i++) {
+                    auto node = tri->GetNode(i);
+                    auto node_force = s[i] * force;
+                    auto itr = m_node_forces.find(node);
+                    if (itr == m_node_forces.end()) {
+                        // Create new entry and initialize force
+                        m_node_forces.insert(std::make_pair(node, node_force));
+                    } else {
+                        // Update force
+                        itr->second += node_force;
+                    }
+                }
+            }
 #endif
-        else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
-            if (!m_cosim_mode) {
-                // [](){} Trick: no deletion for this shared ptr
-                std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
-                auto loader = chrono_types::make_shared<ChLoaderForceOnSurface>(ssurf);
-                loader->SetForce(Fn + Ft);
-                loader->SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
-                auto load = chrono_types::make_shared<ChLoad>(loader);
-                this->Add(load);
+            else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+                if (!m_cosim_mode) {
+                    // [](){} Trick: no deletion for this shared ptr
+                    std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
+                    auto loader = chrono_types::make_shared<ChLoaderForceOnSurface>(ssurf);
+                    loader->SetForce(Fn + Ft);
+                    loader->SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
+                    auto load = chrono_types::make_shared<ChLoad>(loader);
+                    this->Add(load);
+                }
+
+                // Accumulate contact forces for this surface.
+                //// TODO
             }
 
-            // Accumulate contact forces for this surface.
-            //// TODO
-        }
+            // Update grid node height (in local SCM frame, along SCM z axis)
+            nr.level = nr.level_initial - nr.sinkage / ca;
 
-        // Update grid node height (in local SCM frame, along SCM z axis)
-        nr.level = nr.level_initial - nr.sinkage / ca;
+        }  // end loop on ray hits
 
-    }  // end loop on ray hits
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    }  // end CPU contact-force path
+#endif
 
     // Create loads for bodies and nodes to apply the accumulated terrain force/torque for each of them
     if (!m_cosim_mode) {
