@@ -80,6 +80,7 @@ In the [SCMTerrain](@ref chrono::vehicle::SCMTerrain), the terrain is represente
 
 
 An optional HIP backend accelerates the SCM contact-force loop on AMD GPUs; see [SCM GPU backend](@ref vehicle_terrain_scm_gpu) for CMake options, runtime environment variables, and validation steps.
+
 To address memory and computational efficiency concerns, the grid is never created explicitly. Instead, only nodes that have been deformed are maintained in a hash map.  Furthermore, ray-casting in the collision system (the most costly operation in the SCM calculation) is multi-threaded.  To allow efficient visualization of the deformed terrain, the Chrono SCM subsystem provides methods for incrementally updating a visualization mesh and, when using an external visualization system, reporting the subset of nodes deformed over the last time step.
 
 Shown below, a tire makes ruts in deformable soil, illustrating the mesh structure of the Chrono version of the SCM.
