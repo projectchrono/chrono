@@ -70,6 +70,8 @@ The minimum HIP version required by Chrono is 5.7.0.
 
 Install the [AMD ROCm](https://rocm.docs.amd.com/) stack for your distribution so that `hipcc` and the HIP runtime are available. Set `CHRONO_GPU_BACKEND=HIP` during CMake configuration (or use `AUTO` on a machine where ROCm is detected before CUDA). Set `CHRONO_HIP_ARCHITECTURES` to your GPU ISA (for example `gfx942` on AMD Instinct MI300-class accelerators, or `gfx90a` on MI200-class); alternatively set `CMAKE_HIP_ARCHITECTURES` as appropriate for your CMake version.
 
+The HIP backend can also be built **natively on Windows** using the AMD HIP SDK; see the Windows section of the repository guide [docs/README_AMD_GPU.md](../../../docs/README_AMD_GPU.md) for the required toolchain configuration.
+
 For **CPU-only PyChrono** next to a ROCm PyTorch stack, you do **not** need the NVIDIA CUDA toolkit; see the repository guide [docs/README_AMD_GPU.md](../../../docs/README_AMD_GPU.md) (workflow summaries, Eigen3/SWIG notes, and `ROCR_VISIBLE_DEVICES` for multi-GPU hosts).
 
 #### Thrust support {#thrust}
