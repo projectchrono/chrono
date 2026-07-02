@@ -274,7 +274,15 @@ inline gpuError gpuGetDeviceProperties(gpuDeviceProp* prop, int device) {
 }
 
 inline gpuError gpuMemAdvise(const void* ptr, std::size_t bytes, gpuMemoryAdvise advice, int device) {
-    return hipMemAdvise(ptr, bytes, advice, device);
+    // Memory advice is a performance hint only. On some HIP platforms (e.g. Windows,
+    // or APUs without full managed-memory support) hipMemAdvise is not implemented and
+    // fails with hipErrorInvalidValue / hipErrorNotSupported; treat that as benign.
+    hipError_t err = hipMemAdvise(ptr, bytes, advice, device);
+    if (err == hipErrorInvalidValue || err == hipErrorNotSupported) {
+        (void)hipGetLastError();  // clear the sticky error state
+        return hipSuccess;
+    }
+    return err;
 }
 
 inline gpuError gpuStreamCreate(gpuStream* stream) {
