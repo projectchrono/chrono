@@ -33,8 +33,8 @@
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
 
-    // SPH integration sacheme
+    // SPH integration scheme
     IntegrationScheme integration_scheme = IntegrationScheme::RK2;
 
     // --------------
@@ -215,22 +215,20 @@ int main(int argc, char* argv[]) {
                               BoxSide::ALL & ~BoxSide::Z_POS          // all boundaries, except top
             );
             // Create straight line path
-            path = StraightLinePath(ChVector3d(0, 0, vehicle_init_height),
-                                    ChVector3d(terrain_length, 0, vehicle_init_height), 1);
+            path = StraightLinePath(ChVector3d(0, 0, vehicle_init_height), ChVector3d(terrain_length, 0, vehicle_init_height), 1);
             break;
         case PatchType::HEIGHT_MAP:
             // Create a patch from a height field map image
             terrain.Construct(GetVehicleDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
-                              terrain_length, terrain_width,                           // length (X) and width (Y)
-                              {0, 0.3},                                                // height range
-                              0.25,                                                    // depth
-                              true,                                                    // uniform depth
-                              ChVector3d(terrain_length / 2, 0, 0),                    // patch center
-                              BoxSide::Z_NEG                                           // bottom wall
+                              terrain_length, terrain_width,                         // length (X) and width (Y)
+                              {0, 0.3},                                              // height range
+                              0.25,                                                  // depth
+                              true,                                                  // uniform depth
+                              ChVector3d(terrain_length / 2, 0, 0),                  // patch center
+                              BoxSide::Z_NEG                                         // bottom wall
             );
             // Create straight line path
-            path = StraightLinePath(ChVector3d(0, 0, vehicle_init_height),
-                                    ChVector3d(terrain_length, 0, vehicle_init_height), 1);
+            path = StraightLinePath(ChVector3d(0, 0, vehicle_init_height), ChVector3d(terrain_length, 0, vehicle_init_height), 1);
             break;
         case PatchType::MARKER_DATA:
             // Create a patch using SPH particles and BCE markers from files
@@ -246,9 +244,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
-    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
-    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH particles:        " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Boundary BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
+    cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << endl;
 
     // Set maximum vehicle X location (based on CRM patch size)
     double x_max = aabb.max.x() - 4.5;
@@ -325,7 +323,7 @@ int main(int argc, char* argv[]) {
 
     cout << "Start simulation..." << endl;
 
-    while (time < tend) {
+    while (true) {
         const auto& veh_loc = vehicle->GetPos();
 
         // Set current driver inputs
@@ -359,6 +357,8 @@ int main(int argc, char* argv[]) {
         }
         if (!render) {
             std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
+            if (time > tend)
+                break;
         }
 
         // Synchronize systems

@@ -232,9 +232,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     const auto& aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
-    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
-    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH particles:        " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Boundary BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
+    cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << endl;
 
     // Create driver
     cout << "Create path..." << endl;
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
     std::ofstream stats_output(stats_file);
     stats_output << "time,x,y,z,vx,vy,vz,ax,ay,az,qw,qx,qy,qz,wx,wy,wz" << std::endl;
 
-    while (time < tend) {
+    while (true) {
         const auto& veh_loc = vehicle->GetPos();
 
         // Stop before end of patch
@@ -360,6 +360,8 @@ int main(int argc, char* argv[]) {
         }
         if (!render) {
             std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
+            if (time > tend)
+                break;
         }
 
         // Synchronize systems
