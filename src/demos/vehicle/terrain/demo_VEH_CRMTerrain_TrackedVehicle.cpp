@@ -38,6 +38,7 @@
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -364,7 +365,8 @@ int main(int argc, char* argv[]) {
         // Synchronize systems
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
         vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Write vehicle stats to CSV
@@ -383,12 +385,14 @@ int main(int argc, char* argv[]) {
         // Note: CRMTerrain::Advance also performs the vehicle dynamics
         if (sph_params.use_variable_time_step) {
             driver.Advance(meta_step_size);
-            vis->Advance(meta_step_size);
+            if (vis)
+                vis->Advance(meta_step_size);
             terrain.Advance(meta_step_size);
             time += meta_step_size;
         } else {
             driver.Advance(step_size);
-            vis->Advance(step_size);
+            if (vis)
+                vis->Advance(step_size);
             terrain.Advance(step_size);
             time += step_size;
         }
