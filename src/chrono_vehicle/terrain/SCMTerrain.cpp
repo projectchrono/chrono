@@ -438,6 +438,7 @@ void SCMLoader::Initialize(double sizeX, double sizeY, double delta) {
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
+    SetupInitial();
 }
 
 // Initialize the terrain from a specified height map.
@@ -512,6 +513,7 @@ void SCMLoader::Initialize(const std::string& heightmap_file, double sizeX, doub
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
+    SetupInitial();
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
@@ -602,6 +604,7 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
+    SetupInitial();
 }
 
 void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
