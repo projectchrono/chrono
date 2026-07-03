@@ -62,9 +62,9 @@ class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
             cmap.second->compile(context);
     }
 
-    // Example here taken from the Dear imgui comments (mostly)
+    // Example here taken from the Dear ImGui comments (mostly)
     void record(vsg::CommandBuffer& cb) const override {
-        // Display logo first, so gui elements can cover it
+        // Display logo first, so GUI elements can cover it
         ImVec2 squareUV(1.0f, 1.0f);  // UV in the logo texture - usually rectangular
 
         if (m_app->m_show_logo) {
@@ -450,15 +450,13 @@ size_t ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc)
 }
 
 size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title, const ChVector2d& range, ChColormap::Type type, bool bimodal, float width) {
-    if (m_initialized) {
-        cout << "Error: Attempt to create a VSG colorbar after initialization of the VSG visual system." << endl;
-
-        throw std::runtime_error("Attempt to create a VSG colorbar after initialization of the VSG visual system");
-    }
-
     auto gc = chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, range, type, bimodal, width);
     gc->m_vsys = this;
     m_gui.push_back(gc);
+
+    if (m_initialized)
+        gc->Initialize();
+
     return m_gui.size() - 1;
 }
 
@@ -495,13 +493,18 @@ void ChVisualSystemVSG::AddComputeCommands(vsg::ref_ptr<vsg::Commands> commands)
 }
 
 void ChVisualSystemVSG::AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin) {
-    if (m_initialized) {
-        cerr << "Function ChVisualSystemVSG::AttachPlugin can only be called before initialization!" << endl;
-        return;
-    }
     plugin->m_vsys = this;
     plugin->OnAttach();
     m_plugins.push_back(plugin);
+
+    if (!m_initialized)
+        return;
+
+    plugin->OnInitialize();
+    plugin->OnBindAssets();
+    for (const auto& eh : plugin->m_evhandler) {
+        auto evhandler_wrapper = EventHandlerWrapper::create(eh, this);
+    }
 }
 
 void ChVisualSystemVSG::Quit() {

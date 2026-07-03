@@ -181,6 +181,7 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_flex_bce_markers(true),
       m_bndry_bce_markers(false),
       m_active_boxes(false),
+      m_colormap_gui(true),
       m_sph_color(ChColor(0.10f, 0.40f, 0.65f)),
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
       m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
@@ -332,7 +333,7 @@ void ChSphVisualizationVSG::OnInitialize() {
     m_vsys->AddGuiComponent(fsi_states);
 
     // Add colorbar GUI
-    if (m_color_fun) {
+    if (m_color_fun && m_colormap_gui) {
         m_vsys->AddGuiColorbar(m_color_fun->GetTile(), m_color_fun->GetDataRange(), m_colormap_type,
                                m_color_fun->IsBimodal(), 400.0f);
     }
@@ -355,12 +356,19 @@ void ChSphVisualizationVSG::OnBindAssets() {
     // Create the box for the computational domain
     BindComputationalDomain();
 
-    if (!m_use_active_boxes)
-        return;
+    if (m_use_active_boxes) {
+        // Loop over all FSI bodies and bind a model for its active box
+        for (const auto& fsi_body : m_sysFSI->GetBodies())
+            BindActiveBox(fsi_body->body, fsi_body->body->GetTag());
+    }
 
-    // Loop over all FSI bodies and bind a model for its active box
-    for (const auto& fsi_body : m_sysFSI->GetBodies())
-        BindActiveBox(fsi_body->body, fsi_body->body->GetTag());
+    if (m_vsys->IsInitialized()) {
+        // If attaching the plugin after VSG initialization, bind the particle clouds
+        m_vsys->BindItem(m_sph_cloud);
+        m_vsys->BindItem(m_bndry_bce_cloud);
+        m_vsys->BindItem(m_rigid_bce_cloud);
+        m_vsys->BindItem(m_flex_bce_cloud);
+    }
 }
 
 void ChSphVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {

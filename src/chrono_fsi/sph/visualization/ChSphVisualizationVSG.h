@@ -99,6 +99,10 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor,
                              ChColormap::Type type = ChColormap::Type::JET);
 
+    /// Enable colormap GUI (default: true).
+    /// A colormap GUI can be rendered only if an SPHColorCallback is defined.
+    void EnableColormapGUI(bool val) { m_colormap_gui = val; }
+
     /// Class to be used as a callback interface for dynamic visibility of SPH particles or BCE markers.
     class CH_FSI_API MarkerVisibilityCallback : public ChParticleCloud::VisibilityCallback {
       public:
@@ -218,6 +222,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
     bool m_flex_bce_markers;   ///< render flex-body markers?
     bool m_active_boxes;       ///< render active boxes?
+    bool m_colormap_gui;       ///< render colormap GUI? 
 
     std::shared_ptr<ChParticleCloud> m_sph_cloud;        ///< particle cloud proxy for SPH particles
     std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers

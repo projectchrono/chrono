@@ -88,7 +88,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Attach a custom plugin.
     /// Plugins offer a mechanism for extending a base VSG visual system with custom functionality; e.g., for rendering,
     /// controlling, and displaying information for specific types of Chrono systems. An arbitrary number of plugins can
-    /// be attached to a VSG visual system. Attaching plugins must be done *before* initialization of the VSG system.
+    /// be attached to a VSG visual system.
     void AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin);
 
     /// Initialize the visualization system.
@@ -353,7 +353,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     size_t AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc);
 
     /// Add a colorbar as a GUI component.
-    /// Returns the index of the new component. This function must be called before Initialize().
+    /// Returns the index of the new component.
     size_t AddGuiColorbar(const std::string& title,  ///< GUI window title
                           const ChVector2d& range,   ///< data range
                           ChColormap::Type type,     ///< colormap
