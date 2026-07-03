@@ -28,6 +28,8 @@
 #include "chrono/physics/ChLinkMotor.h"
 #include "chrono/physics/ChContactMaterial.h"
 
+#include "chrono/utils/ChBodyGeometry.h"
+
 // Ignore legacy keywords 'near' and 'far' in Visual Studio compiler
 #ifdef _WIN32
     #undef near
@@ -127,20 +129,28 @@ class ChApiParsers ChParserURDF {
     /// This list is populated only after a call to PopulateSystem().
     void PrintChronoJoints();
 
+    /// Get the containing Chrono system.
+    /// Note that this is set in PopulateSystem().
+    ChSystem& GetChSystem() const { return *m_sys; }
+
     /// Get the root body of the Chrono model.
-    /// This function must be called after PopulateSystem.
+    /// This function must be called after PopulateSystem().
     std::shared_ptr<ChBodyAuxRef> GetRootChBody() const;
 
     /// Get the body with specified name in the Chrono model.
-    /// This function must be called after PopulateSystem.
+    /// This function must be called after PopulateSystem().
     std::shared_ptr<ChBody> GetChBody(const std::string& name) const;
 
+    /// Get collision geometry for the body with specified name in the Chrono model.
+    /// This function must be called after PopulateSystem().
+    std::shared_ptr<utils::ChBodyGeometry> GetCollisionGeometry(const std::string& name) const;
+
     /// Get the joint with specified name in the Chrono model.
-    /// This function must be called after PopulateSystem.
+    /// This function must be called after PopulateSystem().
     std::shared_ptr<ChLinkBase> GetChLink(const std::string& name) const;
 
     /// Get the motor with specified name in the Chrono model.
-    /// This function must be called after PopulateSystem.
+    /// This function must be called after PopulateSystem().
     std::shared_ptr<ChLinkMotor> GetChMotor(const std::string& name) const;
 
     /// Get the axis aligned bounding box (AABB) of all robot visualization models.
@@ -154,7 +164,7 @@ class ChApiParsers ChParserURDF {
     /// The return value of this function has different meaning, depending on the type of motor, and can represent a
     /// position, angle, linear speed, angular speed, force, or torque.
     /// No action is taken if a joint with the specified does not exist or if it was not marked as actuated.
-    /// This function must be called after PopulateSystem.
+    /// This function must be called after PopulateSystem().
     void SetMotorFunction(const std::string& motor_name, const std::shared_ptr<ChFunction> function);
 
     /// Class to be used as a callback interface for custom processing of the URDF XML string.
@@ -202,12 +212,13 @@ class ChApiParsers ChParserURDF {
     ChFrame<> m_init_pose;                  ///< root body initial pose
     bool m_vis_collision;                   ///< visualize collision shapes
 
-    std::shared_ptr<ChBodyAuxRef> m_root_body;                ///< model root body
-    std::map<std::string, std::string> m_discarded;           ///< discarded bodies
-    std::map<std::string, ChContactMaterialData> m_mat_data;  ///< body contact material data
-    std::map<std::string, MeshCollisionType> m_coll_type;     ///< mesh collision type
-    std::map<std::string, ActuationType> m_actuated_joints;   ///< actuated joints
-    ChContactMaterialData m_default_mat_data;                 ///< default contact material data
+    std::shared_ptr<ChBodyAuxRef> m_root_body;                                      ///< model root body
+    std::map<std::string, std::string> m_discarded;                                 ///< discarded bodies (index by body/link name)
+    std::map<std::string, ChContactMaterialData> m_mat_data;                        ///< body contact material data (index by body/link name)
+    std::map<std::string, MeshCollisionType> m_coll_type;                           ///< mesh collision type (index by body/link name)
+    std::map<std::string, ActuationType> m_actuated_joints;                         ///< actuated joints  (index by joint name)
+    std::map<std::string, std::shared_ptr<utils::ChBodyGeometry>> m_coll_geometry;  ///< body collision geometry (index by body/link name)
+    ChContactMaterialData m_default_mat_data;                                       ///< default contact material data
 
     std::vector<std::shared_ptr<ChBodyAuxRef>> m_bodies;  ///< list of Chrono bodies created from URDF
     std::vector<std::shared_ptr<ChLink>> m_joints;        ///< list of Chrono joints created from URDF

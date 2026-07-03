@@ -98,13 +98,26 @@ enum class LocomotionMode {
     DRIVE      ///< driving
 };
 
+static std::string LocomotionModeAsString(LocomotionMode mode) {
+    switch (mode) {
+        case LocomotionMode::WALK:
+            return "Walk";
+        case LocomotionMode::SCULL:
+            return "Scull";
+        case LocomotionMode::INCHWORM:
+            return "Inchworm";
+        case LocomotionMode::DRIVE:
+            return "Drive";
+    }
+    return "";
+}
+
 // -----------------------------------------------------------------------------
 // Definition of a part (body + collision shapes + visualization assets)
 // -----------------------------------------------------------------------------
 
 struct CH_MODELS_API BoxShape {
-    BoxShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, const chrono::ChVector3d& dims)
-        : m_pos(pos), m_rot(rot), m_dims(dims) {}
+    BoxShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, const chrono::ChVector3d& dims) : m_pos(pos), m_rot(rot), m_dims(dims) {}
     chrono::ChVector3d m_pos;
     chrono::ChQuaternion<> m_rot;
     chrono::ChVector3d m_dims;
@@ -117,8 +130,7 @@ struct CH_MODELS_API SphereShape {
 };
 
 struct CH_MODELS_API CylinderShape {
-    CylinderShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, double radius, double length)
-        : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length) {}
+    CylinderShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, double radius, double length) : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length) {}
     chrono::ChVector3d m_pos;
     chrono::ChQuaternion<> m_rot;
     double m_radius;
@@ -127,8 +139,7 @@ struct CH_MODELS_API CylinderShape {
 
 struct CH_MODELS_API MeshShape {
     enum class Type { CONVEX_HULL, TRIANGLE_SOUP, NODE_CLOUD };
-    MeshShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, const std::string& name, Type type)
-        : m_pos(pos), m_rot(rot), m_name(name), m_type(type) {}
+    MeshShape(const chrono::ChVector3d& pos, const chrono::ChQuaternion<>& rot, const std::string& name, Type type) : m_pos(pos), m_rot(rot), m_name(name), m_type(type) {}
     chrono::ChVector3d m_pos;
     chrono::ChQuaternion<> m_rot;
     std::string m_name;
@@ -176,10 +187,7 @@ class CH_MODELS_API RS_Part {
 /// RoboSimian chassis (torso).
 class CH_MODELS_API RS_Chassis : public RS_Part {
   public:
-    RS_Chassis(const std::string& name,
-               bool is_fixed,
-               std::shared_ptr<ChContactMaterial> mat,
-               chrono::ChSystem* system);
+    RS_Chassis(const std::string& name, bool is_fixed, std::shared_ptr<ChContactMaterial> mat, chrono::ChSystem* system);
     ~RS_Chassis() {}
 
     /// Initialize the chassis at the specified (absolute) position.
@@ -260,14 +268,7 @@ class CH_MODELS_API Link {
          const chrono::ChVector3d& inertia_xy,     ///< products of inertia
          const std::vector<CylinderShape>& shapes  ///< list of collision shapes
          )
-        : m_mesh_name(mesh_name),
-          m_offset(offset),
-          m_color(color),
-          m_mass(mass),
-          m_com(com),
-          m_inertia_xx(inertia_xx),
-          m_inertia_xy(inertia_xy),
-          m_shapes(shapes) {}
+        : m_mesh_name(mesh_name), m_offset(offset), m_color(color), m_mass(mass), m_com(com), m_inertia_xx(inertia_xx), m_inertia_xy(inertia_xy), m_shapes(shapes) {}
 
   private:
     std::string m_mesh_name;
@@ -446,7 +447,7 @@ class CH_MODELS_API RoboSimian {
     void SetVisualizationTypeSled(VisualizationType vis);
     /// Set visualization type for all limb subsystems.
     void SetVisualizationTypeLimbs(VisualizationType vis);
-    /// Set visualization type for thr specified limb subsystem.
+    /// Set visualization type for the specified limb subsystem.
     void SetVisualizationTypeLimb(LimbID id, VisualizationType vis);
     /// Set visualization type for all wheel subsystem.
     void SetVisualizationTypeWheels(VisualizationType vis);
@@ -602,7 +603,7 @@ class CH_MODELS_API RS_Driver {
     /// Set the driving mode to accept external inputs.
     void SetDrivingMode(bool drivemode) { driven = drivemode; }
 
-    /// Set the motor type (setpoint/torque).
+    /// Set the motor type (set-point/torque).
     void UseTorqueMotors(bool use_tm) { torque_actuated = use_tm; }
 
     /// Return the current phase
@@ -638,8 +639,8 @@ class CH_MODELS_API RS_Driver {
     Actuation m_actuations_2;         ///< cached actuations (after)
     Actuation m_actuations;           ///< current actuations
     PhaseChangeCallback* m_callback;  ///< user callback for phase change
-    bool driven = false;           ///< true if the driver is expecting external inputs instead of reading from a file
-    bool torque_actuated = false;  ///< true if using torque actuation instead of setpoints
+    bool driven = false;              ///< true if the driver is expecting external inputs instead of reading from a file
+    bool torque_actuated = false;     ///< true if using torque actuation instead of set-points
 
     static const std::string m_phase_names[5];  ///< names of various driver phases
 

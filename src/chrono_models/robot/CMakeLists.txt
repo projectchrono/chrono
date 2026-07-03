@@ -20,6 +20,13 @@ set(CRM_ROBOSIMIAN_FILES
     robosimian/RoboSimian.h
 )
 
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  set(CRM_ROBOSIMIAN_FILES ${CRM_ROBOSIMIAN_FILES}
+      robosimian/RoboSimianURDF.cpp
+      robosimian/RoboSimianURDF.h    
+  )
+endif()
+
 source_group("robosimian" FILES ${CRM_ROBOSIMIAN_FILES})
 
 #-----------------------------------------------------------------------------
@@ -91,7 +98,6 @@ add_library(Chrono::models_robot ALIAS ChronoModels_robot)
 
 set_target_properties(ChronoModels_robot PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 
-
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_robot PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(ChronoModels_robot PROPERTIES LINK_FLAGS "/LTCG")
@@ -108,6 +114,9 @@ endif()
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
 
 target_link_libraries(ChronoModels_robot PUBLIC Chrono_core)
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  target_link_libraries(ChronoModels_robot PUBLIC Chrono_parsers)  
+endif()
 
 install(TARGETS ChronoModels_robot
         EXPORT ChronoTargets

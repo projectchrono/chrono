@@ -71,7 +71,7 @@ class ChApiParsers ChRobotActuation {
     typedef std::vector<double> Actuation;
 
     /// Construct a robot actuator using the specified input data files.
-    /// The data files for the "start" and "stop" phases are not required (pass an ampty string).
+    /// The data files for the "start" and "stop" phases are not required (pass an empty string).
     ChRobotActuation(int num_motors,                     ///< number of actuated motors
                      const std::string& filename_start,  ///< name of file with joint actuations for start phase
                      const std::string& filename_cycle,  ///< name of file with joint actuations for cycle phase
@@ -94,6 +94,9 @@ class ChApiParsers ChRobotActuation {
 
     /// Return the current phase.
     const std::string& GetCurrentPhase() const { return m_phase_names[m_phase]; }
+
+    /// Set (force) the phase.
+    void SetPhase(Phase phase) { m_phase = phase; }
 
     /// Class to be used as callback interface for user-defined actions at phase changes.
     class ChApiParsers PhaseChangeCallback {

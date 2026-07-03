@@ -391,12 +391,16 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConst
     const auto& collision_array = link->collision_array;
 
     // Create the contact material for all collision shapes associated with this body
-    auto link_name = body->GetName();
-    std::shared_ptr<ChContactMaterial> contact_material;
+    const auto& link_name = body->GetName();
+    ChContactMaterialData contact_material_data;
     if (m_mat_data.find(link_name) != m_mat_data.end())
-        contact_material = m_mat_data.find(link_name)->second.CreateMaterial(m_sys->GetContactMethod());
+        contact_material_data = m_mat_data.find(link_name)->second;
     else
-        contact_material = m_default_mat_data.CreateMaterial(m_sys->GetContactMethod());
+        contact_material_data = m_default_mat_data;
+    auto contact_material = contact_material_data.CreateMaterial(m_sys->GetContactMethod());
+    
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(contact_material_data);
 
     // Create collision shapes
     // Note: a collision model is created for this body when the first collision shape is added
@@ -409,18 +413,21 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConst
                     auto box = std::static_pointer_cast<urdf::Box>(collision->geometry);
                     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(contact_material, box->dim.x, box->dim.y, box->dim.z);
                     body->AddCollisionShape(ct_shape, frame);
+                    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(frame.GetPos(), frame.GetRot(), toChVector(box->dim), 0));
                     break;
                 }
                 case urdf::Geometry::CYLINDER: {
                     auto cylinder = std::static_pointer_cast<urdf::Cylinder>(collision->geometry);
                     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(contact_material, cylinder->radius, cylinder->length);
                     body->AddCollisionShape(ct_shape, frame);
+                    geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), cylinder->radius, cylinder->length, 0));
                     break;
                 }
                 case urdf::Geometry::SPHERE: {
                     auto sphere = std::static_pointer_cast<urdf::Sphere>(collision->geometry);
                     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(contact_material, sphere->radius);
                     body->AddCollisionShape(ct_shape, frame);
+                    geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(frame.GetPos(), sphere->radius, 0));
                     break;
                 }
                 case urdf::Geometry::MESH: {
@@ -439,6 +446,8 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConst
                         cout << "Warning: No collision shape was generated for body <" << link_name << ">.\n" << endl;
                         break;
                     }
+
+                    geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(frame.GetPos(), frame.GetRot(), trimesh, 1, 0.002, 0));
 
                     MeshCollisionType coll_type = m_coll_type.find(link_name) != m_coll_type.end() ? m_coll_type.find(link_name)->second : MeshCollisionType::TRIANGLE_MESH;
                     switch (coll_type) {
@@ -465,6 +474,8 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConst
             }
         }
     }
+
+    m_coll_geometry[link_name] = geometry;
 }
 
 bool Discard(urdf::LinkConstSharedPtr link) {
@@ -686,6 +697,18 @@ std::shared_ptr<ChBody> ChParserURDF::GetChBody(const std::string& name) const {
     }
 
     return m_sys->SearchBody(name);
+}
+
+std::shared_ptr<utils::ChBodyGeometry> ChParserURDF::GetCollisionGeometry(const std::string& name) const {
+    if (!m_sys) {
+        cerr << "\nWARNING: GetCollisionGeometry: The Chrono model was not yet populated." << endl;
+        return nullptr;
+    }
+
+    if (m_coll_geometry.find(name) != m_coll_geometry.end())
+        return m_coll_geometry.find(name)->second;
+
+    return nullptr;
 }
 
 std::shared_ptr<ChLinkBase> ChParserURDF::GetChLink(const std::string& name) const {
