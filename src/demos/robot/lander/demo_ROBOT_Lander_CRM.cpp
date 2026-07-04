@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepSizeCFD(step_size);
     fsi.SetStepsizeMBD(step_size);
 
-    // Set soil propertiees
+    // Set soil properties
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;

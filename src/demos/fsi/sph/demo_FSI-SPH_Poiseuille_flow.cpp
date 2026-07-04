@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     // Complete construction of the fluid system
     fsi.Initialize();
 
-    // Create oputput directories
+    // Create output directories
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -197,8 +197,7 @@ int main(int argc, char* argv[]) {
             if (snapshots) {
                 std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
 
