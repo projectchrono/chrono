@@ -24,7 +24,7 @@
 #include <cassert>
 #include <filesystem>
 
-#include "chrono_parsers/ChParserURDF.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
@@ -311,6 +311,11 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
         // Process grandchildren
         createChildren(*child, child_frame);
     }
+
+    // Set body tags
+    int body_tag = 0;
+    for (auto& body : m_bodies)
+        body->SetTag(body_tag++);
 }
 
 // -----------------------------------------------------------------------------
@@ -398,7 +403,7 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConst
     else
         contact_material_data = m_default_mat_data;
     auto contact_material = contact_material_data.CreateMaterial(m_sys->GetContactMethod());
-    
+
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     geometry->materials.push_back(contact_material_data);
 
@@ -872,7 +877,7 @@ std::shared_ptr<tinyxml2::XMLDocument> ChParserURDF::CustomProcess(const std::st
 
     tinyxml2::XMLElement* robot_xml = xml_doc->FirstChildElement("robot");
     if (!robot_xml) {
-        std::cerr << "Could not find the 'robot' element in the xml file" << std::endl;
+        std::cerr << "Could not find the 'robot' element in the XML file" << std::endl;
         return nullptr;
     }
 

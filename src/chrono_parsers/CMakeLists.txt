@@ -134,8 +134,8 @@ set(Chrono_PARSERS_FILES
 )
 if(CH_USE_URDF)
     set(Chrono_PARSERS_FILES ${Chrono_PARSERS_FILES}
-        ChParserURDF.h
-        ChParserURDF.cpp
+        urdf/ChParserURDF.h
+        urdf/ChParserURDF.cpp
     )
 endif()
 if(CH_USE_PYTHON)

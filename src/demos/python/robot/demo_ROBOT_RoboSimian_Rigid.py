@@ -231,33 +231,37 @@ robot.Initialize(chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromA
 # -----------------------------------
 
 if mode == robosimian.LocomotionMode_WALK:
-		driver = robosimian.RS_Driver(
-			"",                                                                  # start input file
+		driver = robosimian.ChRobotActuation(
+            32,                                                                        # num. motors
+			"",                                                                        # start input file
 			chrono.GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  # cycle input file
-			"",                                                                  # stop input file
+			"",                                                                        # stop input file
 			True)
 elif mode == robosimian.LocomotionMode_SCULL:
-		driver = robosimian.RS_Driver(
+		driver = robosimian.ChRobotActuation(
+            32,                                                                          # num. motors
 			chrono.GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   # start input file
 			chrono.GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  # cycle input file
 			chrono.GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    # stop input file
 			True)
 
 elif mode == robosimian.LocomotionMode_INCHWORM:
-		driver = robosimian.RS_Driver(
+		driver = robosimian.ChRobotActuation(
+            32,                                                                            # num. motors
 			chrono.GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  # start input file
 			chrono.GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  # cycle input file
 			chrono.GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   # stop input file
 			True)
 
 elif mode == robosimian.LocomotionMode_DRIVE:
-		driver = robosimian.RS_Driver(
+		driver = robosimian.ChRobotActuation(
+            32,                                                                        # num. motors
 			chrono.GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  # start input file
 			chrono.GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  # cycle input file
 			chrono.GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   # stop input file
 			True)
 else:
-    raise('Unvalid contact method')
+    raise('Invalid locomotion mode')
 
 cbk = robosimian.RS_DriverCallback(robot)
 driver.RegisterPhaseChangeCallback(cbk)

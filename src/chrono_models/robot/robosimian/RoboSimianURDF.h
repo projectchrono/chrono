@@ -30,7 +30,7 @@
 #include "chrono/input_output/ChCheckpointASCII.h"
 #include "chrono/assets/ChVisualSystem.h"
 
-#include "chrono_parsers/ChParserURDF.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
 
 #include "chrono_models/robot/ChRobotActuation.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"

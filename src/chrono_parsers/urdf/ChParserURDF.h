@@ -224,6 +224,9 @@ class ChApiParsers ChParserURDF {
     std::vector<std::shared_ptr<ChLink>> m_joints;        ///< list of Chrono joints created from URDF
     ChAABB m_aabb_vis;                                    ///< bounding box of all visualization models
     ChAABB m_aabb_coll;                                   ///< bounding box of all collision models
+
+    friend class ChParserURDFVisualizationVSG;
+    friend class ChParserURDFStats;
 };
 
 /// @} parsers_module
