@@ -35,6 +35,7 @@
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
+    #include "chrono_parsers/urdf/ChParserURDFVisualizationVSG.h"
 #endif
 
 using namespace chrono;
@@ -229,14 +230,17 @@ int main(int argc, char* argv[]) {
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
+            auto visURDF = chrono_types::make_shared<ChParserURDFVisualizationVSG>(robotURDF);
+
             auto vis_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
+            vis_vsg->AttachPlugin(visURDF);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("RoboSimian URDF demo");
             vis_vsg->AddCamera(camera_loc, camera_lookat);
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
+            vis_vsg->SetBackgroundColor(ChColor(0.126f, 0.232f, 0.309f));
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

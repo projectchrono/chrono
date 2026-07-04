@@ -72,6 +72,8 @@ ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), 
         return;
     }
 
+    m_name = m_model->getName();
+
     // Cache path to the URDF model file
     m_filepath = std::filesystem::path(filename).parent_path().string();
 }
@@ -316,6 +318,11 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
     int body_tag = 0;
     for (auto& body : m_bodies)
         body->SetTag(body_tag++);
+
+    // Set joint tags
+    int joint_tag = 0;
+    for (auto& joint : m_joints)
+        joint->SetTag(joint_tag++);
 }
 
 // -----------------------------------------------------------------------------

@@ -65,6 +65,9 @@ class ChApiParsers ChParserURDF {
     /// Construct a Chrono parser for the specified URDF file.
     ChParserURDF(const std::string& filename);
 
+    /// Get the URDF model name.
+    const std::string& GetName() const { return m_name; }
+
     /// Get access to the URDF filename.
     const std::string& GetFilename() const { return m_filename; }
 
@@ -208,6 +211,7 @@ class ChApiParsers ChParserURDF {
     std::string m_filepath;                 ///< path of URDF file
     std::string m_xml_string;               ///< raw model XML string
     urdf::ModelInterfaceSharedPtr m_model;  ///< parsed URDF model
+    std::string m_name;                     ///< name of the URDF model
     ChSystem* m_sys;                        ///< containing Chrono system
     ChFrame<> m_init_pose;                  ///< root body initial pose
     bool m_vis_collision;                   ///< visualize collision shapes

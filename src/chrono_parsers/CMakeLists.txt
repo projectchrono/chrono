@@ -121,7 +121,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigParsers.h.in ${CV_CONFIG_FILE
 install(FILES ${CV_CONFIG_FILE} DESTINATION include/chrono_parsers)
 
 # ----------------------------------------------------------------------------
-# List the files in the Chrono_vehicle library
+# List the files in the Chrono_parsers library
 # ----------------------------------------------------------------------------
 
 set(Chrono_PARSERS_FILES 
@@ -132,12 +132,6 @@ set(Chrono_PARSERS_FILES
     ChParserOpenSim.h
     ChParserOpenSim.cpp
 )
-if(CH_USE_URDF)
-    set(Chrono_PARSERS_FILES ${Chrono_PARSERS_FILES}
-        urdf/ChParserURDF.h
-        urdf/ChParserURDF.cpp
-    )
-endif()
 if(CH_USE_PYTHON)
     set(Chrono_PARSERS_FILES ${Chrono_PARSERS_FILES}
         ChParserPython.h
@@ -145,6 +139,23 @@ if(CH_USE_PYTHON)
     )
 endif()
 source_group("" FILES ${Chrono_PARSERS_FILES} ${CV_CONFIG_FILE})
+
+if(CH_USE_URDF)
+    set(Chrono_PARSERS_URDF_FILES
+        urdf/ChParserURDF.h
+        urdf/ChParserURDF.cpp
+    )
+    if(CH_ENABLE_MODULE_VSG)
+        set(Chrono_PARSERS_URDF_FILES ${Chrono_PARSERS_URDF_FILES}
+            urdf/ChParserURDFVisualizationVSG.h
+            urdf/ChParserURDFVisualizationVSG.cpp 
+        )
+    endif()
+    source_group("urdf" FILES ${Chrono_PARSERS_URDF_FILES})
+else()
+    message("WARNING: The Chrono URDF parser requires urdfdom. The Chrono URDF parser will NOT be built.")
+    set(Chrono_PARSERS_URDF_FILES "")
+endif()
 
 if(CHRONO_YAML_ENABLED)
     set(Chrono_PARSERS_YAML_FILES
@@ -222,7 +233,10 @@ set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
 # Create the Chrono_parsers library
 #-----------------------------------------------------------------------------
 
-add_library(Chrono_parsers ${Chrono_PARSERS_FILES} ${Chrono_PARSERS_YAML_FILES})
+add_library(Chrono_parsers
+            ${Chrono_PARSERS_FILES}
+            ${Chrono_PARSERS_URDF_FILES}
+            ${Chrono_PARSERS_YAML_FILES})
 add_library(Chrono::parsers ALIAS Chrono_parsers)
 
 set_target_properties(Chrono_parsers PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
