@@ -183,21 +183,27 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Set scale for rendering reference frames.
     void SetRefFrameScale(double axis_length);
-    /// Toggle on/off visibility of reference frames.
-    void ToggleRefFrameVisibility();
+
+    /// Set the visibility of reference frames for objects with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all objects.
+    void SetRefFrameVisibility(bool vis, int tag = -1);
 
     /// Render COM frames for all bodies in the system.
     void SetCOMFrameScale(double axis_length);
-    /// Toggle on/off visibility of COM frames.
-    void ToggleCOMFrameVisibility();
+
+    /// Set the visibility of COM frames for bodies with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetCOMFrameVisibility(bool vis, int tag = -1);
 
     /// Render COM symbol for all bodies in the system.
     void ToggleCOMSymbolVisibility();
 
     /// Render link frames for all links in the system.
     void SetLinkFrameScale(double axis_length);
-    /// Toggle on/off visibility of link frames.
-    void ToggleLinkFrameVisibility();
+
+    /// Set the visibility of joint frames for joints with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all joints.
+    void SetLinkFrameVisibility(bool vis, int tag = -1);
 
     // --- Labels
 
@@ -622,10 +628,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
 
     /// Bind the reference frame for the given ChObj.
-    void BindReferenceFrame(const std::shared_ptr<ChObj>& obj);
+    void BindReferenceFrame(const std::shared_ptr<ChObj>& obj, ObjectType type);
 
     /// Bind the body COM frame.
-    void BindCOMFrame(const std::shared_ptr<ChBody>& body);
+    void BindBodyCOMFrame(const std::shared_ptr<ChBody>& body);
 
     /// Create body label text.
     void CreateBodyLabel(const std::shared_ptr<ChBody>& body);

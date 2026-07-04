@@ -1432,12 +1432,17 @@ void ChVisualSystemVSG::SetRefFrameScale(double axis_length) {
     m_ref_frame_scale = axis_length;
 }
 
-void ChVisualSystemVSG::ToggleRefFrameVisibility() {
-    m_show_ref_frames = !m_show_ref_frames;
+void ChVisualSystemVSG::SetRefFrameVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
 
-    if (m_initialized) {
-        for (auto& child : m_refFrameScene->children)
-            child.mask = m_show_ref_frames;
+    for (auto& child : m_refFrameScene->children) {
+        ObjectType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == ObjectType::BODY && (c_tag == tag || tag == -1))
+            child.mask = vis;
     }
 }
 
@@ -1445,12 +1450,18 @@ void ChVisualSystemVSG::SetCOMFrameScale(double axis_length) {
     m_com_frame_scale = axis_length;
 }
 
-void ChVisualSystemVSG::ToggleCOMFrameVisibility() {
-    m_show_com_frames = !m_show_com_frames;
+void ChVisualSystemVSG::SetCOMFrameVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
 
-    if (m_initialized) {
-        for (auto& child : m_comFrameScene->children)
-            child.mask = m_show_com_frames;
+    for (auto& child : m_comFrameScene->children) {
+        ////ObjectType type;
+        int c_tag;
+        ////child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        ////if (type == ObjectType::BODY && (c_tag == tag || tag == -1))
+        if ((c_tag == tag || tag == -1))
+            child.mask = vis;
     }
 }
 
@@ -1463,12 +1474,15 @@ void ChVisualSystemVSG::SetLinkFrameScale(double axis_length) {
     m_link_frame_scale = axis_length;
 }
 
-void ChVisualSystemVSG::ToggleLinkFrameVisibility() {
-    m_show_link_frames = !m_show_link_frames;
+void ChVisualSystemVSG::SetLinkFrameVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
 
-    if (m_initialized) {
-        for (auto& child : m_linkFrameScene->children)
-            child.mask = m_show_link_frames;
+    for (auto& child : m_linkFrameScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if ((c_tag == tag || tag == -1))
+            child.mask = vis;
     }
 }
 
@@ -1730,8 +1744,8 @@ void ChVisualSystemVSG::BindAll() {
 
 void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     if (!body->IsFixed()) {
-        BindReferenceFrame(body);
-        BindCOMFrame(body);
+        BindReferenceFrame(body, ObjectType::BODY);
+        BindBodyCOMFrame(body);
         CreateBodyLabel(body);
     }
     BindVisualShapesMutable(body, ObjectType::BODY);   // bind any mutable visual meshes in the body visual model
@@ -2196,22 +2210,25 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     m_clouds.push_back(cloud);
 }
 
-void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
+void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj, ObjectType type) {
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
     vsg::Mask mask = m_show_ref_frames;
     auto node = m_shapeBuilder->createFrameSymbol(transform, 2, false, 1.0f);
     node->setValue("Object", obj);
+    node->setValue("Type", type);
+    node->setValue("Tag", obj->GetTag());
     node->setValue("Transform", transform);
     m_refFrameScene->addChild(mask, node);
 }
 
-void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
+void ChVisualSystemVSG::BindBodyCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto com_transform = vsg::MatrixTransform::create();
     com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
     auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 2, true, 1.0f);
     com_node->setValue("Body", body);
+    com_node->setValue("Tag", body->GetTag());
     com_node->setValue("MobilizedBody", nullptr);
     com_node->setValue("Transform", com_transform);
     m_comFrameScene->addChild(mask, com_node);
@@ -2229,6 +2246,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
         link_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
         auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.75f);
         link_node->setValue("Link", link);
+        link_node->setValue("Tag", link->GetTag());
         link_node->setValue("Body", 1);
         link_node->setValue("Transform", link_transform);
         m_linkFrameScene->addChild(mask, link_node);
@@ -2238,6 +2256,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
         link_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
         auto link_node = m_shapeBuilder->createFrameSymbol(link_transform, 1, true, 0.5f);
         link_node->setValue("Link", link);
+        link_node->setValue("Tag", link->GetTag());
         link_node->setValue("Body", 2);
         link_node->setValue("Transform", link_transform);
         m_linkFrameScene->addChild(mask, link_node);
@@ -2564,53 +2583,47 @@ void ChVisualSystemVSG::Update() {
     }
 
     // Update VSG nodes for object reference frame visualization
-    if (m_show_ref_frames) {
-        for (auto& child : m_refFrameScene->children) {
-            std::shared_ptr<ChObj> obj;
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
-            if (!child.node->getValue("Object", obj))
-                continue;
-            if (!child.node->getValue("Transform", transform))
-                continue;
+    for (auto& child : m_refFrameScene->children) {
+        std::shared_ptr<ChObj> obj;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child.node->getValue("Object", obj))
+            continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
 
-            transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
-        }
+        transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_scale_multiplier * m_ref_frame_scale);
     }
 
     // Update VSG nodes for body COM visualization
-    if (m_show_com_frames) {
-        for (auto& child : m_comFrameScene->children) {
-            std::shared_ptr<ChBody> body;
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
+    for (auto& child : m_comFrameScene->children) {
+        std::shared_ptr<ChBody> body;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
 
-            if (!child.node->getValue("Transform", transform))
-                continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
 
-            if (child.node->getValue("Body", body))
-                transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
-            else
-                continue;
-        }
+        if (child.node->getValue("Body", body))
+            transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_scale_multiplier * m_com_frame_scale);
+        else
+            continue;
     }
 
     // Update VSG nodes for link frame visualization
-    if (m_show_link_frames) {
-        for (auto& child : m_linkFrameScene->children) {
-            std::shared_ptr<ChLinkBase> link;
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
-            int body;
-            if (!child.node->getValue("Link", link))
-                continue;
-            if (!child.node->getValue("Transform", transform))
-                continue;
-            if (!child.node->getValue("Body", body))
-                continue;
+    for (auto& child : m_linkFrameScene->children) {
+        std::shared_ptr<ChLinkBase> link;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        int body;
+        if (!child.node->getValue("Link", link))
+            continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
+        if (!child.node->getValue("Body", body))
+            continue;
 
-            if (body == 1)
-                transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
-            else
-                transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
-        }
+        if (body == 1)
+            transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_scale_multiplier * m_link_frame_scale);
+        else
+            transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_scale_multiplier * m_link_frame_scale);
     }
 
     // Update all VSG nodes with object visualization assets
