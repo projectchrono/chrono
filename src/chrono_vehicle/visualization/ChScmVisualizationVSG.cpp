@@ -32,36 +32,31 @@ namespace vehicle {
 // Custom stats overlay
 class SCMStatsVSG : public vsg3d::ChGuiComponentVSG {
   public:
-    SCMStatsVSG(ChScmVisualizationVSG* vsysFSI) : m_vsysSCM(vsysFSI) {}
+    SCMStatsVSG(ChScmVisualizationVSG* vsysSCM) : m_vsysSCM(vsysSCM) {}
 
     virtual void render(vsg::CommandBuffer& cb) override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin("SCM");
 
-        if (ImGui::BeginTable("SCM parameters", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
+        if (ImGui::BeginTable("SCM parameters", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Grid resolution:");
             ImGui::TableNextColumn();
             ImGui::Text("%6.2e", m_vsysSCM->m_scm_resolution);
 
-            if (m_vsysSCM->m_plot_type != SCMTerrain::PLOT_NONE &&
-                m_vsysSCM->m_plot_type != SCMTerrain::PLOT_ISLAND_ID &&
-                m_vsysSCM->m_plot_type != SCMTerrain::PLOT_IS_TOUCHED) {
+            if (m_vsysSCM->m_plot_type != SCMTerrain::PLOT_NONE && m_vsysSCM->m_plot_type != SCMTerrain::PLOT_ISLAND_ID && m_vsysSCM->m_plot_type != SCMTerrain::PLOT_IS_TOUCHED) {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted(m_vsysSCM->m_plot_label.c_str());
                 ImGui::TableNextColumn();
-                Colorbar(m_vsysSCM->m_vsys->GetColormapTexture(m_vsysSCM->m_scm->GetColormapType()),
-                         {m_vsysSCM->m_plot_min, m_vsysSCM->m_plot_max}, false, 300.0f, cb.deviceID);
+                Colorbar(m_vsysSCM->m_vsys->GetColormapTexture(m_vsysSCM->m_scm->GetColormapType()), {m_vsysSCM->m_plot_min, m_vsysSCM->m_plot_max}, false, 300.0f, cb.deviceID);
             }
 
             ImGui::EndTable();
         }
 
-        if (ImGui::BeginTable("ActiveBoxes", 1, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
+        if (ImGui::BeginTable("ActiveBoxes", 1, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
             std::string text = "Active domains ";
             text += (m_vsysSCM->m_user_active_boxes ? "(user)" : "(default)");
 
@@ -86,12 +81,8 @@ class SCMStatsVSG : public vsg3d::ChGuiComponentVSG {
 // ---------------------------------------------------------------------------
 
 ChScmVisualizationVSG::ChScmVisualizationVSG(SCMTerrain* scm)
-    : m_scm(scm),
-      m_active_boxes(false),
-      m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
-      m_write_images(false),
-      m_image_dir(".") {
-    m_sys = new ChSystemSMC("FSI_internal_system");
+    : m_scm(scm), m_active_boxes(false), m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)), m_write_images(false), m_image_dir(".") {
+    m_sys = new ChSystemSMC("SCM_internal_system");
     m_activeBoxScene = vsg::Switch::create();
 }
 
@@ -138,9 +129,9 @@ void ChScmVisualizationVSG::OnInitialize() {
             break;
     }
 
-    // Create custom GUI for the FSI plugin
-    auto fsi_states = chrono_types::make_shared<SCMStatsVSG>(this);
-    m_vsys->AddGuiComponent(fsi_states);
+    // Create custom GUI for the SCM plugin
+    auto scm_stats = chrono_types::make_shared<SCMStatsVSG>(this);
+    m_vsys->AddGuiComponent(scm_stats);
 
     m_vsys->SetImageOutput(m_write_images);
     m_vsys->SetImageOutputDirectory(m_image_dir);
@@ -148,8 +139,7 @@ void ChScmVisualizationVSG::OnInitialize() {
     // Issue performance warning if shadows are enabled for the containing visualization system
     if (m_vsys->ShadowsEnabled()) {
         std::cerr << "WARNING:  Shadow rendering is enabled for the associated VSG visualization system.\n";
-        std::cerr << "          This negatively affects rendering performance, especially for large particle systems."
-                  << std::endl;
+        std::cerr << "          This negatively affects rendering performance, especially for large particle systems." << std::endl;
     }
 }
 
@@ -187,8 +177,7 @@ void ChScmVisualizationVSG::BindActiveBox(SCMLoader::ActiveDomainInfo& domain) {
     auto bframe = ChFramed(domain.m_body->GetFrameRefToAbs());
     auto dframe = bframe.TransformLocalToParent(ChFramed(domain.m_center));
     transform->matrix = vsg::dmat4CH(dframe, domain.m_hdims);
-    auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
+    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
 
     // Set group properties
     group->setValue("Object", &domain);
@@ -206,8 +195,7 @@ void ChScmVisualizationVSG::BindDefaultActiveBox() {
 
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(m_default_domain.m_center, QUNIT), m_default_domain.m_hdims);
-    auto group =
-        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
+    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, true);
 
     // Set group properties
     group->setValue("Object", &m_default_domain);

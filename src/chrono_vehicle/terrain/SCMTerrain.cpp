@@ -438,6 +438,7 @@ void SCMLoader::Initialize(double sizeX, double sizeY, double delta) {
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
+
     SetupInitial();
 }
 

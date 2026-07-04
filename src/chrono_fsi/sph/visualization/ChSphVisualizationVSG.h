@@ -89,15 +89,12 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         ChParticleCloud* cloud = nullptr;
 
       private:
-        virtual ChColor get(unsigned int n, const ChParticleCloud& source_cloud) const override final {
-            return GetColor(n);
-        }
+        virtual ChColor get(unsigned int n, const ChParticleCloud& source_cloud) const override final { return GetColor(n); }
     };
 
     /// Set a callback for dynamic coloring of SPH particles.
     /// If none provided, SPH particles are rendered with a default color.
-    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor,
-                             ChColormap::Type type = ChColormap::Type::JET);
+    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor, ChColormap::Type type = ChColormap::Type::JET);
 
     /// Enable colormap GUI (default: true).
     /// A colormap GUI can be rendered only if an SPHColorCallback is defined.
@@ -154,16 +151,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
   private:
     /// GPU shader modes supported by the SPH particle color compute path.
-    enum class ColorMode {
-        NONE = 0,
-        HEIGHT = 1,
-        VELOCITY_MAG = 2,
-        VELOCITY_X = 3,
-        VELOCITY_Y = 4,
-        VELOCITY_Z = 5,
-        DENSITY = 6,
-        PRESSURE = 7
-    };
+    enum class ColorMode { NONE = 0, HEIGHT = 1, VELOCITY_MAG = 2, VELOCITY_X = 3, VELOCITY_Y = 4, VELOCITY_Z = 5, DENSITY = 6, PRESSURE = 7 };
 
     /// Tags for different particle cloud types.
     enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
@@ -222,7 +210,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
     bool m_flex_bce_markers;   ///< render flex-body markers?
     bool m_active_boxes;       ///< render active boxes?
-    bool m_colormap_gui;       ///< render colormap GUI? 
+    bool m_colormap_gui;       ///< render colormap GUI?
 
     std::shared_ptr<ChParticleCloud> m_sph_cloud;        ///< particle cloud proxy for SPH particles
     std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers
@@ -240,7 +228,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     std::shared_ptr<ParticleColorCallback> m_color_fun;         ///< color functor for SPH particles
     std::shared_ptr<MarkerVisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
-    std::shared_ptr<MarkerVisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for bndry BCE markers
+    std::shared_ptr<MarkerVisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for boundary BCE markers
 
     // Data for color and visibility functors
     std::vector<Real3> m_pos;   ///< SPH and BCE positions
