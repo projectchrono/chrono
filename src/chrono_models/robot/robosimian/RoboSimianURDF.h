@@ -31,8 +31,8 @@
 #include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_parsers/ChParserURDF.h"
-#include "chrono_parsers/ChRobotActuation.h"
 
+#include "chrono_models/robot/ChRobotActuation.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 
 namespace chrono {
@@ -104,7 +104,7 @@ class CH_MODELS_API RoboSimianURDF {
     void UpdateActuation(double time);
 
     /// Set the current locomotion phase.
-    void SetLocomotionPhase(parsers::ChRobotActuation::Phase phase);
+    void SetLocomotionPhase(models::ChRobotActuation::Phase phase);
 
   private:
     ChSystem* m_sys;
@@ -129,7 +129,7 @@ class CH_MODELS_API RoboSimianURDF {
 
     int m_num_motors;
     LocomotionMode m_locomotion_mode;
-    std::unique_ptr<parsers::ChRobotActuation> m_robot_actuation;
+    std::unique_ptr<models::ChRobotActuation> m_robot_actuation;
     std::vector<std::shared_ptr<ChFunctionSetpoint>> m_motor_functions;
 
     std::string m_out_dir;

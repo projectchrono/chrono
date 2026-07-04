@@ -22,26 +22,13 @@
 #include <algorithm>
 #include <iostream>
 
-#include "chrono_parsers/ChRobotActuation.h"
+#include "chrono_models/robot/ChRobotActuation.h"
 
 namespace chrono {
-namespace parsers {
+namespace models {
 
-const std::string ChRobotActuation::m_phase_names[] = {"POSE", "HOLD", "START", "CYCLE", "STOP"};
-
-ChRobotActuation::ChRobotActuation(int num_motors,
-                                   const std::string& filename_start,
-                                   const std::string& filename_cycle,
-                                   const std::string& filename_stop,
-                                   bool repeat)
-    : m_num_motors(num_motors),
-      m_repeat(repeat),
-      m_verbose(false),
-      m_time_pose(1),
-      m_time_hold(1),
-      m_offset(0),
-      m_phase(POSE),
-      m_callback(nullptr) {
+ChRobotActuation::ChRobotActuation(int num_motors, const std::string& filename_start, const std::string& filename_cycle, const std::string& filename_stop, bool repeat)
+    : m_num_motors(num_motors), m_repeat(repeat), m_verbose(false), m_driven(false), m_time_pose(1), m_time_hold(1), m_offset(0), m_phase(Phase::POSE), m_callback(nullptr) {
     // Open the cycle file (required)
     assert(!filename_cycle.empty());
     m_ifs_cycle.open(filename_cycle);
@@ -109,29 +96,29 @@ class axpby {
 
 void ChRobotActuation::Update(double time) {
     // In the POSE phase, use a logistic function to reach first data entry
-    if (m_phase == POSE) {
+    if (m_phase == Phase::POSE) {
         double tau = 20 * (time / m_time_pose) - 10;
         ax op(std::exp(tau) / (1 + std::exp(tau)));
         std::transform(m_actuations_1.begin(), m_actuations_1.end(), m_actuations.begin(), op);
         if (time >= m_time_pose) {
-            m_phase = HOLD;
+            m_phase = Phase::HOLD;
             if (m_verbose)
                 std::cout << "time = " << time << " | Switch to phase: " << GetCurrentPhase() << std::endl;
             if (m_callback)
-                m_callback->OnPhaseChange(POSE, m_phase);
+                m_callback->OnPhaseChange(Phase::POSE, m_phase);
         }
         return;
     }
 
     // In the HOLD phase, always use the first data entry
-    if (m_phase == HOLD) {
+    if (m_phase == Phase::HOLD) {
         m_actuations = m_actuations_1;
         if (time >= m_offset) {
-            m_phase = (m_ifs_start.is_open()) ? START : CYCLE;
+            m_phase = (m_ifs_start.is_open()) ? Phase::START : Phase::CYCLE;
             if (m_verbose)
                 std::cout << "time = " << time << " | Switch to phase: " << GetCurrentPhase() << std::endl;
             if (m_callback)
-                m_callback->OnPhaseChange(HOLD, m_phase);
+                m_callback->OnPhaseChange(Phase::HOLD, m_phase);
         }
         return;
     }
@@ -140,14 +127,14 @@ void ChRobotActuation::Update(double time) {
     double t = time - m_offset;
 
     switch (m_phase) {
-        case START:
+        case Phase::START:
             while (t > m_time_2) {
                 m_time_1 = m_time_2;
                 m_actuations_1 = m_actuations_2;
                 if (!m_ifs->eof()) {
                     LoadDataLine(m_time_2, m_actuations_2);
                 } else {
-                    m_phase = CYCLE;
+                    m_phase = Phase::CYCLE;
                     m_ifs = &m_ifs_cycle;
                     LoadDataLine(m_time_1, m_actuations_1);
                     LoadDataLine(m_time_2, m_actuations_2);
@@ -155,37 +142,39 @@ void ChRobotActuation::Update(double time) {
                     if (m_verbose)
                         std::cout << "time = " << time << " | Switch to phase: " << GetCurrentPhase() << std::endl;
                     if (m_callback)
-                        m_callback->OnPhaseChange(START, CYCLE);
+                        m_callback->OnPhaseChange(Phase::START, Phase::CYCLE);
                     return;
                 }
             }
 
             break;
 
-        case CYCLE:
-            while (t > m_time_2) {
-                m_time_1 = m_time_2;
-                m_actuations_1 = m_actuations_2;
-                if (m_ifs->eof()) {
-                    if (m_repeat) {
-                        m_ifs->clear();
-                        m_ifs->seekg(0);
-                        LoadDataLine(m_time_1, m_actuations_1);
-                        LoadDataLine(m_time_2, m_actuations_2);
-                        m_offset = time;
-                        if (m_verbose)
-                            std::cout << "time = " << time << " | New cycle" << std::endl;
-                        if (m_callback)
-                            m_callback->OnPhaseChange(CYCLE, CYCLE);
+        case Phase::CYCLE:
+            if (!m_driven) {
+                while (t > m_time_2) {
+                    m_time_1 = m_time_2;
+                    m_actuations_1 = m_actuations_2;
+                    if (m_ifs->eof()) {
+                        if (m_repeat) {
+                            m_ifs->clear();
+                            m_ifs->seekg(0);
+                            LoadDataLine(m_time_1, m_actuations_1);
+                            LoadDataLine(m_time_2, m_actuations_2);
+                            m_offset = time;
+                            if (m_verbose)
+                                std::cout << "time = " << time << " | New cycle" << std::endl;
+                            if (m_callback)
+                                m_callback->OnPhaseChange(Phase::CYCLE, Phase::CYCLE);
+                        }
+                        return;
                     }
-                    return;
+                    LoadDataLine(m_time_2, m_actuations_2);
                 }
-                LoadDataLine(m_time_2, m_actuations_2);
             }
 
             break;
 
-        case STOP:
+        case Phase::STOP:
             //// TODO
             break;
 
@@ -194,10 +183,28 @@ void ChRobotActuation::Update(double time) {
     }
 
     // Interpolate  v = alpha_1 * v_1 + alpha_2 * v_2
-    axpby op((t - m_time_2) / (m_time_1 - m_time_2),   // alpha_1
-             (t - m_time_1) / (m_time_2 - m_time_1));  // alpha_2
-    std::transform(m_actuations_1.begin(), m_actuations_1.end(), m_actuations_2.begin(), m_actuations.begin(), op);
+    if (!m_driven) {
+        axpby op((t - m_time_2) / (m_time_1 - m_time_2),   // alpha_1
+                 (t - m_time_1) / (m_time_2 - m_time_1));  // alpha_2
+        std::transform(m_actuations_1.begin(), m_actuations_1.end(), m_actuations_2.begin(), m_actuations.begin(), op);
+    }
 }
 
-}  // namespace parsers
+std::string ChRobotActuation::GetPhaseAsString(Phase phase) {
+    switch (phase) {
+        case Phase::POSE:
+            return "Pose";
+        case Phase::HOLD:
+            return "Hold";
+        case Phase::START:
+            return "Start";
+        case Phase::CYCLE:
+            return "Cycle";
+        case Phase::STOP:
+            return "Stop";
+    }
+    return "";
+}
+
+}  // namespace models
 }  // namespace chrono

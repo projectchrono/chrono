@@ -26,7 +26,8 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_parsers/ChParserURDF.h"
-#include "chrono_parsers/ChRobotActuation.h"
+
+#include "chrono_models/robot/ChRobotActuation.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
@@ -185,11 +186,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a robot motor actuation object
-    ChRobotActuation actuator(32,              // number motors
-                              start_filename,  // start input file
-                              cycle_filename,  // cycle input file
-                              stop_filename,   // stop input file
-                              true             // repeat cycle
+    models::ChRobotActuation actuator(32,              // number motors
+                                      start_filename,  // start input file
+                                      cycle_filename,  // cycle input file
+                                      stop_filename,   // stop input file
+                                      true             // repeat cycle
     );
     double duration_pose = 1.0;          // time interval to assume initial pose
     double duration_settle_robot = 0.5;  // time interval to allow robot settling on terrain

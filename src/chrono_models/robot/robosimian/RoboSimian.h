@@ -38,6 +38,7 @@
 #include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/robot/ChRobotActuation.h"
 
 namespace chrono {
 
@@ -378,7 +379,8 @@ class CH_MODELS_API RS_Limb {
     void Activate(const std::string& motor_name, double time, double val);
 
     /// Set activations for all motors at current time.
-    void Activate(double time, const std::array<double, 8>& vals);
+    /// Here, `vals` is an array of 8 values.
+    void Activate(double time, double* vals);
 
   private:
     /// Translate the limb bodies by the specified value.
@@ -439,7 +441,7 @@ class CH_MODELS_API RoboSimian {
     void SetFrictionCoefficients(float sled_friction, float wheel_friction);
 
     /// Attach a driver system.
-    void SetDriver(std::shared_ptr<RS_Driver> driver);
+    void SetDriver(std::shared_ptr<models::ChRobotActuation> driver);
 
     /// Set visualization type for chassis subsystem.
     void SetVisualizationTypeChassis(VisualizationType vis);
@@ -560,9 +562,9 @@ class CH_MODELS_API RoboSimian {
     float m_wheel_friction;  ///< coefficient of friction wheel-terrain (used in material_override)
     float m_sled_friction;   ///< coefficient of friction sled-terrain (used in material_override)
 
-    std::shared_ptr<RS_Driver> m_driver;   ///< robot driver system
-    ContactManager* m_contact_reporter;    ///< contact reporting callback class
-    ContactMaterial* m_material_override;  ///< contact material override callback class
+    std::shared_ptr<models::ChRobotActuation> m_driver;  ///< robot driver system
+    ContactManager* m_contact_reporter;                  ///< contact reporting callback class
+    ContactMaterial* m_material_override;                ///< contact material override callback class
 
     std::string m_outdir;     ///< path of output directory
     std::string m_root;       ///< prefix of output filenames
@@ -575,88 +577,18 @@ class CH_MODELS_API RoboSimian {
 // RoboSimian driver classes
 // -----------------------------------------------------------------------------
 
-typedef std::array<std::array<double, 8>, 4> Actuation;
-
-/// Driver for the RoboSimian robot.
-class CH_MODELS_API RS_Driver {
-  public:
-    /// Driving phases.
-    enum Phase { POSE, HOLD, START, CYCLE, STOP };
-
-    RS_Driver(const std::string& filename_start,  ///< name of file with joint actuations for start phase
-              const std::string& filename_cycle,  ///< name of file with joint actuations for cycle phase
-              const std::string& filename_stop,   ///< name of file with joint actuations for stop phase
-              bool repeat = false                 ///< true if cycle phase is looped
-    );
-
-    ~RS_Driver();
-
-    /// Specify time intervals to assume and then hold the initial pose.
-    void SetTimeOffsets(double time_pose, double time_hold);
-
-    /// Return the current limb motor actuations.
-    Actuation GetActuation() { return m_actuations; }
-
-    /// Directly feed actuations to the motors.
-    void SetActuation(Actuation ext_act) { m_actuations = ext_act; }
-
-    /// Set the driving mode to accept external inputs.
-    void SetDrivingMode(bool drivemode) { driven = drivemode; }
-
-    /// Set the motor type (set-point/torque).
-    void UseTorqueMotors(bool use_tm) { torque_actuated = use_tm; }
-
-    /// Return the current phase
-    std::string GetCurrentPhase() const { return m_phase_names[m_phase]; }
-
-    /// Class to be used as callback interface for user-defined actions at phase changes.
-    class CH_MODELS_API PhaseChangeCallback {
-      public:
-        virtual ~PhaseChangeCallback() {}
-        /// Function called on each phase change.
-        virtual void OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Phase new_phase) = 0;
-    };
-
-    /// Register a phase-change callback object.
-    void RegisterPhaseChangeCallback(PhaseChangeCallback* callback) { m_callback = callback; }
-
-  private:
-    void Update(double time);
-    void LoadDataLine(double& time, Actuation& activations);
-
-    std::ifstream m_ifs_start;        ///< input file stream for start phase
-    std::ifstream m_ifs_cycle;        ///< input file stream for cycle phase
-    std::ifstream m_ifs_stop;         ///< input file stream for stop phase
-    std::ifstream* m_ifs;             ///< active input file stream
-    double m_time_pose;               ///< time interval to assume initial pose
-    double m_time_hold;               ///< time interval to hold initial pose
-    double m_offset;                  ///< current time offset in input files
-    bool m_repeat;                    ///< repeat cycle
-    Phase m_phase;                    ///< current phase
-    double m_time_1;                  ///< time for cached actuations
-    double m_time_2;                  ///< time for cached actuations
-    Actuation m_actuations_1;         ///< cached actuations (before)
-    Actuation m_actuations_2;         ///< cached actuations (after)
-    Actuation m_actuations;           ///< current actuations
-    PhaseChangeCallback* m_callback;  ///< user callback for phase change
-    bool driven = false;              ///< true if the driver is expecting external inputs instead of reading from a file
-    bool torque_actuated = false;     ///< true if using torque actuation instead of set-points
-
-    static const std::string m_phase_names[5];  ///< names of various driver phases
-
-    friend class RoboSimian;
-};
-
 /// Robot driver callback to keep track of average speed and distance between phase changes.
-class CH_MODELS_API RS_DriverCallback : public RS_Driver::PhaseChangeCallback {
+class CH_MODELS_API RS_DriverCallback : public models::ChRobotActuation::PhaseChangeCallback {
   public:
     RS_DriverCallback(RoboSimian* robot) : m_start_x(0), m_start_time(0), m_robot(robot) {}
-    virtual void OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Phase new_phase) override;
+    virtual void OnPhaseChange(models::ChRobotActuation::Phase old_phase, models::ChRobotActuation::Phase new_phase) override;
 
     /// Get distance traveled from last phase change.
     double GetDistance() const { return m_robot->GetChassisPos().x() - m_start_x; }
+
     /// Get time elapsed since last phase change.
     double GetDuration() const { return m_robot->GetSystem()->GetChTime() - m_start_time; }
+
     /// Get average robot speed since last phase change.
     double GetAvgSpeed() const { return GetDistance() / GetDuration(); }
 

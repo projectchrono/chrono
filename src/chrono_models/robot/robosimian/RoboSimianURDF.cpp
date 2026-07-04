@@ -79,7 +79,7 @@ void RoboSimianURDF::Construct(ChSystem& sys) {
 
     m_sled_geometry = m_robot->GetCollisionGeometry("sled");
     m_wheel_geometry = m_robot->GetCollisionGeometry("limb1_link8");
-    m_wheel_radius = m_wheel_geometry->CalculateAABB().Size().x();
+    m_wheel_radius = m_wheel_geometry->CalculateAABB().Size().x() / 2;
 
     // Enable collision and set contact material for selected bodies of the robot
     ChContactMaterialData mat;
@@ -134,11 +134,11 @@ void RoboSimianURDF::Construct(ChSystem& sys) {
     }
 
     // Create a robot motor actuation object
-    m_robot_actuation = chrono_types::make_unique<ChRobotActuation>(32,              // number motors
-                                                                    start_filename,  // start input file
-                                                                    cycle_filename,  // cycle input file
-                                                                    stop_filename,   // stop input file
-                                                                    true             // repeat cycle
+    m_robot_actuation = chrono_types::make_unique<models::ChRobotActuation>(32,              // number motors
+                                                                            start_filename,  // start input file
+                                                                            cycle_filename,  // cycle input file
+                                                                            stop_filename,   // stop input file
+                                                                            true             // repeat cycle
     );
     m_robot_actuation->SetTimeOffsets(m_duration_pose, m_duration_hold);
     m_robot_actuation->SetVerbose(m_verbose);
@@ -154,7 +154,7 @@ void RoboSimianURDF::UpdateActuation(double time) {
         m_motor_functions[i]->SetSetpoint(-actuations[i], time);
 }
 
-void RoboSimianURDF::SetLocomotionPhase(ChRobotActuation::Phase phase) {
+void RoboSimianURDF::SetLocomotionPhase(models::ChRobotActuation::Phase phase) {
     m_robot_actuation->SetPhase(phase);
 }
 

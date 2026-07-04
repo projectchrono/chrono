@@ -24,12 +24,12 @@
 #include <vector>
 #include <fstream>
 
-#include "chrono_parsers/ChApiParsers.h"
+#include "chrono_models/ChApiModels.h"
 
 namespace chrono {
-namespace parsers {
+namespace models {
 
-/// @addtogroup parsers_module
+/// @addtogroup robot_models
 /// @{
 
 /// Generic robot actuation driver using interpolated data from files.
@@ -57,10 +57,10 @@ namespace parsers {
 ///
 /// The different input data files are assumed to be consistent with each other (for example, the end of the "start"
 /// dataset must match the beginning of a cycle.
-class ChApiParsers ChRobotActuation {
+class CH_MODELS_API ChRobotActuation {
   public:
     /// Actuation phases.
-    enum Phase {
+    enum class Phase {
         POSE,   ///< from design configuration to an initial pose
         HOLD,   ///< hold the last configuration
         START,  ///< from initial pose to operating pose
@@ -79,10 +79,13 @@ class ChApiParsers ChRobotActuation {
                      bool repeat = false                 ///< true if cycle phase is looped
     );
 
-    ~ChRobotActuation();
+    virtual ~ChRobotActuation();
 
     /// Enable/disable verbose output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
+
+    /// Set the driving mode to accept external inputs (default: false).
+    void SetDrivingMode(bool drivemode) { m_driven = drivemode; }
 
     /// Specify time intervals to assume and then hold the initial pose (default: 1s, 1s).
     void SetTimeOffsets(double time_pose,  ///< time to transition to initial pose (duration of POSE phase)
@@ -91,15 +94,19 @@ class ChApiParsers ChRobotActuation {
 
     /// Return the current motor actuations.
     const Actuation& GetActuation() const { return m_actuations; }
+    Actuation& GetActuation() { return m_actuations; }
+
+    /// Directly feed actuations to the motors.
+    void SetActuation(Actuation ext_act) { m_actuations = ext_act; }
 
     /// Return the current phase.
-    const std::string& GetCurrentPhase() const { return m_phase_names[m_phase]; }
+    std::string GetCurrentPhase() const { return GetPhaseAsString(m_phase); }
 
     /// Set (force) the phase.
     void SetPhase(Phase phase) { m_phase = phase; }
 
     /// Class to be used as callback interface for user-defined actions at phase changes.
-    class ChApiParsers PhaseChangeCallback {
+    class CH_MODELS_API PhaseChangeCallback {
       public:
         virtual ~PhaseChangeCallback() {}
         virtual void OnPhaseChange(ChRobotActuation::Phase old_phase, ChRobotActuation::Phase new_phase) = 0;
@@ -111,7 +118,9 @@ class ChApiParsers ChRobotActuation {
     /// Update internal state of the robot driver.
     void Update(double time);
 
-  private:
+    static std::string GetPhaseAsString(Phase phase);
+
+  protected:
     void LoadDataLine(double& time, Actuation& buffer);
 
     int m_num_motors;  ///< number of actuated motors
@@ -136,14 +145,14 @@ class ChApiParsers ChRobotActuation {
 
     PhaseChangeCallback* m_callback;  ///< user callback for phase change
 
-    static const std::string m_phase_names[5];  ///< names of various driver phases
+    bool m_driven = false;  ///< true if the using external inputs instead of reading from a file
 
     friend class RoboSimian;
 };
 
-/// @} parsers_module
+/// @} robot_models
 
-}  // namespace parsers
+}  // namespace models
 }  // namespace chrono
 
 #endif

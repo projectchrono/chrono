@@ -131,8 +131,6 @@ set(Chrono_PARSERS_FILES
     ChParserAdamsTokenizer.yy.cpp
     ChParserOpenSim.h
     ChParserOpenSim.cpp
-    ChRobotActuation.h
-    ChRobotActuation.cpp
 )
 if(CH_USE_URDF)
     set(Chrono_PARSERS_FILES ${Chrono_PARSERS_FILES}
