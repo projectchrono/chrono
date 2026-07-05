@@ -113,8 +113,7 @@ inline real3 unormalized_grad_spiky(const real3& xij, const real d, const real& 
 }
 
 inline real3 viscosity(const real3& xij, const real d, const real& h) {
-    return (d <= h) * 15.0 / (2 * F_PI * std::pow(h, 3)) *
-           (-(d * d * d) / (2 * h * h * h) + (d * d) / (h * h) + (h) / (2 * d) - 1) * xij;
+    return (d <= h) * 15.0 / (2 * F_PI * std::pow(h, 3)) * (-(d * d * d) / (2 * h * h * h) + (d * d) / (h * h) + (h) / (2 * d) - 1) * xij;
 }
 inline real3 grad2_viscosity(const real3& xij, const real d, const real& h) {
     return real3((d <= h) * 45.0 / (F_PI * std::pow(h, 6)) * (h - d));

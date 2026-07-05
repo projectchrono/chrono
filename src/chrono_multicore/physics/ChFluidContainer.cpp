@@ -326,8 +326,7 @@ void ChFluidContainer::Build_D() {
 void ChFluidContainer::Build_b() {
     VectorType& b = data_manager->host_data.b;
 
-    CorrectionRigidParticleBoundary(contact_mu, contact_cohesion, alpha, contact_recovery_speed, num_particles,
-                                 start_boundary, data_manager);
+    CorrectionRigidParticleBoundary(contact_mu, contact_cohesion, alpha, contact_recovery_speed, num_particles, start_boundary, data_manager);
 
     if (num_particles > 0) {
 #pragma omp parallel for
@@ -401,8 +400,7 @@ void ChFluidContainer::PreSolve() {
     if (gamma_old.size() > 0) {
         if (enable_viscosity) {
             if (gamma_old.size() == (num_particles + num_particles * 3)) {
-                data_manager->host_data.gamma.segment(start_density,
-                                 num_particles + num_particles * 3) = gamma_old * .9;
+                data_manager->host_data.gamma.segment(start_density, num_particles + num_particles * 3) = gamma_old * .9;
             }
         } else {
             if (gamma_old.size() == num_particles) {
@@ -416,8 +414,7 @@ void ChFluidContainer::PostSolve() {
     if (num_particles > 0) {
         if (enable_viscosity) {
             gamma_old.resize(num_particles + num_particles * 3);
-            gamma_old =
-                data_manager->host_data.gamma.segment(start_density, num_particles + num_particles * 3);
+            gamma_old = data_manager->host_data.gamma.segment(start_density, num_particles + num_particles * 3);
         } else {
             gamma_old.resize(num_particles);
             gamma_old = data_manager->host_data.gamma.segment(start_density, num_particles);
@@ -460,14 +457,11 @@ void ChFluidContainer::CalculateContactForces() {
     VectorType& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = gamma.segment(start_boundary, _num_rf_c_);
 
-    contact_forces = data_manager->host_data.D.middleCols(start_boundary, _num_rf_c_).topRows(_num_dof_) * gamma_n /
-                     data_manager->settings.step_size;
+    contact_forces = data_manager->host_data.D.middleCols(start_boundary, _num_rf_c_).topRows(_num_dof_) * gamma_n / data_manager->settings.step_size;
 
     if (contact_mu != 0) {
         SubVectorType gamma_t = gamma.segment(start_boundary + _num_rf_c_, 2 * _num_rf_c_);
-        contact_forces +=
-            data_manager->host_data.D.middleCols(start_boundary + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_) *
-            gamma_t / data_manager->settings.step_size;
+        contact_forces += data_manager->host_data.D.middleCols(start_boundary + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_) * gamma_t / data_manager->settings.step_size;
     }
 
     // contact_forces
@@ -507,8 +501,7 @@ void ChFluidContainer::GetFluidForce(custom_vector<real3>& forc) {
     SubVectorType gamma_n = gamma.segment(start_density, num_particles);
 
     VectorType pressure_forces =
-        data_manager->host_data.D.middleCols(start_density, num_particles)
-        .middleRows(body_offset, num_particles * 3) * gamma_n / data_manager->settings.step_size;
+        data_manager->host_data.D.middleCols(start_density, num_particles).middleRows(body_offset, num_particles * 3) * gamma_n / data_manager->settings.step_size;
 
     for (int i = 0; i < (signed)num_particles; i++) {
         forc[i] = real3(pressure_forces[i * 3 + 0], pressure_forces[i * 3 + 1], pressure_forces[i * 3 + 2]);

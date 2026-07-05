@@ -33,7 +33,6 @@
 #include "chrono_multicore/ChMeasures.h"
 
 // ATTENTION: It is important for these to be included after sse.h!
-// Eigen Includes
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
@@ -103,75 +102,62 @@ using ConstSubVectorType = VectorBlock<const VectorType>;
 #define _DT_ (_D_).middleCols(_num_r_c_, 2 * _num_r_c_).topRows(_num_rigid_dof_).eval()
 #define _DS_ (_D_).middleCols(3 * _num_r_c_, 3 * _num_r_c_).topRows(_num_rigid_dof_).eval()
 // D Bilateral
-#define _DB_ (_D_) \
-    .middleCols(_num_uni_, _num_bil_) \
-    .topRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_) \
-    .eval()
+#define _DB_ (_D_).middleCols(_num_uni_, _num_bil_).topRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_).eval()
 // D Rigid Particle
 #define _DRFN_ (_D_).middleCols(_num_uni_ + _num_bil_, _num_rf_c_).topRows(_num_dof_).eval()
-#define _DRFT_ (_D_) \
-    .middleCols(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_) \
-    .topRows(_num_dof_) \
-    .eval()
+#define _DRFT_ (_D_).middleCols(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_).eval()
 // D Fluid Density
-#define _DFFD_ (_D_) \
-    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_) \
-    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
-    .eval()
+#define _DFFD_ (_D_).middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_).middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_).eval()
 // D Fluid Viscosity
-#define _DFFV_ (_D_) \
-    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
-    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
-    .eval()
-//======
+#define _DFFV_                                                                                     \
+    (_D_)                                                                                          \
+        .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
+        .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_)       \
+        .eval()
+
+// ======
+
 #define _MINVDN_ (_M_invD_).middleCols(0, 1 * _num_r_c_).topRows(_num_rigid_dof_).eval()
 #define _MINVDT_ (_M_invD_).middleCols(_num_r_c_, 2 * _num_r_c_).topRows(_num_rigid_dof_).eval()
 #define _MINVDS_ (_M_invD_).middleCols(3 * _num_r_c_, 3 * _num_r_c_).topRows(_num_rigid_dof_).eval()
 // Bilateral
-#define _MINVDB_ (_M_invD_) \
-    .middleCols(_num_uni_, _num_bil_) \
-    .topRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_) \
-    .eval()
+#define _MINVDB_ (_M_invD_).middleCols(_num_uni_, _num_bil_).topRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_).eval()
 // Rigid Particle
 #define _MINVDRFN_ (_M_invD_).middleCols(_num_uni_ + _num_bil_, _num_rf_c_).topRows(_num_dof_).eval()
-#define _MINVDRFT_ (_M_invD_) \
-    .middleCols(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_) \
-    .topRows(_num_dof_) \
-    .eval()
+#define _MINVDRFT_ (_M_invD_).middleCols(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_).eval()
 // Density
-#define _MINVDFFD_ (_M_invD_) \
-    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_) \
-    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
-    .eval()
+#define _MINVDFFD_ \
+    (_M_invD_).middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_).middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_).eval()
 // Viscosity
-#define _MINVDFFV_ (_M_invD_) \
-    .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
-    .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
-    .eval()
-//======
+#define _MINVDFFV_                                                                                 \
+    (_M_invD_)                                                                                     \
+        .middleCols(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
+        .middleRows(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_)       \
+        .eval()
+
+// ======
+
 #define _DNT_ (_D_T_).middleRows(0, _num_r_c_)
 #define _DTT_ (_D_T_).middleRows(_num_r_c_, 2 * _num_r_c_)
 #define _DST_ (_D_T_).middleRows(3 * _num_r_c_, 3 * _num_r_c_)
-#define _DBT_ (_D_T_) \
-    .middleRows(_num_uni_, _num_bil_) \
-    .leftCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_) \
-    .eval()
+#define _DBT_ (_D_T_).middleRows(_num_uni_, _num_bil_).leftCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_).eval()
 #define _DRFNT_ (_D_T_).middleRows(_num_uni_ + _num_bil_, _num_rf_c_)
 #define _DRFTT_ (_D_T_).middleRows(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
-#define _DFFDT_ (_D_T_) \
-    .middleRows(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_) \
-    .middleCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
-    .eval()
-#define _DFFVT_ (_D_T_) \
-    .middleRows(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
-    .middleCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_) \
-    .eval()
-//======
-#define _EN_   (_E_).segment(0, _num_r_c_)
-#define _ET_   (_E_).segment(_num_r_c_, 2 * _num_r_c_)
-#define _ES_   (_E_).segment(3 * _num_r_c_, 3 * _num_r_c_)
+#define _DFFDT_ \
+    (_D_T_).middleRows(_num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_particles_).middleCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_).eval()
+#define _DFFVT_                                                                                    \
+    (_D_T_)                                                                                        \
+        .middleRows(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_) \
+        .middleCols(_num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_particle_dof_)       \
+        .eval()
+
+// ======
+
+#define _EN_ (_E_).segment(0, _num_r_c_)
+#define _ET_ (_E_).segment(_num_r_c_, 2 * _num_r_c_)
+#define _ES_ (_E_).segment(3 * _num_r_c_, 3 * _num_r_c_)
 // Bilateral
-#define _EB_   (_E_).segment(_num_uni_, _num_bil_)
+#define _EB_ (_E_).segment(_num_uni_, _num_bil_)
 // Rigid Particle
 #define _ERFN_ (_E_).segment(_num_uni_ + _num_bil_, _num_rf_c_)
 #define _ERFT_ (_E_).segment(_num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
@@ -180,7 +166,8 @@ using ConstSubVectorType = VectorBlock<const VectorType>;
 // Viscosity
 #define _EFFV_ (_E_).segment(_num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_particles_, 3 * _num_particles_)
 
-////======
+// ======
+
 // #define _GAMMAN_ (_gamma_).segment(0, _num_r_c_)
 // #define _GAMMAT_ submatrix(_gamma_, _num_r_c_, 2 * _num_r_c_)
 // #define _GAMMAS_ submatrix(_gamma_, 3 * _num_r_c_, 3 * _num_r_c_)
@@ -297,7 +284,7 @@ struct host_container {
     SparseMatrixType M_invD;
 
     VectorType R_full;  ///< The right hand side of the system
-    VectorType R;       ///< The rhs of the system, changes during solve
+    VectorType R;       ///< The RHS of the system, changes during solve
     VectorType b;       ///< Correction terms
     VectorType s;
     VectorType M_invk;  ///< Result of M_inv multiplied by vector of forces

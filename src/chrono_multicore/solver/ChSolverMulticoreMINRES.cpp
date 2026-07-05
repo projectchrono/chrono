@@ -16,12 +16,7 @@
 
 using namespace chrono;
 
-uint ChSolverMulticoreMinRes::Solve(ChSchurProduct& SchurProduct,
-                                    ChProjectConstraints& Project,
-                                    const uint max_iter,
-                                    const uint size,
-                                    const VectorType& mb,
-                                    VectorType& x) {
+uint ChSolverMulticoreMinRes::Solve(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, const uint max_iter, const uint size, const VectorType& mb, VectorType& x) {
     if (size == 0) {
         return 0;
     }

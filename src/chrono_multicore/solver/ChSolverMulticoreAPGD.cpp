@@ -18,16 +18,7 @@
 
 using namespace chrono;
 
-ChSolverMulticoreAPGD::ChSolverMulticoreAPGD()
-    : ChSolverMulticore(),
-      obj2(0),
-      dot_g_temp(0),
-      theta(1),
-      theta_new(0),
-      beta_new(0),
-      t(0),
-      L(0),
-      g_diff(0) {}
+ChSolverMulticoreAPGD::ChSolverMulticoreAPGD() : ChSolverMulticore(), obj2(0), dot_g_temp(0), theta(1), theta_new(0), beta_new(0), t(0), L(0), g_diff(0) {}
 
 void ChSolverMulticoreAPGD::UpdateR() {
     const SparseMatrixType& D_n_T = _DNT_;
@@ -50,12 +41,7 @@ void ChSolverMulticoreAPGD::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
-                                  ChProjectConstraints& Project,
-                                  const uint max_iter,
-                                  const uint size,
-                                  const VectorType& r,
-                                  VectorType& gamma) {
+uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, const uint max_iter, const uint size, const VectorType& r, VectorType& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -101,8 +87,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
             L = 1.0;
         }
     } else if (data_manager->settings.solver.use_power_iteration) {
-        data_manager->measures.solver.lambda_max =
-            LargestEigenValue(SchurProduct, temp, data_manager->measures.solver.lambda_max);
+        data_manager->measures.solver.lambda_max = LargestEigenValue(SchurProduct, temp, data_manager->measures.solver.lambda_max);
         L = data_manager->measures.solver.lambda_max;
     } else {
         // If gamma is one temp should be zero, in that case set L to one
