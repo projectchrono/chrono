@@ -25,7 +25,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono_parsers/ChParserURDF.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
 #include "chrono_parsers/ChRobotActuation.h"
 
 #include "chrono_ros/ChROSManager.h"
