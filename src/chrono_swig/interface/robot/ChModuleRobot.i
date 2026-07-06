@@ -191,7 +191,6 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::robosimian::RS_Chassis)
 %shared_ptr(chrono::robosimian::RS_Sled)
 %shared_ptr(chrono::robosimian::RS_WheelDD)
-%shared_ptr(chrono::robosimian::RS_Driver)
 
 %shared_ptr(chrono::viper::ViperPart)
 %shared_ptr(chrono::viper::ViperChassis)
@@ -295,8 +294,8 @@ using namespace chrono::industrial;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
 
-%ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
-%feature("director")  chrono::robosimian::RS_Driver::PhaseChangeCallback;
+%ignore chrono::models::ChRobotActuation::GetCurrentPhase;
+%feature("director")  chrono::models::ChRobotActuation::PhaseChangeCallback;
 
 %include "../../../chrono_models/robot/ChRobotActuation.h"
 

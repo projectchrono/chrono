@@ -405,7 +405,6 @@ class CH_MODELS_API RS_Limb {
 
 class ContactManager;
 class ContactMaterial;
-class RS_Driver;
 
 /// RoboSimian robot model.
 /// The robot model consists of a chassis (torso) with an attached sled and four limbs (legs).
