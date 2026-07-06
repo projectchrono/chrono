@@ -91,8 +91,13 @@ class CH_MODELS_API RoboSimianURDF {
     /// Get the wheel collision geometry.
     std::shared_ptr<utils::ChBodyGeometry> GetWheelGeometry() const { return m_wheel_geometry; }
 
+    /// Get the underlying parsed URDF model.
+    const parsers::ChParserURDF& GetURDF() const { return *m_robot; }
+
+    /// Fix or release the robot root body.
     void FixTorso(bool fixed) const { m_root->SetFixed(fixed); }
 
+    /// Simulate the robot until it assumes its start pose and save a checkpoint.
     void SimulateToStartPose(double step_size, std::shared_ptr<ChVisualSystem> vis = nullptr);
 
     /// Initialize the robot with data from the checkpoint file.

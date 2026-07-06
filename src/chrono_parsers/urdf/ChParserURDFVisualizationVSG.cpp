@@ -147,7 +147,7 @@ class ChParserURDFStats : public vsg3d::ChGuiComponentVSG {
 
 // ---------------------------------------------------------------------------
 
-ChParserURDFVisualizationVSG::ChParserURDFVisualizationVSG(ChParserURDF& urdf) : m_urdf(urdf), m_sys(urdf.m_sys), m_write_images(false), m_image_dir(".") {}
+ChParserURDFVisualizationVSG::ChParserURDFVisualizationVSG(const ChParserURDF& urdf) : m_urdf(urdf), m_sys(urdf.m_sys), m_write_images(false), m_image_dir(".") {}
 
 ChParserURDFVisualizationVSG::~ChParserURDFVisualizationVSG() {}
 

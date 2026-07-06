@@ -32,7 +32,7 @@ namespace parsers {
 /// Used as a plugin to a Chrono::VSG visualization system.
 class ChApiParsers ChParserURDFVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
   public:
-    ChParserURDFVisualizationVSG(ChParserURDF& urdf);
+    ChParserURDFVisualizationVSG(const ChParserURDF& urdf);
     ~ChParserURDFVisualizationVSG();
 
     virtual void OnAttach() override;
@@ -46,18 +46,9 @@ class ChApiParsers ChParserURDFVisualizationVSG : public vsg3d::ChVisualSystemVS
     /// Enable/disable writing of frame snapshots to file.
     void SetImageOutput(bool val) { m_write_images = val; }
 
-    /// Add additional proxy body to supplemental system.
-    /// Must be called before Initialize().
-    /// The provided body is set fixed to ground and it is the caller's responsibility to update the position of
-    /// this body before a call to Render().
-    void AddProxyBody(std::shared_ptr<ChBody> body) {
-        body->SetFixed(true);
-        m_sys->AddBody(body);
-    }
-
   private:
-    ChParserURDF& m_urdf;  ///< associated URDF parser
-    ChSystem* m_sys;       ///< Chrono system of the associated RoboSimian robot
+    const ChParserURDF& m_urdf;  ///< associated URDF parser
+    ChSystem* m_sys;             ///< Chrono system of the associated RoboSimian robot
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files
