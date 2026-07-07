@@ -183,13 +183,13 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     std::shared_ptr<fea::ChNodeFEAxyz> FindNodeXYZ(const std::string& mesh_name, int node_index) const;
 
     /// Find the XYZ node with given index in the FEA mesh with specified name, in the given model instance.
-    std::shared_ptr<fea::ChNodeFEAxyz> ChParserMbsYAML::FindNodeXYZ(const std::string& mesh_name, int node_index, int model_instance) const;
+    std::shared_ptr<fea::ChNodeFEAxyz> FindNodeXYZ(const std::string& mesh_name, int node_index, int model_instance) const;
 
     /// Find the XYZrot node with given index in the FEA mesh with specified name, in the current model instance.
     std::shared_ptr<fea::ChNodeFEAxyzrot> FindNodeXYZrot(const std::string& mesh_name, int node_index) const;
 
     /// Find the XYZrot node with given index in the FEA mesh with specified name, in the given model instance.
-    std::shared_ptr<fea::ChNodeFEAxyzrot> ChParserMbsYAML::FindNodeXYZrot(const std::string& mesh_name, int node_index, int model_instance) const;
+    std::shared_ptr<fea::ChNodeFEAxyzrot> FindNodeXYZrot(const std::string& mesh_name, int node_index, int model_instance) const;
 
 #endif
 
