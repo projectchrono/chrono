@@ -268,10 +268,6 @@ void ChVisualSystemIrrlicht::OnUpdate(ChSystem* sys) {
 }
 
 void ChVisualSystemIrrlicht::OnClear(ChSystem* sys) {
-    for (auto& node : m_nodes) {
-        node.second->removeAll();
-        node.second->remove();
-    }
     m_nodes.clear();
 }
 
@@ -280,8 +276,6 @@ void ChVisualSystemIrrlicht::PurgeIrrNodes() {
     std::vector<ChPhysicsItem*> items_to_remove;
     for (auto& node : m_nodes) {
         if (node.second->GetPhysicsItem().expired()) {
-            node.second->removeAll();
-            node.second->remove();
             items_to_remove.emplace_back(node.first);
         }
     }
@@ -655,8 +649,6 @@ void ChVisualSystemIrrlicht::BindAll() {
 void ChVisualSystemIrrlicht::UnbindItem(std::shared_ptr<ChPhysicsItem> item) {
     auto node = m_nodes.find(item.get());
     if (node != m_nodes.end()) {
-        node->second->removeAll();
-        node->second->remove();
         m_nodes.erase(node);
     }
 }

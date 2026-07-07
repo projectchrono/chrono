@@ -41,14 +41,10 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     virtual void EndAddContact() override;
 
     /// Specify a callback object to be used each time a contact point is added to the container.
-    virtual void RegisterAddContactCallback(std::shared_ptr<AddContactCallback> mcallback) override {
-        data_manager->add_contact_callback = mcallback;
-    }
+    virtual void RegisterAddContactCallback(std::shared_ptr<AddContactCallback> mcallback) override { data_manager->add_contact_callback = mcallback; }
 
     /// Get the callback object to be used each time a contact point is added to the container.
-    virtual std::shared_ptr<AddContactCallback> GetAddContactCallback() override {
-        return data_manager->add_contact_callback;
-    }
+    virtual std::shared_ptr<AddContactCallback> GetAddContactCallback() override { return data_manager->add_contact_callback; }
 
     /// Scan all the contacts and for each contact executes the OnReportContact()
     /// function of the provided callback object.

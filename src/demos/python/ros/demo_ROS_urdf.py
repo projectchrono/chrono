@@ -20,6 +20,7 @@ import pychrono as ch
 import pychrono.irrlicht as irr
 import pychrono.ros as chros
 import pychrono.parsers as parsers
+import pychrono.robot as robosimian
 
 
 def create_terrain(
@@ -123,7 +124,7 @@ def main():
 
     # Create the robot motor actuation object
     cycle_filename = ch.GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt")
-    actuator = parsers.ChRobotActuation(len(motors), "", cycle_filename, "", True)
+    actuator = robosimian.ChRobotActuation(len(motors), "", cycle_filename, "", True)
 
     duration_pose = 1.0 # time interval to assume initial pose
     duration_settle_robot = 0.5 # time interval to settle the robot on the ground

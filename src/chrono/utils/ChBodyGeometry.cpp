@@ -418,7 +418,7 @@ ChAABB ChBodyGeometry::CalculateAABB() {
 
     for (const auto& sph : coll_spheres) {
         amin = Vmin(amin, sph.pos - sph.radius);
-        amax = Vmin(amax, sph.pos + sph.radius);
+        amax = Vmax(amax, sph.pos + sph.radius);
     }
 
     for (const auto& cyl : coll_cylinders) {

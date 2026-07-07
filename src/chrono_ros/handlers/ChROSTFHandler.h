@@ -28,7 +28,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 
 #ifdef CHRONO_HAS_URDF
-    #include "chrono_parsers/ChParserURDF.h"
+    #include "chrono_parsers/urdf/ChParserURDF.h"
 #endif
 #ifdef CHRONO_SENSOR
     #include "chrono_sensor/sensors/ChSensor.h"

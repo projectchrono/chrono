@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
     // Initialize FSI problem
     fsi.Initialize();
 
-    // Create oputput directories
+    // Create output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_FEAdirections";
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;

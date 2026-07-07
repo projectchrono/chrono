@@ -24,7 +24,7 @@
 #include "chrono_ros/ChROSHandler.h"
 
 #ifdef CHRONO_HAS_URDF
-    #include "chrono_parsers/ChParserURDF.h"
+    #include "chrono_parsers/urdf/ChParserURDF.h"
 #endif
 
 namespace chrono {

@@ -207,8 +207,7 @@ int main(int argc, char* argv[]) {
             auto mat = mat_data.CreateMaterial(ChContactMethod::SMC);
 
             auto terrain_rigid = chrono_types::make_shared<RigidTerrain>(&sys);
-            auto patch = terrain_rigid->AddPatch(mat, ChCoordsys<>(ChVector3d(0, 0, -radius - 0.01), QUNIT), 4 * radius,
-                                                 4 * radius);
+            auto patch = terrain_rigid->AddPatch(mat, ChCoordsys<>(ChVector3d(0, 0, -radius - 0.01), QUNIT), 4 * radius, 4 * radius);
             patch->SetTexture(GetVehicleDataFile("terrain/textures/concrete.jpg"), 10, 5);
             terrain_rigid->Initialize();
 
@@ -226,7 +225,7 @@ int main(int argc, char* argv[]) {
                                            30,     // Mohr friction limit (degrees)
                                            0.01,   // Janosi shear coefficient (m)
                                            4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                           3e4  // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                                           3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
             );
             terrain_scm->SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
             terrain_scm->SetMeshWireframe(true);
@@ -368,8 +367,7 @@ int main(int argc, char* argv[]) {
         csv << sys.GetTimerJacobian() << sys.GetTimerLSsetup() << sys.GetTimerLSsolve();
         csv << mesh->GetTimeInternalForces() << mesh->GetTimeJacobianLoad();
         if (ls_direct) {
-            csv << ls_direct->GetTimeSetup_Assembly() << ls_direct->GetTimeSetup_SolverCall()
-                << ls_direct->GetTimeSolve_Assembly() << ls_direct->GetTimeSolve_SolverCall();
+            csv << ls_direct->GetTimeSetup_Assembly() << ls_direct->GetTimeSetup_SolverCall() << ls_direct->GetTimeSolve_Assembly() << ls_direct->GetTimeSolve_SolverCall();
         }
         double spindle_pos = spindle->GetPos().z();
         double spindle_diff = radius - spindle_pos;
