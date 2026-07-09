@@ -85,6 +85,7 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected>
 
         // Discard any existing materials in material_list
         material_list.clear();
+        material_list.resize(tiny2chrono.size());
 
         // Copy materials into material_list (ignore materials not in use)
         for (int i = 0; i < materials.size(); i++) {
@@ -141,7 +142,7 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected>
                 mat->SetOpacityTexture(mtl_base + "/" + materials[i].alpha_texname);
             }
 
-            material_list.push_back(mat);
+            material_list[tiny2chrono[i]] = mat;
         }
 
     } else if (!material_list.empty()) {
