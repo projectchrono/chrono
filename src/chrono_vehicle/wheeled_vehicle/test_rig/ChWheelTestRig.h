@@ -12,10 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Implementation of a single-tire test rig.
-// - Accepts an arbitrary Chrono::Vehicle tire object
-//   (and associated ChWheel object)
-// - Currently works with SCM or Rigid terrain
+// Implementation of a single-wheel test rig.
+// - Accepts an arbitrary wheel assembly (derived from ChWheelTestRig::Wheel)
+// - Accepts a Chrono::Vehicle wheel - tire assembly
+// - Works with Rigid, SCM, or CRM terrain
 // - Allows variation of longitudinal speed, wheel angular speed, and wheel slip
 //   angle as functions of time
 // - Provides support for automatic selection of longitudinal and angular speeds
@@ -24,16 +24,22 @@
 //
 // =============================================================================
 
-#ifndef CH_TIRE_TEST_RIG_H
-#define CH_TIRE_TEST_RIG_H
+#ifndef CH_WHEEL_TEST_RIG_H
+#define CH_WHEEL_TEST_RIG_H
 
-#include "chrono/ChConfig.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
+
+#include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
-#ifdef CHRONO_FSI_SPH
+
+#include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
+#include "chrono_vehicle/terrain/GranularTerrain.h"
+#ifdef CHRONO_CRM
     #include "chrono_vehicle/terrain/CRMTerrain.h"
 #endif
 
@@ -43,14 +49,42 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_test_rig
 /// @{
 
-/// Definition of a single-tire test rig.
-class CH_VEHICLE_API ChTireTestRig {
+/// Definition of a single-wheel test rig.
+class CH_VEHICLE_API ChWheelTestRig {
   public:
+    /// Definition of a wheel assembly for rig testing.
+    class WheelAssembly {
+      public:
+        virtual ~WheelAssembly() {}
+
+        virtual double GetMass() const = 0;
+        virtual double GetRadius() const = 0;
+        virtual double GetWidth() const = 0;
+        virtual std::shared_ptr<ChBody> GetHub() const = 0;
+
+#ifdef CHRONO_CRM
+        virtual void AssignBCEMarkers(CRMTerrain& terrain, const std::vector<ChVector3d>& bce) {
+            throw std::runtime_error("CreateBCEMarkers must be implemented when using CRMTerrain.");
+        }
+        virtual void CreateBCEMarkers(CRMTerrain& terrain) { throw std::runtime_error("CreateBCEMarkers must be implemented when using CRMTerrain."); }
+#endif
+
+        virtual void Initialize(double step_size, VisualizationType vis_type) {}
+        virtual void Synchronize(double time, const ChTerrain& terrain) {}
+        virtual void Advance(double step_size) {}
+
+        virtual TerrainForce ReportForces(ChTerrain& terrain) const { return TerrainForce(); }
+
+      protected:
+        WheelAssembly(ChSystem* system) : system(system) {}
+        ChSystem* system;
+    };
+
     /// Tire test rig operation mode.
     enum class Mode {
-        SUSPEND,  ///< suspended tire (locked spindle)
-        DROP,     ///< tire drop test
-        TEST      ///< normal tire test
+        SUSPEND,  ///< suspended wheel (locked spindle)
+        DROP,     ///< wheel drop test
+        TEST      ///< normal wheel test
     };
 
     /// Terrain type.
@@ -91,21 +125,16 @@ class CH_VEHICLE_API ChTireTestRig {
         double Young_modulus;  ///< particle contact material Young's modulus (Pa)
     };
 
-    struct CH_VEHICLE_API TerrainParamsCRM {
-        TerrainParamsCRM();
-#ifdef CHRONO_FSI_SPH
-        fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph_params;             ///< SPH solver settings
-        fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;  ///< soil properties
-#endif
-    };
+    /// Construct a test rig within the specified system using the given custom wheel.
+    ChWheelTestRig(std::shared_ptr<WheelAssembly> wheel, ChSystem* system);
 
-    /// Construct a tire test rig within the specified system.
-    ChTireTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
-                  std::shared_ptr<ChTire> tire,    ///< tire subsystem
-                  ChSystem* system                 ///< containing mechanical system
+    /// Construct a test rig within the specified system using the given Chrono::Vehicle wheel and tire.
+    ChWheelTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
+                   std::shared_ptr<ChTire> tire,    ///< tire subsystem
+                   ChSystem* system                 ///< containing mechanical system
     );
 
-    ~ChTireTestRig();
+    ~ChWheelTestRig();
 
     /// Set gravitational acceleration (default: 9.81 m/s2).
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
@@ -133,14 +162,11 @@ class CH_VEHICLE_API ChTireTestRig {
     /// (skidding); in particular, s=-1 indicates sliding without rotation.
     void SetConstantLongitudinalSlip(double long_slip, double base_speed = 1);
 
-    /// Set collision type for tire-terrain interaction (default: SINGLE_POINT).
-    void SetTireCollisionType(ChTire::CollisionType coll_type);
+    /// Set the time step for advancing wheel assembly dynamics (default: 1e-3 s).
+    void SetStepsize(double step) { m_step_size = step; }
 
-    /// Set the time step for advancing tire dynamics (default: 1e-3 s).
-    void SetTireStepsize(double step) { m_tire_step = step; }
-
-    /// Set visualization type for the tire (default: PRIMITIVES).
-    void SetTireVisualizationType(VisualizationType vis) { m_tire_vis = vis; }
+    /// Set visualization type for the wheel assembly (default: PRIMITIVES).
+    void SetVisualizationType(VisualizationType vis) { m_vis_type = vis; }
 
     // Terrain setup
 
@@ -187,6 +213,14 @@ class CH_VEHICLE_API ChTireTestRig {
                             double Young_modulus           ///< particle contact material Young's modulus [Pa]
     );
 
+#ifdef CHRONO_CRM
+
+    struct CH_VEHICLE_API TerrainParamsCRM {
+        TerrainParamsCRM();
+        fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph_params;             ///< SPH solver settings
+        fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;  ///< soil properties
+    };
+
     /// Enable use of CRM terrain.
     /// The terrain subsystem is modeled through continuum with CRM.
     void SetTerrainCRM(const TerrainPatchSize& size, const TerrainParamsCRM& params);
@@ -200,7 +234,7 @@ class CH_VEHICLE_API ChTireTestRig {
                        double cohesion                ///< material internal cohesion
     );
 
-    /// Callback interface for user-defined wheel/tire BCE markers (CRM terrain only).
+    /// Callback interface for user-defined wheel BCE markers (CRM terrain only).
     class CH_VEHICLE_API WheelBCECreationCallback {
       public:
         virtual ~WheelBCECreationCallback() {}
@@ -209,14 +243,14 @@ class CH_VEHICLE_API ChTireTestRig {
         virtual std::vector<ChVector3d> GetMarkers() = 0;
     };
 
-    /// Register a user callback for specifying wheel/tire BCE markers (CRM terrain only).
-    void RegisterWheelBCECreationCallback(std::shared_ptr<WheelBCECreationCallback> callback) {
-        m_bce_callback = callback;
-    }
+    /// Register a user callback for specifying wheel BCE markers (CRM terrain only).
+    void RegisterWheelBCECreationCallback(std::shared_ptr<WheelBCECreationCallback> callback) { m_bce_callback = callback; }
 
-    /// Set size of the active box associated with the tire (CRM terrain only).
-    /// The default size is based on the tire AABB inflated by 25%.
+    /// Set size of the active box associated with the wheel (CRM terrain only).
+    /// The default size is based on the wheel AABB inflated by 25%.
     void SetWheelActiveBox(const ChVector3d& size);
+
+#endif
 
     /// Set time delay before applying motion functions (default: 0 s).
     /// In TEST mode, this delay is measured after the wheel bottom point reaches the terrain height.
@@ -233,14 +267,13 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Initialize the rig system.
     /// It is the user's responsibility to set the operation mode and motion functions in a consistent way.
-    /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`. 
+    /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`.
     void Initialize(Mode mode, double drop_speed = 0.1);
 
     /// Get suggested collision settings.
     /// These values are meaningful only when using granular terrain and Chrono::Multicore.
-    void GetSuggestedCollisionSettings(
-        double& collision_envelope,  ///< suggested envelope based on particle radius
-        ChVector3i& collision_bins   ///< suggested number of bins for broad-phase collision detection
+    void GetSuggestedCollisionSettings(double& collision_envelope,  ///< suggested envelope based on particle radius
+                                       ChVector3i& collision_bins   ///< suggested number of bins for broad-phase collision detection
     ) const;
 
     /// Advance system state by the specified time step.
@@ -258,22 +291,22 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Get current carrier body position.
     const ChVector3d& GetPos() const { return m_carrier_body->GetPos(); }
 
-    /// Get the current tire forces
-    TerrainForce ReportTireForce() const;
+    /// Get the current terrain forces acting on the wheel as applied to the wheel hub.
+    TerrainForce ReportWheelForce() const;
 
     /// Return current drawbar-pull value.
     /// This is the reaction force in the linear motor used to enforce the specified rig longitudinal speed.
     double GetDBP() const;
 
-    /// Get current tire longitudinal slip.
+    /// Get current wheel longitudinal slip.
     /// This value is calculated from the horizontal speed of the spindle body and its angular rotation speed.
     double GetLongitudinalSlip() const;
 
-    /// Get current tire slip angle.
+    /// Get current wheel slip angle.
     /// This value is calculated from the current spindle normal direction.
     double GetSlipAngle() const;
 
-    /// Get current tire camber angle.
+    /// Get current wheel camber angle.
     /// This value is calculated from the current spindle normal direction.
     double GetCamberAngle() const;
 
@@ -287,25 +320,53 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChLinkMotorRotationSpeed> GetMotorWheel() const { return m_rot_motor; }
 
   private:
+    /// Implementation of a ChWheelTestRig::WheelAssembly that wraps a Chrono::Vehicle tire and wheel assembly.
+    class VehicleWheel : public WheelAssembly {
+      public:
+        VehicleWheel(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, ChSystem* system);
+
+        virtual double GetMass() const override;
+        virtual double GetRadius() const override;
+        virtual double GetWidth() const override;
+        virtual std::shared_ptr<ChBody> GetHub() const override;
+
+#ifdef CHRONO_CRM
+        virtual void AssignBCEMarkers(CRMTerrain& terrain, const std::vector<ChVector3d>& bce) override;
+        virtual void CreateBCEMarkers(CRMTerrain& terrain) override;
+#endif
+
+        virtual void Initialize(double step_size, VisualizationType vis_type) override;
+        virtual void Synchronize(double time, const ChTerrain& terrain) override;
+        virtual void Advance(double step_size) override;
+
+        virtual TerrainForce ReportForces(ChTerrain& terrain) const override;
+
+      private:
+        std::shared_ptr<ChSpindle> spindle;
+        std::shared_ptr<ChWheel> wheel;
+        std::shared_ptr<ChTire> tire;
+    };
+
     void CreateMechanism();
 
     void CreateTerrain();
     void CreateTerrainSCM();
     void CreateTerrainRigid();
     void CreateTerrainGranular();
+#ifdef CHRONO_CRM
     void CreateTerrainCRM();
+#endif
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
     Mode m_mode;    ///< testing mode
     bool m_output;  ///< if false, report default measurements (typically 0)
 
-    std::shared_ptr<ChTerrain> m_terrain;  ///< handle to underlying terrain subsystem
-    std::shared_ptr<ChWheel> m_wheel;      ///< handle to wheel subsystem
-    std::shared_ptr<ChTire> m_tire;        ///< handle to tire subsystem
-    VisualizationType m_tire_vis;          ///< visualization type for tire subsystem
-    double m_tire_step;                    ///< step size for tire integration
-    double m_camber_angle;                 ///< camber angle
+    std::shared_ptr<ChTerrain> m_terrain;    ///< handle to underlying terrain subsystem
+    std::shared_ptr<WheelAssembly> m_wheel;  ///< wheel assembly
+    VisualizationType m_vis_type;            ///< visualization type for wheel assembly
+    double m_step_size;                      ///< step size for wheel assembly integration
+    double m_camber_angle;                   ///< wheel camber angle
 
     double m_grav;         ///< gravitational acceleration
     double m_normal_load;  ///< desired normal load
@@ -318,7 +379,7 @@ class CH_VEHICLE_API ChTireTestRig {
     TerrainParamsRigid m_params_rigid;        ///< rigid terrain contact material properties
     TerrainParamsGranular m_params_granular;  ///< granular terrain parameters
     TerrainParamsCRM m_params_crm;            ///< granular terrain parameters
-    double m_terrain_offset;                  ///< Y coordinate of tire center
+    double m_terrain_offset;                  ///< Y coordinate of wheel center
     double m_terrain_height;                  ///< height coordinate for terrain subsystem
 
     bool m_default_AABB;

@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demonstration of the single-wheel tire test rig.
+// Demonstration of the single-wheel test rig.
 //
 // =============================================================================
 
@@ -27,7 +27,7 @@
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
     #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
@@ -53,7 +53,7 @@ using std::endl;
 
 // Terrain type (RIGID or SCM)
 enum class TerrainType { RIGID, SCM };
-ChTireTestRig::TerrainType terrain_type = ChTireTestRig::TerrainType::RIGID;
+ChWheelTestRig::TerrainType terrain_type = ChWheelTestRig::TerrainType::RIGID;
 
 // Tire specification file
 ////std::string tire_json = "hmmwv/tire/HMMWV_RigidTire.json";
@@ -94,10 +94,13 @@ int main() {
     fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 #endif
 
-    if (handling_tire && terrain_type == ChTireTestRig::TerrainType::SCM) {
+    if (handling_tire && terrain_type == ChWheelTestRig::TerrainType::SCM) {
         cerr << "ERROR: Handling tire models cannot be used with SCM terrain." << endl;
         return 1;
     }
+
+    if (handling_tire)
+        tire->SetCollisionType(ChTire::CollisionType::FOUR_POINTS);
 
 #ifdef CHRONO_FEA
     // Set tire contact surface (relevant for FEA tires only)
@@ -105,7 +108,7 @@ int main() {
         int collision_family = 7;
         auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
         double surface_dim = 0.02;
-        if (terrain_type == ChTireTestRig::TerrainType::SCM) {
+        if (terrain_type == ChWheelTestRig::TerrainType::SCM) {
             surface_type = ChTire::ContactSurfaceType::TRIANGLE_MESH;
             surface_dim = 0;
         }
@@ -160,30 +163,29 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChTireTestRig rig(wheel, tire, sys);
+    ChWheelTestRig rig(wheel, tire, sys);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(3000);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
-    rig.SetTireStepsize(step_size);
-    rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
-    rig.SetTireVisualizationType(VisualizationType::MESH);
+    rig.SetStepsize(step_size);
+    rig.SetVisualizationType(VisualizationType::MESH);
 
-    ChTireTestRig::TerrainPatchSize size;
+    ChWheelTestRig::TerrainPatchSize size;
     size.length = 10;
     size.width = 1;
 
-    if (terrain_type == ChTireTestRig::TerrainType::RIGID) {
-        ChTireTestRig::TerrainParamsRigid params;
+    if (terrain_type == ChWheelTestRig::TerrainType::RIGID) {
+        ChWheelTestRig::TerrainParamsRigid params;
         params.friction = 0.8f;
         params.restitution = 0;
         params.Young_modulus = 2e7f;
 
         rig.SetTerrainRigid(size, params);
     } else {
-        ChTireTestRig::TerrainParamsSCM params;
+        ChWheelTestRig::TerrainParamsSCM params;
         params.Bekker_Kphi = 2e6;
         params.Bekker_Kc = 0;
         params.Bekker_n = 1.1;
@@ -227,10 +229,10 @@ int main() {
     double input_time_delay = 1.0;
     rig.SetTimeDelay(input_time_delay);
 
-    // Initialize the tire test rig; in TEST mode set a drop speed of 0.05
-    ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
-    ////rig.Initialize(ChTireTestRig::Mode::DROP);
-    rig.Initialize(ChTireTestRig::Mode::TEST, 0.05);
+    // Initialize the wheel test rig; in TEST mode set a drop speed of 0.05
+    ////rig.Initialize(ChWheelTestRig::Mode::SUSPEND);
+    ////rig.Initialize(ChWheelTestRig::Mode::DROP);
+    rig.Initialize(ChWheelTestRig::Mode::TEST, 0.05);
 
 #ifdef CHRONO_FEA
     // Optionally, modify tire visualization (can be done only after initialization)
@@ -340,7 +342,7 @@ int main() {
         if (debug_output && rig.OutputEnabled()) {
             cout << time << endl;
             cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
-            auto tforce = rig.ReportTireForce();
+            auto tforce = rig.ReportWheelForce();
             auto frc = tforce.force;
             auto pnt = tforce.point;
             auto trq = tforce.moment;

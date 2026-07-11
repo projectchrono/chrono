@@ -12,7 +12,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 
 // -----------------------------------------------------------------------------
 
@@ -200,7 +200,7 @@ class ViperTire : public chrono::vehicle::ChRigidTire {
 // -----------------------------------------------------------------------------
 
 // Custom callback for Viper tire BCE marker generation.
-class ViperTireBCE : public chrono::vehicle::ChTireTestRig::WheelBCECreationCallback {
+class ViperTireBCE : public chrono::vehicle::ChWheelTestRig::WheelBCECreationCallback {
   public:
     ViperTireBCE(std::shared_ptr<ViperTire> tire, double spacing) { m_bce = tire->CreateBCE(spacing); }
     virtual std::vector<chrono::ChVector3d> GetMarkers() {
