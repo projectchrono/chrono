@@ -69,9 +69,15 @@ SET(CH_USE_OPENCRG "${CH_USE_OPENCRG}" PARENT_SCOPE)
 
 # Prepare replacement variables
 if(CH_USE_OPENCRG)
-  set(CHRONO_OPENCRG "#define CHRONO_HAS_OPENCRG")
+  set(CHRONO_OPENCRG "#define CHRONO_OPENCRG")
 else()
-  set(CHRONO_OPENCRG "#undef CHRONO_HAS_OPENCRG")
+  set(CHRONO_OPENCRG "#undef CHRONO_OPENCRG")
+endif()
+
+if(CH_ENABLE_MODULE_FSI_SPH)
+  set(CHRONO_CRM "#define CHRONO_CRM")
+else()
+  set(CHRONO_CRM "#undef CHRONO_CRM")
 endif()
 
 # Generate the configuration header file using substitution variables.
