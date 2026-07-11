@@ -63,10 +63,7 @@ class CH_VEHICLE_API ChWheelTestRig {
         virtual std::shared_ptr<ChBody> GetHub() const = 0;
 
 #ifdef CHRONO_CRM
-        virtual void AssignBCEMarkers(CRMTerrain& terrain, const std::vector<ChVector3d>& bce) {
-            throw std::runtime_error("CreateBCEMarkers must be implemented when using CRMTerrain.");
-        }
-        virtual void CreateBCEMarkers(CRMTerrain& terrain) { throw std::runtime_error("CreateBCEMarkers must be implemented when using CRMTerrain."); }
+        virtual void AddFSIBodies(CRMTerrain& terrain, double spacing) { throw std::runtime_error("CreateBCEMarkers must be implemented when using CRMTerrain."); }
 #endif
 
         virtual void Initialize(double step_size, VisualizationType vis_type) {}
@@ -234,18 +231,6 @@ class CH_VEHICLE_API ChWheelTestRig {
                        double cohesion                ///< material internal cohesion
     );
 
-    /// Callback interface for user-defined wheel BCE markers (CRM terrain only).
-    class CH_VEHICLE_API WheelBCECreationCallback {
-      public:
-        virtual ~WheelBCECreationCallback() {}
-
-        /// Return BCE marker locations, expressed in and relative to the wheel reference frame.
-        virtual std::vector<ChVector3d> GetMarkers() = 0;
-    };
-
-    /// Register a user callback for specifying wheel BCE markers (CRM terrain only).
-    void RegisterWheelBCECreationCallback(std::shared_ptr<WheelBCECreationCallback> callback) { m_bce_callback = callback; }
-
     /// Set size of the active box associated with the wheel (CRM terrain only).
     /// The default size is based on the wheel AABB inflated by 25%.
     void SetWheelActiveBox(const ChVector3d& size);
@@ -331,8 +316,7 @@ class CH_VEHICLE_API ChWheelTestRig {
         virtual std::shared_ptr<ChBody> GetHub() const override;
 
 #ifdef CHRONO_CRM
-        virtual void AssignBCEMarkers(CRMTerrain& terrain, const std::vector<ChVector3d>& bce) override;
-        virtual void CreateBCEMarkers(CRMTerrain& terrain) override;
+        virtual void AddFSIBodies(CRMTerrain& terrain, double spacing) override;
 #endif
 
         virtual void Initialize(double step_size, VisualizationType vis_type) override;
@@ -384,7 +368,6 @@ class CH_VEHICLE_API ChWheelTestRig {
 
     bool m_default_AABB;
     ChVector3d m_AABB_size;
-    std::shared_ptr<WheelBCECreationCallback> m_bce_callback;
 
     std::shared_ptr<ChBody> m_ground_body;   ///< ground body
     std::shared_ptr<ChBody> m_carrier_body;  ///< rig carrier body

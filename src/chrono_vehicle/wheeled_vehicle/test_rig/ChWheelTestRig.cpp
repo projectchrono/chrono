@@ -604,13 +604,8 @@ void ChWheelTestRig::CreateTerrainCRM() {
     }
     terrain->SetActiveDomain(m_AABB_size);
 
-    // Create wheel BCE markers
-    if (m_bce_callback) {
-        auto bce = m_bce_callback->GetMarkers();
-        m_wheel->AssignBCEMarkers(*terrain, bce);
-    } else {
-        m_wheel->CreateBCEMarkers(*terrain);
-    }
+    // Add wheel FSI bodies
+    m_wheel->AddFSIBodies(*terrain, m_params_crm.sph_params.initial_spacing);
 
     terrain->Initialize();
     auto aabb = terrain->GetSPHBoundingBox();
@@ -724,11 +719,7 @@ std::shared_ptr<ChBody> ChWheelTestRig::VehicleWheel::GetHub() const {
 
 #ifdef CHRONO_CRM
 
-void ChWheelTestRig::VehicleWheel::AssignBCEMarkers(CRMTerrain& terrain, const std::vector<ChVector3d>& bce) {
-    terrain.GetFsiSystemSPH()->AddFsiBody(spindle, bce, ChFramed(), false);
-}
-
-void ChWheelTestRig::VehicleWheel::CreateBCEMarkers(CRMTerrain& terrain) {
+void ChWheelTestRig::VehicleWheel::AddFSIBodies(CRMTerrain& terrain, double spacing) {
     #ifdef CHRONO_FEA
     if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
         auto mesh = fea_tire->GetMesh();

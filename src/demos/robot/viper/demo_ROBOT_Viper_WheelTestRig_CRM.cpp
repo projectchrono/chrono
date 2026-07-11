@@ -57,15 +57,6 @@ bool render = true;
 // -----------------------------------------------------------------------------
 
 int main() {
-    // --------------------------------
-    // Create wheel and tire subsystems
-    // --------------------------------
-
-    auto wheel = chrono_types::make_shared<DummyViperWheel>();
-    auto tire = chrono_types::make_shared<ViperTire>();
-    tire->SetGrouserHeight(0.02);
-    tire->SetGrouserWidth(0.01);
-
     // -------------------------------------------------
     // Create system and set solver and integrator types
     // -------------------------------------------------
@@ -78,11 +69,19 @@ int main() {
     ChTimestepper::Type integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     SetChronoSolver(sys, solver_type, integrator_type);
 
+    // --------------------------------
+    // Create Viper wheel assembly
+    // --------------------------------
+
+    auto wheel = chrono_types::make_shared<ViperRigWheel>(&sys);
+    wheel->SetGrouserHeight(0.02);
+    wheel->SetGrouserWidth(0.01);
+
     // -----------------------------
     // Create and configure test rig
     // -----------------------------
 
-    ChWheelTestRig rig(wheel, tire, &sys);
+    ChWheelTestRig rig(wheel, &sys);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(1000);
@@ -107,10 +106,6 @@ int main() {
     params.mat_props.average_diam = 0.005;
 
     rig.SetTerrainCRM(size, params);
-
-    // Register custom callback for wheel BCE marker generation
-    auto bce_callback = chrono_types::make_shared<ViperTireBCE>(tire, params.sph_params.initial_spacing);
-    rig.RegisterWheelBCECreationCallback(bce_callback);
 
     // -----------------
     // Set test scenario
