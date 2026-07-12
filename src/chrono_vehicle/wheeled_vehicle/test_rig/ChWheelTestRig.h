@@ -15,7 +15,7 @@
 // Implementation of a single-wheel test rig.
 // - Accepts an arbitrary wheel assembly (derived from ChWheelTestRig::Wheel)
 // - Accepts a Chrono::Vehicle wheel - tire assembly
-// - Works with Rigid, SCM, or CRM terrain
+// - Works with Rigid, SCM, granular, or CRM terrain
 // - Allows variation of longitudinal speed, wheel angular speed, and wheel slip
 //   angle as functions of time
 // - Provides support for automatic selection of longitudinal and angular speeds
@@ -358,13 +358,15 @@ class CH_VEHICLE_API ChWheelTestRig {
     double m_time_delay;   ///< time delay before applying external load
 
     TerrainType m_terrain_type;               ///< terrain type
+    double m_terrain_offset;                  ///< Y coordinate of wheel center
+    double m_terrain_height;                  ///< height coordinate for terrain subsystem
     TerrainPatchSize m_terrain_size;          ///< terrain patch dimensions
     TerrainParamsSCM m_params_SCM;            ///< SCM soil parameters
     TerrainParamsRigid m_params_rigid;        ///< rigid terrain contact material properties
     TerrainParamsGranular m_params_granular;  ///< granular terrain parameters
-    TerrainParamsCRM m_params_crm;            ///< granular terrain parameters
-    double m_terrain_offset;                  ///< Y coordinate of wheel center
-    double m_terrain_height;                  ///< height coordinate for terrain subsystem
+#ifdef CHRONO_CRM
+    TerrainParamsCRM m_params_crm;  ///< granular terrain parameters
+#endif
 
     bool m_default_AABB;
     ChVector3d m_AABB_size;

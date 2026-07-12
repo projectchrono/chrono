@@ -441,7 +441,9 @@ void ChWheelTestRig::CreateTerrain() {
             CreateTerrainGranular();
             break;
         case TerrainType::CRM:
+#ifdef CHRONO_CRM
             CreateTerrainCRM();
+#endif
             break;
         default:
             break;
