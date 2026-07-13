@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Wei Hu, Radu Serban, Huzaifa Mustafa Unjhawala
+// Author: Wei Hu, Radu Serban, Huzaifa Unjhawala
 // =============================================================================
 
 #include <cassert>
@@ -104,10 +104,8 @@ struct SimParams {
     double render_fps;
 };
 
-//------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if FSI,
-// their BCE representation are created and added to the systems
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
 void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
                       ChVector3d& wheel_IniPos,
                       ChVector3d& wheel_IniVel,
@@ -142,8 +140,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     ground->EnableCollision(true);
 
     // Add BCE particles attached on the walls into FSI system
-    auto ground_bce =
-        sysSPH.CreatePointsBoxContainer(ChVector3d(multiplier * bxDim, multiplier * byDim, bzDim), {2, 0, -1});
+    auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(multiplier * bxDim, multiplier * byDim, bzDim), {2, 0, -1});
     sysFSI.AddFsiBoundary(ground_bce, ChFrame<>(ChVector3d(0., 0., 0.), QUNIT));
 
     // Create the wheel -- always SECOND body in the system
@@ -181,7 +178,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     wheel->SetMass(total_mass * 1.0 / 2.0);
     wheel->SetInertiaXX(mdensity * principal_I);
     wheel->SetPosDt(wheel_IniVel);
-    wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
+    wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial angular velocity (rad/s)
 
     // wheel material
     auto cmaterial2 = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -192,8 +189,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     // Set the absolute position of the body:
     wheel->SetFrameRefToAbs(ChFrame<>(ChVector3d(wheel_IniPos), ChQuaternion<>(wheel_Rot)));
     wheel->SetFixed(false);
-    auto wheel_shape =
-        chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial2, trimesh, false, false, 0.005);
+    auto wheel_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial2, trimesh, false, false, 0.005);
     wheel->AddCollisionShape(wheel_shape);
     wheel->EnableCollision(false);
     if (render_wheel) {
@@ -206,8 +202,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
 
     // Create wheel FSI body
     double inner_radius = wheel_radius;
-    auto bce = CreateWheelBCE(inner_radius, wheel_width - iniSpacing, grouser_height, grouser_wide, grouser_num,
-                              iniSpacing, false);
+    auto bce = ViperRigWheel::CreateBCE(inner_radius, wheel_width - iniSpacing, grouser_height, grouser_wide, grouser_num, iniSpacing, false);
     ChQuaternion<> wheel_Rot_bce = Q_ROTATE_Z_TO_Y;
     sysFSI.AddFsiBody(wheel, bce, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(wheel_Rot_bce)), false);
 
@@ -228,8 +223,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     axle->SetFixed(false);
 
     // Add geometry of the axle.
-    // chrono::utils::AddSphereGeometry(axle.get(), cmaterial, 0.5,
-    //                                  ChVector3d(0, 0, 0));
+    // chrono::utils::AddSphereGeometry(axle.get(), cmaterial, 0.5, ChVector3d(0, 0, 0));
     sysMBS.AddBody(axle);
 
     // Connect the chassis to the containing bin (ground) through a translational
@@ -252,6 +246,8 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     sysMBS.AddLink(motor);
 }
 
+//------------------------------------------------------------------------------
+
 // Function to handle CLI arguments
 bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     ChCLI cli(argv[0], "FSI Viper Single Wheel Demo");
@@ -259,20 +255,15 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     cli.AddOption<int>("Simulation", "ps_freq", "Proximity search frequency", std::to_string(params.ps_freq));
     cli.AddOption<double>("Simulation", "initial_spacing", "Initial spacing", std::to_string(params.initial_spacing));
     cli.AddOption<double>("Simulation", "d0_multiplier", "D0 multiplier", std::to_string(params.d0_multiplier));
-    cli.AddOption<std::string>("Simulation", "boundary_type", "Boundary condition type (holmes/adami)",
-                               params.boundary_type);
-    cli.AddOption<std::string>("Simulation", "viscosity_type",
-                               "Viscosity type (artificial_unilateral/artificial_bilateral)", params.viscosity_type);
+    cli.AddOption<std::string>("Simulation", "boundary_type", "Boundary condition type (holmes/adami)", params.boundary_type);
+    cli.AddOption<std::string>("Simulation", "viscosity_type", "Viscosity type (artificial_unilateral/artificial_bilateral)", params.viscosity_type);
     cli.AddOption<std::string>("Simulation", "kernel_type", "Kernel type (cubic/wendland)", params.kernel_type);
     cli.AddOption<double>("Simulation", "time_step", "Time step", std::to_string(params.time_step));
-    cli.AddOption<double>("Simulation", "artificial_viscosity", "Artificial viscosity",
-                          std::to_string(params.artificial_viscosity));
-    cli.AddOption<std::string>("Physics", "integration_scheme", "Integration scheme (euler/rk2)",
-                               params.integration_scheme);
+    cli.AddOption<double>("Simulation", "artificial_viscosity", "Artificial viscosity", std::to_string(params.artificial_viscosity));
+    cli.AddOption<std::string>("Physics", "integration_scheme", "Integration scheme (euler/rk2)", params.integration_scheme);
     cli.AddOption<double>("Simulation", "total_time", "Total time", std::to_string(params.total_time));
     std::string use_variable_time_step_str = params.use_variable_time_step ? "true" : "false";
-    cli.AddOption<std::string>("Simulation", "use_variable_time_step", "Use variable time step",
-                               use_variable_time_step_str);
+    cli.AddOption<std::string>("Simulation", "use_variable_time_step", "Use variable time step", use_variable_time_step_str);
 
     cli.AddOption<double>("Physics", "total_mass", "Total mass", std::to_string(params.total_mass));
     cli.AddOption<double>("Physics", "slope_angle", "Slope angle", std::to_string(params.slope_angle));
@@ -281,8 +272,7 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
     cli.AddOption<double>("Physics", "grouser_height", "Grouser height", std::to_string(params.grouser_height));
     cli.AddOption<int>("Simulation", "sim_number", "Simulation number", std::to_string(params.sim_number));
     std::string snapshots_str = params.snapshots ? "true" : "false";
-    cli.AddOption<std::string>("Visualization", "snapshots", "Enable writing snapshot image files",
-                               params.snapshots ? "true" : "false");
+    cli.AddOption<std::string>("Visualization", "snapshots", "Enable writing snapshot image files", params.snapshots ? "true" : "false");
     std::string output_str = params.output ? "true" : "false";
     cli.AddOption<std::string>("Output", "output", "Enable output", output_str);
     cli.AddOption<double>("Output", "out_fps", "Output frequency", std::to_string(params.out_fps));
@@ -322,6 +312,8 @@ bool GetProblemSpecs(int argc, char** argv, SimParams& params) {
 
     return true;
 }
+
+//------------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     // Create the MBS and FSI systems
@@ -449,7 +441,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Set the simulation stepsize
+    // Set the simulation step size
     sysFSI.SetStepSizeCFD(params.time_step);
     sysFSI.SetStepsizeMBD(params.time_step);
 
@@ -540,8 +532,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create Solid region and attach BCE SPH particles
-    CreateSolidPhase(sysFSI, wheel_IniPos, wheel_IniVel, params.wheel_AngVel, params.render, params.grouser_height,
-                     kernelLength, params.total_mass, params.initial_spacing);
+    CreateSolidPhase(sysFSI, wheel_IniPos, wheel_IniVel, params.wheel_AngVel, params.render, params.grouser_height, kernelLength, params.total_mass, params.initial_spacing);
 
     sysSPH.SetActiveDomain(ChVector3d(0.6, 0.6, 0.8));
     sysSPH.SetActiveDomainDelay(1.0);
@@ -660,16 +651,15 @@ int main(int argc, char* argv[]) {
 
         if (params.output && time >= output_frame / params.out_fps) {
             std::cout << "-------- Output" << std::endl;
-            myFile << time << "\t" << w_pos.x() << "\t" << w_pos.y() << "\t" << w_pos.z() << "\t" << w_vel.x() << "\t"
-                   << w_vel.y() << "\t" << w_vel.z() << "\t" << angvel.x() << "\t" << angvel.y() << "\t" << angvel.z()
-                   << "\t" << force.x() << "\t" << force.y() << "\t" << force.z() << "\t" << torque.x() << "\t"
-                   << torque.y() << "\t" << torque.z() << "\n";
+            myFile << time << "\t" << w_pos.x() << "\t" << w_pos.y() << "\t" << w_pos.z() << "\t" << w_vel.x() << "\t" << w_vel.y() << "\t" << w_vel.z() << "\t" << angvel.x()
+                   << "\t" << angvel.y() << "\t" << angvel.z() << "\t" << force.x() << "\t" << force.y() << "\t" << force.z() << "\t" << torque.x() << "\t" << torque.y() << "\t"
+                   << torque.z() << "\n";
             myDBP_Torque << time << "\t" << force.x() << "\t" << torque.z() << "\n";
             if (params.write_marker_files) {
                 sysSPH.SaveParticleData(out_dir + "/particles");
                 sysSPH.SaveSolidData(out_dir + "/fsi", time);
                 std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
-                WriteWheelVTK(filename, wheel_mesh, wheel->GetFrameRefToAbs());
+                ViperRigWheel::WriteVTK(filename, wheel_mesh, wheel->GetFrameRefToAbs());
             }
             output_frame++;
         }
@@ -693,7 +683,7 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        // Get the infomation of the wheel
+        // Get the information of the wheel
         reaction = actuator->GetReaction2();
         force = reaction.force;
         torque = motor->GetReaction1().torque;

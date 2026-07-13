@@ -22,8 +22,8 @@ endif()
 if(CH_ENABLE_MODULE_FSI_SPH AND CH_ENABLE_MODULE_VSG)
   set(DEMOS ${DEMOS}
       demo_ROBOT_Viper_CRM
-      demo_ROBOT_ViperWheel_CRM
-      demo_ROBOT_ViperWheel_CRM_slope
+      demo_ROBOT_Viper_WheelTestRig_CRM
+      demo_ROBOT_Viper_WheelSlope_CRM
   )
 endif()
 

@@ -68,7 +68,7 @@ class ChApi ChVisualShape {
 
     /// Set this visualization shape as modifiable (default: false).
     /// Set to true to indicate that the asset may change and therefore requires updates (e.g. for a deformable
-    /// triangular mesh). Note that this also includes changes in materials. 
+    /// triangular mesh). Note that this also includes changes in materials.
     /// A visualization system may take advantage of this setting to accelerate rendering.
     void SetMutable(bool val) { is_mutable = val; }
 

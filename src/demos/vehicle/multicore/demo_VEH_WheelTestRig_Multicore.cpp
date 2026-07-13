@@ -27,19 +27,19 @@ using namespace chrono::vsg3d;
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
 
 // Terrain type (RIGID or GRANULAR)
-ChTireTestRig::TerrainType terrain_type = ChTireTestRig::TerrainType::GRANULAR;
+ChWheelTestRig::TerrainType terrain_type = ChWheelTestRig::TerrainType::GRANULAR;
 
 int main() {
     double step_size = 5e-3;
     double tire_step_size = 1e-4;
 
-    // Create sys
+    // Create system
     // -------------
 
     ChSystemMulticoreNSC sys;
@@ -71,34 +71,35 @@ int main() {
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
     auto tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
 
+    tire->SetCollisionType(ChTire::CollisionType::FOUR_POINTS);
+
     // Create and configure test rig
     // -----------------------------
 
-    ChTireTestRig rig(wheel, tire, &sys);
+    ChWheelTestRig rig(wheel, tire, &sys);
 
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(2000);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
-    rig.SetTireStepsize(tire_step_size);
-    rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
-    rig.SetTireVisualizationType(VisualizationType::MESH);
+    rig.SetStepsize(tire_step_size);
+    rig.SetVisualizationType(VisualizationType::MESH);
 
-    ChTireTestRig::TerrainPatchSize size;
+    ChWheelTestRig::TerrainPatchSize size;
     size.length = 3.0;
     size.width = 1.0;
     size.depth = 0.24;
 
-    if (terrain_type == ChTireTestRig::TerrainType::RIGID) {
-        ChTireTestRig::TerrainParamsRigid params;
+    if (terrain_type == ChWheelTestRig::TerrainType::RIGID) {
+        ChWheelTestRig::TerrainParamsRigid params;
         params.friction = 0.8f;
         params.restitution = 0;
         params.Young_modulus = 2e7f;
 
         rig.SetTerrainRigid(size, params);
     } else {
-        ChTireTestRig::TerrainParamsGranular params;
+        ChWheelTestRig::TerrainParamsGranular params;
         params.radius = 0.02;
         params.density = 2000;
         params.friction = 0.9;
@@ -138,7 +139,7 @@ int main() {
     // Scenario: pulled wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
 
-    // Scenario: imobilized wheel (same scenario could be obtained using ChTireTestRig::Mode::DROP in Initialize())
+    // Scenario: imobilized wheel (same scenario could be obtained using ChWheelTestRig::Mode::DROP in Initialize())
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
 
@@ -152,7 +153,7 @@ int main() {
 
     // Initialize the tire test rig
     rig.SetTimeDelay(1.0);
-    rig.Initialize(ChTireTestRig::Mode::TEST);
+    rig.Initialize(ChWheelTestRig::Mode::TEST);
 
     // Display settings
     // ----------------

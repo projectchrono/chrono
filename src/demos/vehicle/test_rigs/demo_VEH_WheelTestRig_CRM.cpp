@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2015 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Huzaifa Unjhawala
 // =============================================================================
 //
-// Single-wheel tire test rig with a Viper wheel on CRM terrain.
+// Demonstration of the single-wheel test rig on CRM terrain.
 //
 // =============================================================================
 
@@ -26,17 +26,20 @@
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#endif
 
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChBlender.h"
 #endif
 
 #include "demos/SetChronoSolver.h"
-#include "viper_wheel.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -49,8 +52,17 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
+// Tire specification file
+std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
+////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+
+// Wheel specification file
+std::string wheel_json = "Polaris/Polaris_Wheel.json";
+
 double render_fps = 100;
+bool debug_output = false;
 bool gnuplot_output = true;
+bool blender_output = false;
 
 bool render = true;
 
@@ -61,56 +73,91 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = chrono_types::make_shared<DummyViperWheel>();
-    auto tire = chrono_types::make_shared<ViperTire>();
-    tire->SetGrouserHeight(0.02);
-    tire->SetGrouserWidth(0.01);
+    auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
 
-    // -------------------------------------------------
-    // Create system and set solver and integrator types
-    // -------------------------------------------------
+    bool fea_tire = false;
+#ifdef CHRONO_FEA
+    fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 
-    ChSystemNSC sys;
-    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    // Set tire contact surface (relevant for FEA tires only)
+    if (fea_tire) {
+        int collision_family = 7;
+        auto surface_type = ChTire::ContactSurfaceType::TRIANGLE_MESH;
+        double surface_dim = 0;
+        tire->SetContactSurfaceType(surface_type, surface_dim, collision_family);
+    }
+#endif
 
-    double step_size = 2e-4;
-    ChSolver::Type solver_type = ChSolver::Type::BARZILAIBORWEIN;
-    ChTimestepper::Type integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    SetChronoSolver(sys, solver_type, integrator_type);
+    // ---------------------------------------------------------
+    // Create system and set default solver and integrator types
+    // ---------------------------------------------------------
+
+    ChSystem* sys = nullptr;
+    double step_size = 0;
+    ChSolver::Type solver_type;
+    ChTimestepper::Type integrator_type;
+
+    if (!fea_tire) {
+        sys = new ChSystemNSC;
+        step_size = 2e-4;
+        solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+#ifdef CHRONO_FEA
+    else {
+        sys = new ChSystemSMC;
+        step_size = 1e-5;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+#endif
+
+    // Set collision system
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    // Number of OpenMP threads used in Chrono (SCM ray-casting and FEA)
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+
+    // Number of threads used in collision detection
+    int num_threads_collision = 1;
+
+    // Number of threads used by Eigen
+    int num_threads_eigen = 1;
+
+    // Number of threads used by PardisoMKL
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+
+    sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
+    SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);
+    tire->SetStepsize(step_size);
 
     // -----------------------------
     // Create and configure test rig
     // -----------------------------
 
-    ChTireTestRig rig(wheel, tire, &sys);
+    ChWheelTestRig rig(wheel, tire, sys);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(1000);
+    rig.SetNormalLoad(2500);
 
-    rig.SetTireStepsize(step_size);
-    rig.SetTireVisualizationType(VisualizationType::COLLISION);
+    ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
-    // Set CRM terrain
-    ChTireTestRig::TerrainPatchSize size;
+    rig.SetStepsize(step_size);
+    rig.SetVisualizationType(VisualizationType::COLLISION);
+
+    ChWheelTestRig::TerrainPatchSize size;
     size.length = 10;
     size.width = 1;
     size.depth = 0.2;
 
-    ChTireTestRig::TerrainParamsCRM params;
-    params.sph_params.initial_spacing = 0.01;
+    ChWheelTestRig::TerrainParamsCRM params;
+    params.sph_params.initial_spacing = 0.02;
     params.mat_props.density = 1700;
-    params.mat_props.Young_modulus = 1e6;
-    params.mat_props.cohesion_coeff = 0;
-    params.mat_props.mu_I0 = 0.04;
-    params.mat_props.mu_fric_2 = 0.8;
-    params.mat_props.mu_fric_s = 0.8;
-    params.mat_props.average_diam = 0.005;
+    params.mat_props.Young_modulus = 2e6;
+    params.mat_props.cohesion_coeff = 1e2;
 
     rig.SetTerrainCRM(size, params);
-
-    // Register custom callback for wheel BCE marker generation
-    auto bce_callback = chrono_types::make_shared<ViperTireBCE>(tire, params.sph_params.initial_spacing);
-    rig.RegisterWheelBCECreationCallback(bce_callback);
 
     // -----------------
     // Set test scenario
@@ -124,29 +171,49 @@ int main() {
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
     ////rig.Initialize();
 
+    // Scenario: imobilized wheel
+    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
+    ////rig.Initialize();
+
     // Scenario: prescribe all motion functions
     //   longitudinal speed: 0.2 m/s
     //   angular speed: 10 RPM
+    //   slip angle: sinusoidal +- 5 deg with 5 s period
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
+
+    // Scenario: specified longitudinal slip (overrides other definitions of motion functions)
+    ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
     // Set delay before applying inputs (settling time)
     double input_time_delay = 1.0;
     rig.SetTimeDelay(input_time_delay);
 
-    // Initialize the tire test rig
-    ////rig.Initialize(ChTireTestRig::Mode::SUSPEND);
-    ////rig.Initialize(ChTireTestRig::Mode::DROP);
-    rig.Initialize(ChTireTestRig::Mode::TEST);
+    // Initialize the wheel test rig; in TEST mode set a drop speed of 0.05
+    ////rig.Initialize(ChWheelTestRig::Mode::SUSPEND);
+    ////rig.Initialize(ChWheelTestRig::Mode::DROP);
+    rig.Initialize(ChWheelTestRig::Mode::TEST, 0.05);
 
-    cout << "Rig normal load: " << rig.GetNormalLoad() << endl;
-    cout << "Rig total mass:  " << rig.GetMass() << endl;
+#ifdef CHRONO_FEA
+    // Optionally, modify tire visualization (can be done only after initialization)
+    if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
+        auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
+        visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+        visFEA->SetShellResolution(3);
+        visFEA->SetWireframe(false);
+        visFEA->SetColormapRange(0.0, 5.0);
+        visFEA->SetSmoothFaces(true);
+        tire_def->AddVisualShapeFEA(visFEA);
+    }
+#endif
 
     // -----------------
     // Initialize output
     // -----------------
 
-    const std::string out_dir = GetChronoOutputPath() + "VIPER_WHEEL_CRM";
+    const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -157,6 +224,7 @@ int main() {
     // ---------------------------------
 
     std::shared_ptr<ChVisualSystem> vis;
+
     if (render) {
         // FSI plugin
         auto sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetFsiSystemSPH();
@@ -168,8 +236,8 @@ int main() {
         // VSG visual system (attach visFSI as plugin)
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         visVSG->AttachPlugin(visFSI);
-        visVSG->AttachSystem(&sys);
-        visVSG->SetWindowTitle("Viper wheel on CRM deformable terrain");
+        visVSG->AttachSystem(sys);
+        visVSG->SetWindowTitle("Tire Test Rig on CRM deformable terrain");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(1.0, 2.5, 1.0), ChVector3d(0, 1, 0));
@@ -179,6 +247,28 @@ int main() {
         visVSG->Initialize();
         vis = visVSG;
     }
+
+#ifdef CHRONO_POSTPROCESS
+    // ---------------------------
+    // Create the Blender exporter
+    // ---------------------------
+
+    postprocess::ChBlender blender_exporter(sys);
+
+    if (blender_output) {
+        std::string blender_dir = out_dir + "/blender";
+        if (!CreateOutputDirectory(std::filesystem::path(blender_dir))) {
+            cerr << "Error creating directory " << blender_dir << endl;
+            return 1;
+        }
+
+        blender_exporter.SetBlenderUp_is_ChronoZ();
+        blender_exporter.SetBasePath(blender_dir);
+        blender_exporter.AddAll();
+        blender_exporter.SetCamera(ChVector3d(3, 3, 1), ChVector3d(0, 0, 0), 50);
+        blender_exporter.ExportScript();
+    }
+#endif
 
     // ---------------
     // Simulation loop
@@ -198,7 +288,7 @@ int main() {
 
     timer.start();
     while (time < sim_time_max) {
-        time = sys.GetChTime();
+        time = sys->GetChTime();
 
         if (time >= render_frame / render_fps) {
             auto& loc = rig.GetPos();
@@ -208,22 +298,39 @@ int main() {
                 break;
             vis->Render();
             render_frame++;
+
+#ifdef CHRONO_POSTPROCESS
+            if (blender_output)
+                blender_exporter.ExportData();
+#endif
         }
 
         rig.Advance(step_size);
-        sim_time += sys.GetTimerStep();
+        sim_time += sys->GetTimerStep();
 
         auto long_slip = rig.GetLongitudinalSlip();
-        auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
-        auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
+        auto slip_angle = rig.GetSlipAngle();
+        auto camber_angle = rig.GetCamberAngle();
 
-        if (gnuplot_output && time > input_time_delay) {
+        if (gnuplot_output && rig.OutputEnabled()) {
             long_slip_fct.AddPoint(time, long_slip);
-            slip_angle_fct.AddPoint(time, slip_angle);
-            camber_angle_fct.AddPoint(time, camber_angle);
+            slip_angle_fct.AddPoint(time, slip_angle * CH_RAD_TO_DEG);
+            camber_angle_fct.AddPoint(time, camber_angle * CH_RAD_TO_DEG);
         }
 
-        cout << "\rRTF: " << sys.GetRTF();
+        if (debug_output && rig.OutputEnabled()) {
+            cout << time << endl;
+            cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
+            auto tforce = rig.ReportWheelForce();
+            auto frc = tforce.force;
+            auto pnt = tforce.point;
+            auto trq = tforce.moment;
+            cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << endl;
+            cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << endl;
+            cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << endl;
+        } else {
+            cout << "\rRTF: " << sys->GetRTF();
+        }
     }
     timer.stop();
 
@@ -237,7 +344,7 @@ int main() {
     // Plot results
     // ------------
 
-    if (gnuplot_output && sys.GetChTime() > input_time_delay) {
+    if (gnuplot_output && rig.OutputEnabled()) {
         postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
         gplot_long_slip.SetGrid();
         gplot_long_slip.SetLabelX("time (s)");
