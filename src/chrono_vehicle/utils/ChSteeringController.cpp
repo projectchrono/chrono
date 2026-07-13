@@ -121,6 +121,10 @@ ChPathSteeringControllerPID::ChPathSteeringControllerPID(const std::string& file
     m_dist = d["Lookahead Distance"].GetDouble();
 
     std::cout << "Loaded JSON " << filename << std::endl;
+    std::cout << "  d:  " << m_dist << std::endl;
+    std::cout << "  Kp: " << m_Kp << std::endl;
+    std::cout << "  Ki: " << m_Ki << std::endl;
+    std::cout << "  Kd: " << m_Kd << std::endl;
 }
 
 void ChPathSteeringControllerPID::SetGains(double Kp, double Ki, double Kd) {

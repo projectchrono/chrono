@@ -98,14 +98,12 @@ DriverModelType DriverModelFromString(const std::string& str) {
 // Wrapper around a driver system of specified type
 class MyDriver {
   public:
-    MyDriver(DriverModelType type, ChWheeledVehicle& vehicle, std::shared_ptr<ChBezierCurve> path, double road_width)
-        : m_type(type), m_steering_controller(nullptr) {
+    MyDriver(DriverModelType type, ChWheeledVehicle& vehicle, std::shared_ptr<ChBezierCurve> path, double road_width) : m_type(type), m_steering_controller(nullptr) {
         switch (type) {
             case DriverModelType::PID: {
                 m_driver_type = "PID";
 
-                auto driverPID =
-                    chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
+                auto driverPID = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
                 driverPID->GetSteeringController().SetLookAheadDistance(5);
                 driverPID->GetSteeringController().SetGains(0.5, 0, 0);
                 driverPID->GetSpeedController().SetGains(0.4, 0, 0);
@@ -117,8 +115,7 @@ class MyDriver {
             case DriverModelType::STANLEY: {
                 m_driver_type = "STANLEY";
 
-                auto driverStanley =
-                    chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
+                auto driverStanley = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
                 driverStanley->GetSteeringController().SetLookAheadDistance(5.0);
                 driverStanley->GetSteeringController().SetGains(0.5, 0.0, 0.0);
                 driverStanley->GetSpeedController().SetGains(0.4, 0, 0);
@@ -130,8 +127,7 @@ class MyDriver {
             case DriverModelType::PP: {
                 m_driver_type = "PP";
 
-                auto driverPP =
-                    chrono_types::make_shared<ChPathFollowerDriverPP>(vehicle, path, "my_path", target_speed);
+                auto driverPP = chrono_types::make_shared<ChPathFollowerDriverPP>(vehicle, path, "my_path", target_speed);
                 driverPP->GetSteeringController().SetLookAheadDistance(5.0);
                 driverPP->GetSteeringController().SetGain(0.0);
                 driverPP->GetSpeedController().SetGains(0.4, 0, 0);
@@ -143,8 +139,7 @@ class MyDriver {
             case DriverModelType::XT: {
                 m_driver_type = "XT";
 
-                auto driverXT = chrono_types::make_shared<ChPathFollowerDriverXT>(
-                    vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle());
+                auto driverXT = chrono_types::make_shared<ChPathFollowerDriverXT>(vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle());
                 driverXT->GetSteeringController().SetLookAheadDistance(5);
                 driverXT->GetSteeringController().SetGains(0.4, 1, 1, 1);
                 driverXT->GetSpeedController().SetGains(0.4, 0, 0);
@@ -156,8 +151,7 @@ class MyDriver {
             case DriverModelType::SR: {
                 m_driver_type = "SR";
 
-                auto driverSR = chrono_types::make_shared<ChPathFollowerDriverSR>(
-                    vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle(), 3.2);
+                auto driverSR = chrono_types::make_shared<ChPathFollowerDriverSR>(vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle(), 3.2);
                 driverSR->GetSteeringController().SetGains(0.1, 5);
                 driverSR->GetSteeringController().SetPreviewTime(0.5);
                 driverSR->GetSpeedController().SetGains(0.4, 0, 0);
@@ -174,8 +168,7 @@ class MyDriver {
                 ////    GetVehicleDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
                 ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
 
-                auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(vehicle, path, "my_path", road_width,
-                                                                            vehicle.GetMaxSteeringAngle(), 3.2);
+                auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(vehicle, path, "my_path", road_width, vehicle.GetMaxSteeringAngle(), 3.2);
                 driverHUMAN->SetPreviewTime(0.5);
                 driverHUMAN->SetLateralGains(0.1, 2);
                 driverHUMAN->SetLongitudinalGains(0.1, 0.1, 0.2);
@@ -237,18 +230,18 @@ int main(int argc, char* argv[]) {
     ChCLI cli(argv[0]);
 
     // Set up parameter defaults and command-line arguments
-    DriverModelType driver_type = DriverModelType::HUMAN;
+    std::string driver_type_str = "HUMAN";
     std::string crg_road_file = "terrain/crg_roads/RoadCourse.crg";
     bool yup = false;
 
-    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, PP, XT, SR, HUMAN", "HUMAN");
+    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, PP, XT, SR, HUMAN", driver_type_str);
     cli.AddOption<std::string>("Demo", "f,roadfile", "CRG road filename", crg_road_file);
     cli.AddOption<bool>("Demo", "y,yup", "Use YUP world frame", std::to_string(yup));
 
     if (!cli.Parse(argc, argv, true))
         return 1;
 
-    driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
+    auto driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
     crg_road_file = GetVehicleDataFile(cli.GetAsType<std::string>("roadfile"));
     yup = cli.GetAsType<bool>("yup");
 
