@@ -22,7 +22,7 @@
 #include "chrono/input_output/ChOutput.h"
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadHydrodynamics.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -51,22 +51,25 @@ namespace ch_precice {
 /// preCICE adapter for Chrono MBS simulation.
 class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
   public:
+    /// Construct a Chrono MBS participant.
+    /// No Chrono system and no preCICE interfaces are defined.
+    /// If enabled and if added mass blocks are defined, a hydrodynamics load object will be created during initialization.
+    ChPreciceAdapterMbs(bool use_added_mass = false);
+
     /// Construct a Chrono MBS preCICE participant for the specified Chrono system.
     /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
-    ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose = false);
+    /// If enabled and if added mass blocks are defined, a hydrodynamics load object will be created during initialization.
+    ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool use_added_mass = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-    /// Construct a Chrono MBS preCICE participant configured from the specified YAML file.
+    /// Load Chrono MBS preCICE participant configuration from the specified YAML file.
     /// The provided YAML file must be of type `MBS` and include a member `precice_adapter_configuration`.
     /// The preCICE interfaces (coupling bodies and FEA meshes and their associated coupling meshes and mesh data)
     /// are read from the YAML specification file.
-    ChPreciceAdapterMbs(const std::string& input_filename, bool verbose = false);
+    void LoadFromYaml(const std::string& input_filename);
 #endif
 
     ~ChPreciceAdapterMbs() {}
-
-    /// Get underlying Chrono multibody system.
-    ChSystem& GetSystem() { return *m_sys; }
 
     /// Enable/disable soft real-time for MBS simulation (default: false).
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
@@ -82,6 +85,19 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     /// - if the MBS preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
 #endif
+
+    /// Set added mass blocks from specified HDF5 hydrodynamics file.
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    void SetAddedMassBlocks(const std::string& h5_filename);
+
+    /// Set added mass blocks (simultaneously for all interface objects).
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    void SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>> blocks);
+
+    /// Get underlying Chrono multibody system.
+    ChSystem& GetSystem() { return *m_sys; }
 
     /// Class to be used as a callback interface for user-defined actions to be performed before advancing MBS dynamics.
     /// The `OnStepDynamics` is called at each step, before the call to `DoStepDynamics`.
@@ -141,6 +157,12 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     };
 #endif
 
+#if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
+    void LoadBodiesYAML(const YAML::Node& bodies, const parsers::ChParserMbsYAML& parser);
+    void LoadMeshesYAML(const YAML::Node& meshes, const parsers::ChParserMbsYAML& parser);
+    void LoadAddedMassYAML(const YAML::Node& added_mass, const parsers::ChParserMbsYAML& parser);
+#endif
+
     void ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
@@ -160,6 +182,9 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 #ifdef CHRONO_FEA
     std::vector<std::shared_ptr<CouplingFEAMesh>> m_coupling_fea;  ///< coupling FEA meshes
 #endif
+
+    bool m_use_added_mass;                               ///< include added mass
+    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;  ///< added mass blocks 
 
     // Dynamics callbacks
     std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics

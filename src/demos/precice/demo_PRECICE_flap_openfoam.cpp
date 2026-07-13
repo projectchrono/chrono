@@ -70,7 +70,9 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
 
     // Create the Chrono MBS participant
-    ChPreciceAdapterMbs participant("./mbs_participant.yaml", verbose);
+    ChPreciceAdapterMbs participant;
+    participant.SetVerbose(verbose);
+    participant.LoadFromYaml("./mbs_participant.yaml");
 
     // Access RSDA in MBS model
     auto& sys = participant.GetSystem();

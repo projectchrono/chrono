@@ -50,7 +50,7 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output, bool use_added_mass);
 void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 
@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
     bool visualize = true;
     bool output = true;
+    bool use_added_mass = false;
 
     // Set root output directory
     std::string out_dir = GetChronoOutputPath() + "PRECICE_Sphere_Drop/";
@@ -91,7 +92,8 @@ int main(int argc, char* argv[]) {
         " 'Fluid_BUOY' - mock-up fluid solver that applies buoyancy and drag forces\n";  //
 
     ChCLI cli(argv[0], help);
-    cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_BUOY, Fluid_SPH)");
+    cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_SPH, Fluid_BUOY)");
+    cli.AddOption<bool>("", "m,use_added_mass", "Include added mass terms (only for 'Solid' participant)");
 
     if (!cli.Parse(argc, argv, true))
         return 1;
@@ -104,9 +106,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    use_added_mass = cli.GetAsType<bool>("use_added_mass");
+
     // Run the specified preCICE participant
     if (type == "Solid")
-        RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output);
+        RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output, use_added_mass);
     else if (type == "Fluid_BUOY")
         RunParticipantCFD(precice_config_filename, out_dir, verbose, visualize, output);
     else if (type == "Fluid_SPH")
@@ -119,8 +123,10 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 
-void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
-    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"), verbose);
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output, bool use_added_mass) {
+    ChPreciceAdapterMbs participant(use_added_mass);
+    participant.SetVerbose(verbose);
+    participant.LoadFromYaml(GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"));
 
     auto mbs_out_dir = out_dir + "mbs";
     if (output) {

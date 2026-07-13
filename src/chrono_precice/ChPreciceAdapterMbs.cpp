@@ -16,6 +16,10 @@
 
 #include "chrono_precice/ChPreciceAdapterMbs.h"
 
+#ifdef CHRONO_HAS_HDF5
+    #include "chrono/input_output/ChUtilsHDF5.h"
+#endif
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -23,17 +27,16 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
-    : ChPreciceAdapter("model_MBS"), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false) {
-    SetVerbose(verbose);
-}
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(bool use_added_mass) : ChPreciceAdapterMbs(nullptr, 0.0, use_added_mass) {}
+
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool use_added_mass)
+    : ChPreciceAdapter("model_MBS"), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_use_added_mass(use_added_mass) {}
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool verbose) {
-    SetVerbose(verbose);
 
+void ChPreciceAdapterMbs::LoadFromYaml(const std::string& input_filename) {
     // Create the MBS from the YAML specification file
-    parsers::ChParserMbsYAML parser(input_filename, verbose);
+    parsers::ChParserMbsYAML parser(input_filename, m_verbose);
     m_model_name = parser.GetName();
     m_sys = parser.CreateSystem();
     m_time_step = parser.GetTimestep();
@@ -55,47 +58,111 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& input_filename, bool
     auto config = yaml["precice_adapter_config"];
 
     // - read information on coupling bodies and check that they are defined in the MBS
-    if (config["bodies"]) {
-        auto bodies = config["bodies"];
-        ChAssertAlways(bodies.IsSequence());
-        for (int i = 0; i < bodies.size(); i++) {
-            ChAssertAlways(bodies[i]["name"]);
-            auto body_name = bodies[i]["name"].as<std::string>();
-            auto body = parser.FindBodyByName(body_name);
-            if (!body) {
-                cerr << "No body named '" << body_name << "' was found in the MBS" << endl;
-                throw std::runtime_error("Interface body not present in MBS");
-            }
-            if (bodies[i]["points"]) {
-                auto points_file = bodies[i]["points"].as<std::string>();
-                auto points_ext = std::filesystem::path(points_file).extension().string();
-                if (points_ext == ".obj" || points_ext == ".OBJ") {
-                    auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(m_file_handler.GetFilename(points_file), false, false);
-                    AddCouplingBody(body, mesh->GetCoordsVertices());
-                } else if (points_ext == ".stl" || points_ext == ".STL") {
-                    auto mesh = ChTriangleMeshConnected::CreateFromSTLFile(m_file_handler.GetFilename(points_file), false);
-                    AddCouplingBody(body, mesh->GetCoordsVertices());
-                } else {
-                    auto points = ReadPoints(m_file_handler.GetFilename(points_file));
-                    AddCouplingBody(body, points);
-                }
-            } else {
-                AddCouplingBody(body, std::vector<ChVector3d>());
-            }
-        }
-    }
+    if (config["bodies"])
+        LoadBodiesYAML(config["bodies"], parser);
 
     #ifdef CHRONO_FEA
     // - read information on FEA meshes and check that they are defined in the MBS
-    if (config["meshes"]) {
-        //// TODO
-    }
+    if (config["meshes"])
+        LoadMeshesYAML(config["meshes"], parser);
     #endif
+
+    // - if enabled, look for specification of added mass blocks
+    if (m_use_added_mass) {
+        if (config["added_mass"])
+            LoadAddedMassYAML(config["added_mass"], parser);
+        else {
+            cerr << "Added mass enabled, but no YAML specification provided." << endl;
+            throw std::runtime_error("Added mass enabled, but no YAML specification provided");
+        }
+    }
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------\n" << endl;
     }
 }
+
+void ChPreciceAdapterMbs::LoadBodiesYAML(const YAML::Node& bodies, const parsers::ChParserMbsYAML& parser) {
+    ChAssertAlways(bodies.IsSequence());
+    for (int i = 0; i < bodies.size(); i++) {
+        ChAssertAlways(bodies[i]["name"]);
+        auto body_name = bodies[i]["name"].as<std::string>();
+        auto body = parser.FindBodyByName(body_name);
+        if (!body) {
+            cerr << "No body named '" << body_name << "' was found in the MBS" << endl;
+            throw std::runtime_error("Interface body not present in MBS");
+        }
+        if (bodies[i]["points"]) {
+            auto points_file = bodies[i]["points"].as<std::string>();
+            auto points_ext = std::filesystem::path(points_file).extension().string();
+            if (points_ext == ".obj" || points_ext == ".OBJ") {
+                auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(m_file_handler.GetFilename(points_file), false, false);
+                AddCouplingBody(body, mesh->GetCoordsVertices());
+            } else if (points_ext == ".stl" || points_ext == ".STL") {
+                auto mesh = ChTriangleMeshConnected::CreateFromSTLFile(m_file_handler.GetFilename(points_file), false);
+                AddCouplingBody(body, mesh->GetCoordsVertices());
+            } else {
+                auto points = ReadPoints(m_file_handler.GetFilename(points_file));
+                AddCouplingBody(body, points);
+            }
+        } else {
+            AddCouplingBody(body, std::vector<ChVector3d>());
+        }
+    }
+}
+
+void ChPreciceAdapterMbs::LoadMeshesYAML(const YAML::Node& meshes, const parsers::ChParserMbsYAML& parser) {
+    #ifdef CHRONO_FEA
+    ChAssertAlways(meshes.IsSequence());
+    //// TODO
+    #endif
+}
+
+void ChPreciceAdapterMbs::LoadAddedMassYAML(const YAML::Node& added_mass, const parsers::ChParserMbsYAML& parser) {
+    if (added_mass["h5_filename"]) {
+        auto h5_filename = added_mass["h5_filename"].as<std::string>();
+        SetAddedMassBlocks(h5_filename);
+        return;
+    }
+
+    if (added_mass["blocks"]) {
+        ChAssertAlways(added_mass["density"]);
+        auto rho = added_mass["density"].as<double>();
+        auto blocks = added_mass["blocks"];
+        ChAssertAlways(blocks.IsSequence());
+        auto num_bodies = m_coupling_bodies.size();
+        ChAssertAlways(blocks.size() == num_bodies);
+        if (m_verbose)
+            cout << "Read added mass blocks" << endl;
+        for (size_t ib = 0; ib < num_bodies; ib++) {
+            ChAssertAlways(blocks[ib]["name"]);
+            auto body_name = blocks[ib]["name"].as<std::string>();
+            ChAssertAlways(body_name == m_coupling_bodies[ib]->body->GetName());
+            ChAssertAlways(blocks[ib]["data"]);
+            auto data = blocks[ib]["data"];
+            ChAssertAlways(data.IsSequence());
+            ChAssertAlways(data.size() == 6);
+            ChMatrixDynamic<> M(6, num_bodies * 6);
+            for (int i = 0; i < data.size(); i++) {
+                ChAssertAlways(data[i].IsSequence());
+                ChAssertAlways(data[i].size() == 6 * num_bodies);
+                for (int j = 0; j < data[i].size(); j++)
+                    M(i, j) = data[i][j].as<double>();
+            }
+            M *= rho;
+            m_added_mass_blocks.push_back(M);
+            if (m_verbose) {
+                cout << "- body '" << body_name << "' - read " << M.rows() << "x" << M.cols() << " block" << endl;
+                cout << M << endl;
+            }
+        }
+        return;
+    }
+
+    cerr << "Added mass enabled, but no valid YAML specification provided." << endl;
+    throw std::runtime_error("Added mass enabled, but no valid YAML specification provided");
+}
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -118,6 +185,43 @@ void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_me
     ////m_output_data.meshes.push_back(fea_mesh);
 }
 #endif
+
+void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::string& h5_filename) {
+#ifdef CHRONO_HAS_HDF5
+    try {
+        H5::H5File h5_file(m_file_handler.GetFilename(h5_filename), H5F_ACC_RDONLY);
+        auto rho = ReadDouble(h5_file, "simulation_parameters/rho");
+        if (m_verbose)
+            cout << "Read added mass blocks" << endl;
+        auto num_bodies = m_coupling_bodies.size();
+        for (size_t i = 0; i < num_bodies; i++) {
+            auto data_name = "body" + std::to_string(i + 1) + "/hydro_coeffs/added_mass/inf_freq";
+            auto M = ReadMatrix(h5_file, data_name);
+            M *= rho;
+            m_added_mass_blocks.push_back(M);
+            if (m_verbose) {
+                cout << "- body " << i + 1 << " - read " << M.rows() << "x" << M.cols() << " block" << endl;
+                cout << M << endl;
+            }
+        }
+    } catch (const H5::Exception& e) {
+        cerr << "Unable to open/read HDF5 file." << endl;
+        cerr << "  HDF5 error: " << e.getDetailMsg() << endl;
+        throw std::runtime_error("Unable to open/read HDF5 file");
+    }
+#else
+    cerr << "No HDF5 support enabled. Cannot read added mass information from HDF5 file." << endl;
+    throw std::runtime_error("No HDF5 support enabled. Cannot read added mass information from HDF5 file");
+#endif
+}
+
+void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>> blocks) {
+    if (!m_use_added_mass) {
+        cerr << "The Chrono MBS preCICE adapter was not constructed with added mass support." << endl;
+        throw std::runtime_error("The Chrono MBS preCICE adapter was not constructed with added mass support");
+    }
+    m_added_mass_blocks = blocks;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -230,6 +334,19 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
         // Register coupling mesh with preCICE, taking into account mesh dimension
         RegisterMesh(mesh_name, vertices);
+    }
+
+    // Handle added mass info (applied via a Chrono ChLoadHydrodynamics)
+    if (m_use_added_mass && m_added_mass_blocks.size() > 0) {
+        auto num_bodies = m_coupling_bodies.size();
+        ChAssertAlways(m_added_mass_blocks.size() == num_bodies);
+        ChBodyAddedMassBlocks body_blocks;
+        for (size_t i = 0; i < num_bodies; i++) {
+            body_blocks.push_back({m_coupling_bodies[i]->body, m_added_mass_blocks[i]});
+        }
+        auto hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
+        hydro_load->SetVerbose(m_verbose);
+        m_sys->Add(hydro_load);
     }
 
     // Allocate space for checkpoint

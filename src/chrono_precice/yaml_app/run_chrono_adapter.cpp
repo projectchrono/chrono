@@ -145,7 +145,9 @@ bool ParseArgs(int argc,
 
 bool RunMBS(const std::string& yaml_filename, const std::string& precice_filename, const std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
     // Create the preCICE Chrono MBS participant
-    ChPreciceAdapterMbs participant(yaml_filename, !disable_verbose);
+    ChPreciceAdapterMbs participant;
+    participant.SetVerbose(!disable_verbose);
+    participant.LoadFromYaml(yaml_filename);
 
     // Create and set output directories
     const auto& model_name = participant.GetModelName();
