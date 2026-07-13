@@ -61,9 +61,9 @@ class ChApi ChVisualShapeSegment : public ChVisualShapePointPoint {
 class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
   public:
     ChVisualShapeSpring(double mradius = 0.05, int mresolution = 65, double mturns = 5.) : radius(mradius), turns(mturns), resolution(mresolution) {}
-    double GetRadius() { return radius; }
-    size_t GetResolution() { return resolution; }
-    double GetTurns() { return turns; }
+    double GetRadius() const { return radius; }
+    size_t GetResolution() const { return resolution; }
+    double GetTurns() const { return turns; }
 
     /// Disable CPU-side visual geometry updates (for visualization systems that generate geometry on GPU)
     void SetGeometryUpdatesDisabled(bool disable) { m_disable_geom_updates = disable; }
