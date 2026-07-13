@@ -1281,9 +1281,11 @@ set(Chrono_inputoutput_SOURCES
 )
 if(HDF5_FOUND)
     set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChUtilsHDF5.h
         input_output/ChOutputHDF5.h
     )
     set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChUtilsHDF5.cpp
         input_output/ChOutputHDF5.cpp
     )
 endif()
