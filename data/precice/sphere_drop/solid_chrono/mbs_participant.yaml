@@ -27,10 +27,27 @@ visualization:
 
 precice_adapter_config:
   participant_name: Solid
+  
+  data_path:
+    type: RELATIVE
+    root: "."
 
   bodies:
   - name: ball
   
+  added_mass:
+    #h5_filename: "sphere.h5"
+    density: 1000
+    blocks:
+    - name: ball
+      data:
+      - [ 71.57,    0,      0,       0,    143.14, 0       ]
+      - [  0,      71.57,   0,    -143.14,   0,    0       ]
+      - [  0,       0,    130.88,    0,      0,    0       ]
+      - [  0,    -143.14,   0,     286.27,   0,    0       ]
+      - [143.14,    0,      0,       0,    286.27, 0       ]
+      - [  0,       0,      0,       0,      0,    6.82e-8 ]
+
   interfaces:
   - mesh_name: SolidMesh
     mesh_type: RIGID_BODY_REFS

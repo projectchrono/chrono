@@ -5,9 +5,9 @@ model:  "model_tdpf.yaml"
 solver: "solver_tdpf.yaml"
 
 output:
-    format: NONE
-    mode: FRAMES
-    fps: 20
+  format: NONE
+  mode: FRAMES
+  fps: 20
 
 visualization:
   update_fps: 30
