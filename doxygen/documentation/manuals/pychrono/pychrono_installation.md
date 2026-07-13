@@ -67,6 +67,10 @@ Do this:
    Or, if you have hard disk space, better install a full stack like [Anaconda](https://www.anaconda.com/download/)
 3. build the PyChrono module, following [these instructions](@ref module_python_installation)
 
+<div class="ce-info">
+**AMD GPUs (ROCm):** If your machine has AMD Instinct or Radeon GPUs and you use **PyTorch ROCm** (or another ROCm ML stack) alongside Chrono, you can still build **CPU PyChrono** without the NVIDIA CUDA toolkit. See the repository file **`docs/README_AMD_GPU.md`** for workflows (CPU vs HIP/FSI), **Eigen3** / **SWIG** prerequisites, and **`ROCR_VISIBLE_DEVICES`** on multi-GPU hosts.
+</div>
+
 <div class="ce-warning">
 When building PyChrono from the C++ source, the PYTHONPATH environment variable must be edited to include the path to the bin/ directory in the Chrono build tree.
 For example:

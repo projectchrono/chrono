@@ -479,6 +479,7 @@ set(Chrono_fea_materials_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
+    fea/ChMaterialFEA.h
     fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h
     fea/ChMaterialHexaANCF.h
@@ -494,7 +495,7 @@ set(Chrono_fea_sections_SOURCES
     fea/ChBeamSectionEuler.cpp
     fea/ChBeamSectionTaperedTimoshenko.cpp
     fea/ChBeamSectionTaperedTimoshenkoFPM.cpp
-    fea/ChBeamSectionCable.cpp
+    fea/ChBeamSectionCableANCF.cpp
     )
 set(Chrono_fea_sections_HEADERS
     fea/ChBeamSection.h
@@ -503,7 +504,7 @@ set(Chrono_fea_sections_HEADERS
     fea/ChBeamSectionEuler.h
     fea/ChBeamSectionTaperedTimoshenko.h
     fea/ChBeamSectionTaperedTimoshenkoFPM.h
-    fea/ChBeamSectionCable.h
+    fea/ChBeamSectionCableANCF.h
     )
 source_group(fea\\sections FILES ${Chrono_fea_sections_SOURCES} ${Chrono_fea_sections_HEADERS})
 
@@ -1558,14 +1559,9 @@ if(CHRONO_YAML_ENABLED)
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.
+# On Windows, Winsock is needed regardless of the compiler (MSVC, clang, GCC/MinGW).
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-	endif()
+    target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
@@ -1597,7 +1593,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:__cplusplus">)
 
         # CUDA 13+ CCCL headers require MSVC's conforming preprocessor
-        if(CHRONO_CUDA_FOUND AND ${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "13.0")
+        if(CHRONO_CUDA_FOUND AND CUDAToolkit_VERSION VERSION_GREATER_EQUAL "13.0")
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/Zc:preprocessor>)
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:preprocessor">) # without this flag the memory alignment seems to be broken          
         endif()

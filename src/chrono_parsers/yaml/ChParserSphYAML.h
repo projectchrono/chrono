@@ -49,7 +49,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     void LoadFile(const std::string& yaml_filename);
 
     /// Load the simulation, output, and visualization settings from the specified YAML node.
-    void LoadSimData(const YAML::Node& yaml);
+    void LoadSimData(const YAML::Node& yaml) override;
 
     /// Load the MBS model from the specified YAML node.
     void LoadModelData(const YAML::Node& yaml);
@@ -72,18 +72,14 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     virtual std::shared_ptr<fsi::ChFsiSystem> GetFsiSystem() override { return m_fsi_problem->GetFsiSystemSPH(); }
 
     /// Access the underlying fluid system.
-    virtual std::shared_ptr<fsi::ChFsiFluidSystem> GetFluidSystem() override {
-        return m_fsi_problem->GetFluidSystemSPH();
-    }
+    virtual std::shared_ptr<fsi::ChFsiFluidSystem> GetFluidSystem() override { return m_fsi_problem->GetFluidSystemSPH(); }
 
     // --------------
 
-    bool Render() const { return m_vis.render; }
-    bool UseSplashurf() const { return m_vis.use_splashsurf; }
 #ifdef CHRONO_VSG
-    const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters() {
-        return *m_vis.splashsurf_params;
-    }
+    const fsi::sph::ChSphVisualizationVSG::Settings& GetSphVisualizationSettings() const;
+    const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& GetSplashsurfParameters() const;
+    bool UseSplashurf() const { return m_visSPH_settings.use_splashsurf; }
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
 #endif
 
@@ -92,9 +88,8 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Write simulation output results at the current time.
     virtual void WriteOutput(int frame, double time) override;
 
-  private:  // ---- Data structures
+  private:
     enum class GeometryType { CARTESIAN, CYLINDRICAL };
-    enum class ParticleColoringType { NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE };
 
     /// Box domain (fluid or container, CARTESIAN).
     struct BoxDomain {
@@ -121,7 +116,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Material (fluid or soil) properties
     struct MaterialProperties {
         MaterialProperties();
-        void PrintInfo();
+        void PrintInfo() const;
 
         fsi::sph::PhysicsProblem physics_problem;
         fsi::sph::ChFsiFluidSystemSPH::FluidProperties fluid_props;
@@ -131,7 +126,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Problem geometry (fluid domain, container, computational domain).
     struct ProblemGeometry {
         ProblemGeometry();
-        void PrintInfo();
+        void PrintInfo() const;
 
         std::unique_ptr<BoxDomain> fluid_domain_cartesian;
         std::unique_ptr<AnnulusDomain> fluid_domain_cylindrical;
@@ -144,7 +139,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Wave tank settings.
     struct Wavetank {
         Wavetank();
-        void PrintInfo();
+        void PrintInfo() const;
 
         fsi::sph::ChFsiProblemWavetank::WavemakerType type;
         BoxDomain container;
@@ -156,37 +151,10 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         double actuation_delay;
     };
 
-    /// Run-time visualization parameters.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
-
-        bool render;
-        bool use_splashsurf;
-
-        bool sph_markers;        ///< render fluid SPH particles?
-        bool bndry_bce_markers;  ///< render boundary BCE markers?
-        bool rigid_bce_markers;  ///< render rigid-body BCE markers?
-        bool flex_bce_markers;   ///< render flex-body markers?
-        bool active_boxes;       ///< render active boxes?
-
-        ChColormap::Type colormap;  ///< colormap for coloring callback
-
-#ifdef CHRONO_VSG
-        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::ParticleColorCallback> color_callback;
-        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_sph;
-        std::shared_ptr<fsi::sph::ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_bce;
-        std::unique_ptr<fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters> splashsurf_params;
-#endif
-
-        bool write_images;      ///< if true, save snapshots
-        std::string image_dir;  ///< directory for image files
-    };
-
     /// Simulation and run-time visualization parameters.
     struct SimParams {
         SimParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         double end_time;
         ChVector3d gravity;
@@ -200,7 +168,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
         //// TODO
     };
 
-  private:  // ---- Functions
+  private:
     static GeometryType ReadGeometryType(const YAML::Node& a);
     static fsi::sph::PhysicsProblem ReadPhysicsProblemType(const YAML::Node& a);
     static fsi::sph::ChFsiProblemWavetank::WavemakerType ReadWavetankType(const YAML::Node& a);
@@ -216,20 +184,16 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
 
     static fsi::sph::BCType ReadBoundaryConditionType(const YAML::Node& a);
 
-    static ParticleColoringType ReadParticleColoringType(const YAML::Node& a);
-
-#ifdef CHRONO_VSG
-    static fsi::sph::MarkerPlanesVisibilityCallback::Mode ReadVisibilityMode(const YAML::Node& a);
-#endif
-
-  private:  // ---- Member variables
-    GeometryType m_geometry_type;
+  private:
+    GeometryType m_geometry_type;  ///< geometry coordinate system (Cartesian or cylindrical)
 
     MaterialProperties m_material;  ///< material properties
     ProblemGeometry m_geometry;     ///< fluid parameters
     Wavetank m_wavetank;            ///< wave tank settings
     SimParams m_sim;                ///< simulation settings
-    VisParams m_vis;                ///< run-time visualization settings
+#ifdef CHRONO_VSG
+    fsi::sph::ChSphVisualizationVSG::Settings m_visSPH_settings;  ///< SPH visualization settings
+#endif
 
     std::shared_ptr<fsi::sph::ChFsiProblemSPH> m_fsi_problem;  ///< underlying FSI problem
 

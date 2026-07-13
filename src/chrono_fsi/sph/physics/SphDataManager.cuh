@@ -86,6 +86,8 @@ struct SphMarkerDataD {
 
     zipIterSphD iterator(int offset);
     void resize(size_t s);
+
+    size_t size() const { return posRadD.size(); }
 };
 
 /// Struct to store the information of SPH particles on the host.

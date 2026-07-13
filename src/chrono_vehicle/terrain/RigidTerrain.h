@@ -168,6 +168,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Get the terrain patches currently added to the rigid terrain system.
     const std::vector<std::shared_ptr<Patch>>& GetPatches() const { return m_patches; }
 
+    /// Get the specified rigid terrain patch.
+    std::shared_ptr<Patch> GetPatch(int i) const { return m_patches[i]; }
+
     /// Bind the visual and collision models of the specified patch.
     /// This function should be called for any patches created dynamically during simulation, after the RigidTerrain was
     /// initialized.

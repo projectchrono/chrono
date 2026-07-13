@@ -26,16 +26,14 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_parsers/ChParserURDF.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
 #endif
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
-using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
@@ -89,7 +87,7 @@ int main(int argc, char* argv[]) {
     // Example: change contact material properties for a body
     ////ChContactMaterialData mat;
     ////mat.kn = 2.5e6;
-    ////parser.SetBodyContactMaterial("head", mat);  // hardcoded for R2D2 model
+    ////parser.SetBodyContactMaterial("head", mat);  // hard-coded for R2D2 model
 
     // Optional: enable visualization of collision geometry
     ////parser.EnableCollisionVisualization();
@@ -123,7 +121,7 @@ int main(int argc, char* argv[]) {
     parser.PrintChronoBodies();
     parser.PrintChronoJoints();
 
-    // Robot bounding box (visualizatino models)
+    // Robot bounding box (visualization models)
     auto aabb_coll = parser.GetCollisionBoundingBox();
     auto aabb_vis = parser.GetVisualizationBoundingBox();
     std::cout << "Collision AABB" << std::endl;
@@ -145,7 +143,7 @@ int main(int argc, char* argv[]) {
 
     // Example: Change actuation function for a particular joint
     auto sfun = chrono_types::make_shared<ChFunctionSine>(1.0, 0.2);
-    parser.SetMotorFunction("head_swivel", sfun);  // hardcoded for R2D2 model
+    parser.SetMotorFunction("head_swivel", sfun);  // hard-coded for R2D2 model
 
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
@@ -172,7 +170,7 @@ int main(int argc, char* argv[]) {
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            auto vis_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(&sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->SetWindowSize(1200, 800);
@@ -190,7 +188,7 @@ int main(int argc, char* argv[]) {
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            auto vis_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("URDF parser demo");

@@ -111,15 +111,13 @@ void ChSystemMulticoreNSC::CalculateContactForces() {
 real3 ChSystemMulticoreNSC::GetBodyContactForce(std::shared_ptr<ChBody> body) const {
     assert(data_manager->Fc_current);
     auto body_id = body->GetIndex();
-    return real3(data_manager->host_data.Fc[body_id * 6 + 0], data_manager->host_data.Fc[body_id * 6 + 1],
-                 data_manager->host_data.Fc[body_id * 6 + 2]);
+    return real3(data_manager->host_data.Fc[body_id * 6 + 0], data_manager->host_data.Fc[body_id * 6 + 1], data_manager->host_data.Fc[body_id * 6 + 2]);
 }
 
 real3 ChSystemMulticoreNSC::GetBodyContactTorque(std::shared_ptr<ChBody> body) const {
     assert(data_manager->Fc_current);
     auto body_id = body->GetIndex();
-    return real3(data_manager->host_data.Fc[body_id * 6 + 3], data_manager->host_data.Fc[body_id * 6 + 4],
-                 data_manager->host_data.Fc[body_id * 6 + 5]);
+    return real3(data_manager->host_data.Fc[body_id * 6 + 3], data_manager->host_data.Fc[body_id * 6 + 4], data_manager->host_data.Fc[body_id * 6 + 5]);
 }
 
 static inline chrono::ChVector3<real> ToChVector(const real3& a) {
@@ -161,10 +159,8 @@ void ChSystemMulticoreNSC::AssembleSystem() {
         icontact.modelA = GetBodies()[cd_pair.x]->GetCollisionModel().get();
         icontact.modelB = GetBodies()[cd_pair.y]->GetCollisionModel().get();
         icontact.vN = ToChVector(data_manager->cd_data->norm_rigid_rigid[i]);
-        icontact.vpA =
-            ToChVector(data_manager->cd_data->cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
-        icontact.vpB =
-            ToChVector(data_manager->cd_data->cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
+        icontact.vpA = ToChVector(data_manager->cd_data->cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
+        icontact.vpB = ToChVector(data_manager->cd_data->cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
         icontact.distance = data_manager->cd_data->dpth_rigid_rigid[i];
         icontact.eff_radius = data_manager->cd_data->erad_rigid_rigid[i];
         contact_container->AddContact(icontact);

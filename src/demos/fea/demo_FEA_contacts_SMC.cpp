@@ -80,8 +80,7 @@ int main(int argc, char* argv[]) {
         floor->SetFixed(true);
         sys.Add(floor);
 
-        auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(contact_material, box_mesh, false,
-                                                                                   false, sphere_swept_thickness);
+        auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(contact_material, box_mesh, false, false, sphere_swept_thickness);
         floor->AddCollisionShape(floor_shape);
         floor->EnableCollision(true);
 
@@ -130,8 +129,7 @@ int main(int argc, char* argv[]) {
             ChCoordsys<> cydisp(ChVector3d(-0.3, 0.1 + i * 0.1, -0.3));
             ChCoordsys<> ctot = cdown >> crot >> cydisp;
             ChMatrix33<> rot(ctot.rot);
-            ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
-                                             GetChronoDataFile("fea/beam.ele").c_str(), material, ctot.pos, rot);
+            ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(), GetChronoDataFile("fea/beam.ele").c_str(), material, ctot.pos, rot);
         } catch (std::exception err) {
             std::cerr << err.what();
             return 0;
@@ -156,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     // 2) an ANCF cable:
 
-    auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    auto section_cable = chrono_types::make_shared<ChBeamSectionCableANCF>();
     section_cable->SetDiameter(0.05);
     section_cable->SetYoungModulus(0.01e9);
     section_cable->SetRayleighDamping(0.05);
@@ -183,11 +181,8 @@ int main(int argc, char* argv[]) {
     // Optional...  visualization
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
-    // asset that is internally managed) by setting  proper
-    // coordinates and vertex colors as in the FEM elements.
-    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by setting  proper coordinates and vertex colors as in the FEM
+    // elements. Such a triangle mesh can be rendered by any visual system that can handle a colored ChVisualShapeTriangleMesh.
 
     ChColormap::Type colormap_type = ChColormap::Type::FAST;
     ChVector2d colormap_range(0.0, 2.50);
@@ -197,7 +192,7 @@ int main(int argc, char* argv[]) {
     vis_mesh_A->SetColormap(colormap_type);
     vis_mesh_A->SetColormapRange(colormap_range);
     vis_mesh_A->SetSmoothFaces(true);
-   // mesh->AddVisualShapeFEA(vis_mesh_A);
+    // mesh->AddVisualShapeFEA(vis_mesh_A);
 
     auto vis_mesh_B = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh_B->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);

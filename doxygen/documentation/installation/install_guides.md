@@ -78,6 +78,8 @@ For more details, see the relevant [section](@ref scripts) in the Chrono core mo
 
 - @subpage pychrono_installation
 
+- **AMD GPU hosts (ROCm):** see [`docs/README_AMD_GPU.md`](../../../docs/README_AMD_GPU.md) for CPU PyChrono next to PyTorch ROCm, optional HIP/FSI, and device selection (`ROCR_VISIBLE_DEVICES`).
+
 
 ### Chrono::Solidworks add-in
 

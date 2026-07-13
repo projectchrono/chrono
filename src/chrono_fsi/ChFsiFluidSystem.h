@@ -86,7 +86,7 @@ class CH_FSI_API ChFsiFluidSystem {
     /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
     /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
     /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces) = 0;
+    virtual void StoreSolidForces(std::vector<FsiBodyForce>& body_forces) = 0;
 
 #ifdef CHRONO_FEA
     /// Load FSI body and mesh node states from the given vectors.
@@ -101,7 +101,7 @@ class CH_FSI_API ChFsiFluidSystem {
     /// However, a concrete fluid system can be paired with a corresponding FSI interface, both of which work on the
     /// same data structures; in that case, the custom FSI interface need not use the mechanism provided by
     /// LoadSolidStates and StoreSolidForces (which incur the cost of additional data copies).
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces, std::vector<FsiMeshForce> mesh1D_forces, std::vector<FsiMeshForce> mesh2D_forces) = 0;
+    virtual void StoreSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) = 0;
 #endif
 
     /// Get the current step size.

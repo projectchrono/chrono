@@ -16,14 +16,20 @@
 
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeBox.h"
-
 #include "chrono/physics/ChSystemSMC.h"
+#ifdef CHRONO_HAS_YAML
+    #include "chrono/input_output/ChUtilsYAML.h"
+#endif
 
 #include "chrono_fsi/tdpf/visualization/ChTdpfVisualizationVSG.h"
 
 #include "chrono_vsg/utils/ChDataUtilsVSG.h"
 #include "chrono_vsg/utils/ChShapeBuilderVSG.h"
 #include "chrono_vsg/impl/VSGvisitors.h"
+
+using std::cout;
+using std::cerr;
+using std::endl;
 
 namespace chrono {
 namespace fsi {
@@ -42,8 +48,7 @@ class FSITDPFStatsVSG : public vsg3d::ChGuiComponentVSG {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin("TDPF");
 
-        if (ImGui::BeginTable("TDPF_STATS", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
+        if (ImGui::BeginTable("TDPF_STATS", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("FSI bodies:");
@@ -103,8 +108,7 @@ class FSITDPFStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
-        if (ImGui::BeginTable("TDPF_VIS", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
+        if (ImGui::BeginTable("TDPF_VIS", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             static bool waves_visible = m_vsysFSI->m_waves_visible;
             if (ImGui::Checkbox("Render water surface", &waves_visible)) {
@@ -124,19 +128,12 @@ class FSITDPFStatsVSG : public vsg3d::ChGuiComponentVSG {
 
 // ---------------------------------------------------------------------------
 
-ChTdpfVisualizationVSG::ChTdpfVisualizationVSG(ChFsiSystemTDPF* sysFSI)
-    : ChTdpfVisualizationVSG(&sysFSI->GetFluidSystemTDPF()) {
+ChTdpfVisualizationVSG::ChTdpfVisualizationVSG(ChFsiSystemTDPF* sysFSI) : ChTdpfVisualizationVSG(&sysFSI->GetFluidSystemTDPF()) {
     m_sysFSI = sysFSI;
 }
 
 ChTdpfVisualizationVSG::ChTdpfVisualizationVSG(ChFsiFluidSystemTDPF* sysTDPF)
-    : m_sysFSI(nullptr),
-      m_sysTDPF(sysTDPF),
-      m_waves_visible(false),
-      m_update_freq(20),
-      m_last_update(0),
-      m_write_images(false),
-      m_image_dir(".") {
+    : m_sysFSI(nullptr), m_sysTDPF(sysTDPF), m_waves_visible(false), m_update_freq(20), m_last_update(0), m_write_images(false), m_image_dir(".") {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
     m_wave_scene = vsg::Switch::create();
 }
@@ -219,8 +216,7 @@ void ChTdpfVisualizationVSG::OnInitialize() {
 
     // Add colorbar GUI
     if (m_waves_visible) {
-        m_wave_colorbar_id =
-            m_vsys->AddGuiColorbar("waves", m_wave_mesh.range, m_wave_mesh.colormap_type, false, 400.0f);
+        m_wave_colorbar_id = m_vsys->AddGuiColorbar("waves", m_wave_mesh.range, m_wave_mesh.colormap_type, false, 400.0f);
     }
 
     m_vsys->SetImageOutput(m_write_images);
@@ -289,8 +285,7 @@ void ChTdpfVisualizationVSG::OnBindAssets() {
 
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(), 1);
-    auto child = m_vsys->GetVSGShapeBuilder()->CreateTrimeshColShape(m_wave_mesh.trimesh, transform, ChColor(1, 1, 1),
-                                                                     m_wave_mesh.opacity, false, m_wave_mesh.wireframe);
+    auto child = m_vsys->GetVSGShapeBuilder()->CreateTrimeshColShape(m_wave_mesh.trimesh, transform, ChColor(1, 1, 1), m_wave_mesh.opacity, false, m_wave_mesh.wireframe);
     vsg::Mask mask = m_waves_visible;
     m_wave_scene->addChild(mask, child);
 
@@ -352,7 +347,7 @@ void ChTdpfVisualizationVSG::OnRender() {
     // Update trimesh vertex heights and colors based on wave elevation
     for (size_t iv = 0; iv < m_wave_mesh.trimesh->GetNumVertices(); iv++) {
         auto& v = m_wave_mesh.trimesh->GetCoordsVertices()[iv];
-        
+
         auto height = m_sysTDPF->GetWaveElevation(v.eigen());
         v.z() = height;
 
@@ -360,7 +355,7 @@ void ChTdpfVisualizationVSG::OnRender() {
             ChVector3d vel = VNULL;
             if (m_wave_mesh.colormode != ColorMode::HEIGHT)
                 vel = ChVector3d(m_sysTDPF->GetWaveVelocity(v.eigen(), height));
-            
+
             ChColor color;
             switch (m_wave_mesh.colormode) {
                 case ColorMode::HEIGHT:
@@ -385,8 +380,7 @@ void ChTdpfVisualizationVSG::OnRender() {
 
     // Dynamic data transfer CPU->GPU for wave mesh
     if (m_wave_mesh.dynamic_vertices) {
-        const auto& new_vertices =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceVertices() : m_wave_mesh.trimesh->GetCoordsVertices();
+        const auto& new_vertices = m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceVertices() : m_wave_mesh.trimesh->GetCoordsVertices();
         assert(m_wave_mesh.vertices->size() == new_vertices.size());
 
         const size_t count = new_vertices.size();
@@ -406,8 +400,7 @@ void ChTdpfVisualizationVSG::OnRender() {
     }
 
     if (m_wave_mesh.dynamic_normals) {
-        const auto& new_normals =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceNormals() : m_wave_mesh.trimesh->GetAverageNormals();
+        const auto& new_normals = m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceNormals() : m_wave_mesh.trimesh->GetAverageNormals();
         assert(m_wave_mesh.normals->size() == new_normals.size());
 
         const size_t count = new_normals.size();
@@ -425,8 +418,7 @@ void ChTdpfVisualizationVSG::OnRender() {
     }
 
     if (m_wave_mesh.dynamic_colors) {
-        const auto& new_colors =
-            m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
+        const auto& new_colors = m_wave_mesh.mesh_soup ? m_wave_mesh.trimesh->GetFaceColors() : m_wave_mesh.trimesh->GetCoordsColors();
         assert(m_wave_mesh.colors->size() == new_colors.size());
 
         const size_t count = new_colors.size();
@@ -447,6 +439,69 @@ void ChTdpfVisualizationVSG::OnRender() {
             m_wave_mesh.colors->dirty();
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+
+ChTdpfVisualizationVSG::Settings::Settings() : colormap(ChColormap::Type::FAST), range({-1, 1}), update_fps(30) {
+    mode = ChTdpfVisualizationVSG::ColorMode::NONE;
+}
+
+ChTdpfVisualizationVSG::Settings::Settings(const Settings& other) {
+    colormap = other.colormap;
+    range = other.range;
+    update_fps = other.update_fps;
+    mode = other.mode;
+}
+
+ChTdpfVisualizationVSG::Settings& ChTdpfVisualizationVSG::Settings::operator=(const Settings& other) {
+    colormap = other.colormap;
+    range = other.range;
+    update_fps = other.update_fps;
+    mode = other.mode;
+    return *this;
+}
+
+#ifdef CHRONO_HAS_YAML
+
+static fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ReadWaveColoringMode(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+    if (val == "HEIGHT")
+        return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::HEIGHT;
+    if (val == "VELOCITY")
+        return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::VELOCITY_MAG;
+    return fsi::tdpf::ChTdpfVisualizationVSG::ColorMode::NONE;
+}
+
+ChTdpfVisualizationVSG::Settings::Settings(const YAML::Node& a) : Settings() {
+    if (a["update_fps"])
+        update_fps = a["update_fps"].as<double>();
+
+    if (a["color_map"]) {
+        ChAssertAlways(a["color_map"]["type"]);
+        mode = ReadWaveColoringMode(a["color_map"]["type"]);
+        if (a["color_map"]["map"])
+            colormap = ReadColorMapType(a["color_map"]["map"]);
+        if (a["color_map"]["min"])
+            range[0] = a["color_map"]["min"].as<double>();
+        if (a["color_map"]["max"])
+            range[1] = a["color_map"]["max"].as<double>();
+    }
+}
+
+ChTdpfVisualizationVSG::Settings ChTdpfVisualizationVSG::Settings::Read(const YAML::Node& a) {
+    Settings params(a);
+    return params;
+}
+
+#endif
+
+void ChTdpfVisualizationVSG::Settings::PrintInfo() const {
+    cout << "TDPF visualization" << endl;
+    cout << "  wave color mode:       " << ChTdpfVisualizationVSG::GetWaveMeshColorModeAsString(mode) << endl;
+    cout << "  colormap:              " << ChColormap::GetTypeAsString(colormap) << endl;
+    cout << "  color data range:      " << range << endl;
+    cout << "  mesh update frequency: " << update_fps << endl;
 }
 
 }  // namespace tdpf
