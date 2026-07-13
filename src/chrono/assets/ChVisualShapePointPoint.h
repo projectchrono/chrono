@@ -29,7 +29,7 @@ namespace chrono {
 
 class ChApi ChVisualShapePointPoint : public ChVisualShapeLine {
   public:
-    ChVisualShapePointPoint() = default;
+    ChVisualShapePointPoint();
 
     // Update the underlying line geometry and set current locations of the end points.
     virtual void Update(ChObj* updater, const ChFrame<>& coords) override;
@@ -60,12 +60,11 @@ class ChApi ChVisualShapeSegment : public ChVisualShapePointPoint {
 /// since each physics item will try to update geometry of the line and causes race conditions.
 class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
   public:
-    ChVisualShapeSpring(double mradius = 0.05, int mresolution = 65, double mturns = 5.)
-        : radius(mradius), turns(mturns), resolution(mresolution) {}
+    ChVisualShapeSpring(double mradius = 0.05, int mresolution = 65, double mturns = 5.) : radius(mradius), turns(mturns), resolution(mresolution) {}
     double GetRadius() { return radius; }
     size_t GetResolution() { return resolution; }
     double GetTurns() { return turns; }
-    
+
     /// Disable CPU-side visual geometry updates (for visualization systems that generate geometry on GPU)
     void SetGeometryUpdatesDisabled(bool disable) { m_disable_geom_updates = disable; }
 
