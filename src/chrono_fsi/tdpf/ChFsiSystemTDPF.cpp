@@ -21,8 +21,6 @@
 
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono/physics/ChLoadHydrodynamics.h"
-
 #include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
 #include "chrono_fsi/tdpf/ChFsiInterfaceTDPF.h"
 
@@ -51,6 +49,15 @@ void ChFsiSystemTDPF::SetHydroFilename(const std::string& filename) {
     m_sysTDPF->SetHydroFilename(filename);
 }
 
+void ChFsiSystemTDPF::SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks) {
+    if (!m_is_initialized) {
+        std::cerr << "ChFsiSystemTDPF::SetBodyAddedMassBlocks can only be called after initialization." << std::endl;
+        return;
+    }
+
+    m_hydro_load->SetBodyAddedMassBlocks(blocks);
+}
+
 void ChFsiSystemTDPF::Initialize() {
     if (m_verbose)
         std::cout << "FSI system has " << (m_generic_fsi_interface ? "generic" : "custom") << " interface" << std::endl;
@@ -69,9 +76,9 @@ void ChFsiSystemTDPF::Initialize() {
             body_blocks.push_back({fsi_bodies[i]->body, body_info[i].inf_added_mass});
         }
 
-        auto hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
-        hydro_load->SetVerbose(m_verbose);
-        fsi_bodies[0]->body->GetSystem()->Add(hydro_load);
+        m_hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
+        m_hydro_load->SetVerbose(m_verbose);
+        fsi_bodies[0]->body->GetSystem()->Add(m_hydro_load);
     }
 }
 

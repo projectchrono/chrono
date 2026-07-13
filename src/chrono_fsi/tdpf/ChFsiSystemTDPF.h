@@ -20,6 +20,7 @@
 #define CH_FSI_SYSTEM_TDPF_H
 
 #include "chrono_fsi/ChFsiSystem.h"
+#include "chrono/physics/ChLoadHydrodynamics.h"
 
 #include "chrono_fsi/tdpf/ChFsiFluidSystemTDPF.h"
 
@@ -48,13 +49,18 @@ class CH_FSI_API ChFsiSystemTDPF : public ChFsiSystem {
     /// Set input file name with hydro data (HDF5 format).
     void SetHydroFilename(const std::string& filename);
 
+    /// Modify the added mass blocks.
+    /// This function can only be called after Initialize().
+    void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);
+
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.
     virtual void Initialize() override;
 
   private:
-    ChFsiFluidSystemTDPF* m_sysTDPF;  ///< cached TDPF fluid solver
-    bool m_generic_fsi_interface;     ///< use default FSI interface?
+    ChFsiFluidSystemTDPF* m_sysTDPF;                    ///< cached TDPF fluid solver
+    bool m_generic_fsi_interface;                       ///< use default FSI interface?
+    std::shared_ptr<ChLoadHydrodynamics> m_hydro_load;  ///< hydrodynamics added mass
 };
 
 /// @} fsitdpf

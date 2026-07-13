@@ -20,7 +20,7 @@
 #include "chrono/core/ChApiCE.h"
 
 #include "chrono/physics/ChPhysicsItem.h"
-#include <chrono/physics/ChBody.h>
+#include "chrono/physics/ChBody.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
@@ -56,6 +56,9 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
 
     /// Enable/disable verbose terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
+
+    /// Modify the added mass blocks.
+    void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);
 
     /// Perform setup operations at the beginning of a step.
     virtual void Setup() override {}
