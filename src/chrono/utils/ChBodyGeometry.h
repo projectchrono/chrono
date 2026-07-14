@@ -117,18 +117,8 @@ class ChApi ChBodyGeometry {
     /// Trimesh shape for visualization and/or collision.
     struct ChApi TrimeshShape {
         TrimeshShape() = default;
-        TrimeshShape(const ChVector3d& pos,
-                     const ChQuaternion<>& rot,
-                     const std::string& filename,
-                     double scale = 1,
-                     double radius = 0,
-                     int matID = -1);
-        TrimeshShape(const ChVector3d& pos,
-                     const ChQuaternion<>& rot,
-                     std::shared_ptr<ChTriangleMeshConnected> trimesh,
-                     double scale = 1,
-                     double radius = 0,
-                     int matID = -1);
+        TrimeshShape(const ChVector3d& pos, const ChQuaternion<>& rot, const std::string& filename, double scale = 1, double radius = 0, int matID = -1);
+        TrimeshShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChTriangleMeshConnected> trimesh, double scale = 1, double radius = 0, int matID = -1);
 
         TrimeshShape(const ChVector3d& pos,
                      const ChQuaternion<>& rot,
@@ -179,12 +169,16 @@ class ChApi ChBodyGeometry {
     /// - PRIMITIVES: render primitive shapes (boxes, spheres, meshes, etc)
     /// If `create_material==false`, no visualization material is used for any shape (to allow optional use of dynamic
     /// colors); this is not applicable for VisualizationType::MESH.
-    void CreateVisualizationAssets(std::shared_ptr<ChBody> body,
-                                   VisualizationType vis = VisualizationType::PRIMITIVES,
-                                   bool create_materials = true);
+    void CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis = VisualizationType::PRIMITIVES, bool create_materials = true);
+
+    /// Create visualization assets for the specified body, placed at the given the body-relative frame.
+    void CreateVisualizationAssets(std::shared_ptr<ChBody> body, const ChFramed& frame, VisualizationType vis = VisualizationType::PRIMITIVES, bool create_materials = true);
 
     /// Create collision shapes for the specified body.
     void CreateCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method);
+
+    /// Create collision shapes for the specified body, placed at the given the body-relative frame.
+    void CreateCollisionShapes(std::shared_ptr<ChBody> body, const ChFramed& frame, int collision_family, ChContactMethod contact_method);
 
     /// Utility function for adding a cylinder visualization shape defined by the end points and a radius.
     /// This function adds the visualization shape to the body's visual model and returns the shape.
