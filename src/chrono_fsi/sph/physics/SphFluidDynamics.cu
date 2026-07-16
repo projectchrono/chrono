@@ -495,24 +495,30 @@ __device__ void TauEulerStep(Real dT,
                 a = square(mcc_M * K_n * c_v);
                 b = -K_n * square(c_v);
             }
-            // Solve quadratic robustly
+            // Solve quadratic robustly, in double precision: in single precision b^2
+            // overflows to inf once |b| > 1.84e19, which is reached for q_N_tr ~ 390 kPa
+            // at clamped moduli (b ~ -3*G*(2q)^2). The inf then propagates through
+            // delta_lambda to the hardening update and permanently poisons p_c.
             if (a <= 0) {
                 delta_lambda_N = 0.0;
             } else {
-                Real disc = square(b) - 4 * a * c;
-                disc = fmax(disc, Real(0.0));
-                Real sqrt_disc = sqrt(disc);
-                Real inv_2a = Real(0.5) / a;
-                Real r1 = (-b + sqrt_disc) * inv_2a;
-                Real r2 = (-b - sqrt_disc) * inv_2a;
+                double ad = (double)a;
+                double bd = (double)b;
+                double cd = (double)c;
+                double disc = fmax(bd * bd - 4.0 * ad * cd, 0.0);
+                double sqrt_disc = sqrt(disc);
+                double inv_2a = 0.5 / ad;
+                double r1 = (-bd + sqrt_disc) * inv_2a;
+                double r2 = (-bd - sqrt_disc) * inv_2a;
                 // pick the smallest positive root (or 0 if none)
-                delta_lambda_N = Real(0.0);
+                double dl = 0.0;
                 if (r1 > 0 && r2 > 0)
-                    delta_lambda_N = (r1 < r2) ? r1 : r2;
+                    dl = (r1 < r2) ? r1 : r2;
                 else if (r1 > 0)
-                    delta_lambda_N = r1;
+                    dl = r1;
                 else if (r2 > 0)
-                    delta_lambda_N = r2;
+                    dl = r2;
+                delta_lambda_N = (Real)dl;
             }
 
             // Get the mapped stress
@@ -531,9 +537,12 @@ __device__ void TauEulerStep(Real dT,
                 tau_offdiag = s_offdiag_N;
                 rho_p.y = p_N;
             }
-            // Update the consolidation pressure (only if we are not close to the free surface)
+            // Update the consolidation pressure (only if we are not close to the free surface).
+            // Guard against a non-finite plastic strain increment: without this, one bad
+            // delta_lambda makes p_c infinite forever (the fmax floor does not catch inf)
+            // and the particle never yields again.
             Real plastic_volumentric_strain = delta_lambda_N * c_v;
-            if (!close_to_surface) {
+            if (!close_to_surface && isfinite(plastic_volumentric_strain)) {
                 pcEvSv.x *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
                 // pcEvSv.x *= exp(plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
                 pcEvSv.x = fmax(Real(100.0), pcEvSv.x);
