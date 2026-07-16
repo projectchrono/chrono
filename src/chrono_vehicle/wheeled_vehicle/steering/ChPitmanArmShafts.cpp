@@ -375,24 +375,24 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
 // -----------------------------------------------------------------------------
 
 void ChPitmanArmShafts::PopulateComponentList() {
-    m_bodies.push_back(m_link);
-    m_bodies.push_back(m_arm);
+    m_components.bodies.push_back(m_link);
+    m_components.bodies.push_back(m_arm);
 
-    m_shafts.push_back(m_shaft_C);
-    m_shafts.push_back(m_shaft_C1);
-    m_shafts.push_back(m_shaft_A1);
-    m_shafts.push_back(m_shaft_A);
+    m_components.shafts.push_back(m_shaft_C);
+    m_components.shafts.push_back(m_shaft_C1);
+    m_components.shafts.push_back(m_shaft_A1);
+    m_components.shafts.push_back(m_shaft_A);
 
-    m_joints.push_back(m_revolute);
-    m_joints.push_back(m_revsph);
-    m_joints.push_back(m_universal);
+    m_components.joints.push_back(m_revolute);
+    m_components.joints.push_back(m_revsph);
+    m_components.joints.push_back(m_universal);
 
-    m_couples.push_back(m_shaft_motor);
-    m_couples.push_back(m_shaft_gear);
+    m_components.couples.push_back(m_shaft_motor);
+    m_components.couples.push_back(m_shaft_gear);
     if (m_rigid)
-        m_couples.push_back(m_rigid_connection);
+        m_components.couples.push_back(m_rigid_connection);
     else
-        m_couples.push_back(m_spring_connection);
+        m_components.couples.push_back(m_spring_connection);
 }
 
 }  // end namespace vehicle

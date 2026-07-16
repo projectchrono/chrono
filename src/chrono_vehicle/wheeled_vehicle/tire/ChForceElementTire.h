@@ -63,10 +63,10 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Checkpoint the state of this tire to the given checkpoint file.
-    virtual void ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const override;
+    virtual void WriteCheckpoint(ChCheckpoint::Format format, const std::string& filename) const override;
 
     /// Initialize this tire from the given checkpoint file.
-    virtual void ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) override;
+    virtual void ReadCheckpoint(ChCheckpoint::Format format, const std::string& filename) override;
 
   protected:
     /// Construct a tire with the specified name.

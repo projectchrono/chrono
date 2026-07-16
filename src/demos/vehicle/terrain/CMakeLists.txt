@@ -2,47 +2,59 @@
 # CMake configuration file for demos of various Chrono::Vehicle terrain models.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_VSG)
-  return()
-endif()
-
 #--------------------------------------------------------------
 # List all demos
 
-set(DEMOS ${DEMOS}
-    demo_VEH_RigidTerrain_WheeledVehicle
-    demo_VEH_RigidSCMTerrain_MixedPatches
-    demo_VEH_SCMTerrain_WheeledVehicle
-    demo_VEH_SCMTerrain_RigidTire
-    demo_VEH_SCMTerrain_TrackedVehicle
-    demo_VEH_RigidTerrain_MovingPatch
-)
- 
-if(CH_USE_OPENCRG) 
-      set(DEMOS ${DEMOS}
-          demo_VEH_CRGTerrain_VSG
-    )
-endif()
+# Demos that can run without run-time visualization
 
-if(CH_ENABLE_MODULE_MULTICORE)
-    set(DEMOS ${DEMOS}
-        demo_VEH_GranularTerrain_RigidTire
-        demo_VEH_GranularTerrain_MovingPatch
-    )
-endif()
+set(DEMOS ${DEMOS}
+    demo_VEH_SCMTerrain_WheeledVehicle
+    demo_VEH_SCMTerrain_TrackedVehicle
+)
 
 if(CH_ENABLE_MODULE_FSI_SPH)
     set(DEMOS ${DEMOS}
         demo_VEH_CRMTerrain_WheeledVehicle
         demo_VEH_CRMTerrain_TrackedVehicle
-        demo_VEH_CRMTerrain_MovingPatch
     )
 endif()
 
-if(CH_ENABLE_MODULE_FEA AND CH_ENABLE_MODULE_PARDISO_MKL)
+# Demos that require run-time visualization
+
+if(CH_ENABLE_MODULE_VSG)
+    
     set(DEMOS ${DEMOS}
-        demo_VEH_SCMTerrain_FEATire
+        demo_VEH_RigidTerrain_WheeledVehicle
+        demo_VEH_RigidSCMTerrain_MixedPatches
+        demo_VEH_SCMTerrain_RigidTire
+        demo_VEH_RigidTerrain_MovingPatch
     )
+
+    if(CH_USE_OPENCRG) 
+          set(DEMOS ${DEMOS}
+              demo_VEH_CRGTerrain_VSG
+        )
+    endif()
+
+    if(CH_ENABLE_MODULE_MULTICORE)
+        set(DEMOS ${DEMOS}
+            demo_VEH_GranularTerrain_RigidTire
+            demo_VEH_GranularTerrain_MovingPatch
+        )
+    endif()
+
+    if(CH_ENABLE_MODULE_FEA AND CH_ENABLE_MODULE_PARDISO_MKL)
+        set(DEMOS ${DEMOS}
+            demo_VEH_SCMTerrain_FEATire
+        )
+    endif()
+
+    if(CH_ENABLE_MODULE_FSI_SPH)
+        set(DEMOS ${DEMOS}
+            demo_VEH_CRMTerrain_MovingPatch
+        )
+    endif()
+
 endif()
 
 #--------------------------------------------------------------
@@ -50,7 +62,7 @@ endif()
 set(UTILS "../../SetChronoSolver.h")
 
 #--------------------------------------------------------------
-# Include directories, compiler flags, libraries
+# Set Chrono library dependencies
 
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
@@ -88,8 +100,6 @@ endif()
 # Create the executables
 
 foreach(PROGRAM ${DEMOS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
-
     add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
     source_group("" FILES ${PROGRAM}.cpp ${UTILS})
 

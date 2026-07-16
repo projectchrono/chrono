@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "chrono/input_output/ChUtilsInputOutput.h"
-#include "chrono/input_output/ChOutputASCII.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
@@ -469,7 +468,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
-        terrain.ExportMeshPovray(out_dir);
+        terrain.ExportMeshPovray(pov_dir);
     }
 
     if (img_output) {

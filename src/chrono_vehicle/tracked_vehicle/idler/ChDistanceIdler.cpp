@@ -215,10 +215,10 @@ void ChDistanceIdler::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 
 void ChDistanceIdler::PopulateComponentList() {
-    m_bodies.push_back(m_carrier);
+    m_components.bodies.push_back(m_carrier);
 
-    m_joints.push_back(m_revolute);
-    m_joints.push_back(m_tensioner);
+    m_components.joints.push_back(m_revolute);
+    m_components.joints.push_back(m_tensioner);
 }
 
 }  // end namespace vehicle

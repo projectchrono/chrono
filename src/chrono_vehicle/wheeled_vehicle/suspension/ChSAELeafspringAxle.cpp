@@ -511,46 +511,46 @@ void ChSAELeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body, con
 // -----------------------------------------------------------------------------
 
 void ChSAELeafspringAxle::PopulateComponentList() {
-    m_bodies.push_back(m_spindle[0]);
-    m_bodies.push_back(m_spindle[1]);
-    m_bodies.push_back(m_axleTube);
+    m_components.bodies.push_back(m_spindle[0]);
+    m_components.bodies.push_back(m_spindle[1]);
+    m_components.bodies.push_back(m_axleTube);
 
-    m_shafts.push_back(m_axle[0]);
-    m_shafts.push_back(m_axle[1]);
+    m_components.shafts.push_back(m_axle[0]);
+    m_components.shafts.push_back(m_axle[1]);
 
-    m_shaft_body_rot.push_back(m_axle_to_spindle[0]);
-    m_shaft_body_rot.push_back(m_axle_to_spindle[1]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[0]);
+    m_components.shaft_body_rot.push_back(m_axle_to_spindle[1]);
 
-    m_joints.push_back(m_frontleafSph[0]);
-    m_joints.push_back(m_frontleafSph[1]);
-    m_joints.push_back(m_rearleafSph[0]);
-    m_joints.push_back(m_rearleafSph[1]);
-    m_shackleRev[0]->IsKinematic() ? m_joints.push_back(m_shackleRev[0]->GetAsLink()) : m_body_loads.push_back(m_shackleRev[0]->GetAsBushing());
-    m_shackleRev[1]->IsKinematic() ? m_joints.push_back(m_shackleRev[1]->GetAsLink()) : m_body_loads.push_back(m_shackleRev[1]->GetAsBushing());
-    m_clampARev[0]->IsKinematic() ? m_joints.push_back(m_clampARev[0]->GetAsLink()) : m_body_loads.push_back(m_clampARev[0]->GetAsBushing());
-    m_clampARev[1]->IsKinematic() ? m_joints.push_back(m_clampARev[1]->GetAsLink()) : m_body_loads.push_back(m_clampARev[1]->GetAsBushing());
-    m_clampBRev[0]->IsKinematic() ? m_joints.push_back(m_clampBRev[0]->GetAsLink()) : m_body_loads.push_back(m_clampBRev[0]->GetAsBushing());
-    m_clampBRev[1]->IsKinematic() ? m_joints.push_back(m_clampBRev[1]->GetAsLink()) : m_body_loads.push_back(m_clampBRev[1]->GetAsBushing());
-    m_frontleafRev[0]->IsKinematic() ? m_joints.push_back(m_frontleafRev[0]->GetAsLink()) : m_body_loads.push_back(m_frontleafRev[0]->GetAsBushing());
-    m_frontleafRev[1]->IsKinematic() ? m_joints.push_back(m_frontleafRev[1]->GetAsLink()) : m_body_loads.push_back(m_frontleafRev[1]->GetAsBushing());
-    m_rearleafRev[0]->IsKinematic() ? m_joints.push_back(m_rearleafRev[0]->GetAsLink()) : m_body_loads.push_back(m_rearleafRev[0]->GetAsBushing());
-    m_rearleafRev[1]->IsKinematic() ? m_joints.push_back(m_rearleafRev[1]->GetAsLink()) : m_body_loads.push_back(m_rearleafRev[1]->GetAsBushing());
-    m_joints.push_back(m_revolute[0]);
-    m_joints.push_back(m_revolute[1]);
+    m_components.joints.push_back(m_frontleafSph[0]);
+    m_components.joints.push_back(m_frontleafSph[1]);
+    m_components.joints.push_back(m_rearleafSph[0]);
+    m_components.joints.push_back(m_rearleafSph[1]);
+    m_shackleRev[0]->IsKinematic() ? m_components.joints.push_back(m_shackleRev[0]->GetAsLink()) : m_components.bushings.push_back(m_shackleRev[0]->GetAsBushing());
+    m_shackleRev[1]->IsKinematic() ? m_components.joints.push_back(m_shackleRev[1]->GetAsLink()) : m_components.bushings.push_back(m_shackleRev[1]->GetAsBushing());
+    m_clampARev[0]->IsKinematic() ? m_components.joints.push_back(m_clampARev[0]->GetAsLink()) : m_components.bushings.push_back(m_clampARev[0]->GetAsBushing());
+    m_clampARev[1]->IsKinematic() ? m_components.joints.push_back(m_clampARev[1]->GetAsLink()) : m_components.bushings.push_back(m_clampARev[1]->GetAsBushing());
+    m_clampBRev[0]->IsKinematic() ? m_components.joints.push_back(m_clampBRev[0]->GetAsLink()) : m_components.bushings.push_back(m_clampBRev[0]->GetAsBushing());
+    m_clampBRev[1]->IsKinematic() ? m_components.joints.push_back(m_clampBRev[1]->GetAsLink()) : m_components.bushings.push_back(m_clampBRev[1]->GetAsBushing());
+    m_frontleafRev[0]->IsKinematic() ? m_components.joints.push_back(m_frontleafRev[0]->GetAsLink()) : m_components.bushings.push_back(m_frontleafRev[0]->GetAsBushing());
+    m_frontleafRev[1]->IsKinematic() ? m_components.joints.push_back(m_frontleafRev[1]->GetAsLink()) : m_components.bushings.push_back(m_frontleafRev[1]->GetAsBushing());
+    m_rearleafRev[0]->IsKinematic() ? m_components.joints.push_back(m_rearleafRev[0]->GetAsLink()) : m_components.bushings.push_back(m_rearleafRev[0]->GetAsBushing());
+    m_rearleafRev[1]->IsKinematic() ? m_components.joints.push_back(m_rearleafRev[1]->GetAsLink()) : m_components.bushings.push_back(m_rearleafRev[1]->GetAsBushing());
+    m_components.joints.push_back(m_revolute[0]);
+    m_components.joints.push_back(m_revolute[1]);
 
-    m_tsdas.push_back(m_spring[0]);
-    m_tsdas.push_back(m_spring[1]);
-    m_tsdas.push_back(m_shock[0]);
-    m_tsdas.push_back(m_shock[1]);
+    m_components.tsdas.push_back(m_spring[0]);
+    m_components.tsdas.push_back(m_spring[1]);
+    m_components.tsdas.push_back(m_shock[0]);
+    m_components.tsdas.push_back(m_shock[1]);
 
-    m_rsdas.push_back(m_latRotSpringA[0]);
-    m_rsdas.push_back(m_latRotSpringA[1]);
-    m_rsdas.push_back(m_latRotSpringB[0]);
-    m_rsdas.push_back(m_latRotSpringB[1]);
-    m_rsdas.push_back(m_vertRotSpringA[0]);
-    m_rsdas.push_back(m_vertRotSpringA[1]);
-    m_rsdas.push_back(m_vertRotSpringB[0]);
-    m_rsdas.push_back(m_vertRotSpringB[1]);
+    m_components.rsdas.push_back(m_latRotSpringA[0]);
+    m_components.rsdas.push_back(m_latRotSpringA[1]);
+    m_components.rsdas.push_back(m_latRotSpringB[0]);
+    m_components.rsdas.push_back(m_latRotSpringB[1]);
+    m_components.rsdas.push_back(m_vertRotSpringA[0]);
+    m_components.rsdas.push_back(m_vertRotSpringA[1]);
+    m_components.rsdas.push_back(m_vertRotSpringB[0]);
+    m_components.rsdas.push_back(m_vertRotSpringB[1]);
 }
 
 }  // end namespace vehicle

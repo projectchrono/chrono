@@ -25,8 +25,6 @@
 using namespace chrono;
 using namespace chrono::vsg3d;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
 // -----------------------------------------------------------------------------
 
 void ConstructModel(ChSystem& sys, int id) {
@@ -127,13 +125,13 @@ int main(int argc, char* argv[]) {
             if (!cp_created) {
                 {
                     ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
-                    cp.WriteState(&sys1);
+                    cp.Save(&sys1);
                     cp.WriteFile(cp_filename);
                 }
                 {
                     ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
-                    cp.OpenFile(cp_filename);
-                    cp.ReadState(&sys2);
+                    cp.ReadFile(cp_filename);
+                    cp.Load(&sys2);
                 }
                 cp_created = true;
             }

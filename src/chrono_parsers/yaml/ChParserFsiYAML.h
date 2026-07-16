@@ -41,7 +41,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     void LoadFsiData(const YAML::Node& yaml);
 
     /// Load the simulation and visualization settings from the specified YAML node.
-    void LoadSimData(const YAML::Node& yaml);
+    void LoadSimData(const YAML::Node& yaml) override;
 
     /// Create and return a ChFsiSystem combining a Chrono MBS system and a fluid solver.
     void CreateFsiSystem();
@@ -72,21 +72,21 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     double GetEndtime() const { return m_sim.end_time; }
 
     /// Set root output directory (default: ".").
+    /// This function creates two additional subdirectories, `mbs` and `fluid`, respectively.
     virtual void SetOutputDir(const std::string& out_dir) override;
 
     /// Return true if generating output.
-    virtual bool Output() const override;
+    /// This function returns true only if output is enabled for at least one of the two phases (MBS or CFD). 
+    virtual bool OutputEnabled() const override;
 
-    /// Indicate whether to enable run-time visualization.
-    bool Render() const { return m_vis.render; }
+    /// Return true if visualization is enabled.
+    /// This function returns true only if visualization is enabled for at least one of the two phases (MBS or CFD).
+    virtual bool VisualizationEnabled() const override;
 
-    /// Return frequency (frames-per-second) for run-time visualization rendering.
-    double GetRenderFPS() const { return m_vis.render_fps; }
-
-    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
-    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
-    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
-    bool EnableShadows() const { return m_vis.enable_shadows; }
+    /// Generate output at the current frame.
+    /// This override generates output for any of the two phases (MBS or CFD) for which output was enabled.
+    /// This function ensures that output occurs at the specified frequency.
+    virtual void Output(double time) override;
 
   private:
     /// FSI rigid body definition.
@@ -99,27 +99,12 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     /// Co-simulation settings.
     struct SimParams {
         SimParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         double step;
         double end_time;
         ChVector3d gravity;
     };
-
-    /// Run-time visualization settings.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
-
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
-        ChVector3d camera_location;
-        ChVector3d camera_target;
-        bool enable_shadows;
-    };
-
-    std::shared_ptr<utils::ChBodyGeometry> ReadCollisionGeometry(const YAML::Node& a);
 
     std::shared_ptr<ChParserMbsYAML> m_parserMBS;
     std::shared_ptr<ChParserCfdYAML> m_parserCFD;
@@ -133,8 +118,7 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
 
     std::vector<FsiBody> m_fsi_bodies;
 
-    SimParams m_sim; ///< co-simulation settings
-        VisParams m_vis;  ///< visualization settings
+    SimParams m_sim;  ///< co-simulation settings
 };
 
 /// @} parsers_module

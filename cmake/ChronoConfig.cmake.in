@@ -7,7 +7,7 @@
 # information on how to link to the Chrono libraries.
 #
 # In the call to find_package(), the following Chrono components can be
-# requested (case insensitive): 
+# requested (case insensitive):
 #   Cascade, CSharp, DEM, FMI, FSI, FSI_SPH, FSI_TDPF, Irrlicht,
 #   Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess,
 #   Sensor, Synchrono, Vehicle, VehicleCosim, VSG.
@@ -317,7 +317,7 @@ if(Chrono_DEM_REQUESTED OR Chrono_FSI_SPH_REQUESTED OR Chrono_SENSOR_REQUESTED)
 
   include(CheckLanguage)
   check_language(CUDA)
-  
+
   find_package(CUDAToolkit QUIET)
 
   if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
@@ -355,7 +355,7 @@ endif()
 if(CHRONO_THRUST_AVAILABLE)
   set(Thrust_ROOT "@THRUST_INCLUDE_DIR@" CACHE PATH "Thrust library location (should contain 'thrust/version.h')")
   find_package(Thrust QUIET)
-  
+
   if(Thrust_FOUND)
     if(NOT Chrono_FIND_QUIETLY)
       message(STATUS "Thrust found")
@@ -363,7 +363,7 @@ if(CHRONO_THRUST_AVAILABLE)
     mark_as_advanced(FORCE Thrust_ROOT)
     set(CHRONO_THRUST_FOUND TRUE)
   else()
-    if(NOT Chrono_FIND_QUIETLY) 
+    if(NOT Chrono_FIND_QUIETLY)
       message("WARNING: Thrust not found")
     endif()
     mark_as_advanced(CLEAR Thrust_ROOT)
@@ -406,7 +406,7 @@ if(CHRONO_HDF5_AVAILABLE)
     mark_as_advanced(FORCE HDF5_DIR)
     set(CHRONO_HDF5_FOUND TRUE)
   else()
-    if(NOT Chrono_FIND_QUIETLY) 
+    if(NOT Chrono_FIND_QUIETLY)
       message("WARNING: HDF5 not found")
     endif()
     mark_as_advanced(CLEAR HDF5_DIR)
@@ -513,19 +513,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 
-    set(blaze_INCLUDE_DIR "@blaze_INCLUDE_DIR@" CACHE PATH "Path to Blaze include directory (should contain a subdirectory 'blaze')")
-    find_package(Blaze QUIET)
-
-    if (NOT blaze_FOUND)
-      message("WARNING: Chrono::Multicore requires Blaze, but Blaze was not found; set blaze_INCLUDE_DIR or blaze_DIR")
-      set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR blaze_INCLUDE_DIR)
-      mark_as_advanced(CLEAR blaze_DIR)
-    else()
-      mark_as_advanced(FORCE blaze_INCLUDE_DIR)
-      mark_as_advanced(FORCE blaze_DIR)
-    endif()    
-
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
       list(PREPEND CHRONO_LIB_NAMES "Chrono_multicore")
       if (NOT CHRONO_STATIC)
@@ -604,12 +591,12 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       find_package(vsg QUIET)
       find_package(vsgImGui QUIET)
       find_package(vsgXchange QUIET)
-      
+
       if(NOT vsg_FOUND OR NOT vsgImGui_FOUND OR NOT vsgXchange_FOUND)
         message("WARNING: Could not find one of the VSG libraries")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
-      
+
       if(vsg_FOUND AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         get_target_property(type vsg::vsg TYPE)
         if(NOT type STREQUAL STATIC_LIBRARY)
@@ -654,7 +641,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
-      
+
       if(NOT CHRONO_MPI_CXX_FOUND)
         message("WARNING: Chrono::Vehicle co-sim requires MPI for C++, but MPI was not found")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
@@ -681,7 +668,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
   elseif(${COMPONENT_UPPER} STREQUAL "FSI_SPH")
-    
+
     if(NOT CHRONO_CUDA_FOUND)
       message("WARNING: Chrono::FSI_SPH requires Cuda, but Cuda was not found")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
@@ -734,7 +721,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     if(CHRONO_OPTIX_AVAILABLE)
         set(OptiX_INSTALL_DIR "@OptiX_INSTALL_DIR@" CACHE PATH "Path to the installed location of the OptiX SDK.")
         find_package(OptiX QUIET)
-        
+
         if(NOT OptiX_INCLUDE)
           message("WARNING: Chrono::Sensor requires OptiX, but Optix was not found")
           set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
@@ -956,7 +943,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
   elseif(${COMPONENT_UPPER} STREQUAL "CASCADE")
-    
+
 
     set(OpenCASCADE_DIR "@OpenCASCADE_DIR@" CACHE PATH "The directory containing a CMake configuration for OpenCASCADE")
     find_package(OpenCASCADE QUIET)
@@ -1057,7 +1044,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     list(APPEND CHRONO_DLL_NAMES "Chrono_csharp_core.dll") # valid also in case of static
 
     set(CHRONO_CSHARP_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../chrono_csharp")
-    
+
     # Create ChChronoGlobals.cs based on current location
     set(CH_CS_DATA ${CHRONO_DATA_DIR})
     set(CH_CS_VEHICLE_DATA ${CHRONO_VEHICLE_DATA_DIR})
@@ -1066,15 +1053,15 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
                    @ONLY)
 
     set(Chrono_CSHARP_CORE_DIR "${CHRONO_CSHARP_SOURCE_DIR}/core")
-    file(GLOB Chrono_CSHARP_CORE_SOURCES 
-         LIST_DIRECTORIES false 
-         RELATIVE "${Chrono_CSHARP_CORE_DIR}" 
-         CONFIGURE_DEPENDS 
+    file(GLOB Chrono_CSHARP_CORE_SOURCES
+         LIST_DIRECTORIES false
+         RELATIVE "${Chrono_CSHARP_CORE_DIR}"
+         CONFIGURE_DEPENDS
          "${Chrono_CSHARP_CORE_DIR}/*.cs")
     foreach(CS ${Chrono_CSHARP_CORE_SOURCES})
        list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_CORE_DIR}/${CS}")
     endforeach()
-    
+
     if(Chrono_IRRLICHT_REQUESTED AND Chrono_IRRLICHT_AVAILABLE)
       list(PREPEND CHRONO_LIB_NAMES "Chrono_csharp_irrlicht")
       list(APPEND CHRONO_DLL_NAMES "Chrono_csharp_irrlicht.dll")
@@ -1109,17 +1096,17 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       foreach(CS ${Chrono_CSHARP_VEHICLE_SOURCES})
         list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_VEHICLE_DIR}/${CS}")
       endforeach()
-    endif() 
+    endif()
 
     if(Chrono_POSTPROCESS_REQUESTED AND Chrono_POSTPROCESS_AVAILABLE)
       list(PREPEND CHRONO_LIB_NAMES "Chrono_csharp_postprocess")
       list(APPEND CHRONO_DLL_NAMES "Chrono_csharp_postprocess.dll")
 
       set(Chrono_CSHARP_POSTPROCESS_DIR "${CHRONO_CSHARP_SOURCE_DIR}/postprocess")
-      file(GLOB Chrono_CSHARP_POSTPROCESS_SOURCES 
-           LIST_DIRECTORIES false 
-           RELATIVE "${Chrono_CSHARP_POSTPROCESS_DIR}" 
-           CONFIGURE_DEPENDS 
+      file(GLOB Chrono_CSHARP_POSTPROCESS_SOURCES
+           LIST_DIRECTORIES false
+           RELATIVE "${Chrono_CSHARP_POSTPROCESS_DIR}"
+           CONFIGURE_DEPENDS
            "${Chrono_CSHARP_POSTPROCESS_DIR}/*.cs")
       FindDuplicates(Chrono_CSHARP_POSTPROCESS_DUPLICATES "${Chrono_CSHARP_CORE_SOURCES}"
                                                           "${Chrono_CSHARP_POSTPROCESS_SOURCES}")
@@ -1130,13 +1117,13 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
   elseif(${COMPONENT_UPPER} STREQUAL "FMI")
-    
+
     if (CHRONO_INSTALL_TREE)
       set(CHRONO_FMU_FORGE_DIR "${CHRONO_PACKAGE_PREFIX_DIR}/include/chrono_thirdparty/fmu-forge")
     else()
       set(CHRONO_FMU_FORGE_DIR "@FMU_FORGE_DIR@")
     endif()
-    
+
     list(PREPEND CHRONO_LIB_NAMES "Chrono_fmi")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_fmi.dll")
@@ -1144,7 +1131,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   endif() # end if-else for component type
 
-  # Check if the 
+  # Check if the
   if (NOT CHRONO_${COMPONENT_UPPER}_FOUND)
     if(Chrono_${COMPONENT_UPPER}_REQUIRED)
       message(FATAL_ERROR "ERROR: Chrono was not configured with support for the REQUIRED component ${COMPONENT_UPPER}")
@@ -1244,7 +1231,7 @@ if(NOT Chrono_FIND_QUIETLY)
   message(STATUS "  CHRONO_TARGETS           (Chrono targets): ${CHRONO_TARGETS}")
   message(STATUS "  CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
   message(STATUS "  CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
-  
+
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     message(STATUS "  CHRONO_DLL_NAMES         (Chrono DLLs): ${CHRONO_DLL_NAMES}")
   endif()
@@ -1271,7 +1258,7 @@ function(add_CHRONO_DLLS_copy_command)
     endif()
 
     message(STATUS "\nAdd custom commands for copying Chrono DLLs")
-    
+
     if(${ARGC} GREATER 0)
       message(STATUS "DLLs from provided list will be copied to runtime folder")
       set(DLL_NAMES ${ARGV0})
@@ -1346,7 +1333,7 @@ function(add_CHRONO_DLLS_copy_command)
       endif()
     endforeach()
     unset(onedll CACHE)
-    
+
     # Append PDB files to list of debug DLLs
     foreach (dll ${DLLS_DEBUG})
        string(REGEX REPLACE "[.]dll$" ".pdb" pdb ${dll})
@@ -1372,7 +1359,7 @@ function(add_CHRONO_DLLS_copy_command)
           set(TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${PROJECT_BINARY_DIR}/${config}/")
         endif()
       endif()
-      
+
       message(STATUS "   ${config} -> ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}")
 
       # Add custom command to create the destination folder
@@ -1402,7 +1389,7 @@ function(add_CHRONO_DLLS_copy_command)
 
           add_custom_command(
               TARGET COPY_CHRONO_DLLS POST_BUILD
-              COMMENT "Copying Chrono DLL ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"  
+              COMMENT "Copying Chrono DLL ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"
               COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
                   "$<$<CONFIG:${config}>:-E>"
                   "$<$<CONFIG:${config}>:copy_if_different>"

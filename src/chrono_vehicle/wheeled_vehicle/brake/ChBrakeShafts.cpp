@@ -70,9 +70,9 @@ void ChBrakeShafts::Synchronize(double time, double braking) {
 // -----------------------------------------------------------------------------
 
 void ChBrakeShafts::PopulateComponentList() {
-    m_shafts.push_back(m_shaft);
+    m_components.shafts.push_back(m_shaft);
 
-    m_couples.push_back(m_clutch);
+    m_components.couples.push_back(m_clutch);
 }
 
 }  // end namespace vehicle

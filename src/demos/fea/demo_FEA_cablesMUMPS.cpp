@@ -25,8 +25,9 @@
 #include "FEAcables.h"
 
 using namespace chrono;
-using namespace fea;
+using namespace chrono::fea;
 
+// Select run-time visualization
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
-    sys.SetGravityY();
+    sys.SetGravityZ();
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
@@ -49,12 +50,16 @@ int main(int argc, char* argv[]) {
     sys.Add(mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by
-    // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
-    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChVisualShapeTriangleMesh).
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by setting  proper coordinates and vertex colors as in the FEM
+    // elements. Such a triangle mesh can be rendered by any visual system that can handle a colored ChVisualShapeTriangleMesh.
+
+    ChColormap::Type colormap_type = ChColormap::Type::JET;
+    ChVector2d colormap_range(-0.01, 0.01);
+
     auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_beam_A->SetColormapRange(-0.4, 0.4);
+    vis_beam_A->SetColormap(colormap_type);
+    vis_beam_A->SetColormapRange(colormap_range);
     vis_beam_A->SetSmoothFaces(true);
     vis_beam_A->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_beam_A);
@@ -79,7 +84,9 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (MUMPS)", ChVector3d(0, 1.2, -2.0));
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "Cables FEM (MUMPS)",        //
+                                         ChVector3d(-0.8, -1.8, -0.3), ChVector3d(0, -0.3, -0.4),  //
+                                         true, "Mz (Nm)", colormap_range, colormap_type);
 
     // Simulation loop
     while (vis->Run()) {

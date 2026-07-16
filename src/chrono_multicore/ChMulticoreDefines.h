@@ -23,7 +23,6 @@
 #include "chrono_multicore/ChApiMulticore.h"
 
 #ifdef __CDT_PARSER__
-    #define BLAZE_SERIAL_SECTION
     #define CH_MULTICORE_API
     #define custom_vector std::vector
 #else

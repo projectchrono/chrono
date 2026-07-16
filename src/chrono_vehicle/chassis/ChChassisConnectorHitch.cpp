@@ -50,7 +50,7 @@ void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::
 }
 
 void ChChassisConnectorHitch::PopulateComponentList() {
-    m_joints.push_back(m_joint);
+    m_components.joints.push_back(m_joint);
 }
 
 }  // end namespace vehicle

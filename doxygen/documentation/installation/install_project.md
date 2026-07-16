@@ -71,7 +71,7 @@ At a minimum, the following packages are necessary:
 - A C++ compiler and [CMake](http://www.cmake.org) must be available.
 - A Chrono build or install must be **available** (see [Chrono installation instructions](@ref tutorial_install_chrono)).
 
-__Note__: Using additional Chrono modules may require the CUDA SDK, an MPI compiler, or 3rd-party libraries such as Irrlicht, VSG, OptiX, OpenGL, Thrust, Blaze, etc.
+__Note__: Using additional Chrono modules may require the CUDA SDK, an MPI compiler, or 3rd-party libraries such as Irrlicht, VSG, OptiX, OpenGL, Thrust, etc.
 
 #### 2. Create the project directory
 

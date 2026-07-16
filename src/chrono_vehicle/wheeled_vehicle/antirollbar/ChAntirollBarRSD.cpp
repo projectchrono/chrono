@@ -203,13 +203,13 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
 
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::PopulateComponentList() {
-    m_bodies.push_back(m_arm_left);
-    m_bodies.push_back(m_arm_right);
+    m_components.bodies.push_back(m_arm_left);
+    m_components.bodies.push_back(m_arm_right);
 
-    m_joints.push_back(m_revolute_ch);
-    m_joints.push_back(m_revolute);
-    m_joints.push_back(m_link_left);
-    m_joints.push_back(m_link_right);
+    m_components.joints.push_back(m_revolute_ch);
+    m_components.joints.push_back(m_revolute);
+    m_components.joints.push_back(m_link_left);
+    m_components.joints.push_back(m_link_right);
 }
 
 }  // end namespace vehicle

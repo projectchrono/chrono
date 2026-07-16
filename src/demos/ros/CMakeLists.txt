@@ -28,30 +28,30 @@ endif()
 # Include directories, compiler flags, libraries
 
 list(APPEND LIBS Chrono_core)
-list(APPEND LIBS "Chrono_ros")
-list(APPEND LIBS "ChronoModels_robot")
+list(APPEND LIBS Chrono_ros)
+list(APPEND LIBS ChronoModels_robot)
 
 # Force C++17, required by ROS Humble
 set(CMAKE_CXX_STANDARD 17)
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_irrlicht")
+    list(APPEND LIBS Chrono_irrlicht)
     if (CH_ENABLE_MODULE_VEHICLE)
-        list(APPEND LIBS "Chrono_vehicle")
-        list(APPEND LIBS "Chrono_vehicle_irrlicht")
+        list(APPEND LIBS Chrono_vehicle)
+        list(APPEND LIBS Chrono_vehicle_irrlicht)
     endif()
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_vsg")
+    list(APPEND LIBS Chrono_vsg)
     if (CH_ENABLE_MODULE_VEHICLE)
-        list(APPEND LIBS "Chrono_vehicle")
-        list(APPEND LIBS "Chrono_vehicle_vsg")
+        list(APPEND LIBS Chrono_vehicle)
+        list(APPEND LIBS Chrono_vehicle_vsg)
     endif()
 endif()
 
 if(CH_ENABLE_MODULE_SENSOR)
-  list(APPEND LIBS "Chrono_sensor")
+  list(APPEND LIBS Chrono_sensor)
 endif()
 
 # ------------------------------------------------------------------------------

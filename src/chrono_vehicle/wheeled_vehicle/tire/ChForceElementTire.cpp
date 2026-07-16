@@ -76,7 +76,7 @@ TerrainForce ChForceElementTire::ReportTireForceLocal(ChTerrain* terrain, ChCoor
 
 // -----------------------------------------------------------------------------
 
-void ChForceElementTire::ExportCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
+void ChForceElementTire::WriteCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
     ChVector2d states;
     GetInternalStates(states);
 
@@ -93,7 +93,7 @@ void ChForceElementTire::ExportCheckpoint(ChCheckpoint::Format format, const std
     }
 }
 
-void ChForceElementTire::ImportCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
+void ChForceElementTire::ReadCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
     ChVector2d states;
 
     switch (format) {

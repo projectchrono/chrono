@@ -45,9 +45,7 @@ double initial_spacing = 0.005;
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    double step_size = 1e-4;                // MBD and SPH integration step size
-    double meta_time_step = 5 * step_size;  // meta-step (communication interval)
-    double t_end = 0.1;                     // simulation duration
+    double step_size = 1e-4;  // MBD and SPH integration step size
     int ps_freq = 1;
     bool use_variable_time_step = true;
 

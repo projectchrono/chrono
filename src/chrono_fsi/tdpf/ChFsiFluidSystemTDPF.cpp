@@ -127,7 +127,6 @@ void ChFsiFluidSystemTDPF::SetTaperedDirectOptions(const hydrochrono::hydro::Tap
 
 //------------------------------------------------------------------------------
 
-
 void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_states) {
     ChAssertAlways(!m_hydro_filename.empty());
 
@@ -204,8 +203,7 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
     components.push_back(m_impl->CreateExcitationComponent());
 
     // Construct HydroForces (takes ownership of components)
-    m_impl->m_hc_force_system =
-        std::make_unique<hydrochrono::hydro::HydroForces>(m_num_rigid_bodies, std::move(components));
+    m_impl->m_hc_force_system = std::make_unique<hydrochrono::hydro::HydroForces>(m_num_rigid_bodies, std::move(components));
 
     // Cache initial solid states in the TDPF structure
     m_impl->m_hc_state.bodies.resize(m_num_rigid_bodies);
@@ -224,7 +222,7 @@ void ChFsiFluidSystemTDPF::LoadSolidStates(const std::vector<FsiBodyState>& body
     }
 }
 
-void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce> body_forces) {
+void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce>& body_forces) {
     for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
         body_forces[i].force = m_impl->m_hc_forces[i].segment(0, 3);
         body_forces[i].torque = m_impl->m_hc_forces[i].segment(3, 3);
@@ -243,9 +241,7 @@ void ChFsiFluidSystemTDPF::LoadSolidStates(const std::vector<FsiBodyState>& body
     }
 }
 
-void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
-                                            std::vector<FsiMeshForce> mesh1D_forces,
-                                            std::vector<FsiMeshForce> mesh2D_forces) {
+void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) {
     for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
         body_forces[i].force = m_impl->m_hc_forces[i].segment(0, 3);
         body_forces[i].torque = m_impl->m_hc_forces[i].segment(3, 3);

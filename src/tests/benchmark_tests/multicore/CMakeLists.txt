@@ -1,5 +1,5 @@
 if(NOT CH_ENABLE_MODULE_MULTICORE)
-    return()
+  return()
 endif()
 
 set(TESTS
@@ -14,7 +14,7 @@ SET(LIBS
 )
 
 if(CH_ENABLE_MODULE_VSG)
-    set(LIBS ${LIBS} Chrono_vsg)
+  set(LIBS ${LIBS} Chrono_vsg)
 endif()
 
 # ------------------------------------------------------------------------------

@@ -22,7 +22,6 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/input_output/ChOutputASCII.h"
 #include "chrono/input_output/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
@@ -60,7 +59,7 @@ double render_fps = 50;
 double t_end = 20;
 
 // Record vehicle output
-ChOutput::Type vehicle_output = ChOutput::Type::HDF5;
+ChOutput::Format vehicle_output = ChOutput::Format::NONE;
 ChOutput::Mode vehicle_output_mode = ChOutput::Mode::FRAMES;
 
 // Record debug test data
@@ -162,7 +161,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
-        terrain.ExportMeshPovray(out_dir);
+        terrain.ExportMeshPovray(pov_dir);
     }
 
     std::string blender_dir = out_dir + "/BLENDER";
@@ -171,7 +170,6 @@ int main(int argc, char* argv[]) {
             std::cout << "Error creating directory " << blender_dir << std::endl;
             return 1;
         }
-        terrain.ExportMeshPovray(out_dir);
     }
 
     // Initialize output file for debug output
@@ -179,7 +177,7 @@ int main(int argc, char* argv[]) {
 
     // Enable vehicle output
     vehicle.SetChassisOutput(true);
-    vehicle.SetSuspensionOutput(0, true);
+    vehicle.SetAxleOutput(0, true);
     vehicle.SetSteeringOutput(0, true);
     vehicle.SetOutput(vehicle_output, vehicle_output_mode, out_dir, "vehicle_output", 0.1);
 

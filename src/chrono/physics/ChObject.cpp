@@ -18,7 +18,9 @@
 namespace chrono {
 
 ChObj::ChObj() : m_tag(-1), ChTime(0) {
+    // Create a unique identifier and set a default object name
     m_identifier = GenerateUniqueIdentifier();
+    m_name = std::string("_obj_") + std::to_string(m_identifier);
 }
 
 ChObj::ChObj(const ChObj& other) {

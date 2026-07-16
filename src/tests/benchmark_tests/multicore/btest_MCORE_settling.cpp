@@ -175,7 +175,6 @@ BENCHMARK_DEFINE_F(TEST_NAME, Settle)(benchmark::State& st) {
 BENCHMARK_REGISTER_F(TEST_NAME, Settle)
     ->Unit(benchmark::kMillisecond)
     ->Iterations(1)
-    ->Repetitions(1)
     ->UseRealTime()
     ->DenseRange(TEST_MIN_THREADS, TEST_MAX_THREADS, TEST_STEP_THREADS);
 

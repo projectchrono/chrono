@@ -129,7 +129,7 @@ void CRMTerrain::Synchronize(double time) {
     if (dist >= m_buffer)
         return;
 
-    // Current computationl domain
+    // Current computational domain
     ChAABB domainAABB = m_sysSPH->GetComputationalDomain();
 
     if (m_verbose) {

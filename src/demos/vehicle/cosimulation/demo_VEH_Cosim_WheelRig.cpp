@@ -61,8 +61,8 @@ using namespace chrono::vehicle;
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
-                     std::string& terrain_specfile,
-                     std::string& tire_specfile,
+                     std::string& terrain_file,
+                     std::string& tire_file,
                      int& nthreads_tire,
                      int& nthreads_terrain,
                      double& step_size,
@@ -507,8 +507,8 @@ int main(int argc, char** argv) {
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
-                     std::string& terrain_specfile,
-                     std::string& tire_specfile,
+                     std::string& terrain_file,
+                     std::string& tire_file,
                      int& nthreads_tire,
                      int& nthreads_terrain,
                      double& step_size,
@@ -534,8 +534,8 @@ bool GetProblemSpecs(int argc,
                      std::string& suffix) {
     ChCLI cli(argv[0], "Single-wheel test rig simulation (run on 3 MPI ranks)");
 
-    cli.AddOption<std::string>("Experiment", "terrain_specfile", "Terrain specification file [JSON format]", terrain_specfile);
-    cli.AddOption<std::string>("Experiment", "tire_specfile", "Tire specification file [JSON format]", tire_specfile);
+    cli.AddOption<std::string>("Experiment", "terrain_specfile", "Terrain specification file [JSON format]", terrain_file);
+    cli.AddOption<std::string>("Experiment", "tire_specfile", "Tire specification file [JSON format]", tire_file);
 
     cli.AddOption<std::string>("Experiment", "actuation_type", "Actuation type (SET_LIN_VEL or SET_ANG_VEL)", ChVehicleCosimDBPRigImposedSlip::GetActuationTypeAsString(act_type));
     cli.AddOption<double>("Experiment", "base_vel", "Base velocity [m/s or rad/s]", std::to_string(base_vel));
@@ -572,7 +572,7 @@ bool GetProblemSpecs(int argc,
     }
 
     try {
-        terrain_specfile = cli.Get("terrain_specfile").as<std::string>();
+        terrain_file = cli.Get("terrain_specfile").as<std::string>();
     } catch (std::domain_error&) {
         if (rank == 0) {
             cout << "\nERROR: Missing terrain specification file!\n\n" << endl;
@@ -582,7 +582,7 @@ bool GetProblemSpecs(int argc,
     }
 
     try {
-        tire_specfile = cli.Get("tire_specfile").as<std::string>();
+        tire_file = cli.Get("tire_specfile").as<std::string>();
     } catch (std::domain_error&) {
         if (rank == 0) {
             cout << "\nERROR: Missing tire specification file!\n\n" << endl;

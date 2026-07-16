@@ -109,11 +109,11 @@ void ChEngineShafts::Synchronize(double time, const DriverInputs& driver_inputs,
 // -----------------------------------------------------------------------------
 
 void ChEngineShafts::PopulateComponentList() {
-    m_shafts.push_back(m_motorblock);
-    m_shafts.push_back(m_motorshaft);
+    m_components.shafts.push_back(m_motorblock);
+    m_components.shafts.push_back(m_motorshaft);
 
-    m_couples.push_back(m_engine);
-    m_couples.push_back(m_engine_losses);
+    m_components.couples.push_back(m_engine);
+    m_components.couples.push_back(m_engine_losses);
 }
 
 }  // end namespace vehicle

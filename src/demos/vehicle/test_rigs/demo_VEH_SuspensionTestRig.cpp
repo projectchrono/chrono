@@ -139,7 +139,7 @@ enum class DriverMode { DATA_FILE, INTERACTIVE };
 DriverMode driver_mode = DriverMode::INTERACTIVE;
 
 // Output collection
-ChOutput::Type output = ChOutput::Type::ASCII;
+ChOutput::Format output = ChOutput::Format::ASCII;
 bool plot = true;
 double out_step_size = 1e-2;
 

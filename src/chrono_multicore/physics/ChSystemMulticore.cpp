@@ -127,12 +127,12 @@ bool ChSystemMulticore::AdvanceDynamics(bool do_collision) {
 
     // Scatter the states to the Chrono objects (bodies and shafts) and update
     // all physics items at the end of the step.
-    DynamicVector<real>& velocities = data_manager->host_data.v;
+    VectorType& velocities = data_manager->host_data.v;
     custom_vector<real3>& pos_pointer = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_pointer = data_manager->host_data.rot_rigid;
 
-#pragma omp parallel for
-    for (int i = 0; i < assembly.bodylist.size(); i++) {
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < (signed)assembly.bodylist.size(); i++) {
         if (data_manager->host_data.active_rigid[i] != 0) {
             auto& body = assembly.bodylist[i];
             body->Variables().State()(0) = velocities[i * 6 + 0];
@@ -142,15 +142,12 @@ bool ChSystemMulticore::AdvanceDynamics(bool do_collision) {
             body->Variables().State()(4) = velocities[i * 6 + 4];
             body->Variables().State()(5) = velocities[i * 6 + 5];
 
-            body->VariablesQbIncrementPosition(GetStep());
-            body->VariablesQbSetSpeed(GetStep());
-
+            body->VariablesQbIncrementPosition(step);
+            body->VariablesQbSetSpeed(step);
             body->Update(ch_time, UpdateFlags::UPDATE_ALL);
 
-            // update the position and rotation vectors
-            pos_pointer[i] = (real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z()));
-            rot_pointer[i] =
-                (quaternion(body->GetRot().e0(), body->GetRot().e1(), body->GetRot().e2(), body->GetRot().e3()));
+            pos_pointer[i] = real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z());
+            rot_pointer[i] = quaternion(body->GetRot().e0(), body->GetRot().e1(), body->GetRot().e2(), body->GetRot().e3());
         }
     }
 
@@ -334,8 +331,10 @@ void ChSystemMulticore::UpdateRigidBodies() {
     custom_vector<char>& active = data_manager->host_data.active_rigid;
     custom_vector<char>& collide = data_manager->host_data.collide_rigid;
 
-#pragma omp parallel for
-    for (int i = 0; i < assembly.bodylist.size(); i++) {
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < (signed)assembly.bodylist.size(); i++) {
+        // if (i + 4 < (signed)assembly.bodylist.size())
+        //     __builtin_prefetch(assembly.bodylist[i + 4].get(), 0, 1);
         auto& body = assembly.bodylist[i];
 
         body->Update(ch_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
@@ -556,8 +555,7 @@ void ChSystemMulticore::Setup() {
     data_manager->settings.gravity = real3(G_acc.x(), G_acc.y(), G_acc.z());
 
     // Calculate the total number of degrees of freedom (6 per rigid body, 1 per shaft, 1 per motor).
-    data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
-                            data_manager->num_particles * 3;
+    data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors + data_manager->num_particles * 3;
 
     // Set variables that are stored in the ChSystem class
     assembly.m_num_bodies_active = data_manager->num_rigid_bodies;
@@ -569,8 +567,7 @@ void ChSystemMulticore::Setup() {
     m_num_constr_bil = 0;
     m_num_constr_uni = 0;
     if (data_manager->cd_data)
-        ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts +
-                    data_manager->cd_data->num_particle_contacts;
+        ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts + data_manager->cd_data->num_particle_contacts;
     assembly.m_num_bodies_sleep = 0;
     assembly.m_num_bodies_fixed = 0;
 }
@@ -647,8 +644,7 @@ unsigned int ChSystemMulticore::GetNumContacts() const {
     if (!data_manager->cd_data)
         return 0;
 
-    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts +
-           data_manager->cd_data->num_particle_contacts;
+    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts + data_manager->cd_data->num_particle_contacts;
 }
 
 // -------------------------------------------------------------
@@ -708,8 +704,7 @@ void ChSystemMulticore::EnableThreadTuning(int min_threads, int max_threads) {
 
 // -------------------------------------------------------------
 
-void ChSystemMulticore::SetMaterialCompositionStrategy(
-    std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) {
+void ChSystemMulticore::SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) {
     data_manager->composition_strategy = std::move(strategy);
 }
 

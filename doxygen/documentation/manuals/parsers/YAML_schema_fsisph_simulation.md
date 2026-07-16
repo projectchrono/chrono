@@ -29,7 +29,7 @@ If the `output` key is present, it must specify a YAML object with the following
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Output DB type | enum | `NONE`,`ASCII`,`HDF5`  | No | `NONE` |
+| `format` | Output DB format | enum | `NONE`,`ASCII`,`HDF5`  | No | `NONE` |
 | `mode` | Output mode | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
 | `fps` | Output frequency (FPS or Hz) | double | -- | No | 30 |
 

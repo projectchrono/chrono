@@ -163,10 +163,10 @@ double ChAutomaticTransmissionShafts::GetOutputMotorshaftSpeed() const {
 // -----------------------------------------------------------------------------
 
 void ChAutomaticTransmissionShafts::PopulateComponentList() {
-    m_shafts.push_back(m_motorshaft);
-    m_shafts.push_back(m_driveshaft);
-    m_shafts.push_back(m_transmissionblock);
-    m_shafts.push_back(m_shaft_ingear);
+    m_components.shafts.push_back(m_motorshaft);
+    m_components.shafts.push_back(m_driveshaft);
+    m_components.shafts.push_back(m_transmissionblock);
+    m_components.shafts.push_back(m_shaft_ingear);
 }
 
 }  // end namespace vehicle

@@ -14,10 +14,11 @@
 // Material for ANCF brick Element
 // =============================================================================
 
-#ifndef CHMATERIALBRICKANCF_H
-#define CHMATERIALBRICKANCF_H
+#ifndef CH_MATERIAL_BRICK_ANCF_H
+#define CH_MATERIAL_BRICK_ANCF_H
 
 #include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChMaterialFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -26,7 +27,7 @@ namespace fea {
 /// @{
 
 /// Definition of materials to be used for ANCF brick elements.
-class ChApi ChMaterialHexaANCF {
+class ChApi ChMaterialHexaANCF : public ChMaterialFEA {
   public:
     /// Construct an isotropic material.
     ChMaterialHexaANCF(double rho,  ///< material density
@@ -41,16 +42,12 @@ class ChApi ChMaterialHexaANCF {
                        const ChVector3d& G    ///< shear moduli (G_xy, G_xz, G_yz)
     );
 
-    /// Return the material density.
-    double GetDensity() const { return m_rho; }
-
     const ChMatrix66d& Get_D() const { return m_D; }
 
   private:
     /// Calculate the matrix form of 6x6 stiffness tensor
     void Calc_D(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
-    double m_rho;     ///< density
     ChMatrix66d m_D;  ///< matrix of elastic coefficients
 
   public:

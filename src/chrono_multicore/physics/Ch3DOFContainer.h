@@ -24,15 +24,10 @@
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_multicore/ChConfigMulticore.h"
+#include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 
 #include "chrono/multicore_math/matrix.h"
-
-// Blaze headers
-// ATTENTION: It is important for these to be included after sse.h!
-#include <blaze/math/DynamicVector.h>
-
-using blaze::DynamicVector;
 
 namespace chrono {
 
@@ -108,13 +103,13 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     real alpha;
 
     // Store boundary forces here for rigid bodies
-    DynamicVector<real> contact_forces;
-    DynamicVector<real> gamma_old;
+    VectorType contact_forces;
+    VectorType gamma_old;
     short2 family;
 
   protected:
     void CreateVisualization(double radius, const ChColor& color);
-    
+
     ChMulticoreDataManager* data_manager;
 
     uint num_particle_contacts;

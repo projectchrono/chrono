@@ -26,12 +26,9 @@
 namespace chrono {
 namespace vehicle {
 
-ChTrackSuspension::ChTrackSuspension(const std::string& name, bool has_shock, bool lock_arm)
-    : ChPart(name), m_has_shock(has_shock), m_lock_arm(lock_arm), m_track(nullptr) {}
+ChTrackSuspension::ChTrackSuspension(const std::string& name, bool has_shock, bool lock_arm) : ChPart(name), m_has_shock(has_shock), m_lock_arm(lock_arm), m_track(nullptr) {}
 
-void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   const ChVector3d& location,
-                                   ChTrackAssembly* track) {
+void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;
@@ -67,17 +64,10 @@ void ChTrackSuspension::ExportComponentList(rapidjson::Document& jsonDocument) c
     }
 }
 
-void ChTrackSuspension::Output(ChOutput& database) const {
-    ChPart::Output(database);
+void ChTrackSuspension::SaveCheckpoint(ChCheckpoint& database) const {
+    ChPart::SaveCheckpoint(database);
 
-    database.WriteSection(m_road_wheel->GetName());
-    m_road_wheel->Output(database);
-}
-
-void ChTrackSuspension::WriteCheckpoint(ChCheckpoint& database) const {
-    ChPart::WriteCheckpoint(database);
-
-    m_road_wheel->WriteCheckpoint(database);
+    m_road_wheel->SaveCheckpoint(database);
 }
 
 }  // end namespace vehicle

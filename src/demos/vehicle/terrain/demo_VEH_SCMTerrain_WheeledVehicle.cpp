@@ -36,8 +36,11 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+    #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
+#endif
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -53,8 +56,8 @@ using std::cout;
 using std::endl;
 
 // =============================================================================
-// USER SETTINGS
-// =============================================================================
+
+double tend = 30;
 
 // SCM terrain patch type
 enum class PatchType { FLAT, MESH, HEIGHMAP };
@@ -67,8 +70,9 @@ double delta = 0.05;
 enum class TireType { CYLINDRICAL, LUGGED, FEA };
 TireType tire_type = TireType::LUGGED;
 
-// Rendering frequency (FPS)
-double render_fps = 100;
+// Visualization settings
+bool render = true;       // use run-time visualization
+double render_fps = 100;  // rendering FPS
 
 // SCM terrain visualization options
 bool render_wireframe = true;  // render wireframe (flat otherwise)
@@ -137,8 +141,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Visualization
-    auto trimesh =
-        ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile("hmmwv/lugged_wheel.obj"), false, false);
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetVehicleDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -160,8 +163,7 @@ int main(int argc, char* argv[]) {
         case PatchType::FLAT:
             init_loc = ChVector3d(-15.0, -6.0, 0.6);
             patch_size = ChVector2d(40.0, 16.0);
-            patch_aabb = ChAABB(ChVector3d(-patch_size.x() / 2, -patch_size.y() / 2, 0),
-                                ChVector3d(+patch_size.x() / 2, +patch_size.y() / 2, 0));
+            patch_aabb = ChAABB(ChVector3d(-patch_size.x() / 2, -patch_size.y() / 2, 0), ChVector3d(+patch_size.x() / 2, +patch_size.y() / 2, 0));
             break;
         case PatchType::MESH:
             init_loc = ChVector3d(-12.0, -12.0, 1.6);
@@ -169,8 +171,7 @@ int main(int argc, char* argv[]) {
         case PatchType::HEIGHMAP:
             init_loc = ChVector3d(-15.0, -15.0, 0.6);
             patch_size = ChVector2d(40.0, 40.0);
-            patch_aabb = ChAABB(ChVector3d(-patch_size.x() / 2, -patch_size.y() / 2, 0),
-                                ChVector3d(+patch_size.x() / 2, +patch_size.y() / 2, 0));
+            patch_aabb = ChAABB(ChVector3d(-patch_size.x() / 2, -patch_size.y() / 2, 0), ChVector3d(+patch_size.x() / 2, +patch_size.y() / 2, 0));
             break;
     }
 
@@ -280,8 +281,7 @@ int main(int argc, char* argv[]) {
             terrain.Initialize(GetVehicleDataFile("terrain/meshes/bump.obj"), delta);
             break;
         case PatchType::HEIGHMAP:
-            terrain.Initialize(GetVehicleDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(), patch_size.y(),
-                               0.0, 1.0, delta);
+            terrain.Initialize(GetVehicleDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(), patch_size.y(), 0.0, 1.0, delta);
             break;
     }
 
@@ -301,21 +301,31 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization interface
     // -------------------------------------------
 
-    // SCM plugin
-    auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
+    std::shared_ptr<ChVehicleVisualSystem> vis;
 
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-    vis->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
-    vis->SetWindowSize(1280, 800);
-    vis->SetWindowPosition(100, 100);
-    vis->EnableSkyTexture(SkyMode::DOME);
-    vis->SetCameraAngleDeg(40);
-    vis->SetLightIntensity(1.0f);
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
-    vis->AttachVehicle(&hmmwv.GetVehicle());
-    vis->AttachTerrain(&terrain);
-    vis->AttachPlugin(visSCM);
-    vis->Initialize();
+#ifdef CHRONO_VSG
+    if (render) {
+        // SCM plugin
+        auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
+
+        auto visVSG = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+        visVSG->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
+        visVSG->EnableSkyTexture(SkyMode::DOME);
+        visVSG->SetCameraAngleDeg(40);
+        visVSG->SetLightIntensity(1.0f);
+        visVSG->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
+        visVSG->AttachVehicle(&hmmwv.GetVehicle());
+        visVSG->AttachTerrain(&terrain);
+        visVSG->AttachPlugin(visSCM);
+
+        visVSG->Initialize();
+        vis = visVSG;
+    }
+#else
+    render = false;
+#endif
 
     // ---------------------
     // Solver and integrator
@@ -359,14 +369,13 @@ int main(int argc, char* argv[]) {
     std::cout << "Total vehicle mass: " << hmmwv.GetVehicle().GetMass() << std::endl;
 
     // Initialize simulation frame counter
+    double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
 
     ChTimer timer;
 
-    while (vis->Run()) {
-        double time = sys->GetChTime();
-
+    while (true) {
         if (sim_frame == 800) {
             std::cout << "\nstart timer at t = " << time << std::endl;
             timer.start();
@@ -380,10 +389,11 @@ int main(int argc, char* argv[]) {
         }
 
         // Render scene
-        if (time >= render_frame / render_fps) {
-            vis->BeginScene();
+        if (render && time >= render_frame / render_fps) {
+            if (!vis->Run())
+                break;
+
             vis->Render();
-            vis->EndScene();
 
             if (img_output) {
                 std::ostringstream filename;
@@ -391,6 +401,11 @@ int main(int argc, char* argv[]) {
                 vis->WriteImageToFile(filename.str());
             }
             render_frame++;
+        }
+        if (!render) {
+            std::cout << time << "  " << sys->GetRTF() << std::endl;
+            if (time > tend)
+                break;
         }
 
         // Driver inputs
@@ -400,13 +415,16 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance dynamics
         hmmwv.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
-        // Increment frame number
+        // Increment time and frame number
+        time += step_size;
         sim_frame++;
     }
 

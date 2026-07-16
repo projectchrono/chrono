@@ -73,9 +73,9 @@ output:
   description: Output settings
   type: object
   properties:
-     type:
+     format:
         type: string
-        description: Output DB type
+        description: Output DB format
         enum: [NONE, ASCII, HDF5]
         default: NONE
      fps:

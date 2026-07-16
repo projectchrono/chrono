@@ -158,10 +158,10 @@ void ChRackPinion::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 
 void ChRackPinion::PopulateComponentList() {
-    m_bodies.push_back(m_link);
+    m_components.bodies.push_back(m_link);
 
-    m_joints.push_back(m_prismatic);
-    m_joints.push_back(m_actuator);
+    m_components.joints.push_back(m_prismatic);
+    m_components.joints.push_back(m_actuator);
 }
 
 }  // end namespace vehicle

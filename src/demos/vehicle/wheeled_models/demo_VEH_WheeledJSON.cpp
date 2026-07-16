@@ -55,6 +55,10 @@ double render_fps = 50;
 // End time (used only if no run-time visualization)
 double t_end = 20;
 
+// Record vehicle output
+ChOutput::Format vehicle_output = ChOutput::Format::NONE;
+ChOutput::Mode vehicle_output_mode = ChOutput::Mode::FRAMES;
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -181,9 +185,10 @@ int main(int argc, char* argv[]) {
     vehicle.LogSubsystemTypes();
 
     // Optionally, enable output from selected vehicle subsystems
-    ////vehicle.SetSuspensionOutput(0, true);
-    ////vehicle.SetSuspensionOutput(1, true);
-    ////vehicle.SetOutput(ChOutput::Type::ASCII, ChOutput::Mode::FRAMES, veh_dir, "output", 0.1);
+    vehicle.SetChassisOutput(true);
+    vehicle.SetAxleOutput(0, true);
+    vehicle.SetSteeringOutput(0, true);
+    vehicle.SetOutput(vehicle_output, vehicle_output_mode, veh_dir, "output", 0.1);
 
     // Simulation loop
     vehicle.EnableRealtime(true);

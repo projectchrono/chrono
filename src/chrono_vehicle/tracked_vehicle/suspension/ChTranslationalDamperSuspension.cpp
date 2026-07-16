@@ -255,16 +255,16 @@ void ChTranslationalDamperSuspension::LogConstraintViolations() {
 // -----------------------------------------------------------------------------
 
 void ChTranslationalDamperSuspension::PopulateComponentList() {
-    m_bodies.push_back(m_arm);
+    m_components.bodies.push_back(m_arm);
 
-    m_joint->IsKinematic() ? m_joints.push_back(m_joint->GetAsLink()) : m_body_loads.push_back(m_joint->GetAsBushing());
+    m_joint->IsKinematic() ? m_components.joints.push_back(m_joint->GetAsLink()) : m_components.bushings.push_back(m_joint->GetAsBushing());
 
-    m_rsdas.push_back(m_spring);
+    m_components.rsdas.push_back(m_spring);
     if (m_damper)
-        m_rsdas.push_back(m_damper);
+        m_components.rsdas.push_back(m_damper);
 
     if (m_has_shock) {
-        m_tsdas.push_back(m_shock);
+        m_components.tsdas.push_back(m_shock);
     }
 }
 

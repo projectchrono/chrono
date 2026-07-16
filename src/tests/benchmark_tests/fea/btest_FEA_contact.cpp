@@ -179,9 +179,7 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
         ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_2PI * angles[i]) * QuatFromAngleX(CH_PI_2));
         ChCoordsys<> cydisp(ChVector3d(0.0, 0.1 + i * 0.1, -0.3));
         ChCoordsys<> ctot = cdown >> crot >> cydisp;
-        ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
-                                         GetChronoDataFile("fea/beam.ele").c_str(), emat, ctot.pos,
-                                         ChMatrix33<>(ctot.rot));
+        ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(), GetChronoDataFile("fea/beam.ele").c_str(), emat, ctot.pos, ChMatrix33<>(ctot.rot));
     }
 
     auto surf = chrono_types::make_shared<ChContactSurfaceMesh>(cmat);
@@ -199,7 +197,7 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mesh = chrono_types::make_shared<ChMesh>();
     m_system->Add(mesh);
 
-    auto section = chrono_types::make_shared<ChBeamSectionCable>();
+    auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
     section->SetDiameter(0.05);
     section->SetYoungModulus(0.01e9);
     section->SetRayleighDamping(0.05);

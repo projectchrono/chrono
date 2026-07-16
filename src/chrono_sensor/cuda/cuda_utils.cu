@@ -18,6 +18,7 @@
 #ifdef USE_SENSOR_NVDB
 
 #include <cuda.h>
+#include <cstdint>
 #include <cuda_runtime.h>
 
 #include <nanovdb/NanoVDB.h>

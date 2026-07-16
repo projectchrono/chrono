@@ -65,8 +65,8 @@ void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std
 }
 
 void ChChassisConnectorTorsion::PopulateComponentList() {
-    m_joints.push_back(m_joint);
-    m_rsdas.push_back(m_spring);
+    m_components.joints.push_back(m_joint);
+    m_components.rsdas.push_back(m_spring);
 }
 
 }  // end namespace vehicle

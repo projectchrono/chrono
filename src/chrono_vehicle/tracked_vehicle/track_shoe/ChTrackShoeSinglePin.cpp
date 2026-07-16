@@ -141,7 +141,7 @@ ChVector3d ChTrackShoeSinglePin::GetTension() const {
 // -----------------------------------------------------------------------------
 
 void ChTrackShoeSinglePin::PopulateComponentList() {
-    m_bodies.push_back(m_shoe);
+    m_components.bodies.push_back(m_shoe);
 }
 
 }  // end namespace vehicle

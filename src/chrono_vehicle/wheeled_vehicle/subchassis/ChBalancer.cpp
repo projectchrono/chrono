@@ -180,13 +180,13 @@ void ChBalancer::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 
 void ChBalancer::PopulateComponentList() {
-    m_bodies.push_back(m_beam[0]);
-    m_bodies.push_back(m_beam[1]);
+    m_components.bodies.push_back(m_beam[0]);
+    m_components.bodies.push_back(m_beam[1]);
 
-    m_balancer_joint[0]->IsKinematic() ? m_joints.push_back(m_balancer_joint[0]->GetAsLink())
-                                       : m_body_loads.push_back(m_balancer_joint[0]->GetAsBushing());
-    m_balancer_joint[1]->IsKinematic() ? m_joints.push_back(m_balancer_joint[1]->GetAsLink())
-                                       : m_body_loads.push_back(m_balancer_joint[1]->GetAsBushing());
+    m_balancer_joint[0]->IsKinematic() ? m_components.joints.push_back(m_balancer_joint[0]->GetAsLink())
+                                       : m_components.bushings.push_back(m_balancer_joint[0]->GetAsBushing());
+    m_balancer_joint[1]->IsKinematic() ? m_components.joints.push_back(m_balancer_joint[1]->GetAsLink())
+                                       : m_components.bushings.push_back(m_balancer_joint[1]->GetAsBushing());
 }
 
 }  // end namespace vehicle

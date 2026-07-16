@@ -19,7 +19,6 @@ using shared-memory parallel computing within Chrono
 ## Requirements
 
 - To **build** this module you need:
-    - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library, version 3.8.
     - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK).
 
 <div class="ce-warning">
@@ -31,7 +30,6 @@ Alternatively, you can download or clone Thrust from its [GitHub repository](htt
 ## Building instructions
   
 1. Download the following libraries (depending on the platform, the process can be different)
-    - [Blaze](https://bitbucket.org/blaze-lib/blaze) library, version 3.8
     - [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
 
     For use with the Chrono::Multicore module, no installation is required for the above headers-only libraries. However, if so desired, they can be installed in the appropriate system directories (on platforms that support them).
@@ -40,9 +38,7 @@ Alternatively, you can download or clone Thrust from its [GitHub repository](htt
    
 3. Set `CH_ENABLE_MODULE_MULTICORE` to 'on'.
  
-4. If prompted, set the path for `Blaze_ROOT_DIR`.
-	 
-5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
+4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 <div class="ce-warning">
 Not all the features of the standard _serial_ version of Chrono are supported.

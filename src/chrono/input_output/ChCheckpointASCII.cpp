@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a Chrono checkpoint database.
+// Implementation of an ASCII text Chrono checkpoint database.
 //
 // =============================================================================
 
@@ -33,7 +33,7 @@ using std::endl;
 
 namespace chrono {
 
-ChCheckpointASCII::ChCheckpointASCII(Type type) : ChCheckpoint(type), m_np(0), m_nv(0) {
+ChCheckpointASCII::ChCheckpointASCII(Type type) : ChCheckpoint(type), m_file_read(false), m_np(0), m_nv(0) {
     m_csv.SetDelimiter(" ");
 
     constexpr auto precision{std::numeric_limits<long double>::digits10 + 1};
@@ -49,15 +49,18 @@ void ChCheckpointASCII::Initialize() {}
 void ChCheckpointASCII::WriteFile(const std::string& filename) {
     std::ofstream ofile(filename);
     ofile << GetTypeAsString(m_type) << endl;
+    ofile << m_time << endl;
     ofile << m_np << " " << m_nv << endl;
     ofile << m_csv.Stream().str();
     ofile.close();
 }
 
-void ChCheckpointASCII::OpenFile(const std::string& filename) {
+void ChCheckpointASCII::ReadFile(const std::string& filename) {
+    std::ifstream ifile;
+
     try {
-        m_ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        m_ifile.open(filename);
+        ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
+        ifile.open(filename);
     } catch (const std::exception&) {
         cerr << "Error: Cannot open ASCII checkpoint file " << filename << endl;
         throw std::invalid_argument("Cannot open ASCII checkpoint file");
@@ -65,8 +68,8 @@ void ChCheckpointASCII::OpenFile(const std::string& filename) {
 
     std::string line;
 
-    // Read checkpoint type
-    std::getline(m_ifile, line);
+    // Load checkpoint type
+    std::getline(ifile, line);
     {
         std::string type;
 
@@ -80,16 +83,31 @@ void ChCheckpointASCII::OpenFile(const std::string& filename) {
         cout << "Open file " << filename << " with " << type << " checkpoint." << endl;
     }
 
-    // Read number of states
-    std::getline(m_ifile, line);
+    // Load checkpoint time
+    std::getline(ifile, line);
+    {
+        std::istringstream iss(line);
+        iss >> m_time;
+    }
+
+    // Load number of states
+    std::getline(ifile, line);
     {
         std::istringstream iss(line);
         iss >> m_np >> m_nv;
     }
+
+    // Load the remainder lines in the ChWriterCSV object
+    auto str = ifile.rdbuf();
+    m_csv.Stream() << str;
+
+    // Flag the checkpint as loaded from file
+    m_file_read = true;
+    m_istream = std::istringstream(m_csv.Stream().str());
 }
 
 void ChCheckpointASCII::CheckIfOpen() const {
-    if (!m_ifile.is_open()) {
+    if (!m_file_read) {
         cerr << "Error: input checkpoint file not open" << endl;
         throw std::runtime_error("Input checkpoint file not open");
     }
@@ -97,7 +115,7 @@ void ChCheckpointASCII::CheckIfOpen() const {
 
 // -----------------------------------------------------------------------------
 
-void ChCheckpointASCII::WriteState(ChSystem* sys) {
+void ChCheckpointASCII::SaveState(ChSystem* sys) {
     CheckIfSystemType();
 
     m_np = sys->GetNumCoordsPosLevel();
@@ -106,12 +124,12 @@ void ChCheckpointASCII::WriteState(ChSystem* sys) {
     ChStateDelta v(m_nv, sys);
     double time;
     sys->StateGather(x, v, time);
-    m_csv << time << endl;
+    assert(time == m_time);
     m_csv << x << endl;
     m_csv << v << endl;
 }
 
-void ChCheckpointASCII::ReadState(ChSystem* sys) {
+void ChCheckpointASCII::LoadState(ChSystem* sys) {
     CheckIfOpen();
     CheckIfSystemType();
 
@@ -129,40 +147,26 @@ void ChCheckpointASCII::ReadState(ChSystem* sys) {
 
     std::string line;
 
-    // Read time
-    double time;
-    {
-        std::getline(m_ifile, line);
-        std::istringstream iss(line);
-        iss >> time;
-    }
-
-    // Read states
+    // Load states
     ChState x(np, sys);
     ChStateDelta v(nv, sys);
     for (size_t i = 0; i < m_np; i++) {
-        std::getline(m_ifile, line);
+        std::getline(m_istream, line);
         std::istringstream iss(line);
         iss >> x[i];
     }
     for (size_t i = 0; i < m_nv; i++) {
-        std::getline(m_ifile, line);
+        std::getline(m_istream, line);
         std::istringstream iss(line);
         iss >> v[i];
     }
 
-    sys->StateScatter(x, v, time, UpdateFlags::UPDATE_ALL);
+    sys->StateScatter(x, v, m_time, UpdateFlags::UPDATE_ALL);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChCheckpointASCII::WriteTime(double time) {
-    CheckIfComponentType();
-
-    m_csv << time << endl;
-}
-
-void ChCheckpointASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
+void ChCheckpointASCII::SaveBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
     CheckIfComponentType();
 
     for (const auto& body : bodies) {
@@ -178,7 +182,7 @@ void ChCheckpointASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& 
     m_nv += 6 * bodies.size();
 }
 
-void ChCheckpointASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
+void ChCheckpointASCII::SaveShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
     CheckIfComponentType();
 
     for (const auto& shaft : shafts) {
@@ -192,13 +196,13 @@ void ChCheckpointASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>&
     m_nv += shafts.size();
 }
 
-void ChCheckpointASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
+void ChCheckpointASCII::SaveJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
     CheckIfComponentType();
 
     // No states
 }
 
-void ChCheckpointASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
+void ChCheckpointASCII::SaveCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     CheckIfComponentType();
 
     for (const auto& motor : couples) {
@@ -209,7 +213,7 @@ void ChCheckpointASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsC
     }
 }
 
-void ChCheckpointASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
+void ChCheckpointASCII::SaveLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     CheckIfComponentType();
 
     for (const auto& spring : springs) {
@@ -220,19 +224,19 @@ void ChCheckpointASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLink
     }
 }
 
-void ChCheckpointASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
+void ChCheckpointASCII::SaveRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     CheckIfComponentType();
 
     // No states
 }
 
-void ChCheckpointASCII::WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
+void ChCheckpointASCII::SaveBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
     CheckIfComponentType();
 
     // No states
 }
 
-void ChCheckpointASCII::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
+void ChCheckpointASCII::SaveLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
     CheckIfComponentType();
 
     for (const auto& motor : motors) {
@@ -251,7 +255,7 @@ void ChCheckpointASCII::WriteLinMotors(const std::vector<std::shared_ptr<ChLinkM
     }
 }
 
-void ChCheckpointASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
+void ChCheckpointASCII::SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
     CheckIfComponentType();
 
     for (const auto& motor : motors) {
@@ -269,17 +273,17 @@ void ChCheckpointASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkM
     }
 }
 
-void ChCheckpointASCII::WriteDouble(double value) {
+void ChCheckpointASCII::SaveDouble(double value) {
     CheckIfComponentType();
     m_csv << value << endl;
 }
 
-void ChCheckpointASCII::WriteInteger(int value) {
+void ChCheckpointASCII::SaveInteger(int value) {
     CheckIfComponentType();
     m_csv << value << endl;
 }
 
-void ChCheckpointASCII::WriteVector(const std::vector<double>& vector) {
+void ChCheckpointASCII::SaveVector(const std::vector<double>& vector) {
     CheckIfComponentType();
     m_csv << vector.size();
     for (auto v : vector)
@@ -287,29 +291,19 @@ void ChCheckpointASCII::WriteVector(const std::vector<double>& vector) {
     m_csv << endl;
 }
 
-void ChCheckpointASCII::WriteChVector3(const ChVector3d& vector) {
+void ChCheckpointASCII::SaveChVector3(const ChVector3d& vector) {
     CheckIfComponentType();
     m_csv << vector << endl;
 }
 
-void ChCheckpointASCII::WriteChQuaternion(const ChQuaterniond& quat) {
+void ChCheckpointASCII::SaveChQuaternion(const ChQuaterniond& quat) {
     CheckIfComponentType();
     m_csv << quat << endl;
 }
 
 // -----------------------------------------------------------------------------
 
-void ChCheckpointASCII::ReadTime(double& time) {
-    CheckIfOpen();
-    CheckIfComponentType();
-
-    std::string line;
-    std::getline(m_ifile, line);
-    std::istringstream iss(line);
-    iss >> time;
-}
-
-void ChCheckpointASCII::ReadBodies(std::vector<std::shared_ptr<ChBody>>& bodies) {
+void ChCheckpointASCII::LoadBodies(std::vector<std::shared_ptr<ChBody>>& bodies) {
     CheckIfOpen();
     CheckIfComponentType();
 
@@ -320,7 +314,7 @@ void ChCheckpointASCII::ReadBodies(std::vector<std::shared_ptr<ChBody>>& bodies)
 
     std::string line;
     for (auto& body : bodies) {
-        std::getline(m_ifile, line);
+        std::getline(m_istream, line);
         std::istringstream iss(line);
         iss >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3()                        //
             >> pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >> rot_dt.e2() >> rot_dt.e3();  //
@@ -331,7 +325,7 @@ void ChCheckpointASCII::ReadBodies(std::vector<std::shared_ptr<ChBody>>& bodies)
     }
 }
 
-void ChCheckpointASCII::ReadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts) {
+void ChCheckpointASCII::LoadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts) {
     CheckIfOpen();
     CheckIfComponentType();
 
@@ -340,7 +334,7 @@ void ChCheckpointASCII::ReadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts
 
     std::string line;
     for (auto& shaft : shafts) {
-        std::getline(m_ifile, line);
+        std::getline(m_istream, line);
         std::istringstream iss(line);
         iss >> pos >> pos_dt;
         shaft->SetPos(pos);
@@ -348,14 +342,14 @@ void ChCheckpointASCII::ReadShafts(std::vector<std::shared_ptr<ChShaft>>& shafts
     }
 }
 
-void ChCheckpointASCII::ReadJoints(std::vector<std::shared_ptr<ChLink>>& joints) {
+void ChCheckpointASCII::LoadJoints(std::vector<std::shared_ptr<ChLink>>& joints) {
     CheckIfOpen();
     CheckIfComponentType();
 
     // No states
 }
 
-void ChCheckpointASCII::ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
+void ChCheckpointASCII::LoadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     CheckIfOpen();
     CheckIfComponentType();
 
@@ -364,7 +358,7 @@ void ChCheckpointASCII::ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>
     std::string line;
     for (const auto& couple : couples) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChShaftsMotorSpeed>(couple)) {
-            std::getline(m_ifile, line);
+            std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
             motor_speed->Variables().State()(0, 0) = state;
@@ -372,7 +366,7 @@ void ChCheckpointASCII::ReadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>
     }
 }
 
-void ChCheckpointASCII::ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
+void ChCheckpointASCII::LoadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>& springs) {
     CheckIfOpen();
     CheckIfComponentType();
 
@@ -380,7 +374,7 @@ void ChCheckpointASCII::ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>&
     for (auto& spring : springs) {
         auto num_states = spring->GetStates().size();
         if (spring->GetStates().size() > 0) {
-            std::getline(m_ifile, line);
+            std::getline(m_istream, line);
             std::istringstream iss(line);
             ChVectorDynamic<> states(num_states);
             for (int i = 0; i < num_states; i++)
@@ -390,21 +384,21 @@ void ChCheckpointASCII::ReadLinSprings(std::vector<std::shared_ptr<ChLinkTSDA>>&
     }
 }
 
-void ChCheckpointASCII::ReadRotSprings(std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
+void ChCheckpointASCII::LoadRotSprings(std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     CheckIfOpen();
     CheckIfComponentType();
 
     // No states
 }
 
-void ChCheckpointASCII::ReadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
+void ChCheckpointASCII::LoadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
     CheckIfOpen();
     CheckIfComponentType();
 
     // No states
 }
 
-void ChCheckpointASCII::ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
+void ChCheckpointASCII::LoadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) {
     CheckIfOpen();
     CheckIfComponentType();
 
@@ -416,12 +410,12 @@ void ChCheckpointASCII::ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLin
     std::string line;
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(motor)) {
-            std::getline(m_ifile, line);
+            std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
             motor_speed->Variables().State()(0, 0) = state;
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorLinearDriveline>(motor)) {
-            std::getline(m_ifile, line);
+            std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> pos1 >> pos2 >> pos3 >> pos1_dt >> pos2_dt >> pos3_dt;
             auto s1 = motor_drvl->GetInnerShaft1Lin();
@@ -437,7 +431,7 @@ void ChCheckpointASCII::ReadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLin
     }
 }
 
-void ChCheckpointASCII::ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
+void ChCheckpointASCII::LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) {
     CheckIfOpen();
     CheckIfComponentType();
 
@@ -449,12 +443,12 @@ void ChCheckpointASCII::ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
     std::string line;
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorRotationSpeed>(motor)) {
-            std::getline(m_ifile, line);
+            std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
             motor_speed->Variables().State()(0, 0) = state;
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorRotationDriveline>(motor)) {
-            std::getline(m_ifile, line);
+            std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> pos1 >> pos2 >> pos1_dt >> pos2_dt;
             auto s1 = motor_drvl->GetInnerShaft1();
@@ -467,34 +461,34 @@ void ChCheckpointASCII::ReadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
     }
 }
 
-void ChCheckpointASCII::ReadDouble(double& value) {
+void ChCheckpointASCII::LoadDouble(double& value) {
     CheckIfOpen();
     CheckIfComponentType();
 
     std::string line;
-    std::getline(m_ifile, line);
+    std::getline(m_istream, line);
     std::istringstream iss(line);
 
     iss >> value;
 }
 
-void ChCheckpointASCII::ReadInteger(int& value) {
+void ChCheckpointASCII::LoadInteger(int& value) {
     CheckIfOpen();
     CheckIfComponentType();
 
     std::string line;
-    std::getline(m_ifile, line);
+    std::getline(m_istream, line);
     std::istringstream iss(line);
 
     iss >> value;
 }
 
-void ChCheckpointASCII::ReadVector(std::vector<double>& vector) {
+void ChCheckpointASCII::LoadVector(std::vector<double>& vector) {
     CheckIfOpen();
     CheckIfComponentType();
 
     std::string line;
-    std::getline(m_ifile, line);
+    std::getline(m_istream, line);
     std::istringstream iss(line);
 
     size_t n;
@@ -505,22 +499,22 @@ void ChCheckpointASCII::ReadVector(std::vector<double>& vector) {
     }
 }
 
-void ChCheckpointASCII::ReadChVector3(ChVector3d& vector) {
+void ChCheckpointASCII::LoadChVector3(ChVector3d& vector) {
     CheckIfOpen();
     CheckIfComponentType();
 
     std::string line;
-    std::getline(m_ifile, line);
+    std::getline(m_istream, line);
     std::istringstream iss(line);
     iss >> vector.x() >> vector.y() >> vector.z();
 }
 
-void ChCheckpointASCII::ReadChQuaternion(ChQuaterniond& quat) {
+void ChCheckpointASCII::LoadChQuaternion(ChQuaterniond& quat) {
     CheckIfOpen();
     CheckIfComponentType();
 
     std::string line;
-    std::getline(m_ifile, line);
+    std::getline(m_istream, line);
     std::istringstream iss(line);
     iss >> quat.e0() >> quat.e1() >> quat.e2() >> quat.e3();
 }

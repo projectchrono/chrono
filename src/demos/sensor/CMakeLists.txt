@@ -28,7 +28,7 @@ if(CH_USE_SENSOR_OPTIX)
       )
   endif()
 
-  if(CH_ENABLE_MODULE_FSI_SPH)
+  if(CH_ENABLE_MODULE_FSI_SPH AND CH_ENABLE_MODULE_VEHICLE)
       set(DEMOS ${DEMOS}
         demo_SEN_CRM_Rendering
       )
@@ -37,33 +37,33 @@ if(CH_USE_SENSOR_OPTIX)
 endif()
 
 #--------------------------------------------------------------
-# Include directories, compiler flags, libraries
+# Dependency libraries
 
 list(APPEND LIBRARIES Chrono_core)
-list(APPEND LIBRARIES "ChronoModels_robot")
-list(APPEND LIBRARIES "Chrono_sensor")
-
-if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBRARIES "Chrono_irrlicht")
-endif()
+list(APPEND LIBRARIES ChronoModels_robot)
+list(APPEND LIBRARIES Chrono_sensor)
 
 if(CH_ENABLE_MODULE_VEHICLE) 
-   if(CH_ENABLE_MODULE_IRRLICHT)
-      list(APPEND LIBRARIES "Chrono_vehicle")
-      list(APPEND LIBRARIES "Chrono_vehicle_irrlicht")
-   endif()
+   list(APPEND LIBRARIES Chrono_vehicle)
    if(CH_ENABLE_MODULE_VEHICLE_MODELS)
-      list(APPEND LIBRARIES "ChronoModels_vehicle")
+      list(APPEND LIBRARIES ChronoModels_vehicle)
+   endif()
+endif()
+
+if(CH_ENABLE_MODULE_IRRLICHT)
+   list(APPEND LIBRARIES Chrono_irrlicht)
+   if(CH_ENABLE_MODULE_VEHICLE) 
+      list(APPEND LIBRARIES Chrono_vehicle_irrlicht)
    endif()
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBRARIES "Chrono_vsg")
+    list(APPEND LIBRARIES Chrono_vsg)
     if(CH_ENABLE_MODULE_VEHICLE) 
-      list(APPEND LIBRARIES "Chrono_vehicle_vsg")
+       list(APPEND LIBRARIES Chrono_vehicle_vsg)
     endif()
     if(CH_ENABLE_MODULE_FSI_SPH)
-      list(APPEND LIBRARIES "Chrono_fsisph_vsg")
+       list(APPEND LIBRARIES Chrono_fsisph_vsg)
     endif()
 endif()
 

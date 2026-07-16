@@ -17,8 +17,9 @@
 
 #include "chrono_parsers/ChApiParsers.h"
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/input_output/ChUtilsYAML.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace parsers {
@@ -41,54 +42,81 @@ class ChApiParsers ChParserYAML {
     /// Set root output directory (default: ".").
     /// The specified directory must exist.
     virtual void SetOutputDir(const std::string& out_dir);
-    
+
     /// Return the name of the YAML model.
     const std::string& GetName() const { return m_name; }
 
+    // Output settings
+
     /// Return true if generating output.
-    virtual bool Output() const;
+    virtual bool OutputEnabled() const { return m_output_settings.format != ChOutput::Format::NONE; }
+
+    /// Return all output settings.
+    const ChOutput::Settings& GetOutputSettings() const { return m_output_settings; }
 
     /// Return the output type.
-    ChOutput::Type GetOutputType() const { return m_output.type; }
+    ChOutput::Format GetOutputFormat() const { return m_output_settings.format; }
 
     /// Return the output mode.
-    ChOutput::Mode GetOutputMode() const { return m_output.mode; }
+    ChOutput::Mode GetOutputMode() const { return m_output_settings.mode; }
 
     /// Return the output frequency.
-    virtual double GetOutputFPS() const { return m_output.fps; }
+    virtual double GetOutputFPS() const { return m_output_settings.fps; }
 
-    /// Save simulation output results at the current time.
-    /// This base class implementation creates and initializes the output database. Derived classes must  
-    virtual void SaveOutput(int frame);
+    // Run-time visualization settings
+
+    /// Return true if visualization is enabled.
+    virtual bool VisualizationEnabled() const { return m_vis_settings.render; }
+
+    /// Return all visualization settings.
+    const ChVisualSystem::Settings& GetVisualizationSettings() const { return m_vis_settings; }
+
+    double GetRenderFPS() const { return m_vis_settings.render_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_vis_settings.camera_vertical; }
+    const ChVector3d& GetCameraLocation() const { return m_vis_settings.camera_location; }
+    const ChVector3d& GetCameraTarget() const { return m_vis_settings.camera_target; }
+    bool EnableShadows() const { return m_vis_settings.enable_shadows; }
+    bool WriteImages() const { return m_vis_settings.write_images; }
+    const std::string& GetImageDir() const { return m_vis_settings.image_dir; }
+
+    /// Load simulation settings for this parser from the specified YAML node.
+    /// This function reads settings common to all Chrono YAML parsers (run-time visualization and output).
+    /// A derived class must also read any additional parser-specific simulation settings.
+    virtual void LoadSimData(const YAML::Node& yaml);
+
+    /// Write simulation output results at the current time.
+    /// This base class implementation creates and initializes the output database. Derived classes must
+    virtual void WriteOutput(int frame, double time);
 
     /// Peek in specified YAML file and read the fluid system type.
     /// Throws a runtime error if the type is unknown.
     static YamlFileType ReadYamlFileType(const std::string& yaml_filename);
 
+    // Common utility functions
+
+    /// Generate output at the current frame.
+    /// This function ensures that output occurs at the specified frequency.
+    virtual void Output(double time);
+
+    /// Render the current frame using the specified visual system if run-time visualization is available and enabled.
+    /// Returns `false` if the visual system must shut down.
+    /// This function ensures that frames are rendered at the specified frequency.
+    /// If requested, snapshots are saved to disk.
+    virtual bool Render(ChVisualSystem& vis, double time);
+
   protected:
-    /// Output parameters.
-    struct OutputParameters {
-        OutputParameters();
-        void PrintInfo();
-
-        ChOutput::Type type;
-        ChOutput::Mode mode;
-        double fps;
-    };
-
-    /// Read output settings from specified YAML node.
-    void ReadOutputParams(const YAML::Node& a);
-
     /// Read the YAML file type.
     static YamlFileType ReadYamlFileType(const YAML::Node& a);
 
-    std::string m_name;    ///< name of the YAML model
-    bool m_verbose;        ///< verbose terminal output (default: false)
-    bool m_use_degrees;    ///< all angles given in degrees (default: true)
+    std::string m_name;  ///< name of the YAML model
+    bool m_verbose;      ///< verbose terminal output (default: false)
+    bool m_use_degrees;  ///< all angles given in degrees (default: true)
 
+    ChVisualSystem::Settings m_vis_settings;  ///< visualization settings
+
+    ChOutput::Settings m_output_settings;   ///< output settings
     std::string m_output_dir;               ///< root output directory
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
-    OutputParameters m_output;              ///< output parameters
 
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths
 };

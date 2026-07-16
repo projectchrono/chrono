@@ -24,7 +24,6 @@ BUILD_DIR="$HOME/Build/chrono"
 INSTALL_DIR="$HOME/Install/chrono"
 
 EIGEN3_INSTALL_DIR="$HOME/Packages/eigen-3.4.0"
-BLAZE_ROOT="$HOME/Packages/blaze-3.8"
 CASCADE_INSTALL_DIR="$HOME/Packages/opencascade-7.9.2"
 SPECTRA_INCLUDE_DIR="$HOME/Packages/spectra/include"
 
@@ -77,7 +76,6 @@ cmake -G "${BUILDSYSTEM}" -B "${BUILD_DIR}" -S "${SOURCE_DIR}" \
       -DCH_USE_SYNCHRONO_FASTDDS:BOOL=ON \
       -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INSTALL_DIR} \
       -DIrrlicht_ROOT:PATH=${IRRLICHT_ROOT} \
-      -DBlaze_ROOT:PATH=${BLAZE_ROOT} \
       -DOptiX_INSTALL_DIR:PATH=${OPTIX_INSTALL_DIR} \
       -DFastDDS_ROOT:PATH=${FASTDDS_INSTALL_DIR} \
       -DGLEW_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glew \
