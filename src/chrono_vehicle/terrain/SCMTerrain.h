@@ -42,13 +42,16 @@
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
+#ifdef CHRONO_HAS_SCM_GPU
+    #include "chrono_vehicle/terrain/SCMGpu.h"
+#endif
+
 namespace chrono {
 namespace vehicle {
 
 class SCMLoader;
 
 #ifdef CHRONO_HAS_SCM_GPU
-    #include "chrono_vehicle/terrain/SCMGpu.h"
 namespace scm_gpu {
 struct ScmHitRecord {
     ChContactable* contactable = nullptr;
@@ -569,7 +572,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // This is called automatically during timestepping (only at the beginning of each step).
     void ComputeInternalForces();
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     bool ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits,
                                  const std::vector<double>& patch_oob);
     scm_gpu::Config m_scm_gpu_config;

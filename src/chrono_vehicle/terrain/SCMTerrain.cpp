@@ -38,7 +38,7 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     #include "chrono_vehicle/terrain/SCMGpu.h"
 #endif
 
@@ -268,7 +268,7 @@ void SCMTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCa
 void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
     m_loader->Initialize(sizeX, sizeY, delta);
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     scm_gpu::PrimeBuffers();
 #endif
 }
@@ -277,7 +277,7 @@ void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
 void SCMTerrain::Initialize(const std::string& heightmap_file, double sizeX, double sizeY, double hMin, double hMax, double delta) {
     m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     scm_gpu::PrimeBuffers();
 #endif
 }
@@ -286,7 +286,7 @@ void SCMTerrain::Initialize(const std::string& heightmap_file, double sizeX, dou
 void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
     m_loader->Initialize(mesh_file, delta);
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     scm_gpu::PrimeBuffers();
 #endif
 }
@@ -295,7 +295,7 @@ void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
 void SCMTerrain::Initialize(const ChTriangleMeshConnected& trimesh, double delta) {
     m_loader->Initialize(trimesh, delta);
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     scm_gpu::PrimeBuffers();
 #endif
 }
@@ -449,7 +449,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     scm_gpu::SetConfig(m_scm_gpu_config);
 #endif
 
@@ -1178,7 +1178,7 @@ void SCMLoader::ComputeInternalForces() {
 
     // Information of vertices with ray-cast hits
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     using HitRecord = scm_gpu::ScmHitRecord;
 #else
     struct HitRecord {
@@ -1409,7 +1409,7 @@ void SCMLoader::ComputeInternalForces() {
 
     m_timer_contact_forces.start();
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     bool scm_used_gpu = false;
     if (m_scm_gpu_config.enabled && !m_soil_fun && hits.size() >= m_scm_gpu_config.min_hits) {
         std::vector<double> patch_oob(contact_patches.size());
@@ -1584,7 +1584,7 @@ void SCMLoader::ComputeInternalForces() {
 
         }  // end loop on ray hits
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
     }  // end CPU contact-force path
 #endif
 
