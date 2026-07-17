@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     // Initialize FSI system
     sysFSI.Initialize();
 
-    // Create oputput directories
+    // Create output directories
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -471,10 +471,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
                 element->SetNodes(node0, node1, node2, node3);
 
                 // Element dimensions
-                double dx =
-                    0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-                double dy =
-                    0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
+                double dx = 0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
+                double dy = 0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
 
                 // Set element dimensions
                 element->SetDimensions(dx, dy);
@@ -488,10 +486,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
                 // Add element to mesh
                 mesh->AddElement(element);
 
-                ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
-                                            element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-                cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " "
-                     << center.z() << endl;
+                ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() + element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
+                cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " " << center.z() << endl;
 
                 num_elem++;
             }

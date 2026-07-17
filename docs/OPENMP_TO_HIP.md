@@ -89,17 +89,19 @@ Use **Structure of Arrays** or one struct per hit with fixed size — no `std::v
 ### Step 5 — Chrono integration hook
 
 1. Add `ComputeContactForcesGpu()` (or equivalent) behind a **runtime or CMake gate** (`CH_ENABLE_VEHICLE_SCM_GPU`).
-2. In the CPU function, after ray cast + patch build: pack → external `scm_gpu` launch → scatter into body forces.
-3. Bridge implementation: `src/chrono_vehicle/terrain/SCMTerrainGpu.cpp`.
+2. In the CPU function, after ray cast + patch build: pack → HIP launch → scatter into body forces.
+3. Bridge implementation: `src/chrono_vehicle/terrain/SCMTerrainGpu.cpp` plus in-tree HIP sources under `terrain/gpu/`.
 
-**SCM runtime toggle:**
+**SCM runtime control** (via SCMTerrain API when `CHRONO_HAS_SCM_GPU`):
 
-```bash
-export CHRONO_SCM_GPU=1          # uniform soil, rigid ChBody contactables in v1
-export CHRONO_SCM_GPU_MIN_HITS=8192   # CPU fallback below this count
+```cpp
+terrain.SetScmGpuEnabled(true);  // default: enabled when built with SCM GPU
+chrono::vehicle::scm_gpu::Config cfg = terrain.GetScmGpuConfig();
+cfg.min_hits = 8192;             // CPU fallback below this count
+terrain.SetScmGpuConfig(cfg);
 ```
 
-Build Chrono with `-DCH_ENABLE_VEHICLE_SCM_GPU=ON` and point `CHRONO_SCM_GPU_LIB_DIR` at the external `scm_gpu` install (API headers ship in-tree). See [`docs/SCM_GPU_EXTERNAL.md`](docs/SCM_GPU_EXTERNAL.md).
+Build Chrono with `-DCH_ENABLE_VEHICLE_SCM_GPU=ON` and `-DCHRONO_GPU_BACKEND=HIP` (uses the same ROCm/HIP discovery as DEM and FSI).
 
 ### Step 6 — Scaling benchmark
 
@@ -155,9 +157,10 @@ For FSI/SPH modules that already ship CUDA sources, prefer upstream `CHRONO_GPU_
 | Path | Role |
 |------|------|
 | `src/chrono_vehicle/terrain/SCMTerrain.cpp` | CPU path + GPU hook after ray cast |
-| `src/chrono_vehicle/terrain/SCMTerrainGpu.{h,cpp}` | Pack → `scm_gpu` → scatter |
+| `src/chrono_vehicle/terrain/SCMTerrainGpu.{h,cpp}` | Pack → HIP kernels → scatter |
+| `src/chrono_vehicle/terrain/gpu/SCMGpuHost.cpp` | HIP host bridge (pinned buffers, streams) |
+| `src/chrono_vehicle/terrain/gpu/SCMGpuKernels.hip.cpp` | Bekker / Mohr-Coulomb / Janosi device kernels |
 | `src/chrono_vehicle/CMakeLists.txt` | `CH_ENABLE_VEHICLE_SCM_GPU` option (OpenCRG pattern) |
-| External `scm_gpu` | HIP force kernel (built separately; see `SCM_GPU_EXTERNAL.md`) |
 
 ---
 

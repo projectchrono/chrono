@@ -38,6 +38,7 @@
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -231,9 +232,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     const auto& aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
-    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
-    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH particles:        " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Boundary BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
+    cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << endl;
 
     // Create driver
     cout << "Create path..." << endl;
@@ -318,7 +319,7 @@ int main(int argc, char* argv[]) {
     std::ofstream stats_output(stats_file);
     stats_output << "time,x,y,z,vx,vy,vz,ax,ay,az,qw,qx,qy,qz,wx,wy,wz" << std::endl;
 
-    while (time < tend) {
+    while (true) {
         const auto& veh_loc = vehicle->GetPos();
 
         // Stop before end of patch
@@ -359,12 +360,15 @@ int main(int argc, char* argv[]) {
         }
         if (!render) {
             std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
+            if (time > tend)
+                break;
         }
 
         // Synchronize systems
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
         vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Write vehicle stats to CSV
@@ -383,12 +387,14 @@ int main(int argc, char* argv[]) {
         // Note: CRMTerrain::Advance also performs the vehicle dynamics
         if (sph_params.use_variable_time_step) {
             driver.Advance(meta_step_size);
-            vis->Advance(meta_step_size);
+            if (vis)
+                vis->Advance(meta_step_size);
             terrain.Advance(meta_step_size);
             time += meta_step_size;
         } else {
             driver.Advance(step_size);
-            vis->Advance(step_size);
+            if (vis)
+                vis->Advance(step_size);
             terrain.Advance(step_size);
             time += step_size;
         }

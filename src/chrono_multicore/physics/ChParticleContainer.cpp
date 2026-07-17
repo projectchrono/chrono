@@ -204,27 +204,22 @@ void ChParticleContainer::Build_D() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Particle_Neighbors(
-                real3 U = -Normalize(xij); real3 V; real3 W;
-                Orthogonalize(U, V, W);
-                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
-                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
-            );
+            Loop_Over_Particle_Neighbors(real3 U = -Normalize(xij); real3 V; real3 W; Orthogonalize(U, V, W); SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
+                                         SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U););
 
         } else {
-            Loop_Over_Particle_Neighbors(
-                real3 U = -Normalize(xij); real3 V; real3 W; Orthogonalize(U, V, W);
+            Loop_Over_Particle_Neighbors(real3 U = -Normalize(xij); real3 V; real3 W; Orthogonalize(U, V, W);
 
-                // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_a * 3);
+                                         // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_a * 3);
 
-                SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
-                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_a * 3, -V);
-                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_a * 3, -W);
-                // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_b * 3);
+                                         SetRow3(D_T, start_contact + index + 0, body_offset + body_a * 3, -U);
+                                         SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_a * 3, -V);
+                                         SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_a * 3, -W);
+                                         // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_b * 3);
 
-                SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
-                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_b * 3, V);
-                SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
+                                         SetRow3(D_T, start_contact + index + 0, body_offset + body_b * 3, U);
+                                         SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 0, body_offset + body_b * 3, V);
+                                         SetRow3(D_T, start_contact + num_rigid_contacts + index * 2 + 1, body_offset + body_b * 3, W););
         }
     }
 }
@@ -234,8 +229,7 @@ void ChParticleContainer::Build_b() {
 
     VectorType& b = data_manager->host_data.b;
 
-    CorrectionRigidParticleBoundary(contact_mu, contact_cohesion, alpha, contact_recovery_speed, num_particles,
-                                 start_boundary, data_manager);
+    CorrectionRigidParticleBoundary(contact_mu, contact_cohesion, alpha, contact_recovery_speed, num_particles, start_boundary, data_manager);
 
     if (num_rigid_contacts > 0) {
         int index = 0;  // incremented in Loop_Over_Particle_Neighbors()
@@ -243,21 +237,14 @@ void ChParticleContainer::Build_b() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;
-                                         real bi = 0;
-                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }
-                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);
-                                         b[start_contact + index + 0] = bi;
-            );
+            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius; real bi = 0;
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); } bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                         b[start_contact + index + 0] = bi;);
         } else {
-            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius;
-                                         real bi = 0;
-                                         if (cohesion != 0) { depth = std::min(depth, real(0)); }
-                                         bi = std::max(inv_hpa * depth, -contact_recovery_speed);
-                                         b[start_contact + index + 0] = bi;
-                                         b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;
-                                         b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;
-            );
+            Loop_Over_Particle_Neighbors(real depth = Length(xij) - kernel_radius; real bi = 0;
+                                         if (cohesion != 0) { depth = std::min(depth, real(0)); } bi = std::max(inv_hpa * depth, -contact_recovery_speed);
+                                         b[start_contact + index + 0] = bi; b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;
+                                         b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;);
         }
     }
 }
@@ -350,18 +337,10 @@ void ChParticleContainer::GenerateSparsity() {
                         continue;
                     }
 
-                    AppendRow3(D_T,
-                               start_contact + num_rigid_contacts + index_t * 2 + 0,
-                               body_offset + body_a * 3, 0);
-                    AppendRow3(D_T,
-                               start_contact + num_rigid_contacts + index_t * 2 + 0,
-                               body_offset + body_b * 3, 0);
-                    AppendRow3(D_T,
-                               start_contact + num_rigid_contacts + index_t * 2 + 1,
-                               body_offset + body_a * 3, 0);
-                    AppendRow3(D_T,
-                               start_contact + num_rigid_contacts + index_t * 2 + 1,
-                               body_offset + body_b * 3, 0);
+                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 0, body_offset + body_a * 3, 0);
+                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 0, body_offset + body_b * 3, 0);
+                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 1, body_offset + body_a * 3, 0);
+                    AppendRow3(D_T, start_contact + num_rigid_contacts + index_t * 2 + 1, body_offset + body_b * 3, 0);
 
                     index_t++;
                 }
@@ -378,14 +357,11 @@ void ChParticleContainer::CalculateContactForces() {
     VectorType& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = gamma.segment(start_boundary, _num_rf_c_);
 
-    contact_forces = data_manager->host_data.D.middleCols(start_boundary, _num_rf_c_).topRows(_num_dof_) * gamma_n /
-                     data_manager->settings.step_size;
+    contact_forces = data_manager->host_data.D.middleCols(start_boundary, _num_rf_c_).topRows(_num_dof_) * gamma_n / data_manager->settings.step_size;
 
     if (contact_mu != 0) {
         SubVectorType gamma_t = gamma.segment(start_boundary + _num_rf_c_, 2 * _num_rf_c_);
-        contact_forces +=
-            data_manager->host_data.D.middleCols(start_boundary + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_) *
-            gamma_t / data_manager->settings.step_size;
+        contact_forces += data_manager->host_data.D.middleCols(start_boundary + _num_rf_c_, 2 * _num_rf_c_).topRows(_num_dof_) * gamma_t / data_manager->settings.step_size;
     }
 }
 
@@ -417,8 +393,7 @@ void ChParticleContainer::GetPressureForce(custom_vector<real3>& forc) {
     SubVectorType gamma_n = gamma.segment(start_contact, num_rigid_contacts);
 
     VectorType pressure_forces =
-        data_manager->host_data.D.middleCols(start_contact, num_rigid_contacts).middleRows(body_offset, num_particles * 3) *
-        gamma_n / data_manager->settings.step_size;
+        data_manager->host_data.D.middleCols(start_contact, num_rigid_contacts).middleRows(body_offset, num_particles * 3) * gamma_n / data_manager->settings.step_size;
 
     for (int i = 0; i < (signed)num_particles; i++) {
         forc[i] = real3(pressure_forces[i * 3 + 0], pressure_forces[i * 3 + 1], pressure_forces[i * 3 + 2]);

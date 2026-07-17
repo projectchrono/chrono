@@ -116,10 +116,8 @@ int main(int argc, char* argv[]) {
             floor->SetFixed(true);
             sys.Add(floor);
 
-            auto box_mesh =
-                ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"), true, true);
-            auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(contact_mat, box_mesh, false,
-                                                                                       false, sphere_swept_thickness);
+            auto box_mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"), true, true);
+            auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(contact_mat, box_mesh, false, false, sphere_swept_thickness);
             floor->AddCollisionShape(floor_shape);
             floor->EnableCollision(true);
 
@@ -159,9 +157,8 @@ int main(int argc, char* argv[]) {
                         ChCoordsys<> cydisp(ChVector3d(0.3 * j, 0.1 + i * 0.1, 0));
                         ChCoordsys<> ctot = cdown2 >> cdown1 >> cydisp >> crot;
                         ChMatrix33<> mrot(ctot.rot);
-                        ChMeshFileLoader::FromTetGenFile(mesh_FEA, GetChronoDataFile("fea/beam.node").c_str(),
-                                                         GetChronoDataFile("fea/beam.ele").c_str(), continuum_mat,
-                                                         ctot.pos, mrot);
+                        ChMeshFileLoader::FromTetGenFile(mesh_FEA, GetChronoDataFile("fea/beam.node").c_str(), GetChronoDataFile("fea/beam.ele").c_str(), continuum_mat, ctot.pos,
+                                                         mrot);
                     } catch (std::exception myerr) {
                         std::cerr << myerr.what();
                         return 0;
@@ -178,9 +175,7 @@ int main(int argc, char* argv[]) {
             // FEA tire
             std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
             ChCoordsys<> cpos(ChVector3d(0, 0.8, 0), QuatFromAngleY(CH_PI_2));
-            ChMeshFileLoader::FromAbaqusFile(mesh_FEA,
-                                             GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.INP").c_str(),
-                                             continuum_mat, node_sets, cpos.pos, cpos.rot);
+            ChMeshFileLoader::FromAbaqusFile(mesh_FEA, GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.INP").c_str(), continuum_mat, node_sets, cpos.pos, cpos.rot);
             break;
         }
     }
@@ -201,7 +196,7 @@ int main(int argc, char* argv[]) {
 
     // Create ANCF cable elements
     for (int icable = 0; icable < 1; ++icable) {
-        auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+        auto section_cable = chrono_types::make_shared<ChBeamSectionCableANCF>();
         section_cable->SetDiameter(0.05);
         section_cable->SetYoungModulus(0.01e9);
         section_cable->SetRayleighDamping(0.05);
@@ -242,8 +237,7 @@ int main(int argc, char* argv[]) {
     mesh_ANCF->AddVisualShapeFEA(visualization_ANCF);
 
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA contacts (NSC)",
-                                         ChVector3d(0.0, 1.2, -2.0));
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA contacts (NSC)", ChVector3d(0.0, 1.2, -2.0));
 
     // SIMULATION LOOP
 

@@ -51,7 +51,7 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     void LoadFile(const std::string& yaml_filename);
 
     /// Load the simulation, output, and visualization settings from the specified YAML node.
-    void LoadSimData(const YAML::Node& yaml);
+    void LoadSimData(const YAML::Node& yaml) override;
 
     /// Load the MBS model from the specified YAML node.
     void LoadModelData(const YAML::Node& yaml);
@@ -75,7 +75,6 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
 
     // --------------
 
-    bool Render() const { return m_vis.render; }
 #ifdef CHRONO_VSG
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
 #endif
@@ -85,29 +84,11 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     /// Write simulation output results at the current time.
     virtual void WriteOutput(int frame, double time) override;
 
-  private:  // ---- Data structures
+  private:
     enum class WaveColoringType { NONE, HEIGHT, VELOCITY };
 
     /// Wave types.
     enum class WaveType { NONE, REGULAR, IRREGULAR };
-
-    /// Run-time visualization parameters.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
-
-        bool render;
-
-#ifdef CHRONO_VSG
-        fsi::tdpf::ChTdpfVisualizationVSG::ColorMode mode;  ///< mode for wave false coloring
-#endif
-        ChColormap::Type colormap;  ///< colormap for wave false coloring
-        ChVector2d range;           ///< data range for false coloring
-        double update_fps;          ///< wave mesh update frequency (in FPS)
-
-        bool write_images;      ///< if true, save snapshots
-        std::string image_dir;  ///< directory for image files
-    };
 
     /// Output database.
     struct OutputData {
@@ -116,18 +97,19 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
 
   private:
     static WaveType ReadWaveType(const YAML::Node& a);
+
+  private:
+    RegularWaveParams m_reg_wave_params;      ///< regular wave settings
+    IrregularWaveParams m_irreg_wave_params;  ///< irregular wave settings
+
+    OutputData m_output_data;  ///< output data
+    std::string m_h5_file;     ///< hydrodynamics input file (HDF5 format)
+    ChVector3d m_gravity;      ///< gravitational acceleration
+    WaveType m_wave_type;      ///< wave type
 #ifdef CHRONO_VSG
-    static fsi::tdpf::ChTdpfVisualizationVSG::ColorMode ReadWaveColoringMode(const YAML::Node& a);
+    fsi::tdpf::ChTdpfVisualizationVSG::Settings m_visTDPF_settings;  ///< TDPF visualization settings
 #endif
 
-    RegularWaveParams m_reg_wave_params;
-    IrregularWaveParams m_irreg_wave_params;
-
-    VisParams m_vis;                                             ///< visualization parameters
-    OutputData m_output_data;                                    ///< output data
-    std::string m_h5_file;                                       ///< hydrodynamics input file (HDF5 format)
-    ChVector3d m_gravity;                                        ///< gravitational acceleration
-    WaveType m_wave_type;                                        ///< wave type
     std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> m_sysTDPF;  ///< underlying TDPF fluid solver
     std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> m_sysFSI;        ///< underlying FSI system
 

@@ -348,6 +348,10 @@ if(CH_ENABLE_MODULE_VSG)
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
     elseif(CHRONO_HIP_FOUND)
+      # Compile the VSG plugin source with the HIP compiler: it includes FSI
+      # data-manager headers that reference rocThrust/rocPRIM device types,
+      # which do not compile as plain C++ (same treatment as FSISPH_GPU_SOURCE_FILES).
+      set_source_files_properties(visualization/ChSphVisualizationVSG.cpp PROPERTIES LANGUAGE HIP)
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE CHRONO_USE_HIP)
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP")
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")

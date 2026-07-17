@@ -17,7 +17,7 @@ model:
 
   initial_states:
     depth_based_pressure: true
-    zero_height: 1.2
+    zero_height: 0
 
   fluid_domain:
     dimensions: [10, 10, 10]

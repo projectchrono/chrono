@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Wei Hu, Huzaifa Mustafa Unjhawala
+// Author: Wei Hu, Huzaifa Unjhawala
 // =============================================================================
 // Cone Penetration Validation Problem involving a cone falling from a height
 // onto a soil surface.
@@ -97,29 +97,29 @@ struct solid_material {
 };
 
 // Function to handle CLI arguments
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     double& t_end,
-                     int& ps_freq,
-                     double& initial_spacing,
-                     double& d0_multiplier,
-                     double& time_step,
-                     std::string& boundary_type,
-                     std::string& viscosity_type,
-                     std::string& kernel_type,
-                     std::string& gran_material,
-                     int& rel_density,
-                     int& cone_type,
-                     double& container_depth,
-                     double& Hdrop,
-                     double& artificial_viscosity,
-                     double& mu_s,
-                     double& mu_2,
-                     double& mu_i0,
-                     std::string& rheology_model_crm,
-                     double& pre_pressure_scale,
-                     double& kappa,
-                     double& lambda) {
+static bool GetProblemSpecs(int argc,
+                            char** argv,
+                            double& t_end,
+                            int& ps_freq,
+                            double& initial_spacing,
+                            double& d0_multiplier,
+                            double& time_step,
+                            std::string& boundary_type,
+                            std::string& viscosity_type,
+                            std::string& kernel_type,
+                            std::string& gran_material,
+                            int& rel_density,
+                            int& cone_type,
+                            double& container_depth,
+                            double& Hdrop,
+                            double& artificial_viscosity,
+                            double& mu_s,
+                            double& mu_2,
+                            double& mu_i0,
+                            std::string& rheology_model_crm,
+                            double& pre_pressure_scale,
+                            double& kappa,
+                            double& lambda) {
     ChCLI cli(argv[0], "FSI Cone Penetration Demo");
 
     cli.AddOption<double>("Simulation", "t_end", "End time", std::to_string(t_end));
@@ -127,8 +127,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Simulation", "initial_spacing", "Initial spacing", std::to_string(initial_spacing));
     cli.AddOption<double>("Simulation", "d0_multiplier", "D0 multiplier", std::to_string(d0_multiplier));
     cli.AddOption<std::string>("Simulation", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
-    cli.AddOption<std::string>("Simulation", "viscosity_type",
-                               "Viscosity type (artificial_unilateral/artificial_bilateral)", viscosity_type);
+    cli.AddOption<std::string>("Simulation", "viscosity_type", "Viscosity type (artificial_unilateral/artificial_bilateral)", viscosity_type);
     cli.AddOption<std::string>("Simulation", "kernel_type", "Kernel type (cubic/wendland)", kernel_type);
     cli.AddOption<double>("Simulation", "time_step", "Time step", std::to_string(time_step));
 
@@ -138,8 +137,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<int>("Geometry", "cone_type", "Cone type (1 - 30 degrees/2 - 60 degrees)", std::to_string(cone_type));
     cli.AddOption<double>("Geometry", "container_depth", "Container depth (m)", std::to_string(container_depth));
     cli.AddOption<double>("Geometry", "Hdrop", "Drop height (times cone length - 0/0.5/1)", std::to_string(Hdrop));
-    cli.AddOption<double>("Physics", "artificial_viscosity", "Artificial viscosity",
-                          std::to_string(artificial_viscosity));
+    cli.AddOption<double>("Physics", "artificial_viscosity", "Artificial viscosity", std::to_string(artificial_viscosity));
 
     cli.AddOption<double>("Physics", "mu_s", "Static friction coefficient", std::to_string(mu_s));
     cli.AddOption<double>("Physics", "mu_2", "Dynamic friction coefficient", std::to_string(mu_2));
@@ -176,20 +174,20 @@ bool GetProblemSpecs(int argc,
     return true;
 }
 
-void CalculateConeProperties(const double length,
-                             const double diameter,
-                             const double mass,
-                             double Hdrop,
-                             double g,
-                             double fzDim,
-                             double initial_spacing,
-                             double& volume,
-                             double& cone_mass,
-                             ChMatrix33<>& inertia,
-                             double& cone_z_pos,
-                             double& cone_z_vel,
-                             double& cone_length,
-                             double& cone_diameter) {
+static void CalculateConeProperties(const double length,
+                                    const double diameter,
+                                    const double mass,
+                                    double Hdrop,
+                                    double g,
+                                    double fzDim,
+                                    double initial_spacing,
+                                    double& volume,
+                                    double& cone_mass,
+                                    ChMatrix33<>& inertia,
+                                    double& cone_z_pos,
+                                    double& cone_z_vel,
+                                    double& cone_length,
+                                    double& cone_diameter) {
     volume = ChCone::CalcVolume(length, diameter);
     cone_mass = mass;
     inertia = mass * ChCone::CalcGyration(length, diameter);
@@ -203,11 +201,7 @@ void CalculateConeProperties(const double length,
 //------------------------------------------------------------------
 // Function to generate a cone mesh and save to VTK file
 //------------------------------------------------------------------
-void WriteConeVTK(const std::string& filename,
-                  std::shared_ptr<ChBody> body,
-                  double radius,
-                  double length,
-                  int resolution = 16) {
+static void WriteConeVTK(const std::string& filename, std::shared_ptr<ChBody> body, double radius, double length, int resolution = 16) {
     // Generate a cone mesh
     ChTriangleMeshConnected mesh;
     std::vector<ChVector3d>& vertices = mesh.GetCoordsVertices();
@@ -306,10 +300,8 @@ int main(int argc, char* argv[]) {
     double pre_pressure_scale = 2;
     double kappa = 0.01;
     double lambda = 0.04;
-    if (!GetProblemSpecs(argc, argv, t_end, ps_freq, initial_spacing, d0_multiplier, time_step, boundary_type,
-                         viscosity_type, kernel_type, gran_material, rel_density, cone_type, container_depth, Hdrop,
-                         artificial_viscosity, mu_s, mu_2, mu_i0, rheology_model_crm, pre_pressure_scale, kappa,
-                         lambda)) {
+    if (!GetProblemSpecs(argc, argv, t_end, ps_freq, initial_spacing, d0_multiplier, time_step, boundary_type, viscosity_type, kernel_type, gran_material, rel_density, cone_type,
+                         container_depth, Hdrop, artificial_viscosity, mu_s, mu_2, mu_i0, rheology_model_crm, pre_pressure_scale, kappa, lambda)) {
         return 1;
     }
 
@@ -475,8 +467,7 @@ int main(int argc, char* argv[]) {
         double preconsidation_pressure = pre_ini * pre_pressure_scale;
         // double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
         // double rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
-        sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0),
-                              ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
+        sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0), ChVector3d(-pre_ini, -pre_ini, -pre_ini), ChVector3d(0, 0, 0), preconsidation_pressure);
     }
 
     // Set Material
@@ -508,13 +499,13 @@ int main(int argc, char* argv[]) {
     double cone_z_pos, cone_z_vel, cone_length, cone_diameter;
     if (cone_type == 1) {
         cone_30 cone_30;
-        CalculateConeProperties(cone_30.length, cone_30.diameter, cone_30.mass, Hdrop, g, fzDim, initial_spacing,
-                                volume, mass, inertia, cone_z_pos, cone_z_vel, cone_length, cone_diameter);
+        CalculateConeProperties(cone_30.length, cone_30.diameter, cone_30.mass, Hdrop, g, fzDim, initial_spacing, volume, mass, inertia, cone_z_pos, cone_z_vel, cone_length,
+                                cone_diameter);
 
     } else {
         cone_60 cone_60;
-        CalculateConeProperties(cone_60.length, cone_60.diameter, cone_60.mass, Hdrop, g, fzDim, initial_spacing,
-                                volume, mass, inertia, cone_z_pos, cone_z_vel, cone_length, cone_diameter);
+        CalculateConeProperties(cone_60.length, cone_60.diameter, cone_60.mass, Hdrop, g, fzDim, initial_spacing, volume, mass, inertia, cone_z_pos, cone_z_vel, cone_length,
+                                cone_diameter);
     }
     auto vis_material = chrono_types::make_shared<ChVisualMaterial>();
     auto cone = chrono_types::make_shared<ChBody>();
@@ -526,8 +517,7 @@ int main(int argc, char* argv[]) {
     cone->SetRot(cone_rot);
     cone->SetInertia(inertia);
     sysMBS.AddBody(cone);
-    chrono::utils::AddConeGeometry(cone.get(), cmaterial, cone_diameter / 2., cone_length,
-                                   ChVector3d(0, 0, cone_length / 2), QUNIT, true, vis_material);
+    chrono::utils::AddConeGeometry(cone.get(), cmaterial, cone_diameter / 2., cone_length, ChVector3d(0, 0, cone_length / 2), QUNIT, true, vis_material);
     cone->GetCollisionModel()->SetSafeMargin(initial_spacing);
 
     // Register cone as FSI body with explicit BCE points
@@ -538,8 +528,7 @@ int main(int argc, char* argv[]) {
     int np_h = (int)std::round(cone_length / initial_spacing);
     double delta_h = cone_length / np_h;
     double cone_tip_radius = cone_diameter / 2 * delta_h / cone_length;
-    auto cone_bce = sysSPH.CreatePointsTruncatedConeInterior(cone_diameter / 2, cone_tip_radius,
-                                                             cone_length - initial_spacing, true);
+    auto cone_bce = sysSPH.CreatePointsTruncatedConeInterior(cone_diameter / 2, cone_tip_radius, cone_length - initial_spacing, true);
     sysFSI.AddFsiBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
 
     sysFSI.Initialize();
@@ -641,7 +630,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowSize(1280, 720);
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
-        visVSG->SetLightIntensity(0.9);
+        visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
         visVSG->Initialize();
@@ -701,9 +690,8 @@ int main(int argc, char* argv[]) {
         // This is done so as to match the penetration depth in the experiment - see
         // https://sbel.wisc.edu/documents/TR-2016-04.pdf
         double d_pen = fzDim + 0.5 * initial_spacing + cone_length - cone->GetPos().z();
-        ofile << time << "," << d_pen << "," << cone->GetPos().x() << "," << cone->GetPos().y() << ","
-              << cone->GetPos().z() << "," << cone->GetPosDt().x() << "," << cone->GetPosDt().y() << ","
-              << cone->GetPosDt().z() << std::endl;
+        ofile << time << "," << d_pen << "," << cone->GetPos().x() << "," << cone->GetPos().y() << "," << cone->GetPos().z() << "," << cone->GetPosDt().x() << ","
+              << cone->GetPosDt().y() << "," << cone->GetPosDt().z() << std::endl;
         // Advance simulation for one timestep for all systems
         sysFSI.DoStepDynamics(dT);
         double rtf = sysFSI.GetRtf();

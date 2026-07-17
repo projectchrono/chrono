@@ -34,9 +34,10 @@ if(CH_USE_PYTHON)
 endif()
 
 #--------------------------------------------------------------
+# Set Chrono library dependencies
 
-# Set include paths, compiler & linker flags, and libraries
 list(APPEND LIBS Chrono_core)
+list(APPEND LIBS ChronoModels_robot)
 list(APPEND LIBS Chrono_parsers)
 
 if(CH_ENABLE_MODULE_IRRLICHT)
@@ -48,7 +49,6 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 #--------------------------------------------------------------
-
 # Add executables
 
 message(STATUS "Add demo programs for PARSERS module")

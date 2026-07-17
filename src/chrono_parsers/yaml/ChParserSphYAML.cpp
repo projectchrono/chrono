@@ -113,15 +113,21 @@ void ChParserSphYAML::LoadFile(const std::string& yaml_filename) {
     if (m_verbose) {
         m_sim.PrintInfo();
         cout << endl;
-        m_vis.PrintInfo();
+        m_vis_settings.PrintInfo();
+#ifdef CHRONO_VSG
+        m_visSPH_settings.PrintInfo();
+#endif
         cout << endl;
-        m_output.PrintInfo();
+        m_output_settings.PrintInfo();
     }
 
     m_loaded = true;
 }
 
 void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
+    // Read common simulation settings
+    ChParserYAML::LoadSimData(yaml);
+
     // Simulation settings (required)
     if (yaml["simulation"]) {
         auto sim = yaml["simulation"];
@@ -131,130 +137,12 @@ void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
             m_sim.gravity = ReadVector(sim["gravity"]);
     }
 
-    // Output (optional)
-    if (yaml["output"])
-        ReadOutputParams(yaml["output"]);
-
-    // Run-time visualization (optional)
+    // SPH-specific run-time visualization (optional)
     if (yaml["visualization"]) {
 #ifdef CHRONO_VSG
-        m_vis.render = true;
-        auto a = yaml["visualization"];
-
-        if (a["sph_markers"])
-            m_vis.sph_markers = a["sph_markers"].as<bool>();
-        if (a["rigid_bce_markers"])
-            m_vis.rigid_bce_markers = a["rigid_bce_markers"].as<bool>();
-        if (a["flex_bce_markers"])
-            m_vis.flex_bce_markers = a["flex_bce_markers"].as<bool>();
-        if (a["bndry_bce_markers"])
-            m_vis.bndry_bce_markers = a["bndry_bce_markers"].as<bool>();
-        if (a["active_boxes"])
-            m_vis.active_boxes = a["active_boxes"].as<bool>();
-
-        if (a["color_map"]) {
-            auto b = a["color_map"];
-            ChAssertAlways(b["type"]);
-            auto type = ReadParticleColoringType(b["type"]);
-            if (b["map"])
-                m_vis.colormap = ReadColorMapType(b["map"]);
-            switch (type) {
-                case ParticleColoringType::NONE:
-                    break;
-                case ParticleColoringType::HEIGHT: {
-                    ChAssertAlways(b["min"]);
-                    ChAssertAlways(b["max"]);
-                    double min = b["min"].as<double>();
-                    double max = b["max"].as<double>();
-                    ChVector3d up = VECT_Z;
-                    if (b["up"])
-                        up = ReadVector(b["up"]);
-                    m_vis.color_callback = chrono_types::make_shared<fsi::sph::ParticleHeightColorCallback>(min, max, up);
-                    break;
-                }
-                case ParticleColoringType::VELOCITY: {
-                    ChAssertAlways(b["min"]);
-                    ChAssertAlways(b["max"]);
-                    double min = b["min"].as<double>();
-                    double max = b["max"].as<double>();
-                    m_vis.color_callback = chrono_types::make_shared<fsi::sph::ParticleVelocityColorCallback>(min, max);
-                    break;
-                }
-                case ParticleColoringType::DENSITY: {
-                    ChAssertAlways(b["min"]);
-                    ChAssertAlways(b["max"]);
-                    double min = b["min"].as<double>();
-                    double max = b["max"].as<double>();
-                    m_vis.color_callback = chrono_types::make_shared<fsi::sph::ParticleDensityColorCallback>(min, max);
-                    break;
-                }
-                case ParticleColoringType::PRESSURE: {
-                    ChAssertAlways(b["min"]);
-                    ChAssertAlways(b["max"]);
-                    ChAssertAlways(b["bimodal"]);
-                    double min = b["min"].as<double>();
-                    double max = b["max"].as<double>();
-                    bool bimodal = b["bimodal"].as<bool>();
-                    m_vis.color_callback = chrono_types::make_shared<fsi::sph::ParticlePressureColorCallback>(min, max, bimodal);
-                    break;
-                }
-            }
-        }
-
-        if (a["visibility"]) {
-            auto b = a["visibility"];
-
-            ChAssertAlways(b["planes"]);
-            auto c = b["planes"];
-            ChAssertAlways(c.IsSequence());
-            std::vector<fsi::sph::MarkerPlanesVisibilityCallback::Plane> planes;
-            for (int i = 0; i < c.size(); i++) {
-                ChAssertAlways(c[i]["point"]);
-                ChAssertAlways(c[i]["normal"]);
-                auto point = ReadVector(c[i]["point"]);
-                auto normal = ReadVector(c[i]["normal"]);
-                planes.push_back({point, normal});
-            }
-
-            bool sph_visibility = true;
-            if (b["SPH"])
-                sph_visibility = b["SPH"].as<bool>();
-
-            bool bce_visibility = true;
-            if (b["BCE"])
-                bce_visibility = b["BCE"].as<bool>();
-
-            fsi::sph::MarkerPlanesVisibilityCallback::Mode mode;
-            if (b["mode"])
-                mode = ReadVisibilityMode(b["mode"]);
-            else
-                mode = fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
-
-            if (sph_visibility)
-                m_vis.visibility_callback_sph = chrono_types::make_shared<fsi::sph::MarkerPlanesVisibilityCallback>(planes, mode);
-            if (bce_visibility)
-                m_vis.visibility_callback_bce = chrono_types::make_shared<fsi::sph::MarkerPlanesVisibilityCallback>(planes, mode);
-        }
-
-        if (a["splashsurf"]) {
-            m_vis.use_splashsurf = true;
-            m_vis.splashsurf_params = chrono_types::make_unique<fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters>();
-            auto b = a["splashsurf"];
-            if (b["smoothing_length"])
-                m_vis.splashsurf_params->smoothing_length = b["smoothing_length"].as<double>();
-            if (b["cube_size"])
-                m_vis.splashsurf_params->cube_size = b["cube_size"].as<double>();
-            if (b["surface_threshold"])
-                m_vis.splashsurf_params->surface_threshold = b["surface_threshold"].as<double>();
-        }
-
-        if (a["output"]) {
-            auto b = a["output"];
-            if (b["save_images"])
-                m_vis.write_images = b["save_images"].as<bool>();
-            if (b["output_directory"])
-                m_vis.image_dir = b["output_directory"].as<std::string>();
-        }
+        m_visSPH_settings = fsi::sph::ChSphVisualizationVSG::Settings::Read(yaml["visualization"]);
+#else
+        m_vis_settings.render = false;
 #endif
     }
 }
@@ -795,21 +683,31 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
+
+const fsi::sph::ChSphVisualizationVSG::Settings& ChParserSphYAML::GetSphVisualizationSettings() const {
+    return m_visSPH_settings;
+}
+
+const fsi::sph::ChFsiFluidSystemSPH::SplashsurfParameters& ChParserSphYAML::GetSplashsurfParameters() const {
+    return m_visSPH_settings.splashsurf_params;
+}
+
 std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserSphYAML::GetVisualizationPlugin() const {
     auto vis = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(m_fsi_problem->GetFsiSystemSPH().get());
 
-    vis->EnableFluidMarkers(m_vis.sph_markers);
-    vis->EnableBoundaryMarkers(m_vis.bndry_bce_markers);
-    vis->EnableRigidBodyMarkers(m_vis.rigid_bce_markers);
+    vis->EnableFluidMarkers(m_visSPH_settings.sph_markers);
+    vis->EnableBoundaryMarkers(m_visSPH_settings.bndry_bce_markers);
+    vis->EnableRigidBodyMarkers(m_visSPH_settings.rigid_bce_markers);
 
-    if (m_vis.color_callback)
-        vis->SetSPHColorCallback(m_vis.color_callback, m_vis.colormap);
-    if (m_vis.visibility_callback_sph)
-        vis->SetSPHVisibilityCallback(m_vis.visibility_callback_sph);
-    if (m_vis.visibility_callback_bce)
-        vis->SetBCEVisibilityCallback(m_vis.visibility_callback_bce);
+    if (m_visSPH_settings.color_callback)
+        vis->SetSPHColorCallback(m_visSPH_settings.color_callback, m_visSPH_settings.colormap);
+    if (m_visSPH_settings.visibility_callback_sph)
+        vis->SetSPHVisibilityCallback(m_visSPH_settings.visibility_callback_sph);
+    if (m_visSPH_settings.visibility_callback_bce)
+        vis->SetBCEVisibilityCallback(m_visSPH_settings.visibility_callback_bce);
     return vis;
 }
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -824,7 +722,7 @@ void ChParserSphYAML::WriteOutput(int frame, double time) {
 
 ChParserSphYAML::MaterialProperties::MaterialProperties() {}
 
-void ChParserSphYAML::MaterialProperties::PrintInfo() {
+void ChParserSphYAML::MaterialProperties::PrintInfo() const {
     switch (physics_problem) {
         case fsi::sph::PhysicsProblem::CFD:
             cout << "Fluid parameters" << endl;
@@ -850,7 +748,7 @@ void ChParserSphYAML::MaterialProperties::PrintInfo() {
 
 ChParserSphYAML::ProblemGeometry::ProblemGeometry() {}
 
-void ChParserSphYAML::ProblemGeometry::PrintInfo() {
+void ChParserSphYAML::ProblemGeometry::PrintInfo() const {
     cout << "Problem geometry" << endl;
     if (fluid_domain_cartesian) {
         cout << "  domain (CARTESIAN)" << endl;
@@ -883,7 +781,7 @@ void ChParserSphYAML::ProblemGeometry::PrintInfo() {
 
 ChParserSphYAML::Wavetank::Wavetank() : end_wall(true), actuation_delay(0) {}
 
-void ChParserSphYAML::Wavetank::PrintInfo() {
+void ChParserSphYAML::Wavetank::PrintInfo() const {
     cout << "Wavetank settings" << endl;
     if (type == fsi::sph::ChFsiProblemWavetank::WavemakerType::PISTON)
         cout << "  type:             PISTON " << endl;
@@ -896,21 +794,9 @@ void ChParserSphYAML::Wavetank::PrintInfo() {
     cout << "  actuation delay: " << actuation_delay << endl;
 }
 
-ChParserSphYAML::VisParams::VisParams()
-    : render(false),
-      use_splashsurf(false),
-      sph_markers(true),
-      rigid_bce_markers(true),
-      flex_bce_markers(true),
-      bndry_bce_markers(false),
-      active_boxes(false),
-      colormap(ChColormap::Type::FAST),
-      write_images(false),
-      image_dir(".") {}
-
 ChParserSphYAML::SimParams::SimParams() : gravity({0, 0, -9.8}), time_step(1e-4), end_time(-1) {}
 
-void ChParserSphYAML::SimParams::PrintInfo() {
+void ChParserSphYAML::SimParams::PrintInfo() const {
     cout << "simulation end time:        " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
     cout << endl;
 
@@ -918,28 +804,6 @@ void ChParserSphYAML::SimParams::PrintInfo() {
     cout << "  integration time step:      " << time_step << endl;
 
     //// TODO
-}
-
-void ChParserSphYAML::VisParams::PrintInfo() {
-    if (!render) {
-        cout << "no run-time visualization" << endl;
-        return;
-    }
-
-    cout << "run-time visualization" << endl;
-    cout << "  render SPH particles:       " << sph_markers << endl;
-    cout << "  render BCE boundary:        " << bndry_bce_markers << endl;
-    cout << "  render BCE rigid solids:    " << rigid_bce_markers << endl;
-    cout << "  render BCE flexible solids: " << flex_bce_markers << endl;
-    cout << "  render active boxes:        " << active_boxes << endl;
-#ifdef CHRONO_VSG
-    if (use_splashsurf) {
-        cout << "  splashsurf parameters" << endl;
-        cout << "    smoothing length used for the SPH kernel: " << splashsurf_params->smoothing_length << endl;
-        cout << "    cube edge length used for marching cubes: " << splashsurf_params->cube_size << endl;
-        cout << "    isosurface threshold for the density:     " << splashsurf_params->surface_threshold << endl;
-    }
-#endif
 }
 
 // =============================================================================
@@ -1107,32 +971,6 @@ fsi::sph::BCType ChParserSphYAML::ReadBoundaryConditionType(const YAML::Node& a)
         return fsi::sph::BCType::INLET_OUTLET;
     return fsi::sph::BCType::NONE;
 }
-
-ChParserSphYAML::ParticleColoringType ChParserSphYAML::ReadParticleColoringType(const YAML::Node& a) {
-    auto val = ChToUpper(a.as<std::string>());
-    if (val == "NONE")
-        return ParticleColoringType::NONE;
-    if (val == "HEIGHT")
-        return ParticleColoringType::HEIGHT;
-    if (val == "VELOCITY")
-        return ParticleColoringType::VELOCITY;
-    if (val == "DENSITY")
-        return ParticleColoringType::DENSITY;
-    if (val == "PRESSURE")
-        return ParticleColoringType::PRESSURE;
-    return ParticleColoringType::NONE;
-}
-
-#ifdef CHRONO_VSG
-fsi::sph::MarkerPlanesVisibilityCallback::Mode ChParserSphYAML::ReadVisibilityMode(const YAML::Node& a) {
-    auto val = ChToUpper(a.as<std::string>());
-    if (val == "ANY")
-        return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ANY;
-    if (val == "ALL")
-        return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
-    return fsi::sph::MarkerPlanesVisibilityCallback::Mode::ALL;
-}
-#endif
 
 }  // namespace parsers
 }  // namespace chrono

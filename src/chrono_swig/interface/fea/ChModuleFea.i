@@ -211,7 +211,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChBeamSectionRayleighEasyCircular)
 %shared_ptr(chrono::fea::ChBeamSectionRayleighEasyRectangular)
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
-%shared_ptr(chrono::fea::ChBeamSectionCable)
+%shared_ptr(chrono::fea::ChBeamSectionCableANCF)
 %shared_ptr(chrono::fea::ChBeamSectionAdvanced)
 %shared_ptr(chrono::fea::ChBeamSectionCosserat)
 %shared_ptr(chrono::fea::ChBeamSectionCosseratEasyCircular)
@@ -423,7 +423,7 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChBeamSection.h"
 %include "../../../chrono/fea/ChBeamSectionCosserat.h"
 %include "../../../chrono/fea/ChBeamSectionEuler.h"
-%include "../../../chrono/fea/ChBeamSectionCable.h"
+%include "../../../chrono/fea/ChBeamSectionCableANCF.h"
 %include "../../../chrono/fea/ChBeamSectionTaperedTimoshenko.h"
 %include "../../../chrono/fea/ChBeamSectionTaperedTimoshenkoFPM.h"
 %include "../../../chrono/fea/ChMaterialBeamANCF.h"

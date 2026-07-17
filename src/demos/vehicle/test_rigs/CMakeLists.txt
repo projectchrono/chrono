@@ -10,13 +10,13 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_TireTestRig
+    demo_VEH_WheelTestRig
     demo_VEH_SuspensionTestRig
     demo_VEH_TrackTestRig
 )
 
 if(CH_ENABLE_MODULE_FSI_SPH)
-    set(DEMOS ${DEMOS} demo_VEH_TireTestRig_CRM)
+    set(DEMOS ${DEMOS} demo_VEH_WheelTestRig_CRM)
 endif()
 
 if (CH_ENABLE_MODULE_PARDISO_MKL OR CH_ENABLE_MODULE_MUMPS)

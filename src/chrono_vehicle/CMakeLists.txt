@@ -21,7 +21,7 @@ mark_as_advanced(CLEAR CH_ENABLE_OPENCRG)
 option(CH_ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
 
 # ----------------------------------------------------------------------------
-# Optional SCM GPU contact-force backend (external scm_gpu_core)
+# Optional SCM GPU contact-force backend (in-tree HIP, Chrono::DEM pattern)
 # ----------------------------------------------------------------------------
 
 option(CH_ENABLE_VEHICLE_SCM_GPU "Enable HIP SCM contact-force backend" OFF)
@@ -29,20 +29,11 @@ option(CH_ENABLE_VEHICLE_SCM_GPU "Enable HIP SCM contact-force backend" OFF)
 set(CH_USE_SCM_GPU OFF)
 
 if(CH_ENABLE_VEHICLE_SCM_GPU)
-  find_package(HIP QUIET)
-  find_package(ScmGpu QUIET)
-
-  if(HIP_FOUND AND ScmGpu_FOUND)
-    message(STATUS "SCM GPU: HIP found; scm_gpu_core: ${ScmGpu_LIBRARIES}")
+  if(CHRONO_HIP_FOUND)
     set(CH_USE_SCM_GPU ON)
+    message(STATUS "SCM GPU: enabled (HIP archs: ${CHRONO_HIP_ARCHITECTURES})")
   else()
-    if(NOT HIP_FOUND)
-      message(WARNING "SCM GPU requested but HIP/ROCm was not found; disabling CH_ENABLE_VEHICLE_SCM_GPU")
-    endif()
-    if(NOT ScmGpu_FOUND)
-      message(WARNING "SCM GPU requested but scm_gpu_core was not found (set CHRONO_SCM_GPU_LIB_DIR); disabling CH_ENABLE_VEHICLE_SCM_GPU")
-    endif()
-    set(CH_USE_SCM_GPU OFF)
+    message(WARNING "SCM GPU requested but HIP/ROCm was not found; disabling CH_ENABLE_VEHICLE_SCM_GPU")
     set(CH_ENABLE_VEHICLE_SCM_GPU OFF CACHE BOOL "Enable HIP SCM contact-force backend" FORCE)
   endif()
 endif()
@@ -98,9 +89,15 @@ SET(CH_USE_OPENCRG "${CH_USE_OPENCRG}" PARENT_SCOPE)
 
 # Prepare replacement variables
 if(CH_USE_OPENCRG)
-  set(CHRONO_OPENCRG "#define CHRONO_HAS_OPENCRG")
+  set(CHRONO_OPENCRG "#define CHRONO_OPENCRG")
 else()
-  set(CHRONO_OPENCRG "#undef CHRONO_HAS_OPENCRG")
+  set(CHRONO_OPENCRG "#undef CHRONO_OPENCRG")
+endif()
+
+if(CH_ENABLE_MODULE_FSI_SPH)
+  set(CHRONO_CRM "#define CHRONO_CRM")
+else()
+  set(CHRONO_CRM "#undef CHRONO_CRM")
 endif()
 
 # Generate the configuration header file using substitution variables.
@@ -282,11 +279,15 @@ if(CH_ENABLE_MODULE_FSI_SPH)
 endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
 if(CH_USE_SCM_GPU)
+    set(CV_SCM_GPU_HIP_FILES terrain/gpu/SCMGpuKernels.hip.cpp)
+    set_source_files_properties(${CV_SCM_GPU_HIP_FILES} PROPERTIES LANGUAGE HIP)
     list(APPEND CV_TERRAIN_FILES
         terrain/SCMGpu.h
         terrain/SCMGpuTypes.h
         terrain/SCMTerrainGpu.h
         terrain/SCMTerrainGpu.cpp
+        terrain/gpu/SCMGpuHost.cpp
+        ${CV_SCM_GPU_HIP_FILES}
     )
 endif()
 
@@ -521,8 +522,8 @@ set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.cpp
     wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.h
     wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.cpp    
-    wheeled_vehicle/test_rig/ChTireTestRig.h
-    wheeled_vehicle/test_rig/ChTireTestRig.cpp
+    wheeled_vehicle/test_rig/ChWheelTestRig.h
+    wheeled_vehicle/test_rig/ChWheelTestRig.cpp
 )
 source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES})
 
@@ -949,7 +950,20 @@ endif()
 
 if(CH_USE_SCM_GPU)
   target_compile_definitions(Chrono_vehicle PRIVATE CHRONO_VEHICLE_SCM_GPU)
-  target_link_libraries(Chrono_vehicle PRIVATE ${ScmGpu_LIBRARIES})
+  find_package(hip QUIET CONFIG HINTS "${CHRONO_ROCM_ROOT}")
+  if(TARGET hip::host)
+    target_link_libraries(Chrono_vehicle PRIVATE hip::host)
+  endif()
+  if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
+    target_include_directories(Chrono_vehicle PRIVATE "${CHRONO_ROCM_ROOT}/include")
+  endif()
+  set_target_properties(Chrono_vehicle PROPERTIES HIP_ARCHITECTURES OFF)
+  if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
+    foreach(_chrono_hip_arch IN LISTS CHRONO_HIP_ARCHITECTURES)
+      target_compile_options(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
+      target_link_options(Chrono_vehicle PRIVATE $<$<LINK_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
+    endforeach()
+  endif()
   if(TARGET OpenMP::OpenMP_CXX)
     target_link_libraries(Chrono_vehicle PRIVATE OpenMP::OpenMP_CXX)
   endif()

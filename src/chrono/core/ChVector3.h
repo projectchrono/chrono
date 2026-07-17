@@ -909,11 +909,17 @@ inline void ChVector3<Real>::GetDirectionAxesAsX(ChVector3<Real>& Vx,
     success = Vz.Normalize();
     if (!success) {
         char idx = 0;
-        while (!success) {
+        while (!success && idx < 3) {
             y_sugg[idx] += 1.0;
             Vz.Cross(Vx, y_sugg);
             success = Vz.Normalize();
             ++idx;
+        }
+        if (!success) {
+            Vx = ChVector3<Real>(1, 0, 0);
+            Vy = ChVector3<Real>(0, 1, 0);
+            Vz = ChVector3<Real>(0, 0, 1);
+            return;
         }
     }
 
@@ -934,11 +940,17 @@ inline void ChVector3<Real>::GetDirectionAxesAsY(ChVector3<Real>& Vx,
     success = Vx.Normalize();
     if (!success) {
         char idx = 0;
-        while (!success) {
+        while (!success && idx < 3) {
             z_sugg[idx] += 1.0;
             Vx.Cross(Vy, z_sugg);
             success = Vx.Normalize();
             ++idx;
+        }
+        if (!success) {
+            Vx = ChVector3<Real>(1, 0, 0);
+            Vy = ChVector3<Real>(0, 1, 0);
+            Vz = ChVector3<Real>(0, 0, 1);
+            return;
         }
     }
 
@@ -960,11 +972,17 @@ inline void ChVector3<Real>::GetDirectionAxesAsZ(ChVector3<Real>& Vx,
 
     if (!success) {
         char idx = 0;
-        while (!success) {
+        while (!success && idx < 3) {
             x_sugg[idx] += 1.0;
             Vy.Cross(Vz, x_sugg);
             success = Vy.Normalize();
             ++idx;
+        }
+        if (!success) {
+            Vx = ChVector3<Real>(1, 0, 0);
+            Vy = ChVector3<Real>(0, 1, 0);
+            Vz = ChVector3<Real>(0, 0, 1);
+            return;
         }
     }
 

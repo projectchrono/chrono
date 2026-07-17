@@ -516,6 +516,55 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Only valid in variable time step mode
     void PrintTimeSteps(const std::string& path) const;
 
+  public:
+    /// Load the given body and mesh node states in the SPH data manager structures.
+    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
+    /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
+    /// generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
+    /// co-simulation data exchange. If using the custom SPH FSI interface, MBS states are copied directly to the
+    /// device memory in ChFsiInterfaceSPH::ExchangeSolidStates.
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states) override;
+
+    /// Store the body and mesh node forces from the SPH data manager to the given vectors.
+    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is called from
+    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
+    /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
+    virtual void StoreSolidForces(std::vector<FsiBodyForce>& body_forces) override;
+
+#ifdef CHRONO_FEA
+    /// Load the given body and mesh node states in the SPH data manager structures.
+    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
+    /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
+    /// generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
+    /// co-simulation data exchange. If using the custom SPH FSI interface, MBS states are copied directly to the
+    /// device memory in ChFsiInterfaceSPH::ExchangeSolidStates.
+    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states,
+                                 const std::vector<FsiMeshState>& mesh1D_states,
+                                 const std::vector<FsiMeshState>& mesh2D_states) override;
+
+    /// Store the body and mesh node forces from the SPH data manager to the given vectors.
+    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is called from
+    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
+    /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
+    virtual void StoreSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) override;
+#endif
+
+    // ----------
+
+    /// Function to integrate the fluid system from `time` to `time + step`.
+    virtual void OnDoStepDynamics(double time, double step) override;
+
+    /// Get the current step size.
+    /// If variable step size is enabled, this returns the current step size (calculated based on system state);
+    /// otherwise, it returns the specified constant step size.
+    double GetCurrentStepSize() override;
+
+    /// Additional actions taken before applying fluid forces to the solid phase.
+    virtual void OnExchangeSolidForces() override;
+
+    /// Additional actions taken after loading new solid phase states.
+    virtual void OnExchangeSolidStates() override;
+
   private:
     /// SPH specification of an FSI rigid solid.
     struct FsiSphBody {
@@ -554,8 +603,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// SPH solver-specific actions taken when a rigid solid is added as an FSI object.
     virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
-    /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the
-    /// given FSI rigid body.
+    /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the given FSI rigid body.
     void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce);
 
 #ifdef CHRONO_FEA
@@ -577,8 +625,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                          bool remove_center         ///< eliminate markers on surface
     );
 
-    /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
-    /// given FSI 1D mesh.
+    /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the given FSI 1D mesh.
     void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
                             BcePatternMesh1D pattern,
                             bool remove_center,
@@ -620,57 +667,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------
 
-    /// Load the given body and mesh node states in the SPH data manager structures.
-    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
-    /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
-    /// generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
-    /// co-simulation data exchange. If using the custom SPH FSI interface, MBS states are copied directly to the
-    /// device memory in ChFsiInterfaceSPH::ExchangeSolidStates.
-    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states) override;
-
-    /// Store the body and mesh node forces from the SPH data manager to the given vectors.
-    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
-    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
-    /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces) override;
-
-#ifdef CHRONO_FEA
-    /// Load the given body and mesh node states in the SPH data manager structures.
-    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
-    /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
-    /// generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
-    /// co-simulation data exchange. If using the custom SPH FSI interface, MBS states are copied directly to the
-    /// device memory in ChFsiInterfaceSPH::ExchangeSolidStates.
-    virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states,
-                                 const std::vector<FsiMeshState>& mesh1D_states,
-                                 const std::vector<FsiMeshState>& mesh2D_states) override;
-
-    /// Store the body and mesh node forces from the SPH data manager to the given vectors.
-    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
-    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
-    /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces, std::vector<FsiMeshForce> mesh1D_forces, std::vector<FsiMeshForce> mesh2D_forces) override;
-#endif
-
-    // ----------
-
-    /// Function to integrate the fluid system from `time` to `time + step`.
-    virtual void OnDoStepDynamics(double time, double step) override;
-
-    /// Get the current step size.
-    /// If variable step size is enabled, this returns the current step size (calculated based on system state);
-    /// otherwise, it returns the specified constant step size.
-    double GetCurrentStepSize() override;
-
-    /// Additional actions taken before applying fluid forces to the solid phase.
-    virtual void OnExchangeSolidForces() override;
-
-    /// Additional actions taken after loading new solid phase states.
-    virtual void OnExchangeSolidStates() override;
-
-    // ----------
-
-    /// Synchronize the async copy stream (used for the copySortedToOriginal function)
+    /// Synchronize the async copy stream.
+    /// Used for the copySortedToOriginal function.
     void SynchronizeCopyStream() const;
 
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters

@@ -27,10 +27,13 @@
 #include "chrono/ChVersion.h"
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector2.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChRotation.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColormap.h"
-#include "chrono/input_output/ChOutput.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChBodyGeometry.h"
 #include "chrono/solver/ChSolver.h"
@@ -97,6 +100,9 @@ ChApi void CheckVersion(const YAML::Node& a);
 /// Load and return a ChVector3d from the specified node.
 ChApi ChVector3d ReadVector(const YAML::Node& a);
 
+/// Load and return a ChVector2d from the specified node.
+ChApi ChVector2d ReadVector2(const YAML::Node& a);
+
 /// Load and return a ChQuaternion from the specified node.
 ChApi ChQuaterniond ReadQuaternion(const YAML::Node& a);
 
@@ -114,6 +120,26 @@ ChApi ChCoordsysd ReadCoordinateSystem(const YAML::Node& a, bool use_degrees);
 /// Load and return a ChFunction object from the specified node.
 ChApi std::shared_ptr<ChFunction> ReadFunction(const YAML::Node& a, bool use_degrees);
 
+/// Load and return a contact material specification from the specified node.
+ChApi ChContactMaterialData ReadContactMaterialData(const YAML::Node& a);
+
+/// Load and return a ChBodyGeometry from the specified node.
+/// The provided file handler is used to resolve paths to geometry files (e.g., OBJ data).
+/// The boolean `use_degrees` indicates whether angles used for orientation are given in degrees or radians.
+/// Visualization geometry is loaded if requested and if the YAML object has a member "visualization".
+/// Collision geometry is loaded if requested and if the YAML object has a member "contact".
+/// Contact material information is loaded if requested and if the "contact" object has a member "materials".
+ChApi std::shared_ptr<utils::ChBodyGeometry> ReadBodyGeometry(const YAML::Node& a,
+                                                              ChYamlFileHandler& file_handler,
+                                                              bool use_degrees,
+                                                              bool read_visualization = true,
+                                                              bool read_collision = true,
+                                                              bool read_contact_materials = true);
+
+/// Load and return a ChBodyGeometry with collision shapes from the specified node.
+/// Note that the returned ChBodyGeometry object has no contact materials and no visualization shapes.
+ChApi std::shared_ptr<utils::ChBodyGeometry> ReadCollisionGeometry(const YAML::Node& a, ChYamlFileHandler& file_handler, bool use_degrees);
+
 /// Load and return a ChColor from the specified node.
 ChApi ChColor ReadColor(const YAML::Node& a);
 
@@ -122,12 +148,6 @@ ChApi ChColormap::Type ReadColorMapType(const YAML::Node& a);
 
 /// Load and return a VisualizationType from the specified node.
 ChApi VisualizationType ReadVisualizationType(const YAML::Node& a);
-
-/// Load and return the output format from the specified node.
-ChApi ChOutput::Format ReadOutputFormat(const YAML::Node& a);
-
-/// Load and return the output mode from the specified node.
-ChApi ChOutput::Mode ReadOutputMode(const YAML::Node& a);
 
 /// Load and return the solver type from the specified node.
 ChApi ChSolver::Type ReadSolverType(const YAML::Node& a);

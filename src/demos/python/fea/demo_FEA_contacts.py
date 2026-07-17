@@ -145,7 +145,7 @@ mesh_beam = fea.ChMesh()
 
 # 2) an ANCF cable:
 
-section_cable = fea.ChBeamSectionCable()
+section_cable = fea.ChBeamSectionCableANCF()
 section_cable.SetDiameter(0.05)
 section_cable.SetYoungModulus(0.01e9)
 section_cable.SetRayleighDamping(0.05)
@@ -153,7 +153,7 @@ section_cable.SetRayleighDamping(0.05)
 builder = fea.ChBuilderCableANCF()
 
 builder.BuildBeam(mesh_beam,           # the mesh where to put the created nodes and elements
-  section_cable,                       # the ChBeamSectionCable to use for the ChElementCableANCF elements
+  section_cable,                       # the ChBeamSectionCableANCF to use for the ChElementCableANCF elements
   10,                                  # the number of ChElementCableANCF to create
   chrono.ChVector3d(0, 0.1, -0.1),     # the 'A' poin space (beginning of beam)
   chrono.ChVector3d(0.5, 0.13, -0.1))  # the 'B' poin space (end of beam)

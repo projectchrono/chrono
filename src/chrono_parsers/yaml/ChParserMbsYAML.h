@@ -20,7 +20,6 @@
 
 #include "chrono_parsers/yaml/ChParserYAML.h"
 
-#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/functions/ChFunction.h"
 #include "chrono/utils/ChBodyGeometry.h"
@@ -29,12 +28,22 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkMotorLinear.h"
 #include "chrono/physics/ChLinkMotorRotation.h"
+
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+    #include "chrono/fea/ChNodeFEAxyz.h"
+    #include "chrono/fea/ChNodeFEAxyzrot.h"
+    #include "chrono/fea/ChElementBeam.h"
+    #include "chrono/fea/ChBeamSection.h"
+    #include "chrono/fea/ChMaterialFEA.h"
+#endif
 
 namespace chrono {
 namespace parsers {
@@ -106,7 +115,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     virtual void LoadFile(const std::string& yaml_filename);
 
     /// Load the simulation, output, and visualization settings from the specified YAML node.
-    virtual void LoadSimData(const YAML::Node& yaml);
+    virtual void LoadSimData(const YAML::Node& yaml) override;
 
     /// Load the MBS model from the specified YAML node.
     virtual void LoadModelData(const YAML::Node& yaml);
@@ -128,13 +137,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
 
-    bool Render() const { return m_vis.render; }
-    double GetRenderFPS() const { return m_vis.render_fps; }
-    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
-    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
-    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
-    bool EnableShadows() const { return m_vis.enable_shadows; }
-
     // --------------
 
     /// Populate the given system with the cached Chrono components.
@@ -148,23 +150,48 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Return the number of instances created from the YAML model file.
     int GetNumInstances() const { return m_crt_instance + 1; }
 
-    /// Find and return the body with specified name in the current model instance.
+    /// Find and return the body with specified name, in the current model instance.
     std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name) const;
 
-    /// Find and return the body with specified name in the given model instance.
+    /// Find and return the body with specified name, in the given model instance.
     std::shared_ptr<ChBodyAuxRef> FindBodyByName(const std::string& name, int model_instance) const;
 
     /// Find and return bodies with given base name from all model instances.
     std::vector<std::shared_ptr<ChBodyAuxRef>> FindBodiesByName(const std::string& name) const;
 
-    /// Find and return the motor with specified name in the current model instance.
+    /// Find and return the motor with specified name, in the current model instance.
     std::shared_ptr<ChLinkMotor> FindMotorByName(const std::string& name) const;
 
-    /// Find and return the motor with specified name in the given model instance.
+    /// Find and return the motor with specified name, in the given model instance.
     std::shared_ptr<ChLinkMotor> FindMotorByName(const std::string& name, int model_instance) const;
 
     /// Find and return motors with given base name from all model instances.
     std::vector<std::shared_ptr<ChLinkMotor>> FindMotorsByName(const std::string& name) const;
+
+#ifdef CHRONO_FEA
+
+    /// Find and return the FEA mesh with specified name, in the current model instance.
+    std::shared_ptr<fea::ChMesh> FindMeshByName(const std::string& name) const;
+
+    /// Find and return the FEA mesh with specified name, in the given model instance.
+    std::shared_ptr<fea::ChMesh> FindMeshByName(const std::string& name, int model_instance) const;
+
+    /// Find and return FEA meshes with given base name from all model instances.
+    std::vector<std::shared_ptr<fea::ChMesh>> FindMeshesByName(const std::string& name) const;
+
+    /// Find the XYZ node with given index in the FEA mesh with specified name, in the current model instance.
+    std::shared_ptr<fea::ChNodeFEAxyz> FindNodeXYZ(const std::string& mesh_name, int node_index) const;
+
+    /// Find the XYZ node with given index in the FEA mesh with specified name, in the given model instance.
+    std::shared_ptr<fea::ChNodeFEAxyz> FindNodeXYZ(const std::string& mesh_name, int node_index, int model_instance) const;
+
+    /// Find the XYZrot node with given index in the FEA mesh with specified name, in the current model instance.
+    std::shared_ptr<fea::ChNodeFEAxyzrot> FindNodeXYZrot(const std::string& mesh_name, int node_index) const;
+
+    /// Find the XYZrot node with given index in the FEA mesh with specified name, in the given model instance.
+    std::shared_ptr<fea::ChNodeFEAxyzrot> FindNodeXYZrot(const std::string& mesh_name, int node_index, int model_instance) const;
+
+#endif
 
     // --------------
 
@@ -180,7 +207,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     /// Advance dynamics of the multibody system.
     /// - load controllers (if any are attached) are synchronized and their dynamics advanced in time;
-    /// - output is generated if requested in the simulation YAML file;
     /// - the dynamics of the underlying Chrono system is advanced in time;
     /// - soft real-time is enforced if requested in the simulation YAML file.
     void DoStepDynamics();
@@ -202,14 +228,13 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     void ApplyMotorControllerActuations(const MotorControllerActuations& controller_loads);
 
     /// Write simulation output results at the current time.
-    /// Note: this function is automatically called in ChParserMbsYAML::DoStepDynamics.
     virtual void WriteOutput(int frame, double time) override;
 
   private:
     /// Solver parameters.
     struct SolverParams {
         SolverParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         ChSolver::Type type;
         bool lock_sparsity_pattern;
@@ -225,7 +250,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Integrator parameters.
     struct IntegratorParams {
         IntegratorParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         ChTimestepper::Type type;
         double time_step;
@@ -237,24 +262,10 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         bool use_modified_newton;
     };
 
-    /// Run-time visualization parameters.
-    struct VisParams {
-        VisParams();
-        void PrintInfo();
-
-        VisualizationType type;
-        bool render;
-        double render_fps;
-        CameraVerticalDir camera_vertical;
-        ChVector3d camera_location;
-        ChVector3d camera_target;
-        bool enable_shadows;
-    };
-
     /// Simulation and run-time visualization parameters.
     struct SimParams {
         SimParams();
-        void PrintInfo();
+        void PrintInfo() const;
 
         ChVector3d gravity;
 
@@ -275,7 +286,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a body.
     struct BodyParams {
         BodyParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
         ChVector3d pos;                                   ///< body position (relative to instance frame)
@@ -293,7 +304,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a joint.
     struct JointParams {
         JointParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChJoint>> joint;  ///< underlying Chrono joints (one per instance)
         ChJoint::Type type;                           ///< joint type
@@ -307,7 +318,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a distance constraint.
     struct DistanceConstraintParams {
         DistanceConstraintParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkDistance>> dist;  ///< underlying Chrono constraints (one per instance)
         std::string body1;                                  ///< identifier of 1st body
@@ -319,7 +330,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a TsdaParams.
     struct TsdaParams {
         TsdaParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkTSDA>> tsda;    ///< underlying Chrono TSDAs (one per instance)
         std::string body1;                                ///< identifier of 1st body
@@ -334,7 +345,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of an RSDA.
     struct RsdaParams {
         RsdaParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkRSDA>> rsda;      ///< underlying Chrono RSDAs (one per instance)
         std::string body1;                                  ///< identifier of 1st body
@@ -351,7 +362,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a body load (applied force or torque).
     struct BodyLoadParams {
         BodyLoadParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
         BodyLoadType type;                                ///< load type: FORCE or TORQUE
@@ -377,7 +388,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Internal specification of a motor (linear or rotational).
     struct MotorParams {
         MotorParams();
-        void PrintInfo(const std::string& name);
+        void PrintInfo(const std::string& name) const;
 
         std::vector<std::shared_ptr<ChLinkMotor>> motor;  ///< underlying Chrono linear motors (one per instance)
         MotorType type;                                   ///< motor type: LINEAR or ROTATION
@@ -391,6 +402,60 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         std::shared_ptr<ChFunction> actuation_function;   ///< actuation function
         bool has_controller;                              ///< true if using a controller
     };
+
+#ifdef CHRONO_FEA
+
+    /// FEA element material type.
+    enum class FEAMaterialType { BEAM_ANCF, HEXA_ANCF, SHELL_ANCF, SHELL_KIRCHHOFF, SHELL_REISSNER };
+
+    //// TODO - additional beam section types
+
+    /// FEA beam section type.
+    enum class FEABeamSectionType { EULER_SIMPLE, ANCF_CABLE, COSSERAT, TIMOSHENKO };
+
+    /// FEA beam type.
+    enum class FEABeamType { EULER, ANCF_CABLE, ANCF_3243, ANCF_3333, IGA, TIMOSHENKO };
+
+    /// FEA constraint types.
+    enum class FEAConstraintType { NODE_FRAME, NODESLOPE_FRAME, NODE_NODE, NODE_FACE };
+
+    /// Internal specification of an FEA beam.
+    struct FEABeamParams {
+        FEABeamParams();
+        void PrintInfo(const std::string& name) const;
+
+        FEABeamType type;                          ///< FEA beam element type
+        ChVector3d start;                          ///< beam start point
+        ChVector3d end;                            ///< beam end point
+        ChVector3d up;                             ///< beam up direction
+        int num_elements;                          ///< number of elements along beam
+        ChVisualShapeFEA::Settings visualization;  ///< run-time visualization settings
+
+        std::vector<std::shared_ptr<fea::ChMesh>> mesh;  ///< underlying Chrono FEA meshes (one per instance)
+
+        //// TODO - deal with multiple instances
+        std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> nodesXYZ;        ///< FEA XYZ nodes (if present)
+        std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot>> nodesXYZrot;  ///< FEA XYZrot nodes (if present)
+        std::vector<std::shared_ptr<fea::ChElementBeam>> elements;       ///< FEA elements
+
+        std::shared_ptr<fea::ChBeamSection> section;   ///< beam section (if used by the FEA element type)
+        std::shared_ptr<fea::ChMaterialFEA> material;  ///< beam material (if used by the FEA element type)
+    };
+
+    /// Internal specification of FEA constraints.
+    struct FEAConstraintParams {
+        FEAConstraintParams();
+        void PrintInfo(const std::string& name) const;
+
+        FEAConstraintType type;             ///< constraint type
+        std::pair<std::string, int> node1;  ///< node specification
+        std::pair<std::string, int> node2;  ///< node specification (for NODE_NODE)
+        std::pair<std::string, int> face;   ///< face specification (for NODE_FACE)
+        std::string body;                   ///< body (for NODE_FRAME and NODESLOPE_FRAME)
+        ChVector3d direction;               ///< direction of a NODESLOPE_FRAME constraint (in body frame)
+    };
+
+#endif
 
     /// Wrapper for a load controllers.
     struct LoadController {
@@ -406,9 +471,21 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     };
 
   private:
-    /// Load and return a contact material specification from the specified node.
-    ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
+    void LoadBodies(const YAML::Node& bodies);
+    void LoadJoints(const YAML::Node& joints);
+    void LoadConstraints(const YAML::Node& constraints);
+    void LoadTSDAs(const YAML::Node& tsdas);
+    void LoadRSDAs(const YAML::Node& rsdas);
+    void LoadBodyLoads(const YAML::Node& loads);
+    void LoadControllers(const YAML::Node& controllers);
+    void LoadMotors(const YAML::Node& motors);
+#ifdef CHRONO_FEA
+    void LoadFEABeams(const YAML::Node& fea);
+    void LoadFEAShells(const YAML::Node& fea);
+    void LoadFEAConstraints(const YAML::Node& fea);
+#endif
 
+  private:
     /// Load and return bushing data from the specified node.
     std::shared_ptr<ChJoint::BushingData> ReadBushingData(const YAML::Node& bd);
 
@@ -417,11 +494,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     /// Load and return joint coordinate system from the specified node.
     ChFramed ReadJointFrame(const YAML::Node& a);
-
-    /// Load and return a geometry structure from the specified node.
-    /// Collision geometry and contact material information is set in the return ChBodyGeometry object if the given
-    /// object has a member "Contact". Visualization geometry is loaded if the object has a member "Visualization".
-    std::shared_ptr<utils::ChBodyGeometry> ReadGeometry(const YAML::Node& d);
 
     /// Load and return a TSDA geometry structure from the specified node.
     std::shared_ptr<utils::ChTSDAGeometry> ReadTSDAGeometry(const YAML::Node& d);
@@ -449,6 +521,24 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     /// Load and return a rotation motor spindle constraint type from the specified node.
     ChLinkMotorRotation::SpindleConstraint ReadMotorSpindleType(const YAML::Node& a);
 
+#ifdef CHRONO_FEA
+
+    /// Load and return the FEA element material type from the specified node.
+    FEAMaterialType ReadFEAMaterialType(const YAML::Node& a);
+
+    /// Load and return the FEA beam section type from the specified node.
+    FEABeamSectionType ReadFEABeamSectionType(const YAML::Node& a);
+
+    /// Load and return the FEA beam type from the specified node.
+    FEABeamType ReadFEABeamType(const YAML::Node& a);
+
+    /// Load and return the FEA constraint type from the specified node.
+    FEAConstraintType ReadFEAConstraintType(const YAML::Node& a);
+
+    void CreateFEAVisualizationAssets();
+
+#endif
+
     /// Set Chrono solver parameters.
     void SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso);
 
@@ -460,7 +550,6 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
   private:
     SimParams m_sim;  ///< solver and integrator parameters
-    VisParams m_vis;  ///< visualization parameters
 
     std::unordered_map<std::string, BodyParams> m_body_params;                     ///< bodies
     std::unordered_map<std::string, JointParams> m_joint_params;                   ///< joints
@@ -470,12 +559,21 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     std::unordered_map<std::string, BodyLoadParams> m_bodyload_params;             ///< body loads
     std::unordered_map<std::string, BodyLoadParams> m_load_controller_params;      ///< external body load controllers
     std::unordered_map<std::string, MotorParams> m_motor_params;                   ///< motors
+#ifdef CHRONO_FEA
+    std::unordered_map<std::string, FEABeamParams> m_beam_params;                  ///< FEA beams
+    std::unordered_map<std::string, FEAConstraintParams> m_fea_constraint_params;  ///< FEA constraints
+
+    std::vector<std::shared_ptr<fea::ChMaterialFEA>> m_fea_materials;  ///< list of FEA materials
+    std::vector<std::shared_ptr<fea::ChBeamSection>> m_beam_sections;  ///< list of FEA beam sections
+#endif
 
     std::unordered_map<std::string, LoadController> m_load_controllers;
     std::unordered_map<std::string, MotorController> m_motor_controllers;
 
     std::shared_ptr<ChSystem> m_sys;
     ChRealtimeStepTimer m_rt_timer;
+
+    VisualizationType m_vis_type;  ///< body visualization type
 
     ChAssembly::Components m_output_components;  ///< output data
 

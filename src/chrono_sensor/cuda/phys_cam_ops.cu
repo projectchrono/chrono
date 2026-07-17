@@ -15,6 +15,7 @@
 // =============================================================================
 #define _USE_MATH_DEFINES
 #include <cuda.h>
+#include <cstdint>
 #include <curand.h>
 #include <curand_kernel.h>
 #include <cuda_runtime.h>

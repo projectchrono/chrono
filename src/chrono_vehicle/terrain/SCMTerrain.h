@@ -37,6 +37,7 @@
 #endif
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
@@ -46,15 +47,15 @@ namespace vehicle {
 
 class SCMLoader;
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#ifdef CHRONO_HAS_SCM_GPU
+    #include "chrono_vehicle/terrain/SCMGpu.h"
 namespace scm_gpu {
-bool Enabled();
-void PrimeBuffers();
 struct ScmHitRecord {
     ChContactable* contactable = nullptr;
     ChVector3d abs_point;
     int patch_id = -1;
 };
+void PrimeBuffers();
 }  // namespace scm_gpu
 #endif
 
@@ -258,6 +259,20 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Instead, contact forces are accumulated and available for extraction using GetContactForceBody and
     /// GetContactForceNode for rigid bodies and FEA nodes, respectively.
     void SetCosimulationMode(bool val);
+
+#ifdef CHRONO_HAS_SCM_GPU
+    /// Enable/disable the HIP contact-force backend (default: enabled when built with SCM GPU support).
+    void SetScmGpuEnabled(bool enable);
+
+    /// Return whether the HIP contact-force backend is enabled.
+    bool IsScmGpuEnabled() const;
+
+    /// Set runtime tuning parameters for the SCM GPU backend.
+    void SetScmGpuConfig(const scm_gpu::Config& config);
+
+    /// Get the current SCM GPU backend configuration.
+    scm_gpu::Config GetScmGpuConfig() const;
+#endif
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
@@ -555,7 +570,9 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     void ComputeInternalForces();
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
-    bool ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits, const std::vector<double>& patch_oob);
+    bool ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits,
+                                 const std::vector<double>& patch_oob);
+    scm_gpu::Config m_scm_gpu_config;
 #endif
 
     // Override the ChLoadContainer method for computing the generalized force F term:

@@ -1,10 +1,9 @@
-// SCMTerrainGpu.cpp — SCMLoader::ComputeContactForcesGpu (v3: GPU body reduce, grid-only scatter).
+// SCMTerrainGpu.cpp — SCMLoader::ComputeContactForcesGpu (GPU body reduce, grid-only scatter).
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
 
     #include <chrono>
     #include <cstdio>
-    #include <cstdlib>
     #include <unordered_map>
     #include <vector>
 
@@ -16,11 +15,6 @@
 namespace chrono {
 namespace vehicle {
 namespace scm_gpu {
-
-bool Enabled() {
-    const char* e = std::getenv("CHRONO_SCM_GPU");
-    return e && e[0] == '1' && e[1] == '\0';
-}
 
 static ScmGpuContext* GpuContext() {
     static ScmGpuContext* ctx = scm_gpu_create(0);
@@ -34,7 +28,7 @@ static ScmGpuContext* GpuContext() {
 }
 
 void PrimeBuffers() {
-    if (!Enabled())
+    if (!GetConfig().enabled)
         return;
     (void)GpuContext();
 }
@@ -50,17 +44,18 @@ static int32_t BodySlot(std::vector<ChBody*>& bodies, ChBody* body) {
 
 }  // namespace scm_gpu
 
-bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits, const std::vector<double>& patch_oob) {
+bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits,
+                                        const std::vector<double>& patch_oob) {
     using Clock = std::chrono::steady_clock;
 
     const std::size_t n = hits.size();
     if (n == 0)
         return true;
 
-    if (n < scm_gpu_min_hits())
+    if (n < m_scm_gpu_config.min_hits)
         return false;
 
-    const bool profile = (std::getenv("CHRONO_SCM_GPU_PROFILE") && std::getenv("CHRONO_SCM_GPU_PROFILE")[0] == '1');
+    const bool profile = m_scm_gpu_config.profile;
     const auto t0 = Clock::now();
 
     ScmGpuContext* ctx = scm_gpu::GpuContext();
@@ -204,7 +199,13 @@ bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm
             const double pack_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
             const double gpu_ms = std::chrono::duration<double, std::milli>(t2 - t1).count();
             const double scatter_ms = std::chrono::duration<double, std::milli>(t3 - t2).count();
-            std::fprintf(stderr, "SCM GPU profile n=%zu bodies=%zu pack_ms=%.3f gpu_ms=%.3f scatter_ms=%.3f\n", n, n_bodies, pack_ms, gpu_ms, scatter_ms);
+            std::fprintf(stderr,
+                         "SCM GPU profile n=%zu bodies=%zu pack_ms=%.3f gpu_ms=%.3f scatter_ms=%.3f\n",
+                         n,
+                         n_bodies,
+                         pack_ms,
+                         gpu_ms,
+                         scatter_ms);
             ++n_profile;
         }
     }

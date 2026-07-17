@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/solver/ChSolverBB.h"
 
@@ -29,8 +31,11 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
+    #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -39,6 +44,8 @@ using namespace chrono::vehicle::m113;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+double tend = 30;
 
 // Initial vehicle position
 ChVector3d initLoc(-5, 0, 1.1);
@@ -61,8 +68,9 @@ double step_size = 5e-4;
 // Use PardisoMKL
 bool use_mkl = false;
 
-// Time interval between two render frames
-double render_step_size = 1.0 / 120;  // FPS = 50
+// Visualization settings
+bool render = true;       // use run-time visualization
+double render_fps = 100;  // rendering FPS
 
 // Point on chassis tracked by the camera
 ChVector3d trackPoint(-2.0, 0.0, 0.0);
@@ -81,6 +89,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 void AddFixedObstacles(ChSystem* system);
 
 // =============================================================================
+
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
@@ -99,7 +108,7 @@ int main(int argc, char* argv[]) {
     m113.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     m113.SetChassisCollisionType(CollisionType::NONE);
 
-    // Control steering type (enable crossdrive capability)
+    // Control steering type (enable cross-drive capability)
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
     // Initialize the vehicle at the specified position
@@ -129,13 +138,13 @@ int main(int argc, char* argv[]) {
     // Collect contact information
     ////vehicle.SetContactCollection(true);
 
-    ChSystem* system = m113.GetSystem();
+    ChSystem* sys = m113.GetSystem();
 
     // ----------------------
     // Create the SCM terrain
     // ----------------------
 
-    SCMTerrain terrain(system);
+    SCMTerrain terrain(sys);
     terrain.SetSoilParameters(2e7,   // Bekker Kphi
                               0,     // Bekker Kc
                               1.1,   // Bekker n exponent
@@ -166,42 +175,47 @@ int main(int argc, char* argv[]) {
     terrain.Initialize(terrain_length, terrain_width, delta);
 
     // Add obstacles
-    AddFixedObstacles(system);
-
-    // Set the time response for steering and throttle keyboard inputs.
-    double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
+    AddFixedObstacles(sys);
 
     // Create an interactive driver
     ChInteractiveDriver driver(vehicle);
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
+    driver.SetSteeringDelta(1.0 / 50);
+    driver.SetThrottleDelta(1.0 / 50);
+    driver.SetBrakingDelta(3.0 / 50);
     driver.Initialize();
 
     // ---------------------------------------------------
     // Create the vehicle run-time visualization interface
     // ---------------------------------------------------
 
-    // SCM plugin
-    auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
+    std::shared_ptr<ChVehicleVisualSystem> vis;
 
-    // Create the vehicle VSG interface
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-    vis->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
-    vis->SetWindowSize(1280, 800);
-    vis->SetWindowPosition(100, 100);
-    vis->EnableSkyTexture(SkyMode::DOME);
-    vis->SetCameraAngleDeg(40);
-    vis->SetLightIntensity(1.0f);
-    vis->SetChaseCamera(trackPoint, 7.0, 2.0);
-    vis->SetChaseCameraPosition(ChVector3d(-3, 4, 1.5));
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    vis->AttachVehicle(&vehicle);
-    vis->AttachDriver(&driver);
-    vis->AttachPlugin(visSCM);
-    vis->Initialize();
+#ifdef CHRONO_VSG
+    if (render) {
+        // SCM plugin
+        auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
+
+        // Create the vehicle VSG interface
+        auto visVSG = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+        visVSG->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
+        visVSG->EnableSkyTexture(SkyMode::DOME);
+        visVSG->SetCameraAngleDeg(40);
+        visVSG->SetLightIntensity(1.0f);
+        visVSG->SetChaseCamera(trackPoint, 7.0, 2.0);
+        visVSG->SetChaseCameraPosition(ChVector3d(-3, 4, 1.5));
+        visVSG->SetChaseCameraMultipliers(1e-4, 10);
+        visVSG->AttachVehicle(&vehicle);
+        visVSG->AttachDriver(&driver);
+        visVSG->AttachPlugin(visSCM);
+
+        visVSG->Initialize();
+        vis = visVSG;
+    }
+#else
+    render = false;
+#endif
 
     // -----------------
     // Initialize output
@@ -225,7 +239,7 @@ int main(int argc, char* argv[]) {
     // Simulation settings
     // -------------------
 
-    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+    sys->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
 #ifndef CHRONO_PARDISO_MKL
     // Do not use PardisoMKL if not available
@@ -238,10 +252,10 @@ int main(int argc, char* argv[]) {
         std::cout << "Using PardisoMKL solver\n";
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
-        system->SetSolver(mkl_solver);
+        sys->SetSolver(mkl_solver);
 
-        system->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
+        sys->SetTimestepperType(ChTimestepper::Type::HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-1, 10);
@@ -262,52 +276,58 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Initialize simulation frame counter
+    double time = 0;
     int step_number = 0;
     int render_frame = 0;
 
     // Execution time
     double total_timing = 0;
 
-    while (vis->Run()) {
-        if (step_number % render_steps == 0) {
-            vis->BeginScene();
+    while (true) {
+        if (render && time >= render_frame / render_fps) {
+            if (!vis->Run())
+                break;
+
             vis->Render();
-            vis->EndScene();
 
             if (img_output) {
                 // Zero-pad frame numbers in file names for postprocessing
                 std::ostringstream filename;
                 filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
                 vis->WriteImageToFile(filename.str());
-                render_frame++;
             }
+            render_frame++;
+        }
+        if (!render) {
+            std::cout << time << "  " << sys->GetRTF() << std::endl;
+            if (time > tend)
+                break;
         }
 
         // Current driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
         m113.Synchronize(time, driver_inputs);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         m113.Advance(step_size);
-        vis->Advance(step_size);
+        if (vis)
+            vis->Advance(step_size);
 
         // Increment frame number
         step_number++;
+        time += step_size;
 
         // Execution time
-        double step_timing = system->GetTimerStep();
+        double step_timing = sys->GetTimerStep();
         total_timing += step_timing;
         ////std::cout << step_number << " " << step_timing << " " << total_timing << std::endl;
     }
@@ -318,6 +338,7 @@ int main(int argc, char* argv[]) {
 }
 
 // =============================================================================
+
 void AddFixedObstacles(ChSystem* system) {
     double radius = 2;
     double length = 10;

@@ -37,8 +37,7 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
 
     ImGuiTableFlags table_flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
-    ImGuiColorEditFlags color_edit_flags =
-        ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoDragDrop;
+    ImGuiColorEditFlags color_edit_flags = ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoDragDrop;
 
     ImGui::Begin("Simulation");
 
@@ -179,8 +178,7 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
             if (ImGui::Checkbox("Body labels", &show_body_labels))
                 m_app->ToggleBodyLabelVisibility();
             ImGui::TableNextColumn();
-            ImVec4 body_labels_color(m_app->m_body_labels_color.R, m_app->m_body_labels_color.G,
-                                     m_app->m_body_labels_color.B, 0);
+            ImVec4 body_labels_color(m_app->m_body_labels_color.R, m_app->m_body_labels_color.G, m_app->m_body_labels_color.B, 0);
             if (ImGui::ColorEdit3("color##body_labels", (float*)&body_labels_color, color_edit_flags))
                 m_app->SetBodyLabelsColor(ChColor(body_labels_color.x, body_labels_color.y, body_labels_color.z));
             ImGui::TableNextColumn();
@@ -197,8 +195,7 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
             if (ImGui::Checkbox("Link labels", &show_link_labels))
                 m_app->ToggleLinkLabelVisibility();
             ImGui::TableNextColumn();
-            ImVec4 link_labels_color(m_app->m_link_labels_color.R, m_app->m_link_labels_color.G,
-                                     m_app->m_link_labels_color.B, 0);
+            ImVec4 link_labels_color(m_app->m_link_labels_color.R, m_app->m_link_labels_color.G, m_app->m_link_labels_color.B, 0);
             if (ImGui::ColorEdit3("color##link_labels", (float*)&link_labels_color, color_edit_flags))
                 m_app->SetLinkLabelsColor(ChColor(link_labels_color.x, link_labels_color.y, link_labels_color.z));
             ImGui::TableNextColumn();
@@ -229,8 +226,10 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
 
             ImGui::TableNextColumn();
             static bool bRef_frame_active = m_app->m_show_ref_frames;
-            if (ImGui::Checkbox("Body ref frames", &bRef_frame_active))
-                m_app->ToggleRefFrameVisibility();
+            if (ImGui::Checkbox("Body ref frames", &bRef_frame_active)) {
+                m_app->m_show_ref_frames = !m_app->m_show_ref_frames;
+                m_app->SetRefFrameVisibility(m_app->m_show_ref_frames, -1);
+            }
             ImGui::TableNextColumn();
             float ref_frame_scale = m_app->m_ref_frame_scale;
             ImGui::PushItemWidth(120.0f);
@@ -243,8 +242,10 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
             ImGui::TableNextColumn();
             ImGui::BeginGroup();
             static bool show_com_frames = m_app->m_show_com_frames;
-            if (ImGui::Checkbox("COM frames", &show_com_frames))
-                m_app->ToggleCOMFrameVisibility();
+            if (ImGui::Checkbox("COM frames", &show_com_frames)) {
+                m_app->m_show_com_frames = !m_app->m_show_com_frames;
+                m_app->SetCOMFrameVisibility(m_app->m_show_com_frames);
+            }
             ImGui::SameLine();
             static bool show_com_symbols = m_app->m_show_com_symbols;
             if (ImGui::Checkbox("Symbol", &show_com_symbols))
@@ -265,8 +266,10 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
 
             ImGui::TableNextColumn();
             static bool bLink_frame_active = m_app->m_show_link_frames;
-            if (ImGui::Checkbox("Link frames", &bLink_frame_active))
-                m_app->ToggleLinkFrameVisibility();
+            if (ImGui::Checkbox("Link frames", &bLink_frame_active)) {
+                m_app->m_show_link_frames = !m_app->m_show_link_frames;
+                m_app->SetLinkFrameVisibility(m_app->m_show_link_frames, -1);
+            }
             ImGui::TableNextColumn();
             float link_frame_scale = m_app->m_link_frame_scale;
             ImGui::PushItemWidth(120.0f);
@@ -287,8 +290,7 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
                 m_app->SetCollisionVisibility(m_app->m_show_collision, -1);
             }
             ImGui::TableNextColumn();
-            ImVec4 collision_color(m_app->m_collision_color.R, m_app->m_collision_color.G, m_app->m_collision_color.B,
-                                   0);
+            ImVec4 collision_color(m_app->m_collision_color.R, m_app->m_collision_color.G, m_app->m_collision_color.B, 0);
             if (ImGui::ColorEdit3("color##collision", (float*)&collision_color, color_edit_flags)) {
                 m_app->SetCollisionColor(ChColor(collision_color.x, collision_color.y, collision_color.z));
             }
@@ -303,11 +305,9 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
                 m_app->SetContactNormalsVisibility(m_app->m_show_contact_normals, -1);
             }
             ImGui::TableNextColumn();
-            ImVec4 contact_normals_color(m_app->m_contact_normals_color.R, m_app->m_contact_normals_color.G,
-                                         m_app->m_contact_normals_color.B, 0);
+            ImVec4 contact_normals_color(m_app->m_contact_normals_color.R, m_app->m_contact_normals_color.G, m_app->m_contact_normals_color.B, 0);
             if (ImGui::ColorEdit3("color##contact_normals", (float*)&contact_normals_color, color_edit_flags)) {
-                m_app->SetContactNormalsColor(
-                    ChColor(contact_normals_color.x, contact_normals_color.y, contact_normals_color.z));
+                m_app->SetContactNormalsColor(ChColor(contact_normals_color.x, contact_normals_color.y, contact_normals_color.z));
             }
             ImGui::TableNextColumn();
             float contact_normals_scale = m_app->m_contact_normals_scale;
@@ -325,11 +325,9 @@ void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
                 m_app->SetContactForcesVisibility(m_app->m_show_contact_forces, -1);
             }
             ImGui::TableNextColumn();
-            ImVec4 contact_forces_color(m_app->m_contact_forces_color.R, m_app->m_contact_forces_color.G,
-                                        m_app->m_contact_forces_color.B, 0);
+            ImVec4 contact_forces_color(m_app->m_contact_forces_color.R, m_app->m_contact_forces_color.G, m_app->m_contact_forces_color.B, 0);
             if (ImGui::ColorEdit3("color##contact_forces", (float*)&contact_forces_color, color_edit_flags)) {
-                m_app->SetContactForcesColor(
-                    ChColor(contact_forces_color.x, contact_forces_color.y, contact_forces_color.z));
+                m_app->SetContactForcesColor(ChColor(contact_forces_color.x, contact_forces_color.y, contact_forces_color.z));
             }
             ImGui::TableNextColumn();
             float contact_forces_scale = m_app->m_contact_forces_scale;
@@ -387,11 +385,7 @@ void ChCameraGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     }
 }
 
-ChColorbarGuiComponentVSG::ChColorbarGuiComponentVSG(const std::string& title,
-                                                     const ChVector2d& range,
-                                                     ChColormap::Type type,
-                                                     bool bimodal,
-                                                     float width)
+ChColorbarGuiComponentVSG::ChColorbarGuiComponentVSG(const std::string& title, const ChVector2d& range, ChColormap::Type type, bool bimodal, float width)
     : m_title(title), m_type(type), m_range(range), m_bimodal(bimodal), m_width(width) {}
 
 void ChColorbarGuiComponentVSG::Initialize() {

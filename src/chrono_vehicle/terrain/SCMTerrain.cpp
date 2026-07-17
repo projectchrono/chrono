@@ -148,6 +148,26 @@ void SCMTerrain::SetCosimulationMode(bool val) {
     m_loader->m_cosim_mode = val;
 }
 
+#ifdef CHRONO_HAS_SCM_GPU
+void SCMTerrain::SetScmGpuEnabled(bool enable) {
+    m_loader->m_scm_gpu_config.enabled = enable;
+    scm_gpu::SetConfig(m_loader->m_scm_gpu_config);
+}
+
+bool SCMTerrain::IsScmGpuEnabled() const {
+    return m_loader->m_scm_gpu_config.enabled;
+}
+
+void SCMTerrain::SetScmGpuConfig(const scm_gpu::Config& config) {
+    m_loader->m_scm_gpu_config = config;
+    scm_gpu::SetConfig(m_loader->m_scm_gpu_config);
+}
+
+scm_gpu::Config SCMTerrain::GetScmGpuConfig() const {
+    return m_loader->m_scm_gpu_config;
+}
+#endif
+
 // Set properties of the SCM soil model.
 void SCMTerrain::SetSoilParameters(double Bekker_Kphi,    // Kphi, frictional modulus in Bekker model
                                    double Bekker_Kc,      // Kc, cohesive modulus in Bekker model
@@ -429,6 +449,10 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
+#ifdef CHRONO_VEHICLE_SCM_GPU
+    scm_gpu::SetConfig(m_scm_gpu_config);
+#endif
+
     m_colormap_type = ChColormap::Type::JET;
     m_plot_type = SCMTerrain::PLOT_NONE;
     m_plot_v_min = 0;
@@ -458,6 +482,8 @@ void SCMLoader::Initialize(double sizeX, double sizeY, double delta) {
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
+
+    SetupInitial();
 }
 
 // Initialize the terrain from a specified height map.
@@ -532,6 +558,7 @@ void SCMLoader::Initialize(const std::string& heightmap_file, double sizeX, doub
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
+    SetupInitial();
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
@@ -622,6 +649,7 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
+    SetupInitial();
 }
 
 void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
@@ -1383,7 +1411,7 @@ void SCMLoader::ComputeInternalForces() {
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
     bool scm_used_gpu = false;
-    if (scm_gpu::Enabled() && !m_soil_fun && hits.size() >= scm_gpu_min_hits()) {
+    if (m_scm_gpu_config.enabled && !m_soil_fun && hits.size() >= m_scm_gpu_config.min_hits) {
         std::vector<double> patch_oob(contact_patches.size());
         for (size_t ip = 0; ip < contact_patches.size(); ++ip)
             patch_oob[ip] = contact_patches[ip].oob;

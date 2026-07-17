@@ -64,8 +64,7 @@ bool show_particles_sph = true;
 // Callback for setting initial SPH particle properties
 class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity)
-        : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {}
+    SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity) : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {}
 
     virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
@@ -153,8 +152,7 @@ bool GetProblemSpecs(int argc,
 
     // options for boundary condition and viscosity type
     cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", "adami");
-    cli.AddOption<std::string>("Physics", "viscosity_method",
-                               "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
+    cli.AddOption<std::string>("Physics", "viscosity_method", "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -197,8 +195,7 @@ int main(int argc, char* argv[]) {
     int ps_freq = 1;
     std::string boundary_method = "adami";
     std::string viscosity_method = "artificial_unilateral";
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_method, viscosity_method)) {
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq, boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -219,7 +216,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepSizeCFD(step_size);
     fsi.SetStepsizeMBD(step_size);
 
-    // Set soil propertiees
+    // Set soil properties
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1800;
     mat_props.Young_modulus = 2e6;
@@ -277,12 +274,11 @@ int main(int argc, char* argv[]) {
     // Create container
     fsi.AddBoxContainer(csize,                // length x width x height
                         ChVector3d(0, 0, 0),  // reference location
-                        BoxSide::Z_NEG        // creater only bottom boundary
+                        BoxSide::Z_NEG        // create only bottom boundary
     );
 
     // Explicitly set computational domain (necessary if no side walls)
-    ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
-                ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
+    ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1), ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
     fsi.SetComputationalDomain(aabb, BC_NONE);
 
     if (show_rigid) {
@@ -388,8 +384,7 @@ int main(int argc, char* argv[]) {
             if (snapshots) {
                 cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
 
@@ -398,8 +393,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         if (sim_frame % 1000 == 0) {
-            std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF_fluid: " << fsi.GetRtfCFD()
-                      << "\tRTF_solid: " << fsi.GetRtfMBD() << std::endl;
+            std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF_fluid: " << fsi.GetRtfCFD() << "\tRTF_solid: " << fsi.GetRtfMBD() << std::endl;
         }
 
         // Call the FSI solver

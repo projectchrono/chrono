@@ -88,7 +88,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Attach a custom plugin.
     /// Plugins offer a mechanism for extending a base VSG visual system with custom functionality; e.g., for rendering,
     /// controlling, and displaying information for specific types of Chrono systems. An arbitrary number of plugins can
-    /// be attached to a VSG visual system. Attaching plugins must be done *before* initialization of the VSG system.
+    /// be attached to a VSG visual system.
     void AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin);
 
     /// Initialize the visualization system.
@@ -183,21 +183,27 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Set scale for rendering reference frames.
     void SetRefFrameScale(double axis_length);
-    /// Toggle on/off visibility of reference frames.
-    void ToggleRefFrameVisibility();
+
+    /// Set the visibility of reference frames for objects with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all objects.
+    void SetRefFrameVisibility(bool vis, int tag = -1);
 
     /// Render COM frames for all bodies in the system.
     void SetCOMFrameScale(double axis_length);
-    /// Toggle on/off visibility of COM frames.
-    void ToggleCOMFrameVisibility();
+
+    /// Set the visibility of COM frames for bodies with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetCOMFrameVisibility(bool vis, int tag = -1);
 
     /// Render COM symbol for all bodies in the system.
     void ToggleCOMSymbolVisibility();
 
     /// Render link frames for all links in the system.
     void SetLinkFrameScale(double axis_length);
-    /// Toggle on/off visibility of link frames.
-    void ToggleLinkFrameVisibility();
+
+    /// Set the visibility of joint frames for joints with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all joints.
+    void SetLinkFrameVisibility(bool vis, int tag = -1);
 
     // --- Labels
 
@@ -353,7 +359,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     size_t AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc);
 
     /// Add a colorbar as a GUI component.
-    /// Returns the index of the new component. This function must be called before Initialize().
+    /// Returns the index of the new component.
     size_t AddGuiColorbar(const std::string& title,  ///< GUI window title
                           const ChVector2d& range,   ///< data range
                           ChColormap::Type type,     ///< colormap
@@ -622,10 +628,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
 
     /// Bind the reference frame for the given ChObj.
-    void BindReferenceFrame(const std::shared_ptr<ChObj>& obj);
+    void BindReferenceFrame(const std::shared_ptr<ChObj>& obj, ObjectType type);
 
     /// Bind the body COM frame.
-    void BindCOMFrame(const std::shared_ptr<ChBody>& body);
+    void BindBodyCOMFrame(const std::shared_ptr<ChBody>& body);
 
     /// Create body label text.
     void CreateBodyLabel(const std::shared_ptr<ChBody>& body);

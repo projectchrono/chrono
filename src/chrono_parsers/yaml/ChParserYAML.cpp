@@ -28,7 +28,9 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserYAML::ChParserYAML() : m_name("model"), m_verbose(false), m_use_degrees(true), m_output_dir(".") {}
+ChParserYAML::ChParserYAML() : m_name("model"), m_verbose(false), m_use_degrees(true), m_output_dir(".") {
+    m_vis_settings.image_dir = "./images";
+}
 
 // -----------------------------------------------------------------------------
 
@@ -60,87 +62,108 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
 
 // -----------------------------------------------------------------------------
 
-ChParserYAML::OutputParameters::OutputParameters() : format(ChOutput::Format::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
+void ChParserYAML::LoadSimData(const YAML::Node& yaml) {
+    // Output (optional)
+    if (yaml["output"])
+        m_output_settings = ChOutput::Settings::Read(yaml["output"]);
 
-void ChParserYAML::OutputParameters::PrintInfo() {
-    if (format == ChOutput::Format::NONE) {
-        cout << "no output" << endl;
-        return;
-    }
-
-    cout << "output" << endl;
-    cout << "  format:               " << ChOutput::GetFormatAsString(format) << endl;
-    cout << "  mode:                 " << ChOutput::GetModeAsString(mode) << endl;
-    cout << "  output FPS:           " << fps << endl;
+    // Run-time visualization (optional)
+    if (yaml["visualization"])
+        m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
 }
 
-bool ChParserYAML::Output() const {
-    return m_output.format != ChOutput::Format::NONE;
-}
+// -----------------------------------------------------------------------------
 
 void ChParserYAML::SetOutputDir(const std::string& out_dir) {
-    auto p = std::filesystem::path(out_dir);
-    if (!exists(p) || !is_directory(p)) {
-        std::cerr << "The specified path " << out_dir << " is not a valid directory." << std::endl;
-        throw std::runtime_error("Invalid directory");
+    m_output_dir = out_dir;
+    m_vis_settings.image_dir = out_dir + "/images";
+
+    if (m_output_settings.format != ChOutput::Format::NONE) {
+        auto p = std::filesystem::path(m_output_dir);
+        if (!exists(p) || !is_directory(p)) {
+            std::cerr << "The path " << m_output_dir << " is not a valid directory." << std::endl;
+            throw std::runtime_error("Invalid directory");
+        }
     }
 
-    m_output_dir = out_dir;
+    if (m_vis_settings.write_images) {
+        bool success = CreateOutputDirectory(std::filesystem::path(m_vis_settings.image_dir));
+        if (!success) {
+            std::cerr << "Error creating image output directory " << m_vis_settings.image_dir << std::endl;
+            throw std::runtime_error("Could not create image output directory");
+        }
+    }
 
     if (m_verbose) {
-        auto filename = m_output_dir + "/" + m_name;
-        switch (m_output.format) {
-            case ChOutput::Format::ASCII:
-                filename += ".txt";
-                break;
-            case ChOutput::Format::HDF5:
+        if (m_output_settings.format != ChOutput::Format::NONE) {
+            auto filename = m_output_dir + "/" + m_name + "." + ChOutput::GetModeAsString(m_output_settings.mode);
+            switch (m_output_settings.format) {
+                case ChOutput::Format::ASCII:
+                    cout << "Output file: " << filename << ".txt" << endl;
+                    break;
+                case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                filename += ".h5";
-                break;
+                    cout << "Output file: " << filename << ".h5" << endl;
+                    break;
 #else
-                return;
+                    cerr << "HDF5 not available. No output file will be generated" << endl;
 #endif
+            }
         }
-        cout << "Output file: " << filename << endl;
-    }
-}
 
-void ChParserYAML::ReadOutputParams(const YAML::Node& a) {
-    ChAssertAlways(a["format"]);
-    m_output.format = ReadOutputFormat(a["format"]);
-#ifndef CHRONO_HAS_HDF5
-    if (m_output.format == ChOutput::Format::HDF5) {
-        std::cerr << "HDF5 output support not available.\nOutput disabled." << std::endl;
-        m_output.format = ChOutput::Format::NONE;
-        return;
+        if (m_vis_settings.write_images) {
+            cout << "Image directory: " << m_vis_settings.image_dir << endl;
+        }
     }
-#endif
-
-    if (a["mode"])
-        m_output.mode = ReadOutputMode(a["mode"]);
-    if (a["fps"])
-        m_output.fps = a["fps"].as<double>();
 }
 
 void ChParserYAML::WriteOutput(int frame, double time) {
-    if (m_output.format == ChOutput::Format::NONE)
+    if (m_output_settings.format == ChOutput::Format::NONE)
         return;
 
     // Create the output DB if needed
     if (!m_output_db) {
-        switch (m_output.format) {
+        switch (m_output_settings.format) {
             case ChOutput::Format::ASCII:
-                m_output_db = chrono_types::make_shared<ChOutputASCII>(m_output_dir, m_name, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputASCII>(m_output_dir, m_name, m_output_settings.mode);
                 break;
             case ChOutput::Format::HDF5:
 #ifdef CHRONO_HAS_HDF5
-                m_output_db = chrono_types::make_shared<ChOutputHDF5>(m_output_dir, m_name, m_output.mode);
+                m_output_db = chrono_types::make_shared<ChOutputHDF5>(m_output_dir, m_name, m_output_settings.mode);
                 break;
 #else
-                return;
+                break;
 #endif
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChParserYAML::Output(double time) {
+    static int output_frame = 0;
+    if (time >= output_frame / m_output_settings.fps) {
+        WriteOutput(output_frame, time);
+        output_frame++;
+    }
+}
+
+bool ChParserYAML::Render(ChVisualSystem& vis_sys, double time) {
+    if (!vis_sys.Run())
+        return false;
+
+    static int render_frame = 0;
+    if (time >= render_frame / m_vis_settings.render_fps) {
+        vis_sys.Render();
+        if (m_vis_settings.write_images) {
+            std::ostringstream filename;
+            filename << m_vis_settings.image_dir << "/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << "." << m_vis_settings.image_type;
+            vis_sys.WriteImageToFile(filename.str());
+        }
+        render_frame++;
+    }
+
+    return true;
 }
 
 }  // end namespace parsers
