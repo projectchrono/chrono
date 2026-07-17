@@ -68,7 +68,7 @@ void scm_gpu_sync(ScmGpuContext* ctx);
 int scm_gpu_compute_forces(ScmGpuContext* ctx,
                            const chrono::vehicle::scm::gpu::SoilParams& soil,
                            const chrono::vehicle::scm::gpu::HitInput* in,
-                           const chrono::vehicle::scm::gpu::HitOutput* out_host,
+                           chrono::vehicle::scm::gpu::HitOutput* out_host,
                            std::size_t n_hits,
                            std::size_t n_bodies);
 
