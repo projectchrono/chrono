@@ -370,6 +370,18 @@ __device__ void TauEulerStep(Real dT,
         // Real xi = 1.1;
         Real dia = paramsD.ave_diam;
         Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
+
+        // Zero-tension cutoff (Mohr-Coulomb tension cut-off convention): cohesion
+        // contributes shear strength through tau_max = mu * p + c below, but grants
+        // no tension capacity. The previous cutoff at p_tr < -c/mu_s let particles
+        // sustain negative pressure, which (a) drives the SPH tensile instability
+        // (particle clumping that destabilizes geostatic stress states and collapses
+        // bearing responses whenever c > 0), and (b) made the inertial number I NaN
+        // for p_tr < 0 (sqrt of a negative), silently disabling the yield check for
+        // tensile particles. For c = 0 this update is identical to the previous one.
+        if (p_tr < Real(0))
+            p_tr = Real(0);
+
         Real I = Chi * dia * sqrt(paramsD.rho0 / (p_tr + 1.0e-9));
 
         Real coh = paramsD.Coh_coeff;
@@ -381,32 +393,24 @@ __device__ void TauEulerStep(Real dT,
         //     coh = 0.0;
         // }
 
-        Real inv_mus = 1.0 / paramsD.mu_fric_s;
-        Real p_cri = -coh * inv_mus;
-        if (p_tr < p_cri) {
-            new_tau_diag = mR3(0.0);
-            new_tau_offdiag = mR3(0.0);
-            p_tr = 0.0;
-        } else {
-            Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0e-9) / (I0 + I + 1.0e-9);
-            // Real G0 = paramsD.G_shear;
-            // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
-            // Real B0 = s_2 + tau_tr + alpha;
-            // Real H0 = s_2*tau_tr + s_0*alpha;
-            // Real tau_n1 = (B0+sqrt(B0*B0-4*H0))/(2*H0+1e-9);
-            // if(tau_tr>s_0){
-            //     Real coeff = tau_n1/(tau_tr+1e-9);
-            //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
-            //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
-            // }
-            Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
-            // should use tau_max instead of s_0 according to
-            // "A constitutive law for dense granular flows" Nature 2006
-            if (tau_tr > tau_max) {
-                Real coeff = tau_max / (tau_tr + 1e-9);
-                new_tau_diag *= coeff;
-                new_tau_offdiag *= coeff;
-            }
+        Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0e-9) / (I0 + I + 1.0e-9);
+        // Real G0 = paramsD.G_shear;
+        // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
+        // Real B0 = s_2 + tau_tr + alpha;
+        // Real H0 = s_2*tau_tr + s_0*alpha;
+        // Real tau_n1 = (B0+sqrt(B0*B0-4*H0))/(2*H0+1e-9);
+        // if(tau_tr>s_0){
+        //     Real coeff = tau_n1/(tau_tr+1e-9);
+        //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
+        //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
+        // }
+        Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
+        // should use tau_max instead of s_0 according to
+        // "A constitutive law for dense granular flows" Nature 2006
+        if (tau_tr > tau_max) {
+            Real coeff = tau_max / (tau_tr + 1e-9);
+            new_tau_diag *= coeff;
+            new_tau_offdiag *= coeff;
         }
 
         // Set stress to zero if the particle is close to free surface
