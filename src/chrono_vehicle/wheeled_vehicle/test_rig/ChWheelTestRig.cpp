@@ -285,9 +285,15 @@ void ChWheelTestRig::Advance(double step) {
 void ChWheelTestRig::CreateMechanism() {
     m_system.SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
-    // Create bodies.
-    // Rig bodies are constructed with mass and inertia commensurate with those of the wheel system.
+    // Set characteristic dimension
     const double dim = 0.1;
+
+    // Initialize wheel system
+    ChQuaternion<> qc;
+    qc.SetFromAngleX(-m_camber_angle);
+    m_wheel->Initialize(ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
+
+    // Create rig bodies with mass and inertia commensurate with those of the wheel system
     const double mass = m_wheel->GetMass();
     const double radius = m_wheel->GetRadius();
     ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
@@ -357,16 +363,6 @@ void ChWheelTestRig::CreateMechanism() {
         box->AddMaterial(mat);
         m_slip_body->AddVisualShape(box);
     }
-
-    // Set wheel location and orientation
-    ChQuaternion<> qc;
-    qc.SetFromAngleX(-m_camber_angle);
-    ////m_wheel->GetHub()->SetPos(ChVector3d(0, 3 * dim, -4 * dim));
-    ////m_wheel->GetHub()->SetRot(qc);
-    ////m_wheel->GetHub()->SetFixed(m_mode == Mode::SUSPEND);
-    
-    // Initialize wheel system
-    m_wheel->Initialize(ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
     // Create joints and motors
     if (m_mode == Mode::TEST && m_ls_actuated) {
