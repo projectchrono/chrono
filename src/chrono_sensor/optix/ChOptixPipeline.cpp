@@ -928,7 +928,8 @@ unsigned int ChOptixPipeline::GetBoxMaterial(std::vector<std::shared_ptr<ChVisua
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_box_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
-    mat_record.data.num_blended_materials = (unsigned int)mat_list.size();
+    // Empty list means GetMaterial() supplied one default material; a 0 count would shade nothing.
+    mat_record.data.num_blended_materials = mat_list.empty() ? 1u : static_cast<unsigned int>(mat_list.size());
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);
@@ -953,7 +954,8 @@ unsigned int ChOptixPipeline::GetSphereMaterial(std::vector<std::shared_ptr<ChVi
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_sphere_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
-    mat_record.data.num_blended_materials = (unsigned int)mat_list.size();
+    // Empty list means GetMaterial() supplied one default material; a 0 count would shade nothing.
+    mat_record.data.num_blended_materials = mat_list.empty() ? 1u : static_cast<unsigned int>(mat_list.size());
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);
@@ -1184,7 +1186,8 @@ unsigned int ChOptixPipeline::GetNVDBMaterial(std::vector<std::shared_ptr<ChVisu
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_nvdb_vol_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
-    mat_record.data.num_blended_materials = (unsigned int)mat_list.size();
+    // Empty list means GetMaterial() supplied one default material; a 0 count would shade nothing.
+    mat_record.data.num_blended_materials = mat_list.empty() ? 1u : static_cast<unsigned int>(mat_list.size());
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);
