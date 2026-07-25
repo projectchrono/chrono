@@ -447,6 +447,77 @@ std::string ChBodyGeometry::GetVisualizationTypeAsString(VisualizationType type)
 
 // -----------------------------------------------------------------------------
 
+std::shared_ptr<ChBodyGeometry> ChBodyGeometry::Combine(std::vector<std::pair<ChFramed, ChBodyGeometry>> components) {
+    auto g = chrono_types::make_shared<ChBodyGeometry>();
+
+    // Contact materials
+    std::vector<std::vector<int>> matID(components.size());
+    for (size_t i = 0; i < components.size(); i++) {
+        const auto& comp = components[i].second;
+        for (size_t j = 0; j < comp.materials.size(); j++) {
+            g->materials.push_back(comp.materials[j]);
+            matID[i].push_back(g->materials.size() - 1);
+        }
+    }
+
+    // Collision shapes
+    for (size_t i = 0; i < components.size(); i++) {
+        const auto& f = components[i].first;
+        const auto& comp = components[i].second;
+        const auto& mat = matID[i];
+        for (const auto& b : comp.coll_boxes) {
+            g->coll_boxes.push_back(BoxShape(f * b.pos, f.GetRot() * b.rot, b.dims, mat[b.matID]));
+        }
+        for (const auto& s : comp.coll_spheres) {
+            g->coll_spheres.push_back(SphereShape(f * s.pos, s.radius, mat[s.matID]));
+        }
+        for (const auto& c : comp.coll_cylinders) {
+            g->coll_cylinders.push_back(CylinderShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length, mat[c.matID]));
+        }
+        for (const auto& c : comp.coll_cones) {
+            g->coll_cones.push_back(ConeShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length, mat[c.matID]));
+        }
+        for (const auto& m : comp.coll_meshes) {
+            auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>(*m.trimesh);
+            g->coll_meshes.push_back(TrimeshShape(f.GetPos(), f.GetRot(), trimesh, 1.0, 0.01, mat[m.matID]));
+        }
+        ////for (const auto& h : comp.coll_hulls) {
+        ////    //// TODO
+        ////}
+    }
+
+    // Visual shapes
+    for (size_t i = 0; i < components.size(); i++) {
+        const auto& f = components[i].first;
+        const auto& comp = components[i].second;
+        for (const auto& b : comp.vis_boxes) {
+            g->vis_boxes.push_back(BoxShape(f * b.pos, f.GetRot() * b.rot, b.dims));
+        }
+        for (const auto& s : comp.vis_spheres) {
+            g->vis_spheres.push_back(SphereShape(f * s.pos, s.radius));
+        }
+        for (const auto& c : comp.vis_cylinders) {
+            g->vis_cylinders.push_back(CylinderShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length));
+        }
+        for (const auto& c : comp.vis_cones) {
+            g->vis_cones.push_back(ConeShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length));
+        }
+        for (const auto& m : comp.vis_meshes) {
+            auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>(*m.trimesh);
+            g->vis_meshes.push_back(TrimeshShape(f.GetPos(), f.GetRot(), trimesh, 1.0));
+        }
+        ////for (const auto& l : comp.vis_lines) {
+        ////    //// TODO
+        ////    ////auto line = chrono_types::make_shared<ChLine>(*l.line);
+        ////    ////g->vis_lines.push_back(LineShape(f * l.pos, f.GetRot() * l.rot, line));
+        ////}
+    }
+
+    return g;
+}
+
+// -----------------------------------------------------------------------------
+
 ChTSDAGeometry::ChTSDAGeometry() : color(ChColor(1.0f, 1.0f, 1.0f)), vis_segment(nullptr), vis_spring(nullptr) {}
 
 ChTSDAGeometry::SpringShape::SpringShape(double radius, int resolution, double turns) : radius(radius), turns(turns), resolution(resolution) {}
