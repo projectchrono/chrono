@@ -1965,7 +1965,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxInterior(const ChVec
     bool fill = np[0] <= 2 * num_layers || np[1] <= 2 * num_layers || np[2] <= 2 * num_layers;
 
     // Adjust spacing in each direction
-    ChVector3d delta(size.x() / (np.x() - 1), size.y() / (np.y() - 1), size.z() / (np.z() - 1));
+    ChVector3d delta(np.x() > 1 ? size.x() / (np.x() - 1) : 0,  //
+                     np.y() > 1 ? size.y() / (np.y() - 1) : 0,  //
+                     np.z() > 1 ? size.z() / (np.z() - 1) : 0   //
+    );
 
     // If any direction must be filled, the box must be filled
     if (fill) {
@@ -2088,14 +2091,25 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsSphereInterior(double r
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
+    // Radial direction (num divisions and adjusted spacing)
+    int np_r = (int)std::round(radius / spacing);
+    double delta_r = (np_r == 0) ? 0.0 : radius / np_r;
+
+    // If the radius is too small, fill the entire sphere
+    bool fill = (np_r <= num_layers - 1);
+
     // Use polar coordinates
     if (polar) {
-        double rad_in = radius - (num_layers - 1) * spacing;
+        double rad_in = std::max(radius - (num_layers - 1) * spacing, 0.0);
+        if (fill)
+            rad_in = 0;
+        np_r = (int)std::round((radius - rad_in) / spacing);
+        delta_r = (np_r == 0) ? 0.0 : (radius - rad_in) / np_r;
 
-        for (int ir = 0; ir < num_layers; ir++) {
-            double r = rad_in + ir * spacing;
-            int np_phi = (int)std::round(pi * r / spacing);
-            double delta_phi = pi / np_phi;
+        for (int ir = 0; ir <= np_r; ir++) {
+            double r = rad_in + ir * delta_r;
+            int np_phi = std::max((int)std::round(CH_PI * r / spacing) - 1, 1);
+            double delta_phi = CH_PI / np_phi;
             for (int ip = 0; ip < np_phi; ip++) {
                 double phi = ip * delta_phi;
                 double cphi = std::cos(phi);
@@ -2103,8 +2117,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsSphereInterior(double r
                 double x = r * sphi;
                 double y = r * sphi;
                 double z = r * cphi;
-                int np_th = (int)std::round(2 * pi * r * sphi / spacing);
-                double delta_th = (np_th > 0) ? (2 * pi) / np_th : 1;
+                int np_th = std::max((int)std::round(CH_2PI * r * sphi / spacing) - 1, 1);
+                double delta_th = (np_th > 0) ? CH_2PI / np_th : 1;
                 for (int it = 0; it < np_th; it++) {
                     double theta = it * delta_th;
                     bce.push_back({x * std::cos(theta), y * std::sin(theta), z});
@@ -2213,7 +2227,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderInterior(double
 
     // Radial direction (num divisions and adjusted spacing)
     int np_r = (int)std::round(rad / spacing);
-    double delta_r = rad / np_r;
+    double delta_r = (np_r == 0) ? 0.0 : rad / np_r;
 
     // Axial direction (num divisions and adjusted spacing)
     int np_h = (int)std::round(height / spacing);
@@ -2228,11 +2242,11 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderInterior(double
         if (fill)
             rad_min = 0;
         np_r = (int)std::round((rad - rad_min) / spacing);
-        delta_r = (rad - rad_min) / np_r;
+        delta_r = (np_r == 0) ? 0.0 : (rad - rad_min) / np_r;
 
         for (int ir = 0; ir <= np_r; ir++) {
             double r = rad_min + ir * delta_r;
-            int np_th = std::max((int)std::round(2 * pi * r / spacing) - 1, 1);
+            int np_th = std::max((int)std::round(CH_2PI * r / spacing) - 1, 1);
             double delta_th = CH_2PI / np_th;
             for (int it = 0; it < np_th; it++) {
                 double theta = it * delta_th;
@@ -2248,7 +2262,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderInterior(double
         // Add cylinder caps (unless already filled)
         if (!fill) {
             np_r = (int)std::round(rad_min / spacing);
-            delta_r = rad_min / np_r;
+            delta_r = (np_r == 0) ? 0.0 : rad_min / np_r;
 
             for (int ir = 0; ir < np_r; ir++) {
                 double r = ir * delta_r;
