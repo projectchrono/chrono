@@ -85,7 +85,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     init_yaw = 0;
 
     // Get default path file from FMU resources
-    auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
+    auto resources_dir = GetResourcesPath(fmuResourceLocation);
     path_file = resources_dir + "/ISO_double_lane_change.txt";
 
 #ifdef CHRONO_IRRLICHT

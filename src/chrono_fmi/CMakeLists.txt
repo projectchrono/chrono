@@ -135,6 +135,7 @@ set(Chrono_FMI_HEADERS
     fmi3/ChFmuToolsImport.h
     fmi2/ChFmuToolsExport.h
     fmi3/ChFmuToolsExport.h
+    fmi2/ChFmuResourcePath.h
 )
 
 source_group("" FILES 

@@ -68,7 +68,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     out_path = ".";
 
     // Get default JSON file from FMU resources
-    auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
+    auto resources_dir = GetResourcesPath(fmuResourceLocation);
     engine_JSON = resources_dir + "/EngineShafts.json";
     transmission_JSON = resources_dir + "/AutomaticTransmissionShafts.json";
 

@@ -36,6 +36,8 @@
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChVisualShapes.h"
 
+#include "chrono_fmi/fmi2/ChFmuResourcePath.h"
+
 // fmu-forge
 // #include "rapidxml_ext.hpp"
 #include "fmi2/FmuToolsExport.h"
