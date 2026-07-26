@@ -1011,6 +1011,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node, std::shared_ptr<C
                 SetVisualMaterial(mchildnode, cone);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
+        } else {
+            ReportUnsupportedVisualShape(*shape, "Chrono::Irrlicht");
         }
     }
 }

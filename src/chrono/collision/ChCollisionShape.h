@@ -58,6 +58,9 @@ class ChApi ChCollisionShape {
 
     Type GetType() const { return m_type; }
 
+    /// Return a human-readable name for the given shape type (mainly for diagnostic messages).
+    static std::string GetTypeAsString(Type type);
+
     std::shared_ptr<ChContactMaterial> GetMaterial() const { return m_material; }
     ChContactMethod GetContactMethod() const { return m_material->GetContactMethod(); }
 
