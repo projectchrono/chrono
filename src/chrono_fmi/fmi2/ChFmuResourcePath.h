@@ -70,18 +70,26 @@ inline std::string AsciiToLower(const std::string& s) {
 /// fixed-length "file:///" prefix is not correct: it discards the leading slash of a POSIX absolute path, turning it
 /// into a relative one.
 ///
-/// The forms accepted, per RFC 8089, are:
+/// Standard file-URI forms, as described by RFC 8089 (which builds on the RFC 3986 generic syntax):
 /// <pre>
 ///     file:///tmp/fmu/resources       ->  /tmp/fmu/resources      empty authority, POSIX absolute path
 ///     file:///C:/temp/fmu/resources   ->  C:/temp/fmu/resources   empty authority, drive letter (Windows only)
+///     file:/tmp/fmu/resources         ->  /tmp/fmu/resources      authority omitted, minimal form
+///     file:/C:/temp/fmu/resources     ->  C:/temp/fmu/resources   authority omitted, drive letter (Windows only)
 ///     file://localhost/tmp/resources  ->  /tmp/resources          "localhost" authority, matched case-insensitively
-///     file:/tmp/fmu/resources         ->  /tmp/fmu/resources      RFC 8089 minimal form, authority omitted
-///     file:////tmp/fmu/resources      ->  /tmp/fmu/resources      repeated leading slashes collapsed (see below)
-///     /tmp/fmu/resources              ->  /tmp/fmu/resources      plain path, for importers that pass one
 /// </pre>
 ///
-/// The four-slash form is not standard, but Chrono's own FMU importer produces it by concatenating "file:///" with a
-/// directory that is already absolute, so it must keep working.
+/// Additional forms accepted for compatibility. These are NOT standard file URIs and RFC 8089 does not describe them;
+/// they are tolerated because they occur in practice:
+/// <pre>
+///     file:////tmp/fmu/resources      ->  /tmp/fmu/resources      repeated leading slashes collapsed (see below)
+///     /tmp/fmu/resources              ->  /tmp/fmu/resources      plain path, not a URI at all
+/// </pre>
+///
+/// The four-slash form matters because Chrono's own FMU importer produces it, by concatenating "file:///" with a
+/// directory that is already absolute. Note that this only happens where an absolute path begins with a separator, so
+/// on Windows the same concatenation yields the standard three-slash form instead ("file:///" + "C:/..."), and the
+/// four-slash case is effectively POSIX-only.
 ///
 /// Interpretation is deliberately platform-dependent, because file URIs are: the drive-letter rule applies only on
 /// Windows, since "/C:/temp" is a perfectly legal POSIX path naming a directory called "C:".
