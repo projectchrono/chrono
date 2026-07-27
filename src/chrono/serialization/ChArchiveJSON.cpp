@@ -1,8 +1,18 @@
 #include "chrono/serialization/ChArchiveJSON.h"
 
+#include <limits>
+
 namespace chrono {
 
 ChArchiveOutJSON::ChArchiveOutJSON(std::ostream& stream_out) : m_ostream(stream_out) {
+    // Write floating point values with enough digits to be read back bit-exactly. The default
+    // ostream precision is 6 significant digits, which silently discards about ten digits of a
+    // double and makes a save/load cycle lossy. max_digits10 is the number of decimal digits that
+    // uniquely distinguishes every value of the type (17 for double).
+    // The caller owns the stream and may well be reusing it (std::cout, for instance), so the
+    // previous precision is recorded here and put back by the destructor.
+    m_precision_saved = m_ostream.precision(std::numeric_limits<double>::max_digits10);
+
     m_ostream << "{ ";
     ++tablevel;
 
@@ -17,6 +27,8 @@ ChArchiveOutJSON::~ChArchiveOutJSON() {
     is_array.pop();
 
     m_ostream << "\n}" << std::endl;
+
+    m_ostream.precision(m_precision_saved);
 }
 
 void ChArchiveOutJSON::indent() {
@@ -57,7 +69,12 @@ void ChArchiveOutJSON::out(ChNameValue<float> bVal) {
     if (is_array.top() == false)
         m_ostream << "\"" << bVal.name() << "\""
                   << "\t: ";
+    // The stream is set to double precision for the archive's lifetime, which would print a float
+    // with eight digits more than it actually carries, exposing binary noise: 0.6f would be written
+    // as 0.60000002384185791. Nine digits is what uniquely identifies a float.
+    const std::streamsize saved = m_ostream.precision(std::numeric_limits<float>::max_digits10);
     m_ostream << bVal.value();
+    m_ostream.precision(saved);
     ++nitems.top();
 }
 
