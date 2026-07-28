@@ -19,16 +19,36 @@
 #ifndef CHRADARSENSOR_H
 #define CHRADARSENSOR_H
 
-#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/ChConfigSensor.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/sensors/ChOptixSensor.h"
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    #include "chrono_sensor/sensors/ChVulkanSensor.h"
+#else
+    #include "chrono_sensor/sensors/ChSensor.h"
+#endif
 
 namespace chrono {
 namespace sensor {
+
+#if defined(CHRONO_HAS_OPTIX)
+using ChRadarSensorBase = ChOptixSensor;
+#elif defined(CHRONO_HAS_VULKAN_RT)
+using ChRadarSensorBase = ChVulkanSensor;
+#else
+using ChRadarSensorBase = ChSensor;
+#endif
 
 /// @addtogroup sensor_sensors
 /// @{
 
 /// Radar class - corresponds to a FMCW radar.
-class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
+///
+/// With OptiX enabled this routes through the OptiX backend.  With Vulkan RT
+/// enabled and OptiX disabled it keeps the same public API and routes through
+/// the Vulkan RT backend, including raw radar and radar point-cloud filters.
+class CH_SENSOR_API ChRadarSensor : public ChRadarSensorBase {
   public:
     /// Constructor for the base radar class
     /// @param parent Body to which the sensor is attached
@@ -51,7 +71,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
                   const float max_distance,
                   const float clip_near = 1e-3f);
 
-    ~ChRadarSensor();
+    ~ChRadarSensor() override;
 
     /// Gives the horizontal field of view of the radar (angle between right-most and left-most ray for a "frame").
     /// Horizontal field of view should be 360-(angular resolution) in degrees for a full 360 degree scanning radar.
@@ -76,7 +96,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
 
     /// Returns the angular velocity of the object the radar is attached to.
     /// @return Returns the angular velocity of the object the radar is attached to
-    ChVector3d GetAngularVelocity() { return m_parent->GetAngVelLocal(); }
+    ChVector3d GetAngularVelocity() { return m_parent->GetAngVelParent(); }
 
   private:
     float m_hFOV;          ///< the horizontal field of view of the radar

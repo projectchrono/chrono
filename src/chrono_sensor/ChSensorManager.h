@@ -29,6 +29,10 @@
     #include "chrono_sensor/optix/ChOptixEngine.h"
     #include "chrono_sensor/optix/scene/ChScene.h"
 #endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    #include "chrono_sensor/vulkan/ChVulkanRTEngine.h"
+    #include "chrono_sensor/vulkan/ChVulkanRTScene.h"
+#endif
 
 #ifdef CHRONO_FSI_SPH
     #include "chrono_sensor/ChFsiSphRender.h"
@@ -121,10 +125,21 @@ class CH_SENSOR_API ChSensorManager {
     /// @param context_id The ID of the engine to be returned
     /// @return A shared pointer to an OptiX engine the manager is using
     std::shared_ptr<ChOptixEngine> GetEngine(int context_id);
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    /// Get the number of render engines the manager is currently using.
+    /// Preserves the OptiX-era count API for Vulkan-only builds.
+    int GetNumEngines() { return (int)m_vulkan_engines.size(); }
+#endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    /// Get the number of Vulkan RT engines the manager is currently using.
+    int GetNumVulkanEngines() { return (int)m_vulkan_engines.size(); }
+
+    /// Get a pointer to a Vulkan RT engine based on its id.
+    std::shared_ptr<ChVulkanRTEngine> GetVulkanEngine(int context_id);
 #endif
 
     /// Calls on the sensor manager to rebuild the scene.
-    /// This translates all objects from the Chrono system into their appropriate OptiX objects.
+    /// This translates all objects from the Chrono system into their active render-backend objects.
     void ReconstructScenes();
 
 #ifdef CHRONO_FSI_SPH
@@ -139,16 +154,16 @@ class CH_SENSOR_API ChSensorManager {
     void ClearFsiSphSystems();
 #endif
 
-    /// Get the maximum number of allowed OptiX Engines for the manager.
+    /// Get the maximum number of allowed render engines for the manager.
     /// @return An integer specifying the maximum number of engines the manager is allowed to create.
     int GetMaxEngines() { return m_allowable_groups; }
 
-    /// Set the maximum number of allowable optix engines.
-    /// The manager will spawn up to this number of optix engines (separate threads for rendering) based on the update
+    /// Set the maximum number of allowable render engines.
+    /// The manager will spawn up to this number of render engines based on the update
     /// rate of the sensors. Sensors with similar update rates will be grouped on the same engine to reduce the number
     /// of scene updates that are required as this is a major bottleneck in the multi-threading paradigm of the render
     /// engine.
-    /// @param num_groups The maximum number of optix engines the manager is allowed to create.
+    /// @param num_groups The maximum number of render engines the manager is allowed to create.
     void SetMaxEngines(int num_groups);
 
     /// Set the number of recursions for ray tracing.
@@ -231,9 +246,16 @@ class CH_SENSOR_API ChSensorManager {
                                               RngUsage usage);
 
 #ifdef CHRONO_HAS_OPTIX
-    /// Public pointer to the scene.
-    /// This is used to specify additional components include lights, background colors, etc.
+    /// Public pointer to the OptiX scene.
+    /// This is used to specify additional components including lights, background colors, etc.
     std::shared_ptr<ChScene> scene;
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    /// Public scene pointer preserved for OptiX-compatible demos when Vulkan RT is the render backend.
+    std::shared_ptr<ChVulkanRTScene> scene;
+#endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    /// Public pointer to the Vulkan RT scene staging object.
+    std::shared_ptr<ChVulkanRTScene> vulkan_scene;
 #endif
 
   private:
@@ -248,13 +270,16 @@ class CH_SENSOR_API ChSensorManager {
 #ifdef CHRONO_HAS_OPTIX
     std::vector<std::shared_ptr<ChOptixEngine>> m_engines;  ///< The optix engine(s) used for rendered sensors
 #endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    std::vector<std::shared_ptr<ChVulkanRTEngine>> m_vulkan_engines;  ///< Vulkan RT engine(s) used for rendered sensors
+#endif
 
     int m_allowable_groups = 1;  ///< default maximum number of allowable engines
 
     std::vector<unsigned int> m_device_list;                  ///< list of device IDs to use in rendering
     std::vector<std::shared_ptr<ChSensor>> m_sensor_list;     ///< list of all sensors
     std::vector<std::shared_ptr<ChSensor>> m_dynamic_sensor;  ///< list of dynamic sensors
-    std::vector<std::shared_ptr<ChSensor>> m_render_sensor;   ///< list of optix-based sensors
+    std::vector<std::shared_ptr<ChSensor>> m_render_sensor;   ///< list of rendered sensors
 
     /// Distinguishes this manager's sensor ordinals from another manager's. Sensor ordinals restart
     /// at zero in every manager while the fixed base seed is process-global, so without this two

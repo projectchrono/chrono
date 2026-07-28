@@ -20,7 +20,16 @@
 #ifndef CHPHYSCAMERASENSOR_H
 #define CHPHYSCAMERASENSOR_H
 
-#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/ChSensorRenderTypes.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/sensors/ChOptixSensor.h"
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    #include "chrono_sensor/sensors/ChVulkanSensor.h"
+#else
+    #include "chrono_sensor/sensors/ChSensor.h"
+#endif
 #include "chrono_sensor/filters/ChFilterPhysCameraDefocusBlur.h"
 #include "chrono_sensor/filters/ChFilterPhysCameraVignetting.h"
 #include "chrono_sensor/filters/ChFilterPhysCameraAggregator.h"
@@ -30,11 +39,19 @@
 namespace chrono {
 namespace sensor {
 
+#if defined(CHRONO_HAS_OPTIX)
+using ChPhysCameraSensorBase = ChOptixSensor;
+#elif defined(CHRONO_HAS_VULKAN_RT)
+using ChPhysCameraSensorBase = ChVulkanSensor;
+#else
+using ChPhysCameraSensorBase = ChSensor;
+#endif
+
 /// @addtogroup sensor_sensors
 /// @{
 
 /// Camera class
-class CH_SENSOR_API ChPhysCameraSensor : public ChOptixSensor {
+class CH_SENSOR_API ChPhysCameraSensor : public ChPhysCameraSensorBase {
 	public:
 		/// @brief Constructor for the phys camera class that defaults to a pinhole lens model
 		/// @param parent A shared pointer to a body on which the sensor should be attached.
@@ -191,7 +208,7 @@ class CH_SENSOR_API ChPhysCameraSensor : public ChOptixSensor {
 		/// @return noise model parameters in camera model, [1/1]
 		PhysCameraNoiseParams GetNoiseParams() { return m_noise_params; }
 
-		/// update filter parameters in ChOptixEngine.cpp
+		/// update physics-camera post-process filter parameters
 		void UpdateFilterParameters();
 
 	private:

@@ -12,7 +12,7 @@
 // Authors: Asher Elmquist
 // =============================================================================
 //
-// Class for managing the Optix rendering system
+// Class for managing rendered sensors and backend render engines
 //
 // =============================================================================
 
@@ -27,6 +27,9 @@
 #include "chrono_sensor/ChSensorManager.h"
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/sensors/ChOptixSensor.h"
+#endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    #include "chrono_sensor/sensors/ChVulkanSensor.h"
 #endif
 #ifdef CHRONO_FSI_SPH
     #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
@@ -51,6 +54,12 @@ CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verb
 #ifdef CHRONO_HAS_OPTIX
     scene = chrono_types::make_shared<ChScene>();
 #endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    vulkan_scene = chrono_types::make_shared<ChVulkanRTScene>();
+    #ifndef CHRONO_HAS_OPTIX
+    scene = vulkan_scene;
+    #endif
+#endif
 }
 
 CH_SENSOR_API ChSensorManager::~ChSensorManager() {
@@ -66,6 +75,15 @@ CH_SENSOR_API std::shared_ptr<ChOptixEngine> ChSensorManager::GetEngine(int cont
 }
 #endif
 
+#ifdef CHRONO_HAS_VULKAN_RT
+CH_SENSOR_API std::shared_ptr<ChVulkanRTEngine> ChSensorManager::GetVulkanEngine(int context_id) {
+    if (context_id < m_vulkan_engines.size())
+        return m_vulkan_engines[context_id];
+    cerr << "ERROR: index out of Vulkan render group vector bounds\n";
+    return nullptr;
+}
+#endif
+
 CH_SENSOR_API void ChSensorManager::Update() {
     // update the scene
     // scene->PackFrame(m_system);
@@ -74,6 +92,126 @@ CH_SENSOR_API void ChSensorManager::Update() {
 #ifdef CHRONO_HAS_OPTIX
     for (auto pEngine : m_engines) {
         pEngine->UpdateSensors(scene);
+    }
+#endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    auto active_vulkan_scene = vulkan_scene;
+
+    #ifdef CHRONO_HAS_OPTIX
+    // Most existing Chrono Sensor demos configure lights, ambient color, and
+    // background through manager->scene, which is an OptiX ChScene whenever
+    // OptiX is compiled in.  The Vulkan renderer uses ChVulkanRTScene, so mirror
+    // those scene-level settings before rendering.  Without this bridge, Vulkan
+    // receives the geometry from SyncFromSystem but silently loses the user
+    // configured Point/Spot/Directional/Environment lights, which makes the
+    // image dark and removes the expected cast shadows.
+    if (active_vulkan_scene && scene) {
+        const auto optix_lights = scene->GetLights();
+        const auto optix_background = scene->GetBackground();
+        const bool optix_has_render_settings = !optix_lights.empty() || scene->GetBackgroundChanged();
+
+        if (optix_has_render_settings) {
+            active_vulkan_scene->SetAmbientLight(scene->GetAmbientLight());
+
+            auto to_chvec = [](const float3& v) { return ChVector3f(v.x, v.y, v.z); };
+            auto normalize_or_default = [](const ChVector3f& v, const ChVector3f& fallback) {
+                const float len = v.Length();
+                return len > 1e-12f ? v / len : fallback;
+            };
+            auto cross = [](const ChVector3f& a, const ChVector3f& b) {
+                return ChVector3f(a.y() * b.z() - a.z() * b.y(),
+                                  a.z() * b.x() - a.x() * b.z(),
+                                  a.x() * b.y() - a.y() * b.x());
+            };
+            auto atten_scale = [](float range) { return range > 0.f ? 0.01f * range * range : 1.f; };
+
+            Background mirrored_background = optix_background;
+            std::vector<ChVulkanRTLight> mirrored_lights;
+            mirrored_lights.reserve(optix_lights.size());
+
+            for (const auto& light : optix_lights) {
+                ChVulkanRTLight out;
+                out.type = light.light_type;
+                out.pos = to_chvec(light.pos);
+
+                switch (light.light_type) {
+                case LightType::POINT_LIGHT:
+                    out.color = to_chvec(light.specific.point.color);
+                    out.range = light.specific.point.max_range;
+                    out.const_color = light.specific.point.const_color;
+                    out.atten_scale = atten_scale(out.range);
+                    mirrored_lights.push_back(out);
+                    break;
+                case LightType::SPOT_LIGHT:
+                    out.dir = normalize_or_default(to_chvec(light.specific.spot.light_dir), ChVector3f(0.f, 0.f, -1.f));
+                    out.color = to_chvec(light.specific.spot.color);
+                    out.range = light.specific.spot.max_range;
+                    out.angle = light.specific.spot.angle_range;
+                    out.const_color = light.specific.spot.const_color;
+                    out.atten_scale = atten_scale(out.range);
+                    if (light.specific.spot.angle_falloff_start < light.specific.spot.angle_range - 1e-6f) {
+                        out.angle_falloff_start = light.specific.spot.angle_falloff_start;
+                        out.angle_atten_rate = 1.f / (light.specific.spot.angle_range - light.specific.spot.angle_falloff_start);
+                    } else {
+                        out.angle_falloff_start = light.specific.spot.angle_range;
+                        out.angle_atten_rate = -1.f;
+                    }
+                    mirrored_lights.push_back(out);
+                    break;
+                case LightType::DIRECTIONAL_LIGHT:
+                    out.dir = to_chvec(light.specific.directional.light_dir);
+                    out.color = to_chvec(light.specific.directional.color);
+                    mirrored_lights.push_back(out);
+                    break;
+                case LightType::RECTANGLE_LIGHT: {
+                    out.color = to_chvec(light.specific.rectangle.color);
+                    out.range = light.specific.rectangle.max_range;
+                    out.const_color = light.specific.rectangle.const_color;
+                    out.atten_scale = atten_scale(out.range);
+                    out.length_vec = to_chvec(light.specific.rectangle.length_vec);
+                    out.width_vec = to_chvec(light.specific.rectangle.width_vec);
+                    const ChVector3f normal = cross(out.length_vec, out.width_vec);
+                    out.area = normal.Length();
+                    out.dir = normalize_or_default(normal, ChVector3f(0.f, 0.f, -1.f));
+                    mirrored_lights.push_back(out);
+                    break;
+                }
+                case LightType::DISK_LIGHT:
+                    out.dir = normalize_or_default(to_chvec(light.specific.disk.light_dir), ChVector3f(0.f, 0.f, -1.f));
+                    out.color = to_chvec(light.specific.disk.color);
+                    out.range = light.specific.disk.max_range;
+                    out.const_color = light.specific.disk.const_color;
+                    out.atten_scale = atten_scale(out.range);
+                    out.radius = light.specific.disk.radius;
+                    out.area = 3.14159265358979323846f * out.radius * out.radius;
+                    mirrored_lights.push_back(out);
+                    break;
+                case LightType::ENVIRONMENT_LIGHT:
+                    out.texture = optix_background.env_tex;
+                    out.color = ChVector3f(light.specific.environment.intensity_scale,
+                                           light.specific.environment.intensity_scale,
+                                           light.specific.environment.intensity_scale);
+                    mirrored_background.mode = BackgroundMode::ENVIRONMENT_MAP;
+                    mirrored_background.env_tex = optix_background.env_tex;
+                    mirrored_lights.push_back(out);
+                    break;
+                case LightType::AREA_LIGHT:
+                default:
+                    break;
+                }
+            }
+
+            active_vulkan_scene->SetBackground(mirrored_background);
+            if (!optix_lights.empty())
+                active_vulkan_scene->SetLights(mirrored_lights);
+        }
+    }
+    #else
+    if (!active_vulkan_scene)
+        active_vulkan_scene = scene;
+    #endif
+    for (auto pEngine : m_vulkan_engines) {
+        pEngine->UpdateSensors(active_vulkan_scene);
     }
 #endif
     // have the sensor manager update all of the non-optix sensor (IMU and GPS).
@@ -95,6 +233,11 @@ CH_SENSOR_API std::vector<unsigned int> ChSensorManager::GetDeviceList() {
 CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
 #ifdef CHRONO_HAS_OPTIX
     for (auto eng : m_engines) {
+        eng->ConstructScene();
+    }
+#endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    for (auto eng : m_vulkan_engines) {
         eng->ConstructScene();
     }
 #endif
@@ -219,6 +362,49 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             cerr << "Failed while adding sensor '" << sensor->GetName() << "' to an OptiX engine "
                     "(engine construction or filter initialization), with error:\n"
                  << e.what() << endl;
+            exit(1);
+        }
+
+        return;
+    }
+#endif
+
+#ifdef CHRONO_HAS_VULKAN_RT
+    if (auto pVulkanSensor = std::dynamic_pointer_cast<ChVulkanSensor>(sensor)) {
+        m_render_sensor.push_back(sensor);
+        bool found_group = false;
+
+        for (auto engine : m_vulkan_engines) {
+            if (!found_group && engine->GetSensor().size() > 0 &&
+                abs(engine->GetSensor()[0]->GetUpdateRate() - sensor->GetUpdateRate()) < 0.001) {
+                found_group = true;
+                engine->AssignSensor(pVulkanSensor);
+                if (m_verbose)
+                    cout << "Sensor added to existing Vulkan RT engine\n";
+            }
+        }
+
+        try {
+            if (!found_group) {
+                if (m_vulkan_engines.size() < m_allowable_groups) {
+                    if (m_verbose)
+                        cout << "Create new Vulkan RT engine\n";
+
+                    auto engine = chrono_types::make_shared<ChVulkanRTEngine>(
+                        m_system, m_device_list[(int)m_vulkan_engines.size()], m_optix_reflections, m_verbose, m_debug);
+                    engine->AssignSensor(pVulkanSensor);
+                    m_vulkan_engines.push_back(engine);
+
+                    if (m_verbose)
+                        cout << "Number of Vulkan RT engines: " << m_vulkan_engines.size() << endl;
+                } else {
+                    m_vulkan_engines[0]->AssignSensor(pVulkanSensor);
+                    if (m_verbose)
+                        cout << "Couldn't find suitable existing Vulkan RT engine, so adding to first engine\n";
+                }
+            }
+        } catch (std::exception& e) {
+            cerr << "Failed to create a ChVulkanRTEngine, with error:\n" << e.what() << endl;
             exit(1);
         }
 
