@@ -14,10 +14,11 @@
 //
 // =============================================================================
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
+#ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
-
 #include <cuda_runtime_api.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -31,22 +32,30 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Initialize(std::shared_ptr<ChSenso
                                                          std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
+    m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
+    if (!m_radar)
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
+#ifdef CHRONO_HAS_OPTIX
     auto pOptixSen = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
     if (!pOptixSen)
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     m_cuda_stream = pOptixSen->GetCudaStream();
-    m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
+#endif
     m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarXYZBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
 
+#ifdef CHRONO_HAS_OPTIX
     m_host_buffer = chrono_types::make_shared<SensorHostRadarXYZBuffer>();
     std::shared_ptr<RadarXYZReturn[]> b(
-        cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Height * m_buffer_in->Width * sizeof(RadarXYZReturn)),
+        cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Height * m_buffer_in->Width),
         cudaHostFreeHelper<RadarXYZReturn>);
     m_host_buffer->Buffer = std::move(b);
     m_host_buffer->Width = m_buffer_in->Width;
     m_host_buffer->Height = m_buffer_in->Height;
+#else
+    m_host_buffer = m_buffer_in;
+#endif
 
 #ifndef USE_SENSOR_GLFW
     std::cerr << "WARNING: Chrono::SENSOR not built with GLFW support. Will proceed with no window.\n";
@@ -108,8 +117,10 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         glPointSize(1.0);
         glBegin(GL_POINTS);
 
-        // display the points, synchronizing the streamf first
+        // display the points, synchronizing the stream first for OptiX device buffers
+#ifdef CHRONO_HAS_OPTIX
         cudaStreamSynchronize(m_cuda_stream);
+#endif
         // draw the vertices, color them by clusterID
 
         for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
