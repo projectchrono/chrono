@@ -27,6 +27,17 @@
 /// If OptiX-dependent Chrono::Sensor features are available and enabled, define CHRONO_HAS_OPTIX.
 @CHRONO_HAS_OPTIX@
 
+/// If Vulkan ray tracing Chrono::Sensor features are available and enabled, define CHRONO_HAS_VULKAN_RT.
+@CHRONO_HAS_VULKAN_RT@
+
+/// If any rendered sensor backend is available, define CHRONO_HAS_SENSOR_RENDER.
+@CHRONO_HAS_SENSOR_RENDER@
+
+#ifdef CHRONO_HAS_VULKAN_RT
+  /// Location of compiled Vulkan RT GPU shaders.
+  #define CHRONO_SENSOR_VULKAN_SHADER_DIR "@VULKAN_SHADER_DIR@"
+#endif
+
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_HAS_OPTIX
