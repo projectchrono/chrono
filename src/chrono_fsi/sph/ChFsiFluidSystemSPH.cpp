@@ -225,7 +225,19 @@ void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
     m_paramsH->boxDimZ = box_dim.z();
 }
 
+// Note: SetComputationalDomain may be called after Initialize: CRMTerrain::Synchronize
+// updates the computational domain mid-simulation (moving patch). A post-initialization
+// update is applied to the device parameters; it must be a pure translation of the domain
+// (same extents, same boundary condition types), since BCE walls and grid-sized device
+// arrays are fixed at Initialize.
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type) {
+    if (m_is_initialized) {
+        ChAssertAlways(bc_type.x == m_paramsH->bc_type.x && bc_type.y == m_paramsH->bc_type.y &&
+                       bc_type.z == m_paramsH->bc_type.z);
+        m_paramsH->use_default_limits = false;
+        ApplyComputationalDomain(computational_AABB);
+        return;
+    }
     m_paramsH->cMin = ToReal3(computational_AABB.min);
     m_paramsH->cMax = ToReal3(computational_AABB.max);
     m_paramsH->use_default_limits = false;
@@ -233,6 +245,11 @@ void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AAB
 }
 
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB) {
+    if (m_is_initialized) {
+        m_paramsH->use_default_limits = false;
+        ApplyComputationalDomain(computational_AABB);
+        return;
+    }
     m_paramsH->cMin = ToReal3(computational_AABB.min);
     m_paramsH->cMax = ToReal3(computational_AABB.max);
     m_paramsH->use_default_limits = false;
@@ -1330,6 +1347,70 @@ void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
 
 //// TODO - eliminate code duplication in the two versions of Initialize()
 
+// Derive the domain-dependent grid quantities (periodic flags, bin sizes, grid
+// dimensions, world origin, grid bounds) from the current computational domain
+// limits in m_paramsH. Called during Initialize and for post-initialization
+// computational-domain updates.
+void ChFsiFluidSystemSPH::DeriveDomainGridQuantities() {
+    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
+    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
+    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
+
+    // Set up subdomains for faster neighbor particle search
+    m_paramsH->Apply_BC_U = false;
+    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
+    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
+    // Bin size is derived from the x extent (the ternary max(x,y) previously computed
+    // here was dead code: it was immediately overwritten by binSize3.x).
+    m_paramsH->binSize0 = binSize3.x;
+    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
+    m_paramsH->delta_pressure = mR3(0);
+    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
+                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
+    Real mBinSize = m_paramsH->binSize0;
+    m_paramsH->gridSize = SIDE;
+    m_paramsH->worldOrigin = m_paramsH->cMin;
+    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
+
+    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
+    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
+
+    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
+                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+}
+
+// Apply a computational-domain update on an initialized system. Only a pure TRANSLATION
+// of the domain is accepted: the per-axis extents must be unchanged (to within a relative
+// tolerance that absorbs floating-point drift of translated bounds but is far below any
+// real size change), because the neighbor-search grid dimensions, cell size, and BCE
+// walls are fixed at Initialize. An accepted update touches only the origin-dependent
+// quantities (cMin, cMax, worldOrigin, boxDims) - the size-derived grid quantities are
+// deliberately NOT re-derived, so a legitimate translation can never be rejected (or
+// altered) by floor()/rounding jitter - and uploads the parameters to all device
+// translation units. A rejected update leaves the previous domain fully intact.
+void ChFsiFluidSystemSPH::ApplyComputationalDomain(const ChAABB& computational_AABB) {
+    Real3 new_cMin = ToReal3(computational_AABB.min);
+    Real3 new_cMax = ToReal3(computational_AABB.max);
+    Real3 old_ext = m_paramsH->cMax - m_paramsH->cMin;
+    Real3 new_ext = new_cMax - new_cMin;
+
+    const Real rtol = Real(1e-5);
+    bool same_size = (std::abs(new_ext.x - old_ext.x) <= rtol * old_ext.x) &&
+                     (std::abs(new_ext.y - old_ext.y) <= rtol * old_ext.y) &&
+                     (std::abs(new_ext.z - old_ext.z) <= rtol * old_ext.z);
+    if (!same_size)
+        ChAssertAlways(!"post-initialization SetComputationalDomain supports pure translation only");
+
+    m_paramsH->cMin = new_cMin;
+    m_paramsH->cMax = new_cMax;
+    m_paramsH->worldOrigin = new_cMin;
+    m_paramsH->boxDims = new_cMax - new_cMin;
+
+    CopyParametersToDevice(m_paramsH, m_data_mgr->countersH);
+}
+
 void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_states) {
     assert(body_states.size() == m_bodies.size());
 
@@ -1414,32 +1495,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
         m_paramsH->bc_type = BC_NONE;
     }
 
-    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
-    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
-    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
-
-    // Set up subdomains for faster neighbor particle search
-    m_paramsH->Apply_BC_U = false;
-    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
-    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
-    m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-    m_paramsH->binSize0 = binSize3.x;
-    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
-    m_paramsH->delta_pressure = mR3(0);
-    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
-                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
-    Real mBinSize = m_paramsH->binSize0;
-    m_paramsH->gridSize = SIDE;
-    m_paramsH->worldOrigin = m_paramsH->cMin;
-    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
-
-    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
-    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
-
-    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
-                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+    DeriveDomainGridQuantities();
     // Update the speed of sound
     if (m_paramsH->elastic_SPH) {
         m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
@@ -1591,32 +1647,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
         m_paramsH->bc_type = BC_NONE;
     }
 
-    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
-    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
-    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
-
-    // Set up subdomains for faster neighbor particle search
-    m_paramsH->Apply_BC_U = false;
-    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
-    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
-    m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-    m_paramsH->binSize0 = binSize3.x;
-    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
-    m_paramsH->delta_pressure = mR3(0);
-    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
-                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
-    Real mBinSize = m_paramsH->binSize0;
-    m_paramsH->gridSize = SIDE;
-    m_paramsH->worldOrigin = m_paramsH->cMin;
-    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
-
-    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
-    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
-
-    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
-                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+    DeriveDomainGridQuantities();
     // Update the speed of sound
     if (m_paramsH->elastic_SPH) {
         m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);

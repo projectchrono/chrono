@@ -155,10 +155,20 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set computational domain and boundary conditions on its sides.
     /// `bc_type` indicates the types of BCs imposed in the three directions of the computational domain.
     /// By default, no special boundary conditions are imposed in any direction (BCType::NONE).
+    /// \note After Initialize(), only a pure TRANSLATION of the domain is accepted
+    /// (same extents; the 2-argument overload additionally requires unchanged BC
+    /// types); the update propagates to the device (used by the CRMTerrain moving
+    /// patch). A size- or BC-changing post-initialization call throws and leaves the
+    /// previous domain intact.
     void SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type);
 
     /// Set computational domain.
     /// Note that this version leaves the setting for BC type unchanged.
+    /// \note After Initialize(), only a pure TRANSLATION of the domain is accepted
+    /// (same extents; the 2-argument overload additionally requires unchanged BC
+    /// types); the update propagates to the device (used by the CRMTerrain moving
+    /// patch). A size- or BC-changing post-initialization call throws and leaves the
+    /// previous domain intact.
     void SetComputationalDomain(const ChAABB& computational_AABB);
 
     /// Set dimensions of the active domain AABB.
@@ -566,6 +576,13 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     virtual void OnExchangeSolidStates() override;
 
   private:
+    /// Derive the domain-dependent grid quantities from the current computational domain.
+    void DeriveDomainGridQuantities();
+
+    /// Apply a post-initialization computational-domain update (translation only) and
+    /// upload the new parameters to the device.
+    void ApplyComputationalDomain(const ChAABB& computational_AABB);
+
     /// SPH specification of an FSI rigid solid.
     struct FsiSphBody {
         std::shared_ptr<FsiBody> fsi_body;   ///< underlying FSI solid
