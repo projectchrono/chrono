@@ -15,6 +15,9 @@
 #include <memory>
 #include <array>
 #include <algorithm>
+#include <iostream>
+#include <mutex>
+#include <set>
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
@@ -228,9 +231,22 @@ void ChCollisionModelBullet::Populate() {
                 InjectTriangleProxy(shape_triangle);
                 break;
             }
-            default:
-                // Shape type not supported
+            default: {
+                // Shape type not supported by the Bullet collision system (see the notes on ChCollisionShape::Type).
+                // Report it once per type: dropping the shape silently leaves a body that simply never collides, with
+                // nothing to indicate why.
+                static std::mutex mutex;
+                static std::set<ChCollisionShape::Type> reported;
+                std::lock_guard<std::mutex> lock(mutex);
+                if (reported.insert(shape->GetType()).second) {
+                    std::cerr << "Warning: the Bullet collision system does not support collision shapes of type "
+                              << ChCollisionShape::GetTypeAsString(shape->GetType())
+                              << "; the shape is excluded from the collision model. Further occurrences of this shape "
+                                 "type are not reported."
+                              << std::endl;
+                }
                 break;
+            }
         }
     }
 }

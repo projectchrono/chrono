@@ -52,6 +52,53 @@ void ChCollisionShape::SetParentShape(std::shared_ptr<ChCollisionShape> parent) 
     m_parent = parent.get();
 }
 
+std::string ChCollisionShape::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::SPHERE:
+            return "SPHERE";
+        case Type::ELLIPSOID:
+            return "ELLIPSOID";
+        case Type::BOX:
+            return "BOX";
+        case Type::CYLINDER:
+            return "CYLINDER";
+        case Type::CYLSHELL:
+            return "CYLSHELL";
+        case Type::CONVEXHULL:
+            return "CONVEXHULL";
+        case Type::TRIANGLEMESH:
+            return "TRIANGLEMESH";
+        case Type::BARREL:
+            return "BARREL";
+        case Type::POINT:
+            return "POINT";
+        case Type::SEGMENT:
+            return "SEGMENT";
+        case Type::TRIANGLE:
+            return "TRIANGLE";
+        case Type::CONNECTEDTRIANGLE:
+            return "CONNECTEDTRIANGLE";
+        case Type::CAPSULE:
+            return "CAPSULE";
+        case Type::CONE:
+            return "CONE";
+        case Type::ROUNDEDBOX:
+            return "ROUNDEDBOX";
+        case Type::ROUNDEDCYL:
+            return "ROUNDEDCYL";
+        case Type::TETRAHEDRON:
+            return "TETRAHEDRON";
+        case Type::PATH2D:
+            return "PATH2D";
+        case Type::SEGMENT2D:
+            return "SEGMENT2D";
+        case Type::ARC2D:
+            return "ARC2D";
+        default:
+            return "UNKNOWN_SHAPE";
+    }
+}
+
 void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChCollisionShape>();
