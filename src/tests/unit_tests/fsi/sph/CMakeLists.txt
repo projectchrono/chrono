@@ -1,5 +1,6 @@
 set(TESTS
     utest_FSI-SPH_Poiseuille_flow
+    utest_FSI-SPH_domain_update
     utest_FSI-SPH_setter_guard
 )
 
