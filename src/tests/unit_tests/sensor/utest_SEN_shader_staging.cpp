@@ -29,8 +29,14 @@
 // is ever skipped, disabled, or wired to the wrong dependency, the staged copy drifts from the
 // source and this test fails at the next ctest run.
 //
-// Line endings are normalised before comparison, because git may check the source out with CRLF
-// while the copy is made verbatim, and a line-ending difference is not staleness.
+// The comparison is over RAW BYTES, deliberately. An earlier version of this test folded CRLF and
+// lone CR to LF first, on the theory that git might check the source out with CRLF while the copy
+// was made verbatim. That reasoning was wrong, and the normalisation only weakened the guard:
+// `cmake -E copy_if_different` copies verbatim, so the staged bytes always equal the source bytes
+// AT THE MOMENT OF STAGING, whatever the line endings are. A CRLF checkout therefore cannot produce
+// a false positive here. Conversely, if the source's bytes later differ from the staged copy in any
+// way, including line endings alone, that IS the state this guard exists to catch: the build has not
+// restaged since the source changed. Folding line endings would have hidden exactly that case.
 //
 // =============================================================================
 
@@ -78,23 +84,12 @@ std::vector<std::string> Split(const std::string& s, char sep) {
     return out;
 }
 
-// Whole file with CRLF and lone CR folded to LF, so a checkout convention cannot look like drift.
-bool ReadNormalised(const std::string& path, std::string* out) {
+// Whole file, exact bytes. Opened in binary mode so no platform translates anything on the way in.
+bool ReadRawBytes(const std::string& path, std::string* out) {
     std::ifstream f(path, std::ios::binary);
     if (!f.good())
         return false;
-    std::string raw((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-    out->clear();
-    out->reserve(raw.size());
-    for (size_t i = 0; i < raw.size(); ++i) {
-        if (raw[i] == '\r') {
-            if (i + 1 < raw.size() && raw[i + 1] == '\n')
-                continue;    // CRLF: drop the CR, keep the LF
-            out->push_back('\n');
-            continue;        // lone CR
-        }
-        out->push_back(raw[i]);
-    }
+    out->assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
     return true;
 }
 
@@ -119,8 +114,8 @@ TEST(ChOptixShaderStaging, staged_shaders_match_their_sources) {
         const std::string staged = std::string(CH_STAGED_SHADER_DIR) + "/" + name;
 
         std::string a, b;
-        ASSERT_TRUE(ReadNormalised(src, &a)) << "cannot read shader source " << src;
-        ASSERT_TRUE(ReadNormalised(staged, &b))
+        ASSERT_TRUE(ReadRawBytes(src, &a)) << "cannot read shader source " << src;
+        ASSERT_TRUE(ReadRawBytes(staged, &b))
             << "staged shader missing: " << staged
             << "\n  the build did not stage this file, so the runtime would compile a stale copy "
                "or fail to find it";
