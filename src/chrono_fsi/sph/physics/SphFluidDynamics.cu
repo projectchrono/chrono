@@ -33,15 +33,12 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
     gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     gpuCheckError();
 }
-
-#endif
 
 SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors) {

@@ -26,15 +26,12 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 void CopyParametersToDevice_SphForceWCSPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
     gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     gpuCheckError();
 }
-
-#endif
 
 // =============================================================================
 

@@ -54,13 +54,15 @@ __constant__ static ChFsiParamsSPH paramsD;
 __constant__ static Counters countersD;
 #endif
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+// Per-translation-unit parameter uploads: each of these writes the paramsD and
+// countersD copies belonging to the translation unit it is defined in, and
+// CopyParametersToDevice calls all of them. Required on every backend, since the
+// symbols above are translation-unit local.
 void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 void CopyParametersToDevice_SphCollisionSystem(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 void CopyParametersToDevice_SphForceWCSPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 void CopyParametersToDevice_SphForceISPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
-#endif
 
 void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 
