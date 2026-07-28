@@ -44,9 +44,10 @@ int main(int argc, char* argv[]) {
     std::cout << "  1. Cylinder drop (SPH) [DEFAULT]" << std::endl;
     std::cout << "  2. Sphere drop (SPH)" << std::endl;
     std::cout << "  3. Baffle flow (SPH)" << std::endl;
-    std::cout << "  4. Wave tank (SPH)" << std::endl;
-    std::cout << "  5. Sphere decay (TDPF)" << std::endl;
-    std::cout << "  6. Other (user-provided YAML file)" << std::endl;
+    std::cout << "  4. Dam break (SPH)" << std::endl;
+    std::cout << "  5. Wave tank (SPH)" << std::endl;
+    std::cout << "  6. Sphere decay (TDPF)" << std::endl;
+    std::cout << "  7. Other (user-provided YAML file)" << std::endl;
     std::cout << "\nSelect model: ";
     std::getline(std::cin, input);
     if (!input.empty()) {
@@ -68,12 +69,15 @@ int main(int argc, char* argv[]) {
             yaml_filename = GetChronoDataFile("yaml/fsi/baffle_flow/fsi_baffle_flow.yaml");
             break;
         case 4:
-            yaml_filename = GetChronoDataFile("yaml/fsi/wave_tank/fsi_wave_tank.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/dam_break/fsi_dam_break.yaml");
             break;
         case 5:
-            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/wave_tank/fsi_wave_tank.yaml");
             break;
         case 6:
+            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+            break;
+        case 7:
             std::cout << "FSI YAML specification file name: ";
             std::getline(std::cin, yaml_filename);
             break;
