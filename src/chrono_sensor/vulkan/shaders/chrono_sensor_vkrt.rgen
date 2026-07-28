@@ -1,0 +1,743 @@
+#version 460
+#extension GL_EXT_ray_tracing : require
+
+layout(set = 0, binding = 0) uniform accelerationStructureEXT u_tlas;
+
+struct GpuMaterial {
+    vec4 diffuse;
+    vec4 specular;
+    vec4 emissive;
+    vec4 params;     // opacity, roughness, metallic, use_specular_workflow
+    uvec4 ids;       // class_id, instance_id, reserved, reserved
+    vec4 sensor;     // lidar_intensity, radar_backscatter, object_id, reserved
+    uvec4 texture0;  // diffuse, specular, emissive, normal
+    uvec4 texture1;  // roughness, metallic, opacity, weight
+    vec4 tex_scale;  // u scale, v scale, reserved, reserved
+};
+
+struct GpuTexture {
+    uvec4 info;  // texel offset, width, height, flags (bit 0 = RGB9E5 HDR)
+};
+
+struct GpuLight {
+    vec4 pos_range;    // pos xyz, range
+    vec4 dir_type;     // dir xyz, LightType as float
+    vec4 color_atten;  // color rgb, attenuation scale; negative means constant color
+    vec4 params;       // angle, angle falloff start, angle attenuation rate, area/radius
+};
+
+struct GpuSceneData {
+    vec4 ambient;
+    vec4 background0;
+    vec4 background1;
+    uvec4 counts;      // light count, background mode, environment texture id, texture count
+};
+
+struct HitPayload {
+    vec4 hit_tuv;        // hit distance, interpolated uv, reserved
+    vec4 normal_object;  // normal xyz, object id
+    vec4 tangent_flags;  // tangent xyz, has_uv
+    uvec4 ids_hit;       // class id, instance id, hit flag, material index
+};
+
+struct TraceResult {
+    bool hit;
+    float t;
+    vec3 normal;
+    vec3 tangent;
+    vec2 uv;
+    bool has_uv;
+    uint mat_id;
+    uint class_id;
+    uint instance_id;
+    float object_id;
+};
+
+struct EvalMaterial {
+    vec3 diffuse;
+    vec3 specular;
+    vec3 emissive;
+    float opacity;
+    float roughness;
+    float metallic;
+    float emissive_power;
+    bool use_specular_workflow;
+};
+
+layout(std430, set = 0, binding = 1) readonly buffer Materials {
+    GpuMaterial materials[];
+};
+layout(std430, set = 0, binding = 4) buffer OutputBuffer {
+    uint out_data[];
+};
+layout(std430, set = 0, binding = 5) readonly buffer TextureTable {
+    GpuTexture textures[];
+};
+layout(std430, set = 0, binding = 6) readonly buffer TexturePixels {
+    uint texture_pixels[];
+};
+layout(std430, set = 0, binding = 7) readonly buffer Lights {
+    GpuLight lights[];
+};
+layout(std430, set = 0, binding = 8) readonly buffer Scene {
+    GpuSceneData scene_data;
+};
+
+layout(location = 0) rayPayloadEXT HitPayload payload;
+
+struct ShadowPayload {
+    vec4 attenuation_remaining;  // rgb attenuation, remaining distance/debug
+};
+
+layout(location = 1) rayPayloadEXT ShadowPayload shadow_payload;
+
+layout(push_constant) uniform PushConstants {
+    vec4 origin_max_t;      // origin.xyz, max_t
+    vec4 forward_hfov;      // forward.xyz, horizontal_fov
+    vec4 right_aspect;      // right.xyz, aspect
+    vec4 up_gamma;          // up.xyz, gamma
+    vec4 aux0;              // max_depth, clip_near, tan(hfov/2), aux_ray_factor
+    vec4 aux1;              // lidar_min_vert, lidar_max_vert, radar_vfov, sensor_max_distance
+    uint width;
+    uint height;
+    uint pipeline;
+    uint flags;
+} pc;
+
+const uint PIPE_CAMERA = 0u;
+const uint PIPE_PHYS_CAMERA = 1u;
+const uint PIPE_SEGMENTATION = 2u;
+const uint PIPE_DEPTH_CAMERA = 3u;
+const uint PIPE_NORMAL_CAMERA = 4u;
+const uint PIPE_LIDAR_SINGLE = 5u;
+const uint PIPE_LIDAR_MULTI = 6u;
+const uint PIPE_RADAR = 7u;
+
+const uint BACKGROUND_SOLID = 0u;
+const uint BACKGROUND_GRADIENT = 1u;
+const uint BACKGROUND_ENVIRONMENT = 2u;
+
+const int LIGHT_POINT = 0;
+const int LIGHT_SPOT = 1;
+const int LIGHT_DIRECTIONAL = 2;
+const int LIGHT_RECTANGLE = 3;
+const int LIGHT_DISK = 4;
+const int LIGHT_ENVIRONMENT = 5;
+const int LIGHT_AREA = 6;
+
+const uint INVALID_TEXTURE = 0xffffffffu;
+const uint FLAG_USE_GI = 1u;
+
+uint max_trace_depth() {
+    return clamp((pc.flags >> 8) & 255u, 1u, 12u);
+}
+const uint TEX_FLAG_RGB9E5 = 1u;
+const float PI = 3.14159265358979323846;
+const float TRACE_EPS = 1e-4;
+
+float saturate(float v) {
+    return clamp(v, 0.0, 1.0);
+}
+
+float max_component(vec3 v) {
+    return max(v.x, max(v.y, v.z));
+}
+
+uint hash_u32(uint x) {
+    x ^= x >> 16;
+    x *= 0x7feb352du;
+    x ^= x >> 15;
+    x *= 0x846ca68bu;
+    x ^= x >> 16;
+    return x;
+}
+
+float hash_unit(uint x) {
+    return float(hash_u32(x) & 0x00ffffffu) / float(0x01000000u);
+}
+
+float wrap01(float x) {
+    x = fract(x);
+    return x < 0.0 ? x + 1.0 : x;
+}
+
+int wrap_index(int i, int n) {
+    int r = i % n;
+    return r < 0 ? r + n : r;
+}
+
+vec4 unpack_rgba8(uint packed) {
+    return vec4(float(packed & 255u),
+                float((packed >> 8) & 255u),
+                float((packed >> 16) & 255u),
+                float((packed >> 24) & 255u)) / 255.0;
+}
+
+vec3 unpack_rgb9e5(uint packed) {
+    uint e = (packed >> 27) & 31u;
+    if (e == 0u && (packed & 0x07ffffffu) == 0u)
+        return vec3(0.0);
+    float scale = exp2(float(int(e) - 15 - 9));
+    return vec3(float(packed & 511u),
+                float((packed >> 9) & 511u),
+                float((packed >> 18) & 511u)) * scale;
+}
+
+bool texture_is_hdr(uint tex_id) {
+    return tex_id != INVALID_TEXTURE && tex_id < scene_data.counts.w && ((textures[tex_id].info.w & TEX_FLAG_RGB9E5) != 0u);
+}
+
+vec4 unpack_texture_pixel(uint packed, uint flags) {
+    if ((flags & TEX_FLAG_RGB9E5) != 0u)
+        return vec4(unpack_rgb9e5(packed), 1.0);
+    return unpack_rgba8(packed);
+}
+
+vec4 texel_fetch_wrapped(uint tex_id, int x, int y) {
+    if (tex_id == INVALID_TEXTURE || tex_id >= scene_data.counts.w)
+        return vec4(1.0);
+    uvec4 info = textures[tex_id].info;
+    uint w = max(info.y, 1u);
+    uint h = max(info.z, 1u);
+    int xi = wrap_index(x, int(w));
+    int yi = wrap_index(y, int(h));
+    return unpack_texture_pixel(texture_pixels[info.x + uint(yi) * w + uint(xi)], info.w);
+}
+
+vec4 sample_texture(uint tex_id, vec2 uv, vec2 scale) {
+    if (tex_id == INVALID_TEXTURE || tex_id >= scene_data.counts.w)
+        return vec4(1.0);
+    uvec4 info = textures[tex_id].info;
+    float w = float(max(info.y, 1u));
+    float h = float(max(info.z, 1u));
+    float u = wrap01(uv.x * scale.x);
+    float v = wrap01(uv.y * scale.y);
+    float x = u * w - 0.5;
+    float y = v * h - 0.5;
+    int x0 = int(floor(x));
+    int y0 = int(floor(y));
+    float tx = x - float(x0);
+    float ty = y - float(y0);
+    vec4 c00 = texel_fetch_wrapped(tex_id, x0, y0);
+    vec4 c10 = texel_fetch_wrapped(tex_id, x0 + 1, y0);
+    vec4 c01 = texel_fetch_wrapped(tex_id, x0, y0 + 1);
+    vec4 c11 = texel_fetch_wrapped(tex_id, x0 + 1, y0 + 1);
+    return mix(mix(c00, c10, tx), mix(c01, c11, tx), ty);
+}
+
+uint pack_rgba8(vec3 rgb) {
+    vec3 c = clamp(rgb, vec3(0.0), vec3(1.0));
+    uvec3 q = uvec3(c * 255.0 + vec3(0.5));
+    return q.r | (q.g << 8) | (q.b << 16) | (255u << 24);
+}
+
+vec3 gamma_correct(vec3 c, float gamma) {
+    if (gamma <= 0.0 || abs(gamma - 1.0) < 1e-6)
+        return c;
+    return pow(clamp(c, vec3(0.0), vec3(1.0)), vec3(1.0 / gamma));
+}
+
+float normal_dist_optix(float ndh, float roughness) {
+    float r = max(0.02, roughness);
+    float rough_sqr = r * r;
+    float den = ndh * ndh * (rough_sqr - 1.0) + 1.0;
+    return rough_sqr / max(1e-5, den * den);
+}
+
+float hammon_smith_optix(float ndv, float ndl, float roughness) {
+    float denominator = mix(2.0 * abs(ndv) * abs(ndl), abs(ndl) + abs(ndv), clamp(roughness, 0.0, 1.0));
+    return 0.5 / max(1e-5, denominator);
+}
+
+float fresnel_schlick_scalar(float cos_theta, float f0) {
+    float ct = saturate(cos_theta);
+    return f0 + (1.0 - f0) * pow(1.0 - ct, 5.0);
+}
+
+vec3 fresnel_schlick(float cos_theta, vec3 f0) {
+    float ct = saturate(cos_theta);
+    return f0 + (vec3(1.0) - f0) * pow(1.0 - ct, 5.0);
+}
+
+TraceResult trace_scene(vec3 origin, vec3 direction, float max_t, float t_min) {
+    payload.hit_tuv = vec4(max_t, 0.0, 0.0, 0.0);
+    payload.normal_object = vec4(0.0);
+    payload.tangent_flags = vec4(1.0, 0.0, 0.0, 0.0);
+    payload.ids_hit = uvec4(0u);
+
+    traceRayEXT(u_tlas,
+                gl_RayFlagsOpaqueEXT,
+                0xff,
+                0, 0, 0,
+                origin,
+                max(t_min, pc.aux0.y),
+                normalize(direction),
+                max_t,
+                0);
+
+    TraceResult out_hit;
+    out_hit.hit = payload.ids_hit.z != 0u;
+    out_hit.t = payload.hit_tuv.x;
+    out_hit.normal = normalize(payload.normal_object.xyz);
+    out_hit.tangent = normalize(payload.tangent_flags.xyz);
+    out_hit.uv = payload.hit_tuv.yz;
+    out_hit.has_uv = payload.tangent_flags.w > 0.5;
+    out_hit.mat_id = payload.ids_hit.w;
+    out_hit.class_id = payload.ids_hit.x;
+    out_hit.instance_id = payload.ids_hit.y;
+    out_hit.object_id = payload.normal_object.w;
+    return out_hit;
+}
+
+EvalMaterial eval_material(TraceResult hit) {
+    GpuMaterial mat = materials[hit.mat_id];
+    EvalMaterial out_mat;
+    out_mat.diffuse = mat.diffuse.rgb;
+    out_mat.specular = mat.specular.rgb;
+    out_mat.emissive = mat.emissive.rgb;
+    out_mat.opacity = saturate(mat.params.x);
+    out_mat.roughness = clamp(mat.params.y, 0.02, 1.0);
+    out_mat.metallic = saturate(mat.params.z);
+    out_mat.emissive_power = max(0.0, mat.emissive.w);
+    out_mat.use_specular_workflow = mat.params.w > 0.5;
+
+    if (hit.has_uv) {
+        vec2 scale = mat.tex_scale.xy;
+        if (mat.texture0.x != INVALID_TEXTURE) {
+            vec4 tex = sample_texture(mat.texture0.x, hit.uv, scale);
+            out_mat.diffuse = pow(clamp(tex.rgb, vec3(0.0), vec3(1.0)), vec3(2.2));
+            // Kd alpha is not just a binary cutout.  Treat it as the material's
+            // visible surface opacity so glass decals and PNG alpha textures do
+            // not become artificially opaque/dark on the Vulkan path.
+            out_mat.opacity *= saturate(tex.a);
+        }
+        if (mat.texture0.y != INVALID_TEXTURE)
+            out_mat.specular = sample_texture(mat.texture0.y, hit.uv, scale).rgb;
+        if (mat.texture0.z != INVALID_TEXTURE)
+            out_mat.emissive = sample_texture(mat.texture0.z, hit.uv, scale).rgb;
+        if (mat.texture1.x != INVALID_TEXTURE)
+            out_mat.roughness = clamp(sample_texture(mat.texture1.x, hit.uv, scale).r, 0.02, 1.0);
+        if (mat.texture1.y != INVALID_TEXTURE)
+            out_mat.metallic = saturate(sample_texture(mat.texture1.y, hit.uv, scale).r);
+        if (mat.texture1.z != INVALID_TEXTURE)
+            out_mat.opacity = saturate(sample_texture(mat.texture1.z, hit.uv, scale).r);
+        if (mat.texture1.w != INVALID_TEXTURE)
+            out_mat.opacity *= saturate(sample_texture(mat.texture1.w, hit.uv, scale).r);
+    }
+
+    return out_mat;
+}
+
+vec3 shading_normal(TraceResult hit) {
+    vec3 n = normalize(hit.normal);
+    GpuMaterial mat = materials[hit.mat_id];
+    if (!hit.has_uv || mat.texture0.w == INVALID_TEXTURE)
+        return n;
+
+    vec3 t = normalize(hit.tangent - dot(hit.tangent, n) * n);
+    if (length(t) < 1e-5)
+        t = normalize(abs(n.z) < 0.9 ? cross(vec3(0.0, 0.0, 1.0), n) : cross(vec3(0.0, 1.0, 0.0), n));
+    vec3 b = normalize(cross(n, t));
+    vec3 mapped = sample_texture(mat.texture0.w, hit.uv, mat.tex_scale.xy).rgb * 2.0 - vec3(1.0);
+    return normalize(mapped.x * t + mapped.y * b + mapped.z * n);
+}
+
+vec3 background_color(vec3 dir) {
+    uint mode = scene_data.counts.y;
+    if (mode == BACKGROUND_ENVIRONMENT && scene_data.counts.z != INVALID_TEXTURE) {
+        vec3 d = normalize(dir);
+        float u = atan(d.y, d.x) / (2.0 * PI) + 0.5;
+        float v = asin(clamp(d.z, -1.0, 1.0)) / PI + 0.5;
+        vec4 tex = sample_texture(scene_data.counts.z, vec2(u, v), vec2(1.0));
+        return texture_is_hdr(scene_data.counts.z) ? max(tex.rgb, vec3(0.0))
+                                                   : pow(clamp(tex.rgb, vec3(0.0), vec3(1.0)), vec3(2.2));
+    }
+    if (mode == BACKGROUND_GRADIENT) {
+        float k = max(0.0, normalize(dir).z);
+        return mix(scene_data.background1.rgb, scene_data.background0.rgb, k);
+    }
+    return scene_data.background0.rgb;
+}
+
+vec3 shadow_attenuation(vec3 origin, vec3 dir, float max_t) {
+    vec3 rd = normalize(dir);
+
+    // OptiX uses a cheap shadow/visibility program for the common opaque case:
+    // terminate on the first hit and skip closest-hit material shading.  The
+    // previous Vulkan path traced every shadow through the full camera closest-hit
+    // shader even for fully opaque scenes, which makes direct lighting look
+    // serial and can dominate simple demos with several lights/sensors.  Keep the
+    // material-aware loop only when the staged scene actually contains opacity.
+    if (scene_data.ambient.w < 0.5) {
+        shadow_payload.attenuation_remaining = vec4(0.0, 0.0, 0.0, max_t);
+        traceRayEXT(u_tlas,
+                    gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT | gl_RayFlagsOpaqueEXT,
+                    0xff,
+                    0, 0, 1,
+                    origin,
+                    max(TRACE_EPS, pc.aux0.y),
+                    rd,
+                    max_t,
+                    1);
+        return clamp(shadow_payload.attenuation_remaining.rgb, vec3(0.0), vec3(1.0));
+    }
+
+    vec3 attenuation = vec3(1.0);
+    vec3 ro = origin;
+    float remaining = max_t;
+    const float HUGE_T = 1.0e30;
+
+    for (int depth = 0; depth < 8; ++depth) {
+        TraceResult h = trace_scene(ro, rd, remaining, max(TRACE_EPS, pc.aux0.y));
+        if (!h.hit)
+            break;
+
+        EvalMaterial mat = eval_material(h);
+        if (mat.opacity >= 1.0 - 1e-5)
+            return vec3(0.0);
+
+        float pass = saturate(1.0 - mat.opacity);
+        attenuation *= vec3(pass);
+        if (max_component(attenuation) <= 1e-5)
+            return vec3(0.0);
+
+        float advance = h.t + TRACE_EPS;
+        ro += rd * advance;
+        if (remaining < HUGE_T) {
+            remaining = max(0.0, remaining - advance);
+            if (remaining <= TRACE_EPS)
+                break;
+        }
+    }
+
+    return clamp(attenuation, vec3(0.0), vec3(1.0));
+}
+
+vec3 environment_direct(vec3 hit_pos, vec3 n, vec3 scale_rgb) {
+    vec3 dirs[4] = vec3[4](
+        normalize(n + vec3(0.36, 0.10, 0.93)),
+        normalize(n + vec3(-0.48, 0.42, 0.77)),
+        normalize(n + vec3(0.18, -0.72, 0.67)),
+        normalize(n + vec3(-0.08, -0.18, 0.98))
+    );
+    vec3 sum = vec3(0.0);
+    float wsum = 0.0;
+    for (int i = 0; i < 4; ++i) {
+        vec3 ldir = dirs[i];
+        float ndl = max(dot(n, ldir), 0.0);
+        if (ndl <= 0.0)
+            continue;
+        vec3 shadow = shadow_attenuation(hit_pos + ldir * TRACE_EPS, ldir, 3.402823e38);
+        sum += ndl * background_color(ldir) * shadow;
+        wsum += ndl;
+    }
+    return wsum > 0.0 ? scale_rgb * (sum / wsum) : vec3(0.0);
+}
+
+vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient) {
+    EvalMaterial mat = eval_material(hit);
+    vec3 hit_pos = origin + dir * hit.t;
+    vec3 n = shading_normal(hit);
+    vec3 view_dir = normalize(-dir);
+    float ndv = max(dot(n, view_dir), 0.0);
+    vec3 f0 = mat.use_specular_workflow ? 0.08 * mat.specular : mix(vec3(0.04), mat.diffuse, mat.metallic);
+
+    vec3 color = vec3(0.0);
+    if (include_ambient) {
+        vec3 ambient_rgb = max(scene_data.ambient.rgb, vec3(0.025));
+        vec3 sky_rgb = background_color(n);
+        float sky_weight = scene_data.counts.y == BACKGROUND_SOLID ? 0.12 : 0.28;
+        float ambient_shape = 0.35 + 0.65 * saturate(n.z * 0.5 + 0.5);
+        color += mat.opacity * mat.diffuse * (ambient_rgb + sky_weight * sky_rgb) * ambient_shape;
+    }
+
+    for (uint i = 0u; i < scene_data.counts.x; ++i) {
+        GpuLight light = lights[i];
+        int type = int(light.dir_type.w + 0.5);
+        if (type == LIGHT_ENVIRONMENT) {
+            // OptiX samples environment lights as visible light sources and
+            // traces a shadow ray for the sampled direction.  Use a small
+            // deterministic set of sky samples here so environment scenes keep
+            // the missing diffuse/occlusion component without adding stochastic
+            // noise to single-sample cameras.
+            color += mat.opacity * mat.diffuse * environment_direct(hit_pos, n, light.color_atten.rgb);
+            continue;
+        }
+        if (type == LIGHT_AREA) {
+            color += mat.opacity * mat.diffuse * light.color_atten.rgb;
+            continue;
+        }
+
+        vec3 light_dir = vec3(0.0);
+        float max_shadow_t = 3.402823e38;
+        float attenuation = 1.0;
+
+        if (type == LIGHT_DIRECTIONAL) {
+            light_dir = normalize(light.dir_type.xyz);
+        } else {
+            vec3 to_light = light.pos_range.xyz - hit_pos;
+            float dist = length(to_light);
+            if (dist <= TRACE_EPS)
+                continue;
+            max_shadow_t = max(TRACE_EPS, dist - TRACE_EPS);
+            light_dir = to_light / dist;
+            if (light.color_atten.w >= 0.0)
+                attenuation = light.color_atten.w / max(1e-6, dist * dist);
+
+            if (type == LIGHT_SPOT) {
+                vec3 spot_dir = normalize(light.dir_type.xyz);
+                float angle = acos(clamp(dot(spot_dir, -light_dir), -1.0, 1.0));
+                if (2.0 * angle > light.params.x) {
+                    attenuation = 0.0;
+                } else if (light.color_atten.w >= 0.0 && light.params.z >= 0.0) {
+                    float a = saturate(light.params.z * (light.params.x - 2.0 * angle));
+                    attenuation *= a * a;
+                }
+            } else if (type == LIGHT_RECTANGLE || type == LIGHT_DISK) {
+                vec3 area_dir = normalize(light.dir_type.xyz);
+                attenuation *= saturate(dot(area_dir, -light_dir));
+            }
+        }
+
+        if (attenuation <= 0.0)
+            continue;
+        float ndl = max(dot(n, light_dir), 0.0);
+        if (ndl <= 0.0)
+            continue;
+
+        vec3 shadow = shadow_attenuation(hit_pos + light_dir * TRACE_EPS, light_dir, max_shadow_t);
+        if (max_component(shadow) <= 1e-5)
+            continue;
+
+        vec3 h = normalize(light_dir + view_dir);
+        float ndh = max(dot(n, h), 0.0);
+        float vdh = max(dot(view_dir, h), 0.0);
+        vec3 fresnel = fresnel_schlick(vdh, f0);
+        float d_term = normal_dist_optix(ndh, mat.roughness);
+        float g_term = hammon_smith_optix(ndv, ndl, mat.roughness);
+        // Match OptiX direct-light semantics: CheckVisibleAndSample*Light stores
+        // one Lambert cosine in LightSample::L and the camera BRDF code applies
+        // NdL again.  This restores grazing-angle shadow contrast.
+        vec3 incoming = attenuation * ndl * ndl * light.color_atten.rgb * shadow;
+        vec3 diffuse_albedo = mat.use_specular_workflow ? mat.diffuse : (1.0 - mat.metallic) * mat.diffuse;
+        color += mat.opacity * (((vec3(1.0) - fresnel) * diffuse_albedo + d_term * g_term * fresnel) * incoming);
+    }
+
+    color += mat.emissive_power * mat.emissive * abs(dot(n, view_dir));
+    return color;
+}
+
+vec3 trace_lit_once(vec3 origin, vec3 dir, bool include_ambient) {
+    TraceResult h = trace_scene(origin, dir, pc.origin_max_t.w, pc.aux0.y);
+    if (!h.hit)
+        return background_color(dir);
+    return shade_direct(h, origin, dir, include_ambient);
+}
+
+vec4 trace_camera(vec3 origin, vec3 dir) {
+    vec3 accum = vec3(0.0);
+    float first_depth = 0.0;
+    vec3 throughput = vec3(1.0);
+    vec3 ro = origin;
+    vec3 rd = normalize(dir);
+
+    int trace_depth_limit = int(max_trace_depth());
+    for (int depth = 0; depth < trace_depth_limit; ++depth) {
+        TraceResult h = trace_scene(ro, rd, pc.origin_max_t.w, pc.aux0.y);
+        if (!h.hit) {
+            accum += throughput * background_color(rd);
+            break;
+        }
+        if (depth == 0)
+            first_depth = h.t;
+
+        EvalMaterial mat = eval_material(h);
+        if (mat.opacity <= 1e-6) {
+            ro += rd * (h.t + TRACE_EPS);
+            continue;
+        }
+
+        vec3 n = shading_normal(h);
+        vec3 hit_pos = ro + rd * h.t;
+        vec3 direct = shade_direct(h, ro, rd, depth == 0);
+
+        float ndv = max(dot(n, normalize(-rd)), 0.0);
+        vec3 f0 = mat.use_specular_workflow ? 0.08 * mat.specular : mix(vec3(0.04), mat.diffuse, mat.metallic);
+        float f0_luma = saturate(max_component(f0));
+        float reflect_weight = fresnel_schlick_scalar(ndv, f0_luma) * (1.0 - mat.roughness) * (1.0 - mat.roughness);
+        reflect_weight = max(reflect_weight, mat.metallic * mat.metallic * (1.0 - mat.roughness));
+        if (mat.opacity < 1.0)
+            reflect_weight = max(reflect_weight, fresnel_schlick_scalar(ndv, 0.04) * (1.0 - 0.65 * mat.roughness));
+        reflect_weight = clamp(reflect_weight, 0.0, 0.85);
+        if (reflect_weight > 1e-4) {
+            vec3 reflected = trace_lit_once(hit_pos + n * TRACE_EPS, normalize(reflect(rd, n)), false);
+            direct += reflect_weight * reflected;
+        }
+
+        if ((pc.flags & FLAG_USE_GI) != 0u && depth == 0) {
+            uint seed = (gl_LaunchIDEXT.x + 1u) * 73856093u ^ (gl_LaunchIDEXT.y + 1u) * 19349663u;
+            float a = 2.0 * PI * hash_unit(seed ^ 0x9e3779b9u);
+            float z = hash_unit(seed ^ 0x85ebca6bu) * 0.65 + 0.35;
+            float r = sqrt(max(0.0, 1.0 - z * z));
+            vec3 helper = abs(n.z) < 0.9 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+            vec3 t = normalize(cross(helper, n));
+            vec3 b = normalize(cross(n, t));
+            vec3 gi_dir = normalize(t * (r * cos(a)) + b * (r * sin(a)) + n * z);
+            float gi_ndl = max(dot(n, gi_dir), 0.0);
+            vec3 gi = trace_lit_once(hit_pos + gi_dir * TRACE_EPS, gi_dir, false);
+            direct += 0.35 * mat.opacity * gi_ndl * mat.diffuse * gi;
+        }
+
+        accum += throughput * direct;
+        float pass = saturate(1.0 - mat.opacity);
+        if (pass <= 1e-5)
+            break;
+
+        bool likely_glass = mat.opacity > 1e-5 && mat.opacity < 0.98 &&
+                            mat.roughness < 0.55 && max_component(mat.specular) > 0.035;
+        vec3 transmit_tint = likely_glass ? mix(vec3(1.0), clamp(mat.diffuse, vec3(0.0), vec3(1.0)), 0.22)
+                                          : vec3(1.0);
+        vec3 face_n = dot(rd, n) < 0.0 ? n : -n;
+        vec3 next_rd = rd;
+        if (likely_glass) {
+            float eta = dot(rd, n) < 0.0 ? (1.0 / 1.5) : 1.5;
+            vec3 refracted = refract(rd, face_n, eta);
+            if (length(refracted) > 1e-5)
+                next_rd = normalize(refracted);
+        }
+        throughput *= transmit_tint * pass;
+        rd = normalize(next_rd);
+        ro = hit_pos + rd * TRACE_EPS;
+    }
+
+    return vec4(accum, first_depth);
+}
+
+vec3 camera_ray(uint x, uint y, bool aux_projection) {
+    float fx = float(x) + 0.5;
+    float fy = float(y) + 0.5;
+    float uvx = 2.0 * fx / max(1.0, float(pc.width)) - 1.0;
+    float uvy = 2.0 * fy / max(1.0, float(pc.height)) - 1.0;
+    uvy /= max(1e-6, pc.right_aspect.w);
+
+    float ray_factor = aux_projection ? pc.aux0.w : pc.aux0.z;
+    return normalize(pc.forward_hfov.xyz + pc.right_aspect.xyz * (uvx * ray_factor) + pc.up_gamma.xyz * (uvy * ray_factor));
+}
+
+vec3 lidar_ray(uint x, uint y) {
+    float denom_x = max(1.0, float(pc.width - 1u));
+    float denom_y = max(1.0, float(pc.height - 1u));
+    float theta = float(x) / denom_x * pc.forward_hfov.w - pc.forward_hfov.w * 0.5;
+    float phi = mix(pc.aux1.x, pc.aux1.y, float(y) / denom_y);
+    float xy = cos(phi);
+    vec3 left = -pc.right_aspect.xyz;
+    return normalize(pc.forward_hfov.xyz * (xy * cos(theta)) + left * (xy * sin(theta)) + pc.up_gamma.xyz * sin(phi));
+}
+
+
+uint output_word_stride() {
+    if (pc.pipeline == PIPE_CAMERA || pc.pipeline == PIPE_SEGMENTATION || pc.pipeline == PIPE_DEPTH_CAMERA)
+        return 1u;
+    if (pc.pipeline == PIPE_LIDAR_SINGLE || pc.pipeline == PIPE_LIDAR_MULTI)
+        return 2u;
+    if (pc.pipeline == PIPE_NORMAL_CAMERA)
+        return 3u;
+    if (pc.pipeline == PIPE_PHYS_CAMERA)
+        return 4u;
+    return 8u;
+}
+
+vec3 radar_ray(uint x, uint y) {
+    float dx = (float(x) + 0.5) / max(1.0, float(pc.width)) * 2.0 - 1.0;
+    float dy = (float(y) + 0.5) / max(1.0, float(pc.height)) * 2.0 - 1.0;
+    float theta = dx * pc.forward_hfov.w * 0.5;
+    float phi = dy * pc.aux1.z * 0.5;
+    float xy = cos(phi);
+    vec3 left = -pc.right_aspect.xyz;
+    return normalize(pc.forward_hfov.xyz * (xy * cos(theta)) + left * (xy * sin(theta)) + pc.up_gamma.xyz * sin(phi));
+}
+
+void main() {
+    uint x = gl_LaunchIDEXT.x;
+    uint y = gl_LaunchIDEXT.y;
+    uint idx = y * pc.width + x;
+    uint o = idx * output_word_stride();
+
+    vec3 origin = pc.origin_max_t.xyz;
+    vec3 dir;
+    float max_t = pc.origin_max_t.w;
+
+    if (pc.pipeline == PIPE_LIDAR_SINGLE || pc.pipeline == PIPE_LIDAR_MULTI) {
+        dir = lidar_ray(x, y);
+        max_t = pc.aux1.w > 0.0 ? pc.aux1.w : max_t;
+        TraceResult h = trace_scene(origin, dir, max_t, pc.aux0.y);
+        if (h.hit) {
+            EvalMaterial mat = eval_material(h);
+            float opacity_weight = max(mat.opacity, 0.0);
+            out_data[o + 0u] = floatBitsToUint(h.t);
+            out_data[o + 1u] = floatBitsToUint(materials[h.mat_id].sensor.x * opacity_weight * max(abs(dot(normalize(h.normal), -dir)), 0.0));
+        } else {
+            out_data[o + 0u] = floatBitsToUint(0.0);
+            out_data[o + 1u] = floatBitsToUint(0.0);
+        }
+        return;
+    }
+
+    if (pc.pipeline == PIPE_RADAR) {
+        dir = radar_ray(x, y);
+        max_t = pc.aux1.w > 0.0 ? 1.5 * pc.aux1.w : max_t;
+        TraceResult h = trace_scene(origin, dir, max_t, pc.aux0.y);
+        float az = (float(x) / max(1.0, float(pc.width))) * pc.forward_hfov.w - pc.forward_hfov.w * 0.5;
+        float el = (float(y) / max(1.0, float(pc.height))) * pc.aux1.z - pc.aux1.z * 0.5;
+        out_data[o + 0u] = floatBitsToUint(h.hit ? h.t : 0.0);
+        out_data[o + 1u] = floatBitsToUint(az);
+        out_data[o + 2u] = floatBitsToUint(el);
+        out_data[o + 3u] = floatBitsToUint(0.0);
+        out_data[o + 4u] = floatBitsToUint(0.0);
+        out_data[o + 5u] = floatBitsToUint(0.0);
+        if (h.hit) {
+            EvalMaterial mat = eval_material(h);
+            float opacity_weight = max(mat.opacity, 0.0);
+            out_data[o + 6u] = floatBitsToUint(materials[h.mat_id].sensor.y * opacity_weight * max(abs(dot(normalize(h.normal), -dir)), 0.0));
+            out_data[o + 7u] = floatBitsToUint(materials[h.mat_id].sensor.z);
+        } else {
+            out_data[o + 6u] = floatBitsToUint(0.0);
+            out_data[o + 7u] = floatBitsToUint(0.0);
+        }
+        return;
+    }
+
+    bool aux_projection = (pc.pipeline == PIPE_DEPTH_CAMERA || pc.pipeline == PIPE_NORMAL_CAMERA || pc.pipeline == PIPE_SEGMENTATION);
+    dir = camera_ray(x, y, aux_projection);
+
+    if (pc.pipeline == PIPE_CAMERA) {
+        vec4 traced = trace_camera(origin, dir);
+        vec3 color = gamma_correct(traced.rgb, pc.up_gamma.w);
+        out_data[o + 0u] = pack_rgba8(color);
+        return;
+    }
+
+    if (pc.pipeline == PIPE_PHYS_CAMERA) {
+        vec4 traced = trace_camera(origin, dir);
+        vec3 color = gamma_correct(traced.rgb, pc.up_gamma.w);
+        out_data[o + 0u] = floatBitsToUint(color.r);
+        out_data[o + 1u] = floatBitsToUint(color.g);
+        out_data[o + 2u] = floatBitsToUint(color.b);
+        out_data[o + 3u] = floatBitsToUint(traced.a);
+        return;
+    }
+
+    TraceResult h = trace_scene(origin, dir, max_t, pc.aux0.y);
+
+    if (pc.pipeline == PIPE_DEPTH_CAMERA) {
+        float depth = h.hit ? min(h.t, pc.aux0.x) : pc.aux0.x;
+        out_data[o + 0u] = floatBitsToUint(depth);
+    } else if (pc.pipeline == PIPE_NORMAL_CAMERA) {
+        vec3 n = h.hit ? shading_normal(h) : vec3(0.0);
+        out_data[o + 0u] = floatBitsToUint(n.x);
+        out_data[o + 1u] = floatBitsToUint(n.y);
+        out_data[o + 2u] = floatBitsToUint(n.z);
+    } else if (pc.pipeline == PIPE_SEGMENTATION) {
+        out_data[o + 0u] = h.hit ? (h.class_id | (h.instance_id << 16)) : 0u;
+    }
+}
