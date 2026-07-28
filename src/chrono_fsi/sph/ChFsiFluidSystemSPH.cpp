@@ -178,18 +178,22 @@ void ChFsiFluidSystemSPH::InitParams() {
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::SetBoundaryType(BoundaryMethod boundary_method) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->boundary_method = boundary_method;
 }
 
 void ChFsiFluidSystemSPH::SetViscosityType(ViscosityMethod viscosity_method) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->viscosity_method = viscosity_method;
 }
 
 void ChFsiFluidSystemSPH::SetArtificialViscosityCoefficient(double coefficient) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->artificial_viscosity = coefficient;
 }
 
 void ChFsiFluidSystemSPH::SetKernelType(KernelType kernel_type) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->kernel_type = kernel_type;
     switch (m_paramsH->kernel_type) {
         case KernelType::QUADRATIC:
@@ -208,23 +212,31 @@ void ChFsiFluidSystemSPH::SetKernelType(KernelType kernel_type) {
 }
 
 void ChFsiFluidSystemSPH::SetShiftingMethod(ShiftingMethod shifting_method) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_method = shifting_method;
 }
 
 void ChFsiFluidSystemSPH::SetSPHLinearSolver(SolverType lin_solver) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->LinearSolver = lin_solver;
 }
 
 void ChFsiFluidSystemSPH::SetIntegrationScheme(IntegrationScheme scheme) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->integration_scheme = scheme;
 }
 
 void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->boxDimX = box_dim.x();
     m_paramsH->boxDimY = box_dim.y();
     m_paramsH->boxDimZ = box_dim.z();
 }
 
+// Note: SetComputationalDomain is deliberately NOT guarded against post-Initialize calls:
+// CRMTerrain::Synchronize updates the computational domain mid-simulation (moving patch).
+// A post-initialization call currently updates only the host-side parameters; propagating
+// a mid-run domain change to the device parameters is addressed separately.
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type) {
     m_paramsH->cMin = ToReal3(computational_AABB.min);
     m_paramsH->cMax = ToReal3(computational_AABB.max);
@@ -239,36 +251,43 @@ void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AAB
 }
 
 void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->bodyActiveDomain = ToReal3(box_dim / 2);
     m_paramsH->use_active_domain = true;
 }
 
 void ChFsiFluidSystemSPH::SetActiveDomainDelay(double duration) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->settlingTime = duration;
 }
 
 void ChFsiFluidSystemSPH::SetNumBCELayers(int num_layers) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->num_bce_layers = num_layers;
 }
 
 void ChFsiFluidSystemSPH::SetInitPressure(const double height) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->pressure_height = height;
     m_paramsH->use_init_pressure = true;
 }
 
 void ChFsiFluidSystemSPH::SetGravitationalAcceleration(const ChVector3d& gravity) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->gravity.x = gravity.x();
     m_paramsH->gravity.y = gravity.y();
     m_paramsH->gravity.z = gravity.z();
 }
 
 void ChFsiFluidSystemSPH::SetBodyForce(const ChVector3d& force) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->bodyForce3.x = force.x();
     m_paramsH->bodyForce3.y = force.y();
     m_paramsH->bodyForce3.z = force.z();
 }
 
 void ChFsiFluidSystemSPH::SetInitialSpacing(double spacing) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->d0 = (Real)spacing;
     m_paramsH->ood0 = 1 / m_paramsH->d0;
     m_paramsH->volume0 = cube(m_paramsH->d0);
@@ -279,6 +298,7 @@ void ChFsiFluidSystemSPH::SetInitialSpacing(double spacing) {
 }
 
 void ChFsiFluidSystemSPH::SetKernelMultiplier(double multiplier) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->d0_multiplier = Real(multiplier);
 
     m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
@@ -286,27 +306,32 @@ void ChFsiFluidSystemSPH::SetKernelMultiplier(double multiplier) {
 }
 
 void ChFsiFluidSystemSPH::SetDensity(double rho0) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 }
 
 void ChFsiFluidSystemSPH::SetShiftingPPSTParameters(double push, double pull) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_ppst_push = push;
     m_paramsH->shifting_ppst_pull = pull;
 }
 
 void ChFsiFluidSystemSPH::SetShiftingXSPHParameters(double eps) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_xsph_eps = eps;
 }
 
 void ChFsiFluidSystemSPH::SetShiftingDiffusionParameters(double A, double AFSM, double AFST) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_diffusion_A = A;
     m_paramsH->shifting_diffusion_AFSM = AFSM;
     m_paramsH->shifting_diffusion_AFST = AFST;
 }
 
 void ChFsiFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->use_consistent_gradient_discretization = consistent_gradient;
     m_paramsH->use_consistent_laplacian_discretization = consistent_Laplacian;
 }
@@ -316,14 +341,17 @@ void ChFsiFluidSystemSPH::SetOutputLevel(OutputLevel output_level) {
 }
 
 void ChFsiFluidSystemSPH::SetCohesionForce(double Fc) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->Coh_coeff = Fc;
 }
 
 void ChFsiFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->num_proximity_search_steps = steps;
 }
 
 void ChFsiFluidSystemSPH::SetUseVariableTimeStep(bool use_variable_time_step) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->use_variable_time_step = use_variable_time_step;
 }
 
@@ -419,6 +447,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
 ChFsiFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), char_length(1) {}
 
 void ChFsiFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->elastic_SPH = false;
 
     SetDensity(fluid_props.density);
@@ -443,6 +472,7 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mcc_v_lambda(2.0) {}
 
 void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->elastic_SPH = true;
 
     SetDensity(mat_props.density);
@@ -505,6 +535,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       use_variable_time_step(false) {}
 
 void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->integration_scheme = sph_params.integration_scheme;
 
     m_paramsH->eos_type = sph_params.eos_type;
@@ -552,6 +583,7 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
 ChFsiFluidSystemSPH::LinSolverParameters::LinSolverParameters() : type(SolverType::JACOBI), atol(0.0), rtol(0.0), max_num_iters(1000) {}
 
 void ChFsiFluidSystemSPH::SetLinSolverParameters(const LinSolverParameters& linsolv_params) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->LinearSolver = linsolv_params.type;
     m_paramsH->LinearSolver_Abs_Tol = linsolv_params.atol;
     m_paramsH->LinearSolver_Rel_Tol = linsolv_params.rtol;
@@ -1489,6 +1521,10 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     CheckSPHParameters();
+
+    // Mark the fluid system as initialized. This arms the configuration-setter guards
+    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    m_is_initialized = true;
 }
 
 #ifdef CHRONO_FEA
@@ -1680,6 +1716,10 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     CheckSPHParameters();
+
+    // Mark the fluid system as initialized. This arms the configuration-setter guards
+    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    m_is_initialized = true;
 }
 
 void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
