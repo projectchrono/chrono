@@ -73,7 +73,7 @@ int main() {
     // Create Viper wheel assembly
     // --------------------------------
 
-    auto wheel = chrono_types::make_shared<ViperRigWheel>(&sys);
+    auto wheel = chrono_types::make_shared<ViperRigWheel>(sys);
     wheel->SetGrouserHeight(0.02);
     wheel->SetGrouserWidth(0.01);
 
@@ -81,7 +81,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChWheelTestRig rig(wheel, &sys);
+    ChWheelTestRig rig(wheel, sys);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(1000);

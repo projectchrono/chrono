@@ -66,15 +66,15 @@ class CH_VEHICLE_API ChWheelTestRig {
         virtual void AddFSIBodies(CRMTerrain& terrain, double spacing) { throw std::runtime_error("CreateBCEMarkers must be implemented when using CRMTerrain."); }
 #endif
 
-        virtual void Initialize(double step_size, VisualizationType vis_type) {}
+        virtual void Initialize(const ChFramed& frame, bool fixed, double step_size, VisualizationType vis_type) {}
         virtual void Synchronize(double time, const ChTerrain& terrain) {}
         virtual void Advance(double step_size) {}
 
         virtual TerrainForce ReportForces(ChTerrain& terrain) const { return TerrainForce(); }
 
       protected:
-        WheelAssembly(ChSystem* system) : system(system) {}
-        ChSystem* system;
+        WheelAssembly(ChSystem& system) : system(system) {}
+        ChSystem& system;
     };
 
     /// Tire test rig operation mode.
@@ -123,12 +123,12 @@ class CH_VEHICLE_API ChWheelTestRig {
     };
 
     /// Construct a test rig within the specified system using the given custom wheel.
-    ChWheelTestRig(std::shared_ptr<WheelAssembly> wheel, ChSystem* system);
+    ChWheelTestRig(std::shared_ptr<WheelAssembly> wheel, ChSystem& system);
 
     /// Construct a test rig within the specified system using the given Chrono::Vehicle wheel and tire.
     ChWheelTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
                    std::shared_ptr<ChTire> tire,    ///< tire subsystem
-                   ChSystem* system                 ///< containing mechanical system
+                   ChSystem& system                 ///< containing mechanical system
     );
 
     ~ChWheelTestRig();
@@ -308,7 +308,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// Implementation of a ChWheelTestRig::WheelAssembly that wraps a Chrono::Vehicle tire and wheel assembly.
     class VehicleWheel : public WheelAssembly {
       public:
-        VehicleWheel(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, ChSystem* system);
+        VehicleWheel(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, ChSystem& system);
 
         virtual double GetMass() const override;
         virtual double GetRadius() const override;
@@ -319,7 +319,7 @@ class CH_VEHICLE_API ChWheelTestRig {
         virtual void AddFSIBodies(CRMTerrain& terrain, double spacing) override;
 #endif
 
-        virtual void Initialize(double step_size, VisualizationType vis_type) override;
+        virtual void Initialize(const ChFramed& frame, bool fixed, double step_size, VisualizationType vis_type) override;
         virtual void Synchronize(double time, const ChTerrain& terrain) override;
         virtual void Advance(double step_size) override;
 
@@ -341,7 +341,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     void CreateTerrainCRM();
 #endif
 
-    ChSystem* m_system;  ///< pointer to the Chrono system
+    ChSystem& m_system;  ///< containing Chrono system
 
     Mode m_mode;    ///< testing mode
     bool m_output;  ///< if false, report default measurements (typically 0)

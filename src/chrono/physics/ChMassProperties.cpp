@@ -71,6 +71,12 @@ void ChInertiaUtils::RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix3
     inertiaOut = R * inertiaIn * Rt;
 }
 
+ChMatrix33<> ChInertiaUtils::RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix33<> R) {
+    ChMatrix33<> inertiaOut;
+    RotateInertia(inertiaIn, R, inertiaOut);
+    return inertiaOut;
+}
+
 void ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn,
                                       const ChVector3d dist,
                                       const double mass,
@@ -87,6 +93,12 @@ void ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn,
     inertiaOut(1, 0) = inertiaOut(0, 1);
     inertiaOut(2, 0) = inertiaOut(0, 2);
     inertiaOut(2, 1) = inertiaOut(1, 2);
+}
+
+ChMatrix33<> ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn, const ChVector3d dist, const double mass) {
+    ChMatrix33<> inertiaOut;
+    TranslateInertia(inertiaIn, dist, mass, inertiaOut);
+    return inertiaOut;
 }
 
 void ChInertiaUtils::PrincipalInertia(const ChMatrix33<>& inertia,

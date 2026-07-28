@@ -136,7 +136,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChWheelTestRig rig(wheel, tire, sys);
+    ChWheelTestRig rig(wheel, tire, *sys);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(2500);

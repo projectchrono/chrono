@@ -89,8 +89,6 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
         double m_theta;                                        ///< fiber angle
 
         friend class ChElementShellBST;
-        friend class MyForce;
-        friend class MyJacobian;
     };
 
     /// Specify the nodes of this element.

@@ -26,7 +26,7 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
-ChYamlFileHandler::ChYamlFileHandler() : m_type(Type::ABS), m_reference_dir(""), m_relative_path(".") {}
+ChYamlFileHandler::ChYamlFileHandler() : m_type(Type::REL), m_reference_dir(""), m_relative_path(".") {}
 
 void ChYamlFileHandler::Read(const YAML::Node& a) {
     if (a["data_path"]) {

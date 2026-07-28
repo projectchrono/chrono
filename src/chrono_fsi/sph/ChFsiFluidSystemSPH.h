@@ -149,7 +149,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the shifting method.
     void SetShiftingMethod(ShiftingMethod shifting_method);
 
-    /// Set the fluid container dimension
+    /// Set the fluid container dimension.
     void SetContainerDim(const ChVector3d& box_dim);
 
     /// Set computational domain and boundary conditions on its sides.
@@ -178,19 +178,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set (initial) density.
     void SetDensity(double rho0);
 
-    /// Set the PPST Shifting parameters
-    /// push: coefficient for the pushing term in the PPST shifting method (upon penetration with fictitious sphere)
-    /// pull: coefficient for the pulling term in the PPST shifting method
+    /// Set the PPST Shifting parameters.
+    /// - `push`: coefficient for the pushing term in the PPST shifting method (upon penetration with fictitious sphere)
+    /// - `pull`: coefficient for the pulling term in the PPST shifting method
     void SetShiftingPPSTParameters(double push, double pull);
 
-    /// Set the XSPH Shifting parameters
-    /// eps: coefficient for the XSPH shifting method
+    /// Set the XSPH shifting parameters.
     void SetShiftingXSPHParameters(double eps);
 
-    /// Set the diffusion based shifting parameters
-    /// A: coefficient for the diffusion based shifting method
-    /// AFSM: coefficient for the AFSM in the diffusion based shifting method
-    /// AFST: coefficient for the AFST in the diffusion based shifting method
+    /// Set the diffusion based shifting parameters.
+    /// - `A`:    coefficient for the diffusion based shifting method
+    /// - `AFSM`: coefficient for the AFSM in the diffusion based shifting method
+    /// - `AFST`: coefficient for the AFST in the diffusion based shifting method
     void SetShiftingDiffusionParameters(double A, double AFSM, double AFST);
 
     /// Set prescribed initial pressure for gravity field.
@@ -203,10 +202,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
     void SetBodyForce(const ChVector3d& force);
 
-    /// Set SPH discretization type, consistent or inconsistent
+    /// Set SPH discretization type, consistent or inconsistent.
     void SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian);
 
-    /// Set cohesion force of the granular material
+    /// Set cohesion force of the granular material.
     void SetCohesionForce(double Fc);
 
     /// Set the linear system solver for implicit methods.
@@ -220,7 +219,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the number of steps between successive updates to neighbor lists (default: 4).
     void SetNumProximitySearchSteps(int steps);
 
-    /// Set use variable time step
+    /// Set use variable time step.
     void SetUseVariableTimeStep(bool use_variable_time_step);
 
     /// Enable solution of a CFD problem.
@@ -667,7 +666,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------
 
-    /// Synchronize the async copy stream.
+    /// Synchronize the asynchronous copy stream.
     /// Used for the copySortedToOriginal function.
     void SynchronizeCopyStream() const;
 

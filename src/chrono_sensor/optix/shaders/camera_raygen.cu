@@ -53,7 +53,10 @@ extern "C" __global__ void __raygen__camera() {
         //// Get camera's pose (origin of the ray to be launched) ////
         
         // Add motion-blur effect
-        float t_frac = (camera.rng_buffer) ? curand_uniform(&rng) : 0.f;
+        // rng_buffer is unconditionally allocated for this record (ChFilterOptixRender.cpp,
+        // camera branch), and it is already dereferenced above to seed `rng`, so a null check
+        // here could never fire. Kept unguarded so the code matches the documented invariant.
+        float t_frac = curand_uniform(&rng);
         // float t_frac = static_cast<float>((sample_idx + 1)) * recip_num_spp;  // evenly-spaced midpoint samples over span to compose motion blu
         
         const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent during the frame
@@ -98,7 +101,11 @@ extern "C" __global__ void __raygen__camera() {
         prd.integrator = camera.integrator;
         prd.use_gi = camera.use_gi;
         prd.use_fog = camera.use_fog;
-        prd.rng = camera.rng_buffer[pixel_idx];
+        // Seed from the advancing local copy, NOT from camera.rng_buffer[pixel_idx]. Re-reading the
+        // buffer here would hand every sample of this pixel the identical state, so all num_spp
+        // samples would draw the same environment direction, the same GI hemisphere direction and so
+        // on, and averaging identical samples reduces no variance at all.
+        prd.rng = rng;
         unsigned int opt1;
         unsigned int opt2;
         pointer_as_ints(&prd, opt1, opt2);
@@ -121,6 +128,10 @@ extern "C" __global__ void __raygen__camera() {
             raytype                 // The ray type index (used when you have multiple ray types, e.g., radiance rays, shadow rays, etc.)
         );
         
+        // The closest-hit programs draw from prd.rng in place, so take the advanced state back to
+        // keep this pixel on one continuous sequence across samples.
+        rng = prd.rng;
+
         // Aggregate results from this sample
         color_result += prd.color;
         albedo_result += prd.albedo;
@@ -130,6 +141,9 @@ extern "C" __global__ void __raygen__camera() {
             prd_normal = prd.normal;
         }
     }
+
+    // Persist the advanced state so the next frame continues the sequence instead of replaying it.
+    camera.rng_buffer[pixel_idx] = rng;
 
     // Average results over all samples of each pixel
     color_result = color_result * recip_num_spp;
