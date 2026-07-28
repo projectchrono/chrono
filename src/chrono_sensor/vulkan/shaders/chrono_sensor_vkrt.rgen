@@ -444,7 +444,10 @@ vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient) 
 
     vec3 color = vec3(0.0);
     if (include_ambient) {
-        vec3 ambient_rgb = max(scene_data.ambient.rgb, vec3(0.025));
+        // Honor the ambient level the user set on the scene. A hardcoded 0.025 floor used to be
+        // applied here, which looks good by default but silently overrides SetAmbientLight(0) and
+        // adds a systematic positive bias when comparing against a pure direct-lighting reference.
+        vec3 ambient_rgb = max(scene_data.ambient.rgb, vec3(0.0));
         vec3 sky_rgb = background_color(n);
         float sky_weight = scene_data.counts.y == BACKGROUND_SOLID ? 0.12 : 0.28;
         float ambient_shape = 0.35 + 0.65 * saturate(n.z * 0.5 + 0.5);

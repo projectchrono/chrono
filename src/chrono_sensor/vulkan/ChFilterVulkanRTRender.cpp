@@ -1232,9 +1232,12 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
     const float ambient_shape = 0.35f + 0.65f * ClampFloat(static_cast<float>(normal.z() * 0.5 + 0.5), 0.f, 1.f);
     ChVector3f color(0.f, 0.f, 0.f);
     if (!use_gi) {
-        const ChVector3f ambient_floor(std::max(ambient_light.x(), 0.025f),
-                                       std::max(ambient_light.y(), 0.025f),
-                                       std::max(ambient_light.z(), 0.025f));
+        // Honor the ambient level the user set on the scene; see the matching note in
+        // chrono_sensor_vkrt.rgen. The former hardcoded 0.025 floor overrode SetAmbientLight(0)
+        // and biased comparisons against a pure direct-lighting reference.
+        const ChVector3f ambient_floor(std::max(ambient_light.x(), 0.f),
+                                       std::max(ambient_light.y(), 0.f),
+                                       std::max(ambient_light.z(), 0.f));
         const ChVector3f sky = BackgroundColor(cache, scene, normal);
         const float sky_weight = (scene && scene->GetBackground().mode == BackgroundMode::SOLID_COLOR) ? 0.12f : 0.28f;
         color += mat.opacity * Mul(mat.diffuse, ambient_floor + sky_weight * sky) * ambient_shape;
