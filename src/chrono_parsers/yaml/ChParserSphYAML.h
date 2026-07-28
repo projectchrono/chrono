@@ -74,6 +74,9 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Access the underlying fluid system.
     virtual std::shared_ptr<fsi::ChFsiFluidSystem> GetFluidSystem() override { return m_fsi_problem->GetFluidSystemSPH(); }
 
+    /// Access the underlying fluid system.
+    std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> GetFluidSystemSPH() { return m_fsi_problem->GetFluidSystemSPH(); }
+
     // --------------
 
 #ifdef CHRONO_VSG
