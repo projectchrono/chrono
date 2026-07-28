@@ -243,6 +243,11 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_VSG
+
+const fsi::tdpf::ChTdpfVisualizationVSG::Settings& ChParserTdpfYAML::GetTdpfVisualizationSettings() const {
+    return m_visTDPF_settings;
+}
+
 std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserTdpfYAML::GetVisualizationPlugin() const {
     auto vis = chrono_types::make_shared<fsi::tdpf::ChTdpfVisualizationVSG>(m_sysFSI.get());
 
@@ -253,6 +258,7 @@ std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> ChParserTdpfYAML::GetVisualizati
 
     return vis;
 }
+
 #endif
 
 // -----------------------------------------------------------------------------

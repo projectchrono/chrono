@@ -2383,6 +2383,11 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
             auto grp = m_shapeBuilder->CreatePbrSurfaceShape(geometry, material, transform, resolution_u, resolution_v, double_faced, wireframe);
             group->addChild(grp);
+        } else {
+            // Every shape this backend can draw has matched above, mutable or not: a mutable triangle mesh is caught
+            // by the trimesh branch and skipped there for the deformable pass to handle. So anything reaching here is
+            // drawn by no VSG pass at all.
+            ReportUnsupportedVisualShape(*shape, "Chrono::VSG");
         }
     }
 }
