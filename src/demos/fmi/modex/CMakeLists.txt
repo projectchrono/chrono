@@ -2,7 +2,7 @@
 # Create FMUs
 #--------------------------------------------------------------------------
 
-if(${FMU_EXPORT_SUPPORT})
+if(${CH_ENABLE_FMU_EXPORT})
 
   # Create the Van der Pol FMUs (FMI 2.0 and 3.0)
   add_subdirectory(fmu2_vdp)
@@ -28,7 +28,7 @@ target_include_directories(${PROGRAMv} PUBLIC ${FMU_FORGE_DIR})
 
 target_compile_definitions(${PROGRAMv} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   target_compile_definitions(${PROGRAMv} PUBLIC VDP_FMU2_FILENAME="${VDP_FMU2_FILENAME}")
   target_compile_definitions(${PROGRAMv} PUBLIC VDP_FMU3_FILENAME="${VDP_FMU3_FILENAME}")
 endif()
@@ -41,7 +41,7 @@ if(MSVC)
   set_target_properties(${PROGRAMv} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   add_dependencies(${PROGRAMv} ${VDP_FMU2_MODEL_IDENTIFIER})
   add_dependencies(${PROGRAMv} ${VDP_FMU3_MODEL_IDENTIFIER})
 endif()
@@ -59,7 +59,7 @@ target_include_directories(${PROGRAMa} PUBLIC ${FMU_FORGE_DIR})
 
 target_compile_definitions(${PROGRAMa} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   target_compile_definitions(${PROGRAMa} PUBLIC ACTUATOR_FMU2_FILENAME="${ACTUATOR_FMU2_FILENAME}")
   #target_compile_definitions(${PROGRAMa} PUBLIC ACTUATOR_FMU3_FILENAME="${ACTUATOR_FMU3_FILENAME}")
 endif()
@@ -78,6 +78,6 @@ if(MSVC)
   set_target_properties(${PROGRAMa} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   add_dependencies(${PROGRAMa} ${ACTUATOR_FMU2_MODEL_IDENTIFIER})
 endif()
