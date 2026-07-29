@@ -1,0 +1,99 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2026 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Unit test for decoding the FMU resource location.
+//
+// The FMI standards and actual importers disagree on the form of the resource location handed to an FMU at
+// instantiation, so fmu_forge::ResourceLocationToPath has to accept all of them. Regression test for
+// projectchrono/chrono#762, where a conforming "file:///abs/path" from FMPy lost its root slash on POSIX and the
+// FMU then looked for its resources at a relative path.
+//
+// Every expectation here is platform independent: the decoder has no platform-specific branches, and a location
+// carrying no "file:" scheme is already a path and is returned verbatim on any OS.
+// =============================================================================
+
+#include <string>
+
+#include "FmuToolsResourceLocation.h"
+
+#include "gtest/gtest.h"
+
+using fmu_forge::ResourceLocationToPath;
+
+// -----------------------------------------------------------------------------
+// The standard RFC 8089 form, emitted by FMPy and by fmusim. Losing the root slash on the POSIX case is issue #762.
+
+TEST(FmuResourceLocation, StandardFileURI) {
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/tmpX/resources"), "/tmp/tmpX/resources");
+    EXPECT_EQ(ResourceLocationToPath("file:///C:/Users/dn/Temp/tmpX/resources"), "C:/Users/dn/Temp/tmpX/resources");
+}
+
+// -----------------------------------------------------------------------------
+// The non-conforming four-slash form that fmu_forge::FmuUnit::Instantiate emits on POSIX, where m_directory is
+// already rooted. FMUs in circulation depend on it, so it must keep resolving to the same absolute path.
+
+TEST(FmuResourceLocation, LegacyFourSlashURI) {
+    EXPECT_EQ(ResourceLocationToPath("file:////tmp/_fmu_temp/resources"), "/tmp/_fmu_temp/resources");
+    EXPECT_EQ(ResourceLocationToPath("file:///C:/Users/dn/Temp/_fmu_temp/resources"),
+              "C:/Users/dn/Temp/_fmu_temp/resources");
+}
+
+// -----------------------------------------------------------------------------
+// Authority component: empty or "localhost", or absent entirely. A drive letter sitting where an authority would
+// go must not be eaten as one.
+
+TEST(FmuResourceLocation, AuthorityForms) {
+    EXPECT_EQ(ResourceLocationToPath("file://localhost/tmp/x/resources"), "/tmp/x/resources");
+    EXPECT_EQ(ResourceLocationToPath("file:/tmp/x/resources"), "/tmp/x/resources");
+    EXPECT_EQ(ResourceLocationToPath("file://C:/x/resources"), "C:/x/resources");
+}
+
+// -----------------------------------------------------------------------------
+// Percent-encoded octets, which importers produce for any path containing a space.
+
+TEST(FmuResourceLocation, PercentEncoding) {
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/my%20dir/resources"), "/tmp/my dir/resources");
+    EXPECT_EQ(ResourceLocationToPath("file:///C:/Program%20Files/res"), "C:/Program Files/res");
+    // A '%' not introducing two hex digits is passed through rather than mangled.
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/100%/res"), "/tmp/100%/res");
+}
+
+// -----------------------------------------------------------------------------
+// A location with no scheme is a path already: what FMI 3.0 specifies for resourcePath, and what
+// ChExternalFmu passes when given an explicit resources directory. Returned verbatim, so a literal '%' survives
+// and a UNC path is never mistaken for a URI authority.
+
+TEST(FmuResourceLocation, PlainPathsReturnedVerbatim) {
+    EXPECT_EQ(ResourceLocationToPath("/home/x/res"), "/home/x/res");
+    EXPECT_EQ(ResourceLocationToPath("C:/x/res"), "C:/x/res");
+    EXPECT_EQ(ResourceLocationToPath("C:\\x\\res"), "C:\\x\\res");
+    EXPECT_EQ(ResourceLocationToPath("\\\\server\\share\\res"), "\\\\server\\share\\res");
+    EXPECT_EQ(ResourceLocationToPath("resources"), "resources");
+    EXPECT_EQ(ResourceLocationToPath("/home/x/100%/res"), "/home/x/100%/res");
+}
+
+// -----------------------------------------------------------------------------
+// An empty result is the only failure mode, and is what makes the caller fall back to a library-relative guess.
+
+TEST(FmuResourceLocation, EmptyInput) {
+    EXPECT_EQ(ResourceLocationToPath(""), "");
+}
+
+// -----------------------------------------------------------------------------
+
+TEST(FmuResourceLocation, PercentDecode) {
+    EXPECT_EQ(fmu_forge::PercentDecode("a%20b"), "a b");
+    EXPECT_EQ(fmu_forge::PercentDecode("%2Fa%2fb"), "/a/b");  // upper and lower case hex
+    EXPECT_EQ(fmu_forge::PercentDecode("100%"), "100%");      // truncated escape
+    EXPECT_EQ(fmu_forge::PercentDecode("%zz"), "%zz");        // not hex
+    EXPECT_EQ(fmu_forge::PercentDecode("%2"), "%2");          // one digit short
+    EXPECT_EQ(fmu_forge::PercentDecode("nothing"), "nothing");
+}
