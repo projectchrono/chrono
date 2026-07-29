@@ -69,10 +69,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double average_diam;         ///< average particle diameter (default: 0.005)
         double cohesion_coeff;       ///< cohesion coefficient (default: 0)
         RheologyCRM rheology_model;  ///< rheology model (default: MU_OF_I)
-        double mcc_M;                // CSL line slope
-        double mcc_kappa;            // Compression index
-        double mcc_lambda;           // Swelling index
-        double mcc_v_lambda;         // Specific volume at reference pressure of 1000 Pa
+        double mcc_M;                ///< CSL line slope
+        double mcc_kappa;            ///< Compression index
+        double mcc_lambda;           ///< Swelling index
+        double mcc_v_lambda;         ///< Specific volume at reference pressure of 1000 Pa
 
         ElasticMaterialProperties();
     };
