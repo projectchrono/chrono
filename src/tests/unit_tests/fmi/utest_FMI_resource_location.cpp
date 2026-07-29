@@ -129,6 +129,30 @@ TEST(FmuResourceLocation, EmptyInput) {
 
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// JoinPath backs FmuComponentBase::GetResourcePath(), which is how a concrete FMU appends a file name to the
+// resources directory without knowing whether that directory ends in a separator. That independence is the point:
+// it means a future change to how the resources location is stored cannot silently produce "resourcesVehicle.json".
+
+TEST(FmuResourceLocation, JoinPathIsSeparatorAgnostic) {
+    using fmu_forge::JoinPath;
+    // With and without a trailing separator, same answer.
+    EXPECT_EQ(JoinPath("/tmp/res/", "Vehicle.json"), "/tmp/res/Vehicle.json");
+    EXPECT_EQ(JoinPath("/tmp/res", "Vehicle.json"), "/tmp/res/Vehicle.json");
+    // Windows separators are honored rather than doubled.
+    EXPECT_EQ(JoinPath("C:\\tmp\\res\\", "Vehicle.json"), "C:\\tmp\\res\\Vehicle.json");
+    EXPECT_EQ(JoinPath("C:/tmp/res", "Vehicle.json"), "C:/tmp/res/Vehicle.json");
+    // Degenerate arguments concatenate rather than inventing a separator.
+    EXPECT_EQ(JoinPath("", "Vehicle.json"), "Vehicle.json");
+    EXPECT_EQ(JoinPath("/tmp/res/", ""), "/tmp/res/");
+    EXPECT_EQ(JoinPath("", ""), "");
+    // A decoded resource location fed straight in, as the FMUs do.
+    EXPECT_EQ(JoinPath(ResourceLocationToPath("file:///tmp/x/resources"), "Vehicle.json"),
+              "/tmp/x/resources/Vehicle.json");
+}
+
+// -----------------------------------------------------------------------------
+
 TEST(FmuResourceLocation, PercentDecode) {
     EXPECT_EQ(fmu_forge::PercentDecode("a%20b"), "a b");
     EXPECT_EQ(fmu_forge::PercentDecode("%2Fa%2fb"), "/a/b");  // upper and lower case hex

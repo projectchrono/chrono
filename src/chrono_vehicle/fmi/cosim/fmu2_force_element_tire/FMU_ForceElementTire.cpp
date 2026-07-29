@@ -65,8 +65,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     query_point = ChVector3d(0.0);
 
     // Get default JSON file from FMU resources
-    const auto& resources_dir = GetResourcesLocation();
-    tire_JSON = resources_dir + "TMeasyTire.json";
+    tire_JSON = GetResourcePath("TMeasyTire.json");
 
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&tire_JSON, "tire_JSON", FmuVariable::Type::String, "1", "tire JSON",         //
