@@ -37,8 +37,10 @@ TEST(FmuResourceLocation, StandardFileURI) {
 }
 
 // -----------------------------------------------------------------------------
-// The non-conforming four-slash form that fmu_forge::FmuUnit::Instantiate emits on POSIX, where m_directory is
-// already rooted. FMUs in circulation depend on it, so it must keep resolving to the same absolute path.
+// The four-slash form that fmu_forge::FmuUnit::Instantiate emits on POSIX, where m_directory is
+// already rooted. Extra leading slashes after "file:" are syntactically permitted, so this is unusual
+// practice rather than invalid; either way FMUs in circulation depend on it, so it must keep resolving
+// to the same absolute path as the standard three-slash spelling.
 
 TEST(FmuResourceLocation, LegacyFourSlashURI) {
     EXPECT_EQ(ResourceLocationToPath("file:////tmp/_fmu_temp/resources"), "/tmp/_fmu_temp/resources");
