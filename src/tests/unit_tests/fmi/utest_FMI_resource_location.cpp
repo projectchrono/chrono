@@ -52,8 +52,41 @@ TEST(FmuResourceLocation, LegacyFourSlashURI) {
 
 TEST(FmuResourceLocation, AuthorityForms) {
     EXPECT_EQ(ResourceLocationToPath("file://localhost/tmp/x/resources"), "/tmp/x/resources");
+    EXPECT_EQ(ResourceLocationToPath("file://LocalHost/tmp/x/resources"), "/tmp/x/resources");  // host is case-insensitive
     EXPECT_EQ(ResourceLocationToPath("file:/tmp/x/resources"), "/tmp/x/resources");
     EXPECT_EQ(ResourceLocationToPath("file://C:/x/resources"), "C:/x/resources");
+}
+
+// -----------------------------------------------------------------------------
+// A non-local authority names the host holding the file (RFC 8089). Dropping it would silently turn a remote
+// location into a different local path, so it is preserved as a UNC path.
+
+TEST(FmuResourceLocation, NonLocalAuthorityBecomesUNC) {
+    EXPECT_EQ(ResourceLocationToPath("file://server/share/resources"), "//server/share/resources");
+    EXPECT_EQ(ResourceLocationToPath("file://server.example.com/share/res"), "//server.example.com/share/res");
+}
+
+// -----------------------------------------------------------------------------
+// URI schemes are case-insensitive (RFC 3986, section 3.1).
+
+TEST(FmuResourceLocation, SchemeIsCaseInsensitive) {
+    EXPECT_EQ(ResourceLocationToPath("FILE:///tmp/x/resources"), "/tmp/x/resources");
+    EXPECT_EQ(ResourceLocationToPath("FiLe:///tmp/x/resources"), "/tmp/x/resources");
+    EXPECT_EQ(ResourceLocationToPath("FILE:///C:/x/resources"), "C:/x/resources");
+    // A scheme that merely starts with the same letters is not "file:".
+    EXPECT_EQ(ResourceLocationToPath("filex:///tmp/x"), "filex:///tmp/x");
+}
+
+// -----------------------------------------------------------------------------
+// Degenerate URIs: a "file:" URI must always yield a rooted path, never a stray "//" or an empty string
+// (an empty return means "could not decode" and sends the caller to its fallback).
+
+TEST(FmuResourceLocation, DegenerateSlashOnlyURIs) {
+    EXPECT_EQ(ResourceLocationToPath("file:/"), "/");
+    EXPECT_EQ(ResourceLocationToPath("file://"), "/");
+    EXPECT_EQ(ResourceLocationToPath("file:///"), "/");
+    EXPECT_EQ(ResourceLocationToPath("file:////"), "/");
+    EXPECT_EQ(ResourceLocationToPath("file://///"), "/");
 }
 
 // -----------------------------------------------------------------------------
@@ -64,6 +97,13 @@ TEST(FmuResourceLocation, PercentEncoding) {
     EXPECT_EQ(ResourceLocationToPath("file:///C:/Program%20Files/res"), "C:/Program Files/res");
     // A '%' not introducing two hex digits is passed through rather than mangled.
     EXPECT_EQ(ResourceLocationToPath("file:///tmp/100%/res"), "/tmp/100%/res");
+    // Octets above 0x7F must survive decoding: bytes are bytes, and the hex test must not depend on
+    // locale or on char signedness. "caf%C3%A9" is UTF-8 for "café".
+    const std::string cafe = std::string("/tmp/caf") + char(0xC3) + char(0xA9) + "/res";
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/caf%C3%A9/res"), cafe);
+    // A raw (unescaped) high byte is left alone, and must not be mistaken for a drive letter.
+    const std::string raw = std::string("/tmp/") + char(0xC3) + "/res";
+    EXPECT_EQ(ResourceLocationToPath(std::string("file:///tmp/") + char(0xC3) + "/res"), raw);
 }
 
 // -----------------------------------------------------------------------------
