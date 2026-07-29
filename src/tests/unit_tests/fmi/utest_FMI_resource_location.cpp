@@ -80,8 +80,9 @@ TEST(FmuResourceLocation, SchemeIsCaseInsensitive) {
 }
 
 // -----------------------------------------------------------------------------
-// Degenerate URIs: a "file:" URI must always yield a rooted path, never a stray "//" or an empty string
-// (an empty return means "could not decode" and sends the caller to its fallback).
+// Degenerate slash-only URIs: a "file:" URI whose path is nothing but slashes denotes the root, never a stray
+// "//" and never an empty string (an empty return means "could not decode" and sends the caller to its
+// fallback). This says nothing about a relative reference, which stays relative; see the test two below.
 
 TEST(FmuResourceLocation, DegenerateSlashOnlyURIs) {
     EXPECT_EQ(ResourceLocationToPath("file:/"), "/");
