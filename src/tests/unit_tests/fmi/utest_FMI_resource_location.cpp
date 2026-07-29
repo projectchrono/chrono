@@ -109,6 +109,34 @@ TEST(FmuResourceLocation, PercentEncoding) {
 }
 
 // -----------------------------------------------------------------------------
+// An unescaped '?' starts the query and '#' starts the fragment; neither is part of the path (RFC 3986, section 3.3).
+// The regex this decoder replaced captured ([^#\?]+), i.e. it stopped at both, so keeping them would be a regression:
+// the expected values below are the ones the previous implementation produced.
+
+TEST(FmuResourceLocation, QueryAndFragmentAreNotPartOfThePath) {
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/res?foo=1"), "/tmp/res");
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/res#bar"), "/tmp/res");
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/res?foo=1#bar"), "/tmp/res");
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/my%20dir/res?v=2"), "/tmp/my dir/res");
+    EXPECT_EQ(ResourceLocationToPath("file://localhost/tmp/res?v=2"), "/tmp/res");
+    // A delimiter immediately after the path leaves the path intact.
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/res/?v=2"), "/tmp/res/");
+    // Escaped forms are ordinary characters in a file name and must survive.
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/what%3F/res"), "/tmp/what?/res");
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/hash%23tag/res"), "/tmp/hash#tag/res");
+    // A plain path is not a URI, so a '?' in it is just a character.
+    EXPECT_EQ(ResourceLocationToPath("/tmp/res?foo=1"), "/tmp/res?foo=1");
+}
+
+// -----------------------------------------------------------------------------
+// A relative reference has a relative path by definition; the decoder must not invent a root for it.
+
+TEST(FmuResourceLocation, RelativeReferenceStaysRelative) {
+    EXPECT_EQ(ResourceLocationToPath("file:resources/Vehicle.json"), "resources/Vehicle.json");
+    EXPECT_EQ(ResourceLocationToPath("file:resources"), "resources");
+}
+
+// -----------------------------------------------------------------------------
 // A location with no scheme is a path already: what FMI 3.0 specifies for resourcePath, and what
 // ChExternalFmu passes when given an explicit resources directory. Returned verbatim, so a literal '%' survives
 // and a UNC path is never mistaken for a URI authority.
