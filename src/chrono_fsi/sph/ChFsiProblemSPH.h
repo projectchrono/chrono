@@ -128,13 +128,14 @@ class CH_FSI_API ChFsiProblemSPH {
         virtual ~ParticlePropertiesCallback() {}
 
         /// Set values for particle properties.
-        /// The default implementation sets pressure and velocity to zero and constant density and viscosity.
+        /// The default implementation sets pressure to zero, except for CRM with MCC rheology in which case the pressure is set to 1e3.
+        /// The default velocity is zero and density and viscosity are constant.
         /// If an override is provided, it must set *all* particle properties.
         virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) {
-            p0 = 0;
+            p0 = (sysSPH.GetPhysicsProblem() == PhysicsProblem::CRM && sysSPH.GetParams().rheology_model_crm == RheologyCRM::MCC) ? 1e3 : 0;
+            v0 = VNULL;
             rho0 = sysSPH.GetDensity();
             mu0 = sysSPH.GetViscosity();
-            v0 = VNULL;
             pre_pressure_scale0 = 1.01;
         }
 
