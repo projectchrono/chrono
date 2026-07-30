@@ -1919,7 +1919,7 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
     // At q = 0 the modified Cam-Clay yield ellipse meets the p axis at `consolidation_pressure`,
     // so an admissible initial state needs consolidation_pressure >= pressure.
     if (m_paramsH->elastic_SPH && m_paramsH->rheology_model_crm == RheologyCRM::MCC)
-        ChAssertAlways(pressure > 0 && consolidation_pressure > pressure);
+        ChAssertAlways(pressure > 0 && consolidation_pressure >= pressure);
 
     m_data_mgr->AddSphParticle(ToReal3(pos), density, pressure, viscosity, ToReal3(vel), ToReal3(tau_diag), ToReal3(tau_offdiag), consolidation_pressure);
 }
