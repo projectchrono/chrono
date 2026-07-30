@@ -72,11 +72,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     fps = 60;
 
     // Get default JSON files from the FMU resources directory
-    auto resources_dir = std::string(fmuResourceLocation).erase(0, 8);
-    data_path = resources_dir + "/";
-    vehicle_JSON = resources_dir + "/Vehicle.json";
-    engine_JSON = resources_dir + "/EngineShafts.json";
-    transmission_JSON = resources_dir + "/AutomaticTransmissionShafts.json";
+    data_path = GetResourcesLocation();  // a directory: the trailing separator is part of the contract
+    vehicle_JSON = GetResourcePath("Vehicle.json");
+    engine_JSON = GetResourcePath("EngineShafts.json");
+    transmission_JSON = GetResourcePath("AutomaticTransmissionShafts.json");
 
     // Set wheel identifier strings
     wheel_data[0].identifier = "FL";
