@@ -456,7 +456,7 @@ std::shared_ptr<ChBodyGeometry> ChBodyGeometry::Combine(std::vector<std::pair<Ch
         const auto& comp = components[i].second;
         for (size_t j = 0; j < comp.materials.size(); j++) {
             g->materials.push_back(comp.materials[j]);
-            matID[i].push_back(g->materials.size() - 1);
+            matID[i].push_back(static_cast<int>(g->materials.size() - 1));
         }
     }
 
