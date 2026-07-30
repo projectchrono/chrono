@@ -456,10 +456,10 @@ void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShape
     // Triangle mesh with connectivity ------------------------
     if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh)) {
         std::vector<std::array<int, 4>> neighb_trimap;  // [Ti, TAi, TBi, TCi]
-        bool ok_trimap = mesh->ComputeNeighbouringTriangleMap(neighb_trimap);
+        mesh->ComputeNeighbouringTriangleMap(neighb_trimap);
 
         std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;  // {v1i, v2i}->{T1i, T2i}
-        bool ok_wingedge = mesh->ComputeWingedEdges(winged_edges, true);
+        mesh->ComputeWingedEdges(winged_edges, true);
 
         std::vector<bool> added_vertices(mesh->m_vertices.size(), false);
 
