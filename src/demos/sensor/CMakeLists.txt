@@ -49,6 +49,14 @@ if(CH_USE_SENSOR_OPTIX)
   
 endif()
 
+# 1:1 Vulkan-vs-OptiX camera validation. Needs Vulkan RT; with OptiX also enabled it does the
+# in-process comparison, with Vulkan alone it captures the Vulkan image for a cross-GPU diff.
+if(CH_USE_SENSOR_VULKAN_RT)
+    set(DEMOS ${DEMOS}
+        demo_SEN_vulkan_validation
+    )
+endif()
+
 list(REMOVE_DUPLICATES DEMOS)
 
 #--------------------------------------------------------------
