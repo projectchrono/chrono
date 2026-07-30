@@ -206,16 +206,15 @@ FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH
 
 FsiDataManager::~FsiDataManager() {}
 
-void FsiDataManager::AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel, Real3 tauXxYyZz, Real3 tauXyXzYz, Real pc) {
+void FsiDataManager::AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel, Real3 tau_diag, Real3 tau_offdiag, Real pc) {
     sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->h));
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
 
     if (paramsH->elastic_SPH) {
-        sphMarkers_H->tauXyXzYzH.push_back(tauXyXzYz);
-        sphMarkers_H->tauXxYyZzH.push_back(tauXxYyZz);
+        sphMarkers_H->tauXyXzYzH.push_back(tau_offdiag);
+        sphMarkers_H->tauXxYyZzH.push_back(tau_diag);
         if (paramsH->rheology_model_crm == RheologyCRM::MCC) {
-            ChAssertAlways(pc > 0);
             // Initial condition from https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
             Real confining_stress = pres;
             Real p1 = 1000;

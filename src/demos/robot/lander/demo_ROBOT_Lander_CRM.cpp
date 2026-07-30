@@ -74,8 +74,9 @@ const double FOOTPAD_MASS = 2.0;
 // Drop height (2m above the legs) - used to calculate initial velocity if USE_DROP_HEIGHT_MODE is true
 const double DROP_HEIGHT = 2.0;
 
-// Initial velocity mode switch: true = calculate from drop height (v = sqrt(2*g*h)), false = use INITIAL_VELOCITY
-// directly
+// Initial velocity mode switch:
+// - true = calculate from drop height (v = sqrt(2*g*h))
+// - false = use INITIAL_VELOCITY directly
 const bool USE_DROP_HEIGHT_MODE = false;  // Set to false to use INITIAL_VELOCITY directly
 
 // Initial velocity (m/s) - used when USE_DROP_HEIGHT_MODE is false (negative = downward)
@@ -93,21 +94,16 @@ const bool snapshots = true;      // Enable snapshot saving
 const bool ADD_LANDERBODY_BCE = true;
 const bool ADD_LANDERLEGS_BCE = true;
 
-class SPHPropertiesCallbackWithPressureScale : public ChFsiProblemSPH::ParticlePropertiesCallback {
+// Callback for setting initial SPH particle properties
+class SPHPropertiesCallbackWithPressureScale : public DepthPressurePropertiesCallback {
   public:
-    SPHPropertiesCallbackWithPressureScale(double zero_height, double pre_pressure_scale)
-        : ParticlePropertiesCallback(), zero_height(zero_height), pre_pressure_scale(pre_pressure_scale) {}
+    SPHPropertiesCallbackWithPressureScale(double zero_height, double pre_pressure_scale) : DepthPressurePropertiesCallback(zero_height), pre_pressure_scale(pre_pressure_scale) {}
 
     virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
-        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
-        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysSPH.GetDensity();
-        mu0 = sysSPH.GetViscosity();
-        v0 = ChVector3d(0, 0, 0);
-        pre_pressure_scale0 = pre_pressure_scale;
+        DepthPressurePropertiesCallback::set(sysSPH, pos);
+        consolidation_pressure = pre_pressure_scale * p0;
     }
 
-    double zero_height;
     double pre_pressure_scale;
 };
 
@@ -162,7 +158,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemNSC sys;
-    // ChSystemSMC sys;
+
     // Simulation loop
     double step_size = 5e-4;
     double mu_s = 0.6;

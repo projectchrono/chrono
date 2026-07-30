@@ -102,8 +102,7 @@ int main(int argc, char* argv[]) {
 
     // Pre-initialization setter calls must be accepted (documented pattern)
     std::cout << "Before Initialize():" << std::endl;
-    ExpectNoThrow("SetArtificialViscosityCoefficient (pre-init)",
-                  [&] { sysSPH->SetArtificialViscosityCoefficient(0.02); });
+    ExpectNoThrow("SetArtificialViscosityCoefficient (pre-init)", [&] { sysSPH->SetArtificialViscosityCoefficient(0.02); });
     ExpectNoThrow("SetBodyForce (pre-init)", [&] { sysSPH->SetBodyForce(ChVector3d(0, 0, 0)); });
 
     ChVector3d fsize(bxDim, byDim, bzDim - 2 * initial_spacing);
@@ -146,8 +145,7 @@ int main(int argc, char* argv[]) {
     ExpectThrow("SetShiftingPPSTParameters", [&] { sysSPH->SetShiftingPPSTParameters(3.0, 0.0); });
     ExpectThrow("SetShiftingXSPHParameters", [&] { sysSPH->SetShiftingXSPHParameters(0.5); });
     ExpectThrow("SetShiftingDiffusionParameters", [&] { sysSPH->SetShiftingDiffusionParameters(1.0, 1.0, 1.0); });
-    ExpectThrow("SetConsistentDerivativeDiscretization",
-                [&] { sysSPH->SetConsistentDerivativeDiscretization(false, false); });
+    ExpectThrow("SetConsistentDerivativeDiscretization", [&] { sysSPH->SetConsistentDerivativeDiscretization(false, false); });
     ExpectThrow("SetCohesionForce", [&] { sysSPH->SetCohesionForce(0.0); });
     ExpectThrow("SetNumProximitySearchSteps", [&] { sysSPH->SetNumProximitySearchSteps(4); });
     ExpectThrow("SetUseVariableTimeStep", [&] { sysSPH->SetUseVariableTimeStep(false); });
@@ -183,8 +181,7 @@ int main(int argc, char* argv[]) {
     sph2.AddBoxSPH(ChVector3d(0, 0, bzDim / 2), ChVector3d(bxDim / 2, byDim / 2, bzDim / 4));
     ExpectNoThrow("standalone Initialize()", [&] { sph2.ChFsiFluidSystem::Initialize(); });  // base entry point (derived overloads hide it)
     ExpectThrow("standalone SetDensity (post-init)", [&] { sph2.SetDensity(1200); });
-    ExpectThrow("standalone SetArtificialViscosityCoefficient (post-init)",
-                [&] { sph2.SetArtificialViscosityCoefficient(0.3); });
+    ExpectThrow("standalone SetArtificialViscosityCoefficient (post-init)", [&] { sph2.SetArtificialViscosityCoefficient(0.3); });
 
     if (num_failures > 0) {
         std::cout << "\n" << num_failures << " failure(s)" << std::endl;

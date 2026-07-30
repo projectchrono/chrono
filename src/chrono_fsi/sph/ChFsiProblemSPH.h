@@ -120,34 +120,9 @@ class CH_FSI_API ChFsiProblemSPH {
     void AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 #endif
 
-    /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
-    class CH_FSI_API ParticlePropertiesCallback {
-      public:
-        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL), pre_pressure_scale0(1.01) {}
-        ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
-        virtual ~ParticlePropertiesCallback() {}
-
-        /// Set values for particle properties.
-        /// The default implementation sets pressure to zero, except for CRM with MCC rheology in which case the pressure is set to 1e3.
-        /// The default velocity is zero and density and viscosity are constant.
-        /// If an override is provided, it must set *all* particle properties.
-        virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) {
-            p0 = (sysSPH.GetPhysicsProblem() == PhysicsProblem::CRM && sysSPH.GetParams().rheology_model_crm == RheologyCRM::MCC) ? 1e3 : 0;
-            v0 = VNULL;
-            rho0 = sysSPH.GetDensity();
-            mu0 = sysSPH.GetViscosity();
-            pre_pressure_scale0 = 1.01;
-        }
-
-        double p0;
-        double rho0;
-        double mu0;
-        ChVector3d v0;
-        double pre_pressure_scale0;
-    };
-
     /// Register a callback for setting SPH particle initial properties.
-    void RegisterParticlePropertiesCallback(std::shared_ptr<ParticlePropertiesCallback> callback) { m_props_cb = callback; }
+    /// If no custom callback is used, the default ChFsiFluidSystemSPH::ParticlePropertiesCallback is used.
+    void RegisterParticlePropertiesCallback(std::shared_ptr<ChFsiFluidSystemSPH::ParticlePropertiesCallback> callback) { m_props_cb = callback; }
 
     /// Set gravitational acceleration for both multibody and fluid systems.
     void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI->SetGravitationalAcceleration(gravity); }
@@ -315,7 +290,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
 
-    std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
+    std::shared_ptr<ChFsiFluidSystemSPH::ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 
     std::unique_ptr<SphParticleRelocator> m_relocator;
 
@@ -479,26 +454,6 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
   private:
     virtual ChVector3i Snap2Grid(const ChVector3d& point) override;
     virtual ChVector3d Grid2Point(const ChVector3i& p) override;
-};
-
-// ----------------------------------------------------------------------------
-
-/// Predefined SPH particle initial properties callback (depth-based pressure).
-class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
-  public:
-    DepthPressurePropertiesCallback(double zero_height) : ParticlePropertiesCallback(), zero_height(zero_height) {}
-
-    virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
-        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
-        double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
-        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysSPH.GetDensity() + p0 / c2;
-        mu0 = sysSPH.GetViscosity();
-        v0 = VNULL;
-    }
-
-  private:
-    double zero_height;
 };
 
 // ----------------------------------------------------------------------------

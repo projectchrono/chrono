@@ -240,8 +240,7 @@ void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
 // arrays are fixed at Initialize.
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type) {
     if (m_is_initialized) {
-        ChAssertAlways(bc_type.x == m_paramsH->bc_type.x && bc_type.y == m_paramsH->bc_type.y &&
-                       bc_type.z == m_paramsH->bc_type.z);
+        ChAssertAlways(bc_type.x == m_paramsH->bc_type.x && bc_type.y == m_paramsH->bc_type.y && bc_type.z == m_paramsH->bc_type.z);
         m_paramsH->use_default_limits = false;
         ApplyComputationalDomain(computational_AABB);
         return;
@@ -1425,8 +1424,8 @@ void ChFsiFluidSystemSPH::ApplyComputationalDomain(const ChAABB& computational_A
     Real3 new_ext = new_cMax - new_cMin;
 
     const Real rtol = Real(1e-5);
-    bool same_size = (std::abs(new_ext.x - old_ext.x) <= rtol * old_ext.x) &&
-                     (std::abs(new_ext.y - old_ext.y) <= rtol * old_ext.y) &&
+    bool same_size = (std::abs(new_ext.x - old_ext.x) <= rtol * old_ext.x) &&  //
+                     (std::abs(new_ext.y - old_ext.y) <= rtol * old_ext.y) &&  //
                      (std::abs(new_ext.z - old_ext.z) <= rtol * old_ext.z);
     if (!same_size)
         ChAssertAlways(!"post-initialization SetComputationalDomain supports pure translation only");
@@ -1895,35 +1894,45 @@ void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) con
 
 //------------------------------------------------------------------------------
 
+void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos, std::shared_ptr<ParticlePropertiesCallback> props_cb) {
+    props_cb->set(*this, pos);
+    AddSPHParticle(pos, props_cb->rho0, props_cb->p0, props_cb->mu0, props_cb->v0, props_cb->tau_diag, props_cb->tau_offdiag, props_cb->consolidation_pressure);
+}
+
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
-                                         double rho,
-                                         double pres,
-                                         double mu,
                                          const ChVector3d& vel,
-                                         const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz,
-                                         const double pc) {
-    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
+                                         const ChVector3d& tau_diag,
+                                         const ChVector3d& tau_offdiag,
+                                         const double consolidation_pressure) {
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tau_diag, tau_offdiag, consolidation_pressure);
 }
 
-void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos, const ChVector3d& vel, const ChVector3d& tauXxYyZz, const ChVector3d& tauXyXzYz, const double pc) {
-    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz, pc);
+void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
+                                         double density,
+                                         double pressure,
+                                         double viscosity,
+                                         const ChVector3d& vel,
+                                         const ChVector3d& tau_diag,
+                                         const ChVector3d& tau_offdiag,
+                                         const double consolidation_pressure) {
+    // Consolidation pressure is only used in the MCC rheology model.
+    // At q = 0 the modified Cam-Clay yield ellipse meets the p axis at `consolidation_pressure`,
+    // so an admissible initial state needs consolidation_pressure >= pressure.
+    if (m_paramsH->elastic_SPH && m_paramsH->rheology_model_crm == RheologyCRM::MCC)
+        ChAssertAlways(pressure > 0 && consolidation_pressure > pressure);
+
+    m_data_mgr->AddSphParticle(ToReal3(pos), density, pressure, viscosity, ToReal3(vel), ToReal3(tau_diag), ToReal3(tau_offdiag), consolidation_pressure);
 }
 
-void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
-    // Use a chrono sampler to create a bucket of points
+void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim, std::shared_ptr<ParticlePropertiesCallback> params_cb) {
+    if (!params_cb)
+        params_cb = chrono_types::make_shared<ParticlePropertiesCallback>();
+
+    // Use a Chrono sampler to create a set of points and add SPH particles at each one of them
     utils::ChGridSampler<> sampler(m_paramsH->d0);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
-
-    // Add fluid particles from the sampler points to the FSI system
-    int numPart = (int)points.size();
-    for (int i = 0; i < numPart; i++) {
-        AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
-                       ChVector3d(0),  // initial velocity
-                       ChVector3d(0),  // tau_xx_yy_zz
-                       ChVector3d(0),  // tau_xy_xz_yz
-                       0);             // pc
-    }
+    for (const auto& p : points)
+        AddSPHParticle(p, params_cb);
 }
 
 //------------------------------------------------------------------------------

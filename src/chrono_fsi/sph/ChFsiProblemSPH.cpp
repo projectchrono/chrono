@@ -248,33 +248,16 @@ void ChFsiProblemSPH::Initialize() {
 
     // Callback for setting initial particle properties
     if (!m_props_cb)
-        m_props_cb = chrono_types::make_shared<ParticlePropertiesCallback>();
+        m_props_cb = chrono_types::make_shared<ChFsiFluidSystemSPH::ParticlePropertiesCallback>();
 
     // Create SPH particles
-    switch (m_sysSPH->GetPhysicsProblem()) {
-        case PhysicsProblem::CFD: {
-            for (const auto& pos : sph_points) {
-                m_props_cb->set(*m_sysSPH, pos);
-                m_sysSPH->AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
-            }
-            break;
-        }
-        case PhysicsProblem::CRM: {
-            ChVector3d tau_offdiag(0);
-            for (const auto& pos : sph_points) {
-                m_props_cb->set(*m_sysSPH, pos);
-                ChVector3d tau_diag(-m_props_cb->p0);
-                // Consolidation Pressure is only used in the MCC rheology model
-                double consolidation_pressure = m_props_cb->p0 * m_props_cb->pre_pressure_scale0;
-                m_sysSPH->AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
-                                         tau_diag, tau_offdiag, consolidation_pressure);
-            }
-            break;
-        }
+    for (const auto& pos : sph_points) {
+        m_props_cb->set(*m_sysSPH, pos);
+        m_sysSPH->AddSPHParticle(pos, m_props_cb);
     }
 
     // Create boundary BCE markers
-    // (ATTENTION: BCE markers must be created after the SPH particles!)
+    // ATTENTION: BCE markers must be created after the SPH particles!
     m_sysSPH->AddBCEBoundary(bce_points, m_ground->GetFrameRefToAbs());
 
     if (m_verbose) {

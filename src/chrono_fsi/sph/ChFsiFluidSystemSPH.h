@@ -364,26 +364,70 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------- Functions for adding SPH particles
 
-    /// Add an SPH particle with given properties to the FSI system.
-    void AddSPHParticle(const ChVector3d& pos,
-                        double rho,
-                        double pres,
-                        double mu,
-                        const ChVector3d& vel = ChVector3d(0),
-                        const ChVector3d& tauXxYyZz = ChVector3d(0),
-                        const ChVector3d& tauXyXzYz = ChVector3d(0),
-                        const double pc = 1e3);
+    /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
+    class CH_FSI_API ParticlePropertiesCallback {
+      public:
+        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL), tau_diag(VNULL), tau_offdiag(VNULL), consolidation_pressure(0) {}
+        ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
+        virtual ~ParticlePropertiesCallback() {}
 
-    /// Add an SPH particle with current properties to the SPH system.
+        /// Set values for particle properties.
+        /// If an override is provided, it must set *all* particle properties for the current problem type:
+        /// - PhysicsProblem::CFD:           p0, v0, rho0, mu0
+        /// - PhysicsProblem::CRM (MU_OF_I): p0, v0, rho0, mu0, tau_diag, tau_offdiag
+        /// - PhysicsProblem::CRM (MCC):     p0, v0, rho0, mu0, tau_diag, tau_offdiag, consolidation_pressure
+        /// The default implementation sets zero velocity and constant density and viscosity.
+        /// The default pressure is set to zero, except for CRM with MCC rheology in which case the pressure is set to 1e3.
+        virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) {
+            p0 = 0;
+            v0 = VNULL;
+            rho0 = sysSPH.GetDensity();
+            mu0 = sysSPH.GetViscosity();
+
+            if (sysSPH.GetPhysicsProblem() == PhysicsProblem::CRM && sysSPH.GetParams().rheology_model_crm == RheologyCRM::MCC) {
+                p0 = 1e3;
+                consolidation_pressure = 1.01 * p0;
+            }
+
+            tau_diag = ChVector3d(-p0);
+            tau_offdiag = VNULL;
+        }
+
+        double p0;
+        double rho0;
+        double mu0;
+        ChVector3d v0;
+        ChVector3d tau_diag;            ///< CRM only
+        ChVector3d tau_offdiag;         ///< CRM only
+        double consolidation_pressure;  ///< CRM/MCC only
+    };
+
+    /// Add an SPH particle at the specified location with properties provided by the given callback object.
+    void AddSPHParticle(const ChVector3d& pos, std::shared_ptr<ParticlePropertiesCallback> props_cb);
+
+    /// Add an SPH particle at the specified location with current FSI-SPH system properties (base pressure, density, and viscosity).
+    /// Note that tau_diag and tau_offdiag are only used for CRM problems and consolidation_pressure is only needed for CRM with MCC rheology.
     void AddSPHParticle(const ChVector3d& pos,
                         const ChVector3d& vel = ChVector3d(0),
-                        const ChVector3d& tauXxYyZz = ChVector3d(0),
-                        const ChVector3d& tauXyXzYz = ChVector3d(0),
-                        const double pc = 1e3);
+                        const ChVector3d& tau_diag = ChVector3d(0),
+                        const ChVector3d& tau_offdiag = ChVector3d(0),
+                        const double consolidation_pressure = 1e3);
+
+    /// Add an SPH particle at the specified location with given properties.
+    /// Note that tau_diag and tau_offdiag are only used for CRM problems and consolidation_pressure is only needed for CRM with MCC rheology.
+    void AddSPHParticle(const ChVector3d& pos,
+                        double density,
+                        double pressure,
+                        double viscosity,
+                        const ChVector3d& vel = ChVector3d(0),
+                        const ChVector3d& tau_diag = ChVector3d(0),
+                        const ChVector3d& tau_offdiag = ChVector3d(0),
+                        const double consolidation_pressure = 1e3);
 
     /// Create SPH particles in the specified box volume.
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
-    void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
+    /// If not provided, a default ParticlePropertiesCallback callback object is used to set initial particle properties.
+    void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim, std::shared_ptr<ParticlePropertiesCallback> params_cb = nullptr);
 
     // -----------
 
@@ -720,6 +764,43 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     friend class ChFsiInterfaceSPH;
     friend class ChFsiProblemSPH;
     friend class ChFsiSplashsurfSPH;
+};
+
+// ----------------------------------------------------------------------------
+
+/// Predefined SPH particle initial properties callback (depth-based pressure).
+class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiFluidSystemSPH::ParticlePropertiesCallback {
+  public:
+    DepthPressurePropertiesCallback(double zero_height, ChVector3d init_vel = VNULL) : ParticlePropertiesCallback(), zero_height(zero_height), init_vel(init_vel) {}
+
+    virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
+
+        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+        rho0 = sysSPH.GetDensity() + p0 / c2;
+        mu0 = sysSPH.GetViscosity();
+        v0 = init_vel;
+
+        // The MCC rheology derives each particle's initial specific volume from log(pc/p), so both the confining pressure
+        // and the consolidation pressure must be strictly positive. A depth-based pressure calculation yields exactly zero
+        // at the reference height, which is where the topmost particle layer normally sits, so floor the pressure at the
+        // overburden of a quarter spacing, using the same spacing that positions the layers.
+        // Note that with no gravity along z there is no overburden to derive a confinement from, so reject it here.
+        if (sysSPH.GetPhysicsProblem() == PhysicsProblem::CRM && sysSPH.GetParams().rheology_model_crm == RheologyCRM::MCC) {
+            ChAssertAlways(gz > 0);
+            double p0_min = sysSPH.GetDensity() * gz * sysSPH.GetInitialSpacing() / 4;
+            p0 = std::max(p0, p0_min);
+            consolidation_pressure = 1.01 * p0;
+        }
+
+        tau_diag = ChVector3(-p0);
+        tau_offdiag = VNULL;
+    }
+
+  private:
+    double zero_height;
+    ChVector3d init_vel;
 };
 
 /// @} fsisph
