@@ -30,7 +30,7 @@ precice_adapter_config:
   
   data_path:
     type: RELATIVE
-    root: "."
+    root: "../fluid_tdpf"
 
   bodies:
   - name: ball

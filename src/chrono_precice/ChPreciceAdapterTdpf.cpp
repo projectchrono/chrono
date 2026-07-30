@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono_precice/ChPreciceAdapterSph.h"
+#include "chrono_precice/ChPreciceAdapterTdpf.h"
 
 using std::cout;
 using std::cerr;
@@ -21,33 +21,32 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapterSph::ChPreciceAdapterSph(std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose)
-    : ChPreciceAdapter("model_SPH"), m_sysSPH(sysSPH), m_time_step(time_step) {
+ChPreciceAdapterTdpf::ChPreciceAdapterTdpf(std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> sysTDPF, double time_step, bool verbose)
+    : ChPreciceAdapter("model_TDPF"), m_sysTDPF(sysTDPF) {
     SetVerbose(verbose);
 }
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool verbose) {
+ChPreciceAdapterTdpf::ChPreciceAdapterTdpf(const std::string& input_filename, bool verbose) {
     SetVerbose(verbose);
 
-    // Create an SPH YAML parser and the underlying FSI problem, but do not initialize the FSI problem
-    parsers::ChParserSphYAML parser(input_filename, verbose);
+    // Create a TDPF YAML parser and the underlying fluid solver, but do not initialize the FSI problem
+    parsers::ChParserTdpfYAML parser(input_filename, verbose);
     m_model_name = parser.GetName();
-    m_fsi_problem = parser.CreateFsiProblemSPH(false);
-    m_sysSPH = m_fsi_problem->GetFluidSystemSPH();
-    m_time_step = parser.GetTimestep();
+    m_sysFSI = parser.CreateFsiSystemTDPF(false);
+    m_sysTDPF = parser.GetFluidSystemTDPF();
 
     // Extract information from parsed YAML files
     m_output_settings = parser.GetOutputSettings();
     #ifdef CHRONO_VSG
     m_vis_settings = parser.GetVisualizationSettings();
-    m_visSPH_settings = parser.GetSphVisualizationSettings();
+    m_visTDPF_settings = parser.GetTdpfVisualizationSettings();
     #endif
 
     // Read common preCICE participant configuration (participant name, file handler, and coupling interfaces)
     ReadParticipantConfigurationYAML(input_filename);
 
-    // Read SPH-specific preCICE configuration (coupling objects)
+    // Read TDPF-specific preCICE configuration (coupling objects)
     YAML::Node yaml = YAML::LoadFile(input_filename);
     ChAssertAlways(yaml["precice_adapter_config"]);
     auto config = yaml["precice_adapter_config"];
@@ -66,17 +65,7 @@ ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool
             if (bodies[i]["orientation"])
                 body_rot = ReadRotation(bodies[i]["orientation"], m_use_degrees);
 
-            if (bodies[i]["shapes"]) {
-                ChAssertAlways(bodies[i]["shapes"].IsSequence());
-                auto body_geometry = ReadCollisionGeometry(bodies[i]["shapes"], m_file_handler, m_use_degrees);
-                AddCouplingBody(body_name, ChFramed(body_pos, body_rot), body_geometry);
-            } else if (bodies[i]["points"]) {
-                auto points_file = bodies[i]["points"].as<std::string>();
-                auto points = ReadPoints(m_file_handler.GetFilename(points_file));
-                AddCouplingBody(body_name, ChFramed(body_pos, body_rot), points);
-            } else {
-                throw std::runtime_error("ERROR");
-            }
+            AddCouplingBody(body_name, ChFramed(body_pos, body_rot));
         }
     }
 
@@ -87,8 +76,9 @@ ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool
     }
     #endif
 
-    // Initialize the FSI problem (now that FSI solids are specified)
-    m_fsi_problem->Initialize();
+    // Initialize the fluid solver (now that FSI solids are specified)
+    // Attention: do *not* call ChFsiSystemTDPF::Initialize() as that attempts to set up added mass for an MBS system!
+    m_sysFSI->ChFsiSystem::Initialize();
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------\n" << endl;
@@ -98,10 +88,7 @@ ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool
 
 // -----------------------------------------------------------------------------
 
-//// TODO - get rid of using a ChFsiProblemSPH when adding a body!!!
-//// OK to use it when initializing the preCICE adapter from a YAML file (because the parser creates it anyway)
-
-void ChPreciceAdapterSph::AddCouplingBody(const std::string& name, const ChFramed& frame, std::shared_ptr<ChBodyGeometry> geometry) {
+void ChPreciceAdapterTdpf::AddCouplingBody(const std::string& name, const ChFramed& frame) {
     auto c_body = chrono_types::make_shared<CouplingBody>();
     c_body->index = (int)m_coupling_bodies.size();
     c_body->init_body_frame = frame;
@@ -112,26 +99,12 @@ void ChPreciceAdapterSph::AddCouplingBody(const std::string& name, const ChFrame
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
     body->SetFrameRefToAbs(frame);
 
-    m_fsi_problem->AddRigidBody(body, geometry, true);
-}
-
-void ChPreciceAdapterSph::AddCouplingBody(const std::string& name, const ChFramed& frame, const std::vector<ChVector3d> bce) {
-    auto c_body = chrono_types::make_shared<CouplingBody>();
-    c_body->index = (int)m_coupling_bodies.size();
-    c_body->init_body_frame = frame;
-    c_body->points = bce;
-    m_coupling_bodies.push_back(c_body);
-
-    // Create a dummy body
-    auto body = chrono_types::make_shared<ChBodyAuxRef>();
-    body->SetFrameRefToAbs(frame);
-
-    m_fsi_problem->AddRigidBody(body, bce, ChFramed(), true);
+    m_sysFSI->AddFsiBody(body, nullptr, false);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::InitializeParticipant() {
+void ChPreciceAdapterTdpf::InitializeParticipant() {
     // For each interface mesh:
     // - check that coupling meshes have dimension 3 (as reported by preCICE)
     // - check correct coupling data type (read and write)
@@ -167,8 +140,8 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::FORCES:
                 case CouplingDataType::TORQUES:
-                    cerr << "[InitializeParticipant] Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                    throw std::runtime_error("Invalid Chrono SPH read data type");
+                    cerr << "[InitializeParticipant] Invalid Chrono TDPF read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    throw std::runtime_error("Invalid Chrono TDPF read data type");
             }
         }
 
@@ -195,8 +168,8 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
-                    cerr << "[InitializeParticipant] Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                    throw std::runtime_error("Invalid Chrono SPH write data type");
+                    cerr << "[InitializeParticipant] Invalid Chrono TDPF write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    throw std::runtime_error("Invalid Chrono TDPF write data type");
             }
         }
 
@@ -245,23 +218,17 @@ void ChPreciceAdapterSph::InitializeParticipant() {
         if (m_verbose)
             cout << m_prefix2 << "Set up run-time visualization" << endl;
 
-        // SPH visualization plugin
-        auto visFSI = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(m_sysSPH.get());
-        visFSI->EnableFluidMarkers(m_visSPH_settings.sph_markers);
-        visFSI->EnableBoundaryMarkers(m_visSPH_settings.bndry_bce_markers);
-        visFSI->EnableRigidBodyMarkers(m_visSPH_settings.rigid_bce_markers);
-        visFSI->EnableFlexBodyMarkers(m_visSPH_settings.flex_bce_markers);
-        if (m_visSPH_settings.color_callback)
-            visFSI->SetSPHColorCallback(m_visSPH_settings.color_callback, m_visSPH_settings.colormap);
-        if (m_visSPH_settings.visibility_callback_sph)
-            visFSI->SetSPHVisibilityCallback(m_visSPH_settings.visibility_callback_sph);
-        if (m_visSPH_settings.visibility_callback_bce)
-            visFSI->SetBCEVisibilityCallback(m_visSPH_settings.visibility_callback_bce);
+        // TDPF visualization plugin
+        auto visFSI = chrono_types::make_shared<fsi::tdpf::ChTdpfVisualizationVSG>(m_sysTDPF.get());
+        visFSI->SetWaveMeshVisibility(true);
+        visFSI->SetWaveMeshColormap(m_visTDPF_settings.colormap, 0.95f);
+        visFSI->SetWaveMeshColorMode(m_visTDPF_settings.mode, m_visTDPF_settings.range);
+        visFSI->SetWaveMeshUpdateFrequency(m_visTDPF_settings.update_fps);
 
         // VSG visual system (attach visFSI as plugin)
         m_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vsg->AttachPlugin(visFSI);
-        m_vsg->SetWindowTitle("Chrono preCICE SPH participant - " + m_participant_name);
+        m_vsg->SetWindowTitle("Chrono preCICE TDPF participant - " + m_participant_name);
         m_vsg->SetWindowSize(1280, 800);
         m_vsg->SetWindowPosition(100, 100);
         m_vsg->AddCamera(m_vis_settings.camera_location, m_vis_settings.camera_target);
@@ -278,17 +245,17 @@ void ChPreciceAdapterSph::InitializeParticipant() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::WriteCheckpoint(double time) {
-    throw std::runtime_error("Checkpointing not available for Chrono::FSI-SPH");
+void ChPreciceAdapterTdpf::WriteCheckpoint(double time) {
+    throw std::runtime_error("Checkpointing not available for Chrono::FSI-TDPF");
 }
 
-void ChPreciceAdapterSph::ReadCheckpoint(double time) {
-    throw std::runtime_error("Checkpointing not available for Chrono::FSI-SPH");
+void ChPreciceAdapterTdpf::ReadCheckpoint(double time) {
+    throw std::runtime_error("Checkpointing not available for Chrono::FSI-TDPF");
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::ReadData() {
+void ChPreciceAdapterTdpf::ReadData() {
     ChPreciceAdapter::ReadData();
 
     for (const auto& [mesh_name, mesh_info] : m_coupling_meshes) {
@@ -309,7 +276,7 @@ void ChPreciceAdapterSph::ReadData() {
     }
 }
 
-void ChPreciceAdapterSph::WriteData() {
+void ChPreciceAdapterTdpf::WriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -330,7 +297,7 @@ void ChPreciceAdapterSph::WriteData() {
     ChPreciceAdapter::WriteData();
 }
 
-void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
+void ChPreciceAdapterTdpf::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
     size_t num_bodies = m_coupling_bodies.size();
@@ -396,25 +363,25 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                throw std::runtime_error("Invalid Chrono SPH read data type");
+                cerr << "[ReadBodyRefData] Invalid Chrono TDPF read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                throw std::runtime_error("Invalid Chrono TDPF read data type");
         }
     }
 
-    // Pass the body states to the SPH solver
-    m_sysSPH->LoadSolidStates(body_states);
-    m_sysSPH->OnExchangeSolidStates();
+    // Pass the body states to the TDPF solver
+    m_sysTDPF->LoadSolidStates(body_states);
+    m_sysTDPF->OnExchangeSolidStates();
 }
 
-void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
+void ChPreciceAdapterTdpf::WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
     auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
 
     size_t num_bodies = m_coupling_bodies.size();
     std::vector<fsi::FsiBodyForce> body_forces(num_bodies);
 
-    // Get the body forces from the SPH solver
-    m_sysSPH->OnExchangeSolidForces();
-    m_sysSPH->StoreSolidForces(body_forces);
+    // Get the body forces from the TDPF solver
+    m_sysTDPF->OnExchangeSolidForces();
+    m_sysTDPF->StoreSolidForces(body_forces);
 
     // Write data
     for (const auto& data_name : m_data_write[mesh_name]) {
@@ -451,30 +418,30 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
-                throw std::runtime_error("Invalid Chrono SPH write data type");
+                cerr << "[ReadBodyRefData] Invalid Chrono TDPF write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                throw std::runtime_error("Invalid Chrono TDPF write data type");
         }
     }
 }
 
-void ChPreciceAdapterSph::ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
+void ChPreciceAdapterTdpf::ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
     //// TODO
     throw std::runtime_error("CouplingMeshType::RIGID_BODY_MESH_POINTS not yet implemented");
 }
 
-void ChPreciceAdapterSph::WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
+void ChPreciceAdapterTdpf::WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
     //// TODO
     throw std::runtime_error("CouplingMeshType::RIGID_BODY_MESH_POINTS not yet implemented");
 }
 
 // -----------------------------------------------------------------------------
 
-double ChPreciceAdapterSph::GetSolverTimeStep(double max_time_step) const {
-    return std::min(m_time_step, max_time_step);
+double ChPreciceAdapterTdpf::GetSolverTimeStep(double max_time_step) const {
+    return max_time_step;
 }
 
-void ChPreciceAdapterSph::AdvanceParticipant(double time, double time_step) {
-    ChAssertAlways(time == m_sysSPH->GetSimTime());
+void ChPreciceAdapterTdpf::AdvanceParticipant(double time, double time_step) {
+    ChAssertAlways(time == m_sysTDPF->GetSimTime());
 
     // Generate output (if enabled)
     Output(time);
@@ -483,12 +450,12 @@ void ChPreciceAdapterSph::AdvanceParticipant(double time, double time_step) {
     Render(time);
 
     // Advance system dynamics
-    m_sysSPH->DoStepDynamics(time_step);
+    m_sysTDPF->DoStepDynamics(time_step);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::WriteOutput(int frame, double time) {
+void ChPreciceAdapterTdpf::WriteOutput(int frame, double time) {
     // Invoke first the base class function, to create the output DB if needed
     ChPreciceAdapter::WriteOutput(frame, time);
 

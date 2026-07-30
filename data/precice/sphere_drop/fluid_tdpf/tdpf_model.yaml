@@ -4,6 +4,12 @@ model:
   name: sphere_drop
   angle_degrees: true
    
+  data_path:
+    type: RELATIVE
+    root: "."
+
+  h5_file: sphere.h5
+   
   waves:
     type: no_wave
     

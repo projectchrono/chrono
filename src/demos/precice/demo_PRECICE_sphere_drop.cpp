@@ -16,6 +16,7 @@
 // fluid. The fluid phase preCICE participant can be one of:
 // (a) a mock-up fluid solver that only applies buoyancy and drag forces
 // (b) a Chrono::SPH solver
+// (c) a Chrono::TDPF solver
 //
 // =============================================================================
 
@@ -28,6 +29,10 @@
 
 #ifdef CHRONO_FSI_SPH
     #include "chrono_precice/ChPreciceAdapterSph.h"
+#endif
+
+#ifdef CHRONO_FSI_TDPF
+    #include "chrono_precice/ChPreciceAdapterTdpf.h"
 #endif
 
 #ifdef CHRONO_VSG
@@ -53,6 +58,7 @@ using std::endl;
 void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output, bool use_added_mass);
 void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
+void RunParticipantTDPF(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 
 // =============================================================================
 
@@ -89,10 +95,11 @@ int main(int argc, char* argv[]) {
         "Specify the participant type, one of:\n"                                        //
         " 'Solid'      - Chrono multibody solid phase\n"                                 //
         " 'Fluid_SPH'  - Chrono::SPH fluid solver\n"                                     //
+        " 'Fluid_TDPF' - Chrono::TDPF fluid solver\n"                                    //
         " 'Fluid_BUOY' - mock-up fluid solver that applies buoyancy and drag forces\n";  //
 
     ChCLI cli(argv[0], help);
-    cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_SPH, Fluid_BUOY)");
+    cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_SPH, Fluid_TDPF, Fluid_BUOY)");
     cli.AddOption<bool>("", "m,use_added_mass", "Include added mass terms (only for 'Solid' participant)");
 
     if (!cli.Parse(argc, argv, true))
@@ -115,8 +122,10 @@ int main(int argc, char* argv[]) {
         RunParticipantCFD(precice_config_filename, out_dir, verbose, visualize, output);
     else if (type == "Fluid_SPH")
         RunParticipantSPH(precice_config_filename, out_dir, verbose, visualize, output);
+    else if (type == "Fluid_TDPF")
+        RunParticipantTDPF(precice_config_filename, out_dir, verbose, visualize, output);
     else
-        cerr << "Unrecognized participant. Use 'Solid', 'Fluid_BUOY', or 'Fluid_SPH'" << endl;
+        cerr << "Unrecognized participant. Use 'Solid', 'Fluid_BUOY', 'Fluid_TDPF', or 'Fluid_SPH'" << endl;
 
     return 0;
 }
@@ -173,6 +182,43 @@ void RunParticipantSPH(const std::string& precice_config_filename, const std::st
     participant.InitializeSimulation();
 
     //// DEBUG - advance SPH participant with no data exchange
+    ////auto h = participant.GetSolverTimeStep(1000);
+    ////double t = 0;
+    ////for (int i = 0; i < 10000; i++) {
+    ////    participant.AdvanceParticipant(t, h);
+    ////    t += h;
+    ////}
+
+    participant.RunSimulation();
+    participant.FinalizeSimulation();
+}
+
+// =============================================================================
+
+void RunParticipantTDPF(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
+#ifdef CHRONO_FSI_TDPF
+    ChPreciceAdapterTdpf participant(GetChronoDataFile("precice/sphere_drop/fluid_tdpf/tdpf_participant.yaml"), verbose);
+
+    auto tdpf_out_dir = out_dir + "tdpf";
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(tdpf_out_dir))) {
+            std::cout << "Error creating directory " << tdpf_out_dir << std::endl;
+            throw std::runtime_error("Error creating TDPF output directory");
+        }
+        participant.SetOutputDir(tdpf_out_dir);
+    }
+#else
+    cerr << "Chrono was not configured with FSI-TDPF support!" << endl;
+    throw("Chrono was not configured with FSI-TDPF support");
+#endif
+
+    participant.EnableOutput(output);
+    participant.EnableVisualization(visualize);
+
+    participant.RegisterParticipant(precice_config_filename);
+    participant.InitializeSimulation();
+
+    //// DEBUG - advance TDPF participant with no data exchange
     ////auto h = participant.GetSolverTimeStep(1000);
     ////double t = 0;
     ////for (int i = 0; i < 10000; i++) {

@@ -49,12 +49,12 @@ if(CH_ENABLE_MODULE_FSI_SPH)
         ChPreciceAdapterSph.cpp
     )
 endif()
-#if(CH_ENABLE_MODULE_FSI_TDPF)
-#    set(Chrono_PRECICE_FILES ${Chrono_PRECICE_FILES}
-#        ChPreciceAdapterTdpf.h
-#        ChPreciceAdapterTdpf.cpp
-#    )
-#endif()
+if(CH_ENABLE_MODULE_FSI_TDPF)
+    set(Chrono_PRECICE_FILES ${Chrono_PRECICE_FILES}
+        ChPreciceAdapterTdpf.h
+        ChPreciceAdapterTdpf.cpp
+    )
+endif()
 #if(CH_ENABLE_MODULE_VEHICLE)
 #    set(Chrono_PRECICE_FILES ${Chrono_PRECICE_FILES}
 #        ChPreciceAdapterVehicle.h
