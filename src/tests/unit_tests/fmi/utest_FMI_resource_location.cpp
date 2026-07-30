@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "FmuToolsResourceLocation.h"
+#include "FmuForgeResourceLocation.h"
 
 #include "gtest/gtest.h"
 

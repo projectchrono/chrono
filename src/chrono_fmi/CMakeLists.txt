@@ -117,36 +117,37 @@ set(Chrono_FMI_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFMI.h.in ${Chrono_FMI_CONFIG_FILE} @ONLY)
 
-source_group("" FILES ${Chrono_FMI_CONFIG_FILE})
-
 install(FILES ${Chrono_FMI_CONFIG_FILE} DESTINATION include/chrono_fmi)
 
 #=============================================================================
 # Create the Chrono::FMI library
 
-set(Chrono_FMI_SOURCES 
-    ChExternalFmu.cpp
-)
-
-set(Chrono_FMI_HEADERS
+set(Chrono_FMI_FILES
     ChApiFMI.h 
     ChExternalFmu.h
-    fmi2/ChFmuToolsImport.h
-    fmi3/ChFmuToolsImport.h
-    fmi2/ChFmuToolsExport.h
-    fmi3/ChFmuToolsExport.h
+    ChExternalFmu.cpp
+    ${Chrono_FMI_CONFIG_FILE}
 )
+source_group("" FILES ${Chrono_FMI_FILES})
 
-source_group("" FILES 
-            ${Chrono_FMI_HEADERS} 
-            ${Chrono_FMI_SOURCES})
+set(Chrono_FMI2_FILES
+    fmi2/ChFmuForgeImport.h
+    fmi2/ChFmuForgeExport.h
+)
+source_group("fmi2" FILES ${Chrono_FMI2_FILES})
+
+set(Chrono_FMI3_FILES
+    fmi3/ChFmuForgeImport.h
+    fmi3/ChFmuForgeExport.h
+)
+source_group("fmi3" FILES ${Chrono_FMI3_FILES})
 
 #-----------------------------------------------------------------------------
 
 add_library(Chrono_fmi
-            ${Chrono_FMI_HEADERS}
-            ${Chrono_FMI_SOURCES}
-            ${Chrono_FMI_CONFIG_FILE}
+            ${Chrono_FMI_FILES}
+            ${Chrono_FMI2_FILES}
+            ${Chrono_FMI3_FILES}
 )
 
 add_library(Chrono::fmi ALIAS Chrono_fmi)
