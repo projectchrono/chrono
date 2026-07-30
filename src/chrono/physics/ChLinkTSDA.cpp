@@ -60,6 +60,7 @@ ChLinkTSDA::ChLinkTSDA(const ChLinkTSDA& other) : ChLink(other) {
 
     if (other.m_ode_fun) {
         RegisterODE(other.m_ode_fun);
+        m_states = other.GetStates();
     } else {
         m_ode_fun = nullptr;
         m_variables = nullptr;
@@ -252,7 +253,7 @@ void ChLinkTSDA::ComputeJacobians(double time,                 // current time
             state_w_perturbed(12 + i) -= m_FD_delta;
         }
 
-        // Overwrite ODE Jacobian (rhs w.r.t internal states) if provided.
+        // Overwrite ODE Jacobian (of the right-hand side w.r.t internal states) if provided.
         m_jacobians->m_J.setZero();
         bool overwrite =
             m_ode_fun->CalculateJac(time, m_states, m_Qforce.segment(12, m_nstates), m_jacobians->m_J, *this);

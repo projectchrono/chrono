@@ -12,7 +12,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicleFMI.h.in
 
 # Create all FMUs
 
-if(FMU_EXPORT_SUPPORT)
+if(CH_ENABLE_FMU_EXPORT)
 
   message(STATUS "Add Chrono::Vehicle co-simulation FMUs...")
   add_subdirectory(cosim)

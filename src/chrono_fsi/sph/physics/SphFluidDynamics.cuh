@@ -52,6 +52,11 @@ class SphFluidDynamics {
     /// Destructor of the fluid/granular dynamics class.
     ~SphFluidDynamics();
 
+    /// This class owns raw device resources (a stream and the rheology failure flag), so it is
+    /// neither copyable nor assignable.
+    SphFluidDynamics(const SphFluidDynamics&) = delete;
+    SphFluidDynamics& operator=(const SphFluidDynamics&) = delete;
+
     /// Perform proximity search.
     /// Sort particles (broad-phase) and create neighbor lists (narrow-phase)
     void ProximitySearch();
@@ -105,6 +110,7 @@ class SphFluidDynamics {
 
     bool m_verbose;
     bool m_check_errors;
+    bool* m_errflagD;  ///< device-resident rheology failure flag
 
     /// Advance the state of the fluid system using an explicit Euler step.
     void EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT);

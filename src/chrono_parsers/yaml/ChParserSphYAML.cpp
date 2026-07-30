@@ -540,7 +540,7 @@ class WavemakerFunction : public ChFunction {
 };
 
 // Callback for setting initial SPH particle properties
-class SPHPropertiesCallback : public fsi::sph::ChFsiProblemSPH::ParticlePropertiesCallback {
+class SPHPropertiesCallback : public fsi::sph::ChFsiFluidSystemSPH::ParticlePropertiesCallback {
   public:
     SPHPropertiesCallback(bool set_pressure, double zero_height, bool set_velocity, const ChVector3d& init_velocity)
         : ParticlePropertiesCallback(), set_pressure(set_pressure), zero_height(zero_height), set_velocity(set_velocity), init_velocity(init_velocity) {}
@@ -552,11 +552,21 @@ class SPHPropertiesCallback : public fsi::sph::ChFsiProblemSPH::ParticleProperti
             p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
             rho0 = sysSPH.GetDensity() + p0 / c2;
             mu0 = sysSPH.GetViscosity();
+
+            // CRM
+            if (sysSPH.GetPhysicsProblem() == fsi::sph::PhysicsProblem::CRM && sysSPH.GetParams().rheology_model_crm == fsi::sph::RheologyCRM::MCC) {
+                ChAssertAlways(gz > 0);
+                double p0_min = sysSPH.GetDensity() * gz * sysSPH.GetInitialSpacing() / 4;
+                p0 = std::max(p0, p0_min);
+                consolidation_pressure = 1.01 * p0;
+            }
+
+            tau_diag = ChVector3(-p0);
+            tau_offdiag = VNULL;
         }
 
-        if (set_velocity) {
+        if (set_velocity)
             v0 = init_velocity;
-        }
     }
 
     bool set_pressure;

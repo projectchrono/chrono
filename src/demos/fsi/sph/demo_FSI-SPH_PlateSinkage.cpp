@@ -99,36 +99,36 @@ struct PlateSinkageParams {
     std::string gravity = "earth";  // "earth" (9.81) or "moon" (1.62) [m/s^2]
 
     // Soil (our-owned, representative values)
-    double rho = 1600;        // bulk density [kg/m^3]
-    double Emod = 28e6;       // Young's modulus [Pa] (generic demo value, 28 MPa)
-    double nu = 0.25;         // Poisson ratio [-]
-    double phi_deg = 40;      // internal friction angle [deg]
-    double cohesion = 1000;   // cohesion [Pa] (1 kPa; consumed by mu(I) only)
+    double rho = 1600;          // bulk density [kg/m^3]
+    double Emod = 28e6;         // Young's modulus [Pa] (generic demo value, 28 MPa)
+    double nu = 0.25;           // Poisson ratio [-]
+    double phi_deg = 40;        // internal friction angle [deg]
+    double cohesion = 1000;     // cohesion [Pa] (1 kPa; consumed by mu(I) only)
     double grain_diam = 0.005;  // mean grain diameter [m] (mu(I) inertial number)
 
     // Test (plate and push)
-    double diameter = 0.300;       // plate diameter [m] (300 mm circular plate)
-    double velocity = 0.005;       // push velocity [m/s] (5 mm/s; quasi-static)
+    double diameter = 0.300;        // plate diameter [m] (300 mm circular plate)
+    double velocity = 0.005;        // push velocity [m/s] (5 mm/s; quasi-static)
     double target_sinkage = 0.020;  // target sinkage = plate push travel [m] (20 mm)
 
     // Domain and resolution
-    double spacing = 0.0125;  // SPH particle spacing d0 [m] (converged default,
-                              //   ~15 min on one GPU; use --spacing 0.02 for a
-                              //   coarser ~5 min preview, which runs stiffer)
+    double spacing = 0.0125;   // SPH particle spacing d0 [m] (converged default,
+                               //   ~15 min on one GPU; use --spacing 0.02 for a
+                               //   coarser ~5 min preview, which runs stiffer)
     double container_x = 0.9;  // soil bin size, X [m] (3 plate diameters wide)
     double container_y = 0.9;  // soil bin size, Y [m]
     double container_z = 0.5;  // soil bin depth, Z [m]
 
     // Numerics (stabilization)
-    double settle_time = 0.5;            // minimum gravity-settle time [s]
-    double artificial_viscosity = 0.2;   // artificial viscosity coefficient [-]
+    double settle_time = 0.5;             // minimum gravity-settle time [s]
+    double artificial_viscosity = 0.2;    // artificial viscosity coefficient [-]
     double free_surface_threshold = 0.8;  // particle-deficiency free-surface cutoff [-]
 
     // Output and visualization
-    int output_points = 100;   // number of equidistant-in-time output intervals (curve has ~this many rows)
-    bool output = false;       // write settled particle state + geostatic profile
-    bool render = true;        // run-time visualization (VSG); --no_vis disables
-    bool verbose = false;      // verbose solver output
+    int output_points = 100;  // number of equidistant-in-time output intervals (curve has ~this many rows)
+    bool output = false;      // write settled particle state + geostatic profile
+    bool render = true;       // run-time visualization (VSG); --no_vis disables
+    bool verbose = false;     // verbose solver output
 };
 
 // -----------------------------------------------------------------------------
@@ -146,7 +146,8 @@ bool GetProblemSpecs(int argc, char* argv[], PlateSinkageParams& p) {
 
     cli.AddOption<double>("Test", "diameter", "Plate diameter [m]", std::to_string(p.diameter));
     cli.AddOption<double>("Test", "velocity", "Push velocity [m/s]", std::to_string(p.velocity));
-    cli.AddOption<double>("Test", "target_sinkage", "Target sinkage = plate push travel [m]; reported sinkage is measured from the settled surface", std::to_string(p.target_sinkage));
+    cli.AddOption<double>("Test", "target_sinkage", "Target sinkage = plate push travel [m]; reported sinkage is measured from the settled surface",
+                          std::to_string(p.target_sinkage));
     cli.AddOption<std::string>("Test", "gravity", "Gravity (earth/moon)", p.gravity);
 
     cli.AddOption<double>("Domain", "spacing", "SPH particle spacing d0 [m]", std::to_string(p.spacing));
@@ -223,7 +224,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     const double gravity_mag = (grav == "moon") ? 1.62 : 9.81;  // [m/s^2]
-    const double phi = p.phi_deg * CH_PI / 180.0;  // friction angle [rad]
+    const double phi = p.phi_deg * CH_PI / 180.0;               // friction angle [rad]
     if (use_mcc && p.cohesion != 0)
         cout << "[warn] cohesion is not consumed by the MCC rheology; ignored" << endl;
 
@@ -235,9 +236,8 @@ int main(int argc, char* argv[]) {
         }
         return true;
     };
-    if (!(require_pos(p.rho, "rho") && require_pos(p.Emod, "Emod") && require_pos(p.diameter, "diameter") &&
-          require_pos(p.velocity, "velocity") && require_pos(p.target_sinkage, "target_sinkage") &&
-          require_pos(p.spacing, "spacing") && require_pos(p.container_x, "container_x") &&
+    if (!(require_pos(p.rho, "rho") && require_pos(p.Emod, "Emod") && require_pos(p.diameter, "diameter") && require_pos(p.velocity, "velocity") &&
+          require_pos(p.target_sinkage, "target_sinkage") && require_pos(p.spacing, "spacing") && require_pos(p.container_x, "container_x") &&
           require_pos(p.container_y, "container_y") && require_pos(p.container_z, "container_z")))
         return 1;
     if (p.nu < 0 || p.nu >= 0.5) {
@@ -262,7 +262,8 @@ int main(int argc, char* argv[]) {
     }
     if (p.grain_diam <= 0 || p.free_surface_threshold <= 0 || p.settle_time < 0 || p.artificial_viscosity < 0) {
         cerr << "ERROR: --grain_diam and --free_surface_threshold must be > 0; --settle_time and "
-                "--artificial_viscosity must be >= 0" << endl;
+                "--artificial_viscosity must be >= 0"
+             << endl;
         return 1;
     }
     if (p.container_x <= 2 * p.spacing || p.container_y <= 2 * p.spacing || p.container_z <= 2 * p.spacing) {
@@ -271,11 +272,11 @@ int main(int argc, char* argv[]) {
     }
 
     // ---- Derived plate quantities ------------------------------------------
-    const double plate_radius = p.diameter / 2;                        // [m]
-    const double plate_thickness = 0.02;                               // rigid puck height [m] (sized for BCE support)
-    const double plate_density = 7.8e3;                                // [kg/m^3] (steel; mass only sets inertia,
-                                                                       //   the motion is motor-prescribed)
-    const double plate_area = CH_PI * plate_radius * plate_radius;     // [m^2] (divides force -> pressure)
+    const double plate_radius = p.diameter / 2;                              // [m]
+    const double plate_thickness = 0.02;                                     // rigid puck height [m] (sized for BCE support)
+    const double plate_density = 7.8e3;                                      // [kg/m^3] (steel; mass only sets inertia,
+                                                                             //   the motion is motor-prescribed)
+    const double plate_area = CH_PI * plate_radius * plate_radius;           // [m^2] (divides force -> pressure)
     const double plate_mass = plate_density * plate_area * plate_thickness;  // [kg]
 
     // ---- Physics systems ----------------------------------------------------
@@ -287,8 +288,8 @@ int main(int argc, char* argv[]) {
     // Explicit integration step. The CRM solver is stable at a CFL-limited step;
     // this seed is small enough for the stiffness here and the variable time step
     // adapts from it. meta_step is the FSI communication interval.
-    const double step_size = 2e-5;                // [s]
-    const double meta_step = 5 * step_size;       // [s]
+    const double step_size = 2e-5;           // [s]
+    const double meta_step = 5 * step_size;  // [s]
     sysFSI.SetStepSizeCFD(step_size);
     sysFSI.SetStepsizeMBD(step_size);
 
@@ -307,14 +308,14 @@ int main(int argc, char* argv[]) {
     if (use_mcc) {
         mat.rheology_model = RheologyCRM::MCC;
         mat.mcc_M = (6.0 * std::sin(phi)) / (3.0 - std::sin(phi));  // CSL slope from phi
-        mat.mcc_kappa = 0.00625;   // swelling (unload/reload) slope
-        mat.mcc_lambda = 0.025;    // normal-compression-line slope
-        mat.mcc_v_lambda = 2.0;    // specific volume at reference pressure
+        mat.mcc_kappa = 0.00625;                                    // swelling (unload/reload) slope
+        mat.mcc_lambda = 0.025;                                     // normal-compression-line slope
+        mat.mcc_v_lambda = 2.0;                                     // specific volume at reference pressure
     } else {
         mat.rheology_model = RheologyCRM::MU_OF_I;
-        mat.mu_fric_s = std::tan(phi);   // static friction coefficient = tan(phi)
-        mat.mu_fric_2 = std::tan(phi);   // high-inertia friction (same here)
-        mat.mu_I0 = 0.03;                // reference inertial number
+        mat.mu_fric_s = std::tan(phi);    // static friction coefficient = tan(phi)
+        mat.mu_fric_2 = std::tan(phi);    // high-inertia friction (same here)
+        mat.mu_I0 = 0.03;                 // reference inertial number
         mat.average_diam = p.grain_diam;  // mean grain diameter [m]
         mat.cohesion_coeff = p.cohesion;  // cohesion [Pa]
     }
@@ -324,7 +325,7 @@ int main(int argc, char* argv[]) {
     ChFsiFluidSystemSPH::SPHParameters sph;
     sph.integration_scheme = IntegrationScheme::RK2;
     sph.initial_spacing = p.spacing;
-    sph.d0_multiplier = 1.3;                       // smoothing-length / spacing ratio
+    sph.d0_multiplier = 1.3;  // smoothing-length / spacing ratio
     sph.artificial_viscosity = p.artificial_viscosity;
     sph.shifting_method = ShiftingMethod::PPST_XSPH;
     sph.shifting_xsph_eps = 0.5;
@@ -362,8 +363,7 @@ int main(int argc, char* argv[]) {
         // Seed the normal-stress diagonal (tauXx,Yy,Zz) to -p0: an isotropic compressive
         // stress equal to the hydrostatic pressure (this is the full stress, not a
         // deviator). pc0 = p0 seeds the MCC pre-consolidation pressure (ignored by mu(I)).
-        sysSPH.AddSPHParticle(pt, rho0, p0, sysSPH.GetViscosity(), ChVector3d(0), ChVector3d(-p0, -p0, -p0),
-                              ChVector3d(0), p0);
+        sysSPH.AddSPHParticle(pt, rho0, p0, sysSPH.GetViscosity(), ChVector3d(0), ChVector3d(-p0, -p0, -p0), ChVector3d(0), p0);
     }
 
     // ---- Computational domain (a bit larger than the bin) -------------------
@@ -405,11 +405,9 @@ int main(int argc, char* argv[]) {
 
     sysFSI.Initialize();
 
-    cout << "[demo] rheology=" << (use_mcc ? "MCC" : "mu(I)") << "  particles=" << points.size()
-         << "  spacing=" << p.spacing << "  plate D=" << p.diameter << " m"
+    cout << "[demo] rheology=" << (use_mcc ? "MCC" : "mu(I)") << "  particles=" << points.size() << "  spacing=" << p.spacing << "  plate D=" << p.diameter << " m"
          << "  gravity=" << gravity_mag << " m/s^2" << endl;
-    cout << "[demo] soil_top_init=" << soil_top_init << " m  plate_bottom_init=" << (plate_z0 - plate_thickness / 2)
-         << " m" << endl;
+    cout << "[demo] soil_top_init=" << soil_top_init << " m  plate_bottom_init=" << (plate_z0 - plate_thickness / 2) << " m" << endl;
 
     // ---- Output directory ---------------------------------------------------
     std::string out_dir = GetChronoOutputPath() + "FSI_Plate_Sinkage/";
@@ -423,19 +421,17 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     if (p.render) {
         auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(&sysFSI);
-        visFSI->EnableFluidMarkers(true);         // soil particles
-        visFSI->EnableBoundaryMarkers(false);     // container walls (hidden for clarity)
-        visFSI->EnableRigidBodyMarkers(true);     // the plate
-        visFSI->SetSPHColorCallback(
-            chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2 * p.velocity), ChColormap::Type::FAST);
+        visFSI->EnableFluidMarkers(true);      // soil particles
+        visFSI->EnableBoundaryMarkers(false);  // container walls (hidden for clarity)
+        visFSI->EnableRigidBodyMarkers(true);  // the plate
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2 * p.velocity), ChColormap::Type::FAST);
 
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
         visVSG->SetWindowTitle("CRM Plate Sinkage");
         visVSG->SetWindowSize(1280, 800);
-        visVSG->AddCamera(ChVector3d(1.5 * p.container_x, -1.5 * p.container_y, soil_top_init + 0.4 * p.container_z),
-                          ChVector3d(0, 0, soil_top_init));
+        visVSG->AddCamera(ChVector3d(1.5 * p.container_x, -1.5 * p.container_y, soil_top_init + 0.4 * p.container_z), ChVector3d(0, 0, soil_top_init));
         visVSG->SetLightIntensity(0.9f);
         visVSG->Initialize();
         vis = visVSG;
@@ -524,9 +520,9 @@ int main(int argc, char* argv[]) {
     // displacement control), not on the noisier particle-derived datum.
     const double t_push = t;
     motor->SetMotorFunction(chrono_types::make_shared<ChFunctionRamp>(p.velocity * t_push, -p.velocity));
-    const double travel_target = p.target_sinkage;            // plate downward travel (stroke) [m]
-    const double push_duration = travel_target / p.velocity;  // [s]
-    const double t_end_max = t_push + 1.5 * push_duration;    // safety cap [s]
+    const double travel_target = p.target_sinkage;                             // plate downward travel (stroke) [m]
+    const double push_duration = travel_target / p.velocity;                   // [s]
+    const double t_end_max = t_push + 1.5 * push_duration;                     // safety cap [s]
     const double out_interval = push_duration / std::max(1, p.output_points);  // [s]
     double next_out = t_push;
     int next_progress_pct = 10;
@@ -563,8 +559,7 @@ int main(int argc, char* argv[]) {
 
             int pct = (int)(100 * plate_travel / travel_target);
             if (pct >= next_progress_pct) {
-                cout << "[demo] push " << pct << "%  sinkage=" << sinkage << " m  pressure=" << pressure / 1e3
-                     << " kPa  t=" << t << " s" << endl;
+                cout << "[demo] push " << pct << "%  sinkage=" << sinkage << " m  pressure=" << pressure / 1e3 << " kPa  t=" << t << " s" << endl;
                 next_progress_pct += 10;
             }
         }
@@ -572,8 +567,8 @@ int main(int argc, char* argv[]) {
     csv.close();
 
     double force_end = sysFSI.GetFsiBodyForce(0).z();
-    cout << "[demo] done: final sinkage=" << (soil_top - (plate->GetPos().z() - plate_thickness / 2))
-         << " m  final pressure=" << std::abs(force_end) / plate_area / 1e3 << " kPa" << endl;
+    cout << "[demo] done: final sinkage=" << (soil_top - (plate->GetPos().z() - plate_thickness / 2)) << " m  final pressure=" << std::abs(force_end) / plate_area / 1e3 << " kPa"
+         << endl;
     cout << "[demo] pressure-sinkage curve written to " << out_dir << "pressure_sinkage.csv" << endl;
 
 #ifdef CHRONO_POSTPROCESS

@@ -19,6 +19,8 @@
 #ifndef CH_SPH_UTILS_DEVICE_H
 #define CH_SPH_UTILS_DEVICE_H
 
+#include <iostream>
+
 #include "chrono/gpu/ChGpuRuntime.h"
 
 #include <thrust/device_vector.h>
@@ -103,14 +105,14 @@ namespace sph {
         if (error_flag_H) {                                                                                \
             char buffer[256];                                                                              \
             sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);   \
-            printf("%s\n", buffer);                                                                        \
+            std::cerr << buffer << std::endl;                                                              \
             throw std::runtime_error(buffer);                                                              \
         }                                                                                                  \
         gpuError e = gpuGetLastError();                                                                    \
         if (e != gpuSuccess) {                                                                             \
             char buffer[256];                                                                              \
             sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e)); \
-            printf("%s\n", buffer);                                                                        \
+            std::cerr << buffer << std::endl;                                                              \
             throw std::runtime_error(buffer);                                                              \
         }                                                                                                  \
     }
@@ -122,7 +124,7 @@ namespace sph {
         if (e != gpuSuccess) {                                                                             \
             char buffer[256];                                                                              \
             sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e)); \
-            printf("%s\n", buffer);                                                                        \
+            std::cerr << buffer << std::endl;                                                              \
             throw std::runtime_error(buffer);                                                              \
         }                                                                                                  \
     }
@@ -131,7 +133,7 @@ namespace sph {
     {                                                                                     \
         char buffer[256];                                                                 \
         sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, message); \
-        printf("%s\n", buffer);                                                           \
+        std::cerr << buffer << std::endl;                                                 \
         throw std::runtime_error(buffer);                                                 \
     }
 

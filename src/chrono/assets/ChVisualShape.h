@@ -126,6 +126,13 @@ class ChApi ChVisualShape {
     friend class ChVisualModel;
 };
 
+/// Report that a run-time visualization system cannot render the given shape.
+/// A visualization system dispatches on the concrete shape type and simply skips any type it does not handle. Without
+/// a diagnostic, the shape is dropped silently, which the user cannot distinguish from a shape that is invisible,
+/// mispositioned, or scaled to nothing. The message is emitted only once per combination of shape type and rendering
+/// backend, so calling this from a per-shape dispatch loop does not flood the console.
+ChApi void ReportUnsupportedVisualShape(const ChVisualShape& shape, const std::string& backend);
+
 /// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShape, 0)
