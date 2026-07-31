@@ -38,6 +38,28 @@
 // way, including line endings alone, that IS the state this guard exists to catch: the build has not
 // restaged since the source changed. Folding line endings would have hidden exactly that case.
 //
+// WHAT A CLEAN RUN OF THIS TEST DOES AND DOES NOT PROVE.
+// On a from-scratch build, staging has just run, so source and staged copy always match and this
+// test passes whether or not the dependency edge actually works. What a clean run DOES catch is
+// staging being removed or broken outright: the staged file is then absent and the assertion below
+// names it. That is why the test is worth running under ctest even though it cannot, on its own,
+// prove the property the staging rule was written for.
+//
+// The incremental case, which is the original defect, can only be checked by hand:
+//
+//   1. build normally, then append a line to a shader source:
+//        echo "// probe" >> <source>/src/chrono_sensor/optix/shaders/camera_raygen.cu
+//   2. run an ORDINARY build of this target (add --config Release on a multi-config generator):
+//        cmake --build . --target utest_SEN_shader_staging
+//   3. run this test again; it must still PASS, which proves the edit was restaged:
+//        ctest -R shader_staging --output-on-failure      (add -C Release if multi-config)
+//   4. restore the shader:
+//        git checkout -- src/chrono_sensor/optix/shaders/camera_raygen.cu
+//
+// If step 3 FAILS, the build is no longer restaging edited shaders and the trap described above is
+// back. Measured cost of that procedure on Linux with Ninja: 0.05 s, because nothing recompiles.
+// With CH_USE_SENSOR_NVRTC on, the shaders are compiled at runtime, so the only work is one copy.
+//
 // =============================================================================
 
 #include <algorithm>
@@ -126,7 +148,9 @@ TEST(ChOptixShaderStaging, staged_shaders_match_their_sources) {
                            " the repository. Staging did not run for this file, so an edit to the"
                            " shader is silently not taking effect. Check the"
                            " Chrono_sensor_shader_copy target and its dependency on Chrono_sensor"
-                           " in src/chrono_sensor/CMakeLists.txt.";
+                           " in src/chrono_sensor/CMakeLists.txt."
+                        << "\n  To check incremental staging by hand, see the procedure in the"
+                           " header comment of this file.";
         ++compared;
     }
     EXPECT_EQ(compared, names.size());
