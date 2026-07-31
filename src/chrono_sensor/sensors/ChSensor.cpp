@@ -51,6 +51,10 @@ void ChSensor::SetCollectionWindow(float t) {
 
 void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
     if (!m_filter_list_locked) {
+        // Stamp the filter with its RNG stream index BEFORE it joins the list. The counter is attach
+        // order rather than list position, so a later PushFilterFront cannot renumber a filter that
+        // is already attached. See ChFilter::GetRngStreamIndex for why this index is needed at all.
+        filter->m_rng_stream_index = m_next_rng_stream_index++;
         m_filters.push_back(filter);
     } else {
         std::cerr << "WARNING: Filter list has been locked for safety. All filters should be added to "
@@ -58,8 +62,16 @@ void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
     }
 }
 
+void ChSensor::AssignPendingRngStreamIndices() {
+    for (auto& f : m_filters) {
+        if (f->m_rng_stream_index == CH_SENSOR_UNASSIGNED_RNG_ID)
+            f->m_rng_stream_index = m_next_rng_stream_index++;
+    }
+}
+
 void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
     if (!m_filter_list_locked) {
+        filter->m_rng_stream_index = m_next_rng_stream_index++;
         m_filters.push_front(filter);
     } else {
         std::cerr << "WARNING: Filter list has been locked for safety. All filters should be added to "

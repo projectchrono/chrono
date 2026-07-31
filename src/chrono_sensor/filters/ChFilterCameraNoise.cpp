@@ -19,6 +19,9 @@
 #include "chrono_sensor/cuda/camera_noise.cuh"
 #include "chrono_sensor/cuda/curand_utils.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
+// For ChSensorManager::GetDeterministicSeed(): derives this buffer's own seed from the user-set
+// fixed seed plus the stream's identity, falling back to the wall clock when no seed is set.
+#include "chrono_sensor/ChSensorManager.h"
 #include <chrono>
 
 namespace chrono {
@@ -36,8 +39,9 @@ CH_SENSOR_API void ChFilterCameraNoiseConstNormal::Initialize(std::shared_ptr<Ch
 
     m_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(bufferInOut->Width * bufferInOut->Height),
                                            cudaFreeHelper<curandState_t>);
-    init_cuda_rng((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng.get(),
-                  bufferInOut->Width * bufferInOut->Height);
+    init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::CameraNoiseConstNormal,
+                                                        GetRngStreamIndex()),
+                  m_rng.get(), bufferInOut->Width * bufferInOut->Height);
 
     if (pRGBA) {
         m_rgba8InOut = pRGBA;
@@ -75,8 +79,8 @@ CH_SENSOR_API void ChFilterCameraNoisePixDep::Initialize(std::shared_ptr<ChSenso
 
     m_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(bufferInOut->Width * bufferInOut->Height),
                                            cudaFreeHelper<curandState_t>);
-    init_cuda_rng((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng.get(),
-                  bufferInOut->Width * bufferInOut->Height);
+    init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::CameraNoisePixDep, GetRngStreamIndex()),
+                  m_rng.get(), bufferInOut->Width * bufferInOut->Height);
 
     if (pRGBA) {
         m_rgba8InOut = pRGBA;

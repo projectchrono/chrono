@@ -1,5 +1,8 @@
 set(TESTS
     utest_SEN_gps
+    # Deliberately outside the OptiX block: it tests the seed algebra and identity assignment, not
+    # cuRAND, so it must also run in configurations built without OptiX.
+    utest_SEN_rng_streams
 )
 
 if(CH_USE_SENSOR_OPTIX)
