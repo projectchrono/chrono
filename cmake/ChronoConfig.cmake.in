@@ -393,13 +393,26 @@ if((Chrono_DEM_REQUESTED OR Chrono_FSI_SPH_REQUESTED)
   if(TARGET hip::host)
     set(CHRONO_HIP_FOUND TRUE)
     if(NOT Chrono_FIND_QUIETLY)
-      message(STATUS "HIP found (ROCm root: ${CHRONO_ROCM_ROOT})")
+      # Report where hip was actually resolved, not CHRONO_ROCM_ROOT. That variable
+      # records where ROCm was when Chrono was BUILT, and find_package is free to
+      # resolve a different installation from the consumer's environment, so printing
+      # it would send anyone debugging a ROCm problem to the wrong directory.
+      message(STATUS "HIP found (${hip_DIR})")
     endif()
     mark_as_advanced(FORCE CHRONO_ROCM_ROOT)
   else()
     if(NOT Chrono_FIND_QUIETLY)
-      message("WARNING: Chrono was built with HIP, but the ROCm 'hip' package was not found. "
-              "Set CHRONO_ROCM_ROOT to the ROCm installation.")
+      # Distinguish "no hip package at all" from "hip package present but incomplete".
+      # Both land here, and reporting the first for the second sends the reader off to
+      # fix a search path that was never the problem.
+      if(hip_FOUND)
+        message("WARNING: Chrono was built with HIP and found the ROCm 'hip' package in "
+                "${hip_DIR}, but it does not provide the hip::host target. That ROCm "
+                "installation looks incomplete. Set CHRONO_ROCM_ROOT to a complete one.")
+      else()
+        message("WARNING: Chrono was built with HIP, but the ROCm 'hip' package was not found. "
+                "Set CHRONO_ROCM_ROOT to the ROCm installation.")
+      endif()
     endif()
     mark_as_advanced(CLEAR CHRONO_ROCM_ROOT)
   endif()
