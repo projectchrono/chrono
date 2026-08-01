@@ -79,14 +79,14 @@ __global__ void calcHashD(uint* gridMarkerHashD,    // gridMarkerHash Store part
 
     // Check particle is inside the domain.
     Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.h);
-    if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z && IsFluidParticle(rhoPresMu[index].w)) {
+    if ((p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) && IsFluidParticle(rhoPresMu[index].w)) {
         printf("[calcHashD] index %u (%f %f %f) out of min boundary (%f %f %f)\n",  //
                index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
         return;
     }
     boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.h);
-    if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z && IsFluidParticle(rhoPresMu[index].w)) {
+    if ((p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) && IsFluidParticle(rhoPresMu[index].w)) {
         printf("[calcHashD] index %u (%f %f %f) out of max boundary (%f %f %f)\n",  //
                index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
@@ -97,6 +97,19 @@ __global__ void calcHashD(uint* gridMarkerHashD,    // gridMarkerHash Store part
     int3 gridPos = calcGridPos(p);
     // Calculate a hash from the bin index
     uint hash = calcGridHash(gridPos);
+
+    // The per-cell arrays are indexed with this hash, so it must lie inside the grid. The bin
+    // reduction in calcGridHash makes that true for any input; this checks it rather than
+    // trusting it, because an out-of-range hash writes outside those arrays with no other
+    // symptom (no fault, no diagnostic, plausible results).
+    uint numCells = (uint)(paramsD.gridSize.x * paramsD.gridSize.y * paramsD.gridSize.z);
+    if (hash >= numCells) {
+        printf("[calcHashD] index %u (%f %f %f) produced cell hash %u outside the grid (%u cells)\n",  //
+               index, p.x, p.y, p.z, hash, numCells);
+        *error_flag = true;
+        return;
+    }
+
     // Store grid hash
     // grid hash is a scalar cell ID
     gridMarkerHashD[globalIndex] = hash;
