@@ -545,9 +545,23 @@ void SphForceWCSPH::Initialize() {
 
 void SphForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) {
     // Calculate GPU execution configuration
-    // All kernels in SphForceWCSPH work on a total of numExtendedParticles threads, in blocks of size 1024 (or 256)
+    // All kernels in SphForceWCSPH work on a total of numExtendedParticles threads, in blocks of size 256.
+    //
+    // The block size is not free to choose. On CUDA devices a thread block shares a fixed pool of 65536
+    // registers, so the most a thread may use is roughly 65536 / blockSize, before allocation granularity.
+    // That figure was queried from the device rather than assumed, on compute capability 12.0, and the
+    // compiler reports the same 64-register ceiling for sm_80, sm_90 and sm_120 when told the block size
+    // is 1024. At 1024 threads it leaves 64 registers per thread, and the boundary-condition kernels here
+    // (CrmHolmesBC, CrmAdamiBC, CfdHolmesBC, CfdAdamiBC, calcKernelSupport) need 68 to 96 once Real is
+    // double, so in double precision they cannot be launched at all: every step fails with "too many
+    // resources requested for launch". At 256 they have 256 registers available and fit easily.
+    //
+    // HIP organises its register file differently and does launch these at 1024, so this is not a fix for
+    // the AMD backend. It was measured there anyway, since the change applies to both: on MI350X at 1024,
+    // 512 and 256, in both precisions, the difference is below run-to-run scatter. 256 is also already what
+    // CrmRHS and CfdRHS use below, so this makes the file consistent rather than introducing a third value.
     numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
-    computeGridSize(numActive, 1024, numBlocks, numThreads);
+    computeGridSize(numActive, 256, numBlocks, numThreads);
 
     //
     m_bce_mgr.updateBCEAcc();
@@ -1980,7 +1994,8 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 void SphForceWCSPH::CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     gpuResetErrorFlag(m_errflagD);
 
-    computeGridSize(numActive, 1024, numBlocks, numThreads);
+    // 256 rather than 1024, for the register-budget reason given in ForceSPH above.
+    computeGridSize(numActive, 256, numBlocks, numThreads);
 
     thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.begin() + numActive, mR3(0));
 
