@@ -17,6 +17,10 @@
 #ifndef CURANDUTILS_H
 #define CURANDUTILS_H
 
+#include <cuda.h>
+#include <curand.h>
+#include <curand_kernel.h>
+
 namespace chrono {
 namespace sensor {
 

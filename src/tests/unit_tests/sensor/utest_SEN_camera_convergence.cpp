@@ -972,7 +972,7 @@ std::vector<unsigned char> NoiseFromStates(curandState_t* states, unsigned int w
     // pixel saturated to 0 or 255 and two independent streams agreed roughly half the time on sign
     // alone. That made the test look like it had found a prefix relationship when it had only found a
     // bad parameter.
-    cuda_camera_noise_const_normal(dev, (int)w, (int)h, 0.f, 0.05f, states, stream);
+    CudaCameraNoiseConstNormal(dev, (int)w, (int)h, 0.f, 0.05f, states, stream);
     cudaStreamSynchronize(0);
     std::vector<unsigned char> host(nbytes);
     cudaMemcpy(host.data(), dev, nbytes, cudaMemcpyDeviceToHost);
@@ -1010,8 +1010,8 @@ TEST(ChOptixEngine, smaller_buffer_is_not_a_prefix_of_larger_under_derived_seeds
     // before the fix. The small buffer's generators are then bit-identical to the large buffer's
     // first nSmall, so the noise drawn from each is the same.
     const unsigned long long one_seed = 12345ull;
-    init_cuda_rng(one_seed, sBig, nBig);
-    init_cuda_rng(one_seed, sSmall, nSmall);
+    InitCudaRNG(one_seed, sBig, nBig);
+    InitCudaRNG(one_seed, sSmall, nSmall);
     cudaStreamSynchronize(0);
     std::vector<unsigned char> defect_big = NoiseFromStates(sBig, wSmall, hSmall);
     std::vector<unsigned char> defect_small = NoiseFromStates(sSmall, wSmall, hSmall);
@@ -1032,8 +1032,8 @@ TEST(ChOptixEngine, smaller_buffer_is_not_a_prefix_of_larger_under_derived_seeds
         base + ChSensorManager::MakeRngStreamId(0, 1, 0, RngUsage::CameraNoiseConstNormal);
     ASSERT_NE(seed_big, seed_small);
 
-    init_cuda_rng(seed_big, sBig, nBig);
-    init_cuda_rng(seed_small, sSmall, nSmall);
+    InitCudaRNG(seed_big, sBig, nBig);
+    InitCudaRNG(seed_small, sSmall, nSmall);
     cudaStreamSynchronize(0);
     std::vector<unsigned char> fixed_big = NoiseFromStates(sBig, wSmall, hSmall);
     std::vector<unsigned char> fixed_small = NoiseFromStates(sSmall, wSmall, hSmall);

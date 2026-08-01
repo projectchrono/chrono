@@ -14,9 +14,7 @@
 //
 // =============================================================================
 
-#include <cuda.h>
-#include <curand.h>
-#include <curand_kernel.h>
+#include "chrono_sensor/cuda/curand_utils.cuh"
 
 namespace chrono {
 namespace sensor {
