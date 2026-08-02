@@ -110,6 +110,36 @@ Each sensor has a filter graph which users can extend to customize the computati
 <br>
 
 
+##### Reproducible stochastic sensors
+
+Sensors that add noise, and renders that sample environment lighting or global illumination, draw
+from per-pixel random number generators. By default each is seeded from the wall clock, so two runs
+of the same simulation differ. That is the right default for a simulation, but it makes byte-exact
+comparison impossible, so a fixed base seed can be pinned:
+
+~~~{.cpp}
+// Call BEFORE adding sensors: the seed is read when a sensor's filters initialize, inside AddSensor.
+ChSensorManager::SetRandomSeed(12345);
+...
+ChSensorManager::ClearRandomSeed();   // back to clock-based seeding
+~~~
+
+Two properties are worth knowing before relying on this.
+
+**Registration order is part of the contract.** Each sensor's random streams are derived from the
+order in which it was passed to `AddSensor`. Adding a sensor, removing one, or reordering the
+`AddSensor` calls therefore changes which random numbers the *other* sensors draw, even under the
+same fixed seed. When comparing two runs, build the scene identically in both.
+
+**Every buffer gets its own stream.** The fixed value is a base seed, not the seed handed to cuRAND.
+Each random-number buffer derives a distinct seed from the base seed plus the identity of the sensor,
+the filter, and the purpose, so two cameras, or a camera and a lidar, never draw the same sequence.
+This matters for sensor fusion and for any study whose conclusions depend on the sensors being
+independent.
+
+<br>
+
+
 ##### Loading sensor models from JSON Files
 ~~~{.cpp}
 auto cam = Sensor::CreateFromJSON(
