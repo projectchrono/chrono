@@ -23,6 +23,8 @@
 
 #include <cmath>
 #include <algorithm>
+#include <sstream>
+#include <string>
 
 #include "chrono/core/ChTypes.h"
 
@@ -392,6 +394,90 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
         if (m_paramsH->mu0 > Real(0.001)) {
             cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
                  << " but the viscosity model is not laminar. This parameter will have no influence on simulation." << endl;
+        }
+
+        // Modified Cam-Clay parameter preconditions.
+        //
+        // Three of these, mcc_kappa > 0, mcc_lambda > mcc_kappa and mcc_M > 0, are the
+        // "critical consistency checks" the MCC manual page already published; nothing enforced
+        // them. The fourth, mcc_v_lambda > 0, is added here and to the manual at the same time.
+        // They are preconditions of the equations, not style:
+        // the elastic bulk modulus is K = v p / mcc_kappa, and the hardening update divides by
+        // (mcc_lambda - mcc_kappa). A user who transposes the two slopes gets a negative
+        // denominator, which inverts the hardening law, and the run then completes with no
+        // diagnostic of any kind while producing essentially zero bearing capacity.
+        //
+        // Gated on the PAIR of flags, not on the rheology alone: SetCfdSPH clears elastic_SPH
+        // without resetting rheology_model_crm, so a CFD problem can legitimately be left with
+        // rheology_model_crm == MCC and must not be rejected here.
+        if (m_paramsH->rheology_model_crm == RheologyCRM::MCC) {
+            auto mcc_fatal = [](const std::string& msg) {
+                cerr << "ERROR: " << msg << endl;
+                throw std::runtime_error(msg);
+            };
+            auto mcc_finite = [&](Real value, const char* name) {
+                if (!std::isfinite(double(value)))
+                    mcc_fatal(std::string("MCC parameter ") + name + " is not a finite number.");
+            };
+            // Stream formatting, not to_string: to_string formats a float with %f, so a small
+            // but legal value such as 1e-8 would be reported back to the user as "0.000000" by
+            // the very message that exists to tell them what they set.
+            auto mcc_num = [](Real value) {
+                std::ostringstream os;
+                os << value;
+                return os.str();
+            };
+
+            mcc_finite(m_paramsH->mcc_M, "mcc_M");
+            mcc_finite(m_paramsH->mcc_kappa, "mcc_kappa");
+            mcc_finite(m_paramsH->mcc_lambda, "mcc_lambda");
+            mcc_finite(m_paramsH->mcc_v_lambda, "mcc_v_lambda");
+
+            if (m_paramsH->mcc_kappa <= 0) {
+                mcc_fatal("MCC parameter mcc_kappa (swelling index) must be positive, but is " +
+                          mcc_num(m_paramsH->mcc_kappa) +
+                          ". The elastic bulk modulus is computed as K = v p / mcc_kappa.");
+            }
+            if (m_paramsH->mcc_lambda <= m_paramsH->mcc_kappa) {
+                mcc_fatal("MCC requires mcc_lambda (compression index) > mcc_kappa (swelling index), but "
+                          "mcc_lambda = " + mcc_num(m_paramsH->mcc_lambda) + " and mcc_kappa = " +
+                          mcc_num(m_paramsH->mcc_kappa) +
+                          ". The hardening law divides by (mcc_lambda - mcc_kappa). If these two look "
+                          "swapped, they probably are: lambda is the normal-consolidation-line slope and "
+                          "is the larger of the two.");
+            }
+            if (m_paramsH->mcc_M <= 0) {
+                mcc_fatal("MCC parameter mcc_M (critical state line slope) must be positive, but is " +
+                          mcc_num(m_paramsH->mcc_M) + ".");
+            }
+            if (m_paramsH->mcc_v_lambda <= 0) {
+                mcc_fatal("MCC parameter mcc_v_lambda (specific volume at the reference pressure) must be "
+                          "positive, but is " + mcc_num(m_paramsH->mcc_v_lambda) + ".");
+            }
+
+            // Last, and a warning rather than an error: the ordering above can hold by a
+            // vanishingly small margin. The hardening update divides by (mcc_lambda - mcc_kappa),
+            // so as that gap goes to zero the plastic modulus v / (mcc_lambda - mcc_kappa) grows
+            // without bound and the return mapping becomes ill-conditioned. A narrow gap is a
+            // legal, if extreme, model, so this reports and continues; only the ordering itself is
+            // fatal.
+            //
+            // Two arms, because these are dimensionless slopes and neither test alone is enough.
+            // The absolute floor catches a gap that has lost its significance entirely, which is
+            // what single precision does to a difference of nearly equal values. The relative
+            // floor catches the same pathology at a larger scale, where the gap is well
+            // represented but is still a thousandth of the slopes it came from.
+            Real mcc_gap = m_paramsH->mcc_lambda - m_paramsH->mcc_kappa;
+            Real mcc_gap_floor = std::max(Real(1e-6), Real(1e-3) * m_paramsH->mcc_lambda);
+            if (mcc_gap < mcc_gap_floor) {
+                cerr << "WARNING: MCC parameters mcc_lambda = " << mcc_num(m_paramsH->mcc_lambda)
+                     << " and mcc_kappa = " << mcc_num(m_paramsH->mcc_kappa) << " differ by only "
+                     << mcc_num(mcc_gap)
+                     << ". The hardening law divides by that difference, so the plastic modulus will be "
+                        "very large and the return mapping poorly conditioned. This is accepted as given, "
+                        "but confirm it is what was intended."
+                     << endl;
+            }
         }
     } else {
         if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_BILATERAL) {
