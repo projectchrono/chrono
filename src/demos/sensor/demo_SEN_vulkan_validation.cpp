@@ -57,6 +57,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <filesystem>
@@ -155,6 +156,46 @@ static bool WritePPM(const std::string& path, const UserRGBA8BufferPtr& img) {
     }
     f.write(reinterpret_cast<const char*>(rgb.data()), (std::streamsize)rgb.size());
     return (bool)f;
+}
+
+// ValidationTemporalAverage: collect independent rendered frames before quantizing the mean.
+static void AccumulateRGBA8(const UserRGBA8BufferPtr& img, std::vector<uint64_t>& sum) {
+    if (!img || !img->Buffer)
+        return;
+    const size_t n = (size_t)img->Width * img->Height;
+    if (sum.size() != 4 * n)
+        sum.assign(4 * n, 0);
+    const PixelRGBA8* p = img->Buffer.get();
+    for (size_t i = 0; i < n; ++i) {
+        sum[4 * i + 0] += p[i].R;
+        sum[4 * i + 1] += p[i].G;
+        sum[4 * i + 2] += p[i].B;
+        sum[4 * i + 3] += p[i].A;
+    }
+}
+
+static UserRGBA8BufferPtr MakeAverageRGBA8(const std::vector<uint64_t>& sum,
+                                           unsigned int width,
+                                           unsigned int height,
+                                           unsigned int frames,
+                                           double timestamp,
+                                           unsigned int launched_count) {
+    if (frames == 0 || sum.size() != 4 * (size_t)width * height)
+        return nullptr;
+    auto out = std::make_shared<SensorHostRGBA8Buffer>();
+    out->Width = width;
+    out->Height = height;
+    out->TimeStamp = timestamp;
+    out->LaunchedCount = launched_count;
+    const size_t n = (size_t)width * height;
+    out->Buffer = std::shared_ptr<PixelRGBA8[]>(new PixelRGBA8[n]);
+    for (size_t i = 0; i < n; ++i) {
+        out->Buffer[i].R = (uint8_t)((sum[4 * i + 0] + frames / 2) / frames);
+        out->Buffer[i].G = (uint8_t)((sum[4 * i + 1] + frames / 2) / frames);
+        out->Buffer[i].B = (uint8_t)((sum[4 * i + 2] + frames / 2) / frames);
+        out->Buffer[i].A = (uint8_t)((sum[4 * i + 3] + frames / 2) / frames);
+    }
+    return out;
 }
 
 // Append one flat quad (v0,v1,v2,v3 counter-clockwise as seen from outside) to the
@@ -274,6 +315,7 @@ int main(int argc, char* argv[]) {
     int material_index = -1;  // >= 0 isolates a single material sample (floor + that cube only)
     std::string feature;      // mesh | texture | normalmap | opacity | envmap (Florian steps c-f)
     std::string data_dir;    // optional Chrono data directory override
+    unsigned int average_frames = 1;  // validation-only temporal average
     std::string out_dir = "SENSOR_OUTPUT/vulkan_validation/";
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--falloff") == 0) {
@@ -312,6 +354,13 @@ int main(int argc, char* argv[]) {
                 std::cerr << "unknown --light value: " << k << " (use point, directional, or spot)\n";
                 return 1;
             }
+        } else if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) {
+            const int n = std::atoi(argv[++i]);
+            if (n < 1 || n > 256) {
+                std::cerr << "--frames must be in 1..256\n";
+                return 1;
+            }
+            average_frames = (unsigned int)n;
         } else if (std::strcmp(argv[i], "--data") == 0 && i + 1 < argc) {
             data_dir = argv[++i];
         } else if (std::strcmp(argv[i], "--out") == 0 && i + 1 < argc) {
@@ -320,12 +369,13 @@ int main(int argc, char* argv[]) {
                 out_dir += '/';
         } else {
             std::cout << "usage: demo_SEN_vulkan_validation [--light point|directional|spot] [--falloff]\n"
-                      << "                                  [--probe-box-material] [--data DIR] [--out DIR]\n"
+                      << "                                  [--probe-box-material] [--frames N] [--data DIR] [--out DIR]\n"
                       << "  --light KIND         light type to compare (default point)\n"
                       << "  --falloff            const_color = false, enabling inverse-square distance\n"
                       << "                       attenuation (point and spot only)\n"
                       << "  --probe-box-material diagnostic: add ChBodyEasyBox primitives with and\n"
                       << "                       without an explicit material\n"
+                      << "  --frames N           average N independently rendered frames (default 1)\n"
                       << "  --data DIR           Chrono data directory; auto-detected when omitted\n"
                       << "  --out DIR            output directory (default SENSOR_OUTPUT/vulkan_validation/)\n";
             return 1;
@@ -425,8 +475,11 @@ int main(int argc, char* argv[]) {
         tag = std::string("feat_") + feature + "_" + kind_name + (const_color ? "_constcolor" : "_falloff");
     if (supersample != 1)
         tag += "_spp" + std::to_string(supersample * supersample);
+    if (average_frames != 1)
+        tag += "_avg" + std::to_string(average_frames);
     std::cout << "Samples per pixel: " << (supersample * supersample) << " (per-axis factor "
               << supersample << ")\n";
+    std::cout << "Frames averaged: " << average_frames << "\n";
     std::cout << "Configuration: " << tag << "  (light = " << kind_name
               << ", const_color = " << (const_color ? "true" : "false") << ")\n";
 
@@ -592,6 +645,10 @@ int main(int argc, char* argv[]) {
             sys.Add(body);
         } else if (feature == "opacity") {
             // Step e: partial opacity, which routes through the transmission path on both sides.
+            // OpacityContactClearance: the original cube bottoms and floor were all exactly z=0.
+            // Boundary rays at that coplanar contact can legitimately resolve to different primitives
+            // in OptiX and Vulkan RT. Keep the strict pixel gate meaningful by removing the tie.
+            constexpr double opacity_contact_clearance = 2e-3;
             auto m = chrono_types::make_shared<ChTriangleMeshConnected>();
             AddCube(m, ChVector3d(0, 0, 0), 0.9);
             auto shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -605,12 +662,12 @@ int main(int argc, char* argv[]) {
             mat->SetOpacity(0.5f);
             shape->AddMaterial(mat);
             auto body = chrono_types::make_shared<ChBody>();
-            body->SetPos({-2.0, 0.0, 0.9});
+            body->SetPos({-2.0, 0.0, 0.9 + opacity_contact_clearance});
             body->SetFixed(true);
             body->AddVisualShape(shape);
             sys.Add(body);
             // A second, fully opaque cube behind it, so transmission has something to show through.
-            MakeCubeBody(sys, ChVector3d(1.5, 0.0, 0.9), 0.9, 1.0f, 0.0f,
+            MakeCubeBody(sys, ChVector3d(1.5, 0.0, 0.9 + opacity_contact_clearance), 0.9, 1.0f, 0.0f,
                          ChColor(surface_gray, surface_gray, surface_gray), ChColor(0.f, 0.f, 0.f), false);
             std::cout << "FEATURE opacity: front cube opacity 0.5, opaque cube behind it\n";
         } else if (feature == "envmap") {
@@ -624,7 +681,10 @@ int main(int argc, char* argv[]) {
     // Sensor manager: zero ambient, black background, one point light.
     // ------------------------------------------------------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    manager->SetRayRecursions(4);
+    // Opacity needs three surface hits (front face, back face, object behind).
+    // OptiX primary PRDs start at depth 2, so max_depth=5 is the first setting
+    // that reaches all three; the other deterministic cases keep the original 4.
+    manager->SetRayRecursions(feature == "opacity" ? 5 : 4);
     manager->scene->SetAmbientLight({0.f, 0.f, 0.f});
 
     Background background;
@@ -740,40 +800,63 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(cam_vulkan);
 
     // ------------------------------------------------------------------
-    // Step until both cameras have delivered a frame. The scene is static,
-    // so any completed frame is representative.
+    // Collect distinct launches. Deterministic cases use one frame. Stochastic
+    // environment validation can average several independently advanced frames.
     // ------------------------------------------------------------------
     const double step_size = 1e-2;
-    const int max_steps = 2000;
+    const int max_steps = std::max(2000, 100 + (int)average_frames * 20);
     UserRGBA8BufferPtr optix_buf, vulkan_buf;
+    std::vector<uint64_t> optix_sum, vulkan_sum;
+    unsigned int optix_frames = 0;
+    unsigned int vulkan_frames = 0;
+    unsigned int last_optix_launch = 0;
+    unsigned int last_vulkan_launch = 0;
 
     for (int i = 0; i < max_steps; ++i) {
         manager->Update();
         sys.DoStepDynamics(step_size);
 
         vulkan_buf = cam_vulkan->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        const bool vulkan_ready = vulkan_buf && vulkan_buf->Buffer && vulkan_buf->LaunchedCount > 0;
+        if (vulkan_frames < average_frames && vulkan_buf && vulkan_buf->Buffer &&
+            vulkan_buf->LaunchedCount > last_vulkan_launch) {
+            AccumulateRGBA8(vulkan_buf, vulkan_sum);
+            last_vulkan_launch = vulkan_buf->LaunchedCount;
+            ++vulkan_frames;
+        }
 #ifdef CHRONO_HAS_OPTIX
         optix_buf = cam_optix->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        const bool optix_ready = optix_buf && optix_buf->Buffer && optix_buf->LaunchedCount > 0;
+        if (optix_frames < average_frames && optix_buf && optix_buf->Buffer &&
+            optix_buf->LaunchedCount > last_optix_launch) {
+            AccumulateRGBA8(optix_buf, optix_sum);
+            last_optix_launch = optix_buf->LaunchedCount;
+            ++optix_frames;
+        }
+        const bool done = optix_frames == average_frames && vulkan_frames == average_frames;
 #else
-        const bool optix_ready = true;  // no OptiX in this build; nothing to wait for
+        const bool done = vulkan_frames == average_frames;
 #endif
-        if (optix_ready && vulkan_ready) {
-            std::cout << "Frame(s) rendered at step " << i << " (t=" << sys.GetChTime() << " s)\n";
+        if (done) {
+            std::cout << "Collected requested frame average at step " << i
+                      << " (t=" << sys.GetChTime() << " s)\n";
             break;
         }
     }
 
-    if (!vulkan_buf || !vulkan_buf->Buffer) {
-        std::cerr << "ERROR: Vulkan camera produced no frame.\n";
+    if (!vulkan_buf || !vulkan_buf->Buffer || vulkan_frames != average_frames) {
+        std::cerr << "ERROR: Vulkan camera produced " << vulkan_frames << " / " << average_frames
+                  << " requested frames.\n";
         return 1;
     }
+    vulkan_buf = MakeAverageRGBA8(vulkan_sum, image_width, image_height, vulkan_frames,
+                                  vulkan_buf->TimeStamp, vulkan_buf->LaunchedCount);
 #ifdef CHRONO_HAS_OPTIX
-    if (!optix_buf || !optix_buf->Buffer) {
-        std::cerr << "ERROR: OptiX camera produced no frame.\n";
+    if (!optix_buf || !optix_buf->Buffer || optix_frames != average_frames) {
+        std::cerr << "ERROR: OptiX camera produced " << optix_frames << " / " << average_frames
+                  << " requested frames.\n";
         return 1;
     }
+    optix_buf = MakeAverageRGBA8(optix_sum, image_width, image_height, optix_frames,
+                                 optix_buf->TimeStamp, optix_buf->LaunchedCount);
 #endif
 
     // ------------------------------------------------------------------
