@@ -59,6 +59,7 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -272,6 +273,7 @@ int main(int argc, char* argv[]) {
     bool material_sweep = false;
     int material_index = -1;  // >= 0 isolates a single material sample (floor + that cube only)
     std::string feature;      // mesh | texture | normalmap | opacity | envmap (Florian steps c-f)
+    std::string data_dir;    // optional Chrono data directory override
     std::string out_dir = "SENSOR_OUTPUT/vulkan_validation/";
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--falloff") == 0) {
@@ -310,18 +312,21 @@ int main(int argc, char* argv[]) {
                 std::cerr << "unknown --light value: " << k << " (use point, directional, or spot)\n";
                 return 1;
             }
+        } else if (std::strcmp(argv[i], "--data") == 0 && i + 1 < argc) {
+            data_dir = argv[++i];
         } else if (std::strcmp(argv[i], "--out") == 0 && i + 1 < argc) {
             out_dir = argv[++i];
             if (!out_dir.empty() && out_dir.back() != '/')
                 out_dir += '/';
         } else {
             std::cout << "usage: demo_SEN_vulkan_validation [--light point|directional|spot] [--falloff]\n"
-                      << "                                  [--probe-box-material] [--out <dir>]\n"
+                      << "                                  [--probe-box-material] [--data DIR] [--out DIR]\n"
                       << "  --light KIND         light type to compare (default point)\n"
                       << "  --falloff            const_color = false, enabling inverse-square distance\n"
                       << "                       attenuation (point and spot only)\n"
                       << "  --probe-box-material diagnostic: add ChBodyEasyBox primitives with and\n"
                       << "                       without an explicit material\n"
+                      << "  --data DIR           Chrono data directory; auto-detected when omitted\n"
                       << "  --out DIR            output directory (default SENSOR_OUTPUT/vulkan_validation/)\n";
             return 1;
         }
@@ -329,6 +334,79 @@ int main(int argc, char* argv[]) {
     if (light_kind == LightKind::DIRECTIONAL && !const_color) {
         std::cerr << "--falloff is not meaningful for a directional light: it has no position, so there\n"
                   << "is no distance to attenuate over. Re-run without --falloff.\n";
+        return 1;
+    }
+
+    // Feature modes use files from the Chrono data tree. The default ChDataPath is a relative
+    // "../data/", which depends on the process working directory rather than the executable path.
+    // Make this demo deterministic: accept an explicit root and otherwise inspect common source/
+    // build-tree launch locations. Baseline/material/light tests remain self-contained.
+    namespace fs = std::filesystem;
+    auto is_data_root = [](const fs::path& root) {
+        return fs::is_directory(root / "sensor") && fs::is_directory(root / "vehicle");
+    };
+    auto set_data_root = [&](const fs::path& root) {
+        std::error_code ec;
+        fs::path absolute = fs::absolute(root, ec);
+        if (ec)
+            absolute = root;
+        std::string value = absolute.lexically_normal().string();
+        if (!value.empty() && value.back() != '/' && value.back() != '\\')
+            value.push_back('/');
+        SetChronoDataPath(value);
+        data_dir = value;
+    };
+
+    if (!data_dir.empty()) {
+        const fs::path requested(data_dir);
+        if (!is_data_root(requested)) {
+            std::cerr << "ERROR: --data is not a Chrono data directory: " << requested << "\n";
+            return 1;
+        }
+        set_data_root(requested);
+    } else {
+        const fs::path cwd = fs::current_path();
+        const fs::path candidates[] = {cwd / "data", cwd / "../data", cwd / "../../data"};
+        for (const auto& candidate : candidates) {
+            if (is_data_root(candidate)) {
+                set_data_root(candidate);
+                break;
+            }
+        }
+    }
+
+    if (!data_dir.empty())
+        std::cout << "Validation data directory: " << GetChronoDataPath() << "\n";
+
+    std::vector<std::string> required_assets;
+    if (feature == "mesh") {
+        required_assets = {"sensor/geometries/box.obj", "sensor/geometries/box.mtl"};
+    } else if (feature == "texture") {
+        required_assets = {"sensor/textures/checkerboard.png"};
+    } else if (feature == "normalmap") {
+        required_assets = {"sensor/textures/brick.png", "sensor/textures/brick_normal.png"};
+    } else if (feature == "envmap") {
+        required_assets = {"sensor/textures/quarry_01_4k.hdr"};
+    }
+
+    if (!required_assets.empty()) {
+        if (data_dir.empty()) {
+            std::cerr << "ERROR: no Chrono data directory found. Pass --data /absolute/path/to/chrono/data\n";
+            return 1;
+        }
+        for (const auto& relative : required_assets) {
+            const fs::path asset(GetChronoDataFile(relative));
+            if (!fs::is_regular_file(asset)) {
+                std::cerr << "ERROR: required validation asset not found: " << asset << "\n";
+                return 1;
+            }
+        }
+    }
+
+    std::error_code output_ec;
+    fs::create_directories(fs::path(out_dir), output_ec);
+    if (output_ec) {
+        std::cerr << "ERROR: cannot create output directory " << out_dir << ": " << output_ec.message() << "\n";
         return 1;
     }
 
