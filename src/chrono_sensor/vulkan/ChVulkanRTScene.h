@@ -53,8 +53,9 @@ struct CH_SENSOR_API ChVulkanRTTexCoord {
 };
 
 struct CH_SENSOR_API ChVulkanRTMaterial {
-    ChVector3f diffuse = ChVector3f(0.75f, 0.75f, 0.75f);
-    ChVector3f ambient = ChVector3f(0.75f, 0.75f, 0.75f);
+    // OptiX implicit material fallback for shapes without an explicit ChVisualMaterial.
+    ChVector3f diffuse = ChVector3f(0.5f, 0.5f, 0.5f);
+    ChVector3f ambient = ChVector3f(0.5f, 0.5f, 0.5f);
     ChVector3f specular = ChVector3f(0.2f, 0.2f, 0.2f);
     ChVector3f emissive = ChVector3f(0.f, 0.f, 0.f);
 

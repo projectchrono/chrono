@@ -486,9 +486,6 @@ uint64_t HashShapeMaterialState(uint64_t seed, const std::shared_ptr<ChVisualSha
     if (!shape)
         return HashCombine(seed, 0u);
     ChVulkanRTMaterial fallback;
-    ChColor color = shape->GetColor();
-    fallback.diffuse = ChVector3f(color.R, color.G, color.B);
-    fallback.ambient = fallback.diffuse;
     seed = HashMaterial(seed, fallback);
     seed = HashCombine(seed, shape->GetNumMaterials());
     for (unsigned int i = 0; i < shape->GetNumMaterials(); ++i)
@@ -585,10 +582,8 @@ ChVulkanRTMaterial ChVulkanRTScene::ExtractMaterial(const std::shared_ptr<ChVisu
     if (!shape)
         return mat;
 
-    ChColor color = shape->GetColor();
-    mat.diffuse = ChVector3f(color.R, color.G, color.B);
-    mat.ambient = mat.diffuse;
-
+    // SetColor() creates an explicit material, so only an actual material record should
+    // override the OptiX-compatible implicit fallback above.
     if (shape->GetNumMaterials() > 0)
         mat = MaterialFromVisual(shape->GetMaterial(0), mat);
 

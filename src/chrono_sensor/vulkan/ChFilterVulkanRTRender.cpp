@@ -125,7 +125,7 @@ struct TextureSample4 {
 };
 
 struct EvaluatedMaterial {
-    ChVector3f diffuse = ChVector3f(0.75f, 0.75f, 0.75f);
+    ChVector3f diffuse = ChVector3f(0.5f, 0.5f, 0.5f);
     ChVector3f specular = ChVector3f(0.2f, 0.2f, 0.2f);
     ChVector3f emissive = ChVector3f(0.f, 0.f, 0.f);
     float opacity = 1.f;
