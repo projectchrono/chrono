@@ -1199,13 +1199,11 @@ ChVector3f ShadowAttenuation(const ChVulkanRTRenderCache* cache,
     if (mat.opacity >= 1.f - 1e-5f)
         return ChVector3f(0.f, 0.f, 0.f);
 
-    float pass = ClampFloat(1.f - mat.opacity, 0.f, 1.f);
-    const ChVector3f shadow_tint = 0.75f * ChVector3f(1.f, 1.f, 1.f) + 0.25f * Clamp01(mat.diffuse);
-    if (mat.roughness < 0.35f && MaxComponent(mat.specular) > 0.04f)
-        pass = std::max(pass, 0.82f * pass + 0.18f);
+    // OptiX shadow rays attenuate only by the uncovered fraction (1-opacity).
+    const float pass = ClampFloat(1.f - mat.opacity, 0.f, 1.f);
     const ChVector3d next_origin = origin + dir * (hit.t + CH_VKRT_SHADOW_EPS);
     const double remaining = std::isfinite(max_t) ? std::max(0.0, max_t - hit.t - CH_VKRT_SHADOW_EPS) : max_t;
-    return Mul(shadow_tint, pass * ShadowAttenuation(cache, scene, next_origin, dir, remaining, depth + 1));
+    return pass * ShadowAttenuation(cache, scene, next_origin, dir, remaining, depth + 1);
 }
 
 ChVector3f Shade(const ChVulkanRTRenderCache* cache,
@@ -1345,34 +1343,35 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
 
     if (depth < 6) {
         if (mat.opacity < 1.f - 1.f / 255.f) {
-            const bool likely_glass = mat.opacity > 1e-5f && mat.opacity < 0.98f &&
-                                      mat.roughness < 0.55f && MaxComponent(mat.specular) > 0.035f;
-            ChVector3d refract_dir = dir;
-            ChVector3d face_normal = dir.Dot(normal) < 0.0 ? normal : -normal;
-            if (likely_glass) {
-                const double eta = dir.Dot(normal) < 0.0 ? (1.0 / 1.5) : 1.5;
-                const double cos_i = -std::max(-1.0, std::min(1.0, face_normal.Dot(dir)));
-                const double sin2_t = eta * eta * std::max(0.0, 1.0 - cos_i * cos_i);
-                if (sin2_t <= 1.0) {
-                    refract_dir = NormalizeSafe(eta * dir + (eta * cos_i - std::sqrt(1.0 - sin2_t)) * face_normal, dir);
-                }
-            }
-            const ChVector3f transmit_tint = likely_glass ? (0.78f * ChVector3f(1.f, 1.f, 1.f) + 0.22f * Clamp01(mat.diffuse))
-                                                          : ChVector3f(1.f, 1.f, 1.f);
-            const ChVector3f refracted = TraceCameraColor(cache, scene, hit_pos + refract_dir * CH_VKRT_SHADOW_EPS, refract_dir, depth + 1, use_gi);
-            color += (1.f - mat.opacity) * Mul(transmit_tint, refracted);
+            // OptiX LEGACY transparency is straight-through and untinted.
+            const ChVector3f transmitted = TraceCameraColor(
+                cache, scene, hit_pos + dir * CH_VKRT_SHADOW_EPS, dir, depth + 1, use_gi);
+            color += (1.f - mat.opacity) * transmitted;
         }
 
-        const float f0_luma = ClampFloat(MaxComponent(f0), 0.f, 1.f);
-        float reflect_weight = FresnelSchlickScalar(ndv, f0_luma) * (1.f - mat.roughness) * (1.f - mat.roughness);
-        reflect_weight = std::max(reflect_weight, mat.metallic * mat.metallic * (1.f - mat.roughness));
-        if (mat.opacity < 1.f)
-            reflect_weight = std::max(reflect_weight, FresnelSchlickScalar(ndv, 0.04f) * (1.f - 0.65f * mat.roughness));
-        reflect_weight = ClampFloat(reflect_weight, 0.f, 0.85f);
-        if (reflect_weight > 1e-4f) {
-            const ChVector3d reflect_dir = NormalizeSafe(Reflect(dir, normal), dir);
-            const ChVector3f reflected = TraceCameraColor(cache, scene, hit_pos + normal * CH_VKRT_SHADOW_EPS, reflect_dir, depth + 1, use_gi);
-            color += reflect_weight * reflected;
+        // OptiX LEGACY mirror contribution. This is deliberately vector-valued; replacing it
+        // with a large scalar weight over-brightens rough metals and transparent dielectrics.
+        const ChVector3d reflect_dir = NormalizeSafe(Reflect(dir, normal), dir);
+        const float reflect_ndl = static_cast<float>(std::max(0.0, normal.Dot(reflect_dir)));
+        if (reflect_ndl > 0.f) {
+            const ChVector3d halfway = NormalizeSafe(reflect_dir + view_dir, normal);
+            const float reflect_ndh = static_cast<float>(std::max(0.0, normal.Dot(halfway)));
+            const float reflect_vdh = static_cast<float>(std::max(0.0, view_dir.Dot(halfway)));
+            const ChVector3f reflect_f = mat.use_specular_workflow ? FresnelSchlick(reflect_vdh, f0) : f0;
+            const float reflect_d = NormalDistOptix(reflect_ndh, mat.roughness);
+            const float reflect_g = HammonSmithOptix(ndv, reflect_ndl, mat.roughness);
+            float mirror_scale = mat.opacity * (1.f - mat.roughness) * (1.f - mat.roughness) *
+                                 mat.metallic * mat.metallic * reflect_d * reflect_g * reflect_ndl /
+                                 static_cast<float>(4.0 * CH_VKRT_PI);
+            if (use_gi)
+                mirror_scale *= 0.5f;
+            const ChVector3f mirror_contrib = Clamp01(mirror_scale * reflect_f);
+            if (MaxComponent(mirror_contrib) > 1e-4f) {
+                const ChVector3f reflected = TraceCameraColor(
+                    cache, scene, hit_pos + reflect_dir * CH_VKRT_SHADOW_EPS,
+                    reflect_dir, depth + 1, use_gi);
+                color += Mul(mirror_contrib, reflected);
+            }
         }
     }
 

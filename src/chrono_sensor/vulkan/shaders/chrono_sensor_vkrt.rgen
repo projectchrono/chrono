@@ -567,15 +567,27 @@ vec4 trace_camera(vec3 origin, vec3 dir) {
 
         float ndv = max(dot(n, normalize(-rd)), 0.0);
         vec3 f0 = mat.use_specular_workflow ? 0.08 * mat.specular : mix(vec3(0.04), mat.diffuse, mat.metallic);
-        float f0_luma = saturate(max_component(f0));
-        float reflect_weight = fresnel_schlick_scalar(ndv, f0_luma) * (1.0 - mat.roughness) * (1.0 - mat.roughness);
-        reflect_weight = max(reflect_weight, mat.metallic * mat.metallic * (1.0 - mat.roughness));
-        if (mat.opacity < 1.0)
-            reflect_weight = max(reflect_weight, fresnel_schlick_scalar(ndv, 0.04) * (1.0 - 0.65 * mat.roughness));
-        reflect_weight = clamp(reflect_weight, 0.0, 0.85);
-        if (reflect_weight > 1e-4) {
-            vec3 reflected = trace_lit_once(hit_pos + n * TRACE_EPS, normalize(reflect(rd, n)), false);
-            direct += reflect_weight * reflected;
+
+        // OptiX LEGACY mirror contribution: opacity * (1-r)^2 * metallic^2 * F*D*G*NdL/(4*pi).
+        vec3 reflect_dir = normalize(reflect(rd, n));
+        float reflect_ndl = max(dot(n, reflect_dir), 0.0);
+        if (reflect_ndl > 0.0) {
+            vec3 reflect_h = normalize(reflect_dir + normalize(-rd));
+            float reflect_ndh = max(dot(n, reflect_h), 0.0);
+            float reflect_vdh = max(dot(normalize(-rd), reflect_h), 0.0);
+            vec3 reflect_f = mat.use_specular_workflow ? fresnel_schlick(reflect_vdh, f0) : f0;
+            float mirror_scale = mat.opacity * (1.0 - mat.roughness) * (1.0 - mat.roughness) *
+                                 mat.metallic * mat.metallic *
+                                 normal_dist_optix(reflect_ndh, mat.roughness) *
+                                 hammon_smith_optix(ndv, reflect_ndl, mat.roughness) * reflect_ndl /
+                                 (4.0 * PI);
+            if ((pc.flags & FLAG_USE_GI) != 0u)
+                mirror_scale *= 0.5;
+            vec3 mirror_contrib = clamp(mirror_scale * reflect_f, vec3(0.0), vec3(1.0));
+            if (max_component(mirror_contrib) > 1e-4) {
+                vec3 reflected = trace_lit_once(hit_pos + reflect_dir * TRACE_EPS, reflect_dir, false);
+                direct += mirror_contrib * reflected;
+            }
         }
 
         if ((pc.flags & FLAG_USE_GI) != 0u && depth == 0) {
@@ -597,20 +609,8 @@ vec4 trace_camera(vec3 origin, vec3 dir) {
         if (pass <= 1e-5)
             break;
 
-        bool likely_glass = mat.opacity > 1e-5 && mat.opacity < 0.98 &&
-                            mat.roughness < 0.55 && max_component(mat.specular) > 0.035;
-        vec3 transmit_tint = likely_glass ? mix(vec3(1.0), clamp(mat.diffuse, vec3(0.0), vec3(1.0)), 0.22)
-                                          : vec3(1.0);
-        vec3 face_n = dot(rd, n) < 0.0 ? n : -n;
-        vec3 next_rd = rd;
-        if (likely_glass) {
-            float eta = dot(rd, n) < 0.0 ? (1.0 / 1.5) : 1.5;
-            vec3 refracted = refract(rd, face_n, eta);
-            if (length(refracted) > 1e-5)
-                next_rd = normalize(refracted);
-        }
-        throughput *= transmit_tint * pass;
-        rd = normalize(next_rd);
+        // OptiX LEGACY transparency is straight-through and untinted.
+        throughput *= vec3(pass);
         ro = hit_pos + rd * TRACE_EPS;
     }
 
