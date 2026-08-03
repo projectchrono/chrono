@@ -515,7 +515,8 @@ vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient) 
         vec3 h = normalize(light_dir + view_dir);
         float ndh = max(dot(n, h), 0.0);
         float vdh = max(dot(view_dir, h), 0.0);
-        vec3 fresnel = fresnel_schlick(vdh, f0);
+        // OptiX LEGACY applies Schlick only for the specular workflow.
+        vec3 fresnel = mat.use_specular_workflow ? fresnel_schlick(vdh, f0) : f0;
         float d_term = normal_dist_optix(ndh, mat.roughness);
         float g_term = hammon_smith_optix(ndv, ndl, mat.roughness);
         // Match OptiX direct-light semantics: CheckVisibleAndSample*Light stores

@@ -1322,7 +1322,9 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
             const ChVector3d half_vec = NormalizeSafe(light_dir + view_dir, normal);
             const float ndh = static_cast<float>(std::max(0.0, normal.Dot(half_vec)));
             const float vdh = static_cast<float>(std::max(0.0, view_dir.Dot(half_vec)));
-            const ChVector3f fresnel = FresnelSchlick(vdh, f0);
+            // OptiX LEGACY applies Schlick only for the specular workflow; metallic
+            // workflow uses its constant material F0 directly.
+            const ChVector3f fresnel = mat.use_specular_workflow ? FresnelSchlick(vdh, f0) : f0;
             const float d_term = NormalDistOptix(ndh, mat.roughness);
             const float g_term = HammonSmithOptix(ndv, ndl, mat.roughness);
             // Match OptiX direct-light semantics: CheckVisibleAndSample*Light stores one
