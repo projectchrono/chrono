@@ -18,13 +18,13 @@
 #define CHFILTERCAMERANOISE_H
 
 #include "chrono_sensor/filters/ChFilter.h"
+#include "chrono_sensor/ChConfigSensor.h"
 
-#include "chrono_sensor/cuda/curand_utils.cuh"
-#include "chrono_sensor/cuda/camera_noise.cuh"
-
-#include <cuda.h>
-#include <curand.h>
-#include <curand_kernel.h>
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+    #include <curand.h>
+    #include <curand_kernel.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -63,11 +63,13 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
   private:
     float m_mean;                                           ///< mean value of the Gaussian distribution
     float m_stdev;                                          ///< standard deviation of the Gaussian distribution
+#ifdef CHRONO_HAS_OPTIX
     std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
+    CUstream m_cuda_stream;                                 ///< reference to the cuda stream
+#endif
     bool m_noise_init = true;                               ///< initialize noise only once
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_rgba8InOut;  ///< input/output buffer for rgba8
     std::shared_ptr<SensorDeviceR8Buffer> m_r8InOut;        ///< input/output buffer for r8
-    CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
 
 /// A filter that adds pixel dependent Gaussian noise across an image. Method summarized in paper: ()
@@ -94,11 +96,13 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
   private:
     float m_variance_slope;                                 ///< The variance of the multiplicative noise
     float m_variance_intercept;                             ///< The variance of the additive noise
+#ifdef CHRONO_HAS_OPTIX
     std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
+    CUstream m_cuda_stream;                                 ///< reference to the cuda stream
+#endif
     bool m_noise_init = true;                               ///< initialize noise only once
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_rgba8InOut;  ///< input/output buffer for rgba8
     std::shared_ptr<SensorDeviceR8Buffer> m_r8InOut;        ///< input/output buffer for r8
-    CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
 
 // DLL-exported wrapper functions

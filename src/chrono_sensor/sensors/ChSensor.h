@@ -52,6 +52,19 @@ const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";        // single c
 const char ChFilterFloat4AccessName[] = "ChFilterFloat4Access";      // 4 channels of float arrays
 const char ChFilterNormalAccessName[] = "ChFilterNormalAccess";      /// 3 channels of float (32 bit) arrays
 #endif
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+const char ChFilterR8AccessName[] = "ChFilterR8Access";              ///< single channel 8 bit array
+const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";        ///< 4 channel 8 bit array
+const char ChFilterRGBA16AccessName[] = "ChFilterRGBA16Access";      ///< 4 channels of u_int16_t (16 bit) arrays
+const char ChFilterRGBDHalf4AccessName[] = "ChFilterRGBDHalf4Access";///< 4 channels of half-compatible 16 bit arrays
+const char ChFilterDIAccessName[] = "ChFilterDIAccess";              ///< 2 channel float array (Depth+Intensity)
+const char ChFilterRadarAccessName[] = "ChFilterRadarAccess";        ///< Radar return array
+const char ChFilterRadarXYZAccessName[] = "ChFilterRadarXYZAccess";  ///< Processed radar XYZ return array
+const char ChFilterSemanticAccessName[] = "ChFilterSemanticAccess";  ///< class/instance labels
+const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";        ///< single channel depth array
+const char ChFilterFloat4AccessName[] = "ChFilterFloat4Access";      ///< 4 channel float array
+const char ChFilterNormalAccessName[] = "ChFilterNormalAccess";      ///< 3 channel normal array
+#endif
 const char ChFilterXYZIAccessName[] = "ChFilterXYZIAccess";      ///< 4 channel float array (XYZ positions+intensity)
 const char ChFilterAccelAccessName[] = "ChFilterAccelAccess";    ///< Accelerometer data format (3 doubles total)
 const char ChFilterGyroAccessName[] = "ChFilterGyroAccess";      ///< Gyroscope data format (3 doubles total)

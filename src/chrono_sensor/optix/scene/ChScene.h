@@ -38,6 +38,7 @@
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_sensor/ChApiSensor.h"
+#include "chrono_sensor/ChSensorRenderTypes.h"
 #ifdef CHRONO_FSI_SPH
     #include "chrono_sensor/ChFsiSphRender.h"
 #endif
@@ -54,15 +55,6 @@ namespace sensor {
 
 /// @addtogroup sensor_scene
 /// @{
-
-/// Information about the background of the scene. Determines the color, gradient, or image that is spherically mapped
-/// to camera ray misses
-struct Background {
-    BackgroundMode mode;       ///< 0=solid zenith color, 1=gradient, 2=environment map
-    ChVector3f color_zenith;   ///< color at zenith
-    ChVector3f color_horizon;  ///< color at horizon (for gradient)
-    std::string env_tex;       ///< full path name of the texture
-};
 
 /// Scene class used for camera renderings. Includes environment colors, lights, etc
 class CH_SENSOR_API ChScene {

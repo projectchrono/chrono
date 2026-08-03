@@ -17,11 +17,16 @@
 #ifndef CHFILTERLIDARNOISE_H
 #define CHFILTERLIDARNOISE_H
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/filters/ChFilter.h"
 
+#ifdef CHRONO_HAS_OPTIX
 #include <cuda.h>
 #include <curand.h>
 #include <curand_kernel.h>
+#else
+#include <random>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -50,10 +55,6 @@ class CH_SENSOR_API ChFilterLidarNoiseXYZI : public ChFilter {
                            float stdev_intensity,
                            std::string name = "ChFilterLidarNoiseXYZI");
 
-    /// Return filter noise model type.
-    LidarNoiseModelType GetModel() const { return LidarNoiseModelType::CONST_NORMAL; }
-
-    /// Apply function. Applies noise to lidar data.
     virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
@@ -66,9 +67,13 @@ class CH_SENSOR_API ChFilterLidarNoiseXYZI : public ChFilter {
     float m_stdev_v_angle;    ///< Standard deviation of the normal distribution applied to the vertical angle
     float m_stdev_h_angle;    ///< Standard deviation of the normal distribution applied to the horizontal angle
     float m_stdev_intensity;  ///< Standard deviation of the normal distribution applied to the intensity measurement
+#ifdef CHRONO_HAS_OPTIX
     std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
-    std::shared_ptr<SensorDeviceXYZIBuffer> m_bufferInOut;  ///< buffer for applying noise to point cloud
     CUstream m_cuda_stream;                                 ///< reference to the cuda stream
+#else
+    std::mt19937 m_rng;
+#endif
+    std::shared_ptr<SensorDeviceXYZIBuffer> m_bufferInOut;  ///< buffer for applying noise to point cloud
 };
 
 /// @}

@@ -17,8 +17,11 @@
 // =============================================================================
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"
-#include "chrono_sensor/optix/ChFilterOptixRender.h"
-#include "chrono_sensor/filters/ChFilterImageOps.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/optix/ChFilterOptixRender.h"
+    #include "chrono_sensor/filters/ChFilterImageOps.h"
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -37,31 +40,28 @@ ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,    // obj
                                float gamma,                               // gamma correction value
                                bool use_fog                               // whether use fog 
                                )
-    : m_hFOV(hFOV),
+#if defined(CHRONO_HAS_OPTIX)
+    : ChOptixSensor(parent, updateRate, offsetPose, w, h),
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    : ChVulkanSensor(parent, updateRate, offsetPose, w, h, VulkanPipelineType::CAMERA),
+#else
+    : ChSensor(parent, updateRate, offsetPose),
+#endif
+      m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
       m_use_gi(use_diffuse_reflect),
       m_use_denoiser(use_denoiser),
-      m_integrator(integrator),
       m_gamma(gamma),
       m_use_fog(use_fog),
       m_lens_parameters({}),
       m_width(w),
       m_height(h),
-      ChOptixSensor(parent, updateRate, offsetPose, w, h) {
-    // set the program to match the model requested
-    // switch (lens_model) {
-    //     case CameraLensModelType::FOV_LENS:
+      m_integrator(integrator) {
+#ifdef CHRONO_HAS_OPTIX
     m_pipeline_type = PipelineType::CAMERA;
-    //         break;
-    //     default:  // default to CameraLensModelType::PINHOLE
-    //         m_pipeline_type = PipelineType::CAMERA_PINHOLE;
-    //         break;
-    // }
-    ;
-
     m_filters.push_back(chrono_types::make_shared<ChFilterImageHalf4ToRGBA8>());
-
+#endif
     SetCollectionWindow(0.f);
     SetLag(1.f / updateRate);
 }
@@ -87,7 +87,7 @@ ChMatrix33<float> ChCameraSensor::GetCameraIntrinsicMatrix() {
     I(2, 2) = 1.f;
 
     return I;
-};
+}
 
 LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params) {
     // coefficients directory without algorithm from

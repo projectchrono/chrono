@@ -18,6 +18,79 @@
 // 
 // =============================================================================
 
+#include "chrono_sensor/ChConfigSensor.h"
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+
+#include "chrono_sensor/filters/ChFilterPhysCameraAggregator.h"
+
+#include <algorithm>
+#include <cmath>
+#include <memory>
+
+namespace chrono {
+namespace sensor {
+ChFilterPhysCameraAggregator::ChFilterPhysCameraAggregator(float aperture_num,
+                                                           float expsr_time,
+                                                           float pixel_size,
+                                                           float max_scene_light_amount,
+                                                           ChVector3f rgb_QE_vec,
+                                                           float aggregator_gain,
+                                                           std::string name)
+    : m_aperture_num(aperture_num),
+      m_expsr_time(expsr_time),
+      m_pixel_size(pixel_size),
+      m_max_scene_light_amount(max_scene_light_amount),
+      m_aggregator_gain(aggregator_gain),
+      ChFilter(name) {
+    m_rgb_QEs[0] = rgb_QE_vec.x();
+    m_rgb_QEs[1] = rgb_QE_vec.y();
+    m_rgb_QEs[2] = rgb_QE_vec.z();
+}
+
+CH_SENSOR_API void ChFilterPhysCameraAggregator::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                            std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
+    m_in_out = std::dynamic_pointer_cast<SensorDeviceHalf4Buffer>(bufferInOut);
+    if (!m_in_out)
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+}
+
+CH_SENSOR_API void ChFilterPhysCameraAggregator::Apply() {
+    if (!m_in_out || !m_in_out->Buffer)
+        return;
+    const float denom = std::max(1e-12f, m_aperture_num * m_aperture_num);
+    const float scale_base = m_aggregator_gain * m_max_scene_light_amount / denom * m_pixel_size * m_pixel_size * m_expsr_time;
+    const size_t count = static_cast<size_t>(m_in_out->Width) * m_in_out->Height;
+    for (size_t i = 0; i < count; ++i) {
+        m_in_out->Buffer[i].R *= scale_base * m_rgb_QEs[0];
+        m_in_out->Buffer[i].G *= scale_base * m_rgb_QEs[1];
+        m_in_out->Buffer[i].B *= scale_base * m_rgb_QEs[2];
+    }
+}
+
+CH_SENSOR_API void ChFilterPhysCameraAggregator::SetFilterCtrlParameters(float aperture_num, float expsr_time) {
+    m_aperture_num = aperture_num;
+    m_expsr_time = expsr_time;
+}
+CH_SENSOR_API void ChFilterPhysCameraAggregator::SetFilterModelParameters(float pixel_size,
+                                                                          float max_scene_light_amount,
+                                                                          ChVector3f rgb_QE_vec,
+                                                                          float aggregator_gain) {
+    m_pixel_size = pixel_size;
+    m_max_scene_light_amount = max_scene_light_amount;
+    m_rgb_QEs[0] = rgb_QE_vec.x();
+    m_rgb_QEs[1] = rgb_QE_vec.y();
+    m_rgb_QEs[2] = rgb_QE_vec.z();
+    m_aggregator_gain = aggregator_gain;
+}
+
+}  // namespace sensor
+}  // namespace chrono
+
+#else
+
+
 #include "chrono_sensor/filters/ChFilterPhysCameraAggregator.h"
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/cuda/phys_cam_ops.cuh"
@@ -84,3 +157,6 @@ CH_SENSOR_API void ChFilterPhysCameraAggregator::SetFilterModelParameters(
 
 }  // namespace sensor
 }  // namespace chrono
+
+
+#endif

@@ -18,9 +18,14 @@
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 
+#include <algorithm>
+
 #ifdef CHRONO_HAS_OPTIX
     #include <cuda.h>
     #include "chrono_sensor/utils/CudaMallocHelper.h"
+#endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    #include "chrono_sensor/sensors/ChVulkanSensor.h"
 #endif
 
 namespace chrono {
@@ -68,6 +73,38 @@ CH_SENSOR_API void ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>::Apply() 
 
 template <>
 CH_SENSOR_API void ChFilterAccess<SensorHostRGBA8Buffer, UserRGBA8BufferPtr>::Apply() {
+#ifdef CHRONO_HAS_VULKAN_RT
+    if (std::dynamic_pointer_cast<ChVulkanSensor>(m_sensor.lock())) {
+        std::shared_ptr<SensorHostRGBA8Buffer> tmp_buffer;
+        if (m_empty_lag_buffers.size() > 0) {
+            tmp_buffer = m_empty_lag_buffers.top();
+            m_empty_lag_buffers.pop();
+        } else {
+            tmp_buffer = chrono_types::make_shared<SensorHostRGBA8Buffer>();
+            tmp_buffer->Buffer = std::shared_ptr<PixelRGBA8[]>(new PixelRGBA8[m_bufferIn->Width * m_bufferIn->Height]);
+        }
+
+        tmp_buffer->Width = m_bufferIn->Width;
+        tmp_buffer->Height = m_bufferIn->Height;
+        tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
+        tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
+
+        const size_t count = static_cast<size_t>(m_bufferIn->Width) * static_cast<size_t>(m_bufferIn->Height);
+        if (!tmp_buffer->Buffer)
+            tmp_buffer->Buffer = std::shared_ptr<PixelRGBA8[]>(new PixelRGBA8[count]);
+        std::copy(m_bufferIn->Buffer.get(), m_bufferIn->Buffer.get() + count, tmp_buffer->Buffer.get());
+
+        {
+            std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+            m_lag_buffers.push(tmp_buffer);
+            while (m_lag_buffers.size() > m_max_lag_buffers) {
+                m_empty_lag_buffers.push(m_lag_buffers.front());
+                m_lag_buffers.pop();
+            }
+        }
+        return;
+    }
+#endif
     // create a new buffer to push to the lag buffer list
     std::shared_ptr<SensorHostRGBA8Buffer> tmp_buffer;
     if (m_empty_lag_buffers.size() > 0) {
@@ -458,6 +495,133 @@ CH_SENSOR_API void ChFilterAccess<SensorHostRadarXYZBuffer, UserRadarXYZBufferPt
         cudaStreamSynchronize(m_cuda_stream);
     }
 }
+
+#endif
+
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+
+namespace {
+
+template <class BufferType>
+size_t VulkanAccessCapacityCount(const BufferType& buffer) {
+    return static_cast<size_t>(buffer.Width) * static_cast<size_t>(buffer.Height);
+}
+
+template <class BufferType>
+size_t VulkanAccessElementCount(const BufferType& buffer) {
+    return static_cast<size_t>(buffer.Width) * static_cast<size_t>(buffer.Height);
+}
+
+size_t VulkanAccessCapacityCount(const SensorHostDIBuffer& buffer) {
+    return static_cast<size_t>(buffer.Width) * static_cast<size_t>(buffer.Height) * (buffer.Dual_return ? 2u : 1u);
+}
+
+size_t VulkanAccessElementCount(const SensorHostDIBuffer& buffer) {
+    return VulkanAccessCapacityCount(buffer);
+}
+
+size_t VulkanAccessCapacityCount(const SensorHostXYZIBuffer& buffer) {
+    return static_cast<size_t>(buffer.Width) * static_cast<size_t>(buffer.Height) * (buffer.Dual_return ? 2u : 1u);
+}
+
+size_t VulkanAccessElementCount(const SensorHostXYZIBuffer& buffer) {
+    return static_cast<size_t>(buffer.Beam_return_count > 0 ? buffer.Beam_return_count : VulkanAccessCapacityCount(buffer));
+}
+
+size_t VulkanAccessElementCount(const SensorHostRadarBuffer& buffer) {
+    return static_cast<size_t>(buffer.Width) * static_cast<size_t>(buffer.Height);
+}
+
+size_t VulkanAccessCapacityCount(const SensorHostRadarXYZBuffer& buffer) {
+    return static_cast<size_t>(buffer.Width) * static_cast<size_t>(buffer.Height);
+}
+
+size_t VulkanAccessElementCount(const SensorHostRadarXYZBuffer& buffer) {
+    return static_cast<size_t>(buffer.Beam_return_count > 0 ? buffer.Beam_return_count : VulkanAccessCapacityCount(buffer));
+}
+
+template <class BufferType>
+void CopyVulkanAccessMetadata(BufferType&, const BufferType&) {}
+
+void CopyVulkanAccessMetadata(SensorHostDIBuffer& dst, const SensorHostDIBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.Dual_return = src.Dual_return;
+}
+
+void CopyVulkanAccessMetadata(SensorHostXYZIBuffer& dst, const SensorHostXYZIBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.Dual_return = src.Dual_return;
+}
+
+void CopyVulkanAccessMetadata(SensorHostRadarBuffer& dst, const SensorHostRadarBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.invalid_returns = src.invalid_returns;
+    dst.Num_clusters = src.Num_clusters;
+    dst.avg_velocity = src.avg_velocity;
+    dst.centroids = src.centroids;
+    dst.amplitudes = src.amplitudes;
+}
+
+void CopyVulkanAccessMetadata(SensorHostRadarXYZBuffer& dst, const SensorHostRadarXYZBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.invalid_returns = src.invalid_returns;
+    dst.Num_clusters = src.Num_clusters;
+    dst.avg_velocity = src.avg_velocity;
+    dst.centroids = src.centroids;
+    dst.amplitudes = src.amplitudes;
+}
+
+}  // namespace
+
+#define CH_VULKAN_HOST_ACCESS_SPECIALIZATION(BufferType, UserType, PixelType)                                      \
+    template <>                                                                                                   \
+    CH_SENSOR_API void ChFilterAccess<BufferType, UserType>::Apply() {                                            \
+        std::shared_ptr<BufferType> tmp_buffer;                                                                   \
+        if (m_empty_lag_buffers.size() > 0) {                                                                     \
+            tmp_buffer = m_empty_lag_buffers.top();                                                               \
+            m_empty_lag_buffers.pop();                                                                            \
+        } else {                                                                                                  \
+            tmp_buffer = chrono_types::make_shared<BufferType>();                                                  \
+        }                                                                                                         \
+                                                                                                                  \
+        const size_t count = VulkanAccessElementCount(*m_bufferIn);                                                \
+        const size_t capacity = VulkanAccessCapacityCount(*m_bufferIn);                                            \
+        const bool resize_buffer = !tmp_buffer->Buffer || tmp_buffer->Width != m_bufferIn->Width ||                \
+                                   tmp_buffer->Height != m_bufferIn->Height;                                       \
+        tmp_buffer->Width = m_bufferIn->Width;                                                                    \
+        tmp_buffer->Height = m_bufferIn->Height;                                                                  \
+        tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;                                                    \
+        tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;                                                            \
+        CopyVulkanAccessMetadata(*tmp_buffer, *m_bufferIn);                                                       \
+                                                                                                                  \
+        if (resize_buffer)                                                                                        \
+            tmp_buffer->Buffer = std::shared_ptr<PixelType[]>(new PixelType[std::max<size_t>(1, capacity)]);       \
+        if (m_bufferIn->Buffer && count > 0)                                                                      \
+            std::copy(m_bufferIn->Buffer.get(), m_bufferIn->Buffer.get() + count, tmp_buffer->Buffer.get());      \
+                                                                                                                  \
+        {                                                                                                         \
+            std::lock_guard<std::mutex> lck(m_mutexBufferAccess);                                                  \
+            m_lag_buffers.push(tmp_buffer);                                                                       \
+            while (m_lag_buffers.size() > m_max_lag_buffers) {                                                    \
+                m_empty_lag_buffers.push(m_lag_buffers.front());                                                  \
+                m_lag_buffers.pop();                                                                              \
+            }                                                                                                     \
+        }                                                                                                         \
+    }
+
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostR8Buffer, UserR8BufferPtr, char)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostRGBA8Buffer, UserRGBA8BufferPtr, PixelRGBA8)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostRGBA16Buffer, UserRGBA16BufferPtr, PixelRGBA16)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostRGBDHalf4Buffer, UserRGBDHalf4BufferPtr, PixelRGBDHalf4)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostSemanticBuffer, UserSemanticBufferPtr, PixelSemantic)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostDIBuffer, UserDIBufferPtr, PixelDI)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostXYZIBuffer, UserXYZIBufferPtr, PixelXYZI)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostRadarBuffer, UserRadarBufferPtr, RadarReturn)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostRadarXYZBuffer, UserRadarXYZBufferPtr, RadarXYZReturn)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostNormalBuffer, UserNormalBufferPtr, PixelNormal)
+CH_VULKAN_HOST_ACCESS_SPECIALIZATION(SensorHostDepthBuffer, UserDepthBufferPtr, PixelDepth)
+
+#undef CH_VULKAN_HOST_ACCESS_SPECIALIZATION
 
 #endif
 

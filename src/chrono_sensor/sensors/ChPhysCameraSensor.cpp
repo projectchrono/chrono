@@ -18,7 +18,9 @@
 // =============================================================================
 
 #include "chrono_sensor/sensors/ChPhysCameraSensor.h"
-#include "chrono_sensor/optix/ChFilterOptixRender.h"
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/optix/ChFilterOptixRender.h"
+#endif
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 #include <math.h> 
 
@@ -76,10 +78,17 @@ CH_SENSOR_API ChPhysCameraSensor::ChPhysCameraSensor(
     m_lens_parameters({}),
 	m_gain_params({}),
 	m_noise_params({}),
-    ChOptixSensor(parent, updateRate, offsetPose, w, h)
+#if defined(CHRONO_HAS_OPTIX)
+    ChPhysCameraSensorBase(parent, updateRate, offsetPose, w, h)
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    ChPhysCameraSensorBase(parent, updateRate, offsetPose, w, h, VulkanPipelineType::PHYS_CAMERA)
+#else
+    ChPhysCameraSensorBase(parent, updateRate, offsetPose)
+#endif
 {
-    //
+#ifdef CHRONO_HAS_OPTIX
     m_pipeline_type = PipelineType::PHYS_CAMERA;
+#endif
 
     m_gain_params.defocus_gain = 4.0f;
     m_gain_params.defocus_bias = 0.f;
