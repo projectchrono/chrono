@@ -91,6 +91,7 @@ struct ChVulkanRTRenderCache {
     std::vector<uint32_t> primitive_indices;
     std::vector<BvhNode> primitive_nodes;
     std::unordered_map<std::string, TextureImage> textures;
+    std::unordered_map<std::string, TextureImage> environment_textures;
 };
 
 namespace {
@@ -101,6 +102,12 @@ constexpr double CH_VKRT_SHADOW_EPS = 1e-4;
 constexpr uint32_t CH_VKRT_TRIANGLE_LEAF_SIZE = 8;
 constexpr uint32_t CH_VKRT_PRIMITIVE_LEAF_SIZE = 4;
 constexpr size_t CH_VKRT_TRAVERSAL_STACK_SIZE = 128;
+
+inline int OptiXCameraHitLimit(int configured_max_depth) {
+    // OptiX DefaultCameraPRD() starts primary rays at depth 2 and only launches a
+    // child when depth + 1 < max_depth. Preserve that externally visible meaning.
+    return std::max(1, configured_max_depth > 2 ? configured_max_depth - 2 : 1);
+}
 
 struct RayHit {
     bool hit = false;
@@ -254,6 +261,13 @@ inline ChVector3f GammaCorrect(const ChVector3f& c, float gamma) {
     return ChVector3f(std::pow(clamped.x(), inv_gamma), std::pow(clamped.y(), inv_gamma), std::pow(clamped.z(), inv_gamma));
 }
 
+inline float UintBitsAsFloat(uint32_t bits) {
+    float value = 0.f;
+    static_assert(sizeof(value) == sizeof(bits), "32-bit float/uint bit cast expected");
+    std::memcpy(&value, &bits, sizeof(value));
+    return value;
+}
+
 uint32_t PackRGB9E5(float r, float g, float b) {
     r = std::max(0.f, r);
     g = std::max(0.f, g);
@@ -337,7 +351,7 @@ inline ChVector3d TriangleCentroid(const ChVulkanRTTriangle& tri) {
     return (tri.v0 + tri.v1 + tri.v2) / 3.0;
 }
 
-ChVulkanRTRenderCache::TextureImage LoadTextureRGBA(const std::string& filename) {
+ChVulkanRTRenderCache::TextureImage LoadTextureRGBA(const std::string& filename, bool force_ldr = false) {
     ChVulkanRTRenderCache::TextureImage texture;
     if (filename.empty())
         return texture;
@@ -346,7 +360,7 @@ ChVulkanRTRenderCache::TextureImage LoadTextureRGBA(const std::string& filename)
     int height = 0;
     int channels = 0;
 
-    if (stbi_is_hdr(filename.c_str())) {
+    if (!force_ldr && stbi_is_hdr(filename.c_str())) {
         float* rawf = stbi_loadf(filename.c_str(), &width, &height, &channels, 4);
         (void)channels;
         if (!rawf || width <= 0 || height <= 0) {
@@ -410,6 +424,12 @@ void EnsureTexture(ChVulkanRTRenderCache& cache, const std::string& filename) {
     cache.textures.emplace(filename, LoadTextureRGBA(filename));
 }
 
+void EnsureEnvironmentTexture(ChVulkanRTRenderCache& cache, const std::string& filename) {
+    if (filename.empty() || cache.environment_textures.find(filename) != cache.environment_textures.end())
+        return;
+    cache.environment_textures.emplace(filename, LoadTextureRGBA(filename, true));
+}
+
 void EnsureMaterialTextures(ChVulkanRTRenderCache& cache, const ChVulkanRTMaterial& mat) {
     EnsureTexture(cache, mat.diffuse_texture);
     EnsureTexture(cache, mat.specular_texture);
@@ -468,6 +488,33 @@ TextureSample4 SampleTexture(const ChVulkanRTRenderCache* cache,
     const auto& texture = found->second;
     const float u = Wrap01(uv.u * scale_u);
     const float v = Wrap01(uv.v * scale_v);
+    const float x = u * static_cast<float>(texture.width) - 0.5f;
+    const float y = v * static_cast<float>(texture.height) - 0.5f;
+    const int x0 = static_cast<int>(std::floor(x));
+    const int y0 = static_cast<int>(std::floor(y));
+    const float tx = x - static_cast<float>(x0);
+    const float ty = y - static_cast<float>(y0);
+
+    const auto c00 = Texel(texture, x0, y0);
+    const auto c10 = Texel(texture, x0 + 1, y0);
+    const auto c01 = Texel(texture, x0, y0 + 1);
+    const auto c11 = Texel(texture, x0 + 1, y0 + 1);
+    return LerpTextureSample(LerpTextureSample(c00, c10, tx), LerpTextureSample(c01, c11, tx), ty);
+}
+
+TextureSample4 SampleEnvironmentTexture(
+    const ChVulkanRTRenderCache* cache,
+    const std::string& filename,
+    const ChVulkanRTTexCoord& uv) {
+    if (!cache || filename.empty())
+        return TextureSample4{};
+    const auto found = cache->environment_textures.find(filename);
+    if (found == cache->environment_textures.end() || !found->second.Valid())
+        return TextureSample4{};
+
+    const auto& texture = found->second;
+    const float u = Wrap01(uv.u);
+    const float v = Wrap01(uv.v);
     const float x = u * static_cast<float>(texture.width) - 0.5f;
     const float y = v * static_cast<float>(texture.height) - 0.5f;
     const int x0 = static_cast<int>(std::floor(x));
@@ -728,9 +775,13 @@ void BuildRenderCache(ChVulkanRTRenderCache& cache, const std::shared_ptr<ChVulk
 
     const auto& background = scene->GetBackground();
     if (background.mode == BackgroundMode::ENVIRONMENT_MAP)
-        EnsureTexture(cache, background.env_tex);
-    for (const auto& light : scene->GetLights())
-        EnsureTexture(cache, light.texture);
+        EnsureEnvironmentTexture(cache, background.env_tex);
+    for (const auto& light : scene->GetLights()) {
+        if (light.type == LightType::ENVIRONMENT_LIGHT)
+            EnsureEnvironmentTexture(cache, light.texture);
+        else
+            EnsureTexture(cache, light.texture);
+    }
 
     const auto& primitives = scene->GetPrimitives();
     cache.primitives.reserve(primitives.size());
@@ -1143,7 +1194,7 @@ ChVector3f BackgroundColor(const ChVulkanRTRenderCache* cache,
         const ChVector3d d = NormalizeSafe(ray_dir);
         const float tex_u = static_cast<float>(std::atan2(d.y(), d.x()) / (2.0 * CH_VKRT_PI) + 0.5);
         const float tex_v = static_cast<float>(std::asin(std::max(-1.0, std::min(1.0, d.z()))) / CH_VKRT_PI + 0.5);
-        const auto tex = SampleTexture(cache, background->env_tex, ChVulkanRTTexCoord{tex_u, tex_v}, 1.f, 1.f);
+        const auto tex = SampleEnvironmentTexture(cache, background->env_tex, ChVulkanRTTexCoord{tex_u, tex_v});
         if (tex.valid)
             return PowRGB(ChVector3f(tex.r, tex.g, tex.b), 2.2f);
         return background->color_zenith;
@@ -1157,6 +1208,23 @@ ChVector3f BackgroundColor(const ChVulkanRTRenderCache* cache,
     }
 
     return background->color_zenith;
+}
+
+ChVector3f EnvironmentLightRadiance(
+    const ChVulkanRTRenderCache* cache,
+    const std::shared_ptr<ChVulkanRTScene>& scene,
+    const ChVector3d& ray_dir) {
+    const Background* background = scene ? &scene->GetBackground() : nullptr;
+    if (!background || background->mode != BackgroundMode::ENVIRONMENT_MAP)
+        return ChVector3f(0.f, 0.f, 0.f);
+
+    const ChVector3d d = NormalizeSafe(ray_dir);
+    const float tex_u = static_cast<float>(std::atan2(d.y(), d.x()) / (2.0 * CH_VKRT_PI) + 0.5);
+    const float tex_v = static_cast<float>(std::asin(std::max(-1.0, std::min(1.0, d.z()))) / CH_VKRT_PI + 0.5);
+    const auto tex = SampleEnvironmentTexture(cache, background->env_tex, ChVulkanRTTexCoord{tex_u, tex_v});
+    // OptiX environment-light sampling uses the normalized uchar value directly;
+    // only miss/background rays apply pow(rgb, 2.2).
+    return tex.valid ? ChVector3f(tex.r, tex.g, tex.b) : ChVector3f(0.f, 0.f, 0.f);
 }
 
 ChVector3d ShadingNormal(const ChVulkanRTRenderCache* cache, const RayHit& hit) {
@@ -1180,7 +1248,17 @@ ChVector3f TraceCameraColor(const ChVulkanRTRenderCache* cache,
                             const ChVector3d& origin,
                             const ChVector3d& dir,
                             int depth,
+                            int max_trace_depth,
                             bool use_gi);
+
+bool OptiXBinaryLightVisibility(
+    const ChVulkanRTRenderCache* cache,
+    const std::shared_ptr<ChVulkanRTScene>& scene,
+    const ChVector3d& origin,
+    const ChVector3d& dir,
+    double max_t) {
+    return TraceRay(cache, scene, origin, dir, max_t).hit;
+}
 
 ChVector3f ShadowAttenuation(const ChVulkanRTRenderCache* cache,
                              const std::shared_ptr<ChVulkanRTScene>& scene,
@@ -1212,14 +1290,19 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
                  const ChVector3d& origin,
                  const ChVector3d& dir,
                  int depth,
+                 int max_trace_depth,
                  bool use_gi) {
     const ChVector3d hit_pos = origin + dir * hit.t;
     const ChVector3d normal = ShadingNormal(cache, hit);
     const ChVector3d view_dir = NormalizeSafe(-dir);
     const EvaluatedMaterial mat = EvaluateMaterial(cache, hit);
 
-    if (mat.opacity <= 1e-6f)
-        return TraceCameraColor(cache, scene, hit_pos + dir * CH_VKRT_SHADOW_EPS, dir, depth + 1, use_gi);
+    if (mat.opacity <= 1e-6f) {
+        if (depth + 1 >= max_trace_depth)
+            return ChVector3f(0.f, 0.f, 0.f);
+        return TraceCameraColor(cache, scene, hit_pos + dir * CH_VKRT_SHADOW_EPS, dir,
+                                depth + 1, max_trace_depth, use_gi);
+    }
 
     const float ndv = static_cast<float>(std::max(0.0, normal.Dot(view_dir)));
     const ChVector3f ambient_light = scene ? scene->GetAmbientLight() : ChVector3f(0.08f, 0.08f, 0.08f);
@@ -1227,18 +1310,17 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
     ChVector3f f0 = mat.use_specular_workflow ? 0.08f * mat.specular
                                                : mat.metallic * mat.diffuse + (1.f - mat.metallic) * ChVector3f(0.04f, 0.04f, 0.04f);
 
-    const float ambient_shape = 0.35f + 0.65f * ClampFloat(static_cast<float>(normal.z() * 0.5 + 0.5), 0.f, 1.f);
+    const float ambient_shape = ndv +
+        ClampFloat(static_cast<float>(normal.z() * 0.5 + 0.5), 0.f, 1.f);
     ChVector3f color(0.f, 0.f, 0.f);
     if (!use_gi) {
-        // Honor the ambient level the user set on the scene; see the matching note in
-        // chrono_sensor_vkrt.rgen. The former hardcoded 0.025 floor overrode SetAmbientLight(0)
-        // and biased comparisons against a pure direct-lighting reference.
-        const ChVector3f ambient_floor(std::max(ambient_light.x(), 0.f),
-                                       std::max(ambient_light.y(), 0.f),
-                                       std::max(ambient_light.z(), 0.f));
-        const ChVector3f sky = BackgroundColor(cache, scene, normal);
-        const float sky_weight = (scene && scene->GetBackground().mode == BackgroundMode::SOLID_COLOR) ? 0.12f : 0.28f;
-        color += mat.opacity * Mul(mat.diffuse, ambient_floor + sky_weight * sky) * ambient_shape;
+        // OptiX LEGACY ambient is driven only by the explicit ambient-light color.
+        // Background and environment maps illuminate surfaces through light sampling,
+        // not through an additional sky-color term.
+        const ChVector3f ambient_rgb(std::max(ambient_light.x(), 0.f),
+                                      std::max(ambient_light.y(), 0.f),
+                                      std::max(ambient_light.z(), 0.f));
+        color += mat.opacity * Mul(mat.diffuse, ambient_rgb) * ambient_shape;
     }
 
     bool used_explicit_light = false;
@@ -1276,23 +1358,39 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
                     attenuation *= ClampFloat(static_cast<float>(area_dir.Dot(-light_dir)), 0.f, 1.f);
                 }
             } else if (light.type == LightType::ENVIRONMENT_LIGHT) {
+                // Host fallback uses deterministic quadrature, but evaluates every direction
+                // with the same OptiX LEGACY BRDF and double-NdL convention as the GPU path.
                 const std::array<ChVector3d, 4> env_dirs = {
                     NormalizeSafe(normal + ChVector3d(0.36, 0.10, 0.93), normal),
                     NormalizeSafe(normal + ChVector3d(-0.48, 0.42, 0.77), normal),
                     NormalizeSafe(normal + ChVector3d(0.18, -0.72, 0.67), normal),
                     NormalizeSafe(normal + ChVector3d(-0.08, -0.18, 0.98), normal)};
                 ChVector3f env_sum(0.f, 0.f, 0.f);
-                float env_w = 0.f;
                 for (const auto& env_dir : env_dirs) {
                     const float env_ndl = static_cast<float>(std::max(0.0, normal.Dot(env_dir)));
                     if (env_ndl <= 0.f)
                         continue;
-                    const ChVector3f env_shadow = ShadowAttenuation(cache, scene, hit_pos + env_dir * CH_VKRT_SHADOW_EPS, env_dir, std::numeric_limits<double>::max());
-                    env_sum += env_ndl * Mul(BackgroundColor(cache, scene, env_dir), env_shadow);
-                    env_w += env_ndl;
+                    const ChVector3d env_origin = hit_pos + env_dir * CH_VKRT_SHADOW_EPS;
+                    if (OptiXBinaryLightVisibility(cache, scene, env_origin, env_dir,
+                                                   std::numeric_limits<double>::max()))
+                        continue;
+                    // The subsequent OptiX SHADOW ray necessarily misses after the binary
+                    // visibility ray has missed from the same origin and direction.
+                    const ChVector3f env_shadow(1.f, 1.f, 1.f);
+                    const ChVector3d env_half = NormalizeSafe(env_dir + view_dir, normal);
+                    const float env_ndh = static_cast<float>(std::max(0.0, normal.Dot(env_half)));
+                    const float env_vdh = static_cast<float>(std::max(0.0, view_dir.Dot(env_half)));
+                    const ChVector3f env_fresnel = mat.use_specular_workflow ? FresnelSchlick(env_vdh, f0) : f0;
+                    const float env_d = NormalDistOptix(env_ndh, mat.roughness);
+                    const float env_g = HammonSmithOptix(ndv, env_ndl, mat.roughness);
+                    const ChVector3f env_incoming = env_ndl * env_ndl *
+                        Mul(Mul(light.color, EnvironmentLightRadiance(cache, scene, env_dir)), env_shadow);
+                    const ChVector3f env_diffuse = mat.use_specular_workflow ? mat.diffuse :
+                        (1.f - mat.metallic) * mat.diffuse;
+                    env_sum += Mul(Mul(one - env_fresnel, env_diffuse) +
+                                   env_d * env_g * env_fresnel, env_incoming);
                 }
-                if (env_w > 0.f)
-                    color += mat.opacity * Mul(Mul(mat.diffuse, light.color), env_sum / env_w);
+                color += mat.opacity * (env_sum / static_cast<float>(env_dirs.size()));
                 used_explicit_light = true;
                 continue;
             } else {
@@ -1311,11 +1409,13 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
             // normal introduces scale-dependent light leaks at contact shadows and on steep normals.
             const ChVector3d shadow_origin = hit_pos + light_dir * CH_VKRT_SHADOW_EPS;
             const double shadow_max_t = std::isfinite(max_shadow_t) ? std::max(0.0, max_shadow_t - CH_VKRT_SHADOW_EPS) : max_shadow_t;
-            const ChVector3f shadow = ShadowAttenuation(cache, scene, shadow_origin, light_dir, shadow_max_t);
-            if (MaxComponent(shadow) <= 1e-5f) {
+            if (OptiXBinaryLightVisibility(cache, scene, shadow_origin, light_dir, shadow_max_t)) {
                 used_explicit_light = true;
                 continue;
             }
+            // Match OptiX's two-stage visibility exactly. Once the binary OCCLUSION
+            // ray misses, the following SHADOW ray from the same point also misses.
+            const ChVector3f shadow(1.f, 1.f, 1.f);
 
             const ChVector3d half_vec = NormalizeSafe(light_dir + view_dir, normal);
             const float ndh = static_cast<float>(std::max(0.0, normal.Dot(half_vec)));
@@ -1341,11 +1441,12 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
 
     color += hit.material.emissive_power * mat.emissive * std::abs(static_cast<float>(normal.Dot(view_dir)));
 
-    if (depth < 6) {
+    if (depth + 1 < max_trace_depth) {
         if (mat.opacity < 1.f - 1.f / 255.f) {
             // OptiX LEGACY transparency is straight-through and untinted.
             const ChVector3f transmitted = TraceCameraColor(
-                cache, scene, hit_pos + dir * CH_VKRT_SHADOW_EPS, dir, depth + 1, use_gi);
+                cache, scene, hit_pos + dir * CH_VKRT_SHADOW_EPS, dir,
+                depth + 1, max_trace_depth, use_gi);
             color += (1.f - mat.opacity) * transmitted;
         }
 
@@ -1369,7 +1470,7 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
             if (MaxComponent(mirror_contrib) > 1e-4f) {
                 const ChVector3f reflected = TraceCameraColor(
                     cache, scene, hit_pos + reflect_dir * CH_VKRT_SHADOW_EPS,
-                    reflect_dir, depth + 1, use_gi);
+                    reflect_dir, depth + 1, max_trace_depth, use_gi);
                 color += Mul(mirror_contrib, reflected);
             }
         }
@@ -1379,7 +1480,8 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
         const ChVector3d gi_dir = NormalizeSafe(normal + ChVector3d(0.31, -0.21, 0.92), normal);
         const float gi_ndl = static_cast<float>(std::max(0.0, normal.Dot(gi_dir)));
         if (gi_ndl > 0.f) {
-            const ChVector3f gi = TraceCameraColor(cache, scene, hit_pos + gi_dir * CH_VKRT_SHADOW_EPS, gi_dir, depth + 1, false);
+            const ChVector3f gi = TraceCameraColor(cache, scene, hit_pos + gi_dir * CH_VKRT_SHADOW_EPS,
+                                                       gi_dir, depth + 1, max_trace_depth, false);
             color += 0.35f * mat.opacity * gi_ndl * Mul(mat.diffuse, gi);
         }
     }
@@ -1392,7 +1494,10 @@ ChVector3f TraceCameraColor(const ChVulkanRTRenderCache* cache,
                             const ChVector3d& origin,
                             const ChVector3d& dir,
                             int depth,
+                            int max_trace_depth,
                             bool use_gi) {
+    if (depth >= max_trace_depth)
+        return ChVector3f(0.f, 0.f, 0.f);
     if (depth > 6)
         return BackgroundColor(cache, scene, dir);
 
@@ -1400,7 +1505,7 @@ ChVector3f TraceCameraColor(const ChVulkanRTRenderCache* cache,
     if (!hit.hit)
         return BackgroundColor(cache, scene, dir);
 
-    return Shade(cache, scene, hit, origin, dir, depth, use_gi);
+    return Shade(cache, scene, hit, origin, dir, depth, max_trace_depth, use_gi);
 }
 
 float CameraHFOV(const std::shared_ptr<ChVulkanSensor>& sensor) {
@@ -1710,6 +1815,7 @@ struct ChVulkanRTGpuPushConstants {
     uint32_t height;
     uint32_t pipeline;
     uint32_t flags;
+    uint32_t frame_index;  // VulkanCameraFrameRng: decorrelate stochastic camera launches.
 };
 
 struct ChVulkanRTGpuFrame {
@@ -1734,6 +1840,8 @@ struct ChVulkanRTGpuFrame {
     float aux_ray_factor = 1.f;
     bool use_gi = false;
     uint32_t ray_recursions = 1;
+    uint32_t sample_factor = 1;
+    uint32_t frame_index = 0;
     SensorHostRGBA8Buffer* rgba8 = nullptr;
     SensorHostRGBDHalf4Buffer* rgbd = nullptr;
     SensorHostDepthBuffer* depth = nullptr;
@@ -1916,7 +2024,9 @@ struct ChVulkanRTGpuRenderer {
         pc.height = frame.height;
         pc.pipeline = static_cast<uint32_t>(frame.pipeline);
         const uint32_t recursion_count = std::min<uint32_t>(255u, std::max<uint32_t>(1u, frame.ray_recursions));
-        pc.flags = (frame.use_gi ? 1u : 0u) | (recursion_count << 8);
+        const uint32_t sample_factor = std::min<uint32_t>(32u, std::max<uint32_t>(1u, frame.sample_factor));
+        pc.flags = (frame.use_gi ? 1u : 0u) | (recursion_count << 8) | (sample_factor << 16);
+        pc.frame_index = frame.frame_index;
 
         RecordAndSubmitRender(pc, frame.width, frame.height, frame.pipeline);
         CopyOutputToHost(frame);
@@ -2237,14 +2347,15 @@ struct ChVulkanRTGpuRenderer {
         EndSubmitWait();
     }
 
-    uint32_t RegisterTexture(const std::string& filename) {
+    uint32_t RegisterTexture(const std::string& filename, bool force_ldr = false) {
         if (filename.empty())
             return CH_VKRT_INVALID_TEXTURE;
-        const auto found = m_texture_ids.find(filename);
+        const std::string cache_key = force_ldr ? filename + "\n#optix-environment-rgba8" : filename;
+        const auto found = m_texture_ids.find(cache_key);
         if (found != m_texture_ids.end())
             return found->second;
 
-        const auto texture = LoadTextureRGBA(filename);
+        const auto texture = LoadTextureRGBA(filename, force_ldr);
         if (!texture.Valid())
             return CH_VKRT_INVALID_TEXTURE;
 
@@ -2271,13 +2382,105 @@ struct ChVulkanRTGpuRenderer {
                 m_texture_pixels.push_back(packed);
             }
         }
-        m_texture_ids.emplace(filename, texture_id);
+        m_texture_ids.emplace(cache_key, texture_id);
         return texture_id;
     }
 
     bool TextureHasAlpha(const std::string& filename) const {
         const auto found = m_texture_has_alpha.find(filename);
         return found != m_texture_has_alpha.end() && found->second;
+    }
+
+    void BuildEnvironmentCDF(const std::string& filename, uint32_t env_texture_id) {
+        constexpr uint32_t invalid = std::numeric_limits<uint32_t>::max();
+        m_scene_data.background0[3] = UintBitsAsFloat(invalid);
+        m_scene_data.background1[3] = UintBitsAsFloat(invalid);
+        if (filename.empty() || env_texture_id == CH_VKRT_INVALID_TEXTURE || env_texture_id >= m_textures.size())
+            return;
+
+        int width = 0;
+        int height = 0;
+        int channels = 0;
+        // Deliberately use the 8-bit stb view even for HDR files. OptiX BuildCDFOnDevice
+        // calls LoadByteImage(), so matching its sampling distribution requires the same
+        // LDR conversion rather than the float radiance values used for final shading.
+        unsigned char* raw = stbi_load(filename.c_str(), &width, &height, &channels, 0);
+        if (!raw || width <= 0 || height <= 0 || channels <= 0) {
+            if (raw)
+                stbi_image_free(raw);
+            std::cerr << "WARNING: Chrono::Sensor Vulkan RT could not build environment CDF for: " << filename << "\n";
+            return;
+        }
+
+        const auto& env_info = m_textures[env_texture_id];
+        if (static_cast<uint32_t>(width) != env_info.info[1] || static_cast<uint32_t>(height) != env_info.info[2]) {
+            stbi_image_free(raw);
+            std::cerr << "WARNING: Chrono::Sensor Vulkan RT environment CDF dimensions differ from texture: "
+                      << filename << "\n";
+            return;
+        }
+
+        const size_t pixel_count = static_cast<size_t>(width) * static_cast<size_t>(height);
+        std::vector<float> latitude_accum(static_cast<size_t>(height), 0.f);
+        std::vector<float> longitude_accum(pixel_count, 0.f);
+        std::vector<uint16_t> latitude_cdf(static_cast<size_t>(height), 0u);
+        std::vector<uint16_t> longitude_cdf(pixel_count, 0u);
+
+        float latitude_sum = 0.f;
+        for (int v = 0; v < height; ++v) {
+            float row_sum = 0.f;
+            for (int u = 0; u < width; ++u) {
+                // OptiX flips the source row while constructing the CDF. The Vulkan
+                // texture loader performs the same vertical flip before packing texels.
+                const size_t src = (static_cast<size_t>(height - v - 1) * static_cast<size_t>(width) +
+                                    static_cast<size_t>(u)) * static_cast<size_t>(channels);
+                const float r = static_cast<float>(raw[src + 0]) / 255.f;
+                const float g = static_cast<float>(raw[src + (channels >= 3 ? 1 : 0)]) / 255.f;
+                const float b = static_cast<float>(raw[src + (channels >= 3 ? 2 : 0)]) / 255.f;
+                const float luminance = r * 0.2126f + g * 0.7152f + b * 0.0722f;
+                row_sum += luminance;
+                longitude_accum[static_cast<size_t>(v) * static_cast<size_t>(width) + static_cast<size_t>(u)] = row_sum;
+            }
+
+            const float elevation_t = height > 1 ? static_cast<float>(v) / static_cast<float>(height - 1) : 0.5f;
+            const float cos_elevation = std::cos((elevation_t - 0.5f) * static_cast<float>(CH_VKRT_PI));
+            latitude_sum += cos_elevation * row_sum;
+            latitude_accum[static_cast<size_t>(v)] = latitude_sum;
+
+            if (row_sum > 0.f) {
+                for (int u = 0; u < width; ++u) {
+                    const size_t idx = static_cast<size_t>(v) * static_cast<size_t>(width) + static_cast<size_t>(u);
+                    longitude_cdf[idx] = static_cast<uint16_t>(
+                        longitude_accum[idx] / row_sum * 65535.f);
+                }
+            }
+        }
+        stbi_image_free(raw);
+
+        if (latitude_sum <= 0.f)
+            return;
+        for (int v = 0; v < height; ++v) {
+            latitude_cdf[static_cast<size_t>(v)] = static_cast<uint16_t>(
+                latitude_accum[static_cast<size_t>(v)] / latitude_sum * 65535.f);
+        }
+
+        auto append_packed_u16 = [&](const std::vector<uint16_t>& values) {
+            const uint32_t word_offset = static_cast<uint32_t>(m_texture_pixels.size());
+            m_texture_pixels.reserve(m_texture_pixels.size() + (values.size() + 1u) / 2u);
+            for (size_t i = 0; i < values.size(); i += 2) {
+                const uint32_t lo = static_cast<uint32_t>(values[i]);
+                const uint32_t hi = i + 1 < values.size() ? static_cast<uint32_t>(values[i + 1]) : 0u;
+                m_texture_pixels.push_back(lo | (hi << 16));
+            }
+            return word_offset;
+        };
+
+        // OptiX-compatible environment CDF: uint16 latitude and conditional-longitude
+        // tables packed two entries per existing TexturePixels word.
+        const uint32_t latitude_word_offset = append_packed_u16(latitude_cdf);
+        const uint32_t longitude_word_offset = append_packed_u16(longitude_cdf);
+        m_scene_data.background0[3] = UintBitsAsFloat(latitude_word_offset);
+        m_scene_data.background1[3] = UintBitsAsFloat(longitude_word_offset);
     }
 
     ChVulkanRTGpuMaterial MakeGpuMaterialForScene(const ChVulkanRTMaterial& mat, float object_id) {
@@ -2571,7 +2774,10 @@ struct ChVulkanRTGpuRenderer {
         m_scene_data = ChVulkanRTGpuSceneData{};
 
         const auto& background = scene->GetBackground();
-        const uint32_t env_texture_id = RegisterTexture(background.env_tex);
+        const uint32_t env_texture_id =
+            background.mode == BackgroundMode::ENVIRONMENT_MAP
+                ? RegisterTexture(background.env_tex, true)
+                : CH_VKRT_INVALID_TEXTURE;
         const auto ambient = scene->GetAmbientLight();
         m_scene_data.ambient[0] = ambient.x();
         m_scene_data.ambient[1] = ambient.y();
@@ -2606,6 +2812,9 @@ struct ChVulkanRTGpuRenderer {
                     break;
             }
         }
+
+        if (background.mode == BackgroundMode::ENVIRONMENT_MAP)
+            BuildEnvironmentCDF(background.env_tex, env_texture_id);
 
         if (m_vertices.empty() || m_triangles.empty())
             return;
@@ -3284,6 +3493,9 @@ void ChFilterVulkanRTRender::Apply() {
         gpu_frame.gamma = CameraGamma(sensor);
         gpu_frame.use_gi = CameraUseGI(sensor);
         gpu_frame.ray_recursions = static_cast<uint32_t>(std::max(1, m_ray_recursions));
+        gpu_frame.sample_factor = CameraSampleFactor(sensor);
+        // VulkanCameraFrameRng: OptiX persists and advances per-pixel RNG state across launches.
+        gpu_frame.frame_index = static_cast<uint32_t>(sensor->GetNumLaunches());
         gpu_frame.max_depth = CameraMaxDepth(sensor);
         gpu_frame.max_distance = gpu_frame.max_depth;
         gpu_frame.clip_near = 0.001f;
@@ -3429,6 +3641,7 @@ void ChFilterVulkanRTRender::Apply() {
     const bool is_color_pipeline = pipeline == VulkanPipelineType::CAMERA || pipeline == VulkanPipelineType::PHYS_CAMERA;
     const unsigned int sample_factor = is_color_pipeline ? CameraSampleFactor(sensor) : 1u;
     const ChVulkanRTRenderCache* cache = m_render_cache.get();
+    const int camera_hit_limit = OptiXCameraHitLimit(m_ray_recursions);
 
     auto render_pixel = [&](unsigned int x, unsigned int y) {
         const size_t idx = static_cast<size_t>(y) * width + x;
@@ -3454,7 +3667,7 @@ void ChFilterVulkanRTRender::Apply() {
                     const ChVector3d dir = NormalizeSafe(forward + right * (uv_x * tan_h) + up * (uv_y * tan_h), forward);
                     if (center_sample || sample_factor == 1u)
                         center_dir = dir;
-                    accum += TraceCameraColor(cache, m_scene, origin, dir, 0, use_gi);
+                    accum += TraceCameraColor(cache, m_scene, origin, dir, 0, camera_hit_limit, use_gi);
                 }
             }
             accum /= static_cast<float>(std::max(1u, spp));
@@ -3510,7 +3723,7 @@ void ChFilterVulkanRTRender::Apply() {
             }
             m_buffer_semantic->Buffer[idx] = p;
         } else {
-            const ChVector3f color = TraceCameraColor(cache, m_scene, origin, dir, 0, use_gi);
+            const ChVector3f color = TraceCameraColor(cache, m_scene, origin, dir, 0, camera_hit_limit, use_gi);
             m_buffer_rgba8->Buffer[idx] = MakeRGBA(GammaCorrect(color, gamma));
         }
     };

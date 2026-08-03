@@ -102,6 +102,7 @@ layout(push_constant) uniform PushConstants {
     uint height;
     uint pipeline;
     uint flags;
+    uint frame_index;  // VulkanCameraFrameRng
 } pc;
 
 const uint PIPE_CAMERA = 0u;
@@ -129,7 +130,11 @@ const uint INVALID_TEXTURE = 0xffffffffu;
 const uint FLAG_USE_GI = 1u;
 
 uint max_trace_depth() {
-    return clamp((pc.flags >> 8) & 255u, 1u, 12u);
+    // OptiX camera PRDs start at depth 2 and launch a child only while
+    // depth + 1 < max_depth. Convert the manager setting to the same number
+    // of camera-surface hits instead of treating it as a raw loop count.
+    uint optix_max_depth = clamp((pc.flags >> 8) & 255u, 1u, 12u);
+    return optix_max_depth > 2u ? optix_max_depth - 2u : 1u;
 }
 const uint TEX_FLAG_RGB9E5 = 1u;
 const float PI = 3.14159265358979323846;
@@ -349,14 +354,32 @@ vec3 background_color(vec3 dir) {
         float u = atan(d.y, d.x) / (2.0 * PI) + 0.5;
         float v = asin(clamp(d.z, -1.0, 1.0)) / PI + 0.5;
         vec4 tex = sample_texture(scene_data.counts.z, vec2(u, v), vec2(1.0));
-        return texture_is_hdr(scene_data.counts.z) ? max(tex.rgb, vec3(0.0))
-                                                   : pow(clamp(tex.rgb, vec3(0.0), vec3(1.0)), vec3(2.2));
+        return pow(clamp(tex.rgb, vec3(0.0), vec3(1.0)), vec3(2.2));
     }
     if (mode == BACKGROUND_GRADIENT) {
         float k = max(0.0, normalize(dir).z);
         return mix(scene_data.background1.rgb, scene_data.background0.rgb, k);
     }
     return scene_data.background0.rgb;
+}
+
+bool visibility_occluded_optix(vec3 origin, vec3 dir, float max_t) {
+    // Match OptiX CheckVisibleAndSample*: an opaque terminate-on-first-hit
+    // visibility query is performed before any material-aware shadow traversal.
+    // The shadow miss shader writes one; an intersection leaves the initialized zero.
+    shadow_payload.attenuation_remaining = vec4(0.0, 0.0, 0.0, max_t);
+    traceRayEXT(u_tlas,
+                gl_RayFlagsTerminateOnFirstHitEXT |
+                gl_RayFlagsSkipClosestHitShaderEXT |
+                gl_RayFlagsOpaqueEXT,
+                0xff,
+                0, 0, 1,
+                origin,
+                max(TRACE_EPS, pc.aux0.y),
+                normalize(dir),
+                max_t,
+                1);
+    return max_component(shadow_payload.attenuation_remaining.rgb) < 0.5;
 }
 
 vec3 shadow_attenuation(vec3 origin, vec3 dir, float max_t) {
@@ -413,28 +436,85 @@ vec3 shadow_attenuation(vec3 origin, vec3 dir, float max_t) {
     return clamp(attenuation, vec3(0.0), vec3(1.0));
 }
 
-vec3 environment_direct(vec3 hit_pos, vec3 n, vec3 scale_rgb) {
-    vec3 dirs[4] = vec3[4](
-        normalize(n + vec3(0.36, 0.10, 0.93)),
-        normalize(n + vec3(-0.48, 0.42, 0.77)),
-        normalize(n + vec3(0.18, -0.72, 0.67)),
-        normalize(n + vec3(-0.08, -0.18, 0.98))
-    );
-    vec3 sum = vec3(0.0);
-    float wsum = 0.0;
-    for (int i = 0; i < 4; ++i) {
-        vec3 ldir = dirs[i];
-        float ndl = max(dot(n, ldir), 0.0);
-        if (ndl <= 0.0)
-            continue;
-        vec3 shadow = shadow_attenuation(hit_pos + ldir * TRACE_EPS, ldir, 3.402823e38);
-        sum += ndl * background_color(ldir) * shadow;
-        wsum += ndl;
-    }
-    return wsum > 0.0 ? scale_rgb * (sum / wsum) : vec3(0.0);
+// OptiX-compatible environment CDF stored in the existing texture-pixel buffer.
+uint environment_cdf_u16(uint word_offset, uint index) {
+    uint packed = texture_pixels[word_offset + index / 2u];
+    return (index & 1u) == 0u ? (packed & 0xffffu) : (packed >> 16);
 }
 
-vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient) {
+uint sample_environment_cdf(uint word_offset, uint bias, uint count, uint threshold) {
+    uint low = bias;
+    uint high = bias + count - 1u;
+    while (low < high) {
+        uint mid = (low + high) >> 1u;
+        if (environment_cdf_u16(word_offset, mid) < threshold)
+            low = mid + 1u;
+        else
+            high = mid;
+    }
+    return low;
+}
+
+float environment_cdf_delta(uint word_offset, uint index) {
+    int current = int(environment_cdf_u16(word_offset, index));
+    int previous = index == 0u ? 0 : int(environment_cdf_u16(word_offset, index - 1u));
+    // Deliberately mirror OptiX CDFDelta_u16 exactly. For the first longitude
+    // entry of rows after row zero, this references the preceding row's final
+    // CDF entry; a non-positive resulting PDF is rejected by the caller.
+    return float(current - previous) / 65535.0;
+}
+
+float environment_random_open_closed(uint seed) {
+    return float((hash_u32(seed) & 0x00ffffffu) + 1u) / float(0x01000000u);
+}
+
+uint environment_threshold_u16(uint seed) {
+    // curand_uniform() is in (0,1]. Multiplication followed by uint conversion
+    // can produce the complete 0..65535 threshold range.
+    return uint(environment_random_open_closed(seed) * 65535.0);
+}
+
+bool sample_environment_direction(uint seed, out vec3 direction, out vec3 radiance, out float pdf_gate) {
+    uint env_texture = scene_data.counts.z;
+    uint latitude_words = floatBitsToUint(scene_data.background0.w);
+    uint longitude_words = floatBitsToUint(scene_data.background1.w);
+    if (env_texture == INVALID_TEXTURE || env_texture >= scene_data.counts.w ||
+        latitude_words == INVALID_TEXTURE || longitude_words == INVALID_TEXTURE)
+        return false;
+
+    uvec4 info = textures[env_texture].info;
+    uint width = max(info.y, 1u);
+    uint height = max(info.z, 1u);
+    uint threshold_v = environment_threshold_u16(seed ^ 0x68bc21ebu);
+    uint v = sample_environment_cdf(latitude_words, 0u, height, threshold_v);
+    float prob_v = environment_cdf_delta(latitude_words, v);
+
+    uint row_bias = v * width;
+    uint threshold_u = environment_threshold_u16(seed ^ 0x02e5be93u);
+    uint absolute_u = sample_environment_cdf(longitude_words, row_bias, width, threshold_u);
+    float prob_u_given_v = environment_cdf_delta(longitude_words, absolute_u);
+    uint u = absolute_u - row_bias;
+
+    float ju = environment_random_open_closed(seed ^ 0x967a889bu);
+    float jv = environment_random_open_closed(seed ^ 0x368cc8b7u);
+    vec2 tex_uv = vec2((float(u) + ju) / float(width), (float(v) + jv) / float(height));
+    float azimuth = 2.0 * PI * (tex_uv.x - 0.5);
+    float elevation = PI * (tex_uv.y - 0.5);
+    direction = vec3(cos(azimuth) * cos(elevation),
+                     sin(azimuth) * cos(elevation),
+                     sin(elevation));
+
+    vec4 tex = sample_texture(env_texture, tex_uv, vec2(1.0));
+    // OptiX CheckVisibleAndSampleEnvironmentLight uses normalized uchar RGB
+    // directly. Only miss/background rays apply the 2.2 power.
+    radiance = clamp(tex.rgb, vec3(0.0), vec3(1.0));
+    // OptiX computes this value but only tests whether it is positive; it does not
+    // divide the LEGACY direct-light contribution by the PDF.
+    pdf_gate = prob_v * prob_u_given_v * float(width * height);
+    return pdf_gate > 0.0;
+}
+
+vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient, uint sample_seed) {
     EvalMaterial mat = eval_material(hit);
     vec3 hit_pos = origin + dir * hit.t;
     vec3 n = shading_normal(hit);
@@ -444,26 +524,46 @@ vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient) 
 
     vec3 color = vec3(0.0);
     if (include_ambient) {
-        // Honor the ambient level the user set on the scene. A hardcoded 0.025 floor used to be
-        // applied here, which looks good by default but silently overrides SetAmbientLight(0) and
-        // adds a systematic positive bias when comparing against a pure direct-lighting reference.
+        // Match OptiX LEGACY CalculateAmbientLight: only the explicit ambient color
+        // contributes here. Environment/background radiance is handled by light sampling.
         vec3 ambient_rgb = max(scene_data.ambient.rgb, vec3(0.0));
-        vec3 sky_rgb = background_color(n);
-        float sky_weight = scene_data.counts.y == BACKGROUND_SOLID ? 0.12 : 0.28;
-        float ambient_shape = 0.35 + 0.65 * saturate(n.z * 0.5 + 0.5);
-        color += mat.opacity * mat.diffuse * (ambient_rgb + sky_weight * sky_rgb) * ambient_shape;
+        float ambient_shape = ndv + saturate(n.z * 0.5 + 0.5);
+        color += mat.opacity * mat.diffuse * ambient_rgb * ambient_shape;
     }
 
     for (uint i = 0u; i < scene_data.counts.x; ++i) {
         GpuLight light = lights[i];
         int type = int(light.dir_type.w + 0.5);
         if (type == LIGHT_ENVIRONMENT) {
-            // OptiX samples environment lights as visible light sources and
-            // traces a shadow ray for the sampled direction.  Use a small
-            // deterministic set of sky samples here so environment scenes keep
-            // the missing diffuse/occlusion component without adding stochastic
-            // noise to single-sample cameras.
-            color += mat.opacity * mat.diffuse * environment_direct(hit_pos, n, light.color_atten.rgb);
+            vec3 env_dir = vec3(0.0);
+            vec3 env_radiance = vec3(0.0);
+            float env_pdf = 0.0;
+            if (!sample_environment_direction(sample_seed ^ (i + 1u) * 0x9e3779b9u,
+                                              env_dir, env_radiance, env_pdf))
+                continue;
+
+            float env_ndl = max(dot(n, env_dir), 0.0);
+            if (env_ndl <= 0.0 || env_pdf <= 0.0)
+                continue;
+            vec3 env_origin = hit_pos + env_dir * TRACE_EPS;
+            if (visibility_occluded_optix(env_origin, env_dir, 3.402823e38))
+                continue;
+            // OptiX launches a material-aware SHADOW ray next, but it necessarily
+            // misses after the binary query missed from the same origin/direction.
+            vec3 env_shadow = vec3(1.0);
+
+            vec3 env_h = normalize(env_dir + view_dir);
+            float env_ndh = max(dot(n, env_h), 0.0);
+            float env_vdh = max(dot(view_dir, env_h), 0.0);
+            vec3 env_fresnel = mat.use_specular_workflow ? fresnel_schlick(env_vdh, f0) : f0;
+            float env_d = normal_dist_optix(env_ndh, mat.roughness);
+            float env_g = hammon_smith_optix(ndv, env_ndl, mat.roughness);
+            // Match OptiX CheckVisibleAndSampleEnvironmentLight + CalculateReflectedColor:
+            // the environment helper contributes one NdL and LEGACY shading applies another.
+            vec3 env_incoming = env_ndl * env_ndl * light.color_atten.rgb * env_radiance * env_shadow;
+            vec3 env_diffuse = mat.use_specular_workflow ? mat.diffuse : (1.0 - mat.metallic) * mat.diffuse;
+            color += mat.opacity * (((vec3(1.0) - env_fresnel) * env_diffuse +
+                                     env_d * env_g * env_fresnel) * env_incoming);
             continue;
         }
         if (type == LIGHT_AREA) {
@@ -508,9 +608,10 @@ vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient) 
         if (ndl <= 0.0)
             continue;
 
-        vec3 shadow = shadow_attenuation(hit_pos + light_dir * TRACE_EPS, light_dir, max_shadow_t);
-        if (max_component(shadow) <= 1e-5)
+        vec3 light_origin = hit_pos + light_dir * TRACE_EPS;
+        if (visibility_occluded_optix(light_origin, light_dir, max_shadow_t))
             continue;
+        vec3 shadow = vec3(1.0);
 
         vec3 h = normalize(light_dir + view_dir);
         float ndh = max(dot(n, h), 0.0);
@@ -531,15 +632,19 @@ vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient) 
     return color;
 }
 
-vec3 trace_lit_once(vec3 origin, vec3 dir, bool include_ambient) {
+vec3 trace_lit_once(vec3 origin, vec3 dir, bool include_ambient, uint sample_seed) {
     TraceResult h = trace_scene(origin, dir, pc.origin_max_t.w, pc.aux0.y);
     if (!h.hit)
         return background_color(dir);
-    return shade_direct(h, origin, dir, include_ambient);
+    return shade_direct(h, origin, dir, include_ambient, sample_seed);
 }
 
-vec4 trace_camera(vec3 origin, vec3 dir) {
+vec4 trace_camera(vec3 origin, vec3 dir, uint camera_sample_index) {
     vec3 accum = vec3(0.0);
+    uint path_seed = (gl_LaunchIDEXT.x + 1u) * 73856093u ^
+                     (gl_LaunchIDEXT.y + 1u) * 19349663u ^
+                     (camera_sample_index + 1u) * 83492791u ^
+                     (pc.frame_index + 1u) * 2654435761u;
     float first_depth = 0.0;
     vec3 throughput = vec3(1.0);
     vec3 ro = origin;
@@ -563,7 +668,8 @@ vec4 trace_camera(vec3 origin, vec3 dir) {
 
         vec3 n = shading_normal(h);
         vec3 hit_pos = ro + rd * h.t;
-        vec3 direct = shade_direct(h, ro, rd, depth == 0);
+        uint bounce_seed = hash_u32(path_seed ^ uint(depth + 1) * 83492791u);
+        vec3 direct = shade_direct(h, ro, rd, depth == 0, bounce_seed);
 
         float ndv = max(dot(n, normalize(-rd)), 0.0);
         vec3 f0 = mat.use_specular_workflow ? 0.08 * mat.specular : mix(vec3(0.04), mat.diffuse, mat.metallic);
@@ -585,22 +691,24 @@ vec4 trace_camera(vec3 origin, vec3 dir) {
                 mirror_scale *= 0.5;
             vec3 mirror_contrib = clamp(mirror_scale * reflect_f, vec3(0.0), vec3(1.0));
             if (max_component(mirror_contrib) > 1e-4) {
-                vec3 reflected = trace_lit_once(hit_pos + reflect_dir * TRACE_EPS, reflect_dir, false);
+                vec3 reflected = trace_lit_once(hit_pos + reflect_dir * TRACE_EPS, reflect_dir, false,
+                                                bounce_seed ^ 0xa511e9b3u);
                 direct += mirror_contrib * reflected;
             }
         }
 
         if ((pc.flags & FLAG_USE_GI) != 0u && depth == 0) {
-            uint seed = (gl_LaunchIDEXT.x + 1u) * 73856093u ^ (gl_LaunchIDEXT.y + 1u) * 19349663u;
-            float a = 2.0 * PI * hash_unit(seed ^ 0x9e3779b9u);
-            float z = hash_unit(seed ^ 0x85ebca6bu) * 0.65 + 0.35;
+            uint gi_seed = bounce_seed ^ 0x7f4a7c15u;
+            float a = 2.0 * PI * hash_unit(gi_seed ^ 0x9e3779b9u);
+            float z = hash_unit(gi_seed ^ 0x85ebca6bu) * 0.65 + 0.35;
             float r = sqrt(max(0.0, 1.0 - z * z));
             vec3 helper = abs(n.z) < 0.9 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
             vec3 t = normalize(cross(helper, n));
             vec3 b = normalize(cross(n, t));
             vec3 gi_dir = normalize(t * (r * cos(a)) + b * (r * sin(a)) + n * z);
             float gi_ndl = max(dot(n, gi_dir), 0.0);
-            vec3 gi = trace_lit_once(hit_pos + gi_dir * TRACE_EPS, gi_dir, false);
+            vec3 gi = trace_lit_once(hit_pos + gi_dir * TRACE_EPS, gi_dir, false,
+                                     gi_seed ^ 0xc2b2ae35u);
             direct += 0.35 * mat.opacity * gi_ndl * mat.diffuse * gi;
         }
 
@@ -617,15 +725,53 @@ vec4 trace_camera(vec3 origin, vec3 dir) {
     return vec4(accum, first_depth);
 }
 
-vec3 camera_ray(uint x, uint y, bool aux_projection) {
-    float fx = float(x) + 0.5;
-    float fy = float(y) + 0.5;
+uint camera_sample_factor() {
+    return clamp((pc.flags >> 16) & 255u, 1u, 32u);
+}
+
+float camera_sample_jitter(uint x, uint y, uint sample_index, uint axis) {
+    return hash_unit((x + 1u) * 73856093u ^
+                     (y + 1u) * 19349663u ^
+                     (sample_index + 1u) * 83492791u ^
+                     axis * 2654435761u ^
+                     (pc.frame_index + 1u) * 2246822519u);
+}
+
+vec3 camera_ray_sample(uint x, uint y, float jitter_x, float jitter_y, bool aux_projection) {
+    float fx = float(x) + jitter_x;
+    float fy = float(y) + jitter_y;
     float uvx = 2.0 * fx / max(1.0, float(pc.width)) - 1.0;
     float uvy = 2.0 * fy / max(1.0, float(pc.height)) - 1.0;
     uvy /= max(1e-6, pc.right_aspect.w);
 
     float ray_factor = aux_projection ? pc.aux0.w : pc.aux0.z;
-    return normalize(pc.forward_hfov.xyz + pc.right_aspect.xyz * (uvx * ray_factor) + pc.up_gamma.xyz * (uvy * ray_factor));
+    return normalize(pc.forward_hfov.xyz + pc.right_aspect.xyz * (uvx * ray_factor) +
+                     pc.up_gamma.xyz * (uvy * ray_factor));
+}
+
+vec3 camera_ray(uint x, uint y, bool aux_projection) {
+    return camera_ray_sample(x, y, 0.5, 0.5, aux_projection);
+}
+
+vec4 trace_camera_samples(vec3 origin, uint x, uint y) {
+    uint factor = camera_sample_factor();
+    uint sample_count = factor * factor;
+    vec3 accumulated = vec3(0.0);
+    float center_depth = 0.0;
+    for (uint sy = 0u; sy < factor; ++sy) {
+        for (uint sx = 0u; sx < factor; ++sx) {
+            uint sample_index = sy * factor + sx;
+            bool center_sample = sample_index + 1u == sample_count;
+            float jitter_x = (factor == 1u || center_sample) ? 0.5 : camera_sample_jitter(x, y, sample_index, 0u);
+            float jitter_y = (factor == 1u || center_sample) ? 0.5 : camera_sample_jitter(x, y, sample_index, 1u);
+            vec3 sample_dir = camera_ray_sample(x, y, jitter_x, jitter_y, false);
+            vec4 traced = trace_camera(origin, sample_dir, sample_index);
+            accumulated += traced.rgb;
+            if (center_sample || factor == 1u)
+                center_depth = traced.a;
+        }
+    }
+    return vec4(accumulated / float(max(sample_count, 1u)), center_depth);
 }
 
 vec3 lidar_ray(uint x, uint y) {
@@ -715,14 +861,14 @@ void main() {
     dir = camera_ray(x, y, aux_projection);
 
     if (pc.pipeline == PIPE_CAMERA) {
-        vec4 traced = trace_camera(origin, dir);
+        vec4 traced = trace_camera_samples(origin, x, y);
         vec3 color = gamma_correct(traced.rgb, pc.up_gamma.w);
         out_data[o + 0u] = pack_rgba8(color);
         return;
     }
 
     if (pc.pipeline == PIPE_PHYS_CAMERA) {
-        vec4 traced = trace_camera(origin, dir);
+        vec4 traced = trace_camera_samples(origin, x, y);
         vec3 color = gamma_correct(traced.rgb, pc.up_gamma.w);
         out_data[o + 0u] = floatBitsToUint(color.r);
         out_data[o + 1u] = floatBitsToUint(color.g);
