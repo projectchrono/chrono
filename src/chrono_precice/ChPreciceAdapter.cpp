@@ -24,8 +24,6 @@
     #include "chrono/input_output/ChOutputHDF5.h"
 #endif
 
-#include "chrono_thirdparty/rapidxml/rapidxml.hpp"
-
 #include "chrono_precice/ChPreciceAdapter.h"
 
 using std::cout;
@@ -35,19 +33,126 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapter::ChPreciceAdapter(const std::string& model_name)
-    : m_model_name(model_name),
+ChPreciceAdapter::ChPreciceAdapter(const std::string& precice_config_filename, const std::string& model_name, bool verbose)
+    : m_precice_config_filename(precice_config_filename),
+      m_model_name(model_name),
       m_participant(nullptr),
-      m_process_index(0),
-      m_process_size(1),
+      m_use_added_mass(false),
+      m_use_dynamic_added_mass(false),
       m_interfaces_created(false),
       m_participant_created(false),
-      m_mesh_created(false),
       m_initialized(false),
-      m_verbose(false),
+      m_verbose(verbose),
       m_visualize(false),
       m_output(false),
-      m_output_dir(".") {}
+      m_output_dir(".") {
+    ParseXML();
+}
+
+void ChPreciceAdapter::ParseXML() {
+    if (m_verbose)
+        cout << "Process preCICE XML configuration file" << endl;
+
+    // Read the XML file into a vector
+    std::ifstream file(m_precice_config_filename);
+    if (!file.good()) {
+        cerr << "Cannot read preCICE configuration file: " + m_precice_config_filename << endl;
+        throw std::runtime_error("Cannot read preCICE configuration file.");
+    }
+    std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    buffer.push_back('\0');
+    file.close();
+
+    // Create the XML document and parse the buffer using the XML file parsing library
+    auto xml_doc = chrono_types::make_unique<rapidxml::xml_document<>>();
+    xml_doc->parse<0>(&buffer[0]);
+
+    // Find the root node
+    auto root_node = xml_doc->first_node("precice-configuration");
+    if (!root_node) {
+        cerr << "Invalid preCICE configuration file: " + m_precice_config_filename << endl;
+        cerr << "Missing <precice-configuration> XML node" << endl;
+        throw std::runtime_error("Invalid preCICE configuration file.");
+    }
+
+    // Loop over all nodes and extract defined meshes; check for meshes for added mass
+    if (m_verbose)
+        cout << "  Meshes and data" << endl;
+
+    for (auto m_node = root_node->first_node(); m_node; m_node = m_node->next_sibling()) {
+        if (std::string(m_node->name()) != "mesh")
+            continue;
+
+        std::string mesh_name = m_node->first_attribute("name")->value();
+        if (m_verbose)
+            cout << "    mesh: '" << mesh_name << "' | data: ";
+
+        for (auto d_node = m_node->first_node(); d_node; d_node = d_node->next_sibling()) {
+            if (std::string(d_node->name()) != "use-data")
+                continue;
+
+            std::string data_name = d_node->first_attribute("name")->value();
+            if (m_verbose)
+                cout << "'" << data_name << "' ";
+
+            m_defined_meshes[mesh_name].push_back(data_name);
+        }
+
+        if (m_verbose)
+            cout << endl;
+
+        if (mesh_name == "SolidAddedMass" || mesh_name == "FluidAddedMass")
+            m_use_added_mass = true;
+    }
+
+    // Loop over all nodes and extract participant information; check if any participant provides the FluidAddedMass mesh
+    if (m_verbose)
+        cout << "  Participants" << endl;
+
+    for (auto p_node = root_node->first_node(); p_node; p_node = p_node->next_sibling()) {
+        if (std::string(p_node->name()) != "participant")
+            continue;
+
+        std::string participant_name = p_node->first_attribute("name")->value();
+        if (m_verbose)
+            cout << "    participant: '" << participant_name << "' | provides meshes: ";
+
+        // Search through participant provide-mesh sub-nodes and check for dynamic added mass
+        for (auto m_node = p_node->first_node(); m_node; m_node = m_node->next_sibling()) {
+            if (std::string(m_node->name()) != "provide-mesh")
+                continue;
+
+            std::string mesh_name = m_node->first_attribute("name")->value();
+            if (m_verbose)
+                cout << "'" << mesh_name << "' ";
+
+            if (m_use_added_mass && mesh_name == "FluidAddedMass")
+                m_use_dynamic_added_mass = true;
+        }
+
+        // Cache information from write-data and read-data participant sub-nodes
+        MeshDataNames provided_meshes;
+        for (auto d_node = p_node->first_node(); d_node; d_node = d_node->next_sibling()) {
+            if (std::string(d_node->name()) != "write-data" && std::string(d_node->name()) != "read-data")
+                continue;
+            auto data_name = d_node->first_attribute("name")->value();
+            auto mesh_name = d_node->first_attribute("mesh")->value();
+            provided_meshes[mesh_name].push_back(data_name);
+        }
+        m_provided_meshes[participant_name] = provided_meshes;
+
+        if (m_verbose)
+            cout << endl;
+    }
+
+    if (m_verbose) {
+        if (m_use_added_mass) {
+            cout << "  Use aded mass: YES ";
+            cout << (m_use_dynamic_added_mass ? "(dynamic)" : "(static)") << endl;
+        } else
+            cout << "  Use aded mass: NO" << endl;
+    }
+}
 
 void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
     m_output_dir = out_dir;
@@ -254,19 +359,6 @@ void ChPreciceAdapter::AddCouplingMeshInterface(const std::string& mesh_name,
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapter::RegisterParticipant(const std::string& precice_config_filename, int process_index, int process_size) {
-    m_prefix1 = "[" + m_participant_name + "] ";
-    m_prefix2 = std::string(m_prefix1.size(), ' ');
-
-    assert(m_participant == nullptr);
-    m_participant = std::make_unique<precice::Participant>(m_participant_name, precice_config_filename, m_process_index, m_process_size);
-    m_participant_created = true;
-
-    m_precice_config_filename = precice_config_filename;
-}
-
-// -----------------------------------------------------------------------------
-
 void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vector<ChVector3d>& positions) {
     assert(m_participant_created);
     assert(m_interfaces_created);
@@ -296,7 +388,6 @@ void ChPreciceAdapter::RegisterMesh(const std::string& mesh_name, const std::vec
     size_t num_vertices = positions.size() / mesh_dim;
     m_coupling_meshes[mesh_name].vertex_ids.resize(num_vertices);
     m_participant->setMeshVertices(mesh_name, positions, m_coupling_meshes[mesh_name].vertex_ids);
-    m_mesh_created = true;
 
     // Resize the vectors of values for all data associated with this mesh.
     // Data dimension is the number of values per vertex for the data, which is determined by preCICE based on the configuration file
@@ -448,9 +539,12 @@ bool ChPreciceAdapter::IsTimeWindowComplete() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapter::InitializeSimulation() {
-    assert(m_participant_created);
+void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size) {
     assert(!m_initialized);
+
+    // Set prefix strings for verbose output
+    m_prefix1 = "[" + m_participant_name + "] ";
+    m_prefix2 = std::string(m_prefix1.size(), ' ');
 
     if (m_verbose)
         cout << m_prefix1 << "Initialization" << endl;
@@ -470,14 +564,18 @@ void ChPreciceAdapter::InitializeSimulation() {
         }
     }
 
+    // Create the preCICE participant
+    assert(m_participant == nullptr);
+    m_participant = std::make_unique<precice::Participant>(m_participant_name, m_precice_config_filename, process_index, process_size);
+    m_participant_created = true;
+
     // Check mesh and data consistency
-    CheckConsistency();
+    ProcessXML();
 
     // Initialize the concrete Chrono preCICE participant
     InitializeParticipant();
 
     // Write initial data if required
-    assert(m_mesh_created);
     if (m_participant->requiresInitialData()) {
         WriteData();
     }
@@ -489,9 +587,7 @@ void ChPreciceAdapter::InitializeSimulation() {
 }
 
 void ChPreciceAdapter::RunSimulation() {
-    assert(m_participant_created);
     assert(m_interfaces_created);
-    assert(m_mesh_created);
     assert(m_initialized);
 
     double time = 0;
@@ -521,7 +617,6 @@ void ChPreciceAdapter::RunSimulation() {
 }
 
 void ChPreciceAdapter::FinalizeSimulation() {
-    assert(m_participant_created);
     assert(m_initialized);
 
     if (m_verbose)
@@ -737,73 +832,45 @@ std::vector<ChVector3d> ChPreciceAdapter::ReadPoints(const std::string& filename
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapter::CheckConsistency() {
-    // Read preCICE configuration file and find coupling meshes and coupling data for each mesh.
-    // Set the `used` flag for data defined on each mesh by the Chrono preCICE adapter.
-    // If the data is referenced in the preCICE configuration, set used=true. Otherwise, set used=false.
+void ChPreciceAdapter::ProcessXML() {
     if (m_verbose)
-        cout << m_prefix2 << "Parse preCICE XML file" << endl;
+        cout << m_prefix1 << "Check consistency with preCICE XML file ... ";
 
-    //// TODO - consider parsing the participant nodes in the XML file (instead of mesh nodes)
+    // Check that participant has all provided meshes
+    // Mark data on each mesh as used (referenced) or not
+    auto provided_meshes = m_provided_meshes.find(m_participant_name);
+    for (const auto& mesh : provided_meshes->second) {
+        const auto& mesh_name = mesh.first;
+        const auto& data_names = mesh.second;
 
-    // - read the XML file into a vector
-    std::ifstream file(m_precice_config_filename);
-    if (!file.good()) {
-        cerr << "Cannot read preCICE configuration file: " + m_precice_config_filename << endl;
-        throw std::runtime_error("Cannot read preCICE configuration file.");
-    }
-    std::vector<char> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    buffer.push_back('\0');
+        auto coupling_mesh = m_coupling_meshes.find(mesh_name);
+        if (coupling_mesh == m_coupling_meshes.end()) {
+            if (m_verbose)
+                cout << "FAILED" << endl;
+            cerr << "Participant '" << m_participant_name << "' does not specify mesh '" << mesh_name << "' marked as provided" << endl;
+            throw std::runtime_error("Participant does not specify a required mesh");
+        }
 
-    // - parse the buffer using the XML file parsing library
-    rapidxml::xml_document<>* doc_ptr = new rapidxml::xml_document<>();
-    doc_ptr->parse<0>(&buffer[0]);
-
-    // - find the root node
-    auto root_node = doc_ptr->first_node("precice-configuration");
-    if (!root_node) {
-        cerr << "Invalid preCICE configuration file: " + m_precice_config_filename << endl;
-        cerr << "Missing <precice-configuration> XML node" << endl;
-        throw std::runtime_error("Invalid preCICE configuration file.");
-    }
-
-    // - find all mesh nodes
-    for (auto mesh_node = root_node->first_node(); mesh_node; mesh_node = mesh_node->next_sibling()) {
-        if (std::string(mesh_node->name()) != "mesh")
-            continue;
-
-        std::string mesh_name = mesh_node->first_attribute("name")->value();
-
-        auto mesh = m_coupling_meshes.find(mesh_name);
-        if (mesh == m_coupling_meshes.end())
-            continue;
-
-        if (m_verbose)
-            cout << m_prefix2 << "  process data for mesh '" << mesh_name << "'" << endl;
-
-        for (auto data_node = mesh_node->first_node(); data_node; data_node = data_node->next_sibling()) {
-            if (std::string(data_node->name()) != "use-data")
-                continue;
-
-            std::string data_name = data_node->first_attribute("name")->value();
-
-            auto data = mesh->second.data.find(data_name);
-            if (data == mesh->second.data.end())
-                continue;  //// TODO - should this be an error?
-
-            data->second.used = true;
+        for (const auto& data_name : data_names) {
+            auto coupling_data = coupling_mesh->second.data.find(data_name);
+            if (coupling_data == coupling_mesh->second.data.end())
+                continue;  // data on this coupling mesh not referenced in preCICE XML
+            coupling_data->second.used = true;
         }
     }
 
+    if (m_verbose)
+        cout << "OK" << endl;
+
     // Report information
     if (m_verbose) {
-        cout << m_prefix2 << "Coupling meshes and data" << endl;
+        cout << m_prefix1 << "Coupling meshes and data" << endl;
         for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
-            cout << m_prefix2 << "  MESH: " << mesh_name << endl;
+            cout << m_prefix2 << "mesh: '" << mesh_name << "'" << endl;
             for (auto& [data_name, data_info] : mesh_info.data) {
-                cout << m_prefix2 << "    DATA: " << data_name << endl;
-                cout << m_prefix2 << "      type: " << GetCouplingDataTypeAsString(data_info.type) << endl;
-                cout << m_prefix2 << "      used: " << data_info.used << endl;
+                cout << m_prefix2 << "  data: '" << data_name << "'" << endl;
+                cout << m_prefix2 << "    type: " << GetCouplingDataTypeAsString(data_info.type) << endl;
+                cout << m_prefix2 << "    used: " << data_info.used << endl;
             }
         }
     }

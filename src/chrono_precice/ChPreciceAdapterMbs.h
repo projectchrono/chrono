@@ -51,22 +51,17 @@ namespace ch_precice {
 /// preCICE adapter for Chrono MBS simulation.
 class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
   public:
-    /// Construct a Chrono MBS participant.
-    /// No Chrono system and no preCICE interfaces are defined.
-    /// If enabled and if added mass blocks are defined, a hydrodynamics load object will be created during initialization.
-    ChPreciceAdapterMbs(bool use_added_mass = false);
-
     /// Construct a Chrono MBS preCICE participant for the specified Chrono system.
     /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
     /// If enabled and if added mass blocks are defined, a hydrodynamics load object will be created during initialization.
-    ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool use_added_mass = false);
+    ChPreciceAdapterMbs(const std::string& precice_config_filename, std::shared_ptr<ChSystem> sys, double time_step, bool verbose = false, bool use_added_mass = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-    /// Load Chrono MBS preCICE participant configuration from the specified YAML file.
+    /// Construct a Chrono MBS preCICE participant configured from the specified YAML file.
     /// The provided YAML file must be of type `MBS` and include a member `precice_adapter_configuration`.
     /// The preCICE interfaces (coupling bodies and FEA meshes and their associated coupling meshes and mesh data)
     /// are read from the YAML specification file.
-    void LoadFromYaml(const std::string& input_filename);
+    ChPreciceAdapterMbs(const std::string& precice_config_filename, const std::string& input_filename, bool verbose = false, bool use_added_mass = false);
 #endif
 
     ~ChPreciceAdapterMbs() {}

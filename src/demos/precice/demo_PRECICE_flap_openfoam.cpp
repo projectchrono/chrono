@@ -63,16 +63,15 @@ int main(int argc, char* argv[]) {
     // Set path to Chrono data (based on assumed working directory)
     SetChronoDataPath("../../../");
 
-    // Set path to preCICE configuration file (based on assumed working directory)
+    // Set paths to preCICE configuration file and MBS configuration file (based on assumed working directory)
     std::string precice_config_filename = "../precice_config.xml";
+    std::string participant_config_filename = "./mbs_participant.yaml";
 
     // Enable verbose terminal output
     bool verbose = true;
 
     // Create the Chrono MBS participant
-    ChPreciceAdapterMbs participant;
-    participant.SetVerbose(verbose);
-    participant.LoadFromYaml("./mbs_participant.yaml");
+    ChPreciceAdapterMbs participant(precice_config_filename, participant_config_filename, verbose);
 
     // Access RSDA in MBS model
     auto& sys = participant.GetSystem();
@@ -107,8 +106,7 @@ int main(int argc, char* argv[]) {
     // Enable simulation output (if available and configured)
     participant.EnableOutput(true);
 
-    // Register preCICE participant, initialize and run simulation
-    participant.RegisterParticipant(precice_config_filename);
+    // Create preCICE participant, initialize and run simulation
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();

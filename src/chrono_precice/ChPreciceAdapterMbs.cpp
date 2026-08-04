@@ -27,14 +27,13 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(bool use_added_mass) : ChPreciceAdapterMbs(nullptr, 0.0, use_added_mass) {}
-
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool use_added_mass)
-    : ChPreciceAdapter("model_MBS"), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_use_added_mass(use_added_mass) {}
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, std::shared_ptr<ChSystem> sys, double time_step, bool verbose, bool use_added_mass)
+    : ChPreciceAdapter(precice_config_filename, "model_MBS", verbose), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_use_added_mass(use_added_mass) {}
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
 
-void ChPreciceAdapterMbs::LoadFromYaml(const std::string& input_filename) {
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, const std::string& input_filename, bool verbose, bool use_added_mass)
+    : ChPreciceAdapter(precice_config_filename, "", verbose), m_use_added_mass(use_added_mass) {
     // Create the MBS from the YAML specification file
     parsers::ChParserMbsYAML parser(input_filename, m_verbose);
     m_model_name = parser.GetName();
@@ -232,7 +231,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     // - set mesh vertices (depending on mesh type and dimension)
     // - register mesh with preCICE
     if (m_verbose)
-        cout << m_prefix2 << "Check and register coupling meshes" << endl;
+        cout << m_prefix1 << "Check and register coupling meshes" << endl;
 
     for (const auto& mesh_name : GetCouplingMeshNames()) {
         auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
@@ -240,15 +239,17 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
         auto& mesh_info = m_coupling_meshes[mesh_name];
 
         if (m_verbose)
-            cout << m_prefix2 << "  mesh: '" << mesh_name << "'" << endl;
+            cout << m_prefix2 << "mesh: '" << mesh_name << "'" << endl;
 
         // Check consistency of mesh dimension and read data dimension
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
             if (!GetCouplingDataUsed(mesh_name, data_name)) {
                 if (m_verbose)
-                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                    cout << m_prefix2 << "  skip unreferenced data block `" << data_name << "`" << endl;
                 continue;
             }
+            if (m_verbose)
+                cout << m_prefix2 << "  read data: '" << data_name << "' ... ";
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -265,18 +266,24 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                    if (m_verbose)
+                        cout << "FAIL" << endl;
                     cerr << "[InitializeParticipant] Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono MBS read data type");
             }
+            if (m_verbose)
+                cout << "OK" << endl;
         }
 
         // Check consistency of mesh dimension and write data dimension
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
             if (!GetCouplingDataUsed(mesh_name, data_name)) {
                 if (m_verbose)
-                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                    cout << m_prefix2 << "  skip unreferenced data block `" << data_name << "`" << endl;
                 continue;
             }
+            if (m_verbose)
+                cout << m_prefix2 << "  write data: '" << data_name << "' ... ";
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -291,15 +298,21 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                     if (mesh_info.type == CouplingMeshType::RIGID_BODY_REFS) {
                         ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                     } else {
+                        if (m_verbose)
+                            cout << "FAIL" << endl;
                         cerr << "[InitializeParticipant] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                         throw std::runtime_error("Invalid Chrono MBS write data type");
                     }
                     break;
                 case CouplingDataType::FORCES:
                 case CouplingDataType::TORQUES:
+                    if (m_verbose)
+                        cout << "FAIL" << endl;
                     cerr << "[InitializeParticipant] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono MBS write data type");
             }
+            if (m_verbose)
+                cout << "OK" << endl;
         }
 
         // Set mesh vertices, based on mesh type
@@ -351,7 +364,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
     // Allocate space for checkpoint
     if (m_verbose)
-        cout << m_prefix2 << "Set up checkpointing" << endl;
+        cout << m_prefix1 << "Set up checkpointing" << endl;
 
     m_sys->Setup();
     auto np = m_sys->GetNumCoordsPosLevel();
@@ -364,7 +377,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     // Enable runtime visualization
     if (m_visualize && m_vis_settings.render) {
         if (m_verbose)
-            cout << m_prefix2 << "Set up run-time visualization" << endl;
+            cout << m_prefix1 << "Set up run-time visualization" << endl;
 
         m_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vsg->AttachSystem(m_sys.get());
@@ -402,6 +415,9 @@ void ChPreciceAdapterMbs::ReadCheckpoint(double time) {
 void ChPreciceAdapterMbs::ReadData() {
     ChPreciceAdapter::ReadData();
 
+    if (m_verbose)
+        cout << m_prefix1 << "Process read data" << endl;
+
     for (auto& c_body : m_coupling_bodies) {
         c_body->body->EmptyAccumulator(c_body->accumulator_index);
     }
@@ -425,6 +441,9 @@ void ChPreciceAdapterMbs::ReadData() {
 }
 
 void ChPreciceAdapterMbs::WriteData() {
+    if (m_verbose)
+        cout << m_prefix1 << "Prepare write data" << endl;
+
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:

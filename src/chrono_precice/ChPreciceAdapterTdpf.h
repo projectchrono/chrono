@@ -31,14 +31,14 @@ class ChApiPrecice ChPreciceAdapterTdpf : public ChPreciceAdapter {
   public:
     /// Construct a Chrono TDPF preCICE participant for the specified Chrono::FSI-TDPF system.
     /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
-    ChPreciceAdapterTdpf(std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> sysTDPF, double time_step, bool verbose = false);
+    ChPreciceAdapterTdpf(const std::string& precice_config_filename, std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> sysTDPF, double time_step, bool verbose = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     /// Construct a Chrono TDPF preCICE participant configured from the specified YAML file.
     /// The provided YAML file must be of type `TDPF` and include a member `precice_adapter_configuration`.
     /// The preCICE interfaces (coupling bodies and FEA meshes, the corresponding geometry, and their
     /// associated coupling meshes and mesh data) are read from the YAML specification file.
-    ChPreciceAdapterTdpf(const std::string& input_filename, bool verbose = false);
+    ChPreciceAdapterTdpf(const std::string& precice_config_filename, const std::string& input_filename, bool verbose = false);
 #endif
 
     ~ChPreciceAdapterTdpf() {}

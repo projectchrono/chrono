@@ -21,15 +21,13 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapterSph::ChPreciceAdapterSph(std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose)
-    : ChPreciceAdapter("model_SPH"), m_sysSPH(sysSPH), m_time_step(time_step) {
-    SetVerbose(verbose);
+ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& precice_config_filename, std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose)
+    : ChPreciceAdapter(precice_config_filename, "model_SPH", verbose), m_sysSPH(sysSPH), m_time_step(time_step) {
 }
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool verbose) {
-    SetVerbose(verbose);
-
+ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& precice_config_filename, const std::string& input_filename, bool verbose)
+    : ChPreciceAdapter(precice_config_filename, "", verbose) {
     // Create an SPH YAML parser and the underlying FSI problem, but do not initialize the FSI problem
     parsers::ChParserSphYAML parser(input_filename, verbose);
     m_model_name = parser.GetName();
@@ -146,15 +144,17 @@ void ChPreciceAdapterSph::InitializeParticipant() {
         ChAssertAlways(mesh_dim == 3);
 
         if (m_verbose)
-            cout << m_prefix2 << "  mesh: '" << mesh_name << "'" << endl;
+            cout << m_prefix2 << "mesh: '" << mesh_name << "'" << endl;
 
         // Check consistency of mesh dimension and read data dimension
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
             if (!GetCouplingDataUsed(mesh_name, data_name)) {
                 if (m_verbose)
-                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                    cout << m_prefix2 << "  skip unreferenced data block `" << data_name << "`" << endl;
                 continue;
             }
+            if (m_verbose)
+                cout << m_prefix2 << "  read data: '" << data_name << "' ... ";
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -167,18 +167,24 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::FORCES:
                 case CouplingDataType::TORQUES:
+                    if (m_verbose)
+                        cout << "FAIL" << endl;
                     cerr << "[InitializeParticipant] Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono SPH read data type");
             }
+            if (m_verbose)
+                cout << "OK" << endl;
         }
 
         // Check consistency of mesh dimension and write data dimension
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
             if (!GetCouplingDataUsed(mesh_name, data_name)) {
                 if (m_verbose)
-                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                    cout << m_prefix2 << "  skip unreferenced data block `" << data_name << "`" << endl;
                 continue;
             }
+            if (m_verbose)
+                cout << m_prefix2 << "  write data: '" << data_name << "' ... ";
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -195,9 +201,13 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                    if (m_verbose)
+                        cout << "FAIL" << endl;
                     cerr << "[InitializeParticipant] Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono SPH write data type");
             }
+            if (m_verbose)
+                cout << "OK" << endl;
         }
 
         // Set mesh vertices, based on mesh type
@@ -237,13 +247,13 @@ void ChPreciceAdapterSph::InitializeParticipant() {
 
     //// TODO -- checkpointing...
     ////if (m_verbose)
-    ////    cout << m_prefix2 << "Set up checkpointing" << endl;
+    ////    cout << m_prefix1 << "Set up checkpointing" << endl;
 
 #ifdef CHRONO_VSG
     // Enable runtime visualization
     if (m_visualize && m_vis_settings.render) {
         if (m_verbose)
-            cout << m_prefix2 << "Set up run-time visualization" << endl;
+            cout << m_prefix1 << "Set up run-time visualization" << endl;
 
         // SPH visualization plugin
         auto visFSI = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(m_sysSPH.get());
@@ -291,6 +301,9 @@ void ChPreciceAdapterSph::ReadCheckpoint(double time) {
 void ChPreciceAdapterSph::ReadData() {
     ChPreciceAdapter::ReadData();
 
+    if (m_verbose)
+        cout << m_prefix1 << "Process read data" << endl;
+
     for (const auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -310,6 +323,9 @@ void ChPreciceAdapterSph::ReadData() {
 }
 
 void ChPreciceAdapterSph::WriteData() {
+    if (m_verbose)
+        cout << m_prefix1 << "Prepare write data" << endl;
+
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:

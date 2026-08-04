@@ -133,9 +133,7 @@ int main(int argc, char* argv[]) {
 // =============================================================================
 
 void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output, bool use_added_mass) {
-    ChPreciceAdapterMbs participant(use_added_mass);
-    participant.SetVerbose(verbose);
-    participant.LoadFromYaml(GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"));
+    ChPreciceAdapterMbs participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"), verbose, use_added_mass);
 
     auto mbs_out_dir = out_dir + "mbs";
     if (output) {
@@ -150,7 +148,6 @@ void RunParticipantMBS(const std::string& precice_config_filename, const std::st
     participant.EnableVisualization(visualize);
     participant.EnforceRealtime(visualize);
 
-    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();
@@ -160,7 +157,7 @@ void RunParticipantMBS(const std::string& precice_config_filename, const std::st
 
 void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
 #ifdef CHRONO_FSI_SPH
-    ChPreciceAdapterSph participant(GetChronoDataFile("precice/sphere_drop/fluid_sph/sph_participant.yaml"), verbose);
+    ChPreciceAdapterSph participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/fluid_sph/sph_participant.yaml"), verbose);
 
     auto sph_out_dir = out_dir + "sph";
     if (output) {
@@ -178,7 +175,6 @@ void RunParticipantSPH(const std::string& precice_config_filename, const std::st
     participant.EnableOutput(output);
     participant.EnableVisualization(visualize);
 
-    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
 
     //// DEBUG - advance SPH participant with no data exchange
@@ -197,7 +193,7 @@ void RunParticipantSPH(const std::string& precice_config_filename, const std::st
 
 void RunParticipantTDPF(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
 #ifdef CHRONO_FSI_TDPF
-    ChPreciceAdapterTdpf participant(GetChronoDataFile("precice/sphere_drop/fluid_tdpf/tdpf_participant.yaml"), verbose);
+    ChPreciceAdapterTdpf participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/fluid_tdpf/tdpf_participant.yaml"), verbose);
 
     auto tdpf_out_dir = out_dir + "tdpf";
     if (output) {
@@ -215,7 +211,6 @@ void RunParticipantTDPF(const std::string& precice_config_filename, const std::s
     participant.EnableOutput(output);
     participant.EnableVisualization(visualize);
 
-    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
 
     //// DEBUG - advance TDPF participant with no data exchange
@@ -234,7 +229,7 @@ void RunParticipantTDPF(const std::string& precice_config_filename, const std::s
 
 class ParticipantCFD : public ChPreciceAdapter {
   public:
-    ParticipantCFD(bool verbose);
+    ParticipantCFD(const std::string& precice_config_filename, bool verbose);
     ~ParticipantCFD();
 
     virtual void InitializeParticipant() override;
@@ -262,7 +257,7 @@ class ParticipantCFD : public ChPreciceAdapter {
     double g = 9.81;       // gravitational acceleration
 };
 
-ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
+ParticipantCFD::ParticipantCFD(const std::string& precice_config_filename, bool verbose) : ChPreciceAdapter(precice_config_filename) {
     SetVerbose(verbose);
     ReadParticipantConfigurationYAML(GetChronoDataFile("precice/sphere_drop/fluid_buoyancy/cfd_participant.yaml"));
 }
@@ -375,7 +370,7 @@ void ParticipantCFD::PlotResults() {
 // -----------------------------------------------------------------------------
 
 void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
-    ParticipantCFD participant(verbose);
+    ParticipantCFD participant(precice_config_filename, verbose);
 
     auto cfd_out_dir = out_dir + "cfd";
     if (output) {
@@ -389,7 +384,6 @@ void RunParticipantCFD(const std::string& precice_config_filename, const std::st
     participant.EnableOutput(output);
     participant.EnableVisualization(visualize);
 
-    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();

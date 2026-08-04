@@ -35,6 +35,8 @@
     #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
+#include "chrono_thirdparty/rapidxml/rapidxml.hpp"
+
 #include "precice/precice.hpp"
 
 namespace chrono {
@@ -119,11 +121,6 @@ class ChApiPrecice ChPreciceAdapter {
     /// Get the name of the Chrono model.
     const std::string& GetModelName() const { return m_model_name; }
 
-    // ---- preCICE participant registration
-
-    /// Register the participant with preCICE, using the specified preCICE configuration file, and the solver process size and index.
-    void RegisterParticipant(const std::string& precice_config_filename, int process_index = 0, int process_size = 1);
-
     // ---- Accessor functions
 
     /// Get the number of spatial dimensions for the mesh with specified name.
@@ -183,13 +180,13 @@ class ChApiPrecice ChPreciceAdapter {
     /// Check if the time window has completed.
     bool IsTimeWindowComplete();
 
-    /// Wrapper function for initializing the coupled simulation for this participant.
+    /// Create the participant (using the specified solver process size and index) and initialize the coupled simulation for this participant.
     /// The participant initializes the output data (if needed), after which the coupling is initialized.
     /// The operations performed by this function are:
     /// - initialize the participant solver
     /// - let participant to write initial data (if requested)
     /// - initialize the preCICE coupling for this participant
-    void InitializeSimulation();
+    void InitializeSimulation(int process_index = 0, int process_size = 1);
 
     /// Wrapper function for performing the simulation loop.
     /// While coupling is ongoing, at each iteration, the participant:
@@ -209,7 +206,8 @@ class ChApiPrecice ChPreciceAdapter {
     void FinalizeSimulation();
 
   protected:
-    ChPreciceAdapter(const std::string& model_name = "");
+    ChPreciceAdapter(const std::string& precice_config_filename, const std::string& model_name = "", bool verbose = false);
+
     ChPreciceAdapter(const ChPreciceAdapter&) = delete;
     void operator=(const ChPreciceAdapter&) = delete;
 
@@ -392,11 +390,12 @@ class ChApiPrecice ChPreciceAdapter {
 
     std::string m_model_name;  ///< Chrono model name
 
+    std::string m_precice_config_filename;                   ///< name of the preCICE configuration file
+    bool m_use_added_mass;                                   ///<
+    bool m_use_dynamic_added_mass;                           ///<
+
     std::unique_ptr<precice::Participant> m_participant;  ///< preCICE instance
-    std::string m_precice_config_filename;                ///< name of the preCICE configuration file
-    std::string m_participant_name;                       ///< name of the participant/solver
-    int m_process_size;                                   ///< number of processes used by an instance of this solver
-    int m_process_index;                                  ///< index for each process used by this solver
+    std::string m_participant_name;                       ///< name of the Chrono preCICE participant/solver
 
     CouplingMeshes m_coupling_meshes;  ///< data for all coupling meshes
     MeshDataNames m_data_read;         ///< input data names for all coupling meshes
@@ -404,7 +403,6 @@ class ChApiPrecice ChPreciceAdapter {
 
     bool m_interfaces_created;   ///< true if the data interfaces were created
     bool m_participant_created;  ///< true if the preCICE participant was created
-    bool m_mesh_created;         ///< true if preCICE coupling meshes were created
     bool m_initialized;          ///< true if preCICE participant was initialized
 
     bool m_verbose;         ///< verbose terminal output
@@ -430,8 +428,18 @@ class ChApiPrecice ChPreciceAdapter {
 #endif
 
   private:
-    /// Check consistency between the preCICE configuration and Chrono adapter configuration.
-    void CheckConsistency();
+    /// Parse preCICE configuration.
+    /// - Cache mesh and data information,
+    /// - Check if using added mass.
+    void ParseXML();
+
+    /// Process preCICE configuration information.
+    /// - Check consistency with the Chrono adapter configuration,
+    /// - Mark mesh data as used (referenced) or not. 
+    void ProcessXML();
+
+    MeshDataNames m_defined_meshes;                          ///< meshes defined in preCICE configuration file
+    std::map<std::string, MeshDataNames> m_provided_meshes;  ///< meshes provided by a participant
 };
 
 /// @} precice_module

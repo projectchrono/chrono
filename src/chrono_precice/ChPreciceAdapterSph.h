@@ -31,14 +31,14 @@ class ChApiPrecice ChPreciceAdapterSph : public ChPreciceAdapter {
   public:
     /// Construct a Chrono SPH preCICE participant for the specified Chrono::FSI-SPH system.
     /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
-    ChPreciceAdapterSph(std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose = false);
+    ChPreciceAdapterSph(const std::string& precice_config_filename, std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     /// Construct a Chrono SPH preCICE participant configured from the specified YAML file.
     /// The provided YAML file must be of type `SPH` and include a member `precice_adapter_configuration`.
     /// The preCICE interfaces (coupling bodies and FEA meshes, the corresponding geometry, and their
     /// associated coupling meshes and mesh data) are read from the YAML specification file.
-    ChPreciceAdapterSph(const std::string& input_filename, bool verbose = false);
+    ChPreciceAdapterSph(const std::string& precice_config_filename, const std::string& input_filename, bool verbose = false);
 #endif
 
     ~ChPreciceAdapterSph() {}
