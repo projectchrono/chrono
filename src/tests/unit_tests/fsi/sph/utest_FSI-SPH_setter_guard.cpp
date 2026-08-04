@@ -23,6 +23,8 @@
 //    domain mid-simulation; the output level is a host-only setting).
 // 4. The system still advances after the rejected calls (no partial state
 //    mutation).
+// 5. A default-constructed SPHParameters holds the defaults its documentation
+//    states (shifting_method was not initialized at all).
 //
 // =============================================================================
 
@@ -68,7 +70,33 @@ void ExpectNoThrow(const std::string& name, std::function<void()> f) {
     }
 }
 
+// A default-constructed SPHParameters must actually hold the defaults its documentation states.
+// shifting_method was missing from the constructor's initializer list, so reading it was undefined
+// behavior and the documented default of XSPH was never applied to anything. The other three below
+// are the values whose doc comments disagreed with the constructor.
+void CheckDefaults() {
+    ChFsiFluidSystemSPH::SPHParameters defaults;
+
+    auto check = [](const std::string& name, bool ok) {
+        if (ok) {
+            std::cout << "  ok (default):  " << name << std::endl;
+        } else {
+            std::cout << "FAIL (default): " << name << std::endl;
+            num_failures++;
+        }
+    };
+
+    check("shifting_method == XSPH", defaults.shifting_method == ShiftingMethod::XSPH);
+    check("kernel_type == CUBIC_SPLINE", defaults.kernel_type == KernelType::CUBIC_SPLINE);
+    check("shifting_diffusion_A == 1.0", defaults.shifting_diffusion_A == 1.0);
+    check("num_proximity_search_steps == 1", defaults.num_proximity_search_steps == 1);
+}
+
 int main(int argc, char* argv[]) {
+    std::cout << "Documented SPHParameters defaults:" << std::endl;
+    CheckDefaults();
+    std::cout << std::endl;
+
     // Create the FSI problem (same minimal setup as utest_FSI-SPH_Poiseuille_flow)
     ChSystemSMC sysMBS;
     ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
