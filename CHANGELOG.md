@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
 - [Release 10.0.0 (2026-03-27)](#release-1000-2026-03-27)
   - [\[Changed\] Python support in conda packages](#changed-python-support-in-conda-packages)
   - [\[Added\] PyChrono-NumPy integration](#added-pychrono-numpy-integration)
@@ -128,6 +129,37 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Changed] Chrono::Sensor appearance of shapes with no visual material
+
+A visual shape that carries no `ChVisualMaterial` is now rendered by Chrono::Sensor with
+`ChVisualMaterial::Default()`, the same material `ChVisualShape::GetColor()` reports for an empty
+material list and the same one the Irrlicht and VSG run-time visualization systems use. The OptiX
+backend previously built its own default from literals, a 0.5 grey with roughness 1, which had
+drifted from the shared default and made a material-less shape render about twice as dark under
+Chrono::Sensor as under the other visualization systems.
+
+**This changes rendered output.** Any scene containing a shape with no explicit material, including
+a scene deserialized from a file saved with an empty material list, now renders brighter (diffuse
+1.0 white instead of 0.5 grey) and glossier (roughness 0 instead of 1). Two standard helpers were
+also inconsistent with each other and are now consistent: `chrono::utils::AddBoxGeometry` attaches
+`ChVisualMaterial::Default()` through a default argument, while `ChBodyEasyBox` attaches nothing, so
+the same box rendered white through one path and grey through the other.
+
+To keep the previous appearance, attach an explicit material rather than relying on the default:
+
+```cpp
+auto mat = chrono_types::make_shared<ChVisualMaterial>();
+mat->SetDiffuseColor({0.5f, 0.5f, 0.5f});
+mat->SetRoughness(1.0f);
+shape->AddMaterial(mat);
+```
+
+Note that the material the OptiX backend uploads is a snapshot taken when the device-side material
+pool is built, not a live reference to the singleton. That happens when the sensor scene is
+constructed, on the first sensor update, and not again, so mutating `ChVisualMaterial::Default()`
+after that point has no effect on what a sensor renders. Mutating it at all is unsupported and
+always was: it is shared by every material-less shape in the scene.
 
 # Release 10.0.0 (2026-03-27)
 

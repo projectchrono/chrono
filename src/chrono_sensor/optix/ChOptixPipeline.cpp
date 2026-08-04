@@ -785,128 +785,113 @@ CUdeviceptr ChOptixPipeline::GetMaterialPool() {
     return md_material_pool;
 }
 
+MaterialParameters ChOptixPipeline::MakeMaterialParameters(const ChVisualMaterial& mat) {
+    // Value-initialized. MaterialParameters has no default member initializers, so a bare
+    // local leaves any field this function does not assign holding whatever was on the stack,
+    // and the struct is memcpy'd straight into the device material pool. With `{}` an omission
+    // costs a zero instead of a random number. The old hardcoded default branch omitted
+    // anisotropy and theta_p exactly this way.
+    MaterialParameters material{};
+    material.Kd = {mat.GetDiffuseColor().R, mat.GetDiffuseColor().G, mat.GetDiffuseColor().B};
+    material.Ks = {mat.GetSpecularColor().R, mat.GetSpecularColor().G, mat.GetSpecularColor().B};
+    material.Ke = {mat.GetEmissiveColor().R, mat.GetEmissiveColor().G, mat.GetEmissiveColor().B};
+    material.fresnel_exp = mat.GetFresnelExp();
+    material.fresnel_min = mat.GetFresnelMin();
+    material.fresnel_max = mat.GetFresnelMax();
+    material.transparency = mat.GetOpacity();
+    material.roughness = mat.GetRoughness();
+    material.metallic = mat.GetMetallic();
+    material.anisotropy = mat.GetAnisotropy();
+    material.use_specular_workflow = mat.GetUseSpecularWorkflow();
+    material.lidar_intensity = 1.f;    // TODO: allow setting of this in the visual material chrono-side
+    material.radar_backscatter = 1.f;  // TODO: allow setting of this in the visual material chrono-side
+    material.kn_tex = 0;               // explicitely null as default
+    material.kd_tex = 0;               // explicitely null as default
+    material.ks_tex = 0;               // explicitely null as default
+    material.ke_tex = 0;               // explicitely null as default
+    material.metallic_tex = 0;         // explicitely null as default
+    material.roughness_tex = 0;        // explicitely null as default
+    material.opacity_tex = 0;          // explicitely null as default
+    material.weight_tex = 0;
+    material.class_id = mat.GetClassID();
+    material.instance_id = mat.GetInstanceID();
+
+    material.w = mat.GetHapkeW();
+    material.b = mat.GetHapkeB();
+    material.c = mat.GetHapkeC();
+    material.B_s0 = mat.GetHapkeBs0();
+    material.h_s = mat.GetHapkeHs();
+    material.phi = mat.GetHapkePhi();
+    material.theta_p = mat.GetHapkeRoughness();
+
+    material.tex_scale = {mat.GetTextureScale().x(), mat.GetTextureScale().y()};
+    material.emissive_power = mat.GetEmissivePower();
+    material.bsdf_type = mat.GetBSDF();
+
+    // normal texture
+    if (mat.GetNormalMapTexture() != "") {
+        cudaArray_t d_img_array;
+        CreateDeviceTexture(material.kn_tex, d_img_array, mat.GetNormalMapTexture());
+    }
+    // diffuse texture
+    if (mat.GetKdTexture() != "") {
+        cudaArray_t d_img_array;
+        CreateDeviceTexture(material.kd_tex, d_img_array, mat.GetKdTexture());
+    }
+    // specular texture
+    if (mat.GetKsTexture() != "") {
+        cudaArray_t d_img_array;
+        CreateDeviceTexture(material.ks_tex, d_img_array, mat.GetKsTexture());
+    }
+
+    // metallic texture
+    if (mat.GetMetallicTexture() != "") {
+        cudaArray_t d_img_array;
+        CreateDeviceTexture(material.metallic_tex, d_img_array, mat.GetMetallicTexture());
+    }
+    // roughness texture
+    if (mat.GetRoughnessTexture() != "") {
+        cudaArray_t d_img_array;
+        CreateDeviceTexture(material.roughness_tex, d_img_array, mat.GetRoughnessTexture());
+    }
+    // opacity texture
+    if (mat.GetOpacityTexture() != "") {
+        cudaArray_t d_img_array;
+        CreateDeviceTexture(material.opacity_tex, d_img_array, mat.GetOpacityTexture());
+    }
+    // weight texture
+    if (mat.GetWeightTexture() != "") {
+        cudaArray_t d_img_array;
+        CreateDeviceTexture(material.weight_tex, d_img_array, mat.GetWeightTexture());
+    }
+    return material;
+}
+
 unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat) {
-    if (mat) {
-        MaterialParameters material;
-        material.Kd = {mat->GetDiffuseColor().R, mat->GetDiffuseColor().G, mat->GetDiffuseColor().B};
-        material.Ks = {mat->GetSpecularColor().R, mat->GetSpecularColor().G, mat->GetSpecularColor().B};
-        material.Ke = {mat->GetEmissiveColor().R, mat->GetEmissiveColor().G, mat->GetEmissiveColor().B};
-        material.fresnel_exp = mat->GetFresnelExp();
-        material.fresnel_min = mat->GetFresnelMin();
-        material.fresnel_max = mat->GetFresnelMax();
-        material.transparency = mat->GetOpacity();
-        material.roughness = mat->GetRoughness();
-        material.metallic = mat->GetMetallic();
-        material.anisotropy = mat->GetAnisotropy();
-        material.use_specular_workflow = mat->GetUseSpecularWorkflow();
-        material.lidar_intensity = 1.f;    // TODO: allow setting of this in the visual material chrono-side
-        material.radar_backscatter = 1.f;  // TODO: allow setting of this in the visual material chrono-side
-        material.kn_tex = 0;               // explicitely null as default
-        material.kd_tex = 0;               // explicitely null as default
-        material.ks_tex = 0;               // explicitely null as default
-        material.ke_tex = 0;               // explicitely null as default
-        material.metallic_tex = 0;         // explicitely null as default
-        material.roughness_tex = 0;        // explicitely null as default
-        material.opacity_tex = 0;          // explicitely null as default
-        material.weight_tex = 0;
-        material.class_id = mat->GetClassID();
-        material.instance_id = mat->GetInstanceID();
-
-        material.w = mat->GetHapkeW();
-        material.b = mat->GetHapkeB();
-        material.c = mat->GetHapkeC();
-        material.B_s0 = mat->GetHapkeBs0();
-        material.h_s = mat->GetHapkeHs();
-        material.phi = mat->GetHapkePhi();
-        material.theta_p = mat->GetHapkeRoughness();
-
-        material.tex_scale = {mat->GetTextureScale().x(), mat->GetTextureScale().y()};
-        material.emissive_power = mat->GetEmissivePower();
-        material.bsdf_type = mat->GetBSDF();
-
-        // normal texture
-        if (mat->GetNormalMapTexture() != "") {
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(material.kn_tex, d_img_array, mat->GetNormalMapTexture());
-        }
-        // diffuse texture
-        if (mat->GetKdTexture() != "") {
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(material.kd_tex, d_img_array, mat->GetKdTexture());
-        }
-        // specular texture
-        if (mat->GetKsTexture() != "") {
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(material.ks_tex, d_img_array, mat->GetKsTexture());
-        }
-        
-        // metallic texture
-        if (mat->GetMetallicTexture() != "") {
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(material.metallic_tex, d_img_array, mat->GetMetallicTexture());
-        }
-        // roughness texture
-        if (mat->GetRoughnessTexture() != "") {
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(material.roughness_tex, d_img_array, mat->GetRoughnessTexture());
-        }
-        // opacity texture
-        if (mat->GetOpacityTexture() != "") {
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(material.opacity_tex, d_img_array, mat->GetOpacityTexture());
-        }
-        // weight texture
-        if (mat->GetWeightTexture() != "") {
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(material.weight_tex, d_img_array, mat->GetWeightTexture());
-        }
-
-        m_material_pool.push_back(material);
-        return static_cast<unsigned int>(m_material_pool.size() - 1);
-
-    } else {
+    if (!mat) {
+        // A shape with no material of its own is shaded with Chrono's default material: the
+        // one ChVisualShape::GetColor() reports for an empty material list, and the one the
+        // Irrlicht and VSG backends already use. This branch used to build a separate default
+        // from literals (Kd 0.5 grey, roughness 1). That was a deliberate choice in 2021, when
+        // the core default was an unusable Kd = (1.0, 2.0, 2.0); core was corrected to white in
+        // 2022 and this copy was never revisited, so the two silently drifted apart. Going
+        // through the same conversion as an explicit material is what keeps them from drifting
+        // again.
+        //
+        // This is a snapshot, not a live reference: the pool holds values, and the default
+        // material is treated as immutable (ChVisualShape's setters copy it rather than mutate
+        // it). The guard matters because the conversion appends a pool entry every call, so
+        // without it a scene of N material-less shapes would push N identical copies.
         if (!m_default_material_inst) {
-            MaterialParameters material;
-            material.Kd = {.5f, .5f, .5f};
-            material.Ks = {.2f, .2f, .2f};
-            material.Ke = {.0f, .0f, .0f};
-            material.fresnel_exp = 5.f;
-            material.fresnel_min = 0.f;
-            material.fresnel_max = 1.f;
-            material.transparency = 1.f;
-            material.roughness = 1.f;
-            material.metallic = 0.0f;
-            material.lidar_intensity = 1.f;
-            material.radar_backscatter = 1.f;
-            material.kd_tex = 0;
-            material.ks_tex = 0;
-            material.kn_tex = 0;
-            material.ke_tex = 0;
-            material.roughness_tex = 0;
-            material.metallic_tex = 0;
-            material.opacity_tex = 0;
-            material.weight_tex = 0;
-            material.use_specular_workflow = 0;
-            material.w = 0.0f;
-            material.b = 0.0f;
-            material.c = 0.0f;
-            material.B_s0 = 0.0f;
-            material.h_s = 0.0f;
-            material.phi = 0.0f;
-            material.class_id = 0;
-            material.instance_id = 0;
-            material.tex_scale = {1.f, 1.f};
-            material.emissive_power = 0.f;
-            material.pad = {0.f, 0.f, 0.f};
-            material.bsdf_type = BSDFType::PRINCIPLED;
-
-            m_material_pool.push_back(material);
+            m_material_pool.push_back(MakeMaterialParameters(*ChVisualMaterial::Default()));
             m_default_material_id = static_cast<unsigned int>(m_material_pool.size() - 1);
             m_default_material_inst = true;
         }
-
         return m_default_material_id;
     }
+
+    m_material_pool.push_back(MakeMaterialParameters(*mat));
+    return static_cast<unsigned int>(m_material_pool.size() - 1);
 }
 
 unsigned int ChOptixPipeline::GetBoxMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
