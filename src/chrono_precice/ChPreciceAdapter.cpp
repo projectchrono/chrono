@@ -51,7 +51,7 @@ ChPreciceAdapter::ChPreciceAdapter(const std::string& precice_config_filename, c
 
 void ChPreciceAdapter::ParseXML() {
     if (m_verbose)
-        cout << "Process preCICE XML configuration file" << endl;
+        cout << "Process preCICE XML configuration file `" << m_precice_config_filename << "'" << endl;
 
     // Read the XML file into a vector
     std::ifstream file(m_precice_config_filename);

@@ -55,7 +55,7 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output, bool use_added_mass);
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantTDPF(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
@@ -72,23 +72,13 @@ int main(int argc, char* argv[]) {
 
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
-    // Problem settings
-    std::string precice_config_filename = GetChronoDataFile("precice/sphere_drop/precice_config_explicit.xml");
-
     // Enable verbose terminal output
     bool verbose = true;
     bool visualize = true;
     bool output = true;
-    bool use_added_mass = false;
 
-    // Set root output directory
-    std::string out_dir = GetChronoOutputPath() + "PRECICE_Sphere_Drop/";
-    if (output) {
-        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
-    }
+    // Default preCICE configuration file
+    std::string precice_config_filename = GetChronoDataFile("precice/sphere_drop/precice_config_explicit.xml");
 
     // Get the participant type from the command line arguments
     std::string help =
@@ -100,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     ChCLI cli(argv[0], help);
     cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_SPH, Fluid_TDPF, Fluid_BUOY)");
-    cli.AddOption<bool>("", "m,use_added_mass", "Include added mass terms (only for 'Solid' participant)");
+    cli.AddOption<std::string>("", "c,config_file", "preCICE configuration file", precice_config_filename);
 
     if (!cli.Parse(argc, argv, true))
         return 1;
@@ -113,11 +103,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    use_added_mass = cli.GetAsType<bool>("use_added_mass");
+    precice_config_filename = cli.Get("config_file").as<std::string>();
+
+    // Set root output directory
+    std::string out_dir = GetChronoOutputPath() + "PRECICE_Sphere_Drop/";
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+    }
 
     // Run the specified preCICE participant
     if (type == "Solid")
-        RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output, use_added_mass);
+        RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output);
     else if (type == "Fluid_BUOY")
         RunParticipantCFD(precice_config_filename, out_dir, verbose, visualize, output);
     else if (type == "Fluid_SPH")
@@ -132,8 +131,8 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 
-void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output, bool use_added_mass) {
-    ChPreciceAdapterMbs participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"), verbose, use_added_mass);
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
+    ChPreciceAdapterMbs participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"), verbose);
 
     auto mbs_out_dir = out_dir + "mbs";
     if (output) {

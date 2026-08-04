@@ -27,13 +27,13 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, std::shared_ptr<ChSystem> sys, double time_step, bool verbose, bool use_added_mass)
-    : ChPreciceAdapter(precice_config_filename, "model_MBS", verbose), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_use_added_mass(use_added_mass) {}
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
+    : ChPreciceAdapter(precice_config_filename, "model_MBS", verbose), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_has_added_mass(false) {}
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
 
-ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, const std::string& input_filename, bool verbose, bool use_added_mass)
-    : ChPreciceAdapter(precice_config_filename, "", verbose), m_use_added_mass(use_added_mass) {
+ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, const std::string& input_filename, bool verbose)
+    : ChPreciceAdapter(precice_config_filename, "", verbose), m_has_added_mass(false) {
     // Create the MBS from the YAML specification file
     parsers::ChParserMbsYAML parser(input_filename, m_verbose);
     m_model_name = parser.GetName();
@@ -66,11 +66,12 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filen
         LoadMeshesYAML(config["meshes"], parser);
     #endif
 
-    // - if enabled, look for specification of added mass blocks
+    // - if expected, look for specification of added mass blocks
     if (m_use_added_mass) {
-        if (config["added_mass"])
+        if (config["added_mass"]) {
             LoadAddedMassYAML(config["added_mass"], parser);
-        else {
+            m_has_added_mass = true;
+        } else {
             cerr << "Added mass enabled, but no YAML specification provided." << endl;
             throw std::runtime_error("Added mass enabled, but no YAML specification provided");
         }
@@ -186,6 +187,12 @@ void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_me
 #endif
 
 void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::string& h5_filename) {
+    if (!m_use_added_mass) {
+        if (m_verbose)
+            cout << m_prefix1 << "No added mass requested via the preCICE configuration file. Ignoring." << endl;
+        return;
+    }
+
 #ifdef CHRONO_HAS_HDF5
     try {
         H5::H5File h5_file(m_file_handler.GetFilename(h5_filename), H5F_ACC_RDONLY);
@@ -208,6 +215,7 @@ void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::string& h5_filename) {
         cerr << "  HDF5 error: " << e.getDetailMsg() << endl;
         throw std::runtime_error("Unable to open/read HDF5 file");
     }
+    m_has_added_mass = true;
 #else
     cerr << "No HDF5 support enabled. Cannot read added mass information from HDF5 file." << endl;
     throw std::runtime_error("No HDF5 support enabled. Cannot read added mass information from HDF5 file");
@@ -216,10 +224,12 @@ void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::string& h5_filename) {
 
 void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>> blocks) {
     if (!m_use_added_mass) {
-        cerr << "The Chrono MBS preCICE adapter was not constructed with added mass support." << endl;
-        throw std::runtime_error("The Chrono MBS preCICE adapter was not constructed with added mass support");
+        if (m_verbose)
+            cout << m_prefix1 << "No added mass requested via the preCICE configuration file. Ignoring." << endl;
+        return;
     }
     m_added_mass_blocks = blocks;
+    m_has_added_mass = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -350,7 +360,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     }
 
     // Handle added mass info (applied via a Chrono ChLoadHydrodynamics)
-    if (m_use_added_mass && m_added_mass_blocks.size() > 0) {
+    if (m_use_added_mass) {
+        ChAssertAlways(m_has_added_mass);
         auto num_bodies = m_coupling_bodies.size();
         ChAssertAlways(m_added_mass_blocks.size() == num_bodies);
         ChBodyAddedMassBlocks body_blocks;

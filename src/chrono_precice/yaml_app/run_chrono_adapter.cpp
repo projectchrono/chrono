@@ -106,8 +106,8 @@ bool ParseArgs(int argc,
                bool& disable_output,
                bool& disable_vis) {
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "s,sim_file", "preCICE simulation specification file (YAML format)");
-    cli.AddOption<std::string>("", "p,precice_file", "preCICE configuration file (XML format)");
+    cli.AddOption<std::string>("", "p,participant_file", "Chrono preCICE participant specification file (YAML format)");
+    cli.AddOption<std::string>("", "c,precice_config_file", "preCICE configuration file (XML format)");
     cli.AddOption<std::string>("", "o,out_dir", "Output directory", out_dir);
     cli.AddOption<bool>("", "quiet", "Disable terminal output");
     cli.AddOption<bool>("", "no_output", "Disable output");
@@ -117,7 +117,7 @@ bool ParseArgs(int argc,
         return false;
 
     try {
-        yaml_filename = cli.Get("sim_file").as<std::string>();
+        yaml_filename = cli.Get("participant_file").as<std::string>();
     } catch (std::domain_error&) {
         cerr << "\nError: Missing YAML specification file." << endl;
         cli.Help();
@@ -125,7 +125,7 @@ bool ParseArgs(int argc,
     }
 
     try {
-        precice_filename = cli.Get("precice_file").as<std::string>();
+        precice_filename = cli.Get("precice_config_file").as<std::string>();
     } catch (std::domain_error&) {
         cerr << "\nError: Missing XML configuration file." << endl;
         cli.Help();
