@@ -316,12 +316,42 @@ int main(int argc, char* argv[]) {
     std::string feature;      // mesh | texture | normalmap | opacity | envmap (Florian steps c-f)
     std::string data_dir;    // optional Chrono data directory override
     unsigned int average_frames = 1;  // validation-only temporal average
+    // Stochastic configurations (environment lighting, and any noise filter) draw from per-pixel
+    // RNGs that are seeded from the wall clock unless a base seed is pinned. Pinned by default here,
+    // because this demo exists to compare images: without it, two runs of the same configuration
+    // differ, so a difference cannot be attributed to a code change rather than to the seed. Use
+    // --seed clock for the production default. This does not make the two backends draw the SAME
+    // numbers: per-stream seeds include the sensor's identity, which is what the environment-map
+    // convergence study relies on.
+    //
+    // Only the OptiX arm currently responds to this. The Vulkan RT backend derives its per-pixel
+    // sample sequence from the launch index and GetNumLaunches() alone and never reads the manager's
+    // base seed, so its images repeat across invocations either way: measured on the envmap
+    // configuration, the four OptiX images from two pinned and two clock runs are identical in the
+    // pinned pair and all different otherwise, while the four Vulkan images share one hash. So a
+    // --seed clock run here is a one-sided test, and independent Monte Carlo trials on the Vulkan
+    // path would share camera noise. Remove this paragraph once the backend mixes the base seed in.
+    bool pin_seed = true;
+    unsigned int random_seed = 20260802u;
     std::string out_dir = "SENSOR_OUTPUT/vulkan_validation/";
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--falloff") == 0) {
             const_color = false;
         } else if (std::strcmp(argv[i], "--probe-box-material") == 0) {
             probe_box_material = true;
+        } else if (std::strcmp(argv[i], "--seed") == 0 && i + 1 < argc) {
+            const std::string v = argv[++i];
+            if (v == "clock") {
+                pin_seed = false;
+            } else {
+                const long long n = std::atoll(v.c_str());
+                if (n < 0 || n > 4294967295LL) {
+                    std::cerr << "ERROR: --seed takes a value in [0, 4294967295] or the word clock\n";
+                    return 1;
+                }
+                pin_seed = true;
+                random_seed = static_cast<unsigned int>(n);
+            }
         } else if (std::strcmp(argv[i], "--materials") == 0) {
             material_sweep = true;
         } else if (std::strcmp(argv[i], "--material-index") == 0 && i + 1 < argc) {
@@ -375,6 +405,8 @@ int main(int argc, char* argv[]) {
                       << "                       attenuation (point and spot only)\n"
                       << "  --probe-box-material diagnostic: add ChBodyEasyBox primitives with and\n"
                       << "                       without an explicit material\n"
+                      << "  --seed N|clock       base RNG seed; pinned by default so stochastic runs\n"
+                      << "                       reproduce, clock for the production default\n"
                       << "  --frames N           average N independently rendered frames (default 1)\n"
                       << "  --data DIR           Chrono data directory; auto-detected when omitted\n"
                       << "  --out DIR            output directory (default SENSOR_OUTPUT/vulkan_validation/)\n";
@@ -473,6 +505,8 @@ int main(int argc, char* argv[]) {
               (const_color ? "_constcolor" : "_falloff");
     if (!feature.empty())
         tag = std::string("feat_") + feature + "_" + kind_name + (const_color ? "_constcolor" : "_falloff");
+    if (probe_box_material)
+        tag += "_probe";  // the probe changes the scene, so it must not overwrite the plain run's images
     if (supersample != 1)
         tag += "_spp" + std::to_string(supersample * supersample);
     if (average_frames != 1)
@@ -681,6 +715,15 @@ int main(int argc, char* argv[]) {
     // Sensor manager: zero ambient, black background, one point light.
     // ------------------------------------------------------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
+    // Before AddSensor, not after: a sensor's per-stream seeds are derived when its filters
+    // initialize, which happens inside AddSensor, so setting this later would have no effect.
+    if (pin_seed) {
+        ChSensorManager::SetRandomSeed(random_seed);
+        std::cout << "Random seed: pinned to " << random_seed << " (stochastic runs are reproducible)\n";
+    } else {
+        ChSensorManager::ClearRandomSeed();
+        std::cout << "Random seed: clock (stochastic runs differ between invocations)\n";
+    }
     // Opacity needs three surface hits (front face, back face, object behind).
     // OptiX primary PRDs start at depth 2, so max_depth=5 is the first setting
     // that reaches all three; the other deterministic cases keep the original 4.
@@ -892,12 +935,30 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------------------------
     // Persist images: reference, candidate, and amplified difference maps.
     // ------------------------------------------------------------------
-    WritePPM(out_dir + tag + "_optix.ppm", optix_buf);
-    WritePPM(out_dir + tag + "_vulkan.ppm", vulkan_buf);
+    // Report what was actually written. WritePPM returns false on a failed open or a short write,
+    // and printing "Wrote ..." regardless is worse than useless: three runs of this demo were read
+    // as successful while nothing had reached disk, because the output directory did not exist.
+    unsigned int write_failures = 0;
+    auto save = [&](const std::string& suffix, const UserRGBA8BufferPtr& img) {
+        const std::string path = out_dir + tag + suffix;
+        if (WritePPM(path, img))
+            return;
+        std::cerr << "ERROR: could not write " << path << "\n";
+        ++write_failures;
+    };
+
+    save("_optix.ppm", optix_buf);
+    save("_vulkan.ppm", vulkan_buf);
     if (auto diff1 = MakeAbsDiffRGBA8(vulkan_buf, optix_buf, 1.0f))
-        WritePPM(out_dir + tag + "_diff_x1.ppm", diff1);
+        save("_diff_x1.ppm", diff1);
     if (auto diff8 = MakeAbsDiffRGBA8(vulkan_buf, optix_buf, 8.0f))
-        WritePPM(out_dir + tag + "_diff_x8.ppm", diff8);
+        save("_diff_x8.ppm", diff8);
+
+    if (write_failures) {
+        std::cerr << "ERROR: " << write_failures << " image(s) not written to " << out_dir
+                  << "; the comparison numbers above are still valid but nothing was saved.\n";
+        return 1;
+    }
     std::cout << "Wrote " << tag << "_{optix,vulkan,diff_x1,diff_x8}.ppm to " << out_dir << "\n";
     std::cout << "(convert to PNG, e.g.:  magick " << out_dir << tag << "_diff_x8.ppm " << tag << "_diff_x8.png)\n";
 #else
