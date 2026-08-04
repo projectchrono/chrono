@@ -313,6 +313,12 @@ int main(int argc, char* argv[]) {
     bool probe_box_material = false;
     bool material_sweep = false;
     int material_index = -1;  // >= 0 isolates a single material sample (floor + that cube only)
+    // Overrides the isolated sample's roughness. The fixed sample list below bottoms out at 0.1,
+    // which leaves a region of the parameter space unreachable: the Vulkan reference clamps
+    // roughness to [0.02, 1], and ChVisualMaterial's default roughness is 0, so the value a shape
+    // gets when it carries the default material is inside the clamped region and no configuration
+    // of this demo could reach it. Negative means "use the sample's own value".
+    float roughness_override = -1.f;
     std::string feature;      // mesh | texture | normalmap | opacity | envmap (Florian steps c-f)
     std::string data_dir;    // optional Chrono data directory override
     unsigned int average_frames = 1;  // validation-only temporal average
@@ -357,6 +363,13 @@ int main(int argc, char* argv[]) {
         } else if (std::strcmp(argv[i], "--material-index") == 0 && i + 1 < argc) {
             material_sweep = true;
             material_index = std::atoi(argv[++i]);
+        } else if (std::strcmp(argv[i], "--roughness") == 0 && i + 1 < argc) {
+            const double r = std::atof(argv[++i]);
+            if (r < 0.0 || r > 1.0) {
+                std::cerr << "ERROR: --roughness takes a value in [0, 1]\n";
+                return 1;
+            }
+            roughness_override = static_cast<float>(r);
         } else if (std::strcmp(argv[i], "--spp") == 0 && i + 1 < argc) {
             const int f = std::atoi(argv[++i]);
             if (f < 1 || f > 32) {
@@ -407,11 +420,19 @@ int main(int argc, char* argv[]) {
                       << "                       without an explicit material\n"
                       << "  --seed N|clock       base RNG seed; pinned by default so stochastic runs\n"
                       << "                       reproduce, clock for the production default\n"
+                      << "  --roughness R        with --material-index, override that sample's roughness,\n"
+                      << "                       which is the only way to reach roughness below 0.1\n"
                       << "  --frames N           average N independently rendered frames (default 1)\n"
                       << "  --data DIR           Chrono data directory; auto-detected when omitted\n"
                       << "  --out DIR            output directory (default SENSOR_OUTPUT/vulkan_validation/)\n";
             return 1;
         }
+    }
+    if (roughness_override >= 0.f && material_index < 0) {
+        std::cerr << "--roughness overrides one isolated sample, so it needs --material-index N.\n"
+                  << "Applied to the whole sweep it would give every cube the same roughness, which\n"
+                  << "is what the sweep exists to vary.\n";
+        return 1;
     }
     if (light_kind == LightKind::DIRECTIONAL && !const_color) {
         std::cerr << "--falloff is not meaningful for a directional light: it has no position, so there\n"
@@ -507,6 +528,14 @@ int main(int argc, char* argv[]) {
         tag = std::string("feat_") + feature + "_" + kind_name + (const_color ? "_constcolor" : "_falloff");
     if (probe_box_material)
         tag += "_probe";  // the probe changes the scene, so it must not overwrite the plain run's images
+    if (roughness_override >= 0.f) {
+        // Same reason as the probe: an overridden sample is a different material, so it gets its own
+        // filenames. Written in hundredths, so 0.00 and 0.02 (the Vulkan clamp boundary) cannot
+        // collide, and the name stays free of a decimal point.
+        std::string hundredths = std::to_string((int)(roughness_override * 100.f + 0.5f));
+        hundredths.insert(hundredths.begin(), 3 - hundredths.size(), '0');
+        tag += "_rough" + hundredths;
+    }
     if (supersample != 1)
         tag += "_spp" + std::to_string(supersample * supersample);
     if (average_frames != 1)
@@ -610,12 +639,16 @@ int main(int argc, char* argv[]) {
         if (material_index >= 0) {
             // One sample, centered in view, so the reported metrics describe that material alone.
             const Sample& s = samples[material_index];
-            MakeCubeBody(sys, ChVector3d(-2.0, 0.0, 0.9), 0.9, s.roughness, s.metallic,
+            const float sample_roughness = (roughness_override >= 0.f) ? roughness_override : s.roughness;
+            MakeCubeBody(sys, ChVector3d(-2.0, 0.0, 0.9), 0.9, sample_roughness, s.metallic,
                          ChColor(surface_gray, surface_gray, surface_gray), ChColor(0.5f, 0.5f, 0.5f),
                          s.spec_workflow);
             std::cout << "MATERIAL ISOLATION: index " << material_index << " = " << s.label
-                      << "  (roughness " << s.roughness << ", metallic " << s.metallic
-                      << ", specular_workflow " << (s.spec_workflow ? "true" : "false") << ")\n";
+                      << "  (roughness " << sample_roughness;
+            if (roughness_override >= 0.f)
+                std::cout << " [overridden, sample value is " << s.roughness << "]";
+            std::cout << ", metallic " << s.metallic << ", specular_workflow "
+                      << (s.spec_workflow ? "true" : "false") << ")\n";
         } else {
             const double spacing = 1.6;
             const double y0 = -((n_samples - 1) * spacing) / 2.0;
