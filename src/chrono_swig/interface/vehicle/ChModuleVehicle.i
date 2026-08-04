@@ -115,7 +115,7 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 
 // Tracked vehicle
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
@@ -323,7 +323,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
-%shared_ptr(chrono::vehicle::ChTireTestRig)
+%shared_ptr(chrono::vehicle::ChWheelTestRig)
 
 %shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChSprocket)
@@ -429,7 +429,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 
 // Tracked vehicles
 %include "ChTrackAssembly.i"

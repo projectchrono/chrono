@@ -19,6 +19,11 @@
 #include "chrono_sensor/cuda/phys_cam_ops.cuh"
 #include "chrono_sensor/cuda/curand_utils.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
+// For ChSensorManager::GetDeterministicSeed(): derives the shot-noise buffer's own seed from the
+// user-set fixed seed plus the stream's identity, falling back to the wall clock when none is set.
+// The fixed-pattern-noise buffer below is NOT routed through it: m_FPN_seed is a caller-supplied
+// knob and part of the existing public contract of this filter.
+#include "chrono_sensor/ChSensorManager.h"
 #include <chrono>
 
 namespace chrono {
@@ -60,8 +65,8 @@ CH_SENSOR_API void ChFilterPhysCameraNoise::Initialize(
         cudaMallocHelper<curandState_t>(bufferInOut->Width * bufferInOut->Height), cudaFreeHelper<curandState_t>
     );
     init_cuda_rng(
-        (unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng_shot.get(),
-        bufferInOut->Width * bufferInOut->Height
+        ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::PhysCameraShotNoise, GetRngStreamIndex()),
+        m_rng_shot.get(), bufferInOut->Width * bufferInOut->Height
     );
     m_rng_FPN = std::shared_ptr<curandState_t>(
         cudaMallocHelper<curandState_t>(bufferInOut->Width * bufferInOut->Height), cudaFreeHelper<curandState_t>

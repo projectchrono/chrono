@@ -1,0 +1,46 @@
+chrono-version: 10.0
+type: MBS
+
+model:  "mbs_model.yaml"
+solver: "mbs_solver.yaml"
+
+simulation:
+  end_time: 100
+  enforce_realtime: true
+  
+output:
+  format: HDF5
+  mode: SERIES
+  fps: 20
+
+visualization:
+  type: PRIMITIVES
+  render_fps: 120
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [2, 2, 0.6]
+    target: [0, 0, -0.4]
+  output:
+    save_images: false
+    image_type: "bmp"
+
+precice_adapter_config:
+  participant_name: Solid
+
+  bodies:
+  - name: ball
+  
+  interfaces:
+  - mesh_name: SolidMesh
+    mesh_type: RIGID_BODY_REFS
+    write_data:
+    - name: positions
+      type: POSITIONS
+    - name: velocities
+      type: LINEAR_VELOCITIES
+    read_data:
+    - name: forces
+      type: FORCES
+    - name: torques
+      type: TORQUES

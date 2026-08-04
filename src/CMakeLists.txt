@@ -79,6 +79,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "PGI")
       message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++17 support")
       set(CH_CXX17 TRUE)
     endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM") 
+    message(STATUS "IntelLLVM version:  ${CMAKE_CXX_COMPILER_VERSION}")
+    set(CH_CXX17 TRUE)
 endif()
 
 if(NOT CH_CXX17)
@@ -706,6 +709,7 @@ add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
 add_subdirectory(chrono_ros)
 add_subdirectory(chrono_swig)
+add_subdirectory(chrono_precice)
 
 # Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)

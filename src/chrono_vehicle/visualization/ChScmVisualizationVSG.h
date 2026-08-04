@@ -20,8 +20,7 @@
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/assets/ChVisualSystem.h"
 
-#include "chrono_fsi/ChApiFsi.h"
-
+#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -87,7 +86,7 @@ class CH_VEHICLE_API ChScmVisualizationVSG : public vsg3d::ChVisualSystemVSGPlug
 
     bool m_active_boxes;                         ///< render active boxes?
     ChColor m_active_box_color;                  ///< color for active boxes
-    vsg::ref_ptr<vsg::Switch> m_activeBoxScene;  ///< VSG scene containing FSI body active boxes
+    vsg::ref_ptr<vsg::Switch> m_activeBoxScene;  ///< VSG scene containing SCM body active boxes
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files

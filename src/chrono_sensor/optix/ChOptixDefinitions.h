@@ -131,7 +131,8 @@ struct CameraParameters {
     half4* albedo_buffer;  ///< the material color of the first hit. Only initialized if using global illumination
     half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
                            ///< (screenspace normal)
-    curandState_t* rng_buffer;  ///< The random number generator object. Only initialized if using global illumination
+    curandState_t* rng_buffer;  ///< Per-pixel RNG state. Always allocated for this record; used for
+                                ///< motion blur, pixel jitter, and all stochastic shading
     Integrator integrator;      ///< the integrator algorithm to use for rendering
 };
 
@@ -159,7 +160,8 @@ struct PhysCameraParameters {
     half4* albedo_buffer;  ///< the material color of the first hit. Only initialized if using global illumination
     half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
                            ///< (screenspace normal)
-    curandState_t* rng_buffer;  ///< The random number generator object. Only initialized if using global illumination
+    curandState_t* rng_buffer;  ///< Per-pixel RNG state. Always allocated for this record; used for
+                                ///< motion blur, pixel jitter, and all stochastic shading
     Integrator integrator;      ///< the integrator algorithm to use for rendering
 };
 
@@ -169,7 +171,8 @@ struct DepthCameraParameters {
     CameraLensModelType lens_model;  ///< lens model to use
     LensParams lens_parameters;      ///< lens fitting parameters (if applicable)
     float* frame_buffer;             ///< buffer of class and instance ids
-    curandState_t* rng_buffer;       ///< only initialized if using global illumination
+    curandState_t* rng_buffer;       ///< per-pixel RNG state, used for motion blur; only
+                                     ///< allocated when the sensor's collection window is > 0
     float max_depth;                 ///< maximum depth value for the depth camera
 };
 
@@ -179,7 +182,8 @@ struct NormalCameraParameters {
     CameraLensModelType lens_model;  ///< lens model to use
     LensParams lens_parameters;      ///< lens fitting parameters (if applicable)
     float3* frame_buffer;            ///< buffer of class and instance ids to put normal vector
-    curandState_t* rng_buffer;       ///< only initialized if using global illumination
+    curandState_t* rng_buffer;       ///< per-pixel RNG state, used for motion blur; only
+                                     ///< allocated when the sensor's collection window is > 0
 };
 
 /// Parameters need to define a camera that generates semantic segmentation data.
@@ -188,7 +192,8 @@ struct SemanticCameraParameters {
     CameraLensModelType lens_model;  ///< lens model to use
     LensParams lens_parameters;      ///< lens fitting parameters (if applicable)
     ushort2* frame_buffer;           ///< buffer of class and instance ids
-    curandState_t* rng_buffer;       ///< only initialized if using global illumination
+    curandState_t* rng_buffer;       ///< per-pixel RNG state, used for motion blur; only
+                                     ///< allocated when the sensor's collection window is > 0
 };
 
 /// The shape of a lidar beam.

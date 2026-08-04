@@ -57,8 +57,13 @@ using namespace chrono::fsi::sph;
         return Real3ArrayToNumpy(self->GetProperties());
     }
 }
+
 #endif
+
+%shared_ptr(chrono::fsi::sph::ChFsiFluidSystemSPH::ParticlePropertiesCallback)
+%shared_ptr(chrono::fsi::sph::DepthPressurePropertiesCallback)
+
+%feature("director") chrono::fsi::sph::ChFsiFluidSystemSPH::ParticlePropertiesCallback;
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_fsi/sph/ChFsiFluidSystemSPH.h"    
-

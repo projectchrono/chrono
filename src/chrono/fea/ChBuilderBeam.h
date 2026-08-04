@@ -38,16 +38,15 @@ namespace fea {
 /// @addtogroup fea_utils
 /// @{
 
-/// Utility class for creating complex beams using ChElementBeamEuler elements, for example subdivides a segment in
-/// multiple finite elements.
+/// Utility class for creating complex beams using ChElementBeamEuler elements, for example subdivides a segment in multiple finite elements.
 class ChApi ChBuilderBeamEuler {
   protected:
     std::vector<std::shared_ptr<ChElementBeamEuler>> beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> beam_nodes;
 
   public:
-    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementBeamEuler
-    /// type elements. Before running, each time resets lists of beam_elems and beam_nodes.
+    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementBeamEuler type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionEuler> sect,  ///< section material for beam elements
                    const int N,                               ///< number of elements in the segment
@@ -56,8 +55,8 @@ class ChApi ChBuilderBeamEuler {
                    const ChVector3d Ydir                      ///< the 'up' Y direction of the beam
     );
 
-    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to another existing node,
-    /// using ChElementBeamEuler type elements. Before running, each time resets lists of beam_elems and beam_nodes.
+    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to another existing node, using ChElementBeamEuler type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionEuler> sect,  ///< section material for beam elements
                    const int N,                               ///< number of elements in the segment
@@ -66,8 +65,8 @@ class ChApi ChBuilderBeamEuler {
                    const ChVector3d Ydir                      ///< the 'up' Y direction of the beam
     );
 
-    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to a point B, using
-    /// ChElementBeamEuler type elements. Before running, each time resets lists of beam_elems and beam_nodes.
+    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to a point B, using ChElementBeamEuler type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionEuler> sect,  ///< section material for beam elements
                    const int N,                               ///< number of elements in the segment
@@ -77,52 +76,46 @@ class ChApi ChBuilderBeamEuler {
     );
 
     /// Access the list of elements used by the last built beam.
-    /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChElementBeamEuler>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
-    /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& GetLastBeamNodes() { return beam_nodes; }
 };
 
-/// Utility class for creating complex beams using ChElementCableANCF elements, for example subdivides a segment in
-/// multiple finite elements.
+/// Utility class for creating complex beams using ChElementCableANCF elements, for example subdivides a segment in multiple finite elements.
 class ChApi ChBuilderCableANCF {
   protected:
     std::vector<std::shared_ptr<ChElementCableANCF>> beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzD>> beam_nodes;
 
   public:
-    /// Adds cable FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF
-    /// type elements. Before running, each time resets lists of beam_elems and beam_nodes.
-    void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for cable elements
-                   const int N,                               ///< number of elements in the segment
-                   const ChVector3d A,                        ///< starting point
-                   const ChVector3d B                         ///< ending point
+    /// Add cable FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                  ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionCableANCF> sect,  ///< section material for cable elements
+                   const int N,                                   ///< number of elements in the segment
+                   const ChVector3d A,                            ///< starting point
+                   const ChVector3d B                             ///< ending point
     );
 
-    /// Adds cable FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF
-    /// type elements. Before running, each time resets lists of beam_elems and beam_nodes. This version also returns
-    /// connectivity information.
-    void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for cable elements
-                   const int N,                               ///< number of elements in the segment
-                   const ChVector3d A,                        ///< starting point
-                   const ChVector3d B,                        ///< ending point
-                   std::vector<std::vector<int>>& nodes,      ///< node indices for all elements
-                   std::vector<std::vector<int>>& node_nbrs   ///< neighbor node indices (connectivity)
+    /// Add cable FEM elements to the mesh to create a segment beam from point A to point B, using ChElementCableANCF type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes. This version also returns connectivity information.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                  ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionCableANCF> sect,  ///< section material for cable elements
+                   const int N,                                   ///< number of elements in the segment
+                   const ChVector3d A,                            ///< starting point
+                   const ChVector3d B,                            ///< ending point
+                   std::vector<std::vector<int>>& nodes,          ///< node indices for all elements
+                   std::vector<std::vector<int>>& node_nbrs       ///< neighbor node indices (connectivity)
     );
 
     /// Access the list of elements used by the last built beam.
-    /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildCable function is called.
     std::vector<std::shared_ptr<ChElementCableANCF>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
-    /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a BuildCable function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzD>>& GetLastBeamNodes() { return beam_nodes; }
 };
@@ -131,7 +124,7 @@ class ChApi ChBuilderCableANCF {
 /// multiple finite elements.
 class ChApi ChBuilderBeamANCF_3243 {
   public:
-    /// Add nodes and elements to the mesh to create a segment beam from point A to point B
+    /// Add nodes and elements to the mesh to create a segment beam from point A to point B.
     /// The beam is constructed with ChElementBeamANCF_3243 type elements.
     /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,             ///< mesh to store the resulting elements
@@ -149,12 +142,10 @@ class ChApi ChBuilderBeamANCF_3243 {
     );
 
     /// Access the list of elements used by the last built beam.
-    /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChElementBeamANCF_3243>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
-    /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>>& GetLastBeamNodes() { return beam_nodes; }
 
@@ -167,7 +158,7 @@ class ChApi ChBuilderBeamANCF_3243 {
 /// multiple finite elements.
 class ChApi ChBuilderBeamANCF_3333 {
   public:
-    /// Add nodes and elements to the mesh to create a segment beam from point A to point B
+    /// Add nodes and elements to the mesh to create a segment beam from point A to point B.
     /// The beam is constructed with ChElementBeamANCF_3333 type elements.
     /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,             ///< mesh to store the resulting elements
@@ -184,12 +175,10 @@ class ChApi ChBuilderBeamANCF_3333 {
     );
 
     /// Access the list of elements used by the last built beam.
-    /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChElementBeamANCF_3333>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
-    /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzDD>>& GetLastBeamNodes() { return beam_nodes; }
 
@@ -206,8 +195,8 @@ class ChApi ChBuilderBeamIGA {
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> beam_nodes;
 
   public:
-    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementBeamIGA type
-    /// elements. Before running, each time resets lists of beam_elems and beam_nodes.
+    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementBeamIGA type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section property for beam elements
                    const int N,                                  ///< number of elements in the segment
@@ -217,8 +206,8 @@ class ChApi ChBuilderBeamIGA {
                    const int order = 3                           ///< the order of spline (default=3,cubic)
     );
 
-    /// Add beam FEM elements to the mesh to create a spline beam using ChElementBeamIGA type elements, given a B-spline
-    /// line in 3D space. Before running, each time resets lists of beam_elems and beam_nodes.
+    /// Add beam FEM elements to the mesh to create a spline beam using ChElementBeamIGA type elements, given a B-spline line in 3D space.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
                    ChLineBSpline& spline,                        ///< the B-spline to be used as the centerline
@@ -226,128 +215,107 @@ class ChApi ChBuilderBeamIGA {
     );
 
     /// Access the list of elements used by the last built beam.
-    /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChElementBeamIGA>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
-    /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& GetLastBeamNodes() { return beam_nodes; }
 };
 
-/// Utility class for creating complex beams using ChElementBeamTaperedTimoshenko elements, for example subdivides a
-/// segment in multiple finite elements.
+/// Utility class for creating complex beams using ChElementBeamTaperedTimoshenko elements, for example subdivides a segment in multiple finite elements.
 class ChApi ChBuilderBeamTaperedTimoshenko {
   protected:
     std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenko>> beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> beam_nodes;
 
   public:
-    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using
-    /// ChElementBeamTaperedTimoshenko type elements. Before running, each time resets lists of beam_elems and
-    /// beam_nodes.
-    void BuildBeam(
-        std::shared_ptr<ChMesh> mesh,                                         ///< mesh to store the resulting elements
-        std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  ///< section material for beam elements
-        const int N,                                                          ///< number of elements in the segment
-        const ChVector3d A,                                                   ///< starting point
-        const ChVector3d B,                                                   ///< ending point
-        const ChVector3d Ydir                                                 ///< the 'up' Y direction of the beam
+    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementBeamTaperedTimoshenko type elements. \
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                                         ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  ///< section material for beam elements
+                   const int N,                                                          ///< number of elements in the segment
+                   const ChVector3d A,                                                   ///< starting point
+                   const ChVector3d B,                                                   ///< ending point
+                   const ChVector3d Ydir                                                 ///< the 'up' Y direction of the beam
     );
 
-    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to another existing node,
-    /// using ChElementBeamTaperedTimoshenko type elements. Before running, each time resets lists of beam_elems and
-    /// beam_nodes.
-    void BuildBeam(
-        std::shared_ptr<ChMesh> mesh,                                         ///< mesh to store the resulting elements
-        std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  ///< section material for beam elements
-        const int N,                                                          ///< number of elements in the segment
-        std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               ///< starting point
-        std::shared_ptr<ChNodeFEAxyzrot> nodeB,                               ///< ending point
-        const ChVector3d Ydir                                                 ///< the 'up' Y direction of the beam
+    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to another existing node, using ChElementBeamTaperedTimoshenko type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                                         ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  ///< section material for beam elements
+                   const int N,                                                          ///< number of elements in the segment
+                   std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               ///< starting point
+                   std::shared_ptr<ChNodeFEAxyzrot> nodeB,                               ///< ending point
+                   const ChVector3d Ydir                                                 ///< the 'up' Y direction of the beam
     );
 
-    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to a point B, using
-    /// ChElementBeamTaperedTimoshenko type elements. Before running, each time resets lists of beam_elems and
-    /// beam_nodes.
-    void BuildBeam(
-        std::shared_ptr<ChMesh> mesh,                                         ///< mesh to store the resulting elements
-        std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  ///< section material for beam elements
-        const int N,                                                          ///< number of elements in the segment
-        std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               ///< starting point
-        const ChVector3d B,                                                   ///< ending point
-        const ChVector3d Ydir                                                 ///< the 'up' Y direction of the beam
+    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to a point B, using ChElementBeamTaperedTimoshenko type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                                         ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  ///< section material for beam elements
+                   const int N,                                                          ///< number of elements in the segment
+                   std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               ///< starting point
+                   const ChVector3d B,                                                   ///< ending point
+                   const ChVector3d Ydir                                                 ///< the 'up' Y direction of the beam
     );
 
     /// Access the list of elements used by the last built beam.
-    /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenko>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
-    /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& GetLastBeamNodes() { return beam_nodes; }
 };
 
-/// Utility class for creating complex beams using ChElementBeamTaperedTimoshenkoFPM elements, for example subdivides a
-/// segment in multiple finite elements.
+/// Utility class for creating complex beams using ChElementBeamTaperedTimoshenkoFPM elements, for example subdivides a segment in multiple finite elements.
 class ChApi ChBuilderBeamTaperedTimoshenkoFPM {
   protected:
     std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenkoFPM>> beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> beam_nodes;
 
   public:
-    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using
-    /// ChElementBeamTaperedTimoshenkoFPM type elements. Before running, each time resets lists of beam_elems and
-    /// beam_nodes.
-    void BuildBeam(
-        std::shared_ptr<ChMesh> mesh,  ///< mesh to store the resulting elements
-        std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  ///< section material for beam elements
-        const int N,                                                             ///< number of elements in the segment
-        const ChVector3d A,                                                      ///< starting point
-        const ChVector3d B,                                                      ///< ending point
-        const ChVector3d Ydir                                                    ///< the 'up' Y direction of the beam
+    /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementBeamTaperedTimoshenkoFPM type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                                            ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  ///< section material for beam elements
+                   const int N,                                                             ///< number of elements in the segment
+                   const ChVector3d A,                                                      ///< starting point
+                   const ChVector3d B,                                                      ///< ending point
+                   const ChVector3d Ydir                                                    ///< the 'up' Y direction of the beam
     );
 
-    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to another existing node,
-    /// using ChElementBeamTaperedTimoshenkoFPM type elements. Before running, each time resets lists of beam_elems and
-    /// beam_nodes.
-    void BuildBeam(
-        std::shared_ptr<ChMesh> mesh,  ///< mesh to store the resulting elements
-        std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  ///< section material for beam elements
-        const int N,                                                             ///< number of elements in the segment
-        std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  ///< starting point
-        std::shared_ptr<ChNodeFEAxyzrot> nodeB,                                  ///< ending point
-        const ChVector3d Ydir                                                    ///< the 'up' Y direction of the beam
+    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to another existing node, using ChElementBeamTaperedTimoshenkoFPM type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                                            ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  ///< section material for beam elements
+                   const int N,                                                             ///< number of elements in the segment
+                   std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  ///< starting point
+                   std::shared_ptr<ChNodeFEAxyzrot> nodeB,                                  ///< ending point
+                   const ChVector3d Ydir                                                    ///< the 'up' Y direction of the beam
     );
 
-    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to a point B, using
-    /// ChElementBeamTaperedTimoshenkoFPM type elements. Before running, each time resets lists of beam_elems and
-    /// beam_nodes.
-    void BuildBeam(
-        std::shared_ptr<ChMesh> mesh,  ///< mesh to store the resulting elements
-        std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  ///< section material for beam elements
-        const int N,                                                             ///< number of elements in the segment
-        std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  ///< starting point
-        const ChVector3d B,                                                      ///< ending point
-        const ChVector3d Ydir                                                    ///< the 'up' Y direction of the beam
+    /// Add beam FEM elements to the mesh to create a segment beam from one existing node to a point B, using ChElementBeamTaperedTimoshenkoFPM type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,                                            ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  ///< section material for beam elements
+                   const int N,                                                             ///< number of elements in the segment
+                   std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  ///< starting point
+                   const ChVector3d B,                                                      ///< ending point
+                   const ChVector3d Ydir                                                    ///< the 'up' Y direction of the beam
     );
 
     /// Access the list of elements used by the last built beam.
-    /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenkoFPM>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
-    /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& GetLastBeamNodes() { return beam_nodes; }
 };
 
-/// Class for an object that continuously extrude a beam (composed of ChElementBeamEuler elements) with prescribed
-/// velocity.
+/// Class for an object that continuously extrude a beam (composed of ChElementBeamEuler elements) with prescribed velocity.
 class ChApi ChExtruderBeamEuler {
   public:
     /// Initialize and add required constraints to system
@@ -355,17 +323,16 @@ class ChApi ChExtruderBeamEuler {
                         std::shared_ptr<ChMesh> mmesh,             ///< mesh to store the resulting elements
                         std::shared_ptr<ChBeamSectionEuler> sect,  ///< section material for beam elements
                         double mh,                                 ///< element length
-                        const ChCoordsys<> moutlet,  ///< outlet pos & orientation (z is extrusion direction)
-                        double mspeed                ///< speed
+                        const ChCoordsys<> moutlet,                ///< outlet pos & orientation (z is extrusion direction)
+                        double mspeed                              ///< speed
     );
 
     ~ChExtruderBeamEuler();
 
     /// Set the material for the beam, and enables collision detection for the beam nodes.
     /// By default, collision not enabled.
-    void SetContact(
-        std::shared_ptr<ChContactMaterialSMC> mcontact_material,  ///< material to use for surface
-        double mcontact_radius  ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
+    void SetContact(std::shared_ptr<ChContactMaterialSMC> mcontact_material,  ///< material to use for surface
+                    double mcontact_radius                                    ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
     );
 
     /// Create beam elements, if needed, and update the constraint that imposes the extrusion speed.
@@ -400,8 +367,7 @@ class ChApi ChExtruderBeamEuler {
     double contact_radius;
 };
 
-/// Class for an object that continuously extrude a beam (composed of ChElementBeamIGA elements) with prescribed
-/// velocity.
+/// Class for an object that continuously extrude a beam (composed of ChElementBeamIGA elements) with prescribed velocity.
 class ChApi ChExtruderBeamIGA {
   public:
     /// Initialize and add required constraints to system
@@ -409,18 +375,17 @@ class ChApi ChExtruderBeamIGA {
                       std::shared_ptr<ChMesh> mmesh,                ///< mesh to store the resulting elements
                       std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
                       double mh,                                    ///< element length
-                      const ChCoordsys<> moutlet,  ///< outlet pos & orientation (z is extrusion direction)
-                      double mspeed,               ///< speed
-                      int morder                   ///< element order, default =3 (cubic)
+                      const ChCoordsys<> moutlet,                   ///< outlet pos & orientation (z is extrusion direction)
+                      double mspeed,                                ///< speed
+                      int morder                                    ///< element order, default =3 (cubic)
     );
 
     ~ChExtruderBeamIGA();
 
     /// Set the material for the beam, and enables collision detection for the beam nodes.
     /// By default, collision not enabled.
-    void SetContact(
-        std::shared_ptr<ChContactMaterialSMC> mcontact_material,  ///< material to use for surface
-        double mcontact_radius  ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
+    void SetContact(std::shared_ptr<ChContactMaterialSMC> mcontact_material,  ///< material to use for surface
+                    double mcontact_radius                                    ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
     );
 
     /// Create beam elements, as needed, and update the constraint that  imposes the extrusion speed.

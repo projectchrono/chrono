@@ -174,9 +174,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
-    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
-    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH particles:        " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Boundary BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
+    cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << endl;
 
     // ------------------------
     // Initialize visualization

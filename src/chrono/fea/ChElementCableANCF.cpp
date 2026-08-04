@@ -404,10 +404,10 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 
     // Compute the matrix used to multiply the acceleration due to gravity to get the generalized gravitational force
     // vector for the element
-    m_GravForceScale(0) = 0.5 * m_section->density * m_section->Area * length;
-    m_GravForceScale(1) = 1.0 / 12.0 * m_section->density * m_section->Area * length * length;
-    m_GravForceScale(2) = 0.5 * m_section->density * m_section->Area * length;
-    m_GravForceScale(3) = -1.0 / 12.0 * m_section->density * m_section->Area * length * length;
+    m_GravForceScale(0) = (1 / 2.0) * mass;
+    m_GravForceScale(1) = (1 / 12.0) * mass * length;
+    m_GravForceScale(2) = (1 / 2.0) * mass;
+    m_GravForceScale(3) = -(1 / 12.0) * mass * length;
 }
 
 // Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also superimposes global
@@ -426,8 +426,7 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 // Computes the internal forces and set values in the Fi vector.
 // (e.g. the actual position of nodes is not in relaxed reference position).
 void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(),
-                               m_nodes[1]->GetSlope1(), m_nodes[0]->GetPosDt(), m_nodes[0]->GetSlope1Dt(),
+    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(), m_nodes[1]->GetSlope1(), m_nodes[0]->GetPosDt(), m_nodes[0]->GetSlope1Dt(),
                                m_nodes[1]->GetPosDt(), m_nodes[1]->GetSlope1Dt(), Fi);
 }
 
@@ -648,6 +647,23 @@ void ChElementCableANCF::EvaluateSectionDisplacement(const double eta, ChVector3
     u_rotaz = VNULL;  //(not needed in ANCF? )
 }
 
+void ChElementCableANCF::EvaluateSectionVelocity(const double eta, ChVector3d& lin_vel, ChVector3d& ang_vel) {
+    ShapeVector N;
+    double xi = (eta + 1.0) * 0.5;
+    ShapeFunctions(N, xi);  // because ShapeFunctions() works in 0..1 range
+
+    ChVector3d vpA = m_nodes[0]->GetPosDt();
+    ChVector3d vdA = m_nodes[0]->GetSlope1Dt();
+    ChVector3d vpB = m_nodes[1]->GetPosDt();
+    ChVector3d vdB = m_nodes[1]->GetSlope1Dt();
+
+    lin_vel.x() = N(0) * vpA.x() + N(1) * vdA.x() + N(2) * vpB.x() + N(3) * vdB.x();
+    lin_vel.y() = N(0) * vpA.y() + N(1) * vdA.y() + N(2) * vpB.y() + N(3) * vdB.y();
+    lin_vel.z() = N(0) * vpA.z() + N(1) * vdA.z() + N(2) * vpB.z() + N(3) * vdB.z();
+
+    ang_vel = VNULL;
+}
+
 void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) {
     ChVector3d u_displ;
     ChVector3d u_rotaz;
@@ -762,11 +778,7 @@ void ChElementCableANCF::LoadableGetStateBlockVelLevel(int block_offset, ChState
 }
 
 // Increment all DOFs using a delta.
-void ChElementCableANCF::LoadableStateIncrement(const unsigned int off_x,
-                                                ChState& x_new,
-                                                const ChState& x,
-                                                const unsigned int off_v,
-                                                const ChStateDelta& Dv) {
+void ChElementCableANCF::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) {
     m_nodes[0]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
     m_nodes[1]->NodeIntStateIncrement(off_x + 6, x_new, x, off_v + 6, Dv);
 }
@@ -783,12 +795,7 @@ void ChElementCableANCF::LoadableGetVariables(std::vector<ChVariables*>& mvars) 
 // each ranging in -1..+1
 // F is a load, N'*F is the resulting generalized load.
 // Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
-void ChElementCableANCF::ComputeNF(const double U,
-                                   ChVectorDynamic<>& Qi,
-                                   double& detJ,
-                                   const ChVectorDynamic<>& F,
-                                   ChVectorDynamic<>* state_x,
-                                   ChVectorDynamic<>* state_w) {
+void ChElementCableANCF::ComputeNF(const double U, ChVectorDynamic<>& Qi, double& detJ, const ChVectorDynamic<>& F, ChVectorDynamic<>* state_x, ChVectorDynamic<>* state_w) {
     ShapeVector N;
     ShapeFunctions(N, (U + 1) * 0.5);  // evaluate shape functions (in compressed vector)
 

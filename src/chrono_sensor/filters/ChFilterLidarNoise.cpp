@@ -19,6 +19,9 @@
 #include "chrono_sensor/cuda/lidar_noise.cuh"
 #include "chrono_sensor/cuda/curand_utils.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
+// For ChSensorManager::GetDeterministicSeed(): derives this buffer's own seed from the user-set
+// fixed seed plus the stream's identity, falling back to the wall clock when no seed is set.
+#include "chrono_sensor/ChSensorManager.h"
 #include <chrono>
 
 namespace chrono {
@@ -53,8 +56,8 @@ void ChFilterLidarNoiseXYZI::Initialize(std::shared_ptr<ChSensor> pSensor, std::
 
     m_rng = std::shared_ptr<curandState_t>(
         cudaMallocHelper<curandState_t>(m_bufferInOut->Width * m_bufferInOut->Height), cudaFreeHelper<curandState_t>);
-    init_cuda_rng((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng.get(),
-                  m_bufferInOut->Width * m_bufferInOut->Height);
+    init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::LidarNoiseXYZI, GetRngStreamIndex()),
+                  m_rng.get(), m_bufferInOut->Width * m_bufferInOut->Height);
 }
 
 void ChFilterLidarNoiseXYZI::Apply() {

@@ -15,6 +15,9 @@
 #include <memory>
 #include <array>
 #include <algorithm>
+#include <iostream>
+#include <mutex>
+#include <set>
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
@@ -228,9 +231,22 @@ void ChCollisionModelBullet::Populate() {
                 InjectTriangleProxy(shape_triangle);
                 break;
             }
-            default:
-                // Shape type not supported
+            default: {
+                // Shape type not supported by the Bullet collision system (see the notes on ChCollisionShape::Type).
+                // Report it once per type: dropping the shape silently leaves a body that simply never collides, with
+                // nothing to indicate why.
+                static std::mutex mutex;
+                static std::set<ChCollisionShape::Type> reported;
+                std::lock_guard<std::mutex> lock(mutex);
+                if (reported.insert(shape->GetType()).second) {
+                    std::cerr << "Warning: the Bullet collision system does not support collision shapes of type "
+                              << ChCollisionShape::GetTypeAsString(shape->GetType())
+                              << "; the shape is excluded from the collision model. Further occurrences of this shape "
+                                 "type are not reported."
+                              << std::endl;
+                }
                 break;
+            }
         }
     }
 }
@@ -440,10 +456,10 @@ void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShape
     // Triangle mesh with connectivity ------------------------
     if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh)) {
         std::vector<std::array<int, 4>> neighb_trimap;  // [Ti, TAi, TBi, TCi]
-        bool ok_trimap = mesh->ComputeNeighbouringTriangleMap(neighb_trimap);
+        mesh->ComputeNeighbouringTriangleMap(neighb_trimap);
 
         std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;  // {v1i, v2i}->{T1i, T2i}
-        bool ok_wingedge = mesh->ComputeWingedEdges(winged_edges, true);
+        mesh->ComputeWingedEdges(winged_edges, true);
 
         std::vector<bool> added_vertices(mesh->m_vertices.size(), false);
 

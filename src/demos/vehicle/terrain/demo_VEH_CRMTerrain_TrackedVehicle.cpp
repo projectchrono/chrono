@@ -38,6 +38,7 @@
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -64,21 +65,15 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
 void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrain);
 
 // Callback for setting initial SPH particle properties
-class SPHPropertiesCallbackWithPressureScale : public ChFsiProblemSPH::ParticlePropertiesCallback {
+class SPHPropertiesCallbackWithPressureScale : public DepthPressurePropertiesCallback {
   public:
-    SPHPropertiesCallbackWithPressureScale(double zero_height, double pre_pressure_scale)
-        : ParticlePropertiesCallback(), zero_height(zero_height), pre_pressure_scale(pre_pressure_scale) {}
+    SPHPropertiesCallbackWithPressureScale(double zero_height, double pre_pressure_scale) : DepthPressurePropertiesCallback(zero_height), pre_pressure_scale(pre_pressure_scale) {}
 
     virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
-        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
-        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysSPH.GetDensity();
-        mu0 = sysSPH.GetViscosity();
-        v0 = ChVector3d(0, 0, 0);
-        pre_pressure_scale0 = pre_pressure_scale;
+        DepthPressurePropertiesCallback::set(sysSPH, pos);
+        consolidation_pressure = pre_pressure_scale * p0;
     }
 
-    double zero_height;
     double pre_pressure_scale;
 };
 
@@ -231,9 +226,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     const auto& aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
-    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
-    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH particles:        " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Boundary BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
+    cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << endl;
 
     // Create driver
     cout << "Create path..." << endl;
@@ -318,7 +313,7 @@ int main(int argc, char* argv[]) {
     std::ofstream stats_output(stats_file);
     stats_output << "time,x,y,z,vx,vy,vz,ax,ay,az,qw,qx,qy,qz,wx,wy,wz" << std::endl;
 
-    while (time < tend) {
+    while (true) {
         const auto& veh_loc = vehicle->GetPos();
 
         // Stop before end of patch
@@ -359,12 +354,15 @@ int main(int argc, char* argv[]) {
         }
         if (!render) {
             std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
+            if (time > tend)
+                break;
         }
 
         // Synchronize systems
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        vis->Synchronize(time, driver_inputs);
+        if (vis)
+            vis->Synchronize(time, driver_inputs);
         vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Write vehicle stats to CSV
@@ -383,12 +381,14 @@ int main(int argc, char* argv[]) {
         // Note: CRMTerrain::Advance also performs the vehicle dynamics
         if (sph_params.use_variable_time_step) {
             driver.Advance(meta_step_size);
-            vis->Advance(meta_step_size);
+            if (vis)
+                vis->Advance(meta_step_size);
             terrain.Advance(meta_step_size);
             time += meta_step_size;
         } else {
             driver.Advance(step_size);
-            vis->Advance(step_size);
+            if (vis)
+                vis->Advance(step_size);
             terrain.Advance(step_size);
             time += step_size;
         }

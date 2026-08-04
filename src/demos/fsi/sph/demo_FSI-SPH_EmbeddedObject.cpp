@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepSizeCFD(step_size);
     fsi.SetStepsizeMBD(step_size);
 
-    // Set soil propertiees
+    // Set soil properties
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
@@ -156,8 +156,7 @@ int main(int argc, char* argv[]) {
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
             std::string mesh_filename = GetChronoDataFile("models/sphere.obj");
-            geometry->coll_meshes.push_back(
-                utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL, radius, 0.01, 0));
+            geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL, radius, 0.01, 0));
             break;
         }
         case ObjectShape::BOX_PRIMITIVE: {
@@ -165,8 +164,7 @@ int main(int argc, char* argv[]) {
             ChBox box(size);
             mass = density * box.GetVolume();
             inertia = density * box.GetGyration();
-            geometry->coll_boxes.push_back(
-                utils::ChBodyGeometry::BoxShape(ChVector3d(0.1, 0.1, 0), Q_ROTATE_Y_TO_Z, box, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0.1, 0.1, 0), Q_ROTATE_Y_TO_Z, box, 0));
             break;
         }
         case ObjectShape::CYLINDER_PRIMITIVE: {
@@ -175,8 +173,7 @@ int main(int argc, char* argv[]) {
             ChCylinder cylinder(radius, length);
             mass = density * cylinder.GetVolume();
             inertia = density * cylinder.GetGyration();
-            geometry->coll_cylinders.push_back(
-                utils::ChBodyGeometry::CylinderShape(VNULL, QuatFromAngleX(CH_PI / 4), cylinder, 0));
+            geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QuatFromAngleX(CH_PI / 4), cylinder, 0));
             break;
         }
         case ObjectShape::BOX_FRAME: {
@@ -221,7 +218,7 @@ int main(int argc, char* argv[]) {
 
     fsi.Initialize();
 
-    // Create oputput directories
+    // Create output directories
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -316,8 +313,7 @@ int main(int argc, char* argv[]) {
                 if (verbose)
                     cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
 

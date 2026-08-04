@@ -36,7 +36,7 @@ double ChSphere::GetVolume() const {
 }
 
 ChMatrix33<> ChSphere::CalcGyration(double radius) {
-    double Jxx = (2.0 / 5.0) * radius * radius;
+    double Jxx = (2 / 5.0) * radius * radius;
 
     ChMatrix33<> J;
     J.setZero();
@@ -49,6 +49,15 @@ ChMatrix33<> ChSphere::CalcGyration(double radius) {
 
 ChMatrix33<> ChSphere::GetGyration() const {
     return CalcGyration(rad);
+}
+
+ChVector3d ChSphere::CalcGyrationXX(double radius) {
+    double Jxx = (2 / 5.0) * radius * radius;
+    return ChVector3d(Jxx, Jxx, Jxx);
+}
+
+ChVector3d ChSphere::GetGyrationXX() const {
+    return CalcGyrationXX(rad);
 }
 
 ChAABB ChSphere::CalcBoundingBox(double radius) {

@@ -12,6 +12,17 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <iostream>
+#include <mutex>
+#include <set>
+#include <typeinfo>
+
+#if defined(__GNUC__) && __has_include(<cxxabi.h>)
+    #include <cstdlib>
+    #include <cxxabi.h>
+    #define CH_HAVE_CXA_DEMANGLE
+#endif
+
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
@@ -112,6 +123,37 @@ void ChVisualShape::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(is_mutable);
     archive_in >> CHNVP(is_double_faced);
     archive_in >> CHNVP(material_list);
+}
+
+// Return a readable name for a type. MSVC already yields one; the Itanium ABI yields a mangled name, so demangle it.
+static std::string TypeName(const std::type_info& ti) {
+#ifdef CH_HAVE_CXA_DEMANGLE
+    int status = 0;
+    char* demangled = abi::__cxa_demangle(ti.name(), nullptr, nullptr, &status);
+    if (status == 0 && demangled) {
+        std::string name(demangled);
+        std::free(demangled);
+        return name;
+    }
+    std::free(demangled);
+#endif
+    return ti.name();
+}
+
+void ReportUnsupportedVisualShape(const ChVisualShape& shape, const std::string& backend) {
+    // Visual models can be populated from more than one thread, so guard the record of what has been reported.
+    static std::mutex mutex;
+    static std::set<std::string> reported;
+
+    std::string type_name = TypeName(typeid(shape));
+
+    std::lock_guard<std::mutex> lock(mutex);
+    if (!reported.insert(backend + "/" + type_name).second)
+        return;
+
+    std::cerr << "Warning: " << backend << " cannot render a visual shape of type '" << type_name
+              << "'; the shape will not be drawn. Further occurrences of this shape type are not reported."
+              << std::endl;
 }
 
 }  // namespace chrono

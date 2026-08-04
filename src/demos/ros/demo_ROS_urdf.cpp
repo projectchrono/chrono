@@ -34,8 +34,9 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/functions/ChFunctionSetpoint.h"
 
-#include "chrono_parsers/ChParserURDF.h"
-#include "chrono_parsers/ChRobotActuation.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
+
+#include "chrono_models/robot/ChRobotActuation.h"
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
@@ -151,9 +152,10 @@ int main(int argc, char* argv[]) {
     // Drive the motors from a pre-recorded walking cycle (stands in for an
     // external controller node).
     const std::string cycle_filename = GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt");
-    ChRobotActuation actuator(motor_names.size(), "", cycle_filename, "", true);
-    double duration_pose = 1.0;
-    double duration_settle_robot = 0.5;
+    models::ChRobotActuation actuator(motor_names.size(), "", cycle_filename, "", true);
+
+    double duration_pose = 1.0;          // time interval to assume initial pose
+    double duration_settle_robot = 0.5;  // time interval to allow robot settling on terrain
     actuator.SetTimeOffsets(duration_pose, duration_settle_robot);
     actuator.SetVerbose(true);
 

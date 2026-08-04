@@ -106,7 +106,7 @@ initial_spacing = 0.03
 terrain = veh.CRMTerrain(system, initial_spacing)
 sysFSI: ChFsiSystemSPH = terrain.GetFsiSystemSPH()
 sysSPH: ChFsiFluidSystemSPH = terrain.GetFluidSystemSPH()
-sysSPH.EnableCudaErrorCheck(False)
+sysSPH.EnableGPUErrorCheck(False)
 terrain.SetVerbose(verbose)
 terrain.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 terrain.SetStepSizeCFD(step_size)

@@ -1,6 +1,7 @@
 #include "chrono/serialization/ChArchiveJSON.h"
 
 namespace chrono {
+
 ChArchiveOutJSON::ChArchiveOutJSON(std::ostream& stream_out) : m_ostream(stream_out) {
     m_ostream << "{ ";
     ++tablevel;
@@ -9,6 +10,7 @@ ChArchiveOutJSON::ChArchiveOutJSON(std::ostream& stream_out) : m_ostream(stream_
     nitems.push(0);
     is_array.push(false);
 }
+
 ChArchiveOutJSON::~ChArchiveOutJSON() {
     --tablevel;
     nitems.pop();
@@ -16,16 +18,19 @@ ChArchiveOutJSON::~ChArchiveOutJSON() {
 
     m_ostream << "\n}" << std::endl;
 }
+
 void ChArchiveOutJSON::indent() {
     for (int i = 0; i < tablevel; ++i)
         m_ostream << "\t";
 }
+
 void ChArchiveOutJSON::comma_cr() {
     if (this->nitems.top() > 0) {
         m_ostream << ",";
     }
     m_ostream << "\n";
 }
+
 void ChArchiveOutJSON::out(ChNameValue<unsigned int> bVal) {
     comma_cr();
     indent();
@@ -35,6 +40,7 @@ void ChArchiveOutJSON::out(ChNameValue<unsigned int> bVal) {
     m_ostream << bVal.value();
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<char> bVal) {
     comma_cr();
     indent();
@@ -44,6 +50,7 @@ void ChArchiveOutJSON::out(ChNameValue<char> bVal) {
     m_ostream << (int)bVal.value();
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<float> bVal) {
     comma_cr();
     indent();
@@ -53,6 +60,7 @@ void ChArchiveOutJSON::out(ChNameValue<float> bVal) {
     m_ostream << bVal.value();
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<double> bVal) {
     comma_cr();
     indent();
@@ -62,6 +70,7 @@ void ChArchiveOutJSON::out(ChNameValue<double> bVal) {
     m_ostream << bVal.value();
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<int> bVal) {
     comma_cr();
     indent();
@@ -71,6 +80,7 @@ void ChArchiveOutJSON::out(ChNameValue<int> bVal) {
     m_ostream << bVal.value();
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<bool> bVal) {
     comma_cr();
     indent();
@@ -83,6 +93,7 @@ void ChArchiveOutJSON::out(ChNameValue<bool> bVal) {
         m_ostream << "false";
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<const char*> bVal) {
     comma_cr();
     indent();
@@ -92,6 +103,7 @@ void ChArchiveOutJSON::out(ChNameValue<const char*> bVal) {
     m_ostream << "\"" << bVal.value() << "\"";
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<std::string> bVal) {
     comma_cr();
     indent();
@@ -101,6 +113,7 @@ void ChArchiveOutJSON::out(ChNameValue<std::string> bVal) {
     m_ostream << "\"" << bVal.value() << "\"";
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<unsigned long> bVal) {
     comma_cr();
     indent();
@@ -110,6 +123,7 @@ void ChArchiveOutJSON::out(ChNameValue<unsigned long> bVal) {
     m_ostream << bVal.value();
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<unsigned long long> bVal) {
     comma_cr();
     indent();
@@ -119,6 +133,7 @@ void ChArchiveOutJSON::out(ChNameValue<unsigned long long> bVal) {
     m_ostream << bVal.value();
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out(ChNameValue<ChEnumMapperBase> bVal) {
     comma_cr();
     indent();
@@ -129,6 +144,7 @@ void ChArchiveOutJSON::out(ChNameValue<ChEnumMapperBase> bVal) {
     m_ostream << "\"" << mstr << "\"";
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out_array_pre(ChValue& bVal, size_t msize) {
     comma_cr();
     if (is_array.top() == false) {
@@ -144,7 +160,9 @@ void ChArchiveOutJSON::out_array_pre(ChValue& bVal, size_t msize) {
     nitems.push(0);
     is_array.push(true);
 }
+
 void ChArchiveOutJSON::out_array_between(ChValue& bVal, size_t msize) {}
+
 void ChArchiveOutJSON::out_array_end(ChValue& bVal, size_t msize) {
     --tablevel;
     nitems.pop();
@@ -155,8 +173,6 @@ void ChArchiveOutJSON::out_array_end(ChValue& bVal, size_t msize) {
     m_ostream << "]";
     ++nitems.top();
 }
-
-// for custom c++ objects:
 
 void ChArchiveOutJSON::out(ChValue& bVal, bool tracked, size_t obj_ID) {
     comma_cr();
@@ -190,6 +206,7 @@ void ChArchiveOutJSON::out(ChValue& bVal, bool tracked, size_t obj_ID) {
     m_ostream << "}";
     ++nitems.top();
 }
+
 void ChArchiveOutJSON::out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
     // the returned classname refers not to the type of the pointer itself, but to the *true* type of the object
     // i.e. the most derived type for inherited classes
@@ -247,7 +264,12 @@ void ChArchiveOutJSON::out_ref(ChValue& bVal, bool already_inserted, size_t obj_
     m_ostream << "}";
     ++nitems.top();
 }
-ChArchiveInJSON::ChArchiveInJSON(std::ifstream& stream_in) : m_istream(stream_in) {
+
+// =============================================================================
+
+ChArchiveInJSON::ChArchiveInJSON(std::istream& stream_in) 
+    : m_istream(stream_in) 
+{
     std::stringstream buffer;
     buffer << m_istream.rdbuf();
     std::string mstr = buffer.str();
@@ -272,7 +294,9 @@ ChArchiveInJSON::ChArchiveInJSON(std::ifstream& stream_in) : m_istream(stream_in
     can_tolerate_missing_tokens = true;
     try_tolerate_missing_tokens = false;
 }
+
 ChArchiveInJSON::~ChArchiveInJSON() {}
+
 rapidjson::Value* ChArchiveInJSON::GetValueFromNameOrArray(const std::string& mname) {
     rapidjson::Value* mval = nullptr;
     if (this->is_array.top() == true) {
@@ -289,6 +313,7 @@ rapidjson::Value* ChArchiveInJSON::GetValueFromNameOrArray(const std::string& mn
     }
     return mval;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<unsigned int> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -299,6 +324,7 @@ bool ChArchiveInJSON::in(ChNameValue<unsigned int> bVal) {
     bVal.value() = mval->GetUint();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<char> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -309,6 +335,7 @@ bool ChArchiveInJSON::in(ChNameValue<char> bVal) {
     bVal.value() = (char)mval->GetInt();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<float> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -319,6 +346,7 @@ bool ChArchiveInJSON::in(ChNameValue<float> bVal) {
     bVal.value() = (float)mval->GetDouble();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<double> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -329,6 +357,7 @@ bool ChArchiveInJSON::in(ChNameValue<double> bVal) {
     bVal.value() = mval->GetDouble();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<int> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -339,6 +368,7 @@ bool ChArchiveInJSON::in(ChNameValue<int> bVal) {
     bVal.value() = mval->GetInt();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<bool> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -349,6 +379,7 @@ bool ChArchiveInJSON::in(ChNameValue<bool> bVal) {
     bVal.value() = mval->GetBool();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<std::string> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -359,6 +390,7 @@ bool ChArchiveInJSON::in(ChNameValue<std::string> bVal) {
     bVal.value() = mval->GetString();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<unsigned long> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -369,6 +401,7 @@ bool ChArchiveInJSON::in(ChNameValue<unsigned long> bVal) {
     bVal.value() = (unsigned long)mval->GetUint64();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<unsigned long long> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -379,6 +412,7 @@ bool ChArchiveInJSON::in(ChNameValue<unsigned long long> bVal) {
     bVal.value() = mval->GetUint64();
     return true;
 }
+
 bool ChArchiveInJSON::in(ChNameValue<ChEnumMapperBase> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
@@ -392,8 +426,6 @@ bool ChArchiveInJSON::in(ChNameValue<ChEnumMapperBase> bVal) {
     }
     return true;
 }
-
-// for wrapping arrays and lists
 
 bool ChArchiveInJSON::in_array_pre(const std::string& name, size_t& msize) {
     rapidjson::Value* mval = GetValueFromNameOrArray(name);
@@ -412,17 +444,17 @@ bool ChArchiveInJSON::in_array_pre(const std::string& name, size_t& msize) {
         return true;
     }
 }
+
 void ChArchiveInJSON::in_array_between(const std::string& name) {
     ++this->array_index.top();
 }
+
 void ChArchiveInJSON::in_array_end(const std::string& name) {
     this->levels.pop();
     this->level = this->levels.top();
     this->is_array.pop();
     this->array_index.pop();
 }
-
-//  for custom c++ objects:
 
 bool ChArchiveInJSON::in(ChNameValue<ChFunctorArchiveIn> bVal) {
     rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
@@ -456,8 +488,6 @@ bool ChArchiveInJSON::in(ChNameValue<ChFunctorArchiveIn> bVal) {
     this->is_array.pop();
     return true;
 }
-
-// for objects to construct, return non-null ptr if new object, return null ptr if just reused obj
 
 bool ChArchiveInJSON::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) {
     void* new_ptr = nullptr;
@@ -554,14 +584,17 @@ bool ChArchiveInJSON::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, s
     *ptr = new_ptr;
     return true;
 }
+
 bool ChArchiveInJSON::TryTolerateMissingTokens(bool try_tolerate) {
     try_tolerate_missing_tokens = try_tolerate;
     return try_tolerate_missing_tokens;
 }
+
 void ChArchiveInJSON::token_notfound(const std::string& mname) {
     if (!try_tolerate_missing_tokens) {
         std::cerr << "Cannot find '" + mname + "'" << std::endl;
         throw std::runtime_error("Cannot find '" + mname + "'");
     }
 }
+
 }  // end namespace chrono

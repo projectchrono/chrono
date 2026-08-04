@@ -61,22 +61,20 @@ float render_fps = 1000;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Create 
+    // Create
     ChSystemSMC sysMBS;
-    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET); 
+    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    double initial_spacing = 0.1; // WCSPH
+    double initial_spacing = 0.1;  // WCSPH
     double step_size = 1e-4;
-
 
     ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     auto sysFSI = fsi.GetFsiSystemSPH();
 
-
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -1.0);
     fsi.SetGravitationalAcceleration(gravity);
-    
+
     // Set CFD fluid properties
     ChFsiFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
@@ -96,9 +94,7 @@ int main(int argc, char* argv[]) {
     sph_params.density_reinit_steps = 2;
 
     fsi.SetStepSizeCFD(step_size);
-    fsi.SetStepsizeMBD(step_size); // do i need this? 
-
-
+    fsi.SetStepsizeMBD(step_size);  // do i need this?
 
     ChVector3d cMin = ChVector3d(-bxDim / 2, -byDim / 2, -bzDim / 2) - ChVector3d(initial_spacing * 20);
     ChVector3d cMax = ChVector3d(+bxDim / 2, +byDim / 2, bzDim) + ChVector3d(initial_spacing * 10);
@@ -110,15 +106,13 @@ int main(int argc, char* argv[]) {
                   BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries except top
     );
 
-
     // Complete construction of the FSI system
     fsi.Initialize();
 
     auto sysSPH = fsi.GetFluidSystemSPH();
     int numPart = sysSPH->GetNumFluidMarkers();
 
-
-    // Create oputput directories
+    // Create output directories
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -136,7 +130,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create a run-tme visualizer
+    // Create a run-time visualizer
     std::shared_ptr<ChVisualSystem> vis;
 
 #ifdef CHRONO_VSG
@@ -179,7 +173,6 @@ int main(int argc, char* argv[]) {
 
     ChTimer timer;
     timer.start();
-
 
     while (time < t_end) {
         std::cout << "step: " << sim_frame << "  time: " << time << std::endl;

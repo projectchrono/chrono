@@ -445,19 +445,21 @@ set(SENSOR_TINYOBJ_FILES
 source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
 #-----------------------------------------------------------------------------
-# Copy shader sources to build tree
+# Shader directory in the build tree
+#
+# The runtime reads shader files out of this directory (GetShaderFromFile in
+# optix/ChOptixUtils.cpp), so its contents must track the sources. The copy itself is a
+# BUILD step, not a configure step: see Chrono_sensor_shader_copy (NVRTC) and
+# Chrono_sensor_ptx_copy (NVCC) below. Copying here with file(COPY) instead would leave a
+# stale copy whenever a shader is edited and only the build is re-run, so the old shader
+# would keep being used with no error and no warning.
 #-----------------------------------------------------------------------------
 
 if(CH_USE_SENSOR_OPTIX)
   message(STATUS "Shader directory in BUILD tree: ${CH_BUILD_SENSOR_SHADERS}")
-  if(CH_USE_SENSOR_NVRTC)
-    # We need *.cu at runtime to compile with NVRTC
-    file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
-  else()
-    # Only PTX files are needed at runtime if we compile with NVCC at build time
-    # Just make sure the directory exists and *.ptx will be copied over
-    file(MAKE_DIRECTORY ${CH_BUILD_SENSOR_SHADERS})
-  endif()
+  # Created at configure time so that install(DIRECTORY ...) below always has a directory,
+  # even before a build has populated it.
+  file(MAKE_DIRECTORY ${CH_BUILD_SENSOR_SHADERS})
 endif()
 
 # ----------------------------------------------------------------------------
@@ -616,7 +618,64 @@ if(CH_USE_SENSOR_OPTIX)
    
     # Install the shader sources
     install(FILES ${Chrono_sensor_RT_SOURCES}
-            DESTINATION include/chrono_sensor/optix/shaders)  
+            DESTINATION include/chrono_sensor/optix/shaders)
+
+    # Stage the *.cu shader sources into the build tree as a BUILD step.
+    #
+    # NVRTC compiles these at runtime by reading them from CH_BUILD_SENSOR_SHADERS, so the
+    # staged copies must track the sources. Staging them at configure time instead would mean
+    # that editing a shader and re-running only the build keeps using the previous version,
+    # with no error and no warning.
+    #
+    # One rule per shader, each with a real OUTPUT and DEPENDS, so a copy runs only when that
+    # shader changes and an otherwise unchanged tree still reports "no work to do". A bare
+    # add_custom_target would be phony, hence always out of date, and would re-run every copy on
+    # every build. (Chrono_sensor_ptx_copy in the NVCC branch below is such a target; it can be
+    # because its inputs are build artifacts rather than sources.)
+    #
+    # Paths in Chrono_sensor_RT_SOURCES are relative to CMAKE_CURRENT_SOURCE_DIR, while a custom
+    # command runs in the build directory, so they are made absolute here.
+    set(Chrono_sensor_RT_STAGED "")
+    set(_staged_shader_names "")
+    foreach(_shader ${Chrono_sensor_RT_SOURCES})
+      get_filename_component(_shader_name "${_shader}" NAME)
+      list(APPEND _staged_shader_names "${_shader_name}")
+      # The trailing touch keeps the declared OUTPUT no older than its DEPENDS even when
+      # copy_if_different decides the bytes are unchanged, as happens when a source is touched
+      # but not edited. Without it, a generator that decides staleness purely by comparing
+      # timestamps would find this rule dirty on every subsequent build. The Ninja generator does
+      # not need it, because CMake emits "restat = 1" for custom commands and Ninja then treats an
+      # unchanged output as clean; the touch makes the rule correct without relying on that.
+      add_custom_command(
+        OUTPUT  "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/${_shader}"
+                "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}"
+        COMMAND ${CMAKE_COMMAND} -E touch "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_shader}"
+        COMMENT "Staging Chrono::Sensor shader ${_shader_name}"
+        VERBATIM
+      )
+      list(APPEND Chrono_sensor_RT_STAGED "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}")
+    endforeach()
+
+    add_custom_target(Chrono_sensor_shader_copy ALL DEPENDS ${Chrono_sensor_RT_STAGED})
+
+    # ALL by itself is not sufficient: building a single target, for example one demo or one
+    # unit test, would skip the copy and run against a stale shader. Making the library depend
+    # on the copy means anything that links Chrono_sensor gets current shaders.
+    add_dependencies(Chrono_sensor Chrono_sensor_shader_copy)
+
+    # Exported for utest_SEN_shader_staging, which asserts that every staged copy still matches its
+    # source. The list comes from the same variable the staging rules above are generated from, so
+    # the test cannot silently disagree with the build about which shaders exist, and it includes the
+    # NVDB shader whenever that configuration adds one.
+    set(CH_SENSOR_STAGED_SHADER_NAMES "${_staged_shader_names}"
+        CACHE INTERNAL "Names of the OptiX shader files staged into the build tree")
+    set(CH_SENSOR_SHADER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders"
+        CACHE INTERNAL "Directory holding the OptiX shader sources in the repository")
+    set(CH_SENSOR_STAGED_SHADER_DIR "${CH_BUILD_SENSOR_SHADERS}"
+        CACHE INTERNAL "Directory the runtime reads OptiX shaders from")
   else()
     message(STATUS "  Building Chrono::Sensor with NVRTC OFF")
     

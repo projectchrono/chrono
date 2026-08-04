@@ -112,10 +112,8 @@ int main(int argc, char* argv[]) {
     bool snapshots = false;
     int ps_freq = 1;
     std::string boundary_method = "adami";
-    std::string viscosity_method =
-        (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_method, viscosity_method)) {
+    std::string viscosity_method = (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq, boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -241,8 +239,7 @@ int main(int argc, char* argv[]) {
                         BoxSide::Z_NEG | BoxSide::X_NEG | BoxSide::X_POS  // bottom and left/right walls
     );
 
-    ChVector3d cMin =
-        ChVector3d(-cxDim - 3 * initial_spacing, -cyDim / 2 - initial_spacing / 2, -czDim - 3 * initial_spacing);
+    ChVector3d cMin = ChVector3d(-cxDim - 3 * initial_spacing, -cyDim / 2 - initial_spacing / 2, -czDim - 3 * initial_spacing);
     ChVector3d cMax = ChVector3d(cxDim + 3 * initial_spacing, +cyDim / 2 + initial_spacing / 2, czDim);
     fsi.SetComputationalDomain(ChAABB(cMin, cMax), BC_Y_PERIODIC);
 
@@ -357,8 +354,7 @@ int main(int argc, char* argv[]) {
 
     // Initial position of top node at the (approx) middle of the plate in x and y
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(15));
-    std::cout << "Initial position of node: " << node->GetPos().x() << " " << node->GetPos().y() << " "
-              << node->GetPos().z() << std::endl;
+    std::cout << "Initial position of node: " << node->GetPos().x() << " " << node->GetPos().y() << " " << node->GetPos().z() << std::endl;
     ChVector3d init_pos = node->GetPos();
 
     std::string out_file = out_dir + "/results.txt";
@@ -389,8 +385,7 @@ int main(int argc, char* argv[]) {
                 if (verbose)
                     cout << " -- Snapshot frame " << render_frame << " at t = " << time << endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
 
@@ -478,10 +473,8 @@ std::shared_ptr<fea::ChMesh> CreatePlate_3423(ChSystem& sysMBS, double loc, doub
             int node3 = (j + 0) + N_y * (k + 1);
 
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
-            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)), std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)), std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node3)));
             element->SetDimensions(dy, dz);
             element->AddLayer(thickness, 0, shell_material);
             element->SetAlphaDamp(0.0);
@@ -567,10 +560,8 @@ std::shared_ptr<fea::ChMesh> CreatePlate_3443(ChSystem& sysMBS, double loc, doub
             int node3 = (j + 0) + N_y * (k + 1);
 
             auto element = chrono_types::make_shared<ChElementShellANCF_3443>();
-            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node0)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node1)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node2)),
-                              std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node3)));
+            element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node0)), std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node1)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node2)), std::dynamic_pointer_cast<ChNodeFEAxyzDDD>(mesh->GetNode(node3)));
             element->SetDimensions(dy, dz);
             element->AddLayer(thickness, 0, shell_material);
             element->SetAlphaDamp(0.0);
@@ -735,10 +726,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
     ground->EnableCollision(true);
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(cxDim, cyDim + 0.02, 0.1),
-                          ChVector3d(0, 0, -0.05));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, cyDim + 0.02, czDim),
-                          ChVector3d(cxDim / 2 + 0.05, 0, czDim / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(cxDim, cyDim + 0.02, 0.1), ChVector3d(0, 0, -0.05));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, cyDim + 0.02, czDim), ChVector3d(cxDim / 2 + 0.05, 0, czDim / 2));
     sysMBS.AddBody(ground);
 
     // Create a fixed cylindrical post
@@ -827,8 +816,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
     cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", boundary_method);
-    cli.AddOption<std::string>("Physics", "viscosity_method",
-                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_method);
+    cli.AddOption<std::string>("Physics", "viscosity_method", "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_method);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();

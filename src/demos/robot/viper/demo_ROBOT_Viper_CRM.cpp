@@ -170,12 +170,12 @@ int main(int argc, char* argv[]) {
         case PatchType::HEIGHT_MAP:
             // Create a patch from a height field map image
             terrain.Construct(GetVehicleDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
-                              terrain_length, terrain_width,                           // length (X) and width (Y)
-                              {0.25, 0.55},                                            // height range
-                              0.25,                                                    // depth
-                              true,                                                    // uniform depth
-                              ChVector3d(terrain_length / 2, 0, 0),                    // patch center
-                              BoxSide::Z_NEG                                           // bottom wall
+                              terrain_length, terrain_width,                         // length (X) and width (Y)
+                              {0.25, 0.55},                                          // height range
+                              0.25,                                                  // depth
+                              true,                                                  // uniform depth
+                              ChVector3d(terrain_length / 2, 0, 0),                  // patch center
+                              BoxSide::Z_NEG                                         // bottom wall
             );
             break;
     }
@@ -184,9 +184,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
-    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
-    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH particles:        " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Boundary BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
+    cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
     std::shared_ptr<ChVisualSystem> vis;

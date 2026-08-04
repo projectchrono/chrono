@@ -22,7 +22,7 @@ ChMaterialHexaANCF::ChMaterialHexaANCF(double rho,  // material density
                                        double E,    // Young's modulus
                                        double nu    // Poisson ratio
                                        )
-    : m_rho(rho) {
+    : ChMaterialFEA(rho) {
     double G = 0.5 * E / (1 + nu);
     Calc_D(ChVector3d(E), ChVector3d(nu), ChVector3d(G));
 }
@@ -33,7 +33,7 @@ ChMaterialHexaANCF::ChMaterialHexaANCF(double rho,            // material densit
                                        const ChVector3d& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
                                        const ChVector3d& G    // shear moduli (G_xy, G_xz, G_yz)
                                        )
-    : m_rho(rho) {
+    : ChMaterialFEA(rho) {
     Calc_D(E, nu, G);
 }
 

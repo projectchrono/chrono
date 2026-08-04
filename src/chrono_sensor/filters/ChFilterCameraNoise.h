@@ -19,6 +19,9 @@
 
 #include "chrono_sensor/filters/ChFilter.h"
 
+#include "chrono_sensor/cuda/curand_utils.cuh"
+#include "chrono_sensor/cuda/camera_noise.cuh"
+
 #include <cuda.h>
 #include <curand.h>
 #include <curand_kernel.h>
@@ -67,16 +70,14 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
     CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
 
-/// A filter that adds pixel dependent gaussian noise across an image. Method summarized in paper: ()
+/// A filter that adds pixel dependent Gaussian noise across an image. Method summarized in paper: ()
 class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
   public:
     /// Class constructor
     /// @param variance_slope The standard deviation of the multiplicative noise
     /// @param variance_intercept The standard deviation of the additive noise
     /// @param name The string name of the filter.
-    ChFilterCameraNoisePixDep(float variance_slope,
-                              float variance_intercept,
-                              std::string name = "ChFilterCameraNoisePixDep");
+    ChFilterCameraNoisePixDep(float variance_slope, float variance_intercept, std::string name = "ChFilterCameraNoisePixDep");
 
     /// Return filter noise model type.
     CameraNoiseModelType GetModel() const { return CameraNoiseModelType::PIXEL_DEPENDENT; }
@@ -99,6 +100,11 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
     std::shared_ptr<SensorDeviceR8Buffer> m_r8InOut;        ///< input/output buffer for r8
     CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
+
+// DLL-exported wrapper functions
+
+CH_SENSOR_API void InitCudaRNG(unsigned long long seed, curandState_t* rng_states, unsigned int n_generators);
+CH_SENSOR_API void CudaCameraNoiseConstNormal(unsigned char* bufPtr, int width, int height, float mean, float stdev, curandState_t* rng, CUstream& stream);
 
 /// @}
 

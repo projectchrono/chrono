@@ -74,8 +74,9 @@ const double FOOTPAD_MASS = 2.0;
 // Drop height (2m above the legs) - used to calculate initial velocity if USE_DROP_HEIGHT_MODE is true
 const double DROP_HEIGHT = 2.0;
 
-// Initial velocity mode switch: true = calculate from drop height (v = sqrt(2*g*h)), false = use INITIAL_VELOCITY
-// directly
+// Initial velocity mode switch:
+// - true = calculate from drop height (v = sqrt(2*g*h))
+// - false = use INITIAL_VELOCITY directly
 const bool USE_DROP_HEIGHT_MODE = false;  // Set to false to use INITIAL_VELOCITY directly
 
 // Initial velocity (m/s) - used when USE_DROP_HEIGHT_MODE is false (negative = downward)
@@ -93,21 +94,16 @@ const bool snapshots = true;      // Enable snapshot saving
 const bool ADD_LANDERBODY_BCE = true;
 const bool ADD_LANDERLEGS_BCE = true;
 
-class SPHPropertiesCallbackWithPressureScale : public ChFsiProblemSPH::ParticlePropertiesCallback {
+// Callback for setting initial SPH particle properties
+class SPHPropertiesCallbackWithPressureScale : public DepthPressurePropertiesCallback {
   public:
-    SPHPropertiesCallbackWithPressureScale(double zero_height, double pre_pressure_scale)
-        : ParticlePropertiesCallback(), zero_height(zero_height), pre_pressure_scale(pre_pressure_scale) {}
+    SPHPropertiesCallbackWithPressureScale(double zero_height, double pre_pressure_scale) : DepthPressurePropertiesCallback(zero_height), pre_pressure_scale(pre_pressure_scale) {}
 
     virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
-        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
-        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysSPH.GetDensity();
-        mu0 = sysSPH.GetViscosity();
-        v0 = ChVector3d(0, 0, 0);
-        pre_pressure_scale0 = pre_pressure_scale;
+        DepthPressurePropertiesCallback::set(sysSPH, pos);
+        consolidation_pressure = pre_pressure_scale * p0;
     }
 
-    double zero_height;
     double pre_pressure_scale;
 };
 
@@ -132,10 +128,8 @@ int main(int argc, char* argv[]) {
     cli.AddOption<double>("Physics", "kappa", "kappa", std::to_string(kappa));
     cli.AddOption<double>("Physics", "lambda", "lambda", std::to_string(lambda));
     cli.AddOption<bool>("Visualization", "no_vis", "Disable visualization", "false");
-    cli.AddOption<double>("Physics", "gravity_polar_deg", "Gravity polar angle (degrees)",
-                          std::to_string(gravity_polar_deg));
-    cli.AddOption<double>("Physics", "gravity_azimuth_deg", "Gravity azimuth angle (degrees)",
-                          std::to_string(gravity_azimuth_deg));
+    cli.AddOption<double>("Physics", "gravity_polar_deg", "Gravity polar angle (degrees)", std::to_string(gravity_polar_deg));
+    cli.AddOption<double>("Physics", "gravity_azimuth_deg", "Gravity azimuth angle (degrees)", std::to_string(gravity_azimuth_deg));
     std::string gravity_planet = "moon";
     cli.AddOption<std::string>("Physics", "gravity_planet", "Gravity planet (earth/mars/moon)", gravity_planet);
     if (!cli.Parse(argc, argv))
@@ -164,7 +158,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemNSC sys;
-    // ChSystemSMC sys;
+
     // Simulation loop
     double step_size = 5e-4;
     double mu_s = 0.6;
@@ -174,10 +168,8 @@ int main(int argc, char* argv[]) {
     SetChronoSolver(sys, ChSolver::Type::BARZILAIBORWEIN, ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     // Set lunar gravity (downward in Z direction)
-    double gravity_x = -gravity_magnitude * std::sin(gravity_polar_deg * CH_PI / 180.0) *
-                       std::cos(gravity_azimuth_deg * CH_PI / 180.0);
-    double gravity_y = -gravity_magnitude * std::sin(gravity_polar_deg * CH_PI / 180.0) *
-                       std::sin(gravity_azimuth_deg * CH_PI / 180.0);
+    double gravity_x = -gravity_magnitude * std::sin(gravity_polar_deg * CH_PI / 180.0) * std::cos(gravity_azimuth_deg * CH_PI / 180.0);
+    double gravity_y = -gravity_magnitude * std::sin(gravity_polar_deg * CH_PI / 180.0) * std::sin(gravity_azimuth_deg * CH_PI / 180.0);
     double gravity_z = -gravity_magnitude * std::cos(gravity_polar_deg * CH_PI / 180.0);
     sys.SetGravitationalAcceleration(ChVector3d(gravity_x, gravity_y, gravity_z));
 
@@ -232,7 +224,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepSizeCFD(step_size);
     fsi.SetStepsizeMBD(step_size);
 
-    // Set soil propertiees
+    // Set soil properties
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
@@ -275,16 +267,14 @@ int main(int argc, char* argv[]) {
     sph_params.use_delta_sph = true;
     fsi.SetSPHParameters(sph_params);
 
-    fsi.RegisterParticlePropertiesCallback(
-        chrono_types::make_shared<SPHPropertiesCallbackWithPressureScale>(TERRAIN_SIZE_Z, pre_pressure_scale));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallbackWithPressureScale>(TERRAIN_SIZE_Z, pre_pressure_scale));
 
     // Add the footpads as FSI bodies
     auto footpads = lander.GetFootpads();
 
-    // This is pretty inconvient
+    // This is pretty inconvenient
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-    geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1),
-                                                                            FOOTPAD_DIAMETER / 2.0, FOOTPAD_HEIGHT));
+    geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), FOOTPAD_DIAMETER / 2.0, FOOTPAD_HEIGHT));
     for (auto& footpad : footpads) {
         fsi.AddRigidBody(footpad, geometry, false);
     }
@@ -292,8 +282,7 @@ int main(int argc, char* argv[]) {
         auto leg_length = lander.GetLegLength();
         auto leg_radius = lander.GetLegRadius();
         auto leg_geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-        leg_geometry->coll_cylinders.push_back(
-            utils::ChBodyGeometry::CylinderShape(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), leg_radius, leg_length));
+        leg_geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), leg_radius, leg_length));
         auto legs = lander.GetLegs();
         for (auto& leg : legs) {
             fsi.AddRigidBody(leg, leg_geometry, false);
@@ -303,8 +292,7 @@ int main(int argc, char* argv[]) {
         auto cylinder_length = lander.GetCylinderLength();
         auto cylinder_radius = lander.GetCylinderRadius();
         auto cylinder_geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-        cylinder_geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(
-            ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), cylinder_radius, cylinder_length));
+        cylinder_geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), cylinder_radius, cylinder_length));
         auto lander_body = lander.GetBody();
         fsi.AddRigidBody(lander_body, cylinder_geometry, false);
     }
@@ -389,8 +377,7 @@ int main(int argc, char* argv[]) {
     if (enable_vis) {
 #ifdef CHRONO_VSG
         // FSI plugin
-        auto col_callback =
-            chrono_types::make_shared<ParticleHeightColorCallback>(TERRAIN_SIZE_Z, TERRAIN_SIZE_Z + FOOTPAD_HEIGHT);
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(TERRAIN_SIZE_Z, TERRAIN_SIZE_Z + FOOTPAD_HEIGHT);
 
         auto visFSI = chrono_types::make_shared<ChSphVisualizationVSG>(sysFSI.get());
         visFSI->EnableFluidMarkers(true);
@@ -428,8 +415,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Visualization: DISABLED (--no_vis flag set)" << std::endl;
     }
     std::cout << "Lander mass: " << lander.GetLanderMass() << " kg" << std::endl;
-    std::cout << "Cylinder: length=" << lander.GetCylinderLength() << " m, diameter=" << lander.GetCylinderDiameter()
-              << " m" << std::endl;
+    std::cout << "Cylinder: length=" << lander.GetCylinderLength() << " m, diameter=" << lander.GetCylinderDiameter() << " m" << std::endl;
     std::cout << "Lunar gravity: " << LUNAR_GRAVITY << " m/s^2" << std::endl;
     std::cout << "Initial position: " << GROUND_CLEARANCE << " m above platform" << std::endl;
     if (USE_DROP_HEIGHT_MODE) {
@@ -441,8 +427,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Velocity mode: Direct specification" << std::endl;
         std::cout << "Initial velocity: " << INITIAL_VELOCITY << " m/s (downward)" << std::endl;
     }
-    std::cout << "Footpad joint type: "
-              << (lander.GetUseSphericalJoint() ? "Spherical (rotating)" : "Rigid lock (fixed)") << std::endl;
+    std::cout << "Footpad joint type: " << (lander.GetUseSphericalJoint() ? "Spherical (rotating)" : "Rigid lock (fixed)") << std::endl;
 
     // Simulation loop variables
     double t = 0;
@@ -455,8 +440,8 @@ int main(int argc, char* argv[]) {
             ChVector3d pos = lander.GetBody()->GetPos();
             ChVector3d vel = lander.GetBody()->GetPosDt();
             ChVector3d ang_vel = lander.GetBody()->GetAngVelParent();
-            csv_output << t << "," << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y()
-                       << "," << vel.z() << "," << ang_vel.x() << "," << ang_vel.y() << "," << ang_vel.z() << std::endl;
+            csv_output << t << "," << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << ang_vel.x() << "," << ang_vel.y()
+                       << "," << ang_vel.z() << std::endl;
             csv_frame++;
             std::cout << "Time: " << sys.GetChTime() << " s, "
                       << "Position: (" << pos.x() << ", " << pos.y() << ", " << pos.z() << ") m, "
@@ -473,8 +458,7 @@ int main(int argc, char* argv[]) {
             if (snapshots) {
                 std::cout << " -- Snapshot frame " << render_frame << " at t = " << t << std::endl;
                 std::ostringstream filename;
-                filename << out_dir << "snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
             render_frame++;

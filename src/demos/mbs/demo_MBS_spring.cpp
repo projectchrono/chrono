@@ -17,9 +17,6 @@
 // Two bodies, connected with identical (but modeled differently) spring-dampers
 // are created side by side.
 //
-// Recall that Irrlicht uses a left-hand frame, so everything is rendered with
-// left and right flipped.
-//
 // =============================================================================
 
 #include <cstdio>
@@ -53,7 +50,7 @@ double damping_coef = 1;
 // =============================================================================
 
 // Functor class implementing the force for a ChLinkTSDA link.
-// In this simple demonstration, we just reimplement the default linear spring-damper.
+// In this simple demonstration, we just re-implement the default linear spring-damper.
 class MySpringForce : public ChLinkTSDA::ForceFunctor {
     virtual double evaluate(double time,            // current time
                             double restlength,      // undeformed length

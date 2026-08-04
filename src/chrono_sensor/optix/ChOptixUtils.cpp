@@ -29,7 +29,27 @@
 #include "chrono_sensor/optix/ChOptixUtils.h"
 
 #ifdef USE_CUDA_NVRTC
+    #include <cuda.h>  // for CUDA_VERSION
     #include <nvrtc.h>
+
+// Feed OptiX an OptiX-IR module rather than PTX where the toolkit can produce one. On Blackwell /
+// RTX 50-series GPUs (sm_120) the driver's OptiX PTX front end aborts inside optixModuleCreate,
+// while OptiX-IR compiles cleanly.
+//
+// NVRTC gained --optix-ir and nvrtcGetOptiXIR in CUDA 12.0; CUDA 11.8 has neither, and Chrono
+// declares no minimum CUDA version, so below that floor fall back to PTX. The fallback is exactly
+// what every build did before this change, so nothing regresses on older toolkits; they simply do
+// not gain Blackwell support, which they could not have had anyway.
+//
+// OptiX needs no companion check. OptiX-IR input landed in OptiX 7.5, and Chrono already calls
+// optixModuleCreate rather than the older optixModuleCreateFromPTX, so it requires 7.7 or newer
+// regardless. optixModuleCreate detects the buffer format itself and is passed an explicit size,
+// so the call below is identical for either input.
+    #if CUDA_VERSION >= 12000
+        #define CH_OPTIX_EMIT_OPTIXIR 1
+    #else
+        #define CH_OPTIX_EMIT_OPTIXIR 0
+    #endif
 #endif
 
 namespace chrono {
@@ -88,7 +108,12 @@ void GetShaderFromFile(OptixDeviceContext context,
         nvrtc_compiler_flag_list.push_back(nvrtc_flags[i]);
     }
 
-    // runtime compile CU to PTX with NVRTC
+    // See the CH_OPTIX_EMIT_OPTIXIR note near the top of this file for why this is conditional.
+#if CH_OPTIX_EMIT_OPTIXIR
+    nvrtc_compiler_flag_list.push_back("--optix-ir");
+#endif
+
+    // runtime compile CU to OptiX-IR (CUDA 12.0+) or PTX (older) with NVRTC
     const nvrtcResult compile_result =
         nvrtcCompileProgram(nvrtc_program, (int)nvrtc_compiler_flag_list.size(), nvrtc_compiler_flag_list.data());
 
@@ -104,11 +129,20 @@ void GetShaderFromFile(OptixDeviceContext context,
                                  "\n" + nvrt_compilation_log);
     }
 
+    // Retrieve the module. OptiX-IR is binary and can contain embedded NULs, which is safe here
+    // because optixModuleCreate is passed ptx.size() explicitly rather than relying on the
+    // terminator. The PTX branch is byte-for-byte the pre-existing behavior.
     std::string ptx;
     size_t ptx_size = 0;
+#if CH_OPTIX_EMIT_OPTIXIR
+    NVRTC_ERROR_CHECK(nvrtcGetOptiXIRSize(nvrtc_program, &ptx_size));
+    ptx.resize(ptx_size);
+    NVRTC_ERROR_CHECK(nvrtcGetOptiXIR(nvrtc_program, &ptx[0]));
+#else
     NVRTC_ERROR_CHECK(nvrtcGetPTXSize(nvrtc_program, &ptx_size));
     ptx.resize(ptx_size);
     NVRTC_ERROR_CHECK(nvrtcGetPTX(nvrtc_program, &ptx[0]));
+#endif
 
     // std::chrono::high_resolution_clock::time_point end_compile = std::chrono::high_resolution_clock::now();
 

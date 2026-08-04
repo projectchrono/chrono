@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
-//       uses the Chrono MKL module
+// Uses the Chrono MKL module
 //
 // =============================================================================
 
@@ -26,6 +26,7 @@
 using namespace chrono;
 using namespace fea;
 
+// Select run-time visualization
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
@@ -33,46 +34,47 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono physical system
     ChSystemSMC sys;
-    sys.SetGravityY();
+    sys.SetGravityZ();
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
     // Create the model (defined in FEAcables.h)
-    auto model = Model3(sys, my_mesh);
+    auto model = Model3(sys, mesh);
 
     // Remember to add the mesh to the system!
-    sys.Add(my_mesh);
+    sys.Add(mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
-    // asset that is internally managed) by setting  proper
-    // coordinates and vertex colors as in the FEM elements.
-    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by setting  proper coordinates and vertex colors as in the FEM
+    // elements. Such a triangle mesh can be rendered by any visual system that can handle a colored ChVisualShapeTriangleMesh.
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    mvisualizebeamA->SetColormapRange(-0.4, 0.4);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
+    ChColormap::Type colormap_type = ChColormap::Type::JET;
+    ChVector2d colormap_range(-0.01, 0.01);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.006);
-    mvisualizebeamC->SetSymbolsScale(0.01);
-    mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
+    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_beam_A->SetColormap(colormap_type);
+    vis_beam_A->SetColormapRange(colormap_range);
+    vis_beam_A->SetSmoothFaces(true);
+    vis_beam_A->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_beam_A);
+
+    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_beam_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_beam_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_beam_B->SetSymbolsThickness(0.006);
+    vis_beam_B->SetSymbolsScale(0.01);
+    vis_beam_B->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(vis_beam_B);
 
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (MKL)",
-                                         ChVector3d(-0.8, -0.3, -1.8), ChVector3d(0, -0.4, -0.3));
-
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "Cables FEM (MKL)",        //
+                                         ChVector3d(-0.8, -1.8, -0.3), ChVector3d(0, -0.3, -0.4),  //
+                                         true, "Mz (Nm)", colormap_range, colormap_type);
     // Configure PardisoMKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
     // overhead (if the sparsity pattern is not locked).

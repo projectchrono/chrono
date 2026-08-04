@@ -322,6 +322,9 @@ inline const char* ChUtils_GetFilename() {
 %feature("director") chrono::ChCollisionSystem::NarrowphaseCallback;
 %feature("director") chrono::ChCollisionSystem::VisualizationCallback;
 
+// Rename
+%rename(OutputSettings) chrono::ChOutput::Settings;
+
 //
 // B- INCLUDE HEADERS
 //

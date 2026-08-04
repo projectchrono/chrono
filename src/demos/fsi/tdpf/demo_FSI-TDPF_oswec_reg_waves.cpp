@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     visVSG->SetLightIntensity(0.9f);
     visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
     visVSG->SetModelScale(15);
-    visVSG->ToggleRefFrameVisibility();
+    visVSG->SetRefFrameVisibility(true);
     visVSG->ToggleCOMSymbolVisibility();
 
     visVSG->Initialize();

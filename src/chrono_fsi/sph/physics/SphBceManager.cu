@@ -35,15 +35,12 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
     gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     gpuCheckError();
 }
-
-#endif
 
 SphBceManager::SphBceManager(FsiDataManager& data_mgr, NodeDirections node_directions_mode, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr), m_node_directions_mode(node_directions_mode), m_verbose(verbose), m_check_errors(check_errors) {
@@ -674,6 +671,9 @@ void SphBceManager::UpdateBodyMarkerState() {
     if (m_data_mgr.countersH->numFsiBodies == 0)
         return;
 
+    if (m_data_mgr.sortedSphMarkers2_D->size() == 0)
+        return;
+
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
 
@@ -934,6 +934,9 @@ void SphBceManager::UpdateMeshMarker1DState() {
     if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
 
+    if (m_data_mgr.sortedSphMarkers2_D->size() == 0)
+        return;
+
     // If needed, calculate current node directions as averages
     if (m_node_directions_mode == NodeDirections::AVERAGE) {
         CalcNodeDirections1D(m_data_mgr.fsiMesh1DState_D->dir);
@@ -1159,6 +1162,9 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(Real4* posRadD,               
 
 void SphBceManager::UpdateMeshMarker2DState() {
     if (m_data_mgr.countersH->numFsiElements2D == 0)
+        return;
+
+    if (m_data_mgr.sortedSphMarkers2_D->size() == 0)
         return;
 
     // If needed, calculate current node directions as averages

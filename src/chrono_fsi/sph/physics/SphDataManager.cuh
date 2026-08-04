@@ -86,6 +86,8 @@ struct SphMarkerDataD {
 
     zipIterSphD iterator(int offset);
     void resize(size_t s);
+
+    size_t size() const { return posRadD.size(); }
 };
 
 /// Struct to store the information of SPH particles on the host.
@@ -235,7 +237,7 @@ struct FsiDataManager {
     void SetGrowthFactor(float factor) { GROWTH_FACTOR = factor; }
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress.
-    void AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel = mR3(0.0), Real3 tauXxYyZz = mR3(0.0), Real3 tauXyXzYz = mR3(0.0), Real pc = 1e3);
+    void AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel = mR3(0.0), Real3 tau_diag = mR3(0.0), Real3 tau_offdiag = mR3(0.0), Real pc = 1e3);
 
     /// Add a BCE marker of given type at the specified position and with specified velocity.
     void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);

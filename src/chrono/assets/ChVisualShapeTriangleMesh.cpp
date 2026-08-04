@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <filesystem>
+#include <map>
 
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
@@ -62,11 +63,35 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected>
     }
 
     if (have_mtl_materials) {
+        std::map<int, int> tiny2chrono;
+        int mat_id = 0;
+
+        // For each shape, assign a material index.
+        // Faces that reference an invalid material are assigned the first one.
+        // Keep track of materials that are used in a map (tinyobj mat_id -> chrono mat_id).
+        trimesh->m_face_mat_indices.clear();
+        for (int i = 0; i < shapes.size(); i++) {
+            for (int j = 0; j < shapes[i].mesh.indices.size() / 3; j++) {
+                int tiny_mat_id = shapes[i].mesh.material_ids[j];
+                if (tiny_mat_id <= 0 || tiny_mat_id >= materials.size())
+                    tiny_mat_id = 0;
+
+                if (tiny2chrono.find(tiny_mat_id) == tiny2chrono.end())
+                    tiny2chrono[tiny_mat_id] = mat_id++;
+
+                trimesh->m_face_mat_indices.push_back(tiny2chrono[tiny_mat_id]);
+            }
+        }
+
         // Discard any existing materials in material_list
         material_list.clear();
+        material_list.resize(tiny2chrono.size());
 
-        // Copy materials into material_list
+        // Copy materials into material_list (ignore materials not in use)
         for (int i = 0; i < materials.size(); i++) {
+            if (tiny2chrono.find(i) == tiny2chrono.end())
+                continue;
+
             std::shared_ptr<ChVisualMaterial> mat = chrono_types::make_shared<ChVisualMaterial>();
             mat->SetAmbientColor({materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2]});
             mat->SetDiffuseColor({materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]});
@@ -117,20 +142,9 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected>
                 mat->SetOpacityTexture(mtl_base + "/" + materials[i].alpha_texname);
             }
 
-            material_list.push_back(mat);
+            material_list[tiny2chrono[i]] = mat;
         }
 
-        // For each shape, copy material_indices. Faces that reference an invalid material are assigned the first one.
-        trimesh->m_face_mat_indices.clear();
-        for (int i = 0; i < shapes.size(); i++) {
-            for (int j = 0; j < shapes[i].mesh.indices.size() / 3; j++) {
-                if (shapes[i].mesh.material_ids[j] < 0 || shapes[i].mesh.material_ids[j] >= material_list.size()) {
-                    trimesh->m_face_mat_indices.push_back(0);
-                } else {
-                    trimesh->m_face_mat_indices.push_back(shapes[i].mesh.material_ids[j]);
-                }
-            }
-        }
     } else if (!material_list.empty()) {
         // Assign all faces to first material
         auto nfaces = trimesh->m_face_v_indices.size();

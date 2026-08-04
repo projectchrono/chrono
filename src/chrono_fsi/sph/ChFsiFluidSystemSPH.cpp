@@ -178,18 +178,22 @@ void ChFsiFluidSystemSPH::InitParams() {
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::SetBoundaryType(BoundaryMethod boundary_method) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->boundary_method = boundary_method;
 }
 
 void ChFsiFluidSystemSPH::SetViscosityType(ViscosityMethod viscosity_method) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->viscosity_method = viscosity_method;
 }
 
 void ChFsiFluidSystemSPH::SetArtificialViscosityCoefficient(double coefficient) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->artificial_viscosity = coefficient;
 }
 
 void ChFsiFluidSystemSPH::SetKernelType(KernelType kernel_type) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->kernel_type = kernel_type;
     switch (m_paramsH->kernel_type) {
         case KernelType::QUADRATIC:
@@ -208,24 +212,39 @@ void ChFsiFluidSystemSPH::SetKernelType(KernelType kernel_type) {
 }
 
 void ChFsiFluidSystemSPH::SetShiftingMethod(ShiftingMethod shifting_method) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_method = shifting_method;
 }
 
 void ChFsiFluidSystemSPH::SetSPHLinearSolver(SolverType lin_solver) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->LinearSolver = lin_solver;
 }
 
 void ChFsiFluidSystemSPH::SetIntegrationScheme(IntegrationScheme scheme) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->integration_scheme = scheme;
 }
 
 void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->boxDimX = box_dim.x();
     m_paramsH->boxDimY = box_dim.y();
     m_paramsH->boxDimZ = box_dim.z();
 }
 
+// Note: SetComputationalDomain may be called after Initialize: CRMTerrain::Synchronize
+// updates the computational domain mid-simulation (moving patch). A post-initialization
+// update is applied to the device parameters; it must be a pure translation of the domain
+// (same extents, same boundary condition types), since BCE walls and grid-sized device
+// arrays are fixed at Initialize.
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type) {
+    if (m_is_initialized) {
+        ChAssertAlways(bc_type.x == m_paramsH->bc_type.x && bc_type.y == m_paramsH->bc_type.y && bc_type.z == m_paramsH->bc_type.z);
+        m_paramsH->use_default_limits = false;
+        ApplyComputationalDomain(computational_AABB);
+        return;
+    }
     m_paramsH->cMin = ToReal3(computational_AABB.min);
     m_paramsH->cMax = ToReal3(computational_AABB.max);
     m_paramsH->use_default_limits = false;
@@ -233,42 +252,54 @@ void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AAB
 }
 
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB) {
+    if (m_is_initialized) {
+        m_paramsH->use_default_limits = false;
+        ApplyComputationalDomain(computational_AABB);
+        return;
+    }
     m_paramsH->cMin = ToReal3(computational_AABB.min);
     m_paramsH->cMax = ToReal3(computational_AABB.max);
     m_paramsH->use_default_limits = false;
 }
 
 void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->bodyActiveDomain = ToReal3(box_dim / 2);
     m_paramsH->use_active_domain = true;
 }
 
 void ChFsiFluidSystemSPH::SetActiveDomainDelay(double duration) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->settlingTime = duration;
 }
 
 void ChFsiFluidSystemSPH::SetNumBCELayers(int num_layers) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->num_bce_layers = num_layers;
 }
 
 void ChFsiFluidSystemSPH::SetInitPressure(const double height) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->pressure_height = height;
     m_paramsH->use_init_pressure = true;
 }
 
 void ChFsiFluidSystemSPH::SetGravitationalAcceleration(const ChVector3d& gravity) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->gravity.x = gravity.x();
     m_paramsH->gravity.y = gravity.y();
     m_paramsH->gravity.z = gravity.z();
 }
 
 void ChFsiFluidSystemSPH::SetBodyForce(const ChVector3d& force) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->bodyForce3.x = force.x();
     m_paramsH->bodyForce3.y = force.y();
     m_paramsH->bodyForce3.z = force.z();
 }
 
 void ChFsiFluidSystemSPH::SetInitialSpacing(double spacing) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->d0 = (Real)spacing;
     m_paramsH->ood0 = 1 / m_paramsH->d0;
     m_paramsH->volume0 = cube(m_paramsH->d0);
@@ -279,6 +310,7 @@ void ChFsiFluidSystemSPH::SetInitialSpacing(double spacing) {
 }
 
 void ChFsiFluidSystemSPH::SetKernelMultiplier(double multiplier) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->d0_multiplier = Real(multiplier);
 
     m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
@@ -286,27 +318,32 @@ void ChFsiFluidSystemSPH::SetKernelMultiplier(double multiplier) {
 }
 
 void ChFsiFluidSystemSPH::SetDensity(double rho0) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 }
 
 void ChFsiFluidSystemSPH::SetShiftingPPSTParameters(double push, double pull) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_ppst_push = push;
     m_paramsH->shifting_ppst_pull = pull;
 }
 
 void ChFsiFluidSystemSPH::SetShiftingXSPHParameters(double eps) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_xsph_eps = eps;
 }
 
 void ChFsiFluidSystemSPH::SetShiftingDiffusionParameters(double A, double AFSM, double AFST) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_diffusion_A = A;
     m_paramsH->shifting_diffusion_AFSM = AFSM;
     m_paramsH->shifting_diffusion_AFST = AFST;
 }
 
 void ChFsiFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->use_consistent_gradient_discretization = consistent_gradient;
     m_paramsH->use_consistent_laplacian_discretization = consistent_Laplacian;
 }
@@ -316,14 +353,17 @@ void ChFsiFluidSystemSPH::SetOutputLevel(OutputLevel output_level) {
 }
 
 void ChFsiFluidSystemSPH::SetCohesionForce(double Fc) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->Coh_coeff = Fc;
 }
 
 void ChFsiFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->num_proximity_search_steps = steps;
 }
 
 void ChFsiFluidSystemSPH::SetUseVariableTimeStep(bool use_variable_time_step) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->use_variable_time_step = use_variable_time_step;
 }
 
@@ -419,6 +459,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
 ChFsiFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), char_length(1) {}
 
 void ChFsiFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->elastic_SPH = false;
 
     SetDensity(fluid_props.density);
@@ -443,6 +484,7 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mcc_v_lambda(2.0) {}
 
 void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->elastic_SPH = true;
 
     SetDensity(mat_props.density);
@@ -505,6 +547,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       use_variable_time_step(false) {}
 
 void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->integration_scheme = sph_params.integration_scheme;
 
     m_paramsH->eos_type = sph_params.eos_type;
@@ -552,6 +595,7 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
 ChFsiFluidSystemSPH::LinSolverParameters::LinSolverParameters() : type(SolverType::JACOBI), atol(0.0), rtol(0.0), max_num_iters(1000) {}
 
 void ChFsiFluidSystemSPH::SetLinSolverParameters(const LinSolverParameters& linsolv_params) {
+    ChAssertAlways(!m_is_initialized);
     m_paramsH->LinearSolver = linsolv_params.type;
     m_paramsH->LinearSolver_Abs_Tol = linsolv_params.atol;
     m_paramsH->LinearSolver_Rel_Tol = linsolv_params.rtol;
@@ -612,7 +656,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
-void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces) {
+void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_forces) {
     auto forcesH = m_data_mgr->GetRigidForces();
     auto torquesH = m_data_mgr->GetRigidTorques();
 
@@ -691,7 +735,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
-void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces, std::vector<FsiMeshForce> mesh1D_forces, std::vector<FsiMeshForce> mesh2D_forces) {
+void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) {
     {
         auto forcesH = m_data_mgr->GetRigidForces();
         auto torquesH = m_data_mgr->GetRigidTorques();
@@ -1022,6 +1066,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, st
 }
 
 #ifdef CHRONO_FEA
+
 void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
@@ -1212,10 +1257,6 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    ////std::ofstream ofile("mesh2D.txt");
-    ////ofile << mesh->GetNumTriangles() << endl;
-    ////ofile << endl;
-
     // Traverse the contact surface faces:
     // - calculate their discretization number n
     //   (largest number that results in a discretization no coarser than the initial spacing on each edge)
@@ -1248,13 +1289,6 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
         ////cout << "  Median : " << n_median << " Max : " << n_max << endl;
 
         int n = n_median;
-
-        ////ofile << P0 << endl;
-        ////ofile << P1 << endl;
-        ////ofile << P2 << endl;
-        ////ofile << tri->OwnsNode(0) << " " << tri->OwnsNode(1) << " " << tri->OwnsNode(2) << endl;
-        ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
-        ////ofile << n << endl;
 
         int m_start = 0;
         int m_end = 0;
@@ -1311,24 +1345,17 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
                     bce.push_back(P + z_val * normal);
                     bce_coords.push_back({lambda[0], lambda[1], z_val});
                     bce_ids.push_back(ChVector3i(meshID, triID, m_num_flex2D_elements + triID));
-
-                    ////ofile << Q << endl;
                 }
             }
         }
-
-        ////ofile << endl;
     }
-
-    ////ofile.close();
 }
+
 #endif
 
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
-    const auto& fsi_body = fsisph_body.fsi_body;
-
     // Add BCE markers and load their local coordinates and body associations
     auto num_bce = fsisph_body.bce.size();
     for (size_t i = 0; i < num_bce; i++) {
@@ -1346,6 +1373,70 @@ void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
 }
 
 //// TODO - eliminate code duplication in the two versions of Initialize()
+
+// Derive the domain-dependent grid quantities (periodic flags, bin sizes, grid
+// dimensions, world origin, grid bounds) from the current computational domain
+// limits in m_paramsH. Called during Initialize and for post-initialization
+// computational-domain updates.
+void ChFsiFluidSystemSPH::DeriveDomainGridQuantities() {
+    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
+    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
+    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
+
+    // Set up subdomains for faster neighbor particle search
+    m_paramsH->Apply_BC_U = false;
+    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
+    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
+    // Bin size is derived from the x extent (the ternary max(x,y) previously computed
+    // here was dead code: it was immediately overwritten by binSize3.x).
+    m_paramsH->binSize0 = binSize3.x;
+    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
+    m_paramsH->delta_pressure = mR3(0);
+    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
+                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
+    Real mBinSize = m_paramsH->binSize0;
+    m_paramsH->gridSize = SIDE;
+    m_paramsH->worldOrigin = m_paramsH->cMin;
+    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
+
+    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
+    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
+
+    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
+                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+}
+
+// Apply a computational-domain update on an initialized system. Only a pure TRANSLATION
+// of the domain is accepted: the per-axis extents must be unchanged (to within a relative
+// tolerance that absorbs floating-point drift of translated bounds but is far below any
+// real size change), because the neighbor-search grid dimensions, cell size, and BCE
+// walls are fixed at Initialize. An accepted update touches only the origin-dependent
+// quantities (cMin, cMax, worldOrigin, boxDims) - the size-derived grid quantities are
+// deliberately NOT re-derived, so a legitimate translation can never be rejected (or
+// altered) by floor()/rounding jitter - and uploads the parameters to all device
+// translation units. A rejected update leaves the previous domain fully intact.
+void ChFsiFluidSystemSPH::ApplyComputationalDomain(const ChAABB& computational_AABB) {
+    Real3 new_cMin = ToReal3(computational_AABB.min);
+    Real3 new_cMax = ToReal3(computational_AABB.max);
+    Real3 old_ext = m_paramsH->cMax - m_paramsH->cMin;
+    Real3 new_ext = new_cMax - new_cMin;
+
+    const Real rtol = Real(1e-5);
+    bool same_size = (std::abs(new_ext.x - old_ext.x) <= rtol * old_ext.x) &&  //
+                     (std::abs(new_ext.y - old_ext.y) <= rtol * old_ext.y) &&  //
+                     (std::abs(new_ext.z - old_ext.z) <= rtol * old_ext.z);
+    if (!same_size)
+        ChAssertAlways(!"post-initialization SetComputationalDomain supports pure translation only");
+
+    m_paramsH->cMin = new_cMin;
+    m_paramsH->cMax = new_cMax;
+    m_paramsH->worldOrigin = new_cMin;
+    m_paramsH->boxDims = new_cMax - new_cMin;
+
+    CopyParametersToDevice(m_paramsH, m_data_mgr->countersH);
+}
 
 void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_states) {
     assert(body_states.size() == m_bodies.size());
@@ -1431,32 +1522,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
         m_paramsH->bc_type = BC_NONE;
     }
 
-    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
-    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
-    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
-
-    // Set up subdomains for faster neighbor particle search
-    m_paramsH->Apply_BC_U = false;
-    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
-    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
-    m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-    m_paramsH->binSize0 = binSize3.x;
-    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
-    m_paramsH->delta_pressure = mR3(0);
-    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
-                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
-    Real mBinSize = m_paramsH->binSize0;
-    m_paramsH->gridSize = SIDE;
-    m_paramsH->worldOrigin = m_paramsH->cMin;
-    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
-
-    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
-    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
-
-    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
-                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+    DeriveDomainGridQuantities();
     // Update the speed of sound
     if (m_paramsH->elastic_SPH) {
         m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
@@ -1506,6 +1572,10 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     CheckSPHParameters();
+
+    // Mark the fluid system as initialized. This arms the configuration-setter guards
+    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    m_is_initialized = true;
 }
 
 #ifdef CHRONO_FEA
@@ -1608,32 +1678,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
         m_paramsH->bc_type = BC_NONE;
     }
 
-    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
-    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
-    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
-
-    // Set up subdomains for faster neighbor particle search
-    m_paramsH->Apply_BC_U = false;
-    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
-    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
-    m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
-    m_paramsH->binSize0 = binSize3.x;
-    m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
-    m_paramsH->delta_pressure = mR3(0);
-    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
-                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
-    Real mBinSize = m_paramsH->binSize0;
-    m_paramsH->gridSize = SIDE;
-    m_paramsH->worldOrigin = m_paramsH->cMin;
-    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
-
-    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
-    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
-
-    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1, m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
-                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+    DeriveDomainGridQuantities();
     // Update the speed of sound
     if (m_paramsH->elastic_SPH) {
         m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
@@ -1697,6 +1742,10 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     CheckSPHParameters();
+
+    // Mark the fluid system as initialized. This arms the configuration-setter guards
+    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    m_is_initialized = true;
 }
 
 void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
@@ -1845,35 +1894,45 @@ void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) con
 
 //------------------------------------------------------------------------------
 
+void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos, std::shared_ptr<ParticlePropertiesCallback> props_cb) {
+    props_cb->set(*this, pos);
+    AddSPHParticle(pos, props_cb->rho0, props_cb->p0, props_cb->mu0, props_cb->v0, props_cb->tau_diag, props_cb->tau_offdiag, props_cb->consolidation_pressure);
+}
+
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
-                                         double rho,
-                                         double pres,
-                                         double mu,
                                          const ChVector3d& vel,
-                                         const ChVector3d& tauXxYyZz,
-                                         const ChVector3d& tauXyXzYz,
-                                         const double pc) {
-    m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz), pc);
+                                         const ChVector3d& tau_diag,
+                                         const ChVector3d& tau_offdiag,
+                                         const double consolidation_pressure) {
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tau_diag, tau_offdiag, consolidation_pressure);
 }
 
-void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos, const ChVector3d& vel, const ChVector3d& tauXxYyZz, const ChVector3d& tauXyXzYz, const double pc) {
-    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz, pc);
+void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
+                                         double density,
+                                         double pressure,
+                                         double viscosity,
+                                         const ChVector3d& vel,
+                                         const ChVector3d& tau_diag,
+                                         const ChVector3d& tau_offdiag,
+                                         const double consolidation_pressure) {
+    // Consolidation pressure is only used in the MCC rheology model.
+    // At q = 0 the modified Cam-Clay yield ellipse meets the p axis at `consolidation_pressure`,
+    // so an admissible initial state needs consolidation_pressure >= pressure.
+    if (m_paramsH->elastic_SPH && m_paramsH->rheology_model_crm == RheologyCRM::MCC)
+        ChAssertAlways(pressure > 0 && consolidation_pressure >= pressure);
+
+    m_data_mgr->AddSphParticle(ToReal3(pos), density, pressure, viscosity, ToReal3(vel), ToReal3(tau_diag), ToReal3(tau_offdiag), consolidation_pressure);
 }
 
-void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
-    // Use a chrono sampler to create a bucket of points
+void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim, std::shared_ptr<ParticlePropertiesCallback> params_cb) {
+    if (!params_cb)
+        params_cb = chrono_types::make_shared<ParticlePropertiesCallback>();
+
+    // Use a Chrono sampler to create a set of points and add SPH particles at each one of them
     utils::ChGridSampler<> sampler(m_paramsH->d0);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
-
-    // Add fluid particles from the sampler points to the FSI system
-    int numPart = (int)points.size();
-    for (int i = 0; i < numPart; i++) {
-        AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
-                       ChVector3d(0),  // initial velocity
-                       ChVector3d(0),  // tauxxyyzz
-                       ChVector3d(0),  // tauxyxzyz
-                       0);             // pc
-    }
+    for (const auto& p : points)
+        AddSPHParticle(p, params_cb);
 }
 
 //------------------------------------------------------------------------------
@@ -1982,7 +2041,10 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxInterior(const ChVec
     bool fill = np[0] <= 2 * num_layers || np[1] <= 2 * num_layers || np[2] <= 2 * num_layers;
 
     // Adjust spacing in each direction
-    ChVector3d delta(size.x() / (np.x() - 1), size.y() / (np.y() - 1), size.z() / (np.z() - 1));
+    ChVector3d delta(np.x() > 1 ? size.x() / (np.x() - 1) : 0,  //
+                     np.y() > 1 ? size.y() / (np.y() - 1) : 0,  //
+                     np.z() > 1 ? size.z() / (np.z() - 1) : 0   //
+    );
 
     // If any direction must be filled, the box must be filled
     if (fill) {
@@ -2105,14 +2167,25 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsSphereInterior(double r
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
+    // Radial direction (num divisions and adjusted spacing)
+    int np_r = (int)std::round(radius / spacing);
+    double delta_r = (np_r == 0) ? 0.0 : radius / np_r;
+
+    // If the radius is too small, fill the entire sphere
+    bool fill = (np_r <= num_layers - 1);
+
     // Use polar coordinates
     if (polar) {
-        double rad_in = radius - (num_layers - 1) * spacing;
+        double rad_in = std::max(radius - (num_layers - 1) * spacing, 0.0);
+        if (fill)
+            rad_in = 0;
+        np_r = (int)std::round((radius - rad_in) / spacing);
+        delta_r = (np_r == 0) ? 0.0 : (radius - rad_in) / np_r;
 
-        for (int ir = 0; ir < num_layers; ir++) {
-            double r = rad_in + ir * spacing;
-            int np_phi = (int)std::round(pi * r / spacing);
-            double delta_phi = pi / np_phi;
+        for (int ir = 0; ir <= np_r; ir++) {
+            double r = rad_in + ir * delta_r;
+            int np_phi = std::max((int)std::round(CH_PI * r / spacing) - 1, 1);
+            double delta_phi = CH_PI / np_phi;
             for (int ip = 0; ip < np_phi; ip++) {
                 double phi = ip * delta_phi;
                 double cphi = std::cos(phi);
@@ -2120,8 +2193,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsSphereInterior(double r
                 double x = r * sphi;
                 double y = r * sphi;
                 double z = r * cphi;
-                int np_th = (int)std::round(2 * pi * r * sphi / spacing);
-                double delta_th = (np_th > 0) ? (2 * pi) / np_th : 1;
+                int np_th = std::max((int)std::round(CH_2PI * r * sphi / spacing) - 1, 1);
+                double delta_th = (np_th > 0) ? CH_2PI / np_th : 1;
                 for (int it = 0; it < np_th; it++) {
                     double theta = it * delta_th;
                     bce.push_back({x * std::cos(theta), y * std::sin(theta), z});
@@ -2230,7 +2303,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderInterior(double
 
     // Radial direction (num divisions and adjusted spacing)
     int np_r = (int)std::round(rad / spacing);
-    double delta_r = rad / np_r;
+    double delta_r = (np_r == 0) ? 0.0 : rad / np_r;
 
     // Axial direction (num divisions and adjusted spacing)
     int np_h = (int)std::round(height / spacing);
@@ -2245,11 +2318,11 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderInterior(double
         if (fill)
             rad_min = 0;
         np_r = (int)std::round((rad - rad_min) / spacing);
-        delta_r = (rad - rad_min) / np_r;
+        delta_r = (np_r == 0) ? 0.0 : (rad - rad_min) / np_r;
 
         for (int ir = 0; ir <= np_r; ir++) {
             double r = rad_min + ir * delta_r;
-            int np_th = std::max((int)std::round(2 * pi * r / spacing) - 1, 1);
+            int np_th = std::max((int)std::round(CH_2PI * r / spacing) - 1, 1);
             double delta_th = CH_2PI / np_th;
             for (int it = 0; it < np_th; it++) {
                 double theta = it * delta_th;
@@ -2265,7 +2338,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderInterior(double
         // Add cylinder caps (unless already filled)
         if (!fill) {
             np_r = (int)std::round(rad_min / spacing);
-            delta_r = rad_min / np_r;
+            delta_r = (np_r == 0) ? 0.0 : rad_min / np_r;
 
             for (int ir = 0; ir < np_r; ir++) {
                 double r = ir * delta_r;

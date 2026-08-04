@@ -6,35 +6,35 @@ option(CH_ENABLE_MODULE_FMI "Enable the Chrono::FMI module" OFF)
 
 # Return now if this module is not enabled
 if(NOT CH_ENABLE_MODULE_FMI)
-    mark_as_advanced(FORCE FMU_EXPORT_SUPPORT)
+    mark_as_advanced(FORCE CH_ENABLE_FMU_EXPORT)
     mark_as_advanced(FORCE FMU_FORGE_DIR)
-    mark_as_advanced(FORCE FMU_TESTING)
+    mark_as_advanced(FORCE CH_ENABLE_FMU_TESTING)
     mark_as_advanced(FORCE FMU_GUID_NAMESPACE)
 	return()
 else()
-    mark_as_advanced(CLEAR FMU_EXPORT_SUPPORT)
+    mark_as_advanced(CLEAR CH_ENABLE_FMU_EXPORT)
     mark_as_advanced(CLEAR FMU_FORGE_DIR)
-    mark_as_advanced(CLEAR FMU_TESTING)
+    mark_as_advanced(CLEAR CH_ENABLE_FMU_TESTING)
     mark_as_advanced(CLEAR FMU_GUID_NAMESPACE)
 endif()
 
 message(STATUS "\n==== Chrono FMI module ====\n")
 
-cmake_dependent_option(FMU_EXPORT_SUPPORT "Enable FMU export capabilities" ON "CH_ENABLE_MODULE_FMI" OFF)
+cmake_dependent_option(CH_ENABLE_FMU_EXPORT "Enable FMU export capabilities" ON "CH_ENABLE_MODULE_FMI" OFF)
 
 # -------------------------------------------------
 
-if(FMU_EXPORT_SUPPORT AND BUILD_SHARED_LIBS)
+if(CH_ENABLE_FMU_EXPORT AND BUILD_SHARED_LIBS)
   message(NOTICE "For FMI export support, Chrono must be configured and built in static mode. Disable 'BUILD_SHARED_LIBS'.")
   message(NOTICE "FMU export capabilities in Chrono::FMI module disabled.")
-  set(FMU_EXPORT_SUPPORT OFF CACHE BOOL "Enable FMU export capabilities" FORCE)
+  set(CH_ENABLE_FMU_EXPORT OFF CACHE BOOL "Enable FMU export capabilities" FORCE)
 endif()
 
 if(MSVC)
-  if (FMU_EXPORT_SUPPORT AND NOT CH_USE_MSVC_STATIC_RUNTIME)
+  if (CH_ENABLE_FMU_EXPORT AND NOT CH_USE_MSVC_STATIC_RUNTIME)
     message(NOTICE "For FMI export support on Windows, Chrono must be configured and built with a statically-linked runtime library. Enable 'CH_USE_MSVC_STATIC_RUNTIME'.")
     message(NOTICE "FMU export capabilities in Chrono::FMI module disabled.")
-    set(FMU_EXPORT_SUPPORT OFF CACHE BOOL "Enable FMU export capabilities" FORCE)
+    set(CH_ENABLE_FMU_EXPORT OFF CACHE BOOL "Enable FMU export capabilities" FORCE)
   endif()
 endif()
 
@@ -46,9 +46,9 @@ endif()
 set(FMU_FORGE_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu-forge" CACHE PATH "Path to top-level fmu-forge directory")
 
 # -------------------------------------------------
-# Enable testing of generated FMUs
+# Provide option to enable testing of generated FMUs
 
-cmake_dependent_option(FMU_TESTING "Enable FMU testing" ON "ENABLE_FMU_EXPORT" OFF)
+cmake_dependent_option(CH_ENABLE_FMU_TESTING "Enable FMU testing" OFF "CH_ENABLE_FMU_EXPORT" OFF)
 
 # -------------------------------------------------
 # Set Architecture and Operating System Flags
@@ -98,16 +98,16 @@ set(FMI3_PLATFORM "${FMI3_PLATFORM}" PARENT_SCOPE)
 message(STATUS "FMI2 platform:        ${FMI2_PLATFORM}")
 message(STATUS "FMI3 platform:        ${FMI3_PLATFORM}")
 message(STATUS "fmu-forge directory:  ${FMU_FORGE_DIR}")
-message(STATUS "FMU export:           ${FMU_EXPORT_SUPPORT}")
+message(STATUS "FMU export:           ${CH_ENABLE_FMU_EXPORT}")
 
-if(FMU_EXPORT_SUPPORT)
+if(CH_ENABLE_FMU_EXPORT)
   include(FetchContent)
 endif()
 
 #=============================================================================
 # Generate and install the Chrono::FMI configuration header
 
-if(FMU_EXPORT_SUPPORT)
+if(CH_ENABLE_FMU_EXPORT)
   set(DEFINE_FMU_EXPORT_SUPPORT "#define FMU_EXPORT_SUPPORT")
 else()
   set(DEFINE_FMU_EXPORT_SUPPORT "#undef FMU_EXPORT_SUPPORT")
@@ -117,36 +117,37 @@ set(Chrono_FMI_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFMI.h.in ${Chrono_FMI_CONFIG_FILE} @ONLY)
 
-source_group("" FILES ${Chrono_FMI_CONFIG_FILE})
-
 install(FILES ${Chrono_FMI_CONFIG_FILE} DESTINATION include/chrono_fmi)
 
 #=============================================================================
 # Create the Chrono::FMI library
 
-set(Chrono_FMI_SOURCES 
-    ChExternalFmu.cpp
-)
-
-set(Chrono_FMI_HEADERS
+set(Chrono_FMI_FILES
     ChApiFMI.h 
     ChExternalFmu.h
-    fmi2/ChFmuToolsImport.h
-    fmi3/ChFmuToolsImport.h
-    fmi2/ChFmuToolsExport.h
-    fmi3/ChFmuToolsExport.h
+    ChExternalFmu.cpp
+    ${Chrono_FMI_CONFIG_FILE}
 )
+source_group("" FILES ${Chrono_FMI_FILES})
 
-source_group("" FILES 
-            ${Chrono_FMI_HEADERS} 
-            ${Chrono_FMI_SOURCES})
+set(Chrono_FMI2_FILES
+    fmi2/ChFmuForgeImport.h
+    fmi2/ChFmuForgeExport.h
+)
+source_group("fmi2" FILES ${Chrono_FMI2_FILES})
+
+set(Chrono_FMI3_FILES
+    fmi3/ChFmuForgeImport.h
+    fmi3/ChFmuForgeExport.h
+)
+source_group("fmi3" FILES ${Chrono_FMI3_FILES})
 
 #-----------------------------------------------------------------------------
 
 add_library(Chrono_fmi
-            ${Chrono_FMI_HEADERS}
-            ${Chrono_FMI_SOURCES}
-            ${Chrono_FMI_CONFIG_FILE}
+            ${Chrono_FMI_FILES}
+            ${Chrono_FMI2_FILES}
+            ${Chrono_FMI3_FILES}
 )
 
 add_library(Chrono::fmi ALIAS Chrono_fmi)
@@ -187,7 +188,7 @@ install(DIRECTORY ${FMU_FORGE_DIR}
         DESTINATION include/chrono_thirdparty
         PATTERN ".git" EXCLUDE)
 
-if(FMU_EXPORT_SUPPORT)
+if(CH_ENABLE_FMU_EXPORT)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "template_project_fmi2")
   else()

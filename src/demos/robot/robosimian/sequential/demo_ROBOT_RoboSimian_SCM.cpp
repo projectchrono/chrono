@@ -66,12 +66,12 @@ bool GetProblemSpecs(int argc,
 
 // =============================================================================
 
-class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
+class DBPcontroller : public models::ChRobotActuation::PhaseChangeCallback {
   public:
     DBPcontroller(robosimian::RoboSimian* robot);
     ~DBPcontroller() { delete m_csv; }
 
-    virtual void OnPhaseChange(robosimian::RS_Driver::Phase old_phase, robosimian::RS_Driver::Phase new_phase) override;
+    virtual void OnPhaseChange(models::ChRobotActuation::Phase old_phase, models::ChRobotActuation::Phase new_phase) override;
 
     void SetCycleFreq(int freq) { m_cycle_freq = freq; }
     void SetIncrement(double incr) { m_dbp_incr = incr; }
@@ -102,14 +102,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
 };
 
 DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
-    : m_robot(robot),
-      m_dbp(0),
-      m_dbp_incr(0.04),
-      m_cycle_number(0),
-      m_cycle_freq(2),
-      m_start_x(0),
-      m_start_time(0),
-      m_avg_speed(0) {
+    : m_robot(robot), m_dbp(0), m_dbp_incr(0.04), m_cycle_number(0), m_cycle_freq(2), m_start_x(0), m_start_time(0), m_avg_speed(0) {
     // Cache robot weight
     double mass = robot->GetMass();
     double g = std::abs(robot->GetSystem()->GetGravitationalAcceleration().z());
@@ -132,13 +125,13 @@ DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
            << "Avg_speed" << endl;
 }
 
-void DBPcontroller::OnPhaseChange(robosimian::RS_Driver::Phase old_phase, robosimian::RS_Driver::Phase new_phase) {
+void DBPcontroller::OnPhaseChange(models::ChRobotActuation::Phase old_phase, models::ChRobotActuation::Phase new_phase) {
     m_timer.stop();
     cout << "Elapsed time: " << m_timer() << endl;
     m_timer.reset();
     m_timer.start();
 
-    if (new_phase == robosimian::RS_Driver::CYCLE) {
+    if (new_phase == models::ChRobotActuation::Phase::CYCLE) {
         if (m_cycle_number == 0) {
             m_start_x = m_robot->GetChassisPos().x();
             m_start_time = m_robot->GetSystem()->GetChTime();
@@ -155,10 +148,10 @@ void DBPcontroller::OnPhaseChange(robosimian::RS_Driver::Phase old_phase, robosi
             m_load->SetForce(ChVector3d(-m_dbp * m_weight, 0, 0), false);
         }
 
-        cout << "  FL wheel location:  " << m_robot->GetWheelPos(robosimian::LimbID::FL).x() << endl;
-        cout << "  FR wheel location:  " << m_robot->GetWheelPos(robosimian::LimbID::FR).x() << endl;
-        cout << "  Chassis location:   " << m_robot->GetChassisPos().x() << endl;
-        cout << "  Distance travelled: " << GetDistance() << endl;
+        cout << "  FL wheel location: " << m_robot->GetWheelPos(robosimian::LimbID::FL).x() << endl;
+        cout << "  FR wheel location: " << m_robot->GetWheelPos(robosimian::LimbID::FR).x() << endl;
+        cout << "  Chassis location:  " << m_robot->GetChassisPos().x() << endl;
+        cout << "  Distance traveled: " << GetDistance() << endl;
 
         m_cycle_number++;
     }
@@ -166,11 +159,7 @@ void DBPcontroller::OnPhaseChange(robosimian::RS_Driver::Phase old_phase, robosi
 
 // =============================================================================
 
-std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot,
-                                                   double length,
-                                                   double width,
-                                                   double height,
-                                                   double offset) {
+std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot, double length, double width, double height, double offset) {
     // Deformable terrain properties (LETE sand)
     ////double Kphi = 5301e3;    // Bekker Kphi
     ////double Kc = 102e3;       // Bekker Kc
@@ -195,10 +184,12 @@ std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot
     terrain->SetReferenceFrame(ChCoordsys<>(ChVector3d(length / 2 - offset, 0, height), QUNIT));
     terrain->SetSoilParameters(Kphi, Kc, n, coh, phi, K, E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
-    terrain->Initialize(length, width, 1.0 / 64);
 
     // Enable active domain feature
     terrain->AddActiveDomain(robot->GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(3.0, 2.0, 1.0));
+
+    // Initialize the SCM terrain
+    terrain->Initialize(length, width, 1.0 / 64);
 
     return terrain;
 }
@@ -237,8 +228,7 @@ int main(int argc, char* argv[]) {
     bool image_output;
 
     // Extract arguments
-    if (!GetProblemSpecs(argc, argv, time_step, mode, num_cycles, dbp_incr, terrain_length, render, data_output,
-                         image_output, povray_output)) {
+    if (!GetProblemSpecs(argc, argv, time_step, mode, num_cycles, dbp_incr, terrain_length, render, data_output, image_output, povray_output)) {
         cout << "-------------" << endl;
         return 1;
     }
@@ -346,35 +336,35 @@ int main(int argc, char* argv[]) {
     // Create a driver and attach to robot
     // -----------------------------------
 
-    std::shared_ptr<robosimian::RS_Driver> driver;
+    std::shared_ptr<models::ChRobotActuation> driver;
     switch (mode) {
         case robosimian::LocomotionMode::WALK:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                "",                                                                 // start input file
-                GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
-                "",                                                                 // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                 // num. motors
+                                                                         "",                                                                 // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
+                                                                         "",                                                                 // stop input file
+                                                                         true);
             break;
         case robosimian::LocomotionMode::SCULL:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   // start input file
-                GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                   // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    // stop input file
+                                                                         true);
             break;
         case robosimian::LocomotionMode::INCHWORM:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  // start input file
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                     // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   // stop input file
+                                                                         true);
             break;
         case robosimian::LocomotionMode::DRIVE:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  // start input file
-                GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                 // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   // stop input file
+                                                                         true);
             break;
     }
 
@@ -477,16 +467,12 @@ int main(int argc, char* argv[]) {
         if (sim_frame % render_steps == 0) {
             if (povray_output) {
                 std::ostringstream filename;
-                filename << pov_dir
-                         << "/data_"
-                         << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
                 chrono::utils::WriteVisualizationAssets(&my_sys, filename.str());
             }
             if (render && image_output) {
                 std::ostringstream filename;
-                filename << img_dir
-                         << "/img_"
-                         << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
                 vis->WriteImageToFile(filename.str());
             }
 
