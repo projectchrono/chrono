@@ -443,7 +443,9 @@ endif()
 if(NOT CHRONO_HIP_FOUND AND (_chrono_try_cuda OR CHRONO_GPU_BACKEND STREQUAL "AUTO"))
   message(STATUS "Searching for CUDA")
   check_language(CUDA)
+
   if(CMAKE_CUDA_COMPILER)
+
     enable_language(CUDA)
     find_package(CUDAToolkit)
     message(STATUS "  CUDA compiler:           ${CMAKE_CUDA_COMPILER}")
@@ -452,12 +454,16 @@ if(NOT CHRONO_HIP_FOUND AND (_chrono_try_cuda OR CHRONO_GPU_BACKEND STREQUAL "AU
 
     if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
       if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
-        set(CHRONO_CUDA_ARCHITECTURES "all-major" CACHE STRING "Chrono CUDA architectures" FORCE)
+        set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES_ALL_MAJOR}" CACHE STRING "Chrono CUDA architectures" FORCE)
         message(STATUS "  CUDA archs (set to):     ${CHRONO_CUDA_ARCHITECTURES}")
       endif()
     else()
       message(STATUS "  CUDA archs (from cache): ${CHRONO_CUDA_ARCHITECTURES}")
     endif()
+
+    # Make sure we do not build for CUDA architecture 50 (no support for atomicAdd in double precision)
+    list(REMOVE_ITEM CHRONO_CUDA_ARCHITECTURES "50" "50-real")
+    message(STATUS "  CUDA archs (filtered):   ${CHRONO_CUDA_ARCHITECTURES}")
 
     if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
       set(CHRONO_CUDA_FOUND FALSE)
@@ -472,11 +478,15 @@ if(NOT CHRONO_HIP_FOUND AND (_chrono_try_cuda OR CHRONO_GPU_BACKEND STREQUAL "AU
         set(CUDA_SEPARABLE_COMPILATION OFF)
       endif()
     endif()
+
   else()
+    
     set(CHRONO_CUDA_FOUND FALSE)
     mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
     message("  WARNING  CUDA not found. CUDA features will be disabled.")
+  
   endif()
+
 endif()
 
 set(CHRONO_GPU_BACKEND ${CHRONO_GPU_BACKEND_RESOLVED})
