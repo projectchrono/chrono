@@ -278,7 +278,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::ANGULAR_VELOCITIES:
                     if (m_verbose)
                         cout << "FAIL" << endl;
-                    cerr << "[InitializeParticipant] Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    cerr << "\nERROR: Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono MBS read data type");
             }
             if (m_verbose)
@@ -310,7 +310,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                     } else {
                         if (m_verbose)
                             cout << "FAIL" << endl;
-                        cerr << "[InitializeParticipant] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                        cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                         throw std::runtime_error("Invalid Chrono MBS write data type");
                     }
                     break;
@@ -318,7 +318,7 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::TORQUES:
                     if (m_verbose)
                         cout << "FAIL" << endl;
-                    cerr << "[InitializeParticipant] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono MBS write data type");
             }
             if (m_verbose)
@@ -409,26 +409,21 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterMbs::WriteCheckpoint(double time) {
+void ChPreciceAdapterMbs::OnWriteCheckpoint(double time) {
     double sys_time;
     m_sys->StateGather(m_checkpoint.x, m_checkpoint.v, sys_time);
     assert(time == sys_time);
     m_checkpoint.time = time;
 }
 
-void ChPreciceAdapterMbs::ReadCheckpoint(double time) {
+void ChPreciceAdapterMbs::OnReadCheckpoint(double time) {
     ChAssertAlways(m_checkpoint.time == time);
     m_sys->StateScatter(m_checkpoint.x, m_checkpoint.v, m_checkpoint.time, UpdateFlags::UPDATE_ALL);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterMbs::ReadData() {
-    ChPreciceAdapter::ReadData();
-
-    if (m_verbose)
-        cout << m_prefix1 << "Process read data" << endl;
-
+void ChPreciceAdapterMbs::OnReadData() {
     for (auto& c_body : m_coupling_bodies) {
         c_body->body->EmptyAccumulator(c_body->accumulator_index);
     }
@@ -451,10 +446,7 @@ void ChPreciceAdapterMbs::ReadData() {
     }
 }
 
-void ChPreciceAdapterMbs::WriteData() {
-    if (m_verbose)
-        cout << m_prefix1 << "Prepare write data" << endl;
-
+void ChPreciceAdapterMbs::OnWriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -471,8 +463,6 @@ void ChPreciceAdapterMbs::WriteData() {
                 break;
         }
     }
-
-    ChPreciceAdapter::WriteData();
 }
 
 void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
@@ -532,7 +522,7 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono MBS read data type");
         }
     }
@@ -651,7 +641,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             default:
-                cerr << "[WriteBodyRefData] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono MBS write data type");
         }
     }
@@ -715,7 +705,7 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
                 break;
             }
             default:
-                cerr << "[ReadBodyMeshData] Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono MBS read data type");
         }
     }
@@ -794,7 +784,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 break;
             }
             default:
-                cerr << "[WriteBodyMeshData] Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono MBS write data type");
         }
     }
@@ -831,10 +821,7 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterMbs::WriteOutput(int frame, double time) {
-    // Invoke first the base class function, to create the output DB if needed
-    ChPreciceAdapter::WriteOutput(frame, time);
-
+void ChPreciceAdapterMbs::OnWriteOutput(int frame, double time) {
     m_output_db->Write(frame, time, m_output_data);
 #ifdef CHRONO_FEA
     //// TODO

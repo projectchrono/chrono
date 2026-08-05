@@ -46,6 +46,7 @@ ChPreciceAdapter::ChPreciceAdapter(const std::string& precice_config_filename, c
       m_visualize(false),
       m_output(false),
       m_output_dir(".") {
+    // Parse the preCICE XML configuration file, cache mesh and data information, and check if using added mass
     ParseXML();
 }
 
@@ -159,7 +160,7 @@ void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
 
     auto p = std::filesystem::path(m_output_dir);
     if (!exists(p) || !is_directory(p)) {
-        std::cerr << "The specified path " << m_output_dir << " is not a valid directory." << std::endl;
+        cerr << "\nERROR: The specified path " << m_output_dir << " is not a valid directory." << endl;
         throw std::runtime_error("Invalid directory");
     }
 }
@@ -221,7 +222,7 @@ static ChPreciceAdapter::CouplingMeshType ReadCouplingMeshType(const YAML::Node&
     if (type == "FEA_MESH_POINTS")
         return ChPreciceAdapter::CouplingMeshType::FEA_MESH_POINTS;
 
-    cerr << "Unknown mesh type: " << a.as<std::string>() << endl;
+    cerr << "\nERROR: Unknown mesh type: " << a.as<std::string>() << endl;
     throw std::runtime_error("Invalid mesh type");
 }
 
@@ -244,7 +245,7 @@ static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node&
     if (type == "TORQUES")
         return ChPreciceAdapter::CouplingDataType::TORQUES;
 
-    cerr << "Unknown data type: " << a.as<std::string>() << endl;
+    cerr << "\nERROR: Unknown data type: " << a.as<std::string>() << endl;
     throw std::runtime_error("Invalid data type");
 }
 
@@ -559,7 +560,7 @@ void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size)
     else if (m_vis_settings.write_images) {
         m_vis_settings.image_dir = m_output_dir + "/images";
         if (!CreateOutputDirectory(std::filesystem::path(m_vis_settings.image_dir))) {
-            std::cerr << "Error creating image output directory " << m_vis_settings.image_dir << std::endl;
+            std::cerr << "\nERROR: Cannot create image output directory " << m_vis_settings.image_dir << std::endl;
             throw std::runtime_error("Could not create image output directory");
         }
     }
@@ -593,7 +594,7 @@ void ChPreciceAdapter::RunSimulation() {
     double time = 0;
     while (IsCouplingOngoing()) {
         // Write checkpoint if required
-        WriteCheckpointIfRequired(time);
+        WriteCheckpoint(time);
 
         // Agree on time step size
         double max_time_step = GetMaxTimeStepSize();
@@ -611,7 +612,7 @@ void ChPreciceAdapter::RunSimulation() {
         m_participant->advance(time_step);
 
         // Read checkpoint if required; if no checkpoint was read, advance time
-        if (!ReadCheckpointIfRequired(time))
+        if (!ReadCheckpoint(time))
             time += time_step;
     }
 }
@@ -628,6 +629,11 @@ void ChPreciceAdapter::FinalizeSimulation() {
 // -----------------------------------------------------------------------------
 
 void ChPreciceAdapter::WriteData() {
+    // Let the concrete class prepare write data
+    if (m_verbose)
+        cout << m_prefix1 << "Prepare write data" << endl;
+    OnWriteData();
+
     std::string msg = m_prefix1 + "Write data\n";
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         for (const auto& data_name : m_data_write[mesh_name]) {
@@ -655,6 +661,11 @@ void ChPreciceAdapter::ReadData() {
         if (m_verbose)
             cout << msg;
     }
+
+    // Let concrete class process read data
+    if (m_verbose)
+        cout << m_prefix1 << "Process read data" << endl;
+    OnReadData();
 }
 
 void ChPreciceAdapter::WriteOutput(int frame, double time) {
@@ -675,6 +686,9 @@ void ChPreciceAdapter::WriteOutput(int frame, double time) {
                 break;
         }
     }
+
+    // Let the concrete participant write output
+    OnWriteOutput(frame, time);
 }
 
 // -----------------------------------------------------------------------------
@@ -752,23 +766,23 @@ const std::vector<double>& ChPreciceAdapter::ReadDataBlock(const std::string& me
 
 // -----------------------------------------------------------------------------
 
-bool ChPreciceAdapter::WriteCheckpointIfRequired(double time) {
+bool ChPreciceAdapter::WriteCheckpoint(double time) {
     assert(m_participant_created);
     if (m_participant->requiresWritingCheckpoint()) {
         if (m_verbose)
             cout << m_prefix1 << "Write checkpoint at time = " << time << endl;
-        WriteCheckpoint(time);
+        OnWriteCheckpoint(time);
         return true;
     }
     return false;
 }
 
-bool ChPreciceAdapter::ReadCheckpointIfRequired(double time) {
+bool ChPreciceAdapter::ReadCheckpoint(double time) {
     assert(m_participant_created);
     if (m_participant->requiresReadingCheckpoint()) {
         if (m_verbose)
             cout << m_prefix1 << "Read checkpoint for time = " << time << endl;
-        ReadCheckpoint(time);
+        OnReadCheckpoint(time);
         return true;
     }
     return false;
@@ -807,7 +821,7 @@ std::vector<ChVector3d> ChPreciceAdapter::ReadPoints(const std::string& filename
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         ifile.open(filename);
     } catch (const std::exception&) {
-        cerr << "Cannot open input file '" << filename << "'" << endl;
+        cerr << "\nERROR: Cannot open input file '" << filename << "'" << endl;
         throw std::invalid_argument("Cannot open input file");
     }
 

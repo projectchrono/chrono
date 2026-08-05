@@ -169,7 +169,7 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::TORQUES:
                     if (m_verbose)
                         cout << "FAIL" << endl;
-                    cerr << "[InitializeParticipant] Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    cerr << "\nERROR: Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono SPH read data type");
             }
             if (m_verbose)
@@ -203,7 +203,7 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::ANGULAR_VELOCITIES:
                     if (m_verbose)
                         cout << "FAIL" << endl;
-                    cerr << "[InitializeParticipant] Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    cerr << "\nERROR: Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono SPH write data type");
             }
             if (m_verbose)
@@ -288,22 +288,17 @@ void ChPreciceAdapterSph::InitializeParticipant() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::WriteCheckpoint(double time) {
+void ChPreciceAdapterSph::OnWriteCheckpoint(double time) {
     throw std::runtime_error("Checkpointing not available for Chrono::FSI-SPH");
 }
 
-void ChPreciceAdapterSph::ReadCheckpoint(double time) {
+void ChPreciceAdapterSph::OnReadCheckpoint(double time) {
     throw std::runtime_error("Checkpointing not available for Chrono::FSI-SPH");
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::ReadData() {
-    ChPreciceAdapter::ReadData();
-
-    if (m_verbose)
-        cout << m_prefix1 << "Process read data" << endl;
-
+void ChPreciceAdapterSph::OnReadData() {
     for (const auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -322,10 +317,7 @@ void ChPreciceAdapterSph::ReadData() {
     }
 }
 
-void ChPreciceAdapterSph::WriteData() {
-    if (m_verbose)
-        cout << m_prefix1 << "Prepare write data" << endl;
-
+void ChPreciceAdapterSph::OnWriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -342,8 +334,6 @@ void ChPreciceAdapterSph::WriteData() {
                 break;
         }
     }
-
-    ChPreciceAdapter::WriteData();
 }
 
 void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
@@ -412,7 +402,7 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono SPH read data type");
         }
     }
@@ -467,7 +457,7 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono SPH write data type");
         }
     }
@@ -504,10 +494,7 @@ void ChPreciceAdapterSph::AdvanceParticipant(double time, double time_step) {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::WriteOutput(int frame, double time) {
-    // Invoke first the base class function, to create the output DB if needed
-    ChPreciceAdapter::WriteOutput(frame, time);
-
+void ChPreciceAdapterSph::OnWriteOutput(int frame, double time) {
     //// TODO
 }
 

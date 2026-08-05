@@ -232,13 +232,13 @@ class ParticipantCFD : public ChPreciceAdapter {
     ~ParticipantCFD();
 
     virtual void InitializeParticipant() override;
-    virtual void WriteCheckpoint(double time) override {}
-    virtual void ReadCheckpoint(double time) override {}
-    virtual void ReadData() override;
+    virtual void OnReadData() override;
+    virtual void OnWriteData() override;
+    virtual void OnReadCheckpoint(double time) override {}
+    virtual void OnWriteCheckpoint(double time) override {}
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
-    virtual void WriteData() override;
-    virtual void WriteOutput(int frame, double time) override {}
+    virtual void OnWriteOutput(int frame, double time) override {}
 
     void PlotResults();
 
@@ -286,9 +286,7 @@ void ParticipantCFD::InitializeParticipant() {
     force.resize(3, 0.0);
 }
 
-void ParticipantCFD::ReadData() {
-    ChPreciceAdapter::ReadData();
-
+void ParticipantCFD::OnReadData() {
     position = m_coupling_meshes[mesh_name].data["positions"].values;
     velocity = m_coupling_meshes[mesh_name].data["velocities"].values;
     if (m_verbose) {
@@ -331,13 +329,11 @@ void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
     }
 }
 
-void ParticipantCFD::WriteData() {
+void ParticipantCFD::OnWriteData() {
     m_coupling_meshes[mesh_name].data["forces"].values = force;
     if (m_verbose) {
         cout << m_prefix2 << "force: " << force[0] << " " << force[1] << " " << force[2] << endl;
     }
-
-    ChPreciceAdapter::WriteData();
 }
 
 void ParticipantCFD::PlotResults() {

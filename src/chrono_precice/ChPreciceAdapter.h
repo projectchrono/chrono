@@ -263,7 +263,15 @@ class ChApiPrecice ChPreciceAdapter {
 
     // ---- Data exchange
 
-    // Set the (write) data vector for the specified mesh and data names.
+    /// Receive data from other participant(s) via preCICE.
+    /// The received data is then passed to the concrete participant.
+    void ReadData();
+
+    /// Send data to other participant(s) via preCICE.
+    /// The concrete participant first prepares the data to be sent.
+    void WriteData();
+
+    /// Set the (write) data vector for the specified mesh and data names.
     void SetDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data);
 
     /// Write (send) a block of data to preCICE.
@@ -289,12 +297,17 @@ class ChApiPrecice ChPreciceAdapter {
     /// Write the solver state to a checkpoint if required by preCICE.
     /// If requested by preCISE, this function invokes the solver-specific checkpoint writing function.
     /// The return value indicates whether a checkpoint was written.
-    bool WriteCheckpointIfRequired(double time);
+    bool WriteCheckpoint(double time);
 
     /// Read the solver state from a checkpoint if required by preCICE.
     /// If requested by preCISE, this function invokes the solver-specific checkpoint reading function.
     /// The return value indicates whether a checkpoint was read.
-    bool ReadCheckpointIfRequired(double time);
+    bool ReadCheckpoint(double time);
+
+    // ---- Output
+
+    /// Prepare output database (if needed) and let the concrete participant write output.
+    void WriteOutput(int frame, double time);
 
     // ---- Participant/solver-specific functions to be implemented by derived classes
 
@@ -303,26 +316,24 @@ class ChApiPrecice ChPreciceAdapter {
     /// After the call to InitializeParticipant, it is assumed that the coupling meshes have been set.
     virtual void InitializeParticipant() = 0;
 
-    /// Let the derived class implement the actual checkpoint writing if required by preCICE.
-    virtual void WriteCheckpoint(double time) = 0;
-
-    /// Let the derived class implement the actual checkpoint reading if required by preCICE.
-    /// The solver from a derived class must restore its state at the values in the last saved checkpoint and, if needed, reset its internal time to the provided value.
-    virtual void ReadCheckpoint(double time) = 0;
-
-    /// Read data from other solvers.
+    /// Process data received from other solvers.
     /// A derived class must:
-    /// - *call* the base class function to receive data from preCICE
     /// - perform any necessary processing of the data now stored in m_coupling_meshes
     /// - only access data from entries with names in m_data_read
-    virtual void ReadData() = 0;
+    virtual void OnReadData() = 0;
 
-    /// Write data for other solvers.
+    /// Prepare data to be sent to other solvers.
     /// A derived class must:
     /// - prepare the data to be sent and load it in m_coupling_meshes
     /// - only access data from entries with names in m_data_write
-    /// - *call* the base class function to send data to preCICE
-    virtual void WriteData() = 0;
+    virtual void OnWriteData() = 0;
+
+    /// Read a previously saved checkpoint (if required by preCICE).
+    /// The solver from a derived class must restore its state at the values in the last saved checkpoint and, if needed, reset its internal time to the provided value.
+    virtual void OnReadCheckpoint(double time) = 0;
+
+    /// Write a checkpoint (if required by preCICE).
+    virtual void OnWriteCheckpoint(double time) = 0;
 
     /// Let the derived class implement the actual computation of the solver time step based on the maximum time step provided by preCICE.
     /// The default implementation simply returns the maximum time step provided by preCICE, but derived classes can override this to implement custom time-stepping logic.
@@ -337,9 +348,8 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Write output from the Chrono preCICE participant.
     /// A derived class must:
-    /// - *call* the base class function to create the output DB as necessary.
     /// - write output to the DB
-    virtual void WriteOutput(int frame, double time) = 0;
+    virtual void OnWriteOutput(int frame, double time) = 0;
 
     // ---- Common functions
 

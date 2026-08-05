@@ -141,7 +141,7 @@ void ChPreciceAdapterTdpf::InitializeParticipant() {
                 case CouplingDataType::TORQUES:
                     if (m_verbose)
                         cout << "FAIL" << endl;
-                    cerr << "[InitializeParticipant] Invalid Chrono TDPF read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    cerr << "\nERROR: Invalid Chrono TDPF read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono TDPF read data type");
             }
             if (m_verbose)
@@ -175,7 +175,7 @@ void ChPreciceAdapterTdpf::InitializeParticipant() {
                 case CouplingDataType::ANGULAR_VELOCITIES:
                     if (m_verbose)
                         cout << "FAIL" << endl;
-                    cerr << "[InitializeParticipant] Invalid Chrono TDPF write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    cerr << "\nERROR: Invalid Chrono TDPF write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono TDPF write data type");
             }
             if (m_verbose)
@@ -254,22 +254,17 @@ void ChPreciceAdapterTdpf::InitializeParticipant() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterTdpf::WriteCheckpoint(double time) {
+void ChPreciceAdapterTdpf::OnWriteCheckpoint(double time) {
     throw std::runtime_error("Checkpointing not available for Chrono::FSI-TDPF");
 }
 
-void ChPreciceAdapterTdpf::ReadCheckpoint(double time) {
+void ChPreciceAdapterTdpf::OnReadCheckpoint(double time) {
     throw std::runtime_error("Checkpointing not available for Chrono::FSI-TDPF");
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterTdpf::ReadData() {
-    ChPreciceAdapter::ReadData();
-
-    if (m_verbose)
-        cout << m_prefix1 << "Process read data" << endl;
-
+void ChPreciceAdapterTdpf::OnReadData() {
     for (const auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -288,10 +283,7 @@ void ChPreciceAdapterTdpf::ReadData() {
     }
 }
 
-void ChPreciceAdapterTdpf::WriteData() {
-    if (m_verbose)
-        cout << m_prefix1 << "Prepare write data" << endl;
-
+void ChPreciceAdapterTdpf::OnWriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -308,8 +300,6 @@ void ChPreciceAdapterTdpf::WriteData() {
                 break;
         }
     }
-
-    ChPreciceAdapter::WriteData();
 }
 
 void ChPreciceAdapterTdpf::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
@@ -378,7 +368,7 @@ void ChPreciceAdapterTdpf::ReadBodyRefData(const std::string& mesh_name, const C
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono TDPF read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono TDPF read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono TDPF read data type");
         }
     }
@@ -433,7 +423,7 @@ void ChPreciceAdapterTdpf::WriteBodyRefData(const std::string& mesh_name, Coupli
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono TDPF write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono TDPF write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono TDPF write data type");
         }
     }
@@ -470,10 +460,7 @@ void ChPreciceAdapterTdpf::AdvanceParticipant(double time, double time_step) {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterTdpf::WriteOutput(int frame, double time) {
-    // Invoke first the base class function, to create the output DB if needed
-    ChPreciceAdapter::WriteOutput(frame, time);
-
+void ChPreciceAdapterTdpf::OnWriteOutput(int frame, double time) {
     //// TODO
 }
 

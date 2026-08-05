@@ -50,14 +50,15 @@ class ChApiPrecice ChPreciceAdapterTdpf : public ChPreciceAdapter {
 
   public:
     // Implementation of base class virtual methods
+    virtual size_t GetNumFsiBodies() const override;
     virtual void InitializeParticipant() override;
-    virtual void WriteCheckpoint(double time) override;
-    virtual void ReadCheckpoint(double time) override;
-    virtual void ReadData() override;
+    virtual void OnReadData() override;
+    virtual void OnWriteData() override;
+    virtual void OnReadCheckpoint(double time) override;
+    virtual void OnWriteCheckpoint(double time) override;
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
-    virtual void WriteData() override;
-    virtual void WriteOutput(int frame, double time) override;
+    virtual void OnWriteOutput(int frame, double time) override;
 
   private:
     struct CouplingBody {
