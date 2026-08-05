@@ -264,11 +264,11 @@ class ChApiPrecice ChPreciceAdapter {
     // ---- Data exchange
 
     /// Receive data from other participant(s) via preCICE.
-    /// The received data is then passed to the concrete participant.
+    /// The received data is then passed to the concrete participant (via `OnReadData`).
     void ReadData();
 
     /// Send data to other participant(s) via preCICE.
-    /// The concrete participant first prepares the data to be sent.
+    /// The concrete participant first prepares the data to be sent (via `OnWriteData`).
     void WriteData();
 
     /// Set the (write) data vector for the specified mesh and data names.
@@ -445,11 +445,48 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Process preCICE configuration information.
     /// - Check consistency with the Chrono adapter configuration,
-    /// - Mark mesh data as used (referenced) or not. 
+    /// - Mark mesh data as used (referenced) or not.
     void ProcessXML();
 
     MeshDataNames m_defined_meshes;                          ///< meshes defined in preCICE configuration file
     std::map<std::string, MeshDataNames> m_provided_meshes;  ///< meshes provided by a participant
+
+  protected:
+    /// Return dimension of one added mass block.
+    /// Called only is using dynamic added mass.
+    virtual size_t GetNumFsiBodies() const;
+
+    /// Process added mass data received via preCICE.
+    /// Called only if using dynamic added mass on a receiving participant.
+    /// The default implementation is a no-op and must be overridden if using dynamic added mass and this is a receiving participant.
+    virtual void OnReadDataAM(const std::vector<ChMatrix66d>& blocks);
+
+    /// Prepare added mass data to be sent via preCICE.
+    /// Called only if using dynamic added mass on a sending participant.
+    /// The default implementation is a no-op and must be overridden if using dynamic added mass and this is a sending participant.
+    virtual void OnWriteDataAM(std::vector<ChMatrix66d>& blocks);
+
+  private:
+    /// Create and register internal exchange mesh for added mass information.
+    /// The approach used here is based on a "pseudo reference domain":
+    /// - use a fictitious mesh with coordinates encoding the FSI body and matrix row and column in the corresponding added mass block.
+    /// - define scalar data on this mesh (each value is an entry in the added mass diagonal block for a body).
+    /// - apply a nearest-neighbor mapping to pass generic arrays representing updates to the added mass generalized mass matrix term.
+    void RegisterMeshAM();
+
+    /// Read added mass data (if using dynamic added mass and if on a receiving participant).
+    /// The received data is then passed to the concrete participant (via `OnReadDataAM`).
+    void ReadDataAM();
+
+    /// Write added mass data (if using dynamic added mass and if on a receiving participant).
+    /// The concrete participant first prepares the data to be sent (via `OnWriteDataAM`).
+    void WriteDataAM();
+
+    bool m_AMmesh_write = false;
+    bool m_AMmesh_read = false;
+    std::string m_AMmesh_name;
+    std::vector<int> m_AMmesh_vertexIDs;
+    std::vector<double> m_AMmesh_values;
 };
 
 /// @} precice_module

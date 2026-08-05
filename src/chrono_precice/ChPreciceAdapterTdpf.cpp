@@ -101,6 +101,10 @@ void ChPreciceAdapterTdpf::AddCouplingBody(const std::string& name, const ChFram
 
 // -----------------------------------------------------------------------------
 
+size_t ChPreciceAdapterTdpf::GetNumFsiBodies() const {
+    return m_coupling_bodies.size();
+}
+
 void ChPreciceAdapterTdpf::InitializeParticipant() {
     // For each interface mesh:
     // - check that coupling meshes have dimension 3 (as reported by preCICE)

@@ -234,6 +234,10 @@ void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>
 
 // -----------------------------------------------------------------------------
 
+size_t ChPreciceAdapterMbs::GetNumFsiBodies() const {
+    return m_coupling_bodies.size();
+}
+
 void ChPreciceAdapterMbs::InitializeParticipant() {
     // For each interface mesh:
     // - check that coupling meshes have dimension 2 or 3 (as reported by preCICE)
@@ -360,17 +364,27 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     }
 
     // Handle added mass info (applied via a Chrono ChLoadHydrodynamics)
-    if (m_use_added_mass) {
-        ChAssertAlways(m_has_added_mass);
-        auto num_bodies = m_coupling_bodies.size();
+    auto num_bodies = m_coupling_bodies.size();
+
+    // 1. if using dynamic added mass but the participant does not provide the necessary information,
+    //    assume zero "static" added mass blocks and allocate space for the updates communicated via preCICE.
+    if (m_use_dynamic_added_mass && !m_has_added_mass) {
+        m_added_mass_blocks.resize(num_bodies);
+        for (auto& block : m_added_mass_blocks)
+            block.setZero(6, 6 * num_bodies);
+        m_has_added_mass = true;
+    }
+
+    // 2. if we have added mass blocks, create the ChHydrodynamicsLoad object
+    if (m_has_added_mass) {
         ChAssertAlways(m_added_mass_blocks.size() == num_bodies);
         ChBodyAddedMassBlocks body_blocks;
         for (size_t i = 0; i < num_bodies; i++) {
             body_blocks.push_back({m_coupling_bodies[i]->body, m_added_mass_blocks[i]});
         }
-        auto hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
-        hydro_load->SetVerbose(m_verbose);
-        m_sys->Add(hydro_load);
+        m_hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
+        m_hydro_load->SetVerbose(m_verbose);
+        m_sys->Add(m_hydro_load);
     }
 
     // Allocate space for checkpoint
@@ -788,6 +802,16 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 throw std::runtime_error("Invalid Chrono MBS write data type");
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapterMbs::OnReadDataAM(const std::vector<ChMatrix66d>& blocks) {
+    auto num_bodies = m_coupling_bodies.size();
+    assert(blocks.size() > 0);
+    assert(m_has_added_mass);
+
+    m_hydro_load->UpdateBodyAddedMassBlocks(blocks);
 }
 
 // -----------------------------------------------------------------------------

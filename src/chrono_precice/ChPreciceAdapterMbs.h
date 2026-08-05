@@ -122,6 +122,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     virtual void InitializeParticipant() override;
     virtual void OnReadData() override;
     virtual void OnWriteData() override;
+    virtual void OnReadDataAM(const std::vector<ChMatrix66d>& blocks) override;
     virtual void OnReadCheckpoint(double time) override;
     virtual void OnWriteCheckpoint(double time) override;
     virtual double GetSolverTimeStep(double max_time_step) const override;
@@ -180,7 +181,8 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 #endif
 
     bool m_has_added_mass;                               ///< participant provides added mass
-    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;  ///< added mass blocks 
+    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;  ///< added mass blocks
+    std::shared_ptr<ChLoadHydrodynamics> m_hydro_load;   ///< hydrodynamic added mass loads
 
     // Dynamics callbacks
     std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics
