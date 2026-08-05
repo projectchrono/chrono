@@ -163,11 +163,18 @@ if(CH_ENABLE_MODULE_SENSOR)
     handlers/sensor/ChROSGPSHandler.cpp
     handlers/sensor/ChROSIMUHandler.h
     handlers/sensor/ChROSIMUHandler.cpp
-    handlers/sensor/ChROSCameraHandler.h
-    handlers/sensor/ChROSCameraHandler.cpp
-    handlers/sensor/ChROSLidarHandler.h
-    handlers/sensor/ChROSLidarHandler.cpp
   )
+  # Camera and lidar are OptiX-only sensors: their headers include
+  # ChOptixSensor.h, which pulls in optix.h. Skip them when Chrono::Sensor is
+  # built without OptiX (no CUDA/OptiX found, or the HIP backend).
+  if(CH_USE_SENSOR_OPTIX)
+    list(APPEND CH_ROS_SENSOR_HANDLER_FILES
+      handlers/sensor/ChROSCameraHandler.h
+      handlers/sensor/ChROSCameraHandler.cpp
+      handlers/sensor/ChROSLidarHandler.h
+      handlers/sensor/ChROSLidarHandler.cpp
+    )
+  endif()
   source_group("handlers\\sensor" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
   list(APPEND CH_ROS_API_FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 endif()
@@ -271,7 +278,17 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_ros
         FILES_MATCHING PATTERN "*.h"
         PATTERN "node" EXCLUDE
-        PATTERN "tests_dev" EXCLUDE)
+        PATTERN "tests_dev" EXCLUDE
+        PATTERN "ChROSCameraHandler.h" EXCLUDE
+        PATTERN "ChROSLidarHandler.h" EXCLUDE)
+
+# Installed only with OptiX, mirroring Chrono::Sensor: without OptiX it does not
+# install ChCameraSensor.h / ChLidarSensor.h, which these headers include.
+if(CH_USE_SENSOR_OPTIX)
+  install(FILES handlers/sensor/ChROSCameraHandler.h
+                handlers/sensor/ChROSLidarHandler.h
+          DESTINATION include/chrono_ros/handlers/sensor)
+endif()
 
 #-----------------------------------------------------------------------------
 # chrono_ros_node: the bridge subprocess (NO Chrono dependency)

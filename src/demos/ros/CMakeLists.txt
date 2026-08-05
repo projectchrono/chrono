@@ -8,6 +8,7 @@ set(DEMOS
 )
 
 # demo_ROS_sensor exercises the IMU/GPS/camera/lidar handlers (Chrono::Sensor).
+# demo degrades itself if Chrono::Sensor has no OptiX backend.
 if(CH_ENABLE_MODULE_SENSOR)
   list(APPEND DEMOS demo_ROS_sensor)
 endif()

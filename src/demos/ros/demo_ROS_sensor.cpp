@@ -22,6 +22,11 @@
 //   ros2 topic hz   /chrono_ros_node/output/camera/data/image
 //   ros2 topic echo /chrono_ros_node/output/lidar/data/pointcloud --field width
 //
+// The camera and lidar are rendered sensors, available only when Chrono::Sensor
+// is built with OptiX. Without it (no CUDA/OptiX, or the HIP backend) this demo
+// still builds and publishes the IMU/GPS suite; the image and point cloud topics
+// are simply absent.
+//
 // NOTE on visualization: this pushes Chrono's own ChFilterVisualize (camera) and
 // ChFilterVisualizePointCloud (lidar) preview windows alongside the data-access
 // filters the ROS handlers read. On a headless host (e.g. inside Docker) these
@@ -42,24 +47,30 @@
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
 #include "chrono_ros/handlers/ChROSTFHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGyroscopeHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSMagnetometerHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSIMUHandler.h"
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/sensors/ChCameraSensor.h"
-#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChNoiseModel.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterPCfromDepth.h"
-#include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+
+// Camera and lidar are rendered sensors and exist only in an OptiX-enabled
+// Chrono::Sensor; so do their ROS handlers, the scene, and the preview filters.
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
+    #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
+    #include "chrono_sensor/sensors/ChCameraSensor.h"
+    #include "chrono_sensor/sensors/ChLidarSensor.h"
+    #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
+    #include "chrono_sensor/filters/ChFilterVisualize.h"
+    #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+#endif
 
 #include <iostream>
 
@@ -74,6 +85,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemNSC sys;
 
+#ifdef CHRONO_HAS_OPTIX
     // A mesh body so the camera/lidar have something to see (scene dressing).
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("vehicle/audi/audi_chassis.obj"), false, true);
@@ -89,6 +101,7 @@ int main(int argc, char* argv[]) {
     mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, 0, 0)));
     mesh_body->SetFixed(true);
     sys.Add(mesh_body);
+#endif
 
     // The body the sensors are attached to.
     auto ground_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
@@ -103,6 +116,8 @@ int main(int argc, char* argv[]) {
 
     // Sensor manager + scene (lights + environment map are render inputs; no display needed).
     auto sensor_manager = chrono_types::make_shared<ChSensorManager>(&sys);
+
+#ifdef CHRONO_HAS_OPTIX
     sensor_manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 500);
     sensor_manager->scene->SetAmbientLight({0.1f, 0.1f, 0.1f});
     Background b;
@@ -132,6 +147,9 @@ int main(int argc, char* argv[]) {
     lidar_2d->PushFilter(chrono_types::make_shared<ChFilterDIAccess>());
     lidar_2d->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 480, "2D Lidar"));
     sensor_manager->AddSensor(lidar_2d);
+#else
+    std::cout << "Chrono::Sensor was built without OptiX: publishing the IMU/GPS suite only." << std::endl;
+#endif
 
     // IMU/GPS suite.
     auto acc = chrono_types::make_shared<ChAccelerometerSensor>(ground_body, 100.f, offset_pose, noise_none);
@@ -156,6 +174,7 @@ int main(int argc, char* argv[]) {
     auto ros_manager = chrono_types::make_shared<ChROSManager>();
     ros_manager->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
 
+#ifdef CHRONO_HAS_OPTIX
     ros_manager->RegisterHandler(chrono_types::make_shared<ChROSCameraHandler>(
         cam->GetUpdateRate() / 2, cam, "~/output/camera/data/image"));
 
@@ -164,6 +183,7 @@ int main(int argc, char* argv[]) {
 
     ros_manager->RegisterHandler(chrono_types::make_shared<ChROSLidarHandler>(
         lidar_2d, "~/output/lidar_2d/data/laser_scan", ChROSLidarHandlerMessageType::LASER_SCAN));
+#endif
 
     auto acc_handler =
         chrono_types::make_shared<ChROSAccelerometerHandler>(acc->GetUpdateRate() / 2, acc, "~/output/accelerometer/data");
@@ -184,9 +204,11 @@ int main(int argc, char* argv[]) {
     // One TF handler broadcasting each sensor's frame (its offset pose) relative
     // to the body it's mounted on.
     auto tf_handler = chrono_types::make_shared<ChROSTFHandler>(100);
+#ifdef CHRONO_HAS_OPTIX
     tf_handler->AddSensor(cam, ground_body->GetName(), "camera");
     tf_handler->AddSensor(lidar, ground_body->GetName(), "lidar");
     tf_handler->AddSensor(lidar_2d, ground_body->GetName(), "lidar_2d");
+#endif
     tf_handler->AddSensor(acc, ground_body->GetName(), "accelerometer");
     tf_handler->AddSensor(gyro, ground_body->GetName(), "gyroscope");
     tf_handler->AddSensor(mag, ground_body->GetName(), "magnetometer");
