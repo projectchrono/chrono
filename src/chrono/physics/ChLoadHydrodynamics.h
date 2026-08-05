@@ -58,7 +58,12 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Modify the added mass blocks.
+    /// In this case, each given block is assumed to have size 6 x 6n.
     void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);
+
+    /// Modify the added mass block.
+    /// In this case, each given block is assumed to have size 6 x 6 and is added to the diagonal of the generalized mass matrix.
+    void UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66d>& blocks);
 
     /// Perform setup operations at the beginning of a step.
     virtual void Setup() override {}

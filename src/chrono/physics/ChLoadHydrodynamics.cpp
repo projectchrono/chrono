@@ -46,11 +46,19 @@ ChLoadHydrodynamics::ChLoadHydrodynamics(const ChLoadHydrodynamics& other) {
 ChLoadHydrodynamics::~ChLoadHydrodynamics() {}
 
 void ChLoadHydrodynamics::SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks) {
-    auto num_bodies = (int)m_body_blocks.size();
+    auto num_bodies = m_body_blocks.size();
     ChAssertAlways(blocks.size() == num_bodies);
     for (size_t i = 0; i < num_bodies; i++) {
         ChAssertAlways(m_body_blocks[i].block.rows() == blocks[i].rows() && m_body_blocks[i].block.cols() == blocks[i].cols());
         m_body_blocks[i].block = blocks[i];
+    }
+}
+
+void ChLoadHydrodynamics::UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66d>& blocks) {
+    auto num_bodies = m_body_blocks.size();
+    ChAssertAlways(blocks.size() == num_bodies);
+    for (size_t i = 0; i < num_bodies; i++) {
+        m_body_blocks[i].block(Eigen::seq(i, i + 5), Eigen::seq(i, i + 5)) = blocks[i];
     }
 }
 
