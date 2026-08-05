@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,90 +12,79 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// ROS Handler for communicating gps information
+// ROS handler for a ChGPSSensor (publishes sensor_msgs/msg/NavSatFix).
 //
 // =============================================================================
 
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSGPSHandler_ipc.h"
 
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
+#include "chrono_ros/ChROSBridge.h"
+#include "chrono_ros/ChROSPublisher.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/utils/ChGPSUtils.h"
+
+#include <iostream>
 
 using namespace chrono::sensor;
 
 namespace chrono {
 namespace ros {
 
+// sensor_msgs/msg/NavSatStatus covariance-type constant (the message defines
+// COVARIANCE_TYPE_APPROXIMATED = 2); the schema carries no symbolic constants.
+static constexpr uint64_t COVARIANCE_TYPE_APPROXIMATED = 2;
+
 ChROSGPSHandler::ChROSGPSHandler(std::shared_ptr<ChGPSSensor> gps, const std::string& topic_name)
     : ChROSGPSHandler(gps->GetUpdateRate(), gps, topic_name) {}
 
-ChROSGPSHandler::ChROSGPSHandler(double update_rate, std::shared_ptr<ChGPSSensor> gps, const std::string& topic_name)
+ChROSGPSHandler::ChROSGPSHandler(double update_rate,
+                                 std::shared_ptr<ChGPSSensor> gps,
+                                 const std::string& topic_name)
     : ChROSHandler(update_rate), m_gps(gps), m_topic_name(topic_name), m_running_average({0, 0, 0}) {}
 
-bool ChROSGPSHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
+bool ChROSGPSHandler::Initialize(ChROSBridge& bridge) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterGPSAccess, ChFilterGPSAccessName>(m_gps)) {
         return false;
     }
-
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
-        return false;
-    }
-
+    m_publisher = bridge.CreatePublisher(m_topic_name, "sensor_msgs/msg/NavSatFix");
     return true;
 }
 
-std::vector<uint8_t> ChROSGPSHandler::GetSerializedData(double time) {
-    // if (!ShouldTick(time)) {
-    //     return {};
-    // }
-
-    auto gps_ptr = m_gps->GetMostRecentBuffer<UserGPSBufferPtr>();
-    if (!gps_ptr->Buffer) {
-        // TODO: Is this supposed to happen?
-        // std::cout << "GPS buffer is not ready. Not ticking." << std::endl;
-        return {};
+void ChROSGPSHandler::Tick(double time) {
+    auto buffer = m_gps->GetMostRecentBuffer<UserGPSBufferPtr>();
+    if (!buffer->Buffer) {
+        std::cout << "GPS: waiting for first fix..." << std::endl;  // normal during warm-up
+        return;
     }
 
-    GPSData gps_data = gps_ptr->Buffer[0];
-    
-    ipc::GPSData msg;
-    strncpy(msg.topic_name, m_topic_name.c_str(), sizeof(msg.topic_name) - 1);
-    strncpy(msg.frame_id, m_gps->GetName().c_str(), sizeof(msg.frame_id) - 1);
-    msg.time = gps_data.Time;
-    msg.latitude = gps_data.Latitude;
-    msg.longitude = gps_data.Longitude;
-    msg.altitude = gps_data.Altitude;
+    GPSData data = buffer->Buffer[0];
+    auto covariance = CalculateCovariance(data);
 
-    // Update the covariance matrix
-    auto covariance = CalculateCovariance(gps_data);
-    IncrementTickCount();
-    std::memcpy(msg.position_covariance, covariance.data(), sizeof(msg.position_covariance));
-
-    std::vector<uint8_t> buffer(sizeof(ipc::GPSData));
-    std::memcpy(buffer.data(), &msg, sizeof(ipc::GPSData));
-
-    return buffer;
+    auto msg = m_publisher->NewMessage();
+    msg.SetString("header.frame_id", m_gps->GetName());
+    msg.SetTime("header.stamp", data.Time);  // sensor timestamp, not the sim step time
+    msg.SetDouble("latitude", data.Latitude);
+    msg.SetDouble("longitude", data.Longitude);
+    msg.SetDouble("altitude", data.Altitude);
+    msg.SetBlobCopy("position_covariance", covariance.data(), 9);
+    msg.SetUInt("position_covariance_type", COVARIANCE_TYPE_APPROXIMATED);
+    m_publisher->Publish(msg);
 }
 
 std::array<double, 9> ChROSGPSHandler::CalculateCovariance(const GPSData& gps_data) {
+    // The ChGPSSensor does not emit covariance; approximate it from a running mean
+    // of the position in local ENU coordinates.
     auto gps_coord = chrono::ChVector3d(gps_data.Latitude, gps_data.Longitude, gps_data.Altitude);
     auto gps_reference = m_gps->GetGPSReference();
     chrono::sensor::GPS2Cartesian(gps_coord, gps_reference);
-    auto enu_data = gps_coord;
 
-    std::array<double, 3> enu_data_array = {enu_data.x(), enu_data.y(), enu_data.z()};
-
-    // Update the running average
-    for (int i = 0; i < 3; i++) 
-        m_running_average[i] += (enu_data_array[i] - m_running_average[i]) / (GetTickCount() + 1);
-
-    // Calculate and return the covariance
-    auto count = (GetTickCount() > 1 ? GetTickCount() - 1 : 1);  // Avoid divide by zero (if only one tick, count = 1)
-    return ChROSSensorHandlerUtilities::CalculateCovariance(enu_data_array, m_running_average, count);
+    std::array<double, 3> enu = {gps_coord.x(), gps_coord.y(), gps_coord.z()};
+    for (int i = 0; i < 3; i++)
+        m_running_average[i] += (enu[i] - m_running_average[i]) / (GetTickCount() + 1);
+    auto count = (GetTickCount() > 1 ? GetTickCount() - 1 : 1);
+    return ChROSSensorHandlerUtilities::CalculateCovariance(enu, m_running_average, count);
 }
 
 }  // namespace ros

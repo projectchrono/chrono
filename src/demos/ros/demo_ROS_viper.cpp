@@ -1,18 +1,22 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
-// All right reserved.
+// Copyright (c) 2026 projectchrono.org
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// Demo showing the integration of ROS with the Viper rover model
+// Demo: integrating ROS with the Viper rover. Subscribes to motor commands
+// (chrono_ros_interfaces/msg/ViperDCMotorControl) and publishes the rover state.
+//
+//   ros2 topic echo /chrono_ros_node/output/rover/state/pose
+//   ros2 topic pub  /chrono_ros_node/input/driver_inputs ...
 //
 // =============================================================================
 
@@ -40,25 +44,18 @@ using namespace chrono;
 using namespace chrono::viper;
 using namespace chrono::ros;
 
-// -----------------------------------------------------------------------------
-
-// Run-time visualization system (IRRLICHT or VSG)
+// Run-time visualization system (IRRLICHT or VSG).
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// -----------------------------------------------------------------------------
-
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
+    std::cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
-    // Create the Chrono system with gravity in the negative Z direction
     ChSystemNSC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
-
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
-    // Create the ground.
     auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
     ground->SetPos(ChVector3d(0, 0, -0.5));
@@ -66,15 +63,12 @@ int main(int argc, char* argv[]) {
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 60, 45);
     sys.Add(ground);
 
-    // Construct a Viper rover and the asociated driver
-    ////auto driver = chrono_types::make_shared<ViperSpeedDriver>(1.0, 5.0);
+    // Viper rover with a DC-motor-control driver (commanded from ROS).
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
-
     Viper viper(&sys, ViperWheelType::RealWheel);
     viper.SetDriver(driver);
     viper.Initialize(ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT));
 
-    // Create the run-time visualization interface
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -100,7 +94,6 @@ int main(int argc, char* argv[]) {
             vis_irr->AddTypicalLights();
             vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
             vis_irr->EnableShadows();
-
             vis = vis_irr;
 #endif
             break;
@@ -112,7 +105,6 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(3, 3, 1));
             vis_vsg->SetWindowTitle("Viper Rover on Rigid Terrain");
             vis_vsg->Initialize();
-
             vis = vis_vsg;
 #endif
             break;
@@ -121,52 +113,34 @@ int main(int argc, char* argv[]) {
             throw std::runtime_error("Failed to initialize a visualization method.");
     }
 
-    // ------------
-
-    // Create ROS manager
+    // ------------ ROS: clock + Viper motor-control subscriber + rover state.
     auto ros_manager = chrono_types::make_shared<ChROSManager>();
+    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
 
-    // Create a publisher for the simulation clock
-    // The clock automatically publishes on every tick and on topic /clock
-    auto clock_handler = chrono_types::make_shared<ChROSClockHandler>();
-    ros_manager->RegisterHandler(clock_handler);
+    ros_manager->RegisterHandler(
+        chrono_types::make_shared<ChROSViperDCMotorControlHandler>(25, driver, "~/input/driver_inputs"));
 
-    // Create a subscriber to the driver inputs
-    auto driver_inputs_rate = 25;
-    auto driver_inputs_topic_name = "~/input/driver_inputs";
-    auto driver_inputs_handler = chrono_types::make_shared<ChROSViperDCMotorControlHandler>(driver_inputs_rate, driver,
-                                                                                            driver_inputs_topic_name);
-    ros_manager->RegisterHandler(driver_inputs_handler);
+    ros_manager->RegisterHandler(
+        chrono_types::make_shared<ChROSBodyHandler>(25, viper.GetChassis()->GetBody(), "~/output/rover/state"));
 
-    // Create a publisher for the rover state
-    auto rover_state_rate = 25;
-    auto rover_state_topic_name = "~/output/rover/state";
-    auto rover_state_handler = chrono_types::make_shared<ChROSBodyHandler>(
-        rover_state_rate, viper.GetChassis()->GetBody(), rover_state_topic_name);
-    ros_manager->RegisterHandler(rover_state_handler);
-
-    // Finally, initialize the ros manager
     ros_manager->Initialize();
 
-    // ------------
+    // ------------ Simulation loop
 
-    double time = 0;
     double time_step = 1e-3;
     double time_end = 30;
 
-    // Simulation loop
 #if !defined(CHRONO_IRRLICHT) && !defined(CHRONO_VSG)
+    double time = 0;
     while (time < time_end) {
+        time = sys.GetChTime();
 #else
     while (vis->Run()) {
+        double time = sys.GetChTime();
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
 #endif
-        // Set current steering angle
-        double time = sys.GetChTime();
-
-        // Updates
         viper.Update();
         if (!ros_manager->Update(time, time_step))
             break;
