@@ -27,11 +27,10 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
   * NVIDIA Graphics driver R580 or newer - appropriate for the OptiX version
 
 <div class="ce-warning">
-
-OptiX support in Chrono::Sensor is now **optional**. If OptiX is not available, sensor models that require ray-tracing (e.g., camera, lidar, radar) will not be included in the Chrono::Sensor library. Availability of OptiX support is indicated via the macro `CHRONO_HAS_OPTIX` in the configuration header `ChConfigSensor.h`.
-
+OptiX support in Chrono::Sensor is now **optional**. If OptiX is not available, sensor models that require ray-tracing (e.g., camera, lidar, radar) will not be included in the Chrono::Sensor library.
+Availability of OptiX support is indicated via the macro `CHRONO_HAS_OPTIX` in the configuration header `ChConfigSensor.h`.
+<br>
 Even if OptiX is available, users can disable the ray-tracing-based sensor (by setting the `CH_USE_SENSOR_OPTIX` CMake variable to `OFF`).
-
 </div>
 
 ## Building instructions

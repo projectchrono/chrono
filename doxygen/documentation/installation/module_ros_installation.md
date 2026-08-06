@@ -13,7 +13,7 @@ For more detail, read the [Chrono::ROS](@ref manual_ros) section of the referenc
 ## Requirements
 
 - To build and run applications based on this module, the following are required:
-  - A Linux Distro(Any ROS2 distro) or Windows 11(Requires ROS2 Lyrical).
+  - A distribution for Linux (any ROS2 distribution) or Windows 11 (requires ROS2 Lyrical).
   - Available shared memory (`/dev/shm`) sized for the bridge's channel.
     - The simulation and the ROS subprocess communicate over a shared-memory channel. Its default capacity is 128 MiB for simulation-to-ROS (publishing) traffic plus 32 MiB for ROS-to-simulation (received-command) traffic.
     - Sizing: peak `sim->node` usage is roughly (number of actively-subscribed large topics) × (per-message size). Handlers skip publishing a topic that has no subscriber, and the subprocess drains the channel continuously, so frames rarely accumulate beyond one or two per topic. A 4K RGBA8 image is ~31.6 MiB, so the 128 MiB default holds about four such frames in flight — ample in practice. If `ChROSBridge::GetDroppedOutboundCount()` grows during a run, a subscriber was too slow to keep up and the channel filled momentarily.
