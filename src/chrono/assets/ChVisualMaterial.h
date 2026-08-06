@@ -144,9 +144,8 @@ class ChApi ChVisualMaterial {
 
     /// Create a default material.
     /// This is the shared material that describes a visual shape carrying no material of its own. It
-    /// is what ChVisualShape::GetColor() reports for an empty material list, and what the Irrlicht,
-    /// VSG and Sensor rendering backends all use for such a shape. Every call returns the same
-    /// object.
+    /// is what ChVisualShape::GetColor() reports for an empty material list, and what all run-time
+    /// visualization systems use for such a shape. Every call returns the same object.
     ///
     /// Do not mutate what this returns. The pointer is non-const only because attaching a material to
     /// a shape takes a non-const shared_ptr; a setter called on this object would change the

@@ -456,7 +456,7 @@ TEST(ChSensorRngStreams, manager_slots_are_distinct_while_alive_and_reused_after
                                                   "drift and reproducibility is lost";
 }
 
-// Default behaviour must be unchanged: with no fixed seed every call reads the clock afresh, so
+// Default behavior must be unchanged: with no fixed seed every call reads the clock afresh, so
 // nothing is reproducible unless the user asks for it.
 TEST(ChSensorRngStreams, no_fixed_seed_still_varies_per_call) {
     Scene scene;
@@ -473,7 +473,7 @@ TEST(ChSensorRngStreams, no_fixed_seed_still_varies_per_call) {
     // A clock with coarse resolution could legitimately repeat a value on consecutive calls, so this
     // asserts "not all the same" rather than "all distinct". A fixed seed would give exactly one.
     EXPECT_GT(seeds.size(), (size_t)1) << "the no-fixed-seed path looks constant, which would make the "
-                                          "default behaviour deterministic without the user asking";
+                                          "default behavior deterministic without the user asking";
 }
 
 // Seeding from the unassigned sentinel would give every unregistered sensor the same stream, so it

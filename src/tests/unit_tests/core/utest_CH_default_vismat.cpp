@@ -14,18 +14,12 @@
 //
 // What a visual shape with no material of its own looks like.
 //
-// Chrono has one answer to that question, ChVisualMaterial::Default(), and every rendering
-// backend is supposed to use it. The OptiX backend used to keep a second, hardcoded answer
-// (Kd = 0.5 grey, roughness = 1), which drifted from the shared one when the shared one was
-// corrected in 2022. The result was measurable: a material-less box rendered exactly 2x darker
-// under OptiX than under the Vulkan RT backend, and, with no second backend involved at all,
-// two standard Chrono box helpers rendered the same box differently, because
-// chrono::utils::AddBoxGeometry attaches Default() while ChBodyEasyBox attaches nothing.
+// Chrono has one answer to that question, ChVisualMaterial::Default(), and every
+// rendering backend is supposed to use it. 
 //
-// These tests pin the shared answer. They are deliberately CPU-only and live outside the OptiX
-// block in CMakeLists: they test the contract the backends must honour, not the GPU code that
-// honours it, so they must also run in builds without OptiX. The OptiX side is covered by
-// demo_SEN_vulkan_validation --probe-box-material, which needs a GPU.
+// These tests are deliberately CPU-only and live outside the OptiX block in CMakeLists:
+// they test the contract the backends must honor, not the GPU code that honors it, so
+// they must also run in builds without OptiX.
 //
 // =============================================================================
 
@@ -88,7 +82,7 @@ TEST(DefaultVisualMaterial, empty_material_list_reports_the_default_color) {
 // converts, without testing bsdf_type first, so every render was copying indeterminate host memory
 // to the GPU. It could not change a pixel, because the shader only reads those values when the
 // user selected the Hapke BSDF and such a user has called SetHapkeParameters. Latent, but still
-// undefined behaviour, and the fix routes one more caller through that read.
+// undefined behavior, and the fix routes one more caller through that read.
 //
 // Note what this test can and cannot do: reading an uninitialized float is undefined, so a build
 // where it is broken may legitimately produce anything, including these values by luck. The test
@@ -137,7 +131,7 @@ TEST(DefaultVisualMaterial, two_fresh_materials_agree_on_every_read_field) {
 }
 
 // SetHapkeParameters sets the seven floats and nothing else. Recorded so that defaulting
-// use_hapke to false cannot be mistaken for a behaviour change: a Hapke user must already call
+// use_hapke to false cannot be mistaken for a behavior change: a Hapke user must already call
 // SetBSDF separately, since neither this setter nor the constructor touches bsdf_type.
 TEST(DefaultVisualMaterial, set_hapke_parameters_does_not_switch_the_bsdf) {
     ChVisualMaterial mat;
@@ -159,7 +153,7 @@ TEST(DefaultVisualMaterial, default_is_a_stable_singleton) {
 }
 
 // SetColor on a shape must never write through to the shared default. ChVisualShape guards this
-// with copy-on-write; if that guard were lost, colouring one shape would recolour every
+// with copy-on-write; if that guard were lost, coloring one shape would recolor every
 // material-less shape in every scene, including through the OptiX default path this change adds.
 TEST(DefaultVisualMaterial, coloring_a_shape_does_not_mutate_the_singleton) {
     const ChColor before = ChVisualMaterial::Default()->GetDiffuseColor();
@@ -344,8 +338,8 @@ TEST(DefaultVisualMaterial, an_empty_material_list_survives_a_round_trip) {
 
 // The inconsistency that showed this was not a deliberate convention. ChBodyEasyBox leaves the
 // material list empty; chrono::utils::AddBoxGeometry defaults its vis_material argument to
-// Default() and attaches it. Under the old OptiX code those rendered 0.5 grey and white
-// respectively. They must now report the same colour, since both resolve to the same default.
+// Default() and attaches it. Under the old OptiX code those rendered 0.5 gray and white
+// respectively. They must now report the same color, since both resolve to the same default.
 TEST(DefaultVisualMaterial, easy_box_and_explicit_default_agree_on_color) {
     ChSystemNSC sys;
 

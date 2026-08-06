@@ -1,16 +1,6 @@
 set(TESTS
     utest_SEN_gps
-    # Deliberately outside the OptiX block: it tests the seed algebra and identity assignment, not
-    # cuRAND, so it must also run in configurations built without OptiX.
     utest_SEN_rng_streams
-    # Also outside the OptiX block: it pins what a shape with no material of its own looks like,
-    # which is the contract every backend must honour, not the GPU code that honours it.
-    utest_SEN_default_material
-    # One test, deliberately in its own executable. ChVisualMaterial::Default() initializes a static
-    # on first call, so a concurrent-first-access test only has something to race over if nothing in
-    # the process has called Default() yet. Sharing a binary with the tests above would leave the
-    # static already built and the test unable to fail; measured, 0 of 200 runs versus 200 of 200.
-    utest_SEN_default_material_firstaccess
 )
 
 if(CH_USE_SENSOR_OPTIX)

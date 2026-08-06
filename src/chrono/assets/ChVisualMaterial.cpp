@@ -37,11 +37,6 @@ ChVisualMaterial::ChVisualMaterial()
       instance_id(0),
       emissive_power(0.f),
       bsdf_type(BSDFType::PRINCIPLED),
-      // The Hapke members are only meaningful once SetHapkeParameters and SetBSDF(HAPKE) have
-      // both been called, but they must still be initialized here. Consumers read them
-      // unconditionally: ChOptixPipeline::GetMaterial copies all seven into its device-side
-      // material struct for every material it converts, without testing bsdf_type first. Leaving
-      // them out of this list made that a read of indeterminate values.
       use_hapke(false),
       hapke_w(0.f),
       hapke_b(0.f),

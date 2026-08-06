@@ -26,13 +26,6 @@
 // the shared binary and failed 200 out of 200 runs as its own binary. One test alone in a process
 // is what makes it the first caller.
 //
-// What it catches: the pattern this change replaced, a namespace-scope pointer initialized under
-// "if (!ptr) ptr = ...", which has no synchronization at all. C++11 guarantees thread-safe
-// initialization of a function-local static instead, so the shipped code needs no lock and gets
-// none. Measured on the old code: every run returned more than one distinct material, worst case 7
-// of 8 threads holding a different object, and some runs aborted outright in the allocator, since
-// racing shared_ptr assignments corrupt the reference count.
-//
 // =============================================================================
 
 #include <atomic>
