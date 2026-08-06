@@ -1538,6 +1538,14 @@ if(CHRONO_THRUST_FOUND)
   endif()
 endif()
 
+if(CHRONO_CUDA_FOUND)
+  # The multicore collision sources reach the CUDA runtime API through gpu/ChGpuRuntime.h, so
+  # Chrono_core itself references cudaGetErrorString. Declare that here rather than leaving the
+  # symbol for a consumer to satisfy by accident: it resolves only in builds where something else
+  # already links the runtime, and fails in those where nothing does.
+  target_link_libraries(Chrono_core PRIVATE CUDA::cudart)
+endif()
+
 if(CH_ENABLE_OPENMP)
   target_link_libraries(Chrono_core PUBLIC OpenMP::OpenMP_CXX)
 endif()
