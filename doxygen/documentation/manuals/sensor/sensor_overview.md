@@ -30,6 +30,7 @@ The Chrono::Sensor module provides support for simulating RGB cameras, lidar, ra
 		 - Fresnel effect
 		 - Mesh support based on Wavefront OBJ+MTL format
 		 - Programmatic material creation
+		 - A shape carrying no ChVisualMaterial is rendered with ChVisualMaterial::Default(), the same material the Irrlicht and VSG visualization systems use for such a shape. The values are copied into the device-side material pool when the scene is built, on the first sensor update, so mutating the shared default after that has no effect on what a sensor renders.
 		 - Legacy integrator supports partial transparency without refractance
 	 - Objects
 		 - Box primitives

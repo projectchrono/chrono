@@ -143,6 +143,18 @@ class ChApi ChVisualMaterial {
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Create a default material.
+    /// This is the shared material that describes a visual shape carrying no material of its own. It
+    /// is what ChVisualShape::GetColor() reports for an empty material list, and what the Irrlicht,
+    /// VSG and Sensor rendering backends all use for such a shape. Every call returns the same
+    /// object.
+    ///
+    /// Do not mutate what this returns. The pointer is non-const only because attaching a material to
+    /// a shape takes a non-const shared_ptr; a setter called on this object would change the
+    /// appearance of every material-less shape in every scene. ChVisualShape's own setters copy it
+    /// before writing for exactly that reason (see ChVisualShape::SetColor). Chrono::Sensor copies
+    /// the values into a device-side material pool when it builds its scene, which happens on the
+    /// first sensor update and not again, so a mutation after that point would additionally make the
+    /// CPU-side and GPU-side pictures disagree.
     static std::shared_ptr<ChVisualMaterial> Default();
 
   private:
