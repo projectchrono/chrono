@@ -436,7 +436,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
 
     // Check shifting method and whether defaults have changed
     if (m_paramsH->shifting_method == ShiftingMethod::NONE) {
-        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 1.0 || m_paramsH->shifting_ppst_pull != 1.0) {
+        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 3.0 || m_paramsH->shifting_ppst_pull != 1.0) {
             cerr << "WARNING: Shifting method is NONE, but shifting parameters have been modified. These "
                     "changes will not take effect."
                  << endl;
@@ -522,6 +522,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       initial_spacing(0.01),
       d0_multiplier(1.2),
       max_velocity(1.0),
+      shifting_method(ShiftingMethod::XSPH),
       shifting_xsph_eps(0.5),
       shifting_ppst_push(3.0),
       shifting_ppst_pull(1.0),

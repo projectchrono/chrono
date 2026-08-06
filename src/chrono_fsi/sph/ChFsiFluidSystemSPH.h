@@ -83,7 +83,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         EosType eos_type;                              ///< equation of state (default: ISOTHERMAL)
         ViscosityMethod viscosity_method;              ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
         BoundaryMethod boundary_method;                ///< boundary treatment (default: ADAMI)
-        KernelType kernel_type;                        ///< kernel type (default: CUBIC_CPLINE)
+        KernelType kernel_type;                        ///< kernel type (default: CUBIC_SPLINE)
         ShiftingMethod shifting_method;                ///< shifting method (default: XSPH)
         int num_bce_layers;                            ///< number of BCE layers (boundary and solids, default: 3)
         double initial_spacing;                        ///< initial particle spacing (default: 0.01)
@@ -93,7 +93,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_ppst_push;                     ///< PPST pushing coefficient (default: 3.0)
         double shifting_ppst_pull;                     ///< shifting beta coefficient (default: 1.0)
         double shifting_beta_implicit;                 ///< shifting coefficient used in implicit solver (default: 1.0)
-        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 2.0, range 1 to 6)
+        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 1.0, range 1 to 6)
         double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 3.0)
         double shifting_diffusion_AFST;                ///< shifting coefficient used in diffusion (default: 2.0)
         double min_distance_coefficient;               ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
@@ -108,7 +108,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                                        ///< field is computed and compared to this threshold. Particles with divergence
                                                        ///< less than this threshold are considered free surface particles (CRM only,
                                                        ///< default: 2.0)
-        int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 4)
+        int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 1)
         bool use_variable_time_step;                   ///< use variable time step (default: false)
 
         SPHParameters();
