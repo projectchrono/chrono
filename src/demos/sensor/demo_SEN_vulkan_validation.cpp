@@ -997,8 +997,18 @@ int main(int argc, char* argv[]) {
 #else
     // Vulkan-only build: capture the Vulkan image so it can be diffed offline against the
     // image the same tag produced on the NVIDIA host. Nothing to compare against locally.
-    WritePPM(out_dir + tag + "_vulkan.ppm", vulkan_buf);
+    //
+    // The write is checked here for the same reason it is checked above, and with more at stake:
+    // this configuration produces no comparison of its own, so the saved image IS the result. A
+    // silent failure would leave the cross-vendor diff to be run against a file that was never
+    // written, on the machine least likely to have the output directory already in place.
+    const std::string vulkan_path = out_dir + tag + "_vulkan.ppm";
     std::cout << "Vulkan-only build (no OptiX in this configuration).\n";
+    if (!WritePPM(vulkan_path, vulkan_buf)) {
+        std::cerr << "ERROR: could not write " << vulkan_path << "\n"
+                  << "ERROR: nothing was saved, so there is nothing to diff offline.\n";
+        return 1;
+    }
     std::cout << "Wrote " << tag << "_vulkan.ppm to " << out_dir << "\n";
     std::cout << "Diff it offline against the NVIDIA-host image of the same tag.\n";
 #endif
