@@ -105,10 +105,13 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
     std::shared_ptr<SensorDeviceR8Buffer> m_r8InOut;        ///< input/output buffer for r8
 };
 
-// DLL-exported wrapper functions
-
+// DLL-exported wrapper functions. Guarded for the same reason the members above are: their
+// signatures name curandState_t and CUstream, whose headers are only included with OptiX, so a
+// build without CUDA fails to parse this header rather than merely lacking the functions.
+#ifdef CHRONO_HAS_OPTIX
 CH_SENSOR_API void InitCudaRNG(unsigned long long seed, curandState_t* rng_states, unsigned int n_generators);
 CH_SENSOR_API void CudaCameraNoiseConstNormal(unsigned char* bufPtr, int width, int height, float mean, float stdev, curandState_t* rng, CUstream& stream);
+#endif
 
 /// @}
 
