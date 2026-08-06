@@ -69,10 +69,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double average_diam;         ///< average particle diameter (default: 0.005)
         double cohesion_coeff;       ///< cohesion coefficient (default: 0)
         RheologyCRM rheology_model;  ///< rheology model (default: MU_OF_I)
-        double mcc_M;                ///< CSL line slope
-        double mcc_kappa;            ///< Compression index
-        double mcc_lambda;           ///< Swelling index
+        double mcc_M;                ///< Cam-Clay critical state line slope, q = M p (default: 0)
+        double mcc_kappa;            ///< Cam-Clay swelling index: slope of the elastic
+                                     ///< unload/reload line in v-ln(p). Sets the elastic bulk
+                                     ///< modulus, K = v p / kappa. Must satisfy
+                                     ///< 0 < mcc_kappa < mcc_lambda (default: 0)
+        double mcc_lambda;           ///< Cam-Clay compression index: slope of the normal
+                                     ///< consolidation line in v-ln(p). Governs virgin
+                                     ///< compressibility and the hardening rate, which divides
+                                     ///< by (mcc_lambda - mcc_kappa). Must exceed mcc_kappa
+                                     ///< (default: 0)
         double mcc_v_lambda;         ///< Specific volume at reference pressure of 1000 Pa
+                                     ///< (default: 2.0)
 
         ElasticMaterialProperties();
     };
