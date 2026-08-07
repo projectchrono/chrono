@@ -31,7 +31,13 @@ class ChObj;
 /// Encapsulates basic information about the shape position, materials, and visibility.
 class ChApi ChVisualShape {
   public:
+    /// Supported collision shape types.
+    enum class Type { BARREL, BOX, CAPSULE, CONE, CYLINDER, DIE, ELLIPSOID, GLYPH, LINE, MODELFILE, PATH, ROUNDEDBOX, ROUNDEDCYL, SPHERE, SURFACE, TRIANGLEMESH, UNKNOWN_SHAPE };
+
     virtual ~ChVisualShape() {}
+
+    /// Return the shape type.
+    Type GetType() const { return m_type; }
 
     /// Set this visualization asset as visible.
     void SetVisible(bool mv) { is_visible = mv; }
@@ -107,17 +113,25 @@ class ChApi ChVisualShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
+    /// Return a string with the name of the given shape type (mainly for diagnostic messages).
+    static std::string GetTypeAsString(Type type);
+
+    /// Report that a run-time visualization system cannot render the shape of given type.
+    /// The message is emitted only once per combination of shape type and rendering backend,
+    /// so calling this from a per-shape dispatch loop does not flood the console.
+    static void ReportUnsupported(Type type, const std::string& backend);
+
   protected:
-    ChVisualShape();
+    ChVisualShape(Type type = Type::UNKNOWN_SHAPE);
 
     /// Update this visual shape with information for the owning object.
     /// Since a visual shape can be shared in multiple instances, this function may be called with different updaters.
     virtual void Update(ChObj* updater, const ChFrame<>& frame) {}
 
-    bool is_visible;       ///< shape visibility flag
-    bool is_mutable;       ///< flag indicating whether the shape is rigid or deformable
-    bool is_double_faced;  ///< flag indicating that the shape should be rendered double-faced
-
+    Type m_type;                                                   ///< type of the visual shape
+    bool is_visible;                                               ///< shape visibility flag
+    bool is_mutable;                                               ///< flag indicating whether the shape is rigid or deformable
+    bool is_double_faced;                                          ///< flag indicating that the shape should be rendered double-faced
     std::vector<std::shared_ptr<ChVisualMaterial>> material_list;  ///< list of visualization materials
 
   public:
@@ -125,13 +139,6 @@ class ChApi ChVisualShape {
 
     friend class ChVisualModel;
 };
-
-/// Report that a run-time visualization system cannot render the given shape.
-/// A visualization system dispatches on the concrete shape type and simply skips any type it does not handle. Without
-/// a diagnostic, the shape is dropped silently, which the user cannot distinguish from a shape that is invisible,
-/// mispositioned, or scaled to nothing. The message is emitted only once per combination of shape type and rendering
-/// backend, so calling this from a per-shape dispatch loop does not flood the console.
-ChApi void ReportUnsupportedVisualShape(const ChVisualShape& shape, const std::string& backend);
 
 /// @} chrono_assets
 

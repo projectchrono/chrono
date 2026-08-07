@@ -68,7 +68,7 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
 
     // Create shared meshes
     sphereMesh = createEllipticalMesh(1.0, 1.0, -2, +2, 0, 15, 8);
-    cubeMesh = createCubeMesh(core::vector3df(2, 2, 2));  // -/+ 1 unit each xyz axis
+    cubeMesh = createCubeMesh(core::vector3df(2, 2, 2));  // -/+ 1 unit for each axis
     cylinderMesh = createCylinderMesh(1, 1, 32);
     capsuleMesh = createCapsuleMesh(1, 1, 32, 32);
     coneMesh = createConeMesh(1, 1, 32);
@@ -195,7 +195,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     if (!m_verbose)
         m_device_params.LoggingLevel = irr::ELL_NONE;
 
-    // Create Irrlicht device using current parameter values.
+    // Create Irrlicht device using current parameter values
     m_device = irr::createDeviceEx(m_device_params);
     if (!m_device) {
         std::cerr << "Cannot use default video driver - fall back to OpenGL" << std::endl;
@@ -212,15 +212,15 @@ void ChVisualSystemIrrlicht::Initialize() {
     std::wstring title = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(m_win_title);
     m_device->setWindowCaption(title.c_str());
 
-    // Xeffects for shadow maps!
+    // Effects for shadow maps
     if (m_device_params.AntiAlias)
         m_effect_handler = std::unique_ptr<EffectHandler>(new EffectHandler(m_device, GetVideoDriver()->getScreenSize() * 2, true, false, true));
     else
         m_effect_handler = std::unique_ptr<EffectHandler>(new EffectHandler(m_device, GetVideoDriver()->getScreenSize(), true, false, true));
     m_effect_handler->setAmbientColor(video::SColor(255, 122, 122, 122));
-    m_use_effects = false;  // will be true as sson as a light with shadow is added
+    m_use_effects = false;  // will be true as soon as a light with shadow is added
 
-    // Create a fixed-size font.
+    // Create a fixed-size font
     m_monospace_font = GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/jetbrainmono6_bold.png").c_str());
 
     // Create the container Irrlicht scene node
@@ -384,7 +384,7 @@ void ChVisualSystemIrrlicht::AddSkyBox(const std::string& texture_dir) {
 
     video::ITexture* map_skybox_side = GetVideoDriver()->getTexture(str_lf.c_str());
 
-    // Create a skybox scene node
+    // Create a sky box scene node
     auto skybox = new CSkyBoxSceneNode(GetVideoDriver()->getTexture(str_up.c_str()), GetVideoDriver()->getTexture(str_dn.c_str()), map_skybox_side, map_skybox_side,
                                        map_skybox_side, map_skybox_side, GetSceneManager()->getRootSceneNode(), GetSceneManager(), -1);
     skybox->drop();
@@ -583,7 +583,7 @@ void ChVisualSystemIrrlicht::Render() {
     assert(!m_systems.empty());
 
     if (m_use_effects)
-        m_effect_handler->update();  // draw 3D scene using Xeffects for shadow maps
+        m_effect_handler->update();  // draw 3D scene using effects for shadow maps
     else
         GetSceneManager()->drawAll();  // draw 3D scene the usual way, if no shadow maps
 
@@ -966,9 +966,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node, std::shared_ptr<C
             mproxynode->drop();
 
             SetVisualMaterial(mchildnode, glyphs);
-
-            ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
-            ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
         } else if (std::dynamic_pointer_cast<ChVisualShapePath>(shape) || std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
             SMesh* newmesh = new SMesh;
@@ -991,9 +988,6 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node, std::shared_ptr<C
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, true);
             mchildnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
             mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
-
-            ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
-            ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
         } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
             if (coneMesh) {
                 ISceneNode* mproxynode = new ChIrrNodeShape(cone, node);
@@ -1012,7 +1006,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node, std::shared_ptr<C
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
             }
         } else {
-            ReportUnsupportedVisualShape(*shape, "Chrono::Irrlicht");
+            ChVisualShape::ReportUnsupported(shape->GetType(), "Chrono::Irrlicht");
         }
     }
 }

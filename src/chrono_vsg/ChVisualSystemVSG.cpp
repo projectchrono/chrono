@@ -2317,8 +2317,6 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
             auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, double_faced, wireframe);
             group->addChild(grp);
-        } else if (auto barrel = std::dynamic_pointer_cast<ChVisualShapeBarrel>(shape)) {
-            //// TODO
         } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
             double rad = cone->GetRadius();
             double height = cone->GetHeight();
@@ -2387,7 +2385,7 @@ void ChVisualSystemVSG::PopulateVisualShapesFixed(vsg::ref_ptr<vsg::Group> group
             // Every shape this backend can draw has matched above, mutable or not: a mutable triangle mesh is caught
             // by the trimesh branch and skipped there for the deformable pass to handle. So anything reaching here is
             // drawn by no VSG pass at all.
-            ReportUnsupportedVisualShape(*shape, "Chrono::VSG");
+            ChVisualShape::ReportUnsupported(shape->GetType(), "Chrono::VSG");
         }
     }
 }

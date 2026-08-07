@@ -25,12 +25,11 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChVisualShapeTriangleMesh)
 
 ChVisualShapeTriangleMesh::ChVisualShapeTriangleMesh()
-    : name(""), scale(ChVector3d(1)), wireframe(false), backface_cull(false), fixed_connectivity(false) {
+    : ChVisualShape(Type::TRIANGLEMESH), name(""), scale(ChVector3d(1)), wireframe(false), backface_cull(false), fixed_connectivity(false) {
     trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
 }
 
-ChVisualShapeTriangleMesh::ChVisualShapeTriangleMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials)
-    : ChVisualShapeTriangleMesh() {
+ChVisualShapeTriangleMesh::ChVisualShapeTriangleMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials) : ChVisualShapeTriangleMesh() {
     SetMesh(mesh, load_materials);
 }
 
