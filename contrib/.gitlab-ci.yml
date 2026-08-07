@@ -97,6 +97,10 @@ linux:doxygen:deploy:
     - mkdir -p build
     # VSG
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
+    # The glslangValidator installed by buildVSG links dynamically against the glslang
+    # shared libs in vsg_build/lib; make them resolvable when CMake invokes the
+    # validator during the build (the test jobs already set this for run time).
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib:$LD_LIBRARY_PATH"
 
 .ubuntu:arm64:
   tags:
@@ -122,6 +126,10 @@ linux:doxygen:deploy:
     - mkdir -p build
     # VSG
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
+    # The glslangValidator installed by buildVSG links dynamically against the glslang
+    # shared libs in vsg_build/lib; make them resolvable when CMake invokes the
+    # validator during the build (the test jobs already set this for run time).
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib:$LD_LIBRARY_PATH"
 
 linux:ubuntu22.04-gcc:amd64:build:
   tags:
