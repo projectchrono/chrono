@@ -186,6 +186,8 @@ void ChFilterCameraNoisePixDep::Apply() {
     }
 }
 
+#ifdef CHRONO_HAS_OPTIX
+
 void InitCudaRNG(unsigned long long seed, curandState_t* rng_states, unsigned int n_generators) {
     init_cuda_rng(seed, rng_states, n_generators);
 }
@@ -193,6 +195,8 @@ void InitCudaRNG(unsigned long long seed, curandState_t* rng_states, unsigned in
 void CudaCameraNoiseConstNormal(unsigned char* bufPtr, int width, int height, float mean, float stdev, curandState_t* rng, CUstream& stream) {
     cuda_camera_noise_const_normal(bufPtr, width, height, mean, stdev, rng, stream);
 }
+
+#endif
 
 }  // namespace sensor
 }  // namespace chrono
