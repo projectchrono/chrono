@@ -393,6 +393,13 @@ linux:ubuntu22.04:arm64:deploy-python3.13:
   tags:
   - windows11
   before_script:
+  # Windows caps a single environment variable at 32767 chars. A branch head whose
+  # (squash) commit message exceeds that limit crashes every parallel MSBuild child
+  # node with MSB4166 "Environment variable name or value is too long", because
+  # MSBuild replicates the whole environment into its worker processes. Clear the
+  # only unbounded variables before any build tool runs. (Job 'rules:' that match
+  # on CI_COMMIT_MESSAGE are evaluated server-side and are NOT affected.)
+  - $env:CI_COMMIT_MESSAGE = ""; $env:CI_COMMIT_DESCRIPTION = ""
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
   - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
   - echo $CI_PROJECT_DIR
@@ -443,6 +450,8 @@ windows:vs2022:test:
   tags:
     - windows11
   before_script:
+    # See .windows: oversized CI_COMMIT_MESSAGE (>32767 chars) crashes MSBuild workers.
+    - $env:CI_COMMIT_MESSAGE = ""; $env:CI_COMMIT_DESCRIPTION = ""
     - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
     - echo $CI_PROJECT_DIR
     - git submodule init
