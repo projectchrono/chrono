@@ -23,6 +23,7 @@
 
 #include "chrono_vsg/ChApiVSG.h"
 
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
 
 #include "chrono/geometry/ChLineArc.h"
@@ -38,15 +39,13 @@ namespace vsg3d {
 
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
-    enum class ShapeType { BOX, DIE, SPHERE, CYLINDER, CAPSULE, CONE };
-
     ShapeBuilder(vsg::ref_ptr<vsg::Options> options, int num_divs = 24);
 
-    vsg::ref_ptr<vsg::Group> CreatePbrShape(ShapeType shape_type,
+    vsg::ref_ptr<vsg::Group> CreatePbrShape(ChVisualShape::Type shape_type,
                                             std::shared_ptr<ChVisualMaterial> material,
                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                            bool double_faced,
-                                            bool wireframe,
+                                            bool double_faced = true,
+                                            bool wireframe = false,
                                             float wire_width = 1);
 
     vsg::ref_ptr<vsg::Group> CreatePbrSurfaceShape(std::shared_ptr<ChSurface> geometry,
@@ -54,15 +53,15 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    int resolution_u,
                                                    int resolution_v,
-                                                   bool double_faced,
-                                                   bool wireframe,
+                                                   bool double_faced = true,
+                                                   bool wireframe = false,
                                                    float wire_width = 1);
 
     vsg::ref_ptr<vsg::Group> CreateTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       const std::vector<ChVisualMaterialSharedPtr>& materials,
-                                                      bool double_faced,
-                                                      bool wireframe,
+                                                      bool double_faced = true,
+                                                      bool wireframe = false,
                                                       float wire_width = 1);
 
     /// Convert the specified mesh into a triangle soup with vertex colors.
@@ -71,8 +70,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    const ChColor& default_color,
                                                    float opacity,
-                                                   bool double_faced,
-                                                   bool wireframe,
+                                                   bool double_faced = true,
+                                                   bool wireframe = false,
                                                    float wire_width = 1);
 
     /// Convert the specified mesh into a triangle mesh with vertex colors.
@@ -80,8 +79,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     vsg::ref_ptr<vsg::Group> CreateTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       const ChColor& default_color,
-                                                      bool double_faced,
-                                                      bool wireframe,
+                                                      bool double_faced = true,
+                                                      bool wireframe = false,
                                                       float wire_width = 1);
 
     /// Create a symbol to represent a reference frame.

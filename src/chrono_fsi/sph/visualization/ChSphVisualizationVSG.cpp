@@ -390,7 +390,7 @@ void ChSphVisualizationVSG::BindComputationalDomain() {
 
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
-    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
+    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(ChVisualShape::Type::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", nullptr);
@@ -408,7 +408,7 @@ void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, in
 
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
-    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
+    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(ChVisualShape::Type::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", obj);

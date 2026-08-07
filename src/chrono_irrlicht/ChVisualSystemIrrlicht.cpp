@@ -794,219 +794,269 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node, std::shared_ptr<C
         if (!shape->IsVisible())
             continue;
 
-        if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
-            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-            trimesh_shape->SetMesh(trimesh);
+        switch (shape->GetType()) {
+            case ChVisualShape::Type::MODELFILE: {
+                auto obj = std::static_pointer_cast<ChVisualShapeModelFile>(shape);
+                auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(obj->GetFilename(), true, true);
+                auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+                trimesh_shape->SetMesh(trimesh);
 
-            // Create a number of Irrlicht mesh buffers equal to the number of materials.
-            // If no materials defined, create a single mesh buffer.
-            SMesh* smesh = new SMesh;
-            int nbuffers = (int)trimesh_shape->GetNumMaterials();
-            nbuffers = std::max(nbuffers, 1);
-            for (int ibuffer = 0; ibuffer < nbuffers; ibuffer++) {
+                // Create a number of Irrlicht mesh buffers equal to the number of materials.
+                // If no materials defined, create a single mesh buffer.
+                SMesh* smesh = new SMesh;
+                int nbuffers = (int)trimesh_shape->GetNumMaterials();
+                nbuffers = std::max(nbuffers, 1);
+                for (int ibuffer = 0; ibuffer < nbuffers; ibuffer++) {
+                    CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
+                    smesh->addMeshBuffer(buffer);
+                    buffer->drop();
+                }
+
+                ChIrrNodeShape* mproxynode = new ChIrrNodeShape(trimesh_shape, node);
+                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(smesh, mproxynode);
+                smesh->drop();
+
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                mproxynode->Update();  // force syncing of triangle positions & face indexes
+                mproxynode->drop();
+
+                SetVisualMaterial(mchildnode, shape);
+                mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh_shape->IsWireframe());
+                mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh_shape->IsBackfaceCull());
+
+                break;
+            }
+            case ChVisualShape::Type::TRIANGLEMESH: {
+                auto trimesh = std::static_pointer_cast<ChVisualShapeTriangleMesh>(shape);
+                // Create a number of Irrlicht mesh buffers equal to the number of materials.
+                // If no materials defined, create a single mesh buffer.
+                SMesh* smesh = new SMesh;
+                int nbuffers = (int)trimesh->GetNumMaterials();
+                nbuffers = std::max(nbuffers, 1);
+                for (int ibuffer = 0; ibuffer < nbuffers; ibuffer++) {
+                    CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
+                    smesh->addMeshBuffer(buffer);
+                    buffer->drop();
+                }
+
+                ChIrrNodeShape* mproxynode = new ChIrrNodeShape(trimesh, node);
+                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(smesh, mproxynode);
+                smesh->drop();
+
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                mproxynode->Update();  // force syncing of triangle positions & face indexes
+                mproxynode->drop();
+
+                SetVisualMaterial(mchildnode, shape);
+                mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh->IsWireframe());
+                mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh->IsBackfaceCull());
+
+                break;
+            }
+            case ChVisualShape::Type::SURFACE: {
+                auto surf = std::static_pointer_cast<ChVisualShapeSurface>(shape);
                 CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
-                smesh->addMeshBuffer(buffer);
+                SMesh* newmesh = new SMesh;
+                newmesh->addMeshBuffer(buffer);
                 buffer->drop();
+
+                ChIrrNodeShape* mproxynode = new ChIrrNodeShape(surf, node);
+                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
+                newmesh->drop();
+
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                mproxynode->Update();  // force syncing of triangle positions & face indexes
+                mproxynode->drop();
+
+                SetVisualMaterial(mchildnode, shape);
+                mchildnode->setMaterialFlag(video::EMF_WIREFRAME, surf->IsWireframe());
+
+                break;
             }
+            case ChVisualShape::Type::SPHERE: {
+                auto sphere = std::static_pointer_cast<ChVisualShapeSphere>(shape);
+                if (sphereMesh) {
+                    ISceneNode* mproxynode = new ChIrrNodeShape(sphere, node);
+                    ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
+                    mproxynode->drop();
 
-            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(trimesh_shape, node);
-            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(smesh, mproxynode);
-            smesh->drop();
+                    double mradius = sphere->GetRadius();
+                    mchildnode->setScale(core::vector3dfCH(ChVector3d(mradius, mradius, mradius)));
+                    mchildnode->setPosition(shape_m4.getTranslation());
+                    mchildnode->setRotation(shape_m4.getRotationDegrees());
 
-            mchildnode->setPosition(shape_m4.getTranslation());
-            mchildnode->setRotation(shape_m4.getRotationDegrees());
+                    SetVisualMaterial(mchildnode, sphere);
+                    mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                }
 
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
+                break;
+            }
+            case ChVisualShape::Type::ELLIPSOID: {
+                auto ellipsoid = std::static_pointer_cast<ChVisualShapeEllipsoid>(shape);
+                if (sphereMesh) {
+                    ISceneNode* mproxynode = new ChIrrNodeShape(ellipsoid, node);
+                    ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
+                    mproxynode->drop();
 
-            SetVisualMaterial(mchildnode, shape);
-            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh_shape->IsWireframe());
-            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh_shape->IsBackfaceCull());
-        } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
-            // Create a number of Irrlicht mesh buffers equal to the number of materials.
-            // If no materials defined, create a single mesh buffer.
-            SMesh* smesh = new SMesh;
-            int nbuffers = (int)trimesh->GetNumMaterials();
-            nbuffers = std::max(nbuffers, 1);
-            for (int ibuffer = 0; ibuffer < nbuffers; ibuffer++) {
+                    mchildnode->setScale(core::vector3dfCH(ellipsoid->GetSemiaxes()));
+                    mchildnode->setPosition(shape_m4.getTranslation());
+                    mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                    SetVisualMaterial(mchildnode, ellipsoid);
+                    mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                }
+
+                break;
+            }
+            case ChVisualShape::Type::CYLINDER: {
+                auto cylinder = std::static_pointer_cast<ChVisualShapeCylinder>(shape);
+                if (cylinderMesh) {
+                    ISceneNode* mproxynode = new ChIrrNodeShape(cylinder, node);
+                    ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cylinderMesh, mproxynode);
+                    mproxynode->drop();
+
+                    double rad = cylinder->GetRadius();
+                    double height = cylinder->GetHeight();
+
+                    core::vector3df irrsize((f32)rad, (f32)rad, (f32)(height / 2));
+                    mchildnode->setScale(irrsize);
+                    mchildnode->setPosition(shape_m4.getTranslation());
+                    mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                    SetVisualMaterial(mchildnode, cylinder);
+                    mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                }
+
+                break;
+            }
+            case ChVisualShape::Type::CAPSULE: {
+                auto capsule = std::static_pointer_cast<ChVisualShapeCapsule>(shape);
+                if (capsuleMesh) {
+                    ISceneNode* mproxynode = new ChIrrNodeShape(capsule, node);
+                    ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(capsuleMesh, mproxynode);
+                    mproxynode->drop();
+
+                    double rad = capsule->GetRadius();
+                    double height = capsule->GetHeight();
+
+                    core::vector3df irrsize((f32)rad, (f32)rad, (f32)(rad / 2 + height / 4));
+                    mchildnode->setScale(irrsize);
+                    mchildnode->setPosition(shape_m4.getTranslation());
+                    mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                    SetVisualMaterial(mchildnode, capsule);
+                    mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                }
+
+                break;
+            }
+            case ChVisualShape::Type::BOX: {
+                auto box = std::static_pointer_cast<ChVisualShapeBox>(shape);
+                if (cubeMesh) {
+                    ISceneNode* mproxynode = new ChIrrNodeShape(box, node);
+                    ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cubeMesh, mproxynode);
+                    mproxynode->drop();
+
+                    mchildnode->setScale(core::vector3dfCH(box->GetHalflengths()));
+                    mchildnode->setPosition(shape_m4.getTranslation());
+                    mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                    SetVisualMaterial(mchildnode, box);
+                    mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                }
+
+                break;
+            }
+            case ChVisualShape::Type::BARREL: {
+                auto barrel = std::static_pointer_cast<ChVisualShapeBarrel>(shape);
+                auto mbarrelmesh = createEllipticalMesh((irr::f32)(barrel->GetRhor()), (irr::f32)(barrel->GetRvert()), (irr::f32)(barrel->GetHlow()), (irr::f32)(barrel->GetHsup()),
+                                                        (irr::f32)(barrel->GetRoffset()), 15, 8);
+                ISceneNode* mproxynode = new ChIrrNodeShape(barrel, node);
+                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(mbarrelmesh, mproxynode);
+                mproxynode->drop();
+
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                SetVisualMaterial(mchildnode, barrel);
+                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                break;
+            }
+            case ChVisualShape::Type::GLYPH: {
+                auto glyphs = std::static_pointer_cast<ChGlyphs>(shape);
                 CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
-                smesh->addMeshBuffer(buffer);
+                SMesh* newmesh = new SMesh;
+                newmesh->addMeshBuffer(buffer);
                 buffer->drop();
-            }
 
-            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(trimesh, node);
-            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(smesh, mproxynode);
-            smesh->drop();
+                ChIrrNodeShape* mproxynode = new ChIrrNodeShape(glyphs, node);
+                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
+                newmesh->drop();
 
-            mchildnode->setPosition(shape_m4.getTranslation());
-            mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
-
-            SetVisualMaterial(mchildnode, shape);
-            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh->IsWireframe());
-            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh->IsBackfaceCull());
-        } else if (auto surf = std::dynamic_pointer_cast<ChVisualShapeSurface>(shape)) {
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
-            SMesh* newmesh = new SMesh;
-            newmesh->addMeshBuffer(buffer);
-            buffer->drop();
-
-            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(surf, node);
-            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
-            newmesh->drop();
-
-            mchildnode->setPosition(shape_m4.getTranslation());
-            mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
-
-            SetVisualMaterial(mchildnode, shape);
-            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, surf->IsWireframe());
-        } else if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
-            if (sphereMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeShape(sphere, node);
-                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
+                mproxynode->Update();  // force syncing of triangle positions & face indexes
                 mproxynode->drop();
 
-                double mradius = sphere->GetRadius();
-                mchildnode->setScale(core::vector3dfCH(ChVector3d(mradius, mradius, mradius)));
+                SetVisualMaterial(mchildnode, glyphs);
+
+                break;
+            }
+            case ChVisualShape::Type::PATH:
+            case ChVisualShape::Type::LINE: {
+                CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
+                SMesh* newmesh = new SMesh;
+                newmesh->addMeshBuffer(buffer);
+                buffer->drop();
+
+                ChIrrNodeShape* mproxynode = new ChIrrNodeShape(shape, node);
+                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
+                newmesh->drop();
+
+                mproxynode->Update();  // force syncing of triangle positions & face indexes
+                mproxynode->drop();
+
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
 
-                SetVisualMaterial(mchildnode, sphere);
-                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                SetVisualMaterial(mchildnode, shape);
+
+                mchildnode->setAutomaticCulling(scene::EAC_OFF);
+                mchildnode->setMaterialFlag(video::EMF_WIREFRAME, true);
+                mchildnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
+                mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
+
+                break;
             }
-        } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
-            if (sphereMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeShape(ellipsoid, node);
-                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
-                mproxynode->drop();
+            case ChVisualShape::Type::CONE: {
+                auto cone = std::static_pointer_cast<ChVisualShapeCone>(shape);
+                if (coneMesh) {
+                    ISceneNode* mproxynode = new ChIrrNodeShape(cone, node);
+                    ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(coneMesh, mproxynode);
+                    mproxynode->drop();
 
-                mchildnode->setScale(core::vector3dfCH(ellipsoid->GetSemiaxes()));
-                mchildnode->setPosition(shape_m4.getTranslation());
-                mchildnode->setRotation(shape_m4.getRotationDegrees());
+                    double rad = cone->GetRadius();
+                    double height = cone->GetHeight();
 
-                SetVisualMaterial(mchildnode, ellipsoid);
-                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                    core::vector3df irrsize((irr::f32)rad, (irr::f32)rad, (irr::f32)(height / 2));
+                    mchildnode->setScale(irrsize);
+                    mchildnode->setPosition(shape_m4.getTranslation());
+                    mchildnode->setRotation(shape_m4.getRotationDegrees());
+
+                    SetVisualMaterial(mchildnode, cone);
+                    mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                }
+
+                break;
             }
-        } else if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
-            if (cylinderMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeShape(cylinder, node);
-                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cylinderMesh, mproxynode);
-                mproxynode->drop();
 
-                double rad = cylinder->GetRadius();
-                double height = cylinder->GetHeight();
-
-                core::vector3df irrsize((f32)rad, (f32)rad, (f32)(height / 2));
-                mchildnode->setScale(irrsize);
-                mchildnode->setPosition(shape_m4.getTranslation());
-                mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-                SetVisualMaterial(mchildnode, cylinder);
-                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-            }
-        } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
-            if (capsuleMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeShape(capsule, node);
-                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(capsuleMesh, mproxynode);
-                mproxynode->drop();
-
-                double rad = capsule->GetRadius();
-                double height = capsule->GetHeight();
-
-                core::vector3df irrsize((f32)rad, (f32)rad, (f32)(rad / 2 + height / 4));
-                mchildnode->setScale(irrsize);
-                mchildnode->setPosition(shape_m4.getTranslation());
-                mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-                SetVisualMaterial(mchildnode, capsule);
-                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-            }
-        } else if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
-            if (cubeMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeShape(box, node);
-                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cubeMesh, mproxynode);
-                mproxynode->drop();
-
-                mchildnode->setScale(core::vector3dfCH(box->GetHalflengths()));
-                mchildnode->setPosition(shape_m4.getTranslation());
-                mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-                SetVisualMaterial(mchildnode, box);
-                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-            }
-        } else if (auto barrel = std::dynamic_pointer_cast<ChVisualShapeBarrel>(shape)) {
-            auto mbarrelmesh = createEllipticalMesh((irr::f32)(barrel->GetRhor()), (irr::f32)(barrel->GetRvert()), (irr::f32)(barrel->GetHlow()), (irr::f32)(barrel->GetHsup()),
-                                                    (irr::f32)(barrel->GetRoffset()), 15, 8);
-            ISceneNode* mproxynode = new ChIrrNodeShape(barrel, node);
-            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(mbarrelmesh, mproxynode);
-            mproxynode->drop();
-
-            mchildnode->setPosition(shape_m4.getTranslation());
-            mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-            SetVisualMaterial(mchildnode, barrel);
-            mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-        } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(shape)) {
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
-            SMesh* newmesh = new SMesh;
-            newmesh->addMeshBuffer(buffer);
-            buffer->drop();
-
-            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(glyphs, node);
-            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
-            newmesh->drop();
-
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
-
-            SetVisualMaterial(mchildnode, glyphs);
-        } else if (std::dynamic_pointer_cast<ChVisualShapePath>(shape) || std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
-            SMesh* newmesh = new SMesh;
-            newmesh->addMeshBuffer(buffer);
-            buffer->drop();
-
-            ChIrrNodeShape* mproxynode = new ChIrrNodeShape(shape, node);
-            ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(newmesh, mproxynode);
-            newmesh->drop();
-
-            mproxynode->Update();  // force syncing of triangle positions & face indexes
-            mproxynode->drop();
-
-            mchildnode->setPosition(shape_m4.getTranslation());
-            mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-            SetVisualMaterial(mchildnode, shape);
-
-            mchildnode->setAutomaticCulling(scene::EAC_OFF);
-            mchildnode->setMaterialFlag(video::EMF_WIREFRAME, true);
-            mchildnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
-            mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
-        } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
-            if (coneMesh) {
-                ISceneNode* mproxynode = new ChIrrNodeShape(cone, node);
-                ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(coneMesh, mproxynode);
-                mproxynode->drop();
-
-                double rad = cone->GetRadius();
-                double height = cone->GetHeight();
-
-                core::vector3df irrsize((irr::f32)rad, (irr::f32)rad, (irr::f32)(height / 2));
-                mchildnode->setScale(irrsize);
-                mchildnode->setPosition(shape_m4.getTranslation());
-                mchildnode->setRotation(shape_m4.getRotationDegrees());
-
-                SetVisualMaterial(mchildnode, cone);
-                mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
-            }
-        } else {
-            ChVisualShape::ReportUnsupported(shape->GetType(), "Chrono::Irrlicht");
+            default:
+                ChVisualShape::ReportUnsupported(shape->GetType(), "Chrono::Irrlicht");
+                break;
         }
     }
 }
