@@ -69,10 +69,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double average_diam;         ///< average particle diameter (default: 0.005)
         double cohesion_coeff;       ///< cohesion coefficient (default: 0)
         RheologyCRM rheology_model;  ///< rheology model (default: MU_OF_I)
-        double mcc_M;                ///< CSL line slope
-        double mcc_kappa;            ///< Compression index
-        double mcc_lambda;           ///< Swelling index
+        double mcc_M;                ///< Cam-Clay critical state line slope, q = M p (default: 0)
+        double mcc_kappa;            ///< Cam-Clay swelling index: slope of the elastic
+                                     ///< unload/reload line in v-ln(p). Sets the elastic bulk
+                                     ///< modulus, K = v p / kappa. Must satisfy
+                                     ///< 0 < mcc_kappa < mcc_lambda (default: 0)
+        double mcc_lambda;           ///< Cam-Clay compression index: slope of the normal
+                                     ///< consolidation line in v-ln(p). Governs virgin
+                                     ///< compressibility and the hardening rate, which divides
+                                     ///< by (mcc_lambda - mcc_kappa). Must exceed mcc_kappa
+                                     ///< (default: 0)
         double mcc_v_lambda;         ///< Specific volume at reference pressure of 1000 Pa
+                                     ///< (default: 2.0)
 
         ElasticMaterialProperties();
     };
@@ -83,7 +91,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         EosType eos_type;                              ///< equation of state (default: ISOTHERMAL)
         ViscosityMethod viscosity_method;              ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
         BoundaryMethod boundary_method;                ///< boundary treatment (default: ADAMI)
-        KernelType kernel_type;                        ///< kernel type (default: CUBIC_CPLINE)
+        KernelType kernel_type;                        ///< kernel type (default: CUBIC_SPLINE)
         ShiftingMethod shifting_method;                ///< shifting method (default: XSPH)
         int num_bce_layers;                            ///< number of BCE layers (boundary and solids, default: 3)
         double initial_spacing;                        ///< initial particle spacing (default: 0.01)
@@ -93,7 +101,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_ppst_push;                     ///< PPST pushing coefficient (default: 3.0)
         double shifting_ppst_pull;                     ///< shifting beta coefficient (default: 1.0)
         double shifting_beta_implicit;                 ///< shifting coefficient used in implicit solver (default: 1.0)
-        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 2.0, range 1 to 6)
+        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 1.0, range 1 to 6)
         double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 3.0)
         double shifting_diffusion_AFST;                ///< shifting coefficient used in diffusion (default: 2.0)
         double min_distance_coefficient;               ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
@@ -108,7 +116,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                                        ///< field is computed and compared to this threshold. Particles with divergence
                                                        ///< less than this threshold are considered free surface particles (CRM only,
                                                        ///< default: 2.0)
-        int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 4)
+        int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 1)
         bool use_variable_time_step;                   ///< use variable time step (default: false)
 
         SPHParameters();

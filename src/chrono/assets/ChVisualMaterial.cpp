@@ -36,7 +36,15 @@ ChVisualMaterial::ChVisualMaterial()
       class_id(0),
       instance_id(0),
       emissive_power(0.f),
-      bsdf_type(BSDFType::PRINCIPLED) {} 
+      bsdf_type(BSDFType::PRINCIPLED),
+      use_hapke(false),
+      hapke_w(0.f),
+      hapke_b(0.f),
+      hapke_c(0.f),
+      hapke_B_s0(0.f),
+      hapke_h_s(0.f),
+      hapke_phi(0.f),
+      hapke_theta_p(0.f) {}
 
 void ChVisualMaterial::SetKdTexture(const std::string& filename) {
     kd_texture.SetFilename(filename);
@@ -226,13 +234,12 @@ void ChVisualMaterial::ArchiveIn(ChArchiveIn& archive_in) {
 
 // -----------------------------------------------------------------------------
 
-static std::shared_ptr<ChVisualMaterial> default_material;
-
 std::shared_ptr<ChVisualMaterial> ChVisualMaterial::Default() {
-    if (!default_material) {
-        default_material = chrono_types::make_shared<ChVisualMaterial>();
-    }
-
+    // Function-local static, not a namespace-scope one guarded by an if. C++11 guarantees that
+    // initialization of a function-local static is thread-safe; the previous
+    // "if (!default_material) default_material = ..." on a namespace-scope pointer was not, and
+    // Chrono::Sensor calls this from its own scene thread.
+    static std::shared_ptr<ChVisualMaterial> default_material = chrono_types::make_shared<ChVisualMaterial>();
     return default_material;
 }
 
