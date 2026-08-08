@@ -29,12 +29,16 @@
 #include <cmath>
 
 #include "chrono/ChConfig.h"
+
 #include "chrono/utils/ChFilters.h"
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"

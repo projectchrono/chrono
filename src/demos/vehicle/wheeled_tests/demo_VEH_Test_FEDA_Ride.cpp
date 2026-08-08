@@ -30,6 +30,8 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChVisualShapeSphere.h"
+
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
