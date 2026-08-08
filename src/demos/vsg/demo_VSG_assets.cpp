@@ -325,7 +325,6 @@ int main(int argc, char* argv[]) {
 
     auto box_mat = chrono_types::make_shared<ChVisualMaterial>();
     box_mat->SetKdTexture(GetChronoDataFile("textures/checker1.png"));
-    // box_mat->SetDiffuseColor(ChColor(0.9f, 0.9f, 0.9f));
     auto boxShape = chrono_types::make_shared<ChVisualShapeBox>(1.0, 1.5, 2.0);
     boxShape->AddMaterial(box_mat);
     vis->AddVisualModel(boxShape, ChFramed(shape_pos[0], QUNIT));
@@ -341,8 +340,7 @@ int main(int argc, char* argv[]) {
     vis->AddVisualModel(marker_model, shape_pos[1] + ChVector3d(0, 0, 1.0));
 
     auto sphere_mat = chrono_types::make_shared<ChVisualMaterial>();
-    sphere_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
-    // sphere_mat->SetDiffuseColor(ChColor(0.9f, 0.9f, 0.9f));
+    sphere_mat->SetKdTexture(GetChronoDataFile("textures/checker1.png"));
     auto sphereShape = chrono_types::make_shared<ChVisualShapeSphere>(0.75);
     sphereShape->SetMaterial(0, sphere_mat);
     vis->AddVisualModel(sphereShape, ChFramed(shape_pos[2], QUNIT));
@@ -351,7 +349,6 @@ int main(int argc, char* argv[]) {
 
     auto rbox_mat = chrono_types::make_shared<ChVisualMaterial>();
     rbox_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
-    // rbox_mat->SetDiffuseColor(ChColor(0.2f, 0.8f, 0.5f));
     auto rboxShape = chrono_types::make_shared<ChVisualShapeRoundedBox>(ChVector3d(1.0, 1.5, 2.0), 0.25);
     rboxShape->SetMaterial(0, rbox_mat);
     vis->AddVisualModel(rboxShape, ChFramed(shape_pos[3], QUNIT));
@@ -360,37 +357,43 @@ int main(int argc, char* argv[]) {
 
     auto rcyl_mat = chrono_types::make_shared<ChVisualMaterial>();
     rcyl_mat->SetKdTexture(GetChronoDataFile("textures/checker1.png"));
-    // rcyl_mat->SetDiffuseColor(ChColor(0.2f, 0.5f, 0.8f));
     auto rcylShape = chrono_types::make_shared<ChVisualShapeRoundedCylinder>(0.5, 2.0, 0.25);
     rcylShape->SetMaterial(0, rcyl_mat);
     vis->AddVisualModel(rcylShape, ChFramed(shape_pos[4], QUNIT));
     vis->AddVisualModel(marker_model, shape_pos[4] - ChVector3d(0, 0, 1.0));
     vis->AddVisualModel(marker_model, shape_pos[4] + ChVector3d(0, 0, 1.0));
 
-    auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
-    cone_mat->SetKdTexture(GetChronoDataFile("textures/checker1.png"));
-    auto coneShape = chrono_types::make_shared<ChVisualShapeCone>(0.5, 2.0);
-    coneShape->SetMaterial(0, cone_mat);
-    vis->AddVisualModel(coneShape, ChFramed(shape_pos[5], QUNIT));
+    auto ell_mat = chrono_types::make_shared<ChVisualMaterial>();
+    ell_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
+    auto ellShape = chrono_types::make_shared<ChVisualShapeEllipsoid>(1.0, 1.5, 2.0);
+    ellShape->SetMaterial(0, ell_mat);
+    vis->AddVisualModel(ellShape, ChFramed(shape_pos[5], QUNIT));
     vis->AddVisualModel(marker_model, shape_pos[5] - ChVector3d(0, 0, 1.0));
     vis->AddVisualModel(marker_model, shape_pos[5] + ChVector3d(0, 0, 1.0));
 
-    auto ell_mat = chrono_types::make_shared<ChVisualMaterial>();
-    ell_mat->SetKdTexture(GetChronoDataFile("textures/checker1.jpg"));
-    auto ellShape = chrono_types::make_shared<ChVisualShapeEllipsoid>(1.0, 1.5, 2.0);
-    ellShape->SetMaterial(0, ell_mat);
-    vis->AddVisualModel(ellShape, ChFramed(shape_pos[6], QUNIT));
+    auto die_mat = chrono_types::make_shared<ChVisualMaterial>();
+    die_mat->SetKdTexture(GetChronoDataFile("textures/cubetexture_wood.png"));
+    auto dieShape = chrono_types::make_shared<ChVisualShapeBox>(1.0, 1.5, 2.0);
+    dieShape->SetMaterial(0, die_mat);
+    vis->AddVisualModel(dieShape, ChFramed(shape_pos[6], QUNIT));
     vis->AddVisualModel(marker_model, shape_pos[6] - ChVector3d(0, 0, 1.0));
     vis->AddVisualModel(marker_model, shape_pos[6] + ChVector3d(0, 0, 1.0));
 
     auto caps_mat = chrono_types::make_shared<ChVisualMaterial>();
     caps_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
-    //caps_mat->SetDiffuseColor(ChColor(0.8f, 0.5f, 0.2f));
     auto capsShape = chrono_types::make_shared<ChVisualShapeCapsule>(0.5, 1.0);
     capsShape->SetMaterial(0, caps_mat);
     vis->AddVisualModel(capsShape, ChFramed(shape_pos[7], QUNIT));
     vis->AddVisualModel(marker_model, shape_pos[7] - ChVector3d(0, 0, 1.0));
     vis->AddVisualModel(marker_model, shape_pos[7] + ChVector3d(0, 0, 1.0));
+
+    auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
+    cone_mat->SetKdTexture(GetChronoDataFile("textures/checker1.png"));
+    auto coneShape = chrono_types::make_shared<ChVisualShapeCone>(0.5, 2.0);
+    coneShape->SetMaterial(0, cone_mat);
+    vis->AddVisualModel(coneShape, ChFramed(shape_pos[8], QUNIT));
+    vis->AddVisualModel(marker_model, shape_pos[8] - ChVector3d(0, 0, 1.0));
+    vis->AddVisualModel(marker_model, shape_pos[8] + ChVector3d(0, 0, 1.0));
 
     // Initialize run-time visualization system
     vis->EnableShadows();
