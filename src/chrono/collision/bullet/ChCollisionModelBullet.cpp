@@ -23,6 +23,8 @@
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtRoundedCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtRoundedBoxShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtChTriangleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPointShape.h"
@@ -165,6 +167,27 @@ void ChCollisionModelBullet::Populate() {
                 auto radius = shape_cylshell->GetRadius();
                 model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
                 auto bt_shape = chrono_types::make_shared<cbtCylindricalShellShape>((cbtScalar)(radius + envelope), (cbtScalar)(height / 2 + envelope));
+                bt_shape->setMargin((cbtScalar)full_margin);
+                InjectShape(shape, bt_shape, frame);
+                break;
+            }
+            case ChCollisionShape::Type::ROUNDEDCYL: {
+                auto shape_rcyl = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
+                auto height = shape_rcyl->GetHeight();
+                auto radius = shape_rcyl->GetRadius();
+                auto sradius = shape_rcyl->GetSRadius();
+                model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
+                auto bt_shape = chrono_types::make_shared<cbtRoundedCylinderShape>((cbtScalar)(radius + envelope), (cbtScalar)(height / 2 + envelope), sradius);
+                bt_shape->setMargin((cbtScalar)full_margin);
+                InjectShape(shape, bt_shape, frame);
+                break;
+            }
+            case ChCollisionShape::Type::ROUNDEDBOX: {
+                auto shape_rbox = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
+                auto len = shape_rbox->GetLengths();
+                auto sradius = shape_rbox->GetSRadius();
+                model->SetSafeMargin(std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
+                auto bt_shape = chrono_types::make_shared<cbtRoundedBoxShape>(cbtVector3CH(len / 2 + envelope), sradius);
                 bt_shape->setMargin((cbtScalar)full_margin);
                 InjectShape(shape, bt_shape, frame);
                 break;

@@ -21,7 +21,9 @@ subject to the following restrictions:
 #include "cbtTriangleShape.h"
 #include "cbtSphereShape.h"
 #include "cbtCylinderShape.h"
-#include "cbtCylindricalShellShape.h"  /* ***CHRONO*** */
+#include "cbtCylindricalShellShape.h" /* ***CHRONO*** */
+#include "cbtRoundedCylinderShape.h"  /* ***CHRONO*** */
+#include "cbtRoundedBoxShape.h"       /* ***CHRONO*** */
 #include "cbtConeShape.h"
 #include "cbtCapsuleShape.h"
 #include "cbtConvexHullShape.h"
@@ -228,12 +230,9 @@ cbtVector3 cbtConvexShape::localGetSupportVertexWithoutMarginNonVirtual(const cb
 		}
         case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
             cbtCylindricalShellShape* cylShape = (cbtCylindricalShellShape*)this;
-            // mapping of halfextents/dimension onto radius/height depends on how cylinder local orientation is (upAxis)
-
             cbtVector3 halfExtents = cylShape->getImplicitShapeDimensions();
-            cbtVector3 v(localDir.getX(), localDir.getY(), localDir.getZ());
 
-			// Cylindrical shell always along Y axis.
+			// Cylindrical shell always along Z axis.
             int XX = 0;
             int YY = 1;
             int ZZ = 2;
@@ -244,22 +243,71 @@ cbtVector3 cbtConvexShape::localGetSupportVertexWithoutMarginNonVirtual(const cb
             cbtVector3 tmp;
             cbtScalar d;
 
-            cbtScalar s = cbtSqrt(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
+            cbtScalar s = cbtSqrt(localDir[XX] * localDir[XX] + localDir[YY] * localDir[YY]);
             if (s != cbtScalar(0.0)) {
                 d = radius / s;
-                tmp[XX] = v[XX] * d;
-                tmp[YY] = v[YY] < 0.0 ? -halfHeight : halfHeight;
-                tmp[ZZ] = v[ZZ] * d;
-                return cbtVector3(tmp.getX(), tmp.getY(), tmp.getZ());
+                tmp[XX] = localDir[XX] * d;
+                tmp[YY] = localDir[YY] * d;
+                tmp[ZZ] = localDir[ZZ] < 0.0 ? -halfHeight : halfHeight;
             } else {
                 tmp[XX] = radius;
-                tmp[YY] = v[YY] < 0.0 ? -halfHeight : halfHeight;
-                tmp[ZZ] = cbtScalar(0.0);
-                return cbtVector3(tmp.getX(), tmp.getY(), tmp.getZ());
+                tmp[YY] = cbtScalar(0.0);
+                tmp[ZZ] = localDir[YY] < 0.0 ? -halfHeight : halfHeight;
             }
+
+            return tmp;
         }
-		case CAPSULE_SHAPE_PROXYTYPE:
-		{
+        case ROUNDEDCYL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+            cbtRoundedCylinderShape* cylShape = (cbtRoundedCylinderShape*)this;
+            cbtVector3 halfExtents = cylShape->getImplicitShapeDimensions();
+
+            // Cylindrical shell always along Z axis.
+            int XX = 0;
+            int YY = 1;
+            int ZZ = 2;
+
+            cbtScalar radius = halfExtents[XX];
+            cbtScalar halfHeight = halfExtents[ZZ];
+            cbtScalar sradius = cylShape->getSphereRadius();
+            cbtVector3 tmp;
+            cbtScalar d;
+
+            cbtScalar s = cbtSqrt(localDir[XX] * localDir[XX] + localDir[YY] * localDir[YY]);
+            if (s != cbtScalar(0.0)) {
+                d = radius / s;
+                tmp[XX] = localDir[XX] * d;
+                tmp[YY] = localDir[YY] * d;
+                tmp[ZZ] = localDir[ZZ] < 0.0 ? -halfHeight : halfHeight;
+            } else {
+                tmp[XX] = radius;
+                tmp[YY] = cbtScalar(0.0);
+                tmp[ZZ] = localDir[YY] < 0.0 ? -halfHeight : halfHeight;
+            }
+
+			return tmp + sradius * localDir;
+        }
+        case ROUNDEDBOX_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+            cbtRoundedBoxShape* boxShape = (cbtRoundedBoxShape*)this;
+            const cbtVector3& halfExtents = boxShape->getImplicitShapeDimensions();
+            cbtScalar sradius = boxShape->getSphereRadius();
+
+#if defined(__APPLE__) && (defined(BT_USE_SSE) || defined(BT_USE_NEON))
+    #if defined(BT_USE_SSE)
+            return cbtVector3(_mm_xor_ps(_mm_and_ps(localDir.mVec128, (__m128){-0.0f, -0.0f, -0.0f, -0.0f}), halfExtents.mVec128));
+    #elif defined(BT_USE_NEON)
+            return cbtVector3((float32x4_t)(((uint32x4_t)localDir.mVec128 & (uint32x4_t){0x80000000, 0x80000000, 0x80000000, 0x80000000}) ^ (uint32x4_t)halfExtents.mVec128));
+    #else
+        #error unknown vector arch
+    #endif
+#else
+            cbtVector3 tmp(cbtFsels(localDir.x(), halfExtents.x(), -halfExtents.x()),  //
+                           cbtFsels(localDir.y(), halfExtents.y(), -halfExtents.y()),  //
+                           cbtFsels(localDir.z(), halfExtents.z(), -halfExtents.z()));
+#endif
+
+            return tmp + sradius * localDir;
+        }
+        case CAPSULE_SHAPE_PROXYTYPE: {
 			cbtVector3 vec0(localDir.getX(), localDir.getY(), localDir.getZ());
 
 			cbtCapsuleShape* capsuleShape = (cbtCapsuleShape*)this;
@@ -378,6 +426,14 @@ cbtScalar cbtConvexShape::getMarginNonVirtual() const
             cbtCylindricalShellShape* cylShape = (cbtCylindricalShellShape*)this;
             return cylShape->getMarginNV();
         }
+        case ROUNDEDCYL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+            cbtRoundedCylinderShape* cylShape = (cbtRoundedCylinderShape*)this;
+            return cylShape->getMarginNV();
+        }
+        case ROUNDEDBOX_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+            cbtRoundedBoxShape* boxShape = (cbtRoundedBoxShape*)this;
+            return boxShape->getMarginNV();
+        }
         case CONE_SHAPE_PROXYTYPE:
 		{
 			cbtConeShape* conShape = (cbtConeShape*)this;
@@ -423,8 +479,10 @@ void cbtConvexShape::getAabbNonVirtual(const cbtTransform& t, cbtVector3& aabbMi
 			aabbMax = center + extent;
 		}
 		break;
-		case CYLINDER_SHAPE_PROXYTYPE:
-        case CYLSHELL_SHAPE_PROXYTYPE:
+        case CYLINDER_SHAPE_PROXYTYPE:
+        case CYLSHELL_SHAPE_PROXYTYPE:   /* ***CHRONO*** */
+        case ROUNDEDCYL_SHAPE_PROXYTYPE: /* ***CHRONO*** */
+        case ROUNDEDBOX_SHAPE_PROXYTYPE: /* ***CHRONO*** */
 		/* fall through */
 		case BOX_SHAPE_PROXYTYPE:
 		{

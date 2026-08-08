@@ -950,6 +950,8 @@ set(Chrono_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtRoundedCylinderShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtRoundedBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtEmptyShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMinkowskiSumShape.cpp

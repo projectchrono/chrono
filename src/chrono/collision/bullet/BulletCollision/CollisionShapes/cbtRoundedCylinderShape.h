@@ -2,19 +2,21 @@
 ***CHRONO***
 */
 
-#ifndef BT_CYLINDRICAL_SHELL_H
-#define BT_CYLINDRICAL_SHELL_H
+#ifndef BT_ROUNDED_CYLINDER_H
+#define BT_ROUNDED_CYLINDER_H
 
 #include "cbtBoxShape.h"
 #include "BulletCollision/BroadphaseCollision/cbtBroadphaseProxy.h"  // for the types
 #include "LinearMath/cbtVector3.h"
 
-/// The cbtCylindricalShellShape class implements a cylindrical shell shape primitive, centered around the origin.
+/// The cbtRoundedCylinderShape class implements a cylinder with rounded edges shape primitive, centered around the origin.
 /// Its central axis aligned with the Z axis.
 ATTRIBUTE_ALIGNED16(class)
-cbtCylindricalShellShape : public cbtConvexInternalShape {
+cbtRoundedCylinderShape : public cbtConvexInternalShape {
   public:
     BT_DECLARE_ALIGNED_ALLOCATOR();
+
+    cbtRoundedCylinderShape(cbtScalar radius, cbtScalar hheight, cbtScalar sradius);
 
     cbtVector3 getHalfExtentsWithMargin() const {
         cbtVector3 halfExtents = getHalfExtentsWithoutMargin();
@@ -35,7 +37,9 @@ cbtCylindricalShellShape : public cbtConvexInternalShape {
         return getHalfExtentsWithMargin().getZ();
     }
 
-    cbtCylindricalShellShape(cbtScalar radius, cbtScalar hheight);
+    cbtScalar getSphereRadius() const {
+        return s_radius;
+    }
 
     void getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const;
 
@@ -55,28 +59,31 @@ cbtCylindricalShellShape : public cbtConvexInternalShape {
 
     // debugging
     virtual const char* getName() const override {
-        return "CylindricalShell";
+        return "RoundedCylinder";
     }
 
     virtual int calculateSerializeBufferSize() const override;
 
     /// fills the dataBuffer and returns the struct name (and 0 on failure)
     virtual const char* serialize(void* dataBuffer, cbtSerializer* serializer) const override;
+
+  private:
+    cbtScalar s_radius;
 };
 
 /// do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
-struct cbtCylindricalShellShapeData {
+struct cbtRoundedCylinderShapeData {
     cbtConvexInternalShapeData m_convexInternalShapeData;
     char m_padding[4];
 };
 
-SIMD_FORCE_INLINE int cbtCylindricalShellShape::calculateSerializeBufferSize() const {
-    return sizeof(cbtCylindricalShellShapeData);
+SIMD_FORCE_INLINE int cbtRoundedCylinderShape::calculateSerializeBufferSize() const {
+    return sizeof(cbtRoundedCylinderShapeData);
 }
 
 /// fills the dataBuffer and returns the struct name (and 0 on failure)
-SIMD_FORCE_INLINE const char* cbtCylindricalShellShape::serialize(void* dataBuffer, cbtSerializer* serializer) const {
-    cbtCylindricalShellShapeData* shapeData = (cbtCylindricalShellShapeData*)dataBuffer;
+SIMD_FORCE_INLINE const char* cbtRoundedCylinderShape::serialize(void* dataBuffer, cbtSerializer* serializer) const {
+    cbtRoundedCylinderShapeData* shapeData = (cbtRoundedCylinderShapeData*)dataBuffer;
 
     cbtConvexInternalShape::serialize(&shapeData->m_convexInternalShapeData, serializer);
 
@@ -86,7 +93,7 @@ SIMD_FORCE_INLINE const char* cbtCylindricalShellShape::serialize(void* dataBuff
     shapeData->m_padding[2] = 0;
     shapeData->m_padding[3] = 0;
 
-    return "cbtCylindricalShellShapeData";
+    return "cbtRoundedCylinderShapeData";
 }
 
 #endif
