@@ -992,7 +992,12 @@ class ChApi ChArchiveOut : public ChArchive {
         this->out_array_pre(specVal, bVal.value().size());
         int i = 0;
         for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
-            ChNameValue<std::pair<T, Tv>> array_key(std::to_string(i), (*it));
+            // The key type must be const. Dereferencing the iterator yields std::pair<const T, Tv>&;
+            // declaring the ChNameValue with a non-const key instead converts, which materializes a
+            // temporary pair that is destroyed at the end of this statement. ChNameValue keeps only a
+            // raw pointer to its value, so the next line would then read freed memory. Do not
+            // "simplify" the const away.
+            ChNameValue<std::pair<const T, Tv>> array_key(std::to_string(i), (*it));
             this->out(array_key);
             this->out_array_between(specVal, bVal.value().size());
             ++i;
@@ -1008,7 +1013,9 @@ class ChApi ChArchiveOut : public ChArchive {
         this->out_array_pre(specVal, bVal.value().size());
         int i = 0;
         for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
-            ChNameValue<std::pair<T, Tv>> array_key(std::to_string(i), (*it));
+            // See the note in the std::unordered_map overload above: the const on the key is what
+            // keeps this binding to the real map element instead of to a temporary copy.
+            ChNameValue<std::pair<const T, Tv>> array_key(std::to_string(i), (*it));
             this->out(array_key);
             this->out_array_between(specVal, bVal.value().size());
             ++i;
