@@ -223,14 +223,19 @@ void ChObjectExplorer::ClearSearch() {
     this->find_all = false;
     this->found_obj = false;
     this->tablevel = 0;
+
+    // Delete before clearing. This loop used to sit at the end of this function, after results.clear() had
+    // already set the size to zero, so it ran no iterations and every ChValue allocated by a search was
+    // leaked.
+    for (size_t i = 0; i < this->results.size(); ++i) {
+        delete (this->results[i]);
+    }
     this->results.clear();
+
     this->search_tokens.clear();
     this->search_tokens.push_back("");  // for root level
     this->in_array.clear();
     this->in_array.push_back(false);  // for root level
-    for (int i = 0; i < this->results.size(); ++i) {
-        delete (this->results[i]);
-    }
 }
 void ChObjectExplorer::PrepareSearch(const std::string& msearched_property) {
     ClearSearch();
