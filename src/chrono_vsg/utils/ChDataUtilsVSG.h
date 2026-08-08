@@ -30,11 +30,13 @@ namespace vsg {
 class CH_VSG_API vec2CH : public vec2 {
   public:
     vec2CH(const chrono::ChVector2d& vec);
+    vec2CH(const chrono::ChVector2f& vec);
 };
 
 class CH_VSG_API vec3CH : public vec3 {
   public:
     vec3CH(const chrono::ChVector3d& vec);
+    vec3CH(const chrono::ChVector3f& vec);
     vec3CH(const chrono::ChColor& col);
 };
 
@@ -53,6 +55,7 @@ class CH_VSG_API dmat4CH : public dmat4 {
   public:
     dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector3d& scale);
     dmat4CH(const chrono::ChFrame<>& frame, double scale);
+    dmat4CH(const chrono::ChFrame<>& frame);
 };
 
 }  // namespace vsg

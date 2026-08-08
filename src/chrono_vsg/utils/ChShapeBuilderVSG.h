@@ -48,6 +48,15 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                             bool wireframe = false,
                                             float wire_width = 1);
 
+    vsg::ref_ptr<vsg::Group> CreatePbrRoundedShape(ChVisualShape::Type shape_type,
+                                                   std::shared_ptr<ChVisualMaterial> material,
+                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                   const ChVector3d& scale,
+                                                   double sradius,
+                                                   bool double_faced = true,
+                                                   bool wireframe = false,
+                                                   float wire_width = 1);
+
     vsg::ref_ptr<vsg::Group> CreatePbrSurfaceShape(std::shared_ptr<ChSurface> geometry,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
@@ -151,6 +160,14 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
         CapsuleShapeData(int num_divs);
     };
 
+    struct RoundedBoxShapeData : public ShapeData {
+        RoundedBoxShapeData(const vsg::vec3& lengths, float sradius, int num_divs);
+    };
+
+    struct RoundedCylinderShapeData : public ShapeData {
+        RoundedCylinderShapeData(float radius, float height, float sradius, int num_divs);
+    };
+
     vsg::ref_ptr<vsg::Group> CreatePbrShape(vsg::ref_ptr<vsg::vec3Array>& vertices,
                                             vsg::ref_ptr<vsg::vec3Array>& normals,
                                             vsg::ref_ptr<vsg::vec2Array>& texcoords,
@@ -163,6 +180,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::CompileTraversal> m_compileTraversal;
+
+    int m_num_divs;
 
     std::unique_ptr<BoxShapeData> m_box_data;
     std::unique_ptr<DieShapeData> m_die_data;

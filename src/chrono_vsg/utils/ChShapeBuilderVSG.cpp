@@ -44,7 +44,7 @@ vsg::ref_ptr<vsg::Node> wrapIfTransparent(vsg::ref_ptr<vsg::Node> node, std::sha
 }
 }  // namespace
 
-ShapeBuilder::ShapeBuilder(vsg::ref_ptr<vsg::Options> options, int num_divs) : m_options(options) {
+ShapeBuilder::ShapeBuilder(vsg::ref_ptr<vsg::Options> options, int num_divs) : m_options(options), m_num_divs(num_divs) {
     // Create the primitive shape builders
     m_box_data = std::make_unique<BoxShapeData>();
     m_die_data = std::make_unique<DieShapeData>();
@@ -176,6 +176,52 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ChVisualShape::Type shape_
             indices = m_cone_data->indices;
             break;
     }
+
+    auto scenegraph = CreatePbrShape(vertices, normals, texcoords, indices, material, transform, double_faced, wireframe, wire_width);
+    return scenegraph;
+}
+
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrRoundedShape(ChVisualShape::Type shape_type,
+                                                             std::shared_ptr<ChVisualMaterial> material,
+                                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                             const ChVector3d& scale,
+                                                             double sradius,
+                                                             bool double_faced,
+                                                             bool wireframe,
+                                                             float wire_width) {
+    vsg::ref_ptr<vsg::vec3Array> vertices;
+    vsg::ref_ptr<vsg::vec3Array> normals;
+    vsg::ref_ptr<vsg::vec2Array> texcoords;
+    vsg::ref_ptr<vsg::ushortArray> indices;
+
+    switch (shape_type) {
+        case ChVisualShape::Type::ROUNDEDBOX: {
+            auto lengths = vsg::vec3CH(scale);
+            RoundedBoxShapeData rbox_data(lengths, sradius, m_num_divs);
+            vertices = rbox_data.vertices;
+            normals = rbox_data.normals;
+            texcoords = vsg::vec2Array::create(rbox_data.texcoords->size());
+            for (size_t i = 0; i < rbox_data.texcoords->size(); i++) {
+                texcoords->set(i, rbox_data.texcoords->at(i));
+            }
+            indices = rbox_data.indices;
+            break;
+        }
+        case ChVisualShape::Type::ROUNDEDCYL: {
+            float radius = static_cast<float>(scale[0]);
+            float length = static_cast<float>(scale[2]);
+            RoundedCylinderShapeData rcyl_data(radius, length, sradius, m_num_divs);
+            vertices = rcyl_data.vertices;
+            normals = rcyl_data.normals;
+            texcoords = vsg::vec2Array::create(rcyl_data.texcoords->size());
+            for (size_t i = 0; i < rcyl_data.texcoords->size(); i++) {
+                texcoords->set(i, rcyl_data.texcoords->at(i));
+            }
+            indices = rcyl_data.indices;
+            break;
+        }
+    }
+
     auto scenegraph = CreatePbrShape(vertices, normals, texcoords, indices, material, transform, double_faced, wireframe, wire_width);
     return scenegraph;
 }
@@ -409,7 +455,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
         vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
         // seems to work with v-coordinate flipped on VSG (??)
-        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), uvs[k].y()) : vsg::vec2CH({0, 0}));
+        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), uvs[k].y()) : vsg::vec2({0, 0}));
         vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
     }
     size_t kk = 0;
@@ -1377,6 +1423,389 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
     ////std::cout << std::endl;
     ////for (size_t j = 0; j < indices->size(); j++)
     ////    std::cout << indices->at(j) << std::endl;
+}
+
+// =============================================================================
+// Tesselation for rounded shapes (box and cylinder)
+
+constexpr float pi = (float)CH_PI;
+constexpr float pi_2 = (float)CH_PI_2;
+
+struct Vertex {
+    ChVector3f position, normal;
+    float u, v;  // per-patch UV, in [0, 1]
+};
+
+// Quantized (position, normal, uv) used as a dedup key, so vertices that coincide within a small tolerance collapse to a single entry.
+using VertexKey = std::array<long long, 8>;
+
+VertexKey makeVertexKey(const Vertex& vert) {
+    const float scale = 1e5f;
+    auto q = [&](float f) { return (long long)std::lround(f * scale); };
+    return {q(vert.position[0]), q(vert.position[1]), q(vert.position[2]), q(vert.normal[0]), q(vert.normal[1]), q(vert.normal[2]), q(vert.u), q(vert.v)};
+}
+
+struct Mesh {
+    std::vector<Vertex> vertices;
+    std::vector<int> indices;  // 3 indices per triangle
+    std::map<VertexKey, int> vertexIndex;
+
+    // Returns the index of an existing matching vertex, or adds a new one.
+    int addVertex(const Vertex& vert) {
+        VertexKey key = makeVertexKey(vert);
+        auto [it, inserted] = vertexIndex.try_emplace(key, (int)vertices.size());
+        if (inserted)
+            vertices.push_back(vert);
+        return it->second;
+    }
+
+    // Flips winding if needed so the triangle faces the same way as its vertex normals.
+    void addTriangle(Vertex a, Vertex b, Vertex c) {
+        ChVector3f faceNormal = Vcross(b.position - a.position, c.position - a.position);
+        ChVector3f vertexNormal = a.normal + b.normal + c.normal;
+        if (Vdot(faceNormal, vertexNormal) < 0)
+            std::swap(b, c);
+        indices.push_back(addVertex(a));
+        indices.push_back(addVertex(b));
+        indices.push_back(addVertex(c));
+    }
+
+    // Corners given in order around the quad's perimeter.
+    void addQuad(Vertex a, Vertex b, Vertex c, Vertex d) {
+        addTriangle(a, b, c);
+        addTriangle(a, c, d);
+    }
+};
+
+// Physical size of a patch, used only to size its atlas cell -- not its tessellation.
+struct PatchRect {
+    float w, h;
+};
+
+// A patch's rectangle within the [0,1]x[0,1] UV atlas.
+struct AtlasCell {
+    float x, y, w, h;
+};
+
+// Physical (width, height) of every one of the 26 patches, in the exact order the
+// geometry loops in generateRoundedBox visit them, so patch index i here is patch index i there.
+std::vector<PatchRect> computeBoxPatchRects(const ChVector3f& inner, float r) {
+    std::vector<PatchRect> rects;
+
+    // 6 flat faces: exact rectangle.
+    for (int axis = 0; axis < 3; axis++) {
+        int i = (axis + 1) % 3, j = (axis + 2) % 3;
+        for (int s = -1; s <= 1; s += 2) {
+            (void)s;
+            rects.push_back({2 * inner[i], 2 * inner[j]});
+        }
+    }
+
+    // 12 quarter-cylinder edges: a cylinder unrolls into an exact flat rectangle.
+    for (int axis = 0; axis < 3; axis++) {
+        float sweepLength = 2 * inner[axis];
+        float arcLength = r * pi_2;
+        for (int si = -1; si <= 1; si += 2) {
+            for (int sj = -1; sj <= 1; sj += 2) {
+                (void)si;
+                (void)sj;
+                rects.push_back({sweepLength, arcLength});
+            }
+        }
+    }
+
+    // 8 eighth-sphere corners: approximated as a square with the same (exact) surface area,
+    // since a sphere patch has no exact flat unrolling. Area of an eighth-sphere is
+    // (4*pi*r^2)/8 = pi_2*r^2, so a square with that area has this side length.
+    float cornerSide = r * std::sqrt(pi_2);
+    for (int sx = -1; sx <= 1; sx += 2) {
+        for (int sy = -1; sy <= 1; sy += 2) {
+            for (int sz = -1; sz <= 1; sz += 2) {
+                (void)sx;
+                (void)sy;
+                (void)sz;
+                rects.push_back({cornerSide, cornerSide});
+            }
+        }
+    }
+
+    return rects;
+}
+
+// Physical (width, height) of each of the 5 patches (2 caps + 1 side wall + 2 rounded rims),
+// in the exact order the geometry loops in generateRoundedCylinder visit them.
+// innerRadius/outerRadius/wallHalfHeight are the core cylinder dimensions before rounding
+// (see generateRoundedCylinder for how they relate to the requested radius/height/edgeRadius).
+std::vector<PatchRect> computeCylinderPatchRects(float innerRadius, float outerRadius, float wallHalfHeight, float edgeRadius) {
+    std::vector<PatchRect> rects;
+
+    // 2 flat caps: a disk has no exact flat rectangle, so it is mapped into (and area-matched
+    // against) its own bounding square -- the same "exact area, approximate shape" idea used
+    // for the box's sphere corners, just with the disk-in-square convention for its UV below.
+    for (int i = 0; i < 2; i++) {
+        rects.push_back({2 * innerRadius, 2 * innerRadius});
+    }
+
+    // 1 cylindrical side wall: exact rectangle, a cylinder unrolls losslessly.
+    rects.push_back({2 * 3.14159265359f * outerRadius, 2 * wallHalfHeight});
+
+    // 2 rounded rims (quarter-torus): exact area via the torus area element
+    // (innerRadius + edgeRadius*cos(phi)) * edgeRadius, integrated over phi in [0, pi_2]
+    // and theta in [0, 2*pi]. One side of the rectangle (the profile arc) is an exact
+    // geodesic length; the other is derived so the product matches the exact area.
+    float rimArea = 2 * 3.14159265359f * edgeRadius * (innerRadius * pi_2 + edgeRadius);
+    float rimProfileLength = edgeRadius * pi_2;
+    for (int i = 0; i < 2; i++) {
+        rects.push_back({rimArea / rimProfileLength, rimProfileLength});
+    }
+
+    return rects;
+}
+
+// Packs rectangles into the unit square via shelf packing (tallest first, left-to-right,
+// wrapping to a new row on overflow), pre-scaled so each rectangle's final area is exactly
+// proportional to its original area -- giving every patch the same texel density regardless
+// of packing efficiency. Some empty margin at the edges of the atlas is expected.
+std::vector<AtlasCell> packAtlas(const std::vector<PatchRect>& rects) {
+    float totalArea = 0;
+    for (const auto& rc : rects)
+        totalArea += rc.w * rc.h;
+    float scale = 1.0f / std::sqrt(totalArea);
+
+    std::vector<int> order(rects.size());
+    for (size_t i = 0; i < order.size(); i++)
+        order[i] = (int)i;
+    std::sort(order.begin(), order.end(), [&](int a, int b) { return rects[a].h > rects[b].h; });
+
+    std::vector<AtlasCell> cells(rects.size());
+    float x = 0, y = 0, rowHeight = 0, usedWidth = 0;
+    for (int idx : order) {
+        float w = rects[idx].w * scale, h = rects[idx].h * scale;
+        if (x > 0 && x + w > 1.0f) {
+            y += rowHeight;
+            x = 0;
+            rowHeight = 0;
+        }
+        cells[idx] = {x, y, w, h};
+        x += w;
+        rowHeight = std::max(rowHeight, h);
+        usedWidth = std::max(usedWidth, x);
+    }
+    float usedHeight = y + rowHeight;
+
+    // Uniform (not per-axis) rescale so it fits [0,1]x[0,1] without distorting aspect ratios.
+    float fit = 1.0f / std::max({usedWidth, usedHeight, 1e-6f});
+    for (auto& cell : cells) {
+        cell.x *= fit;
+        cell.y *= fit;
+        cell.w *= fit;
+        cell.h *= fit;
+    }
+    return cells;
+}
+
+// -----------------------------------------------------------------------------
+
+ShapeBuilder::RoundedBoxShapeData::RoundedBoxShapeData(const vsg::vec3& lengths, float sradius, int num_divs) {
+    float width = lengths[0];
+    float height = lengths[1];
+    float depth = lengths[2];
+
+    const float r = std::min({sradius, width / 2, height / 2, depth / 2});
+    const int n = std::max(1, num_divs / 4);
+
+    // The rounded box is a box of half-extent `inner`, Minkowski-summed with a sphere of radius r.
+    ChVector3f inner(width / 2 - r, height / 2 - r, depth / 2 - r);
+
+    // Single UV atlas: each of the 26 patches (6 faces + 12 edges + 8 corners) gets a cell
+    // sized proportionally to its real surface area, so texel density is uniform everywhere.
+    std::vector<AtlasCell> atlasCells = packAtlas(computeBoxPatchRects(inner, r));
+    int patchIndex = 0;
+    auto packUV = [&](int patch, float localU, float localV) {
+        const AtlasCell& cell = atlasCells[patch];
+        return std::pair<float, float>{cell.x + localU * cell.w, cell.y + localV * cell.h};
+    };
+
+    Mesh mesh;
+
+    // --- 6 flat faces ---
+    for (int axis = 0; axis < 3; axis++) {
+        int i = (axis + 1) % 3, j = (axis + 2) % 3;
+        for (int s = -1; s <= 1; s += 2) {
+            int patch = patchIndex++;
+            ChVector3f normal{};
+            normal[axis] = (float)s;
+            auto faceVertex = [&](float si, float sj) {
+                ChVector3f p{};
+                p[axis] = s * (inner[axis] + r);
+                p[i] = si * inner[i];
+                p[j] = sj * inner[j];
+                auto [u, v] = packUV(patch, (si + 1) / 2, (sj + 1) / 2);
+                return Vertex{p, normal, u, v};
+            };
+            mesh.addQuad(faceVertex(-1, -1), faceVertex(1, -1), faceVertex(1, 1), faceVertex(-1, 1));
+        }
+    }
+
+    // --- 12 quarter-cylinder edges ---
+    for (int axis = 0; axis < 3; axis++) {
+        int i = (axis + 1) % 3, j = (axis + 2) % 3;
+        float sweepHalf = inner[axis];
+        for (int si = -1; si <= 1; si += 2) {
+            for (int sj = -1; sj <= 1; sj += 2) {
+                int patch = patchIndex++;
+                auto ringVertex = [&](float t, float a) {
+                    // t is 0 at one end of the edge and 1 at the other.
+                    float sweep = -sweepHalf + t * 2 * sweepHalf;
+                    ChVector3f normal{};
+                    normal[i] = si * cosf(a);
+                    normal[j] = sj * sinf(a);
+                    ChVector3f p{};
+                    p[axis] = sweep;
+                    p[i] = si * inner[i] + r * normal[i];
+                    p[j] = sj * inner[j] + r * normal[j];
+                    auto [u, v] = packUV(patch, t, a / pi_2);
+                    return Vertex{p, normal, u, v};
+                };
+                for (int k = 0; k < n; k++) {
+                    float a0 = pi_2 * k / n, a1 = pi_2 * (k + 1) / n;
+                    mesh.addQuad(ringVertex(0, a0), ringVertex(1, a0), ringVertex(1, a1), ringVertex(0, a1));
+                }
+            }
+        }
+    }
+
+    // --- 8 eighth-sphere corners ---
+    for (int sx = -1; sx <= 1; sx += 2) {
+        for (int sy = -1; sy <= 1; sy += 2) {
+            for (int sz = -1; sz <= 1; sz += 2) {
+                int patch = patchIndex++;
+                ChVector3f center(sx * inner[0], sy * inner[1], sz * inner[2]);
+                auto cornerVertex = [&](float theta, float phi) {
+                    ChVector3f normal(sx * cosf(theta) * cosf(phi), sy * sinf(phi), sz * sinf(theta) * cosf(phi));
+                    auto [u, v] = packUV(patch, theta / pi_2, phi / pi_2);
+                    return Vertex{center + normal * r, normal, u, v};
+                };
+                for (int a = 0; a < n; a++) {
+                    for (int b = 0; b < n; b++) {
+                        float t0 = pi_2 * a / n, t1 = pi_2 * (a + 1) / n;
+                        float p0 = pi_2 * b / n, p1 = pi_2 * (b + 1) / n;
+                        mesh.addQuad(cornerVertex(t0, p0), cornerVertex(t1, p0), cornerVertex(t1, p1), cornerVertex(t0, p1));
+                    }
+                }
+            }
+        }
+    }
+
+    // Load tesselation into VSG arrays
+
+    size_t nv = mesh.vertices.size();
+    size_t ni = mesh.indices.size();
+
+    vertices = vsg::vec3Array::create(nv);
+    normals = vsg::vec3Array::create(nv);
+    texcoords = vsg::vec2Array::create(nv);
+    indices = vsg::ushortArray::create(ni);
+
+    for (size_t iv = 0; iv < nv; iv++) {
+        vertices->set(iv, vsg::vec3CH(mesh.vertices[iv].position));
+        normals->set(iv, vsg::vec3CH(mesh.vertices[iv].normal));
+        texcoords->set(iv, {mesh.vertices[iv].u, mesh.vertices[iv].v});
+    }
+
+    for (size_t ii = 0; ii < ni; ii++) {
+        indices->set(ii, mesh.indices[ii]);
+    }
+}
+
+ShapeBuilder::RoundedCylinderShapeData::RoundedCylinderShapeData(float radius, float height, float sradius, int num_divs) {
+    const float r = std::min({sradius, radius, height / 2});
+    const int n = std::max(1, num_divs / 4);
+    const int circSteps = num_divs;
+
+    // The rounded cylinder is a cylinder of radius `inner` and half-height `wallHalfHeight`,
+    // Minkowski-summed with a sphere of radius r (same idea as the rounded box's `inner`).
+    const float inner = radius - r;
+    const float wallHalfHeight = height / 2 - r;
+
+    std::vector<AtlasCell> atlasCells = packAtlas(computeCylinderPatchRects(inner, radius, wallHalfHeight, r));
+    int patchIndex = 0;
+    auto packUV = [&](int patch, float localU, float localV) {
+        const AtlasCell& cell = atlasCells[patch];
+        return std::pair<float, float>{cell.x + localU * cell.w, cell.y + localV * cell.h};
+    };
+
+    Mesh mesh;
+
+    // --- 2 flat caps (fan from center; flat, so no radial subdivision is needed) ---
+    for (int side = -1; side <= 1; side += 2) {
+        int patch = patchIndex++;
+        ChVector3f normal{};
+        normal[2] = (float)side;
+        Vertex center{ChVector3f(0, 0, side * (wallHalfHeight + r)), normal, 0.5f, 0.5f};
+        auto capVertex = [&](int k) {
+            float theta = 2 * pi * k / circSteps;
+            ChVector3f p(inner * cosf(theta), inner * sinf(theta), side * (wallHalfHeight + r));
+            auto [u, v] = packUV(patch, 0.5f + 0.5f * cosf(theta), 0.5f + 0.5f * sinf(theta));
+            return Vertex{p, normal, u, v};
+        };
+        for (int k = 0; k < circSteps; k++) {
+            mesh.addTriangle(center, capVertex(k), capVertex(k + 1));
+        }
+    }
+
+    // --- 1 cylindrical side wall (straight/ruled along height, so 1 segment there) ---
+    {
+        int patch = patchIndex++;
+        auto wallVertex = [&](int k, float z) {
+            float theta = 2 * pi * k / circSteps;
+            ChVector3f normal(cosf(theta), sinf(theta), 0);
+            ChVector3f p(radius * cosf(theta), radius * sinf(theta), z);
+            auto [u, v] = packUV(patch, (float)k / circSteps, (z + wallHalfHeight) / (2 * wallHalfHeight));
+            return Vertex{p, normal, u, v};
+        };
+        for (int k = 0; k < circSteps; k++) {
+            mesh.addQuad(wallVertex(k, -wallHalfHeight), wallVertex(k + 1, -wallHalfHeight), wallVertex(k + 1, wallHalfHeight), wallVertex(k, wallHalfHeight));
+        }
+    }
+
+    // --- 2 rounded rims (quarter-torus, doubly curved: subdivide both circumference and profile) ---
+    for (int side = -1; side <= 1; side += 2) {
+        int patch = patchIndex++;
+        auto rimVertex = [&](int k, float phi) {
+            float theta = 2 * pi * k / circSteps;
+            ChVector3f normal(cosf(phi) * cosf(theta), cosf(phi) * sinf(theta), side * sinf(phi));
+            ChVector3f p((inner + r * cosf(phi)) * cosf(theta), (inner + r * cosf(phi)) * sinf(theta), side * (wallHalfHeight + r * sinf(phi)));
+            auto [u, v] = packUV(patch, (float)k / circSteps, phi / pi_2);
+            return Vertex{p, normal, u, v};
+        };
+        for (int k = 0; k < circSteps; k++) {
+            for (int a = 0; a < n; a++) {
+                float phi0 = pi_2 * a / n, phi1 = pi_2 * (a + 1) / n;
+                mesh.addQuad(rimVertex(k, phi0), rimVertex(k + 1, phi0), rimVertex(k + 1, phi1), rimVertex(k, phi1));
+            }
+        }
+    }
+
+    // Load tesselation into VSG arrays
+
+    size_t nv = mesh.vertices.size();
+    size_t ni = mesh.indices.size();
+
+    vertices = vsg::vec3Array::create(nv);
+    normals = vsg::vec3Array::create(nv);
+    texcoords = vsg::vec2Array::create(nv);
+    indices = vsg::ushortArray::create(ni);
+
+    for (size_t iv = 0; iv < nv; iv++) {
+        vertices->set(iv, vsg::vec3CH(mesh.vertices[iv].position));
+        normals->set(iv, vsg::vec3CH(mesh.vertices[iv].normal));
+        texcoords->set(iv, {mesh.vertices[iv].u, mesh.vertices[iv].v});
+    }
+
+    for (size_t ii = 0; ii < ni; ii++) {
+        indices->set(ii, mesh.indices[ii]);
+    }
 }
 
 }  // namespace vsg3d
