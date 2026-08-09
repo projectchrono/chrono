@@ -1,8 +1,18 @@
 #=============================================================================
 # CMake configuration file for Chrono Vehicle co-simulation library
-#
-# Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
+
+if(NOT CH_ENABLE_MODULE_VEHICLE)
+  return()
+endif()
+
+option(CH_ENABLE_MODULE_VEHICLE_COSIM "Build the Chrono vehicle co-simulation library" TRUE)
+
+if(NOT CH_ENABLE_MODULE_VEHICLE_COSIM)
+   return()
+endif()
+
+message(STATUS "\n==== Chrono Vehicle Co-simulation module ====\n")
 
 # Return now if MPI is not available
 if(NOT MPI_FOUND)
