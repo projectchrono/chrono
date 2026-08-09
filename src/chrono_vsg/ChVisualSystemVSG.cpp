@@ -2610,24 +2610,22 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             }
             case ChCollisionShape::Type::ROUNDEDBOX: {
                 auto rbox = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
-                const ChVector3d& hlengths = rbox->GetHalflengths();
+                const ChVector3d& lengths = rbox->GetLengths();
                 double sradius = rbox->GetSRadius();
-                double ratio = sradius / hlengths[0];
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::dmat4CH(X_SM, hlengths);
-                auto grp = m_shapeBuilder->CreatePbrRoundedShape(ChVisualShape::Type::ROUNDEDBOX, material, transform, ratio, true, true);
+                transform->matrix = vsg::dmat4CH(X_SM);
+                auto grp = m_shapeBuilder->CreatePbrRoundedShape(ChVisualShape::Type::ROUNDEDBOX, material, transform, lengths, sradius, true, true);
                 group->addChild(grp);
                 break;
             }
             case ChCollisionShape::Type::ROUNDEDCYL: {
                 auto rcyl = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
-                double rad = rcyl->GetRadius();
+                double radius = rcyl->GetRadius();
                 double height = rcyl->GetHeight();
                 double sradius = rcyl->GetSRadius();
-                double ratio = sradius / rad;
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-                auto grp = m_shapeBuilder->CreatePbrRoundedShape(ChVisualShape::Type::CYLINDER, material, transform, ratio, true, true);
+                transform->matrix = vsg::dmat4CH(X_SM);
+                auto grp = m_shapeBuilder->CreatePbrRoundedShape(ChVisualShape::Type::ROUNDEDCYL, material, transform, ChVector3d(radius, radius, height), sradius, true, true);
                 group->addChild(grp);
                 break;
             }
