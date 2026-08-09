@@ -247,7 +247,7 @@ if(CH_ENABLE_MODULE_VEHICLE)
 endif()
 
 # Robot-model handlers (Viper) link ChronoModels_robot.
-if(TARGET ChronoModels_robot)
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
   target_link_libraries(Chrono_ros PUBLIC ChronoModels_robot)
 endif()
 

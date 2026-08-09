@@ -43,7 +43,14 @@ endif()
 # ------------------------------------------------------------------------------
 
 list(APPEND LIBS "Chrono_vehicle_cosim")
-list(APPEND LIBS "ChronoModels_vehicle")
+
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
+  list(APPEND LIBS "ChronoModels_robot")
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE_MODELS)
+  list(APPEND LIBS "ChronoModels_vehicle")
+endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "Chrono_pardisomkl")

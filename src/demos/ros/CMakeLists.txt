@@ -34,21 +34,24 @@ if(CH_ENABLE_MODULE_VEHICLE)
 endif()
 
 # ------------------------------------------------------------------------------
-# Include directories, compiler flags, libraries
-
-list(APPEND LIBS Chrono_core)
-list(APPEND LIBS Chrono_ros)
-list(APPEND LIBS ChronoModels_robot)
+# Libraries
 
 # Force C++17, required by ROS Humble
 set(CMAKE_CXX_STANDARD 17)
 
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS Chrono_ros)
+
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
+  list(APPEND LIBS ChronoModels_robot)
+endif()
+
 # Chrono::Vehicle is needed by the vehicle demos regardless of whether a run-time
 # visualization module is enabled (they can run headless).
 if(CH_ENABLE_MODULE_VEHICLE)
-    list(APPEND LIBS "Chrono_vehicle")
-    if(TARGET ChronoModels_vehicle)
-        list(APPEND LIBS "ChronoModels_vehicle")
+    list(APPEND LIBS Chrono_vehicle)
+    if(CH_ENABLE_MODULE_VEHICLE_MODELS)
+        list(APPEND LIBS ChronoModels_vehicle)
     endif()
 endif()
 
@@ -73,7 +76,7 @@ if(CH_ENABLE_MODULE_SENSOR)
 endif()
 
 if(CH_ENABLE_MODULE_PARSERS)
-  list(APPEND LIBS "Chrono_parsers")
+  list(APPEND LIBS Chrono_parsers)
 endif()
 
 # ------------------------------------------------------------------------------
