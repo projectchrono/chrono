@@ -2113,7 +2113,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
             double rad = cap->GetRadius();
             double height = cap->GetHeight();
             shape_type = ChVisualShape::Type::CAPSULE;
-            shape_size = ChVector3d(2 * rad, 2 * rad, height);
+            shape_size = ChVector3d(2 * rad, 2 * rad, height + 2 * rad);
             break;
         }
         case ChVisualShape::Type::CYLINDER: {
