@@ -1035,6 +1035,7 @@ endif()
 # Module for the robot models
 #-----------------------------------------------------------------------------
 
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
   message(STATUS "Add python ROBOT module")
 
   # Python module name
@@ -1104,6 +1105,7 @@ endif()
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_ROBOT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+endif()
 
 #-----------------------------------------------------------------------------
 # MODULE for the parser python wrapper.

@@ -36,11 +36,16 @@ set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimWheeledVehicleNode.cpp
     mbs/ChVehicleCosimTrackedVehicleNode.h
     mbs/ChVehicleCosimTrackedVehicleNode.cpp
-    mbs/ChVehicleCosimViperNode.h
-    mbs/ChVehicleCosimViperNode.cpp
-    mbs/ChVehicleCosimCuriosityNode.h
-    mbs/ChVehicleCosimCuriosityNode.cpp
 )
+
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
+    set(CV_COSIM_MBS_FILES ${CV_COSIM_MBS_FILES}
+        mbs/ChVehicleCosimViperNode.h
+        mbs/ChVehicleCosimViperNode.cpp
+        mbs/ChVehicleCosimCuriosityNode.h
+        mbs/ChVehicleCosimCuriosityNode.cpp
+    )
+endif()
 
 set(CV_COSIM_TIRE_FILES
     tire/ChVehicleCosimTireNodeRigid.h

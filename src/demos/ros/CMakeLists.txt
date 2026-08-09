@@ -20,7 +20,7 @@ endif()
 
 # demo_ROS_viper exercises the Viper rover motor-control handler; needs the
 # robot models library.
-if(TARGET ChronoModels_robot)
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
   list(APPEND DEMOS demo_ROS_viper)
 endif()
 
@@ -28,7 +28,7 @@ endif()
 # demo_ROS_two_managers additionally needs the HMMWV model (ChronoModels_vehicle).
 if(CH_ENABLE_MODULE_VEHICLE)
   list(APPEND DEMOS demo_ROS_vehicle)
-  if(TARGET ChronoModels_vehicle)
+  if(CH_ENABLE_MODULE_VEHICLE_MODELS)
     list(APPEND DEMOS demo_ROS_two_managers)
   endif()
 endif()

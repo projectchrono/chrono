@@ -195,7 +195,7 @@ endif()
 # Robot-model handlers (Viper): need ChronoModels_robot for the ViperDCMotorControl
 # driver type. Gated on the target so a build without robot models still works.
 set(CH_ROS_ROBOT_MODEL_HANDLER_FILES "")
-if(TARGET ChronoModels_robot)
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
   set(CH_ROS_ROBOT_MODEL_HANDLER_FILES
     handlers/robot/viper/ChROSViperDCMotorControlHandler.h
     handlers/robot/viper/ChROSViperDCMotorControlHandler.cpp
