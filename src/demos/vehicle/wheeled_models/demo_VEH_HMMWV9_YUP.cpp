@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChVisualShapeSphere.h"
+
 #include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"

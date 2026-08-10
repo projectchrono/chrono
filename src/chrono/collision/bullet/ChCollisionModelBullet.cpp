@@ -23,6 +23,8 @@
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtRoundedCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtRoundedBoxShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtChTriangleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtPointShape.h"
@@ -169,6 +171,27 @@ void ChCollisionModelBullet::Populate() {
                 InjectShape(shape, bt_shape, frame);
                 break;
             }
+            case ChCollisionShape::Type::ROUNDEDCYL: {
+                auto shape_rcyl = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
+                auto height = shape_rcyl->GetHeight();
+                auto radius = shape_rcyl->GetRadius();
+                auto sradius = shape_rcyl->GetSRadius();
+                model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
+                auto bt_shape = chrono_types::make_shared<cbtRoundedCylinderShape>((cbtScalar)(radius + envelope), (cbtScalar)(height / 2 + envelope), sradius);
+                bt_shape->setMargin((cbtScalar)full_margin);
+                InjectShape(shape, bt_shape, frame);
+                break;
+            }
+            case ChCollisionShape::Type::ROUNDEDBOX: {
+                auto shape_rbox = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
+                auto len = shape_rbox->GetLengths();
+                auto sradius = shape_rbox->GetSRadius();
+                model->SetSafeMargin(std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
+                auto bt_shape = chrono_types::make_shared<cbtRoundedBoxShape>(cbtVector3CH(len / 2 + envelope), sradius);
+                bt_shape->setMargin((cbtScalar)full_margin);
+                InjectShape(shape, bt_shape, frame);
+                break;
+            }
             case ChCollisionShape::Type::BARREL: {
                 auto shape_barrel = std::static_pointer_cast<ChCollisionShapeBarrel>(shape);
                 auto Y_low = shape_barrel->Y_low;
@@ -232,19 +255,8 @@ void ChCollisionModelBullet::Populate() {
                 break;
             }
             default: {
-                // Shape type not supported by the Bullet collision system (see the notes on ChCollisionShape::Type).
-                // Report it once per type: dropping the shape silently leaves a body that simply never collides, with
-                // nothing to indicate why.
-                static std::mutex mutex;
-                static std::set<ChCollisionShape::Type> reported;
-                std::lock_guard<std::mutex> lock(mutex);
-                if (reported.insert(shape->GetType()).second) {
-                    std::cerr << "Warning: the Bullet collision system does not support collision shapes of type "
-                              << ChCollisionShape::GetTypeAsString(shape->GetType())
-                              << "; the shape is excluded from the collision model. Further occurrences of this shape "
-                                 "type are not reported."
-                              << std::endl;
-                }
+                // Shape type not supported by the Bullet collision system
+                ChCollisionShape::ReportUnsupported(shape->GetType(), "Bullet collision");
                 break;
             }
         }
@@ -252,7 +264,7 @@ void ChCollisionModelBullet::Populate() {
 }
 
 void ChCollisionModelBullet::InjectShape(std::shared_ptr<ChCollisionShape> shape, std::shared_ptr<cbtCollisionShape> bt_shape, const ChFrame<>& frame) {
-    // Cache the colision shapes and attach shape information as Bullet user data
+    // Cache the collision shapes and attach shape information as Bullet user data
     // This must be done first, to have access to the Bullet collision model's GetSafeMargin() and GetEnvelope()
     auto shape_data = chrono_types::make_shared<ShapeData>();
     shape_data->ch_shape = shape;
@@ -506,9 +518,9 @@ void ChCollisionModelBullet::InjectTriangleMesh(std::shared_ptr<ChCollisionShape
             // Indicate if an edge is owned by this triangle. Otherwise, they belong to a neighboring triangle.
             auto shape_triangle = chrono_types::make_shared<ChCollisionShapeConnectedTriangle>(
                 shape_trimesh->GetMaterial(),                                                                                    // contact material
-                &mesh->m_vertices[tri_verts_indices.x()],                                                                        // vertex 1 coords
-                &mesh->m_vertices[tri_verts_indices.y()],                                                                        // vertex 2 coords
-                &mesh->m_vertices[tri_verts_indices.z()],                                                                        // vertex 3 coords
+                &mesh->m_vertices[tri_verts_indices.x()],                                                                        // vertex 1 coordinates
+                &mesh->m_vertices[tri_verts_indices.y()],                                                                        // vertex 2 coordinates
+                &mesh->m_vertices[tri_verts_indices.z()],                                                                        // vertex 3 coordinates
                 wingedgeA->second.second != -1 ? &mesh->m_vertices[wingvertexA_idx] : &mesh->m_vertices[tri_verts_indices.z()],  // edge 1 neighbor vertex
                 wingedgeB->second.second != -1 ? &mesh->m_vertices[wingvertexB_idx] : &mesh->m_vertices[tri_verts_indices.x()],  // edge 2 neighbor vertex
                 wingedgeC->second.second != -1 ? &mesh->m_vertices[wingvertexC_idx] : &mesh->m_vertices[tri_verts_indices.y()],  // edge 3 neighbor vertex

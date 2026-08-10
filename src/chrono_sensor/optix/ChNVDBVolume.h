@@ -13,34 +13,31 @@
 // Authors: Nevindu Batagoda
 // =============================================================================
 //
-// A class to contain a volumetric object rendered using NVDB Voxels
+// A class to contain a volumetric object rendered using NVDB voxels.
 //
 // =============================================================================
 
-#ifndef CHNVDBVOLUME_H
-#define CHNVDBVOLUME_H
+#ifndef CH_NVDB_VOLUME_H
+#define CH_NVDB_VOLUME_H
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-// #include "chrono/assets/ChBoxShape.h"
 
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono_sensor/ChApiSensor.h"
 
-// #include "chrono_sensor/cuda/cuda_utils.cuh"
-
 namespace chrono {
 namespace sensor {
 
+/// Volumetric object using NanoVDB voxels.
 class CH_SENSOR_API ChNVDBShape : public ChVisualShape {
   public:
     ChNVDBShape();
     ChNVDBShape(const ChBox& box);
-
-    ~ChNVDBShape() {};
+    ~ChNVDBShape() {}
 
     /// Access the box geometry.
     ChBox& GetBoxGeometry() { return gbox; }
@@ -55,15 +52,16 @@ class CH_SENSOR_API ChNVDBShape : public ChVisualShape {
     ChBox gbox;
 };
 
+/// Body for NanoVDB visualization volume.
+/// When building Chrono::Sensor, enable CH_USE_SENSOR_NVDB to link NanoVDB library to Chrono::Sensor.
+/// Currently this can only be used to render Chrono::FSI SPH simulations. Use this in conjunction with
+/// ChScene::SetFSIParticles() and ChScene::SetFSINumFSIParticles() to render Chrono::FSI SPH simulations.
 class CH_SENSOR_API ChNVDBVolume : public ChBody {
   public:
     /// Creates a NanoVDB volume which is used as a bounding volume for rendering volumetric data.
-    /// When building Chrono::Sensor, enable CH_USE_SENSOR_NVDB to link NanoVDB library to Chrono::Sensor. Currently
-    /// this can only be used to render Chrono::FSI SPH simulations. Use this in conjunction with
-    /// ChScene::SetFSIParticles() and ChScene::SetFSINumFSIParticles() to render Chrono::FSI SPH simulations.
-    ChNVDBVolume(double Xsize,
-                 double Ysize,
-                 double Zsize,
+    ChNVDBVolume(double Xsize,          ///< x dimension
+                 double Ysize,          ///< Y dimension
+                 double Zsize,          ///< Z dimension
                  double density,        ///< density of the body
                  bool visualize = true  ///< create visualization asset
     );

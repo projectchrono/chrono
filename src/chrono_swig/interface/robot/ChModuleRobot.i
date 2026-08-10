@@ -151,7 +151,7 @@ using namespace chrono::industrial;
 #endif              // --------------------------------------------------------------------- PYTHON
 
 #ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
-// Unity uses Enum in a global namespace, hence the renaming of the enums to avoid conflicts with the same names
+// C# uses Enum in a global namespace, hence the renaming of the enums to avoid conflicts with the same names
 %rename(CollisionFamily_Enum) chrono::robosimian::CollisionFamily::Enum;
 %rename(CollisionFlags_Enum) chrono::robosimian::CollisionFlags::Enum;
 %rename(TurtlebotCollisionFamily_Enum) chrono::turtlebot::CollisionFamily::Enum;

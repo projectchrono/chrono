@@ -199,6 +199,8 @@ TEST(DefaultVisualMaterial, default_names_no_textures) {
 // test is measured against: it establishes that the round trip works at all, so a failure there
 // means something about the unwritten fields, not a broken archive.
 TEST(DefaultVisualMaterial, archived_fields_survive_a_round_trip) {
+    auto texfile = GetChronoDataFile("textures/checker1.png");
+
     // Both sides must use the same variable name: CHNVP takes the archive key from the identifier,
     // so reading into a differently named variable throws "Cannot find ...". Hence the scopes.
     std::stringstream buffer;
@@ -210,7 +212,7 @@ TEST(DefaultVisualMaterial, archived_fields_survive_a_round_trip) {
         material->SetMetallic(0.25f);
         material->SetOpacity(0.5f);
         material->SetUseSpecularWorkflow(false);
-        material->SetKdTexture("some/diffuse.png");
+        material->SetKdTexture(texfile);
 
         ChArchiveOutJSON archive_out(buffer);
         archive_out << CHNVP(material);
@@ -233,7 +235,7 @@ TEST(DefaultVisualMaterial, archived_fields_survive_a_round_trip) {
     EXPECT_FLOAT_EQ(restored->GetMetallic(), 0.25f);
     EXPECT_FLOAT_EQ(restored->GetOpacity(), 0.5f);
     EXPECT_FALSE(restored->GetUseSpecularWorkflow());
-    EXPECT_EQ(restored->GetKdTexture(), "some/diffuse.png");
+    EXPECT_EQ(restored->GetKdTexture(), texfile);
 }
 
 // The other half of the round trip, and the half this change is responsible for.

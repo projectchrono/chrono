@@ -32,6 +32,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"

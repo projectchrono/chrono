@@ -2,23 +2,23 @@
 ***CHRONO***
 */
 
-#include "cbtCylindricalShellShape.h"
+#include "cbtRoundedCylinderShape.h"
 
-cbtCylindricalShellShape::cbtCylindricalShellShape(cbtScalar radius, cbtScalar hheight) : cbtConvexInternalShape() {
+cbtRoundedCylinderShape::cbtRoundedCylinderShape(cbtScalar radius, cbtScalar hheight, cbtScalar sradius) : cbtConvexInternalShape(), s_radius(sradius) {
     cbtVector3 halfExtents(radius, radius, hheight);
     cbtVector3 margin(getMargin(), getMargin(), getMargin());
     m_implicitShapeDimensions = (halfExtents * m_localScaling) - margin;
 
     setSafeMargin(halfExtents);
 
-    m_shapeType = CYLSHELL_SHAPE_PROXYTYPE;
+    m_shapeType = ROUNDEDCYL_SHAPE_PROXYTYPE;
 }
 
-void cbtCylindricalShellShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const {
+void cbtRoundedCylinderShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const {
     cbtTransformAabb(getHalfExtentsWithoutMargin(), getMargin(), t, aabbMin, aabbMax);
 }
 
-void cbtCylindricalShellShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const {
+void cbtRoundedCylinderShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inertia) const {
     // Principal axis aligned along z by default, radius in x, y-value not used
 
     cbtScalar radius2;                                    // square of cylinder radius
@@ -42,8 +42,8 @@ void cbtCylindricalShellShape::calculateLocalInertia(cbtScalar mass, cbtVector3&
     inertia.setValue(t1, t1, t2);
 }
 
-cbtVector3 cbtCylindricalShellShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const {
-    const cbtVector3& halfExtents = getHalfExtentsWithoutMargin();
+cbtVector3 cbtRoundedCylinderShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const {
+    cbtVector3 halfExtents = getHalfExtentsWithoutMargin() - cbtVector3(s_radius, s_radius, s_radius);
 
     const int XX = 0;
     const int YY = 1;
@@ -67,16 +67,16 @@ cbtVector3 cbtCylindricalShellShape::localGetSupportingVertexWithoutMargin(const
         tmp[ZZ] = vec[ZZ] < 0.0 ? -halfHeight : halfHeight;
     }
 
-    return tmp;
+    return tmp + s_radius * vec;
 }
 
-void cbtCylindricalShellShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {
+void cbtRoundedCylinderShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {
     for (int i = 0; i < numVectors; i++) {
         supportVerticesOut[i] = localGetSupportingVertexWithoutMargin(vectors[i]);
     }
 }
 
-void cbtCylindricalShellShape::setMargin(cbtScalar collisionMargin) {
+void cbtRoundedCylinderShape::setMargin(cbtScalar collisionMargin) {
     // correct the m_implicitShapeDimensions for the margin
     cbtVector3 oldMargin(getMargin(), getMargin(), getMargin());
     cbtVector3 implicitShapeDimensionsWithMargin = m_implicitShapeDimensions + oldMargin;
@@ -86,7 +86,7 @@ void cbtCylindricalShellShape::setMargin(cbtScalar collisionMargin) {
     m_implicitShapeDimensions = implicitShapeDimensionsWithMargin - newMargin;
 }
 
-cbtVector3 cbtCylindricalShellShape::localGetSupportingVertex(const cbtVector3& vec) const {
+cbtVector3 cbtRoundedCylinderShape::localGetSupportingVertex(const cbtVector3& vec) const {
     cbtVector3 supVertex;
     supVertex = localGetSupportingVertexWithoutMargin(vec);
 
@@ -101,13 +101,13 @@ cbtVector3 cbtCylindricalShellShape::localGetSupportingVertex(const cbtVector3& 
     return supVertex;
 }
 
-cbtVector3 cbtCylindricalShellShape::getAnisotropicRollingFrictionDirection() const {
+cbtVector3 cbtRoundedCylinderShape::getAnisotropicRollingFrictionDirection() const {
     cbtVector3 aniDir(0, 0, 0);
     aniDir[2] = 1;
     return aniDir;
 }
 
-void cbtCylindricalShellShape::setLocalScaling(const cbtVector3& scaling) {
+void cbtRoundedCylinderShape::setLocalScaling(const cbtVector3& scaling) {
     cbtVector3 oldMargin(getMargin(), getMargin(), getMargin());
     cbtVector3 implicitShapeDimensionsWithMargin = m_implicitShapeDimensions + oldMargin;
     cbtVector3 unScaledImplicitShapeDimensionsWithMargin = implicitShapeDimensionsWithMargin / m_localScaling;
