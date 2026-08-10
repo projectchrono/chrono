@@ -42,7 +42,9 @@ void cbtRoundedCylinderShape::calculateLocalInertia(cbtScalar mass, cbtVector3& 
     inertia.setValue(t1, t1, t2);
 }
 
-static cbtVector3 RoundedcylLocalSupport(const cbtVector3& halfExtents, cbtScalar s_radius, const cbtVector3& v) {
+cbtVector3 cbtRoundedCylinderShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const {
+    cbtVector3 halfExtents = getHalfExtentsWithoutMargin() - cbtVector3(s_radius, s_radius, s_radius);
+
     const int XX = 0;
     const int YY = 1;
     const int ZZ = 2;
@@ -53,28 +55,24 @@ static cbtVector3 RoundedcylLocalSupport(const cbtVector3& halfExtents, cbtScala
     cbtVector3 tmp;
     cbtScalar d;
 
-    cbtScalar s = cbtSqrt(v[XX] * v[XX] + v[YY] * v[YY]);
+    cbtScalar s = cbtSqrt(vec[XX] * vec[XX] + vec[YY] * vec[YY]);
     if (s != cbtScalar(0.0)) {
         d = radius / s;
-        tmp[XX] = v[XX] * d;
-        tmp[YY] = v[YY] * d;
-        tmp[ZZ] = v[ZZ] < 0.0 ? -halfHeight : halfHeight;
+        tmp[XX] = vec[XX] * d;
+        tmp[YY] = vec[YY] * d;
+        tmp[ZZ] = vec[ZZ] < 0.0 ? -halfHeight : halfHeight;
     } else {
         tmp[XX] = radius;
         tmp[YY] = cbtScalar(0.0);
-        tmp[ZZ] = v[ZZ] < 0.0 ? -halfHeight : halfHeight;
+        tmp[ZZ] = vec[ZZ] < 0.0 ? -halfHeight : halfHeight;
     }
 
-    return tmp + s_radius * v;
-}
-
-cbtVector3 cbtRoundedCylinderShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const {
-    return RoundedcylLocalSupport(getHalfExtentsWithoutMargin(), s_radius, vec);
+    return tmp + s_radius * vec;
 }
 
 void cbtRoundedCylinderShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {
     for (int i = 0; i < numVectors; i++) {
-        supportVerticesOut[i] = RoundedcylLocalSupport(getHalfExtentsWithoutMargin(), s_radius, vectors[i]);
+        supportVerticesOut[i] = localGetSupportingVertexWithoutMargin(vectors[i]);
     }
 }
 

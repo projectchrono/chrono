@@ -42,7 +42,9 @@ void cbtCylindricalShellShape::calculateLocalInertia(cbtScalar mass, cbtVector3&
     inertia.setValue(t1, t1, t2);
 }
 
-static cbtVector3 CylShellLocalSupport(const cbtVector3& halfExtents, const cbtVector3& v) {
+cbtVector3 cbtCylindricalShellShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const {
+    const cbtVector3& halfExtents = getHalfExtentsWithoutMargin();
+
     const int XX = 0;
     const int YY = 1;
     const int ZZ = 2;
@@ -53,28 +55,24 @@ static cbtVector3 CylShellLocalSupport(const cbtVector3& halfExtents, const cbtV
     cbtVector3 tmp;
     cbtScalar d;
 
-    cbtScalar s = cbtSqrt(v[XX] * v[XX] + v[YY] * v[YY]);
+    cbtScalar s = cbtSqrt(vec[XX] * vec[XX] + vec[YY] * vec[YY]);
     if (s != cbtScalar(0.0)) {
         d = radius / s;
-        tmp[XX] = v[XX] * d;
-        tmp[YY] = v[YY] * d;
-        tmp[ZZ] = v[ZZ] < 0.0 ? -halfHeight : halfHeight;
-        return tmp;
+        tmp[XX] = vec[XX] * d;
+        tmp[YY] = vec[YY] * d;
+        tmp[ZZ] = vec[ZZ] < 0.0 ? -halfHeight : halfHeight;
     } else {
         tmp[XX] = radius;
         tmp[YY] = cbtScalar(0.0);
-        tmp[ZZ] = v[ZZ] < 0.0 ? -halfHeight : halfHeight;
-        return tmp;
+        tmp[ZZ] = vec[ZZ] < 0.0 ? -halfHeight : halfHeight;
     }
-}
 
-cbtVector3 cbtCylindricalShellShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const {
-    return CylShellLocalSupport(getHalfExtentsWithoutMargin(), vec);
+    return tmp;
 }
 
 void cbtCylindricalShellShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {
     for (int i = 0; i < numVectors; i++) {
-        supportVerticesOut[i] = CylShellLocalSupport(getHalfExtentsWithoutMargin(), vectors[i]);
+        supportVerticesOut[i] = localGetSupportingVertexWithoutMargin(vectors[i]);
     }
 }
 

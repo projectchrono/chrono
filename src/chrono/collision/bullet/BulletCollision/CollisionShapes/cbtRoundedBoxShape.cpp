@@ -9,7 +9,6 @@ cbtRoundedBoxShape::cbtRoundedBoxShape(const cbtVector3& boxHalfExtents, cbtScal
     m_implicitShapeDimensions = (boxHalfExtents * m_localScaling) - margin;
 
     setSafeMargin(boxHalfExtents);
-
     m_shapeType = ROUNDEDBOX_SHAPE_PROXYTYPE;
 }
 
@@ -29,12 +28,11 @@ void cbtRoundedBoxShape::calculateLocalInertia(cbtScalar mass, cbtVector3& inert
 }
 
 cbtVector3 cbtRoundedBoxShape::localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const {
-    const cbtVector3& halfExtents = getHalfExtentsWithoutMargin();
+    cbtVector3 halfExtents = getHalfExtentsWithoutMargin() - cbtVector3(s_radius, s_radius, s_radius);
 
     cbtVector3 tmp(cbtFsels(vec.x(), halfExtents.x(), -halfExtents.x()),  //
                    cbtFsels(vec.y(), halfExtents.y(), -halfExtents.y()),  //
                    cbtFsels(vec.z(), halfExtents.z(), -halfExtents.z()));
-
     return tmp + s_radius * vec;
 }
 
