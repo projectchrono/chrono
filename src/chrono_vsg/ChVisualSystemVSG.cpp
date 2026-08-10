@@ -1448,6 +1448,8 @@ void ChVisualSystemVSG::SetRefFrameScale(double axis_length) {
 }
 
 void ChVisualSystemVSG::SetRefFrameVisibility(bool vis, int tag) {
+    m_show_ref_frames = vis;
+
     if (!m_initialized)
         return;
 
