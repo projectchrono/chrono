@@ -72,8 +72,7 @@ TEST(ChNarrowphaseMPR, support_functions) {
 
         cbtBoxShape shape(ToBtVec(R));
         shape.setMargin(0);
-        real3 answer_b =
-            ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
+        real3 answer_b = ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
 
         Assert_near(answer_a, answer_b, precision);
     }
@@ -85,8 +84,7 @@ TEST(ChNarrowphaseMPR, support_functions) {
 
         cbtCylinderShapeZ shape(ToBtVec(R));
         shape.setMargin(0);
-        real3 answer_b =
-            ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
+        real3 answer_b = ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
 
         Assert_near(answer_a, answer_b, precision);
     }
@@ -98,8 +96,7 @@ TEST(ChNarrowphaseMPR, support_functions) {
 
         cbtConeShapeZ shape((cbtScalar)R.x, 2 * (cbtScalar)R.z);
         shape.setMargin(0);
-        real3 answer_b =
-            ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
+        real3 answer_b = ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
 
         Assert_near(answer_a, answer_b, precision);
     }
@@ -115,10 +112,8 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
         real3 n(0, 0, 0);
         real d = 0;
 
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 2, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 0, 0));
-        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 0, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 2, 0), quaternion(1, 0, 0, 0), real3(1, 0, 0));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 0, 0), quaternion(1, 0, 0, 0), real3(1, 0, 0));
 
         real3 p1, p2;
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
@@ -137,10 +132,8 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
         // two spheres inter-penetrating
         real3 n(0, 0, 0);
         real d = 0;
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(1, 1, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 0, 0));
-        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 0, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(1, 1, 0), quaternion(1, 0, 0, 0), real3(1, 0, 0));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 0, 0), quaternion(1, 0, 0, 0), real3(1, 0, 0));
 
         real3 p1, p2;
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
@@ -166,10 +159,8 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
         real3 n(0, 0, 0);
         real d = 0;
 
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 2, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 1, 1));
-        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 0, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 1, 1));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 2, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
         real3 p1, p2;
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
@@ -189,10 +180,8 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
         real3 n(0, 0, 0);
         real d = 0;
 
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(1, 1, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 1, 1));
-        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 0, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 1, 1));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(1, 1, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
         real3 p1, p2;
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
@@ -216,10 +205,8 @@ TEST(ChNarrowphaseMPR, sphere_box) {
         // sphere on box centered
         real3 n(0, 0, 0);
         real d = 0;
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(0, 1.5, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 0, 0));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::BOX, real3(0, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(0, 1.5, 0), quaternion(1, 0, 0, 0), real3(1, 0, 0));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::BOX, real3(0, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
         real3 p1, p2;
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
@@ -237,10 +224,8 @@ TEST(ChNarrowphaseMPR, sphere_box) {
         // sphere on box offset
         real3 n(0, 0, 0);
         real d = 0;
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(.1, 2, 0),
-                                                          quaternion(1, 0, 0, 0), real3(1, 0, 0));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::BOX, real3(0, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(.1, 2, 0), quaternion(1, 0, 0, 0), real3(1, 0, 0));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::BOX, real3(0, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
         real3 p1, p2;
         ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
@@ -414,10 +399,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     {
         std::cout << "sphere center inside cylinder" << std::endl;
         real3 s_pos(2.5, 1.5, 0);
-        ConvexShapeCustom* shapeA =
-            new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
@@ -431,10 +414,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
         std::cout << "cap interaction (separated)" << std::endl;
         real3 s_pos(4.5, 1.5, 0);
 
-        ConvexShapeCustom* shapeA =
-            new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
@@ -447,10 +428,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
         std::cout << "cap interaction (penetrated)" << std::endl;
         real3 s_pos(3.75, 1.5, 0);
 
-        ConvexShapeCustom* shapeA =
-            new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
@@ -468,10 +447,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     {
         std::cout << "side interaction (separated)" << std::endl;
         real3 s_pos(2.5, 3.5, 0);
-        ConvexShapeCustom* shapeA =
-            new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
@@ -483,10 +460,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     {
         std::cout << "side interaction (penetrated)" << std::endl;
         real3 s_pos(2.5, 2.5, 0);
-        ConvexShapeCustom* shapeA =
-            new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
@@ -504,10 +479,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     {
         std::cout << "edge interaction (separated)" << std::endl;
         real3 s_pos(4, 3, 0);
-        ConvexShapeCustom* shapeA =
-            new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_rad, c_hlen));
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
 
@@ -570,14 +543,11 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     {
         std::cout << "sphere center inside cylinder" << std::endl;
         real3 s_pos(2.5, 1.5, 0);
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot,
-                                                          real3(c_rad, c_rad, c_hlen), c_srad);
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot, real3(c_rad, c_rad, c_hlen), c_srad);
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
-        //// TODO: WHAT IS EXPECTED HERE?
-        ASSERT_TRUE(res || !res);  //// <- FIX ME!
+        ASSERT_TRUE(res);
 
         delete shapeA;
         delete shapeB;
@@ -586,13 +556,11 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     {
         std::cout << "cap interaction (separated)" << std::endl;
         real3 s_pos(4.5, 1.5, 0);
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot,
-                                                          real3(c_rad, c_rad, c_hlen), c_srad);
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot, real3(c_rad, c_rad, c_hlen), c_srad);
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
-        ASSERT_EQ(res, 0);
+        ASSERT_FALSE(res);
 
         delete shapeA;
         delete shapeB;
@@ -601,17 +569,15 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     {
         std::cout << "cap interaction (penetrated)" << std::endl;
         real3 s_pos(3.75, 1.5, 0);
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot,
-                                                          real3(c_rad, c_rad, c_hlen), c_srad);
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot, real3(c_rad, c_rad, c_hlen), c_srad);
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
-        ASSERT_NE(res, 0);
+        ASSERT_TRUE(res);
         depth = Dot(norm, pt2 - pt1);
 
         Assert_near(norm, real3(1, 0, 0), precision);
-        ASSERT_NEAR(depth, -0.35, precision);
-        Assert_near(pt1, real3(3.1, 1.5, 0), precision);
+        ASSERT_NEAR(depth, -0.25, precision);
+        Assert_near(pt1, real3(3.0, 1.5, 0), precision);
         Assert_near(pt2, real3(2.75, 1.5, 0), precision);
 
         delete shapeA;
@@ -621,13 +587,11 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     {
         std::cout << "side interaction (separated)" << std::endl;
         real3 s_pos(2.5, 3.5, 0);
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot,
-                                                          real3(c_rad, c_rad, c_hlen), c_srad);
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot, real3(c_rad, c_rad, c_hlen), c_srad);
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
-        ASSERT_EQ(res, 0);
+        ASSERT_FALSE(res);
 
         delete shapeA;
         delete shapeB;
@@ -636,17 +600,15 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     {
         std::cout << "side interaction (penetrated)" << std::endl;
         real3 s_pos(2.5, 2.5, 0);
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot,
-                                                          real3(c_rad, c_rad, c_hlen), c_srad);
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot, real3(c_rad, c_rad, c_hlen), c_srad);
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
-        ASSERT_NE(res, 0);
+        ASSERT_TRUE(res);
         depth = Dot(norm, pt2 - pt1);
 
         Assert_near(norm, real3(0, 1, 0), precision);
-        ASSERT_NEAR(depth, -0.6, precision);
-        Assert_near(pt1, real3(2.5, 2.1, 0), precision);
+        ASSERT_NEAR(depth, -0.5, precision);
+        Assert_near(pt1, real3(2.5, 2.0, 0), precision);
         Assert_near(pt2, real3(2.5, 1.5, 0), precision);
 
         delete shapeA;
@@ -656,12 +618,10 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     {
         std::cout << "edge interaction (separated)" << std::endl;
         real3 s_pos(4, 3, 0);
-        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot,
-                                                          real3(c_rad, c_rad, c_hlen), c_srad);
-        ConvexShapeCustom* shapeB =
-            new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
+        ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ROUNDEDCYL, c_pos, c_rot, real3(c_rad, c_rad, c_hlen), c_srad);
+        ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
         bool res = ChNarrowphase::MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
-        ASSERT_EQ(res, 0);
+        ASSERT_FALSE(res);
 
         delete shapeA;
         delete shapeB;
