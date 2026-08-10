@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     //
     ChContactMaterialData ct_mat_data;
     auto ct_mat = ct_mat_data.CreateMaterial(sys.GetContactMethod());
-
+    
     // Add primitive visualization and collision shapes
     if (collision_vis) {
         auto sphere_vis = chrono_types::make_shared<ChVisualShapeSphere>(0.5);
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
         auto cadet_blue = chrono_types::make_shared<ChVisualMaterial>();
         cadet_blue->SetDiffuseColor(ChColor(0.37f, 0.62f, 0.62f));
         hull->GetVisualShape(0)->SetMaterial(0, cadet_blue);
-        hull->GetVisualShape(0)->GetMaterial(0)->SetOpacity(0.5);
+        hull->GetVisualShape(0)->GetMaterial(0)->SetOpacity(0.75f);
 
         sys.Add(hull);
     }
