@@ -49,6 +49,21 @@ if(CHRONO_FSISPH_BACKEND STREQUAL "NONE")
     return()
 endif()
 
+# Thrust's device system follows the HIP PLATFORM, not merely the fact that the
+# backend is HIP. THRUST_DEVICE_SYSTEM_HIP means rocThrust, which exists only in
+# the ROCm stack; when HIP targets NVIDIA the translation units are compiled by
+# nvcc and the correct device system is CUDA. Selecting HIP there sends the CUDA
+# toolkit's own CCCL looking for a system it does not ship.
+#
+# Computed once here because every target that compiles SPH device code must
+# agree on it -- Chrono_fsisph and the VSG plugin both do, and having the VSG
+# plugin decide separately is exactly how it ended up out of step.
+if(CHRONO_HIP_PLATFORM STREQUAL "nvidia")
+  set(CHRONO_FSISPH_THRUST_DEVICE THRUST_DEVICE_SYSTEM_CUDA)
+else()
+  set(CHRONO_FSISPH_THRUST_DEVICE THRUST_DEVICE_SYSTEM_HIP)
+endif()
+
 message(STATUS "  Chrono::FSI::SPH GPU backend: ${CHRONO_FSISPH_BACKEND}")
 if(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
     message(STATUS "  Chrono HIP architectures: ${CHRONO_HIP_ARCHITECTURES}")
@@ -305,22 +320,11 @@ elseif(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
 
   target_compile_definitions(Chrono_fsisph INTERFACE CHRONO_FSI_SPH_USE_HIP_RUNTIME)
 
-  # Thrust's device system follows the HIP PLATFORM, not merely the fact that
-  # the backend is HIP. THRUST_DEVICE_SYSTEM_HIP means rocThrust, which exists
-  # only in the ROCm stack; when HIP targets NVIDIA the translation units are
-  # compiled by nvcc and the correct device system is CUDA. Selecting HIP there
-  # sends the CUDA toolkit's own CCCL looking for a HIP system it does not have.
-  if(CHRONO_HIP_PLATFORM STREQUAL "nvidia")
-    set(_fsisph_thrust_device THRUST_DEVICE_SYSTEM_CUDA)
-  else()
-    set(_fsisph_thrust_device THRUST_DEVICE_SYSTEM_HIP)
-  endif()
-
   # Keep the device Thrust backend local to this target. Public consumers are
   # ordinary C++ translation units that only need ROCm headers for declarations
   # reachable from public headers -- they must not inherit the compile
   # definitions that would force Thrust onto a device backend.
-  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=${_fsisph_thrust_device}")
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=${CHRONO_FSISPH_THRUST_DEVICE}")
   target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
   target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
   target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
@@ -377,7 +381,7 @@ if(CH_ENABLE_MODULE_VSG)
       # data-manager headers that reference rocThrust/rocPRIM device types,
       # which do not compile as plain C++ (same treatment as FSISPH_GPU_SOURCE_FILES).
       set_source_files_properties(visualization/ChSphVisualizationVSG.cpp PROPERTIES LANGUAGE HIP)
-      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP")
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=${CHRONO_FSISPH_THRUST_DEVICE}")
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
     endif()
 

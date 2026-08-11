@@ -162,6 +162,17 @@ function(chrono_select_gpu_backend out_var)
   endif()
 
   if(_n EQUAL 1)
+    # Only one backend can satisfy this feature, so there is nothing to choose
+    # and a global preference simply does not apply here. Say so when the user
+    # expressed one, because this is the case where a build legitimately mixes
+    # backends -- asking for HIP globally still leaves Chrono::Sensor's OptiX
+    # renderer on CUDA, which is correct and worth stating rather than leaving
+    # the user to wonder whether their request was dropped.
+    if(NOT CHRONO_GPU_BACKEND STREQUAL "AUTO" AND NOT "${_candidates}" STREQUAL "${CHRONO_GPU_BACKEND}")
+      message(STATUS
+        "  ${ARG_FEATURE}: requires ${ARG_REQUIRES}, so it uses ${_candidates} rather than the "
+        "preferred ${CHRONO_GPU_BACKEND}.")
+    endif()
     set(${out_var} "${_candidates}" PARENT_SCOPE)
     return()
   endif()
@@ -342,15 +353,20 @@ function(chrono_apply_gpu_backend target backend)
         target_include_directories(${target} PUBLIC "${CHRONO_ROCM_ROOT}/include")
       endif()
 
-      # hip/nvidia_detail includes <cuda_runtime.h>. HIP translation units are
-      # compiled by nvcc and find it implicitly, but any ordinary CXX source in
-      # the same target that includes a HIP header does not, so add the CUDA
-      # include directory explicitly. Derive it from the HIP compiler, which on
-      # this platform IS nvcc, rather than assuming a fixed CUDA location.
+      # hip/nvidia_detail includes <cuda.h> and <cuda_runtime.h>. HIP translation
+      # units are compiled by nvcc and find those implicitly; ordinary CXX
+      # sources do not. Derive the location from the HIP compiler, which on this
+      # platform IS nvcc, rather than assuming a fixed CUDA install path.
+      #
+      # PUBLIC, deliberately matching the ROCm include directory above. These two
+      # travel together: any translation unit that can reach a HIP header through
+      # this target's public headers needs the CUDA headers that HIP header will
+      # itself include. Making the ROCm path public and this one private is what
+      # broke Chrono_vehicle_cosim -- it got <hip/...> and then failed on cuda.h.
       get_filename_component(_hip_cc_bin "${CMAKE_HIP_COMPILER}" DIRECTORY)
       get_filename_component(_hip_cc_root "${_hip_cc_bin}" DIRECTORY)
       if(EXISTS "${_hip_cc_root}/include")
-        target_include_directories(${target} PRIVATE "${_hip_cc_root}/include")
+        target_include_directories(${target} PUBLIC "${_hip_cc_root}/include")
       endif()
 
     else()
