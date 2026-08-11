@@ -30,16 +30,16 @@ endif()
 # The user never explicitly asked for it, so dropping it quietly when no GPU
 # backend exists is the correct behaviour rather than a warning they cannot act
 # on.
-# HIP_PLATFORMS amd: the HIP path selects Thrust's HIP device system, which is
-# rocThrust and exists only in the ROCm stack.
+# HIP_PLATFORMS amd nvidia: Thrust's device system is selected from the HIP
+# platform (rocThrust on AMD, CUDA's own Thrust when HIP targets NVIDIA), so
+# neither platform is excluded. The NVIDIA platform was verified to build; the
+# AMD platform is the pre-existing, unchanged path.
 chrono_select_gpu_backend(CHRONO_FSISPH_BACKEND
                           FEATURE  "Chrono::FSI::SPH"
                           NAME     FSI_SPH
                           REQUIRES CUDA_OR_HIP
                           PREFER   CUDA
-                          HIP_PLATFORMS amd
-                          HIP_PLATFORM_NOTE
-                            "Chrono::FSI::SPH's HIP path uses rocThrust, which is a ROCm-only stack. On NVIDIA hardware, build it as CUDA (the default).")
+                          HIP_PLATFORMS amd nvidia)
 
 if(CHRONO_FSISPH_BACKEND STREQUAL "NONE")
     chrono_gpu_feature_unavailable(FEATURE  "Chrono::FSI::SPH"
@@ -305,11 +305,22 @@ elseif(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
 
   target_compile_definitions(Chrono_fsisph INTERFACE CHRONO_FSI_SPH_USE_HIP_RUNTIME)
 
-  # Keep the HIP device Thrust backend local to this target. Public consumers
-  # are ordinary C++ translation units that only need ROCm headers for
-  # declarations reachable from public headers -- they must not inherit the
-  # compile definitions that would force Thrust onto the rocPRIM backend.
-  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP")
+  # Thrust's device system follows the HIP PLATFORM, not merely the fact that
+  # the backend is HIP. THRUST_DEVICE_SYSTEM_HIP means rocThrust, which exists
+  # only in the ROCm stack; when HIP targets NVIDIA the translation units are
+  # compiled by nvcc and the correct device system is CUDA. Selecting HIP there
+  # sends the CUDA toolkit's own CCCL looking for a HIP system it does not have.
+  if(CHRONO_HIP_PLATFORM STREQUAL "nvidia")
+    set(_fsisph_thrust_device THRUST_DEVICE_SYSTEM_CUDA)
+  else()
+    set(_fsisph_thrust_device THRUST_DEVICE_SYSTEM_HIP)
+  endif()
+
+  # Keep the device Thrust backend local to this target. Public consumers are
+  # ordinary C++ translation units that only need ROCm headers for declarations
+  # reachable from public headers -- they must not inherit the compile
+  # definitions that would force Thrust onto a device backend.
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=${_fsisph_thrust_device}")
   target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
   target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
   target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")

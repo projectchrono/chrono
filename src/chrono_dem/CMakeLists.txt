@@ -19,10 +19,12 @@ message(STATUS "\n==== Chrono DEM module ====\n")
 # Chrono::DEM is not dual-source: it ships one set of .cu kernels that are
 # compiled either as CUDA or as HIP. PREFER CUDA therefore means "use the
 # vendor-native SDK for these sources" and not "pick between two source trees".
-# HIP_PLATFORMS amd: the GPU kernels use hipCUB, whose CUB backend does not
-# currently compose with the CCCL shipped in recent CUDA toolkits. "HIP" here
-# means HIP-for-ROCm specifically, and saying so lets an impossible request fail
-# at configure time with a reason instead of inside a ROCm header.
+# HIP_PLATFORMS amd: the GPU kernels use hipCUB. Its rocPRIM backend is fine,
+# but its CUB backend -- the one selected when HIP targets NVIDIA -- does not
+# build against the CCCL shipped with CUDA 13: device_spmv.hpp includes a header
+# CCCL 3 removed, and device_scan.hpp references hipcub::Equality, which only the
+# rocPRIM backend defines. Both are upstream hipCUB issues, so "HIP" here means
+# HIP-for-ROCm until a hipCUB release supports CCCL 3.
 chrono_select_gpu_backend(CHRONO_DEM_BACKEND
                           FEATURE  "Chrono::DEM"
                           NAME     DEM
@@ -30,7 +32,7 @@ chrono_select_gpu_backend(CHRONO_DEM_BACKEND
                           PREFER   CUDA
                           HIP_PLATFORMS amd
                           HIP_PLATFORM_NOTE
-                            "Chrono::DEM's HIP kernels depend on hipCUB/rocPRIM, which is a ROCm-only stack. On NVIDIA hardware, build it as CUDA (the default).")
+                            "Chrono::DEM's HIP kernels use hipCUB, whose CUB backend does not build against CUDA 13's CCCL. On NVIDIA hardware, build it as CUDA (the default).")
 
 if(CHRONO_DEM_BACKEND STREQUAL "NONE")
     chrono_gpu_feature_unavailable(FEATURE  "Chrono::DEM"
