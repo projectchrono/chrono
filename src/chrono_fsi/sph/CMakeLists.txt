@@ -30,11 +30,16 @@ endif()
 # The user never explicitly asked for it, so dropping it quietly when no GPU
 # backend exists is the correct behaviour rather than a warning they cannot act
 # on.
+# HIP_PLATFORMS amd: the HIP path selects Thrust's HIP device system, which is
+# rocThrust and exists only in the ROCm stack.
 chrono_select_gpu_backend(CHRONO_FSISPH_BACKEND
                           FEATURE  "Chrono::FSI::SPH"
                           NAME     FSI_SPH
                           REQUIRES CUDA_OR_HIP
-                          PREFER   CUDA)
+                          PREFER   CUDA
+                          HIP_PLATFORMS amd
+                          HIP_PLATFORM_NOTE
+                            "Chrono::FSI::SPH's HIP path uses rocThrust, which is a ROCm-only stack. On NVIDIA hardware, build it as CUDA (the default).")
 
 if(CHRONO_FSISPH_BACKEND STREQUAL "NONE")
     chrono_gpu_feature_unavailable(FEATURE  "Chrono::FSI::SPH"

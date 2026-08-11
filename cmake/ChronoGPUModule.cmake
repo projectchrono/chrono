@@ -71,7 +71,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 function(chrono_select_gpu_backend out_var)
-  cmake_parse_arguments(ARG "" "FEATURE;REQUIRES;NAME;PREFER" "" ${ARGN})
+  cmake_parse_arguments(ARG "" "FEATURE;REQUIRES;NAME;PREFER;HIP_PLATFORM_NOTE" "HIP_PLATFORMS" ${ARGN})
 
   if(NOT ARG_FEATURE OR NOT ARG_REQUIRES)
     message(FATAL_ERROR "chrono_select_gpu_backend() requires FEATURE and REQUIRES")
@@ -100,6 +100,28 @@ function(chrono_select_gpu_backend out_var)
       "Expected CUDA, HIP, or CUDA_OR_HIP.")
   endif()
 
+  # A feature may accept HIP in principle but only on particular HIP platforms.
+  # chrono_dem and chrono_fsi/sph are the live example: their HIP support is
+  # written against the ROCm ecosystem (hipCUB/rocPRIM, rocThrust), which has no
+  # working equivalent when HIP targets NVIDIA. Without this, forcing them onto
+  # HIP there configures cleanly and then fails deep inside ROCm headers, which
+  # tells the user nothing about what they actually did wrong.
+  set(_hip_blocked FALSE)
+  if("HIP" IN_LIST _candidates AND ARG_HIP_PLATFORMS)
+    if(NOT "${CHRONO_HIP_PLATFORM}" IN_LIST ARG_HIP_PLATFORMS)
+      list(REMOVE_ITEM _candidates "HIP")
+      set(_hip_blocked TRUE)
+      # Say so even though the fallback is correct and automatic. Without this,
+      # a build where HIP is genuinely available -- and may even have been asked
+      # for globally -- reports this feature using CUDA with no indication that
+      # HIP was considered and ruled out, which is indistinguishable from the
+      # preference having been ignored.
+      message(STATUS
+        "  ${ARG_FEATURE}: HIP is available but not usable on HIP platform "
+        "'${CHRONO_HIP_PLATFORM}' (supported: ${ARG_HIP_PLATFORMS}); using another backend.")
+    endif()
+  endif()
+
   # --- Tier 1: per-feature override -----------------------------------------
   # An explicit request that cannot be satisfied is a user error, not an
   # invitation to silently substitute something else.
@@ -111,6 +133,17 @@ function(chrono_select_gpu_backend out_var)
         message(FATAL_ERROR "Invalid ${_override_var}='${_want}'. Expected AUTO, CUDA, or HIP.")
       endif()
       if(NOT "${_want}" IN_LIST _candidates)
+        if(_want STREQUAL "HIP" AND _hip_blocked)
+          # Distinguish "HIP is not available" from "HIP is available but this
+          # feature cannot use it on this platform". Reporting the first for the
+          # second sends the reader off to fix a ROCm install that was never the
+          # problem.
+          message(FATAL_ERROR
+            "${_override_var}=HIP was requested for ${ARG_FEATURE}, but its HIP support "
+            "only works with CMAKE_HIP_PLATFORM in '${ARG_HIP_PLATFORMS}' "
+            "(this build has '${CHRONO_HIP_PLATFORM}').\n"
+            "  ${ARG_HIP_PLATFORM_NOTE}")
+        endif()
         message(FATAL_ERROR
           "${_override_var}=${_want} was requested for ${ARG_FEATURE}, but ${_want} is not "
           "available in this configuration (CUDA=${CHRONO_CUDA_FOUND}, HIP=${CHRONO_HIP_FOUND}, "
