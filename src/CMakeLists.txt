@@ -299,228 +299,43 @@ endif()
 
 #-----------------------------------------------------------------------------
 # GPU backend support (CUDA and HIP)
+#
+# Resolved in three layers -- see cmake/ChronoGPU*.cmake:
+#
+#   Layer 0  vendor      which hardware are we building for?   (ChronoGPUVendor)
+#   Layer 1  toolchains  which SDKs are usable for it?         (ChronoGPUToolchains)
+#   Layer 2  features    what does each feature compile as?    (ChronoGPUModule)
+#
+# ChronoGPUDetect must be include()d here at file scope rather than called as a
+# function: it runs enable_language(), which is only valid at file scope.
 #-----------------------------------------------------------------------------
 
-set(CHRONO_GPU_BACKEND "AUTO" CACHE STRING "GPU backend for Chrono GPU modules: AUTO, CUDA, HIP")
-set_property(CACHE CHRONO_GPU_BACKEND PROPERTY STRINGS AUTO CUDA HIP)
-set(CHRONO_CUDA_ARCHITECTURES "" CACHE STRING "Chrono CUDA architectures")
-set(CHRONO_HIP_ARCHITECTURES "" CACHE STRING "Chrono HIP architectures")
-mark_as_advanced(FORCE CMAKE_CUDA_ARCHITECTURES)
-mark_as_advanced(FORCE CMAKE_HIP_ARCHITECTURES)
+include(ChronoGPUDetect)
+include(ChronoGPUModule)
 
-set(CHRONO_ROCM_ROOT "" CACHE PATH "Explicit ROCm root for HIP builds")
-set(CHRONO_HIP_MIN_VERSION "5.7.0" CACHE STRING "Minimum HIP version required by Chrono")
-
-function(chrono_read_hip_version hip_header out_var)
-  if(NOT EXISTS "${hip_header}")
-    set(${out_var} "" PARENT_SCOPE)
-    return()
-  endif()
-
-  file(STRINGS "${hip_header}" _major REGEX "^#define[ 	]+HIP_VERSION_MAJOR[ 	]+[0-9]+")
-  file(STRINGS "${hip_header}" _minor REGEX "^#define[ 	]+HIP_VERSION_MINOR[ 	]+[0-9]+")
-  file(STRINGS "${hip_header}" _patch REGEX "^#define[ 	]+HIP_VERSION_PATCH[ 	]+[0-9]+")
-
-  if(NOT _major OR NOT _minor OR NOT _patch)
-    set(${out_var} "" PARENT_SCOPE)
-    return()
-  endif()
-
-  string(REGEX REPLACE ".*HIP_VERSION_MAJOR[ 	]+([0-9]+).*" "\\1" _maj "${_major}")
-  string(REGEX REPLACE ".*HIP_VERSION_MINOR[ 	]+([0-9]+).*" "\\1" _min "${_minor}")
-  string(REGEX REPLACE ".*HIP_VERSION_PATCH[ 	]+([0-9]+).*" "\\1" _pat "${_patch}")
-  set(${out_var} "${_maj}.${_min}.${_pat}" PARENT_SCOPE)
-endfunction()
-
-function(chrono_find_rocm out_root out_version)
-  set(_roots)
-  if(CHRONO_ROCM_ROOT)
-    list(APPEND _roots "${CHRONO_ROCM_ROOT}")
-  endif()
-  if(DEFINED ROCM_PATH AND NOT ROCM_PATH STREQUAL "")
-    list(APPEND _roots "${ROCM_PATH}")
-  endif()
-  if(DEFINED ENV{ROCM_PATH} AND NOT "$ENV{ROCM_PATH}" STREQUAL "")
-    list(APPEND _roots "$ENV{ROCM_PATH}")
-  endif()
-  if(DEFINED ENV{ROCM_HOME} AND NOT "$ENV{ROCM_HOME}" STREQUAL "")
-    list(APPEND _roots "$ENV{ROCM_HOME}")
-  endif()
-  if(DEFINED ENV{HIP_PATH} AND NOT "$ENV{HIP_PATH}" STREQUAL "")
-    list(APPEND _roots "$ENV{HIP_PATH}")
-  endif()
-  list(APPEND _roots /opt/rocm /usr/lib/rocm /usr/local/rocm)
-
-  foreach(_root IN LISTS _roots)
-    if(NOT _root)
-      continue()
-    endif()
-    set(_header "")
-    if(EXISTS "${_root}/include/hip/hip_version.h")
-      set(_header "${_root}/include/hip/hip_version.h")
-    elseif(EXISTS "${_root}/hip/include/hip/hip_version.h")
-      set(_header "${_root}/hip/include/hip/hip_version.h")
-    endif()
-    if(_header)
-      chrono_read_hip_version("${_header}" _ver)
-      if(_ver)
-        set(${out_root} "${_root}" PARENT_SCOPE)
-        set(${out_version} "${_ver}" PARENT_SCOPE)
-        return()
-      endif()
-    endif()
-  endforeach()
-
-  set(${out_root} "" PARENT_SCOPE)
-  set(${out_version} "" PARENT_SCOPE)
-endfunction()
-
-include(CheckLanguage)
-
-set(CHRONO_CUDA_FOUND FALSE)
-set(CHRONO_HIP_FOUND FALSE)
-set(CHRONO_GPU_FOUND FALSE)
-set(CHRONO_GPU_BACKEND_RESOLVED "NONE")
-set(CHRONO_ROCM_VERSION "")
-
-message(STATUS "Searching for GPU backends")
-
-set(_chrono_try_hip FALSE)
-set(_chrono_try_cuda FALSE)
-if(CHRONO_GPU_BACKEND STREQUAL "HIP")
-  set(_chrono_try_hip TRUE)
-elseif(CHRONO_GPU_BACKEND STREQUAL "CUDA")
-  set(_chrono_try_cuda TRUE)
-elseif(CHRONO_GPU_BACKEND STREQUAL "AUTO")
-  chrono_find_rocm(_chrono_rocm_root _chrono_rocm_ver)
-  if(_chrono_rocm_root AND _chrono_rocm_ver VERSION_GREATER_EQUAL CHRONO_HIP_MIN_VERSION)
-    set(_chrono_try_hip TRUE)
-  else()
-    set(_chrono_try_cuda TRUE)
-  endif()
-else()
-  message(FATAL_ERROR "Invalid CHRONO_GPU_BACKEND='${CHRONO_GPU_BACKEND}'. Expected AUTO, CUDA, or HIP.")
-endif()
-
-if(_chrono_try_hip)
-  chrono_find_rocm(_chrono_rocm_root _chrono_rocm_ver)
-  if(_chrono_rocm_root)
-    list(PREPEND CMAKE_PREFIX_PATH "${_chrono_rocm_root}")
-    if(NOT DEFINED CMAKE_HIP_COMPILER_ROCM_ROOT)
-      set(CMAKE_HIP_COMPILER_ROCM_ROOT "${_chrono_rocm_root}" CACHE PATH "ROCm root path")
-    endif()
-    if(NOT DEFINED CMAKE_HIP_PLATFORM)
-      set(CMAKE_HIP_PLATFORM "amd" CACHE STRING "HIP platform")
-    endif()
-    check_language(HIP)
-    if(CMAKE_HIP_COMPILER)
-      enable_language(HIP)
-      set(CHRONO_HIP_FOUND TRUE)
-      set(CHRONO_GPU_FOUND TRUE)
-      set(CHRONO_GPU_BACKEND_RESOLVED "HIP")
-      set(CHRONO_ROCM_ROOT "${_chrono_rocm_root}" CACHE PATH "Explicit ROCm root for HIP builds" FORCE)
-      set(CHRONO_ROCM_VERSION "${_chrono_rocm_ver}")
-      if(CHRONO_HIP_ARCHITECTURES STREQUAL "" AND CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
-        set(CHRONO_HIP_ARCHITECTURES "native" CACHE STRING "Chrono HIP architectures" FORCE)
-      endif()
-      if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
-        set(CMAKE_HIP_ARCHITECTURES ${CHRONO_HIP_ARCHITECTURES} CACHE STRING "HIP architectures" FORCE)
-      endif()
-      message(STATUS "  HIP compiler:            ${CMAKE_HIP_COMPILER}")
-      message(STATUS "  ROCm version:            ${CHRONO_ROCM_VERSION}")
-      message(STATUS "  ROCm root dir:           ${CHRONO_ROCM_ROOT}")
-      if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
-        message(STATUS "  HIP archs:               ${CHRONO_HIP_ARCHITECTURES}")
-      endif()
-    else()
-      message(STATUS "  WARNING: HIP requested but no HIP compiler was found.")
-    endif()
-  else()
-    message(STATUS "  WARNING: HIP requested but ROCm was not found.")
-  endif()
-endif()
-
-if(NOT CHRONO_HIP_FOUND AND (_chrono_try_cuda OR CHRONO_GPU_BACKEND STREQUAL "AUTO"))
-  message(STATUS "Searching for CUDA")
-  check_language(CUDA)
-
-  if(CMAKE_CUDA_COMPILER)
-
-    enable_language(CUDA)
-    find_package(CUDAToolkit)
-    message(STATUS "  CUDA compiler:           ${CMAKE_CUDA_COMPILER}")
-    message(STATUS "  CUDA toolkit version:    ${CUDAToolkit_VERSION}")
-    message(STATUS "  CUDA toolkit root dir:   ${CUDAToolkit_LIBRARY_ROOT}")
-
-    if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
-      if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
-        set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES_ALL_MAJOR}" CACHE STRING "Chrono CUDA architectures" FORCE)
-        message(STATUS "  CUDA archs (set to):     ${CHRONO_CUDA_ARCHITECTURES}")
-      endif()
-    else()
-      message(STATUS "  CUDA archs (from cache): ${CHRONO_CUDA_ARCHITECTURES}")
-    endif()
-
-    # Make sure we do not build for CUDA architecture 50 (no support for atomicAdd in double precision)
-    list(REMOVE_ITEM CHRONO_CUDA_ARCHITECTURES "50" "50-real")
-    message(STATUS "  CUDA archs (filtered):   ${CHRONO_CUDA_ARCHITECTURES}")
-
-    if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
-      set(CHRONO_CUDA_FOUND FALSE)
-      message("  WARNING: CUDA architectures not found. Set CHRONO_CUDA_ARCHITECTURES")
-    else()
-      set(CHRONO_CUDA_FOUND TRUE)
-      set(CHRONO_GPU_FOUND TRUE)
-      set(CHRONO_GPU_BACKEND_RESOLVED "CUDA")
-      message(STATUS "  CUDA found and enabled.")
-      set(CMAKE_CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES} CACHE STRING "CUDA architectures" FORCE)
-      if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        set(CUDA_SEPARABLE_COMPILATION OFF)
-      endif()
-    endif()
-
-  else()
-    
-    set(CHRONO_CUDA_FOUND FALSE)
-    mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
-    message("  WARNING  CUDA not found. CUDA features will be disabled.")
-  
-  endif()
-
-endif()
-
-set(CHRONO_GPU_BACKEND ${CHRONO_GPU_BACKEND_RESOLVED})
-
-# Hide (mark as advanced) variables
-
-if(CHRONO_CUDA_FOUND)
-  mark_as_advanced(FORCE CHRONO_HIP_ARCHITECTURES)
-  mark_as_advanced(FORCE CHRONO_HIP_MIN_VERSION)
-  mark_as_advanced(FORCE CHRONO_ROCM_ROOT)
-endif()
-
-if(CHRONO_HIP_FOUND)
-  mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
-endif()
-
-# HIP + Eigen alignment compatibility
+# AMD + Eigen alignment compatibility
 #
 # Some host-side Chrono classes contain fixed-size Eigen objects. With AVX,
 # Eigen may require 32-byte alignment; a few allocation paths used by demos,
 # visualization, or MBS coupling do not guarantee that in all environments.
-# In HIP builds this can abort demo_FSI-SPH_CouetteFlow before any SPH kernel is
-# reached. Limiting Eigen's maximum static alignment to 16 bytes avoids the
+# In ROCm builds this can abort demo_FSI-SPH_CouetteFlow before any SPH kernel
+# is reached. Limiting Eigen's maximum static alignment to 16 bytes avoids the
 # fragile 32-byte over-alignment requirement while keeping ordinary
-# SSE-friendly vectorization and without touching CUDA/NVIDIA builds.
-
-if(CHRONO_HIP_FOUND)
-  set(CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES "16" CACHE STRING "Maximum Eigen alignment in HIP builds; set to 0 to fully disable fixed-size Eigen over-alignment")
+# SSE-friendly vectorization.
+#
+# KEYED ON VENDOR, NOT ON CHRONO_HIP_FOUND. This applies to the Eigen3::Eigen
+# INTERFACE target, so it changes the ABI of EVERY Chrono target in the build.
+# Under the old exclusive model "HIP was found" and "this is an AMD build" were
+# the same statement; they no longer are, and firing this on a CUDA build that
+# merely has ROCm installed alongside would be a silent, whole-build ABI change.
+if(CHRONO_GPU_VENDOR_RESOLVED STREQUAL "AMD")
+  set(CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES "16" CACHE STRING "Maximum Eigen alignment in AMD/HIP builds; set to 0 to fully disable fixed-size Eigen over-alignment")
 
   target_compile_definitions(Eigen3::Eigen INTERFACE
     EIGEN_MAX_ALIGN_BYTES=${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES}
     EIGEN_MAX_STATIC_ALIGN_BYTES=${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES})
 
-  message(STATUS "  HIP Eigen max alignment: ${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES} bytes")
+  message(STATUS "  AMD Eigen max alignment: ${CHRONO_HIP_EIGEN_MAX_ALIGN_BYTES} bytes")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -531,7 +346,10 @@ message(STATUS "Searching for Thrust")
 
 find_package(Thrust)
 
-if(CHRONO_HIP_FOUND AND Thrust_FOUND AND CHRONO_ROCM_ROOT)
+# Also keyed on vendor rather than on CHRONO_HIP_FOUND, for the same reason as
+# the Eigen clamp above: dropping Thrust because it resolved inside a ROCm
+# installation must not happen on an NVIDIA build that merely has ROCm present.
+if(CHRONO_GPU_VENDOR_RESOLVED STREQUAL "AMD" AND Thrust_FOUND AND CHRONO_ROCM_ROOT)
   file(REAL_PATH "${THRUST_INCLUDE_DIR}" _chrono_thrust_include_real)
   file(REAL_PATH "${CHRONO_ROCM_ROOT}" _chrono_rocm_root_real)
   string(FIND "${_chrono_thrust_include_real}" "${_chrono_rocm_root_real}/" _chrono_rocm_thrust_pos)

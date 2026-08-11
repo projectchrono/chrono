@@ -14,10 +14,22 @@ endif()
 
 message(STATUS "\n==== Chrono DEM module ====\n")
 
-# Return now if neither CUDA nor HIP is available
-if(NOT CHRONO_CUDA_FOUND AND NOT CHRONO_HIP_FOUND)
-    message("Chrono::DEM requires CUDA or HIP, but neither backend was found; disabling Chrono::DEM")
-    set(CH_ENABLE_MODULE_DEM OFF CACHE BOOL "Enable the Chrono::DEM module" FORCE)
+# Select the GPU backend for this module.
+#
+# Chrono::DEM is not dual-source: it ships one set of .cu kernels that are
+# compiled either as CUDA or as HIP. PREFER CUDA therefore means "use the
+# vendor-native SDK for these sources" and not "pick between two source trees".
+chrono_select_gpu_backend(CHRONO_DEM_BACKEND
+                          FEATURE  "Chrono::DEM"
+                          NAME     DEM
+                          REQUIRES CUDA_OR_HIP
+                          PREFER   CUDA)
+
+if(CHRONO_DEM_BACKEND STREQUAL "NONE")
+    chrono_gpu_feature_unavailable(FEATURE  "Chrono::DEM"
+                                   REQUIRES "CUDA or HIP"
+                                   OPTION   CH_ENABLE_MODULE_DEM
+                                   CLASS    EXPLICIT)
     return()
 endif()
 
@@ -28,7 +40,8 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     return()
 endif()
 
-if(CHRONO_HIP_FOUND)
+message(STATUS "Chrono::DEM GPU backend: ${CHRONO_DEM_BACKEND}")
+if(CHRONO_DEM_BACKEND STREQUAL "HIP")
   message(STATUS "Chrono HIP architectures: ${CHRONO_HIP_ARCHITECTURES}")
 else()
   message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
@@ -93,9 +106,7 @@ set(DEM_GPU_SOURCE_FILES
     gpu/ChDemSMC.cu
     gpu/ChDemSMCtrimesh.cu
     )
-if(CHRONO_HIP_FOUND)
-    set_source_files_properties(${DEM_GPU_SOURCE_FILES} PROPERTIES LANGUAGE HIP)
-endif()
+chrono_set_gpu_source_language(${CHRONO_DEM_BACKEND} ${DEM_GPU_SOURCE_FILES})
 
 # --------------- DEM UTILITIES
 
@@ -129,6 +140,9 @@ endif()
 
 set(DEPENDENCIES_DEM ${DEPENDENCIES_DEM} PARENT_SCOPE)
 
+# Export the resolved backend for ChronoConfig.cmake (see cmake/ChronoConfig.cmake.in).
+set(CHRONO_DEM_BACKEND ${CHRONO_DEM_BACKEND} PARENT_SCOPE)
+
 # ------------------------------------------------------------------------------
 # Add the Chrono_dem library
 # ------------------------------------------------------------------------------
@@ -161,44 +175,11 @@ if(MSVC)
   target_compile_options(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>)
 endif()
 
-if(CHRONO_CUDA_FOUND)
-  target_compile_options(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
-  target_compile_definitions(Chrono_dem PUBLIC CHRONO_USE_CUDA)
-endif()
-
 target_compile_definitions(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_DEM>)
-if(CHRONO_HIP_FOUND)
-  target_compile_definitions(Chrono_dem PUBLIC CHRONO_USE_HIP __HIP_PLATFORM_AMD__)
-endif()
 
 target_link_libraries(Chrono_dem PRIVATE Chrono_core)
 
-if(CHRONO_CUDA_FOUND)
-  target_link_libraries(Chrono_dem PUBLIC CUDA::cudart_static)
-  target_link_libraries(Chrono_dem PUBLIC CUDA::nvrtc)
-  target_link_libraries(Chrono_dem PUBLIC CUDA::cuda_driver)
-  target_link_libraries(Chrono_dem PUBLIC CUDA::cublas)
-  target_link_libraries(Chrono_dem PUBLIC CUDA::cusparse)
-  set_target_properties(Chrono_dem PROPERTIES CUDA_ARCHITECTURES "${CHRONO_CUDA_ARCHITECTURES}")
-elseif(CHRONO_HIP_FOUND)
-  find_package(hip QUIET CONFIG HINTS "${CHRONO_ROCM_ROOT}")
-  if(TARGET hip::host)
-    target_link_libraries(Chrono_dem PUBLIC hip::host)
-  endif()
-  if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
-    target_include_directories(Chrono_dem PUBLIC "${CHRONO_ROCM_ROOT}/include")
-  endif()
-  # Mixed CXX/HIP targets can leak HIP_ARCHITECTURES into ordinary CXX compilations
-  # (for example stb_image.cpp), which makes the host compiler see --offload-arch.
-  # Keep the target-level property disabled and pass the GPU arch flags only to real HIP TUs.
-  set_target_properties(Chrono_dem PROPERTIES HIP_ARCHITECTURES OFF)
-  if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
-    foreach(_chrono_hip_arch IN LISTS CHRONO_HIP_ARCHITECTURES)
-      target_compile_options(Chrono_dem PRIVATE $<$<COMPILE_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
-      target_link_options(Chrono_dem PRIVATE $<$<LINK_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
-    endforeach()
-  endif()
-endif()
+chrono_apply_gpu_backend(Chrono_dem ${CHRONO_DEM_BACKEND})
 
 install(TARGETS Chrono_dem
         EXPORT ChronoTargets
@@ -235,13 +216,11 @@ if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(Chrono_dem_vsg PRIVATE Chrono_core Chrono_dem)
     target_link_libraries(Chrono_dem_vsg PUBLIC Chrono_vsg)
 
-    if(CHRONO_CUDA_FOUND)
-      target_link_libraries(Chrono_dem_vsg PRIVATE CUDA::cudart_static)
-      target_link_libraries(Chrono_dem_vsg PRIVATE CUDA::nvrtc)
-      target_link_libraries(Chrono_dem_vsg PRIVATE CUDA::cuda_driver)
-      target_link_libraries(Chrono_dem_vsg PRIVATE CUDA::cublas)
-      target_link_libraries(Chrono_dem_vsg PRIVATE CUDA::cusparse)
-    endif()
+    # Keyed on the backend Chrono_dem actually resolved to, not on "a CUDA
+    # toolkit exists somewhere": those are no longer the same statement.
+    chrono_apply_gpu_backend(Chrono_dem_vsg ${CHRONO_DEM_BACKEND}
+                             DEFINE_VISIBILITY PRIVATE
+                             LINK_VISIBILITY   PRIVATE)
 
     install(TARGETS Chrono_dem_vsg
             EXPORT ChronoTargets

@@ -40,26 +40,41 @@ mark_as_advanced(CLEAR glfw3_DIR)
 set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable legacy OptiX-dependent Chrono::Sensor features")
 set(CH_USE_SENSOR_VULKAN_RT ON CACHE BOOL "Enable Vulkan ray-tracing Chrono::Sensor features")
 
+# GPU requirements are declared PER FEATURE here, not per module.
+#
+# Chrono::Sensor itself requires no GPU backend at all: its default renderer is
+# Vulkan RT, which is vendor-neutral and builds fine on AMD. Only the optional
+# OptiX renderer is CUDA-and-NVIDIA-only. Attaching "requires CUDA" to the
+# module rather than to the feature would wrongly disable the entire module on
+# AMD hardware that can run most of it.
 if(CH_USE_SENSOR_OPTIX)
 
-  if(CHRONO_HIP_FOUND)
-    message(STATUS "WARNING: Chrono::Sensor / OptiX is CUDA-only and not supported with HIP; disabling OptiX-dependent features")
-    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
-  elseif(CHRONO_CUDA_FOUND)
+  chrono_select_gpu_backend(CHRONO_SENSOR_OPTIX_BACKEND
+                            FEATURE  "Chrono::Sensor OptiX renderer"
+                            NAME     SENSOR_OPTIX
+                            REQUIRES CUDA)
+
+  if(CHRONO_SENSOR_OPTIX_BACKEND STREQUAL "NONE")
+
+    chrono_gpu_feature_unavailable(FEATURE  "Chrono::Sensor OptiX renderer"
+                                   REQUIRES "CUDA"
+                                   OPTION   CH_USE_SENSOR_OPTIX
+                                   CLASS    EXPLICIT)
+
+  else()
+
     message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
-  
+
     message(STATUS "Looking for OptiX")
     find_package(OptiX)
-  
+
     if(OptiX_INCLUDE)
       message(STATUS "  OptiX include directory: ${OptiX_INCLUDE}")
     else()
-      message("WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
+      message(WARNING "OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
       set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
     endif()
-  else()
-    message(STATUS "WARNING: CUDA was not found; disabling OptiX-dependent Chrono::Sensor features")
-    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
+
   endif()
 
 endif()
