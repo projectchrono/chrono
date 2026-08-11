@@ -47,7 +47,6 @@ class ChApi ChArchiveOutJSON : public ChArchiveOut {
     virtual void out(ChNameValue<unsigned long> bVal);
     virtual void out(ChNameValue<unsigned long long> bVal);
     virtual void out(ChNameValue<ChEnumMapperBase> bVal);
-
     virtual void out(ChNameValue<const char*> bVal);
     virtual void out(ChNameValue<std::string> bVal);
 
@@ -55,7 +54,7 @@ class ChApi ChArchiveOutJSON : public ChArchiveOut {
     virtual void out_array_between(ChValue& bVal, size_t msize);
     virtual void out_array_end(ChValue& bVal, size_t msize);
 
-    // for custom c++ objects:
+    // For custom c++ objects
     virtual void out(ChValue& bVal, bool tracked, size_t obj_ID);
 
     virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID);
@@ -67,13 +66,11 @@ class ChApi ChArchiveOutJSON : public ChArchiveOut {
     std::stack<bool> is_array;
 };
 
-///
-/// This is a class for deserializing from JSON archives
-///
-
+/// Deserialize objects using JSON format.
+/// Input stream should be kept valid for the entire lifespan of the archive class.
 class ChApi ChArchiveInJSON : public ChArchiveIn {
   public:
-    ChArchiveInJSON(std::ifstream& stream_in);
+    ChArchiveInJSON(std::istream& stream_in);
 
     virtual ~ChArchiveInJSON();
 
@@ -87,20 +84,18 @@ class ChApi ChArchiveInJSON : public ChArchiveIn {
     virtual bool in(ChNameValue<unsigned long> bVal) override;
     virtual bool in(ChNameValue<unsigned long long> bVal) override;
     virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override;
-
     virtual bool in(ChNameValue<char> bVal) override;
     virtual bool in(ChNameValue<std::string> bVal) override;
 
-    // for wrapping arrays and lists
+    // For wrapping arrays and lists
     virtual bool in_array_pre(const std::string& name, size_t& msize) override;
     virtual void in_array_between(const std::string& name) override;
-
     virtual void in_array_end(const std::string& name) override;
 
-    //  for custom c++ objects:
+    // For custom c++ objects
     virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) override;
 
-    // for objects to construct, return non-null ptr if new object, return null ptr if just reused obj
+    // For objects to construct, return non-null ptr if new object, return null ptr if just reused obj
     virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) override;
 
     virtual bool TryTolerateMissingTokens(bool try_tolerate) override;
@@ -108,7 +103,7 @@ class ChApi ChArchiveInJSON : public ChArchiveIn {
   protected:
     void token_notfound(const std::string& mname);
 
-    std::ifstream& m_istream;
+    std::istream& m_istream;
     rapidjson::Document document;
     rapidjson::Value* level;
     std::stack<rapidjson::Value*> levels;

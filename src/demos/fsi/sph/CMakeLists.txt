@@ -14,6 +14,7 @@ set(DEMOS ${DEMOS}
    demo_FSI-SPH_AngleRepose
    demo_FSI-SPH_RassorDrum
    demo_FSI-SPH_Cone_Drop
+   demo_FSI-SPH_PlateSinkage
 )
 
 if(CH_ENABLE_MODULE_VSG)

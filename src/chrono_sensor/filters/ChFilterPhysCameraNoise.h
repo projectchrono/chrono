@@ -31,9 +31,11 @@
 #define CHFILTERPHYSCAMERANOISE_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include <cuda.h>
-#include <curand.h>
-#include <curand_kernel.h>
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+    #include <curand.h>
+    #include <curand_kernel.h>
+#endif
 #include "chrono/core/ChVector3.h"
 
 namespace chrono {
@@ -82,10 +84,12 @@ class CH_SENSOR_API ChFilterPhysCameraNoise : public ChFilter {
 		float m_noise_gains[3];						// temporal noise gains
 		float m_STD_reads[3];						// standard deviations of read and FPN noises, equivalent [electrons]
 		unsigned int m_FPN_seed;					// seed of random number generator for getting read and FPN noises
+#ifdef CHRONO_HAS_OPTIX
 		std::shared_ptr<curandState_t> m_rng_shot;	// cuda random number generator for shot and dark current noises
 		std::shared_ptr<curandState_t> m_rng_FPN;	// cuda random number generator for read and FPN noises
-		std::shared_ptr<SensorDeviceHalf4Buffer> m_in_out;	// input/output buffer for RGBA(Half4)
 		CUstream m_cuda_stream;								// reference to the cuda stream
+#endif
+		std::shared_ptr<SensorDeviceHalf4Buffer> m_in_out;	// input/output buffer for RGBA(Half4)
 };
 
 /// @}

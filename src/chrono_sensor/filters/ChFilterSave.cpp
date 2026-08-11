@@ -15,6 +15,112 @@
 //
 // =============================================================================
 
+#include "chrono_sensor/filters/ChFilterSave.h"
+
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+#include "chrono_thirdparty/stb/stb_image_write.h"
+
+namespace chrono {
+namespace sensor {
+
+namespace {
+bool write_rgba16_binary(const std::string& file_path, uint16_t width, uint16_t height, const void* data) {
+    std::ofstream file(file_path, std::ios::binary);
+    if (!file)
+        return false;
+    const uint16_t channels = 4;
+    const uint16_t bit_depth = 16;
+    file.write(reinterpret_cast<const char*>(&width), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(&height), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(&channels), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(&bit_depth), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(data), static_cast<size_t>(width) * height * channels * sizeof(uint16_t));
+    return true;
+}
+
+bool write_float_binary(const std::string& file_path, uint16_t width, uint16_t height, const void* data) {
+    std::ofstream file(file_path, std::ios::binary);
+    if (!file)
+        return false;
+    const uint16_t channels = 1;
+    const uint16_t bit_depth = 32;
+    file.write(reinterpret_cast<const char*>(&width), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(&height), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(&channels), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(&bit_depth), sizeof(uint16_t));
+    file.write(reinterpret_cast<const char*>(data), static_cast<size_t>(width) * height * sizeof(float));
+    return true;
+}
+}  // namespace
+
+CH_SENSOR_API ChFilterSave::ChFilterSave(std::string data_path, std::string name) : ChFilter(name), m_path(data_path) {}
+
+CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                            std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
+
+    m_r8_in = std::dynamic_pointer_cast<SensorDeviceR8Buffer>(bufferInOut);
+    m_rgba8_in = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
+    m_rgba16_in = std::dynamic_pointer_cast<SensorDeviceRGBA16Buffer>(bufferInOut);
+    m_semantic_in = std::dynamic_pointer_cast<SensorHostSemanticBuffer>(bufferInOut);
+    m_depth_in = std::dynamic_pointer_cast<SensorDeviceDepthBuffer>(bufferInOut);
+
+    if (!m_r8_in && !m_rgba8_in && !m_rgba16_in && !m_semantic_in && !m_depth_in) {
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+        return;
+    }
+
+    if (!m_path.empty()) {
+        std::filesystem::create_directories(std::filesystem::path(m_path));
+        if (m_path.back() != '/' && m_path.back() != '\\')
+            m_path += '/';
+    }
+
+    stbi_flip_vertically_on_write(1);
+}
+
+CH_SENSOR_API void ChFilterSave::Apply() {
+    std::string filename = m_path + "frame_" + std::to_string(m_frame_number++) + ".png";
+
+    if (m_r8_in && m_r8_in->Buffer) {
+        if (!stbi_write_png(filename.c_str(), m_r8_in->Width, m_r8_in->Height, 1, m_r8_in->Buffer.get(), m_r8_in->Width))
+            std::cerr << "Failed to write R8 image: " << filename << "\n";
+    } else if (m_rgba8_in && m_rgba8_in->Buffer) {
+        if (!stbi_write_png(filename.c_str(), m_rgba8_in->Width, m_rgba8_in->Height, 4, m_rgba8_in->Buffer.get(),
+                            static_cast<int>(sizeof(PixelRGBA8) * m_rgba8_in->Width)))
+            std::cerr << "Failed to write RGBA8 image: " << filename << "\n";
+    } else if (m_rgba16_in && m_rgba16_in->Buffer) {
+        filename.replace(filename.length() - 3, 3, "bin");
+        if (!write_rgba16_binary(filename, static_cast<uint16_t>(m_rgba16_in->Width), static_cast<uint16_t>(m_rgba16_in->Height), m_rgba16_in->Buffer.get()))
+            std::cerr << "Failed to write RGBA16 image: " << filename << "\n";
+    } else if (m_semantic_in && m_semantic_in->Buffer) {
+        if (!stbi_write_png(filename.c_str(), m_semantic_in->Width, m_semantic_in->Height, 4, m_semantic_in->Buffer.get(),
+                            static_cast<int>(sizeof(PixelSemantic) * m_semantic_in->Width)))
+            std::cerr << "Failed to write semantic image: " << filename << "\n";
+    } else if (m_depth_in && m_depth_in->Buffer) {
+        filename.replace(filename.length() - 3, 3, "bin");
+        if (!write_float_binary(filename, static_cast<uint16_t>(m_depth_in->Width), static_cast<uint16_t>(m_depth_in->Height), m_depth_in->Buffer.get()))
+            std::cerr << "Failed to write depth map: " << filename << "\n";
+    }
+}
+
+CH_SENSOR_API void ChFilterSave::ChangeDataPath(std::string data_path) {
+    m_path = data_path;
+}
+
+}  // namespace sensor
+}  // namespace chrono
+
+#else
+
 #include <vector>
 #include <sstream>
 #include <fstream>
@@ -261,3 +367,5 @@ CH_SENSOR_API void ChFilterSave::ChangeDataPath(std::string data_path) {
 
 }  // namespace sensor
 }  // namespace chrono
+
+#endif

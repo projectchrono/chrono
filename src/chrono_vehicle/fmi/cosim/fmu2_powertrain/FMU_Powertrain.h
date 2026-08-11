@@ -38,7 +38,7 @@
 #include "chrono_vehicle/ChTransmission.h"
 #include "chrono_vehicle/ChPowertrainAssembly.h"
 
-#include "chrono_fmi/fmi2/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi2/ChFmuForgeExport.h"
 
 class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
   public:

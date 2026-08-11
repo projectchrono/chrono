@@ -206,21 +206,22 @@ FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH
 
 FsiDataManager::~FsiDataManager() {}
 
-void FsiDataManager::AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel, Real3 tauXxYyZz, Real3 tauXyXzYz, Real pc) {
+void FsiDataManager::AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Real3 vel, Real3 tau_diag, Real3 tau_offdiag, Real pc) {
     sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->h));
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
 
-    //// TODO: do this only for elasticSPH!
-    sphMarkers_H->tauXyXzYzH.push_back(tauXyXzYz);
-    sphMarkers_H->tauXxYyZzH.push_back(tauXxYyZz);
-    // Initial condition from -
-    // https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
-    //// TODO: Make sure that the parameter is set (creates dependency on when AddSphParticle is called)
-    Real confining_stress = pres;
-    Real p1 = 1000;
-    Real Sv = paramsH->mcc_v_lambda - paramsH->mcc_lambda * std::log(pc / p1) + paramsH->mcc_kappa * std::log(pc / confining_stress);
-    sphMarkers_H->pcEvSvH.push_back(mR3(pc, 0.0, Sv));
+    if (paramsH->elastic_SPH) {
+        sphMarkers_H->tauXyXzYzH.push_back(tau_offdiag);
+        sphMarkers_H->tauXxYyZzH.push_back(tau_diag);
+        if (paramsH->rheology_model_crm == RheologyCRM::MCC) {
+            // Initial condition from https://docs.itascacg.com/flac3d700/common/models/camclay/doc/modelcamclay.html#modelcamclay-ss1
+            Real confining_stress = pres;
+            Real p1 = 1000;
+            Real Sv = paramsH->mcc_v_lambda - paramsH->mcc_lambda * std::log(pc / p1) + paramsH->mcc_kappa * std::log(pc / confining_stress);
+            sphMarkers_H->pcEvSvH.push_back(mR3(pc, 0.0, Sv));
+        }
+    }
 }
 
 void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
@@ -228,11 +229,14 @@ void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->base_pressure, paramsH->mu0, GetMarkerCode(type)));
 
-    //// TODO: do this only for elasticSPH!
-    sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));
-    sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
-    //// TODO: Figure out how to initialize the correct Sv without putting the burden on the user
-    sphMarkers_H->pcEvSvH.push_back(mR3(1e3, 0.0, 0.0));
+    if (paramsH->elastic_SPH) {
+        sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));
+        sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
+        if (paramsH->rheology_model_crm == RheologyCRM::MCC) {
+            //// TODO: Figure out how to initialize the correct Sv without putting the burden on the user
+            sphMarkers_H->pcEvSvH.push_back(mR3(1e3, 0.0, 0.0));
+        }
+    }
 }
 
 void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,

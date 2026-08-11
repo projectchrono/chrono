@@ -12,6 +12,8 @@
 // Demo code illustrating the SCM semi-empirical model for deformable soil
 // =============================================================================
 
+#include "chrono/assets/ChVisualShapeCylinder.h"
+
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLoadContainer.h"

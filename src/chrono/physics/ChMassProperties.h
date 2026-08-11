@@ -48,13 +48,17 @@ class ChApi ChInertiaUtils {
                                    double& totmass,
                                    ChVector3d& barycenter);
 
-    /// Rotate an inertia tensor, given a rotation matrix R
+    /// Rotate an inertia tensor, given a rotation matrix R.
     static void RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix33<> R, ChMatrix33<>& inertiaOut);
 
-    /// Translate an inertia tensor to a non-barycentric reference,
-    /// given a displacement 'dist', using the Huygens-Steiner
-    /// parallel axis theorem.
+    /// Rotate an inertia tensor, given a rotation matrix R.
+    static ChMatrix33<> RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix33<> R);
+
+    /// Translate an inertia tensor to a non-barycentric reference, given a displacement 'dist', using the Huygens-Steiner parallel axis theorem.
     static void TranslateInertia(const ChMatrix33<> inertiaIn, const ChVector3d dist, const double mass, ChMatrix33<>& inertiaOut);
+
+    /// Translate an inertia tensor to a non-barycentric reference, given a displacement 'dist', using the Huygens-Steiner parallel axis theorem.
+    static ChMatrix33<> TranslateInertia(const ChMatrix33<> inertiaIn, const ChVector3d dist, const double mass);
 
     /// Compute principal moments of inertia and the principal axes.
     /// The principal moments of inertia are sorted in ascending order.
@@ -89,8 +93,8 @@ class ChApi CompositeInertia {
     const ChMatrix33<>& GetInertiaReference() const { return m_inertia; }
 
     /// Include sub-component inertia properties.
-    /// Update the inertia properties of the composite object with the specified mass and inertia of a sub-component. A sub-component is
-    void AddComponent(const ChFrame<>& frame,       ///< centroidal frame of sub-component (relative to reference frame)
+    /// Update the inertia properties of the composite object with the specified mass and inertia of a sub-component.
+    void AddComponent(const ChFrame<>& frame,       ///< centroidal frame of sub-component (relative to the composite reference frame)
                       double mass,                  ///< mass of sub-component
                       const ChMatrix33<>& inertia,  ///< sub-component inertia tensor w.r.t. its centroidal frame
                       bool is_void = false          ///< indicate if sub-component represents a material void

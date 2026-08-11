@@ -38,19 +38,28 @@ double ChCylinder::GetVolume() const {
 }
 
 ChMatrix33<> ChCylinder::CalcGyration(double radius, double height) {
-    double Ixx = (1.0 / 12.0) * (3 * radius * radius + height * height);
+    double Jxx = (1 / 12.0) * (3 * radius * radius + height * height);
 
     ChMatrix33<> J;
     J.setZero();
-    J(0, 0) = Ixx;
-    J(1, 1) = Ixx;
-    J(2, 2) = (1.0 / 2.0) * (radius * radius);
+    J(0, 0) = Jxx;
+    J(1, 1) = Jxx;
+    J(2, 2) = 0.5 * (radius * radius);
 
     return J;
 }
 
 ChMatrix33<> ChCylinder::GetGyration() const {
     return CalcGyration(r, h);
+}
+
+ChVector3d ChCylinder::CalcGyrationXX(double radius, double height) {
+    double Jxx = (1 / 12.0) * (3 * radius * radius + height * height);
+    return ChVector3d(Jxx, Jxx, 0.5 * (radius * radius));
+}
+
+ChVector3d ChCylinder::GetGyrationXX() const {
+    return CalcGyrationXX(r, h);
 }
 
 ChAABB ChCylinder::CalcBoundingBox(double radius, double height) {

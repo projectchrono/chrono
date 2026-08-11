@@ -15,30 +15,59 @@
 //
 // =============================================================================
 
-#include <vector>
+#include "chrono_sensor/filters/ChFilterRadarSavePC.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
+
+#include <iostream>
 #include <sstream>
+#include <vector>
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_sensor/filters/ChFilterRadarSavePC.h"
+#ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
-
 #include <cuda_runtime_api.h>
+#endif
 
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChFilterRadarSavePC::ChFilterRadarSavePC(std::string data_path, std::string name) : ChFilter(name) {
-    m_path = data_path;
+namespace {
+void EnsureDirectoryTree(const std::string& path) {
+    std::vector<std::string> split_string;
+#ifdef _WIN32
+    const char separator = '\\';
+#else
+    const char separator = '/';
+#endif
+    std::istringstream istring(path);
+    std::string substring;
+    while (std::getline(istring, substring, separator))
+        split_string.push_back(substring);
+
+    std::string partial_path;
+    for (auto s : split_string) {
+        if (!s.empty()) {
+            partial_path += s + separator;
+            if (!exists(std::filesystem::path(partial_path))) {
+                if (!CreateOutputDirectory(std::filesystem::path(partial_path)))
+                    std::cerr << "Could not create directory: " << partial_path << std::endl;
+                else
+                    std::cout << "Created directory for sensor data: " << partial_path << std::endl;
+            }
+        }
+    }
 }
+}  // namespace
 
-CH_SENSOR_API ChFilterRadarSavePC::~ChFilterRadarSavePC() {}
+ChFilterRadarSavePC::ChFilterRadarSavePC(std::string data_path, std::string name) : ChFilter(name), m_path(data_path) {}
+ChFilterRadarSavePC::~ChFilterRadarSavePC() {}
 
-CH_SENSOR_API void ChFilterRadarSavePC::Apply() {
+void ChFilterRadarSavePC::Apply() {
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
-    m_frame_number++;
+    ++m_frame_number;
     ChWriterCSV csv_writer(",");
     for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
         csv_writer << m_buffer_in->Buffer[i].x << m_buffer_in->Buffer[i].y << m_buffer_in->Buffer[i].z
@@ -48,8 +77,8 @@ CH_SENSOR_API void ChFilterRadarSavePC::Apply() {
     csv_writer.WriteToFile(filename);
 }
 
-CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSensor,
-                                                   std::shared_ptr<SensorBuffer>& bufferInOut) {
+void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                     std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
 
@@ -57,57 +86,15 @@ CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSe
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
 
-    if (auto pOpx = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
-        m_cuda_stream = pOpx->GetCudaStream();
+    if (auto pRadar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor)) {
+#ifdef CHRONO_HAS_OPTIX
+        m_cuda_stream = pRadar->GetCudaStream();
+#endif
     } else {
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
 
-    std::vector<std::string> split_string;
-#ifdef _WIN32
-    std::istringstream istring(m_path);
-
-    std::string substring;
-    while (std::getline(istring, substring, '\\')) {
-        split_string.push_back(substring);
-    }
-
-    std::string partial_path = "";
-    for (auto s : split_string) {
-        if (s != "") {
-            partial_path += s + "\\";
-            if (!exists(std::filesystem::path(partial_path))) {
-                if (!CreateOutputDirectory(std::filesystem::path(partial_path))) {
-                    std::cerr << "Could not create directory: " << partial_path << std::endl;
-                } else {
-                    std::cout << "Created directory for sensor data: " << partial_path << std::endl;
-                }
-            }
-        }
-    }
-#else
-
-    std::istringstream istring(m_path);
-
-    std::string substring;
-    while (std::getline(istring, substring, '/')) {
-        split_string.push_back(substring);
-    }
-
-    std::string partial_path = "";
-    for (auto s : split_string) {
-        if (s != "") {
-            partial_path += s + "/";
-            if (!exists(std::filesystem::path(partial_path))) {
-                if (!CreateOutputDirectory(std::filesystem::path(partial_path))) {
-                    std::cerr << "Could not create directory: " << partial_path << std::endl;
-                } else {
-                    std::cout << "Created directory for sensor data: " << partial_path << std::endl;
-                }
-            }
-        }
-    }
-#endif
+    EnsureDirectoryTree(m_path);
 }
 
 }  // namespace sensor

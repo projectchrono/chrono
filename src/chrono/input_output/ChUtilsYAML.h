@@ -62,10 +62,16 @@ class ChApi ChYamlFileHandler {
     /// Otherwise, the data path type and relative path (if applicable) are read from the YAML node.
     void Read(const YAML::Node& a);
 
+    /// Set the data path type (default: relative).
+    void SetType(Type type) { m_type = type; }
+
     /// Set the reference directory based on the location of the given path.
     /// - if the given path is a file, the reference directory is set to its parent directory.
     /// - if the given path is a directory, the reference directory is set to that directory.
     void SetReferenceDirectory(const std::string& pathname);
+
+    /// Set relative path for data files (default: ".").
+    void SetRelativePath(const std::string& relative_path) { m_relative_path = relative_path; }
 
     /// Return the data path type (absolute or relative).
     Type GetType() const { return m_type; }

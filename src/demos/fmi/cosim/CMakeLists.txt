@@ -2,7 +2,7 @@
 # Create FMUs
 #--------------------------------------------------------------------------
 
-if(${FMU_EXPORT_SUPPORT})
+if(${CH_ENABLE_FMU_EXPORT})
 
   # Create the crane FMUs (FMI 2.0 and 3.0)
   add_subdirectory(fmu2_crane)
@@ -35,7 +35,7 @@ target_compile_definitions(${PROGRAM2} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHA
 
 target_compile_definitions(${PROGRAM2} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   target_compile_definitions(${PROGRAM2} PUBLIC CRANE_FMU2_MODEL_IDENTIFIER="${CRANE_FMU2_MODEL_IDENTIFIER}")
   target_compile_definitions(${PROGRAM2} PUBLIC CRANE_FMU2_DIRECTORY="${CRANE_FMU2_DIRECTORY}")
   target_compile_definitions(${PROGRAM2} PUBLIC CRANE_FMU2_FILENAME="${CRANE_FMU2_FILENAME}")
@@ -51,7 +51,7 @@ target_link_libraries(${PROGRAM2} Chrono_core)
 
 set_property(TARGET ${PROGRAM2} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM2}>")
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   add_dependencies(${PROGRAM2} ${CRANE_FMU2_MODEL_IDENTIFIER} ${ACTUATOR_FMU2_MODEL_IDENTIFIER})
 endif()
 
@@ -73,7 +73,7 @@ target_compile_definitions(${PROGRAM3} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHA
 
 target_compile_definitions(${PROGRAM3} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   target_compile_definitions(${PROGRAM3} PUBLIC CRANE_FMU3_MODEL_IDENTIFIER="${CRANE_FMU3_MODEL_IDENTIFIER}")
   target_compile_definitions(${PROGRAM3} PUBLIC CRANE_FMU3_DIRECTORY="${CRANE_FMU3_DIRECTORY}")
   target_compile_definitions(${PROGRAM3} PUBLIC CRANE_FMU3_FILENAME="${CRANE_FMU3_FILENAME}")
@@ -93,6 +93,6 @@ if(MSVC)
   set_target_properties(${PROGRAM3} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   add_dependencies(${PROGRAM3} ${CRANE_FMU3_MODEL_IDENTIFIER} ${ACTUATOR_FMU3_MODEL_IDENTIFIER})
 endif()

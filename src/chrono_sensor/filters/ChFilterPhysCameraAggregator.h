@@ -22,7 +22,11 @@
 #define CHFILTERPHYSCAMERAAGGREGATOR_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include <cuda.h>
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+#else
+    using CUstream = void*;
+#endif
 #include "chrono/core/ChVector3.h"
 
 namespace chrono {

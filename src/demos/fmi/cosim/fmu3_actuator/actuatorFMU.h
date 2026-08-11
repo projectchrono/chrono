@@ -18,7 +18,7 @@
 #include "chrono/physics/ChHydraulicActuator.h"
 #include "chrono/functions/ChFunction.h"
 
-#include "chrono_fmi/fmi3/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi3/ChFmuForgeExport.h"
 
 class FmuComponent : public chrono::fmi3::FmuChronoComponentBase {
   public:

@@ -15,6 +15,59 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
+
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+
+#include <algorithm>
+
+namespace chrono {
+namespace sensor {
+
+CH_SENSOR_API ChFilterGrayscale::ChFilterGrayscale(std::string name) : ChFilter(name.length() ? name : "Grayscale") {}
+
+CH_SENSOR_API void ChFilterGrayscale::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                 std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
+    if (!m_buffer_in) {
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+        return;
+    }
+
+    m_buffer_out = chrono_types::make_shared<SensorDeviceR8Buffer>();
+    m_buffer_out->Width = m_buffer_in->Width;
+    m_buffer_out->Height = m_buffer_in->Height;
+    m_buffer_out->Buffer = std::shared_ptr<char[]>(new char[m_buffer_out->Width * m_buffer_out->Height]);
+    bufferInOut = m_buffer_out;
+}
+
+CH_SENSOR_API void ChFilterGrayscale::Apply() {
+    if (!m_buffer_in || !m_buffer_out || !m_buffer_in->Buffer)
+        return;
+
+    const size_t count = static_cast<size_t>(m_buffer_in->Width) * static_cast<size_t>(m_buffer_in->Height);
+    if (!m_buffer_out->Buffer)
+        m_buffer_out->Buffer = std::shared_ptr<char[]>(new char[count]);
+
+    m_buffer_out->Width = m_buffer_in->Width;
+    m_buffer_out->Height = m_buffer_in->Height;
+    m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;
+    m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
+
+    for (size_t i = 0; i < count; ++i) {
+        const auto& p = m_buffer_in->Buffer[i];
+        const int gray = static_cast<int>(0.299f * p.R + 0.587f * p.G + 0.114f * p.B + 0.5f);
+        m_buffer_out->Buffer[i] = static_cast<char>(std::max(0, std::min(255, gray)));
+    }
+}
+
+}  // namespace sensor
+}  // namespace chrono
+
+#else
+
+#include "chrono_sensor/filters/ChFilterGrayscale.h"
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/cuda/grayscale.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
@@ -63,3 +116,5 @@ CH_SENSOR_API void ChFilterGrayscale::Apply() {
 
 }  // namespace sensor
 }  // namespace chrono
+
+#endif

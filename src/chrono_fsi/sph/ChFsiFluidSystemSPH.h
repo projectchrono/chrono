@@ -69,10 +69,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double average_diam;         ///< average particle diameter (default: 0.005)
         double cohesion_coeff;       ///< cohesion coefficient (default: 0)
         RheologyCRM rheology_model;  ///< rheology model (default: MU_OF_I)
-        double mcc_M;                // CSL line slope
-        double mcc_kappa;            // Compression index
-        double mcc_lambda;           // Swelling index
-        double mcc_v_lambda;         // Specific volume at reference pressure of 1000 Pa
+        double mcc_M;                ///< Cam-Clay critical state line slope, q = M p (default: 0)
+        double mcc_kappa;            ///< Cam-Clay swelling index: slope of the elastic
+                                     ///< unload/reload line in v-ln(p). Sets the elastic bulk
+                                     ///< modulus, K = v p / kappa. Must satisfy
+                                     ///< 0 < mcc_kappa < mcc_lambda (default: 0)
+        double mcc_lambda;           ///< Cam-Clay compression index: slope of the normal
+                                     ///< consolidation line in v-ln(p). Governs virgin
+                                     ///< compressibility and the hardening rate, which divides
+                                     ///< by (mcc_lambda - mcc_kappa). Must exceed mcc_kappa
+                                     ///< (default: 0)
+        double mcc_v_lambda;         ///< Specific volume at reference pressure of 1000 Pa
+                                     ///< (default: 2.0)
 
         ElasticMaterialProperties();
     };
@@ -83,7 +91,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         EosType eos_type;                              ///< equation of state (default: ISOTHERMAL)
         ViscosityMethod viscosity_method;              ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
         BoundaryMethod boundary_method;                ///< boundary treatment (default: ADAMI)
-        KernelType kernel_type;                        ///< kernel type (default: CUBIC_CPLINE)
+        KernelType kernel_type;                        ///< kernel type (default: CUBIC_SPLINE)
         ShiftingMethod shifting_method;                ///< shifting method (default: XSPH)
         int num_bce_layers;                            ///< number of BCE layers (boundary and solids, default: 3)
         double initial_spacing;                        ///< initial particle spacing (default: 0.01)
@@ -93,7 +101,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_ppst_push;                     ///< PPST pushing coefficient (default: 3.0)
         double shifting_ppst_pull;                     ///< shifting beta coefficient (default: 1.0)
         double shifting_beta_implicit;                 ///< shifting coefficient used in implicit solver (default: 1.0)
-        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 2.0, range 1 to 6)
+        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 1.0, range 1 to 6)
         double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 3.0)
         double shifting_diffusion_AFST;                ///< shifting coefficient used in diffusion (default: 2.0)
         double min_distance_coefficient;               ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
@@ -108,7 +116,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                                        ///< field is computed and compared to this threshold. Particles with divergence
                                                        ///< less than this threshold are considered free surface particles (CRM only,
                                                        ///< default: 2.0)
-        int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 4)
+        int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 1)
         bool use_variable_time_step;                   ///< use variable time step (default: false)
 
         SPHParameters();
@@ -149,16 +157,26 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the shifting method.
     void SetShiftingMethod(ShiftingMethod shifting_method);
 
-    /// Set the fluid container dimension
+    /// Set the fluid container dimension.
     void SetContainerDim(const ChVector3d& box_dim);
 
     /// Set computational domain and boundary conditions on its sides.
     /// `bc_type` indicates the types of BCs imposed in the three directions of the computational domain.
     /// By default, no special boundary conditions are imposed in any direction (BCType::NONE).
+    /// \note After Initialize(), only a pure TRANSLATION of the domain is accepted
+    /// (same extents; the 2-argument overload additionally requires unchanged BC
+    /// types); the update propagates to the device (used by the CRMTerrain moving
+    /// patch). A size- or BC-changing post-initialization call throws and leaves the
+    /// previous domain intact.
     void SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type);
 
     /// Set computational domain.
     /// Note that this version leaves the setting for BC type unchanged.
+    /// \note After Initialize(), only a pure TRANSLATION of the domain is accepted
+    /// (same extents; the 2-argument overload additionally requires unchanged BC
+    /// types); the update propagates to the device (used by the CRMTerrain moving
+    /// patch). A size- or BC-changing post-initialization call throws and leaves the
+    /// previous domain intact.
     void SetComputationalDomain(const ChAABB& computational_AABB);
 
     /// Set dimensions of the active domain AABB.
@@ -178,19 +196,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set (initial) density.
     void SetDensity(double rho0);
 
-    /// Set the PPST Shifting parameters
-    /// push: coefficient for the pushing term in the PPST shifting method (upon penetration with fictitious sphere)
-    /// pull: coefficient for the pulling term in the PPST shifting method
+    /// Set the PPST Shifting parameters.
+    /// - `push`: coefficient for the pushing term in the PPST shifting method (upon penetration with fictitious sphere)
+    /// - `pull`: coefficient for the pulling term in the PPST shifting method
     void SetShiftingPPSTParameters(double push, double pull);
 
-    /// Set the XSPH Shifting parameters
-    /// eps: coefficient for the XSPH shifting method
+    /// Set the XSPH shifting parameters.
     void SetShiftingXSPHParameters(double eps);
 
-    /// Set the diffusion based shifting parameters
-    /// A: coefficient for the diffusion based shifting method
-    /// AFSM: coefficient for the AFSM in the diffusion based shifting method
-    /// AFST: coefficient for the AFST in the diffusion based shifting method
+    /// Set the diffusion based shifting parameters.
+    /// - `A`:    coefficient for the diffusion based shifting method
+    /// - `AFSM`: coefficient for the AFSM in the diffusion based shifting method
+    /// - `AFST`: coefficient for the AFST in the diffusion based shifting method
     void SetShiftingDiffusionParameters(double A, double AFSM, double AFST);
 
     /// Set prescribed initial pressure for gravity field.
@@ -203,10 +220,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
     void SetBodyForce(const ChVector3d& force);
 
-    /// Set SPH discretization type, consistent or inconsistent
+    /// Set SPH discretization type, consistent or inconsistent.
     void SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian);
 
-    /// Set cohesion force of the granular material
+    /// Set cohesion force of the granular material.
     void SetCohesionForce(double Fc);
 
     /// Set the linear system solver for implicit methods.
@@ -220,7 +237,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the number of steps between successive updates to neighbor lists (default: 4).
     void SetNumProximitySearchSteps(int steps);
 
-    /// Set use variable time step
+    /// Set use variable time step.
     void SetUseVariableTimeStep(bool use_variable_time_step);
 
     /// Enable solution of a CFD problem.
@@ -355,26 +372,70 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------- Functions for adding SPH particles
 
-    /// Add an SPH particle with given properties to the FSI system.
-    void AddSPHParticle(const ChVector3d& pos,
-                        double rho,
-                        double pres,
-                        double mu,
-                        const ChVector3d& vel = ChVector3d(0),
-                        const ChVector3d& tauXxYyZz = ChVector3d(0),
-                        const ChVector3d& tauXyXzYz = ChVector3d(0),
-                        const double pc = 1e3);
+    /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
+    class CH_FSI_API ParticlePropertiesCallback {
+      public:
+        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL), tau_diag(VNULL), tau_offdiag(VNULL), consolidation_pressure(0) {}
+        ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
+        virtual ~ParticlePropertiesCallback() {}
 
-    /// Add an SPH particle with current properties to the SPH system.
+        /// Set values for particle properties.
+        /// If an override is provided, it must set *all* particle properties for the current problem type:
+        /// - PhysicsProblem::CFD:           p0, v0, rho0, mu0
+        /// - PhysicsProblem::CRM (MU_OF_I): p0, v0, rho0, mu0, tau_diag, tau_offdiag
+        /// - PhysicsProblem::CRM (MCC):     p0, v0, rho0, mu0, tau_diag, tau_offdiag, consolidation_pressure
+        /// The default implementation sets zero velocity and constant density and viscosity.
+        /// The default pressure is set to zero, except for CRM with MCC rheology in which case the pressure is set to 1e3.
+        virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) {
+            p0 = 0;
+            v0 = VNULL;
+            rho0 = sysSPH.GetDensity();
+            mu0 = sysSPH.GetViscosity();
+
+            if (sysSPH.GetPhysicsProblem() == PhysicsProblem::CRM && sysSPH.GetParams().rheology_model_crm == RheologyCRM::MCC) {
+                p0 = 1e3;
+                consolidation_pressure = 1.01 * p0;
+            }
+
+            tau_diag = ChVector3d(-p0);
+            tau_offdiag = VNULL;
+        }
+
+        double p0;
+        double rho0;
+        double mu0;
+        ChVector3d v0;
+        ChVector3d tau_diag;            ///< CRM only
+        ChVector3d tau_offdiag;         ///< CRM only
+        double consolidation_pressure;  ///< CRM/MCC only
+    };
+
+    /// Add an SPH particle at the specified location with properties provided by the given callback object.
+    void AddSPHParticle(const ChVector3d& pos, std::shared_ptr<ParticlePropertiesCallback> props_cb);
+
+    /// Add an SPH particle at the specified location with current FSI-SPH system properties (base pressure, density, and viscosity).
+    /// Note that tau_diag and tau_offdiag are only used for CRM problems and consolidation_pressure is only needed for CRM with MCC rheology.
     void AddSPHParticle(const ChVector3d& pos,
                         const ChVector3d& vel = ChVector3d(0),
-                        const ChVector3d& tauXxYyZz = ChVector3d(0),
-                        const ChVector3d& tauXyXzYz = ChVector3d(0),
-                        const double pc = 1e3);
+                        const ChVector3d& tau_diag = ChVector3d(0),
+                        const ChVector3d& tau_offdiag = ChVector3d(0),
+                        const double consolidation_pressure = 1e3);
+
+    /// Add an SPH particle at the specified location with given properties.
+    /// Note that tau_diag and tau_offdiag are only used for CRM problems and consolidation_pressure is only needed for CRM with MCC rheology.
+    void AddSPHParticle(const ChVector3d& pos,
+                        double density,
+                        double pressure,
+                        double viscosity,
+                        const ChVector3d& vel = ChVector3d(0),
+                        const ChVector3d& tau_diag = ChVector3d(0),
+                        const ChVector3d& tau_offdiag = ChVector3d(0),
+                        const double consolidation_pressure = 1e3);
 
     /// Create SPH particles in the specified box volume.
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
-    void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
+    /// If not provided, a default ParticlePropertiesCallback callback object is used to set initial particle properties.
+    void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim, std::shared_ptr<ParticlePropertiesCallback> params_cb = nullptr);
 
     // -----------
 
@@ -566,6 +627,13 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     virtual void OnExchangeSolidStates() override;
 
   private:
+    /// Derive the domain-dependent grid quantities from the current computational domain.
+    void DeriveDomainGridQuantities();
+
+    /// Apply a post-initialization computational-domain update (translation only) and
+    /// upload the new parameters to the device.
+    void ApplyComputationalDomain(const ChAABB& computational_AABB);
+
     /// SPH specification of an FSI rigid solid.
     struct FsiSphBody {
         std::shared_ptr<FsiBody> fsi_body;   ///< underlying FSI solid
@@ -667,7 +735,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------
 
-    /// Synchronize the async copy stream.
+    /// Synchronize the asynchronous copy stream.
     /// Used for the copySortedToOriginal function.
     void SynchronizeCopyStream() const;
 
@@ -704,6 +772,43 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     friend class ChFsiInterfaceSPH;
     friend class ChFsiProblemSPH;
     friend class ChFsiSplashsurfSPH;
+};
+
+// ----------------------------------------------------------------------------
+
+/// Predefined SPH particle initial properties callback (depth-based pressure).
+class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiFluidSystemSPH::ParticlePropertiesCallback {
+  public:
+    DepthPressurePropertiesCallback(double zero_height, ChVector3d init_vel = VNULL) : ParticlePropertiesCallback(), zero_height(zero_height), init_vel(init_vel) {}
+
+    virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
+
+        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+        rho0 = sysSPH.GetDensity() + p0 / c2;
+        mu0 = sysSPH.GetViscosity();
+        v0 = init_vel;
+
+        // The MCC rheology derives each particle's initial specific volume from log(pc/p), so both the confining pressure
+        // and the consolidation pressure must be strictly positive. A depth-based pressure calculation yields exactly zero
+        // at the reference height, which is where the topmost particle layer normally sits, so floor the pressure at the
+        // overburden of a quarter spacing, using the same spacing that positions the layers.
+        // Note that with no gravity along z there is no overburden to derive a confinement from, so reject it here.
+        if (sysSPH.GetPhysicsProblem() == PhysicsProblem::CRM && sysSPH.GetParams().rheology_model_crm == RheologyCRM::MCC) {
+            ChAssertAlways(gz > 0);
+            double p0_min = sysSPH.GetDensity() * gz * sysSPH.GetInitialSpacing() / 4;
+            p0 = std::max(p0, p0_min);
+            consolidation_pressure = 1.01 * p0;
+        }
+
+        tau_diag = ChVector3(-p0);
+        tau_offdiag = VNULL;
+    }
+
+  private:
+    double zero_height;
+    ChVector3d init_vel;
 };
 
 /// @} fsisph

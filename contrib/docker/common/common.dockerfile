@@ -10,6 +10,12 @@ RUN apt-get update && \
         [ -z "${APT_DEPENDENCIES}" ] || apt-get install --no-install-recommends -y ${APT_DEPENDENCIES} && \
         apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
+# Install pip requirements (fallback handles PEP 668 on Ubuntu >= 24.04)
+ARG PIP_REQUIREMENTS=""
+RUN [ -z "${PIP_REQUIREMENTS}" ] || \
+        python3 -m pip install --no-cache-dir ${PIP_REQUIREMENTS} || \
+        python3 -m pip install --no-cache-dir --break-system-packages ${PIP_REQUIREMENTS}
+
 # Update apt such that it never runs without --no-install-recommends
 RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | sudo tee /etc/apt/apt.conf.d/999norecommend
 

@@ -491,9 +491,7 @@ TEST_P(Collision, box_box) {
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
         CheckPointList(pt1, {real3(2, 2 - 2 * std::sqrt(2.0), 3), real3(2 - 2 * std::sqrt(2.0), 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration),
-                             real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration),
-                             real3(2, 2, 3 + penetration)});
+        CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration), real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration), real3(2, 2, 3 + penetration)});
 
         // penetrated, small penetration
         penetration = -1e-5;
@@ -503,9 +501,7 @@ TEST_P(Collision, box_box) {
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
         CheckPointList(pt1, {real3(2, 2 - 2 * std::sqrt(2.0), 3), real3(2 - 2 * std::sqrt(2.0), 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration),
-                             real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration),
-                             real3(2, 2, 3 + penetration)});
+        CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration), real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration), real3(2, 2, 3 + penetration)});
 
         // separated by less than 'separation'
         penetration = +0.05;
@@ -515,10 +511,8 @@ TEST_P(Collision, box_box) {
             ASSERT_EQ(nC, 3);
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, 1));
-            CheckPointList(pt1,
-                           {real3(2, 2 - 2 * std::sqrt(2.0), 3), real3(2 - 2 * std::sqrt(2.0), 2, 3), real3(2, 2, 3)});
-            CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration),
-                                 real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration), real3(2, 2, 3 + penetration)});
+            CheckPointList(pt1, {real3(2, 2 - 2 * std::sqrt(2.0), 3), real3(2 - 2 * std::sqrt(2.0), 2, 3), real3(2, 2, 3)});
+            CheckPointList(pt2, {real3(2, 2 - 2 * std::sqrt(2.0), 3 + penetration), real3(2 - 2 * std::sqrt(2.0), 2, 3 + penetration), real3(2, 2, 3 + penetration)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -561,9 +555,7 @@ TEST_P(Collision, box_box) {
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
         CheckPointList(pt1, {real3(2, 2 * std::sqrt(2.0) - 2, 3), real3(2 * std::sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration),
-                             real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration),
-                             real3(2, 2, 3 + penetration)});
+        CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration), real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration), real3(2, 2, 3 + penetration)});
 
         // penetrated, small penetration
         penetration = -1e-5;
@@ -573,9 +565,7 @@ TEST_P(Collision, box_box) {
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
         CheckPointList(pt1, {real3(2, 2 * std::sqrt(2.0) - 2, 3), real3(2 * std::sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
-        CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration),
-                             real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration),
-                             real3(2, 2, 3 + penetration)});
+        CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration), real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration), real3(2, 2, 3 + penetration)});
 
         // separated by less than 'separation'
         penetration = +0.05;
@@ -585,10 +575,8 @@ TEST_P(Collision, box_box) {
             ASSERT_EQ(nC, 3);
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, 1));
-            CheckPointList(pt1,
-                           {real3(2, 2 * std::sqrt(2.0) - 2, 3), real3(2 * std::sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
-            CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration),
-                                 real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration), real3(2, 2, 3 + penetration)});
+            CheckPointList(pt1, {real3(2, 2 * std::sqrt(2.0) - 2, 3), real3(2 * std::sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
+            CheckPointList(pt2, {real3(2, 2 * std::sqrt(2.0) - 2, 3 + penetration), real3(2 * std::sqrt(2.0) - 2, 2, 3 + penetration), real3(2, 2, 3 + penetration)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -630,8 +618,7 @@ TEST_P(Collision, box_box) {
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
         CheckPointList(pt1, {real3(-0.5, -1, 3), real3(-0.5, 1, 3), real3(0.5, -1, 3), real3(0.5, 1, 3)});
-        CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration),
-                             real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
+        CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration), real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
 
         // penetrated, small penetration
         penetration = -1e-5;
@@ -641,8 +628,7 @@ TEST_P(Collision, box_box) {
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
         CheckPointList(pt1, {real3(-0.5, -1, 3), real3(-0.5, 1, 3), real3(0.5, -1, 3), real3(0.5, 1, 3)});
-        CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration),
-                             real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
+        CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration), real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
 
         // separated by less than 'separation'
         penetration = +0.05;
@@ -653,8 +639,7 @@ TEST_P(Collision, box_box) {
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, 1));
             CheckPointList(pt1, {real3(-0.5, -1, 3), real3(-0.5, 1, 3), real3(0.5, -1, 3), real3(0.5, 1, 3)});
-            CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration),
-                                 real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
+            CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration), real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -761,8 +746,7 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
-        CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration),
-                             real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
+        CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration), real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
         CheckPointList(pt2, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2), real3(std::sqrt(2.0), std::sqrt(2.0), 2)});
 
         // penetrated, small penetration
@@ -772,8 +756,7 @@ TEST_P(Collision, box_box) {
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
-        CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration),
-                             real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
+        CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration), real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
         CheckPointList(pt2, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2), real3(std::sqrt(2.0), std::sqrt(2.0), 2)});
 
         // separated by less than 'separation'
@@ -784,10 +767,8 @@ TEST_P(Collision, box_box) {
             ASSERT_EQ(nC, 2);
             CheckValueList(depth, nC, penetration);
             CheckPointList(norm, nC, real3(0, 0, -1));
-            CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration),
-                                 real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
-            CheckPointList(pt2,
-                           {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2), real3(std::sqrt(2.0), std::sqrt(2.0), 2)});
+            CheckPointList(pt1, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2 + penetration), real3(std::sqrt(2.0), std::sqrt(2.0), 2 + penetration)});
+            CheckPointList(pt2, {real3(std::sqrt(2.0) - 1, std::sqrt(2.0), 2), real3(std::sqrt(2.0), std::sqrt(2.0), 2)});
         } else {
             ASSERT_EQ(nC, 0);
         }
@@ -807,8 +788,7 @@ TEST_P(Collision, box_box) {
 
         real3 hdims2(1.0, 1.0, 1.0);
         real3 pos2(0.5, 0.5, 1.0 + std::sqrt(3.0));
-        quaternion rot2 =
-            FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
+        quaternion rot2 = FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
         shape1->type = ChCollisionShape::Type::BOX;
@@ -937,13 +917,11 @@ TEST_P(Collision, box_box) {
     {
         real3 hdims1(1.0, 1.0, 1.0);
         real3 pos1(0.0, 0.0, 0.0);
-        quaternion rot1 =
-            FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
+        quaternion rot1 = FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         real3 hdims2(1.0, 1.0, 1.0);
         real3 pos2(0, 0, std::sqrt(3.0) + std::sqrt(3.0));
-        quaternion rot2 =
-            FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
+        quaternion rot2 = FromChQuaternion(QuatFromAngleAxis(std::atan(std::sqrt(2.0)), ChVector3d(1, 1, 0).GetNormalized()));
 
         ConvexShapeCustom* shape1 = new ConvexShapeCustom();
         shape1->type = ChCollisionShape::Type::BOX;
@@ -1022,8 +1000,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(0.5, 0, 0);
 
-        ASSERT_TRUE(
-            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -1035,8 +1012,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(0.95, 0, 0);
 
-        ASSERT_TRUE(
-            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0, -1, 0), precision);
@@ -1057,8 +1033,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(1, 0, 0);
 
-        ASSERT_TRUE(
-            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0, -1, 0), precision);
@@ -1079,8 +1054,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2.5, 1, 0);
         shapeS2->dimensions = real3(1, 0, 0);
 
-        ASSERT_TRUE(
-            ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(1, 0, 0), precision);
         ASSERT_NEAR(depth, -0.5, precision);

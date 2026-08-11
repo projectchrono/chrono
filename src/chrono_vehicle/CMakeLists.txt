@@ -1,7 +1,5 @@
 #=============================================================================
 # CMake configuration file for Chrono Vehicle module
-#
-# Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
 option(CH_ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
@@ -1005,30 +1003,6 @@ if(CH_ENABLE_MODULE_VSG)
             INCLUDES DESTINATION include/chrono_vehicle) # TODO DARIOM: verify if correct folder
 
 endif()
-
-#-------------------------------------------------------------------------------
-# Trigger CMake for vehicle co-simulation
-#-------------------------------------------------------------------------------
-
-option(CH_ENABLE_MODULE_VEHICLE_COSIM "Build the Chrono vehicle co-simulation library" TRUE)
-if(CH_ENABLE_MODULE_VEHICLE_COSIM)
-  add_subdirectory(cosim)
-endif()
-
-set(CH_ENABLE_MODULE_VEHICLE_COSIM  "${CH_ENABLE_MODULE_VEHICLE_COSIM}" PARENT_SCOPE)
-set(DEPENDENCIES_VEHICLECOSIM ${DEPENDENCIES_VEHICLECOSIM} PARENT_SCOPE)
-
-#-------------------------------------------------------------------------------
-# Trigger CMake for vehicle FMUs
-#-------------------------------------------------------------------------------
-
-cmake_dependent_option(CH_ENABLE_MODULE_VEHICLE_FMI  "Enable FMI support for Chrono::Vehicle" ON "CH_ENABLE_MODULE_FMI" OFF)
-mark_as_advanced(FORCE CH_ENABLE_MODULE_VEHICLE_FMI)
-if(CH_ENABLE_MODULE_VEHICLE_FMI)
-  add_subdirectory(fmi)
-endif()
-
-set(CH_ENABLE_MODULE_VEHICLE_FMI  "${CH_ENABLE_MODULE_VEHICLE_FMI}" PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Install files

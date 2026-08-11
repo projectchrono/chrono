@@ -180,14 +180,6 @@ class ChApi ChBodyGeometry {
     /// Create collision shapes for the specified body, placed at the given the body-relative frame.
     void CreateCollisionShapes(std::shared_ptr<ChBody> body, const ChFramed& frame, int collision_family, ChContactMethod contact_method);
 
-    /// Utility function for adding a cylinder visualization shape defined by the end points and a radius.
-    /// This function adds the visualization shape to the body's visual model and returns the shape.
-    static std::shared_ptr<ChVisualShape> AddVisualizationCylinder(std::shared_ptr<ChBody> body,
-                                                                   const ChVector3d& p1,
-                                                                   const ChVector3d& p2,
-                                                                   double radius,
-                                                                   ChVisualMaterialSharedPtr mat = nullptr);
-
     /// Calculate axis-aligned bounding box of all collision shapes.
     ChAABB CalculateAABB();
 
@@ -200,7 +192,19 @@ class ChApi ChBodyGeometry {
     /// Indicate whether or not a visualization mesh is defined.
     bool HasVisualizationMesh() const;
 
+    /// Return a string describing the given visualization type.
     static std::string GetVisualizationTypeAsString(VisualizationType type);
+
+    /// Utility function for adding a cylinder visualization shape defined by the end points and a radius.
+    /// This function adds the visualization shape to the body's visual model and returns the shape.
+    static std::shared_ptr<ChVisualShape> AddVisualizationCylinder(std::shared_ptr<ChBody> body,
+                                                                   const ChVector3d& p1,
+                                                                   const ChVector3d& p2,
+                                                                   double radius,
+                                                                   ChVisualMaterialSharedPtr mat = nullptr);
+
+    /// Combine a collection of body geometry objects defined relative to their own reference frame into a single ChBodyGeometry object.
+    static std::shared_ptr<ChBodyGeometry> Combine(std::vector<std::pair<ChFramed, ChBodyGeometry>> components);
 
   public:
     std::vector<ChContactMaterialData> materials;  ///< list of contact materials

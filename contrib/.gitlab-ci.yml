@@ -97,6 +97,10 @@ linux:doxygen:deploy:
     - mkdir -p build
     # VSG
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
+    # The glslangValidator installed by buildVSG links dynamically against the glslang
+    # shared libs in vsg_build/lib; make them resolvable when CMake invokes the
+    # validator during the build (the test jobs already set this for run time).
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib:$LD_LIBRARY_PATH"
 
 .ubuntu:arm64:
   tags:
@@ -122,6 +126,10 @@ linux:doxygen:deploy:
     - mkdir -p build
     # VSG
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
+    # The glslangValidator installed by buildVSG links dynamically against the glslang
+    # shared libs in vsg_build/lib; make them resolvable when CMake invokes the
+    # validator during the build (the test jobs already set this for run time).
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/lib:$LD_LIBRARY_PATH"
 
 linux:ubuntu22.04-gcc:amd64:build:
   tags:
@@ -135,7 +143,11 @@ linux:ubuntu22.04-gcc:amd64:build:
     - export C_COMPILER="/usr/bin/gcc"
     - export CXX_COMPILER="/usr/bin/g++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-amd64
+    # CH_VULKAN_GLSLANG_VALIDATOR: the Vulkan RT sensor backend needs glslangValidator at
+    # build time; the container image has no Vulkan SDK, but buildVSG.sh (before_script)
+    # already builds glslang 16.1.0 and installs it into vsg_build/bin. Point CMake there.
+    # Remove once the container image ships the Vulkan SDK tools.
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-amd64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -173,7 +185,11 @@ linux:ubuntu22.04-clang:amd64:build:
     - export C_COMPILER="/usr/bin/clang"
     - export CXX_COMPILER="/usr/bin/clang++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-amd64
+    # CH_VULKAN_GLSLANG_VALIDATOR: the Vulkan RT sensor backend needs glslangValidator at
+    # build time; the container image has no Vulkan SDK, but buildVSG.sh (before_script)
+    # already builds glslang 16.1.0 and installs it into vsg_build/bin. Point CMake there.
+    # Remove once the container image ships the Vulkan SDK tools.
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-amd64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -211,7 +227,8 @@ linux:ubuntu22.04-gcc:arm64:build:
     - export C_COMPILER="/usr/bin/gcc"
     - export CXX_COMPILER="/usr/bin/g++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-arm64
+    # See amd64 note: point CMake at the glslangValidator built by buildVSG.sh.
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-arm64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -249,7 +266,8 @@ linux:ubuntu22.04-clang:arm64:build:
     - export C_COMPILER="/usr/bin/clang"
     - export CXX_COMPILER="/usr/bin/clang++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci-arm64
+    # See amd64 note: point CMake at the glslangValidator built by buildVSG.sh.
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-arm64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -393,6 +411,13 @@ linux:ubuntu22.04:arm64:deploy-python3.13:
   tags:
   - windows11
   before_script:
+  # Windows caps a single environment variable at 32767 chars. A branch head whose
+  # (squash) commit message exceeds that limit crashes every parallel MSBuild child
+  # node with MSB4166 "Environment variable name or value is too long", because
+  # MSBuild replicates the whole environment into its worker processes. Clear the
+  # only unbounded variables before any build tool runs. (Job 'rules:' that match
+  # on CI_COMMIT_MESSAGE are evaluated server-side and are NOT affected.)
+  - $env:CI_COMMIT_MESSAGE = ""; $env:CI_COMMIT_DESCRIPTION = ""
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
   - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
   - echo $CI_PROJECT_DIR
@@ -443,6 +468,8 @@ windows:vs2022:test:
   tags:
     - windows11
   before_script:
+    # See .windows: oversized CI_COMMIT_MESSAGE (>32767 chars) crashes MSBuild workers.
+    - $env:CI_COMMIT_MESSAGE = ""; $env:CI_COMMIT_DESCRIPTION = ""
     - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
     - echo $CI_PROJECT_DIR
     - git submodule init
@@ -610,6 +637,8 @@ macos-apple:sonoma:build:
     - macos
     - sonoma
     - apple
+  rules:
+    - when: never
 
 macos-apple:sonoma:test:
   extends: .macos-sonoma-test
@@ -619,6 +648,8 @@ macos-apple:sonoma:test:
     - apple
   needs: ["macos-apple:sonoma:build"]
   dependencies: ["macos-apple:sonoma:build"]
+  rules:
+    - when: never
 
 # macOS Conda Deployment
 

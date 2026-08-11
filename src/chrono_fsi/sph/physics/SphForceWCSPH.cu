@@ -26,15 +26,12 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 void CopyParametersToDevice_SphForceWCSPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
     gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     gpuCheckError();
 }
-
-#endif
 
 // =============================================================================
 
@@ -532,6 +529,17 @@ __device__ inline Real4 LaplacianOperator(float G_i[9], float L_i[9], Real3 dist
 
 // =============================================================================
 
+// All kernels in SphForceWCSPH work on a total of numExtendedParticles threads, in blocks of size 1024 or 256.
+//
+// The block size is not free to choose. On CUDA devices a thread block shares a fixed pool of 65536
+// registers, so the most a thread may use is roughly 65536 / blockSize, before allocation granularity.
+// That figure was queried from the device rather than assumed, on compute capability 12.0, and the
+// compiler reports the same 64-register ceiling for sm_80, sm_90 and sm_120 when told the block size
+// is 1024. At 1024 threads it leaves 64 registers per thread, and the boundary-condition kernels here
+// (CrmHolmesBC, CrmAdamiBC, CfdHolmesBC, CfdAdamiBC, calcKernelSupport) need 68 to 96 once Real is
+// double, so in double precision they cannot be launched if the block size is 1024.
+// At 256 they have 256 registers available and fit easily.
+
 SphForceWCSPH::SphForceWCSPH(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors)
     : SphForce(data_mgr, bce_mgr, verbose), m_check_errors(check_errors) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
@@ -550,7 +558,12 @@ void SphForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, 
     // Calculate GPU execution configuration
     // All kernels in SphForceWCSPH work on a total of numExtendedParticles threads, in blocks of size 1024 (or 256)
     numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
-    computeGridSize(numActive, 1024, numBlocks, numThreads);
+#ifdef CHRONO_SPH_USE_DOUBLE
+    uint blockSize = 256;
+#else
+    uint blockSize = 1024;
+#endif
+    computeGridSize(numActive, blockSize, numBlocks, numThreads);
 
     //
     m_bce_mgr.updateBCEAcc();
@@ -1983,7 +1996,12 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 void SphForceWCSPH::CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     gpuResetErrorFlag(m_errflagD);
 
-    computeGridSize(numActive, 1024, numBlocks, numThreads);
+#ifdef CHRONO_SPH_USE_DOUBLE
+    uint blockSize = 256;
+#else
+    uint blockSize = 1024;
+#endif
+    computeGridSize(numActive, blockSize, numBlocks, numThreads);
 
     thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.begin() + numActive, mR3(0));
 

@@ -18,8 +18,8 @@
 
 #include "chrono_fmi/ChExternalFmu.h"
 
-#include "chrono_fmi/fmi2/ChFmuToolsImport.h"
-#include "chrono_fmi/fmi3/ChFmuToolsImport.h"
+#include "chrono_fmi/fmi2/ChFmuForgeImport.h"
+#include "chrono_fmi/fmi3/ChFmuForgeImport.h"
 
 namespace chrono {
 

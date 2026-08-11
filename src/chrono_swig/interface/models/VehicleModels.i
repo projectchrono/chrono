@@ -120,12 +120,9 @@
 
 
 #ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
-
-// These directives must come before the %import statements that process these headers - allows SWIG
-// to understand that these methods override base class virtual functions (for Unity)
+// ensure SWIG knows how to handle base class overrides so we're not hiding members
 %csmethodmodifiers chrono::vehicle::ChWheeledVehicle::Synchronize "public override"
 %csmethodmodifiers chrono::vehicle::ChTrackedVehicle::Synchronize "public override"
-
 #endif              // --------------------------------------------------------------------- CSHARP
 
 %import "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"

@@ -19,10 +19,27 @@
 #ifndef CHLIDARSENSOR_H
 #define CHLIDARSENSOR_H
 
-#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/ChSensorRenderTypes.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/sensors/ChOptixSensor.h"
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    #include "chrono_sensor/sensors/ChVulkanSensor.h"
+#else
+    #include "chrono_sensor/sensors/ChSensor.h"
+#endif
 
 namespace chrono {
 namespace sensor {
+
+#if defined(CHRONO_HAS_OPTIX)
+using ChLidarSensorBase = ChOptixSensor;
+#elif defined(CHRONO_HAS_VULKAN_RT)
+using ChLidarSensorBase = ChVulkanSensor;
+#else
+using ChLidarSensorBase = ChSensor;
+#endif
 
 /// @addtogroup sensor_sensors
 /// @{
@@ -41,7 +58,11 @@ enum class LidarReturnMode {
 
 /// Lidar class.
 /// This corresponds to a scanning lidar.
-class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
+///
+/// With OptiX enabled this routes through the OptiX backend.  With Vulkan RT
+/// enabled and OptiX disabled it keeps the same public API and routes through
+/// the Vulkan RT backend, including depth/intensity and point-cloud filters.
+class CH_SENSOR_API ChLidarSensor : public ChLidarSensorBase {
   public:
     /// Constructor for the base lidar class, defaulting to using a single ray per beam
     /// @param parent Body to which the sensor is attached.
@@ -77,7 +98,7 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
                   LidarReturnMode return_mode = LidarReturnMode::MEAN_RETURN,
                   float clip_near = 1e-3f);
 
-    ~ChLidarSensor();
+    ~ChLidarSensor() override;
 
     /// Gives the horizontal field of view of the lidar (angle between right-most and left-most ray for a "frame").
     /// Horizontal field of view should be 360-(angular resolution) in degrees for a full 360 degree scanning lidar.
@@ -115,6 +136,7 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// Returns the vertical beam divergence angle.
     /// @return the vertical beam divergence angle
     float GetVertDivAngle() const { return m_vert_divergence_angle; }
+    LidarReturnMode GetReturnMode() const { return m_return_mode; }
 
     bool DualReturnFlag() const {
         switch (m_return_mode) {

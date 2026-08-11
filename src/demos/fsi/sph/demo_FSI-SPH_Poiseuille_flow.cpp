@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create a run-tme visualizer
+    // Create a run-time visualizer
     std::shared_ptr<ChVisualSystem> vis;
 
 #ifdef CHRONO_VSG

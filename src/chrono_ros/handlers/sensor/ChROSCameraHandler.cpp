@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,19 +12,20 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// ROS Handler for communicating camera information
+// ROS handler for a ChCameraSensor (publishes sensor_msgs/msg/Image).
 //
 // =============================================================================
 
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
-#include "chrono_ros/handlers/sensor/ChROSCameraHandler_ipc.h"
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
+
+#include "chrono_ros/ChROSBridge.h"
+#include "chrono_ros/ChROSPublisher.h"
+#include "chrono_ros/ChROSQoS.h"
 #include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 
-#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 
-#include <cstring>
+#include <iostream>
 
 using namespace chrono::sensor;
 
@@ -37,74 +38,43 @@ ChROSCameraHandler::ChROSCameraHandler(std::shared_ptr<ChCameraSensor> camera, c
 ChROSCameraHandler::ChROSCameraHandler(double update_rate,
                                        std::shared_ptr<ChCameraSensor> camera,
                                        const std::string& topic_name)
-    : ChROSHandler(update_rate), m_camera(camera), m_topic_name(topic_name), m_last_publish_time(-1.0) {}
+    : ChROSHandler(update_rate), m_camera(camera), m_topic_name(topic_name) {}
 
-bool ChROSCameraHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    // Validate sensor has the required RGBA8 access filter
+bool ChROSCameraHandler::Initialize(ChROSBridge& bridge) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterRGBA8Access, ChFilterRGBA8AccessName>(m_camera)) {
         return false;
     }
 
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
-        return false;
-    }
+    m_width = m_camera->GetWidth() / m_camera->GetSampleFactor();
+    m_height = m_camera->GetHeight() / m_camera->GetSampleFactor();
+    m_step = static_cast<unsigned int>(sizeof(PixelRGBA8)) * m_width;
 
-    // In IPC mode, no ROS publisher created here - subprocess will create it
+    m_publisher = bridge.CreatePublisher(m_topic_name, "sensor_msgs/msg/Image", ChROSQoS::SensorData());
     return true;
 }
 
-std::vector<uint8_t> ChROSCameraHandler::GetSerializedData(double time) {
-    // Check if it's time to publish based on update rate
-    // Handler base class doesn't automatically throttle GetSerializedData calls
-    double frame_time = GetUpdateRate() == 0 ? 0 : 1.0 / GetUpdateRate();
+void ChROSCameraHandler::Tick(double time) {
+    // Skip extraction + transfer entirely when no ROS subscriber is connected.
+    if (m_publisher->GetSubscriptionCount() == 0)
+        return;
 
-    if (m_last_publish_time >= 0 && (time - m_last_publish_time) < frame_time) {
-        // Not time yet - return empty to skip this frame
-        return std::vector<uint8_t>();
-    }
-    
-    // Extract camera image from Chrono sensor (no ROS symbols)
-    auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-    if (!rgba8_ptr->Buffer) {
-        // Buffer not ready - return empty to skip this frame
-        return std::vector<uint8_t>();
+    auto rgba8 = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
+    if (!rgba8->Buffer) {
+        std::cout << "Camera: waiting for first frame..." << std::endl;  // normal during warm-up
+        return;
     }
 
-    // Calculate image dimensions
-    uint32_t width = m_camera->GetWidth();
-    uint32_t height = m_camera->GetHeight();
-    uint32_t step = sizeof(PixelRGBA8) * width;
-    size_t image_size = step * height;
-
-    // Create IPC metadata header
-    ipc::CameraData header;
-    strncpy(header.topic_name, m_topic_name.c_str(), sizeof(header.topic_name) - 1);
-    header.topic_name[sizeof(header.topic_name) - 1] = '\0';
-    
-    strncpy(header.frame_id, m_camera->GetName().c_str(), sizeof(header.frame_id) - 1);
-    header.frame_id[sizeof(header.frame_id) - 1] = '\0';
-    
-    header.width = width;
-    header.height = height;
-    header.step = step;
-
-    // Serialize: header + pixel data
-    // Use member buffer to avoid reallocation
-    size_t total_size = sizeof(ipc::CameraData) + image_size;
-    if (m_serialize_buffer.capacity() < total_size) {
-        m_serialize_buffer.reserve(total_size);
-    }
-    m_serialize_buffer.resize(total_size);
-    
-    // Copy header
-    std::memcpy(m_serialize_buffer.data(), &header, sizeof(ipc::CameraData));
-    
-    // Copy pixel data
-    const uint8_t* pixel_ptr = reinterpret_cast<const uint8_t*>(rgba8_ptr->Buffer.get());
-    std::memcpy(m_serialize_buffer.data() + sizeof(ipc::CameraData), pixel_ptr, image_size);
-
-    m_last_publish_time = time;
-    return m_serialize_buffer;
+    auto msg = m_publisher->NewMessage();
+    msg.SetString("header.frame_id", m_camera->GetName());
+    msg.SetTime("header.stamp", time);
+    msg.SetUInt("height", m_height);
+    msg.SetUInt("width", m_width);
+    msg.SetString("encoding", "rgba8");
+    msg.SetUInt("step", m_step);
+    // data is uint8[], so element count == byte count. Zero-copy: the sensor's
+    // buffer stays alive until Publish() returns within this same Tick.
+    msg.SetBlob("data", rgba8->Buffer.get(), static_cast<size_t>(m_step) * m_height);
+    m_publisher->Publish(msg);
 }
 
 }  // namespace ros

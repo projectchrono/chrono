@@ -284,7 +284,7 @@ void ChTdpfVisualizationVSG::OnBindAssets() {
     CreateWaveMesh();
 
     auto transform = vsg::MatrixTransform::create();
-    transform->matrix = vsg::dmat4CH(ChFramed(), 1);
+    transform->matrix = vsg::dmat4CH(ChFramed());
     auto child = m_vsys->GetVSGShapeBuilder()->CreateTrimeshColShape(m_wave_mesh.trimesh, transform, ChColor(1, 1, 1), m_wave_mesh.opacity, false, m_wave_mesh.wireframe);
     vsg::Mask mask = m_waves_visible;
     m_wave_scene->addChild(mask, child);

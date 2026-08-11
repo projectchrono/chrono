@@ -62,20 +62,15 @@ bool show_particles_sph = true;
 // ----------------------------------------------------------------------------
 
 // Callback for setting initial SPH particle properties
-class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
+class SPHPropertiesCallback : public DepthPressurePropertiesCallback {
   public:
-    SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity) : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {}
+    SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity) : DepthPressurePropertiesCallback(zero_height), init_velocity(init_velocity) {}
 
     virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
-        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
-        double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
-        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysSPH.GetDensity() + p0 / c2;
-        mu0 = sysSPH.GetViscosity();
+        DepthPressurePropertiesCallback::set(sysSPH, pos);
         v0 = init_velocity;
     }
 
-    double zero_height;
     ChVector3d init_velocity;
 };
 

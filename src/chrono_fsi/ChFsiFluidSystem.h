@@ -48,7 +48,7 @@ class CH_FSI_API ChFsiFluidSystem {
     void SetStepSize(double step);
 
     /// Initialize the fluid system with no FSI support.
-    virtual void Initialize();
+    void Initialize();
 
     /// Function to integrate the FSI fluid system in time.
     void DoStepDynamics(double step);
