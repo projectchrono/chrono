@@ -350,7 +350,7 @@ function(chrono_apply_gpu_backend target backend)
       # outright. The headers we actually need come from the ROCm include
       # directory below, and the runtime comes from CUDA.
       if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
-        target_include_directories(${target} PUBLIC "${CHRONO_ROCM_ROOT}/include")
+        target_include_directories(${target} ${ARG_DEFINE_VISIBILITY} "${CHRONO_ROCM_ROOT}/include")
       endif()
 
       # hip/nvidia_detail includes <cuda.h> and <cuda_runtime.h>. HIP translation
@@ -358,15 +358,13 @@ function(chrono_apply_gpu_backend target backend)
       # sources do not. Derive the location from the HIP compiler, which on this
       # platform IS nvcc, rather than assuming a fixed CUDA install path.
       #
-      # PUBLIC, deliberately matching the ROCm include directory above. These two
-      # travel together: any translation unit that can reach a HIP header through
-      # this target's public headers needs the CUDA headers that HIP header will
-      # itself include. Making the ROCm path public and this one private is what
-      # broke Chrono_vehicle_cosim -- it got <hip/...> and then failed on cuda.h.
+      # Same visibility as the ROCm include directory above: these two travel
+      # together, since any translation unit that reaches a HIP header needs the
+      # CUDA headers that HIP header itself includes.
       get_filename_component(_hip_cc_bin "${CMAKE_HIP_COMPILER}" DIRECTORY)
       get_filename_component(_hip_cc_root "${_hip_cc_bin}" DIRECTORY)
       if(EXISTS "${_hip_cc_root}/include")
-        target_include_directories(${target} PUBLIC "${_hip_cc_root}/include")
+        target_include_directories(${target} ${ARG_DEFINE_VISIBILITY} "${_hip_cc_root}/include")
       endif()
 
     else()
@@ -376,7 +374,7 @@ function(chrono_apply_gpu_backend target backend)
         target_link_libraries(${target} ${ARG_LINK_VISIBILITY} hip::host)
       endif()
       if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
-        target_include_directories(${target} PUBLIC "${CHRONO_ROCM_ROOT}/include")
+        target_include_directories(${target} ${ARG_DEFINE_VISIBILITY} "${CHRONO_ROCM_ROOT}/include")
       endif()
 
     endif()
