@@ -61,10 +61,6 @@ This backend uses **HIP/ROCm** and targets AMD Instinct GPUs. It is **not** avai
 
 Chrono's other GPU modules (DEM, FSI) support both CUDA (NVIDIA) and HIP (AMD) through separate code paths. A CUDA port of the SCM contact-force kernels would follow the same dual-backend pattern; that is out of scope for this PR.
 
-### Further reading
-
-- [docs/OPENMP_TO_HIP.md](@ref openmp_to_hip) — OpenMP→HIP porting guide (SCM reference implementation)
-
 ### Validation
 
 Before production use, run parity and vehicle smoke tests on your target GPU. Target per-hit tolerance rtol `1e-5`, atol `1e-7` at ≥ 65k hits.
