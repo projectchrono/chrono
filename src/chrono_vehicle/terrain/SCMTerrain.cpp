@@ -259,6 +259,17 @@ void SCMTerrain::SetBoundary(const ChAABB& aabb) {
 
 // Add a user-provided active domains
 void SCMTerrain::AddActiveDomain(std::shared_ptr<ChBody> body, const ChVector3d& OOBB_center, const ChVector3d& OOBB_dims) {
+    // Discard the default domain, if one is present.
+    //
+    // SetupInitial() -- reached through Initialize() -- creates a single domain with a null body
+    // when no user domain has been added yet. Adding a user domain afterwards switches
+    // ComputeInternalForces() to the user-domain branch, which calls UpdateActiveDomain() for
+    // every entry and dereferences m_body unconditionally, so that leftover null entry faults on
+    // the first step. Dropping it here makes AddActiveDomain() valid both before and after
+    // Initialize(), rather than only before.
+    if (!m_loader->m_user_domains)
+        m_loader->m_active_domains.clear();
+
     SCMLoader::ActiveDomainInfo ad;
     ad.m_body = body;
     ad.m_center = OOBB_center;
