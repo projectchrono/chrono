@@ -7,6 +7,7 @@ option(CH_ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 # Return now if this module is not enabled
 if(NOT CH_ENABLE_MODULE_VEHICLE)
    mark_as_advanced(FORCE CH_ENABLE_OPENCRG)
+   mark_as_advanced(FORCE CH_ENABLE_VEHICLE_SCM_GPU)
    return()
 endif()
 
@@ -16,6 +17,42 @@ mark_as_advanced(CLEAR CH_ENABLE_OPENCRG)
 
 # Provide option to add OpenCRG support.
 option(CH_ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
+
+# ----------------------------------------------------------------------------
+# Optional SCM GPU contact-force backend (in-tree HIP, Chrono::DEM pattern)
+# ----------------------------------------------------------------------------
+
+option(CH_ENABLE_VEHICLE_SCM_GPU "Enable the GPU SCM ray-casting and contact-force backend" OFF)
+
+set(CH_USE_SCM_GPU OFF)
+
+# The GPU requirement is declared for this FEATURE, not for Chrono::Vehicle:
+# the module builds fine with no GPU backend at all, and only the optional SCM
+# GPU path needs one. The kernels are written in HIP and have no CUDA variant,
+# hence REQUIRES HIP. Both HIP platforms are accepted: nothing here depends on
+# the ROCm-only libraries (hipCUB/rocPRIM, rocThrust) that restrict
+# Chrono::DEM and Chrono::FSI::SPH to the amd platform.
+if(CH_ENABLE_VEHICLE_SCM_GPU)
+
+  chrono_select_gpu_backend(CHRONO_VEHICLE_SCM_BACKEND
+                            FEATURE  "Chrono::Vehicle SCM GPU"
+                            NAME     VEHICLE_SCM
+                            REQUIRES HIP
+                            HIP_PLATFORMS amd nvidia)
+
+  if(CHRONO_VEHICLE_SCM_BACKEND STREQUAL "NONE")
+    chrono_gpu_feature_unavailable(FEATURE  "Chrono::Vehicle SCM GPU"
+                                   REQUIRES "HIP"
+                                   OPTION   CH_ENABLE_VEHICLE_SCM_GPU
+                                   CLASS    EXPLICIT)
+  else()
+    set(CH_USE_SCM_GPU ON)
+    message(STATUS "Chrono::Vehicle SCM GPU backend: ${CHRONO_VEHICLE_SCM_BACKEND}")
+    message(STATUS "Chrono HIP architectures: ${CHRONO_HIP_ARCHITECTURES}")
+  endif()
+
+endif()
+
 
 # ----------------------------------------------------------------------------
 # Find the OpenCRG library
@@ -79,6 +116,13 @@ else()
 endif()
 
 # Generate the configuration header file using substitution variables.
+
+if(CH_USE_SCM_GPU)
+  set(CHRONO_SCM_GPU "#define CHRONO_HAS_SCM_GPU")
+else()
+  set(CHRONO_SCM_GPU "#undef CHRONO_HAS_SCM_GPU")
+endif()
+
 
 set(CV_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h)
 
@@ -249,6 +293,27 @@ if(CH_ENABLE_MODULE_FSI_SPH)
     )
 endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
+if(CH_USE_SCM_GPU)
+    set(CV_SCM_GPU_HIP_FILES
+        terrain/gpu/SCMGpuKernels.hip.cpp
+        terrain/gpu/SCMRaycastGpuKernels.hip.cpp
+    )
+    chrono_set_gpu_source_language(${CHRONO_VEHICLE_SCM_BACKEND} ${CV_SCM_GPU_HIP_FILES})
+    list(APPEND CV_TERRAIN_FILES
+        terrain/SCMGpu.h
+        terrain/SCMGpuTypes.h
+        terrain/SCMTerrainGpu.h
+        terrain/SCMTerrainGpu.cpp
+        terrain/gpu/SCMGpuHost.cpp
+        terrain/SCMRaycastGpu.h
+        terrain/SCMRaycastGpuTypes.h
+        terrain/SCMTerrainRaycastGpu.cpp
+        terrain/gpu/SCMRaycastGpuHost.cpp
+        ${CV_SCM_GPU_HIP_FILES}
+    )
+endif()
+
+
 
 set(CV_UTILS_FILES
     utils/ChSteeringController.h
@@ -904,6 +969,27 @@ if(CH_ENABLE_MODULE_FSI_SPH)
   target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsi)
   target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsisph)
 endif()
+
+if(CH_USE_SCM_GPU)
+  target_compile_definitions(Chrono_vehicle PRIVATE CHRONO_VEHICLE_SCM_GPU)
+
+  # Everything that is mechanically identical between GPU modules -- the
+  # CHRONO_USE_HIP and __HIP_PLATFORM_* defines, the ROCm and (on the nvidia
+  # platform) CUDA include directories, the runtime link, HIP_ARCHITECTURES and
+  # the per-architecture flags including the nvcc --offload-arch translation.
+  #
+  # PRIVATE on both counts: the SCM GPU backend is an implementation detail of
+  # Chrono_vehicle. No installed Chrono::Vehicle header exposes a HIP type, so
+  # consumers must not be made to compile against ROCm headers.
+  chrono_apply_gpu_backend(Chrono_vehicle ${CHRONO_VEHICLE_SCM_BACKEND}
+                           DEFINE_VISIBILITY PRIVATE
+                           LINK_VISIBILITY   PRIVATE)
+
+  if(TARGET OpenMP::OpenMP_CXX)
+    target_link_libraries(Chrono_vehicle PRIVATE OpenMP::OpenMP_CXX)
+  endif()
+endif()
+
 
 target_compile_definitions(Chrono_vehicle INTERFACE 
     $<BUILD_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/vehicle/\">
