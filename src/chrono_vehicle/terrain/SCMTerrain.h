@@ -294,8 +294,11 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Get the current SCM GPU backend configuration.
     scm_gpu::Config GetScmGpuConfig() const;
 
-    /// Enable/disable the HIP ray-cast backend (see SCM_RAYCAST_GPU_PLAN.md). Requires explicit
-    /// per-body active domains (AddActiveDomain), like EnableRaycastGpuReference; default: disabled.
+    /// Enable/disable the HIP ray-cast backend (see SCM_RAYCAST_GPU_PLAN.md).
+    ///
+    /// Default: enabled, in builds configured with the SCM GPU backend. The backend additionally
+    /// requires explicit per-body active domains (AddActiveDomain); without them ray-casting silently
+    /// uses the CPU path, so leaving this on is always safe. Call with false to force the CPU path.
     void EnableRaycastGpuHip(bool val);
 #endif
 
@@ -611,7 +614,11 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Uses a process-wide singleton GPU context (scm_gpu::RaycastGpuContext()), same pattern as the
     // contact-force backend's GpuContext() in SCMTerrainGpu.cpp.
     void ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num_ray_casts);
-    bool m_raycast_gpu_hip_enabled = false;
+
+    // On by default: if the build has the GPU backend and the model supplies active domains, existing
+    // code should get the GPU without being rewritten to ask for it. The dispatch site guards on
+    // m_user_domains, so a model without active domains just keeps using the CPU path.
+    bool m_raycast_gpu_hip_enabled = true;
 #endif
 
     // Override the ChLoadContainer method for computing the generalized force F term:

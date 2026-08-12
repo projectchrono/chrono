@@ -320,26 +320,37 @@ int main(int argc, char* argv[]) {
     std::cout << "SCM contact-force backend: CPU (built without SCM GPU)" << std::endl;
 #endif
 
-    // Select SCM ray-cast backend at run time: env SCM_RAYCAST_GPU = "hip" | "ref" | anything else (CPU/Bullet,
-    // default). See SCM_RAYCAST_GPU_PLAN.md.
+    // Select SCM ray-cast backend at run time: env SCM_RAYCAST_GPU = "hip" | "ref" | "cpu".
+    // Unset means the SCMTerrain default, which is the GPU backend in a build configured with it.
+    // See SCM_RAYCAST_GPU_PLAN.md.
     {
         const char* e = std::getenv("SCM_RAYCAST_GPU");
-        std::string mode = e ? e : "cpu";
+        std::string mode = e ? e : "default";
 #ifdef CHRONO_HAS_SCM_GPU
-        if (mode == "hip") {
+        if (mode == "ref") {
+            // The HIP backend is on by default and wins the dispatch, so it has to be turned off
+            // explicitly for the reference path to be reached.
+            terrain.EnableRaycastGpuHip(false);
+            terrain.EnableRaycastGpuReference(true);
+            std::cout << "SCM ray-cast backend: CPU reference (slow, correctness stand-in only)" << std::endl;
+        } else if (mode == "cpu") {
+            terrain.EnableRaycastGpuHip(false);
+            std::cout << "SCM ray-cast backend: CPU (Bullet)" << std::endl;
+        } else {
             terrain.EnableRaycastGpuHip(true);
-            std::cout << "SCM ray-cast backend: HIP" << std::endl;
+            std::cout << "SCM ray-cast backend: HIP" << (e ? "" : " (default)") << std::endl;
             const char* prec = std::getenv("SCM_RAYCAST_GPU_PRECISION");
             std::cout << "  precision: " << (prec ? prec : "default (fp64 on AMD, fp32 on NVIDIA HIP backend)")
                       << std::endl;
-        } else
-#endif
-            if (mode == "ref") {
+        }
+#else
+        if (mode == "ref") {
             terrain.EnableRaycastGpuReference(true);
             std::cout << "SCM ray-cast backend: CPU reference (slow, correctness stand-in only)" << std::endl;
         } else {
-            std::cout << "SCM ray-cast backend: CPU (Bullet)" << std::endl;
+            std::cout << "SCM ray-cast backend: CPU (Bullet, built without SCM GPU)" << std::endl;
         }
+#endif
     }
 
     ChTimer sim_timer;
