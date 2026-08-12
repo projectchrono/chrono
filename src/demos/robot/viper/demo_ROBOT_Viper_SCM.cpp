@@ -322,7 +322,6 @@ int main(int argc, char* argv[]) {
 
     // Select SCM ray-cast backend at run time: env SCM_RAYCAST_GPU = "hip" | "ref" | "cpu".
     // Unset means the SCMTerrain default, which is the GPU backend in a build configured with it.
-    // See SCM_RAYCAST_GPU_PLAN.md.
     {
         const char* e = std::getenv("SCM_RAYCAST_GPU");
         std::string mode = e ? e : "default";

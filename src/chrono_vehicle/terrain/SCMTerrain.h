@@ -63,7 +63,7 @@ void PrimeBuffers();
 }  // namespace scm_gpu
 #endif
 
-/// Raw ray-cast hit produced by the GPU ray-cast reference backend (see SCM_RAYCAST_GPU_PLAN.md).
+/// Raw ray-cast hit produced by the GPU ray-cast reference backend.
 /// Deliberately independent of CHRONO_HAS_SCM_GPU: this is plain data, no HIP dependency, and is
 /// consumed locally by SCMLoader::ComputeInternalForces() regardless of the contact-force GPU flag.
 struct RaycastHit {
@@ -145,8 +145,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Enable/disable the creation of soil inflation at the side of the ruts (bulldozing effects).
     void EnableBulldozing(bool mb);
 
-    /// Enable/disable the CPU reference implementation of the GPU ray-cast backend (see
-    /// SCM_RAYCAST_GPU_PLAN.md). Replaces the ray-cast loop with an equivalent mesh-rasterization pass
+    /// Enable/disable the CPU reference implementation of the GPU ray-cast backend.
+    /// Replaces the ray-cast loop with an equivalent mesh-rasterization pass
     /// over ChBody-derived contactables that have a triangle-mesh collision shape, producing the same
     /// {contactable, abs_point} hit data as the default loop. Requires explicit per-body active domains
     /// (AddActiveDomain); intended as a validation stand-in before porting to a HIP kernel, not for
@@ -294,7 +294,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Get the current SCM GPU backend configuration.
     scm_gpu::Config GetScmGpuConfig() const;
 
-    /// Enable/disable the HIP ray-cast backend (see SCM_RAYCAST_GPU_PLAN.md).
+    /// Enable/disable the HIP ray-cast backend.
     ///
     /// Default: enabled, in builds configured with the SCM GPU backend. The backend additionally
     /// requires explicit per-body active domains (AddActiveDomain); without them ray-casting silently
@@ -596,7 +596,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Candidate discovery shared by the CPU reference and HIP ray-cast backends (see SCMTerrain.cpp).
     void DiscoverRaycastCandidates(std::vector<ChBody*>& candidates);
 
-    // GPU ray-cast reference backend (CPU stand-in; see SCM_RAYCAST_GPU_PLAN.md).
+    // GPU ray-cast reference backend (CPU stand-in).
     // Requires m_user_domains (explicit per-body active domains); caller checks this before invoking.
     void ComputeRayCastGpuReference(std::vector<RaycastHit>& out_hits, int& num_ray_casts);
 
@@ -609,7 +609,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
                                  const std::vector<double>& patch_oob);
     scm_gpu::Config m_scm_gpu_config;
 
-    // GPU ray-cast HIP backend (see SCM_RAYCAST_GPU_PLAN.md). Same I/O contract as
+    // GPU ray-cast HIP backend. Same I/O contract as
     // ComputeRayCastGpuReference; requires m_user_domains, caller checks this before invoking.
     // Uses a process-wide singleton GPU context (scm_gpu::RaycastGpuContext()), same pattern as the
     // contact-force backend's GpuContext() in SCMTerrainGpu.cpp.
@@ -677,7 +677,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     double m_test_offset_down;  ///< offset for ray start
     double m_test_offset_up;    ///< offset for ray end
 
-    bool m_raycast_gpu_ref_enabled;  ///< use the GPU ray-cast reference backend (see SCM_RAYCAST_GPU_PLAN.md)
+    bool m_raycast_gpu_ref_enabled;  ///< use the GPU ray-cast reference backend
 
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< mesh visualization asset
     std::unique_ptr<ChColormap> m_colormap;                      ///< colormap for mesh false coloring

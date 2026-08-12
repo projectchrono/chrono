@@ -1,8 +1,7 @@
 // SCMRaycastGpuHost.cpp — HIP host bridge for the SCM ray-cast backend: device buffer management,
 // synchronous upload/run (v1 -- see SCMRaycastGpu.h for why this isn't pipelined yet).
 //
-// Supports two kernel precisions (ScmRaycastGpuPrecision): FP64, the validated default matching
-// SCM_GPU_BENCHMARK.md's numbers, and FP32, added for GPUs with weak double-precision throughput --
+// Supports two kernel precisions (ScmRaycastGpuPrecision): FP64, the validated default, and FP32, added for GPUs with weak double-precision throughput --
 // notably consumer NVIDIA cards (e.g. RTX 4080/5090), unlike this project's AMD MI300X target, a proper
 // datacenter part with strong FP64. The public API types (SCMRaycastGpuTypes.h) stay double-precision
 // throughout -- Chrono itself is double internally -- this file downcasts to float on upload and

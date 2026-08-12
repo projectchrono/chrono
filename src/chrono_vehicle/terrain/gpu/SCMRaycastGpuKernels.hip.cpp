@@ -11,20 +11,18 @@
 // threads total is a small fraction of the concurrency a GPU like the MI300X wants, so most of the
 // chip sat idle. Spreading triangles across kThreadsPerRay threads per ray turns that into
 // ~2400-3400 x kThreadsPerRay threads, without changing the total amount of work
-// (queries x triangles) or the algorithm itself -- see SCM_RAYCAST_GPU_PLAN.md / SCM_GPU_BENCHMARK.md
-// section 5/6 for the profiling that motivated this.
+// (queries x triangles) or the algorithm itself.
 //
 // Templated on Real (double or float) so the same kernel logic runs at either precision. double is the
-// validated default for this project's AMD MI300X target (matches SCM_GPU_BENCHMARK.md's numbers
-// exactly). float is offered for GPUs with weak double-precision throughput -- notably consumer NVIDIA
+// validated default for this project's AMD MI300X target. float is offered for GPUs with weak double-precision throughput -- notably consumer NVIDIA
 // cards (RTX 4080/5090-class), where FP64 is deliberately throttled relative to FP32 (unlike MI300X, a
 // proper datacenter part) -- so a straight double-precision port would be correct there but far slower
 // than it needs to be. Both precisions are exported (scm_launch_raycast_fp64 / _fp32); the host bridge
 // (SCMRaycastGpuHost.cpp) selects one per-context based on ScmRaycastGpuPrecision, which
 // SCMTerrainRaycastGpu.cpp defaults by which HIP platform (AMD vs NVIDIA) this build targets.
 //
-// Includes the empirically-determined margin-correction sign -- see SCM_RAYCAST_GPU_PLAN.md and the
-// convex-decomposition finding recorded there for why an exact match to Bullet isn't the goal.
+// Includes the empirically-determined margin-correction sign; an exact match to Bullet's hit set is
+// not the goal.
 
 #include <hip/hip_runtime.h>
 
@@ -239,7 +237,7 @@ __global__ void scm_raycast_kernel(const QueryDevT<Real>* queries,
 
     ResultDevT<Real> out;
     if (s_body[0] >= 0) {
-        // Empirically-determined margin-correction sign (see SCM_RAYCAST_GPU_PLAN.md): moves the raw
+        // Empirically-determined margin-correction sign: moves the raw
         // intersection toward shallower sinkage, matching the CPU reference / Bullet comparison.
         Real margin = margins[s_body[0]].margin;
         Vec3<Real> point = make_v3<Real>(s_px[0], s_py[0], s_pz[0]);

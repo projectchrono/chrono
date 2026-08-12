@@ -10,7 +10,7 @@
 //
 // =============================================================================
 // SCM GPU ray-cast batch types (SoA-friendly POD layout for the HIP ray-cast backend).
-// Mirrors SCMGpuTypes.h's conventions. See SCM_RAYCAST_GPU_PLAN.md.
+// Mirrors SCMGpuTypes.h's conventions.
 // =============================================================================
 
 #ifndef SCM_RAYCAST_GPU_TYPES_H

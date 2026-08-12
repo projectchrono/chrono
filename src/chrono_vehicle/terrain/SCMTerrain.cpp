@@ -199,7 +199,7 @@ void SCMTerrain::EnableBulldozing(bool val) {
     m_loader->m_bulldozing = val;
 }
 
-// Enable/disable the GPU ray-cast reference backend (see SCM_RAYCAST_GPU_PLAN.md).
+// Enable/disable the GPU ray-cast reference backend.
 void SCMTerrain::EnableRaycastGpuReference(bool val) {
     m_loader->m_raycast_gpu_ref_enabled = val;
 }
@@ -1112,7 +1112,7 @@ bool SCMLoader::RayOBBtest(const ActiveDomainInfo& p, const ChVector3d& from, co
 }
 
 // -----------------------------------------------------------------------------
-// GPU ray-cast reference backend (CPU stand-in; see SCM_RAYCAST_GPU_PLAN.md).
+// GPU ray-cast reference backend (CPU stand-in).
 //
 // Replaces the ray-cast loop with an orthographic depth-map style query: for each active-domain grid
 // node, find the lowest triangle surface (of any ChBody-derived contactable with a triangle-mesh
@@ -1223,7 +1223,7 @@ bool RaycastSegmentTriangleIntersect(const ChVector3d& from,
 
 // Candidate discovery: bodies whose collision AABB overlaps the union of active-domain regions --
 // mirrors what Bullet's own global RayHit() query would find, rather than assuming only the
-// explicitly-tracked ad.m_body wheels are hittable (see SCM_RAYCAST_GPU_PLAN.md). Shared by both the
+// explicitly-tracked ad.m_body wheels are hittable. Shared by both the
 // CPU reference and HIP ray-cast backends (SCMTerrainRaycastGpu.cpp).
 void SCMLoader::DiscoverRaycastCandidates(std::vector<ChBody*>& candidates) {
     ChAABB region;
@@ -1296,7 +1296,7 @@ void SCMLoader::ComputeRayCastGpuReference(std::vector<RaycastHit>& out_hits, in
                 }
             }
             if (best_contactable) {
-                // Empirically-determined sign (see SCM_RAYCAST_GPU_PLAN.md discussion): moves the raw
+                // Empirically-determined sign: moves the raw
                 // intersection toward shallower sinkage, matching Bullet's actual reported hit_level.
                 best_point += best_normal * best_margin;
                 out_hits.push_back({ij, best_contactable, best_point});
@@ -1436,7 +1436,7 @@ void SCMLoader::ComputeInternalForces() {
 #endif
 
     if (use_raycast_hip) {
-        // GPU ray-cast HIP backend (see SCM_RAYCAST_GPU_PLAN.md). It declines models it cannot
+        // GPU ray-cast HIP backend. It declines models it cannot
         // represent -- notably any whose active-domain bodies carry no triangle-mesh collision
         // geometry -- in which case the CPU path below runs instead for this step.
         std::vector<RaycastHit> raw_hits;
@@ -1456,7 +1456,7 @@ void SCMLoader::ComputeInternalForces() {
     if (use_raycast_hip) {
         // Handled above.
     } else if (m_raycast_gpu_ref_enabled && m_user_domains) {
-        // GPU ray-cast reference backend (CPU stand-in; see SCM_RAYCAST_GPU_PLAN.md).
+        // GPU ray-cast reference backend (CPU stand-in).
         std::vector<RaycastHit> raw_hits;
         int rc_num_ray_casts = 0;
         ComputeRayCastGpuReference(raw_hits, rc_num_ray_casts);

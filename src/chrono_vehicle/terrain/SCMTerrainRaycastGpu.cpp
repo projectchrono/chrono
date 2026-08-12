@@ -1,9 +1,9 @@
 // SCMTerrainRaycastGpu.cpp — SCMLoader::ComputeRayCastGpuHip (HIP ray-cast backend host packing).
 //
 // Same I/O contract as ComputeRayCastGpuReference (SCMTerrain.cpp): produces a vector<RaycastHit>,
-// consumed identically by ComputeInternalForces() regardless of which backend produced it. See
-// SCM_RAYCAST_GPU_PLAN.md for the overall design and the convex-decomposition finding that explains
-// why matching Bullet exactly isn't the goal.
+// consumed identically by ComputeInternalForces() regardless of which backend produced it. Matching
+// Bullet's hit set exactly is not the goal: Bullet's convex decomposition of collision meshes makes
+// the two differ by construction.
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
 
@@ -70,7 +70,7 @@ ScmRaycastGpuContext* RaycastGpuContext() {
 // the first step. Cache the last-uploaded candidate set (by body pointer, order-sensitive since it
 // determines body_slot) and skip the mesh re-upload -- and the CPU-side re-extraction that would
 // otherwise precede it -- whenever it's unchanged. Only the small per-body transform is genuinely
-// per-step data; see SCM_RAYCAST_GPU_PLAN.md.
+// per-step data.
 std::vector<ChBody*>& LastUploadedCandidates() {
     static std::vector<ChBody*> last;
     return last;

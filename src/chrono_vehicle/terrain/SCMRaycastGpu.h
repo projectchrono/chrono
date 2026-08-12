@@ -12,9 +12,8 @@
 // HIP host/device API for the SCM ray-cast backend (built into Chrono_vehicle).
 //
 // Deliberately synchronous / unpipelined for this first port (v1): correctness over throughput.
-// See SCM_RAYCAST_GPU_PLAN.md for the async double-buffered pattern used by the contact-force
-// backend (SCMGpu.h) -- worth mirroring here later if profiling shows launch/copy overhead matters
-// at production query counts.
+// The contact-force backend (SCMGpu.h) uses an async double-buffered pattern -- worth mirroring
+// here later if profiling shows launch/copy overhead matters at production query counts.
 //
 // Mesh geometry and per-body transforms are uploaded through SEPARATE calls: mesh (vertices/faces/
 // margins) only changes when the candidate body set changes (rare -- never, in the common
