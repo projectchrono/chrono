@@ -25,6 +25,10 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
+#include "chrono/core/ChTimer.h"
+#include <cstdlib>
+#include <string>
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -47,6 +51,10 @@ using namespace chrono::viper;
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// Headless baseline: set render=false to run without a display window.
+bool render = false;
+double t_end = 2.0;  // simulation end time when running headless (seconds)
 
 bool output = false;
 
@@ -136,6 +144,12 @@ std::shared_ptr<ChContactMaterial> CustomWheelMaterial(ChContactMethod contact_m
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    // Opt-in run-time visualization (VSG). Headless by default; set SCM_VIS=1 to open a window.
+    if (const char* e = std::getenv("SCM_VIS")) {
+        if (std::string(e) != "0")
+            render = true;
+    }
+
     // Wheel dimensions (for SCM active domains)
     double wheel_diameter = 0.6;
     double wheel_width = 0.4;
@@ -186,6 +200,18 @@ int main(int argc, char* argv[]) {
     // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
     terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0, -0.5)));
 
+    // Add an active domain for every wheel. NOTE: this must happen *before* Initialize() -- Initialize()
+    // calls SetupInitial() internally, which (if m_user_domains is still false at that point) pushes a
+    // null-body default domain that AddActiveDomain() never clears, crashing the first headless step.
+    // The HMMWV demo (demo_VEH_SCMTerrain_WheeledVehicle.cpp) already calls AddActiveDomain before
+    // Initialize(); this demo didn't, which is what actually caused that segfault, not a library bug.
+    if (enable_active_domains) {
+        terrain.AddActiveDomain(Wheel_1, ChVector3d(0, 0, 0), wheel_size);
+        terrain.AddActiveDomain(Wheel_2, ChVector3d(0, 0, 0), wheel_size);
+        terrain.AddActiveDomain(Wheel_3, ChVector3d(0, 0, 0), wheel_size);
+        terrain.AddActiveDomain(Wheel_4, ChVector3d(0, 0, 0), wheel_size);
+    }
+
     // Use a regular grid:
     double length = 14;
     double width = 4;
@@ -219,14 +245,6 @@ int main(int argc, char* argv[]) {
             6);  // number of concentric vertex selections subject to erosion
     }
 
-    // Add an active domains for every wheel
-    if (enable_active_domains) {
-        terrain.AddActiveDomain(Wheel_1, ChVector3d(0, 0, 0), wheel_size);
-        terrain.AddActiveDomain(Wheel_2, ChVector3d(0, 0, 0), wheel_size);
-        terrain.AddActiveDomain(Wheel_3, ChVector3d(0, 0, 0), wheel_size);
-        terrain.AddActiveDomain(Wheel_4, ChVector3d(0, 0, 0), wheel_size);
-    }
-
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 20000);
 
@@ -243,6 +261,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     std::shared_ptr<ChVisualSystem> vis;
+    if (render)
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
@@ -285,11 +304,54 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->SetCameraTarget(Body_1->GetPos());
-        vis->Render();
-        vis->EndScene();
+    // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
+    // with SCM GPU support).
+#ifdef CHRONO_HAS_SCM_GPU
+    {
+        auto scm_cfg = terrain.GetScmGpuConfig();
+        const char* e = std::getenv("SCM_GPU");
+        scm_cfg.enabled = !(e && std::string(e) == "0");
+        scm_cfg.min_hits = 0;     // force GPU when enabled (don't fall back to CPU)
+        scm_cfg.profile = false;  // clean timing (no per-step stderr)
+        terrain.SetScmGpuConfig(scm_cfg);
+        std::cout << "SCM contact-force backend: " << (scm_cfg.enabled ? "GPU (HIP)" : "CPU") << std::endl;
+    }
+#else
+    std::cout << "SCM contact-force backend: CPU (built without SCM GPU)" << std::endl;
+#endif
+
+    // Select SCM ray-cast backend at run time: env SCM_RAYCAST_GPU = "hip" | "ref" | anything else (CPU/Bullet,
+    // default). See SCM_RAYCAST_GPU_PLAN.md.
+    {
+        const char* e = std::getenv("SCM_RAYCAST_GPU");
+        std::string mode = e ? e : "cpu";
+#ifdef CHRONO_HAS_SCM_GPU
+        if (mode == "hip") {
+            terrain.EnableRaycastGpuHip(true);
+            std::cout << "SCM ray-cast backend: HIP" << std::endl;
+            const char* prec = std::getenv("SCM_RAYCAST_GPU_PRECISION");
+            std::cout << "  precision: " << (prec ? prec : "default (fp64 on AMD, fp32 on NVIDIA HIP backend)")
+                      << std::endl;
+        } else
+#endif
+            if (mode == "ref") {
+            terrain.EnableRaycastGpuReference(true);
+            std::cout << "SCM ray-cast backend: CPU reference (slow, correctness stand-in only)" << std::endl;
+        } else {
+            std::cout << "SCM ray-cast backend: CPU (Bullet)" << std::endl;
+        }
+    }
+
+    ChTimer sim_timer;
+    int nsteps = 0;
+    sim_timer.start();
+    while (render ? vis->Run() : (sys.GetChTime() < t_end)) {
+        if (render) {
+            vis->BeginScene();
+            vis->SetCameraTarget(Body_1->GetPos());
+            vis->Render();
+            vis->EndScene();
+        }
 
         if (output) {
             // write drive torques of all four wheels into file
@@ -300,8 +362,18 @@ int main(int argc, char* argv[]) {
 
         sys.DoStepDynamics(5e-4);
         viper.Update();
-        ////terrain.PrintStepStatistics(std::cout);
+        nsteps++;
+        if (nsteps % 200 == 0)
+            std::cout << "t=" << sys.GetChTime() << "  RTF=" << sys.GetRTF() << std::endl;
+        if (nsteps % 1000 == 0)
+            terrain.PrintStepStatistics(std::cout);
     }
+    sim_timer.stop();
+    double ms_per_step = 1e3 * sim_timer() / (nsteps > 0 ? nsteps : 1);
+    double avg_rtf = (sim_timer() / (nsteps > 0 ? nsteps : 1)) / 5e-4;  // wall/sim per step
+    std::cout << "[BENCH] steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s"
+              << "  wall=" << sim_timer() << "s"
+              << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")" << std::endl;
 
     if (output) {
         csv.WriteToFile(out_dir + "/output.dat");
