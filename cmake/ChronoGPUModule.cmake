@@ -392,9 +392,24 @@ function(chrono_apply_gpu_backend target backend)
           # forwards it to the host compiler, producing
           # "gcc: error: unrecognized command-line option '--offload-arch=...'".
           # Translate to a CUDA gencode spec instead.
-          string(REGEX REPLACE "^sm_" "" _cc "${_arch}")
-          target_compile_options(${target} PRIVATE
-            $<$<COMPILE_LANGUAGE:HIP>:--generate-code=arch=compute_${_cc},code=sm_${_cc}>)
+          if(_arch STREQUAL "native")
+            # "native" is a keyword, not an architecture, so it must not be
+            # pasted into a gencode spec -- that yields compute_native and
+            # "nvcc fatal: Unsupported gpu architecture 'compute_native'".
+            # nvcc spells the same request -arch=native (CUDA >= 11.5), which
+            # is also what CHRONO_HIP_ARCHITECTURES defaults to, so this is the
+            # path taken whenever the user does not set an architecture.
+            #
+            # Cross-target builds never reach here: chrono_guard_cross_target_arch()
+            # rejects "native" at configure time, since there is no local GPU to
+            # detect.
+            target_compile_options(${target} PRIVATE
+              $<$<COMPILE_LANGUAGE:HIP>:-arch=native>)
+          else()
+            string(REGEX REPLACE "^sm_" "" _cc "${_arch}")
+            target_compile_options(${target} PRIVATE
+              $<$<COMPILE_LANGUAGE:HIP>:--generate-code=arch=compute_${_cc},code=sm_${_cc}>)
+          endif()
         else()
           target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:HIP>:--offload-arch=${_arch}>)
           target_link_options(${target} PRIVATE $<$<LINK_LANGUAGE:HIP>:--offload-arch=${_arch}>)
