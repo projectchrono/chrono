@@ -22,7 +22,17 @@ option(CH_ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
 # Optional SCM GPU contact-force backend (in-tree HIP, Chrono::DEM pattern)
 # ----------------------------------------------------------------------------
 
-option(CH_ENABLE_VEHICLE_SCM_GPU "Enable the GPU SCM ray-casting and contact-force backend" OFF)
+# Ships ON: hardware decides, not a flag.
+#
+# If the machine has a GPU and the toolchain to compile for it, SCM uses the
+# GPU. Nobody should have to discover an option to get the fast path on
+# hardware that supports it -- an off-by-default accelerator is one that most
+# users never turn on. When the toolchain is absent this resolves to NONE and
+# the CPU implementation runs, which is what a machine without a GPU would do
+# anyway.
+#
+# Set OFF to force the CPU path on a machine that could use the GPU.
+option(CH_ENABLE_VEHICLE_SCM_GPU "Enable the GPU SCM ray-casting and contact-force backend" ON)
 
 set(CH_USE_SCM_GPU OFF)
 
@@ -31,7 +41,9 @@ set(CH_USE_SCM_GPU OFF)
 # GPU path needs one. The kernels are written in HIP and have no CUDA variant,
 # hence REQUIRES HIP. Both HIP platforms are accepted: nothing here depends on
 # the ROCm-only libraries (hipCUB/rocPRIM, rocThrust) that restrict
-# Chrono::DEM and Chrono::FSI::SPH to the amd platform.
+# Chrono::DEM and Chrono::FSI::SPH to the amd platform. So "HIP + ROCm on AMD"
+# and "HIP + nvcc on NVIDIA" both give the GPU path with no further
+# configuration.
 if(CH_ENABLE_VEHICLE_SCM_GPU)
 
   chrono_select_gpu_backend(CHRONO_VEHICLE_SCM_BACKEND
@@ -41,10 +53,21 @@ if(CH_ENABLE_VEHICLE_SCM_GPU)
                             HIP_PLATFORMS amd nvidia)
 
   if(CHRONO_VEHICLE_SCM_BACKEND STREQUAL "NONE")
+
+    # IMPLIED, and deliberately without OPTION.
+    #
+    # The user did not ask for this -- it is on by default -- so an absent HIP
+    # toolchain is an ordinary fact about the machine, not a warning, and
+    # CHRONO_STRICT_MODULE_REQUIREMENTS must not make it fatal. Passing OPTION
+    # would additionally force CH_ENABLE_VEHICLE_SCM_GPU=OFF into the cache,
+    # which is right for something explicitly requested and wrong here: it
+    # would persist, so a later reconfigure after installing ROCm would still
+    # silently build the CPU path. Leaving the cache alone lets availability be
+    # re-evaluated every configure.
     chrono_gpu_feature_unavailable(FEATURE  "Chrono::Vehicle SCM GPU"
                                    REQUIRES "HIP"
-                                   OPTION   CH_ENABLE_VEHICLE_SCM_GPU
-                                   CLASS    EXPLICIT)
+                                   CLASS    IMPLIED)
+
   else()
     set(CH_USE_SCM_GPU ON)
     message(STATUS "Chrono::Vehicle SCM GPU backend: ${CHRONO_VEHICLE_SCM_BACKEND}")
