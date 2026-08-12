@@ -163,6 +163,21 @@ if(_chrono_hip_platform_request)
       set(CMAKE_HIP_PLATFORM "${_chrono_hip_platform_request}" CACHE STRING "HIP platform")
     endif()
 
+    # On the NVIDIA platform the HIP compiler IS nvcc: HIP compiles to CUDA
+    # there, and ROCm ships no compiler that targets NVIDIA. check_language(HIP)
+    # searches for hipcc/clang, finds neither usable, and reports "no HIP
+    # compiler" -- which reads like a broken ROCm install rather than a missing
+    # setting. We already located nvcc when CUDA was enabled above, so use it
+    # instead of making every user pass -DCMAKE_HIP_COMPILER by hand.
+    #
+    # Only a default: an explicit CMAKE_HIP_COMPILER always wins.
+    if(_chrono_hip_platform_request STREQUAL "nvidia"
+       AND NOT DEFINED CMAKE_HIP_COMPILER
+       AND CMAKE_CUDA_COMPILER)
+      set(CMAKE_HIP_COMPILER "${CMAKE_CUDA_COMPILER}" CACHE FILEPATH "HIP compiler")
+      message(STATUS "  HIP compiler defaulted to the CUDA compiler: ${CMAKE_HIP_COMPILER}")
+    endif()
+
     check_language(HIP)
 
     if(NOT CMAKE_HIP_COMPILER)
