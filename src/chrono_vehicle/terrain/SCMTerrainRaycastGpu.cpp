@@ -8,6 +8,7 @@
 #ifdef CHRONO_VEHICLE_SCM_GPU
 
     #include <cstdlib>
+    #include <iostream>
     #include <limits>
     #include <string>
     #include <unordered_map>
@@ -122,6 +123,15 @@ void AppendLocalMesh(ChBody* body,
     }
 }
 
+void WarnNoMeshGeometryOnce() {
+    static bool warned = false;
+    if (warned)
+        return;
+    warned = true;
+    std::cerr << "SCM ray-cast: GPU backend requires triangle-mesh collision geometry; none found on the "
+                 "active-domain bodies. Using the CPU ray-cast path." << std::endl;
+}
+
 RaycastBodyTransform BuildTransform(ChBody* body) {
     ChFrame<> f = body->GetFrameRefToAbs();
     ChVector3d p = f.GetPos();
@@ -144,13 +154,13 @@ RaycastBodyTransform BuildTransform(ChBody* body) {
 
 }  // namespace
 
-void SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num_ray_casts) {
+bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num_ray_casts) {
     num_ray_casts = 0;
 
     std::vector<ChBody*> candidates;
     DiscoverRaycastCandidates(candidates);
     if (candidates.empty())
-        return;
+        return false;
 
     ScmRaycastGpuContext* ctx = RaycastGpuContext();
 
@@ -169,8 +179,14 @@ void SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
             margins.push_back({margin});
         }
 
-        if (faces.empty())
-            return;
+        if (faces.empty()) {
+            // No candidate body carries triangle-mesh collision geometry, so there is nothing for
+            // these kernels to intersect. Models built from primitives or convex hulls (e.g. the
+            // RoboSimian limbs and sled) land here. Report once and let the caller use the CPU path,
+            // which tests against the full collision system and handles every shape type.
+            WarnNoMeshGeometryOnce();
+            return false;
+        }
 
         int mesh_rc = scm_raycast_gpu_upload_mesh(ctx,
                                                   verts.data(),
@@ -180,7 +196,7 @@ void SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
                                                   margins.data(),
                                                   static_cast<int>(candidates.size()));
         if (mesh_rc != 0)
-            return;
+            return false;
 
         LastUploadedCandidates() = candidates;
     }
@@ -193,7 +209,7 @@ void SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
 
     int xform_rc = scm_raycast_gpu_upload_transforms(ctx, xforms.data(), static_cast<int>(xforms.size()));
     if (xform_rc != 0)
-        return;
+        return false;
 
     // Build the compacted query list (same RayOBBtest prefilter as the CPU paths).
     std::vector<RaycastQuery> queries;
@@ -218,12 +234,12 @@ void SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
     }
 
     if (queries.empty())
-        return;
+        return false;
 
     std::vector<RaycastResult> results(queries.size());
     int run_rc = scm_raycast_gpu_run(ctx, queries.data(), results.data(), static_cast<int>(queries.size()));
     if (run_rc != 0)
-        return;
+        return false;
 
     out_hits.reserve(out_hits.size() + results.size());
     for (std::size_t i = 0; i < results.size(); ++i) {
@@ -235,6 +251,8 @@ void SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
         out_hits.push_back(
             {query_ij[i], candidates[slot], ChVector3d(results[i].hit_x, results[i].hit_y, results[i].hit_z)});
     }
+
+    return true;
 }
 
 }  // namespace vehicle

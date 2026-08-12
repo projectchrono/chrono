@@ -1436,14 +1436,25 @@ void SCMLoader::ComputeInternalForces() {
 #endif
 
     if (use_raycast_hip) {
-        // GPU ray-cast HIP backend (see SCM_RAYCAST_GPU_PLAN.md).
+        // GPU ray-cast HIP backend (see SCM_RAYCAST_GPU_PLAN.md). It declines models it cannot
+        // represent -- notably any whose active-domain bodies carry no triangle-mesh collision
+        // geometry -- in which case the CPU path below runs instead for this step.
         std::vector<RaycastHit> raw_hits;
         int rc_num_ray_casts = 0;
+        bool gpu_handled = false;
 #ifdef CHRONO_HAS_SCM_GPU
-        ComputeRayCastGpuHip(raw_hits, rc_num_ray_casts);
+        gpu_handled = ComputeRayCastGpuHip(raw_hits, rc_num_ray_casts);
 #endif
-        m_num_ray_casts += rc_num_ray_casts;
-        absorb_raycast_hits(raw_hits);
+        if (gpu_handled) {
+            m_num_ray_casts += rc_num_ray_casts;
+            absorb_raycast_hits(raw_hits);
+        } else {
+            use_raycast_hip = false;
+        }
+    }
+
+    if (use_raycast_hip) {
+        // Handled above.
     } else if (m_raycast_gpu_ref_enabled && m_user_domains) {
         // GPU ray-cast reference backend (CPU stand-in; see SCM_RAYCAST_GPU_PLAN.md).
         std::vector<RaycastHit> raw_hits;

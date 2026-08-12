@@ -613,7 +613,12 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // ComputeRayCastGpuReference; requires m_user_domains, caller checks this before invoking.
     // Uses a process-wide singleton GPU context (scm_gpu::RaycastGpuContext()), same pattern as the
     // contact-force backend's GpuContext() in SCMTerrainGpu.cpp.
-    void ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num_ray_casts);
+    //
+    // Returns false if this backend cannot produce the step's hits -- no candidate bodies, none of
+    // them carrying triangle-mesh collision geometry (the only shape type these kernels represent),
+    // or a GPU call failing. The caller must then run the CPU path: reporting zero hits instead
+    // would leave the terrain undeformed and the model unsupported, with no error anywhere.
+    bool ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num_ray_casts);
 
     // On by default: if the build has the GPU backend and the model supplies active domains, existing
     // code should get the GPU without being rewritten to ask for it. The dispatch site guards on
