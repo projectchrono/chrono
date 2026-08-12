@@ -744,6 +744,25 @@ if(CH_USE_SENSOR_OPTIX)
 
   target_link_libraries(Chrono_sensor PUBLIC CUDA::cudart_static)
 
+  # Declare the backend that goes with the link above.
+  #
+  # With OptiX enabled, Chrono::Sensor exports CUDA to its consumers: it links
+  # CUDA::cudart_static PUBLIC, and ChSensorBuffer.h -- an installed header --
+  # includes <cuda_fp16.h> under CHRONO_HAS_OPTIX. Every consumer therefore
+  # compiles against CUDA's vector types whether it asked to or not.
+  #
+  # CHRONO_USE_CUDA is what tells chrono/gpu/ChGpuPrimitives.h that those types
+  # already exist. Without it that header takes its "no GPU SDK here" branch and
+  # defines its own int2/float3/make_int2/..., which then collide with CUDA's.
+  # Exporting the headers but not the macro is the same visibility mismatch the
+  # GPU modules avoid by construction; sensor predates that helper and links
+  # CUDA by hand, so it has to say so by hand too.
+  #
+  # This is deliberately just the define: chrono_apply_gpu_backend() would also
+  # link cuBLAS, cuSPARSE and NVRTC, which sensor does not want, and would set
+  # CUDA_ARCHITECTURES a second time.
+  target_compile_definitions(Chrono_sensor PUBLIC CHRONO_USE_CUDA)
+
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppc)
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppig)
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppidei)
