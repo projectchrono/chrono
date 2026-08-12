@@ -320,14 +320,25 @@ elseif(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
 
   target_compile_definitions(Chrono_fsisph INTERFACE CHRONO_FSI_SPH_USE_HIP_RUNTIME)
 
-  # Keep the device Thrust backend local to this target. Public consumers are
-  # ordinary C++ translation units that only need ROCm headers for declarations
-  # reachable from public headers -- they must not inherit the compile
-  # definitions that would force Thrust onto a device backend.
+  # Keep the device Thrust backend local to this target, and export NOTHING.
+  #
+  # No installed Chrono::FSI::SPH header includes <thrust/...>; only the private
+  # .cuh sources do. So a consumer never needs a Thrust configuration from us,
+  # and any value we exported would be wrong for someone:
+  #
+  #   THRUST_DEVICE_SYSTEM_HIP  names rocThrust, which a consumer compiled by a
+  #                             non-HIP compiler cannot use at all;
+  #   THRUST_DEVICE_SYSTEM_CPP  silently demotes a consumer's OWN device Thrust
+  #                             to host code. Chrono::Sensor links us PUBLIC and
+  #                             calls thrust::device_vector on CUDA device
+  #                             pointers; under _CPP that becomes a host memcpy
+  #                             from device memory, which segfaults at runtime
+  #                             rather than failing to build.
+  #
+  # Exporting nothing leaves each consumer on Thrust's own default, which is
+  # what it gets when Chrono::FSI::SPH is not in the link at all.
   target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=${CHRONO_FSISPH_THRUST_DEVICE}")
   target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-  target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
-  target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
 endif()
 
