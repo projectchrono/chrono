@@ -32,6 +32,7 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
 - Python interface
   - [PyChrono](https://api.projectchrono.org/pychrono_introduction.html)
 - **AMD GPUs (ROCm)** — [Chrono on AMD GPUs (ROCm)](docs/README_AMD_GPU.md) (CPU PyChrono vs HIP/FSI, CMake hints, `ROCR_VISIBLE_DEVICES`)
+- **NVIDIA GPUs (SCM ray-cast HIP backend)** — [Building the SCM GPU backend for NVIDIA GPUs](docs/README_NVIDIA_GPU.md) (`chrono_vehicle`'s HIP-based SCM ray-cast/contact-force backend via HIP's NVIDIA platform)
 - Reference manuals
   - [Core module](https://api.projectchrono.org/manual_root.html)
   - [Chrono::Vehicle module](https://api.projectchrono.org/manual_vehicle.html)
