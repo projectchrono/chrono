@@ -197,10 +197,14 @@ int main(int argc, char* argv[]) {
     int warmup_steps = 400;  // BENCH: steps excluded from the steady-state average (env SCM_WARMUP)
     if (const char* e = std::getenv("SCM_WARMUP"))
         warmup_steps = std::atoi(e);
+    double rock_drop = 0.02;  // BENCH: obstacle clearance above the soil surface (env SCM_ROCK_DROP)
+    if (const char* e = std::getenv("SCM_ROCK_DROP"))
+        rock_drop = std::atof(e);
     ChTimer steady_timer;
     bool steady_started = false;
 
     // BENCH: the six Curiosity-demo obstacles, mapped into this demo's Z-up world frame.
+    std::vector<std::shared_ptr<ChBodyAuxRef>> rocks;
     if (num_rocks > 0) {
         std::vector<std::string> rock_meshfile = {
             "robot/curiosity/rocks/rock1.obj", "robot/curiosity/rocks/rock1.obj",  //
@@ -208,10 +212,11 @@ int main(int argc, char* argv[]) {
             "robot/curiosity/rocks/rock3.obj", "robot/curiosity/rocks/rock3.obj"   //
         };
         std::vector<ChVector3d> rock_pos = {
-            ChVector3d(-2.5, -1.0, -0.3), ChVector3d(-2.5, +1.0, -0.3),  //
-            ChVector3d(-1.0, -1.0, -0.3), ChVector3d(-1.0, +1.0, -0.3),  //
-            ChVector3d(+0.5, -1.0, -0.3), ChVector3d(+0.5, +1.0, -0.3)   //
+            ChVector3d(-2.5, -1.0, 0), ChVector3d(-2.5, +1.0, 0),  //
+            ChVector3d(-1.0, -1.0, 0), ChVector3d(-1.0, +1.0, 0),  //
+            ChVector3d(+0.5, -1.0, 0), ChVector3d(+0.5, +1.0, 0)   //
         };
+        const double soil_z = -0.5;  // terrain reference frame, see SetReferenceFrame below
         std::vector<double> rock_scale = {0.8, 0.8, 0.45, 0.45, 0.45, 0.45};
         double rock_density = 8000;
         auto rock_mat = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
@@ -228,10 +233,17 @@ int main(int argc, char* argv[]) {
             ChVector3d principal_I;
             ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
 
+            // Sit each obstacle rock_drop above the soil, measured from its own scaled geometry, so
+            // the drop is short and identical for every rock regardless of mesh size. Curiosity's demo
+            // uses a fixed 0.2 m origin height, which is a different fall per mesh and takes longer to
+            // settle than a short benchmark run allows.
+            ChVector3d pos = rock_pos[i];
+            pos.z() = soil_z + rock_drop - mesh->GetBoundingBox().min.z();
+
             auto body = chrono_types::make_shared<ChBodyAuxRef>();
             sys.Add(body);
             body->SetFixed(false);
-            body->SetFrameRefToAbs(ChFrame<>(rock_pos[i], QUNIT));
+            body->SetFrameRefToAbs(ChFrame<>(pos, QUNIT));
             body->SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
             body->SetMass(mass * rock_density);
             body->SetInertiaXX(rock_density * principal_I);
@@ -244,6 +256,7 @@ int main(int argc, char* argv[]) {
             vis_shape->SetMesh(mesh);
             vis_shape->SetBackfaceCull(true);
             body->AddVisualShape(vis_shape);
+            rocks.push_back(body);
         }
     }
 
@@ -276,6 +289,11 @@ int main(int argc, char* argv[]) {
         terrain.AddActiveDomain(Wheel_2, ChVector3d(0, 0, 0), wheel_size);
         terrain.AddActiveDomain(Wheel_3, ChVector3d(0, 0, 0), wheel_size);
         terrain.AddActiveDomain(Wheel_4, ChVector3d(0, 0, 0), wheel_size);
+
+        // BENCH: obstacles need their own domains or SCM never ray-casts under them -- they get no
+        // support force and fall through the terrain. Same dimensions demo_ROBOT_Curiosity_SCM uses.
+        for (auto& r : rocks)
+            terrain.AddActiveDomain(r, VNULL, ChVector3d(2.0, 2.0, 2.0));
     }
 
     // Use a regular grid:
@@ -460,7 +478,25 @@ int main(int argc, char* argv[]) {
               << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")"
               << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
               << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")"
-              << "  x_end=" << Body_1->GetPos().x() << std::endl;
+              << "  x_end=" << Body_1->GetPos().x();
+    if (!rocks.empty()) {
+        double zmin = 1e9, zmax = -1e9;
+        for (auto& r : rocks) {
+            zmin = std::min(zmin, r->GetPos().z());
+            zmax = std::max(zmax, r->GetPos().z());
+        }
+        std::cout << "  rock_z=[" << zmin << ", " << zmax << "]";
+    }
+    // BENCH: wheel seating. Positive sinkage = wheel bottom below the deformed soil surface.
+    {
+        auto w = Wheel_1;
+        ChVector3d wp = w->GetPos();
+        double soil = terrain.GetHeight(ChVector3d(wp.x(), wp.y(), 0));
+        double bottom = wp.z() - wheel_diameter / 2;
+        std::cout << "  [WHEEL] LF pos.z=" << wp.z() << "  bottom=" << bottom << "  soil_h=" << soil
+                  << "  sinkage=" << (soil - bottom);
+    }
+    std::cout << std::endl;
 
     if (output) {
         csv.WriteToFile(out_dir + "/output.dat");
