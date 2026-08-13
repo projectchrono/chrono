@@ -200,6 +200,14 @@ void SCMTerrain::EnableBulldozing(bool val) {
 }
 
 // Enable/disable the GPU ray-cast reference backend.
+int SCMTerrain::GetNumRaycastGpuSteps() const {
+    return m_loader->m_num_raycast_gpu_steps;
+}
+
+int SCMTerrain::GetNumContactForceGpuSteps() const {
+    return m_loader->m_num_contact_force_gpu_steps;
+}
+
 void SCMTerrain::EnableRaycastGpuReference(bool val) {
     m_loader->m_raycast_gpu_ref_enabled = val;
 }
@@ -1446,6 +1454,7 @@ void SCMLoader::ComputeInternalForces() {
         gpu_handled = ComputeRayCastGpuHip(raw_hits, rc_num_ray_casts);
 #endif
         if (gpu_handled) {
+            ++m_num_raycast_gpu_steps;
             m_num_ray_casts += rc_num_ray_casts;
             absorb_raycast_hits(raw_hits);
         } else {
@@ -1686,6 +1695,8 @@ void SCMLoader::ComputeInternalForces() {
         for (size_t ip = 0; ip < contact_patches.size(); ++ip)
             patch_oob[ip] = contact_patches[ip].oob;
         scm_used_gpu = ComputeContactForcesGpu(hits, patch_oob);
+        if (scm_used_gpu)
+            ++m_num_contact_force_gpu_steps;
     }
     if (!scm_used_gpu) {
 #endif

@@ -479,6 +479,10 @@ int main(int argc, char* argv[]) {
               << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
               << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")"
               << "  x_end=" << Body_1->GetPos().x();
+#ifdef CHRONO_HAS_SCM_GPU
+    std::cout << "  gpu_steps: raycast=" << terrain.GetNumRaycastGpuSteps() << "/" << nsteps
+              << " forces=" << terrain.GetNumContactForceGpuSteps() << "/" << nsteps;
+#endif
     if (!rocks.empty()) {
         double zmin = 1e9, zmax = -1e9;
         for (auto& r : rocks) {
