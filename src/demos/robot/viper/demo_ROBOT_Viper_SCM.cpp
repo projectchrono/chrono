@@ -487,14 +487,13 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "  rock_z=[" << zmin << ", " << zmax << "]";
     }
-    // BENCH: wheel seating. Positive sinkage = wheel bottom below the deformed soil surface.
+    // BENCH: wheel seating, on the same line so one grep captures the whole record.
+    // sinkage = how far the LF wheel's lowest point sits below the deformed soil surface;
+    // rut = how far that surface has been pushed below its undisturbed level.
     {
-        auto w = Wheel_1;
-        ChVector3d wp = w->GetPos();
+        ChVector3d wp = Wheel_1->GetPos();
         double soil = terrain.GetHeight(ChVector3d(wp.x(), wp.y(), 0));
-        double bottom = wp.z() - wheel_diameter / 2;
-        std::cout << "  [WHEEL] LF pos.z=" << wp.z() << "  bottom=" << bottom << "  soil_h=" << soil
-                  << "  sinkage=" << (soil - bottom);
+        std::cout << "  sinkage=" << (soil - (wp.z() - wheel_diameter / 2)) << "  rut=" << (-0.5 - soil);
     }
     std::cout << std::endl;
 
