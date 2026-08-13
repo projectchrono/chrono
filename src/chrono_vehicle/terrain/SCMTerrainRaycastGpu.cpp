@@ -1,9 +1,11 @@
 // SCMTerrainRaycastGpu.cpp — SCMLoader::ComputeRayCastGpuHip (HIP ray-cast backend host packing).
 //
 // Same I/O contract as ComputeRayCastGpuReference (SCMTerrain.cpp): produces a vector<RaycastHit>,
-// consumed identically by ComputeInternalForces() regardless of which backend produced it. Matching
-// Bullet's hit set exactly is not the goal: Bullet's convex decomposition of collision meshes makes
-// the two differ by construction.
+// consumed identically by ComputeInternalForces() regardless of which backend produced it. The two
+// do not produce identical hit sets: both test the same triangles -- ChCollisionModelBullet emits a
+// per-triangle shape for any ChTriangleMeshConnected -- but they apply the collision margin
+// differently, the CPU per shape and this backend as one scalar per body. The measured effect on
+// wheel sinkage is a few millimetres and has not been isolated further.
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
 

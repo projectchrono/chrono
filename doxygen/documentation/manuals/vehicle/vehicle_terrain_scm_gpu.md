@@ -73,4 +73,4 @@ These kernels exist only in HIP. On NVIDIA hardware they compile through HIP's N
 
 Before production use, run parity and vehicle smoke tests on your target GPU. Target per-hit tolerance rtol `1e-5`, atol `1e-7` at ≥ 65k hits.
 
-The GPU and CPU ray-cast paths do not produce identical hit sets: Bullet tests rays against a convex-decomposition approximation of a collision mesh, while these kernels test the mesh triangles directly. A small difference in contact forces is therefore expected; a large one indicates a problem.
+The GPU and CPU ray-cast paths do not produce identical results. Both test the same geometry — Bullet builds a per-triangle collision shape for a `ChTriangleMeshConnected` — but the collision margin is applied per shape on the CPU and as one scalar per body here. On `demo_ROBOT_Viper_SCM` this shows up as roughly a centimetre of wheel sinkage, consistently across grid resolutions and on both AMD and NVIDIA. Expect a systematic offset of that order rather than agreement to solver tolerance.
