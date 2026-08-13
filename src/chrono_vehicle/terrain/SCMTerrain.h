@@ -149,8 +149,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Replaces the ray-cast loop with an equivalent mesh-rasterization pass
     /// over ChBody-derived contactables that have a triangle-mesh collision shape, producing the same
     /// {contactable, abs_point} hit data as the default loop. Requires explicit per-body active domains
-    /// (AddActiveDomain); intended as a validation stand-in before porting to a HIP kernel, not for
-    /// production use yet.
+    /// (AddActiveDomain). Intended for validating the HIP backend against an equivalent CPU
+    /// implementation; the default ray-cast loop remains the production CPU path.
     void EnableRaycastGpuReference(bool val);
 
     /// Set parameters controlling the creation of side ruts (bulldozing effects).
