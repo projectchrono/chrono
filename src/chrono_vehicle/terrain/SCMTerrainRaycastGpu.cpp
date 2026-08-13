@@ -1,12 +1,13 @@
 // SCMTerrainRaycastGpu.cpp — SCMLoader::ComputeRayCastGpuHip (HIP ray-cast backend host packing).
 //
 // Same I/O contract as ComputeRayCastGpuReference (SCMTerrain.cpp): produces a vector<RaycastHit>,
-// consumed identically by ComputeInternalForces() regardless of which backend produced it. The two
-// do not produce identical hit sets. Both test the same triangles -- ChCollisionModelBullet emits a
-// per-triangle shape for any ChTriangleMeshConnected -- and the difference is not the collision
-// margin: dropping the envelope from out_margin below moves wheel sinkage by 0.04 mm, against the
-// 1.3 cm between the two paths. Holding the contact-force backend fixed and switching only this one
-// reproduces the full difference, so it originates in the hit set. Not identified further.
+// consumed identically by ComputeInternalForces() regardless of which backend produced it. This does
+// not reproduce Bullet's hits: on demo_ROBOT_Viper_SCM the wheel sinks ~5.5 cm here against ~4.3 cm
+// through ChCollisionSystem::RayHit. The difference is in the formulation, not this implementation --
+// ComputeRayCastGpuReference, which is the same algorithm on the CPU, lands within 0.09% of these
+// kernels. Ruled out along the way: the contact-force backend (~2%), the collision margin (the
+// envelope is 0 for these models, so the margin is just the 5 mm mesh thickness; zeroing it moves
+// sinkage 4.7 mm, not 12), and kernel precision (FP32 vs FP64 is 3 um).
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
 
