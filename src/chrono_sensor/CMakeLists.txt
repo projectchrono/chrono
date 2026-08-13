@@ -21,13 +21,19 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
   set(CH_USE_SENSOR_OPTIX ${CH_USE_SENSOR_OPTIX} PARENT_SCOPE)
   set(CH_USE_SENSOR_VULKAN_RT FALSE)
   set(CH_USE_SENSOR_VULKAN_RT ${CH_USE_SENSOR_VULKAN_RT} PARENT_SCOPE)
-  mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
-  mark_as_advanced(FORCE CH_USE_SENSOR_VULKAN_RT)
 
   return()
 endif()
 
 message(STATUS "\n==== Chrono Sensor module ====\n")
+
+mark_as_advanced(CLEAR CH_USE_SENSOR_OPTIX)
+mark_as_advanced(CLEAR CH_USE_SENSOR_VULKAN_RT)
+
+if(CH_USE_SENSOR_OPTIX)
+  mark_as_advanced(CLEAR CH_USE_SENSOR_NVDB)
+  mark_as_advanced(CLEAR CH_USE_SENSOR_NVRTC)
+endif()
 
 mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
 mark_as_advanced(CLEAR GLEW_DIR)
