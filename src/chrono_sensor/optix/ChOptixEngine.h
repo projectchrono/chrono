@@ -32,7 +32,7 @@
 #include <optix.h>
 
 #include "chrono_sensor/sensors/ChOptixSensor.h"
-#include "chrono_sensor/optix/scene/ChScene.h"
+#include "chrono_sensor/optix/ChOptixScene.h"
 #include "chrono_sensor/optix/ChOptixGeometry.h"
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
@@ -81,7 +81,7 @@ class CH_SENSOR_API ChOptixEngine {
 
     /// Updates the sensors if they need to be updated based on simulation time and last update time.
     /// @param scene The scene that should be rendered with.
-    void UpdateSensors(std::shared_ptr<ChScene> scene);
+    void UpdateSensors(std::shared_ptr<ChOptixScene> scene);
 
     /// Tells the optix manager to construct the scene from scratch, translating all objects from Chrono to OptiX
     void ConstructScene();
@@ -126,16 +126,16 @@ class CH_SENSOR_API ChOptixEngine {
     /// Update all sensor positions and orientations.
     /// @param to_be_updated the vector of Optix sensor IDs to be updated
     /// @param scene the scene that these Optix sensors belong to
-    void UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);
+    void UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChOptixScene> scene);
 
     /// Update all raygen_record and filter parameters of the Optix sensors
     /// @param to_be_updated the vector of Optix sensor IDs to be updated
     /// @param scene the scene that these Optix sensors belong to
-    void UpdateSensorParameters(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene);
+    void UpdateSensorParameters(std::vector<int>& to_be_updated, std::shared_ptr<ChOptixScene> scene);
 
     void UpdateDeformableMeshes();  ///< updates the dynamic meshes in the scene
     /// Update the scene characteristics such as lights, background, etc.
-    void UpdateSceneDescription(std::shared_ptr<ChScene> scene);
+    void UpdateSceneDescription(std::shared_ptr<ChOptixScene> scene);
 
 #ifdef CHRONO_FSI_SPH
     /// Add native FSI-SPH render sources to the scene.

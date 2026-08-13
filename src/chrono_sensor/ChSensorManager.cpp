@@ -52,7 +52,7 @@ CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verb
     m_device_list = {0};
     m_rng_manager_id = AcquireRngManagerSlot();
 #ifdef CHRONO_HAS_OPTIX
-    scene = chrono_types::make_shared<ChScene>();
+    scene = chrono_types::make_shared<ChOptixScene>();
 #endif
 #ifdef CHRONO_HAS_VULKAN_RT
     vulkan_scene = chrono_types::make_shared<ChVulkanRTScene>();
@@ -99,7 +99,7 @@ CH_SENSOR_API void ChSensorManager::Update() {
 
     #ifdef CHRONO_HAS_OPTIX
     // Most existing Chrono Sensor demos configure lights, ambient color, and
-    // background through manager->scene, which is an OptiX ChScene whenever
+    // background through manager->scene, which is an OptiX ChOptixScene whenever
     // OptiX is compiled in.  The Vulkan renderer uses ChVulkanRTScene, so mirror
     // those scene-level settings before rendering.  Without this bridge, Vulkan
     // receives the geometry from SyncFromSystem but silently loses the user
@@ -327,7 +327,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             // create new engines only when we need them
             if (!found_group) {
                 if (m_engines.size() < m_allowable_groups) {
-                    // limits to 2 gpus, TODO: check if device supports CUDA
+                    // limits to 2 GPUs, TODO: check if device supports CUDA
                     if (m_verbose)
                         cout << "Create new OptiX engine\n";
 

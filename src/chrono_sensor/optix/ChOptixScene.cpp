@@ -18,12 +18,12 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_sensor/optix/scene/ChScene.h"
+#include "chrono_sensor/optix/ChOptixScene.h"
 
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChScene::ChScene() {
+CH_SENSOR_API ChOptixScene::ChOptixScene() {
     m_background.mode = BackgroundMode::GRADIENT;
     m_background.color_zenith = {0.4f, 0.5f, 0.6f};
     m_background.color_horizon = {0.7f, 0.8f, 0.9f};
@@ -45,7 +45,7 @@ CH_SENSOR_API ChScene::ChScene() {
     //m_nvdb = nullptr;
 }
 
-CH_SENSOR_API ChScene::~ChScene() {
+CH_SENSOR_API ChOptixScene::~ChOptixScene() {
     // free environment light CDF arrays if they exist
     for (int light_idx = 0; light_idx < m_lights.size(); light_idx++) {
         if (m_lights[light_idx].light_type == LightType::ENVIRONMENT_LIGHT) {
@@ -58,7 +58,7 @@ CH_SENSOR_API ChScene::~ChScene() {
 
 /// Point light ///
 
-CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
+CH_SENSOR_API unsigned int ChOptixScene::AddPointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::POINT_LIGHT;
     light.pos = {pos.x(), pos.y(), pos.z()};
@@ -76,7 +76,7 @@ CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector3f pos, ChColor color,
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
-CH_SENSOR_API void ChScene::ModifyPointLight(unsigned int id, const ChOptixLight& point_light) {
+CH_SENSOR_API void ChOptixScene::ModifyPointLight(unsigned int id, const ChOptixLight& point_light) {
     if (id <= m_lights.size() && point_light.light_type == LightType::POINT_LIGHT) {
         m_lights[id] = point_light;
         lights_changed = true;
@@ -85,7 +85,7 @@ CH_SENSOR_API void ChScene::ModifyPointLight(unsigned int id, const ChOptixLight
 
 /// ---- Directional light ---- ///
 
-CH_SENSOR_API unsigned int ChScene::AddDirectionalLight(ChColor color, float elevation, float azimuth) {
+CH_SENSOR_API unsigned int ChOptixScene::AddDirectionalLight(ChColor color, float elevation, float azimuth) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::DIRECTIONAL_LIGHT;
     light.pos = {0.f, 0.f, 0.f};
@@ -103,7 +103,7 @@ CH_SENSOR_API unsigned int ChScene::AddDirectionalLight(ChColor color, float ele
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
-CH_SENSOR_API void ChScene::ModifyDirectionalLight(unsigned int id, const ChOptixLight& directional_light) {
+CH_SENSOR_API void ChOptixScene::ModifyDirectionalLight(unsigned int id, const ChOptixLight& directional_light) {
     if (id <= m_lights.size() && directional_light.light_type == LightType::DIRECTIONAL_LIGHT) {
         m_lights[id] = directional_light;
         lights_changed = true;
@@ -112,7 +112,7 @@ CH_SENSOR_API void ChScene::ModifyDirectionalLight(unsigned int id, const ChOpti
 
 /// ---- Spot light ---- ///
 
-CH_SENSOR_API unsigned int ChScene::AddSpotLight(
+CH_SENSOR_API unsigned int ChOptixScene::AddSpotLight(
     ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float angle_falloff_start, float angle_range, bool const_color
 ) {
     ChOptixLight light{};   // zero-initialize everything
@@ -144,7 +144,7 @@ CH_SENSOR_API unsigned int ChScene::AddSpotLight(
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
-CH_SENSOR_API void ChScene::ModifySpotLight(unsigned int id, const ChOptixLight& spot_light) {
+CH_SENSOR_API void ChOptixScene::ModifySpotLight(unsigned int id, const ChOptixLight& spot_light) {
     if (id <= m_lights.size() && spot_light.light_type == LightType::SPOT_LIGHT) {
         m_lights[id] = spot_light;
         lights_changed = true;
@@ -153,7 +153,7 @@ CH_SENSOR_API void ChScene::ModifySpotLight(unsigned int id, const ChOptixLight&
 
 /// ---- Rectangle light ---- ///
 
-CH_SENSOR_API unsigned int ChScene::AddRectangleLight(
+CH_SENSOR_API unsigned int ChOptixScene::AddRectangleLight(
     ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color
 ) {
     ChOptixLight light{};   // zero-initialize everything
@@ -179,7 +179,7 @@ CH_SENSOR_API unsigned int ChScene::AddRectangleLight(
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
-CH_SENSOR_API void ChScene::ModifyRectangleLight(unsigned int id, const ChOptixLight& rectangle_light) {
+CH_SENSOR_API void ChOptixScene::ModifyRectangleLight(unsigned int id, const ChOptixLight& rectangle_light) {
     if (id <= m_lights.size() && rectangle_light.light_type == LightType::RECTANGLE_LIGHT) {
         m_lights[id] = rectangle_light;
         lights_changed = true;
@@ -188,7 +188,7 @@ CH_SENSOR_API void ChScene::ModifyRectangleLight(unsigned int id, const ChOptixL
 
 /// ---- Disk light ---- ///
 
-CH_SENSOR_API unsigned int ChScene::AddDiskLight(
+CH_SENSOR_API unsigned int ChOptixScene::AddDiskLight(
    ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color
 ) {
     ChOptixLight light{};   // zero-initialize everything
@@ -212,7 +212,7 @@ CH_SENSOR_API unsigned int ChScene::AddDiskLight(
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
-CH_SENSOR_API void ChScene::ModifyDiskLight(unsigned int id, const ChOptixLight& disk_light) {
+CH_SENSOR_API void ChOptixScene::ModifyDiskLight(unsigned int id, const ChOptixLight& disk_light) {
     if (id <= m_lights.size() && disk_light.light_type == LightType::DISK_LIGHT) {
         m_lights[id] = disk_light;
         lights_changed = true;
@@ -313,7 +313,7 @@ void BuildCDFOnDevice(const ByteImageData& img, EnvironmentLightData& env_light_
     ));
 }
 
-CH_SENSOR_API unsigned int ChScene::AddEnvironmentLight(std::string env_tex_path, float intensity_scale) {
+CH_SENSOR_API unsigned int ChOptixScene::AddEnvironmentLight(std::string env_tex_path, float intensity_scale) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::ENVIRONMENT_LIGHT;
     light.pos = {0.f, 0.f, 0.f};
@@ -349,30 +349,30 @@ ChVector3f ChLerp(ChVector3f& a, ChVector3f& b, double x) {
     return a + (b - a) * x;
 }
 
-CH_SENSOR_API void ChScene::SetBackground(Background b) {
+CH_SENSOR_API void ChOptixScene::SetBackground(Background b) {
     m_background = b;
     background_changed = true;
 }
 
-CH_SENSOR_API void ChScene::SetSceneEpsilon(float epsilon) {
+CH_SENSOR_API void ChOptixScene::SetSceneEpsilon(float epsilon) {
     m_scene_epsilon = epsilon;
     background_changed = true;
 }
 
 /// Function to set the fog color
-CH_SENSOR_API void ChScene::SetFogColor(ChVector3f color) {
+CH_SENSOR_API void ChOptixScene::SetFogColor(ChVector3f color) {
     m_fog_color = ChClamp(color, ChVector3f(0.f, 0.f, 0.f), ChVector3f(1.f, 1.f, 1.f));
     background_changed = true;
 }
 
 /// Function to set the fog scattering coefficient
-CH_SENSOR_API void ChScene::SetFogScattering(float coefficient) {
+CH_SENSOR_API void ChOptixScene::SetFogScattering(float coefficient) {
     m_fog_scattering = ChClamp(coefficient, 0.f, 1.f);
     background_changed = true;
 }
 
 /// Function to set the fog scattering coefficient
-CH_SENSOR_API void ChScene::SetFogScatteringFromDistance(float distance) {
+CH_SENSOR_API void ChOptixScene::SetFogScatteringFromDistance(float distance) {
     distance = ChClamp(distance, 1e-3f, 1e16f);
     m_fog_scattering = log(256.0) / distance;
     background_changed = true;
@@ -380,11 +380,11 @@ CH_SENSOR_API void ChScene::SetFogScatteringFromDistance(float distance) {
 
 /// @brief Add a sprite (a Chrono body that is only used for visualization and does not affect the physics simulation) to the scene
 /// @param sprite the Chrono body to be added as a sprite in the scene
-CH_SENSOR_API void ChScene::AddSprite(std::shared_ptr<ChBody> sprite) {
+CH_SENSOR_API void ChOptixScene::AddSprite(std::shared_ptr<ChBody> sprite) {
     m_sprites.push_back(sprite);
 }
 
-void ChScene::UpdateOriginOffset(ChVector3f sensor_pos, bool force) {
+void ChOptixScene::UpdateOriginOffset(ChVector3f sensor_pos, bool force) {
     if (force || (m_dynamic_origin_offset && (sensor_pos - m_origin_offset).Length() > m_dynamic_origin_threshold)) {
         // set the new origin offset
         m_origin_offset = sensor_pos;

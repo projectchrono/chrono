@@ -24,7 +24,7 @@
 #include <cuda_runtime_api.h>
 
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
-#include "chrono_sensor/optix/scene/ChScene.h"
+#include "chrono_sensor/optix/ChOptixScene.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShapes.h"
 

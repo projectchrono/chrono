@@ -172,7 +172,7 @@ void BuildScene(ChSystemNSC& sys,
     bg.mode = BackgroundMode::ENVIRONMENT_MAP;
     bg.env_tex = env;
     manager->scene->SetBackground(bg);
-    // ChScene defaults ambient to 0.2, which is deterministic and would dilute the noise
+    // Scene defaults ambient to 0.2, which is deterministic and would dilute the noise
     // fraction of the signal. Zero it so what is measured below is the stochastic term alone.
     manager->scene->SetAmbientLight({0.f, 0.f, 0.f});
     manager->scene->AddEnvironmentLight(env, 1.0f);

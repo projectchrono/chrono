@@ -362,29 +362,6 @@ endif()
 source_group("source" FILES ${Chrono_sensor_SENSORS_SOURCES} ${Chrono_sensor_SENSORS_HEADERS})
 
 #-----------------------------------------------------------------------------
-# LIST THE FILES THAT MAKE THE CORE SENSOR LIBRARY
-#-----------------------------------------------------------------------------
-
-if(CH_USE_SENSOR_OPTIX)
-
-  set(Chrono_sensor_SCENE_SOURCES
-      optix/scene/ChScene.cpp
-  )
-
-  set(Chrono_sensor_SCENE_HEADERS
-      optix/scene/ChScene.h
-  )
-
-  source_group("scene" FILES ${Chrono_sensor_SCENE_SOURCES} ${Chrono_sensor_SCENE_HEADERS})
-
-else()
-
-  set(Chrono_sensor_SCENE_SOURCES "")
-  set(Chrono_sensor_SCENE_HEADERS "")
-
-endif()
-
-#-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE SENSOR OPTIX LIBRARY
 #-----------------------------------------------------------------------------
 
@@ -395,6 +372,7 @@ if(CH_USE_SENSOR_OPTIX)
       optix/ChOptixGeometry.cpp
       optix/ChOptixPipeline.cpp
       optix/ChOptixUtils.cpp
+      optix/ChOptixScene.cpp
       optix/ChFilterOptixRender.cpp
       optix/ChNVDBVolume.cpp
   )
@@ -404,6 +382,7 @@ if(CH_USE_SENSOR_OPTIX)
       optix/ChOptixGeometry.h
       optix/ChOptixPipeline.h
       optix/ChOptixUtils.h
+      optix/ChOptixScene.h
       optix/ChFilterOptixRender.h
       optix/ChOptixDefinitions.h
       optix/ChNVDBVolume.h
@@ -692,8 +671,6 @@ list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_VULKAN_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_VULKAN_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_FILTERS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_FILTERS_HEADERS})
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_SCENE_SOURCES})
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_SCENE_HEADERS})
 
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_TINYOBJ_FILES})
@@ -1071,24 +1048,14 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h"
 #-------------------------------------------------------------------------------
 
 # Old way
-install(FILES ${Chrono_sensor_HEADERS}
-        DESTINATION include/chrono_sensor)
-install(FILES ${Chrono_sensor_SENSORS_HEADERS}
-        DESTINATION include/chrono_sensor/sensors)
-install(FILES ${Chrono_sensor_UTILS_HEADERS}
-        DESTINATION include/chrono_sensor/utils)
-install(FILES ${Chrono_sensor_OPTIX_HEADERS}
-        DESTINATION include/chrono_sensor/optix)
-install(FILES ${Chrono_sensor_VULKAN_HEADERS}
-        DESTINATION include/chrono_sensor/vulkan)
-install(FILES ${Chrono_sensor_FILTERS_HEADERS}
-        DESTINATION include/chrono_sensor/filters)
-install(FILES ${Chrono_sensor_CUDA_HEADERS}
-        DESTINATION include/chrono_sensor/cuda)
-install(FILES ${Chrono_sensor_SCENE_HEADERS}
-        DESTINATION include/chrono_sensor/optix/scene)
-install(FILES ${Chrono_sensor_RT_HEADERS}
-        DESTINATION include/chrono_sensor/optix/shaders)
+install(FILES ${Chrono_sensor_HEADERS}         DESTINATION include/chrono_sensor)
+install(FILES ${Chrono_sensor_SENSORS_HEADERS} DESTINATION include/chrono_sensor/sensors)
+install(FILES ${Chrono_sensor_UTILS_HEADERS}   DESTINATION include/chrono_sensor/utils)
+install(FILES ${Chrono_sensor_OPTIX_HEADERS}   DESTINATION include/chrono_sensor/optix)
+install(FILES ${Chrono_sensor_VULKAN_HEADERS}  DESTINATION include/chrono_sensor/vulkan)
+install(FILES ${Chrono_sensor_FILTERS_HEADERS} DESTINATION include/chrono_sensor/filters)
+install(FILES ${Chrono_sensor_CUDA_HEADERS}    DESTINATION include/chrono_sensor/cuda)
+install(FILES ${Chrono_sensor_RT_HEADERS}      DESTINATION include/chrono_sensor/optix/shaders)
 
 # Copy and install FindOptiX.cmake
 if(CH_USE_SENSOR_OPTIX)

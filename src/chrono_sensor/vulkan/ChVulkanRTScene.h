@@ -146,7 +146,7 @@ struct CH_SENSOR_API ChVulkanRTLight {
 
     // Area-light parameters. Vulkan RT currently evaluates area lights from
     // their center point, but keeping the full public data here preserves the
-    // OptiX ChScene API and allows a renderer upgrade without API changes.
+    // OptiX ChOptixScene API and allows a renderer upgrade without API changes.
     ChVector3f length_vec = ChVector3f(0.f, 0.f, 0.f);
     ChVector3f width_vec = ChVector3f(0.f, 0.f, 0.f);
     float radius = 0.f;
@@ -157,7 +157,7 @@ struct CH_SENSOR_API ChVulkanRTLight {
 
 /// Staging scene for the Vulkan backend.
 ///
-/// This object mirrors the public ChScene methods used by existing Sensor demos
+/// This object mirrors the public ChOptixScene methods used by existing Sensor demos
 /// while collecting a compact renderable representation. The representation is
 /// intentionally independent from OptiX/CUDA and can feed either the Vulkan RT
 /// BLAS/TLAS builder or the host fallback used for bring-up/testing.

@@ -14,8 +14,8 @@
 //
 // =============================================================================
 
-#ifndef ChScene_H
-#define ChScene_H
+#ifndef Ch_OPTIX_SCENE_H
+#define Ch_OPTIX_SCENE_H
 
 #include <deque>
 #include <mutex>
@@ -57,12 +57,12 @@ namespace sensor {
 /// @{
 
 /// Scene class used for camera renderings. Includes environment colors, lights, etc
-class CH_SENSOR_API ChScene {
+class CH_SENSOR_API ChOptixScene {
   public:
     /// Class constructor
-    ChScene();
+    ChOptixScene();
     /// Class destructor
-    ~ChScene();
+    ~ChOptixScene();
 
     /// @brief Add a point light that emits light in all directions.
     /// @param pos The world position of the point light

@@ -27,7 +27,7 @@
 
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/optix/ChOptixEngine.h"
-    #include "chrono_sensor/optix/scene/ChScene.h"
+    #include "chrono_sensor/optix/ChOptixScene.h"
 #endif
 #ifdef CHRONO_HAS_VULKAN_RT
     #include "chrono_sensor/vulkan/ChVulkanRTEngine.h"
@@ -248,7 +248,7 @@ class CH_SENSOR_API ChSensorManager {
 #ifdef CHRONO_HAS_OPTIX
     /// Public pointer to the OptiX scene.
     /// This is used to specify additional components including lights, background colors, etc.
-    std::shared_ptr<ChScene> scene;
+    std::shared_ptr<ChOptixScene> scene;
 #elif defined(CHRONO_HAS_VULKAN_RT)
     /// Public scene pointer preserved for OptiX-compatible demos when Vulkan RT is the render backend.
     std::shared_ptr<ChVulkanRTScene> scene;
