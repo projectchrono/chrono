@@ -26,6 +26,9 @@
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono/core/ChTimer.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 #include <cstdlib>
 #include <string>
 
@@ -58,8 +61,11 @@ double t_end = 2.0;  // simulation end time when running headless (seconds)
 
 bool output = false;
 
-// SCM grid spacing
+// SCM grid spacing (BENCH: override with env SCM_DELTA, in metres)
 double mesh_resolution = 0.02;
+
+// BENCH: number of Curiosity-style obstacles to drop on the terrain (env SCM_ROCKS, 0 or 6)
+int num_rocks = 0;
 
 // Enable/disable bulldozing effects
 bool enable_bulldozing = true;
@@ -180,6 +186,66 @@ int main(int argc, char* argv[]) {
         viper.SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
     viper.Initialize(ChFrame<>(ChVector3d(-5, 0, -0.2), QUNIT));
+
+    // BENCH knobs
+    if (const char* e = std::getenv("SCM_DELTA"))
+        mesh_resolution = std::atof(e);
+    if (const char* e = std::getenv("SCM_ROCKS"))
+        num_rocks = std::atoi(e);
+    if (const char* e = std::getenv("SCM_TEND"))
+        t_end = std::atof(e);
+    int warmup_steps = 400;  // BENCH: steps excluded from the steady-state average (env SCM_WARMUP)
+    if (const char* e = std::getenv("SCM_WARMUP"))
+        warmup_steps = std::atoi(e);
+    ChTimer steady_timer;
+    bool steady_started = false;
+
+    // BENCH: the six Curiosity-demo obstacles, mapped into this demo's Z-up world frame.
+    if (num_rocks > 0) {
+        std::vector<std::string> rock_meshfile = {
+            "robot/curiosity/rocks/rock1.obj", "robot/curiosity/rocks/rock1.obj",  //
+            "robot/curiosity/rocks/rock1.obj", "robot/curiosity/rocks/rock1.obj",  //
+            "robot/curiosity/rocks/rock3.obj", "robot/curiosity/rocks/rock3.obj"   //
+        };
+        std::vector<ChVector3d> rock_pos = {
+            ChVector3d(-2.5, -1.0, -0.3), ChVector3d(-2.5, +1.0, -0.3),  //
+            ChVector3d(-1.0, -1.0, -0.3), ChVector3d(-1.0, +1.0, -0.3),  //
+            ChVector3d(+0.5, -1.0, -0.3), ChVector3d(+0.5, +1.0, -0.3)   //
+        };
+        std::vector<double> rock_scale = {0.8, 0.8, 0.45, 0.45, 0.45, 0.45};
+        double rock_density = 8000;
+        auto rock_mat = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
+
+        for (int i = 0; i < num_rocks && i < 6; i++) {
+            auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(rock_meshfile[i]), false, true);
+            mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(rock_scale[i]));
+
+            double mass;
+            ChVector3d cog;
+            ChMatrix33<> inertia;
+            mesh->ComputeMassProperties(true, mass, cog, inertia);
+            ChMatrix33<> principal_inertia_rot;
+            ChVector3d principal_I;
+            ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
+
+            auto body = chrono_types::make_shared<ChBodyAuxRef>();
+            sys.Add(body);
+            body->SetFixed(false);
+            body->SetFrameRefToAbs(ChFrame<>(rock_pos[i], QUNIT));
+            body->SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
+            body->SetMass(mass * rock_density);
+            body->SetInertiaXX(rock_density * principal_I);
+
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rock_mat, mesh, false, false, 0.005);
+            body->AddCollisionShape(ct_shape);
+            body->EnableCollision(true);
+
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            vis_shape->SetMesh(mesh);
+            vis_shape->SetBackfaceCull(true);
+            body->AddVisualShape(vis_shape);
+        }
+    }
 
     // Get wheels and bodies to set up SCM patches
     auto Wheel_1 = viper.GetWheel(ViperWheelID::V_LF)->GetBody();
@@ -373,17 +439,28 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(5e-4);
         viper.Update();
         nsteps++;
+        if (!steady_started && nsteps >= warmup_steps) {
+            steady_timer.start();
+            steady_started = true;
+        }
         if (nsteps % 200 == 0)
             std::cout << "t=" << sys.GetChTime() << "  RTF=" << sys.GetRTF() << std::endl;
         if (nsteps % 1000 == 0)
             terrain.PrintStepStatistics(std::cout);
     }
     sim_timer.stop();
+    if (steady_started)
+        steady_timer.stop();
+    int steady_steps = nsteps > warmup_steps ? nsteps - warmup_steps : 0;
+    double steady_ms = steady_steps > 0 ? 1e3 * steady_timer() / steady_steps : 0.0;
     double ms_per_step = 1e3 * sim_timer() / (nsteps > 0 ? nsteps : 1);
     double avg_rtf = (sim_timer() / (nsteps > 0 ? nsteps : 1)) / 5e-4;  // wall/sim per step
-    std::cout << "[BENCH] steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s"
+    std::cout << "[BENCH] delta=" << mesh_resolution << " rocks=" << num_rocks << "  steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s"
               << "  wall=" << sim_timer() << "s"
-              << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")" << std::endl;
+              << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")"
+              << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
+              << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")"
+              << "  x_end=" << Body_1->GetPos().x() << std::endl;
 
     if (output) {
         csv.WriteToFile(out_dir + "/output.dat");
