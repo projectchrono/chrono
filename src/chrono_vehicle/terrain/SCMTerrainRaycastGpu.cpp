@@ -2,10 +2,11 @@
 //
 // Same I/O contract as ComputeRayCastGpuReference (SCMTerrain.cpp): produces a vector<RaycastHit>,
 // consumed identically by ComputeInternalForces() regardless of which backend produced it. The two
-// do not produce identical hit sets: both test the same triangles -- ChCollisionModelBullet emits a
-// per-triangle shape for any ChTriangleMeshConnected -- but they apply the collision margin
-// differently, the CPU per shape and this backend as one scalar per body. The measured effect on
-// wheel sinkage is a few millimetres and has not been isolated further.
+// do not produce identical hit sets. Both test the same triangles -- ChCollisionModelBullet emits a
+// per-triangle shape for any ChTriangleMeshConnected -- and the difference is not the collision
+// margin: dropping the envelope from out_margin below moves wheel sinkage by 0.04 mm, against the
+// 1.3 cm between the two paths. Holding the contact-force backend fixed and switching only this one
+// reproduces the full difference, so it originates in the hit set. Not identified further.
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
 
