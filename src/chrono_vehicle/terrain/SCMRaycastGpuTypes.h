@@ -42,12 +42,18 @@ struct RaycastBodyTransform {
     double r00, r01, r02;
     double r10, r11, r12;
     double r20, r21, r22;
+    /// World-space AABB of this body's collision mesh, recomputed per step alongside the transform.
+    /// The kernel tests a ray against it before touching any of the body's triangles.
+    double bx0, by0, bz0;
+    double bx1, by1, bz1;
 };
 
 /// Per-body margin (collision envelope + swept-sphere radius), one per body_slot.
 /// Applied to the winning hit's point along its (outward-oriented) triangle normal.
 struct RaycastBodyMargin {
     double margin;
+    int32_t face_begin;  ///< first face of this body in the shared face array
+    int32_t face_end;    ///< one past its last face; faces are contiguous per body
 };
 
 /// One SCM grid-node ray query (already RayOBBtest-prefiltered and compacted on the host).

@@ -43,9 +43,13 @@ struct TransformF {
     float r00, r01, r02;
     float r10, r11, r12;
     float r20, r21, r22;
+    float bx0, by0, bz0;
+    float bx1, by1, bz1;
 };
 struct MarginF {
     float margin;
+    int32_t face_begin;
+    int32_t face_end;
 };
 struct QueryF {
     float from_x, from_y, from_z;
@@ -64,6 +68,7 @@ extern "C" int scm_launch_raycast_fp64(const void* queries_dev,
                                        int n_faces,
                                        const void* xforms_dev,
                                        const void* margins_dev,
+                                       int n_bodies,
                                        void* results_dev,
                                        hipStream_t stream);
 extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
@@ -73,6 +78,7 @@ extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
                                        int n_faces,
                                        const void* xforms_dev,
                                        const void* margins_dev,
+                                       int n_bodies,
                                        void* results_dev,
                                        hipStream_t stream);
 
@@ -135,6 +141,7 @@ struct ScmRaycastGpuContext {
     std::size_t cap_faces = 0;
 
     int n_faces_current = 0;
+    int n_bodies_current = 0;
 };
 
 extern "C" ScmRaycastGpuContext* scm_raycast_gpu_create(int device_id, ScmRaycastGpuPrecision precision) {
@@ -212,7 +219,7 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
         if (ctx->precision == ScmRaycastGpuPrecision::kFP32) {
             std::vector<MarginF> tmp(n_bodies);
             for (int i = 0; i < n_bodies; ++i)
-                tmp[i] = {static_cast<float>(margins[i].margin)};
+                tmp[i] = {static_cast<float>(margins[i].margin), margins[i].face_begin, margins[i].face_end};
             ensure_capacity(&ctx->d_margins_f, ctx->cap_margins_f, static_cast<std::size_t>(n_bodies));
             hipError_t e =
                 hipMemcpy(ctx->d_margins_f, tmp.data(), n_bodies * sizeof(MarginF), hipMemcpyHostToDevice);
@@ -228,6 +235,7 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
     }
 
     ctx->n_faces_current = n_faces;
+    ctx->n_bodies_current = n_bodies;
     return static_cast<int>(hipSuccess);
 }
 
@@ -247,7 +255,9 @@ extern "C" int scm_raycast_gpu_upload_transforms(ScmRaycastGpuContext* ctx,
             tmp[i] = {static_cast<float>(t.px),  static_cast<float>(t.py),  static_cast<float>(t.pz),
                      static_cast<float>(t.r00), static_cast<float>(t.r01), static_cast<float>(t.r02),
                      static_cast<float>(t.r10), static_cast<float>(t.r11), static_cast<float>(t.r12),
-                     static_cast<float>(t.r20), static_cast<float>(t.r21), static_cast<float>(t.r22)};
+                     static_cast<float>(t.r20), static_cast<float>(t.r21), static_cast<float>(t.r22),
+                     static_cast<float>(t.bx0), static_cast<float>(t.by0), static_cast<float>(t.bz0),
+                     static_cast<float>(t.bx1), static_cast<float>(t.by1), static_cast<float>(t.bz1)};
         }
         ensure_capacity(&ctx->d_xforms_f, ctx->cap_bodies_f, static_cast<std::size_t>(n_bodies));
         hipError_t e = hipMemcpy(ctx->d_xforms_f, tmp.data(), n_bodies * sizeof(TransformF), hipMemcpyHostToDevice);
@@ -291,14 +301,13 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
 
         int launch_err = scm_launch_raycast_fp32(ctx->d_queries_f, n_queries, ctx->d_verts_f, ctx->d_faces,
                                                  ctx->n_faces_current, ctx->d_xforms_f, ctx->d_margins_f,
-                                                 ctx->d_results_f, nullptr);
+                                                 ctx->n_bodies_current, ctx->d_results_f, nullptr);
         if (launch_err != hipSuccess)
             return launch_err;
 
         hipError_t e2 = hipDeviceSynchronize();
         if (e2 != hipSuccess)
             return static_cast<int>(e2);
-
         std::vector<ResultF> r_tmp(n_queries);
         hipError_t e3 =
             hipMemcpy(r_tmp.data(), ctx->d_results_f, n_queries * sizeof(ResultF), hipMemcpyDeviceToHost);
@@ -323,8 +332,8 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
         return static_cast<int>(e1);
 
     int launch_err = scm_launch_raycast_fp64(ctx->d_queries, n_queries, ctx->d_verts, ctx->d_faces,
-                                             ctx->n_faces_current, ctx->d_xforms, ctx->d_margins, ctx->d_results,
-                                             nullptr);
+                                             ctx->n_faces_current, ctx->d_xforms, ctx->d_margins,
+                                             ctx->n_bodies_current, ctx->d_results, nullptr);
     if (launch_err != hipSuccess)
         return launch_err;
 

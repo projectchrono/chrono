@@ -52,11 +52,15 @@ struct TransformDevT {
     Real r00, r01, r02;
     Real r10, r11, r12;
     Real r20, r21, r22;
+    Real bx0, by0, bz0;
+    Real bx1, by1, bz1;
 };
 
 template <typename Real>
 struct MarginDevT {
     Real margin;
+    int32_t face_begin;
+    int32_t face_end;
 };
 
 template <typename Real>
@@ -157,6 +161,37 @@ __device__ bool segment_triangle_intersect(Vec3<Real> from,
 
 constexpr int kThreadsPerRay = 256;  // 8 NVIDIA warps / 4 AMD wavefronts; shared-mem reduction below
 
+// Segment-vs-AABB overlap (slab test), used to skip a whole body's triangles for rays that cannot
+// reach it. This is what keeps cost proportional to the geometry a ray can actually hit rather than
+// to every triangle in the scene: with obstacles present most rays are under one small body and the
+// brute-force scan wastes ~99% of its work.
+template <typename Real>
+__device__ __forceinline__ bool segment_aabb_overlap(Vec3<Real> from,
+                                                     Vec3<Real> dir,
+                                                     const TransformDevT<Real>& b) {
+    Real t0 = Real(0), t1 = Real(1);
+    const Real lo[3] = {b.bx0, b.by0, b.bz0};
+    const Real hi[3] = {b.bx1, b.by1, b.bz1};
+    const Real o[3] = {from.x, from.y, from.z};
+    const Real d[3] = {dir.x, dir.y, dir.z};
+    for (int a = 0; a < 3; ++a) {
+        if (d[a] > Real(-1e-20) && d[a] < Real(1e-20)) {
+            if (o[a] < lo[a] || o[a] > hi[a])
+                return false;
+            continue;
+        }
+        Real inv = Real(1) / d[a];
+        Real ta = (lo[a] - o[a]) * inv;
+        Real tb = (hi[a] - o[a]) * inv;
+        if (ta > tb) { Real tmp = ta; ta = tb; tb = tmp; }
+        t0 = ta > t0 ? ta : t0;
+        t1 = tb < t1 ? tb : t1;
+        if (t0 > t1)
+            return false;
+    }
+    return true;
+}
+
 template <typename Real>
 __global__ void scm_raycast_kernel(const QueryDevT<Real>* queries,
                                    int n_queries,
@@ -165,6 +200,7 @@ __global__ void scm_raycast_kernel(const QueryDevT<Real>* queries,
                                    int n_faces,
                                    const TransformDevT<Real>* xforms,
                                    const MarginDevT<Real>* margins,
+                                   int n_bodies,
                                    ResultDevT<Real>* results) {
     const int ray = blockIdx.x;  // one block per query
     if (ray >= n_queries)
@@ -186,22 +222,29 @@ __global__ void scm_raycast_kernel(const QueryDevT<Real>* queries,
     Vec3<Real> best_point = make_v3<Real>(0, 0, 0);
     Vec3<Real> best_normal = make_v3<Real>(0, 0, 0);
 
-    // Each thread scans a strided subset of the triangles -- total work (n_faces) is unchanged, just
-    // spread across kThreadsPerRay threads instead of done serially by one.
-    for (int f = tid; f < n_faces; f += kThreadsPerRay) {
-        FaceDev face = faces[f];
-        const TransformDevT<Real>& xf = xforms[face.body_slot];
-        Vec3<Real> v0 = transform_point(xf, make_v3<Real>(verts[face.i0].x, verts[face.i0].y, verts[face.i0].z));
-        Vec3<Real> v1 = transform_point(xf, make_v3<Real>(verts[face.i1].x, verts[face.i1].y, verts[face.i1].z));
-        Vec3<Real> v2 = transform_point(xf, make_v3<Real>(verts[face.i2].x, verts[face.i2].y, verts[face.i2].z));
+    // Per body: reject against its world AABB first, and only then scan its faces, strided across
+    // the block's threads. Faces are contiguous per body, so the range comes straight from margins[].
+    for (int b = 0; b < n_bodies; ++b) {
+        const TransformDevT<Real>& xf_b = xforms[b];
+        if (!segment_aabb_overlap<Real>(from, dir, xf_b))
+            continue;
+        const int f_begin = margins[b].face_begin;
+        const int f_end = margins[b].face_end;
+        for (int f = f_begin + tid; f < f_end; f += kThreadsPerRay) {
+            FaceDev face = faces[f];
+            const TransformDevT<Real>& xf = xforms[face.body_slot];
+            Vec3<Real> v0 = transform_point(xf, make_v3<Real>(verts[face.i0].x, verts[face.i0].y, verts[face.i0].z));
+            Vec3<Real> v1 = transform_point(xf, make_v3<Real>(verts[face.i1].x, verts[face.i1].y, verts[face.i1].z));
+            Vec3<Real> v2 = transform_point(xf, make_v3<Real>(verts[face.i2].x, verts[face.i2].y, verts[face.i2].z));
 
-        Real t;
-        Vec3<Real> pt, n;
-        if (segment_triangle_intersect(from, dir, v0, v1, v2, t, pt, n) && t < best_t) {
-            best_t = t;
-            best_body = face.body_slot;
-            best_point = pt;
-            best_normal = n;
+            Real t;
+            Vec3<Real> pt, n;
+            if (segment_triangle_intersect(from, dir, v0, v1, v2, t, pt, n) && t < best_t) {
+                best_t = t;
+                best_body = face.body_slot;
+                best_point = pt;
+                best_normal = n;
+            }
         }
     }
 
@@ -264,6 +307,7 @@ int launch(const void* queries_dev,
           int n_faces,
           const void* xforms_dev,
           const void* margins_dev,
+          int n_bodies,
           void* results_dev,
           hipStream_t stream) {
     if (n_queries <= 0)
@@ -276,6 +320,7 @@ int launch(const void* queries_dev,
                                                          static_cast<const FaceDev*>(faces_dev), n_faces,
                                                          static_cast<const TransformDevT<Real>*>(xforms_dev),
                                                          static_cast<const MarginDevT<Real>*>(margins_dev),
+                                                         n_bodies,
                                                          static_cast<ResultDevT<Real>*>(results_dev));
     return hipGetLastError();
 }
@@ -289,10 +334,11 @@ extern "C" int scm_launch_raycast_fp64(const void* queries_dev,
                                        int n_faces,
                                        const void* xforms_dev,
                                        const void* margins_dev,
+                                       int n_bodies,
                                        void* results_dev,
                                        hipStream_t stream) {
-    return launch<double>(queries_dev, n_queries, verts_dev, faces_dev, n_faces, xforms_dev, margins_dev, results_dev,
-                          stream);
+    return launch<double>(queries_dev, n_queries, verts_dev, faces_dev, n_faces, xforms_dev, margins_dev, n_bodies,
+                          results_dev, stream);
 }
 
 extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
@@ -302,8 +348,9 @@ extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
                                        int n_faces,
                                        const void* xforms_dev,
                                        const void* margins_dev,
+                                       int n_bodies,
                                        void* results_dev,
                                        hipStream_t stream) {
-    return launch<float>(queries_dev, n_queries, verts_dev, faces_dev, n_faces, xforms_dev, margins_dev, results_dev,
-                         stream);
+    return launch<float>(queries_dev, n_queries, verts_dev, faces_dev, n_faces, xforms_dev, margins_dev, n_bodies,
+                         results_dev, stream);
 }

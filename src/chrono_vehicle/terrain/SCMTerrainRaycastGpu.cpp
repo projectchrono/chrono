@@ -11,6 +11,7 @@
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
 
+    #include <algorithm>
     #include <cstdlib>
     #include <iostream>
     #include <limits>
@@ -38,6 +39,12 @@ using scm::gpu::RaycastFace;
 using scm::gpu::RaycastQuery;
 using scm::gpu::RaycastResult;
 using scm::gpu::RaycastVertex;
+
+// Local AABB of a body's collision mesh, in the body's own frame. Constant for the life of the
+// candidate set, so it is computed at upload and only transformed per step.
+struct LocalBox {
+    double x0, y0, z0, x1, y1, z1;
+};
 
 // FP32 on every platform, so a model produces the same trajectory on AMD and NVIDIA. The kernels can
 // run in FP64 -- and MI300X-class parts have the throughput for it, unlike consumer NVIDIA cards where
@@ -77,6 +84,13 @@ std::vector<ChBody*>& LastUploadedCandidates() {
     return last;
 }
 
+// Cached alongside the candidate set: each body's local AABB and its face range, both fixed until
+// the candidate set changes.
+std::vector<LocalBox>& CachedLocalBoxes() {
+    static std::vector<LocalBox> boxes;
+    return boxes;
+}
+
 // Local-space (body-relative) mesh extraction, appended into shared buffers with this body's vertex
 // offset baked into its faces' indices. Unlike ComputeRayCastGpuReference's ExtractRaycastWorldTriangles,
 // this does NOT transform to world space -- the kernel does that per-query, once per body per step,
@@ -85,8 +99,10 @@ void AppendLocalMesh(ChBody* body,
                      int body_slot,
                      std::vector<RaycastVertex>& verts,
                      std::vector<RaycastFace>& faces,
-                     double& out_margin) {
+                     double& out_margin,
+                     LocalBox& out_box) {
     out_margin = 0;
+    out_box = {1e30, 1e30, 1e30, -1e30, -1e30, -1e30};
     auto model = body->GetCollisionModel();
     if (!model)
         return;
@@ -112,6 +128,12 @@ void AppendLocalMesh(ChBody* body,
         for (const auto& v : src_verts) {
             ChVector3d wv = shape_frame.TransformPointLocalToParent(v);  // shape-local -> model-local
             verts.push_back({wv.x(), wv.y(), wv.z()});
+            out_box.x0 = std::min(out_box.x0, wv.x());
+            out_box.y0 = std::min(out_box.y0, wv.y());
+            out_box.z0 = std::min(out_box.z0, wv.z());
+            out_box.x1 = std::max(out_box.x1, wv.x());
+            out_box.y1 = std::max(out_box.y1, wv.y());
+            out_box.z1 = std::max(out_box.z1, wv.z());
         }
         for (const auto& f : src_faces) {
             RaycastFace rf;
@@ -133,7 +155,7 @@ void WarnNoMeshGeometryOnce() {
                  "active-domain bodies. Using the CPU ray-cast path." << std::endl;
 }
 
-RaycastBodyTransform BuildTransform(ChBody* body) {
+RaycastBodyTransform BuildTransform(ChBody* body, const LocalBox& box) {
     ChFrame<> f = body->GetFrameRefToAbs();
     ChVector3d p = f.GetPos();
     ChMatrix33<> R = f.GetRotMat();
@@ -150,6 +172,24 @@ RaycastBodyTransform BuildTransform(ChBody* body) {
     t.r20 = R(2, 0);
     t.r21 = R(2, 1);
     t.r22 = R(2, 2);
+
+    // World AABB: transform the eight corners of the local box. Eight points per body per step is
+    // nothing next to the per-triangle work it lets the kernel skip.
+    double lo[3] = {1e30, 1e30, 1e30};
+    double hi[3] = {-1e30, -1e30, -1e30};
+    for (int c = 0; c < 8; ++c) {
+        ChVector3d corner((c & 1) ? box.x1 : box.x0, (c & 2) ? box.y1 : box.y0, (c & 4) ? box.z1 : box.z0);
+        ChVector3d w = f.TransformPointLocalToParent(corner);
+        lo[0] = std::min(lo[0], w.x()); hi[0] = std::max(hi[0], w.x());
+        lo[1] = std::min(lo[1], w.y()); hi[1] = std::max(hi[1], w.y());
+        lo[2] = std::min(lo[2], w.z()); hi[2] = std::max(hi[2], w.z());
+    }
+    // Inflate slightly. The box is only a rejection test, so being generous costs a few extra
+    // triangle tests, while being tight risks dropping a grazing hit once the bounds are rounded to
+    // float for the FP32 kernel.
+    const double eps = 1e-3;
+    t.bx0 = lo[0] - eps; t.by0 = lo[1] - eps; t.bz0 = lo[2] - eps;
+    t.bx1 = hi[0] + eps; t.by1 = hi[1] + eps; t.bz1 = hi[2] + eps;
     return t;
 }
 
@@ -174,10 +214,15 @@ bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
         std::vector<RaycastBodyMargin> margins;
         margins.reserve(candidates.size());
 
+        std::vector<LocalBox> boxes;
+        boxes.reserve(candidates.size());
         for (std::size_t i = 0; i < candidates.size(); ++i) {
             double margin = 0;
-            AppendLocalMesh(candidates[i], static_cast<int>(i), verts, faces, margin);
-            margins.push_back({margin});
+            LocalBox box{};
+            const int face_begin = static_cast<int>(faces.size());
+            AppendLocalMesh(candidates[i], static_cast<int>(i), verts, faces, margin, box);
+            margins.push_back({margin, face_begin, static_cast<int>(faces.size())});
+            boxes.push_back(box);
         }
 
         if (faces.empty()) {
@@ -200,17 +245,47 @@ bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
             return false;
 
         LastUploadedCandidates() = candidates;
+        CachedLocalBoxes() = boxes;
     }
 
     // Per-body transform: genuinely per-step data, always rebuilt and uploaded.
     std::vector<RaycastBodyTransform> xforms;
     xforms.reserve(candidates.size());
-    for (auto* body : candidates)
-        xforms.push_back(BuildTransform(body));
+    const auto& boxes = CachedLocalBoxes();
+    if (boxes.size() != candidates.size())
+        return false;
+    for (std::size_t i = 0; i < candidates.size(); ++i)
+        xforms.push_back(BuildTransform(candidates[i], boxes[i]));
 
     int xform_rc = scm_raycast_gpu_upload_transforms(ctx, xforms.data(), static_cast<int>(xforms.size()));
     if (xform_rc != 0)
         return false;
+
+    // Footprint of each candidate body in the SCM plane. A ray is cast along the SCM normal, so in
+    // SCM-local coordinates it is exactly vertical and a node outside every body's (x,y) footprint
+    // cannot produce a hit. Testing that first keeps the ray budget proportional to the geometry
+    // instead of to the active domain the user happened to declare -- with obstacles the two differ
+    // by an order of magnitude, and every wasted node costs a height lookup, a query slot, a device
+    // copy and a block launch.
+    struct Footprint {
+        double x0, y0, x1, y1;
+    };
+    std::vector<Footprint> footprints;
+    footprints.reserve(candidates.size());
+    for (std::size_t i = 0; i < candidates.size(); ++i) {
+        const LocalBox& lb = boxes[i];
+        ChFrame<> bf = candidates[i]->GetFrameRefToAbs();
+        Footprint fp{1e30, 1e30, -1e30, -1e30};
+        for (int c = 0; c < 8; ++c) {
+            ChVector3d corner((c & 1) ? lb.x1 : lb.x0, (c & 2) ? lb.y1 : lb.y0, (c & 4) ? lb.z1 : lb.z0);
+            ChVector3d loc = m_frame.TransformPointParentToLocal(bf.TransformPointLocalToParent(corner));
+            fp.x0 = std::min(fp.x0, loc.x());
+            fp.y0 = std::min(fp.y0, loc.y());
+            fp.x1 = std::max(fp.x1, loc.x());
+            fp.y1 = std::max(fp.y1, loc.y());
+        }
+        footprints.push_back(fp);
+    }
 
     // Build the compacted query list (same RayOBBtest prefilter as the CPU paths).
     std::vector<RaycastQuery> queries;
@@ -220,6 +295,17 @@ bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
         for (const auto& ij : p.m_range) {
             double x = ij.x() * m_delta;
             double y = ij.y() * m_delta;
+
+            bool in_footprint = false;
+            for (const auto& fp : footprints) {
+                if (x >= fp.x0 && x <= fp.x1 && y >= fp.y0 && y <= fp.y1) {
+                    in_footprint = true;
+                    break;
+                }
+            }
+            if (!in_footprint)
+                continue;
+
             double z = GetHeight(ij);
             ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
             ChVector3d to = vertex_abs + m_Z * m_test_offset_up;
