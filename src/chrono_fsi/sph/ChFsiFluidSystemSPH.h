@@ -91,14 +91,24 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                         ///< the Young's-modulus-derived K_bulk = E / (3 (1 - 2 nu))
                                         ///< and G_shear = E / (2 (1 + nu)). Keeps the moduli from
                                         ///< collapsing where p approaches zero, e.g. near a free
-                                        ///< surface (default: 0.1)
+                                        ///< surface. Not a harmless guard: at representative
+                                        ///< parameters it binds over most of a soil bed at rest and
+                                        ///< shifts bearing response by several percent, so it should
+                                        ///< be reviewed rather than left at the default without
+                                        ///< thought (default: 0.1)
         double mcc_modulus_max_factor;  ///< Upper bound on the MCC elastic moduli, as the same
                                         ///< fraction of K_bulk and G_shear. This bounds the sound
                                         ///< speed sqrt(K / rho), which is what keeps an explicit
                                         ///< fixed time step stable, since K = v p / kappa grows
-                                        ///< without limit in pressure. Raise it, together with a
-                                        ///< correspondingly smaller time step, to let Cam-Clay
-                                        ///< elasticity act unclamped over the loaded range
+                                        ///< without limit in pressure. Raising it lets Cam-Clay
+                                        ///< elasticity act unclamped over more of the loaded range,
+                                        ///< but that is not simply an improvement: it changes the
+                                        ///< pressure-sinkage response by a depth-dependent amount,
+                                        ///< can REDUCE bearing force at depth (a stiffer K compacts
+                                        ///< less, so p_c hardens less), and re-exposes the
+                                        ///< non-integrable elasticity this bound masks. Raising it
+                                        ///< by a factor F raises the sound speed by sqrt(F)
+                                        ///< (default: 1.0)
                                         ///< (default: 1.0)
 
         ElasticMaterialProperties();

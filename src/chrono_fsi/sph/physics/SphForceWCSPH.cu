@@ -1535,12 +1535,34 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
         // sets the CFL limit, so an unbounded K would force dt to shrink with p at a fixed time step,
         // while K -> 0 leaves near-surface markers with no volumetric stiffness. The consequence to
         // be aware of is that wherever the bound binds, the volumetric response is linear elastic at
-        // the bound rather than Cam-Clay. Raise mcc_modulus_max_factor, with a correspondingly
-        // smaller time step, to recover Cam-Clay elasticity over the loaded range.
+        // the bound rather than Cam-Clay.
+        //
+        // Neither bound is a harmless guard; both change results materially. Measured on
+        // demo_FSI-SPH_PlateSinkage at its own defaults (E = 28 MPa, kappa = 0.00625, v = 2, which
+        // leaves Cam-Clay free only for 5.8 kPa < p < 58.3 kPa):
+        //   - the LOWER bound binds over the top 74% of that 0.5 m bed at rest, and raising the plate
+        //     bearing force by about 7% at 20 mm sinkage is what it costs. Releasing it 100x ran with
+        //     no instability there, so it was not protecting anything measurable in that case.
+        //   - the UPPER bound changes the same force by only +0.1% at 20 mm, but by -4% at 50 mm. The
+        //     sign flips with depth because deep bearing capacity is set by accumulated hardening
+        //     rather than by elastic stiffness: a larger K means less elastic volumetric strain, so
+        //     the soil compacts less, p_c hardens less, and it ends up weaker.
+        // So raising mcc_modulus_max_factor is not simply an improvement. It changes the SHAPE of the
+        // pressure-sinkage response, which matters when such a curve is being fitted. Raising it by a
+        // factor F raises the sound speed by sqrt(F); CheckSPHParameters warns when the resulting CFL
+        // exceeds 0.5, and at F = 10 the demo above still sits at 0.42, so a smaller time step is not
+        // always required.
         Real K_clamped = fmin(fmax(K_cand, paramsD.mcc_modulus_min_factor * paramsD.K_bulk),
                               paramsD.mcc_modulus_max_factor * paramsD.K_bulk);
 
-        // Shear
+        // Shear. G is derived from the CLAMPED K, holding Poisson's ratio fixed, then bounded again.
+        // Deriving G from a pressure-dependent K this way gives a hypoelastic law that is not
+        // integrable (Zytynski et al. 1978, Houlsby 1985): a closed stress cycle does not return zero
+        // net work. A single-element reference implementation of this update measured the net work
+        // around a closed elastic cycle at 65 to 80% of the elastic shear energy the same cycle
+        // stores, with the ratio equal to 1 - p1/p2. The upper bound above MASKS this, because a G
+        // frozen at max_factor * G_shear makes the 1/G(p1) - 1/G(p2) difference vanish, so releasing
+        // that bound both restores Cam-Clay elasticity and exposes the energy drift it was hiding.
         Real G_cand = (3.0 * K_clamped * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
         Real G_clamped = fmin(fmax(G_cand, paramsD.mcc_modulus_min_factor * paramsD.G_shear),
                               paramsD.mcc_modulus_max_factor * paramsD.G_shear);
