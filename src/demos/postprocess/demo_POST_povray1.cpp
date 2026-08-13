@@ -17,12 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRandom.h"

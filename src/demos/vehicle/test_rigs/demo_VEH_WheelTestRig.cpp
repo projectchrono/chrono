@@ -23,7 +23,6 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
@@ -163,7 +162,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChWheelTestRig rig(wheel, tire, sys);
+    ChWheelTestRig rig(wheel, tire, *sys);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(3000);

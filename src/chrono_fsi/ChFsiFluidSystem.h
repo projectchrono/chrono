@@ -23,6 +23,7 @@
 #include <stdexcept>
 
 #include "chrono/ChConfig.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiDefinitions.h"
@@ -48,7 +49,7 @@ class CH_FSI_API ChFsiFluidSystem {
     void SetStepSize(double step);
 
     /// Initialize the fluid system with no FSI support.
-    virtual void Initialize();
+    void Initialize();
 
     /// Function to integrate the FSI fluid system in time.
     void DoStepDynamics(double step);

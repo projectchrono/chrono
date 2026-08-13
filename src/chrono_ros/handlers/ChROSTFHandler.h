@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,118 +12,102 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// Handler responsible for publishing transform (tf) information
+// Handler that publishes transform (tf) information on /tf.
 //
 // =============================================================================
 
 #ifndef CH_ROS_TF_HANDLER_H
 #define CH_ROS_TF_HANDLER_H
 
+#include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChConfigROS.h"
-
 #include "chrono_ros/ChROSHandler.h"
 
 #include "chrono/physics/ChBody.h"
-
-#include "tf2_ros/transform_broadcaster.h"
+#include "chrono/core/ChFrame.h"
 
 #ifdef CHRONO_HAS_URDF
     #include "chrono_parsers/urdf/ChParserURDF.h"
 #endif
-#ifdef CHRONO_SENSOR
-    #include "chrono_sensor/sensors/ChSensor.h"
-#endif
 
-#include <vector>
+#include <memory>
+#include <string>
 #include <utility>
 #include <variant>
+#include <vector>
+
+// CHRONO_SENSOR comes from Chrono's ChConfig.h (pulled in by ChBody.h above).
+#ifdef CHRONO_SENSOR
+namespace chrono {
+namespace sensor {
+class ChSensor;
+}
+}  // namespace chrono
+#endif
 
 namespace chrono {
 namespace ros {
 
+class ChROSPublisher;
+
 /// @addtogroup ros_handlers
 /// @{
 
-/// @brief Handler responsible for publishing transform (tf) information via IPC.
-///
-/// PUBLISHER PATTERN (variable-size data):
-/// - Main process: Calls GetSerializedData() each tick → packs multiple transforms → sends IPC
-/// - Subprocess: Receives IPC → unpacks transform array → publishes to /tf
-///
-/// This handler supports dynamic transform lists (body-to-body) and static transforms (body-to-frame).
-/// All transforms are computed in main process and sent as serialized data to subprocess.
-///
-/// IPC data structures defined in ChROSIPCMessage.h:
-/// - ipc::TFData: Header with transform count
-/// - ipc::TFTransform: Individual transform data (parent/child frames, position, rotation)
-///
-/// Implementation files:
-/// - ChROSTFHandler.cpp: Main process logic (compute transforms, serialize)
-/// - ChROSTFHandler_ros.cpp: Subprocess ROS publishing (deserialize, publish tf)
+/// Publishes transforms as tf2_msgs/msg/TFMessage on the "/tf" topic (the topic
+/// tf2 consumers expect).
 class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     typedef std::pair<chrono::ChFrame<>, std::string> ChFrameTransform;
     typedef std::pair<std::shared_ptr<chrono::ChBody>, std::string> ChBodyTransform;
     typedef std::variant<ChBodyTransform, ChFrameTransform> ChROSTransform;
 
   public:
-    /// Constructor.
+    /// @param update_rate publish rate (Hz, sim time); 0 = every step.
     ChROSTFHandler(double update_rate);
 
-    /// @brief Initializes the handler (no-op in IPC mode, broadcaster in subprocess)
-    virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+    /// Creates the /tf publisher.
+    virtual bool Initialize(ChROSBridge& bridge) override;
 
-    /// Get the message type of this handler
-    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::TF_DATA; }
-
-    /// Extract transform data for IPC transmission to subprocess
-    /// Computes all transforms, serializes into variable-size byte array
-    /// Format: ipc::TFData header + array of ipc::TFTransform structs (see ChROSIPCMessage.h)
-    /// @param time Current simulation time in seconds
-    /// @return Serialized transform data
-    virtual std::vector<uint8_t> GetSerializedData(double time) override;
-
-    /// @brief Add a transform to be published. This version of the AddTransform function will use two bodies directly
-    /// and calculate the transform at each tick. This is useful for two bodies that are not connected by a link.
-    /// For each iteration of this method, when the frame id for the parent and/or child is not passed, it defaults
-    /// to the name of the body.
+    /// Publish a transform computed each tick from two bodies (useful when the
+    /// two bodies are not connected by a link). When a frame id is empty it
+    /// defaults to the corresponding body's name.
     void AddTransform(std::shared_ptr<chrono::ChBody> parent,
                       const std::string& parent_frame_id,
                       std::shared_ptr<chrono::ChBody> child,
                       const std::string& child_frame_id);
 
-    /// @brief Add a transform to be published. This version of the AddTransform function will publish a static
-    /// transform between the parent and child frame. This is useful for two bodies that are connected by a link.
-    /// @param parent The parent body
-    /// @param parent_frame_id The parent frame id
-    /// @param child_frame The child frame
-    /// @param child_frame_id The child frame id
+    /// Publish a fixed transform between a parent body and a child frame
+    /// expressed in the parent's reference frame.
     void AddTransform(std::shared_ptr<chrono::ChBody> parent,
                       const std::string& parent_frame_id,
                       chrono::ChFrame<double> child_frame,
                       const std::string& child_frame_id);
 
-#ifdef CHRONO_HAS_URDF
-    /// @brief Add a transform to be published from a URDF file. This method will step through the kinematic tree of the
-    /// passed URDF parser and add transforms for each link.
-    /// @param parser The URDF parser
-    void AddURDF(chrono::parsers::ChParserURDF& parser);
-#endif
-
 #ifdef CHRONO_SENSOR
-    /// @brief Add a transform to be published from a sensor. This is simply an alias to
-    /// AddTransform(sensor->GetParent(), sensor->GetOffsetPose(), frame_id).
-    /// @param sensor The sensor
-    /// @param parent_frame_id The parent frame id
-    /// @param child_frame_id The child frame id
+    /// Publish the transform from a sensor's parent body to the sensor's own
+    /// frame (its offset pose). Convenience equivalent to
+    /// AddTransform(sensor->GetParent(), parent_frame_id, sensor->GetOffsetPose(),
+    /// child_frame_id). (Available only with the Chrono::Sensor module; not
+    /// wrapped for Python - use the AddTransform form there.)
     void AddSensor(std::shared_ptr<chrono::sensor::ChSensor> sensor,
                    const std::string& parent_frame_id,
                    const std::string& child_frame_id);
 #endif
 
-  private:
-    std::vector<std::pair<ChROSTransform, ChROSTransform>> m_transforms;  ///< The transforms to publish
+#ifdef CHRONO_HAS_URDF
+    /// Add a transform for every link in a parsed URDF, walking its kinematic
+    /// tree (parent link -> child link, per joint). Frame ids are the URDF link
+    /// names. Wrapped for Python: the ChParserURDF argument crosses from
+    /// pychrono.parsers via SWIG cross-module type sharing (see demo_ROS_urdf.py).
+    void AddURDF(chrono::parsers::ChParserURDF& parser);
+#endif
 
-    std::unique_ptr<tf2_ros::TransformBroadcaster> m_tf_broadcaster;  ///< The tf broadcaster
+  protected:
+    /// Recompute and publish all registered transforms.
+    virtual void Tick(double time) override;
+
+  private:
+    std::vector<std::pair<ChROSTransform, ChROSTransform>> m_transforms;
+    std::shared_ptr<ChROSPublisher> m_publisher;
 };
 
 /// @} ros_handlers

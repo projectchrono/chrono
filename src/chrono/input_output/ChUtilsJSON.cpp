@@ -37,11 +37,13 @@ void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
         std::cerr << "ERROR: Could not open JSON file: " << filename << std::endl;
+        throw std::runtime_error("Could not open JSON file '" + filename + "'.");
     } else {
         IStreamWrapper isw(ifs);
         d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
         if (d.IsNull()) {
             std::cerr << "ERROR: Invalid JSON file: " << filename << std::endl;
+            throw std::runtime_error("Invalid JSON file '" + filename + "'.");
         }
     }
 }

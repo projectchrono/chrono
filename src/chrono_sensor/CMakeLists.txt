@@ -8,6 +8,7 @@ option(CH_ENABLE_MODULE_SENSOR "Enable the Chrono Sensor module" OFF)
 
 if(NOT CH_ENABLE_MODULE_SENSOR)
   mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
+  mark_as_advanced(FORCE CH_USE_SENSOR_VULKAN_RT)
 
   mark_as_advanced(FORCE CH_USE_SENSOR_NVDB)
   mark_as_advanced(FORCE CH_USE_SENSOR_NVRTC)
@@ -18,45 +19,102 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
 
   set(CH_USE_SENSOR_OPTIX FALSE)
   set(CH_USE_SENSOR_OPTIX ${CH_USE_SENSOR_OPTIX} PARENT_SCOPE)
-  mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
+  set(CH_USE_SENSOR_VULKAN_RT FALSE)
+  set(CH_USE_SENSOR_VULKAN_RT ${CH_USE_SENSOR_VULKAN_RT} PARENT_SCOPE)
 
   return()
 endif()
 
 message(STATUS "\n==== Chrono Sensor module ====\n")
 
+mark_as_advanced(CLEAR CH_USE_SENSOR_OPTIX)
+mark_as_advanced(CLEAR CH_USE_SENSOR_VULKAN_RT)
+
+if(CH_USE_SENSOR_OPTIX)
+  mark_as_advanced(CLEAR CH_USE_SENSOR_NVDB)
+  mark_as_advanced(CLEAR CH_USE_SENSOR_NVRTC)
+endif()
+
 mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
 mark_as_advanced(CLEAR GLEW_DIR)
 mark_as_advanced(CLEAR glfw3_DIR)
 
 #-----------------------------------------------------------------------------
-# Check CUDA and OptiX
+# Select rendered-sensor backend
 #-----------------------------------------------------------------------------
 
-set(CH_USE_SENSOR_OPTIX TRUE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features")
+set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable legacy OptiX-dependent Chrono::Sensor features")
+set(CH_USE_SENSOR_VULKAN_RT ON CACHE BOOL "Enable Vulkan ray-tracing Chrono::Sensor features")
 
+# GPU requirements are declared PER FEATURE here, not per module.
+#
+# Chrono::Sensor itself requires no GPU backend at all: its default renderer is
+# Vulkan RT, which is vendor-neutral and builds fine on AMD. Only the optional
+# OptiX renderer is CUDA-and-NVIDIA-only. Attaching "requires CUDA" to the
+# module rather than to the feature would wrongly disable the entire module on
+# AMD hardware that can run most of it.
 if(CH_USE_SENSOR_OPTIX)
 
-  if(CHRONO_HIP_FOUND)
-    message(STATUS "WARNING: Chrono::Sensor / OptiX is CUDA-only and not supported with HIP; disabling OptiX-dependent features")
-    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
-  elseif(CHRONO_CUDA_FOUND)
+  chrono_select_gpu_backend(CHRONO_SENSOR_OPTIX_BACKEND
+                            FEATURE  "Chrono::Sensor OptiX renderer"
+                            NAME     SENSOR_OPTIX
+                            REQUIRES CUDA)
+
+  if(CHRONO_SENSOR_OPTIX_BACKEND STREQUAL "NONE")
+
+    chrono_gpu_feature_unavailable(FEATURE  "Chrono::Sensor OptiX renderer"
+                                   REQUIRES "CUDA"
+                                   OPTION   CH_USE_SENSOR_OPTIX
+                                   CLASS    EXPLICIT)
+
+  else()
+
     message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
-  
+
     message(STATUS "Looking for OptiX")
     find_package(OptiX)
-  
+
     if(OptiX_INCLUDE)
       message(STATUS "  OptiX include directory: ${OptiX_INCLUDE}")
     else()
-      message("WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
+      message(WARNING "OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
       set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
     endif()
-  else()
-    message(STATUS "WARNING: CUDA was not found; disabling OptiX-dependent Chrono::Sensor features")
-    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
+
   endif()
 
+endif()
+
+#-----------------------------------------------------------------------------
+# Check Vulkan RT
+#-----------------------------------------------------------------------------
+
+if(CH_USE_SENSOR_VULKAN_RT)
+  option(CH_USE_SENSOR_VULKAN_RT_GPU "Compile and use the Vulkan RT GPU renderer; CPU fallback is used only when no Vulkan RT GPU is available" ON)
+
+  message(STATUS "Looking for Vulkan ray tracing support")
+  find_package(Vulkan QUIET)
+  find_package(Threads REQUIRED)
+  if(Vulkan_FOUND AND TARGET Vulkan::Vulkan)
+    message(STATUS "  Vulkan include directory: ${Vulkan_INCLUDE_DIRS}")
+    if(CH_USE_SENSOR_VULKAN_RT_GPU)
+      if(Vulkan_GLSLANG_VALIDATOR_EXECUTABLE)
+        set(CH_VULKAN_GLSLANG_VALIDATOR ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE})
+      else()
+        find_program(CH_VULKAN_GLSLANG_VALIDATOR
+                     NAMES glslangValidator
+                     HINTS ENV VULKAN_SDK
+                     PATH_SUFFIXES Bin bin)
+      endif()
+      if(NOT CH_VULKAN_GLSLANG_VALIDATOR)
+        message(FATAL_ERROR "CH_USE_SENSOR_VULKAN_RT_GPU is ON but glslangValidator was not found. Install the Vulkan SDK or set CH_USE_SENSOR_VULKAN_RT_GPU=OFF for the explicit CPU-only fallback build.")
+      endif()
+      message(STATUS "  Vulkan RT shader compiler: ${CH_VULKAN_GLSLANG_VALIDATOR}")
+    endif()
+  else()
+    message(STATUS "WARNING: Vulkan was not found; disabling Vulkan RT Chrono::Sensor features")
+    set(CH_USE_SENSOR_VULKAN_RT FALSE CACHE BOOL "Enable Vulkan ray-tracing Chrono::Sensor features" FORCE)
+  endif()
 endif()
 
 if(CH_USE_SENSOR_OPTIX)
@@ -82,6 +140,19 @@ else()
 
   set(CHRONO_HAS_OPTIX "#undef CHRONO_HAS_OPTIX")
 
+endif()
+
+if(CH_USE_SENSOR_VULKAN_RT)
+  message(STATUS "Building Chrono::Sensor with Vulkan RT support")
+  set(CHRONO_HAS_VULKAN_RT "#define CHRONO_HAS_VULKAN_RT")
+else()
+  set(CHRONO_HAS_VULKAN_RT "#undef CHRONO_HAS_VULKAN_RT")
+endif()
+
+if(CH_USE_SENSOR_OPTIX OR CH_USE_SENSOR_VULKAN_RT)
+  set(CHRONO_HAS_SENSOR_RENDER "#define CHRONO_HAS_SENSOR_RENDER")
+else()
+  set(CHRONO_HAS_SENSOR_RENDER "#undef CHRONO_HAS_SENSOR_RENDER")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -222,6 +293,7 @@ set(Chrono_sensor_HEADERS
     ChSensorManager.h
     ChDynamicsManager.h
     ChFsiSphRender.h
+    ChSensorRenderTypes.h
 )
 
 source_group("source" FILES ${Chrono_sensor_SOURCES} ${Chrono_sensor_HEADERS})
@@ -268,30 +340,41 @@ if(CH_USE_SENSOR_OPTIX)
  )
 endif()
 
-source_group("source" FILES ${Chrono_sensor_SENSORS_SOURCES} ${Chrono_sensor_SENSORS_HEADERS})
-
-#-----------------------------------------------------------------------------
-# LIST THE FILES THAT MAKE THE CORE SENSOR LIBRARY
-#-----------------------------------------------------------------------------
-
-if(CH_USE_SENSOR_OPTIX)
-
-  set(Chrono_sensor_SCENE_SOURCES
-      optix/scene/ChScene.cpp
+if(CH_USE_SENSOR_VULKAN_RT)
+  set(Chrono_sensor_SENSORS_SOURCES ${Chrono_sensor_SENSORS_SOURCES}
+      sensors/ChVulkanSensor.cpp
+      sensors/ChVulkanCameraSensor.cpp
+  )
+  set(Chrono_sensor_SENSORS_HEADERS ${Chrono_sensor_SENSORS_HEADERS}
+      sensors/ChVulkanSensor.h
+      sensors/ChVulkanCameraSensor.h
   )
 
-  set(Chrono_sensor_SCENE_HEADERS
-      optix/scene/ChScene.h
-  )
-
-  source_group("scene" FILES ${Chrono_sensor_SCENE_SOURCES} ${Chrono_sensor_SCENE_HEADERS})
-
-else()
-
-  set(Chrono_sensor_SCENE_SOURCES "")
-  set(Chrono_sensor_SCENE_HEADERS "")
-
+  if(NOT CH_USE_SENSOR_OPTIX)
+    # Build the standard render sensor front-ends against the Vulkan backend so existing
+    # demos/apps using ChCameraSensor/ChLidarSensor/ChRadarSensor keep compiling without OptiX.
+    list(APPEND Chrono_sensor_SENSORS_SOURCES
+        sensors/ChCameraSensor.cpp
+        sensors/ChPhysCameraSensor.cpp
+        sensors/ChSegmentationCamera.cpp
+        sensors/ChDepthCamera.cpp
+        sensors/ChNormalCamera.cpp
+        sensors/ChLidarSensor.cpp
+        sensors/ChRadarSensor.cpp
+    )
+    list(APPEND Chrono_sensor_SENSORS_HEADERS
+        sensors/ChCameraSensor.h
+        sensors/ChPhysCameraSensor.h
+        sensors/ChSegmentationCamera.h
+        sensors/ChDepthCamera.h
+        sensors/ChNormalCamera.h
+        sensors/ChLidarSensor.h
+        sensors/ChRadarSensor.h
+    )
+  endif()
 endif()
+
+source_group("source" FILES ${Chrono_sensor_SENSORS_SOURCES} ${Chrono_sensor_SENSORS_HEADERS})
 
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE SENSOR OPTIX LIBRARY
@@ -304,6 +387,7 @@ if(CH_USE_SENSOR_OPTIX)
       optix/ChOptixGeometry.cpp
       optix/ChOptixPipeline.cpp
       optix/ChOptixUtils.cpp
+      optix/ChOptixScene.cpp
       optix/ChFilterOptixRender.cpp
       optix/ChNVDBVolume.cpp
   )
@@ -313,6 +397,7 @@ if(CH_USE_SENSOR_OPTIX)
       optix/ChOptixGeometry.h
       optix/ChOptixPipeline.h
       optix/ChOptixUtils.h
+      optix/ChOptixScene.h
       optix/ChFilterOptixRender.h
       optix/ChOptixDefinitions.h
       optix/ChNVDBVolume.h
@@ -325,6 +410,46 @@ else()
   set(Chrono_sensor_OPTIX_SOURCES "")
   set(Chrono_sensor_OPTIX_HEADERS "")
 
+endif()
+
+#-----------------------------------------------------------------------------
+# LIST THE FILES THAT MAKE THE SENSOR VULKAN RT LIBRARY
+#-----------------------------------------------------------------------------
+
+if(CH_USE_SENSOR_VULKAN_RT)
+  set(Chrono_sensor_VULKAN_SOURCES
+      vulkan/ChVulkanRTUtils.cpp
+      vulkan/ChVulkanRTDevice.cpp
+      vulkan/ChVulkanRTBuffer.cpp
+      vulkan/ChVulkanRTScene.cpp
+      vulkan/ChFilterVulkanRTRender.cpp
+      vulkan/ChVulkanRTEngine.cpp
+  )
+
+  set(Chrono_sensor_VULKAN_HEADERS
+      vulkan/ChVulkanRTDefinitions.h
+      vulkan/ChVulkanRTUtils.h
+      vulkan/ChVulkanRTDevice.h
+      vulkan/ChVulkanRTBuffer.h
+      vulkan/ChVulkanRTScene.h
+      vulkan/ChFilterVulkanRTRender.h
+      vulkan/ChVulkanRTEngine.h
+  )
+
+  set(Chrono_sensor_VULKAN_SHADER_SOURCES
+      vulkan/shaders/chrono_sensor_vkrt.rgen
+      vulkan/shaders/chrono_sensor_vkrt.rmiss
+      vulkan/shaders/chrono_sensor_vkrt.rchit
+      vulkan/shaders/chrono_sensor_vkrt_shadow.rmiss
+      vulkan/shaders/chrono_sensor_vkrt_shadow.rahit
+  )
+
+  source_group("Vulkan RT" FILES ${Chrono_sensor_VULKAN_SOURCES} ${Chrono_sensor_VULKAN_HEADERS})
+  source_group("Vulkan RT\\Shaders" FILES ${Chrono_sensor_VULKAN_SHADER_SOURCES})
+else()
+  set(Chrono_sensor_VULKAN_SOURCES "")
+  set(Chrono_sensor_VULKAN_HEADERS "")
+  set(Chrono_sensor_VULKAN_SHADER_SOURCES "")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -347,23 +472,37 @@ set(Chrono_sensor_FILTERS_HEADERS
     filters/ChFilterTachometerUpdate.h
 )
 
+if(CH_USE_SENSOR_OPTIX OR CH_USE_SENSOR_VULKAN_RT)
+  # Camera/demo filters. Under Vulkan-only these files compile CPU/host-buffer
+  # paths and avoid CUDA/NPP symbols.
+  set(Chrono_sensor_FILTERS_SOURCES ${Chrono_sensor_FILTERS_SOURCES}
+      filters/ChFilterCameraNoise.cpp
+      filters/ChFilterGrayscale.cpp
+      filters/ChFilterImageOps.cpp
+      filters/ChFilterVisualize.cpp
+      filters/ChFilterSave.cpp
+  )
+  set(Chrono_sensor_FILTERS_HEADERS ${Chrono_sensor_FILTERS_HEADERS}
+      filters/ChFilterCameraNoise.h
+      filters/ChFilterGrayscale.h
+      filters/ChFilterImageOps.h
+      filters/ChFilterVisualize.h
+      filters/ChFilterSave.h
+  )
+endif()
+
 if(CH_USE_SENSOR_OPTIX)
   set(Chrono_sensor_FILTERS_SOURCES ${Chrono_sensor_FILTERS_SOURCES}
       filters/ChFilterCameraExposure.cpp
-      filters/ChFilterCameraNoise.cpp
-      filters/ChFilterGrayscale.cpp
       filters/ChFilterLidarNoise.cpp
       filters/ChFilterLidarIntensityClip.cpp
       filters/ChFilterLidarReduce.cpp
-      filters/ChFilterImageOps.cpp
       filters/ChFilterPCfromDepth.cpp
       filters/ChFilterRadarProcess.cpp
       filters/ChFilterRadarXYZReturn.cpp
       filters/ChFilterRadarSavePC.cpp
       filters/ChFilterRadarXYZVisualize.cpp
       filters/ChFilterRadarVisualizeCluster.cpp
-      filters/ChFilterVisualize.cpp
-      filters/ChFilterSave.cpp
       filters/ChFilterSavePtCloud.cpp
       filters/ChFilterVisualizePointCloud.cpp
       filters/ChFilterPhysCameraDefocusBlur.cpp
@@ -374,20 +513,56 @@ if(CH_USE_SENSOR_OPTIX)
   )
   set(Chrono_sensor_FILTERS_HEADERS ${Chrono_sensor_FILTERS_HEADERS}
       filters/ChFilterCameraExposure.h
-      filters/ChFilterCameraNoise.h
-      filters/ChFilterGrayscale.h
       filters/ChFilterLidarNoise.h
       filters/ChFilterLidarReduce.h
       filters/ChFilterLidarIntensityClip.h
-      filters/ChFilterImageOps.h
       filters/ChFilterPCfromDepth.h
       filters/ChFilterRadarProcess.h
       filters/ChFilterRadarXYZReturn.h
       filters/ChFilterRadarSavePC.h
       filters/ChFilterRadarXYZVisualize.h
       filters/ChFilterRadarVisualizeCluster.h
-      filters/ChFilterVisualize.h
-      filters/ChFilterSave.h
+      filters/ChFilterSavePtCloud.h
+      filters/ChFilterVisualizePointCloud.h
+      filters/ChFilterPhysCameraDefocusBlur.h
+      filters/ChFilterPhysCameraVignetting.h
+      filters/ChFilterPhysCameraAggregator.h
+      filters/ChFilterPhysCameraNoise.h
+      filters/ChFilterPhysCameraExpsrToDV.h
+  )
+endif()
+
+if(CH_USE_SENSOR_VULKAN_RT AND NOT CH_USE_SENSOR_OPTIX)
+  # Vulkan-only lidar/radar/point-cloud/physics-camera filters. These files use
+  # host-visible Vulkan RT buffers and must not pull CUDA or OptiX dependencies.
+  list(APPEND Chrono_sensor_FILTERS_SOURCES
+      filters/ChFilterLidarNoise.cpp
+      filters/ChFilterLidarIntensityClip.cpp
+      filters/ChFilterLidarReduce.cpp
+      filters/ChFilterPCfromDepth.cpp
+      filters/ChFilterRadarProcess.cpp
+      filters/ChFilterRadarXYZReturn.cpp
+      filters/ChFilterRadarSavePC.cpp
+      filters/ChFilterRadarXYZVisualize.cpp
+      filters/ChFilterRadarVisualizeCluster.cpp
+      filters/ChFilterSavePtCloud.cpp
+      filters/ChFilterVisualizePointCloud.cpp
+      filters/ChFilterPhysCameraDefocusBlur.cpp
+      filters/ChFilterPhysCameraVignetting.cpp
+      filters/ChFilterPhysCameraAggregator.cpp
+      filters/ChFilterPhysCameraNoise.cpp
+      filters/ChFilterPhysCameraExpsrToDV.cpp
+  )
+  list(APPEND Chrono_sensor_FILTERS_HEADERS
+      filters/ChFilterLidarNoise.h
+      filters/ChFilterLidarReduce.h
+      filters/ChFilterLidarIntensityClip.h
+      filters/ChFilterPCfromDepth.h
+      filters/ChFilterRadarProcess.h
+      filters/ChFilterRadarXYZReturn.h
+      filters/ChFilterRadarSavePC.h
+      filters/ChFilterRadarXYZVisualize.h
+      filters/ChFilterRadarVisualizeCluster.h
       filters/ChFilterSavePtCloud.h
       filters/ChFilterVisualizePointCloud.h
       filters/ChFilterPhysCameraDefocusBlur.h
@@ -445,19 +620,46 @@ set(SENSOR_TINYOBJ_FILES
 source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
 #-----------------------------------------------------------------------------
-# Copy shader sources to build tree
+# Shader directory in the build tree
+#
+# The runtime reads shader files out of this directory (GetShaderFromFile in
+# optix/ChOptixUtils.cpp), so its contents must track the sources. The copy itself is a
+# BUILD step, not a configure step: see Chrono_sensor_shader_copy (NVRTC) and
+# Chrono_sensor_ptx_copy (NVCC) below. Copying here with file(COPY) instead would leave a
+# stale copy whenever a shader is edited and only the build is re-run, so the old shader
+# would keep being used with no error and no warning.
 #-----------------------------------------------------------------------------
+
+if(NOT CH_BUILD_SENSOR_SHADERS)
+  set(CH_BUILD_SENSOR_SHADERS "${PROJECT_BINARY_DIR}/sensor_shaders")
+endif()
+if(NOT CH_INSTALL_SENSOR_SHADERS)
+  set(CH_INSTALL_SENSOR_SHADERS "share/chrono_sensor/shaders")
+endif()
 
 if(CH_USE_SENSOR_OPTIX)
   message(STATUS "Shader directory in BUILD tree: ${CH_BUILD_SENSOR_SHADERS}")
-  if(CH_USE_SENSOR_NVRTC)
-    # We need *.cu at runtime to compile with NVRTC
-    file(COPY ${Chrono_sensor_RT_SOURCES} DESTINATION ${CH_BUILD_SENSOR_SHADERS})
-  else()
-    # Only PTX files are needed at runtime if we compile with NVCC at build time
-    # Just make sure the directory exists and *.ptx will be copied over
-    file(MAKE_DIRECTORY ${CH_BUILD_SENSOR_SHADERS})
-  endif()
+  # Created at configure time so that install(DIRECTORY ...) below always has a directory,
+  # even before a build has populated it.
+  file(MAKE_DIRECTORY ${CH_BUILD_SENSOR_SHADERS})
+endif()
+
+if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+  set(CH_BUILD_SENSOR_VULKAN_SHADERS "${CH_BUILD_SENSOR_SHADERS}/vulkan")
+  file(MAKE_DIRECTORY ${CH_BUILD_SENSOR_VULKAN_SHADERS})
+  set(Chrono_sensor_VULKAN_SPV)
+  foreach(_vk_shader ${Chrono_sensor_VULKAN_SHADER_SOURCES})
+    get_filename_component(_vk_shader_name ${_vk_shader} NAME)
+    set(_vk_spv "${CH_BUILD_SENSOR_VULKAN_SHADERS}/${_vk_shader_name}.spv")
+    add_custom_command(
+        OUTPUT ${_vk_spv}
+        COMMAND ${CH_VULKAN_GLSLANG_VALIDATOR} -V --target-env vulkan1.2 -o ${_vk_spv} ${CMAKE_CURRENT_SOURCE_DIR}/${_vk_shader}
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${_vk_shader}
+        COMMENT "Compile Vulkan RT shader ${_vk_shader_name}"
+        VERBATIM)
+    list(APPEND Chrono_sensor_VULKAN_SPV ${_vk_spv})
+  endforeach()
+  add_custom_target(Chrono_sensor_vulkan_spv ALL DEPENDS ${Chrono_sensor_VULKAN_SPV})
 endif()
 
 # ----------------------------------------------------------------------------
@@ -480,18 +682,22 @@ list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_UTILS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_UTILS_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_OPTIX_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_OPTIX_HEADERS})
+list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_VULKAN_SOURCES})
+list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_VULKAN_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_FILTERS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_FILTERS_HEADERS})
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_SCENE_SOURCES})
-list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_SCENE_HEADERS})
 
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_TINYOBJ_FILES})
 
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_CONFIG_FILE})
 
-add_library(Chrono_sensor ${ALL_CH_SENSOR_FILES} ${Chrono_sensor_CUDA_SOURCES})
+add_library(Chrono_sensor ${ALL_CH_SENSOR_FILES} ${Chrono_sensor_CUDA_SOURCES} ${Chrono_sensor_VULKAN_SHADER_SOURCES})
 add_library(Chrono::sensor ALIAS Chrono_sensor)
+
+if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+  add_dependencies(Chrono_sensor Chrono_sensor_vulkan_spv)
+endif()
 
 set_target_properties(Chrono_sensor PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 
@@ -521,6 +727,25 @@ if(CH_USE_SENSOR_OPTIX)
 
   target_link_libraries(Chrono_sensor PUBLIC CUDA::cudart_static)
 
+  # Declare the backend that goes with the link above.
+  #
+  # With OptiX enabled, Chrono::Sensor exports CUDA to its consumers: it links
+  # CUDA::cudart_static PUBLIC, and ChSensorBuffer.h -- an installed header --
+  # includes <cuda_fp16.h> under CHRONO_HAS_OPTIX. Every consumer therefore
+  # compiles against CUDA's vector types whether it asked to or not.
+  #
+  # CHRONO_USE_CUDA is what tells chrono/gpu/ChGpuPrimitives.h that those types
+  # already exist. Without it that header takes its "no GPU SDK here" branch and
+  # defines its own int2/float3/make_int2/..., which then collide with CUDA's.
+  # Exporting the headers but not the macro is the same visibility mismatch the
+  # GPU modules avoid by construction; sensor predates that helper and links
+  # CUDA by hand, so it has to say so by hand too.
+  #
+  # This is deliberately just the define: chrono_apply_gpu_backend() would also
+  # link cuBLAS, cuSPARSE and NVRTC, which sensor does not want, and would set
+  # CUDA_ARCHITECTURES a second time.
+  target_compile_definitions(Chrono_sensor PUBLIC CHRONO_USE_CUDA)
+
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppc)
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppig)
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppidei)
@@ -536,6 +761,14 @@ if(CH_USE_SENSOR_OPTIX)
 
 endif()
 
+if(CH_USE_SENSOR_VULKAN_RT)
+  target_link_libraries(Chrono_sensor PUBLIC Vulkan::Vulkan)
+  target_link_libraries(Chrono_sensor PRIVATE Threads::Threads)
+  if(CH_USE_SENSOR_VULKAN_RT_GPU)
+    target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CHRONO_SENSOR_VULKAN_RT_GPU_ENABLED>)
+  endif()
+endif()
+
 # print cxx compiler flags\
 ## TODO: DARIOM need to be passed to the host compiler?
 # if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
@@ -546,7 +779,7 @@ if(CH_USE_SENSOR_OPTIX)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
-  set_target_properties(Chrono_sensor PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+  set_target_properties(Chrono_sensor PROPERTIES CUDA_ARCHITECTURES "${CHRONO_CUDA_ARCHITECTURES}")
 endif()
 
 # ------------------------------------------------------------------------------
@@ -616,7 +849,64 @@ if(CH_USE_SENSOR_OPTIX)
    
     # Install the shader sources
     install(FILES ${Chrono_sensor_RT_SOURCES}
-            DESTINATION include/chrono_sensor/optix/shaders)  
+            DESTINATION include/chrono_sensor/optix/shaders)
+
+    # Stage the *.cu shader sources into the build tree as a BUILD step.
+    #
+    # NVRTC compiles these at runtime by reading them from CH_BUILD_SENSOR_SHADERS, so the
+    # staged copies must track the sources. Staging them at configure time instead would mean
+    # that editing a shader and re-running only the build keeps using the previous version,
+    # with no error and no warning.
+    #
+    # One rule per shader, each with a real OUTPUT and DEPENDS, so a copy runs only when that
+    # shader changes and an otherwise unchanged tree still reports "no work to do". A bare
+    # add_custom_target would be phony, hence always out of date, and would re-run every copy on
+    # every build. (Chrono_sensor_ptx_copy in the NVCC branch below is such a target; it can be
+    # because its inputs are build artifacts rather than sources.)
+    #
+    # Paths in Chrono_sensor_RT_SOURCES are relative to CMAKE_CURRENT_SOURCE_DIR, while a custom
+    # command runs in the build directory, so they are made absolute here.
+    set(Chrono_sensor_RT_STAGED "")
+    set(_staged_shader_names "")
+    foreach(_shader ${Chrono_sensor_RT_SOURCES})
+      get_filename_component(_shader_name "${_shader}" NAME)
+      list(APPEND _staged_shader_names "${_shader_name}")
+      # The trailing touch keeps the declared OUTPUT no older than its DEPENDS even when
+      # copy_if_different decides the bytes are unchanged, as happens when a source is touched
+      # but not edited. Without it, a generator that decides staleness purely by comparing
+      # timestamps would find this rule dirty on every subsequent build. The Ninja generator does
+      # not need it, because CMake emits "restat = 1" for custom commands and Ninja then treats an
+      # unchanged output as clean; the touch makes the rule correct without relying on that.
+      add_custom_command(
+        OUTPUT  "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/${_shader}"
+                "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}"
+        COMMAND ${CMAKE_COMMAND} -E touch "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${_shader}"
+        COMMENT "Staging Chrono::Sensor shader ${_shader_name}"
+        VERBATIM
+      )
+      list(APPEND Chrono_sensor_RT_STAGED "${CH_BUILD_SENSOR_SHADERS}/${_shader_name}")
+    endforeach()
+
+    add_custom_target(Chrono_sensor_shader_copy ALL DEPENDS ${Chrono_sensor_RT_STAGED})
+
+    # ALL by itself is not sufficient: building a single target, for example one demo or one
+    # unit test, would skip the copy and run against a stale shader. Making the library depend
+    # on the copy means anything that links Chrono_sensor gets current shaders.
+    add_dependencies(Chrono_sensor Chrono_sensor_shader_copy)
+
+    # Exported for utest_SEN_shader_staging, which asserts that every staged copy still matches its
+    # source. The list comes from the same variable the staging rules above are generated from, so
+    # the test cannot silently disagree with the build about which shaders exist, and it includes the
+    # NVDB shader whenever that configuration adds one.
+    set(CH_SENSOR_STAGED_SHADER_NAMES "${_staged_shader_names}"
+        CACHE INTERNAL "Names of the OptiX shader files staged into the build tree")
+    set(CH_SENSOR_SHADER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders"
+        CACHE INTERNAL "Directory holding the OptiX shader sources in the repository")
+    set(CH_SENSOR_STAGED_SHADER_DIR "${CH_BUILD_SENSOR_SHADERS}"
+        CACHE INTERNAL "Directory the runtime reads OptiX shaders from")
   else()
     message(STATUS "  Building Chrono::Sensor with NVRTC OFF")
     
@@ -656,6 +946,11 @@ if(CH_USE_SENSOR_OPTIX)
   install(DIRECTORY ${CH_BUILD_SENSOR_SHADERS}/ DESTINATION ${CH_INSTALL_SENSOR_SHADERS})
 
 endif() # CH_USE_SENSOR_OPTIX
+
+if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+  install(FILES ${Chrono_sensor_VULKAN_SPV}
+          DESTINATION ${CH_INSTALL_SENSOR_SHADERS}/vulkan)
+endif()
 
 # ------------------------------------------------------------------------------
 # Find optional GL support
@@ -726,19 +1021,52 @@ if(CH_USE_SENSOR_OPTIX)
 
   # For the build tree
   set(SHADER_DIR ${CH_BUILD_SENSOR_SHADERS})
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    set(VULKAN_SHADER_DIR "${CH_BUILD_SENSOR_SHADERS}/vulkan")
+  else()
+    set(VULKAN_SHADER_DIR "")
+  endif()
   message(STATUS "   build tree:   SHADER_DIR = ${SHADER_DIR}")
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    message(STATUS "   build tree:   VULKAN_SHADER_DIR = ${VULKAN_SHADER_DIR}")
+  endif()
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in ${Chrono_sensor_CONFIG_FILE} @ONLY)
   
   # For the install tree
   set(SHADER_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    set(VULKAN_SHADER_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}/vulkan")
+  else()
+    set(VULKAN_SHADER_DIR "")
+  endif()
   message(STATUS "   install tree: SHADER_DIR = ${SHADER_DIR}")
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    message(STATUS "   install tree: VULKAN_SHADER_DIR = ${VULKAN_SHADER_DIR}")
+  endif()
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
       ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h @ONLY)
 
 else()
 
   set(SHADER_DIR "")
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    set(VULKAN_SHADER_DIR "${CH_BUILD_SENSOR_SHADERS}/vulkan")
+  else()
+    set(VULKAN_SHADER_DIR "")
+  endif()
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    message(STATUS "   build tree:   VULKAN_SHADER_DIR = ${VULKAN_SHADER_DIR}")
+  endif()
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in ${Chrono_sensor_CONFIG_FILE} @ONLY)
+
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    set(VULKAN_SHADER_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}/vulkan")
+  else()
+    set(VULKAN_SHADER_DIR "")
+  endif()
+  if(CH_USE_SENSOR_VULKAN_RT AND CH_USE_SENSOR_VULKAN_RT_GPU)
+    message(STATUS "   install tree: VULKAN_SHADER_DIR = ${VULKAN_SHADER_DIR}")
+  endif()
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigSensor.h.in
       ${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h @ONLY)
 
@@ -754,26 +1082,20 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor-install.h"
 #-------------------------------------------------------------------------------
 
 # Old way
-install(FILES ${Chrono_sensor_HEADERS}
-        DESTINATION include/chrono_sensor)
-install(FILES ${Chrono_sensor_SENSORS_HEADERS}
-        DESTINATION include/chrono_sensor/sensors)
-install(FILES ${Chrono_sensor_UTILS_HEADERS}
-        DESTINATION include/chrono_sensor/utils)
-install(FILES ${Chrono_sensor_OPTIX_HEADERS}
-        DESTINATION include/chrono_sensor/optix)
-install(FILES ${Chrono_sensor_FILTERS_HEADERS}
-        DESTINATION include/chrono_sensor/filters)
-install(FILES ${Chrono_sensor_CUDA_HEADERS}
-        DESTINATION include/chrono_sensor/cuda)
-install(FILES ${Chrono_sensor_SCENE_HEADERS}
-        DESTINATION include/chrono_sensor/optix/scene)
-install(FILES ${Chrono_sensor_RT_HEADERS}
-        DESTINATION include/chrono_sensor/optix/shaders)
+install(FILES ${Chrono_sensor_HEADERS}         DESTINATION include/chrono_sensor)
+install(FILES ${Chrono_sensor_SENSORS_HEADERS} DESTINATION include/chrono_sensor/sensors)
+install(FILES ${Chrono_sensor_UTILS_HEADERS}   DESTINATION include/chrono_sensor/utils)
+install(FILES ${Chrono_sensor_OPTIX_HEADERS}   DESTINATION include/chrono_sensor/optix)
+install(FILES ${Chrono_sensor_VULKAN_HEADERS}  DESTINATION include/chrono_sensor/vulkan)
+install(FILES ${Chrono_sensor_FILTERS_HEADERS} DESTINATION include/chrono_sensor/filters)
+install(FILES ${Chrono_sensor_CUDA_HEADERS}    DESTINATION include/chrono_sensor/cuda)
+install(FILES ${Chrono_sensor_RT_HEADERS}      DESTINATION include/chrono_sensor/optix/shaders)
 
 # Copy and install FindOptiX.cmake
-file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOptiX.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOptiX.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
+if(CH_USE_SENSOR_OPTIX)
+  file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOptiX.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+  install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOptiX.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
+endif()
 
 # Install 3rd party headers
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb

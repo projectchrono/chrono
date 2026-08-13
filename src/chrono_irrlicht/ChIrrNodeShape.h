@@ -15,12 +15,8 @@
 
 #include <irrlicht.h>
 
-#include "chrono/assets/ChVisualShape.h"
+#include "chrono/assets/ChVisualShapes.h"
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/assets/ChVisualShapePath.h"
-#include "chrono/assets/ChVisualShapeSurface.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 

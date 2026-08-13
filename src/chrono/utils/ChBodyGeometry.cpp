@@ -21,12 +21,7 @@
 
 #include "chrono/core/ChDataPath.h"
 
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapes.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChBodyGeometry.h"
@@ -47,53 +42,27 @@ ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& 
 ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChBox& box, int matID)
     : pos(pos), rot(rot), dims(box.GetLengths()), matID(matID), color({-1, -1, -1}) {}
 
-ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, double radius, int matID)
-    : pos(pos), radius(radius), matID(matID), color({-1, -1, -1}) {}
+ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, double radius, int matID) : pos(pos), radius(radius), matID(matID), color({-1, -1, -1}) {}
 
-ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, const ChSphere& sphere, int matID)
-    : pos(pos), radius(sphere.GetRadius()), matID(matID), color({-1, -1, -1}) {}
+ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, const ChSphere& sphere, int matID) : pos(pos), radius(sphere.GetRadius()), matID(matID), color({-1, -1, -1}) {}
 
-ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
-                                             const ChQuaternion<>& rot,
-                                             double radius,
-                                             double length,
-                                             int matID)
+ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos, const ChQuaternion<>& rot, double radius, double length, int matID)
     : pos(pos), rot(rot), radius(radius), length(length), matID(matID), color({-1, -1, -1}) {}
 
-ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
-                                             const ChVector3d& axis,
-                                             double radius,
-                                             double length,
-                                             int matID)
+ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos, const ChVector3d& axis, double radius, double length, int matID)
     : pos(pos), radius(radius), length(length), matID(matID), color({-1, -1, -1}) {
     ChMatrix33<> rot_mat;
     rot_mat.SetFromAxisX(axis);
     rot = rot_mat.GetQuaternion() * QuatFromAngleY(CH_PI_2);
 }
 
-ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
-                                             const ChQuaternion<>& rot,
-                                             const ChCylinder& cylinder,
-                                             int matID)
-    : pos(pos),
-      rot(rot),
-      radius(cylinder.GetRadius()),
-      length(cylinder.GetHeight()),
-      matID(matID),
-      color({-1, -1, -1}) {}
+ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChCylinder& cylinder, int matID)
+    : pos(pos), rot(rot), radius(cylinder.GetRadius()), length(cylinder.GetHeight()), matID(matID), color({-1, -1, -1}) {}
 
-ChBodyGeometry::ConeShape::ConeShape(const ChVector3d& pos,
-                                     const ChQuaternion<>& rot,
-                                     double radius,
-                                     double length,
-                                     int matID)
+ChBodyGeometry::ConeShape::ConeShape(const ChVector3d& pos, const ChQuaternion<>& rot, double radius, double length, int matID)
     : pos(pos), rot(rot), radius(radius), length(length), matID(matID), color({-1, -1, -1}) {}
 
-ChBodyGeometry::ConeShape::ConeShape(const ChVector3d& pos,
-                                     const ChVector3d& axis,
-                                     double radius,
-                                     double length,
-                                     int matID)
+ChBodyGeometry::ConeShape::ConeShape(const ChVector3d& pos, const ChVector3d& axis, double radius, double length, int matID)
     : pos(pos), radius(radius), length(length), matID(matID), color({-1, -1, -1}) {
     ChMatrix33<> rot_mat;
     rot_mat.SetFromAxisX(axis);
@@ -103,28 +72,15 @@ ChBodyGeometry::ConeShape::ConeShape(const ChVector3d& pos,
 ChBodyGeometry::ConeShape::ConeShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChCone& cone, int matID)
     : pos(pos), rot(rot), radius(cone.GetRadius()), length(cone.GetHeight()), matID(matID), color({-1, -1, -1}) {}
 
-ChBodyGeometry::LineShape::LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line)
-    : pos(pos), rot(rot), line(line) {}
+ChBodyGeometry::LineShape::LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line) : pos(pos), rot(rot), line(line) {}
 
-ChBodyGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, int matID)
-    : matID(matID), is_mutable(false) {
+ChBodyGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, int matID) : matID(matID), is_mutable(false) {
     ChTriangleMeshConnected mesh;
     utils::LoadConvexHulls(filename, mesh, hulls);
 }
 
-ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
-                                           const ChQuaternion<>& rot,
-                                           const std::string& filename,
-                                           double scale,
-                                           double radius,
-                                           int matID)
-    : TrimeshShape(pos,
-                   rot,
-                   ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true),
-                   VNULL,
-                   scale,
-                   radius,
-                   matID) {}
+ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos, const ChQuaternion<>& rot, const std::string& filename, double scale, double radius, int matID)
+    : TrimeshShape(pos, rot, ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true), VNULL, scale, radius, matID) {}
 
 ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                            const ChQuaternion<>& rot,
@@ -141,13 +97,7 @@ ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                            double scale,
                                            double radius,
                                            int matID)
-    : TrimeshShape(pos,
-                   rot,
-                   ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true),
-                   interior_point,
-                   scale,
-                   radius,
-                   matID) {}
+    : TrimeshShape(pos, rot, ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true), interior_point, scale, radius, matID) {}
 
 ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                            const ChQuaternion<>& rot,
@@ -156,12 +106,7 @@ ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
                                            double scale,
                                            double radius,
                                            int matID)
-    : trimesh(trimesh),
-      radius(radius),
-      matID(matID),
-      int_point(interior_point),
-      color({-1, -1, -1}),
-      is_mutable(false) {
+    : trimesh(trimesh), radius(radius), matID(matID), int_point(interior_point), color({-1, -1, -1}), is_mutable(false) {
     ChMatrix33d R(rot);
 
     // Transform mesh vertices
@@ -188,9 +133,11 @@ std::shared_ptr<ChVisualShape> ChBodyGeometry::AddVisualizationCylinder(std::sha
     return cyl;
 }
 
-void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
-                                               VisualizationType vis,
-                                               bool create_materials) {
+void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis, bool create_materials) {
+    CreateVisualizationAssets(body, ChFramed(), vis, create_materials);
+}
+
+void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, const ChFramed& frame, VisualizationType vis, bool create_materials) {
     if (vis == VisualizationType::NONE)
         return;
 
@@ -223,7 +170,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
                 else
                     sphere_shape->SetColor(sphere.color);
             }
-            body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
+            body->AddVisualShape(sphere_shape, frame * ChFramed(sphere.pos));
         }
 
         for (auto& box : coll_boxes) {
@@ -234,7 +181,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
                 else
                     box_shape->SetColor(box.color);
             }
-            body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
+            body->AddVisualShape(box_shape, frame * ChFramed(box.pos, box.rot));
         }
 
         for (auto& cyl : coll_cylinders) {
@@ -245,7 +192,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
                 else
                     cyl_shape->SetColor(cyl.color);
             }
-            body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
+            body->AddVisualShape(cyl_shape, frame * ChFramed(cyl.pos, cyl.rot));
         }
 
         for (auto& cone : coll_cones) {
@@ -256,7 +203,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
                 else
                     cone_shape->SetColor(cone.color);
             }
-            body->AddVisualShape(cone_shape, ChFrame<>(cone.pos, cone.rot));
+            body->AddVisualShape(cone_shape, frame * ChFramed(cone.pos, cone.rot));
         }
 
         for (auto& mesh : coll_meshes) {
@@ -269,7 +216,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
                 else
                     trimesh_shape->SetColor(mesh.color);
             }
-            body->AddVisualShape(trimesh_shape, ChFrame<>());
+            body->AddVisualShape(trimesh_shape, frame);
         }
 
         return;
@@ -282,7 +229,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(std::filesystem::path(vis_model_file).stem().string());
-        body->AddVisualShape(trimesh_shape, ChFrame<>());
+        body->AddVisualShape(trimesh_shape, frame);
         return;
     }
 
@@ -295,7 +242,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
             else
                 sphere_shape->SetColor(sphere.color);
         }
-        body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
+        body->AddVisualShape(sphere_shape, frame * ChFramed(sphere.pos));
     }
 
     for (auto& box : vis_boxes) {
@@ -306,7 +253,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
             else
                 box_shape->SetColor(box.color);
         }
-        body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
+        body->AddVisualShape(box_shape, frame * ChFramed(box.pos, box.rot));
     }
 
     for (auto& cyl : vis_cylinders) {
@@ -317,7 +264,7 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
             else
                 cyl_shape->SetColor(cyl.color);
         }
-        body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
+        body->AddVisualShape(cyl_shape, frame * ChFramed(cyl.pos, cyl.rot));
     }
 
     for (auto& cone : vis_cones) {
@@ -328,13 +275,13 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
             else
                 cone_shape->SetColor(cone.color);
         }
-        body->AddVisualShape(cone_shape, ChFrame<>(cone.pos, cone.rot));
+        body->AddVisualShape(cone_shape, frame * ChFramed(cone.pos, cone.rot));
     }
 
     for (auto& line : vis_lines) {
         auto line_shape = chrono_types::make_shared<ChVisualShapeLine>();
         line_shape->SetLineGeometry(line.line);
-        body->AddVisualShape(line_shape, ChFrame<>(line.pos, line.rot));
+        body->AddVisualShape(line_shape, frame * ChFramed(line.pos, line.rot));
     }
 
     for (auto& mesh : vis_meshes) {
@@ -347,15 +294,17 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
             else
                 trimesh_shape->SetColor(mesh.color);
         }
-        body->AddVisualShape(trimesh_shape, ChFrame<>());
+        body->AddVisualShape(trimesh_shape, frame);
     }
 
     return;
 }
 
-void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
-                                           int collision_family,
-                                           ChContactMethod contact_method) {
+void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method) {
+    CreateCollisionShapes(body, ChFramed(), collision_family, contact_method);
+}
+
+void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body, const ChFramed& frame, int collision_family, ChContactMethod contact_method) {
     std::vector<std::shared_ptr<ChContactMaterial>> cmaterials;
     for (const auto& minfo : materials) {
         cmaterials.push_back(minfo.CreateMaterial(contact_method));
@@ -366,38 +315,36 @@ void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     for (auto& sphere : coll_spheres) {
         assert(cmaterials[sphere.matID]);
         auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(cmaterials[sphere.matID], sphere.radius);
-        body->AddCollisionShape(shape, ChFrame<>(sphere.pos, QUNIT));
+        body->AddCollisionShape(shape, frame * ChFramed(sphere.pos, QUNIT));
     }
     for (auto& box : coll_boxes) {
         assert(cmaterials[box.matID]);
-        auto shape = chrono_types::make_shared<ChCollisionShapeBox>(cmaterials[box.matID], box.dims.x(), box.dims.y(),
-                                                                    box.dims.z());
-        body->AddCollisionShape(shape, ChFrame<>(box.pos, box.rot));
+        auto shape = chrono_types::make_shared<ChCollisionShapeBox>(cmaterials[box.matID], box.dims.x(), box.dims.y(), box.dims.z());
+        body->AddCollisionShape(shape, frame * ChFramed(box.pos, box.rot));
     }
     for (auto& cyl : coll_cylinders) {
         assert(cmaterials[cyl.matID]);
         auto shape = chrono_types::make_shared<ChCollisionShapeCylinder>(cmaterials[cyl.matID], cyl.radius, cyl.length);
-        body->AddCollisionShape(shape, ChFrame<>(cyl.pos, cyl.rot));
+        body->AddCollisionShape(shape, frame * ChFramed(cyl.pos, cyl.rot));
     }
     for (auto& cone : coll_cones) {
         assert(cmaterials[cone.matID]);
         auto shape = chrono_types::make_shared<ChCollisionShapeCone>(cmaterials[cone.matID], cone.radius, cone.length);
-        body->AddCollisionShape(shape, ChFrame<>(cone.pos, cone.rot));
+        body->AddCollisionShape(shape, frame * ChFramed(cone.pos, cone.rot));
     }
     for (auto& hulls_group : coll_hulls) {
         assert(cmaterials[hulls_group.matID]);
         for (const auto& hull : hulls_group.hulls) {
             auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(cmaterials[hulls_group.matID], hull);
             shape->SetMutable(hulls_group.is_mutable);
-            body->AddCollisionShape(shape);
+            body->AddCollisionShape(shape, frame);
         }
     }
     for (auto& mesh : coll_meshes) {
         assert(cmaterials[mesh.matID]);
-        auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterials[mesh.matID], mesh.trimesh,
-                                                                             false, false, mesh.radius);
+        auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterials[mesh.matID], mesh.trimesh, false, false, mesh.radius);
         shape->SetMutable(mesh.is_mutable);
-        body->AddCollisionShape(shape);
+        body->AddCollisionShape(shape, frame);
     }
 
     body->GetCollisionModel()->SetFamily(collision_family);
@@ -465,14 +412,12 @@ ChAABB ChBodyGeometry::CalculateAABB() {
 }
 
 bool ChBodyGeometry::HasCollision() const {
-    bool empty = coll_boxes.empty() && coll_spheres.empty() && coll_cylinders.empty() && coll_cones.empty() &&
-                 coll_hulls.empty() && coll_meshes.empty();
+    bool empty = coll_boxes.empty() && coll_spheres.empty() && coll_cylinders.empty() && coll_cones.empty() && coll_hulls.empty() && coll_meshes.empty();
     return !empty;
 }
 
 bool ChBodyGeometry::HasVisualizationPrimitives() const {
-    bool empty =
-        vis_boxes.empty() && vis_spheres.empty() && vis_cylinders.empty() && vis_cones.empty() && vis_lines.empty();
+    bool empty = vis_boxes.empty() && vis_spheres.empty() && vis_cylinders.empty() && vis_cones.empty() && vis_lines.empty();
     return !empty;
 }
 
@@ -497,10 +442,80 @@ std::string ChBodyGeometry::GetVisualizationTypeAsString(VisualizationType type)
 
 // -----------------------------------------------------------------------------
 
+std::shared_ptr<ChBodyGeometry> ChBodyGeometry::Combine(std::vector<std::pair<ChFramed, ChBodyGeometry>> components) {
+    auto g = chrono_types::make_shared<ChBodyGeometry>();
+
+    // Contact materials
+    std::vector<std::vector<int>> matID(components.size());
+    for (size_t i = 0; i < components.size(); i++) {
+        const auto& comp = components[i].second;
+        for (size_t j = 0; j < comp.materials.size(); j++) {
+            g->materials.push_back(comp.materials[j]);
+            matID[i].push_back(static_cast<int>(g->materials.size() - 1));
+        }
+    }
+
+    // Collision shapes
+    for (size_t i = 0; i < components.size(); i++) {
+        const auto& f = components[i].first;
+        const auto& comp = components[i].second;
+        const auto& mat = matID[i];
+        for (const auto& b : comp.coll_boxes) {
+            g->coll_boxes.push_back(BoxShape(f * b.pos, f.GetRot() * b.rot, b.dims, mat[b.matID]));
+        }
+        for (const auto& s : comp.coll_spheres) {
+            g->coll_spheres.push_back(SphereShape(f * s.pos, s.radius, mat[s.matID]));
+        }
+        for (const auto& c : comp.coll_cylinders) {
+            g->coll_cylinders.push_back(CylinderShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length, mat[c.matID]));
+        }
+        for (const auto& c : comp.coll_cones) {
+            g->coll_cones.push_back(ConeShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length, mat[c.matID]));
+        }
+        for (const auto& m : comp.coll_meshes) {
+            auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>(*m.trimesh);
+            g->coll_meshes.push_back(TrimeshShape(f.GetPos(), f.GetRot(), trimesh, 1.0, 0.01, mat[m.matID]));
+        }
+        ////for (const auto& h : comp.coll_hulls) {
+        ////    //// TODO
+        ////}
+    }
+
+    // Visual shapes
+    for (size_t i = 0; i < components.size(); i++) {
+        const auto& f = components[i].first;
+        const auto& comp = components[i].second;
+        for (const auto& b : comp.vis_boxes) {
+            g->vis_boxes.push_back(BoxShape(f * b.pos, f.GetRot() * b.rot, b.dims));
+        }
+        for (const auto& s : comp.vis_spheres) {
+            g->vis_spheres.push_back(SphereShape(f * s.pos, s.radius));
+        }
+        for (const auto& c : comp.vis_cylinders) {
+            g->vis_cylinders.push_back(CylinderShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length));
+        }
+        for (const auto& c : comp.vis_cones) {
+            g->vis_cones.push_back(ConeShape(f * c.pos, f.GetRot() * c.rot, c.radius, c.length));
+        }
+        for (const auto& m : comp.vis_meshes) {
+            auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>(*m.trimesh);
+            g->vis_meshes.push_back(TrimeshShape(f.GetPos(), f.GetRot(), trimesh, 1.0));
+        }
+        ////for (const auto& l : comp.vis_lines) {
+        ////    //// TODO
+        ////    ////auto line = chrono_types::make_shared<ChLine>(*l.line);
+        ////    ////g->vis_lines.push_back(LineShape(f * l.pos, f.GetRot() * l.rot, line));
+        ////}
+    }
+
+    return g;
+}
+
+// -----------------------------------------------------------------------------
+
 ChTSDAGeometry::ChTSDAGeometry() : color(ChColor(1.0f, 1.0f, 1.0f)), vis_segment(nullptr), vis_spring(nullptr) {}
 
-ChTSDAGeometry::SpringShape::SpringShape(double radius, int resolution, double turns)
-    : radius(radius), turns(turns), resolution(resolution) {}
+ChTSDAGeometry::SpringShape::SpringShape(double radius, int resolution, double turns) : radius(radius), turns(turns), resolution(resolution) {}
 
 void ChTSDAGeometry::CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda) {
     if (!tsda->GetVisualModel()) {
@@ -512,8 +527,7 @@ void ChTSDAGeometry::CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda)
     mat->SetDiffuseColor(color);
 
     if (vis_spring) {
-        auto spring_shape = chrono_types::make_shared<ChVisualShapeSpring>(vis_spring->radius, vis_spring->resolution,
-                                                                           vis_spring->turns);
+        auto spring_shape = chrono_types::make_shared<ChVisualShapeSpring>(vis_spring->radius, vis_spring->resolution, vis_spring->turns);
         spring_shape->AddMaterial(mat);
         tsda->AddVisualShape(spring_shape);
     }

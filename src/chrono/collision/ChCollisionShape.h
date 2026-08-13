@@ -32,23 +32,23 @@ class ChApi ChCollisionShape {
         SPHERE,
         ELLIPSOID,
         BOX,
+        ROUNDEDBOX,
         CYLINDER,
         CYLSHELL,
+        ROUNDEDCYL,
+        CAPSULE,
         CONVEXHULL,
-        TRIANGLEMESH,  // triangle mesh (compound object)
-        BARREL,        // Not supported in Chrono collision system
-        POINT,
-        SEGMENT,
+        TRIANGLEMESH,       // triangle mesh (compound object)
+        BARREL,             // Not supported in Chrono collision system
+        POINT,              // contact point
+        SEGMENT,            // contact segment
         TRIANGLE,           // stand-alone collision triangle
         CONNECTEDTRIANGLE,  // triangle in a connected mesh
-        CAPSULE,
-        CONE,         // Not implemented in Bullet collision system
-        ROUNDEDBOX,   // Not implemented in Bullet collision system
-        ROUNDEDCYL,   // Not implemented in Bullet collision system
-        TETRAHEDRON,  // Not implemented in Bullet collision system
-        PATH2D,       // 2D path (compound object)
-        SEGMENT2D,    // line segment (part of a 2D path)
-        ARC2D,        // circular arc (part of a 2D path)
+        CONE,               // Not implemented in Bullet collision system
+        TETRAHEDRON,        // Not implemented in Bullet collision system
+        PATH2D,             // 2D path (compound object)
+        SEGMENT2D,          // line segment (part of a 2D path)
+        ARC2D,              // circular arc (part of a 2D path)
         UNKNOWN_SHAPE
     };
 
@@ -88,6 +88,14 @@ class ChApi ChCollisionShape {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+    /// Return a string with the name of the given shape type (mainly for diagnostic messages).
+    static std::string GetTypeAsString(Type type);
+
+    /// Report that a collision system cannot process the shape of given type.
+    /// The message is emitted only once per combination of shape type and collision system backend,
+    /// so calling this from a per-shape dispatch loop does not flood the console.
+    static void ReportUnsupported(Type type, const std::string& backend);
 
   protected:
     Type m_type;                                              ///< type of collision shape

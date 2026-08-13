@@ -17,9 +17,6 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/assets/ChColormap.h"
-
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"

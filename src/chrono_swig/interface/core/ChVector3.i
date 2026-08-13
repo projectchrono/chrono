@@ -111,6 +111,8 @@
 
 extern double Vdot(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 extern chrono::ChVector3d Vcross(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
+extern chrono::ChVector3d Vadd(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
+extern chrono::ChVector3d Vsub(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 
 %inline %{
     double Vdot(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
@@ -118,5 +120,11 @@ extern chrono::ChVector3d Vcross(const chrono::ChVector3d& va, const chrono::ChV
     }
     chrono::ChVector3d Vcross(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
         return chrono::Vcross(va, vb);
+    }
+	chrono::ChVector3d Vadd(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
+		return chrono::Vadd(va, vb);		
+    }
+	chrono::ChVector3d Vsub(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
+		return chrono::Vsub(va, vb);		
     }
 %}

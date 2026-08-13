@@ -21,6 +21,8 @@
     #endif
 #endif
 
+#include <array>
+#include <cstdint>
 #include <functional>
 #include <cstdint>
 #include <memory>
@@ -61,18 +63,20 @@ struct SensorBufferT : public SensorBuffer {
     B Buffer;
 };
 
-#ifdef CHRONO_HAS_OPTIX
-
+/// Base class for LiDAR buffers.  It is shared by OptiX device buffers and the
+/// host-visible Vulkan RT buffers so filter graphs keep the same metadata.
 template <class B>
 struct LidarBufferT : public SensorBufferT<B> {
-    LidarBufferT() : Dual_return(false), Beam_return_count(0) {}
+    LidarBufferT() : Beam_return_count(0), Dual_return(false) {}
     unsigned int Beam_return_count;
     bool Dual_return;
 };
 
+/// Base class for radar buffers.  It is shared by OptiX device buffers and the
+/// host-visible Vulkan RT buffers so clustering/access filters keep their API.
 template <class B>
 struct RadarBufferT : public SensorBufferT<B> {
-    RadarBufferT() : Beam_return_count(0), Num_clusters(0) {}
+    RadarBufferT() : Beam_return_count(0), invalid_returns(0), Num_clusters(0) {}
     int Beam_return_count;
     int invalid_returns;
     int Num_clusters;
@@ -80,6 +84,152 @@ struct RadarBufferT : public SensorBufferT<B> {
     std::vector<std::array<float, 3>> centroids;
     std::vector<float> amplitudes;
 };
+
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+
+// Host-visible camera formats used by the experimental Vulkan RT path.
+// Keep these aliases name-compatible with the OptiX/CUDA catalogue so existing
+// camera demos and filter graphs can build when OptiX is disabled.
+struct PixelRGBA8 {
+    uint8_t R;  ///< Red value
+    uint8_t G;  ///< Green value
+    uint8_t B;  ///< Blue value
+    uint8_t A;  ///< Transparency value
+};
+using SensorHostRGBA8Buffer = SensorBufferT<std::shared_ptr<PixelRGBA8[]>>;
+using DeviceRGBA8BufferPtr = std::shared_ptr<PixelRGBA8[]>;
+using SensorDeviceRGBA8Buffer = SensorHostRGBA8Buffer;
+using UserRGBA8BufferPtr = std::shared_ptr<SensorHostRGBA8Buffer>;
+
+using SensorHostR8Buffer = SensorBufferT<std::shared_ptr<char[]>>;
+using DeviceR8BufferPtr = std::shared_ptr<char[]>;
+using SensorDeviceR8Buffer = SensorHostR8Buffer;
+using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
+
+struct PixelRGBA16 {
+    uint16_t R;
+    uint16_t G;
+    uint16_t B;
+    uint16_t A;
+};
+using SensorHostRGBA16Buffer = SensorBufferT<std::shared_ptr<PixelRGBA16[]>>;
+using DeviceRGBA16BufferPtr = std::shared_ptr<PixelRGBA16[]>;
+using SensorDeviceRGBA16Buffer = SensorHostRGBA16Buffer;
+using UserRGBA16BufferPtr = std::shared_ptr<SensorHostRGBA16Buffer>;
+
+struct PixelSemantic {
+    unsigned short int class_id;
+    unsigned short int instance_id;
+};
+using SensorHostSemanticBuffer = SensorBufferT<std::shared_ptr<PixelSemantic[]>>;
+using DeviceSemanticBufferPtr = std::shared_ptr<PixelSemantic[]>;
+using SensorDeviceSemanticBuffer = SensorHostSemanticBuffer;
+using UserSemanticBufferPtr = std::shared_ptr<SensorHostSemanticBuffer>;
+
+struct PixelDepth {
+    float depth;
+};
+using SensorHostDepthBuffer = SensorBufferT<std::shared_ptr<PixelDepth[]>>;
+using DeviceDepthBufferPtr = std::shared_ptr<PixelDepth[]>;
+using SensorDeviceDepthBuffer = SensorHostDepthBuffer;
+using UserDepthBufferPtr = std::shared_ptr<SensorHostDepthBuffer>;
+
+struct PixelNormal {
+    float normal_x;
+    float normal_y;
+    float normal_z;
+};
+using SensorHostNormalBuffer = SensorBufferT<std::shared_ptr<PixelNormal[]>>;
+using DeviceNormalBufferPtr = std::shared_ptr<PixelNormal[]>;
+using SensorDeviceNormalBuffer = SensorHostNormalBuffer;
+using UserNormalBufferPtr = std::shared_ptr<SensorHostNormalBuffer>;
+
+// Placeholders for optional OptiX-only formats referenced by headers that are
+// still shared during the transition. They are not produced by Vulkan RT yet.
+struct PixelFloat4 {
+    float R;
+    float G;
+    float B;
+    float A;
+};
+using SensorHostFloat4Buffer = SensorBufferT<std::shared_ptr<PixelFloat4[]>>;
+using DeviceFloat4BufferPtr = std::shared_ptr<PixelFloat4[]>;
+using SensorDeviceFloat4Buffer = SensorHostFloat4Buffer;
+using UserFloat4BufferPtr = std::shared_ptr<SensorHostFloat4Buffer>;
+
+struct PixelDI {
+    float range;      ///< Distance measurement of the lidar beam
+    float intensity;  ///< Relative intensity of returned laser pulse
+};
+using SensorHostDIBuffer = LidarBufferT<std::shared_ptr<PixelDI[]>>;
+using DeviceDIBufferPtr = std::shared_ptr<PixelDI[]>;
+using SensorDeviceDIBuffer = SensorHostDIBuffer;
+using UserDIBufferPtr = std::shared_ptr<SensorHostDIBuffer>;
+
+struct PixelHalf4 {
+    float R;
+    float G;
+    float B;
+    float A;
+};
+using SensorHostHalf4Buffer = SensorBufferT<std::shared_ptr<PixelHalf4[]>>;
+using DeviceHalf4BufferPtr = std::shared_ptr<PixelHalf4[]>;
+using SensorDeviceHalf4Buffer = SensorHostHalf4Buffer;
+using UserHalf4BufferPtr = std::shared_ptr<SensorHostHalf4Buffer>;
+
+struct PixelRGBDHalf4 {
+    float R;
+    float G;
+    float B;
+    float D;
+};
+using SensorHostRGBDHalf4Buffer = SensorBufferT<std::shared_ptr<PixelRGBDHalf4[]>>;
+using DeviceRGBDHalf4BufferPtr = std::shared_ptr<PixelRGBDHalf4[]>;
+using SensorDeviceRGBDHalf4Buffer = SensorHostRGBDHalf4Buffer;
+using UserRGBDHalf4BufferPtr = std::shared_ptr<SensorHostRGBDHalf4Buffer>;
+
+struct PixelXYZI {
+    float x;          ///< x location of the point in space
+    float y;          ///< y location of the point in space
+    float z;          ///< z location of the point in space
+    float intensity;  ///< intensity of the reflection at the corresponding point
+};
+using SensorHostXYZIBuffer = LidarBufferT<std::shared_ptr<PixelXYZI[]>>;
+using DeviceXYZIBufferPtr = std::shared_ptr<PixelXYZI[]>;
+using SensorDeviceXYZIBuffer = SensorHostXYZIBuffer;
+using UserXYZIBufferPtr = std::shared_ptr<SensorHostXYZIBuffer>;
+
+struct RadarReturn {
+    float range;
+    float azimuth;
+    float elevation;
+    float doppler_velocity[3];
+    float amplitude;
+    float objectId;
+};
+using SensorHostRadarBuffer = RadarBufferT<std::shared_ptr<RadarReturn[]>>;
+using DeviceRadarBufferPtr = std::shared_ptr<RadarReturn[]>;
+using SensorDeviceRadarBuffer = SensorHostRadarBuffer;
+using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
+
+struct RadarXYZReturn {
+    float x;
+    float y;
+    float z;
+    float vel_x;
+    float vel_y;
+    float vel_z;
+    float amplitude;
+    float objectId;
+};
+using SensorHostRadarXYZBuffer = RadarBufferT<std::shared_ptr<RadarXYZReturn[]>>;
+using DeviceRadarXYZBufferPtr = std::shared_ptr<RadarXYZReturn[]>;
+using SensorDeviceRadarXYZBuffer = SensorHostRadarXYZBuffer;
+using UserRadarXYZBufferPtr = std::shared_ptr<SensorHostRadarXYZBuffer>;
+
+#endif
+
+#ifdef CHRONO_HAS_OPTIX
 
 //================================
 // RGBA8 Camera Format and Buffers

@@ -25,13 +25,11 @@
 #include <chrono>
 #include <string>
 
-#include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono_sensor/ChApiSensor.h"
+
 #include "chrono/core/ChMatrix33.h"
 
 #include "chrono_thirdparty/stb/stb_image.h"
-
-#include "chrono_sensor/ChApiSensor.h"
 
 namespace chrono {
 namespace sensor {

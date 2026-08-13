@@ -21,7 +21,11 @@
 #define CHFILTERPHYSCAMERAVIGNETTING_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include <cuda.h>
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+#else
+    using CUstream = void*;
+#endif
 
 namespace chrono {
 namespace sensor {

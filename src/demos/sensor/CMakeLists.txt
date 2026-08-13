@@ -5,6 +5,19 @@ set(DEMOS
   demo_SEN_GPSIMU
 )
 
+if(CH_USE_SENSOR_VULKAN_RT)
+    set(DEMOS ${DEMOS}
+        demo_SEN_JSON
+        demo_SEN_camera
+        demo_SEN_cornell_box
+        demo_SEN_phys_cam
+        demo_SEN_lidar
+        demo_SEN_radar
+        demo_SEN_radar1
+        demo_SEN_tachometer
+    )
+endif()
+
 if(CH_USE_SENSOR_OPTIX)
 
   set(DEMOS ${DEMOS}
@@ -35,6 +48,16 @@ if(CH_USE_SENSOR_OPTIX)
   endif()
   
 endif()
+
+# 1:1 Vulkan-vs-OptiX camera validation. Needs Vulkan RT; with OptiX also enabled it does the
+# in-process comparison, with Vulkan alone it captures the Vulkan image for a cross-GPU diff.
+if(CH_USE_SENSOR_VULKAN_RT)
+    set(DEMOS ${DEMOS}
+        demo_SEN_vulkan_validation
+    )
+endif()
+
+list(REMOVE_DUPLICATES DEMOS)
 
 #--------------------------------------------------------------
 # Dependency libraries

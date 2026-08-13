@@ -73,9 +73,13 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     /// Access the underlying fluid system.
     virtual std::shared_ptr<fsi::ChFsiFluidSystem> GetFluidSystem() override { return m_sysTDPF; }
 
+    /// Access the underlying fluid system.
+    std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> GetFluidSystemTDPF() { return m_sysTDPF; }
+
     // --------------
 
 #ifdef CHRONO_VSG
+    const fsi::tdpf::ChTdpfVisualizationVSG::Settings& GetTdpfVisualizationSettings() const;
     virtual std::shared_ptr<vsg3d::ChVisualSystemVSGPlugin> GetVisualizationPlugin() const override;
 #endif
 

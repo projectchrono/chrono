@@ -231,7 +231,7 @@ static void WriteConeVTK(const std::string& filename, std::shared_ptr<ChBody> bo
     }
 
     // Add base triangles (to close the cone if needed)
-    int center_index = vertices.size();
+    int center_index = (int)vertices.size();
     vertices.push_back(ChVector3d(0, 0, 0));  // Center of base
     for (int i = 0; i < resolution; i++) {
         int next = (i + 1) % resolution;

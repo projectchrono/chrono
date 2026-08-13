@@ -33,12 +33,48 @@
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/sensors/ChOptixSensor.h"
 #endif
+#ifdef CHRONO_HAS_VULKAN_RT
+    #include "chrono_sensor/sensors/ChVulkanSensor.h"
+#endif
 
 namespace chrono {
 namespace sensor {
 
 // forward declaration
 class ChSensor;
+
+template <class BufferType>
+inline void CopyAccessSpecificMetadata(BufferType&, const BufferType&) {}
+
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+inline void CopyAccessSpecificMetadata(SensorHostDIBuffer& dst, const SensorHostDIBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.Dual_return = src.Dual_return;
+}
+
+inline void CopyAccessSpecificMetadata(SensorHostXYZIBuffer& dst, const SensorHostXYZIBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.Dual_return = src.Dual_return;
+}
+
+inline void CopyAccessSpecificMetadata(SensorHostRadarBuffer& dst, const SensorHostRadarBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.invalid_returns = src.invalid_returns;
+    dst.Num_clusters = src.Num_clusters;
+    dst.avg_velocity = src.avg_velocity;
+    dst.centroids = src.centroids;
+    dst.amplitudes = src.amplitudes;
+}
+
+inline void CopyAccessSpecificMetadata(SensorHostRadarXYZBuffer& dst, const SensorHostRadarXYZBuffer& src) {
+    dst.Beam_return_count = src.Beam_return_count;
+    dst.invalid_returns = src.invalid_returns;
+    dst.Num_clusters = src.Num_clusters;
+    dst.avg_velocity = src.avg_velocity;
+    dst.centroids = src.centroids;
+    dst.amplitudes = src.amplitudes;
+}
+#endif
 
 /// @addtogroup sensor_filters
 /// @{
@@ -69,8 +105,6 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
         if (auto pBuf = std::dynamic_pointer_cast<BufferType>(bufferInOut)) {
             m_bufferIn = pBuf;  // save handle to the incoming buffer
         } else {
-            std::cout << typeid(pBuf).name() << std::endl;
-            std::cout << typeid(bufferInOut).name() << std::endl;
             InvalidFilterGraphBufferTypeMismatch(pSensor);
         }
 
@@ -115,6 +149,7 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
             m_user_buffer->Height = buf->Height;
             m_user_buffer->TimeStamp = buf->TimeStamp;
             m_user_buffer->LaunchedCount = buf->LaunchedCount;
+            CopyAccessSpecificMetadata(*m_user_buffer, *buf);
         }
 
         // return the copied class that now has ownership of the buffer memory
@@ -164,6 +199,31 @@ using ChFilterNormalAccess = ChFilterAccess<SensorHostNormalBuffer, UserNormalBu
 /// Access to depth camera data
 using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
 
+#endif
+
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+/// Access to grayscale data produced by the Vulkan RT backend
+using ChFilterR8Access = ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>;
+/// Access to RGBA8 data produced by the Vulkan RT backend
+using ChFilterRGBA8Access = ChFilterAccess<SensorHostRGBA8Buffer, UserRGBA8BufferPtr>;
+/// Access to RGBA16 data produced by the Vulkan RT backend
+using ChFilterRGBA16Access = ChFilterAccess<SensorHostRGBA16Buffer, UserRGBA16BufferPtr>;
+/// Access to RGBDHalf4 data produced by the Vulkan RT backend
+using ChFilterRGBDHalf4Access = ChFilterAccess<SensorHostRGBDHalf4Buffer, UserRGBDHalf4BufferPtr>;
+/// Access to semantic data produced by the Vulkan RT backend
+using ChFilterSemanticAccess = ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPtr>;
+/// Access to depth/intensity data produced by the Vulkan RT backend
+using ChFilterDIAccess = ChFilterAccess<SensorHostDIBuffer, UserDIBufferPtr>;
+/// Access to point cloud data produced by the Vulkan RT backend
+using ChFilterXYZIAccess = ChFilterAccess<SensorHostXYZIBuffer, UserXYZIBufferPtr>;
+/// Access to Radar data produced by the Vulkan RT backend
+using ChFilterRadarAccess = ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>;
+/// Access to processed Radar XYZ data produced by the Vulkan RT backend
+using ChFilterRadarXYZAccess = ChFilterAccess<SensorHostRadarXYZBuffer, UserRadarXYZBufferPtr>;
+/// Access to normal camera data produced by the Vulkan RT backend
+using ChFilterNormalAccess = ChFilterAccess<SensorHostNormalBuffer, UserNormalBufferPtr>;
+/// Access to depth camera data produced by the Vulkan RT backend
+using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
 #endif
 
 /// Access to accelerometer data

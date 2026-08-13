@@ -18,7 +18,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadsBody.h"
 
-#include "chrono_fmi/fmi3/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi3/ChFmuForgeExport.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"

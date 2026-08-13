@@ -180,6 +180,7 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = cohesion;
+    ////mat_props.rheology_model = RheologyCRM::MCC;
     terrain.SetElasticSPH(mat_props);
 
     // Set SPH solver parameters

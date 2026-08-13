@@ -30,7 +30,11 @@ static constexpr float float_max = std::numeric_limits<float>::max();
 static constexpr int int_max = std::numeric_limits<int>::max();
 
 #elif defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
-    #ifndef __HIP_PLATFORM_AMD__
+    // Default to the AMD platform only when neither platform macro is already
+    // set. Defining __HIP_PLATFORM_AMD__ unconditionally breaks HIP targeting
+    // NVIDIA, where __HIP_PLATFORM_NVIDIA__ is already defined and HIP's own
+    // headers reject having both.
+    #if !defined(__HIP_PLATFORM_AMD__) && !defined(__HIP_PLATFORM_NVIDIA__)
         #define __HIP_PLATFORM_AMD__
     #endif
     #include <hip/hip_runtime.h>

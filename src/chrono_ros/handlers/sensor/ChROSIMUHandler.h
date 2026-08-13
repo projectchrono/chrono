@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,52 +12,68 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// ROS Handler for communicating imu information. Packages the data from other
-// imu handlers into a single message and publishes it.
+// ROS handler that aggregates accelerometer + gyroscope (+ magnetometer) data
+// into a single sensor_msgs/msg/Imu message.
 //
 // =============================================================================
 
-#ifndef CHRONO_ROS_SENSOR_IMU_HANDLER_H
-#define CHRONO_ROS_SENSOR_IMU_HANDLER_H
+#ifndef CH_ROS_IMU_HANDLER_H
+#define CH_ROS_IMU_HANDLER_H
 
+#include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChROSHandler.h"
 
-#include "chrono_sensor/sensors/ChIMUSensor.h"
-#include "chrono_ros/handlers/sensor/ChROSIMUHandler_ipc.h"
+#include <memory>
+#include <string>
 
 namespace chrono {
 namespace ros {
 
+class ChROSPublisher;
 class ChROSAccelerometerHandler;
 class ChROSGyroscopeHandler;
 class ChROSMagnetometerHandler;
 
+/// @addtogroup ros_sensor_handlers
+/// @{
+
+/// Combines the latest data of an accelerometer + gyroscope (+ magnetometer)
+/// handler into one sensor_msgs/msg/Imu. The sub-handlers are registered with
+/// the manager separately (they tick and publish independently); this handler
+/// just reads their most recent extracted values. Set the sub-handlers' rate
+/// >= this handler's rate so their data is fresh.
 class CH_ROS_API ChROSIMUHandler : public ChROSHandler {
   public:
+    /// @param update_rate publish rate (Hz, sim time); 0 = every step.
+    /// @param topic_name Imu topic to publish on.
+    /// @param frame_id header frame_id stamped into the message.
     ChROSIMUHandler(double update_rate, const std::string& topic_name, const std::string& frame_id = "imu");
 
-    virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+    /// Creates the Imu publisher.
+    virtual bool Initialize(ChROSBridge& bridge) override;
 
-    /// Get the message type of this handler
-    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::IMU_DATA; }
-
-    /// Get the serialized data for the handler
-    virtual std::vector<uint8_t> GetSerializedData(double time) override;
-
-    /// Set the imu sensor handlers
-    /// NOTE: The handlers will tick at the same rate as the imu handler
+    /// Set the accelerometer sub-handler (required). Its rate should be >= this handler's.
     void SetAccelerometerHandler(std::shared_ptr<ChROSAccelerometerHandler> accel_handler);
+    /// Set the gyroscope sub-handler (required). Its rate should be >= this handler's.
     void SetGyroscopeHandler(std::shared_ptr<ChROSGyroscopeHandler> gyro_handler);
+    /// Set the magnetometer sub-handler (required for presence, though its data is not packed).
     void SetMagnetometerHandler(std::shared_ptr<ChROSMagnetometerHandler> mag_handler);
 
+  protected:
+    /// Assembles one Imu message from the sub-handlers' latest values and publishes it.
+    virtual void Tick(double time) override;
+
   private:
-    const std::string m_topic_name;                                   ///< name of the topic to publish to
-    const std::string m_frame_id;                                     ///< frame id of the imu
+    const std::string m_topic_name;
+    const std::string m_frame_id;
+    std::shared_ptr<ChROSPublisher> m_publisher;
 
     std::shared_ptr<ChROSAccelerometerHandler> m_accel_handler;
     std::shared_ptr<ChROSGyroscopeHandler> m_gyro_handler;
     std::shared_ptr<ChROSMagnetometerHandler> m_mag_handler;
 };
+
+/// @} ros_sensor_handlers
 
 }  // namespace ros
 }  // namespace chrono

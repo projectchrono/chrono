@@ -170,9 +170,13 @@ struct ChFsiParamsSPH {
     ///< field is computed and compared to this threshold. Particles with divergence
     ///< less than this threshold are considered free surface particles (CRM only,
     ///< default: 2.0)
-    Real mcc_M;         ///< CSL line slope
-    Real mcc_kappa;     ///< Compression index
-    Real mcc_lambda;    ///< Swelling index
+    Real mcc_M;         ///< Cam-Clay critical state line slope, q = M p
+    Real mcc_kappa;     ///< Cam-Clay swelling index: slope of the elastic unload/reload line in
+                        ///< v-ln(p). Sets the elastic bulk modulus, K = v p / kappa.
+                        ///< Must satisfy 0 < mcc_kappa < mcc_lambda
+    Real mcc_lambda;    ///< Cam-Clay compression index: slope of the normal consolidation line in
+                        ///< v-ln(p). Governs virgin compressibility and the hardening rate, which
+                        ///< divides by (mcc_lambda - mcc_kappa). Must exceed mcc_kappa
     Real mcc_v_lambda;  ///< Specific volume at reference pressure of 1000 Pa
 
     Real boxDimX;  ///< Dimension of the space domain - X

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,115 +9,69 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Aaron Young, Patrick Chen
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// Handler for interfacing a ChDriver to ROS
+// Handler that drives a ChDriver from ROS (chrono_ros_interfaces/msg/DriverInputs).
 //
 // =============================================================================
 
-#ifndef CH_ROS_DRIVER_INPUTS_HANDLER
-#define CH_ROS_DRIVER_INPUTS_HANDLER
+#ifndef CH_ROS_DRIVER_INPUTS_HANDLER_H
+#define CH_ROS_DRIVER_INPUTS_HANDLER_H
 
+#include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChROSHandler.h"
 
 #include "chrono_vehicle/ChDriver.h"
 
-// IPC data structure (separate header - safe for subprocess to include)
-#include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler_ipc.h"
-
-#include <mutex>
+#include <memory>
+#include <string>
 
 namespace chrono {
 namespace ros {
 
+class ChROSSubscription;
+
 /// @addtogroup ros_vehicle_handlers
 /// @{
 
-// =============================================================================
-// HANDLER CLASS (main process)
-// =============================================================================
-
-/// Handler for interfacing a ChDriver to ROS via bidirectional IPC communication.
+/// Subscribes to chrono_ros_interfaces/msg/DriverInputs and applies the received
+/// steering/throttle/braking to a ChVehicle ChDriver. This exercises a CUSTOM
+/// ROS message package (chrono_ros_interfaces) end-to-end through the schema
+/// bridge - addressed purely by type-name string, no compiled message types in
+/// Chrono.
 ///
-/// BIDIRECTIONAL SUBSCRIBER PATTERN:
-/// - Main process: Calls GetSerializedData() once to send topic name → subprocess creates subscriber
-/// - Subprocess: ROS message arrives → packs IPC data → sends back to main process
-/// - Main process: Receives IPC → calls HandleIncomingMessage() → applies data to Chrono object
-///
-/// Data flow:
-/// External ROS → Subprocess subscriber → IPC channel → Main process → ChDriver
-///
-/// Implementation files:
-/// - ChROSDriverInputsHandler.cpp: Main process logic (ApplyInputs, HandleIncomingMessage)
-/// - ChROSDriverInputsHandler_ros.cpp: Subprocess ROS subscriber (compiled into chrono_ros_node)
-///
-/// To implement a similar bidirectional subscriber:
-/// 1. Define IPC struct in handler header under namespace ipc (plain C++ types)
-/// 2. Override SupportsIncomingMessages() to return true
-/// 3. Override HandleIncomingMessage() to extract IPC data and apply to Chrono object
-/// 4. Implement GetSerializedData() to send topic name once (empty afterwards)
-/// 5. Create YourHandler_ros.cpp with subscriber callback that sends IPC back
-/// 6. Register with CHRONO_ROS_REGISTER_HANDLER(YOUR_MESSAGE_TYPE, YourSetupFunction)
-/// 7. Add YOUR_MESSAGE_TYPE to MessageType enum in ChROSIPCMessage.h
-/// 8. Add handler recognition to ChROSManager::GetHandlerMessageType()
+/// Wrapped for Python (pychrono.ros): the ChDriver argument crosses from
+/// pychrono.vehicle - see demo_ROS_vehicle.py.
 class CH_ROS_API ChROSDriverInputsHandler : public ChROSHandler {
   public:
-    /// Constructor with default update rate
-    /// @param driver Chrono vehicle driver to update with ROS commands
-    /// @param topic_name ROS topic to subscribe to for driver inputs
+    /// Tick every simulation step (update_rate 0).
     ChROSDriverInputsHandler(std::shared_ptr<chrono::vehicle::ChDriver> driver, const std::string& topic_name);
-
-    /// Constructor with custom update rate
-    /// @param update_rate Rate at which to apply received inputs to driver (Hz)
-    /// @param driver Chrono vehicle driver to update with ROS commands  
-    /// @param topic_name ROS topic to subscribe to for driver inputs
+    /// Tick at an explicit rate.
     ChROSDriverInputsHandler(double update_rate,
                              std::shared_ptr<chrono::vehicle::ChDriver> driver,
                              const std::string& topic_name);
 
-    /// Initialize handler (called once at startup in main process)
-    /// In IPC mode, this does nothing. Subprocess will create the actual ROS subscriber.
-    virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
-    
-    /// Get the message type of this handler
-    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::DRIVER_INPUTS; }
-
-    /// Apply driver inputs received from subprocess via IPC
-    /// This method is called internally by HandleIncomingMessage()
-    /// @param steering Steering value from ROS message
-    /// @param throttle Throttle value from ROS message  
-    /// @param braking Braking value from ROS message
-    void ApplyInputs(double steering, double throttle, double braking);
-    
-    /// Handle incoming IPC message from subprocess ROS subscriber
-    /// Called by ChROSManager when IPC message of type DRIVER_INPUTS arrives.
-    /// Extracts DriverInputsData from message payload and applies to driver.
-    /// @param msg IPC message containing DriverInputsData payload
-    virtual void HandleIncomingMessage(const ipc::Message& msg) override;
-    
-    /// Indicates this handler receives messages from subprocess
-    /// @return true (this is a bidirectional subscriber)
-    virtual bool SupportsIncomingMessages() const override { return true; }
+    /// Creates the DriverInputs subscription.
+    virtual bool Initialize(ChROSBridge& bridge) override;
 
   protected:
-    /// Send topic name to subprocess once to trigger subscriber creation
-    /// First call: Returns topic name as bytes for subprocess setup
-    /// Subsequent calls: Returns empty vector (no data to publish)
-    /// @param time Current simulation time (unused for subscribers)
-    /// @return Topic name bytes on first call, empty afterwards
-    virtual std::vector<uint8_t> GetSerializedData(double time) override;
+    /// Applies the most recently received inputs to the driver.
+    virtual void Tick(double time) override;
 
   private:
-    std::shared_ptr<chrono::vehicle::ChDriver> m_driver;  ///< the driver to update
+    std::shared_ptr<chrono::vehicle::ChDriver> m_driver;
+    const std::string m_topic_name;
+    std::shared_ptr<ChROSSubscription> m_subscription;
 
-    const std::string m_topic_name;          ///< name of the topic to publish to
-    chrono::vehicle::DriverInputs m_inputs;  ///< stores the most recent inputs
-    chrono::vehicle::DriverInputs m_applied_inputs;  ///< last inputs applied to driver
-    bool m_subscriber_setup_sent;  ///< tracks if setup message was sent to subprocess
-
-    std::mutex m_mutex;  ///< used to control access to m_inputs
+    // Most recent inputs (written in the subscription callback, applied in Tick;
+    // both run on the simulation thread inside ChROSManager::Update(), so no lock).
+    double m_steering = 0;
+    double m_throttle = 0;
+    double m_braking = 0;
 };
+
+/// @} ros_vehicle_handlers
 
 }  // namespace ros
 }  // namespace chrono

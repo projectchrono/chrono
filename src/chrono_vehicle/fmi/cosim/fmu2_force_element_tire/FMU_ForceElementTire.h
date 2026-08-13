@@ -39,7 +39,7 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 
-#include "chrono_fmi/fmi2/ChFmuToolsExport.h"
+#include "chrono_fmi/fmi2/ChFmuForgeExport.h"
 
 class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
   public:

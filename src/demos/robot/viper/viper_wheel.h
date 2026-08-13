@@ -15,7 +15,7 @@
 /// Viper wheel for use in a ChWheelTestRig.
 class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
   public:
-    ViperRigWheel(chrono::ChSystem* system);
+    ViperRigWheel(chrono::ChSystem& system);
 
     void SetRadius(double radius) { m_radius = radius; }
     void SetWidth(double width) { m_width = width; }
@@ -29,6 +29,12 @@ class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
     virtual double GetWidth() const override { return m_width; }
     virtual double GetMass() const override { return m_mass; }
     virtual std::shared_ptr<chrono::ChBody> GetHub() const override { return m_wheel; }
+
+    virtual void Initialize(const chrono::ChFramed& frame, bool fixed, double step_size, chrono::VisualizationType vis_type) override {
+        m_wheel->SetPos(frame.GetPos());
+        m_wheel->SetRot(frame.GetRot());
+        m_wheel->SetFixed(fixed);
+    }
 
 #ifdef CHRONO_CRM
     virtual void AddFSIBodies(chrono::vehicle::CRMTerrain& terrain, double spacing) override;
@@ -57,7 +63,7 @@ class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
 
 // -----------------------------------------------------------------------------
 
-ViperRigWheel::ViperRigWheel(chrono::ChSystem* system)
+ViperRigWheel::ViperRigWheel(chrono::ChSystem& system)
     : chrono::vehicle::ChWheelTestRig::WheelAssembly(system), m_radius(0.225), m_width(0.2), m_grouser_height(0.01), m_grouser_width(0.005), m_num_grousers(24) {
     // Create trimesh
     std::string mesh_filename = chrono::GetChronoDataFile("robot/viper/obj/nasa_viper_wheel.obj");
@@ -80,7 +86,7 @@ ViperRigWheel::ViperRigWheel(chrono::ChSystem* system)
     m_wheel = chrono_types::make_shared<chrono::ChBody>();
     m_wheel->SetMass(m_mass);
     m_wheel->SetInertia(inertia);
-    system->AddBody(m_wheel);
+    system.AddBody(m_wheel);
 
     // Visualization shape
     auto vis_shape = chrono_types::make_shared<chrono::ChVisualShapeTriangleMesh>();
@@ -91,7 +97,7 @@ ViperRigWheel::ViperRigWheel(chrono::ChSystem* system)
 
     // Contact material and collision shape
     chrono::ChContactMaterialData mat_info;
-    auto material = mat_info.CreateMaterial(system->GetContactMethod());
+    auto material = mat_info.CreateMaterial(system.GetContactMethod());
     auto ct_shape = chrono_types::make_shared<chrono::ChCollisionShapeTriangleMesh>(material, m_trimesh, false, false, m_grouser_width / 2);
     m_wheel->AddCollisionShape(ct_shape);
     m_wheel->EnableCollision(true);

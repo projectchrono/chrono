@@ -17,11 +17,11 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeLine)
 
-ChVisualShapeLine::ChVisualShapeLine() : npoints(200), thickness(10.0) {
+ChVisualShapeLine::ChVisualShapeLine() : ChVisualShape(Type::LINE), npoints(200), thickness(10.0) {
     gline = chrono_types::make_shared<ChLineSegment>();
 }
 
-ChVisualShapeLine::ChVisualShapeLine(std::shared_ptr<ChLine>& mline) : npoints(200), thickness(10.0), gline(mline) {}
+ChVisualShapeLine::ChVisualShapeLine(std::shared_ptr<ChLine>& mline) : ChVisualShape(Type::LINE), npoints(200), thickness(10.0), gline(mline) {}
 
 void ChVisualShapeLine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

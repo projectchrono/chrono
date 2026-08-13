@@ -144,26 +144,6 @@ if(XCODE_VERSION)
 endif()
 
 #-----------------------------------------------------------------------------
-
-set(CH_COMPILER " " CACHE STRING "Compiler Type" FORCE)
-
-if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_CLANGXX)
-    if(CMAKE_SIZEOF_VOID_P MATCHES 4)
-        set(CH_COMPILER "COMPILER_GCC" CACHE STRING "Compiler Type" FORCE)
-    else()
-        set(CH_COMPILER "COMPILER_GCC_X64" CACHE STRING "Compiler Type" FORCE)
-    endif()
-endif()
-
-if(MSVC AND CMAKE_CL_64)
-    set(CH_COMPILER "COMPILER_MSVC_X64" CACHE STRING "Compiler Type" FORCE)
-elseif(MSVC)
-    set(CH_COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
-endif()
-
-mark_as_advanced(FORCE CH_COMPILER)
-
-#-----------------------------------------------------------------------------
 # Specify locations of executables and libraries
 #-----------------------------------------------------------------------------
 

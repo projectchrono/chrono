@@ -20,16 +20,36 @@
 #ifndef CHCAMERASENSOR_H
 #define CHCAMERASENSOR_H
 
-#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/ChConfigSensor.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/sensors/ChOptixSensor.h"
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    #include "chrono_sensor/sensors/ChVulkanSensor.h"
+    #include "chrono_sensor/ChSensorRenderTypes.h"
+#else
+    #include "chrono_sensor/sensors/ChSensor.h"
+    #include "chrono_sensor/ChSensorRenderTypes.h"
+#endif
 
 namespace chrono {
 namespace sensor {
 
+#if defined(CHRONO_HAS_OPTIX)
+using ChCameraSensorBase = ChOptixSensor;
+#elif defined(CHRONO_HAS_VULKAN_RT)
+using ChCameraSensorBase = ChVulkanSensor;
+#else
+using ChCameraSensorBase = ChSensor;
+#endif
+
 /// @addtogroup sensor_sensors
 /// @{
 
-/// Camera class
-class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
+/// Camera class. With OptiX enabled this uses the OptiX backend; with Vulkan RT
+/// enabled and OptiX disabled it preserves the same public API but routes through
+/// the Vulkan RT backend.
+class CH_SENSOR_API ChCameraSensor : public ChCameraSensorBase {
   public:
     /// @brief Constructor for the base camera class that defaults to a pinhole lens model
     /// @param parent A shared pointer to a body on which the sensor should be attached.

@@ -24,11 +24,19 @@
 namespace chrono {
 namespace sensor {
 
+#if defined(CHRONO_HAS_OPTIX)
+using ChDepthCameraBase = ChOptixSensor;
+#elif defined(CHRONO_HAS_VULKAN_RT)
+using ChDepthCameraBase = ChVulkanSensor;
+#else
+using ChDepthCameraBase = ChSensor;
+#endif
+
 /// @addtogroup sensor_sensors
 /// @{
 
 /// Camera class
-class CH_SENSOR_API ChDepthCamera : public ChOptixSensor {
+class CH_SENSOR_API ChDepthCamera : public ChDepthCameraBase {
   public:
     /// @brief Constructor for a depth camera that defaults to a pinhole lens model
     /// @param parent A shared pointer to a body on which the sensor should be attached.

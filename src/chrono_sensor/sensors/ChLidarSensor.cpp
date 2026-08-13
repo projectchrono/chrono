@@ -18,7 +18,10 @@
 
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/filters/ChFilterLidarReduce.h"
-#include "chrono_sensor/optix/ChFilterOptixRender.h"
+
+#ifdef CHRONO_HAS_OPTIX
+    #include "chrono_sensor/optix/ChFilterOptixRender.h"
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -40,26 +43,41 @@ ChLidarSensor::ChLidarSensor(
     LidarReturnMode return_mode,  // return mode of the lidar
     float clip_near  // minimum return distance, for making nearby objects transparent when placed inside housing
     )
-    : m_sample_radius(sample_radius),
-      m_vert_divergence_angle(vert_divergence_angle),
-      m_hori_divergence_angle(hori_divergence_angle),
-      m_return_mode(return_mode),
+#if defined(CHRONO_HAS_OPTIX)
+    : ChOptixSensor(parent, updateRate, offsetPose, w * (2 * sample_radius - 1), h * (2 * sample_radius - 1)),
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    : ChVulkanSensor(parent,
+                     updateRate,
+                     offsetPose,
+                     w * (2 * sample_radius - 1),
+                     h * (2 * sample_radius - 1),
+                     sample_radius > 1 ? VulkanPipelineType::LIDAR_MULTI : VulkanPipelineType::LIDAR_SINGLE),
+#else
+    : ChSensor(parent, updateRate, offsetPose),
+#endif
       m_hFOV(hFOV),
       m_max_vert_angle(max_vertical_angle),
       m_min_vert_angle(min_vertical_angle),
       m_max_distance(max_distance),
-      m_clip_near(clip_near),
+      m_sample_radius(sample_radius),
       m_beam_shape(beam_shape),
-      ChOptixSensor(parent, updateRate, offsetPose, w * (2 * sample_radius - 1), h * (2 * sample_radius - 1)) {
+      m_vert_divergence_angle(vert_divergence_angle),
+      m_hori_divergence_angle(hori_divergence_angle),
+      m_return_mode(return_mode),
+      m_clip_near(clip_near) {
     if (sample_radius > 1) {
+#ifdef CHRONO_HAS_OPTIX
         m_pipeline_type = PipelineType::LIDAR_MULTI;
+#endif
         PushFilter(chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
-    } else {  // default to single ray sampled lidar
+    } else {
+#ifdef CHRONO_HAS_OPTIX
         m_pipeline_type = PipelineType::LIDAR_SINGLE;
+#endif
     }
 
-    SetCollectionWindow(0);
-    SetLag(1 / updateRate);
+    SetCollectionWindow(0.f);
+    SetLag(1.f / updateRate);
 }
 
 ChLidarSensor::~ChLidarSensor() {}

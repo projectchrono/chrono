@@ -28,21 +28,6 @@
 #include <vsgImGui/implot.h>
 
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualModel.h"
-#include "chrono/assets/ChColormap.h"
-
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeEllipsoid.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeCapsule.h"
-#include "chrono/assets/ChVisualShapeBarrel.h"
-#include "chrono/assets/ChVisualShapeCone.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLink.h"

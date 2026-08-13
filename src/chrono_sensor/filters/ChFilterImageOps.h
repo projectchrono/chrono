@@ -18,8 +18,14 @@
 #define CHFILTERIMAGEOPS_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include <cuda.h>
-#include <npp.h>
+#include "chrono_sensor/ChConfigSensor.h"
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+    #include <npp.h>
+#else
+    using CUstream = void*;
+    struct NppStreamContext {};
+#endif
 
 namespace chrono {
 namespace sensor {
