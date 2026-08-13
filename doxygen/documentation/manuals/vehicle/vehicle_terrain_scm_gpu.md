@@ -63,7 +63,7 @@ terrain.SetScmGpuConfig(cfg);
 | `async` | `true` | Async HIP streams for pack / compute / scatter |
 | `profile` | `false` | Log pack / gpu / scatter timings to stderr |
 
-The ray-cast kernels run in FP64 on AMD, and in FP32 on NVIDIA where consumer parts throttle double precision. Setting the environment variable `SCM_RAYCAST_GPU_PRECISION` to `fp32` or `fp64` overrides that choice; it is intended for validation.
+The ray-cast kernels run in FP32 on every platform, so that a model produces the same trajectory on AMD and NVIDIA rather than diverging by vendor. FP64 is available via the environment variable `SCM_RAYCAST_GPU_PRECISION` (`fp32` or `fp64`), and is intended for validation.
 
 ### NVIDIA GPUs
 

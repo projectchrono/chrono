@@ -104,7 +104,7 @@ void ensure_capacity(T** d_ptr, std::size_t& capacity, std::size_t n) {
 
 struct ScmRaycastGpuContext {
     int device = 0;
-    ScmRaycastGpuPrecision precision = ScmRaycastGpuPrecision::kFP64;
+    ScmRaycastGpuPrecision precision = ScmRaycastGpuPrecision::kFP32;
 
     // FP64 device buffers (used when precision == kFP64).
     RaycastVertex* d_verts = nullptr;

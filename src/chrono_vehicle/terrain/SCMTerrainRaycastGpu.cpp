@@ -35,19 +35,16 @@ using scm::gpu::RaycastQuery;
 using scm::gpu::RaycastResult;
 using scm::gpu::RaycastVertex;
 
-// Default precision is picked by which HIP platform this build targets: AMD (this project's validated
-// MI300X target, strong FP64) gets kFP64; NVIDIA (consumer cards like RTX 4080/5090 deliberately
-// throttle FP64 relative to FP32) gets kFP32. Override with env SCM_RAYCAST_GPU_PRECISION=fp32|fp64 --
-// e.g. to validate the FP32 path on hardware that doesn't need it, or to force FP64 on NVIDIA if fidelity
-// matters more than speed there. Read once (env doesn't change mid-run) and cached for the process.
+// FP32 on every platform, so a model produces the same trajectory on AMD and NVIDIA. The kernels can
+// run in FP64 -- and MI300X-class parts have the throughput for it, unlike consumer NVIDIA cards where
+// FP64 is deliberately throttled -- but making the default depend on the vendor would mean the same
+// build of the same model diverging by hardware, which is worse than the precision itself. FP32 was
+// validated against the CPU reference on AMD at zero hit difference and 0-0.12% per-wheel force error,
+// and the ray cast feeds a soil model whose parameters are empirical to well under that. Override with
+// env SCM_RAYCAST_GPU_PRECISION=fp32|fp64. Read once and cached for the process.
 ScmRaycastGpuPrecision DesiredRaycastGpuPrecision() {
     static ScmRaycastGpuPrecision precision = [] {
-        ScmRaycastGpuPrecision p =
-#if defined(__HIP_PLATFORM_NVIDIA__)
-            ScmRaycastGpuPrecision::kFP32;
-#else
-            ScmRaycastGpuPrecision::kFP64;
-#endif
+        ScmRaycastGpuPrecision p = ScmRaycastGpuPrecision::kFP32;
         if (const char* e = std::getenv("SCM_RAYCAST_GPU_PRECISION")) {
             std::string mode = e;
             if (mode == "fp32")
