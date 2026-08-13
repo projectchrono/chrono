@@ -423,8 +423,7 @@ int main(int argc, char* argv[]) {
             terrain.EnableRaycastGpuHip(true);
             std::cout << "SCM ray-cast backend: HIP" << (e ? "" : " (default)") << std::endl;
             const char* prec = std::getenv("SCM_RAYCAST_GPU_PRECISION");
-            std::cout << "  precision: " << (prec ? prec : "default (fp64 on AMD, fp32 on NVIDIA HIP backend)")
-                      << std::endl;
+            std::cout << "  precision: " << (prec ? prec : "fp32 (default on every platform)") << std::endl;
         }
 #else
         if (mode == "ref") {
