@@ -172,12 +172,20 @@ struct ChFsiParamsSPH {
     ///< default: 2.0)
     Real mcc_M;         ///< Cam-Clay critical state line slope, q = M p
     Real mcc_kappa;     ///< Cam-Clay swelling index: slope of the elastic unload/reload line in
-                        ///< v-ln(p). Sets the elastic bulk modulus, K = v p / kappa.
+                        ///< v-ln(p). Sets the elastic bulk modulus, K = v p / kappa, which is then
+                        ///< clamped into [mcc_modulus_min_factor, mcc_modulus_max_factor] times
+                        ///< K_bulk, and the shear modulus correspondingly against G_shear, both
+                        ///< derived from Young's modulus. Where the clamp binds, the volumetric
+                        ///< response is linear elastic at the bound rather than Cam-Clay.
                         ///< Must satisfy 0 < mcc_kappa < mcc_lambda
     Real mcc_lambda;    ///< Cam-Clay compression index: slope of the normal consolidation line in
                         ///< v-ln(p). Governs virgin compressibility and the hardening rate, which
                         ///< divides by (mcc_lambda - mcc_kappa). Must exceed mcc_kappa
     Real mcc_v_lambda;  ///< Specific volume at reference pressure of 1000 Pa
+    Real mcc_modulus_min_factor;  ///< Lower bound on the MCC elastic moduli, as a fraction of K_bulk
+                                  ///< and G_shear (default: 0.1)
+    Real mcc_modulus_max_factor;  ///< Upper bound on the MCC elastic moduli, as a fraction of K_bulk
+                                  ///< and G_shear (default: 1.0)
 
     Real boxDimX;  ///< Dimension of the space domain - X
     Real boxDimY;  ///< Dimension of the space domain - Y

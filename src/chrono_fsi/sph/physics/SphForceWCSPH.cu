@@ -1526,18 +1526,24 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
         // Save the volumetric strain to use in constitutive model (MCC only)
         sortedPcEvSv[index].y = -trD;
         Real p_n = -CH_1_3 * (tauxx + tauyy + tauzz);
-        // Floor Pressure (Pa) to prevent K -> 0 near free surface
-        // Real p_eff = fmax(p_n, Real(1000.0));
-        Real p_eff = p_n;
         // Bulk
         // Candidate bulk modulus from MCC
-        Real K_cand = sortedPcEvSv[index].z * (p_eff) / paramsD.mcc_kappa;
-        // Clamp K to prevent collapse of the bulk modulus
-        Real K_clamped = fmin(fmax(K_cand, Real(0.1) * paramsD.K_bulk), Real(1.0) * paramsD.K_bulk);
+        Real K_cand = sortedPcEvSv[index].z * p_n / paramsD.mcc_kappa;
+        // Clamp K into [mcc_modulus_min_factor, mcc_modulus_max_factor] * K_bulk, with K_bulk derived
+        // from Young's modulus. The Cam-Clay K = v p / kappa is unbounded above in pressure and
+        // vanishes at zero pressure, and neither end is usable as-is: the sound speed sqrt(K / rho)
+        // sets the CFL limit, so an unbounded K would force dt to shrink with p at a fixed time step,
+        // while K -> 0 leaves near-surface markers with no volumetric stiffness. The consequence to
+        // be aware of is that wherever the bound binds, the volumetric response is linear elastic at
+        // the bound rather than Cam-Clay. Raise mcc_modulus_max_factor, with a correspondingly
+        // smaller time step, to recover Cam-Clay elasticity over the loaded range.
+        Real K_clamped = fmin(fmax(K_cand, paramsD.mcc_modulus_min_factor * paramsD.K_bulk),
+                              paramsD.mcc_modulus_max_factor * paramsD.K_bulk);
 
         // Shear
         Real G_cand = (3.0 * K_clamped * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
-        Real G_clamped = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(1.0) * paramsD.G_shear);
+        Real G_clamped = fmin(fmax(G_cand, paramsD.mcc_modulus_min_factor * paramsD.G_shear),
+                              paramsD.mcc_modulus_max_factor * paramsD.G_shear);
 
         twoG = 2 * G_clamped;
         threeK = 3 * K_clamped;

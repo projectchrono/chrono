@@ -423,7 +423,13 @@ __device__ void TauEulerStep(Real dT,
         tau_offdiag = new_tau_offdiag;
 
         rho_p.y = p_tr;
-        // rho_p.x = rho_p.x + deriv_rho * dT;
+        // Density is held at the reference value rather than integrated from deriv_rho. Plastic flow
+        // in mu(I) is isochoric, and in this elastic path the pressure comes from the stress-rate
+        // integration above rather than from an equation of state, so density feeds only the SPH
+        // volume (markerMass / rho) and has no feedback path that would correct an integration
+        // drift. Holding it fixed keeps that volume consistent with isochoric flow. This relies on
+        // elastic volume changes being small, i.e. p << K; it is not self-consistent if
+        // Young_modulus is low enough to make p / K order one.
         rho_p.x = paramsD.rho0;
     } else {
         // Implementation reference
@@ -444,11 +450,15 @@ __device__ void TauEulerStep(Real dT,
         Real p_n = -CH_1_3 * (tau_diag.x + tau_diag.y + tau_diag.z);
         // Candidate bulk modulus from MCC
         Real K_cand = specific_volume_n * (p_n) / paramsD.mcc_kappa;
-        // Clamp K
-        Real K_n = fmin(fmax(K_cand, Real(0.1) * paramsD.K_bulk), Real(1.0) * paramsD.K_bulk);
+        // Clamp K. This is the same clamp applied in CrmRHS (SphForceWCSPH.cu), where the reasons for
+        // it and its consequence for the constitutive response are documented; the two must stay in
+        // sync, because the stress rate is formed there and integrated here.
+        Real K_n = fmin(fmax(K_cand, paramsD.mcc_modulus_min_factor * paramsD.K_bulk),
+                        paramsD.mcc_modulus_max_factor * paramsD.K_bulk);
         // Shear
         Real G_cand = (3.0 * K_n * (1.0 - 2.0 * paramsD.Nu_poisson)) / (2.0 * (1.0 + paramsD.Nu_poisson));
-        Real G_n = fmin(fmax(G_cand, Real(0.1) * paramsD.G_shear), Real(1.0) * paramsD.G_shear);
+        Real G_n = fmin(fmax(G_cand, paramsD.mcc_modulus_min_factor * paramsD.G_shear),
+                        paramsD.mcc_modulus_max_factor * paramsD.G_shear);
         // Trial stress using convention N = n + 1
         Real3 sig_diag_N_tr = tau_diag + dT * deriv_tau_diag;
         Real3 sig_offdiag_N_tr = tau_offdiag + dT * deriv_tau_offdiag;

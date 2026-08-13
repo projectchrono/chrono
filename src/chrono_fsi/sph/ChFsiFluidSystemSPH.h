@@ -61,7 +61,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct CH_FSI_API ElasticMaterialProperties {
         double density;              ///< bulk density (default: 1000.0)
-        double Young_modulus;        ///< Young's modulus (default: 1e6)
+        double Young_modulus;        ///< Young's modulus (default: 1e6). Under MU_OF_I this sets the
+                                     ///< constant elastic moduli. Under MCC the moduli are computed
+                                     ///< per step from the current state instead, but this value
+                                     ///< still bounds them; see mcc_kappa
         double Poisson_ratio;        ///< Poisson's ratio (default: 0.3)
         double mu_I0;                ///< reference inertia number (default: 0.03)
         double mu_fric_s;            ///< friction mu_s (default: 0.7)
@@ -72,7 +75,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double mcc_M;                ///< Cam-Clay critical state line slope, q = M p (default: 0)
         double mcc_kappa;            ///< Cam-Clay swelling index: slope of the elastic
                                      ///< unload/reload line in v-ln(p). Sets the elastic bulk
-                                     ///< modulus, K = v p / kappa. Must satisfy
+                                     ///< modulus, K = v p / kappa, which is then clamped by
+                                     ///< mcc_modulus_min_factor and mcc_modulus_max_factor. Where
+                                     ///< the clamp binds, the volumetric response is linear elastic
+                                     ///< at the bound rather than Cam-Clay. Must satisfy
                                      ///< 0 < mcc_kappa < mcc_lambda (default: 0)
         double mcc_lambda;           ///< Cam-Clay compression index: slope of the normal
                                      ///< consolidation line in v-ln(p). Governs virgin
@@ -81,6 +87,19 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                      ///< (default: 0)
         double mcc_v_lambda;         ///< Specific volume at reference pressure of 1000 Pa
                                      ///< (default: 2.0)
+        double mcc_modulus_min_factor;  ///< Lower bound on the MCC elastic moduli, as a fraction of
+                                        ///< the Young's-modulus-derived K_bulk = E / (3 (1 - 2 nu))
+                                        ///< and G_shear = E / (2 (1 + nu)). Keeps the moduli from
+                                        ///< collapsing where p approaches zero, e.g. near a free
+                                        ///< surface (default: 0.1)
+        double mcc_modulus_max_factor;  ///< Upper bound on the MCC elastic moduli, as the same
+                                        ///< fraction of K_bulk and G_shear. This bounds the sound
+                                        ///< speed sqrt(K / rho), which is what keeps an explicit
+                                        ///< fixed time step stable, since K = v p / kappa grows
+                                        ///< without limit in pressure. Raise it, together with a
+                                        ///< correspondingly smaller time step, to let Cam-Clay
+                                        ///< elasticity act unclamped over the loaded range
+                                        ///< (default: 1.0)
 
         ElasticMaterialProperties();
     };

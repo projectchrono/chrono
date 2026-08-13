@@ -150,6 +150,8 @@ void ChFsiFluidSystemSPH::InitParams() {
 
     // Elastic SPH
     m_paramsH->free_surface_threshold = Real(2.0);
+    m_paramsH->mcc_modulus_min_factor = Real(0.1);
+    m_paramsH->mcc_modulus_max_factor = Real(1.0);
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
@@ -432,6 +434,8 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
             mcc_finite(m_paramsH->mcc_kappa, "mcc_kappa");
             mcc_finite(m_paramsH->mcc_lambda, "mcc_lambda");
             mcc_finite(m_paramsH->mcc_v_lambda, "mcc_v_lambda");
+            mcc_finite(m_paramsH->mcc_modulus_min_factor, "mcc_modulus_min_factor");
+            mcc_finite(m_paramsH->mcc_modulus_max_factor, "mcc_modulus_max_factor");
 
             if (m_paramsH->mcc_kappa <= 0) {
                 mcc_fatal("MCC parameter mcc_kappa (swelling index) must be positive, but is " +
@@ -453,6 +457,39 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
             if (m_paramsH->mcc_v_lambda <= 0) {
                 mcc_fatal("MCC parameter mcc_v_lambda (specific volume at the reference pressure) must be "
                           "positive, but is " + mcc_num(m_paramsH->mcc_v_lambda) + ".");
+            }
+            if (m_paramsH->mcc_modulus_min_factor <= 0) {
+                mcc_fatal("MCC parameter mcc_modulus_min_factor must be positive, but is " +
+                          mcc_num(m_paramsH->mcc_modulus_min_factor) +
+                          ". It bounds the elastic moduli from below as a fraction of the "
+                          "Young's-modulus-derived K_bulk and G_shear.");
+            }
+            if (m_paramsH->mcc_modulus_max_factor < m_paramsH->mcc_modulus_min_factor) {
+                mcc_fatal("MCC requires mcc_modulus_max_factor >= mcc_modulus_min_factor, but "
+                          "mcc_modulus_max_factor = " + mcc_num(m_paramsH->mcc_modulus_max_factor) +
+                          " and mcc_modulus_min_factor = " + mcc_num(m_paramsH->mcc_modulus_min_factor) + ".");
+            }
+
+            // Raising the upper factor is how Cam-Clay elasticity is allowed to act unclamped, since
+            // K = v p / kappa grows without limit in pressure. It is not free: it raises the sound
+            // speed sqrt(K / rho) and so tightens the CFL limit on an explicit step. Report the
+            // resulting CFL number when the step size and kernel length are already known, so that a
+            // user who lifts the bound is told the cost here rather than discovering it as an
+            // instability part way through a run. Guarded, because this check also runs before the
+            // step size is necessarily set.
+            if (m_paramsH->dT > 0 && m_paramsH->h > 0 && m_paramsH->rho0 > 0) {
+                Real K_max = m_paramsH->mcc_modulus_max_factor * m_paramsH->K_bulk;
+                Real cfl = std::sqrt(K_max / m_paramsH->rho0) * m_paramsH->dT / m_paramsH->h;
+                if (cfl > Real(0.5)) {
+                    cerr << "WARNING: with mcc_modulus_max_factor = "
+                         << mcc_num(m_paramsH->mcc_modulus_max_factor)
+                         << ", the upper bound on the bulk modulus corresponds to a CFL number of "
+                         << mcc_num(cfl) << " at the current time step of " << mcc_num(m_paramsH->dT)
+                         << " s. Explicit integration of this system requires it well below 1. Reduce the "
+                            "time step, which scales as one over the square root of the modulus, or lower "
+                            "the factor."
+                         << endl;
+                }
             }
 
             // Last, and a warning rather than an error: the ordering above can hold by a
@@ -567,7 +604,9 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mcc_M(0),
       mcc_kappa(0),
       mcc_lambda(0),
-      mcc_v_lambda(2.0) {}
+      mcc_v_lambda(2.0),
+      mcc_modulus_min_factor(0.1),
+      mcc_modulus_max_factor(1.0) {}
 
 void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
     ChAssertAlways(!m_is_initialized);
@@ -591,6 +630,8 @@ void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_pro
             m_paramsH->mcc_kappa = Real(mat_props.mcc_kappa);
             m_paramsH->mcc_lambda = Real(mat_props.mcc_lambda);
             m_paramsH->mcc_v_lambda = Real(mat_props.mcc_v_lambda);
+            m_paramsH->mcc_modulus_min_factor = Real(mat_props.mcc_modulus_min_factor);
+            m_paramsH->mcc_modulus_max_factor = Real(mat_props.mcc_modulus_max_factor);
             break;
         case RheologyCRM::MU_OF_I:
             m_paramsH->mu_I0 = Real(mat_props.mu_I0);
@@ -1032,6 +1073,8 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  mcc_kappa: " << params.mcc_kappa << endl;
     cout << "  mcc_lambda: " << params.mcc_lambda << endl;
     cout << "  mcc_v_lambda: " << params.mcc_v_lambda << endl;
+    cout << "  mcc_modulus_min_factor: " << params.mcc_modulus_min_factor << endl;
+    cout << "  mcc_modulus_max_factor: " << params.mcc_modulus_max_factor << endl;
     cout << "  HB_k: " << params.HB_k << endl;
     cout << "  HB_n: " << params.HB_n << endl;
     cout << "  HB_tau0: " << params.HB_tau0 << endl;
