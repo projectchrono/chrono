@@ -119,6 +119,15 @@ struct PlateSinkageParams {
     double container_y = 0.9;  // soil bin size, Y [m]
     double container_z = 0.5;  // soil bin depth, Z [m]
 
+    // MCC elastic-modulus bounds, as fractions of the Young's-modulus-derived K_bulk and G_shear.
+    // These defaults match the solver's. K = v p / kappa is bounded above once the mean pressure
+    // exceeds mcc_modulus_max_factor * K_bulk * mcc_kappa / v, which at the defaults here is about
+    // 58 kPa, well below the bearing pressure this test develops. Raising the upper factor lets
+    // Cam-Clay elasticity act unclamped over the loaded range, at the cost of a higher sound speed
+    // and so a tighter CFL limit; the solver reports the implied CFL number if it becomes large.
+    double mcc_modulus_min_factor = 0.1;  // lower bound on the MCC moduli [-] (MCC only)
+    double mcc_modulus_max_factor = 1.0;  // upper bound on the MCC moduli [-] (MCC only)
+
     // Numerics (stabilization)
     double settle_time = 0.5;             // minimum gravity-settle time [s]
     double artificial_viscosity = 0.2;    // artificial viscosity coefficient [-]
@@ -141,6 +150,10 @@ bool GetProblemSpecs(int argc, char* argv[], PlateSinkageParams& p) {
     cli.AddOption<double>("Soil", "Emod", "Young's modulus [Pa]", std::to_string(p.Emod));
     cli.AddOption<double>("Soil", "nu", "Poisson ratio [-]", std::to_string(p.nu));
     cli.AddOption<double>("Soil", "phi_deg", "Internal friction angle [deg]", std::to_string(p.phi_deg));
+    cli.AddOption<double>("Soil", "mcc_modulus_min_factor", "Lower bound on MCC elastic moduli, fraction of K_bulk/G_shear [-] (MCC only)",
+                          std::to_string(p.mcc_modulus_min_factor));
+    cli.AddOption<double>("Soil", "mcc_modulus_max_factor", "Upper bound on MCC elastic moduli, fraction of K_bulk/G_shear [-] (MCC only)",
+                          std::to_string(p.mcc_modulus_max_factor));
     cli.AddOption<double>("Soil", "cohesion", "Cohesion [Pa] (mu(I) only)", std::to_string(p.cohesion));
     cli.AddOption<double>("Soil", "grain_diam", "Mean grain diameter [m] (mu(I))", std::to_string(p.grain_diam));
 
@@ -175,6 +188,8 @@ bool GetProblemSpecs(int argc, char* argv[], PlateSinkageParams& p) {
     p.Emod = cli.GetAsType<double>("Emod");
     p.nu = cli.GetAsType<double>("nu");
     p.phi_deg = cli.GetAsType<double>("phi_deg");
+    p.mcc_modulus_min_factor = cli.GetAsType<double>("mcc_modulus_min_factor");
+    p.mcc_modulus_max_factor = cli.GetAsType<double>("mcc_modulus_max_factor");
     p.cohesion = cli.GetAsType<double>("cohesion");
     p.grain_diam = cli.GetAsType<double>("grain_diam");
 
@@ -244,6 +259,13 @@ int main(int argc, char* argv[]) {
         cerr << "ERROR: --nu must be in [0, 0.5) (got " << p.nu << ")" << endl;
         return 1;
     }
+    if (!(require_pos(p.mcc_modulus_min_factor, "mcc_modulus_min_factor") && require_pos(p.mcc_modulus_max_factor, "mcc_modulus_max_factor")))
+        return 1;
+    if (p.mcc_modulus_max_factor < p.mcc_modulus_min_factor) {
+        cerr << "ERROR: --mcc_modulus_max_factor (" << p.mcc_modulus_max_factor << ") must be >= --mcc_modulus_min_factor ("
+             << p.mcc_modulus_min_factor << ")" << endl;
+        return 1;
+    }
     if (p.output_points < 1) {
         cerr << "ERROR: --output_points must be >= 1 (got " << p.output_points << ")" << endl;
         return 1;
@@ -311,6 +333,8 @@ int main(int argc, char* argv[]) {
         mat.mcc_kappa = 0.00625;                                    // swelling (unload/reload) slope
         mat.mcc_lambda = 0.025;                                     // normal-compression-line slope
         mat.mcc_v_lambda = 2.0;                                     // specific volume at reference pressure
+        mat.mcc_modulus_min_factor = p.mcc_modulus_min_factor;      // lower bound on K and G
+        mat.mcc_modulus_max_factor = p.mcc_modulus_max_factor;      // upper bound on K and G
     } else {
         mat.rheology_model = RheologyCRM::MU_OF_I;
         mat.mu_fric_s = std::tan(phi);    // static friction coefficient = tan(phi)
@@ -408,6 +432,16 @@ int main(int argc, char* argv[]) {
     cout << "[demo] rheology=" << (use_mcc ? "MCC" : "mu(I)") << "  particles=" << points.size() << "  spacing=" << p.spacing << "  plate D=" << p.diameter << " m"
          << "  gravity=" << gravity_mag << " m/s^2" << endl;
     cout << "[demo] soil_top_init=" << soil_top_init << " m  plate_bottom_init=" << (plate_z0 - plate_thickness / 2) << " m" << endl;
+    if (use_mcc) {
+        // Report the pressure window over which Cam-Clay elasticity is unbounded, so the run states up
+        // front where its own modulus bounds start acting.
+        const double K_bulk = p.Emod / (3 * (1 - 2 * p.nu));
+        const double p_per_K = mat.mcc_kappa / mat.mcc_v_lambda;  // p at which K = v p / kappa equals a given K
+        cout << "[demo] MCC modulus bounds: [" << p.mcc_modulus_min_factor << ", " << p.mcc_modulus_max_factor << "] * K_bulk"
+             << " (K_bulk=" << K_bulk / 1e6 << " MPa); K = v p / kappa is unbounded for "
+             << p.mcc_modulus_min_factor * K_bulk * p_per_K / 1e3 << " kPa < p < "
+             << p.mcc_modulus_max_factor * K_bulk * p_per_K / 1e3 << " kPa" << endl;
+    }
 
     // ---- Output directory ---------------------------------------------------
     std::string out_dir = GetChronoOutputPath() + "FSI_Plate_Sinkage/";

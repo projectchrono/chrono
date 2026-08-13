@@ -230,6 +230,44 @@ int main(int argc, char* argv[]) {
         ValidateMaterial(m);
     });
 
+    // The modulus bounds. These are fractions of the Young's-modulus-derived K_bulk and G_shear that
+    // bound the Cam-Clay moduli, so a non-positive lower bound would admit a zero or negative
+    // modulus, and an inverted pair would make fmin(fmax(...)) silently return the wrong end of the
+    // interval rather than fail. Raising the upper bound is legal and is the whole point of exposing
+    // it, so only the degenerate cases are rejected.
+    ExpectThrow("modulus_min_factor == 0 (admits a zero modulus)", [&] {
+        auto m = ValidMCC();
+        m.mcc_modulus_min_factor = 0;
+        ValidateMaterial(m);
+    });
+    ExpectThrow("modulus_min_factor < 0 (admits a negative modulus)", [&] {
+        auto m = ValidMCC();
+        m.mcc_modulus_min_factor = -0.1;
+        ValidateMaterial(m);
+    });
+    ExpectThrow("modulus_max_factor < modulus_min_factor (inverted interval)", [&] {
+        auto m = ValidMCC();
+        m.mcc_modulus_min_factor = 1.0;
+        m.mcc_modulus_max_factor = 0.5;
+        ValidateMaterial(m);
+    });
+    ExpectThrow("modulus_max_factor is NaN", [&] {
+        auto m = ValidMCC();
+        m.mcc_modulus_max_factor = std::numeric_limits<double>::quiet_NaN();
+        ValidateMaterial(m);
+    });
+    ExpectNoThrow("modulus bounds raised to [0.1, 10]: legal, and the reason they are settable", [&] {
+        auto m = ValidMCC();
+        m.mcc_modulus_max_factor = 10.0;
+        ValidateMaterial(m);
+    });
+    ExpectNoThrow("modulus bounds pinned equal at [1, 1]: legal, a constant-modulus MCC", [&] {
+        auto m = ValidMCC();
+        m.mcc_modulus_min_factor = 1.0;
+        m.mcc_modulus_max_factor = 1.0;
+        ValidateMaterial(m);
+    });
+
     // ------------------------------------------------------------------------
     // 3. lambda > kappa can hold by a margin so small that the hardening law, which divides by
     //    (lambda - kappa), is effectively dividing by nothing. The floor is
