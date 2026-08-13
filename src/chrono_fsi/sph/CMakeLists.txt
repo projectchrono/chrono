@@ -23,14 +23,49 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     return()
 endif()
 
-# Return now if neither CUDA nor HIP is available
-if(NOT CHRONO_CUDA_FOUND AND NOT CHRONO_HIP_FOUND)
-    message(WARNING "Chrono::FSI::SPH requires CUDA or HIP, but neither backend was found; disabling Chrono::FSI::SPH")
-    set(CH_ENABLE_MODULE_FSI_SPH OFF CACHE BOOL "Enable the Chrono::SPH FSI module" FORCE)
+# Select the GPU backend for this submodule.
+#
+# CLASS IMPLIED below: unlike the other GPU modules, this one is enabled
+# automatically via cmake_dependent_option(... ON) whenever Chrono::FSI is on.
+# The user never explicitly asked for it, so dropping it quietly when no GPU
+# backend exists is the correct behaviour rather than a warning they cannot act
+# on.
+# HIP_PLATFORMS amd nvidia: Thrust's device system is selected from the HIP
+# platform (rocThrust on AMD, CUDA's own Thrust when HIP targets NVIDIA), so
+# neither platform is excluded. The NVIDIA platform was verified to build; the
+# AMD platform is the pre-existing, unchanged path.
+chrono_select_gpu_backend(CHRONO_FSISPH_BACKEND
+                          FEATURE  "Chrono::FSI::SPH"
+                          NAME     FSI_SPH
+                          REQUIRES CUDA_OR_HIP
+                          PREFER   CUDA
+                          HIP_PLATFORMS amd nvidia)
+
+if(CHRONO_FSISPH_BACKEND STREQUAL "NONE")
+    chrono_gpu_feature_unavailable(FEATURE  "Chrono::FSI::SPH"
+                                   REQUIRES "CUDA or HIP"
+                                   OPTION   CH_ENABLE_MODULE_FSI_SPH
+                                   CLASS    IMPLIED)
     return()
 endif()
 
-if(CHRONO_HIP_FOUND)
+# Thrust's device system follows the HIP PLATFORM, not merely the fact that the
+# backend is HIP. THRUST_DEVICE_SYSTEM_HIP means rocThrust, which exists only in
+# the ROCm stack; when HIP targets NVIDIA the translation units are compiled by
+# nvcc and the correct device system is CUDA. Selecting HIP there sends the CUDA
+# toolkit's own CCCL looking for a system it does not ship.
+#
+# Computed once here because every target that compiles SPH device code must
+# agree on it -- Chrono_fsisph and the VSG plugin both do, and having the VSG
+# plugin decide separately is exactly how it ended up out of step.
+if(CHRONO_HIP_PLATFORM STREQUAL "nvidia")
+  set(CHRONO_FSISPH_THRUST_DEVICE THRUST_DEVICE_SYSTEM_CUDA)
+else()
+  set(CHRONO_FSISPH_THRUST_DEVICE THRUST_DEVICE_SYSTEM_HIP)
+endif()
+
+message(STATUS "  Chrono::FSI::SPH GPU backend: ${CHRONO_FSISPH_BACKEND}")
+if(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
     message(STATUS "  Chrono HIP architectures: ${CHRONO_HIP_ARCHITECTURES}")
 else()
     message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
@@ -164,9 +199,7 @@ set(FSISPH_GPU_SOURCE_FILES
     utils/SphUtilsDevice.cu
     utils/SphUtilsPrint.cu
 )
-if(CHRONO_HIP_FOUND)
-    set_source_files_properties(${FSISPH_GPU_SOURCE_FILES} PROPERTIES LANGUAGE HIP)
-endif()
+chrono_set_gpu_source_language(${CHRONO_FSISPH_BACKEND} ${FSISPH_GPU_SOURCE_FILES})
 
 # --------------- 3rd party STB FILES
 
@@ -201,6 +234,9 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 set(DEPENDENCIES_FSI_SPH ${DEPENDENCIES_FSI_SPH} PARENT_SCOPE)
+
+# Export the resolved backend for ChronoConfig.cmake (see cmake/ChronoConfig.cmake.in).
+set(CHRONO_FSISPH_BACKEND ${CHRONO_FSISPH_BACKEND} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -245,58 +281,65 @@ if(MSVC)
   set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-if(CHRONO_CUDA_FOUND)
-  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
-endif()
-
 target_link_libraries(Chrono_fsisph PRIVATE Chrono_core)
 target_link_libraries(Chrono_fsisph PUBLIC Chrono_fsi)
 
 target_compile_definitions(Chrono_fsisph PRIVATE CH_API_COMPILE_FSI)
-if(CHRONO_HIP_FOUND)
-  target_compile_definitions(Chrono_fsisph PRIVATE CHRONO_USE_HIP)
-  target_compile_definitions(Chrono_fsisph INTERFACE CHRONO_FSI_SPH_USE_HIP_RUNTIME)
+
+# Visibility of the GPU runtime is backend-dependent for this target, and the
+# two cases are not symmetric:
+#
+#   CUDA  PUBLIC. Public headers switch on CHRONO_USE_CUDA and then include
+#         <cuda_runtime.h>, so any consumer that inherits the definition must
+#         also inherit the CUDA include directories that come with
+#         CUDA::cudart_static. Making the definition public but the link
+#         private breaks every downstream target (Chrono_parsers first).
+#
+#   HIP   PRIVATE. Public consumers are ordinary C++ translation units; the HIP
+#         target's compile definitions would force Thrust onto the rocPRIM
+#         backend in code that never asked for it.
+if(CHRONO_FSISPH_BACKEND STREQUAL "CUDA")
+  set(_fsisph_gpu_visibility PUBLIC)
+else()
+  set(_fsisph_gpu_visibility PRIVATE)
 endif()
 
-if(CHRONO_CUDA_FOUND)
-  target_compile_definitions(Chrono_fsisph PUBLIC CHRONO_USE_CUDA)
-  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cudart_static)
-  target_link_libraries(Chrono_fsisph PUBLIC CUDA::nvrtc)
-  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cuda_driver)
-  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cublas)
-  target_link_libraries(Chrono_fsisph PUBLIC CUDA::cusparse)
+chrono_apply_gpu_backend(Chrono_fsisph ${CHRONO_FSISPH_BACKEND}
+                         DEFINE_VISIBILITY ${_fsisph_gpu_visibility}
+                         LINK_VISIBILITY   ${_fsisph_gpu_visibility})
+
+# Module-specific Thrust wiring, which genuinely differs between the two
+# backends and so deliberately stays here rather than moving into the helper.
+if(CHRONO_FSISPH_BACKEND STREQUAL "CUDA")
 
   target_link_libraries(Chrono_fsisph PUBLIC Thrust::Thrust)
   target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
   target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
-  set_target_properties(Chrono_fsisph PROPERTIES CUDA_ARCHITECTURES "${CHRONO_CUDA_ARCHITECTURES}")
-elseif(CHRONO_HIP_FOUND)
-  find_package(hip QUIET CONFIG HINTS "${CHRONO_ROCM_ROOT}")
-  if(TARGET hip::host)
-    # Keep HIP compiler/runtime flags local to the fsisph target.
-    # Public consumers are regular C++ translation units that only need the ROCm
-    # headers for declarations from public headers, not the HIP target's compile
-    # definitions/options that can force Thrust onto the rocPRIM backend.
-    target_link_libraries(Chrono_fsisph PRIVATE hip::host)
-  endif()
-  if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
-    target_include_directories(Chrono_fsisph PUBLIC "${CHRONO_ROCM_ROOT}/include")
-  endif()
-  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP")
+elseif(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
+
+  target_compile_definitions(Chrono_fsisph INTERFACE CHRONO_FSI_SPH_USE_HIP_RUNTIME)
+
+  # Keep the device Thrust backend local to this target, and export NOTHING.
+  #
+  # No installed Chrono::FSI::SPH header includes <thrust/...>; only the private
+  # .cuh sources do. So a consumer never needs a Thrust configuration from us,
+  # and any value we exported would be wrong for someone:
+  #
+  #   THRUST_DEVICE_SYSTEM_HIP  names rocThrust, which a consumer compiled by a
+  #                             non-HIP compiler cannot use at all;
+  #   THRUST_DEVICE_SYSTEM_CPP  silently demotes a consumer's OWN device Thrust
+  #                             to host code. Chrono::Sensor links us PUBLIC and
+  #                             calls thrust::device_vector on CUDA device
+  #                             pointers; under _CPP that becomes a host memcpy
+  #                             from device memory, which segfaults at runtime
+  #                             rather than failing to build.
+  #
+  # Exporting nothing leaves each consumer on Thrust's own default, which is
+  # what it gets when Chrono::FSI::SPH is not in the link at all.
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=${CHRONO_FSISPH_THRUST_DEVICE}")
   target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-  target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
-  target_compile_definitions(Chrono_fsisph INTERFACE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-  # Mixed CXX/HIP targets can leak HIP_ARCHITECTURES into ordinary CXX compilations
-  # (for example stb_image.cpp), which makes the host compiler see --offload-arch.
-  # Keep the target-level property disabled and pass the GPU arch flags only to real HIP TUs.
-  set_target_properties(Chrono_fsisph PROPERTIES HIP_ARCHITECTURES OFF)
-  if(NOT CHRONO_HIP_ARCHITECTURES STREQUAL "")
-    foreach(_chrono_hip_arch IN LISTS CHRONO_HIP_ARCHITECTURES)
-      target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
-      target_link_options(Chrono_fsisph PRIVATE $<$<LINK_LANGUAGE:HIP>:--offload-arch=${_chrono_hip_arch}>)
-    endforeach()
-  endif()
+
 endif()
 
 install(TARGETS Chrono_fsisph
@@ -336,31 +379,21 @@ if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(Chrono_fsisph_vsg PRIVATE Chrono_core Chrono_fsisph)
     target_link_libraries(Chrono_fsisph_vsg PUBLIC Chrono_vsg)
 
-    if(CHRONO_CUDA_FOUND)
-      target_compile_definitions(Chrono_fsisph_vsg PRIVATE CHRONO_USE_CUDA)
-      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cudart_static)
-      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::nvrtc)
-      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cuda_driver)
-      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cublas)
-      target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cusparse)
+    chrono_apply_gpu_backend(Chrono_fsisph_vsg ${CHRONO_FSISPH_BACKEND}
+                             DEFINE_VISIBILITY PRIVATE
+                             LINK_VISIBILITY   PRIVATE)
 
+    if(CHRONO_FSISPH_BACKEND STREQUAL "CUDA")
       target_link_libraries(Chrono_fsisph_vsg PRIVATE Thrust::Thrust)
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-    elseif(CHRONO_HIP_FOUND)
+    elseif(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
       # Compile the VSG plugin source with the HIP compiler: it includes FSI
       # data-manager headers that reference rocThrust/rocPRIM device types,
       # which do not compile as plain C++ (same treatment as FSISPH_GPU_SOURCE_FILES).
       set_source_files_properties(visualization/ChSphVisualizationVSG.cpp PROPERTIES LANGUAGE HIP)
-      target_compile_definitions(Chrono_fsisph_vsg PRIVATE CHRONO_USE_HIP)
-      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP")
+      target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=${CHRONO_FSISPH_THRUST_DEVICE}")
       target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-      if(TARGET hip::host)
-        target_link_libraries(Chrono_fsisph_vsg PRIVATE hip::host)
-      endif()
-      if(CHRONO_ROCM_ROOT AND EXISTS "${CHRONO_ROCM_ROOT}/include")
-        target_include_directories(Chrono_fsisph_vsg PRIVATE "${CHRONO_ROCM_ROOT}/include")
-      endif()
     endif()
 
     install(TARGETS Chrono_fsisph_vsg

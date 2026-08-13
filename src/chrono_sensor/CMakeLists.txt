@@ -46,26 +46,41 @@ mark_as_advanced(CLEAR glfw3_DIR)
 set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable legacy OptiX-dependent Chrono::Sensor features")
 set(CH_USE_SENSOR_VULKAN_RT ON CACHE BOOL "Enable Vulkan ray-tracing Chrono::Sensor features")
 
+# GPU requirements are declared PER FEATURE here, not per module.
+#
+# Chrono::Sensor itself requires no GPU backend at all: its default renderer is
+# Vulkan RT, which is vendor-neutral and builds fine on AMD. Only the optional
+# OptiX renderer is CUDA-and-NVIDIA-only. Attaching "requires CUDA" to the
+# module rather than to the feature would wrongly disable the entire module on
+# AMD hardware that can run most of it.
 if(CH_USE_SENSOR_OPTIX)
 
-  if(CHRONO_HIP_FOUND)
-    message(STATUS "WARNING: Chrono::Sensor / OptiX is CUDA-only and not supported with HIP; disabling OptiX-dependent features")
-    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
-  elseif(CHRONO_CUDA_FOUND)
+  chrono_select_gpu_backend(CHRONO_SENSOR_OPTIX_BACKEND
+                            FEATURE  "Chrono::Sensor OptiX renderer"
+                            NAME     SENSOR_OPTIX
+                            REQUIRES CUDA)
+
+  if(CHRONO_SENSOR_OPTIX_BACKEND STREQUAL "NONE")
+
+    chrono_gpu_feature_unavailable(FEATURE  "Chrono::Sensor OptiX renderer"
+                                   REQUIRES "CUDA"
+                                   OPTION   CH_USE_SENSOR_OPTIX
+                                   CLASS    EXPLICIT)
+
+  else()
+
     message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
-  
+
     message(STATUS "Looking for OptiX")
     find_package(OptiX)
-  
+
     if(OptiX_INCLUDE)
       message(STATUS "  OptiX include directory: ${OptiX_INCLUDE}")
     else()
-      message("WARNING: OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
+      message(WARNING "OptiX was not found; disabling OptiX-dependent Chrono::Sensor features")
       set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
     endif()
-  else()
-    message(STATUS "WARNING: CUDA was not found; disabling OptiX-dependent Chrono::Sensor features")
-    set(CH_USE_SENSOR_OPTIX FALSE CACHE BOOL "Enable OptiX-dependent Chrono::Sensor features" FORCE)
+
   endif()
 
 endif()
@@ -711,6 +726,25 @@ if(CH_USE_SENSOR_OPTIX)
   target_include_directories(Chrono_sensor PUBLIC "${OptiX_INCLUDE}")
 
   target_link_libraries(Chrono_sensor PUBLIC CUDA::cudart_static)
+
+  # Declare the backend that goes with the link above.
+  #
+  # With OptiX enabled, Chrono::Sensor exports CUDA to its consumers: it links
+  # CUDA::cudart_static PUBLIC, and ChSensorBuffer.h -- an installed header --
+  # includes <cuda_fp16.h> under CHRONO_HAS_OPTIX. Every consumer therefore
+  # compiles against CUDA's vector types whether it asked to or not.
+  #
+  # CHRONO_USE_CUDA is what tells chrono/gpu/ChGpuPrimitives.h that those types
+  # already exist. Without it that header takes its "no GPU SDK here" branch and
+  # defines its own int2/float3/make_int2/..., which then collide with CUDA's.
+  # Exporting the headers but not the macro is the same visibility mismatch the
+  # GPU modules avoid by construction; sensor predates that helper and links
+  # CUDA by hand, so it has to say so by hand too.
+  #
+  # This is deliberately just the define: chrono_apply_gpu_backend() would also
+  # link cuBLAS, cuSPARSE and NVRTC, which sensor does not want, and would set
+  # CUDA_ARCHITECTURES a second time.
+  target_compile_definitions(Chrono_sensor PUBLIC CHRONO_USE_CUDA)
 
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppc)
   target_link_libraries(Chrono_sensor PRIVATE CUDA::nppig)
