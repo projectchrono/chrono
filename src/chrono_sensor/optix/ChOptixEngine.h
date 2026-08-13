@@ -36,13 +36,10 @@
 #include "chrono_sensor/optix/ChOptixGeometry.h"
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
+#include "chrono_sensor/optix/ChNVDBVolume.h"
 
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono_sensor/optix/ChNVDBVolume.h"
+#include "chrono/assets/ChVisualShapes.h"
 
 #ifdef USE_SENSOR_NVDB
 #endif

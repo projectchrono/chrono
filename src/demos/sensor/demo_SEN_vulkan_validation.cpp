@@ -65,8 +65,6 @@
 #include <string>
 #include <vector>
 
-#include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"

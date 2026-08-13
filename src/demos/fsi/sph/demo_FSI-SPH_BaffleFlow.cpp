@@ -19,7 +19,6 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 

@@ -28,8 +28,6 @@
 #include <vsgImGui/implot.h>
 
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualModel.h"
-#include "chrono/assets/ChColormap.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLink.h"

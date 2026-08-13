@@ -21,12 +21,7 @@
 
 #include "chrono/core/ChDataPath.h"
 
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapes.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChBodyGeometry.h"

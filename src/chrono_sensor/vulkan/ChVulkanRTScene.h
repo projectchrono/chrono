@@ -23,6 +23,10 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualMaterial.h"
+
+#include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChVisualShapes.h"
+
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/ChApiSensor.h"

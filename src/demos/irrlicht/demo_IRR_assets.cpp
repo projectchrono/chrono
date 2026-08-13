@@ -21,8 +21,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
-#include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"

@@ -21,16 +21,6 @@
 #include "chrono/utils/ChProfiler.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeEllipsoid.h"
-#include "chrono/assets/ChVisualShapeBarrel.h"
-#include "chrono/assets/ChVisualShapeCapsule.h"
-
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"

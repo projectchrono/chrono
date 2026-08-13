@@ -21,7 +21,12 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "chrono/assets/ChVisualShape.h"
+#include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChVisualShapes.h"
+#include "chrono/assets/ChColormap.h"
+#include "chrono/assets/ChGlyphs.h"
+#include "chrono/assets/ChCamera.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono_postprocess/ChPostProcessBase.h"
 

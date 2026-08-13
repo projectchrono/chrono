@@ -16,19 +16,8 @@
 #include <sstream>
 #include <filesystem>
 
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCone.h"
-#include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeEllipsoid.h"
-#include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/assets/ChVisualShapePath.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChParticleCloud.h"
 

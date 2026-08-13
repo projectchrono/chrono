@@ -26,18 +26,6 @@
 #include "chrono/core/ChVector2.h"
 
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeCapsule.h"
-#include "chrono/assets/ChVisualShapeCone.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShape.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChVisualShapePath.h"
-#include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/assets/ChColormap.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"

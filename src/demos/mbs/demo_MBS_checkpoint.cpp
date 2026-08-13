@@ -20,7 +20,6 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/input_output/ChCheckpointASCII.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"

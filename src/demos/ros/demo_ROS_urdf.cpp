@@ -27,8 +27,6 @@
 
 #include "chrono/core/ChTypes.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"

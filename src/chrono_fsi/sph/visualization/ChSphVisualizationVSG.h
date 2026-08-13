@@ -19,7 +19,6 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChColormap.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"

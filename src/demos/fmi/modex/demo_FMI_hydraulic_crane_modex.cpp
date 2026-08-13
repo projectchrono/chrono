@@ -23,8 +23,6 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_fmi/ChConfigFMI.h"

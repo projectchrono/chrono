@@ -20,6 +20,7 @@
 #define CH_FSI_SYSTEM_H
 
 #include "chrono/ChConfig.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/physics/ChSystem.h"
 #ifdef CHRONO_FEA

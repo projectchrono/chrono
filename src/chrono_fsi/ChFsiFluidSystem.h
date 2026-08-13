@@ -23,6 +23,7 @@
 #include <stdexcept>
 
 #include "chrono/ChConfig.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiDefinitions.h"
