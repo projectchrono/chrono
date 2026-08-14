@@ -239,7 +239,7 @@ class Actuator {
         }
     }
 
-    double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
+    double GetActuatorForce(double time) const { return m_actuator->GetActuatorForce(time); }
     double GetValvePosition() const { return m_actuator->GetValvePosition(); }
     std::array<double, 2> GetCylinderPressures() const { return m_actuator->GetCylinderPressures(); }
 
@@ -279,7 +279,7 @@ class CraneTelemetryHandler : public ChROSHandler {
 
         // Actuator: [force, valve position, chamber pressure 0, pressure 1, Uref].
         auto p = m_actuator.GetCylinderPressures();
-        const double actuator_data[] = {m_actuator.GetActuatorForce(), m_actuator.GetValvePosition(),
+        const double actuator_data[] = {m_actuator.GetActuatorForce(time), m_actuator.GetValvePosition(),
                                         p[0], p[1], m_uref};
         auto actuator_msg = m_actuator_pub->NewMessage();
         actuator_msg.SetBlobCopy("data", actuator_data, 5);
@@ -403,7 +403,7 @@ int main(int argc, char* argv[]) {
         actuator.SetActuation(t, current_Uref);
 
         crane.GetActuatorLength(s, sd);
-        F = actuator.GetActuatorForce();
+        F = actuator.GetActuatorForce(t);
         crane.SetActuatorForce(F);
         actuator.SetActuatorLength(s, sd);
 
