@@ -291,6 +291,8 @@ set(Chrono_physics_actuators_SOURCES
     )
 set(Chrono_physics_actuators_HEADERS
     physics/ChActuator.h
+    physics/ChActuatorTSDA.h
+    physics/ChActuatorRSDA.h
     physics/ChHydraulicCircuit.h
     physics/ChHydraulicActuator.h
     physics/ChElectromechanicalActuator.h
