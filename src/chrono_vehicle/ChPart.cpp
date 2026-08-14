@@ -388,7 +388,7 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument, std::vector<
         if (!spring->GetForceFunctor()) {
             obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
             obj.AddMember("damping coefficient", spring->GetDampingCoefficient(), allocator);
-            obj.AddMember("pre-load", spring->GetActuatorForce(), allocator);
+            obj.AddMember("pre-load", spring->GetActuationForce(), allocator);
         } else {
             obj.AddMember("force functor", spring->GetForceFunctor()->exportJSON(allocator), allocator);
         }
@@ -424,7 +424,7 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument, std::vector<
         if (!spring->GetTorqueFunctor()) {
             obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
             obj.AddMember("damping coefficient", spring->GetDampingCoefficient(), allocator);
-            obj.AddMember("pre-load", spring->GetActuatorTorque(), allocator);
+            obj.AddMember("pre-load", spring->GetActuationTorque(), allocator);
         } else {
             obj.AddMember("torque functor", spring->GetTorqueFunctor()->exportJSON(allocator), allocator);
         }

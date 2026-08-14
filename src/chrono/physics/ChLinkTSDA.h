@@ -114,7 +114,7 @@ class ChApi ChLinkTSDA : public ChLink {
 
     /// Get the constant actuation force.
     /// Meaningful only if no force functor is provided.
-    double GetActuatorForce() const { return m_f; }
+    double GetActuationForce() const { return m_f; }
 
     /// Class to be used as a callback interface for calculating the general spring-damper force.
     class ChApi ForceFunctor {

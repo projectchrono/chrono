@@ -66,7 +66,7 @@ class ChApi ChLinkRSDA : public ChLink {
 
     /// Get the constant actuation torque.
     /// Meaningful only if no torque functor is provided.
-    double GetActuatorTorque() const { return m_t; }
+    double GetActuationTorque() const { return m_t; }
 
     /// Class to be used as a callback interface for calculating the general spring-damper torque.
     /// A derived class must implement the virtual operator().
