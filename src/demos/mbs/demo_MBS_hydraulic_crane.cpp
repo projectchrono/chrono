@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
     double s, sd;
     double F;
     GetActuatorLength(crane, attachment_ground, attachment_crane, s, sd);
-    F = actuator->GetActuatorForce();
+    F = actuator->GetActuatorForce(0);
     csv << 0 << s << sd << 0 << 0 << 4.163e6 << 3.461e6 << F << std::endl;
 
     // Simulation loop
@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
         auto Uref = actuation->GetVal(t);
         auto U = actuator->GetValvePosition();
         auto p = actuator->GetCylinderPressures();
-        F = actuator->GetActuatorForce();
+        F = actuator->GetActuatorForce(t);
 
         if (output && t >= output_frame / output_fps) {
             csv << t << s << sd << Uref << U << p[0] << p[1] << F << std::endl;

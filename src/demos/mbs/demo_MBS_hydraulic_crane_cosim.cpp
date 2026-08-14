@@ -238,7 +238,7 @@ class Actuator {
         }
     }
 
-    double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
+    double GetActuatorForce(double time) const { return m_actuator->GetActuatorForce(time); }
     double GetValvePosition() const { return m_actuator->GetValvePosition(); }
     std::array<double, 2> GetCylinderPressures() const { return m_actuator->GetCylinderPressures(); }
 
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
 
         // Exchange information between systems
         crane.GetActuatorLength(s, sd);
-        F = actuator.GetActuatorForce();
+        F = actuator.GetActuatorForce(t);
         crane.SetActuatorForce(F);
         actuator.SetActuatorLength(s, sd);
 

@@ -46,7 +46,7 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
-    void CalculateActuatorForce();
+    void CalculateActuatorForce(double time);
     void CalculatePistonPressures();
     void CalculateValvePosition();
 

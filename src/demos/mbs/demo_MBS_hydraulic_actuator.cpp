@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(t_step);
         t += t_step;
 
-        auto F = actuator->GetActuatorForce();
+        auto F = actuator->GetActuatorForce(t);
         auto y = actuator->GetStates();
         csv << t << F << y.format(rowFmt) << std::endl;
         std::cout << t << " " << F << " " << y.format(rowFmt) << std::endl;

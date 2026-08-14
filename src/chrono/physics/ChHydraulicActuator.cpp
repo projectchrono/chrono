@@ -40,7 +40,7 @@ std::array<double, 2> ChHydraulicActuatorBase::GetCylinderPressures() {
     return {p(0), p(1)};
 }
 
-double ChHydraulicActuatorBase::GetActuatorForce() {
+double ChHydraulicActuatorBase::GetActuatorForce(double time) {
     Vec2 p = ExtractCylinderPressures();
     return cyl.EvalForce(p, s - s_0, sd);
 }

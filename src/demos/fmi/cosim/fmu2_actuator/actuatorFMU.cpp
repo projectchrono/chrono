@@ -92,13 +92,13 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddPreStepFunction([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    AddPostStepFunction([this]() { this->CalculateActuatorForce(); });
+    AddPostStepFunction([this]() { this->CalculateActuatorForce(this->GetTime()); });
     AddPostStepFunction([this]() { this->CalculatePistonPressures(); });
     AddPostStepFunction([this]() { this->CalculateValvePosition(); });
 }
 
-void FmuComponent::CalculateActuatorForce() {
-    F = m_actuator->GetActuatorForce();
+void FmuComponent::CalculateActuatorForce(double time) {
+    F = m_actuator->GetActuatorForce(time);
 }
 
 void FmuComponent::CalculatePistonPressures() {
@@ -145,7 +145,7 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
     m_actuator->Initialize();
 
     // 3. Initialize FMU outputs (in case they are queried before the first step)
-    CalculateActuatorForce();
+    CalculateActuatorForce(0);
     CalculatePistonPressures();
     CalculateValvePosition();
 

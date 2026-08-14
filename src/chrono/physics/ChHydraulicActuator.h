@@ -46,7 +46,7 @@ namespace chrono {
 ///   This function should return the directional valve input, normalized to the interval [-1,1]. The extreme values
 ///   correspond to the maximum input voltage (providing full opening of the valve) to the proportional magnet
 ///   controlling the valve spool position.
-class ChApi ChHydraulicActuatorBase : public ChActuator {
+class ChApi ChHydraulicActuatorBase : public ChLinearActuator {
   public:
     virtual ~ChHydraulicActuatorBase() {}
 
@@ -62,9 +62,9 @@ class ChApi ChHydraulicActuatorBase : public ChActuator {
     /// Access the directional valve in this circuit.
     ChHydraulicDirectionalValve4x3& DirectionalValve() { return dvalve; }
 
-    /// Get the current actuator force.
+    /// Get the actuator force at the specified time.
     /// Can be used in a co-simulation interface.
-    virtual double GetActuatorForce() override;
+    virtual double GetActuatorForce(double time) override;
 
     /// Get the current cylinder pressures.
     std::array<double, 2> GetCylinderPressures();

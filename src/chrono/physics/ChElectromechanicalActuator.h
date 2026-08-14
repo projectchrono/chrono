@@ -27,7 +27,7 @@
 namespace chrono {
 
 /// Base class for an electric actuator.
-class ChApi ChElectricActuator : public ChActuator {
+class ChApi ChElectricActuator : public ChLinearActuator {
   public:
     ChElectricActuator();
     ~ChElectricActuator() {}
