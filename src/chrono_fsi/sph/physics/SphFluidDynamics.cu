@@ -240,7 +240,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     // All particles are considered active during a settling phase
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
-    if (has_ad && time >= paramsD.settlingTime) {
+    if (has_ad && time >= paramsD.free_flow_duration) {
         checkActivityD(pos, ad_body_D, ad_node1D_D, ad_node2D_D, activityIdentifierD[index], extendedActivityIdD[index]);
         if (activityIdentifierD[index] == 0)
             velMasD[index] = mR3(0.0);

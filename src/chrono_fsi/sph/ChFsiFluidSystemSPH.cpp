@@ -156,7 +156,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->free_surface_threshold = Real(2.0);
 
     //
-    m_paramsH->settlingTime = Real(0);
+    m_paramsH->free_flow_duration = Real(0);
 
     //
     m_paramsH->Max_Pressure = Real(1e20);
@@ -291,9 +291,9 @@ void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
     m_ad_default.max = +0.5 * box_dim;
 }
 
-void ChFsiFluidSystemSPH::SetActiveDomainDelay(double duration) {
+void ChFsiFluidSystemSPH::SetFreeFlowDuration(double duration) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->settlingTime = duration;
+    m_paramsH->free_flow_duration = duration;
 }
 
 void ChFsiFluidSystemSPH::SetNumBCELayers(int num_layers) {

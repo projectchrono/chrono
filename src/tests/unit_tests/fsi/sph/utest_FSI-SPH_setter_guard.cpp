@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     ExpectThrow("SetIntegrationScheme", [&] { sysSPH->SetIntegrationScheme(IntegrationScheme::RK2); });
     ExpectThrow("SetContainerDim", [&] { sysSPH->SetContainerDim(ChVector3d(1, 1, 1)); });
     ExpectThrow("SetActiveDomain", [&] { sysSPH->SetActiveDomain(ChVector3d(1, 1, 1)); });
-    ExpectThrow("SetActiveDomainDelay", [&] { sysSPH->SetActiveDomainDelay(1.0); });
+    ExpectThrow("SetFreeFlowDuration", [&] { sysSPH->SetFreeFlowDuration(1.0); });
     ExpectThrow("SetNumBCELayers", [&] { sysSPH->SetNumBCELayers(3); });
     ExpectThrow("SetInitPressure", [&] { sysSPH->SetInitPressure(0.1); });
     ExpectThrow("SetGravitationalAcceleration", [&] { sysSPH->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8)); });

@@ -222,7 +222,7 @@ CreateFSIWheels(vehicle, terrain)
 
 # CRITICAL: Use correct active domain setup
 terrain.SetActiveDomain(chrono.ChVector3d(active_box_dim))
-terrain.SetActiveDomainDelay(settling_time)
+terrain.SetFreeFlowDuration(settling_time)
 
 # Construct the terrain and associated path
 print("Create terrain...")

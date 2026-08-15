@@ -197,7 +197,7 @@ struct ChFsiParamsSPH {
     Real3 zombieMin;  ///< Lower limit point of the zombie domain -> All particles outside this will be frozen
     Real3 zombieMax;  ///< Upper limit point of the zombie domain -> All particles outside this will be frozen
 
-    Real settlingTime;  ///< Time for the granular to settle down
+    Real free_flow_duration;  ///< initial  duration for free flow CRM material (default: 0)
 
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists
     bool use_variable_time_step;     ///< use variable time step (default: false)

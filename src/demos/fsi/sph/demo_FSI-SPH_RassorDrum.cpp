@@ -491,7 +491,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetSPHParameters(sph_params);
 
     sysSPH.SetActiveDomain(ChVector3d(0.5, 0.4, 0.7));
-    // sysSPH.SetActiveDomainDelay(0.0);
+    ////sysSPH.SetFreeFlowDuration(0.0);
 
     // Set the terrain container size
     sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));

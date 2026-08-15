@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     // Add vehicle wheels as FSI solids
     CreateFSIWheels(vehicle, terrain);
     terrain.SetActiveDomain(ChVector3d(active_box_dim));
-    terrain.SetActiveDomainDelay(settling_time);
+    terrain.SetFreeFlowDuration(settling_time);
 
     // Construct the terrain and associated path
     cout << "Create terrain..." << endl;

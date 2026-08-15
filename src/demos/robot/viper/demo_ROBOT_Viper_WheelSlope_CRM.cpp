@@ -535,7 +535,8 @@ int main(int argc, char* argv[]) {
     CreateSolidPhase(sysFSI, wheel_IniPos, wheel_IniVel, params.wheel_AngVel, params.render, params.grouser_height, kernelLength, params.total_mass, params.initial_spacing);
 
     sysSPH.SetActiveDomain(ChVector3d(0.6, 0.6, 0.8));
-    sysSPH.SetActiveDomainDelay(1.0);
+    sysSPH.SetFreeFlowDuration(1.0);
+
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();
 

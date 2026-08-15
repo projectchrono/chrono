@@ -201,9 +201,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomain(const ChVector3d& box_dim);
 
-    /// Disable use of the active domain for the given duration at the beginning of the simulation (default: 0).
-    /// This parameter is used for settling operations where all particles must be active through the settling process.
-    void SetActiveDomainDelay(double duration);
+    /// Specify initial duration of CRM free flow (default: 0).
+    /// During this interval, use of FSI solid active domains is disabled unconditionally so that all SPH particles are active
+    /// regardless of their position relative to FSI solids. This setting can be used for simulations where the CRM "fluid" is
+    /// flowing; e.g., in a dam-break or avalanche simulation, or during an initial settling phase for terramechanics simulations.
+    /// If no valid (not inverted) active domain AABB is defined, this setting has no effect (as all particles will be always active).
+    void SetFreeFlowDuration(double duration);
 
     /// Set number of BCE marker layers (default: 3).
     void SetNumBCELayers(int num_layers);
