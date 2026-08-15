@@ -169,30 +169,12 @@ __VECTOR_FUNCTIONS_DECL__ float4 make_float4(float x, float y, float z, float w)
     return t;
 }
 
-/// Make a vector with two double elements.
-__VECTOR_FUNCTIONS_DECL__ double2 make_double2(double x, double y) {
-    double2 t;
-    t.x = x;
-    t.y = y;
-    return t;
-}
-
 /// Make a vector with three double elements.
 __VECTOR_FUNCTIONS_DECL__ double3 make_double3(double x, double y, double z) {
     double3 t;
     t.x = x;
     t.y = y;
     t.z = z;
-    return t;
-}
-
-/// Make a vector with four double elements.
-__VECTOR_FUNCTIONS_DECL__ double4 make_double4(double x, double y, double z, double w) {
-    double4 t;
-    t.x = x;
-    t.y = y;
-    t.z = z;
-    t.w = w;
     return t;
 }
 
