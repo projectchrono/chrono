@@ -30,6 +30,8 @@ namespace chrono {
 /// Input stream should be kept valid for the entire lifespan of the archive class.
 class ChApi ChArchiveOutJSON : public ChArchiveOut {
   public:
+    using ChArchiveOut::out;  // un-hide the ChArchiveOut::out overloads not overridden here
+
     ChArchiveOutJSON(std::ostream& stream_out);
 
     virtual ~ChArchiveOutJSON();
