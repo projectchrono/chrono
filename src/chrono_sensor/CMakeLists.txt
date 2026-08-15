@@ -723,7 +723,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(CH_USE_SENSOR_OPTIX)
-  target_include_directories(Chrono_sensor PUBLIC "${OptiX_INCLUDE}")
+  target_include_directories(Chrono_sensor SYSTEM PUBLIC "${OptiX_INCLUDE}")
+
+  # CUDA::cudart_static (and the other CUDA::* imports linked below) bring in the CUDA
+  # Toolkit's own include directories transitively. Re-declaring that same path here as
+  # SYSTEM forces -isystem treatment on GCC/Clang regardless of CMake's default handling
+  # for imported targets; the MSVC-side equivalent (/external:*) is added further below.
+  target_include_directories(Chrono_sensor SYSTEM PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
 
   target_link_libraries(Chrono_sensor PUBLIC CUDA::cudart_static)
 
@@ -1007,6 +1013,15 @@ if(MSVC)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4661>)   # template member not defined (forward to host compiler for .cu files)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4005>)   # macro defined twice (forward to host compiler for .cu files)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--diag-suppress=1394>) # missing DLL interface (matches /wd4251 for CXX)
+
+  # Treat headers included via <...> (CUDA Toolkit, OptiX, standard library, etc.) as external
+  # and silence warnings originating from them, e.g. the double4/double4_16a/double4_32a
+  # deprecation warning raised from NVIDIA's own curand_poisson.h. Mirrors the SYSTEM include
+  # directories declared above, which give the equivalent -isystem treatment on GCC/Clang.
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/external:W0>)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/external:anglebrackets>)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/external:W0>)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/external:anglebrackets>)
 endif()
 
 target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_SENSOR>)
