@@ -20,8 +20,13 @@
 
 #include "gtest/gtest.h"
 
+#include <list>
+#include <map>
 #include <typeinfo>
+#include <unordered_map>
+#include <vector>
 
+#include "chrono/functions/ChFunctionConst.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveJSON.h"
@@ -683,4 +688,211 @@ TEST(ChArchiveJSON, ChVectorDynamicTest) {
     ASSERT_DOUBLE_EQ(myVect_before.x(), myVect.x());
     ASSERT_DOUBLE_EQ(myVect_before.y(), myVect.y());
     ASSERT_DOUBLE_EQ(myVect_before.z(), myVect.z());
+}
+
+// -----------------------------------------------------------------------------
+// STL containers holding a Chrono-serializable object BY VALUE.
+//
+// Regression tests for a defect in the ChArchiveOut wrappers for std::map and std::unordered_map.
+// Dereferencing a std::map iterator yields std::pair<const T, Tv>&, but those wrappers declared their
+// ChNameValue with a NON-const key. The two types differ, so the compiler materialized a temporary
+// pair, and ChNameValue keeps only a raw pointer to its value. Two things followed: the archive wrote
+// a COPY of the element rather than the element itself, and that copy had already been destroyed by
+// the time it was written, so the write read freed memory.
+//
+// These tests assert on the copy, not on the dead read. Whether reading a destroyed object appears to
+// work is undefined behavior and varies with the type, the optimizer and the platform: a type with a
+// trivial destructor usually still reads back its old bytes and looks correct, while a polymorphic
+// type with a non-trivial destructor loses its derived members. Counting copies detects the defect
+// deterministically everywhere, and it is also the property that actually matters, since serializing a
+// copy is wrong on its own terms. For instance copying a ChLink drops both of its body pointers.
+//
+// vector and list are controls. They pass bVal.value()[i] and (*iter), which are already exactly T&,
+// so they never copied and must continue not to. Nothing in this file covered any STL container
+// before, which is part of why this went unnoticed for so long.
+//
+// The defect was in the format-independent ChArchiveOut base class, so covering one backend suffices.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+// Minimal serializable payload that counts copies of itself. Deliberately polymorphic and with a
+// non-trivial destructor, which is the shape of object the original defect damaged most.
+class ArchiveCopyProbe {
+  public:
+    static int copies;
+
+    ArchiveCopyProbe() : m_value(0) {}
+    explicit ArchiveCopyProbe(double value) : m_value(value) {}
+    ArchiveCopyProbe(const ArchiveCopyProbe& other) : m_value(other.m_value) { ++copies; }
+    ArchiveCopyProbe& operator=(const ArchiveCopyProbe& other) {
+        m_value = other.m_value;
+        ++copies;
+        return *this;
+    }
+    // Poison the payload on the way out, so that reading a destroyed instance is more likely to be
+    // caught by the value check below rather than silently returning the old bytes.
+    virtual ~ArchiveCopyProbe() { m_value = -1; }
+
+    double GetValue() const { return m_value; }
+
+    virtual void ArchiveOut(ChArchiveOut& archive_out) { archive_out << CHNVP(m_value); }
+    virtual void ArchiveIn(ChArchiveIn& archive_in) { archive_in >> CHNVP(m_value); }
+
+  private:
+    double m_value;
+};
+
+int ArchiveCopyProbe::copies = 0;
+
+// Exactly representable in the JSON writer's default 6 significant digits, so the text round trip is
+// bit-exact. A longer value such as 12345.678 would come back as 12345.7 and fail for an unrelated
+// reason.
+const double STL_SENTINEL = 1234.5;
+
+std::string StlContainerOutputFile() {
+    return out_dir + std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" +
+           std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + std::string(".json");
+}
+
+}  // namespace
+
+TEST(ChArchiveJSON, StlMapWritesElementNotCopy) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+    const std::string outputfile = StlContainerOutputFile();
+
+    std::map<std::string, ArchiveCopyProbe> container;
+    container["a"] = ArchiveCopyProbe(STL_SENTINEL);
+
+    {
+        ArchiveCopyProbe::copies = 0;  // discount the copies made while filling the container
+        std::ofstream mfileo(outputfile);
+        ChArchiveOutJSON archive_out(mfileo);
+        archive_out << CHNVP(container, "container");
+        EXPECT_EQ(ArchiveCopyProbe::copies, 0) << "ChArchiveOut copied the map element instead of "
+                                                  "referring to it; that copy is a temporary which is "
+                                                  "destroyed before it gets written";
+    }
+
+    std::map<std::string, ArchiveCopyProbe> restored;
+    std::ifstream mfilei(outputfile);
+    ChArchiveInJSON archive_in(mfilei);
+    archive_in >> CHNVP(restored, "container");
+
+    ASSERT_EQ(restored.size(), 1u);
+    EXPECT_DOUBLE_EQ(restored.at("a").GetValue(), STL_SENTINEL);
+}
+
+TEST(ChArchiveJSON, StlUnorderedMapWritesElementNotCopy) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+    const std::string outputfile = StlContainerOutputFile();
+
+    std::unordered_map<std::string, ArchiveCopyProbe> container;
+    container["a"] = ArchiveCopyProbe(STL_SENTINEL);
+
+    {
+        ArchiveCopyProbe::copies = 0;
+        std::ofstream mfileo(outputfile);
+        ChArchiveOutJSON archive_out(mfileo);
+        archive_out << CHNVP(container, "container");
+        EXPECT_EQ(ArchiveCopyProbe::copies, 0) << "ChArchiveOut copied the unordered_map element "
+                                                  "instead of referring to it";
+    }
+
+    std::unordered_map<std::string, ArchiveCopyProbe> restored;
+    std::ifstream mfilei(outputfile);
+    ChArchiveInJSON archive_in(mfilei);
+    archive_in >> CHNVP(restored, "container");
+
+    ASSERT_EQ(restored.size(), 1u);
+    EXPECT_DOUBLE_EQ(restored.at("a").GetValue(), STL_SENTINEL);
+}
+
+TEST(ChArchiveJSON, StlVectorWritesElementNotCopy) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+    const std::string outputfile = StlContainerOutputFile();
+
+    std::vector<ArchiveCopyProbe> container;
+    container.push_back(ArchiveCopyProbe(STL_SENTINEL));
+
+    {
+        ArchiveCopyProbe::copies = 0;
+        std::ofstream mfileo(outputfile);
+        ChArchiveOutJSON archive_out(mfileo);
+        archive_out << CHNVP(container, "container");
+        EXPECT_EQ(ArchiveCopyProbe::copies, 0) << "ChArchiveOut copied the vector element instead of "
+                                                  "referring to it";
+    }
+
+    std::vector<ArchiveCopyProbe> restored;
+    std::ifstream mfilei(outputfile);
+    ChArchiveInJSON archive_in(mfilei);
+    archive_in >> CHNVP(restored, "container");
+
+    ASSERT_EQ(restored.size(), 1u);
+    EXPECT_DOUBLE_EQ(restored[0].GetValue(), STL_SENTINEL);
+}
+
+TEST(ChArchiveJSON, StlListWritesElementNotCopy) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+    const std::string outputfile = StlContainerOutputFile();
+
+    std::list<ArchiveCopyProbe> container;
+    container.push_back(ArchiveCopyProbe(STL_SENTINEL));
+
+    {
+        ArchiveCopyProbe::copies = 0;
+        std::ofstream mfileo(outputfile);
+        ChArchiveOutJSON archive_out(mfileo);
+        archive_out << CHNVP(container, "container");
+        EXPECT_EQ(ArchiveCopyProbe::copies, 0) << "ChArchiveOut copied the list element instead of "
+                                                  "referring to it";
+    }
+
+    std::list<ArchiveCopyProbe> restored;
+    std::ifstream mfilei(outputfile);
+    ChArchiveInJSON archive_in(mfilei);
+    archive_in >> CHNVP(restored, "container");
+
+    ASSERT_EQ(restored.size(), 1u);
+    EXPECT_DOUBLE_EQ(restored.front().GetValue(), STL_SENTINEL);
+}
+
+// Same round trip with a real Chrono type, as smoke coverage that a production polymorphic class
+// stored by value in a map survives serialization intact.
+TEST(ChArchiveJSON, StlMapOfChFunctionConst) {
+    if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return;
+    }
+    const std::string outputfile = StlContainerOutputFile();
+
+    {
+        std::map<std::string, ChFunctionConst> container;
+        container["a"] = ChFunctionConst(STL_SENTINEL);
+
+        std::ofstream mfileo(outputfile);
+        ChArchiveOutJSON archive_out(mfileo);
+        archive_out << CHNVP(container, "container");
+    }
+
+    std::map<std::string, ChFunctionConst> container;
+    std::ifstream mfilei(outputfile);
+    ChArchiveInJSON archive_in(mfilei);
+    archive_in >> CHNVP(container, "container");
+
+    ASSERT_EQ(container.size(), 1u);
+    EXPECT_DOUBLE_EQ(container.at("a").GetConstant(), STL_SENTINEL);
 }
