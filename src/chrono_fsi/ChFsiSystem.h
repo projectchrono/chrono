@@ -20,7 +20,6 @@
 #define CH_FSI_SYSTEM_H
 
 #include "chrono/ChConfig.h"
-#include "chrono/utils/ChUtils.h"
 
 #include "chrono/physics/ChSystem.h"
 #ifdef CHRONO_FEA
@@ -82,13 +81,13 @@ class CH_FSI_API ChFsiSystem {
     std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded);
 
 #ifdef CHRONO_FEA
-    /// Add an FEA mesh to the FSI system.
+    /// Add a 1-D FEA mesh to the FSI system.
     /// Any SegmentSet contact surfaces already defined for the FEA mesh are used to generate the interface between the
     /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
     /// mesh.
     std::shared_ptr<FsiMesh1D> AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
-    /// Add an FEA mesh to the FSI system.
+    /// Add a 2-D FEA mesh to the FSI system.
     /// Any TriMesh contact surfaces already defined for the FEA mesh are used to generate the interface between the
     /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
     /// mesh.

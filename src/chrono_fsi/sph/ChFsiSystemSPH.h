@@ -51,6 +51,26 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// BCE marker points are assumed to be specified in the given frame (itself relative to the given body).
     std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded);
 
+    /// Set the active domain for the body with specified index (as returned by AddFsiBody).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainBody(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for the nodes of the 1D mesh with specified index (as returned by AddFsiMesh1D).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh1D(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for the nodes of the 2D mesh with specified index (as returned by AddFsiMesh2D).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh2D(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for all FSI solids (bodies and nodes) to an AABB of given dimensions, centered at the solid origin.
+    /// This active AABB is used for all solids for which an active AABB was not set explicitly.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomain(const ChVector3d& box_dim);
+
     /// Add a set of boundary BCE markers.
     /// BCE marker points are assumed to be specified in the given frame (itself relative to the global frame).
     void AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame);

@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/assets/ChColormap.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
@@ -229,7 +230,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     bool IsColormapSupported() const;
 
     void BindComputationalDomain();
-    void BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag);
+    void BindActiveBox(const std::shared_ptr<ChBody>& obj, const  ChAABB& aabb, int tag);
 
     vsg3d::ChVisualSystemVSG::ParticleCloud* GetSphParticleCloud();
 
@@ -272,7 +273,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     int m_sph_cloud_index;  ///< cache of the SPH cloud slot inside the VSG visual system
 
     bool m_use_active_boxes;                     ///< active domains enabled?
-    ChVector3d m_active_box_hsize;               ///< half-dimensions of active boxes
+    std::map<ChBody*, ChAABB> m_ad_body;         ///< body active domains
     vsg::ref_ptr<vsg::Switch> m_activeBoxScene;  ///< VSG scene containing FSI body active boxes
 
     bool m_write_images;      ///< if true, save snapshots

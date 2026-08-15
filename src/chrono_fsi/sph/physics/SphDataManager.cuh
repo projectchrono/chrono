@@ -29,6 +29,8 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
 
+#include "chrono/geometry/ChGeometry.h"
+
 #include "chrono_fsi/sph/ChFsiParamsSPH.h"
 
 #include "chrono_fsi/sph/physics/SphMarkerType.cuh"
@@ -174,7 +176,17 @@ struct FsiMeshStateD {
     bool has_node_directions;
 };
 
-/// Struct to store neighbor search information on the device.
+/// Definition of a solid active domain (used with CRM only).
+/// The AABBs are expressed relative to the absolute frame.
+struct ActiveDomain {
+    bool inverted;  ///< inverted (invalid) AABB
+    Real3 a_min;    ///< min corner of active AABB
+    Real3 a_max;    ///< max corner of active AABB
+    Real3 e_min;    ///< min corner of extended active AABB
+    Real3 e_max;    ///< max corner of extended active AABB
+};
+
+/// Neighbor search information on the device.
 struct ProximityDataD {
     thrust::device_vector<uint> gridMarkerHashD;      ///< gridMarkerHash=s(i,j,k)= k*n_x*n_y + j*n_x + i (numAllMarkers);
     thrust::device_vector<uint> gridMarkerIndexD;     ///< Marker's index, can be original or sorted (numAllMarkers);
@@ -185,7 +197,7 @@ struct ProximityDataD {
     void resize(size_t s);
 };
 
-/// Struct to store GPU device information.
+/// GPU device information.
 struct GPUDeviceInfo {
     int deviceID;              ///< GPU device ID
     gpuDeviceProp deviceProp;  ///< GPU device properties
@@ -202,6 +214,8 @@ struct GPUDeviceInfo {
 ///  -  (4) particles attached to flexible bodies (type = 2)
 struct Counters {
     size_t numFsiBodies;      ///< number of rigid bodies
+    size_t numFsiMeshes1D;    ///< number of 1-D FEA meshes
+    size_t numFsiMeshes2D;    ///< number of 2-D FEA meshes
     size_t numFsiNodes1D;     ///< number of nodes in 1-D FEA mesh segments
     size_t numFsiNodes2D;     ///< number of nodes in 2-D FEA mesh faces
     size_t numFsiElements1D;  ///< number of 1-D FEA mesh segments
@@ -233,7 +247,7 @@ struct FsiDataManager {
     FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params);
     virtual ~FsiDataManager();
 
-    /// Set the growth factor for buffer resizing
+    /// Set the growth factor for buffer resizing.
     void SetGrowthFactor(float factor) { GROWTH_FACTOR = factor; }
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress.
@@ -243,12 +257,18 @@ struct FsiDataManager {
     void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);
 
     /// Initialize the underlying FSU system.
-    /// Set reference arrays, set counters, and resize simulation arrays.
+    /// Set reference arrays and counters, cache solid active domains, and resize simulation arrays.
     void Initialize(unsigned int num_fsi_bodies,
+                    unsigned int num_fsi_meshes1D,
                     unsigned int num_fsi_nodes1D,
                     unsigned int num_fsi_elements1D,
+                    unsigned int num_fsi_meshes2D,
                     unsigned int num_fsi_nodes2D,
                     unsigned int num_fsi_elements2D,
+                    bool ad_defined,
+                    const std::vector<ChAABB>& ad_body,
+                    const std::vector<ChAABB>& ad_node1D,
+                    const std::vector<ChAABB>& ad_node2D,
                     NodeDirections node_directions_mode);
 
     /// Find indices of all SPH particles inside the specified OBB.
@@ -295,7 +315,13 @@ struct FsiDataManager {
     std::vector<Real3> GetFlex2dForces();
 
     void ConstructReferenceArray();
-    void SetCounters(unsigned int num_fsi_bodies, unsigned int num_fsi_nodes1D, unsigned int num_fsi_elements1D, unsigned int num_fsi_nodes2D, unsigned int num_fsi_elements2D);
+    void SetCounters(unsigned int num_fsi_bodies,
+                     unsigned int num_fsi_meshes1D,
+                     unsigned int num_fsi_nodes1D,
+                     unsigned int num_fsi_elements1D,
+                     unsigned int num_fsi_meshes2D,
+                     unsigned int num_fsi_nodes2D,
+                     unsigned int num_fsi_elements2D);
 
     /// Reset device data at beginning of a step.
     /// Initializes device vectors to zero.
@@ -303,6 +329,10 @@ struct FsiDataManager {
 
     /// Resize data arrays based on particle activity.
     void ResizeArrays(uint numExtended);
+
+    /// Update solid active domains (used for CRM only).
+    /// Update device active domains expressed in the absolute frame.
+    void UpdateActiveDomains();
 
     /// Return device memory usage.
     size_t GetCurrentGPUMemoryUsage() const;
@@ -335,6 +365,15 @@ struct FsiDataManager {
     thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
     thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
     thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
+
+    // FSI solid activity domains
+    bool has_ad;                                      ///< use solid active domains
+    thrust::host_vector<ActiveDomain> ad_body_H;      ///< body active domains (on host, expressed in body frames)
+    thrust::device_vector<ActiveDomain> ad_body_D;    ///< body active domains (on device, expressed in absolute frame)
+    thrust::host_vector<ActiveDomain> ad_node1D_H;    ///< 1-D mesh node active domains (on host, expressed in node frames)
+    thrust::device_vector<ActiveDomain> ad_node1D_D;  ///< 1-D mesh node active domains (on device, expressed in absolute frame)
+    thrust::host_vector<ActiveDomain> ad_node2D_H;    ///< 2--D mesh node active domains (on host, expressed in node frames)
+    thrust::device_vector<ActiveDomain> ad_node2D_D;  ///< 2-D mesh node active domains (on device, expressed in absolute frame)
 
     // FSI solid BCEs
     thrust::host_vector<Real3> rigid_BCEcoords_H;     ///< local coordinates for BCE markers on rigid bodies (host)

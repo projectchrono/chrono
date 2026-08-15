@@ -104,6 +104,9 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         }
     }
 #endif
+
+    // Update solid AABBs (expressed in absolute frame)
+    m_data_mgr->UpdateActiveDomains();
 }
 
 void ChFsiInterfaceSPH::ExchangeSolidForces() {

@@ -66,6 +66,26 @@ std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body
     return fsi_body;
 }
 
+void ChFsiSystemSPH::SetActiveDomainBody(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(m_sysSPH && !m_sysSPH->m_is_initialized);
+    m_sysSPH->SetActiveDomainBody(i, aabb);
+}
+
+void ChFsiSystemSPH::SetActiveDomainMesh1D(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(m_sysSPH);
+    m_sysSPH->SetActiveDomainMesh1D(i, aabb);
+}
+
+void ChFsiSystemSPH::SetActiveDomainMesh2D(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(m_sysSPH);
+    m_sysSPH->SetActiveDomainMesh2D(i, aabb);
+}
+
+void ChFsiSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    ChAssertAlways(m_sysSPH);
+    m_sysSPH->SetActiveDomain(box_dim);
+}
+
 void ChFsiSystemSPH::AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& frame) {
     ChAssertAlways(m_sysSPH);
     m_sysSPH->AddBCEBoundary(bce, frame);

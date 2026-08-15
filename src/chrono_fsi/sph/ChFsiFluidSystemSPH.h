@@ -19,6 +19,8 @@
 #ifndef CH_FLUID_SYSTEM_SPH_H
 #define CH_FLUID_SYSTEM_SPH_H
 
+#include <map>
+
 #include "chrono_fsi/ChFsiFluidSystem.h"
 
 #include "chrono_fsi/sph/ChFsiParamsSPH.h"
@@ -179,11 +181,24 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// previous domain intact.
     void SetComputationalDomain(const ChAABB& computational_AABB);
 
-    /// Set dimensions of the active domain AABB.
-    /// This value activates only those SPH particles that are within an AABB of the specified size from an object
-    /// interacting with the "fluid" phase.
-    /// Note that this setting should *not* be used for CFD simulations, but rather only when solving problems using the
-    /// CRM (continuum representation of granular dynamics) for terramechanics simulations.
+    /// Set the active domain for the body with specified index (as returned by AddFsiBody).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainBody(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for nodes of the 1D mesh with specified index (as returned by AddFsiMesh1D).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh1D(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for nodes of the 2D mesh with specified index (as returned by AddFsiMesh2D).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh2D(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for all FSI solids (bodies and nodes) to an AABB of given dimensions, centered at the origin.
+    /// This active AABB is used for all solids for which an active domain was not set explicitly.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomain(const ChVector3d& box_dim);
 
     /// Disable use of the active domain for the given duration at the beginning of the simulation (default: 0).
@@ -747,16 +762,25 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::unique_ptr<SphBceManager> m_bce_mgr;            ///< BCE manager
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
-    unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)
-    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
-    unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
-    unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+    unsigned int m_num_flex1D_meshes;    ///< number of 1-D flexible meshes
+    unsigned int m_num_flex2D_meshes;    ///< number of 1-D flexible meshes
+    unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all 1-D meshes)
+    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all 2-D meshes)
+    unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all 1-D meshes)
+    unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all 2-D meshes)
 
     std::vector<FsiSphBody> m_bodies;  ///< list of FSI rigid bodies
 #ifdef CHRONO_FEA
     std::vector<FsiSphMesh1D> m_meshes1D;  ///< list of FSI FEA meshes
     std::vector<FsiSphMesh2D> m_meshes2D;  ///< list of FSI FEA meshes
 #endif
+
+    bool m_use_ad;                  ///< use active domains
+    bool m_use_default_ad;          ///< a default active domain is defined
+    ChAABB m_ad_default;            ///< default active domain
+    std::vector<ChAABB> m_ad_body;    ///< body active domains (1 per body)
+    std::vector<ChAABB> m_ad_mesh1D;  ///< mesh 1-D node active domains (1 per mesh)
+    std::vector<ChAABB> m_ad_mesh2D;  ///< mesh 2-D node active domains (1 per mesh)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
 
@@ -772,6 +796,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     friend class ChFsiInterfaceSPH;
     friend class ChFsiProblemSPH;
     friend class ChFsiSplashsurfSPH;
+    friend class ChSphVisualizationVSG;
 };
 
 // ----------------------------------------------------------------------------

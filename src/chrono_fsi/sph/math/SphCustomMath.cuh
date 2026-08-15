@@ -336,6 +336,34 @@ inline __host__ __device__ uint4 make_uint4(int4 a) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// access
+////////////////////////////////////////////////////////////////////////////////
+
+/// Access component i (0 <= i <= 2) of a Real3, treating it as a 3-element array.
+/// Relies on Real3's three Real members being laid out contiguously, matching x/y/z order.
+__host__ __device__ inline Real Get(const Real3& v, int i) {
+    return (&v.x)[i];
+}
+
+/// Access component i (0 <= i <= 2) of a Real3, treating it as a 3-element array.
+/// Relies on Real3's three Real members being laid out contiguously, matching x/y/z order.
+__host__ __device__ inline Real& Get(Real3& v, int i) {
+    return (&v.x)[i];
+}
+
+/// Access component i (0 <= i <= 3) of a Real4, treating it as a 4-element array.
+/// Relies on Real4's four Real members being laid out contiguously, matching x/y/z/w order.
+__host__ __device__ inline Real Get(const Real4& v, int i) {
+    return (&v.x)[i];
+}
+
+/// Access component i (0 <= i <= 3) of a Real4, treating it as a 4-element array.
+/// Relies on Real4's four Real members being laid out contiguously, matching x/y/z/w order.
+__host__ __device__ inline Real& Get(Real4& v, int i) {
+    return (&v.x)[i];
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // negate
 ////////////////////////////////////////////////////////////////////////////////
 

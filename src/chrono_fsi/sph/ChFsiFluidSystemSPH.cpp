@@ -63,10 +63,14 @@ ChFsiFluidSystemSPH::ChFsiFluidSystemSPH()
       m_remove_center1D(false),
       m_remove_center2D(false),
       m_num_rigid_bodies(0),
+      m_num_flex1D_meshes(0),
+      m_num_flex2D_meshes(0),
       m_num_flex1D_nodes(0),
       m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
+      m_use_ad(false),
+      m_use_default_ad(false),
       m_output_level(OutputLevel::STATE_PRESSURE),
       m_force_proximity_search(false),
       m_check_errors(true) {
@@ -152,8 +156,6 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->free_surface_threshold = Real(2.0);
 
     //
-    m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
-    m_paramsH->use_active_domain = false;
     m_paramsH->settlingTime = Real(0);
 
     //
@@ -264,10 +266,29 @@ void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AAB
     m_paramsH->use_default_limits = false;
 }
 
+void ChFsiFluidSystemSPH::SetActiveDomainBody(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(!m_is_initialized);
+    ChAssertAlways(i < m_ad_body.size());
+    m_ad_body[i] = aabb;
+}
+
+void ChFsiFluidSystemSPH::SetActiveDomainMesh1D(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(!m_is_initialized);
+    ChAssertAlways(i < m_ad_mesh1D.size());
+    m_ad_mesh1D[i] = aabb;
+}
+
+void ChFsiFluidSystemSPH::SetActiveDomainMesh2D(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(!m_is_initialized);
+    ChAssertAlways(i < m_ad_mesh2D.size());
+    m_ad_mesh2D[i] = aabb;
+}
+
 void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->bodyActiveDomain = ToReal3(box_dim / 2);
-    m_paramsH->use_active_domain = true;
+    m_use_default_ad = true;
+    m_ad_default.min = -0.5 * box_dim;
+    m_ad_default.max = +0.5 * box_dim;
 }
 
 void ChFsiFluidSystemSPH::SetActiveDomainDelay(double duration) {
@@ -732,6 +753,9 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 
     if (num_bodies > 0)
         m_data_mgr->fsiBodyState_D->CopyFromH(*m_data_mgr->fsiBodyState_H);
+
+    // Update solid AABBs (expressed in absolute frame)
+    m_data_mgr->UpdateActiveDomains();
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
@@ -811,6 +835,9 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
             m_data_mgr->fsiMesh2DState_D->CopyDirectionsFromH(*m_data_mgr->fsiMesh2DState_H);
         }
     }
+
+    // Update solid AABBs (expressed in absolute frame)
+    m_data_mgr->UpdateActiveDomains();
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
@@ -1102,6 +1129,7 @@ void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool c
     m_num_rigid_bodies++;
 
     m_bodies.push_back(b);
+    m_ad_body.push_back(ChAABB());
 }
 
 void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce) {
@@ -1154,10 +1182,12 @@ void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bo
     m.check_embedded = check_embedded;
 
     CreateBCEFsiMesh1D(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex1D_meshes++;
     m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex1D_elements += fsi_mesh->GetNumElements();
 
     m_meshes1D.push_back(m);
+    m_ad_mesh1D.push_back(ChAABB());
 }
 
 void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
@@ -1168,10 +1198,12 @@ void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bo
     m.check_embedded = check_embedded;
 
     CreateBCEFsiMesh2D(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex1D_meshes++;
     m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
 
     m_meshes2D.push_back(m);
+    m_ad_mesh2D.push_back(ChAABB());
 }
 
 void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
@@ -1523,6 +1555,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     // Process FSI solids - load BCE data to data manager
     // Note: counters must be regenerated, as they are used as offsets for global indices
     m_num_rigid_bodies = 0;
+    m_num_flex1D_meshes = 0;
+    m_num_flex2D_meshes = 0;
     m_num_flex1D_nodes = 0;
     m_num_flex1D_elements = 0;
     m_num_flex2D_nodes = 0;
@@ -1611,10 +1645,23 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     // ----------------
 
-    // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
-    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
-    m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
-                           m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+    // Load solid active domains (AABBs expressed in local frames) and check if using active domains (at least one AABB not inverted).
+    // If a solid active domain was not explicitly set use the default domain if it was provided.
+    m_use_ad = m_use_default_ad;
+
+    for (auto& aabb : m_ad_body) {
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+    }
+
+    // Initialize the data manager: set reference arrays and counters, cache solid active domains, and resize simulation arrays.
+    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors.
+    m_data_mgr->Initialize(m_num_rigid_bodies,                                                 //
+                           m_num_flex1D_meshes, m_num_flex1D_nodes, m_num_flex1D_elements,     //
+                           m_num_flex2D_meshes, m_num_flex2D_nodes, m_num_flex2D_elements,     //
+                           m_use_ad, m_ad_body, std::vector<ChAABB>(), std::vector<ChAABB>(),  //
                            NodeDirections::NONE);
 
     // Load the initial body and mesh node states
@@ -1627,8 +1674,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
-    /// If active domains are not used then don't overly resize the arrays
-    if (!m_paramsH->use_active_domain) {
+    // If active domains are not used then don't overly resize the arrays
+    if (!m_use_ad) {
         m_data_mgr->SetGrowthFactor(1.0f);
     }
 
@@ -1665,6 +1712,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     // Process FSI solids - load BCE data to data manager
     // Note: counters must be regenerated, as they are used as offsets for global indices
     m_num_rigid_bodies = 0;
+    m_num_flex1D_meshes = 0;
+    m_num_flex2D_meshes = 0;
     m_num_flex1D_nodes = 0;
     m_num_flex1D_elements = 0;
     m_num_flex2D_nodes = 0;
@@ -1677,12 +1726,14 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     for (const auto& m : m_meshes1D) {
         AddBCEFsiMesh1D(m);
+        m_num_flex1D_meshes++;
         m_num_flex1D_nodes += m.fsi_mesh->GetNumNodes();
         m_num_flex1D_elements += m.fsi_mesh->GetNumElements();
     }
 
     for (const auto& m : m_meshes2D) {
         AddBCEFsiMesh2D(m);
+        m_num_flex1D_meshes++;
         m_num_flex2D_nodes += m.fsi_mesh->GetNumNodes();
         m_num_flex2D_elements += m.fsi_mesh->GetNumElements();
     }
@@ -1762,6 +1813,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     } else {
         m_paramsH->Cs = 10 * m_paramsH->v_Max;
     }
+
     // ----------------
 
     // Hack to prevent bringing in Chrono core headers in GPU code
@@ -1779,28 +1831,62 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
             break;
     }
 
-    // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
-    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
-    m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
-                           m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+    // Load solid active domains (AABBs expressed in local frames) and check if using active domains (at least one AABB not inverted).
+    // If a solid active domain was not explicitly set use the default domain if it was provided.
+    m_use_ad = m_use_default_ad;
+
+    for (auto& aabb : m_ad_body) {
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+    }
+
+    std::vector<ChAABB> ad_node1D(m_num_flex1D_nodes, ChAABB());
+    size_t in1 = 0;
+    for (size_t i = 0; i < m_num_flex1D_meshes; i++) {
+        ChAABB aabb = m_ad_mesh1D[i];
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+        for (unsigned int j = 0; j < m_meshes1D[i].fsi_mesh->GetNumNodes(); j++)
+            ad_node1D[in1++] = aabb;
+    }
+
+    std::vector<ChAABB> ad_node2D(m_num_flex2D_nodes, ChAABB());
+    size_t in2 = 0;
+    for (size_t i = 0; i < m_num_flex2D_meshes; i++) {
+        ChAABB aabb = m_ad_mesh2D[i];
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+        for (unsigned int j = 0; j < m_meshes2D[i].fsi_mesh->GetNumNodes(); j++)
+            ad_node2D[in2++] = aabb;
+    }
+
+    // If active domains are not used then don't overly resize the arrays
+    if (!m_use_ad)
+        m_data_mgr->SetGrowthFactor(1.0f);
+    
+    // Initialize the data manager: set reference arrays and counters, cache solid active domains, and resize simulation arrays.
+    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors.
+    m_data_mgr->Initialize(m_num_rigid_bodies,                                              //
+                           m_num_flex1D_meshes, m_num_flex1D_nodes, m_num_flex1D_elements,  //
+                           m_num_flex2D_meshes, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+                           m_use_ad, m_ad_body, ad_node1D, ad_node2D,                         //
                            node_directions_mode);
 
     // Load the initial body and mesh node states
     ChDebugLog("load initial states");
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
-    // Create BCE and SPH worker objects
+    // Create and initialize the BCE and SPH worker objects
     m_bce_mgr = chrono_types::make_unique<SphBceManager>(*m_data_mgr, node_directions_mode, m_verbose, m_check_errors);
-    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
-
-    // Initialize worker objects
+    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, m_verbose, m_check_errors);
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
-
-    /// If active domains are not used then don't overly resize the arrays
-    if (!m_paramsH->use_active_domain) {
-        m_data_mgr->SetGrowthFactor(1.0f);
-    }
 
     // ----------------
 
@@ -1939,7 +2025,7 @@ void ChFsiFluidSystemSPH::OnExchangeSolidForces() {
 }
 
 void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
-    if (m_num_rigid_bodies == 0 && m_num_flex1D_elements == 0 && m_num_flex2D_elements == 0)
+    if (m_num_rigid_bodies == 0 && m_num_flex1D_meshes == 0 && m_num_flex2D_meshes == 0)
         return;
 
     m_bce_mgr->UpdateBodyMarkerState();

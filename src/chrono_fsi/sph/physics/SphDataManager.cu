@@ -38,6 +38,7 @@
 
 #include "chrono_fsi/sph/physics/SphDataManager.cuh"
 #include "chrono_fsi/sph/math/SphCustomMath.cuh"
+#include "chrono_fsi/sph/utils/SphUtilsTypeConvert.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -176,7 +177,7 @@ void ProximityDataD::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH(params) {
+FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH(params), has_ad(false) {
     countersH = chrono_types::make_shared<Counters>();
 
     sphMarkers_D = chrono_types::make_shared<SphMarkerDataD>();
@@ -240,11 +241,15 @@ void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
 }
 
 void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
+                                 unsigned int num_fsi_meshes1D,
                                  unsigned int num_fsi_nodes1D,
                                  unsigned int num_fsi_elements1D,
+                                 unsigned int num_fsi_meshes2D,
                                  unsigned int num_fsi_nodes2D,
                                  unsigned int num_fsi_elements2D) {
     countersH->numFsiBodies = num_fsi_bodies;
+    countersH->numFsiMeshes1D = num_fsi_meshes1D;
+    countersH->numFsiMeshes2D = num_fsi_meshes2D;
     countersH->numFsiElements1D = num_fsi_elements1D;
     countersH->numFsiElements2D = num_fsi_elements2D;
     countersH->numFsiNodes1D = num_fsi_nodes1D;
@@ -488,42 +493,50 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
+                                unsigned int num_fsi_meshes1D,
                                 unsigned int num_fsi_nodes1D,
                                 unsigned int num_fsi_elements1D,
+                                unsigned int num_fsi_meshes2D,
                                 unsigned int num_fsi_nodes2D,
                                 unsigned int num_fsi_elements2D,
+                                bool ad_defined,
+                                const std::vector<ChAABB>& ad_body,
+                                const std::vector<ChAABB>& ad_node1D,
+                                const std::vector<ChAABB>& ad_node2D,
                                 NodeDirections node_directions_mode) {
     ConstructReferenceArray();
-    SetCounters(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
+    SetCounters(num_fsi_bodies, num_fsi_meshes1D, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_meshes2D, num_fsi_nodes2D, num_fsi_elements2D);
+    const auto& num_all_markers = countersH->numAllMarkers;
 
-    if (countersH->numAllMarkers != sphMarkers_H->rhoPresMuH.size()) {
+    if (num_all_markers != sphMarkers_H->rhoPresMuH.size()) {
         std::cerr << "ERROR (Initialize): mismatch in total number of markers." << std::endl;
         throw std::runtime_error("Mismatch in total number of markers.");
     }
 
-    sphMarkers_D->resize(countersH->numAllMarkers);
-    sphMarkers_H->resize(countersH->numAllMarkers);
-    markersProximity_D->resize(countersH->numAllMarkers);
+    sphMarkers_D->resize(num_all_markers);
+    sphMarkers_H->resize(num_all_markers);
+    markersProximity_D->resize(num_all_markers);
 
-    derivVelRhoOriginalD.resize(countersH->numAllMarkers);  // unsorted
+    derivVelRhoOriginalD.resize(num_all_markers);  // unsorted
 
     if (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
         Real tiny = Real(1e-20);
-        vis_vel_SPH_D.resize(countersH->numAllMarkers, mR3(tiny));
-        sr_tau_I_mu_i.resize(countersH->numAllMarkers, mR4(tiny));           // sorted
-        sr_tau_I_mu_i_Original.resize(countersH->numAllMarkers, mR4(tiny));  // unsorted
+        vis_vel_SPH_D.resize(num_all_markers, mR3(tiny));
+        sr_tau_I_mu_i.resize(num_all_markers, mR4(tiny));           // sorted
+        sr_tau_I_mu_i_Original.resize(num_all_markers, mR4(tiny));  // unsorted
     }
 
     //// TODO: why is this sized for both WCSPH and ISPH?!?
-    bceAcc.resize(countersH->numAllMarkers, mR3(0));  // Rigid/flex body accelerations from motion
+    bceAcc.resize(num_all_markers, mR3(0));  // Rigid/flex body accelerations from motion
 
-    activityIdentifierOriginalD.resize(countersH->numAllMarkers, 1);
-    activityIdentifierSortedD.resize(countersH->numAllMarkers, 1);
-    extendedActivityIdentifierOriginalD.resize(countersH->numAllMarkers, 1);
-    prefixSumExtendedActivityIdD.resize(countersH->numAllMarkers, 1);
-    activeListD.resize(countersH->numAllMarkers, 1);
+    activityIdentifierOriginalD.resize(num_all_markers, 1);
+    activityIdentifierSortedD.resize(num_all_markers, 1);
+    extendedActivityIdentifierOriginalD.resize(num_all_markers, 1);
+    prefixSumExtendedActivityIdD.resize(num_all_markers, 1);
+    activeListD.resize(num_all_markers, 1);
+
     // Number of neighbors for the particle of given index
-    numNeighborsPerPart.resize(countersH->numAllMarkers + 1, 0);
+    numNeighborsPerPart.resize(num_all_markers + 1, 0);
 
     thrust::copy(sphMarkers_H->posRadH.begin(), sphMarkers_H->posRadH.end(), sphMarkers_D->posRadD.begin());
     thrust::copy(sphMarkers_H->velMasH.begin(), sphMarkers_H->velMasH.end(), sphMarkers_D->velMasD.begin());
@@ -532,20 +545,158 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     thrust::copy(sphMarkers_H->tauXyXzYzH.begin(), sphMarkers_H->tauXyXzYzH.end(), sphMarkers_D->tauXyXzYzD.begin());
     thrust::copy(sphMarkers_H->pcEvSvH.begin(), sphMarkers_H->pcEvSvH.end(), sphMarkers_D->pcEvSvD.begin());
 
-    fsiBodyState_D->Resize(countersH->numFsiBodies);
-    fsiBodyState_H->Resize(countersH->numFsiBodies);
+    fsiBodyState_D->Resize(num_fsi_bodies);
+    fsiBodyState_H->Resize(num_fsi_bodies);
 
-    rigid_FSI_ForcesD.resize(countersH->numFsiBodies);
-    rigid_FSI_TorquesD.resize(countersH->numFsiBodies);
+    rigid_FSI_ForcesD.resize(num_fsi_bodies);
+    rigid_FSI_TorquesD.resize(num_fsi_bodies);
 
     bool use_node_directions = (node_directions_mode != NodeDirections::NONE);
-    fsiMesh1DState_D->Resize(countersH->numFsiNodes1D, use_node_directions);
-    fsiMesh1DState_H->Resize(countersH->numFsiNodes1D, use_node_directions);
-    fsiMesh2DState_D->Resize(countersH->numFsiNodes2D, use_node_directions);
-    fsiMesh2DState_H->Resize(countersH->numFsiNodes2D, use_node_directions);
+    fsiMesh1DState_D->Resize(num_fsi_nodes1D, use_node_directions);
+    fsiMesh1DState_H->Resize(num_fsi_nodes1D, use_node_directions);
+    fsiMesh2DState_D->Resize(num_fsi_nodes2D, use_node_directions);
+    fsiMesh2DState_H->Resize(num_fsi_nodes2D, use_node_directions);
 
-    flex1D_FSIforces_D.resize(countersH->numFsiNodes1D);
-    flex2D_FSIforces_D.resize(countersH->numFsiNodes2D);
+    flex1D_FSIforces_D.resize(num_fsi_nodes1D);
+    flex2D_FSIforces_D.resize(num_fsi_nodes2D);
+
+    // Load solid active boxes (on host, expressed in local frames).
+    // Convert the AABBs in the argument vectors to use thrust host vectors, calculate the extended AABBs
+    // (inflated by an envelope based on the SPH kernel length), and set the boolean flag indicating whether
+    // an AABB is valid or inverted.
+
+    has_ad = ad_defined;
+
+    if (has_ad) {
+        static_assert(std::is_trivially_copyable_v<ActiveDomain>);
+        static_assert(std::is_standard_layout_v<ActiveDomain>);
+        ChAssertAlways(ad_body.size() == num_fsi_bodies);
+        ChAssertAlways(ad_node1D.size() == num_fsi_nodes1D);
+        ChAssertAlways(ad_node2D.size() == num_fsi_nodes2D);
+
+        Real3 envelope = mR3(2 * paramsH->h_multiplier * paramsH->h);
+
+        if (num_fsi_bodies > 0) {
+            ad_body_H.resize(num_fsi_bodies);
+            ad_body_D.resize(num_fsi_bodies);
+            for (size_t i = 0; i < num_fsi_bodies; i++) {
+                Real3 a_min = ToReal3(ad_body[i].min);
+                Real3 a_max = ToReal3(ad_body[i].max);
+                Real3 e_min = a_min - envelope;
+                Real3 e_max = a_max + envelope;
+                ActiveDomain ab({ad_body[i].IsInverted(), a_min, a_max, e_min, e_max});
+                ad_body_H[i] = ab;
+            }
+        }
+
+        if (num_fsi_meshes1D > 0) {
+            ad_node1D_H.resize(num_fsi_nodes1D);
+            ad_node1D_D.resize(num_fsi_nodes1D);
+            for (size_t i = 0; i < num_fsi_nodes1D; i++) {
+                Real3 a_min = ToReal3(ad_node1D[i].min);
+                Real3 a_max = ToReal3(ad_node1D[i].max);
+                Real3 e_min = a_min - envelope;
+                Real3 e_max = a_max + envelope;
+                ActiveDomain ab({ad_node1D[i].IsInverted(), a_min, a_max, e_min, e_max});
+                ad_node1D_H[i] = ab;
+            }
+        }
+
+        if (num_fsi_meshes2D > 0) {
+            ad_node2D_H.resize(num_fsi_nodes2D);
+            ad_node2D_D.resize(num_fsi_nodes2D);
+            for (size_t i = 0; i < num_fsi_nodes2D; i++) {
+                Real3 a_min = ToReal3(ad_node2D[i].min);
+                Real3 a_max = ToReal3(ad_node2D[i].max);
+                Real3 e_min = a_min - envelope;
+                Real3 e_max = a_max + envelope;
+                ActiveDomain ab({ad_node2D[i].IsInverted(), a_min, a_max, e_min, e_max});
+                ad_node2D_H[i] = ab;
+            }
+        }
+    }
+}
+
+// Transform the AABB defined by (min, max) - expressed in a local frame - to the absolute frame defined by (pos, rot),
+// using the algorithm of Jim Arvo (Graphics Gems, 1990): for each output axis, accumulate the min/max contribution of
+// each input axis after applying the corresponding row of the rotation matrix built from the quaternion rot.
+// If the input AABB is inverted (invalid), the output is set to a fresh inverted AABB and the frame transform is not evaluated.
+static void TransformAABB(bool inverted, const Real3& min, const Real3& max, const Real3& pos, const Real4& rot, Real3& out_min, Real3& out_max) {
+    if (inverted) {
+        out_min = mR3(+Real_max);
+        out_max = mR3(-Real_max);
+        return;
+    }
+
+    // Rows of the rotation matrix corresponding to rot (same convention as RotationMatrixFromQuaternion)
+    const Real3 R[3] = {2 * mR3(Real(0.5) - rot.z * rot.z - rot.w * rot.w, rot.y * rot.z - rot.x * rot.w, rot.y * rot.w + rot.x * rot.z),
+                        2 * mR3(rot.y * rot.z + rot.x * rot.w, Real(0.5) - rot.y * rot.y - rot.w * rot.w, rot.z * rot.w - rot.x * rot.y),
+                        2 * mR3(rot.y * rot.w - rot.x * rot.z, rot.z * rot.w + rot.x * rot.y, Real(0.5) - rot.y * rot.y - rot.z * rot.z)};
+
+    out_min = pos;
+    out_max = pos;
+
+    for (int irow = 0; irow < 3; irow++) {
+        for (int icol = 0; icol < 3; icol++) {
+            Real a = Get(R[irow], icol) * Get(min, icol);
+            Real b = Get(R[irow], icol) * Get(max, icol);
+            Get(out_min, irow) += a < b ? a : b;
+            Get(out_max, irow) += a < b ? b : a;
+        }
+    }
+}
+
+void FsiDataManager::UpdateActiveDomains() {
+    if (!has_ad)
+        return;
+
+    auto num_bodies = countersH->numFsiBodies;
+    auto num_meshes1D = countersH->numFsiMeshes1D;
+    auto num_meshes2D = countersH->numFsiMeshes2D;
+    auto num_nodes1D = countersH->numFsiNodes1D;
+    auto num_nodes2D = countersH->numFsiNodes2D;
+
+    // The host arrays (ad_body_H, ad_node1D_H, and ad_node2D_H) contain AABB, expressed in
+    // the local frames for bodies and nodes. Re-express these AABBs in the absolute frame
+    // (shifting by the current position of the associated object) and copy to device vectors.
+
+    if (num_bodies > 0) {
+        thrust::host_vector<ActiveDomain> abs_ad_body_H(ad_body_H.size());
+        for (size_t ib = 0; ib < num_bodies; ib++) {
+            const Real3& pos = fsiBodyState_H->pos[ib];
+            const Real4& rot = fsiBodyState_H->rot[ib];
+            abs_ad_body_H[ib].inverted = ad_body_H[ib].inverted;
+            TransformAABB(ad_body_H[ib].inverted, ad_body_H[ib].a_min, ad_body_H[ib].a_max, pos, rot, abs_ad_body_H[ib].a_min, abs_ad_body_H[ib].a_max);
+            TransformAABB(ad_body_H[ib].inverted, ad_body_H[ib].e_min, ad_body_H[ib].e_max, pos, rot, abs_ad_body_H[ib].e_min, abs_ad_body_H[ib].e_max);
+        }
+        ad_body_D = abs_ad_body_H;
+    }
+
+    if (num_meshes1D > 0) {
+        thrust::host_vector<ActiveDomain> abs_ad_node1D_H(ad_node1D_H.size());
+        for (size_t in = 0; in < num_nodes1D; in++) {
+            const Real3& pos = fsiMesh1DState_H->pos[in];
+            abs_ad_node1D_H[in].inverted = ad_node1D_H[in].inverted;
+            abs_ad_node1D_H[in].a_min = ad_node1D_H[in].a_min + pos;
+            abs_ad_node1D_H[in].a_max = ad_node1D_H[in].a_max + pos;
+            abs_ad_node1D_H[in].e_min = ad_node1D_H[in].e_min + pos;
+            abs_ad_node1D_H[in].e_max = ad_node1D_H[in].e_max + pos;
+        }
+        ad_node1D_D = abs_ad_node1D_H;
+    }
+
+    if (num_meshes2D > 0) {
+        thrust::host_vector<ActiveDomain> abs_ad_node2D_H(ad_node2D_H.size());
+        for (size_t in = 0; in < num_nodes2D; in++) {
+            const Real3& pos = fsiMesh2DState_H->pos[in];
+            abs_ad_node2D_H[in].inverted = ad_node2D_H[in].inverted;
+            abs_ad_node2D_H[in].a_min = ad_node2D_H[in].a_min + pos;
+            abs_ad_node2D_H[in].a_max = ad_node2D_H[in].a_max + pos;
+            abs_ad_node2D_H[in].e_min = ad_node2D_H[in].e_min + pos;
+            abs_ad_node2D_H[in].e_max = ad_node2D_H[in].e_max + pos;
+        }
+        ad_node2D_D = abs_ad_node2D_H;
+    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -566,8 +717,7 @@ std::vector<Real3> FsiDataManager::GetPositions() {
 
     // Extract positions only (drop radius)
     thrust::device_vector<Real3> pos_D(pos4_D.size());
-    thrust::transform(thrust::device,  // execution policy
-                      pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
+    thrust::transform(thrust::device, pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
 
     // Copy to output
     std::vector<Real3> pos_H(pos_D.size());
@@ -856,6 +1006,11 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
     total_bytes += fsiMesh2DState_D->pos.capacity() * sizeof(Real3);
     total_bytes += fsiMesh2DState_D->vel.capacity() * sizeof(Real3);
     total_bytes += fsiMesh2DState_D->acc.capacity() * sizeof(Real3);
+
+    // FSI solid activity domains
+    total_bytes += ad_body_D.capacity() * sizeof(ActiveDomain);
+    total_bytes += ad_node1D_D.capacity() * sizeof(ActiveDomain);
+    total_bytes += ad_node2D_D.capacity() * sizeof(ActiveDomain);
 
     // Fluid data
     total_bytes += derivVelRhoD.capacity() * sizeof(Real4);
