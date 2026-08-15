@@ -28,12 +28,12 @@ endif()
 # CLASS IMPLIED below: unlike the other GPU modules, this one is enabled
 # automatically via cmake_dependent_option(... ON) whenever Chrono::FSI is on.
 # The user never explicitly asked for it, so dropping it quietly when no GPU
-# backend exists is the correct behaviour rather than a warning they cannot act
+# backend exists is the correct behavior rather than a warning they cannot act
 # on.
-# HIP_PLATFORMS amd nvidia: Thrust's device system is selected from the HIP
+# HIP_PLATFORMS AMD NVIDIA: Thrust's device system is selected from the HIP
 # platform (rocThrust on AMD, CUDA's own Thrust when HIP targets NVIDIA), so
 # neither platform is excluded. The NVIDIA platform was verified to build; the
-# AMD platform is the pre-existing, unchanged path.
+# AMD platform is the preexisting, unchanged path.
 chrono_select_gpu_backend(CHRONO_FSISPH_BACKEND
                           FEATURE  "Chrono::FSI::SPH"
                           NAME     FSI_SPH
@@ -274,12 +274,16 @@ if (CH_STATIC)
 endif()
 
 if(MSVC)
-  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)              # missing DLL interface
-  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)              # unreferenced formal parameter
-  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>)  # unreferenced formal parameter
-  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4324>)  # structure padded due to alignemnt specifier
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)               # missing DLL interface
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)               # unreferenced formal parameter
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4251>)   # missing DLL interface (forward to host compiler for .cu files)
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>)   # unreferenced formal parameter (forward to host compiler for .cu files)
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4324>)   # structure padded due to alignment specifier
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--diag-suppress=1394>) # missing DLL interface (matches /wd4251 for CXX)
   set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)  # Eigen host constexpr helpers called from __host__ __device__ functions
 
 target_link_libraries(Chrono_fsisph PRIVATE Chrono_core)
 target_link_libraries(Chrono_fsisph PUBLIC Chrono_fsi)

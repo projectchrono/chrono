@@ -776,10 +776,12 @@ endif()
 # endif()
 
 if(CH_USE_SENSOR_OPTIX)
+  set_target_properties(Chrono_sensor PROPERTIES CUDA_ARCHITECTURES "${CHRONO_CUDA_ARCHITECTURES}")
+
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
-  set_target_properties(Chrono_sensor PROPERTIES CUDA_ARCHITECTURES "${CHRONO_CUDA_ARCHITECTURES}")
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)  # Eigen host constexpr helpers called from __host__ __device__ functions
 endif()
 
 # ------------------------------------------------------------------------------
@@ -996,8 +998,15 @@ if(CH_USE_SENSOR_OPTIX AND CH_USE_SENSOR_NVDB)
 endif()
 
 if(MSVC)
-  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
-  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)               # missing DLL interface
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)               # unreferenced formal parameter
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)               # template member not defined
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)               # macro defined twice
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4251>)   # missing DLL interface (forward to host compiler for .cu files)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>)   # unreferenced formal parameter (forward to host compiler for .cu files)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4661>)   # template member not defined (forward to host compiler for .cu files)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4005>)   # macro defined twice (forward to host compiler for .cu files)
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--diag-suppress=1394>) # missing DLL interface (matches /wd4251 for CXX)
 endif()
 
 target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_SENSOR>)

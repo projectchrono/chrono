@@ -19,7 +19,7 @@ message(STATUS "\n==== Chrono DEM module ====\n")
 # Chrono::DEM is not dual-source: it ships one set of .cu kernels that are
 # compiled either as CUDA or as HIP. PREFER CUDA therefore means "use the
 # vendor-native SDK for these sources" and not "pick between two source trees".
-# HIP_PLATFORMS amd nvidia: the kernels use hipCUB on ROCm and plain CUB when
+# HIP_PLATFORMS AMD NVIDIA: the kernels use hipCUB on ROCm and plain CUB when
 # HIP targets NVIDIA (see ChDemSMC.cuh), so neither platform is excluded.
 chrono_select_gpu_backend(CHRONO_DEM_BACKEND
                           FEATURE  "Chrono::DEM"
