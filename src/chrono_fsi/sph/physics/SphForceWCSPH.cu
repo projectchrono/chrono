@@ -540,8 +540,8 @@ __device__ inline Real4 LaplacianOperator(float G_i[9], float L_i[9], Real3 dist
 // double, so in double precision they cannot be launched if the block size is 1024.
 // At 256 they have 256 registers available and fit easily.
 
-SphForceWCSPH::SphForceWCSPH(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors)
-    : SphForce(data_mgr, bce_mgr, verbose), m_check_errors(check_errors) {
+SphForceWCSPH::SphForceWCSPH(FsiDataManager& data_mgr, bool verbose, bool check_errors)
+    : SphForce(data_mgr, verbose), m_check_errors(check_errors) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
     density_initialization = 0;
 }
@@ -564,9 +564,6 @@ void SphForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, 
     uint blockSize = 1024;
 #endif
     computeGridSize(numActive, blockSize, numBlocks, numThreads);
-
-    //
-    m_bce_mgr.updateBCEAcc();
 
     // Perform density re-initialization
     if (density_initialization >= m_data_mgr.paramsH->density_reinit_steps) {

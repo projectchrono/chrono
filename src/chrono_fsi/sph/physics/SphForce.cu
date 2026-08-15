@@ -26,7 +26,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-SphForce::SphForce(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose) : m_data_mgr(data_mgr), m_bce_mgr(bce_mgr), m_verbose(verbose) {
+SphForce::SphForce(FsiDataManager& data_mgr, bool verbose) : m_data_mgr(data_mgr), m_verbose(verbose) {
     gpuMallocErrorFlag(m_errflagD);
 }
 

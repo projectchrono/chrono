@@ -434,25 +434,19 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
             mcc_finite(m_paramsH->mcc_v_lambda, "mcc_v_lambda");
 
             if (m_paramsH->mcc_kappa <= 0) {
-                mcc_fatal("MCC parameter mcc_kappa (swelling index) must be positive, but is " +
-                          mcc_num(m_paramsH->mcc_kappa) +
+                mcc_fatal("MCC parameter mcc_kappa (swelling index) must be positive, but is " + mcc_num(m_paramsH->mcc_kappa) +
                           ". The elastic bulk modulus is computed as K = v p / mcc_kappa.");
             }
             if (m_paramsH->mcc_lambda <= m_paramsH->mcc_kappa) {
-                mcc_fatal("MCC requires mcc_lambda (compression index) > mcc_kappa (swelling index), but "
-                          "mcc_lambda = " + mcc_num(m_paramsH->mcc_lambda) + " and mcc_kappa = " +
-                          mcc_num(m_paramsH->mcc_kappa) +
-                          ". The hardening law divides by (mcc_lambda - mcc_kappa). If these two look "
-                          "swapped, they probably are: lambda is the normal-consolidation-line slope and "
-                          "is the larger of the two.");
+                mcc_fatal("MCC requires mcc_lambda (compression index) > mcc_kappa (swelling index), but mcc_lambda = " + mcc_num(m_paramsH->mcc_lambda) +
+                          " and mcc_kappa = " + mcc_num(m_paramsH->mcc_kappa) + ". The hardening law divides by (mcc_lambda - mcc_kappa). " +
+                          "If these two look swapped, they probably are: lambda is the normal-consolidation-line slope and is the larger of the two.");
             }
             if (m_paramsH->mcc_M <= 0) {
-                mcc_fatal("MCC parameter mcc_M (critical state line slope) must be positive, but is " +
-                          mcc_num(m_paramsH->mcc_M) + ".");
+                mcc_fatal("MCC parameter mcc_M (critical state line slope) must be positive, but is " + mcc_num(m_paramsH->mcc_M) + ".");
             }
             if (m_paramsH->mcc_v_lambda <= 0) {
-                mcc_fatal("MCC parameter mcc_v_lambda (specific volume at the reference pressure) must be "
-                          "positive, but is " + mcc_num(m_paramsH->mcc_v_lambda) + ".");
+                mcc_fatal("MCC parameter mcc_v_lambda (specific volume at the reference pressure) must be positive, but is " + mcc_num(m_paramsH->mcc_v_lambda) + ".");
             }
 
             // Last, and a warning rather than an error: the ordering above can hold by a
@@ -470,12 +464,10 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
             Real mcc_gap = m_paramsH->mcc_lambda - m_paramsH->mcc_kappa;
             Real mcc_gap_floor = std::max(Real(1e-6), Real(1e-3) * m_paramsH->mcc_lambda);
             if (mcc_gap < mcc_gap_floor) {
-                cerr << "WARNING: MCC parameters mcc_lambda = " << mcc_num(m_paramsH->mcc_lambda)
-                     << " and mcc_kappa = " << mcc_num(m_paramsH->mcc_kappa) << " differ by only "
+                cerr << "WARNING: MCC parameters mcc_lambda = " << mcc_num(m_paramsH->mcc_lambda) << " and mcc_kappa = " << mcc_num(m_paramsH->mcc_kappa) << " differ by only "
                      << mcc_num(mcc_gap)
-                     << ". The hardening law divides by that difference, so the plastic modulus will be "
-                        "very large and the return mapping poorly conditioned. This is accepted as given, "
-                        "but confirm it is what was intended."
+                     << ". The hardening law divides by that difference, so the plastic modulus will be very large and the return mapping poorly conditioned."
+                        "This is accepted as given, but confirm it is what was intended."
                      << endl;
             }
         }
@@ -1629,11 +1621,9 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     ChDebugLog("load initial states");
     LoadSolidStates(body_states);
 
-    // Create BCE and SPH worker objects
+    // Create and initialize the BCE and SPH worker objects
     m_bce_mgr = chrono_types::make_unique<SphBceManager>(*m_data_mgr, NodeDirections::NONE, m_verbose, m_check_errors);
-    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
-
-    // Initialize worker objects
+    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, m_verbose, m_check_errors);
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
@@ -1927,6 +1917,9 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
 
     // Zero-out step data (derivatives and intermediate vectors)
     m_data_mgr->ResetData();
+
+    // Calculate current solid BCE particle accelerations
+    m_bce_mgr->updateBCEAcc();
 
     // Advance fluid particle states from `time` to `time+step`
     m_fluid_dynamics->DoStepDynamics(m_data_mgr->sortedSphMarkers2_D, time, step, m_paramsH->integration_scheme);

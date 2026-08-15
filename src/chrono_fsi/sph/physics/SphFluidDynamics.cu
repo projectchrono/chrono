@@ -40,14 +40,14 @@ void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> par
     gpuCheckError();
 }
 
-SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors)
+SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors), m_errflagD(nullptr) {
     collisionSystem = chrono_types::make_shared<SphCollisionSystem>(data_mgr);
 
     if (m_data_mgr.paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH)
-        forceSystem = chrono_types::make_shared<SphForceISPH>(data_mgr, bce_mgr, verbose, m_check_errors);
+        forceSystem = chrono_types::make_shared<SphForceISPH>(data_mgr, verbose, m_check_errors);
     else
-        forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, bce_mgr, verbose, m_check_errors);
+        forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, verbose, m_check_errors);
 
     gpuStreamCreate(&m_copy_stream);
     gpuMallocErrorFlag(m_errflagD);
