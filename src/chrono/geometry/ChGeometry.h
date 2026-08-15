@@ -21,6 +21,10 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
 
+#include "chrono/geometry/ChAABB.h"
+
+#include "chrono/serialization/ChArchive.h"
+
 namespace chrono {
 
 /// @addtogroup chrono_geometry
@@ -31,69 +35,6 @@ enum class ChAxis {
     X,  ///< x direction of a reference frame
     Y,  ///< y direction of a reference frame
     Z   ///< z direction of a reference frame
-};
-
-/// Axis-aligned bounding box in integer gridd coordinates.
-struct ChApi ChIntAABB {
-    /// Default is an inverted bounding box.
-    ChIntAABB();
-
-    /// Construct an AABB with provided corners.
-    ChIntAABB(const ChVector3i& aabb_min, const ChVector3i& aabb_max);
-
-    /// Get AABB dimensions.
-    ChVector3i Size() const;
-
-    /// Return true for an inverted bounding box.
-    bool IsInverted() const;
-
-    /// Return the union of this AABB and the specified AABB.
-    ChIntAABB operator+(const ChIntAABB& aabb);
-
-    /// Include the specified AABB in this AABB.
-    ChIntAABB& operator+=(const ChIntAABB& aabb);
-
-    /// Include the specified point in this AABB.
-    ChIntAABB& operator+=(const ChVector3i p);
-
-    ChVector3i min;  ///< low AABB corner
-    ChVector3i max;  ///< high AABB corner
-};
-
-/// Axis-aligned bounding box.
-struct ChApi ChAABB {
-    /// Default is an inverted bounding box.
-    ChAABB();
-
-    /// Construct an AABB with provided corners.
-    ChAABB(const ChVector3d& aabb_min, const ChVector3d& aabb_max);
-
-    /// Construct an AABB from the given integer AABB and grid spacing.
-    ChAABB(const ChIntAABB& aabb, double spacing);
-
-    /// Get AABB center.
-    ChVector3d Center() const;
-
-    /// Get AABB dimensions.
-    ChVector3d Size() const;
-
-    /// Return true for an inverted bounding box.
-    bool IsInverted() const;
-
-    /// Return the union of this AABB and the specified AABB.
-    ChAABB operator+(const ChAABB& aabb);
-
-    /// Include the specified AABB in this AABB.
-    ChAABB& operator+=(const ChAABB& aabb);
-
-    /// Include the specified point in this AABB.
-    ChAABB& operator+=(const ChVector3d p);
-
-    /// Transform by the given frame.
-    ChAABB Transform(const ChFrame<>& frame) const;
-
-    ChVector3d min;  ///< low AABB corner
-    ChVector3d max;  ///< high AABB corner
 };
 
 /// Base class for geometric objects used for collisions and visualization.

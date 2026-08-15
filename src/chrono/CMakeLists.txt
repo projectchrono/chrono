@@ -635,13 +635,13 @@ endif()
 
 set(Chrono_geometry_SOURCES
     geometry/ChGeometry.cpp
-    geometry/ChSphere.cpp
-    geometry/ChEllipsoid.cpp
+    geometry/ChAABB.cpp
     geometry/ChBox.cpp
     geometry/ChCone.cpp
     geometry/ChCylinder.cpp
     geometry/ChCapsule.cpp
     geometry/ChDelaunay2D.cpp
+    geometry/ChEllipsoid.cpp
     geometry/ChLine.cpp
     geometry/ChLineArc.cpp
     geometry/ChLineSegment.cpp
@@ -657,6 +657,7 @@ set(Chrono_geometry_SOURCES
     geometry/ChTriangleMeshConnected.cpp
     geometry/ChRoundedBox.cpp
     geometry/ChRoundedCylinder.cpp
+    geometry/ChSphere.cpp
     geometry/ChSurface.cpp
     geometry/ChSurfaceNurbs.cpp
     geometry/ChVolume.cpp
@@ -664,13 +665,13 @@ set(Chrono_geometry_SOURCES
     )
 set(Chrono_geometry_HEADERS
     geometry/ChGeometry.h
-    geometry/ChSphere.h
-    geometry/ChEllipsoid.h
+    geometry/ChAABB.h
     geometry/ChBox.h
     geometry/ChCone.h
     geometry/ChCylinder.h
     geometry/ChCapsule.h
     geometry/ChDelaunay2D.h
+    geometry/ChEllipsoid.h
     geometry/ChLine.h
     geometry/ChLineCam.h
     geometry/ChLinePoly.h
@@ -686,6 +687,7 @@ set(Chrono_geometry_HEADERS
     geometry/ChTriangleMeshConnected.h
     geometry/ChRoundedBox.h
     geometry/ChRoundedCylinder.h
+    geometry/ChSphere.h
     geometry/ChSurface.h
     geometry/ChSurfaceNurbs.h
     geometry/ChVolume.h
