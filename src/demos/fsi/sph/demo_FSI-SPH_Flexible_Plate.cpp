@@ -311,7 +311,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->EnableFlexBodyMarkers(show_mesh_bce);
+        visFSI->EnableFeaMeshMarkers(show_mesh_bce);
         visFSI->SetSPHColorCallback(col_callback);
 
         // VSG visual system (attach visFSI as plugin)

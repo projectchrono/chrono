@@ -73,7 +73,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     void SetColorRigidBodyMarkers(const ChColor& col) { m_rigid_bce_color = col; }
 
     /// Set default color for flex body BCE markers (default: [0.40, 0.10, 0.65]).
-    void SetColorFlexBodyMarkers(const ChColor& col) { m_flex_bce_color = col; }
+    void SetColorFeaMeshMarkers(const ChColor& col) { m_flex_bce_color = col; }
 
     /// Get the type of the colormap currently in use.
     ChColormap::Type GetColormapType() const;
@@ -139,7 +139,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     void EnableRigidBodyMarkers(bool val) { m_rigid_bce_markers = val; }
 
     /// Enable/disable rendering of flex-body BCE markers (default: true).
-    void EnableFlexBodyMarkers(bool val) { m_flex_bce_markers = val; }
+    void EnableFeaMeshMarkers(bool val) { m_flex_bce_markers = val; }
 
     /// Enable/disable rendering of boundary BCE markers (default: false).
     void EnableBoundaryMarkers(bool val) { m_bndry_bce_markers = val; }

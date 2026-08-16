@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);
-    visFSI->EnableFlexBodyMarkers(false);
+    visFSI->EnableFeaMeshMarkers(false);
     visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::BROWN);
 
     auto visVSG = chrono_types::make_shared<ChVisualSystemVSG>();

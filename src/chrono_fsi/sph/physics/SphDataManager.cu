@@ -260,14 +260,14 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
     countersH->numFluidMarkers = 0;       // Number of fluid SPH particles
     countersH->numBoundaryMarkers = 0;    // Number of boundary BCE markers
     countersH->numRigidMarkers = 0;       // Number of rigid BCE markers
-    countersH->numFlexMarkers1D = 0;      // Number of flexible 1-D segment BCE markers
-    countersH->numFlexMarkers2D = 0;      // Number of flexible 2-D face BCE markers
+    countersH->numMesh1DMarkers = 0;      // Number of flexible 1-D segment BCE markers
+    countersH->numMesh2DMarkers = 0;      // Number of flexible 2-D face BCE markers
     countersH->numBceMarkers = 0;         // Total number of BCE markers
     countersH->numAllMarkers = 0;         // Total number of SPH + BCE particles
     countersH->startBoundaryMarkers = 0;  // Start index of the boundary BCE markers
     countersH->startRigidMarkers = 0;     // Start index of the rigid BCE markers
-    countersH->startFlexMarkers1D = 0;    // Start index of the 1-D flexible BCE markers
-    countersH->startFlexMarkers2D = 0;    // Start index of the 2-D flexible BCE markers
+    countersH->startMesh1DMarkers = 0;    // Start index of the 1-D flexible BCE markers
+    countersH->startMesh2DMarkers = 0;    // Start index of the 2-D flexible BCE markers
 
     size_t rSize = referenceArray.size();
 
@@ -292,10 +292,10 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
                 countersH->numRigidMarkers += numMarkers;
                 break;
             case 2:
-                countersH->numFlexMarkers1D += numMarkers;
+                countersH->numMesh1DMarkers += numMarkers;
                 break;
             case 3:
-                countersH->numFlexMarkers2D += numMarkers;
+                countersH->numMesh2DMarkers += numMarkers;
                 break;
             default:
                 std::cerr << "ERROR SetCounters: particle type not defined." << std::endl;
@@ -306,13 +306,13 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
 
     countersH->numFluidMarkers += countersH->numGhostMarkers + countersH->numHelperMarkers;
     countersH->numBceMarkers = countersH->numBoundaryMarkers + countersH->numRigidMarkers +  //
-                               countersH->numFlexMarkers1D + countersH->numFlexMarkers2D;
+                               countersH->numMesh1DMarkers + countersH->numMesh2DMarkers;
     countersH->numAllMarkers = countersH->numFluidMarkers + countersH->numBceMarkers;
 
     countersH->startBoundaryMarkers = countersH->numFluidMarkers;
     countersH->startRigidMarkers = countersH->startBoundaryMarkers + countersH->numBoundaryMarkers;
-    countersH->startFlexMarkers1D = countersH->startRigidMarkers + countersH->numRigidMarkers;
-    countersH->startFlexMarkers2D = countersH->startFlexMarkers1D + countersH->numFlexMarkers1D;
+    countersH->startMesh1DMarkers = countersH->startRigidMarkers + countersH->numRigidMarkers;
+    countersH->startMesh2DMarkers = countersH->startMesh1DMarkers + countersH->numMesh1DMarkers;
 }
 
 struct sphTypeCompEqual {
@@ -879,13 +879,13 @@ std::vector<Real3> FsiDataManager::GetRigidTorques() {
     return out_H;
 }
 
-std::vector<Real3> FsiDataManager::GetFlex1dForces() {
+std::vector<Real3> FsiDataManager::GetMesh1DForces() {
     std::vector<Real3> out_H(flex1D_FSIforces_D.size());
     thrust::copy(flex1D_FSIforces_D.begin(), flex1D_FSIforces_D.end(), out_H.begin());
     return out_H;
 }
 
-std::vector<Real3> FsiDataManager::GetFlex2dForces() {
+std::vector<Real3> FsiDataManager::GetMesh2DForces() {
     std::vector<Real3> out_H(flex2D_FSIforces_D.size());
     thrust::copy(flex2D_FSIforces_D.begin(), flex2D_FSIforces_D.end(), out_H.begin());
     return out_H;

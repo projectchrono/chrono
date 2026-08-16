@@ -72,9 +72,9 @@ class FSISPHStatsVSG : public vsg3d::ChGuiComponentVSG {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Flex body BCE:");
+            ImGui::TextUnformatted("FEA mesh BCE:");
             ImGui::TableNextColumn();
-            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumFlexBodyMarkers()));
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumFleaMeshMarkers()));
 
             ImGui::TableNextRow();
 
@@ -311,7 +311,7 @@ void ChSphVisualizationVSG::OnInitialize() {
         m_flex_bce_cloud->SetName("bce_flex");
         m_flex_bce_cloud->SetTag(ParticleCloudTag::BCE_FLEX);
         m_flex_bce_cloud->SetFixed(false);
-        for (int i = 0; i < m_sysSPH->GetNumFlexBodyMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH->GetNumFleaMeshMarkers(); i++) {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
         auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 4);
@@ -822,7 +822,7 @@ void ChSphVisualizationVSG::OnRender() {
     p += m_sysSPH->GetNumRigidBodyMarkers();
 
     if (m_flex_bce_markers) {
-        bulkWritePositions(m_flex_bce_cloud, p, m_sysSPH->GetNumFlexBodyMarkers());
+        bulkWritePositions(m_flex_bce_cloud, p, m_sysSPH->GetNumFleaMeshMarkers());
     }
 
     // Update positions of all active boxes

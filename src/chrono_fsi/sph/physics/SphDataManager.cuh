@@ -226,15 +226,15 @@ struct Counters {
     size_t numFluidMarkers;     ///< number of fluid SPH particles
     size_t numBoundaryMarkers;  ///< number of BCE markers on boundaries
     size_t numRigidMarkers;     ///< number of BCE markers on rigid bodies
-    size_t numFlexMarkers1D;    ///< number of BCE markers on flexible segments
-    size_t numFlexMarkers2D;    ///< number of BCE markers on flexible faces
+    size_t numMesh1DMarkers;    ///< number of BCE markers on flexible segments
+    size_t numMesh2DMarkers;    ///< number of BCE markers on flexible faces
     size_t numBceMarkers;       ///< total number of BCE markers
     size_t numAllMarkers;       ///< total number of particles in the simulation
 
     size_t startBoundaryMarkers;  ///< index of first BCE marker on boundaries
     size_t startRigidMarkers;     ///< index of first BCE marker on first rigid body
-    size_t startFlexMarkers1D;    ///< index of first BCE marker on first flex segment
-    size_t startFlexMarkers2D;    ///< index of first BCE marker on first flex face
+    size_t startMesh1DMarkers;    ///< index of first BCE marker on first flex segment
+    size_t startMesh2DMarkers;    ///< index of first BCE marker on first flex face
     size_t numActiveParticles;    ///< number of active particles
     size_t numExtendedParticles;  ///< number of extended particles
 };
@@ -309,10 +309,10 @@ struct FsiDataManager {
     std::vector<Real3> GetRigidTorques();
 
     /// Extract FSI forces on flex1D nodes.
-    std::vector<Real3> GetFlex1dForces();
+    std::vector<Real3> GetMesh1DForces();
 
     /// Extract FSI forces on flex2D nodes.
-    std::vector<Real3> GetFlex2dForces();
+    std::vector<Real3> GetMesh2DForces();
 
     void ConstructReferenceArray();
     void SetCounters(unsigned int num_fsi_bodies,

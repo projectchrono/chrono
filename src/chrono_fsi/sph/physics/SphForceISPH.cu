@@ -107,12 +107,12 @@ __device__ void BCE_Vel_Acc(int i_idx,
 
         // Or not, Flexible bodies for sure
     } else if (Original_idx >= updatePortion.z && Original_idx < updatePortion.w) {
-        int FlexIndex = Original_idx - updatePortion.z;  // offset index for bce markers on flex bodies
+        int feaIndex = Original_idx - updatePortion.z;  // offset index for bce markers on flex bodies
 
-        // FlexIndex iterates through both 1D and 2D ones
-        if (FlexIndex < countersD.numFlexMarkers1D) {
+        // feaIndex iterates through both 1D and 2D ones
+        if (feaIndex < countersD.numMesh1DMarkers) {
             // 1D element case
-            uint3 flex_solid = flex1D_BCEsolids_D[FlexIndex];  // associated flex mesh and segment
+            uint3 flex_solid = flex1D_BCEsolids_D[feaIndex];  // associated flex mesh and segment
             // Luning TODO: do we need flex_mesh and flex_mesh_seg?
             ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
             ////uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
@@ -125,14 +125,14 @@ __device__ void BCE_Vel_Acc(int i_idx,
             Real3 V0 = flex1D_vel_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
             Real3 V1 = flex1D_vel_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
-            Real lambda0 = flex1D_BCEcoords_D[FlexIndex].x;  // segment coordinate
+            Real lambda0 = flex1D_BCEcoords_D[feaIndex].x;  // segment coordinate
             Real lambda1 = 1 - lambda0;                      // segment coordinate
 
             V_prescribed = V0 * lambda0 + V1 * lambda1;
             myAcc = A0 * lambda0 + A1 * lambda1;
         }
-        if (FlexIndex >= countersD.numFlexMarkers1D) {
-            int flex2d_index = FlexIndex - countersD.numFlexMarkers1D;
+        if (feaIndex >= countersD.numMesh1DMarkers) {
+            int flex2d_index = feaIndex - countersD.numMesh1DMarkers;
 
             uint3 flex_solid = flex2D_BCEsolids_D[flex2d_index];  // associated flex mesh and face
             ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -964,7 +964,7 @@ void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
     size_t end_fluid = cH->numGhostMarkers + cH->numHelperMarkers + cH->numFluidMarkers;
     size_t end_bndry = end_fluid + cH->numBoundaryMarkers;
     size_t end_rigid = end_bndry + cH->numRigidMarkers;
-    size_t end_flex = end_rigid + cH->numFlexMarkers1D + cH->numFlexMarkers2D;
+    size_t end_flex = end_rigid + cH->numMesh1DMarkers + cH->numMesh2DMarkers;
     int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
     if (m_verbose)

@@ -347,11 +347,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Get the current number of boundary BCE markers.
     size_t GetNumBoundaryMarkers() const;
 
-    /// Get the current number of rigid body BCE markers.
+    /// Get the current total number of rigid body BCE markers.
     size_t GetNumRigidBodyMarkers() const;
 
-    /// Get the current number of flexible body BCE markers.
-    size_t GetNumFlexBodyMarkers() const;
+    /// Get the current total number of FEA mesh BCE markers.
+    size_t GetNumFleaMeshMarkers() const;
 
     /// Return the SPH particle positions.
     std::vector<ChVector3d> GetParticlePositions() const;

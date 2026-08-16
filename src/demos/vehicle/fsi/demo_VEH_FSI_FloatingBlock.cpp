@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(false);
-        visFSI->EnableFlexBodyMarkers(false);
+        visFSI->EnableFeaMeshMarkers(false);
         visFSI->SetSPHColorCallback(col_callback);
 
         // Vehicle VSG visual system (attach visFSI as plugin)

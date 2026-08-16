@@ -469,7 +469,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(m_show_bce);
-        visFSI->EnableFlexBodyMarkers(m_show_bce);
+        visFSI->EnableFeaMeshMarkers(m_show_bce);
         visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::BROWN);
 
         // VSG visual system (attach visFSI as plugin)

@@ -854,7 +854,7 @@ void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_force
     }
 
     {
-        auto forces_H = m_data_mgr->GetFlex1dForces();
+        auto forces_H = m_data_mgr->GetMesh1DForces();
 
         size_t num_meshes = mesh1D_forces.size();
         int index = 0;
@@ -868,7 +868,7 @@ void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_force
     }
 
     {
-        auto forces_H = m_data_mgr->GetFlex2dForces();
+        auto forces_H = m_data_mgr->GetMesh2DForces();
 
         size_t num_meshes = mesh2D_forces.size();
         int index = 0;
@@ -1088,12 +1088,12 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  numFluidMarkers:    " << counters.numFluidMarkers << endl;
     cout << "  numBoundaryMarkers: " << counters.numBoundaryMarkers << endl;
     cout << "  numRigidMarkers:    " << counters.numRigidMarkers << endl;
-    cout << "  numFlexMarkers1D:   " << counters.numFlexMarkers1D << endl;
-    cout << "  numFlexMarkers2D:   " << counters.numFlexMarkers2D << endl;
+    cout << "  numMesh1DMarkers:   " << counters.numMesh1DMarkers << endl;
+    cout << "  numMesh2DMarkers:   " << counters.numMesh2DMarkers << endl;
     cout << "  numAllMarkers:      " << counters.numAllMarkers << endl;
     cout << "  startRigidMarkers:  " << counters.startRigidMarkers << endl;
-    cout << "  startFlexMarkers1D: " << counters.startFlexMarkers1D << endl;
-    cout << "  startFlexMarkers2D: " << counters.startFlexMarkers2D << endl;
+    cout << "  startMesh1DMarkers: " << counters.startMesh1DMarkers << endl;
+    cout << "  startMesh2DMarkers: " << counters.startMesh2DMarkers << endl;
 }
 
 void PrintRefArrays(const thrust::host_vector<int4>& referenceArray, const thrust::host_vector<int4>& referenceArray_FEA) {
@@ -2019,9 +2019,9 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
 }
 
 void ChFsiFluidSystemSPH::OnExchangeSolidForces() {
-    m_bce_mgr->Rigid_Forces_Torques();
-    m_bce_mgr->Flex1D_Forces();
-    m_bce_mgr->Flex2D_Forces();
+    m_bce_mgr->CalcRigidBodyForces();
+    m_bce_mgr->CalcFeaMesh1DForces();
+    m_bce_mgr->CalcFeaMesh2DForces();
 }
 
 void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
@@ -3027,8 +3027,8 @@ size_t ChFsiFluidSystemSPH::GetNumRigidBodyMarkers() const {
     return m_data_mgr->countersH->numRigidMarkers;
 }
 
-size_t ChFsiFluidSystemSPH::GetNumFlexBodyMarkers() const {
-    return m_data_mgr->countersH->numFlexMarkers1D + m_data_mgr->countersH->numFlexMarkers2D;
+size_t ChFsiFluidSystemSPH::GetNumFleaMeshMarkers() const {
+    return m_data_mgr->countersH->numMesh1DMarkers + m_data_mgr->countersH->numMesh2DMarkers;
 }
 
 size_t ChFsiFluidSystemSPH::GetNumBoundaryMarkers() const {
