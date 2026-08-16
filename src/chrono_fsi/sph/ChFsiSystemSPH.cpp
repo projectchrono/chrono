@@ -48,11 +48,11 @@ ChFsiFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return *m_sysSPH;
 }
 
-std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded) {
+std::shared_ptr<FsiBody> ChFsiSystemSPH::AddRigidBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded) {
     ChAssertAlways(m_sysSPH);
 
     // Add the FSI body with no geometry
-    auto fsi_body = ChFsiSystem::AddFsiBody(body, nullptr, check_embedded);
+    auto fsi_body = ChFsiSystem::AddRigidBody(body, nullptr, check_embedded);
 
     // Explicitly set the BCE marker locations
     auto& fsisph_body = m_sysSPH->m_bodies.back();

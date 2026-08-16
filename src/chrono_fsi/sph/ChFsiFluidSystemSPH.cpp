@@ -1118,21 +1118,21 @@ void PrintRefArrays(const thrust::host_vector<int4>& referenceArray, const thrus
 //// TODO FSI meshes:
 ////   - consider using monotone cubic Hermite interpolation instead of cubic Bezier
 
-void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
+void ChFsiFluidSystemSPH::OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
     FsiSphBody b;
     b.fsi_body = fsi_body;
     b.check_embedded = check_embedded;
 
-    CreateBCEFsiBody(fsi_body, b.bce_ids, b.bce_coords, b.bce);
+    CreateRigidBodyBce(fsi_body, b.bce_ids, b.bce_coords, b.bce);
     m_num_rigid_bodies++;
 
     m_bodies.push_back(b);
     m_ad_body.push_back(ChAABB());
 }
 
-void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce) {
+void ChFsiFluidSystemSPH::CreateRigidBodyBce(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce) {
     const auto& geometry = fsi_body->geometry;
     if (geometry) {
         for (const auto& sphere : geometry->coll_spheres) {
@@ -1174,14 +1174,14 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, st
 
 #ifdef CHRONO_FEA
 
-void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
+void ChFsiFluidSystemSPH::OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
     FsiSphMesh1D m;
     m.fsi_mesh = fsi_mesh;
     m.check_embedded = check_embedded;
 
-    CreateBCEFsiMesh1D(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
+    CreateFeaMesh1DBce(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
     m_num_flex1D_meshes++;
     m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex1D_elements += fsi_mesh->GetNumElements();
@@ -1190,14 +1190,14 @@ void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bo
     m_ad_mesh1D.push_back(ChAABB());
 }
 
-void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
+void ChFsiFluidSystemSPH::OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
     FsiSphMesh2D m;
     m.fsi_mesh = fsi_mesh;
     m.check_embedded = check_embedded;
 
-    CreateBCEFsiMesh2D(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
+    CreateFeaMesh2DBce(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
     m_num_flex1D_meshes++;
     m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
@@ -1216,7 +1216,7 @@ void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
     y = Vcross(z, x);
 }
 
-void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh,
                                              BcePatternMesh1D pattern,
                                              bool remove_center,
                                              std::vector<ChVector3i>& bce_ids,
@@ -1328,7 +1328,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
     }
 }
 
-void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+void ChFsiFluidSystemSPH::CreateFeaMesh2DBce(std::shared_ptr<FsiMesh2D> fsi_mesh,
                                              BcePatternMesh2D pattern,
                                              bool remove_center,
                                              std::vector<ChVector3i>& bce_ids,
@@ -1466,7 +1466,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
+void ChFsiFluidSystemSPH::AddRigidBodyBce(const FsiSphBody& fsisph_body) {
     // Add BCE markers and load their local coordinates and body associations
     auto num_bce = fsisph_body.bce.size();
     for (size_t i = 0; i < num_bce; i++) {
@@ -1563,7 +1563,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_num_flex2D_elements = 0;
 
     for (const auto& b : m_bodies) {
-        AddBCEFsiBody(b);
+        AddRigidBodyBce(b);
         m_num_rigid_bodies++;
     }
 
@@ -1720,19 +1720,19 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_num_flex2D_elements = 0;
 
     for (const auto& b : m_bodies) {
-        AddBCEFsiBody(b);
+        AddRigidBodyBce(b);
         m_num_rigid_bodies++;
     }
 
     for (const auto& m : m_meshes1D) {
-        AddBCEFsiMesh1D(m);
+        AddFeaMesh1DBce(m);
         m_num_flex1D_meshes++;
         m_num_flex1D_nodes += m.fsi_mesh->GetNumNodes();
         m_num_flex1D_elements += m.fsi_mesh->GetNumElements();
     }
 
     for (const auto& m : m_meshes2D) {
-        AddBCEFsiMesh2D(m);
+        AddFeaMesh2DBce(m);
         m_num_flex1D_meshes++;
         m_num_flex2D_nodes += m.fsi_mesh->GetNumNodes();
         m_num_flex2D_elements += m.fsi_mesh->GetNumElements();
@@ -1911,7 +1911,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_is_initialized = true;
 }
 
-void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
+void ChFsiFluidSystemSPH::AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh) {
     const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
@@ -1937,7 +1937,7 @@ void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
     }
 }
 
-void ChFsiFluidSystemSPH::AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh) {
+void ChFsiFluidSystemSPH::AddFeaMesh2DBce(const FsiSphMesh2D& fsisph_mesh) {
     const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)

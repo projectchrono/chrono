@@ -181,17 +181,17 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// previous domain intact.
     void SetComputationalDomain(const ChAABB& computational_AABB);
 
-    /// Set the active domain for the body with specified index (as returned by AddFsiBody).
+    /// Set the active domain for the body with specified index (as returned by AddRigidBody).
     /// By default, this is an inverted AABB.
     /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomainBody(size_t i, const ChAABB& aabb);
 
-    /// Set the active domain for nodes of the 1D mesh with specified index (as returned by AddFsiMesh1D).
+    /// Set the active domain for nodes of the 1D mesh with specified index (as returned by AddFeaMesh1D).
     /// By default, this is an inverted AABB.
     /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomainMesh1D(size_t i, const ChAABB& aabb);
 
-    /// Set the active domain for nodes of the 2D mesh with specified index (as returned by AddFsiMesh2D).
+    /// Set the active domain for nodes of the 2D mesh with specified index (as returned by AddFeaMesh2D).
     /// By default, this is an inverted AABB.
     /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomainMesh2D(size_t i, const ChAABB& aabb);
@@ -687,32 +687,32 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     // ----------
 
     /// SPH solver-specific actions taken when a rigid solid is added as an FSI object.
-    virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
+    virtual void OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
     /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the given FSI rigid body.
-    void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce);
+    void CreateRigidBodyBce(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce);
 
 #ifdef CHRONO_FEA
     /// SPH solver-specific actions taken when a 1D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
+    virtual void OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
 
     /// SPH solver-specific actions taken when a 2D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
+    virtual void OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
 
-    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh1D.
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh1D.
     /// By default, a full set of BCE markers is used across each section, including a central marker.
     void SetBcePattern1D(BcePatternMesh1D pattern,  ///< marker pattern in cross-section
                          bool remove_center         ///< eliminate markers on center line
     );
 
-    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh2D.
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFeaMesh2D.
     /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
     void SetBcePattern2D(BcePatternMesh2D pattern,  ///< pattern of marker locations along normal
                          bool remove_center         ///< eliminate markers on surface
     );
 
     /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the given FSI 1D mesh.
-    void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+    void CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh,
                             BcePatternMesh1D pattern,
                             bool remove_center,
                             std::vector<ChVector3i>& bce_ids,
@@ -721,7 +721,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
     /// given FSI 2D mesh.
-    void CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+    void CreateFeaMesh2DBce(std::shared_ptr<FsiMesh2D> fsi_mesh,
                             BcePatternMesh2D pattern,
                             bool remove_center,
                             std::vector<ChVector3i>& bce_ids,
@@ -736,7 +736,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Add the BCE markers for the given FSI rigid body to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
-    void AddBCEFsiBody(const FsiSphBody& fsisph_body);
+    void AddRigidBodyBce(const FsiSphBody& fsisph_body);
 
 #ifdef CHRONO_FEA
     /// Initialize the SPH fluid system with FSI support.
@@ -744,11 +744,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Add the BCE markers for the given FSI 1D mesh to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
-    void AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh);
+    void AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh);
 
     /// Add the BCE markers for the given FSI 2D mesh to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
-    void AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh);
+    void AddFeaMesh2DBce(const FsiSphMesh2D& fsisph_mesh);
 #endif
 
     // ----------

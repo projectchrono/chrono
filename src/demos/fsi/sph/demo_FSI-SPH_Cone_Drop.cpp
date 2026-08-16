@@ -529,7 +529,7 @@ int main(int argc, char* argv[]) {
     double delta_h = cone_length / np_h;
     double cone_tip_radius = cone_diameter / 2 * delta_h / cone_length;
     auto cone_bce = sysSPH.CreatePointsTruncatedConeInterior(cone_diameter / 2, cone_tip_radius, cone_length - initial_spacing, true);
-    sysFSI.AddFsiBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
+    sysFSI.AddRigidBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
 
     sysFSI.Initialize();
 

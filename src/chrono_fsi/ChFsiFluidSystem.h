@@ -114,7 +114,7 @@ class CH_FSI_API ChFsiFluidSystem {
     ChFsiFluidSystem();
 
     /// Solver-specific actions taken when a rigid solid is added as an FSI object.
-    virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {}
+    virtual void OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {}
 
     /// Initialize the fluid system using initial states of solid FSI objects.
     /// A call to this function marks completion of the fluid system construction and can only be made from ChFsiSystem.
@@ -124,10 +124,10 @@ class CH_FSI_API ChFsiFluidSystem {
     void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
 
     /// Solver-specific actions taken when a 1D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> mesh, bool check_embedded) {}
+    virtual void OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> mesh, bool check_embedded) {}
 
     /// Solver-specific actions taken when a 2D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> mesh, bool check_embedded) {}
+    virtual void OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> mesh, bool check_embedded) {}
 
     /// Initialize the fluid system using initial states of solid FSI objects.
     /// A call to this function marks completion of the fluid system construction and can only be made from ChFsiSystem.

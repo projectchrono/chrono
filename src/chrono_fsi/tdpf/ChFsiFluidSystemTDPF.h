@@ -117,17 +117,17 @@ public:
     // ----------
 
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
-    virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
+    virtual void OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
     /// Initialize the TDPF fluid system with FSI support.
     virtual void Initialize(const std::vector<FsiBodyState>& body_states) override;
 
 #ifdef CHRONO_FEA
     /// TDPF solver-specific actions taken when a 1D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
+    virtual void OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
 
     /// TDPF solver-specific actions taken when a 2D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
+    virtual void OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
 
     /// Initialize the TDPF fluid system with FSI support.
     virtual void Initialize(const std::vector<FsiBodyState>& body_states, const std::vector<FsiMeshState>& mesh1D_states, const std::vector<FsiMeshState>& mesh2D_states) override;

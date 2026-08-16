@@ -204,7 +204,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     double inner_radius = wheel_radius;
     auto bce = ViperRigWheel::CreateBCE(inner_radius, wheel_width - iniSpacing, grouser_height, grouser_wide, grouser_num, iniSpacing, false);
     ChQuaternion<> wheel_Rot_bce = Q_ROTATE_Z_TO_Y;
-    sysFSI.AddFsiBody(wheel, bce, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(wheel_Rot_bce)), false);
+    sysFSI.AddRigidBody(wheel, bce, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(wheel_Rot_bce)), false);
 
     // Create the chassis -- always THIRD body in the system
     auto chassis = chrono_types::make_shared<ChBody>();

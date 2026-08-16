@@ -162,8 +162,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepsizeMBD(time_step);
 
     // Add FSI body
-    sysFSI.AddFsiBody(float_body, nullptr, false);
-    sysFSI.AddFsiBody(plate_body, nullptr, false);
+    sysFSI.AddRigidBody(float_body, nullptr, false);
+    sysFSI.AddRigidBody(plate_body, nullptr, false);
 
     sysFSI.Initialize();
 

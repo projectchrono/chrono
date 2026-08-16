@@ -107,7 +107,7 @@ ViperRigWheel::ViperRigWheel(chrono::ChSystem& system)
 
 void ViperRigWheel::AddFSIBodies(chrono::vehicle::CRMTerrain& terrain, double spacing) {
     auto bce = CreateBCE(spacing);
-    terrain.GetFsiSystemSPH()->AddFsiBody(m_wheel, bce, chrono::ChFramed(), false);
+    terrain.GetFsiSystemSPH()->AddRigidBody(m_wheel, bce, chrono::ChFramed(), false);
 }
 
 std::vector<chrono::ChVector3d> ViperRigWheel::CreateBCE(double spacing, bool cartesian) const {

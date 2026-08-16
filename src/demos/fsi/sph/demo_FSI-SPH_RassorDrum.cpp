@@ -170,7 +170,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI, double wheel_vel, double wheel_Ang
         BCE_drum.push_back(ChVector3d(values[0], values[1], values[2]));
     }
     // Now add the drum to the FSI system
-    sysFSI.AddFsiBody(drum, BCE_drum, ChFrame<>(), true);
+    sysFSI.AddRigidBody(drum, BCE_drum, ChFrame<>(), true);
 
     std::cout << "Added " << BCE_drum.size() << " BCE particles for Rassor wheel" << std::endl;
 

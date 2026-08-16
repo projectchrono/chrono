@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
 
     // Add BCE particles attached on the walls into FSI system
     auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {0, 0, -1});
-    sysFSI.AddFsiBody(box, box_bce, ChFrame<>(ChVector3d(0, 0, 0), QUNIT), false);
+    sysFSI.AddRigidBody(box, box_bce, ChFrame<>(ChVector3d(0, 0, 0), QUNIT), false);
 
     sysFSI.Initialize();
 

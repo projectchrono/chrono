@@ -498,7 +498,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh2D(mesh, false);
+    sysFSI.AddFeaMesh2D(mesh, false);
 
     return mesh;
 }
