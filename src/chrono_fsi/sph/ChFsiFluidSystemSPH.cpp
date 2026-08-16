@@ -1832,7 +1832,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     // Load solid active domains (AABBs expressed in local frames) and check if using active domains (at least one AABB not inverted).
-    // If a solid active domain was not explicitly set use the default domain if it was provided.
+    // If a default active domain was specified, use it for any solid that has an inverted active domain AABB.
     m_use_ad = m_use_default_ad;
 
     for (auto& aabb : m_ad_body) {

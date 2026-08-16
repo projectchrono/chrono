@@ -197,7 +197,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     void SetActiveDomainMesh2D(size_t i, const ChAABB& aabb);
 
     /// Set the active domain for all FSI solids (bodies and nodes) to an AABB of given dimensions, centered at the origin.
-    /// This active AABB is used for all solids for which an active domain was not set explicitly.
+    /// If this function is called (and therefore a default AABB  is defined), the default AABB will be used for all solids
+    /// with an invalid (inverted) AABB; this includes solids for which an explicit AABB was not provided.
     /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomain(const ChVector3d& box_dim);
 

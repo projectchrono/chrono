@@ -145,6 +145,11 @@ void ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body, const ChFra
     AddRigidBody(body, geometry, true, true);
 }
 
+void ChFsiProblemSPH::SetActiveDomainBody(std::shared_ptr<ChBody> body, const ChAABB& aabb) {
+    auto index = m_fsi_bodies.at(body);
+    m_sysFSI->SetActiveDomainBody(index, aabb);
+}
+
 size_t ChFsiProblemSPH::GetNumBCE(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
     return m_sysSPH->m_bodies[index].bce_coords.size();
@@ -153,6 +158,7 @@ size_t ChFsiProblemSPH::GetNumBCE(std::shared_ptr<ChBody> body) const {
 // ----------------------------------------------------------------------------
 
 #ifdef CHRONO_FEA
+
 void ChFsiProblemSPH::UseNodeDirections(NodeDirectionsMode mode) {
     m_sysFSI->UseNodeDirections(mode);
 }
@@ -172,22 +178,45 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
     // Add 1D surfaces from given FEA mesh to the underlying FSI system
     auto fsi_mesh1D = m_sysFSI->AddFeaMesh1D(mesh, check_embedded);
     if (m_verbose) {
-        if (fsi_mesh1D)
+        if (fsi_mesh1D) {
             cout << "  added " << fsi_mesh1D->GetNumElements() << " segments" << endl;
-        else
+            m_fsi_meshes1D[mesh] = fsi_mesh1D->index; 
+        } else {
             cout << "  mesh does not contain any 1D elements" << endl;
+        }
     }
 
     // Add 2D surfaces from given mesh to the underlying FSI system
     auto fsi_mesh2D = m_sysFSI->AddFeaMesh2D(mesh, check_embedded);
     if (m_verbose) {
-        if (fsi_mesh2D)
+        if (fsi_mesh2D) {
             cout << "  added " << fsi_mesh2D->GetNumElements() << " faces" << endl;
-        else
+            m_fsi_meshes2D[mesh] = fsi_mesh1D->index;
+        } else {
             cout << "  mesh does not contain any 2D elements" << endl;
+        }
     }
 }
+
+void ChFsiProblemSPH::SetActiveDomainMesh(std::shared_ptr<fea::ChMesh> mesh, const ChAABB& aabb) {
+    auto mesh1D = m_fsi_meshes1D.find(mesh);
+    if (mesh1D != m_fsi_meshes1D.end()) {
+        auto index = mesh1D->second;
+        m_sysFSI->SetActiveDomainMesh1D(index, aabb);
+    }
+
+    auto mesh2D = m_fsi_meshes2D.find(mesh);
+    if (mesh2D != m_fsi_meshes2D.end()) {
+        auto index = mesh2D->second;
+        m_sysFSI->SetActiveDomainMesh2D(index, aabb);
+    }
+}
+
 #endif
+
+void ChFsiProblemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    m_sysFSI->SetActiveDomain(box_dim);
+}
 
 // ----------------------------------------------------------------------------
 
