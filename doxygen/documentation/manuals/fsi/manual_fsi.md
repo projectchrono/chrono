@@ -32,6 +32,7 @@ Further details on the FSI-SPH module are provided in the following pages:
 * @subpage manual_fsi_sph_class_guide
 * @subpage manual_fsi_rigid_bce_markers
 * @subpage manual_fsi_sph_parameter_selection
+* @subpage manual_fsi_sph_amd_instinct_tuning
 * @subpage manual_fsi_mu_i_rheology
 * @subpage manual_fsi_mcc_rheology
 
