@@ -10,6 +10,7 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChAABB.h"
 #include "chrono/geometry/ChVolume.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChBox.h"
@@ -42,9 +43,8 @@ using namespace chrono;
 
 %}
 
-%shared_ptr(chrono::ChAABB)
-
 %shared_ptr(chrono::ChGeometry)
+%shared_ptr(chrono::ChAABB)
 %shared_ptr(chrono::ChLine)
 %shared_ptr(chrono::ChVolume)
 %shared_ptr(chrono::ChSurface)
@@ -79,6 +79,7 @@ using namespace chrono;
 
 /* Parse the header file(s) to generate wrappers */
 %include "../../../chrono/geometry/ChGeometry.h"
+%include "../../../chrono/geometry/ChAABB.h"
 %include "../../../chrono/geometry/ChLine.h"
 %include "../../../chrono/geometry/ChVolume.h"
 %include "../../../chrono/geometry/ChSurface.h"
