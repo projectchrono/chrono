@@ -3,7 +3,7 @@ GPS Sensor Model {#GPS_sensor}
 
 \tableofcontents
 
-The GPS in Chrono computes the latitude, longitude, and altitude using a spherical coordinate system and GPS reference location that specifies the origin on the simulation. The GPS assumes the Chrono system is Z-Up, X-East, Y-North.
+The GPS in Chrono computes the latitude, longitude, and altitude using a spherical coordinate system and GPS reference location that specifies the origin of the simulation. The GPS assumes the Chrono system is Z-Up, X-East, Y-North.
 
 #### GPS Creation
 ~~~{.cpp}

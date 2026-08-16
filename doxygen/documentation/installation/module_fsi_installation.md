@@ -61,4 +61,4 @@ The **FSI-TDPF module** allows users to:
 
 ## MacOS support
 
-This module cannot be built for MacOS, Nvidia GPU hardware and CUDA are unsupported.
+This module cannot be built for MacOS, as Nvidia GPU hardware and CUDA are unsupported.

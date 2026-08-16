@@ -3,11 +3,11 @@ YAML schema for Chrono::FSI-SPH solver specification {#YAML_schema_fsisph_solver
 
 A Chrono YAML SPH simulation file defines the parameters needed to run a Chrono::SPH simulation. It consists of the following main objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - The `sph` object specifying SPH method parameters.
 - The `kernel` object specifying the SPH kernel definition.
 - The `discretization` object specifying parameters for the SPH discretization.
-- The `boundary_conditions` object specifying the method and parameters for treating fluid-solid coundary conditions.
+- The `boundary_conditions` object specifying the method and parameters for treating fluid-solid boundary conditions.
 - The `integration` object specifying the type and parameters for the time integrator.
 - The `proximity_search` object specifying parameters for the proximity (neighbor) search algorithm.
 - The `particle_shifting` object specifying the method and parameters for the particle shifting algorithm.
@@ -38,7 +38,7 @@ A Chrono YAML SPH simulation file defines the parameters needed to run a Chrono:
 
 ** **TODO** **
 
-## Particle shifting treratment
+## Particle shifting treatment
 
 ** **TODO** **
 

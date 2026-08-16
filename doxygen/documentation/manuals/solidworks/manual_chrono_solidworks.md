@@ -3,17 +3,17 @@ Chrono::Solidworks {#manual_chrono_solidworks}
 
 ![](http://projectchrono.org/assets/manual/carousel_chronosolidworks.jpg)
 
-Chrono::SolidWorks is an add-in for [SolidWorks](http://www.solidworks.com) that allows to export SolidWorks models directly into Chrono.
+Chrono::SolidWorks is an add-in for [SolidWorks](http://www.solidworks.com) that allows exporting SolidWorks models directly into Chrono.
 
-The tool allows to:
+The tool allows you to:
 - export entire *Assemblies*, nested *SubAssemblies* and *Parts*, together with their material and appearance properties;
 - export *Mates* of the *Standard* type plus *Mechanical>Hinge*;
-- specify *collision shapes*, both through primitives or by automatic generating a contact mesh shape from the objects;
+- specify *collision shapes*, both through primitives or by automatically generating a contact mesh shape from the objects;
 - add [Chrono motors](@ref motors), together with their control functions;
 
 The SolidWorks model can be exported to:
 - **Python**: can be run by PyChrono or parsed in C++ through the [Chrono::Parsers](@ref manual_parsers) module (still, in this case, PyChrono needs to be installed);
-- **C++**: the generated files needs to be compiled together with the user project; it might be limiting but very useful for testing;
+- **C++**: the generated files need to be compiled together with the user project; it might be limiting but very useful for testing;
 - **JSON**: this allows the deserialization of the model through the Chrono serialization feature;
 
 The fastest way to consume the output of the SolidWorks add-in is by using the [dedicated template project](https://github.com/projectchrono/chrono-solidworks/tree/master/to_put_in_app_dir/ChronoSolidworksImportTemplate) that can be found in the add-in repository. It is also a good source of information on how to load the exported models in the various cases.
@@ -39,9 +39,9 @@ Some prior information should be known to successfully export the model:
 
 ## Adding Collision Shapes
 
-Collision detection and contacts simulation are usually among the most expensive actions to be performed in a simulation. Because of this, only those bodies that are specifically flagged as "collidable" will be taken into consideration by collision algorithms.
+Collision detection and contact simulation are usually among the most expensive actions to be performed in a simulation. Because of this, only those bodies that are specifically flagged as "collidable" will be taken into consideration by collision algorithms.
 
-For the same reason is good practice, whenever possible to **wrap complex bodies into primitive shapes** by creating an additional simple body around the object. The material of this wrapping object is then automatically set to **Air**.
+For the same reason, it is good practice, whenever possible, to **wrap complex bodies into primitive shapes** by creating an additional simple body around the object. The material of this wrapping object is then automatically set to **Air**.
 
 To enable collision on a body:
 1. select a *Solid Body* (not a whole *Part*): expand the *Part* tree, look for *Solid Bodies*, pick one of them;
@@ -51,7 +51,7 @@ To enable collision on a body:
    2. **Mesh**: most of the bodies fall into this category, where the shapes are not so simple as primitives; a mesh is automatically generated; however, better performance can be achieved by replacing it with a hand-tailored mesh in postprocess; less robust than primitive shapes; a sphere sweep (of radius *Mesh Sphere Sweep Radius*) will happen on bodies, thus "inflating" the original shape for what concerns collisions; the bigger the radius, the more robust, but the less accurate will be the collision detection;
    3. **Convex Decomposition**: to be implemented...
 
-After flagging the body to become a collision shape, a custom label will be prefixed to the solid body name. Do not modify such prefix. Moreover, please mind that the *Part* itself will be affected. So, all instances will be enabled to collision.
+After flagging the body to become a collision shape, a custom label will be prefixed to the solid body name. Do not modify such prefix. Moreover, please mind that the *Part* itself will be affected. So, all instances will be enabled for collision.
 
 Some collision settings are available at the bottom of the panel.
 
@@ -79,8 +79,8 @@ A custom property will appear as a child item of the selected *Coordinate System
 Some settings are self-explanatory. For all of them the tooltip will offer some basic information. Here a description of those more intricated:
 
 - **Separate .obj for each subpart**: *Parts* or *SubAssemblies* that consist of multiple solid bodies can generate either a mesh file for each single object or a unique mesh that includes them all;
-- **Export Scale**: the model can be scaled prior to export through the appropriate setting: please mind that the add-in automatically recognize the units used in SolidWorks and takes care of transforming them into SI units without any further change. This scaling options are only to provide an additional scaling on top of the typical one.
-- **Run Simulation**: a Chrono simulation of the assembly can be run directly in Solidworks environment, without the need of additional coding; useful for tests before exporting the model to file.
+- **Export Scale**: the model can be scaled prior to export through the appropriate setting: please mind that the add-in automatically recognizes the units used in SolidWorks and takes care of transforming them into SI units without any further change. These scaling options are only to provide an additional scaling on top of the typical one.
+- **Run Simulation**: a Chrono simulation of the assembly can be run directly in the Solidworks environment, without the need of additional coding; useful for tests before exporting the model to file.
 
 
 

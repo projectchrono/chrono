@@ -24,7 +24,7 @@ The self-encapsulation requirements of an FMU are easiest satisfied by linking s
 <br><br>
 The requirement of using Chrono static libraries means that not all Chrono modules can be used in a build with `Chrono::FMI` enabled. While this issue will be further investigated, it is currently recommended not to enable any of the GPU-based Chrono modules.
 <br><br>
-The `Chrono::FMI` module has been tested (on both Windowsc and Linux) in conjunction with the following other Chrono optional modules: Chrono::Vehicle, Chrono::Irrlicht, Chrono::Postprocess, and Chrono::PardisoMKL. It is possible that other modules can also be built, but that will require some experimentation.
+The `Chrono::FMI` module has been tested (on both Windows and Linux) in conjunction with the following other Chrono optional modules: Chrono::Vehicle, Chrono::Irrlicht, Chrono::Postprocess, and Chrono::PardisoMKL. It is possible that other modules can also be built, but that will require some experimentation.
 <br><br>
 The `Chrono::FMI` module has **not** been tested on MacOS.
 </div>   

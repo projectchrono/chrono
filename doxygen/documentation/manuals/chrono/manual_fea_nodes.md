@@ -8,7 +8,7 @@ FEA Nodes        {#manual_fea_nodes}
 Different types of nodes can be used in the [FEA module](@ref manual_fea).
 In this page you can find a description of their properties. 
 
-- A **node** in an object with degrees of freedom (xyz, rotations, etc.). 
+- A **node** is an object with degrees of freedom (xyz, rotations, etc.). 
 - There are different types of nodes, some elements require specific types of nodes.
 - Nodes are handled via std::shared_ptr shared pointers: you do not have to worry about deleting them.
 - Add nodes to a mesh using ChMesh::AddNode()
@@ -75,7 +75,7 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChNodeFEAxyzP.png)
 
-- 1 coordinates (a scalar P, in a 3D space)
+- 1 coordinate (a scalar P, in a 3D space)
 - Used for thermal and electrostatic analysis
 - Ex. used by these elements:
   - ChElementTetraCorot_4_P 

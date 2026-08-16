@@ -3,7 +3,7 @@ Chrono::FSI Reference Manual {#manual_fsi}
 
 The [Chrono::FSI](group__fsi.html) module provides a generic interface between a Chrono solid-phase multibody system and an arbitrary fluid solver for Fluid-Solid Interaction (FSI) problems
 Currently, Chrono::FSI provides coupling to:
-- a fluid solver based on the Smoothed Particle Hydrodynamics (SPH) method in the the [Chrono::FSI-SPH](group__fsisph.html) sub-module;
+- a fluid solver based on the Smoothed Particle Hydrodynamics (SPH) method in the [Chrono::FSI-SPH](group__fsisph.html) sub-module;
 - a time-dependent potential flow (TDPF) solver, in the [Chrono::FSI-TDPF](group__fsitdpf.html) sub-module which interfaces to the 3rd-party [HydroChrono](https://github.com/Project-SEA-Stack/HydroChrono) solver.
 
 ## Generic Chrono::FSI module

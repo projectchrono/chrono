@@ -17,7 +17,7 @@ The provided `docker-compose.yml` defines two services: `dev` and `vnc`. The `de
 
 \include docker-compose.yml
 
-You may also provide additional dependencies or requirements in the `docker-compose.yml` at build time using the `APT_DEPENDENCIES` and `PIP_DEPENDENCIES` environment variables. You also can additional build args as necessary for your snippets. The base image must be `debian`-based (and some modules may require `ubuntu`-based images).
+You may also provide additional dependencies or requirements in the `docker-compose.yml` at build time using the `APT_DEPENDENCIES` and `PIP_DEPENDENCIES` environment variables. You can also add additional build args as necessary for your snippets. The base image must be `debian`-based (and some modules may require `ubuntu`-based images).
 
 The default `docker-compose.yml` file will attach a NVIDIA GPU to the container if available. If you don't have a NVIDIA GPU, you can comment out the parts which follow `deploy` in the `docker-compose.yml` file.
 
@@ -25,7 +25,7 @@ To simplify the dockerfiles, we leverage an open source project called [`dockerf
 
 \include snippets/chrono.dockerfile
 
-You can then comment out (or create new) snippets which include the modules you need. The `CMAKE_OPTIONS` variable should be updated to provide relevant CMake options for the modules you include to the Chrono build command. For instance, enabling the `Chrono::Vehicle` module would require setting setting the `CH_ENABLE_MODULE_VEHICLE` option to `ON`, as shown below:
+You can then comment out (or create new) snippets which include the modules you need. The `CMAKE_OPTIONS` variable should be updated to provide relevant CMake options for the modules you include to the Chrono build command. For instance, enabling the `Chrono::Vehicle` module would require setting the `CH_ENABLE_MODULE_VEHICLE` option to `ON`, as shown below:
 
 ```
 ENV CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCH_ENABLE_MODULE_VEHICLE=ON"

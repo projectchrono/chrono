@@ -3,7 +3,7 @@ YAML schema for Chrono::FSI-SPH simulation specification {#YAML_schema_fsisph_si
 
 A Chrono YAML SPH simulation file defines the setup for a Chrono::FSI-SPH simulation. It consists of the following main objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The simulation `type`, which must be `SPH` here.
 - [required] The SPH `model` object which defines YAML specification of SPH problem.
 - [required] The SPH `solver` object which defines YAML specification of SPH solver algorithms.
@@ -12,7 +12,7 @@ A Chrono YAML SPH simulation file defines the setup for a Chrono::FSI-SPH simula
 
 ## FSI-SPH simulation specification
 
-An FSI-SPH simulation must specify the SPH model to be simulated, SPH solver solver settings, as well as optional output and SPH-specific run-time visualization settings.
+An FSI-SPH simulation must specify the SPH model to be simulated, SPH solver settings, as well as optional output and SPH-specific run-time visualization settings.
 
 #### Model and solver specification
 

@@ -3,7 +3,7 @@ YAML schema for Chrono::FSI-SPH model specification {#YAML_schema_fsisph_model}
 
 A Chrono YAML SPH model file defines a fluid system for Chrono::SPH and contains two main objects:
 - The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - The `model` object that lists all physics items in the Chrono::SPH model.
 
 ## Model specification

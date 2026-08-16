@@ -101,7 +101,7 @@ a rotational engine between the crankshaft and the ground. Once you
 learned this, you will be able to extend this concept to other types 
 of constraints.
 
-- Fetch the ground body and the crankshaft as Python objects. You can do this thank to the fact that they have unique mnemonic names: ground (default name for the assembly root), and Crankshaft-1 (the name of the crankshaft part). Hence, do: 
+- Fetch the ground body and the crankshaft as Python objects. You can do this thanks to the fact that they have unique mnemonic names: ground (default name for the assembly root), and Crankshaft-1 (the name of the crankshaft part). Hence, do: 
 ~~~{.py}
 my_shaft = my_system.SearchBody('Crankshaft-1')
 if not my_shaft :
@@ -261,7 +261,7 @@ pov_exporter.SetShowFrames(1, 0.05)
 ![](http://www.projectchrono.org/assets/manual/Tutorial_engine2_04.jpg)
 
 
-Note that the bodies that are exported from the SolidWorks Add-in are not of the simple ChBody class, but rather they belong to the advanced ChBodyAuxRef class. In fact, while ChBody objects assume that their center of mass is coincident with the reference coordsystem of the body, whereas in ChBodyAuxRef bodies the body's reference coordsystem usually is distinct from the center of mass.
+Note that the bodies that are exported from the SolidWorks Add-in are not of the simple ChBody class, but rather they belong to the advanced ChBodyAuxRef class. In fact, ChBody objects assume that their center of mass is coincident with the reference coordsystem of the body, whereas in ChBodyAuxRef bodies the body's reference coordsystem usually is distinct from the center of mass.
 
 
 Important: the reference coordinates of the moving bodies are displayed as origins in the SolidWork interface (where x y z planes intersect). Each part in SolidWorks has an origin. If multiple parts are merged in a SolidWorks subassembly that is solved as rigid (see previous tutorial), then the reference coordinate of the moving body is the origin of the subassembly.

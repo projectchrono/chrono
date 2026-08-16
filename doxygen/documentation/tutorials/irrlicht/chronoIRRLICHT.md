@@ -4,7 +4,7 @@ Chrono IRRLICHT module tutorials         {#tutorial_table_of_content_chrono_irrl
 Tutorials that teach how to use the 
 [IRRLICHT module](group__irrlicht__module.html).
 
-Note that the Chrono installation guide already explain how to install the IRRLICHT module,
+Note that the Chrono installation guide already explains how to install the IRRLICHT module,
 as it is the default run-time visualization system.
 
 
