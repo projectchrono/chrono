@@ -199,7 +199,6 @@ void SCMTerrain::EnableBulldozing(bool val) {
     m_loader->m_bulldozing = val;
 }
 
-// Enable/disable the GPU ray-cast reference backend.
 int SCMTerrain::GetNumRaycastGpuSteps() const {
     return m_loader->m_num_raycast_gpu_steps;
 }
@@ -1191,12 +1190,7 @@ void ExtractRaycastWorldTriangles(ChBody* body, std::vector<RaycastWorldTriangle
 // Segment-vs-triangle intersection (Moller-Trumbore, clamped to t in [0,1] along the segment).
 // Also returns the triangle normal, oriented outward (back toward the ray's `from` side) by
 // convention, used by the caller to apply the margin correction (see empirical sign note above).
-bool RaycastSegmentTriangleIntersect(const ChVector3d& from,
-                                     const ChVector3d& to,
-                                     const RaycastWorldTriangle& tri,
-                                     double& t_out,
-                                     ChVector3d& point_out,
-                                     ChVector3d& normal_out) {
+bool RaycastSegmentTriangleIntersect(const ChVector3d& from, const ChVector3d& to, const RaycastWorldTriangle& tri, double& t_out, ChVector3d& point_out, ChVector3d& normal_out) {
     const double eps = 1e-12;
     ChVector3d dir = to - from;
     ChVector3d edge1 = tri.v1 - tri.v0;
@@ -1253,8 +1247,7 @@ void SCMLoader::DiscoverRaycastCandidates(std::vector<ChBody*>& candidates) {
         if (!model || model->GetNumShapes() == 0)
             continue;
         ChAABB box = model->GetBoundingBox(false);
-        bool overlap = box.min.x() <= region.max.x() && box.max.x() >= region.min.x() &&
-                       box.min.y() <= region.max.y() && box.max.y() >= region.min.y() &&
+        bool overlap = box.min.x() <= region.max.x() && box.max.x() >= region.min.x() && box.min.y() <= region.max.y() && box.max.y() >= region.min.y() &&
                        box.min.z() <= region.max.z() && box.max.z() >= region.min.z();
         if (overlap)
             candidates.push_back(body.get());
@@ -1472,130 +1465,129 @@ void SCMLoader::ComputeInternalForces() {
         m_num_ray_casts += rc_num_ray_casts;
         absorb_raycast_hits(raw_hits);
     } else {
-
 #ifdef RAY_CASTING_WITH_CRITICAL_SECTION
 
-    int nthreads = GetSystem()->GetNumThreadsChrono();
+        int nthreads = GetSystem()->GetNumThreadsChrono();
 
-    // Loop through all moving patches (user-defined or default one)
-    for (auto& p : m_active_domains) {
-        // Loop through all vertices in the patch range
-        int num_ray_casts = 0;
+        // Loop through all moving patches (user-defined or default one)
+        for (auto& p : m_active_domains) {
+            // Loop through all vertices in the patch range
+            int num_ray_casts = 0;
     #pragma omp parallel for num_threads(nthreads) reduction(+ : num_ray_casts)
-        for (int k = 0; k < p.m_range.size(); k++) {
-            ChVector2i ij = p.m_range[k];
+            for (int k = 0; k < p.m_range.size(); k++) {
+                ChVector2i ij = p.m_range[k];
 
-            // Move from (i, j) to (x, y, z) representation in the world frame
-            double x = ij.x() * m_delta;
-            double y = ij.y() * m_delta;
-            double z;
+                // Move from (i, j) to (x, y, z) representation in the world frame
+                double x = ij.x() * m_delta;
+                double y = ij.y() * m_delta;
+                double z;
     #pragma omp critical(SCM_ray_casting)
-            z = GetHeight(ij);
+                z = GetHeight(ij);
 
-            ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
+                ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
-            // Create ray at current grid location
-            ChCollisionSystem::ChRayhitResult mrayhit_result;
-            ChVector3d to = vertex_abs + m_Z * m_test_offset_up;
-            ChVector3d from = to - m_Z * m_test_offset_down;
+                // Create ray at current grid location
+                ChCollisionSystem::ChRayhitResult mrayhit_result;
+                ChVector3d to = vertex_abs + m_Z * m_test_offset_up;
+                ChVector3d from = to - m_Z * m_test_offset_down;
 
-            // Ray-OBB test (quick rejection)
-            if (m_user_domains && !RayOBBtest(p, from, m_Z))
-                continue;
+                // Ray-OBB test (quick rejection)
+                if (m_user_domains && !RayOBBtest(p, from, m_Z))
+                    continue;
 
-            // Cast ray into collision system
-            GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
-            num_ray_casts++;
+                // Cast ray into collision system
+                GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
+                num_ray_casts++;
 
-            if (mrayhit_result.hit) {
+                if (mrayhit_result.hit) {
     #pragma omp critical(SCM_ray_casting)
-                {
-                    // If this is the first hit from this node, initialize the node record
-                    if (m_grid_map.find(ij) == m_grid_map.end()) {
-                        m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z, GetInitNormal(ij))));
+                    {
+                        // If this is the first hit from this node, initialize the node record
+                        if (m_grid_map.find(ij) == m_grid_map.end()) {
+                            m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z, GetInitNormal(ij))));
+                        }
+
+                        // Add to our map of hits to process
+                        HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
+                        hits.insert(std::make_pair(ij, record));
+                        m_num_ray_hits++;
                     }
-
-                    // Add to our map of hits to process
-                    HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
-                    hits.insert(std::make_pair(ij, record));
-                    m_num_ray_hits++;
                 }
             }
+            m_num_ray_casts += num_ray_casts;
         }
-        m_num_ray_casts += num_ray_casts;
-    }
 
 #else
 
-    // Map-reduce approach (to eliminate critical section)
+        // Map-reduce approach (to eliminate critical section)
 
-    const int nthreads = GetSystem()->GetNumThreadsChrono();
-    std::vector<std::unordered_map<ChVector2i, HitRecord, CoordHash> > t_hits(nthreads);
+        const int nthreads = GetSystem()->GetNumThreadsChrono();
+        std::vector<std::unordered_map<ChVector2i, HitRecord, CoordHash> > t_hits(nthreads);
 
-    // Loop through all active domains (user-defined or default one)
-    for (auto& p : m_active_domains) {
-        m_timer_ray_testing.start();
+        // Loop through all active domains (user-defined or default one)
+        for (auto& p : m_active_domains) {
+            m_timer_ray_testing.start();
 
-        // Loop through all vertices in the patch range
-        int num_ray_casts = 0;
+            // Loop through all vertices in the patch range
+            int num_ray_casts = 0;
     #pragma omp parallel for num_threads(nthreads) reduction(+ : num_ray_casts)
-        for (int k = 0; k < p.m_range.size(); k++) {
-            int t_num = ChOMP::GetThreadNum();
-            ChVector2i ij = p.m_range[k];
+            for (int k = 0; k < p.m_range.size(); k++) {
+                int t_num = ChOMP::GetThreadNum();
+                ChVector2i ij = p.m_range[k];
 
-            // Move from (i, j) to (x, y, z) representation in the world frame
-            double x = ij.x() * m_delta;
-            double y = ij.y() * m_delta;
-            double z = GetHeight(ij);
+                // Move from (i, j) to (x, y, z) representation in the world frame
+                double x = ij.x() * m_delta;
+                double y = ij.y() * m_delta;
+                double z = GetHeight(ij);
 
-            // If enabled, check if current grid node in user-specified boundary
-            if (m_boundary) {
-                if (x > m_aabb.max.x() || x < m_aabb.min.x() || y > m_aabb.max.y() || y < m_aabb.min.y())
-                    continue;
-            }
-
-            ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
-
-            // Create ray at current grid location
-            ChCollisionSystem::ChRayhitResult mrayhit_result;
-            ChVector3d to = vertex_abs + m_Z * m_test_offset_up;
-            ChVector3d from = to - m_Z * m_test_offset_down;
-
-            // Ray-OBB test (quick rejection)
-            if (m_user_domains && !RayOBBtest(p, from, m_Z))
-                continue;
-
-            // Cast ray into collision system
-            GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
-            num_ray_casts++;
-
-            if (mrayhit_result.hit) {
-                // Add to our map of hits to process
-                HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
-                t_hits[t_num].insert(std::make_pair(ij, record));
-            }
-        }
-
-        m_timer_ray_testing.stop();
-
-        m_num_ray_casts += num_ray_casts;
-
-        // Sequential insertion in global hits
-        for (int t_num = 0; t_num < nthreads; t_num++) {
-            for (auto& h : t_hits[t_num]) {
-                // If this is the first hit from this node, initialize the node record
-                if (m_grid_map.find(h.first) == m_grid_map.end()) {
-                    double z = GetInitHeight(h.first);
-                    m_grid_map.insert(std::make_pair(h.first, NodeRecord(z, z, GetInitNormal(h.first))));
+                // If enabled, check if current grid node in user-specified boundary
+                if (m_boundary) {
+                    if (x > m_aabb.max.x() || x < m_aabb.min.x() || y > m_aabb.max.y() || y < m_aabb.min.y())
+                        continue;
                 }
-                ////hits.insert(h);
+
+                ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
+
+                // Create ray at current grid location
+                ChCollisionSystem::ChRayhitResult mrayhit_result;
+                ChVector3d to = vertex_abs + m_Z * m_test_offset_up;
+                ChVector3d from = to - m_Z * m_test_offset_down;
+
+                // Ray-OBB test (quick rejection)
+                if (m_user_domains && !RayOBBtest(p, from, m_Z))
+                    continue;
+
+                // Cast ray into collision system
+                GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
+                num_ray_casts++;
+
+                if (mrayhit_result.hit) {
+                    // Add to our map of hits to process
+                    HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
+                    t_hits[t_num].insert(std::make_pair(ij, record));
+                }
             }
 
-            hits.insert(t_hits[t_num].begin(), t_hits[t_num].end());
-            t_hits[t_num].clear();
+            m_timer_ray_testing.stop();
+
+            m_num_ray_casts += num_ray_casts;
+
+            // Sequential insertion in global hits
+            for (int t_num = 0; t_num < nthreads; t_num++) {
+                for (auto& h : t_hits[t_num]) {
+                    // If this is the first hit from this node, initialize the node record
+                    if (m_grid_map.find(h.first) == m_grid_map.end()) {
+                        double z = GetInitHeight(h.first);
+                        m_grid_map.insert(std::make_pair(h.first, NodeRecord(z, z, GetInitNormal(h.first))));
+                    }
+                    ////hits.insert(h);
+                }
+
+                hits.insert(t_hits[t_num].begin(), t_hits[t_num].end());
+                t_hits[t_num].clear();
+            }
+            m_num_ray_hits = (int)hits.size();
         }
-        m_num_ray_hits = (int)hits.size();
-    }
 
 #endif
 

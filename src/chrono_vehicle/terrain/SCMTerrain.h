@@ -294,13 +294,6 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Get the current SCM GPU backend configuration.
     scm_gpu::Config GetScmGpuConfig() const;
 
-    /// Number of steps in which the GPU ray-cast backend actually produced the hits, and the number in
-    /// which the GPU contact-force backend actually computed the forces. Both backends fall back to the
-    /// CPU per step when a model or a step does not qualify, and that fallback is deliberately silent.
-    /// These counters are the only way to tell what really ran.
-    int GetNumRaycastGpuSteps() const;
-    int GetNumContactForceGpuSteps() const;
-
     /// Enable/disable the HIP ray-cast backend.
     ///
     /// Default: enabled, in builds configured with the SCM GPU backend. The backend additionally
@@ -365,6 +358,16 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<NodeLevel>& nodes);
 
+    /// Number of steps where the GPU ray-cast backend actually produced the hits.
+    /// The backend falls back to the CPU per step when a model or a step does not qualify, and that fallback is deliberately silent.
+    /// Calls to this function check if the GPU backend was used.
+    int GetNumRaycastGpuSteps() const;
+
+    /// Number of steps where the GPU contact-force backend actually computed the forces.
+    /// The backend falls back to the CPU per step when a model or a step does not qualify, and that fallback is deliberately silent.
+    /// Calls to this function check if the GPU backend was used.
+    int GetNumContactForceGpuSteps() const;
+
     /// Return the cumulative contact force on the specified body  (due to interaction with the SCM terrain).
     /// The return value is true if the specified body experiences contact forces and false otherwise.
     /// If contact forces are applied to the body, they are reduced to the body center of mass.
@@ -403,9 +406,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Print timing and counter information for last step.
     void PrintStepStatistics(std::ostream& os) const;
 
-    std::shared_ptr<SCMLoader> GetSCMLoader() const {
-        return m_loader;
-    }
+    std::shared_ptr<SCMLoader> GetSCMLoader() const { return m_loader; }
 
     void SetBaseMeshLevel(double level);
 
@@ -612,8 +613,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     void ComputeInternalForces();
 
 #ifdef CHRONO_HAS_SCM_GPU
-    bool ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits,
-                                 const std::vector<double>& patch_oob);
+    bool ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits, const std::vector<double>& patch_oob);
     scm_gpu::Config m_scm_gpu_config;
 
     // GPU ray-cast HIP backend. Same I/O contract as
@@ -684,9 +684,9 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     double m_test_offset_down;  ///< offset for ray start
     double m_test_offset_up;    ///< offset for ray end
 
-    int m_num_raycast_gpu_steps = 0;       ///< steps whose ray casting was actually done on the GPU
+    int m_num_raycast_gpu_steps = 0;        ///< steps whose ray casting was actually done on the GPU
     int m_num_contact_force_gpu_steps = 0;  ///< steps whose contact forces were actually done on the GPU
-    bool m_raycast_gpu_ref_enabled;  ///< use the GPU ray-cast reference backend
+    bool m_raycast_gpu_ref_enabled;         ///< use the GPU ray-cast reference backend
 
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< mesh visualization asset
     std::unique_ptr<ChColormap> m_colormap;                      ///< colormap for mesh false coloring

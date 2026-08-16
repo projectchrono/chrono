@@ -12,9 +12,12 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Demo to show Viper Rover operated on SCM Terrain
+// Demo to show Viper rover operated on SCM Terrain
 //
 // =============================================================================
+
+#include <cstdlib>
+#include <string>
 
 #include "chrono_models/robot/viper/Viper.h"
 
@@ -29,8 +32,6 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include <cstdlib>
-#include <string>
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -321,12 +322,11 @@ int main(int argc, char* argv[]) {
 
     // Set up bulldozing factors
     if (enable_bulldozing) {
-        terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-        terrain.SetBulldozingParameters(
-            55,  // angle of friction for erosion of displaced material at the border of the rut
-            1,   // displaced material vs downward pressed material.
-            5,   // number of erosion refinements per timestep
-            6);  // number of concentric vertex selections subject to erosion
+        terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
+        terrain.SetBulldozingParameters(55,  // angle of friction for erosion of displaced material at the border of the rut
+                                        1,   // displaced material vs downward pressed material.
+                                        5,   // number of erosion refinements per timestep
+                                        6);  // number of concentric vertex selections subject to erosion
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -346,50 +346,49 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChVisualSystem> vis;
     if (render)
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
+        switch (vis_type) {
+            case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-            vis_irr->AttachSystem(&sys);
-            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-            vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("Viper Rover on SCM");
-            vis_irr->Initialize();
-            vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_diameter));
-            vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(-5.0, -0.5, 8.0), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512,
-                                        ChColor(0.8f, 0.8f, 0.8f));
-            vis_irr->EnableShadows();
+                auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+                vis_irr->AttachSystem(&sys);
+                vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+                vis_irr->SetWindowSize(800, 600);
+                vis_irr->SetWindowTitle("Viper Rover on SCM");
+                vis_irr->Initialize();
+                vis_irr->AddLogo();
+                vis_irr->AddSkyBox();
+                vis_irr->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_diameter));
+                vis_irr->AddTypicalLights();
+                vis_irr->AddLightWithShadow(ChVector3d(-5.0, -0.5, 8.0), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512, ChColor(0.8f, 0.8f, 0.8f));
+                vis_irr->EnableShadows();
 
-            vis = vis_irr;
+                vis = vis_irr;
 #endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
+                break;
+            }
+            default:
+            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            // SCM plugin
-            auto visSCM = chrono_types::make_shared<vehicle::ChScmVisualizationVSG>(&terrain);
+                // SCM plugin
+                auto visSCM = chrono_types::make_shared<vehicle::ChScmVisualizationVSG>(&terrain);
 
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-            vis_vsg->AttachSystem(&sys);
-            vis_vsg->AttachPlugin(visSCM);
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowTitle("Viper Rover on SCM");
-            vis_vsg->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_diameter));
-            vis_vsg->EnableShadows();
-            vis_vsg->Initialize();
+                auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+                vis_vsg->AttachSystem(&sys);
+                vis_vsg->AttachPlugin(visSCM);
+                vis_vsg->SetWindowSize(1280, 800);
+                vis_vsg->SetWindowTitle("Viper Rover on SCM");
+                vis_vsg->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_diameter));
+                vis_vsg->EnableShadows();
+                vis_vsg->Initialize();
 
-            vis = vis_vsg;
+                vis = vis_vsg;
 #endif
-            break;
+                break;
+            }
         }
-    }
 
-    // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
-    // with SCM GPU support).
+        // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
+        // with SCM GPU support).
 #ifdef CHRONO_HAS_SCM_GPU
     {
         auto scm_cfg = terrain.GetScmGpuConfig();
@@ -448,8 +447,7 @@ int main(int argc, char* argv[]) {
 
         if (output) {
             // write drive torques of all four wheels into file
-            csv << sys.GetChTime() << viper.GetWheelTracTorque(ViperWheelID::V_LF)
-                << viper.GetWheelTracTorque(ViperWheelID::V_RF) << viper.GetWheelTracTorque(ViperWheelID::V_LB)
+            csv << sys.GetChTime() << viper.GetWheelTracTorque(ViperWheelID::V_LF) << viper.GetWheelTracTorque(ViperWheelID::V_RF) << viper.GetWheelTracTorque(ViperWheelID::V_LB)
                 << viper.GetWheelTracTorque(ViperWheelID::V_RB) << std::endl;
         }
 
@@ -479,8 +477,7 @@ int main(int argc, char* argv[]) {
               << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")"
               << "  x_end=" << Body_1->GetPos().x();
 #ifdef CHRONO_HAS_SCM_GPU
-    std::cout << "  gpu_steps: raycast=" << terrain.GetNumRaycastGpuSteps() << "/" << nsteps
-              << " forces=" << terrain.GetNumContactForceGpuSteps() << "/" << nsteps;
+    std::cout << "  gpu_steps: raycast=" << terrain.GetNumRaycastGpuSteps() << "/" << nsteps << " forces=" << terrain.GetNumContactForceGpuSteps() << "/" << nsteps;
 #endif
     if (!rocks.empty()) {
         double zmin = 1e9, zmax = -1e9;

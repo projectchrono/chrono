@@ -316,6 +316,7 @@ if(CH_ENABLE_MODULE_FSI_SPH)
     )
 endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
+
 if(CH_USE_SCM_GPU)
     set(CV_SCM_GPU_HIP_FILES
         terrain/gpu/SCMGpuKernels.hip.cpp
@@ -335,8 +336,6 @@ if(CH_USE_SCM_GPU)
         ${CV_SCM_GPU_HIP_FILES}
     )
 endif()
-
-
 
 set(CV_UTILS_FILES
     utils/ChSteeringController.h
