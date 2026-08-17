@@ -96,7 +96,7 @@ void ChPreciceAdapterTdpf::AddCouplingBody(const std::string& name, const ChFram
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
     body->SetFrameRefToAbs(frame);
 
-    m_sysFSI->AddFsiBody(body, nullptr, false);
+    m_sysFSI->AddRigidBody(body, nullptr, false);
 }
 
 // -----------------------------------------------------------------------------

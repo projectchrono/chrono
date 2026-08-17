@@ -365,6 +365,8 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     bstates.pos.y() = data_values[i_data + 1];
                     bstates.pos.z() = data_values[i_data + 2];
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | pos:  " << bstates.pos << endl;
                 }
                 break;
             }
@@ -378,6 +380,10 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     ChQuaterniond q3 = QuatFromAngleX(data_values[i_data + 2]);  // yaw
                     bstates.rot = q1 * q2 * q3;
                     i_data += 3;
+                    if (m_verbose) {
+                        ChVector3d angles_abs({data_values[i_data + 0], data_values[i_data + 1], data_values[i_data + 2]});
+                        cout << m_prefix2 << "body: " << i_body << " | angles:  " << angles_abs << endl;
+                    }
                 }
                 break;
             }
@@ -390,6 +396,8 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     bstates.lin_vel.y() = data_values[i_data + 1];
                     bstates.lin_vel.z() = data_values[i_data + 2];
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | lin_vel:  " << bstates.lin_vel << endl;
                 }
                 break;
             }
@@ -402,6 +410,8 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     bstates.ang_vel.y() = data_values[i_data + 1];
                     bstates.ang_vel.z() = data_values[i_data + 2];
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | ang_vel:  " << bstates.ang_vel << endl;
                 }
                 break;
             }
@@ -445,6 +455,8 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
                     data_values[i_data + 1] = bforces.force.y();
                     data_values[i_data + 2] = bforces.force.z();
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | force: " << bforces.force << endl;
                 }
                 break;
             }
@@ -457,6 +469,8 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
                     data_values[i_data + 1] = bforces.torque.y();
                     data_values[i_data + 2] = bforces.torque.z();
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | torque: " << bforces.torque << endl;
                 }
                 break;
             }
