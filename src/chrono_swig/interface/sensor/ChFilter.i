@@ -128,7 +128,7 @@ using namespace chrono::sensor;
   %include "chrono_sensor/filters/ChFilterPhysCameraNoise.h"
   %include "chrono_sensor/filters/ChFilterPhysCameraVignetting.h"
   
-  %include "chrono_sensor/optix/scene/ChScene.h"
+  %include "chrono_sensor/optix/ChOptixScene.h"
   %include "chrono_sensor/optix/ChOptixDefinitions.h"
   %include "chrono_sensor/optix/ChOptixUtils.h"
 

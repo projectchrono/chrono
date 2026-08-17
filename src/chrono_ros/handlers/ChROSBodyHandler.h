@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,73 +12,59 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// Handler responsible for publishing information about a ChBody
+// Handler that publishes the state of a ChBody.
 //
 // =============================================================================
 
 #ifndef CH_ROS_BODY_HANDLER_H
 #define CH_ROS_BODY_HANDLER_H
 
+#include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChROSHandler.h"
+
 #include "chrono/physics/ChBody.h"
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
-#include "geometry_msgs/msg/accel_stamped.hpp"
-
+#include <memory>
 #include <string>
-#include <cstring>
 
 namespace chrono {
 namespace ros {
 
+class ChROSPublisher;
+
 /// @addtogroup ros_handlers
 /// @{
 
-/// Data structure for body handler communication between processes.
-/// Plain C++ struct with no ROS dependencies for IPC serialization.
-struct ChROSBodyData {
-    char body_name[64];
-    char topic_prefix[128];
-    
-    double pos_x, pos_y, pos_z;
-    double rot_w, rot_x, rot_y, rot_z;
-    
-    double lin_vel_x, lin_vel_y, lin_vel_z;
-    double ang_vel_x, ang_vel_y, ang_vel_z;
-    
-    double lin_acc_x, lin_acc_y, lin_acc_z;
-    double ang_acc_x, ang_acc_y, ang_acc_z;
-};
-
-/// Publishes pose, twist, and acceleration information for a ChBody.
-/// Creates three publishers: [topic]/pose, [topic]/twist, [topic]/accel
+/// Publishes the state of a ChBody on three topics derived from a base topic:
+///     <topic>/pose   geometry_msgs/msg/PoseStamped   (position + orientation)
+///     <topic>/twist  geometry_msgs/msg/TwistStamped  (linear + angular velocity)
+///     <topic>/accel  geometry_msgs/msg/AccelStamped  (linear + angular accel.)
+/// With the default base topic "~/" these resolve to ~/pose, ~/twist, ~/accel.
 class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
   public:
+    /// @param update_rate publish rate (Hz, sim time); 0 = every step.
+    /// @param body the body whose state is published.
+    /// @param topic base topic; "/pose", "/twist", "/accel" are appended.
     ChROSBodyHandler(double update_rate, std::shared_ptr<ChBody> body, const std::string& topic = "~/");
 
-    virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
-    
-    /// Get the message type of this handler
-    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::BODY_DATA; }
+    /// Creates the pose, twist, and accel publishers.
+    virtual bool Initialize(ChROSBridge& bridge) override;
 
-    /// Extract body state for IPC (called in main process, no ROS calls)
-    virtual std::vector<uint8_t> GetSerializedData(double time) override;
-
-    /// Publish data to ROS from serialized bytes (called in subprocess)
-    virtual void PublishFromSerialized(const std::vector<uint8_t>& data, 
-                                       std::shared_ptr<ChROSInterface> interface) override;
+  protected:
+    /// Publishes pose, twist, and accel for the current state.
+    virtual void Tick(double time) override;
 
   private:
+    void PublishPose(double time);
+    void PublishTwist(double time);
+    void PublishAccel(double time);
+
     std::shared_ptr<ChBody> m_body;
     const std::string m_topic;
-    
-    geometry_msgs::msg::PoseStamped m_pose_msg;
-    geometry_msgs::msg::TwistStamped m_twist_msg;
-    geometry_msgs::msg::AccelStamped m_accel_msg;
-    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr m_pose_publisher;
-    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr m_twist_publisher;
-    rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr m_accel_publisher;
+
+    std::shared_ptr<ChROSPublisher> m_pose_publisher;
+    std::shared_ptr<ChROSPublisher> m_twist_publisher;
+    std::shared_ptr<ChROSPublisher> m_accel_publisher;
 };
 
 /// @} ros_handlers

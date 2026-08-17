@@ -59,10 +59,10 @@ In addition, for each requested component 'COMPONENT', a variable `CHRONO_<COMPO
 ## Configuring and building an external project
 
 The Chrono distribution includes template projects for different types of Chrono-based external projects. These template projects, available in the top-level directory of the Chrono source tree (or of a Chrono install tree) are:
-- [template_project](https://github.com/projectchrono/chrono/tree/main/template_project) - a simple C++ project that build a simple pendulum mechanism visualized with Irrlicht
+- [template_project](https://github.com/projectchrono/chrono/tree/main/template_project) - a simple C++ project that builds a simple pendulum mechanism visualized with Irrlicht
 - [template_project_csharp](https://github.com/projectchrono/chrono/tree/main/template_project_csharp) - a simple C# project that builds a bouncing ball visualized with Irrlicht
 - [template_project_fmi](https://github.com/projectchrono/chrono/tree/main/template_project_fmi2) - a simple C++ project that builds an FMU (see the [special instructions](@ref module_fmi_installation) for building Chrono with support for FMU generation)
-- [template_project_ros](https://github.com/projectchrono/chrono/tree/main/template_project_ros) - a simple C++ project that ilustrates the use of Chrono::ROS from an external project
+- [template_project_ros](https://github.com/projectchrono/chrono/tree/main/template_project_ros) - a simple C++ project that illustrates the use of Chrono::ROS from an external project
 - [template_project_vehicle_cosim](https://github.com/projectchrono/chrono/tree/main/template_project_vehicle_cosim) - a simple MPI project that builds a Chrono::Vehicle co-simulation of a single wheel on rigid terrain
 
 #### 1. Check prerequisites

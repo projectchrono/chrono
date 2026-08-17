@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepsizeMBD(step_size);
 
     // Set soil properties
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
         mat_props.mcc_kappa = kappa;
         mat_props.mcc_lambda = lambda;
     }
-    fsi.SetElasticSPH(mat_props);
+    fsi.SetCrmSPH(mat_props);
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;

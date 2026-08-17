@@ -87,8 +87,8 @@ void ChFsiProblemSPH::SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& flui
     m_sysSPH->SetCfdSPH(fluid_props);
 }
 
-void ChFsiProblemSPH::SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props) {
-    m_sysSPH->SetElasticSPH(mat_props);
+void ChFsiProblemSPH::SetCrmSPH(const ChFsiFluidSystemSPH::SoilProperties& mat_props) {
+    m_sysSPH->SetCrmSPH(mat_props);
 }
 
 void ChFsiProblemSPH::SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params) {
@@ -108,7 +108,7 @@ void ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body, const std::vect
         cout << "Add rigid body '" << body->GetName() << "'" << endl;
 
     // Add the FSI rigid body to the underlying FSI system
-    auto fsi_body = m_sysFSI->AddFsiBody(body, bce, rel_frame, check_embedded);
+    auto fsi_body = m_sysFSI->AddRigidBody(body, bce, rel_frame, check_embedded);
     m_fsi_bodies[body] = fsi_body->index;
 }
 
@@ -117,7 +117,7 @@ void ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr
         cout << "Add rigid body '" << body->GetName() << "'" << endl;
 
     // Add the FSI rigid body to the underlying FSI system
-    auto fsi_body = m_sysFSI->AddFsiBody(body, geometry, check_embedded);
+    auto fsi_body = m_sysFSI->AddRigidBody(body, geometry, check_embedded);
     m_fsi_bodies[body] = fsi_body->index;
 }
 
@@ -145,6 +145,11 @@ void ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body, const ChFra
     AddRigidBody(body, geometry, true, true);
 }
 
+void ChFsiProblemSPH::SetActiveDomainBody(std::shared_ptr<ChBody> body, const ChAABB& aabb) {
+    auto index = m_fsi_bodies.at(body);
+    m_sysFSI->SetActiveDomainBody(index, aabb);
+}
+
 size_t ChFsiProblemSPH::GetNumBCE(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
     return m_sysSPH->m_bodies[index].bce_coords.size();
@@ -153,6 +158,7 @@ size_t ChFsiProblemSPH::GetNumBCE(std::shared_ptr<ChBody> body) const {
 // ----------------------------------------------------------------------------
 
 #ifdef CHRONO_FEA
+
 void ChFsiProblemSPH::UseNodeDirections(NodeDirectionsMode mode) {
     m_sysFSI->UseNodeDirections(mode);
 }
@@ -170,24 +176,47 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
         cout << "Add FEA mesh '" << mesh->GetName() << "'" << endl;
 
     // Add 1D surfaces from given FEA mesh to the underlying FSI system
-    auto fsi_mesh1D = m_sysFSI->AddFsiMesh1D(mesh, check_embedded);
+    auto fsi_mesh1D = m_sysFSI->AddFeaMesh1D(mesh, check_embedded);
     if (m_verbose) {
-        if (fsi_mesh1D)
+        if (fsi_mesh1D) {
             cout << "  added " << fsi_mesh1D->GetNumElements() << " segments" << endl;
-        else
+            m_fsi_meshes1D[mesh] = fsi_mesh1D->index; 
+        } else {
             cout << "  mesh does not contain any 1D elements" << endl;
+        }
     }
 
     // Add 2D surfaces from given mesh to the underlying FSI system
-    auto fsi_mesh2D = m_sysFSI->AddFsiMesh2D(mesh, check_embedded);
+    auto fsi_mesh2D = m_sysFSI->AddFeaMesh2D(mesh, check_embedded);
     if (m_verbose) {
-        if (fsi_mesh2D)
+        if (fsi_mesh2D) {
             cout << "  added " << fsi_mesh2D->GetNumElements() << " faces" << endl;
-        else
+            m_fsi_meshes2D[mesh] = fsi_mesh1D->index;
+        } else {
             cout << "  mesh does not contain any 2D elements" << endl;
+        }
     }
 }
+
+void ChFsiProblemSPH::SetActiveDomainMesh(std::shared_ptr<fea::ChMesh> mesh, const ChAABB& aabb) {
+    auto mesh1D = m_fsi_meshes1D.find(mesh);
+    if (mesh1D != m_fsi_meshes1D.end()) {
+        auto index = mesh1D->second;
+        m_sysFSI->SetActiveDomainMesh1D(index, aabb);
+    }
+
+    auto mesh2D = m_fsi_meshes2D.find(mesh);
+    if (mesh2D != m_fsi_meshes2D.end()) {
+        auto index = mesh2D->second;
+        m_sysFSI->SetActiveDomainMesh2D(index, aabb);
+    }
+}
+
 #endif
+
+void ChFsiProblemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    m_sysFSI->SetActiveDomain(box_dim);
+}
 
 // ----------------------------------------------------------------------------
 
@@ -471,7 +500,7 @@ void ChFsiProblemSPH::ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m) {
     if (m_sysSPH->m_remove_center1D) {
         std::vector<ChVector3i> bce_ids;
         std::vector<ChVector3d> bce_coords;
-        m_sysSPH->CreateBCEFsiMesh1D(m.fsi_mesh, m_sysSPH->m_pattern1D, false, bce_ids, bce_coords, bce);
+        m_sysSPH->CreateFeaMesh1DBce(m.fsi_mesh, m_sysSPH->m_pattern1D, false, bce_ids, bce_coords, bce);
     } else {
         bce = m.bce;
     }
@@ -509,7 +538,7 @@ void ChFsiProblemSPH::ProcessFeaMesh2D(ChFsiFluidSystemSPH::FsiSphMesh2D& m) {
     if (regenerate_bce) {
         std::vector<ChVector3i> bce_ids;
         std::vector<ChVector3d> bce_coords;
-        m_sysSPH->CreateBCEFsiMesh2D(m.fsi_mesh, BcePatternMesh2D::CENTERED, false, bce_ids, bce_coords, bce);
+        m_sysSPH->CreateFeaMesh2DBce(m.fsi_mesh, BcePatternMesh2D::CENTERED, false, bce_ids, bce_coords, bce);
     } else {
         bce = m.bce;
     }

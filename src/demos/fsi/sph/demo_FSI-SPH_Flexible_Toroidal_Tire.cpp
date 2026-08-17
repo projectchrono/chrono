@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSizeCFD(dT);
     sysFSI.SetStepsizeMBD(dT);
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_2 = 0.5;
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = 2e3;
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
@@ -498,7 +498,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh2D(mesh, false);
+    sysFSI.AddFeaMesh2D(mesh, false);
 
     return mesh;
 }

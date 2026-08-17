@@ -24,11 +24,9 @@
 #include <cuda_runtime_api.h>
 
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
+#include "chrono_sensor/optix/ChOptixScene.h"
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono_sensor/optix/scene/ChScene.h"
+#include "chrono/assets/ChVisualShapes.h"
 
 #include "chrono_sensor/ChApiSensor.h"
 
@@ -192,6 +190,12 @@ class CH_SENSOR_API ChOptixPipeline {
 
     unsigned int GetMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
 
+    /// Translate a Chrono visual material into the device-side material struct.
+    /// Both arms of GetMaterial go through this one function, so that a shape with no material of
+    /// its own is shaded exactly like a shape carrying ChVisualMaterial::Default(). Not static:
+    /// it uploads textures through CreateDeviceTexture.
+    MaterialParameters MakeMaterialParameters(const ChVisualMaterial& mat);
+
     void CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                              cudaArray_t& d_img_array,
                              std::string file_name,
@@ -286,7 +290,10 @@ class CH_SENSOR_API ChOptixPipeline {
 
     // default material in the material pool
     bool m_default_material_inst = false;
-    unsigned int m_default_material_id;
+    // Initialized, though it is only read while the guard above is true, for the same reason the
+    // Hapke members are: a member whose reads happen to be guarded today is still a member someone
+    // will read tomorrow, and a zero is a better wrong answer than whatever was on the heap.
+    unsigned int m_default_material_id = 0;
 
     // bodies in simulation
     std::vector<std::shared_ptr<ChBody>> m_bodies;

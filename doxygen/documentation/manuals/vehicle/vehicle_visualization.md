@@ -53,7 +53,7 @@ Chrono::Vehicle provides limited support for this workflow model and the [POV-Ra
 **Preparing output data files**
 
 - At each simulation frame that needs to be post-processed, call the function [WriteVisualizationAssets](@ref chrono::utils::WriteVisualizationAssets). 
-- This function will output a comma separated value (CSV) file with a user-provided name containing.
+- This function will output a comma separated value (CSV) file with a user-provided name.
 - The output file contains information on all bodies in the Chrono system (positions and orientations), all associated visualization assets (position, orientation, type, and asset-specific parameters), and selected types of joints.  Note that mesh visualization assets are identified through their respective mesh name.
 
 **Preparing mesh data files**

@@ -19,7 +19,13 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChTimer.h"
+
 #include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChVisualShapes.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColormap.h"
+#include "chrono/assets/ChGlyphs.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
 

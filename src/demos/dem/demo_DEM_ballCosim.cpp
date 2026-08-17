@@ -28,7 +28,6 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
 
 #include "chrono_dem/physics/ChSystemDem.h"
 #include "chrono_dem/utils/ChDemJsonParser.h"

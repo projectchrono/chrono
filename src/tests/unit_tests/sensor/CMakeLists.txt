@@ -1,5 +1,6 @@
 set(TESTS
     utest_SEN_gps
+    utest_SEN_rng_streams
 )
 
 if(CH_USE_SENSOR_OPTIX)

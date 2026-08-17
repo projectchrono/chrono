@@ -12,18 +12,18 @@ The contact problem includes two different aspects:
 As described in the [ChSystem manual](@ref manual_ChSystem), Chrono can setup two different kind of systems, depending on the contact method:
 
 - \ref chrono::ChSystemNSC "ChSystemNSC" implements **Non Smooth Contacts** (NSC):
-  + contacts are treated has hard/stiff constraints;
-  + since no artificial stiffening terms are introduced longer timesteps are allowed;
+  + contacts are treated as hard/stiff constraints;
+  + since no artificial stiffening terms are introduced, longer timesteps are allowed;
   + specific [VI solvers](simulation_system.html#solvers) are required;
   + only the more recent \ref chrono::ChSolverADMM "ChSolverADMM" can handle non-smooth contacts and finite elements together;
 
 - \ref chrono::ChSystemSMC "ChSystemSMC" implements **SMooth Contacts** (SMC):
   + contacts reaction forces are computed based on the interpenetration of the bodies, multiplied by a compliance/stiffness term (penalty approach);
   + the contact stiffness is an artificial term, usually empirically related to the material stiffness;
-  + shorter timsteps are required, especially for harder contact stiffness;
+  + shorter timesteps are required, especially for harder contact stiffness;
   + no VI solvers are required
 
-Users should carefully consider which system fits better their needs, since timesteps might differ up to two or three orders of magnitude. On the contrary, the two system types are completely equivalente if no collisions are involved.
+Users should carefully consider which system fits better their needs, since timesteps might differ up to two or three orders of magnitude. On the contrary, the two system types are completely equivalent if no collisions are involved.
 
 <h4> Collision Detection </h4>
 
@@ -150,7 +150,7 @@ When a body is copied (copy-constructed) or Cloned, what gets copied of the ChCo
 Collision shapes have two (global) tolerances used by collision engine to create and delete contacts, namely an **envelope** and a **margin**:
 
 
-- the outward **envelope** (whose thickness is modified through \ref chrono::ChCollisionModel::SetDefaultSuggestedEnvelope "ChCollisionModel::SetDefaultSuggestedEnvelope"): when two collisions shapes are *close* to contact a constraint equation should be immediately added to *ChSystem*. The *envelope* parameter tells *how close* these shapes (or contact pairs) should be to trigger the creation of the constraint equation. Please notice that adding a collision constraint equation **does not** mean that a reaction force is *already* present, but only that a **potential** collision might happen in the early future. This allows the system to catch the potential contact with due advance, thus reducing the risk of tunneling or unstable contacts.
+- the outward **envelope** (whose thickness is modified through \ref chrono::ChCollisionModel::SetDefaultSuggestedEnvelope "ChCollisionModel::SetDefaultSuggestedEnvelope"): when two collision shapes are *close* to contact a constraint equation should be immediately added to *ChSystem*. The *envelope* parameter tells *how close* these shapes (or contact pairs) should be to trigger the creation of the constraint equation. Please notice that adding a collision constraint equation **does not** mean that a reaction force is *already* present, but only that a **potential** collision might happen in the early future. This allows the system to catch the potential contact with due advance, thus reducing the risk of tunneling or unstable contacts.
   + if **too large**: too many contacts might be added too ahead of time, thus increasing the problem size (waste of memory and computational time);
   + if **too small**: the risk of interpenetration increases and objects might even pass through others if speeds are high or objects thickness is small (tunneling effect).
 
@@ -159,7 +159,7 @@ Collision shapes have two (global) tolerances used by collision engine to create
   + if **too small**: the slower algorithm kicks in too soon, thus leading to poor performance.
 
 An additional setting is available for the Bullet engine only: 
-- the **contact breaking threshold** (whose value is modified through \ref chrono::ChCollisionSystemBullet::SetContactBreakingThreshold "ChCollisionSystemBullet::SetContactBreakingThreshold"): Bullet keeps track of collision happened in the previous simulation frames. In order to purge the list a threshold is set: when the shapes move further away than this threshold they get removed from the list.
+- the **contact breaking threshold** (whose value is modified through \ref chrono::ChCollisionSystemBullet::SetContactBreakingThreshold "ChCollisionSystemBullet::SetContactBreakingThreshold"): Bullet keeps track of collisions that happened in the previous simulation frames. In order to purge the list a threshold is set: when the shapes move further away than this threshold they get removed from the list.
 
 In order to improve the stability and performance of the collision detection, collision shapes are initially shrunk by an amount equal to the margin; they then get expanded back by the same amount thus introducing a sort of "rounding effect". In the picture below, the two blue shapes were added as sharp boxes, but after the treatment they end up having rounded corners whose rounding radius is the collision margin.
 

@@ -63,11 +63,6 @@ message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 message(STATUS "Building for a ${CMAKE_SYSTEM_NAME} system")
 message(STATUS "The target processor is ${CMAKE_SYSTEM_PROCESSOR}")
 
-# Get rid of cmake RPATH warning on OSX
-if(APPLE)
-    set(CMAKE_MACOSX_RPATH OFF)
-endif()
-
 #-----------------------------------------------------------------------------
 # Location of additional CMake scripts
 #-----------------------------------------------------------------------------

@@ -4,7 +4,7 @@ YAML schema for Chrono::FSI simulation specification {#YAML_schema_fsi_simulatio
 A Chrono YAML FSI problem specification file defines the multibody and fluid problems and co-simulation parameters required to run a Chrono::FSI co-simulation.
 It consists of the following objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The `mbs` object which defines YAML specification of the MBS simulation.
 - [required] The `fluid` object which defines YAML specification of the fluid specification.
 - [required] The `fsi` object which defines YAML specification of coupled FSI problem.

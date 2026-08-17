@@ -264,7 +264,7 @@ void ChPreciceAdapterSph::InitializeParticipant() {
         visFSI->EnableFluidMarkers(m_visSPH_settings.sph_markers);
         visFSI->EnableBoundaryMarkers(m_visSPH_settings.bndry_bce_markers);
         visFSI->EnableRigidBodyMarkers(m_visSPH_settings.rigid_bce_markers);
-        visFSI->EnableFlexBodyMarkers(m_visSPH_settings.flex_bce_markers);
+        visFSI->EnableFeaMeshMarkers(m_visSPH_settings.flex_bce_markers);
         if (m_visSPH_settings.color_callback)
             visFSI->SetSPHColorCallback(m_visSPH_settings.color_callback, m_visSPH_settings.colormap);
         if (m_visSPH_settings.visibility_callback_sph)

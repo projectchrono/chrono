@@ -21,8 +21,6 @@
 
 #include <cstdio>
 
-#include "chrono/assets/ChVisualShapePointPoint.h"
-
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/core/ChRealtimeStep.h"

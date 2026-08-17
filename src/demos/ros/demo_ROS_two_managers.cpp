@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2023 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,16 +9,25 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Harry Zhang, Aaron Young, Radu Serban
+// Authors: Harry Zhang, Aaron Young, Radu Serban, Patrick Chen
 // =============================================================================
 //
-// Demonstration of simulating two vehicles simultaneously.
+// Demonstration of simulating two vehicles simultaneously, each served by its
+// own ChROSManager (namespaces "hmmwv_1" and "hmmwv_2"). Both subscribe to
+// driver inputs and publish chassis state on their respective node namespaces.
+//
+//   ros2 topic pub  /hmmwv_1/input/driver_inputs ...
+//   ros2 topic echo /hmmwv_2/output/vehicle/state/pose
+//
+// Run-time visualization is used when a Chrono visualization module is
+// available; otherwise the demo runs headless to a fixed end time.
 //
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"  // base type for `vis` (needed when no viz module)
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
@@ -49,13 +58,16 @@ using namespace chrono::ros;
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Simulation step sizes
+// Simulation step size
 double step_size = 0.005;
+
+// Simulation end time (used when running headless)
+double t_end = 30;
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -79,10 +91,9 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(GetVehicleDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
-    // define ROS handelers' rate
+    // ROS handler rates and topic names (shared by both vehicles, scoped per node)
     auto driver_inputs_rate = 25;
     auto vehicle_state_rate = 25;
-    // define ROS topics' name for driver inputs and vehicle state
     auto driver_inputs_topic_name = "~/input/driver_inputs";
     auto vehicle_state_topic_name = "~/output/vehicle/state";
 
@@ -100,25 +111,15 @@ int main(int argc, char* argv[]) {
     hmmwv_1.SetWheelVisualizationType(VisualizationType::NONE);
     hmmwv_1.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
-    // Create the basic driver for the first vehicle
+    // Basic driver and ROS manager for the first vehicle
     auto driver_1 = std::make_shared<ChDriver>(hmmwv_1.GetVehicle());
-    // Create ROS manager for vehicle one
     auto ros_manager_1 = chrono_types::make_shared<ChROSManager>("hmmwv_1");
-    // Create a publisher for the simulation clock
-    // The clock automatically publishes on every tick and on topic /clock
-    auto clock_handler_1 = chrono_types::make_shared<ChROSClockHandler>();
-    ros_manager_1->RegisterHandler(clock_handler_1);
-    // Create a subscriber to the driver inputs
-    auto driver_inputs_handler_1 =
-        chrono_types::make_shared<ChROSDriverInputsHandler>(driver_inputs_rate, driver_1, driver_inputs_topic_name);
-    ros_manager_1->RegisterHandler(driver_inputs_handler_1);
-    // Create a publisher for the vehicle state
-    auto vehicle_state_handler_1 = chrono_types::make_shared<ChROSBodyHandler>(
-        vehicle_state_rate, hmmwv_1.GetChassisBody(), vehicle_state_topic_name);
-    ros_manager_1->RegisterHandler(vehicle_state_handler_1);
-    // Finally, initialize the ros manager
+    ros_manager_1->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
+    ros_manager_1->RegisterHandler(
+        chrono_types::make_shared<ChROSDriverInputsHandler>(driver_inputs_rate, driver_1, driver_inputs_topic_name));
+    ros_manager_1->RegisterHandler(
+        chrono_types::make_shared<ChROSBodyHandler>(vehicle_state_rate, hmmwv_1.GetChassisBody(), vehicle_state_topic_name));
     ros_manager_1->Initialize();
-
 
     // Create and initialize the second vehicle
     HMMWV_Reduced hmmwv_2(&sys);
@@ -134,22 +135,16 @@ int main(int argc, char* argv[]) {
     hmmwv_2.SetWheelVisualizationType(VisualizationType::NONE);
     hmmwv_2.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
-    // Create the basic driver for the first vehicle
+    // Basic driver and ROS manager for the second vehicle
     auto driver_2 = std::make_shared<ChDriver>(hmmwv_2.GetVehicle());
-    // Create ROS manager for vehicle one
     auto ros_manager_2 = chrono_types::make_shared<ChROSManager>("hmmwv_2");
-    // Create a subscriber to the driver inputs
-    auto driver_inputs_handler_2 =
-        chrono_types::make_shared<ChROSDriverInputsHandler>(driver_inputs_rate, driver_2, driver_inputs_topic_name);
-    ros_manager_2->RegisterHandler(driver_inputs_handler_2);
-    // Create a publisher for the vehicle state
-    auto vehicle_state_handler_2 = chrono_types::make_shared<ChROSBodyHandler>(
-        vehicle_state_rate, hmmwv_2.GetChassisBody(), vehicle_state_topic_name);
-    ros_manager_2->RegisterHandler(vehicle_state_handler_2);
-    // Finally, initialize the ros manager
+    ros_manager_2->RegisterHandler(
+        chrono_types::make_shared<ChROSDriverInputsHandler>(driver_inputs_rate, driver_2, driver_inputs_topic_name));
+    ros_manager_2->RegisterHandler(
+        chrono_types::make_shared<ChROSBodyHandler>(vehicle_state_rate, hmmwv_2.GetChassisBody(), vehicle_state_topic_name));
     ros_manager_2->Initialize();
 
-// Create the vehicle run-time visualization interface and the interactive driver
+    // Create the vehicle run-time visualization interface (if a viz module is available)
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -209,12 +204,18 @@ int main(int argc, char* argv[]) {
     hmmwv_1.GetVehicle().EnableRealtime(true);
     hmmwv_2.GetVehicle().EnableRealtime(true);
 
+#if !defined(CHRONO_IRRLICHT) && !defined(CHRONO_VSG)
+    double time = 0;
+    while (time < t_end) {
+        time = sys.GetChTime();
+#else
     while (vis->Run()) {
         double time = sys.GetChTime();
 
         // Render scene
         vis->BeginScene();
         vis->Render();
+#endif
 
         // Driver inputs
         DriverInputs driver_inputs_1 = driver_1->GetInputs();
@@ -226,7 +227,9 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
         hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
         terrain.Synchronize(time);
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->Synchronize(time, driver_inputs_1);
+#endif
 
         // Advance simulation for one timestep for all modules.
         driver_1->Advance(step_size);
@@ -234,7 +237,9 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Advance(step_size);
         hmmwv_2.Advance(step_size);
         terrain.Advance(step_size);
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->Advance(step_size);
+#endif
 
         // Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size);
@@ -243,7 +248,9 @@ int main(int argc, char* argv[]) {
         if (!ros_manager_1->Update(time, step_size) || !ros_manager_2->Update(time, step_size))
             break;
 
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->EndScene();
+#endif
     }
 
     return 0;

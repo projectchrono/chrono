@@ -23,6 +23,8 @@
 
 #include <cmath>
 #include <algorithm>
+#include <sstream>
+#include <string>
 
 #include "chrono/core/ChTypes.h"
 
@@ -61,10 +63,14 @@ ChFsiFluidSystemSPH::ChFsiFluidSystemSPH()
       m_remove_center1D(false),
       m_remove_center2D(false),
       m_num_rigid_bodies(0),
+      m_num_flex1D_meshes(0),
+      m_num_flex2D_meshes(0),
       m_num_flex1D_nodes(0),
       m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
+      m_use_ad(false),
+      m_use_default_ad(false),
       m_output_level(OutputLevel::STATE_PRESSURE),
       m_force_proximity_search(false),
       m_check_errors(true) {
@@ -146,24 +152,17 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->base_pressure = Real(0.0);
     m_paramsH->ClampPressure = false;
 
-    // Elastic SPH
+    // CRM SPH
     m_paramsH->free_surface_threshold = Real(2.0);
-
-    //
-    m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
-    m_paramsH->use_active_domain = false;
-    m_paramsH->settlingTime = Real(0);
-
-    //
+    m_paramsH->free_flow_duration = Real(0);
     m_paramsH->Max_Pressure = Real(1e20);
 
     //// RADU TODO
     //// material model
 
-    // Elastic SPH
-    ElasticMaterialProperties mat_props;
-    SetElasticSPH(mat_props);
-    m_paramsH->elastic_SPH = false;                // default: fluid dynamics
+    SoilProperties mat_props;
+    SetCrmSPH(mat_props);
+    m_paramsH->physics_problem = PhysicsProblem::CRM;
     m_paramsH->artificial_viscosity = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
@@ -262,15 +261,34 @@ void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AAB
     m_paramsH->use_default_limits = false;
 }
 
-void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+void ChFsiFluidSystemSPH::SetActiveDomainBody(size_t i, const ChAABB& aabb) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->bodyActiveDomain = ToReal3(box_dim / 2);
-    m_paramsH->use_active_domain = true;
+    ChAssertAlways(i < m_ad_body.size());
+    m_ad_body[i] = aabb;
 }
 
-void ChFsiFluidSystemSPH::SetActiveDomainDelay(double duration) {
+void ChFsiFluidSystemSPH::SetActiveDomainMesh1D(size_t i, const ChAABB& aabb) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->settlingTime = duration;
+    ChAssertAlways(i < m_ad_mesh1D.size());
+    m_ad_mesh1D[i] = aabb;
+}
+
+void ChFsiFluidSystemSPH::SetActiveDomainMesh2D(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(!m_is_initialized);
+    ChAssertAlways(i < m_ad_mesh2D.size());
+    m_ad_mesh2D[i] = aabb;
+}
+
+void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    ChAssertAlways(!m_is_initialized);
+    m_use_default_ad = true;
+    m_ad_default.min = -0.5 * box_dim;
+    m_ad_default.max = +0.5 * box_dim;
+}
+
+void ChFsiFluidSystemSPH::SetFreeFlowDuration(double duration) {
+    ChAssertAlways(!m_is_initialized);
+    m_paramsH->free_flow_duration = duration;
 }
 
 void ChFsiFluidSystemSPH::SetNumBCELayers(int num_layers) {
@@ -369,38 +387,123 @@ void ChFsiFluidSystemSPH::SetUseVariableTimeStep(bool use_variable_time_step) {
 
 void ChFsiFluidSystemSPH::CheckSPHParameters() {
     // Check parameter compatibility with physics problem
-    if (m_paramsH->elastic_SPH) {
-        if (m_paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
-            cerr << "ERROR: Only WCSPH can be used for granular CRM problems." << endl;
-            throw std::runtime_error("ISPH not supported for granular CRM problems.");
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CRM: {
+            if (m_paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
+                cerr << "ERROR: Only WCSPH can be used for granular CRM problems." << endl;
+                throw std::runtime_error("ISPH not supported for granular CRM problems.");
+            }
+            if (m_paramsH->non_newtonian) {
+                cerr << "ERROR: Non-Newtonian viscosity model is not supported for granular CRM." << endl;
+                throw std::runtime_error("Non-Newtonian viscosity model is not supported for granular CRM.");
+            }
+            if (m_paramsH->viscosity_method == ViscosityMethod::LAMINAR) {
+                cerr << "ERROR: Viscosity type LAMINAR not supported for CRM granular. "
+                        " Use ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL."
+                     << endl;
+                throw std::runtime_error("Viscosity type LAMINAR not supported for CRM granular.");
+            }
+            if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_UNILATERAL) {
+                cerr << "WARNING: Viscosity type ARTIFICIAL_UNILATERAL may be less stable for CRM granular. "
+                        "Consider using ARTIFICIAL_BILATERAL or ensure the step size is small enough."
+                     << endl;
+            }
+            if (m_paramsH->mu0 > Real(0.001)) {
+                cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
+                     << " but the viscosity model is not laminar. This parameter will have no influence on simulation." << endl;
+            }
+
+            // Modified Cam-Clay parameter preconditions.
+            //
+            // Three of these, mcc_kappa > 0, mcc_lambda > mcc_kappa and mcc_M > 0, are the
+            // "critical consistency checks" the MCC manual page already published; nothing enforced
+            // them. The fourth, mcc_v_lambda > 0, is added here and to the manual at the same time.
+            // They are preconditions of the equations, not style:
+            // the elastic bulk modulus is K = v p / mcc_kappa, and the hardening update divides by
+            // (mcc_lambda - mcc_kappa). A user who transposes the two slopes gets a negative
+            // denominator, which inverts the hardening law, and the run then completes with no
+            // diagnostic of any kind while producing essentially zero bearing capacity.
+            //
+            // Gated on the PAIR of flags, not on the rheology alone: SetCfdSPH sets physics_problem to CFD
+            // without resetting rheology_model_crm, so a CFD problem can legitimately be left with
+            // rheology_model_crm == MCC and must not be rejected here.
+            if (m_paramsH->rheology_model_crm == RheologyCRM::MCC) {
+                auto mcc_fatal = [](const std::string& msg) {
+                    cerr << "ERROR: " << msg << endl;
+                    throw std::runtime_error(msg);
+                };
+                auto mcc_finite = [&](Real value, const char* name) {
+                    if (!std::isfinite(double(value)))
+                        mcc_fatal(std::string("MCC parameter ") + name + " is not a finite number.");
+                };
+                // Stream formatting, not to_string: to_string formats a float with %f, so a small
+                // but legal value such as 1e-8 would be reported back to the user as "0.000000" by
+                // the very message that exists to tell them what they set.
+                auto mcc_num = [](Real value) {
+                    std::ostringstream os;
+                    os << value;
+                    return os.str();
+                };
+
+                mcc_finite(m_paramsH->mcc_M, "mcc_M");
+                mcc_finite(m_paramsH->mcc_kappa, "mcc_kappa");
+                mcc_finite(m_paramsH->mcc_lambda, "mcc_lambda");
+                mcc_finite(m_paramsH->mcc_v_lambda, "mcc_v_lambda");
+
+                if (m_paramsH->mcc_kappa <= 0) {
+                    mcc_fatal("MCC parameter mcc_kappa (swelling index) must be positive, but is " + mcc_num(m_paramsH->mcc_kappa) +
+                              ". The elastic bulk modulus is computed as K = v p / mcc_kappa.");
+                }
+                if (m_paramsH->mcc_lambda <= m_paramsH->mcc_kappa) {
+                    mcc_fatal("MCC requires mcc_lambda (compression index) > mcc_kappa (swelling index), but mcc_lambda = " + mcc_num(m_paramsH->mcc_lambda) +
+                              " and mcc_kappa = " + mcc_num(m_paramsH->mcc_kappa) + ". The hardening law divides by (mcc_lambda - mcc_kappa). " +
+                              "If these two look swapped, they probably are: lambda is the normal-consolidation-line slope and is the larger of the two.");
+                }
+                if (m_paramsH->mcc_M <= 0) {
+                    mcc_fatal("MCC parameter mcc_M (critical state line slope) must be positive, but is " + mcc_num(m_paramsH->mcc_M) + ".");
+                }
+                if (m_paramsH->mcc_v_lambda <= 0) {
+                    mcc_fatal("MCC parameter mcc_v_lambda (specific volume at the reference pressure) must be positive, but is " + mcc_num(m_paramsH->mcc_v_lambda) + ".");
+                }
+
+                // Last, and a warning rather than an error: the ordering above can hold by a
+                // vanishingly small margin. The hardening update divides by (mcc_lambda - mcc_kappa),
+                // so as that gap goes to zero the plastic modulus v / (mcc_lambda - mcc_kappa) grows
+                // without bound and the return mapping becomes ill-conditioned. A narrow gap is a
+                // legal, if extreme, model, so this reports and continues; only the ordering itself is
+                // fatal.
+                //
+                // Two arms, because these are dimensionless slopes and neither test alone is enough.
+                // The absolute floor catches a gap that has lost its significance entirely, which is
+                // what single precision does to a difference of nearly equal values. The relative
+                // floor catches the same pathology at a larger scale, where the gap is well
+                // represented but is still a thousandth of the slopes it came from.
+                Real mcc_gap = m_paramsH->mcc_lambda - m_paramsH->mcc_kappa;
+                Real mcc_gap_floor = std::max(Real(1e-6), Real(1e-3) * m_paramsH->mcc_lambda);
+                if (mcc_gap < mcc_gap_floor) {
+                    cerr << "WARNING: MCC parameters mcc_lambda = " << mcc_num(m_paramsH->mcc_lambda) << " and mcc_kappa = " << mcc_num(m_paramsH->mcc_kappa) << " differ by only "
+                         << mcc_num(mcc_gap)
+                         << ". The hardening law divides by that difference, so the plastic modulus will be very large and the return mapping poorly conditioned."
+                            "This is accepted as given, but confirm it is what was intended."
+                         << endl;
+                }
+            }
+
+            break;
         }
-        if (m_paramsH->non_newtonian) {
-            cerr << "ERROR: Non-Newtonian viscosity model is not supported for granular CRM." << endl;
-            throw std::runtime_error("Non-Newtonian viscosity model is not supported for granular CRM.");
-        }
-        if (m_paramsH->viscosity_method == ViscosityMethod::LAMINAR) {
-            cerr << "ERROR: Viscosity type LAMINAR not supported for CRM granular. "
-                    " Use ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL."
-                 << endl;
-            throw std::runtime_error("Viscosity type LAMINAR not supported for CRM granular.");
-        }
-        if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_UNILATERAL) {
-            cerr << "WARNING: Viscosity type ARTIFICIAL_UNILATERAL may be less stable for CRM granular. "
-                    "Consider using ARTIFICIAL_BILATERAL or ensure the step size is small enough."
-                 << endl;
-        }
-        if (m_paramsH->mu0 > Real(0.001)) {
-            cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
-                 << " but the viscosity model is not laminar. This parameter will have no influence on simulation." << endl;
-        }
-    } else {
-        if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_BILATERAL) {
-            cerr << "ERROR: Viscosity type ARTIFICIAL_BILATERAL not supported for CFD. "
-                    " Use ARTIFICIAL_UNILATERAL or LAMINAR."
-                 << endl;
-            throw std::runtime_error("Viscosity type ARTIFICIAL_BILATERAL not supported for CFD.");
+        case PhysicsProblem::CFD: {
+            if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_BILATERAL) {
+                cerr << "ERROR: Viscosity type ARTIFICIAL_BILATERAL not supported for CFD. "
+                        " Use ARTIFICIAL_UNILATERAL or LAMINAR."
+                     << endl;
+                throw std::runtime_error("Viscosity type ARTIFICIAL_BILATERAL not supported for CFD.");
+            }
+
+            break;
         }
     }
+
+    // ------------------------
 
     // Calculate default cMin and cMax
     Real3 default_cMin = mR3(-2 * m_paramsH->boxDims.x, -2 * m_paramsH->boxDims.y, -2 * m_paramsH->boxDims.z) - 10 * mR3(m_paramsH->h);
@@ -436,7 +539,7 @@ void ChFsiFluidSystemSPH::CheckSPHParameters() {
 
     // Check shifting method and whether defaults have changed
     if (m_paramsH->shifting_method == ShiftingMethod::NONE) {
-        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 1.0 || m_paramsH->shifting_ppst_pull != 1.0) {
+        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 3.0 || m_paramsH->shifting_ppst_pull != 1.0) {
             cerr << "WARNING: Shifting method is NONE, but shifting parameters have been modified. These "
                     "changes will not take effect."
                  << endl;
@@ -460,7 +563,7 @@ ChFsiFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosi
 
 void ChFsiFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->elastic_SPH = false;
+    m_paramsH->physics_problem = PhysicsProblem::CFD;
 
     SetDensity(fluid_props.density);
 
@@ -468,7 +571,7 @@ void ChFsiFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     m_paramsH->L_Characteristic = Real(fluid_props.char_length);
 }
 
-ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
+ChFsiFluidSystemSPH::SoilProperties::SoilProperties()
     : density(1000),
       Young_modulus(1e6),
       Poisson_ratio(0.3),
@@ -483,9 +586,9 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mcc_lambda(0),
       mcc_v_lambda(2.0) {}
 
-void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
+void ChFsiFluidSystemSPH::SetCrmSPH(const SoilProperties& mat_props) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->elastic_SPH = true;
+    m_paramsH->physics_problem = PhysicsProblem::CRM;
 
     SetDensity(mat_props.density);
     m_paramsH->rheology_model_crm = mat_props.rheology_model;
@@ -522,6 +625,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       initial_spacing(0.01),
       d0_multiplier(1.2),
       max_velocity(1.0),
+      shifting_method(ShiftingMethod::XSPH),
       shifting_xsph_eps(0.5),
       shifting_ppst_push(3.0),
       shifting_ppst_pull(1.0),
@@ -607,11 +711,16 @@ ChFsiFluidSystemSPH::SplashsurfParameters::SplashsurfParameters() : smoothing_le
 //------------------------------------------------------------------------------
 
 PhysicsProblem ChFsiFluidSystemSPH::GetPhysicsProblem() const {
-    return (m_paramsH->elastic_SPH ? PhysicsProblem::CRM : PhysicsProblem::CFD);
+    return m_paramsH->physics_problem;
 }
 
 std::string ChFsiFluidSystemSPH::GetPhysicsProblemString() const {
-    return (m_paramsH->elastic_SPH ? "CRM" : "CFD");
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            return "CFD";
+        case PhysicsProblem::CRM:
+            return "CRM";
+    }
 }
 
 std::string ChFsiFluidSystemSPH::GetSphIntegrationSchemeString() const {
@@ -653,6 +762,9 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 
     if (num_bodies > 0)
         m_data_mgr->fsiBodyState_D->CopyFromH(*m_data_mgr->fsiBodyState_H);
+
+    // Update solid AABBs (expressed in absolute frame)
+    m_data_mgr->UpdateActiveDomains();
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
@@ -732,6 +844,9 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
             m_data_mgr->fsiMesh2DState_D->CopyDirectionsFromH(*m_data_mgr->fsiMesh2DState_H);
         }
     }
+
+    // Update solid AABBs (expressed in absolute frame)
+    m_data_mgr->UpdateActiveDomains();
 }
 
 // Copy from device and convert host data from the data manager's AOS to the output SOA
@@ -748,7 +863,7 @@ void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_force
     }
 
     {
-        auto forces_H = m_data_mgr->GetFlex1dForces();
+        auto forces_H = m_data_mgr->GetMesh1DForces();
 
         size_t num_meshes = mesh1D_forces.size();
         int index = 0;
@@ -762,7 +877,7 @@ void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce>& body_force
     }
 
     {
-        auto forces_H = m_data_mgr->GetFlex2dForces();
+        auto forces_H = m_data_mgr->GetMesh2DForces();
 
         size_t num_meshes = mesh2D_forces.size();
         int index = 0;
@@ -982,12 +1097,12 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  numFluidMarkers:    " << counters.numFluidMarkers << endl;
     cout << "  numBoundaryMarkers: " << counters.numBoundaryMarkers << endl;
     cout << "  numRigidMarkers:    " << counters.numRigidMarkers << endl;
-    cout << "  numFlexMarkers1D:   " << counters.numFlexMarkers1D << endl;
-    cout << "  numFlexMarkers2D:   " << counters.numFlexMarkers2D << endl;
+    cout << "  numMesh1DMarkers:   " << counters.numMesh1DMarkers << endl;
+    cout << "  numMesh2DMarkers:   " << counters.numMesh2DMarkers << endl;
     cout << "  numAllMarkers:      " << counters.numAllMarkers << endl;
     cout << "  startRigidMarkers:  " << counters.startRigidMarkers << endl;
-    cout << "  startFlexMarkers1D: " << counters.startFlexMarkers1D << endl;
-    cout << "  startFlexMarkers2D: " << counters.startFlexMarkers2D << endl;
+    cout << "  startMesh1DMarkers: " << counters.startMesh1DMarkers << endl;
+    cout << "  startMesh2DMarkers: " << counters.startMesh2DMarkers << endl;
 }
 
 void PrintRefArrays(const thrust::host_vector<int4>& referenceArray, const thrust::host_vector<int4>& referenceArray_FEA) {
@@ -1012,20 +1127,21 @@ void PrintRefArrays(const thrust::host_vector<int4>& referenceArray, const thrus
 //// TODO FSI meshes:
 ////   - consider using monotone cubic Hermite interpolation instead of cubic Bezier
 
-void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
+void ChFsiFluidSystemSPH::OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
     FsiSphBody b;
     b.fsi_body = fsi_body;
     b.check_embedded = check_embedded;
 
-    CreateBCEFsiBody(fsi_body, b.bce_ids, b.bce_coords, b.bce);
+    CreateRigidBodyBce(fsi_body, b.bce_ids, b.bce_coords, b.bce);
     m_num_rigid_bodies++;
 
     m_bodies.push_back(b);
+    m_ad_body.push_back(ChAABB());
 }
 
-void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce) {
+void ChFsiFluidSystemSPH::CreateRigidBodyBce(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce) {
     const auto& geometry = fsi_body->geometry;
     if (geometry) {
         for (const auto& sphere : geometry->coll_spheres) {
@@ -1067,32 +1183,36 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, st
 
 #ifdef CHRONO_FEA
 
-void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
+void ChFsiFluidSystemSPH::OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
     FsiSphMesh1D m;
     m.fsi_mesh = fsi_mesh;
     m.check_embedded = check_embedded;
 
-    CreateBCEFsiMesh1D(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
+    CreateFeaMesh1DBce(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex1D_meshes++;
     m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex1D_elements += fsi_mesh->GetNumElements();
 
     m_meshes1D.push_back(m);
+    m_ad_mesh1D.push_back(ChAABB());
 }
 
-void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
+void ChFsiFluidSystemSPH::OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
     ChAssertAlways(!m_is_initialized);
 
     FsiSphMesh2D m;
     m.fsi_mesh = fsi_mesh;
     m.check_embedded = check_embedded;
 
-    CreateBCEFsiMesh2D(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
+    CreateFeaMesh2DBce(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex1D_meshes++;
     m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
 
     m_meshes2D.push_back(m);
+    m_ad_mesh2D.push_back(ChAABB());
 }
 
 void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
@@ -1105,7 +1225,7 @@ void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
     y = Vcross(z, x);
 }
 
-void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh,
                                              BcePatternMesh1D pattern,
                                              bool remove_center,
                                              std::vector<ChVector3i>& bce_ids,
@@ -1217,7 +1337,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
     }
 }
 
-void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+void ChFsiFluidSystemSPH::CreateFeaMesh2DBce(std::shared_ptr<FsiMesh2D> fsi_mesh,
                                              BcePatternMesh2D pattern,
                                              bool remove_center,
                                              std::vector<ChVector3i>& bce_ids,
@@ -1355,7 +1475,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
+void ChFsiFluidSystemSPH::AddRigidBodyBce(const FsiSphBody& fsisph_body) {
     // Add BCE markers and load their local coordinates and body associations
     auto num_bce = fsisph_body.bce.size();
     for (size_t i = 0; i < num_bce; i++) {
@@ -1444,13 +1564,15 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     // Process FSI solids - load BCE data to data manager
     // Note: counters must be regenerated, as they are used as offsets for global indices
     m_num_rigid_bodies = 0;
+    m_num_flex1D_meshes = 0;
+    m_num_flex2D_meshes = 0;
     m_num_flex1D_nodes = 0;
     m_num_flex1D_elements = 0;
     m_num_flex2D_nodes = 0;
     m_num_flex2D_elements = 0;
 
     for (const auto& b : m_bodies) {
-        AddBCEFsiBody(b);
+        AddRigidBodyBce(b);
         m_num_rigid_bodies++;
     }
 
@@ -1505,7 +1627,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
             double z = m_data_mgr->sphMarkers_H->posRadH[i].z;
             double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
             m_data_mgr->sphMarkers_H->rhoPresMuH[i].y = p;
-            if (m_paramsH->elastic_SPH) {
+            if (m_paramsH->physics_problem == PhysicsProblem::CRM) {
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].x = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].y = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].z = -p;
@@ -1523,35 +1645,50 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     DeriveDomainGridQuantities();
+
     // Update the speed of sound
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            m_paramsH->Cs = 10 * m_paramsH->v_Max;
+            break;
+        case PhysicsProblem::CRM:
+            m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+            break;
     }
 
     // ----------------
 
-    // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
-    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
-    m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
-                           m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+    // Load solid active domains (AABBs expressed in local frames) and check if using active domains (at least one AABB not inverted).
+    // If a solid active domain was not explicitly set use the default domain if it was provided.
+    m_use_ad = m_use_default_ad;
+
+    for (auto& aabb : m_ad_body) {
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+    }
+
+    // Initialize the data manager: set reference arrays and counters, cache solid active domains, and resize simulation arrays.
+    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors.
+    m_data_mgr->Initialize(m_num_rigid_bodies,                                                 //
+                           m_num_flex1D_meshes, m_num_flex1D_nodes, m_num_flex1D_elements,     //
+                           m_num_flex2D_meshes, m_num_flex2D_nodes, m_num_flex2D_elements,     //
+                           m_use_ad, m_ad_body, std::vector<ChAABB>(), std::vector<ChAABB>(),  //
                            NodeDirections::NONE);
 
     // Load the initial body and mesh node states
     ChDebugLog("load initial states");
     LoadSolidStates(body_states);
 
-    // Create BCE and SPH worker objects
+    // Create and initialize the BCE and SPH worker objects
     m_bce_mgr = chrono_types::make_unique<SphBceManager>(*m_data_mgr, NodeDirections::NONE, m_verbose, m_check_errors);
-    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
-
-    // Initialize worker objects
+    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, m_verbose, m_check_errors);
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
-    /// If active domains are not used then don't overly resize the arrays
-    if (!m_paramsH->use_active_domain) {
+    // If active domains are not used then don't overly resize the arrays
+    if (!m_use_ad) {
         m_data_mgr->SetGrowthFactor(1.0f);
     }
 
@@ -1588,24 +1725,28 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     // Process FSI solids - load BCE data to data manager
     // Note: counters must be regenerated, as they are used as offsets for global indices
     m_num_rigid_bodies = 0;
+    m_num_flex1D_meshes = 0;
+    m_num_flex2D_meshes = 0;
     m_num_flex1D_nodes = 0;
     m_num_flex1D_elements = 0;
     m_num_flex2D_nodes = 0;
     m_num_flex2D_elements = 0;
 
     for (const auto& b : m_bodies) {
-        AddBCEFsiBody(b);
+        AddRigidBodyBce(b);
         m_num_rigid_bodies++;
     }
 
     for (const auto& m : m_meshes1D) {
-        AddBCEFsiMesh1D(m);
+        AddFeaMesh1DBce(m);
+        m_num_flex1D_meshes++;
         m_num_flex1D_nodes += m.fsi_mesh->GetNumNodes();
         m_num_flex1D_elements += m.fsi_mesh->GetNumElements();
     }
 
     for (const auto& m : m_meshes2D) {
-        AddBCEFsiMesh2D(m);
+        AddFeaMesh2DBce(m);
+        m_num_flex1D_meshes++;
         m_num_flex2D_nodes += m.fsi_mesh->GetNumNodes();
         m_num_flex2D_elements += m.fsi_mesh->GetNumElements();
     }
@@ -1661,7 +1802,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
             double z = m_data_mgr->sphMarkers_H->posRadH[i].z;
             double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
             m_data_mgr->sphMarkers_H->rhoPresMuH[i].y = p;
-            if (m_paramsH->elastic_SPH) {
+            if (m_paramsH->physics_problem == PhysicsProblem::CRM) {
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].x = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].y = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].z = -p;
@@ -1679,12 +1820,17 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     DeriveDomainGridQuantities();
+
     // Update the speed of sound
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            m_paramsH->Cs = 10 * m_paramsH->v_Max;
+            break;
+        case PhysicsProblem::CRM:
+            m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+            break;
     }
+
     // ----------------
 
     // Hack to prevent bringing in Chrono core headers in GPU code
@@ -1702,28 +1848,62 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
             break;
     }
 
-    // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
-    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
-    m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
-                           m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+    // Load solid active domains (AABBs expressed in local frames) and check if using active domains (at least one AABB not inverted).
+    // If a default active domain was specified, use it for any solid that has an inverted active domain AABB.
+    m_use_ad = m_use_default_ad;
+
+    for (auto& aabb : m_ad_body) {
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+    }
+
+    std::vector<ChAABB> ad_node1D(m_num_flex1D_nodes, ChAABB());
+    size_t in1 = 0;
+    for (size_t i = 0; i < m_num_flex1D_meshes; i++) {
+        ChAABB aabb = m_ad_mesh1D[i];
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+        for (unsigned int j = 0; j < m_meshes1D[i].fsi_mesh->GetNumNodes(); j++)
+            ad_node1D[in1++] = aabb;
+    }
+
+    std::vector<ChAABB> ad_node2D(m_num_flex2D_nodes, ChAABB());
+    size_t in2 = 0;
+    for (size_t i = 0; i < m_num_flex2D_meshes; i++) {
+        ChAABB aabb = m_ad_mesh2D[i];
+        if (aabb.IsInverted() && m_use_default_ad)
+            aabb = m_ad_default;
+        if (!aabb.IsInverted())
+            m_use_ad = true;
+        for (unsigned int j = 0; j < m_meshes2D[i].fsi_mesh->GetNumNodes(); j++)
+            ad_node2D[in2++] = aabb;
+    }
+
+    // If active domains are not used then don't overly resize the arrays
+    if (!m_use_ad)
+        m_data_mgr->SetGrowthFactor(1.0f);
+
+    // Initialize the data manager: set reference arrays and counters, cache solid active domains, and resize simulation arrays.
+    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors.
+    m_data_mgr->Initialize(m_num_rigid_bodies,                                              //
+                           m_num_flex1D_meshes, m_num_flex1D_nodes, m_num_flex1D_elements,  //
+                           m_num_flex2D_meshes, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+                           m_use_ad, m_ad_body, ad_node1D, ad_node2D,                       //
                            node_directions_mode);
 
     // Load the initial body and mesh node states
     ChDebugLog("load initial states");
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
-    // Create BCE and SPH worker objects
+    // Create and initialize the BCE and SPH worker objects
     m_bce_mgr = chrono_types::make_unique<SphBceManager>(*m_data_mgr, node_directions_mode, m_verbose, m_check_errors);
-    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
-
-    // Initialize worker objects
+    m_fluid_dynamics = chrono_types::make_unique<SphFluidDynamics>(*m_data_mgr, m_verbose, m_check_errors);
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
-
-    /// If active domains are not used then don't overly resize the arrays
-    if (!m_paramsH->use_active_domain) {
-        m_data_mgr->SetGrowthFactor(1.0f);
-    }
 
     // ----------------
 
@@ -1748,7 +1928,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_is_initialized = true;
 }
 
-void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
+void ChFsiFluidSystemSPH::AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh) {
     const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
@@ -1774,7 +1954,7 @@ void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
     }
 }
 
-void ChFsiFluidSystemSPH::AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh) {
+void ChFsiFluidSystemSPH::AddFeaMesh2DBce(const FsiSphMesh2D& fsisph_mesh) {
     const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
 
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
@@ -1841,6 +2021,9 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Zero-out step data (derivatives and intermediate vectors)
     m_data_mgr->ResetData();
 
+    // Calculate current solid BCE particle accelerations
+    m_bce_mgr->updateBCEAcc();
+
     // Advance fluid particle states from `time` to `time+step`
     m_fluid_dynamics->DoStepDynamics(m_data_mgr->sortedSphMarkers2_D, time, step, m_paramsH->integration_scheme);
 
@@ -1853,13 +2036,13 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
 }
 
 void ChFsiFluidSystemSPH::OnExchangeSolidForces() {
-    m_bce_mgr->Rigid_Forces_Torques();
-    m_bce_mgr->Flex1D_Forces();
-    m_bce_mgr->Flex2D_Forces();
+    m_bce_mgr->CalcRigidBodyForces();
+    m_bce_mgr->CalcFeaMesh1DForces();
+    m_bce_mgr->CalcFeaMesh2DForces();
 }
 
 void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
-    if (m_num_rigid_bodies == 0 && m_num_flex1D_elements == 0 && m_num_flex2D_elements == 0)
+    if (m_num_rigid_bodies == 0 && m_num_flex1D_meshes == 0 && m_num_flex2D_meshes == 0)
         return;
 
     m_bce_mgr->UpdateBodyMarkerState();
@@ -1881,10 +2064,14 @@ void ChFsiFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
 
 void ChFsiFluidSystemSPH::SaveParticleData(const std::string& dir) const {
     SynchronizeCopyStream();
-    if (m_paramsH->elastic_SPH)
-        saveParticleDataCRM(dir, m_output_level, *m_data_mgr);
-    else
-        saveParticleDataCFD(dir, m_output_level, *m_data_mgr);
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            saveParticleDataCFD(dir, m_output_level, *m_data_mgr);
+            break;
+        case PhysicsProblem::CRM:
+            saveParticleDataCRM(dir, m_output_level, *m_data_mgr);
+            break;
+    }
 }
 
 void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
@@ -1918,7 +2105,7 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
     // Consolidation pressure is only used in the MCC rheology model.
     // At q = 0 the modified Cam-Clay yield ellipse meets the p axis at `consolidation_pressure`,
     // so an admissible initial state needs consolidation_pressure >= pressure.
-    if (m_paramsH->elastic_SPH && m_paramsH->rheology_model_crm == RheologyCRM::MCC)
+    if (m_paramsH->physics_problem == PhysicsProblem::CRM && m_paramsH->rheology_model_crm == RheologyCRM::MCC)
         ChAssertAlways(pressure > 0 && consolidation_pressure >= pressure);
 
     m_data_mgr->AddSphParticle(ToReal3(pos), density, pressure, viscosity, ToReal3(vel), ToReal3(tau_diag), ToReal3(tau_offdiag), consolidation_pressure);
@@ -2831,12 +3018,15 @@ ChVector3d ChFsiFluidSystemSPH::GetGravitationalAcceleration() const {
 }
 
 double ChFsiFluidSystemSPH::GetSoundSpeed() const {
-    // This can be called even before Initialize() is called (For instance DepthPressurePropertiesCallback in
-    // ChFsiProblemSPH) This means that we need to update Cs based on the current set of parameters.
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    // Since this function can be called before Initialize (e.g., in DepthPressurePropertiesCallback in ChFsiProblemSPH),
+    // the speed of sound must be updated based on the current set of parameters
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            m_paramsH->Cs = 10 * m_paramsH->v_Max;
+            break;
+        case PhysicsProblem::CRM:
+            m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+            break;
     }
     return m_paramsH->Cs;
 }
@@ -2861,8 +3051,8 @@ size_t ChFsiFluidSystemSPH::GetNumRigidBodyMarkers() const {
     return m_data_mgr->countersH->numRigidMarkers;
 }
 
-size_t ChFsiFluidSystemSPH::GetNumFlexBodyMarkers() const {
-    return m_data_mgr->countersH->numFlexMarkers1D + m_data_mgr->countersH->numFlexMarkers2D;
+size_t ChFsiFluidSystemSPH::GetNumFleaMeshMarkers() const {
+    return m_data_mgr->countersH->numMesh1DMarkers + m_data_mgr->countersH->numMesh2DMarkers;
 }
 
 size_t ChFsiFluidSystemSPH::GetNumBoundaryMarkers() const {

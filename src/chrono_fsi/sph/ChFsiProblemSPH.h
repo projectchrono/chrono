@@ -58,12 +58,12 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Access the underlying MBS system.
     ChSystem& GetMultibodySystem() { return m_sysFSI->GetMultibodySystem(); }
 
-    /// Enable solution of a CFD problem.
+    /// Enable solution of a CFD SPH problem.
     void SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& fluid_props);
 
-    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// Enable solution of a CRM SPH problem.
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
-    void SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props);
+    void SetCrmSPH(const ChFsiFluidSystemSPH::SoilProperties& mat_props);
 
     /// Set SPH method parameters.
     void SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params);
@@ -91,10 +91,16 @@ class CH_FSI_API ChFsiProblemSPH {
     /// This function must be called before Initialize().
     void AddRigidBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded);
 
+    /// Set the active domain for the specified body (assume already added with AddRigidBody).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainBody(std::shared_ptr<ChBody> body, const ChAABB& aabb);
+
     /// Return the number of BCE markers associated with the specified rigid body.
     size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
 
 #ifdef CHRONO_FEA
+
     /// Enable use and set method of obtaining FEA node directions for generating FEA BCE marker location.
     /// By default, node directions are not used, resulting in linear interpolation between nodes.
     /// If enabled, exact node direction vectors are received from the FEA solver (NodeDirectionsMode::EXACT), or else
@@ -118,7 +124,19 @@ class CH_FSI_API ChFsiProblemSPH {
     /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     void AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+
+    /// Set the active domain for the nodes of the specified mesh (assumed already added with AddFeaMesh).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh(std::shared_ptr<fea::ChMesh> mesh, const ChAABB& aabb);
+
 #endif
+
+    /// Set the active domain for all FSI solids (bodies and mesh nodes) to an AABB of given dimensions, centered at the solid origin.
+    /// If this function is called (and therefore a default AABB  is defined), the default AABB will be used for all solids
+    /// with an invalid (inverted) AABB; this includes solids for which an explicit AABB was not provided.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomain(const ChVector3d& box_dim);
 
     /// Register a callback for setting SPH particle initial properties.
     /// If no custom callback is used, the default ChFsiFluidSystemSPH::ParticlePropertiesCallback is used.
@@ -216,8 +234,6 @@ class CH_FSI_API ChFsiProblemSPH {
     std::string GetPhysicsProblemString() const { return m_sysSPH->GetPhysicsProblemString(); }
     std::string GetSphIntegrationSchemeString() const { return m_sysSPH->GetSphIntegrationSchemeString(); }
 
-    void SetActiveDomain(const ChVector3d& box_dim) { m_sysSPH->SetActiveDomain(box_dim); }
-
   protected:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
@@ -289,6 +305,10 @@ class CH_FSI_API ChFsiProblemSPH {
     ChAABB m_sph_aabb;                                 ///< SPH volume bounding box
 
     std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
+#ifdef CHRONO_FEA
+    std::unordered_map<std::shared_ptr<fea::ChMesh>, size_t> m_fsi_meshes1D;  ///< map from ChMesh pointer to index in FSI mesh1D list
+    std::unordered_map<std::shared_ptr<fea::ChMesh>, size_t> m_fsi_meshes2D;  ///< map from ChMesh pointer to index in FSI mesh2D list
+#endif
 
     std::shared_ptr<ChFsiFluidSystemSPH::ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 

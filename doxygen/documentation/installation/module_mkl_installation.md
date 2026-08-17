@@ -47,7 +47,7 @@ Intel MKL 2023 is known to work fine with Eigen (and therefore Chrono) on both L
 ### Set up the environment
 
 Before creating executables that can actually leverage the Intel MKL library, you have to make sure that the Intel _run-time_ libraries are available to the executable itself. This is achieved by setting the PATH environmental variable in a proper way. To do so, two options are available:
-+ the [official method proposed by Intel](https://software.intel.com/content/www/us/en/develop/documentation/onemkl-windows-developer-guide/top/getting-started/setting-environment-variables.html); this method _temporarly_ sets the PATH variable only from the current command prompt session; this means that, if you run it from Visual Studio or from a new command prompt, this method is difficult/cumbersome for you;
++ the [official method proposed by Intel](https://software.intel.com/content/www/us/en/develop/documentation/onemkl-windows-developer-guide/top/getting-started/setting-environment-variables.html); this method _temporarily_ sets the PATH variable only from the current command prompt session; this means that, if you run it from Visual Studio or from a new command prompt, this method is difficult/cumbersome for you;
 + the unofficial method, for which the PATH variable is set manually, but _once and for all_; description follows...
 
 The following unofficial method needs that you set the environmental variable of your system.

@@ -21,7 +21,7 @@
 
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/optix/ChOptixEngine.h"
-#include "chrono_sensor/optix/scene/ChScene.h"
+#include "chrono_sensor/optix/ChOptixScene.h"
 
 namespace chrono {
 namespace sensor {
@@ -64,7 +64,7 @@ class CH_SENSOR_API ChVisualSystemOptix : public ChVisualSystem {
     /// Set the maximum number of allowable optix engines. The manager will spawn up to this number of optix engines
     /// (separate threads for rendering) based on the update rate of the sensors. Sensors with similar update rates will
     /// be grouped on the same engine to reduce the number of scene updates that are required as this is a major
-    /// bottleneck in the multithreading paradigm of the render engine.
+    /// bottleneck in the multi-threading paradigm of the render engine.
     /// @param num_groups The maximum number of optix engines the manager is allowed to create.
     void SetMaxEngines(int num_groups);
 
@@ -76,9 +76,9 @@ class CH_SENSOR_API ChVisualSystemOptix : public ChVisualSystem {
     /// @return The max number of recursions used in ray tracing
     int GetRayRecursions() { return m_optix_reflections; }
 
-    /// Public pointer to the scene. This is used to specify additional componenets include lights, background colors,
+    /// Public pointer to the scene. This is used to specify additional components include lights, background colors,
     /// etc
-    std::shared_ptr<ChScene> scene;
+    std::shared_ptr<ChOptixScene> scene;
 
   protected:
     /// Update the visualization system at the current time step.
@@ -89,7 +89,7 @@ class CH_SENSOR_API ChVisualSystemOptix : public ChVisualSystem {
     int m_num_keyframes;      ///< number of keyframes to use
 
     std::vector<std::shared_ptr<ChOptixEngine>> m_engines;  ///< The optix engine(s) used for rendered sensors
-    std::vector<std::shared_ptr<ChSensor>> m_sensor_list;  ///< List of all sensors for which the manager is responsible
+    std::vector<std::shared_ptr<ChSensor>> m_sensor_list;   ///< List of all sensors for which the manager is responsible
 
     int m_allowable_engines = 1;  ///< Default maximum number of allowable engines
 };

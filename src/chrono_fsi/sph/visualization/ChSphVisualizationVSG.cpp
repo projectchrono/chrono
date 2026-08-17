@@ -72,9 +72,9 @@ class FSISPHStatsVSG : public vsg3d::ChGuiComponentVSG {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Flex body BCE:");
+            ImGui::TextUnformatted("FEA mesh BCE:");
             ImGui::TableNextColumn();
-            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumFlexBodyMarkers()));
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_sysSPH->GetNumFleaMeshMarkers()));
 
             ImGui::TableNextRow();
 
@@ -311,7 +311,7 @@ void ChSphVisualizationVSG::OnInitialize() {
         m_flex_bce_cloud->SetName("bce_flex");
         m_flex_bce_cloud->SetTag(ParticleCloudTag::BCE_FLEX);
         m_flex_bce_cloud->SetFixed(false);
-        for (int i = 0; i < m_sysSPH->GetNumFlexBodyMarkers(); i++) {
+        for (int i = 0; i < m_sysSPH->GetNumFleaMeshMarkers(); i++) {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
         auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 4);
@@ -323,8 +323,7 @@ void ChSphVisualizationVSG::OnInitialize() {
     }
 
     // Cache information about active domains
-    m_use_active_boxes = m_sysSPH->GetParams().use_active_domain;
-    m_active_box_hsize = ToChVector(m_sysSPH->GetParams().bodyActiveDomain);
+    m_use_active_boxes = m_sysSPH->m_use_ad;
 
     // Create colormap
     m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
@@ -358,7 +357,7 @@ void ChSphVisualizationVSG::OnBindAssets() {
     if (m_use_active_boxes) {
         // Loop over all FSI bodies and bind a model for its active box
         for (const auto& fsi_body : m_sysFSI->GetBodies())
-            BindActiveBox(fsi_body->body, fsi_body->body->GetTag());
+            BindActiveBox(fsi_body->body, m_sysSPH->m_ad_body[fsi_body->index] , fsi_body->body->GetTag());
     }
 
     if (m_vsys->IsInitialized()) {
@@ -390,7 +389,7 @@ void ChSphVisualizationVSG::BindComputationalDomain() {
 
     auto transform = vsg::MatrixTransform::create();
     transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
-    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
+    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(ChVisualShape::Type::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", nullptr);
@@ -402,13 +401,17 @@ void ChSphVisualizationVSG::BindComputationalDomain() {
     m_activeBoxScene->addChild(mask, group);
 }
 
-void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag) {
+void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, const ChAABB& aabb, int tag) {
     auto material = chrono_types::make_shared<ChVisualMaterial>();
     material->SetDiffuseColor(m_active_box_color);
 
+    m_ad_body[obj.get()] = aabb;
+    auto hsize = aabb.Size() / 2;
+    auto center = aabb.Center();
+
     auto transform = vsg::MatrixTransform::create();
-    transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
-    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true, 2);
+    transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos() + center, QUNIT), hsize);
+    auto group = m_vsys->GetVSGShapeBuilder()->CreatePbrShape(ChVisualShape::Type::BOX, material, transform, true, 2);
 
     // Set group properties
     group->setValue("Object", obj);
@@ -819,7 +822,7 @@ void ChSphVisualizationVSG::OnRender() {
     p += m_sysSPH->GetNumRigidBodyMarkers();
 
     if (m_flex_bce_markers) {
-        bulkWritePositions(m_flex_bce_cloud, p, m_sysSPH->GetNumFlexBodyMarkers());
+        bulkWritePositions(m_flex_bce_cloud, p, m_sysSPH->GetNumFleaMeshMarkers());
     }
 
     // Update positions of all active boxes
@@ -834,7 +837,10 @@ void ChSphVisualizationVSG::OnRender() {
             auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
             transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
         } else {
-            transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
+            const ChAABB& aabb = m_ad_body[obj.get()];
+            auto hsize = aabb.Size() / 2;
+            auto center = aabb.Center();
+            transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos() + center, QUNIT), hsize);
         }
     }
 }

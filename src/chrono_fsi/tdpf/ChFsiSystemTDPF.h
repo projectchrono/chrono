@@ -42,8 +42,8 @@ class CH_FSI_API ChFsiSystemTDPF : public ChFsiSystem {
     ChFsiFluidSystemTDPF& GetFluidSystemTDPF() const;
 
     /*
-    // Allow using the AddFsiBody method from parent class (in case we want additional AddFsiBody functions here)
-    using ChFsiSystem::AddFsiBody;
+    // Allow using the AddRigidBody method from parent class (in case we want additional AddRigidBody functions here)
+    using ChFsiSystem::AddRigidBody;
     */
 
     /// Set input file name with hydro data (HDF5 format).

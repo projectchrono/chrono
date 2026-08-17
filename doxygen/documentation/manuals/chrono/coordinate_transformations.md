@@ -7,7 +7,7 @@ Translation and rotations, together with their transformations, are key elements
 While translations in the 3D space are _exclusively_ expressed as [vectors](#manual_ChVector3), the user might encounter either [quaternions](#manual_ChQuaternion) or, more rarely, [rotation matrices](#manual_ChMatrix33) to represent rotations (usually for performance reasons).  
 The recommendation is to **rely on quaternions** wherever possible and to leverage the appropriate conversions to rotations matrices if required.
 
-Chrono relies on different objects to represents coordinate systems ([ChCoordsys](#manual_ChCoordsys), [ChFrame](#manual_ChFrame), [ChFrameMoving](#manual_ChFrameMoving), @ref chrono::ChMarker "ChMarker", ...) in order to leverage different features and optimizations.  
+Chrono relies on different objects to represent coordinate systems ([ChCoordsys](#manual_ChCoordsys), [ChFrame](#manual_ChFrame), [ChFrameMoving](#manual_ChFrameMoving), @ref chrono::ChMarker "ChMarker", ...) in order to leverage different features and optimizations.  
 However, the user is usually requested to deal with [ChCoordsys](#manual_ChCoordsys) or [ChFrame](#manual_ChFrame) only, on which we recommend the beginner user to focus on.
 
 
@@ -82,7 +82,7 @@ q_3
 \right\}
 \f]
 
-in which should be noted that the scalar part is at the first position.
+in which it should be noted that the scalar part is at the first position.
 
 Given the template nature of the class, it is required to specify the scalar type; however, useful predefined specializations are offered, e.g. `ChQuaterniond` for the double type.
 
@@ -174,7 +174,7 @@ A @ref chrono::ChFrame represents a coordinate system in 3D space like ChCoordsy
 
 ![](http://www.projectchrono.org/assets/manual/coord_frame.png)
 
-As shown in the picture above, a ChFrame object indicates how "rotated" and "displaced" a coordinate system **b** is with respect to another coordinate system **a**. Many time **a** is the absolute reference frame.
+As shown in the picture above, a ChFrame object indicates how "rotated" and "displaced" a coordinate system **b** is with respect to another coordinate system **a**. Many times **a** is the absolute reference frame.
 
 <div class="ce-info">
 In what follows the notation
@@ -325,7 +325,7 @@ that is not the case with *= or >>=, which leads to improved efficiency. In this
 Both the * and >> operations support an inverse transformation. 
 Example: in the relation 
 X_ca = X_cb >> X_ba; 
-supposed that X_ca and X_cb are known and one is interested in computing X_ba. 
+suppose that X_ca and X_cb are known and one is interested in computing X_ba. 
 Pre-multiplying both sides of the equation by the inverse of X_cb yields 
 
 ~~~{.cpp}
@@ -406,7 +406,7 @@ X_ca = X_ba * X_cb;
 ~~~
 
 This is _exactly the same algebra_ used in ChFrame and ChCoordsys, 
-except that this time also the velocities and accelerations are also transformed.
+except that this time the velocities and accelerations are also transformed.
 
 Note that the transformation automatically takes into account the 
 contributions of complex terms such as centripetal accelerations, 

@@ -35,6 +35,11 @@ class ChSensor;
 /// @addtogroup sensor_filters
 /// @{
 
+/// Sentinel for a filter that has not been attached to a sensor, and for a sensor that has not been
+/// registered with a ChSensorManager. Seeding from a sentinel would silently correlate streams, so
+/// ChSensorManager::GetDeterministicSeed throws on it instead.
+static const unsigned int CH_SENSOR_UNASSIGNED_RNG_ID = 0xFFFFFFFFu;
+
 /// Base class for all filters that can be applied to a sensor after initial rendering. Any filters that will be added
 /// to a sensor must inherit from here.
 class CH_SENSOR_API ChFilter {
@@ -62,6 +67,18 @@ class CH_SENSOR_API ChFilter {
     /// protected constructor for the filter which requires a name as input.
     /// @param name A string name of the filter.
     ChFilter(std::string name) { Name() = name; }
+
+    /// This filter's RNG stream index within its sensor, for filters that own a cuRAND buffer.
+    ///
+    /// Needed because (sensor, purpose) is NOT a unique stream key: PushFilter applies no type or
+    /// duplicate check, so two filters of the same kind can sit on one sensor, each with its own
+    /// RNG buffer, and both would answer to the same (sensor, purpose) pair. This index separates
+    /// them. It is an attach-order counter, not a list position, because ChOptixEngine prepends its
+    /// render filter with PushFilterFront after the user's filters are already in place, which would
+    /// renumber a positional index.
+    /// @return The index assigned when this filter was attached, or CH_SENSOR_UNASSIGNED_RNG_ID if
+    /// it never was.
+    unsigned int GetRngStreamIndex() const { return m_rng_stream_index; }
     /// Error function for invalid filter graph: null buffer found
     void InvalidFilterGraphNullBuffer(std::shared_ptr<ChSensor> pSensor);
     /// Error function for invalid filter graph: type mismatch in graph
@@ -71,6 +88,12 @@ class CH_SENSOR_API ChFilter {
 
   private:
     std::string m_name;  ///< stores the name of the filter.
+
+    /// Assigned by ChSensor when the filter is attached. Deliberately private with no public
+    /// setter: a user who could change it could silently collide two RNG streams.
+    unsigned int m_rng_stream_index = CH_SENSOR_UNASSIGNED_RNG_ID;
+
+    friend class ChSensor;  ///< assigns m_rng_stream_index in PushFilter / PushFilterFront
 };
 
 /// @}

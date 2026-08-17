@@ -21,10 +21,21 @@ vec2CH::vec2CH(const chrono::ChVector2d& vec) {
     y = static_cast<float>(vec.y());
 }
 
+vec2CH::vec2CH(const chrono::ChVector2f& vec) {
+    x = vec.x();
+    y = vec.y();
+}
+
 vec3CH::vec3CH(const chrono::ChVector3d& vec) {
     x = static_cast<float>(vec.x());
     y = static_cast<float>(vec.y());
     z = static_cast<float>(vec.z());
+}
+
+vec3CH::vec3CH(const chrono::ChVector3f& vec) {
+    x = vec.x();
+    y = vec.y();
+    z = vec.z();
 }
 
 vec3CH::vec3CH(const chrono::ChColor& col) {
@@ -64,6 +75,8 @@ dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector3d& scale
 }
 
 dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, double scale) : dmat4CH(frame, chrono::ChVector3d(scale)) {}
+
+dmat4CH::dmat4CH(const chrono::ChFrame<>& frame) : dmat4CH(frame, 1.0) {}
 
 }  // namespace vsg
 

@@ -12,6 +12,8 @@
 // Authors: Asher Elmquist, Radu Serban
 // =============================================================================
 
+#include <filesystem>
+
 #include "chrono/assets/ChVisualMaterial.h"
 
 namespace chrono {
@@ -36,36 +38,66 @@ ChVisualMaterial::ChVisualMaterial()
       class_id(0),
       instance_id(0),
       emissive_power(0.f),
-      bsdf_type(BSDFType::PRINCIPLED) {} 
+      bsdf_type(BSDFType::PRINCIPLED),
+      use_hapke(false),
+      hapke_w(0.f),
+      hapke_b(0.f),
+      hapke_c(0.f),
+      hapke_B_s0(0.f),
+      hapke_h_s(0.f),
+      hapke_phi(0.f),
+      hapke_theta_p(0.f) {}
+
+static void CheckFilename(const std::string& filename) {
+    auto path = std::filesystem::path(filename);
+    if (!std::filesystem::exists(path)) {
+        std::cerr << "Error: texture file '" << filename << "' does not exist." << std::endl;
+        throw std::runtime_error("Texture file does not exist");
+    }
+    if (!std::filesystem::is_regular_file(path)) {
+        std::cerr << "Error: texture file '" << filename << "' invalid." << std::endl;
+        throw std::runtime_error("Texture file is invalid");    
+    }
+}
 
 void ChVisualMaterial::SetKdTexture(const std::string& filename) {
+    CheckFilename(filename);
     kd_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetKsTexture(const std::string& filename) {
+    CheckFilename(filename);
     ks_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetKeTexture(const std::string& filename) {
+    CheckFilename(filename);
     ke_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetNormalMapTexture(const std::string& filename) {
+    CheckFilename(filename);
     normal_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetMetallicTexture(const std::string& filename) {
+    CheckFilename(filename);
     metallic_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetRoughnessTexture(const std::string& filename) {
+    CheckFilename(filename);
     roughness_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetOpacityTexture(const std::string& filename) {
+    CheckFilename(filename);
     opacity_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetWeightTexture(const std::string& filename) {
+    CheckFilename(filename);
     weight_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetDisplacementTexture(const std::string& filename) {
+    CheckFilename(filename);
     disp_texture.SetFilename(filename);
 }
 void ChVisualMaterial::SetAmbientOcclusionTexture(const std::string& filename) {
+    CheckFilename(filename);
     ao_texture.SetFilename(filename);
 }
 
@@ -226,13 +258,12 @@ void ChVisualMaterial::ArchiveIn(ChArchiveIn& archive_in) {
 
 // -----------------------------------------------------------------------------
 
-static std::shared_ptr<ChVisualMaterial> default_material;
-
 std::shared_ptr<ChVisualMaterial> ChVisualMaterial::Default() {
-    if (!default_material) {
-        default_material = chrono_types::make_shared<ChVisualMaterial>();
-    }
-
+    // Function-local static, not a namespace-scope one guarded by an if. C++11 guarantees that
+    // initialization of a function-local static is thread-safe; the previous
+    // "if (!default_material) default_material = ..." on a namespace-scope pointer was not, and
+    // Chrono::Sensor calls this from its own scene thread.
+    static std::shared_ptr<ChVisualMaterial> default_material = chrono_types::make_shared<ChVisualMaterial>();
     return default_material;
 }
 

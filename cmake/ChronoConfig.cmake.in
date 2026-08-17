@@ -306,10 +306,69 @@ if(CHRONO_OPENMP_CXX_AVAILABLE AND @CH_ENABLE_OPENMP@ AND CHRONO_CXX_FOUND)
 endif()
 
 #-------------------------------------------------------------------------------
-# Enable CUDA if necessary
+# GPU backend actually used to build Chrono ("CUDA", "HIP", or "NONE")
+#
+# Both result variables are initialised unconditionally BEFORE either probe runs.
+# The component gates below read them, and only one probe executes, so leaving
+# either one uninitialised would let a value already present in the consumer's
+# scope (a stale cache entry, or a previous find_package of a differently
+# configured Chrono) decide a gate.
 #-------------------------------------------------------------------------------
 
-if(Chrono_DEM_REQUESTED OR Chrono_FSI_SPH_REQUESTED OR Chrono_SENSOR_REQUESTED)
+# The backend each GPU component was actually built with. There is no longer a
+# single build-wide answer: components resolve independently, so a consumer
+# must be told per component which language, if any, it needs enabled.
+#
+# Empty means the component was not built at all.
+set(CHRONO_DEM_GPU_BACKEND     "@CHRONO_DEM_BACKEND@")
+set(CHRONO_FSI_SPH_GPU_BACKEND "@CHRONO_FSISPH_BACKEND@")
+
+# Chrono::Sensor needs CUDA only for its optional OptiX renderer; its default
+# Vulkan RT renderer is vendor-neutral. Keying on the module would force a
+# pointless CUDA search on consumers of an AMD or CPU-only Sensor build.
+set(CHRONO_SENSOR_USES_OPTIX   "@CH_USE_SENSOR_OPTIX@")
+
+set(CHRONO_GPU_VENDOR          "@CHRONO_GPU_VENDOR_RESOLVED@")
+set(CHRONO_HIP_PLATFORM        "@CHRONO_HIP_PLATFORM@")
+
+set(CHRONO_CUDA_FOUND FALSE)
+set(CHRONO_HIP_FOUND FALSE)
+
+# Derive what the REQUESTED components actually need. A consumer asking only
+# for components that resolved to HIP must not have CUDA enabled behind its
+# back, and vice versa.
+set(_chrono_need_cuda FALSE)
+set(_chrono_need_hip FALSE)
+
+if(Chrono_DEM_REQUESTED)
+  if(CHRONO_DEM_GPU_BACKEND STREQUAL "CUDA")
+    set(_chrono_need_cuda TRUE)
+  elseif(CHRONO_DEM_GPU_BACKEND STREQUAL "HIP")
+    set(_chrono_need_hip TRUE)
+  endif()
+endif()
+
+if(Chrono_FSI_SPH_REQUESTED)
+  if(CHRONO_FSI_SPH_GPU_BACKEND STREQUAL "CUDA")
+    set(_chrono_need_cuda TRUE)
+  elseif(CHRONO_FSI_SPH_GPU_BACKEND STREQUAL "HIP")
+    set(_chrono_need_hip TRUE)
+  endif()
+endif()
+
+if(Chrono_SENSOR_REQUESTED AND CHRONO_SENSOR_USES_OPTIX)
+  set(_chrono_need_cuda TRUE)
+endif()
+
+#-------------------------------------------------------------------------------
+# Enable CUDA if necessary
+#
+# Skipped when Chrono was built against HIP: probing for a CUDA toolkit that was
+# never used would emit a spurious "CUDA not found" warning and leave
+# CHRONO_CUDA_FOUND false, which is the correct value but for the wrong reason.
+#-------------------------------------------------------------------------------
+
+if(_chrono_need_cuda)
   set(CMAKE_CUDA_COMPILER "@CMAKE_CUDA_COMPILER@" CACHE PATH "CUDA compiler")
   set(CUDAToolkit_DIR "@CUDAToolkit_LIBRARY_ROOT@" CACHE PATH "CUDAToolkit library location (should contain 'version.json')")
 
@@ -345,6 +404,56 @@ if(Chrono_DEM_REQUESTED OR Chrono_FSI_SPH_REQUESTED OR Chrono_SENSOR_REQUESTED)
       message("WARNING: CUDA not found")
     endif()
     mark_as_advanced(CLEAR CUDAToolkit_DIR)
+  endif()
+endif()
+
+#-------------------------------------------------------------------------------
+# Enable HIP if necessary
+#
+# Chrono::DEM and Chrono::FSI_SPH accept either GPU backend. Chrono::Sensor is
+# deliberately absent from this list: its ray-tracing paths need OptiX, which is
+# CUDA and NVIDIA only.
+#
+# A consumer of a HIP build does not need the HIP language enabled unless it
+# compiles its own HIP sources; it needs the imported hip::host target, which the
+# exported Chrono targets reference.
+#-------------------------------------------------------------------------------
+
+if(_chrono_need_hip)
+  set(CHRONO_ROCM_ROOT "@CHRONO_ROCM_ROOT@" CACHE PATH "ROCm root used to build Chrono")
+
+  # Do NOT mutate CMAKE_PREFIX_PATH here. This code runs in the CONSUMER's scope,
+  # so prepending the ROCm root would persist after find_package(Chrono) returns
+  # and would silently bias every later find_package in the consumer's project
+  # toward ROCm's bundled dependencies. Pass the search location to this one call
+  # instead, which is scoped to it and leaves the consumer's environment alone.
+  find_package(hip QUIET CONFIG PATHS "${CHRONO_ROCM_ROOT}" PATH_SUFFIXES lib/cmake/hip lib/cmake)
+
+  if(TARGET hip::host)
+    set(CHRONO_HIP_FOUND TRUE)
+    if(NOT Chrono_FIND_QUIETLY)
+      # Report where hip was actually resolved, not CHRONO_ROCM_ROOT. That variable
+      # records where ROCm was when Chrono was BUILT, and find_package is free to
+      # resolve a different installation from the consumer's environment, so printing
+      # it would send anyone debugging a ROCm problem to the wrong directory.
+      message(STATUS "HIP found (${hip_DIR})")
+    endif()
+    mark_as_advanced(FORCE CHRONO_ROCM_ROOT)
+  else()
+    if(NOT Chrono_FIND_QUIETLY)
+      # Distinguish "no hip package at all" from "hip package present but incomplete".
+      # Both land here, and reporting the first for the second sends the reader off to
+      # fix a search path that was never the problem.
+      if(hip_FOUND)
+        message("WARNING: Chrono was built with HIP and found the ROCm 'hip' package in "
+                "${hip_DIR}, but it does not provide the hip::host target. That ROCm "
+                "installation looks incomplete. Set CHRONO_ROCM_ROOT to a complete one.")
+      else()
+        message("WARNING: Chrono was built with HIP, but the ROCm 'hip' package was not found. "
+                "Set CHRONO_ROCM_ROOT to the ROCm installation.")
+      endif()
+    endif()
+    mark_as_advanced(CLEAR CHRONO_ROCM_ROOT)
   endif()
 endif()
 
@@ -669,12 +778,16 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "FSI_SPH")
 
-    if(NOT CHRONO_CUDA_FOUND)
-      message("WARNING: Chrono::FSI_SPH requires Cuda, but Cuda was not found")
+    if(NOT CHRONO_CUDA_FOUND AND NOT CHRONO_HIP_FOUND)
+      message("WARNING: Chrono::FSI_SPH requires a GPU backend (CUDA or HIP), but neither was found")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 
-    if(NOT CHRONO_THRUST_FOUND)
+    # Host-side Thrust is a CUDA-path requirement. HIP builds deliberately ignore
+    # the ROCm-packaged Thrust for host targets (see the Thrust search in
+    # src/CMakeLists.txt), and Chrono_fsisph builds without it, so requiring it
+    # here would reject a working HIP build.
+    if(NOT CHRONO_THRUST_FOUND AND NOT CHRONO_HIP_FOUND)
       message("WARNING: Chrono::FSI_SPH requires Thrust, but Thrust was not found")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
@@ -845,8 +958,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "DEM")
 
-    if(NOT CHRONO_CUDA_FOUND)
-      message("WARNING: Chrono::DEM requires Cuda, but Cuda was not found")
+    if(NOT CHRONO_CUDA_FOUND AND NOT CHRONO_HIP_FOUND)
+      message("WARNING: Chrono::DEM requires a GPU backend (CUDA or HIP), but neither was found")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 

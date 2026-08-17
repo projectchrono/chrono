@@ -12,6 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <iostream>
+#include <mutex>
+#include <set>
+
 #include "chrono/collision/ChCollisionShape.h"
 
 namespace chrono {
@@ -50,6 +54,30 @@ ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChContactMaterial>
 
 void ChCollisionShape::SetParentShape(std::shared_ptr<ChCollisionShape> parent) {
     m_parent = parent.get();
+}
+
+void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChCollisionShape>();
+    // serialize all member data:
+    archive_out << CHNVP(m_material);
+    archive_out << CHNVP(is_mutable);
+
+    ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
+    Type type = GetType();
+    archive_out << CHNVP(typemapper(type), "ChCollisionShape__Type");
+}
+
+void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChCollisionShape>();
+    // stream in all member data:
+    archive_in >> CHNVP(m_material);
+    archive_in >> CHNVP(is_mutable);
+
+    ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
+    Type type = GetType();
+    archive_in >> CHNVP(typemapper(type), "ChCollisionShape__Type");
 }
 
 std::string ChCollisionShape::GetTypeAsString(Type type) {
@@ -99,28 +127,19 @@ std::string ChCollisionShape::GetTypeAsString(Type type) {
     }
 }
 
-void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
-    // version number
-    archive_out.VersionWrite<ChCollisionShape>();
-    // serialize all member data:
-    archive_out << CHNVP(m_material);
-    archive_out << CHNVP(is_mutable);
+void ChCollisionShape::ReportUnsupported(Type type, const std::string& backend) {
+    // Collision models can be populated from more than one thread, so guard the record of what has been reported.
+    static std::mutex mutex;
+    static std::set<std::string> reported;
 
-    ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
-    Type type = GetType();
-    archive_out << CHNVP(typemapper(type), "ChCollisionShape__Type");
-}
+    std::string type_name = GetTypeAsString(type);
 
-void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
-    // version number
-    /*int version =*/archive_in.VersionRead<ChCollisionShape>();
-    // stream in all member data:
-    archive_in >> CHNVP(m_material);
-    archive_in >> CHNVP(is_mutable);
+    std::lock_guard<std::mutex> lock(mutex);
+    if (!reported.insert(backend + "/" + type_name).second)
+        return;
 
-    ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
-    Type type = GetType();
-    archive_in >> CHNVP(typemapper(type), "ChCollisionShape__Type");
+    std::cerr << "Warning: the " << backend << " system does not support collision shapes of type " << type_name
+              << "; the shape is excluded from the collision model. Further occurrences of this shape type are not reported." << std::endl;
 }
 
 }  // namespace chrono

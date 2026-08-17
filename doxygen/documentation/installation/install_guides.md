@@ -47,7 +47,7 @@ Additional Chrono functionality is provided through optional modules, enabled du
 
 #### Providing 3rd-party dependencies
 
-The core Chrono module (and hence all of Chrono) required the Eigen3 linear algebra (headers-only) library.
+The core Chrono module (and hence all of Chrono) requires the Eigen3 linear algebra (headers-only) library.
 
 Chrono optional modules often rely on third-party libraries that might require additional installation steps, as described in each module installation page.
 

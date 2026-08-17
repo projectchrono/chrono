@@ -13,7 +13,7 @@ The system is the cornerstone of a Chrono simulation.
 A Chrono simulation system is an object of class ChSystem. 
 See @ref chrono::ChSystem "ChSystem" for API details.
 
-Note that ChSystem is an abstract class: you must instantiate one of its specializations. In detail you can use of these sublclasses:
+Note that ChSystem is an abstract class: you must instantiate one of its specializations. In detail you can use these subclasses:
 
 - @ref chrono::ChSystemNSC "ChSystemNSC" for **Non Smooth Contacts** (NSC): in case of contacts a complementarity solver will take care of them using non-smooth dynamics; this is very efficient even with large time steps.
 - @ref chrono::ChSystemSMC "ChSystemSMC" for **SMooth Contacts** (SMC): contacts are handled using penalty methods, i.e. contacts are deformable; 
@@ -171,13 +171,13 @@ There are many integrator/solver settings that can affect the outcome of a simul
 
 ### Max. recovery speed 
 
-Bodies in contact that interpenetrate for various reasons, e.g., small numerical integration error, inconsistent initial conditions, etc., will not 'escape' this contact violation at a speed faster than this threshold. The recovery speed is in general problem dependent and is controlled by user as shown below. 
+Bodies in contact that interpenetrate for various reasons, e.g., small numerical integration error, inconsistent initial conditions, etc., will not 'escape' this contact violation at a speed faster than this threshold. The recovery speed is in general problem dependent and is controlled by the user as shown below. 
 
 ~~~{.cpp}
 my_system.SetMaxPenetrationRecoverySpeed(0.2);
 ~~~
 
-- Larger values allow a more aggressive correction of the penetration, yet this can lead to scenarios in which bodies in contact pop out fast or in stacking problems the stack becoming jittery, noisy   
+- Larger values allow a more aggressive correction of the penetration, yet this can lead to scenarios in which bodies in contact pop out fast or, in stacking problems, the stack becoming jittery and noisy   
 - A small threshold increases the risk that objects _sink_ into one another when integrator precision is low, for instance, when the solver has a small max number of iterations
 
   
@@ -192,7 +192,7 @@ my_system.SetMinBounceSpeed(0.1);
 ~~~
 - A higher value leads to more stable simulations but less physically realistic collisions
 
-- Lower values lead to a more physically realistic time evolution but require small integration time steps otherwise objects may keep bounce erratically
+- Lower values lead to a more physically realistic time evolution but require small integration time steps, otherwise objects may keep bouncing erratically
 
 
 

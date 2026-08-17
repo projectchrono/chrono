@@ -231,7 +231,7 @@ static void WriteConeVTK(const std::string& filename, std::shared_ptr<ChBody> bo
     }
 
     // Add base triangles (to close the cone if needed)
-    int center_index = vertices.size();
+    int center_index = (int)vertices.size();
     vertices.push_back(ChVector3d(0, 0, 0));  // Center of base
     for (int i = 0; i < resolution; i++) {
         int next = (i + 1) % resolution;
@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSizeCFD(time_step);
     sysFSI.SetStepsizeMBD(time_step);
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     if (gran_material == "sand") {
@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Invalid gran_material: " << gran_material << std::endl;
         return 1;
     }
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = d0_multiplier;
@@ -529,7 +529,7 @@ int main(int argc, char* argv[]) {
     double delta_h = cone_length / np_h;
     double cone_tip_radius = cone_diameter / 2 * delta_h / cone_length;
     auto cone_bce = sysSPH.CreatePointsTruncatedConeInterior(cone_diameter / 2, cone_tip_radius, cone_length - initial_spacing, true);
-    sysFSI.AddFsiBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
+    sysFSI.AddRigidBody(cone, cone_bce, ChFrame<>(VNULL, QUNIT), false);
 
     sysFSI.Initialize();
 

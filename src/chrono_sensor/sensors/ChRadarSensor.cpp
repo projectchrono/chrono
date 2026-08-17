@@ -30,15 +30,23 @@ ChRadarSensor::ChRadarSensor(std::shared_ptr<ChBody> parent,
                              float vfov,
                              float max_distance,
                              float clip_near)
-    : m_hFOV(hfov),
+#if defined(CHRONO_HAS_OPTIX)
+    : ChOptixSensor(parent, updateRate, offsetPose, w, h),
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    : ChVulkanSensor(parent, updateRate, offsetPose, w, h, VulkanPipelineType::RADAR),
+#else
+    : ChSensor(parent, updateRate, offsetPose),
+#endif
+      m_hFOV(hfov),
       m_vFOV(vfov),
       m_max_distance(max_distance),
-      m_clip_near(clip_near),
-      ChOptixSensor(parent, updateRate, offsetPose, w, h) {
+      m_clip_near(clip_near) {
+#ifdef CHRONO_HAS_OPTIX
     m_pipeline_type = PipelineType::RADAR;
+#endif
 
-    SetCollectionWindow(0);
-    SetLag(1 / updateRate);
+    SetCollectionWindow(0.f);
+    SetLag(1.f / updateRate);
 }
 
 ChRadarSensor::~ChRadarSensor() {}

@@ -23,7 +23,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_parsers/urdf/ChParserURDF.h"
 

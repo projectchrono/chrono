@@ -18,7 +18,7 @@ Here are the main features:
     * forward Euler
     * extended Taylor
     * centered difference
-    * [Chung](https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620372303)
+    * Chung (see [Chung and Lee](https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620372303))
 * single-GPU scaling up to 700 million frictionless elements or 200 million full-history frictional elements
 * triangular meshes (`obj` format) in order to facilitate co-simulation with a more full-featured solver (such as the ChSystem)
 
@@ -28,7 +28,7 @@ Here are the main features:
 - To **run** applications based on this module you need
     - an NVIDIA GPU
     - Linux or Windows
-- This module has been build/tested on both Windows 11 and Linux (Ubuntu 22.04, Fedora 40, and Arch Linux) with CUDA 12.3 and 12.8.
+- This module has been built/tested on both Windows 11 and Linux Ubuntu 22.04 with CUDA 12.9 and 13.2.
 
 ## Building instructions
    
@@ -47,4 +47,4 @@ Here are the main features:
 
 ## MacOS support
 
-This module cannot be built for MacOS, as Nvidia GPU hardware and CUDA are unsupported.
+This module cannot be built for MacOS, as NVIDIA GPU hardware and CUDA are unsupported.

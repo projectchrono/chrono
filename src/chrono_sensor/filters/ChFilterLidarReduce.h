@@ -17,8 +17,13 @@
 #ifndef CHFILTERLIDARREDUCE_H
 #define CHFILTERLIDARREDUCE_H
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/sensors/ChLidarSensor.h"
+
+#ifdef CHRONO_HAS_OPTIX
+#include <cuda.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -51,7 +56,9 @@ class CH_SENSOR_API ChFilterLidarReduce : public ChFilter {
     std::shared_ptr<SensorDeviceDIBuffer> m_buffer_out;  ///< for holding the output buffer
     LidarReturnMode m_ret;                               ///< for holding the return mode
     int m_reduce_radius;                                 ///< for holding the sample radius
+#ifdef CHRONO_HAS_OPTIX    
     CUstream m_cuda_stream;                              ///< reference to the cuda stream
+#endif
 };
 
 /// @}

@@ -15,20 +15,13 @@
 #include <iostream>
 #include <mutex>
 #include <set>
-#include <typeinfo>
-
-#if defined(__GNUC__) && __has_include(<cxxabi.h>)
-    #include <cstdlib>
-    #include <cxxabi.h>
-    #define CH_HAVE_CXA_DEMANGLE
-#endif
 
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
-ChVisualShape::ChVisualShape() : is_visible(true), is_mutable(false), is_double_faced(false) {}
+ChVisualShape::ChVisualShape(Type type) : m_type(type), is_visible(true), is_mutable(false), is_double_faced(false) {}
 
 int ChVisualShape::AddMaterial(std::shared_ptr<ChVisualMaterial> material) {
     material_list.push_back(material);
@@ -125,35 +118,58 @@ void ChVisualShape::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(material_list);
 }
 
-// Return a readable name for a type. MSVC already yields one; the Itanium ABI yields a mangled name, so demangle it.
-static std::string TypeName(const std::type_info& ti) {
-#ifdef CH_HAVE_CXA_DEMANGLE
-    int status = 0;
-    char* demangled = abi::__cxa_demangle(ti.name(), nullptr, nullptr, &status);
-    if (status == 0 && demangled) {
-        std::string name(demangled);
-        std::free(demangled);
-        return name;
+std::string ChVisualShape::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::BARREL:
+            return "BARREL";
+        case Type::BOX:
+            return "BOX";
+        case Type::CAPSULE:
+            return "CAPSULE";
+        case Type::CONE:
+            return "CONE";
+        case Type::CYLINDER:
+            return "CYLINDER";
+        case Type::DIE:
+            return "DIE";
+        case Type::ELLIPSOID:
+            return "ELLIPSOID";
+        case Type::GLYPH:
+            return "GLYPH";
+        case Type::LINE:
+            return "LINE";
+        case Type::MODELFILE:
+            return "MODELFILE";
+        case Type::PATH:
+            return "PATH";
+        case Type::ROUNDEDBOX:
+            return "ROUNDEDBOX";
+        case Type::ROUNDEDCYL:
+            return "ROUNDEDCYL";
+        case Type::SPHERE:
+            return "SPHERE";
+        case Type::SURFACE:
+            return "SURFACE";
+        case Type::TRIANGLEMESH:
+            return "TRIANGLEMESH";
+        default:
+            return "UNKNOWN_SHAPE";
     }
-    std::free(demangled);
-#endif
-    return ti.name();
 }
 
-void ReportUnsupportedVisualShape(const ChVisualShape& shape, const std::string& backend) {
+void ChVisualShape::ReportUnsupported(Type type, const std::string& backend) {
     // Visual models can be populated from more than one thread, so guard the record of what has been reported.
     static std::mutex mutex;
     static std::set<std::string> reported;
 
-    std::string type_name = TypeName(typeid(shape));
+    std::string type_name = GetTypeAsString(type);
 
     std::lock_guard<std::mutex> lock(mutex);
     if (!reported.insert(backend + "/" + type_name).second)
         return;
 
     std::cerr << "Warning: " << backend << " cannot render a visual shape of type '" << type_name
-              << "'; the shape will not be drawn. Further occurrences of this shape type are not reported."
-              << std::endl;
+              << "'; the shape will not be drawn. Further occurrences of this shape type are not reported." << std::endl;
 }
 
 }  // namespace chrono
