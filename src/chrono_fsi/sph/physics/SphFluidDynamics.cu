@@ -82,7 +82,7 @@ void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& 
     thrust::copy(in->posRadD.begin(), in->posRadD.begin() + m_data_mgr.countersH->numExtendedParticles, out->posRadD.begin());
     thrust::copy(in->velMasD.begin(), in->velMasD.begin() + m_data_mgr.countersH->numExtendedParticles, out->velMasD.begin());
     thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.begin() + m_data_mgr.countersH->numExtendedParticles, out->rhoPresMuD.begin());
-    if (m_data_mgr.paramsH->elastic_SPH) {
+    if (m_data_mgr.paramsH->physics_problem == PhysicsProblem::CRM) {
         thrust::copy(in->tauXxYyZzD.begin(), in->tauXxYyZzD.end(), out->tauXxYyZzD.begin());
         thrust::copy(in->tauXyXzYzD.begin(), in->tauXyXzYzD.end(), out->tauXyXzYzD.begin());
         thrust::copy(in->pcEvSvD.begin(), in->pcEvSvD.end(), out->pcEvSvD.begin());
@@ -645,7 +645,7 @@ __global__ void EulerStep_D(Real4* posRadD,
     // Euler step for velocity
     VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
 
-    if (paramsD.elastic_SPH) {
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
                      pcEvSvD[index], error_flag);
@@ -695,7 +695,7 @@ __global__ void MidpointStep_D(Real4* posRadD,
     // Advance velocity
     VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
 
-    if (paramsD.elastic_SPH) {
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
                      pcEvSvD[index], error_flag);

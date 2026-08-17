@@ -212,7 +212,7 @@ void FsiDataManager::AddSphParticle(Real3 pos, Real rho, Real pres, Real mu, Rea
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
 
-    if (paramsH->elastic_SPH) {
+    if (paramsH->physics_problem == PhysicsProblem::CRM) {
         sphMarkers_H->tauXyXzYzH.push_back(tau_offdiag);
         sphMarkers_H->tauXxYyZzH.push_back(tau_diag);
         if (paramsH->rheology_model_crm == RheologyCRM::MCC) {
@@ -230,7 +230,7 @@ void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->base_pressure, paramsH->mu0, GetMarkerCode(type)));
 
-    if (paramsH->elastic_SPH) {
+    if (paramsH->physics_problem == PhysicsProblem::CRM) {
         sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));
         sphMarkers_H->tauXxYyZzH.push_back(mR3(0.0));
         if (paramsH->rheology_model_crm == RheologyCRM::MCC) {
@@ -391,9 +391,10 @@ void FsiDataManager::ResetData() {
     //// TODO: ISPH only
     thrust::fill(bceAcc.begin(), bceAcc.end(), zero3);
 
-    //// TODO: elasticSPH only
+    //// TODO: CRM only
     thrust::fill(derivTauXxYyZzD.begin(), derivTauXxYyZzD.end(), zero3);
     thrust::fill(derivTauXyXzYzD.begin(), derivTauXyXzYzD.end(), zero3);
+
     //// Time step vectors
     thrust::fill(courantViscousTimeStepD.begin(), courantViscousTimeStepD.end(), std::numeric_limits<Real>::max());
     thrust::fill(accelerationTimeStepD.begin(), accelerationTimeStepD.end(), std::numeric_limits<Real>::max());

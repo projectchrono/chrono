@@ -37,15 +37,15 @@ namespace sph {
 
 /// Structure with FSI simulation parameters.
 struct ChFsiParamsSPH {
+    PhysicsProblem physics_problem;        ///< Physics problem type: (CFD or CRM)
+    RheologyCRM rheology_model_crm;        ///< Rheology model for CRM problems (MU_OF_I or MCC)
+
     IntegrationScheme integration_scheme;  ///< Integration scheme
     EosType eos_type;                      ///< Equation of state type (Tait or isothermal)
     ViscosityMethod viscosity_method;      ///< Viscosity treatment type (physics-based laminar flow or artificial)
     BoundaryMethod boundary_method;        ///< Boundary type (Adami or Holmes)
     KernelType kernel_type;                ///< Kernel type (Quadratic, cubic spline, quintic spline, quintic Wendland)
     ShiftingMethod shifting_method;        ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
-    RheologyCRM rheology_model_crm;        ///< Rheology model (MU_OF_I or MCC)
-
-    bool elastic_SPH;  ///< Set physics problem: CFD (false) or CRM granular (true)
 
     int3 gridSize;          ///< dx, dy, dz distances between particle centers
     Real3 worldOrigin;      ///< Origin point

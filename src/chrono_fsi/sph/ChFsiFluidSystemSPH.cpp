@@ -160,7 +160,6 @@ void ChFsiFluidSystemSPH::InitParams() {
     //// RADU TODO
     //// material model
 
-    // Elastic SPH
     SoilProperties mat_props;
     SetCrmSPH(mat_props);
     m_paramsH->physics_problem = PhysicsProblem::CRM;
@@ -388,114 +387,123 @@ void ChFsiFluidSystemSPH::SetUseVariableTimeStep(bool use_variable_time_step) {
 
 void ChFsiFluidSystemSPH::CheckSPHParameters() {
     // Check parameter compatibility with physics problem
-    if (m_paramsH->elastic_SPH) {
-        if (m_paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
-            cerr << "ERROR: Only WCSPH can be used for granular CRM problems." << endl;
-            throw std::runtime_error("ISPH not supported for granular CRM problems.");
-        }
-        if (m_paramsH->non_newtonian) {
-            cerr << "ERROR: Non-Newtonian viscosity model is not supported for granular CRM." << endl;
-            throw std::runtime_error("Non-Newtonian viscosity model is not supported for granular CRM.");
-        }
-        if (m_paramsH->viscosity_method == ViscosityMethod::LAMINAR) {
-            cerr << "ERROR: Viscosity type LAMINAR not supported for CRM granular. "
-                    " Use ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL."
-                 << endl;
-            throw std::runtime_error("Viscosity type LAMINAR not supported for CRM granular.");
-        }
-        if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_UNILATERAL) {
-            cerr << "WARNING: Viscosity type ARTIFICIAL_UNILATERAL may be less stable for CRM granular. "
-                    "Consider using ARTIFICIAL_BILATERAL or ensure the step size is small enough."
-                 << endl;
-        }
-        if (m_paramsH->mu0 > Real(0.001)) {
-            cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
-                 << " but the viscosity model is not laminar. This parameter will have no influence on simulation." << endl;
-        }
-
-        // Modified Cam-Clay parameter preconditions.
-        //
-        // Three of these, mcc_kappa > 0, mcc_lambda > mcc_kappa and mcc_M > 0, are the
-        // "critical consistency checks" the MCC manual page already published; nothing enforced
-        // them. The fourth, mcc_v_lambda > 0, is added here and to the manual at the same time.
-        // They are preconditions of the equations, not style:
-        // the elastic bulk modulus is K = v p / mcc_kappa, and the hardening update divides by
-        // (mcc_lambda - mcc_kappa). A user who transposes the two slopes gets a negative
-        // denominator, which inverts the hardening law, and the run then completes with no
-        // diagnostic of any kind while producing essentially zero bearing capacity.
-        //
-        // Gated on the PAIR of flags, not on the rheology alone: SetCfdSPH clears elastic_SPH
-        // without resetting rheology_model_crm, so a CFD problem can legitimately be left with
-        // rheology_model_crm == MCC and must not be rejected here.
-        if (m_paramsH->rheology_model_crm == RheologyCRM::MCC) {
-            auto mcc_fatal = [](const std::string& msg) {
-                cerr << "ERROR: " << msg << endl;
-                throw std::runtime_error(msg);
-            };
-            auto mcc_finite = [&](Real value, const char* name) {
-                if (!std::isfinite(double(value)))
-                    mcc_fatal(std::string("MCC parameter ") + name + " is not a finite number.");
-            };
-            // Stream formatting, not to_string: to_string formats a float with %f, so a small
-            // but legal value such as 1e-8 would be reported back to the user as "0.000000" by
-            // the very message that exists to tell them what they set.
-            auto mcc_num = [](Real value) {
-                std::ostringstream os;
-                os << value;
-                return os.str();
-            };
-
-            mcc_finite(m_paramsH->mcc_M, "mcc_M");
-            mcc_finite(m_paramsH->mcc_kappa, "mcc_kappa");
-            mcc_finite(m_paramsH->mcc_lambda, "mcc_lambda");
-            mcc_finite(m_paramsH->mcc_v_lambda, "mcc_v_lambda");
-
-            if (m_paramsH->mcc_kappa <= 0) {
-                mcc_fatal("MCC parameter mcc_kappa (swelling index) must be positive, but is " + mcc_num(m_paramsH->mcc_kappa) +
-                          ". The elastic bulk modulus is computed as K = v p / mcc_kappa.");
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CRM: {
+            if (m_paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
+                cerr << "ERROR: Only WCSPH can be used for granular CRM problems." << endl;
+                throw std::runtime_error("ISPH not supported for granular CRM problems.");
             }
-            if (m_paramsH->mcc_lambda <= m_paramsH->mcc_kappa) {
-                mcc_fatal("MCC requires mcc_lambda (compression index) > mcc_kappa (swelling index), but mcc_lambda = " + mcc_num(m_paramsH->mcc_lambda) +
-                          " and mcc_kappa = " + mcc_num(m_paramsH->mcc_kappa) + ". The hardening law divides by (mcc_lambda - mcc_kappa). " +
-                          "If these two look swapped, they probably are: lambda is the normal-consolidation-line slope and is the larger of the two.");
+            if (m_paramsH->non_newtonian) {
+                cerr << "ERROR: Non-Newtonian viscosity model is not supported for granular CRM." << endl;
+                throw std::runtime_error("Non-Newtonian viscosity model is not supported for granular CRM.");
             }
-            if (m_paramsH->mcc_M <= 0) {
-                mcc_fatal("MCC parameter mcc_M (critical state line slope) must be positive, but is " + mcc_num(m_paramsH->mcc_M) + ".");
+            if (m_paramsH->viscosity_method == ViscosityMethod::LAMINAR) {
+                cerr << "ERROR: Viscosity type LAMINAR not supported for CRM granular. "
+                        " Use ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL."
+                     << endl;
+                throw std::runtime_error("Viscosity type LAMINAR not supported for CRM granular.");
             }
-            if (m_paramsH->mcc_v_lambda <= 0) {
-                mcc_fatal("MCC parameter mcc_v_lambda (specific volume at the reference pressure) must be positive, but is " + mcc_num(m_paramsH->mcc_v_lambda) + ".");
-            }
-
-            // Last, and a warning rather than an error: the ordering above can hold by a
-            // vanishingly small margin. The hardening update divides by (mcc_lambda - mcc_kappa),
-            // so as that gap goes to zero the plastic modulus v / (mcc_lambda - mcc_kappa) grows
-            // without bound and the return mapping becomes ill-conditioned. A narrow gap is a
-            // legal, if extreme, model, so this reports and continues; only the ordering itself is
-            // fatal.
-            //
-            // Two arms, because these are dimensionless slopes and neither test alone is enough.
-            // The absolute floor catches a gap that has lost its significance entirely, which is
-            // what single precision does to a difference of nearly equal values. The relative
-            // floor catches the same pathology at a larger scale, where the gap is well
-            // represented but is still a thousandth of the slopes it came from.
-            Real mcc_gap = m_paramsH->mcc_lambda - m_paramsH->mcc_kappa;
-            Real mcc_gap_floor = std::max(Real(1e-6), Real(1e-3) * m_paramsH->mcc_lambda);
-            if (mcc_gap < mcc_gap_floor) {
-                cerr << "WARNING: MCC parameters mcc_lambda = " << mcc_num(m_paramsH->mcc_lambda) << " and mcc_kappa = " << mcc_num(m_paramsH->mcc_kappa) << " differ by only "
-                     << mcc_num(mcc_gap)
-                     << ". The hardening law divides by that difference, so the plastic modulus will be very large and the return mapping poorly conditioned."
-                        "This is accepted as given, but confirm it is what was intended."
+            if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_UNILATERAL) {
+                cerr << "WARNING: Viscosity type ARTIFICIAL_UNILATERAL may be less stable for CRM granular. "
+                        "Consider using ARTIFICIAL_BILATERAL or ensure the step size is small enough."
                      << endl;
             }
+            if (m_paramsH->mu0 > Real(0.001)) {
+                cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
+                     << " but the viscosity model is not laminar. This parameter will have no influence on simulation." << endl;
+            }
+
+            // Modified Cam-Clay parameter preconditions.
+            //
+            // Three of these, mcc_kappa > 0, mcc_lambda > mcc_kappa and mcc_M > 0, are the
+            // "critical consistency checks" the MCC manual page already published; nothing enforced
+            // them. The fourth, mcc_v_lambda > 0, is added here and to the manual at the same time.
+            // They are preconditions of the equations, not style:
+            // the elastic bulk modulus is K = v p / mcc_kappa, and the hardening update divides by
+            // (mcc_lambda - mcc_kappa). A user who transposes the two slopes gets a negative
+            // denominator, which inverts the hardening law, and the run then completes with no
+            // diagnostic of any kind while producing essentially zero bearing capacity.
+            //
+            // Gated on the PAIR of flags, not on the rheology alone: SetCfdSPH sets physics_problem to CFD
+            // without resetting rheology_model_crm, so a CFD problem can legitimately be left with
+            // rheology_model_crm == MCC and must not be rejected here.
+            if (m_paramsH->rheology_model_crm == RheologyCRM::MCC) {
+                auto mcc_fatal = [](const std::string& msg) {
+                    cerr << "ERROR: " << msg << endl;
+                    throw std::runtime_error(msg);
+                };
+                auto mcc_finite = [&](Real value, const char* name) {
+                    if (!std::isfinite(double(value)))
+                        mcc_fatal(std::string("MCC parameter ") + name + " is not a finite number.");
+                };
+                // Stream formatting, not to_string: to_string formats a float with %f, so a small
+                // but legal value such as 1e-8 would be reported back to the user as "0.000000" by
+                // the very message that exists to tell them what they set.
+                auto mcc_num = [](Real value) {
+                    std::ostringstream os;
+                    os << value;
+                    return os.str();
+                };
+
+                mcc_finite(m_paramsH->mcc_M, "mcc_M");
+                mcc_finite(m_paramsH->mcc_kappa, "mcc_kappa");
+                mcc_finite(m_paramsH->mcc_lambda, "mcc_lambda");
+                mcc_finite(m_paramsH->mcc_v_lambda, "mcc_v_lambda");
+
+                if (m_paramsH->mcc_kappa <= 0) {
+                    mcc_fatal("MCC parameter mcc_kappa (swelling index) must be positive, but is " + mcc_num(m_paramsH->mcc_kappa) +
+                              ". The elastic bulk modulus is computed as K = v p / mcc_kappa.");
+                }
+                if (m_paramsH->mcc_lambda <= m_paramsH->mcc_kappa) {
+                    mcc_fatal("MCC requires mcc_lambda (compression index) > mcc_kappa (swelling index), but mcc_lambda = " + mcc_num(m_paramsH->mcc_lambda) +
+                              " and mcc_kappa = " + mcc_num(m_paramsH->mcc_kappa) + ". The hardening law divides by (mcc_lambda - mcc_kappa). " +
+                              "If these two look swapped, they probably are: lambda is the normal-consolidation-line slope and is the larger of the two.");
+                }
+                if (m_paramsH->mcc_M <= 0) {
+                    mcc_fatal("MCC parameter mcc_M (critical state line slope) must be positive, but is " + mcc_num(m_paramsH->mcc_M) + ".");
+                }
+                if (m_paramsH->mcc_v_lambda <= 0) {
+                    mcc_fatal("MCC parameter mcc_v_lambda (specific volume at the reference pressure) must be positive, but is " + mcc_num(m_paramsH->mcc_v_lambda) + ".");
+                }
+
+                // Last, and a warning rather than an error: the ordering above can hold by a
+                // vanishingly small margin. The hardening update divides by (mcc_lambda - mcc_kappa),
+                // so as that gap goes to zero the plastic modulus v / (mcc_lambda - mcc_kappa) grows
+                // without bound and the return mapping becomes ill-conditioned. A narrow gap is a
+                // legal, if extreme, model, so this reports and continues; only the ordering itself is
+                // fatal.
+                //
+                // Two arms, because these are dimensionless slopes and neither test alone is enough.
+                // The absolute floor catches a gap that has lost its significance entirely, which is
+                // what single precision does to a difference of nearly equal values. The relative
+                // floor catches the same pathology at a larger scale, where the gap is well
+                // represented but is still a thousandth of the slopes it came from.
+                Real mcc_gap = m_paramsH->mcc_lambda - m_paramsH->mcc_kappa;
+                Real mcc_gap_floor = std::max(Real(1e-6), Real(1e-3) * m_paramsH->mcc_lambda);
+                if (mcc_gap < mcc_gap_floor) {
+                    cerr << "WARNING: MCC parameters mcc_lambda = " << mcc_num(m_paramsH->mcc_lambda) << " and mcc_kappa = " << mcc_num(m_paramsH->mcc_kappa) << " differ by only "
+                         << mcc_num(mcc_gap)
+                         << ". The hardening law divides by that difference, so the plastic modulus will be very large and the return mapping poorly conditioned."
+                            "This is accepted as given, but confirm it is what was intended."
+                         << endl;
+                }
+            }
+
+            break;
         }
-    } else {
-        if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_BILATERAL) {
-            cerr << "ERROR: Viscosity type ARTIFICIAL_BILATERAL not supported for CFD. "
-                    " Use ARTIFICIAL_UNILATERAL or LAMINAR."
-                 << endl;
-            throw std::runtime_error("Viscosity type ARTIFICIAL_BILATERAL not supported for CFD.");
+        case PhysicsProblem::CFD: {
+            if (m_paramsH->viscosity_method == ViscosityMethod::ARTIFICIAL_BILATERAL) {
+                cerr << "ERROR: Viscosity type ARTIFICIAL_BILATERAL not supported for CFD. "
+                        " Use ARTIFICIAL_UNILATERAL or LAMINAR."
+                     << endl;
+                throw std::runtime_error("Viscosity type ARTIFICIAL_BILATERAL not supported for CFD.");
+            }
+
+            break;
         }
     }
+
+    // ------------------------
 
     // Calculate default cMin and cMax
     Real3 default_cMin = mR3(-2 * m_paramsH->boxDims.x, -2 * m_paramsH->boxDims.y, -2 * m_paramsH->boxDims.z) - 10 * mR3(m_paramsH->h);
@@ -703,11 +711,16 @@ ChFsiFluidSystemSPH::SplashsurfParameters::SplashsurfParameters() : smoothing_le
 //------------------------------------------------------------------------------
 
 PhysicsProblem ChFsiFluidSystemSPH::GetPhysicsProblem() const {
-    return (m_paramsH->elastic_SPH ? PhysicsProblem::CRM : PhysicsProblem::CFD);
+    return m_paramsH->physics_problem;
 }
 
 std::string ChFsiFluidSystemSPH::GetPhysicsProblemString() const {
-    return (m_paramsH->elastic_SPH ? "CRM" : "CFD");
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            return "CFD";
+        case PhysicsProblem::CRM:
+            return "CRM";
+    }
 }
 
 std::string ChFsiFluidSystemSPH::GetSphIntegrationSchemeString() const {
@@ -1614,7 +1627,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
             double z = m_data_mgr->sphMarkers_H->posRadH[i].z;
             double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
             m_data_mgr->sphMarkers_H->rhoPresMuH[i].y = p;
-            if (m_paramsH->elastic_SPH) {
+            if (m_paramsH->physics_problem == PhysicsProblem::CRM) {
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].x = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].y = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].z = -p;
@@ -1632,11 +1645,15 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     DeriveDomainGridQuantities();
+
     // Update the speed of sound
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            m_paramsH->Cs = 10 * m_paramsH->v_Max;
+            break;
+        case PhysicsProblem::CRM:
+            m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+            break;
     }
 
     // ----------------
@@ -1785,7 +1802,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
             double z = m_data_mgr->sphMarkers_H->posRadH[i].z;
             double p = m_paramsH->rho0 * m_paramsH->gravity.z * (z - m_paramsH->pressure_height);
             m_data_mgr->sphMarkers_H->rhoPresMuH[i].y = p;
-            if (m_paramsH->elastic_SPH) {
+            if (m_paramsH->physics_problem == PhysicsProblem::CRM) {
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].x = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].y = -p;
                 m_data_mgr->sphMarkers_H->tauXxYyZzH[i].z = -p;
@@ -1803,11 +1820,15 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
 
     DeriveDomainGridQuantities();
+
     // Update the speed of sound
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            m_paramsH->Cs = 10 * m_paramsH->v_Max;
+            break;
+        case PhysicsProblem::CRM:
+            m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+            break;
     }
 
     // ----------------
@@ -2043,10 +2064,14 @@ void ChFsiFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
 
 void ChFsiFluidSystemSPH::SaveParticleData(const std::string& dir) const {
     SynchronizeCopyStream();
-    if (m_paramsH->elastic_SPH)
-        saveParticleDataCRM(dir, m_output_level, *m_data_mgr);
-    else
-        saveParticleDataCFD(dir, m_output_level, *m_data_mgr);
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            saveParticleDataCFD(dir, m_output_level, *m_data_mgr);
+            break;
+        case PhysicsProblem::CRM:
+            saveParticleDataCRM(dir, m_output_level, *m_data_mgr);
+            break;
+    }
 }
 
 void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
@@ -2080,7 +2105,7 @@ void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
     // Consolidation pressure is only used in the MCC rheology model.
     // At q = 0 the modified Cam-Clay yield ellipse meets the p axis at `consolidation_pressure`,
     // so an admissible initial state needs consolidation_pressure >= pressure.
-    if (m_paramsH->elastic_SPH && m_paramsH->rheology_model_crm == RheologyCRM::MCC)
+    if (m_paramsH->physics_problem == PhysicsProblem::CRM && m_paramsH->rheology_model_crm == RheologyCRM::MCC)
         ChAssertAlways(pressure > 0 && consolidation_pressure >= pressure);
 
     m_data_mgr->AddSphParticle(ToReal3(pos), density, pressure, viscosity, ToReal3(vel), ToReal3(tau_diag), ToReal3(tau_offdiag), consolidation_pressure);
@@ -2993,12 +3018,15 @@ ChVector3d ChFsiFluidSystemSPH::GetGravitationalAcceleration() const {
 }
 
 double ChFsiFluidSystemSPH::GetSoundSpeed() const {
-    // This can be called even before Initialize() is called (For instance DepthPressurePropertiesCallback in
-    // ChFsiProblemSPH) This means that we need to update Cs based on the current set of parameters.
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    // Since this function can be called before Initialize (e.g., in DepthPressurePropertiesCallback in ChFsiProblemSPH),
+    // the speed of sound must be updated based on the current set of parameters
+    switch (m_paramsH->physics_problem) {
+        case PhysicsProblem::CFD:
+            m_paramsH->Cs = 10 * m_paramsH->v_Max;
+            break;
+        case PhysicsProblem::CRM:
+            m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+            break;
     }
     return m_paramsH->Cs;
 }

@@ -573,7 +573,7 @@ void SphForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, 
     density_initialization++;
 
     // Impose boundary conditions and calculate derivatives
-    if (m_data_mgr.paramsH->elastic_SPH) {
+    if (m_data_mgr.paramsH->physics_problem == PhysicsProblem::CRM) {
         CrmApplyBC(sortedSphMarkersD);
         CrmCalcRHS(sortedSphMarkersD);
     } else {

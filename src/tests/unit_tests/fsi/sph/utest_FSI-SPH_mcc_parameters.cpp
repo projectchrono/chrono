@@ -28,9 +28,9 @@
 // 4. A default-constructed material, which has all four MCC values at zero, is
 //    accepted for mu(I) and rejected only when MCC is actually selected.
 // 5. A CFD problem is never rejected by these checks, even when a stale MCC
-//    rheology selection is left behind. SetCfdSPH clears elastic_SPH without
-//    resetting rheology_model_crm, so the pair can come apart and the checks are
-//    gated on both flags.
+//    rheology selection is left behind. SetCfdSPH sets physics_problem to CFD
+//    without resetting rheology_model_crm, so the pair can come apart and the
+//    checks are gated on both flags.
 // 6. The rejection happens on the real path: a full Initialize() with the
 //    transposed values throws before any time stepping.
 //
@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
         ChFsiFluidSystemSPH::FluidProperties fluid_props;
         fluid_props.density = 1000;
         fluid_props.viscosity = 1;
-        sysSPH.SetCfdSPH(fluid_props);  // ... and clears elastic_SPH without resetting it
+        sysSPH.SetCfdSPH(fluid_props);  // ... and sets physics_problem to CFD without resetting it
         auto sph_params = CrmSPHParameters();
         sph_params.viscosity_method = ViscosityMethod::LAMINAR;  // CFD rejects ARTIFICIAL_BILATERAL
         sysSPH.SetSPHParameters(sph_params);
