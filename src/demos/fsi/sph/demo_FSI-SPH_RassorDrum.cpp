@@ -438,7 +438,7 @@ int main(int argc, char* argv[]) {
     // Meta-step (communication interval)
     double meta_time_step = 5 * params.time_step;
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -448,7 +448,7 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.0025;
     mat_props.cohesion_coeff = 0;
 
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     if (params.integration_scheme == "euler") {

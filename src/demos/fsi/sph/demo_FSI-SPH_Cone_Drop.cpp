@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSizeCFD(time_step);
     sysFSI.SetStepsizeMBD(time_step);
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     if (gran_material == "sand") {
@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Invalid gran_material: " << gran_material << std::endl;
         return 1;
     }
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = d0_multiplier;

@@ -49,7 +49,7 @@ struct CH_FSI_API ChFsiSphMarkerDeviceView {
 /// Physical system for an FSI-aware SPH fluid solver.
 class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
   public:
-    /// Structure with fluid properties.
+    /// Structure with fluid material properties.
     /// Used if solving a CFD problem.
     struct CH_FSI_API FluidProperties {
         double density;      ///< fluid density (default: 1000.0)
@@ -59,9 +59,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         FluidProperties();
     };
 
-    /// Structure with elastic material properties.
-    /// Used if solving an SPH continuum representation of granular dynamics.
-    struct CH_FSI_API ElasticMaterialProperties {
+    /// Structure with soil material properties.
+    /// Used if solving a CRM problem.
+    struct CH_FSI_API SoilProperties {
         double density;              ///< bulk density (default: 1000.0)
         double Young_modulus;        ///< Young's modulus (default: 1e6)
         double Poisson_ratio;        ///< Poisson's ratio (default: 0.3)
@@ -84,7 +84,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double mcc_v_lambda;         ///< Specific volume at reference pressure of 1000 Pa
                                      ///< (default: 2.0)
 
-        ElasticMaterialProperties();
+        SoilProperties();
     };
 
     /// Structure with SPH method parameters.
@@ -259,12 +259,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set use variable time step.
     void SetUseVariableTimeStep(bool use_variable_time_step);
 
-    /// Enable solution of a CFD problem.
+    /// Enable solution of a CFD SPH problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
 
-    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// Enable solution of a CRM SPH problem.
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
-    void SetElasticSPH(const ElasticMaterialProperties& mat_props);
+    void SetCrmSPH(const SoilProperties& mat_props);
 
     /// Checks the applicability of user set parameters for SPH and throws an exception if necessary.
     void CheckSPHParameters();

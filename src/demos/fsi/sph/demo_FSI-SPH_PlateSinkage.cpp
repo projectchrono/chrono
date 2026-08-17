@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     // The CRM soil is an elastic-plastic continuum. Two rheologies are offered:
     //   mu(I): inertial-number granular friction; cohesion enters here.
     //   MCC  : Modified Cam-Clay critical-state plasticity.
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat;
+    ChFsiFluidSystemSPH::SoilProperties mat;
     mat.density = p.rho;
     mat.Young_modulus = p.Emod;
     mat.Poisson_ratio = p.nu;
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
         mat.average_diam = p.grain_diam;  // mean grain diameter [m]
         mat.cohesion_coeff = p.cohesion;  // cohesion [Pa]
     }
-    sysSPH.SetElasticSPH(mat);
+    sysSPH.SetCrmSPH(mat);
 
     // ---- SPH numerical parameters (held at validated values) ----------------
     ChFsiFluidSystemSPH::SPHParameters sph;

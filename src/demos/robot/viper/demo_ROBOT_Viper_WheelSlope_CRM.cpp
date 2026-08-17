@@ -455,7 +455,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetGravitationalAcceleration(gravity);
 
     // Set Parameters
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     mat_props.density = density;
@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = 0;
 
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
 
     if (params.integration_scheme == "euler") {
         sph_params.integration_scheme = IntegrationScheme::EULER;

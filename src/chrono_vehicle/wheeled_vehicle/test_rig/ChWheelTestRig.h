@@ -215,7 +215,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     struct CH_VEHICLE_API TerrainParamsCRM {
         TerrainParamsCRM();
         fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph_params;             ///< SPH solver settings
-        fsi::sph::ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;  ///< soil properties
+        fsi::sph::ChFsiFluidSystemSPH::SoilProperties mat_props;  ///< soil properties
     };
 
     /// Enable use of CRM terrain.

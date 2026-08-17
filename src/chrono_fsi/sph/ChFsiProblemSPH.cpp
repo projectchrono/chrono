@@ -87,8 +87,8 @@ void ChFsiProblemSPH::SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& flui
     m_sysSPH->SetCfdSPH(fluid_props);
 }
 
-void ChFsiProblemSPH::SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props) {
-    m_sysSPH->SetElasticSPH(mat_props);
+void ChFsiProblemSPH::SetCrmSPH(const ChFsiFluidSystemSPH::SoilProperties& mat_props) {
+    m_sysSPH->SetCrmSPH(mat_props);
 }
 
 void ChFsiProblemSPH::SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params) {

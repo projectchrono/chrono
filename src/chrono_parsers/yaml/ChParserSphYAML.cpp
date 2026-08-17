@@ -628,7 +628,7 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
             m_fsi_problem->SetCfdSPH(m_material.fluid_props);
             break;
         case fsi::sph::PhysicsProblem::CRM:
-            m_fsi_problem->SetElasticSPH(m_material.soil_props);
+            m_fsi_problem->SetCrmSPH(m_material.soil_props);
             break;
     }
 

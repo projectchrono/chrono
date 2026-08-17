@@ -103,7 +103,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
 
     double box_multiplier = 1.2;
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties material;
+    ChFsiFluidSystemSPH::SoilProperties material;
     material.density = 1760;       // kg / m^3
     material.Young_modulus = 1e6;  // kg / m s ^2
     material.Poisson_ratio = 0.3;
@@ -113,7 +113,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     material.average_diam = 0.005;  // m
     material.cohesion_coeff = 0;    // default
 
-    m_sysSPH->SetElasticSPH(material);
+    m_sysSPH->SetCrmSPH(material);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;

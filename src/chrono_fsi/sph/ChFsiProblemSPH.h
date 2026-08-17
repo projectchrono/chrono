@@ -58,12 +58,12 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Access the underlying MBS system.
     ChSystem& GetMultibodySystem() { return m_sysFSI->GetMultibodySystem(); }
 
-    /// Enable solution of a CFD problem.
+    /// Enable solution of a CFD SPH problem.
     void SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& fluid_props);
 
-    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// Enable solution of a CRM SPH problem.
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
-    void SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props);
+    void SetCrmSPH(const ChFsiFluidSystemSPH::SoilProperties& mat_props);
 
     /// Set SPH method parameters.
     void SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params);

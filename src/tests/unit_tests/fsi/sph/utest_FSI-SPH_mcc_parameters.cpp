@@ -130,8 +130,8 @@ void ExpectNoGapWarning(const std::string& name, std::function<void()> f) {
 
 // A parameter set that satisfies every precondition. Individual tests spoil one value at a time,
 // so that each failure is attributable to the value it changed.
-ChFsiFluidSystemSPH::ElasticMaterialProperties ValidMCC() {
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+ChFsiFluidSystemSPH::SoilProperties ValidMCC() {
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -164,10 +164,10 @@ ChFsiFluidSystemSPH::SPHParameters CrmSPHParameters() {
 // Validate a material without building a bed or touching the GPU. CheckSPHParameters() is public
 // and is exactly what Initialize() calls, so this exercises the shipped code path; case 5 below
 // then proves the same call really is reached from Initialize().
-void ValidateMaterial(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props) {
+void ValidateMaterial(const ChFsiFluidSystemSPH::SoilProperties& mat_props) {
     ChFsiFluidSystemSPH sysSPH;
     sysSPH.SetVerbose(false);
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
     sysSPH.SetSPHParameters(CrmSPHParameters());
     sysSPH.CheckSPHParameters();
 }
@@ -263,21 +263,21 @@ int main(int argc, char* argv[]) {
 
     std::cout << "\n4. The all-zero MCC defaults:" << std::endl;
     ExpectNoThrow("default material, mu(I) selected: the zero MCC defaults are irrelevant", [&] {
-        ChFsiFluidSystemSPH::ElasticMaterialProperties m;  // mcc_* all default to 0
+        ChFsiFluidSystemSPH::SoilProperties m;  // mcc_* all default to 0
         m.rheology_model = RheologyCRM::MU_OF_I;
         ValidateMaterial(m);
     });
     ExpectThrow("default material, MCC selected: unset parameters must not run silently", [&] {
-        ChFsiFluidSystemSPH::ElasticMaterialProperties m;
+        ChFsiFluidSystemSPH::SoilProperties m;
         m.rheology_model = RheologyCRM::MCC;
         ValidateMaterial(m);
     });
 
     std::cout << "\n5. A CFD problem is out of scope for these checks:" << std::endl;
-    ExpectNoThrow("SetElasticSPH(MCC) then SetCfdSPH: stale MCC selection must not reject CFD", [&] {
+    ExpectNoThrow("SetCrmSPH(MCC) then SetCfdSPH: stale MCC selection must not reject CFD", [&] {
         ChFsiFluidSystemSPH sysSPH;
         sysSPH.SetVerbose(false);
-        sysSPH.SetElasticSPH(ValidMCC());  // leaves rheology_model_crm == MCC ...
+        sysSPH.SetCrmSPH(ValidMCC());  // leaves rheology_model_crm == MCC ...
         ChFsiFluidSystemSPH::FluidProperties fluid_props;
         fluid_props.density = 1000;
         fluid_props.viscosity = 1;
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
         auto mat_props = ValidMCC();
         mat_props.mcc_kappa = kappa;
         mat_props.mcc_lambda = lambda;
-        fsi.SetElasticSPH(mat_props);
+        fsi.SetCrmSPH(mat_props);
         fsi.SetSPHParameters(CrmSPHParameters());
         fsi.SetStepSizeCFD(dt);
         fsi.SetStepsizeMBD(dt);

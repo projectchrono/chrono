@@ -152,22 +152,18 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->base_pressure = Real(0.0);
     m_paramsH->ClampPressure = false;
 
-    // Elastic SPH
+    // CRM SPH
     m_paramsH->free_surface_threshold = Real(2.0);
-
-    //
     m_paramsH->free_flow_duration = Real(0);
-
-    //
     m_paramsH->Max_Pressure = Real(1e20);
 
     //// RADU TODO
     //// material model
 
     // Elastic SPH
-    ElasticMaterialProperties mat_props;
-    SetElasticSPH(mat_props);
-    m_paramsH->elastic_SPH = false;                // default: fluid dynamics
+    SoilProperties mat_props;
+    SetCrmSPH(mat_props);
+    m_paramsH->physics_problem = PhysicsProblem::CRM;
     m_paramsH->artificial_viscosity = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
@@ -559,7 +555,7 @@ ChFsiFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosi
 
 void ChFsiFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->elastic_SPH = false;
+    m_paramsH->physics_problem = PhysicsProblem::CFD;
 
     SetDensity(fluid_props.density);
 
@@ -567,7 +563,7 @@ void ChFsiFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     m_paramsH->L_Characteristic = Real(fluid_props.char_length);
 }
 
-ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
+ChFsiFluidSystemSPH::SoilProperties::SoilProperties()
     : density(1000),
       Young_modulus(1e6),
       Poisson_ratio(0.3),
@@ -582,9 +578,9 @@ ChFsiFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       mcc_lambda(0),
       mcc_v_lambda(2.0) {}
 
-void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
+void ChFsiFluidSystemSPH::SetCrmSPH(const SoilProperties& mat_props) {
     ChAssertAlways(!m_is_initialized);
-    m_paramsH->elastic_SPH = true;
+    m_paramsH->physics_problem = PhysicsProblem::CRM;
 
     SetDensity(mat_props.density);
     m_paramsH->rheology_model_crm = mat_props.rheology_model;
@@ -1869,13 +1865,13 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     // If active domains are not used then don't overly resize the arrays
     if (!m_use_ad)
         m_data_mgr->SetGrowthFactor(1.0f);
-    
+
     // Initialize the data manager: set reference arrays and counters, cache solid active domains, and resize simulation arrays.
     // Indicate if the data manager should allocate space for holding FEA mesh direction vectors.
     m_data_mgr->Initialize(m_num_rigid_bodies,                                              //
                            m_num_flex1D_meshes, m_num_flex1D_nodes, m_num_flex1D_elements,  //
                            m_num_flex2D_meshes, m_num_flex2D_nodes, m_num_flex2D_elements,  //
-                           m_use_ad, m_ad_body, ad_node1D, ad_node2D,                         //
+                           m_use_ad, m_ad_body, ad_node1D, ad_node2D,                       //
                            node_directions_mode);
 
     // Load the initial body and mesh node states

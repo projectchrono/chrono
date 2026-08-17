@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     // Every device-parameter setter must be rejected after Initialize()
     std::cout << "After Initialize():" << std::endl;
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     ChFsiFluidSystemSPH::LinSolverParameters linsolv_params;
 
     ExpectThrow("SetBoundaryType", [&] { sysSPH->SetBoundaryType(BoundaryMethod::ADAMI); });
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     ExpectThrow("SetNumProximitySearchSteps", [&] { sysSPH->SetNumProximitySearchSteps(4); });
     ExpectThrow("SetUseVariableTimeStep", [&] { sysSPH->SetUseVariableTimeStep(false); });
     ExpectThrow("SetCfdSPH", [&] { sysSPH->SetCfdSPH(fluid_props); });
-    ExpectThrow("SetElasticSPH", [&] { sysSPH->SetElasticSPH(mat_props); });
+    ExpectThrow("SetCrmSPH", [&] { sysSPH->SetCrmSPH(mat_props); });
     ExpectThrow("SetSPHParameters", [&] { sysSPH->SetSPHParameters(sph_params); });
     ExpectThrow("SetLinSolverParameters", [&] { sysSPH->SetLinSolverParameters(linsolv_params); });
 
