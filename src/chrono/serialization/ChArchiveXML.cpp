@@ -1,5 +1,7 @@
 #include "chrono/serialization/ChArchiveXML.h"
 
+#include <limits>
+
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -10,6 +12,11 @@ namespace chrono {
 ///////////////////////// ChArchiveOutXML /////////////////////////
 
 ChArchiveOutXML::ChArchiveOutXML(std::ostream& stream_out) : m_ostream(stream_out) {
+    // See the note in ChArchiveOutJSON's constructor: the default ostream precision of 6 significant
+    // digits makes a save/load cycle lossy, so ask for enough digits to read a double back exactly,
+    // and restore the caller's setting in the destructor.
+    m_precision_saved = m_ostream.precision(std::numeric_limits<double>::max_digits10);
+
     tablevel = 0;
     nitems.push(0);
     is_array.push(false);
@@ -17,6 +24,8 @@ ChArchiveOutXML::ChArchiveOutXML(std::ostream& stream_out) : m_ostream(stream_ou
 ChArchiveOutXML::~ChArchiveOutXML() {
     nitems.pop();
     is_array.pop();
+
+    m_ostream.precision(m_precision_saved);
 }
 void ChArchiveOutXML::indent() {
     for (int i = 0; i < tablevel; ++i)
@@ -44,7 +53,11 @@ void ChArchiveOutXML::out(ChNameValue<float> bVal) {
     indent();
     // if (is_array.top() == false)
     m_ostream << "<" << bVal.name() << ">";
+    // See the note in ChArchiveOutJSON: a float needs nine digits, not the double's seventeen, so
+    // print it at its own precision rather than exposing eight digits of binary noise.
+    const std::streamsize saved = m_ostream.precision(std::numeric_limits<float>::max_digits10);
     m_ostream << bVal.value();
+    m_ostream.precision(saved);
     // if (is_array.top() == false)
     m_ostream << "</" << bVal.name() << ">\n";
     ++nitems.top();

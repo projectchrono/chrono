@@ -66,6 +66,7 @@ class ChApi ChArchiveOutJSON : public ChArchiveOut {
     std::ostream& m_ostream;
     std::stack<int> nitems;
     std::stack<bool> is_array;
+    std::streamsize m_precision_saved;  ///< caller's stream precision, restored by the destructor
 };
 
 /// Deserialize objects using JSON format.
