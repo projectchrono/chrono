@@ -147,7 +147,7 @@ linux:ubuntu22.04-gcc:amd64:build:
     # build time; the container image has no Vulkan SDK, but buildVSG.sh (before_script)
     # already builds glslang 16.1.0 and installs it into vsg_build/bin. Point CMake there.
     # Remove once the container image ships the Vulkan SDK tools.
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-amd64
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCHRONO_GPU_VENDOR="NVIDIA" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-amd64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -189,7 +189,7 @@ linux:ubuntu22.04-clang:amd64:build:
     # build time; the container image has no Vulkan SDK, but buildVSG.sh (before_script)
     # already builds glslang 16.1.0 and installs it into vsg_build/bin. Point CMake there.
     # Remove once the container image ships the Vulkan SDK tools.
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-amd64
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" -DCHRONO_GPU_VENDOR="NVIDIA" -DCH_VULKAN_GLSLANG_VALIDATOR="$CI_PROJECT_DIR/contrib/build-scripts/vsg_build/bin/glslangValidator" --preset=linuxci-amd64
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
