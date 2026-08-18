@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     terrain.SetStepSizeCFD(step_size);
 
     // Set SPH parameters and soil material properties
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = cohesion;
-    terrain.SetElasticSPH(mat_props);
+    terrain.SetCrmSPH(mat_props);
 
     // Set SPH solver parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);
-    visFSI->EnableFlexBodyMarkers(false);
+    visFSI->EnableFeaMeshMarkers(false);
     visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::BROWN);
 
     auto visVSG = chrono_types::make_shared<ChVisualSystemVSG>();

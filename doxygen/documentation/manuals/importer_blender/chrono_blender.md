@@ -57,7 +57,7 @@ You can enable this type of postprocessing also in your own projects: if you loo
 
 - now move to the right-left the time slider: you will see that objects move in the 3D view (in this demo, some small spheres will fall to the ground).
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_30.jpg)
-  What is happening under the hood? Basically, each time Blender changes the frame number, the corresponding file stateNNNNNN.py is load).
+  What is happening under the hood? Basically, each time Blender changes the frame number, the corresponding file stateNNNNNN.py is loaded.
   This means that you can render animations in Blender.
   
 - in the upper right part of the 3D view there is a set of icons for changing the *Viewport shading*: the default *Solid* mode is not fit to show fancy
@@ -80,7 +80,7 @@ You can enable this type of postprocessing also in your own projects: if you loo
 Is it possible to add details to the meshes that were saved from Chrono? Is it possible to change their colors or their textures? This is possible directly from 
 the Blender GUI, in many cases. 
 
-- first, let's study how the Chrono simulation is translated into the Blender objects: look at the *Outliner* panel, 
+- first, let's study how the Chrono simulation is translated into the Blender objects: look at the *Outliner* panel,
   its View layer list will show something like this: 
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_70.jpg)
   You will notice four collections: 
@@ -98,7 +98,7 @@ the Blender GUI, in many cases.
 	and rotations. This concept is automatically managed by the Postprocess module of Chrono and by the Blender add-on.
 	*These objects can NOT be edited*.
 
-- suppose that we want to change the texture of the floor, that is saved from Chrono and not something that we added via the Blemder modeler GUI. A first thing
+- suppose that we want to change the texture of the floor, that is saved from Chrono and not something that we added via the Blender modeler GUI. A first thing
   is to click on it: an object will be selected in the *chrono_frame_objects*. In our case is the object called "Object". click to expand its subtree: you will see 
   that this object is an instance of the asset called **shape_xxxxxxxxx** where xxxxxxxxxxx is a unique identifier. Now, find shape_xxxxxxxxx in the *chrono_assets* collection and click on its icon. 
   
@@ -130,7 +130,7 @@ the Blender GUI, in many cases.
   - you see that you can change many properties of the arrow glyphs: 
     ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_110.jpg)
 	For example we set *width* as constant, 0.04, and *length* as *Property*, where the property is the vector set *F* that is, the contact force (with 
-	some scaling factor). This doing, we have arrows of same thickness, but whose length depends on how strong is the contact force. 
+	some scaling factor). Doing this, we have arrows of the same thickness, but whose length depends on how strong the contact force is. 
 	Note that we could have preferred an alternative way, that is setting all contact arrows with the same length, but with width depending on the *F* property. Or both. 
 	
   - an interesting possibility is about controlling the color of the arrow glyphs, according to some property. There is a predefined set of falsecolor colormaps,
@@ -142,7 +142,7 @@ the Blender GUI, in many cases.
 
 ### Other features and caveats
 
-- PBR materials assigned via C++ from the Chrono side are translated in principled BSDF  materials in Blender. 
+- PBR materials assigned via C++ from the Chrono side are translated into principled BSDF  materials in Blender. 
   If there are textures assigned to color, bump, roughness, etc., those are managed too.
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_120.jpg)
   
@@ -160,13 +160,13 @@ the Blender GUI, in many cases.
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_160.jpg)
 
 - ChParticleCloud objects are supported, with special attention to performance. This is the preferred way to render simulations 
-  with a very large number of identical objects. We could render particle clouds with hundreds thousands of shape instances (regardless of 
+  with a very large number of identical objects. We could render particle clouds with hundreds of thousands of shape instances (regardless of 
   the complexity of the sample shape) in short times.
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_170.jpg)
 
 **NOTE!!!** speaking about performance: at the time of writing, if you export scenes with more than 100 objects of ChBody type, the add-on
 starts to be slow, in the sense that it takes a lot of time to delete Blender objects to go to the next time step, and to allocate the new Blender objects.
-This is not an issue with the add-on: the bottleneck is a known problem in Blender, that takes lot of time when allocating/deallocating many objects.
+This is not an issue with the add-on: the bottleneck is a known problem in Blender, that takes a lot of time when allocating/deallocating many objects.
 For the moment, the workaround is to try using the ChParticleCloud object (that is super fast) whenever it is possible, i.e. when you have identical copies 
-of objects. We hope to resolve this inconveninence in future.
+of objects. We hope to resolve this inconvenience in future.
 

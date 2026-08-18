@@ -3,7 +3,7 @@ YAML schema for Chrono::Vehicle model specification {#YAML_schema_vehicle_model}
 
 A Chrono::Vehicle YAML FSI problem specification file defines the vehicle models and consists of two main objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The `model` object which defines JSON specification files for the vehicle sub-systems.
 
 ## Model specification

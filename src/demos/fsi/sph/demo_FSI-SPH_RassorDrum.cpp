@@ -170,7 +170,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI, double wheel_vel, double wheel_Ang
         BCE_drum.push_back(ChVector3d(values[0], values[1], values[2]));
     }
     // Now add the drum to the FSI system
-    sysFSI.AddFsiBody(drum, BCE_drum, ChFrame<>(), true);
+    sysFSI.AddRigidBody(drum, BCE_drum, ChFrame<>(), true);
 
     std::cout << "Added " << BCE_drum.size() << " BCE particles for Rassor wheel" << std::endl;
 
@@ -438,7 +438,7 @@ int main(int argc, char* argv[]) {
     // Meta-step (communication interval)
     double meta_time_step = 5 * params.time_step;
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -448,7 +448,7 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.0025;
     mat_props.cohesion_coeff = 0;
 
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     if (params.integration_scheme == "euler") {
@@ -491,7 +491,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetSPHParameters(sph_params);
 
     sysSPH.SetActiveDomain(ChVector3d(0.5, 0.4, 0.7));
-    // sysSPH.SetActiveDomainDelay(0.0);
+    ////sysSPH.SetFreeFlowDuration(0.0);
 
     // Set the terrain container size
     sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));

@@ -208,8 +208,8 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
     sortedRhoPreMuD[tid] = rhoPreMuVal;
     activityIdentifierSortedD[tid] = activityIdentifierVal;
 
-    // For elastic SPH or granular
-    if (paramsD.elastic_SPH) {
+    // For CRM only
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         Real3 tauXxYyZzVal = tauXxYyZzD[originalIndex];
         Real3 tauXyXzYzVal = tauXyXzYzD[originalIndex];
         Real3 pcEvSvVal = pcEvSvD[originalIndex];

@@ -19,6 +19,8 @@
 #ifndef CH_FLUID_SYSTEM_SPH_H
 #define CH_FLUID_SYSTEM_SPH_H
 
+#include <map>
+
 #include "chrono_fsi/ChFsiFluidSystem.h"
 
 #include "chrono_fsi/sph/ChFsiParamsSPH.h"
@@ -47,7 +49,7 @@ struct CH_FSI_API ChFsiSphMarkerDeviceView {
 /// Physical system for an FSI-aware SPH fluid solver.
 class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
   public:
-    /// Structure with fluid properties.
+    /// Structure with fluid material properties.
     /// Used if solving a CFD problem.
     struct CH_FSI_API FluidProperties {
         double density;      ///< fluid density (default: 1000.0)
@@ -57,9 +59,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         FluidProperties();
     };
 
-    /// Structure with elastic material properties.
-    /// Used if solving an SPH continuum representation of granular dynamics.
-    struct CH_FSI_API ElasticMaterialProperties {
+    /// Structure with soil material properties.
+    /// Used if solving a CRM problem.
+    struct CH_FSI_API SoilProperties {
         double density;              ///< bulk density (default: 1000.0)
         double Young_modulus;        ///< Young's modulus (default: 1e6)
         double Poisson_ratio;        ///< Poisson's ratio (default: 0.3)
@@ -82,7 +84,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double mcc_v_lambda;         ///< Specific volume at reference pressure of 1000 Pa
                                      ///< (default: 2.0)
 
-        ElasticMaterialProperties();
+        SoilProperties();
     };
 
     /// Structure with SPH method parameters.
@@ -179,16 +181,33 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// previous domain intact.
     void SetComputationalDomain(const ChAABB& computational_AABB);
 
-    /// Set dimensions of the active domain AABB.
-    /// This value activates only those SPH particles that are within an AABB of the specified size from an object
-    /// interacting with the "fluid" phase.
-    /// Note that this setting should *not* be used for CFD simulations, but rather only when solving problems using the
-    /// CRM (continuum representation of granular dynamics) for terramechanics simulations.
+    /// Set the active domain for the body with specified index (as returned by AddRigidBody).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainBody(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for nodes of the 1D mesh with specified index (as returned by AddFeaMesh1D).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh1D(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for nodes of the 2D mesh with specified index (as returned by AddFeaMesh2D).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh2D(size_t i, const ChAABB& aabb);
+
+    /// Set the active domain for all FSI solids (bodies and nodes) to an AABB of given dimensions, centered at the origin.
+    /// If this function is called (and therefore a default AABB  is defined), the default AABB will be used for all solids
+    /// with an invalid (inverted) AABB; this includes solids for which an explicit AABB was not provided.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomain(const ChVector3d& box_dim);
 
-    /// Disable use of the active domain for the given duration at the beginning of the simulation (default: 0).
-    /// This parameter is used for settling operations where all particles must be active through the settling process.
-    void SetActiveDomainDelay(double duration);
+    /// Specify initial duration of CRM free flow (default: 0).
+    /// During this interval, use of FSI solid active domains is disabled unconditionally so that all SPH particles are active
+    /// regardless of their position relative to FSI solids. This setting can be used for simulations where the CRM "fluid" is
+    /// flowing; e.g., in a dam-break or avalanche simulation, or during an initial settling phase for terramechanics simulations.
+    /// If no valid (not inverted) active domain AABB is defined, this setting has no effect (as all particles will be always active).
+    void SetFreeFlowDuration(double duration);
 
     /// Set number of BCE marker layers (default: 3).
     void SetNumBCELayers(int num_layers);
@@ -240,12 +259,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set use variable time step.
     void SetUseVariableTimeStep(bool use_variable_time_step);
 
-    /// Enable solution of a CFD problem.
+    /// Enable solution of a CFD SPH problem.
     void SetCfdSPH(const FluidProperties& fluid_props);
 
-    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// Enable solution of a CRM SPH problem.
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
-    void SetElasticSPH(const ElasticMaterialProperties& mat_props);
+    void SetCrmSPH(const SoilProperties& mat_props);
 
     /// Checks the applicability of user set parameters for SPH and throws an exception if necessary.
     void CheckSPHParameters();
@@ -328,11 +347,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Get the current number of boundary BCE markers.
     size_t GetNumBoundaryMarkers() const;
 
-    /// Get the current number of rigid body BCE markers.
+    /// Get the current total number of rigid body BCE markers.
     size_t GetNumRigidBodyMarkers() const;
 
-    /// Get the current number of flexible body BCE markers.
-    size_t GetNumFlexBodyMarkers() const;
+    /// Get the current total number of FEA mesh BCE markers.
+    size_t GetNumFleaMeshMarkers() const;
 
     /// Return the SPH particle positions.
     std::vector<ChVector3d> GetParticlePositions() const;
@@ -669,32 +688,32 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     // ----------
 
     /// SPH solver-specific actions taken when a rigid solid is added as an FSI object.
-    virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
+    virtual void OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
 
     /// Create the local BCE coordinates, their body associations, and the initial global BCE positions for the given FSI rigid body.
-    void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce);
+    void CreateRigidBodyBce(std::shared_ptr<FsiBody> fsi_body, std::vector<int>& bce_ids, std::vector<ChVector3d>& bce_coords, std::vector<ChVector3d>& bce);
 
 #ifdef CHRONO_FEA
     /// SPH solver-specific actions taken when a 1D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
+    virtual void OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
 
     /// SPH solver-specific actions taken when a 2D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
+    virtual void OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
 
-    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh1D.
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh1D.
     /// By default, a full set of BCE markers is used across each section, including a central marker.
     void SetBcePattern1D(BcePatternMesh1D pattern,  ///< marker pattern in cross-section
                          bool remove_center         ///< eliminate markers on center line
     );
 
-    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh2D.
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFeaMesh2D.
     /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
     void SetBcePattern2D(BcePatternMesh2D pattern,  ///< pattern of marker locations along normal
                          bool remove_center         ///< eliminate markers on surface
     );
 
     /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the given FSI 1D mesh.
-    void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+    void CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh,
                             BcePatternMesh1D pattern,
                             bool remove_center,
                             std::vector<ChVector3i>& bce_ids,
@@ -703,7 +722,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Create the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
     /// given FSI 2D mesh.
-    void CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+    void CreateFeaMesh2DBce(std::shared_ptr<FsiMesh2D> fsi_mesh,
                             BcePatternMesh2D pattern,
                             bool remove_center,
                             std::vector<ChVector3i>& bce_ids,
@@ -718,7 +737,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Add the BCE markers for the given FSI rigid body to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
-    void AddBCEFsiBody(const FsiSphBody& fsisph_body);
+    void AddRigidBodyBce(const FsiSphBody& fsisph_body);
 
 #ifdef CHRONO_FEA
     /// Initialize the SPH fluid system with FSI support.
@@ -726,11 +745,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Add the BCE markers for the given FSI 1D mesh to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
-    void AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh);
+    void AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh);
 
     /// Add the BCE markers for the given FSI 2D mesh to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
-    void AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh);
+    void AddFeaMesh2DBce(const FsiSphMesh2D& fsisph_mesh);
 #endif
 
     // ----------
@@ -747,16 +766,25 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::unique_ptr<SphBceManager> m_bce_mgr;            ///< BCE manager
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
-    unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)
-    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
-    unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
-    unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+    unsigned int m_num_flex1D_meshes;    ///< number of 1-D flexible meshes
+    unsigned int m_num_flex2D_meshes;    ///< number of 1-D flexible meshes
+    unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all 1-D meshes)
+    unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all 2-D meshes)
+    unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all 1-D meshes)
+    unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all 2-D meshes)
 
     std::vector<FsiSphBody> m_bodies;  ///< list of FSI rigid bodies
 #ifdef CHRONO_FEA
     std::vector<FsiSphMesh1D> m_meshes1D;  ///< list of FSI FEA meshes
     std::vector<FsiSphMesh2D> m_meshes2D;  ///< list of FSI FEA meshes
 #endif
+
+    bool m_use_ad;                  ///< use active domains
+    bool m_use_default_ad;          ///< a default active domain is defined
+    ChAABB m_ad_default;            ///< default active domain
+    std::vector<ChAABB> m_ad_body;    ///< body active domains (1 per body)
+    std::vector<ChAABB> m_ad_mesh1D;  ///< mesh 1-D node active domains (1 per mesh)
+    std::vector<ChAABB> m_ad_mesh2D;  ///< mesh 2-D node active domains (1 per mesh)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
 
@@ -772,6 +800,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     friend class ChFsiInterfaceSPH;
     friend class ChFsiProblemSPH;
     friend class ChFsiSplashsurfSPH;
+    friend class ChSphVisualizationVSG;
 };
 
 // ----------------------------------------------------------------------------

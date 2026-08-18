@@ -3,10 +3,10 @@ YAML schema for Chrono MBS solver specification {#YAML_schema_mbs_solver}
 
 A Chrono YAML MBS solver file defines the parameters needed to run a Chrono simulation. It consists of the following main objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The `contact_method` specifying the formulation for contact force generation.
-- [required] The `integrator` object specifying the type and settgins for the time integrator.
-- [required] The `solver` object specifying the type and settgins for the (linear or DVI) solver.
+- [required] The `integrator` object specifying the type and settings for the time integrator.
+- [required] The `solver` object specifying the type and settings for the (linear or DVI) solver.
 
 ## Contact formulation
 
@@ -25,7 +25,7 @@ Each integrator can support the following settings depending on the integrator t
 | `time_step` | Integration timestep in seconds | double | -- | Yes | -- |
 | `abs_tolerance_states` | Absolute tolerance for state variables (HHT and implicit Euler) | double | -- | No | 1e-4 |
 | `abs_tolerance_multipliers` | Absolute tolerance for Lagrange multipliers (HHT and implicit Euler) | double | -- | No | 1e2 |
-| `max_iterations` | Maximum number of non-linear iteration for implicit integrators | integer | -- | No | 50 |
+| `max_iterations` | Maximum number of non-linear iterations for implicit integrators | integer | -- | No | 50 |
 | `use_stepsize_control` | Whether to use internal step-size control (HHT) | boolean | -- | No | false |
 | `use_modified_newton` | Whether to use a modified Newton iteration (HHT) | boolean | -- | No | false |
 

@@ -2,9 +2,9 @@
 Visualization System {#visualization_system}
 ====================
 
-Chrono objects - either bodies, meshes or even abstract shapes with no underlying physics - can be rendered and visualized through different rendering engines. At the same time, Chrono is not binded to any of them, thus allowing an easy extension to other rendering systems. Various [visualization systems](@ref manual_visualization) are indeed available.
+Chrono objects - either bodies, meshes or even abstract shapes with no underlying physics - can be rendered and visualized through different rendering engines. At the same time, Chrono is not bound to any of them, thus allowing an easy extension to other rendering systems. Various [visualization systems](@ref manual_visualization) are indeed available.
 
-Any visualization system inherits from a common base class - namely @ref chrono::ChVisualSystem "ChVisualSystem", defined in the **core** module - that always includes a pointer to a given @ref chrono::ChSystem "ChSystem". This binding allows the visual system to be informed about simulation updates, thus being able to update any visual asset according to the new bodies positions. Visual systems may allow simultaneous rendering of multiple Chrono systems.
+Any visualization system inherits from a common base class - namely @ref chrono::ChVisualSystem "ChVisualSystem", defined in the **core** module - that always includes a pointer to a given @ref chrono::ChSystem "ChSystem". This binding allows the visual system to be informed about simulation updates, thus being able to update any visual asset according to the new bodies' positions. Visual systems may allow simultaneous rendering of multiple Chrono systems.
 
 Together with the @ref chrono::ChVisualSystem "ChVisualSystem", Chrono offers also a wide set of renderer-agnostic _visual assets_: each visual system takes care of converting them into renderer-specific assets. These _visual assets_ are mainly represented by the @ref chrono::ChVisualShape "ChVisualShape" classes.
 
@@ -31,7 +31,7 @@ A @ref chrono::ChVisualModel "ChVisualModel" object can be attached either to a:
   +  visual assets contained in the @ref chrono::ChVisualModel "ChVisualModel" will automatically move together with the object;
   +  a @ref chrono::ChVisualModel "ChVisualModel" is automatically added under the hood whenever a call to @ref chrono::ChPhysicsItem::AddVisualShape "AddVisualShape()" is made.
 + directly to a @ref chrono::ChVisualSystem "ChVisualSystem":
-  + asset are considered fixed to ground and they will not move during simulation;
+  + assets are considered fixed to ground and they will not move during simulation;
   + a @ref chrono::ChVisualModel "ChVisualModel" must be explicitly created and added to the system by calling @ref chrono::ChVisualSystem::AddVisualModel() "ChVisualSystem::AddVisualModel()"
   
 Any @ref chrono::ChVisualModel "ChVisualModel" contains, among other members:
@@ -46,7 +46,7 @@ Please mind that, when attached to \ref chrono::ChBodyAuxRef "ChBodyAuxRef" the 
 
 <h4>ChVisualShape and ChVisualMaterial</h4>
 
-Visual shapes inherits either from @ref chrono::ChVisualShape "ChVisualShape" or @ref chrono::ChVisualShapeFEA "ChVisualShapeFEA" and usually have names prefixed with ```ChVisualShape____```. They usually holds also a @ref chrono::ChGeometry "ChGeometry" object to describe their shape, together with one or more @ref chrono::ChVisualMaterial "ChVisualMaterial"s, defining any appearance property of the asset.
+Visual shapes inherit either from @ref chrono::ChVisualShape "ChVisualShape" or @ref chrono::ChVisualShapeFEA "ChVisualShapeFEA" and usually have names prefixed with ```ChVisualShape____```. They usually hold also a @ref chrono::ChGeometry "ChGeometry" object to describe their shape, together with one or more @ref chrono::ChVisualMaterial "ChVisualMaterial"s, defining any appearance property of the asset.
 
 If no @ref chrono::ChVisualMaterial "ChVisualMaterial" has been explicitly added to the @ref chrono::ChVisualShape "ChVisualShape" it will get added automatically whenever the user sets a non-default value for any property of the shape. Multiple materials are usually used in combination with meshes like @ref chrono::ChVisualShapeModelFile "ChVisualShapeModelFile" where multiple materials might be listed in the input OBJ file.
 

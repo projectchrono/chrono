@@ -70,18 +70,18 @@ ChVector3d ChFsiFluidSystemTDPF::GetGravitationalAcceleration() const {
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemTDPF::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
+void ChFsiFluidSystemTDPF::OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
     m_num_rigid_bodies++;
 }
 
 #ifdef CHRONO_FEA
-void ChFsiFluidSystemTDPF::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
+void ChFsiFluidSystemTDPF::OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
     m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex1D_elements += fsi_mesh->GetNumElements();
     m_num_1D_meshes++;
 }
 
-void ChFsiFluidSystemTDPF::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
+void ChFsiFluidSystemTDPF::OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
     m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
     m_num_2D_meshes++;

@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
                                                         inner_cylinder_radius - initial_spacing / 2,  //
                                                         cylinder_height,                              //
                                                         use_polar_coords);
-    const auto& fsi_inner_cylinder = sysFSI.AddFsiBody(inner_cylinder, bce_inner, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
+    const auto& fsi_inner_cylinder = sysFSI.AddRigidBody(inner_cylinder, bce_inner, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
     auto inner_cylinder_index = fsi_inner_cylinder->index;
 
     // Create outer cylinder, spinning
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
                                                         outer_cylinder_radius + 3 * initial_spacing,  //
                                                         cylinder_height,                              //
                                                         true);
-    const auto& fsi_outer_cylinder = sysFSI.AddFsiBody(outer_cylinder, bce_outer, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
+    const auto& fsi_outer_cylinder = sysFSI.AddRigidBody(outer_cylinder, bce_outer, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
     auto outer_cylinder_index = fsi_outer_cylinder->index;
 
     // Add motor between outer cylinder and plate

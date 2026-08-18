@@ -29,7 +29,7 @@ In the following you can see some examples of using the ChGnuPlot class.
 
 # Example 1
 
-The most low-level way of using the ChGnuPlot class: use the the 
+The most low-level way of using the ChGnuPlot class: use the 
 SetCommand() or alternatively the << operator, to build the .gpl script.
 
 Such script will be saved on disk with the specified .gpl name. 
@@ -44,7 +44,7 @@ mplot << "splot x*y";
 When the mplot object goes out of scope and is deleted 
 at the end of this example, the script is saved on disk and GNUplot is launched.
 
-You should see the following windows that opens:
+You should see the following windows that open:
 
 ![](http://projectchrono.org/assets/manual/Tutorial_gnuplot1.png)
 

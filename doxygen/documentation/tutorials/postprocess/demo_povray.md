@@ -41,7 +41,7 @@ single "sample" 3D shape. This will be shown N times in POV or Irrlicht.
 
 The following part is very important because this is what makes 
 this demo different from the demo_IRR_assets, that used Irrlicht. 
-We need to create a postprocessor of type @ref chrono::postprocess::ChPovRay and tell him that 
+We need to create a postprocessor of type @ref chrono::postprocess::ChPovRay and tell it that 
 we are going to export our visualization assets:
 
 \snippet demo_POST_povray1.cpp POV exporter
@@ -57,18 +57,18 @@ actually this is the instruction that creates the many .dat and .pov files in th
 
 # Executing and rendering with POVray
 
-Once you created your program, compile it, then:
+Once you have created your program, compile it, then:
 
 - execute the `demo_POST_povray1.exe`
-- on the console you will see a time counter showing that the system is load and it is being simulated
+- on the console you will see a time counter showing that the system is loaded and it is being simulated
 - when the program ends, you must open POVray and open the `rendering_frames.pov.ini` 
   file, using the Open menu or button, or drag&drop (you can find this .ini file and 
-  other POVray as they are saved in the same directory of the executable) 
+  other POVray files, as they are saved in the same directory as the executable) 
 
 ![](http://projectchrono.org/assets/manual/Povray.jpg)
 
 - press the Run button in POVray to execute the .ini file , and you should see that 
-  POVray generates lot of frames, being saved in the directory `anim`.
+  POVray generates a lot of frames, being saved in the directory `anim`.
 
 ![](http://projectchrono.org/assets/manual/Tutorial_pov.jpg)
 
@@ -76,13 +76,13 @@ Once you created your program, compile it, then:
 # Optional encoding into an AVI or MPEG animation
 
 If you want to generate a .mpeg or .avi animation from the rendered .bmp images, 
-we suggest to use the VirtualDub tool:
+we suggest using the VirtualDub tool:
 
 ![](http://projectchrono.org/assets/manual/Tutorial_pov2.jpg)
 
 - drag&drop the first .jpg frame in its interface; it will automatically load all 
   other frames in the timeline
-- use menu Video/Compression... to setup the proper video codec (suggested: Xvid, DivX, mpeg4, etc.)
+- use menu Video/Compression... to set up the proper video codec (suggested: Xvid, DivX, mpeg4, etc.)
 - use menu File/Save As Avi... to encode and save the animation on disk.
 
 

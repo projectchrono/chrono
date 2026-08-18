@@ -3,7 +3,7 @@ YAML schema for Chrono MBS simulation specification {#YAML_schema_mbs_simulation
 
 A Chrono YAML MBS simulation file defines the setup for a Chrono multibody simulation. It consists of the following main objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The simulation `type`, which must be `MBS` here.
 - [required] The MBS `model` object which defines YAML specification of multibody problem.
 - [required] The MBS `solver` object which defines YAML specification of the solver algorithms.

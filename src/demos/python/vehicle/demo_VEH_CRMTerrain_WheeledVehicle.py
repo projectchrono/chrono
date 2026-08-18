@@ -186,7 +186,7 @@ terrain.SetStepSizeCFD(step_size)
 terrain.RegisterVehicle(vehicle)
 
 # Set SPH parameters and soil material properties
-mat_props = fsi.ElasticMaterialProperties()
+mat_props = fsi.SoilProperties()
 mat_props.density = density
 mat_props.Young_modulus = youngs_modulus
 mat_props.Poisson_ratio = poisson_ratio
@@ -195,7 +195,7 @@ mat_props.mu_fric_s = friction
 mat_props.mu_fric_2 = friction
 mat_props.average_diam = 0.005
 mat_props.cohesion_coeff = cohesion
-terrain.SetElasticSPH(mat_props)
+terrain.SetCrmSPH(mat_props)
 
 # Set SPH solver parameters
 sph_params = fsi.SPHParameters()
@@ -222,7 +222,7 @@ CreateFSIWheels(vehicle, terrain)
 
 # CRITICAL: Use correct active domain setup
 terrain.SetActiveDomain(chrono.ChVector3d(active_box_dim))
-terrain.SetActiveDomainDelay(settling_time)
+terrain.SetFreeFlowDuration(settling_time)
 
 # Construct the terrain and associated path
 print("Create terrain...")

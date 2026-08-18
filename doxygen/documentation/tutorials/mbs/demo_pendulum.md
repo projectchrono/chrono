@@ -10,7 +10,7 @@ This tutorial shows how to:
 - create a pendulum
 
 - apply custom forces using 'force accumulators' 
- (the simplified aereodinamic drag, in this case)
+ (the simplified aerodynamic drag, in this case)
  
 - create constraints with upper-lower limits 
  (the horizontal sliding joints between pendula and truss) 

@@ -3,11 +3,11 @@ Wheeled and Tracked Vehicle Synchronization {#vehicle_synchronization}
 
 \tableofcontents
 
-SynChrono provides state synchronization for [Chrono::Vehicle](@ref manual_vehicle) model templates. Wheeled and tracked vehicle synchronization are currently supported.
+SynChrono provides state synchronization for [Chrono::Vehicle](@ref manual_vehicle) model templates. Wheeled and tracked vehicle synchronization is currently supported.
 
 ## General Concepts {#veh_sync_general_concepts}
 
-To achieve SynChrono's goal of extending Project Chrono's physics into the multi-agent realm, the first step was to enable large-scale vehicle scenarios. Single vehicle simulations was already supported through the [Chrono::Vehicle](@ref manual_vehicle) module, but a scalable solution for 10s to 100s of additional vehicles was desired. Through SynChrono's synchronization backbone, this became feasible. Synchronization within SynChrono is explained in depth [here](state_synchronization.html). 
+To achieve SynChrono's goal of extending Project Chrono's physics into the multi-agent realm, the first step was to enable large-scale vehicle scenarios. Single vehicle simulations were already supported through the [Chrono::Vehicle](@ref manual_vehicle) module, but a scalable solution for 10s to 100s of additional vehicles was desired. Through SynChrono's synchronization backbone, this became feasible. Synchronization within SynChrono is explained in depth [here](state_synchronization.html). 
 
 To allow for time and space coherence between agents, state passing is performed at a predetermined heartbeat to effectively pretend all vehicles are simulated within the same world. [SynAgent's](group__synchrono__agent.html) manage both the construction and synchronization of these pretend agents (or _zombies_) and handle generating the state messages to be distributed between agents. The [SynWheeledVehicleAgent](@ref chrono::synchrono::SynWheeledVehicleAgent) and [SynTrackedVehicleAgent](@ref chrono::synchrono::SynTrackedVehicleAgent) classes are the thin wrappers used for [ChWheeledVehicle's](@ref chrono::vehicle::ChWheeledVehicle) and [ChTrackedVehicle's](@ref chrono::vehicle::ChTrackedVehicle). Over the course of a simulation, a VehicleAgent will initialize a zombie for each other VehicleAgent initialized on other nodes, distribute its own state to the other nodes and synchronize each zombie to match its corresponding agent. This cycle can be seen in the below figure.
 
@@ -17,7 +17,7 @@ Wheeled and tracked vehicles will distribute individual state and description in
 
 ### Limitations {#veh_sync_limitations}
 
-Currently, only position and orientation of various vehicle components is shared between agents. Contact forces are not shared, hence agents are only space coherent (i.e. have knowledge of), not space interactive. 
+Currently, only position and orientation of various vehicle components are shared between agents. Contact forces are not shared, hence agents are only space coherent (i.e. have knowledge of), not space interactive. 
 
 ## Wheeled Vehicle Synchronization {#veh_sync_wheeled}
 
@@ -41,7 +41,7 @@ table Description {
 
 ### State Messages {#veh_sync_wheeled_state}
 
-The state information for a wheeled vehicle is rather simple. The pose (position and orientation) of the chassis and the models wheels are sent to the other agents. Wheels and tires share the same pose information.
+The state information for a wheeled vehicle is rather simple. The pose (position and orientation) of the chassis and the model's wheels are sent to the other agents. Wheels and tires share the same pose information.
 
 On reception, the bodies created at initialization through the description message have their position updated.
 
@@ -63,7 +63,7 @@ A [SynTrackedVehicleAgent](@ref chrono::synchrono::SynTrackedVehicleAgent) simpl
 
 ### Description Messages {#veh_sync_tracked_description}
 
-To reconstruct a [ChTrackedVehicle's](@ref chrono::vehicle::ChTrackedVehicle), one must know the visual representation of its chassis, track shoes, sprockets, idlers and road wheels. Other than the chassis and track shoe, different meshes could be used for different sides, so the left and right files are sent separately. To enhance generality and allow for multiple vehicle configurations (i.e. more or less sprockets/idlers/etc.), the number of track shoes, sprockets, idlers and road_wheels are sent. Each visual file is represented as a string which is then read relative to the Chrono data directory.
+To reconstruct a [ChTrackedVehicle's](@ref chrono::vehicle::ChTrackedVehicle), one must know the visual representation of its chassis, track shoes, sprockets, idlers and road wheels. Other than the chassis and track shoe, different meshes could be used for different sides, so the left and right files are sent separately. To enhance generality and allow for multiple vehicle configurations (i.e. more or fewer sprockets/idlers/etc.), the number of track shoes, sprockets, idlers and road_wheels is sent. Each visual file is represented as a string which is then read relative to the Chrono data directory.
 
 ```protobuf
 table Description {

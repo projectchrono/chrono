@@ -28,7 +28,7 @@ Here are the main features:
 - To **run** applications based on this module you need
     - an NVIDIA GPU
     - Linux or Windows
-- This module has been build/tested on both Windows 11 and Linux Ubuntu 22.04 with CUDA 12.9 and 13.2.
+- This module has been built/tested on both Windows 11 and Linux Ubuntu 22.04 with CUDA 12.9 and 13.2.
 
 ## Building instructions
    

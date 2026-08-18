@@ -35,16 +35,29 @@ set(CHRONO_HIP_MIN_VERSION "5.7.0" CACHE STRING "Minimum HIP version required by
 
 # HIP targeting NVIDIA hardware (CMAKE_HIP_PLATFORM=nvidia).
 #
-# Ships OFF, and that is a deliberate staging decision rather than a limitation
-# of the model: the architecture above can represent the state correctly today
-# while nothing in-tree exercises it yet. Two concrete blockers must clear
-# first -- the CMake version guard in ChronoGPUDetect.cmake, and the hardcoded
-# __HIP_PLATFORM_AMD__ in src/chrono/gpu/ChGpuPrimitives.h and ChGpuRuntime.h.
-# Flipping this default belongs in the same change that lands the first
-# HIP-source-only module, so it is reviewed against a real consumer rather than
-# speculatively.
+# Ships ON. This shipped OFF when the resolution model was introduced, as a
+# staging decision: the model could represent the state, but nothing in-tree
+# used it, and the default was to be flipped by the first module whose GPU
+# sources are HIP-only, so that it would be reviewed against a real consumer.
+#
+# Chrono::Vehicle's SCM GPU backend is that consumer. Its kernels exist only in
+# HIP, so on NVIDIA hardware "is HIP available?" and "can this feature use the
+# GPU at all?" are the same question. Leaving this OFF would mean a machine
+# with a GPU and a working toolchain silently building the CPU path until the
+# user discovered an option they had no reason to look for.
+#
+# Turning it ON only widens the search; it does not change what any existing
+# module compiles as. Chrono::DEM and Chrono::FSI::SPH still PREFER CUDA, so on
+# NVIDIA they resolve to CUDA exactly as before -- HIP merely becomes an
+# available fact rather than an unasked question. The search itself is safe by
+# construction: it is version-guarded (CMake >= 3.28), gated on finding a ROCm
+# new enough to satisfy CHRONO_HIP_MIN_VERSION, and ends in check_language(HIP),
+# so anything missing or too old leaves CHRONO_HIP_FOUND FALSE instead of
+# failing the configure.
+#
+# Set OFF to skip the search on a machine where ROCm is present but unwanted.
 option(CHRONO_ENABLE_HIP_ON_NVIDIA
-       "Also look for HIP targeting NVIDIA hardware (requires CMake >= 3.28)" OFF)
+       "Also look for HIP targeting NVIDIA hardware (requires CMake >= 3.28)" ON)
 
 #-----------------------------------------------------------------------------
 # ROCm discovery

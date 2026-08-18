@@ -169,30 +169,12 @@ __VECTOR_FUNCTIONS_DECL__ float4 make_float4(float x, float y, float z, float w)
     return t;
 }
 
-/// Make a vector with two double elements.
-__VECTOR_FUNCTIONS_DECL__ double2 make_double2(double x, double y) {
-    double2 t;
-    t.x = x;
-    t.y = y;
-    return t;
-}
-
 /// Make a vector with three double elements.
 __VECTOR_FUNCTIONS_DECL__ double3 make_double3(double x, double y, double z) {
     double3 t;
     t.x = x;
     t.y = y;
     t.z = z;
-    return t;
-}
-
-/// Make a vector with four double elements.
-__VECTOR_FUNCTIONS_DECL__ double4 make_double4(double x, double y, double z, double w) {
-    double4 t;
-    t.x = x;
-    t.y = y;
-    t.z = z;
-    t.w = w;
     return t;
 }
 
@@ -333,6 +315,34 @@ inline __host__ __device__ uint4 make_uint4(uint3 a, uint w) {
 }
 inline __host__ __device__ uint4 make_uint4(int4 a) {
     return make_uint4(uint(a.x), uint(a.y), uint(a.z), uint(a.w));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// access
+////////////////////////////////////////////////////////////////////////////////
+
+/// Access component i (0 <= i <= 2) of a Real3, treating it as a 3-element array.
+/// Relies on Real3's three Real members being laid out contiguously, matching x/y/z order.
+__host__ __device__ inline Real Get(const Real3& v, int i) {
+    return (&v.x)[i];
+}
+
+/// Access component i (0 <= i <= 2) of a Real3, treating it as a 3-element array.
+/// Relies on Real3's three Real members being laid out contiguously, matching x/y/z order.
+__host__ __device__ inline Real& Get(Real3& v, int i) {
+    return (&v.x)[i];
+}
+
+/// Access component i (0 <= i <= 3) of a Real4, treating it as a 4-element array.
+/// Relies on Real4's four Real members being laid out contiguously, matching x/y/z/w order.
+__host__ __device__ inline Real Get(const Real4& v, int i) {
+    return (&v.x)[i];
+}
+
+/// Access component i (0 <= i <= 3) of a Real4, treating it as a 4-element array.
+/// Relies on Real4's four Real members being laid out contiguously, matching x/y/z/w order.
+__host__ __device__ inline Real& Get(Real4& v, int i) {
+    return (&v.x)[i];
 }
 
 ////////////////////////////////////////////////////////////////////////////////

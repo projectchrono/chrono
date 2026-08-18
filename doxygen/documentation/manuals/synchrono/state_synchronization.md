@@ -5,7 +5,7 @@ State Synchronization with DDS and MPI {#state_synchronization}
 
 ## Message Passing Interface (MPI) {#state_sync_MPI}
 
-MPI is a standardized message-passing standard for parallel computing. Actively developed over more than 25 years, MPI is a robust standard with multiple implementations and widespread use, in particular in supercomputing clusters. In addition, the MPI runtime handles many aspects of program setup, like launching tasks on each computing resource and selecting the communication type, whether shared memory, InfiniBand, TCP or others. This widespread accessibility and ease of use in a cluster environment makes it the default choice for use in SynChrono. 
+MPI is a standardized message-passing standard for parallel computing. Actively developed over more than 25 years, MPI is a robust standard with multiple implementations and widespread use, in particular in supercomputing clusters. In addition, the MPI runtime handles many aspects of program setup, like launching tasks on each computing resource and selecting the communication type, whether shared memory, InfiniBand, TCP or others. This widespread accessibility and ease of use in a cluster environment make it the default choice for use in SynChrono. 
 
 In MPI-terminology, each computing resource is called a _rank_, and in SynChrono each rank will typically handle a `ChSystem`. This `ChSystem` may have one or more vehicle agents, deformable terrain, or other actors, and the MPI rank is responsible for sharing the state data from its `ChSystem` with all other ranks and receiving state data from the other ranks in return.
 
@@ -20,7 +20,7 @@ There are many DDS implementations, the most popular being published by [Real-Ti
 
 ### SynChrono Implementation {#state_sync_DDS_synchrono}
 
-The figure below illustrates the general DDS communication scenario. For SynChrono, each participant corresponds to a node, with a single ChSystem. Data synchronization happens via publishers and subscribers, both of which are wrapped at the SynChrono level to provide a SynChrono-specific API for passing FlatBuffer messages. There is a unique topic for each agent in the simulation, and each agent manages a publisher for sharing its data along with a subscriber for receiving data from other ranks. One level down, data readers and data writers manager the communication between each pair of agents. If there are five nodes in the simulation, each agent will have four data readers to receive data from other nodes.
+The figure below illustrates the general DDS communication scenario. For SynChrono, each participant corresponds to a node, with a single ChSystem. Data synchronization happens via publishers and subscribers, both of which are wrapped at the SynChrono level to provide a SynChrono-specific API for passing FlatBuffer messages. There is a unique topic for each agent in the simulation, and each agent manages a publisher for sharing its data along with a subscriber for receiving data from other ranks. One level down, data readers and data writers manage the communication between each pair of agents. If there are five nodes in the simulation, each agent will have four data readers to receive data from other nodes.
 
 Please see [here](https://community.rti.com/static/documentation/connext-dds/5.2.0/doc/manuals/connext_dds/html_files/RTI_ConnextDDS_CoreLibraries_GettingStarted/Content/GettingStarted/An_Introduction_to_.htm) for more details about DDS.
 

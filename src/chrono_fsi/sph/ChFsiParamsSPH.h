@@ -37,15 +37,15 @@ namespace sph {
 
 /// Structure with FSI simulation parameters.
 struct ChFsiParamsSPH {
+    PhysicsProblem physics_problem;        ///< Physics problem type: (CFD or CRM)
+    RheologyCRM rheology_model_crm;        ///< Rheology model for CRM problems (MU_OF_I or MCC)
+
     IntegrationScheme integration_scheme;  ///< Integration scheme
     EosType eos_type;                      ///< Equation of state type (Tait or isothermal)
     ViscosityMethod viscosity_method;      ///< Viscosity treatment type (physics-based laminar flow or artificial)
     BoundaryMethod boundary_method;        ///< Boundary type (Adami or Holmes)
     KernelType kernel_type;                ///< Kernel type (Quadratic, cubic spline, quintic spline, quintic Wendland)
     ShiftingMethod shifting_method;        ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
-    RheologyCRM rheology_model_crm;        ///< Rheology model (MU_OF_I or MCC)
-
-    bool elastic_SPH;  ///< Set physics problem: CFD (false) or CRM granular (true)
 
     int3 gridSize;          ///< dx, dy, dz distances between particle centers
     Real3 worldOrigin;      ///< Origin point
@@ -197,9 +197,7 @@ struct ChFsiParamsSPH {
     Real3 zombieMin;  ///< Lower limit point of the zombie domain -> All particles outside this will be frozen
     Real3 zombieMax;  ///< Upper limit point of the zombie domain -> All particles outside this will be frozen
 
-    Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
-    bool use_active_domain;  ///< Set to true if active domain is used
-    Real settlingTime;       ///< Time for the granular to settle down
+    Real free_flow_duration;  ///< initial  duration for free flow CRM material (default: 0)
 
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists
     bool use_variable_time_step;     ///< use variable time step (default: false)

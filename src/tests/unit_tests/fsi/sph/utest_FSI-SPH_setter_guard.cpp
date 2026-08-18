@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     // Every device-parameter setter must be rejected after Initialize()
     std::cout << "After Initialize():" << std::endl;
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     ChFsiFluidSystemSPH::LinSolverParameters linsolv_params;
 
     ExpectThrow("SetBoundaryType", [&] { sysSPH->SetBoundaryType(BoundaryMethod::ADAMI); });
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     ExpectThrow("SetIntegrationScheme", [&] { sysSPH->SetIntegrationScheme(IntegrationScheme::RK2); });
     ExpectThrow("SetContainerDim", [&] { sysSPH->SetContainerDim(ChVector3d(1, 1, 1)); });
     ExpectThrow("SetActiveDomain", [&] { sysSPH->SetActiveDomain(ChVector3d(1, 1, 1)); });
-    ExpectThrow("SetActiveDomainDelay", [&] { sysSPH->SetActiveDomainDelay(1.0); });
+    ExpectThrow("SetFreeFlowDuration", [&] { sysSPH->SetFreeFlowDuration(1.0); });
     ExpectThrow("SetNumBCELayers", [&] { sysSPH->SetNumBCELayers(3); });
     ExpectThrow("SetInitPressure", [&] { sysSPH->SetInitPressure(0.1); });
     ExpectThrow("SetGravitationalAcceleration", [&] { sysSPH->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8)); });
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     ExpectThrow("SetNumProximitySearchSteps", [&] { sysSPH->SetNumProximitySearchSteps(4); });
     ExpectThrow("SetUseVariableTimeStep", [&] { sysSPH->SetUseVariableTimeStep(false); });
     ExpectThrow("SetCfdSPH", [&] { sysSPH->SetCfdSPH(fluid_props); });
-    ExpectThrow("SetElasticSPH", [&] { sysSPH->SetElasticSPH(mat_props); });
+    ExpectThrow("SetCrmSPH", [&] { sysSPH->SetCrmSPH(mat_props); });
     ExpectThrow("SetSPHParameters", [&] { sysSPH->SetSPHParameters(sph_params); });
     ExpectThrow("SetLinSolverParameters", [&] { sysSPH->SetLinSolverParameters(linsolv_params); });
 

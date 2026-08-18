@@ -3,7 +3,7 @@ YAML schema for Chrono::Vehicle simulation specification {#YAML_schema_vehicle_s
 
 A Chrono YAML vehicle simulation file defines the setup for a Chrono::Vehicle simulation. It consists of the following main objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The simulation `type`, which must be `VEHICLE` here.
 - [required] The vehicle `model` object which defines YAML specification of vehicle system.
 - [required] The MBS `solver` object which defines YAML specification of the solver algorithms.

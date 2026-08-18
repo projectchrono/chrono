@@ -6,7 +6,7 @@ that interact with obstacles, and that can be driven by the user.
 
 This tutorial shows how to:
 
-- create different 'families' of collision objects (ex. to avoid that unnecessry contacts are created between adjacent track shoes).
+- create different 'families' of collision objects (ex. to avoid that unnecessary contacts are created between adjacent track shoes).
 - make custom compound collision shapes.
 - load a non-concave collision mesh that is decomposed in convex parts  
  

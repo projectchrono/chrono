@@ -587,7 +587,7 @@ void ChWheelTestRig::CreateTerrainCRM() {
 
     terrain->SetStepsizeMBD(m_step_size);
 
-    terrain->SetElasticSPH(m_params_crm.mat_props);
+    terrain->SetCrmSPH(m_params_crm.mat_props);
     terrain->SetSPHParameters(m_params_crm.sph_params);
 
     double loc_z = m_terrain_height - m_terrain_size.depth;

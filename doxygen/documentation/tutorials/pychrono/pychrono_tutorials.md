@@ -68,7 +68,7 @@ For examples of using Chrono::Python to parse and execute Python programs **from
     Create two pendulums following parametric lines. Learn how:
     - create piecewise paths built from sub-lines, and visualize them
     - add a constraint of 'curvilinear glyph' type (the body can freely move with one of its points being constrained to slide along a path)
-    - add a constraint of 'imposed trajectory' type (the body must with one of its points being constrained to walk along a path as a parametric line with motion function)
+    - add a constraint of 'imposed trajectory' type (the body must move with one of its points being constrained to walk along a path as a parametric line with motion function)
 
 
 - [mbs/demo_MBS_collision_trimesh.py](https://github.com/projectchrono/chrono/blob/main/src/demos/python/mbs/demo_MBS_collision_trimesh.py)
@@ -76,11 +76,11 @@ For examples of using Chrono::Python to parse and execute Python programs **from
     Create complex rigid body shapes based on meshes. Learn how:
     - load a .obj mesh file and use it for visualization of the shape
     - load a .obj mesh file and use it for collision
-	- adjust position of center of mass respect to reference in ChBodyAuxRef
+	- adjust position of center of mass with respect to reference in ChBodyAuxRef
 	- change inertia properties.
 
     Notes:
-    - Collision detection with generic concave meshes is slower and less robust than any other options for collision shapes, so use it only if defining  the collision shape via primitives like spheres boxes cylinders or their clusters is too complex. (In fact, a good trade-off often is the following: use a detailed mesh for visualization, and few simple primitives for collision).
+    - Collision detection with generic concave meshes is slower and less robust than any other options for collision shapes, so use it only if defining  the collision shape via primitives like spheres, boxes, cylinders, or their clusters is too complex. (In fact, a good trade-off often is the following: use a detailed mesh for visualization, and few simple primitives for collision).
     - The mesh shape is a .obj file in Wavefront file format, you can generate it from 3D modelers such as Blender, Maya, etc., as well as from some CAD.
     - For collision purposes, the .obj mesh must be "watertight", i.e. having no gaps in edges, no repeated vertices, etc. If you are not sure about this, the free tool MeshLab, for example, has tools to check the topological correctness of the mesh.
     - For visualization purposes only, i.e. if you do not use the mesh also for  collision, the mesh does not need to be watertight. (btw. If the visualization does not look good, check if the normals are correct in your .obj file.)
@@ -159,7 +159,7 @@ Simulate vehicle dynamics in Python, using complete pre-built wheeled vehicle mo
 
     Use pychrono.cascade to load a STEP file and create constraints between the bodies.
     - load a STEP file, saved from a 3D CAD.
-	- fetch parts and recerences from the STEP document, and create joints between them.
+	- fetch parts and references from the STEP document, and create joints between them.
 	- assign a ChLinkTrajectory to a part
 	
 ## Machine Learning Tutorials
