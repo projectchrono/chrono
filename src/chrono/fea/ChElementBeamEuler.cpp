@@ -116,6 +116,13 @@ void ChElementBeamEuler::UpdateRotation() {
     A = A0.transpose() * Aabs;
 }
 
+void ChElementBeamEuler::UpdateRotation(const ChQuaternion<>& q_modal) {
+    ChMatrix33<> A0(this->q_element_ref_rot);
+    ChMatrix33<> Amodal(q_modal);
+    ChMatrix33<> Aabs = Amodal * A0;
+    this->q_element_abs_rot = Aabs.GetQuaternion();
+}
+
 void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
