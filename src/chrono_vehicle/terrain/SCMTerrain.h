@@ -20,6 +20,7 @@
 #ifndef SCM_TERRAIN_H
 #define SCM_TERRAIN_H
 
+#include <cstdint>
 #include <string>
 #include <ostream>
 #include <unordered_map>
@@ -486,32 +487,50 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         ChVector3d m_ooN;                 // current inverse of SCM normal in body frame
     };
 
+    /// Storage precision for the per-node soil state and the base height field.
+    ///
+    /// These two structures are the whole per-rank memory cost of an SCM patch: the dense
+    /// m_heights matrix is (2*nx+1)*(2*ny+1) entries allocated up front whether or not a node
+    /// is ever touched, and m_grid_map grows one NodeRecord per node the vehicles actually
+    /// deform. At a 1024 m patch and 0.1 m spacing that is 104.9 M nodes, so the choice of
+    /// scalar here is worth ~400 MB per MPI rank on its own -- and every rank of a distributed
+    /// run allocates its own copy of the full grid.
+    ///
+    /// float is sufficient for terrain-scale work: its 24-bit mantissa resolves ~3 um at a
+    /// node level of 25 m, three orders below the ~0.1 mm sinkage that matters to the Bekker
+    /// and Janosi-Hanamoto terms. Levels are absolute heights in the SCM frame, so the margin
+    /// scales with frame offset -- a patch placed thousands of metres from its frame origin
+    /// would lose that headroom. Set this to double to restore the previous behaviour.
+    using ScmReal = float;
+
     // Information at contacted node
     struct NodeRecord {
-        double level_initial;      // initial node level (relative to SCM frame)
-        double level;              // current node level (relative to SCM frame)
-        double hit_level;          // ray hit level (relative to SCM frame)
-        ChVector3d normal;         // normal of undeformed terrain (in SCM frame)
-        double sinkage;            // along local normal direction
-        double sinkage_plastic;    // along local normal direction
-        double sinkage_elastic;    // along local normal direction
-        double sigma;              // along local normal direction
-        double sigma_yield;        // along local normal direction
-        double kshear;             // along local tangent direction
-        double tau;                // along local tangent direction
-        bool erosion;              // for bulldozing
-        double massremainder;      // for bulldozing
-        double step_plastic_flow;  // for bulldozing
+        ScmReal level_initial;      // initial node level (relative to SCM frame)
+        ScmReal level;              // current node level (relative to SCM frame)
+        ScmReal hit_level;          // ray hit level (relative to SCM frame)
+        ChVector3<ScmReal> normal;  // normal of undeformed terrain (in SCM frame)
+        ScmReal sinkage;            // along local normal direction
+        ScmReal sinkage_plastic;    // along local normal direction
+        ScmReal sinkage_elastic;    // along local normal direction
+        ScmReal sigma;              // along local normal direction
+        ScmReal sigma_yield;        // along local normal direction
+        ScmReal kshear;             // along local tangent direction
+        ScmReal tau;                // along local tangent direction
+        bool erosion;               // for bulldozing
+        ScmReal massremainder;      // for bulldozing
+        ScmReal step_plastic_flow;  // for bulldozing
 
         NodeRecord() : NodeRecord(0, 0, ChVector3d(0, 0, 1)) {}
         ~NodeRecord() {}
 
+        // Callers work in double throughout; narrowing happens here, at the storage boundary.
         NodeRecord(double init_level, double level, const ChVector3d& n)
-            : level_initial(init_level),
-              level(level),
-              hit_level(1e9),
-              normal(n),
-              sinkage(init_level - level),
+            : level_initial(static_cast<ScmReal>(init_level)),
+              level(static_cast<ScmReal>(level)),
+              hit_level(static_cast<ScmReal>(1e9)),
+              normal(ChVector3<ScmReal>(static_cast<ScmReal>(n.x()), static_cast<ScmReal>(n.y()),
+                                        static_cast<ScmReal>(n.z()))),
+              sinkage(static_cast<ScmReal>(init_level - level)),
               sinkage_plastic(0),
               sinkage_elastic(0),
               sigma(0),
@@ -567,7 +586,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int GetMeshVertexIndex(const ChVector2i& loc);
 
     // Get indices of trimesh faces incident to the specified grid vertex.
-    std::vector<int> GetMeshFaceIndices(const ChVector2i& loc);
+    std::vector<std::int64_t> GetMeshFaceIndices(const ChVector2i& loc);
 
     // Check if the provided grid location is within the visualization mesh bounds
     bool CheckMeshBounds(const ChVector2i& loc) const;
@@ -669,7 +688,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int m_nx;              ///< range for grid indices in X direction: [-m_nx, +m_nx]
     int m_ny;              ///< range for grid indices in Y direction: [-m_ny, +m_ny]
 
-    ChMatrixDynamic<> m_heights;  ///< (base) grid heights (when initializing from height-field map)
+    ChMatrixDynamic<ScmReal> m_heights;  ///< (base) grid heights (when initializing from height-field map)
     double m_base_height;         ///< default height for vertices outside the projection of input mesh
 
     std::unordered_map<ChVector2i, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
