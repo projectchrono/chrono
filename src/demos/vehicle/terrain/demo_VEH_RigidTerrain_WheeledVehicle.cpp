@@ -180,14 +180,24 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver. Kept separate from render_step_size above, which
+    // sets the driver input rates and would change vehicle behavior if retuned.
+    double render_fps = 60;
+    int render_frame = 0;
+
     hmmwv.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         double time = hmmwv.GetSystem()->GetChTime();
 
         // Render scene
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();

@@ -183,6 +183,13 @@ int main(int argc, char* argv[]) {
     bool is_pitched = false;
     double time = 0;
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver. vis->Run() is still called every iteration so the
+    // window stays responsive and a close request still breaks the loop.
+    double render_fps = 60;
+    int render_frame = 0;
+
     while (time < time_end) {
         // Rotate gravity vector
         if (!is_pitched && time > time_pitch) {
@@ -204,24 +211,27 @@ int main(int argc, char* argv[]) {
         ////}
 
         if (vis->Run()) {
-            switch (cam_type) {
-                case FRONT: {
-                    double body_x = body->GetPos().x();
-                    ChVector3d cam_loc(body_x + buffer_dist, -4, 0);
-                    ChVector3d cam_point(body_x + buffer_dist, 0, 0);
-                    vis->UpdateCamera(cam_loc, cam_point);
-                    break;
+            if (time >= render_frame / render_fps) {
+                switch (cam_type) {
+                    case FRONT: {
+                        double body_x = body->GetPos().x();
+                        ChVector3d cam_loc(body_x + buffer_dist, -4, 0);
+                        ChVector3d cam_point(body_x + buffer_dist, 0, 0);
+                        vis->UpdateCamera(cam_loc, cam_point);
+                        break;
+                    }
+                    case TRACK: {
+                        ChVector3d cam_point = body->GetPos();
+                        ChVector3d cam_loc = cam_point + ChVector3d(-3 * body_rad, -1, 0.6);
+                        vis->UpdateCamera(cam_loc, cam_point);
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                case TRACK: {
-                    ChVector3d cam_point = body->GetPos();
-                    ChVector3d cam_loc = cam_point + ChVector3d(-3 * body_rad, -1, 0.6);
-                    vis->UpdateCamera(cam_loc, cam_point);
-                    break;
-                }
-                default:
-                    break;
+                vis->Render();
+                render_frame++;
             }
-            vis->Render();
         } else {
             break;
         }

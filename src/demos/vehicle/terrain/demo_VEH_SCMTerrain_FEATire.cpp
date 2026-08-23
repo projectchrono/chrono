@@ -157,11 +157,20 @@ int main(int argc, char* argv[]) {
     integrator->SetJacobianUpdateMethod(ChTimestepperImplicit::JacobianUpdate::EVERY_ITERATION);
     integrator->SetVerbose(true);
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+
     // Simulation loop
     while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (sys.GetChTime() >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
         sys.DoStepDynamics(0.002);
     }
 

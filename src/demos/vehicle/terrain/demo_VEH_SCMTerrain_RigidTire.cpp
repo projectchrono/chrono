@@ -307,6 +307,12 @@ int main(int argc, char* argv[]) {
     */
 
     // Simulation loop
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (output) {
@@ -326,10 +332,13 @@ int main(int argc, char* argv[]) {
         ////std::cout << "Wheel pos: " << wheel->GetPos() << std::endl;
         ////std::cout << "Wheel rot: " << wheel->GetRot() << std::endl;
 
-        vis->BeginScene();
-        vis->SetCameraTarget(wheel->GetPos());
-        vis->Render();
-        vis->EndScene();
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->SetCameraTarget(wheel->GetPos());
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 
         sys.DoStepDynamics(0.002);
         ////terrain.PrintStepStatistics(std::cout);

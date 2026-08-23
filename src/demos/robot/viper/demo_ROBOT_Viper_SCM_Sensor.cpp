@@ -519,12 +519,23 @@ int main(int argc, char* argv[]) {
 
     // SIMULATION LOOP
 
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+#endif
+
     while (vis->Run()) {
 #if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
-        vis->BeginScene();
-        vis->SetCameraTarget(Body_1->GetPos());
-        vis->Render();
-        vis->EndScene();
+        if (sys.GetChTime() >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->SetCameraTarget(Body_1->GetPos());
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 #endif
 
         manager->Update();

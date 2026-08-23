@@ -121,6 +121,12 @@ int main(int argc, char* argv[]) {
     vis->EnableSkyTexture(SkyMode::DOME);
     vis->Initialize();
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+
     // Simulation loop
     hmmwv.GetVehicle().EnableRealtime(true);
 
@@ -158,9 +164,12 @@ int main(int argc, char* argv[]) {
         vis->SetCameraTarget(veh_pos);
 
         // Render scene
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
