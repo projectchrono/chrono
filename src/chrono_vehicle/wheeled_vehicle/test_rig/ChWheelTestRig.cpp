@@ -57,8 +57,7 @@ ChWheelTestRig::ChWheelTestRig(std::shared_ptr<WheelAssembly> wheel, ChSystem& s
       m_terrain_offset(0),
       m_terrain_height(0),
       m_step_size(1e-3),
-      m_vis_type(VisualizationType::PRIMITIVES),
-      m_default_AABB(true) {
+      m_vis_type(VisualizationType::PRIMITIVES) {
     // Default motion function for slip angle control
     m_sa_fun = chrono_types::make_shared<ChFunctionConst>(0);
 }
@@ -572,9 +571,14 @@ void ChWheelTestRig::SetTerrainCRM(const TerrainPatchSize& size, const TerrainPa
     m_params_crm = params;
 }
 
-void ChWheelTestRig::SetWheelActiveBox(const ChVector3d& size) {
-    m_default_AABB = false;
-    m_AABB_size = size;
+void ChWheelTestRig::SetWheelActiveDomain(const ChAABB& aabb) {
+    m_wheel_AABB = aabb;
+}
+
+void ChWheelTestRig::SetWheelActiveDomain() {
+    auto corner = ChVector3d(m_wheel->GetRadius(), m_wheel->GetWidth() / 2, m_wheel->GetRadius());
+    m_wheel_AABB.min = -1.25 * corner;
+    m_wheel_AABB.max = +1.25 * corner;
 }
 
 void ChWheelTestRig::CreateTerrainCRM() {
@@ -594,17 +598,19 @@ void ChWheelTestRig::CreateTerrainCRM() {
     ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel->GetRadius(), m_terrain_offset, loc_z);
     terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location, BoxSide::ALL & ~BoxSide::Z_POS);
 
-    if (m_default_AABB) {
-        // Estimate a reasonable active domain size
-        m_AABB_size = ChVector3d(2.5 * m_wheel->GetRadius(), 1.25 * m_wheel->GetWidth(), 2.5 * m_wheel->GetRadius());
-    }
-    terrain->SetActiveDomain(m_AABB_size);
-
     // Add wheel FSI bodies
     m_wheel->AddFSIBodies(*terrain, m_params_crm.sph_params.initial_spacing);
 
+    // If a wheel-level active domain was defined, associate it with the spindle (hub) body
+    if (!m_wheel_AABB.IsInverted()) {
+        // Add the hub as a (dummy) FSI body if not already so declared
+        if (!terrain->IsFsiSolid(m_wheel->GetHub()))
+            terrain->AddRigidBody(m_wheel->GetHub(), nullptr, false);
+        terrain->SetActiveDomainBody(m_wheel->GetHub(), m_wheel_AABB);
+    }
+
     terrain->Initialize();
-    auto aabb = terrain->GetSPHBoundingBox();
+    const auto& aabb = terrain->GetSPHBoundingBox();
     std::cout << "  SPH particles:        " << terrain->GetNumSPHParticles() << std::endl;
     std::cout << "  Boundary BCE markers: " << terrain->GetNumBoundaryBCEMarkers() << std::endl;
     std::cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << std::endl;

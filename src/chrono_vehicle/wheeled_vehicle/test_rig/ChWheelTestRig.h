@@ -231,9 +231,16 @@ class CH_VEHICLE_API ChWheelTestRig {
                        double cohesion                ///< material internal cohesion
     );
 
-    /// Set size of the active box associated with the wheel (CRM terrain only).
+    /// Set a single active domain of specified size associated with the entire wheel assembly (CRM terrain only).
+    /// This active AABB is associated with the spindle body. If the wheel assembly has multiple bodies,
+    /// it may be more efficient to set CRM active domains for each body individually.
+    void SetWheelActiveDomain(const ChAABB& aabb);
+
+    /// Set a single active domain of estimated dimensions associated with the entire wheel assembly (CRM terrain only).
     /// The default size is based on the wheel AABB inflated by 25%.
-    void SetWheelActiveBox(const ChVector3d& size);
+    /// This active AABB is associated with the spindle body. If the wheel assembly has multiple bodies,
+    /// it may be more efficient to set CRM active domains for each body individually.
+    void SetWheelActiveDomain();
 
 #endif
 
@@ -294,9 +301,6 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// Get current wheel camber angle.
     /// This value is calculated from the current spindle normal direction.
     double GetCamberAngle() const;
-
-    /// Get the spindle object.
-    std::shared_ptr<ChSpindle> GetSpindle() const { return m_spindle; }
 
     /// Get the linear motor used to actuate the carrier.
     std::shared_ptr<ChLinkMotorLinearSpeed> GetMotorCarrier() const { return m_lin_motor; }
@@ -368,15 +372,13 @@ class CH_VEHICLE_API ChWheelTestRig {
     TerrainParamsCRM m_params_crm;  ///< granular terrain parameters
 #endif
 
-    bool m_default_AABB;
-    ChVector3d m_AABB_size;
+    ChAABB m_wheel_AABB;  ///< AABB for the entire wheel assembly (estimated or user-provided)
 
     std::shared_ptr<ChBody> m_ground_body;   ///< ground body
     std::shared_ptr<ChBody> m_carrier_body;  ///< rig carrier body
     std::shared_ptr<ChBody> m_chassis_body;  ///< "chassis" body which carries normal load
     std::shared_ptr<ChBody> m_slip_body;     ///< intermediate body for controlling slip angle
-    std::shared_ptr<ChSpindle> m_spindle;    ///< wheel spindle
-
+     
     bool m_ls_actuated;                    ///< is linear speed actuated?
     bool m_rs_actuated;                    ///< is angular speed actuated?
     std::shared_ptr<ChFunction> m_ls_fun;  ///< longitudinal speed function of time
