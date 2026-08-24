@@ -91,6 +91,9 @@ class CH_FSI_API ChFsiProblemSPH {
     /// This function must be called before Initialize().
     void AddRigidBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded);
 
+    /// Check if the specified body was added as an FSI solid.
+    bool IsFsiSolid(std::shared_ptr<ChBody> body);
+
     /// Set the active domain for the specified body (assume already added with AddRigidBody).
     /// By default, this is an inverted AABB.
     /// This setting is used only for CRM problems and ignored for CFD problems.
@@ -124,6 +127,9 @@ class CH_FSI_API ChFsiProblemSPH {
     /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     void AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+
+    /// Check if the specified FEA mesh was added as an FSI solid.
+    bool IsFsiSolid(std::shared_ptr<fea::ChMesh> mesh);
 
     /// Set the active domain for the nodes of the specified mesh (assumed already added with AddFeaMesh).
     /// By default, this is an inverted AABB.
