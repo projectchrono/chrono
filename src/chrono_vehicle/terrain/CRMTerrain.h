@@ -46,8 +46,12 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     /// interacting with the "fluid" phase.
     void SetActiveDomain(const ChVector3d& box_dim);
 
-    /// Set the delay time for the active domain.
-    void SetActiveDomainDelay(double delay);
+    /// Specify initial duration of CRM free flow (default: 0).
+    /// During this interval, use of FSI solid active domains is disabled unconditionally so that all SPH particles are active
+    /// regardless of their position relative to FSI solids. This setting can be used for simulations where the CRM "fluid" is
+    /// flowing; e.g., in a dam-break or avalanche simulation, or during an initial settling phase for terramechanics simulations.
+    /// If no valid (not inverted) active domain AABB is defined, this setting has no effect (as all particles will be always active).
+    void SetFreeFlowDuration(double delay);
 
     /// Register callback to control dynamics of an associated vehicle.
     /// If using this function, the calling program should not explicitly call ChVehicle::Advance. This function will be

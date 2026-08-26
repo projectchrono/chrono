@@ -31,8 +31,6 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
-#include "chrono_fsi/sph/utils/SphUtilsPrint.cuh"
-
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
 #endif
@@ -471,7 +469,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(m_show_bce);
-        visFSI->EnableFlexBodyMarkers(m_show_bce);
+        visFSI->EnableFeaMeshMarkers(m_show_bce);
         visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::BROWN);
 
         // VSG visual system (attach visFSI as plugin)

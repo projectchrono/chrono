@@ -26,7 +26,6 @@ RUN sudo apt update && \
         ninja-build \
         swig \
         libxxf86vm-dev \
-        freeglut3-dev \
         python3-numpy \
         libglu1-mesa-dev \
         libglew-dev \
@@ -35,6 +34,8 @@ RUN sudo apt update && \
         liblapack-dev \
         wget \
         xorg-dev && \
+        (sudo apt install --no-install-recommends -y libglut-dev || \
+         sudo apt install --no-install-recommends -y freeglut3-dev) && \
         sudo apt clean && sudo apt autoremove -y && sudo rm -rf /var/lib/apt/lists/*
 
 # Clone Chrono before running the snippets
@@ -53,7 +54,11 @@ INCLUDE ./ch_vehicle.dockerfile
 INCLUDE ./ch_sensor.dockerfile
 INCLUDE ./ch_parser.dockerfile
 INCLUDE ./ch_python.dockerfile
-INCLUDE ./ch_synchrono.dockerfile
+# SynChrono disabled in this image: its Fast-DDS backend conflicts with the
+# ROS 2 Fast-DDS (see ch_synchrono.dockerfile) and its flatbuffers dependency
+# does not build under GCC 15. Not needed for Chrono::ROS. Re-enable by
+# uncommenting once SynChrono is updated for the new toolchain.
+# INCLUDE ./ch_synchrono.dockerfile
 
 
 # Install Chrono
@@ -68,7 +73,7 @@ RUN ${PRE_BUILD_SCRIPTS} && \
         -DBUILD_BENCHMARKING=OFF \
         -DBUILD_TESTING=OFF \
         -DCMAKE_LIBRARY_PATH=$(find /usr/local/cuda/ -type d -name stubs) \
-        -DEigen3_DIR=/usr/lib/cmake/eigen3 \
+        -DEigen3_DIR=/usr/share/eigen3/cmake \
         -DCMAKE_INSTALL_PREFIX=${CHRONO_INSTALL_DIR} \
         -DNUMPY_INCLUDE_DIR=$(python3 -c 'import numpy; print(numpy.get_include())') \
         ${_CMAKE_OPTIONS} \

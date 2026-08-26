@@ -150,7 +150,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
 
     friend class ChTire;
     friend class ChWheeledVehicle;
-    friend class ChTireTestRig;
+
     friend class ChTireStaticTestRig;
 };
 

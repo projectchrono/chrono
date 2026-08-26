@@ -15,6 +15,9 @@
 // =============================================================================
 
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
+// For ChSensorManager::GetDeterministicSeed(): derives each raygen buffer's own seed so that
+// stochastic renders can be made reproducible, and falls back to the wall clock.
+#include "chrono_sensor/ChSensorManager.h"
 #include <assert.h>
 #include <algorithm>
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -107,7 +110,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
             cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
             cudaFreeHelper<curandState_t>);
 
-        init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+        init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixCameraRaygen, GetRngStreamIndex()),
                       m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
         m_raygen_record->data.specific.camera.rng_buffer = m_rng.get();
 
@@ -156,7 +159,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
             cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
             cudaFreeHelper<curandState_t>);
 
-        init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+        init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixPhysCameraRaygen, GetRngStreamIndex()),
                         m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
         m_raygen_record->data.specific.phys_camera.rng_buffer = m_rng.get();
 
@@ -189,7 +192,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                 cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
                 cudaFreeHelper<curandState_t>);
 
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+            init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixSegmentationRaygen, GetRngStreamIndex()),
                           m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             m_raygen_record->data.specific.segmentation.rng_buffer = m_rng.get();
         }
@@ -214,7 +217,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                 cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
                 cudaFreeHelper<curandState_t>);
 
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+            init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixDepthRaygen, GetRngStreamIndex()),
                           m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             m_raygen_record->data.specific.depthCamera.rng_buffer = m_rng.get();
         }
@@ -239,7 +242,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                 cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
                 cudaFreeHelper<curandState_t>);
 
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+            init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixNormalRaygen, GetRngStreamIndex()),
                           m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             m_raygen_record->data.specific.normalCamera.rng_buffer = m_rng.get();
         }

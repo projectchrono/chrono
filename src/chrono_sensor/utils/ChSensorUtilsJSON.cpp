@@ -23,17 +23,27 @@
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
-#ifdef CHRONO_HAS_OPTIX
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
     #include "chrono_sensor/filters/ChFilterCameraNoise.h"
-    #include "chrono_sensor/filters/ChFilterLidarNoise.h"
     #include "chrono_sensor/filters/ChFilterVisualize.h"
     #include "chrono_sensor/filters/ChFilterSave.h"
-    #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
     #include "chrono_sensor/filters/ChFilterGrayscale.h"
+    #include "chrono_sensor/filters/ChFilterImageOps.h"
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    #include "chrono_sensor/filters/ChFilterLidarNoise.h"
+    #include "chrono_sensor/filters/ChFilterLidarIntensityClip.h"
+    #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
     #include "chrono_sensor/filters/ChFilterLidarReduce.h"
     #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
+    #include "chrono_sensor/filters/ChFilterRadarProcess.h"
+    #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
+    #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
     #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-    #include "chrono_sensor/filters/ChFilterImageOps.h"
+#endif
+#ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/optix/ChFilterOptixRender.h"
 #endif
 #include "chrono_sensor/sensors/ChNoiseModel.h"
@@ -75,10 +85,13 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::share
     } else if (sensor_type.compare("Magnetometer") == 0) {
         sensor = ReadMagnetometerSensorJSON(filename, parent, offsetPose);
     }
-#ifdef CHRONO_HAS_OPTIX
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
     else if (sensor_type.compare("Camera") == 0) {
         sensor = ReadCameraSensorJSON(filename, parent, offsetPose);
-    } else if (sensor_type.compare("Lidar") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (sensor_type.compare("Lidar") == 0) {
         sensor = ReadLidarSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("Radar") == 0) {
         sensor = ReadRadarSensorJSON(filename, parent, offsetPose);
@@ -91,7 +104,7 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::share
     return sensor;
 }
 
-#ifdef CHRONO_HAS_OPTIX
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
 
 std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename, std::shared_ptr<ChBody> parent, ChFrame<double> offsetPose) {
     Document d;
@@ -145,6 +158,10 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
     }
     return camera;
 }
+
+#endif
+
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
 
 std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename, std::shared_ptr<ChBody> parent, ChFrame<double> offsetPose) {
     Document d;
@@ -465,7 +482,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
     if (type.compare("ChFilterAccelerometerUpdate") == 0) {
         //// TODO
     }
-#ifdef CHRONO_HAS_OPTIX
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
     else if (type.compare("ChFilterCameraNoiseConstNormal") == 0) {
         float mean = value["Mean"].GetFloat();
         float stdev = value["Standard Deviation"].GetFloat();
@@ -476,14 +493,20 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         float variance_intercept = value["Variance Intercept"].GetFloat();
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterCameraNoisePixDep>(variance_slope, variance_intercept, name);
-    } else if (type.compare("ChFilterLidarNoiseXYZI") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterLidarNoiseXYZI") == 0) {
         float stdev_range = value["Standard Deviation Range"].GetFloat();
         float stdev_v_angle = value["Standard Deviation Vertical Angle"].GetFloat();
         float stdev_h_angle = value["Standard Deviation Horizontal Angle"].GetFloat();
         float stdev_intensity = value["Standard Deviation Intensity"].GetFloat();
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterLidarNoiseXYZI>(stdev_range, stdev_v_angle, stdev_h_angle, stdev_intensity, name);
-    } else if (type.compare("ChFilterVisualize") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterVisualize") == 0) {
         int w = value["Width"].GetInt();
         int h = value["Height"].GetInt();
         std::string name = GetStringMemberWithDefault(value, "Name");
@@ -491,10 +514,16 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
     } else if (type.compare("ChFilterSave") == 0) {
         std::string data_path = GetStringMemberWithDefault(value, "Data Path");
         filter = chrono_types::make_shared<ChFilterSave>(data_path);
-    } else if (type.compare("ChFilterSavePtCloud") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterSavePtCloud") == 0) {
         std::string data_path = GetStringMemberWithDefault(value, "Data Path");
         filter = chrono_types::make_shared<ChFilterSavePtCloud>(data_path);
-    } else if (type.compare("ChFilterGrayscale") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterGrayscale") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterGrayscale>(name);
     } else if (type.compare("ChFilterR8Access") == 0) {
@@ -503,13 +532,19 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
     } else if (type.compare("ChFilterRGBA8Access") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterRGBA8Access>(name);
-    } else if (type.compare("ChFilterXYZIAccess") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterXYZIAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterXYZIAccess>(name);
     } else if (type.compare("ChFilterDIAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterDIAccess>(name);
-    } else if (type.compare("ChFilterAccelAccess") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterAccelAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterAccelAccess>(name);
     } else if (type.compare("ChFilterGyroAccess") == 0) {
@@ -521,16 +556,59 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
     } else if (type.compare("ChFilterGPSAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterGPSAccess>(name);
-    } else if (type.compare("ChFilterPCfromDepth") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterPCfromDepth") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterPCfromDepth>(name);
-    } else if (type.compare("ChFilterVisualizePointCloud") == 0) {
+    } else if (type.compare("ChFilterLidarIntensityClip") == 0) {
+        float intensity_thresh = value["Intensity Threshold"].GetFloat();
+        float default_dist = value["Default Distance"].GetFloat();
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        filter = chrono_types::make_shared<ChFilterLidarIntensityClip>(intensity_thresh, default_dist, name);
+    } else if (type.compare("ChFilterLidarReduce") == 0) {
+        std::string ret = GetStringMemberWithDefault(value, "Return Mode");
+        int reduce_radius = value["Reduce Radius"].GetInt();
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        LidarReturnMode mode = LidarReturnMode::MEAN_RETURN;
+        if (ret == "STRONGEST_RETURN")
+            mode = LidarReturnMode::STRONGEST_RETURN;
+        else if (ret == "FIRST_RETURN")
+            mode = LidarReturnMode::FIRST_RETURN;
+        else if (ret == "LAST_RETURN")
+            mode = LidarReturnMode::LAST_RETURN;
+        else if (ret == "DUAL_RETURN")
+            mode = LidarReturnMode::DUAL_RETURN;
+        filter = chrono_types::make_shared<ChFilterLidarReduce>(mode, reduce_radius, name);
+    } else if (type.compare("ChFilterRadarXYZReturn") == 0) {
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        filter = chrono_types::make_shared<ChFilterRadarXYZReturn>(name);
+    } else if (type.compare("ChFilterRadarProcess") == 0) {
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        filter = chrono_types::make_shared<ChFilterRadarProcess>(name);
+    } else if (type.compare("ChFilterRadarSavePC") == 0) {
+        std::string data_path = GetStringMemberWithDefault(value, "Data Path");
+        filter = chrono_types::make_shared<ChFilterRadarSavePC>(data_path);
+    } else if (type.compare("ChFilterRadarAccess") == 0) {
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        filter = chrono_types::make_shared<ChFilterRadarAccess>(name);
+    } else if (type.compare("ChFilterRadarXYZAccess") == 0) {
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        filter = chrono_types::make_shared<ChFilterRadarXYZAccess>(name);
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterVisualizePointCloud") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         int w = value["Width"].GetInt();
         int h = value["Height"].GetInt();
         float zoom = value["Zoom"].GetFloat();
         filter = chrono_types::make_shared<ChFilterVisualizePointCloud>(w, h, zoom, name);
-    } else if (type.compare("ChFilterImageResize") == 0) {
+    }
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+    else if (type.compare("ChFilterImageResize") == 0) {
         int w = value["Width"].GetInt();
         int h = value["Height"].GetInt();
         std::string name = GetStringMemberWithDefault(value, "Name");

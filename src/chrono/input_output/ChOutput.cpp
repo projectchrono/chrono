@@ -19,6 +19,11 @@
 #include <numeric>
 
 #include "chrono/input_output/ChOutput.h"
+#include "chrono/utils/ChUtils.h"
+
+using std::cout;
+using std::cerr;
+using std::endl;
 
 namespace chrono {
 
@@ -163,6 +168,79 @@ std::string ChOutput::GetModeAsString(Mode mode) {
             return "SERIES";
     }
     return "";
+}
+
+// -----------------------------------------------------------------------------
+
+ChOutput::Settings::Settings() : format(ChOutput::Format::NONE), mode(ChOutput::Mode::FRAMES), fps(100) {}
+
+ChOutput::Settings::Settings(const Settings& other) {
+    format = other.format;
+    mode = other.mode;
+    fps = other.fps;
+}
+
+ChOutput::Settings& ChOutput::Settings::operator=(const Settings& other) {
+    format = other.format;
+    mode = other.mode;
+    fps = other.fps;
+    return *this;
+}
+
+#ifdef CHRONO_HAS_YAML
+
+static ChOutput::Format ReadOutputFormat(const YAML::Node& a) {
+    auto type = ChToUpper(a.as<std::string>());
+    if (type == "ASCII")
+        return ChOutput::Format::ASCII;
+    if (type == "HDF5")
+        return ChOutput::Format::HDF5;
+    return ChOutput::Format::NONE;
+}
+
+static ChOutput::Mode ReadOutputMode(const YAML::Node& a) {
+    auto mode = ChToUpper(a.as<std::string>());
+    if (mode == "SERIES")
+        return ChOutput::Mode::SERIES;
+    if (mode == "FRAMES")
+        return ChOutput::Mode::FRAMES;
+    return ChOutput::Mode::FRAMES;
+}
+
+ChOutput::Settings::Settings(const YAML::Node& a) : Settings() {
+    ChAssertAlways(a["format"]);
+    format = ReadOutputFormat(a["format"]);
+    #ifndef CHRONO_HAS_HDF5
+    if (format == ChOutput::Format::HDF5) {
+        std::cerr << "HDF5 output support not available.\nOutput disabled." << std::endl;
+        format = ChOutput::Format::NONE;
+        return;
+    }
+    #endif
+
+    if (a["mode"])
+        mode = ReadOutputMode(a["mode"]);
+    if (a["fps"])
+        fps = a["fps"].as<double>();
+}
+
+ChOutput::Settings ChOutput::Settings::Read(const YAML::Node& a) {
+    Settings params(a);
+    return params;
+}
+
+#endif
+
+void ChOutput::Settings::PrintInfo() const {
+    if (format == ChOutput::Format::NONE) {
+        cout << "no output" << endl;
+        return;
+    }
+
+    cout << "output" << endl;
+    cout << "  format:               " << ChOutput::GetFormatAsString(format) << endl;
+    cout << "  mode:                 " << ChOutput::GetModeAsString(mode) << endl;
+    cout << "  output FPS:           " << fps << endl;
 }
 
 }  // end namespace chrono

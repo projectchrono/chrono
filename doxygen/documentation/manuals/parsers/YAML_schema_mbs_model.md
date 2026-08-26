@@ -3,13 +3,13 @@ YAML schema for Chrono MBS model specification {#YAML_schema_mbs_model}
 
 A Chrono YAML MBS model file defines a mechanical system and contains two main objects:
 - The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
-  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - The `model` object that lists all physics items in the Chrono model.
 
 ## Model specification
 
 The `model` object in a Chrono YAML model specification file defines:
-    1. **Bodies**: (Required)rigid bodies that carry mass and inertia and, optionally, collision and visualization geometry
+    1. **Bodies**: (Required) rigid bodies that carry mass and inertia and, optionally, collision and visualization geometry
     2. **Joints**: connection between a pair of bodies, specified either as a kinematic (ideal) joint or as a bushing
     3. **Passive force elements**: translational and rotational linear or non-linear spring-damper force elements acting between two rigid bodies
     4. **Motors and actuators**: 
@@ -70,8 +70,8 @@ Each body represents a physical object in the simulation with the following prop
 #### Body Contact Properties
 
 The collision of a body is specified through a list of contact material, `materials` and a list of collision shapes, `shapes`.
-The model can have more `shapes` than `materials`, and the user need to specify which `shape` is associated with which `material`.
-Depending on the contact method, smooth contact formulation (SMC) or non-smooth contact formulation (NSC), the same contact paramters, such as `coefficient_of_friction` and `coefficient_of_restitution`, can result in different physics. When using the SMC formulation, the user can specify material-based properties, such as `Youngs_modulus` and `Poisson_ratio`, or spring-damper coefficients for modeling contact, such as `normal_stiffness` and `normal_damping`.
+The model can have more `shapes` than `materials`, and the user needs to specify which `shape` is associated with which `material`.
+Depending on the contact method, smooth contact formulation (SMC) or non-smooth contact formulation (NSC), the same contact parameters, such as `coefficient_of_friction` and `coefficient_of_restitution`, can result in different physics. When using the SMC formulation, the user can specify material-based properties, such as `Youngs_modulus` and `Poisson_ratio`, or spring-damper coefficients for modeling contact, such as `normal_stiffness` and `normal_damping`.
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
@@ -282,7 +282,7 @@ Optionally, a `visualization` object specifies rendering of the TSDA element:
 #### Rotational spring-dampers
 
 Rotational spring-damper elements (RSDA) apply torques between the two connected bodies. 
-In the YAML peicifcation file, they are listed in an array `rsdas` containing objects with the following properties:
+In the YAML specification file, they are listed in an array `rsdas` containing objects with the following properties:
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|

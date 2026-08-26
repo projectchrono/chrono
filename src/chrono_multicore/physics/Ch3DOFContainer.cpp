@@ -33,9 +33,7 @@ namespace chrono {
 
 class ChMulticoreVisualizationCloud : public ChParticleCloud {
   public:
-    ChMulticoreVisualizationCloud(ChMulticoreDataManager* data_manager) : dm(data_manager) {
-        EnableCollision(false);
-    }
+    ChMulticoreVisualizationCloud(ChMulticoreDataManager* data_manager) : dm(data_manager) { EnableCollision(false); }
     virtual bool IsActive() const override { return true; }
     virtual size_t GetNumParticles() const override { return dm->num_particles; }
     virtual const ChVector3d& GetParticlePos(unsigned int n) const override {

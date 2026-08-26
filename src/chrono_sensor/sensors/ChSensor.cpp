@@ -51,6 +51,10 @@ void ChSensor::SetCollectionWindow(float t) {
 
 void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
     if (!m_filter_list_locked) {
+        // Stamp the filter with its RNG stream index BEFORE it joins the list. The counter is attach
+        // order rather than list position, so a later PushFilterFront cannot renumber a filter that
+        // is already attached. See ChFilter::GetRngStreamIndex for why this index is needed at all.
+        filter->m_rng_stream_index = m_next_rng_stream_index++;
         m_filters.push_back(filter);
     } else {
         std::cerr << "WARNING: Filter list has been locked for safety. All filters should be added to "
@@ -58,8 +62,16 @@ void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
     }
 }
 
+void ChSensor::AssignPendingRngStreamIndices() {
+    for (auto& f : m_filters) {
+        if (f->m_rng_stream_index == CH_SENSOR_UNASSIGNED_RNG_ID)
+            f->m_rng_stream_index = m_next_rng_stream_index++;
+    }
+}
+
 void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
     if (!m_filter_list_locked) {
+        filter->m_rng_stream_index = m_next_rng_stream_index++;
         m_filters.push_front(filter);
     } else {
         std::cerr << "WARNING: Filter list has been locked for safety. All filters should be added to "
@@ -137,6 +149,68 @@ CH_SENSOR_API UserXYZIBufferPtr ChSensor::GetMostRecentBuffer() {
 }
 
 // retriever function for radar data
+template <>
+CH_SENSOR_API UserRadarBufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserRadarBufferPtr, ChFilterRadarAccess, ChFilterRadarAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess, ChFilterRadarXYZAccessName>();
+}
+
+#endif
+
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+
+// Retriever functions for host-visible Vulkan RT buffers.  These mirror the OptiX
+// specializations above so existing Sensor client code can keep using
+// ChSensor::GetMostRecentBuffer<User...BufferPtr>() with either render backend.
+template <>
+CH_SENSOR_API UserR8BufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserR8BufferPtr, ChFilterR8Access, ChFilterR8AccessName>();
+}
+
+template <>
+CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserRGBA8BufferPtr, ChFilterRGBA8Access, ChFilterRGBA8AccessName>();
+}
+
+template <>
+CH_SENSOR_API UserRGBA16BufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserRGBA16BufferPtr, ChFilterRGBA16Access, ChFilterRGBA16AccessName>();
+}
+
+template <>
+CH_SENSOR_API UserRGBDHalf4BufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserRGBDHalf4BufferPtr, ChFilterRGBDHalf4Access, ChFilterRGBDHalf4AccessName>();
+}
+
+template <>
+CH_SENSOR_API UserSemanticBufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserSemanticBufferPtr, ChFilterSemanticAccess, ChFilterSemanticAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserDepthBufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserDepthBufferPtr, ChFilterDepthAccess, ChFilterDepthAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserNormalBufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserNormalBufferPtr, ChFilterNormalAccess, ChFilterNormalAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserDIBufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserDIBufferPtr, ChFilterDIAccess, ChFilterDIAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserXYZIBufferPtr ChSensor::GetMostRecentBuffer() {
+    return GetMostRecentBufferHelper<UserXYZIBufferPtr, ChFilterXYZIAccess, ChFilterXYZIAccessName>();
+}
+
 template <>
 CH_SENSOR_API UserRadarBufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserRadarBufferPtr, ChFilterRadarAccess, ChFilterRadarAccessName>();

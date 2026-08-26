@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
     hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
-    // Create the terrain patches programatically
+    // Create the terrain patches programmatically
     RigidTerrain terrain(hmmwv.GetSystem());
 
     switch (type) {

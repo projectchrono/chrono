@@ -22,50 +22,50 @@ endif()
 if(CH_ENABLE_MODULE_FSI_SPH AND CH_ENABLE_MODULE_VSG)
   set(DEMOS ${DEMOS}
       demo_ROBOT_Viper_CRM
-      demo_ROBOT_ViperWheel_CRM
-      demo_ROBOT_ViperWheel_CRM_slope
+      demo_ROBOT_Viper_WheelTestRig_CRM
+      demo_ROBOT_Viper_WheelSlope_CRM
   )
 endif()
 
 # ------------------------------------------------------------------------------
 
 list(APPEND LIBS Chrono_core)
-list(APPEND LIBS "ChronoModels_robot")
+list(APPEND LIBS ChronoModels_robot)
 
 if(CH_ENABLE_MODULE_VEHICLE)
-  list(APPEND LIBS "Chrono_vehicle")
+  list(APPEND LIBS Chrono_vehicle)
 endif()
 
 if(CH_ENABLE_MODULE_SENSOR)
-  list(APPEND LIBS "Chrono_sensor")
+  list(APPEND LIBS Chrono_sensor)
 endif()
 
 if(CH_ENABLE_MODULE_FSI_SPH)
-  list(APPEND LIBS "Chrono_fsisph")
+  list(APPEND LIBS Chrono_fsisph)
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-  list(APPEND LIBS "Chrono_pardisomkl")
+  list(APPEND LIBS Chrono_pardisomkl)
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
-  list(APPEND LIBS "Chrono_mumps")
+  list(APPEND LIBS Chrono_mumps)
 endif()
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "Chrono_irrlicht")
+    list(APPEND LIBS Chrono_irrlicht)
     if(CH_ENABLE_MODULE_VEHICLE)
-      list(APPEND LIBS "Chrono_vehicle_irrlicht")
+      list(APPEND LIBS Chrono_vehicle_irrlicht)
     endif()
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "Chrono_vsg")
+    list(APPEND LIBS Chrono_vsg)
     if(CH_ENABLE_MODULE_VEHICLE) 
-      list(APPEND LIBS "Chrono_vehicle_vsg")
+      list(APPEND LIBS Chrono_vehicle_vsg)
     endif()
     if(CH_ENABLE_MODULE_FSI_SPH)
-      list(APPEND LIBS "Chrono_fsisph_vsg")
+      list(APPEND LIBS Chrono_fsisph_vsg)
     endif()
 endif()
 

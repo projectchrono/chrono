@@ -2,8 +2,14 @@
 #ifndef CHFILTERRADARVISUALIZECLUSTER_H
 #define CHFILTERRADARVISUALIZECLUSTER_H
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_sensor/sensors/ChRadarSensor.h"
+
+
+#ifdef CHRONO_HAS_OPTIX
+#include <cuda.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -22,7 +28,9 @@ class CH_SENSOR_API ChFilterRadarVisualizeCluster : public ChFilterVisualize {
   private:
     float m_zoom;
     std::shared_ptr<SensorHostRadarXYZBuffer> m_buffer_in;  ///< input buffer
+#ifdef CHRONO_HAS_OPTIX
     CUstream m_cuda_stream;
+#endif
     std::shared_ptr<ChRadarSensor> m_radar;
 };
 

@@ -17,15 +17,9 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChVisualShape.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
-
-#include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/utils/ChSensorUtils.h"

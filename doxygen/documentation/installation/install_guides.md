@@ -47,7 +47,7 @@ Additional Chrono functionality is provided through optional modules, enabled du
 
 #### Providing 3rd-party dependencies
 
-The core Chrono module (and hence all of Chrono) required the Eigen3 linear algebra (headers-only) library.
+The core Chrono module (and hence all of Chrono) requires the Eigen3 linear algebra (headers-only) library.
 
 Chrono optional modules often rely on third-party libraries that might require additional installation steps, as described in each module installation page.
 
@@ -77,6 +77,8 @@ For more details, see the relevant [section](@ref scripts) in the Chrono core mo
 ### Installing PyChrono
 
 - @subpage pychrono_installation
+
+- **AMD GPU hosts (ROCm):** see [`docs/README_AMD_GPU.md`](../../../docs/README_AMD_GPU.md) for CPU PyChrono next to PyTorch ROCm, optional HIP/FSI, and device selection (`ROCR_VISIBLE_DEVICES`).
 
 
 ### Chrono::Solidworks add-in

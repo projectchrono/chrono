@@ -33,9 +33,9 @@
 namespace chrono {
 
 /// Class for translational spring-damper-actuator (TSDA) with the force optionally specified through a functor object.
-/// By default, models a linear TSDA. Optionally, a ChLinkTSDA can have internal dynamics, described by a system of
-/// ODEs. The internal states are integrated simultaneous with the containing system and they can be accessed and used
-/// in the force calculation. ChLinkTSDA provides optional support for computing Jacobians of the generalized forces.
+/// By default, models a linear TSDA. Optionally, a ChLinkTSDA can have internal dynamics, described by a system of ODEs.
+/// The internal states are integrated simultaneous with the containing system and they can be accessed and used in the
+/// force calculation. ChLinkTSDA provides optional support for computing Jacobians of the generalized forces.
 class ChApi ChLinkTSDA : public ChLink {
   public:
     ChLinkTSDA();
@@ -112,7 +112,7 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Meaningful only if no force functor is provided.
     double GetDampingCoefficient() const { return m_r; }
 
-    /// Get the constant acutation force.
+    /// Get the constant actuation force.
     /// Meaningful only if no force functor is provided.
     double GetActuatorForce() const { return m_f; }
 
@@ -132,9 +132,7 @@ class ChApi ChLinkTSDA : public ChLink {
 
 #ifndef SWIG
         /// Optional reporting function to generate a JSON value with functor information.
-        virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) {
-            return rapidjson::Value();
-        }
+        virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) { return rapidjson::Value(); }
 #endif
     };
 
@@ -166,10 +164,9 @@ class ChApi ChLinkTSDA : public ChLink {
                                   const ChLinkTSDA& link            ///< associated TSDA link
                                   ) = 0;
 
-        /// Calculate the Jacobian of the ODE right-hand side with rerspect to the ODE states.
-        /// Only used if the link force is declared as stiff.  If provided, load df/dy into the provided matrix 'jac'
-        /// (already set to zero before the call) and return 'true'. In that case, the user-provided Jacobian will
-        /// overwrite the default finite-difference approximation.
+        /// Calculate the Jacobian of the ODE right-hand side with respect to the ODE states.
+        /// Only used if the link force is declared as stiff.  If provided, load the Jacobian of the right-hand side into the provided matrix (already set to zero before the call)
+        /// and return 'true'. In that case, the user-provided Jacobian will overwrite the default finite-difference approximation.
         virtual bool CalculateJac(double time,                      ///< current time
                                   const ChVectorDynamic<>& states,  ///< current ODE states
                                   const ChVectorDynamic<>& rhs,     ///< current ODE right-hand side vector
@@ -183,9 +180,8 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Specify the functor object for calculating the ODE right-hand side.
     void RegisterODE(ODE* functor);
 
-    /// Initialize the spring, specifying the two bodies to be connected, the location of the two anchor points of each
-    /// body (each expressed in body or absolute coordinates). Unless SetRestLength() is explicitly called, the TSDA
-    /// rest length is calculated from the initial configuration.
+    /// Initialize the spring, specifying the two bodies to be connected, the location of the two anchor points of each body (each expressed in body or absolute coordinates).
+    /// Unless SetRestLength() is explicitly called, the TSDA rest length is calculated from the initial configuration.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first body to link
                     std::shared_ptr<ChBody> body2,  ///< second body to link
                     bool local,                     ///< if true, point locations are relative to bodies
@@ -209,38 +205,20 @@ class ChApi ChLinkTSDA : public ChLink {
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
-    virtual void IntStateGather(const unsigned int off_x,
-                                ChState& x,
-                                const unsigned int off_v,
-                                ChStateDelta& v,
-                                double& T) override;
-    virtual void IntStateScatter(const unsigned int off_x,
-                                 const ChState& x,
-                                 const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const double T,
-                                 UpdateFlags update_flags) override;
+    virtual void IntStateGather(const unsigned int off_x, ChState& x, const unsigned int off_v, ChStateDelta& v, double& T) override;
+    virtual void IntStateScatter(const unsigned int off_x, const ChState& x, const unsigned int off_v, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-    virtual void IntLoadResidual_Mv(const unsigned int off,
-                                    ChVectorDynamic<>& R,
-                                    const ChVectorDynamic<>& v,
-                                    const double c) override;
-    virtual void IntLoadLumpedMass_Md(const unsigned int off,
-                                      ChVectorDynamic<>& Md,
-                                      double& err,
-                                      const double c) override;
+    virtual void IntLoadResidual_Mv(const unsigned int off, ChVectorDynamic<>& R, const ChVectorDynamic<>& v, const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
@@ -262,7 +240,7 @@ class ChApi ChLinkTSDA : public ChLink {
     /// CalculateJac, that will be used to override the bottom-right (nstates x nstates) block of R.
     class SpringJacobians {
       public:
-        ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with this link
+        ChKRMBlock m_KRM;       ///< linear combination of K, R, M for the variables associated with this link
         ChMatrixDynamic<> m_J;  ///< Jacobian of ODE right-hand side with respect to ODE states (contributes to R term)
         ChMatrixDynamic<> m_K;  ///< K contribution from this link
         ChMatrixDynamic<> m_R;  ///< R contribution from this link

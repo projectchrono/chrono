@@ -31,15 +31,17 @@ ChDepthCamera::ChDepthCamera(std::shared_ptr<ChBody> parent,
                              float hFOV,                      // horizontal field of view
                              float maxDepth,                  // maximum depth value
                              CameraLensModelType lens_model)  // lens model to use
-    : m_hFOV(hFOV),
-      m_maxDepth(maxDepth),
-      m_lens_model_type(lens_model),
-      m_lens_parameters({}),
-      ChOptixSensor(parent, updateRate, offsetPose, w, h) {
-    // set the pipeline for this
+#if defined(CHRONO_HAS_OPTIX)
+    : ChOptixSensor(parent, updateRate, offsetPose, w, h),
+#elif defined(CHRONO_HAS_VULKAN_RT)
+    : ChVulkanSensor(parent, updateRate, offsetPose, w, h, VulkanPipelineType::DEPTH_CAMERA),
+#else
+    : ChSensor(parent, updateRate, offsetPose),
+#endif
+      m_hFOV(hFOV), m_lens_model_type(lens_model), m_lens_parameters({}), m_maxDepth(maxDepth) {
+#ifdef CHRONO_HAS_OPTIX
     m_pipeline_type = PipelineType::DEPTH_CAMERA;
-
-    // Push the access filters before converting to RGBA8 to visualize
+#endif
     m_filters.push_back(chrono_types::make_shared<ChFilterDepthAccess>());
 
     m_filters.push_back(chrono_types::make_shared<ChFilterDepthToRGBA8>());

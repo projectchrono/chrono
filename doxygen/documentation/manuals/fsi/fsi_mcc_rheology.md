@@ -140,7 +140,18 @@ Critical consistency checks:
 - `mcc_kappa > 0`
 - `mcc_lambda > mcc_kappa` (hardening denominator uses `lambda-kappa`)
 - `mcc_M > 0`
+- `mcc_v_lambda > 0`
 - `pc > 0` and initial `p0 > 0` where NCL-based initialization is used
+
+The first four are enforced. `ChFsiFluidSystemSPH::CheckSPHParameters()`, which runs during
+`Initialize()`, rejects a violating configuration with a `std::runtime_error` rather than letting
+it run; all four parameters are also required to be finite. The `pc` and `p0` condition is checked
+separately, per particle, in `ChFsiFluidSystemSPH::AddSPHParticle()`.
+
+The same function additionally reports, without rejecting, a `lambda-kappa` difference smaller than
+`max(1e-6, 1e-3 * lambda)`. Such a configuration is legal, but since the hardening rate scales as
+`1 / (lambda-kappa)`, it produces a very large plastic modulus and an ill-conditioned return
+mapping, which is rarely what is intended.
 
 Naming note:
 

@@ -12,6 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <iostream>
+#include <mutex>
+#include <set>
+
 #include "chrono/collision/ChCollisionShape.h"
 
 namespace chrono {
@@ -74,6 +78,68 @@ void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive_in >> CHNVP(typemapper(type), "ChCollisionShape__Type");
+}
+
+std::string ChCollisionShape::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::SPHERE:
+            return "SPHERE";
+        case Type::ELLIPSOID:
+            return "ELLIPSOID";
+        case Type::BOX:
+            return "BOX";
+        case Type::CYLINDER:
+            return "CYLINDER";
+        case Type::CYLSHELL:
+            return "CYLSHELL";
+        case Type::CONVEXHULL:
+            return "CONVEXHULL";
+        case Type::TRIANGLEMESH:
+            return "TRIANGLEMESH";
+        case Type::BARREL:
+            return "BARREL";
+        case Type::POINT:
+            return "POINT";
+        case Type::SEGMENT:
+            return "SEGMENT";
+        case Type::TRIANGLE:
+            return "TRIANGLE";
+        case Type::CONNECTEDTRIANGLE:
+            return "CONNECTEDTRIANGLE";
+        case Type::CAPSULE:
+            return "CAPSULE";
+        case Type::CONE:
+            return "CONE";
+        case Type::ROUNDEDBOX:
+            return "ROUNDEDBOX";
+        case Type::ROUNDEDCYL:
+            return "ROUNDEDCYL";
+        case Type::TETRAHEDRON:
+            return "TETRAHEDRON";
+        case Type::PATH2D:
+            return "PATH2D";
+        case Type::SEGMENT2D:
+            return "SEGMENT2D";
+        case Type::ARC2D:
+            return "ARC2D";
+        default:
+            return "UNKNOWN_SHAPE";
+    }
+}
+
+void ChCollisionShape::ReportUnsupported(Type type, const std::string& backend) {
+    // Collision models can be populated from more than one thread, so guard the record of what has been reported.
+    static std::mutex mutex;
+    static std::set<std::string> reported;
+
+    std::string type_name = GetTypeAsString(type);
+
+    std::lock_guard<std::mutex> lock(mutex);
+    if (!reported.insert(backend + "/" + type_name).second)
+        return;
+
+    std::cerr << "Warning: the " << backend << " system does not support collision shapes of type " << type_name
+              << "; the shape is excluded from the collision model. Further occurrences of this shape type are not reported." << std::endl;
 }
 
 }  // namespace chrono

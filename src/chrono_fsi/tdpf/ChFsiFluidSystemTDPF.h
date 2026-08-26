@@ -71,11 +71,7 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     /// Get current wave velocity at specified position (in X-Y plane).
     ChVector3d GetWaveVelocity(const ChVector3d& pos, double elevation);
 
-  private:
-    enum class WaveType { NONE, REGULAR, IRREGULAR };
-
-    // ----------
-
+public:
     /// Load the given body and mesh node states in the TDPF data manager structures.
     /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the TDPF data
     /// manager. LoadSolidStates is always called once during initialization. If the TDPF fluid solver is paired with
@@ -84,35 +80,12 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states) override;
 
     /// Store the body and mesh node forces from the TDPF data manager to the given vectors.
-    /// If the TDPF fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
+    /// If the TDPF fluid solver is paired with the generic FSI interface, StoreSolidForces is called from
     /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using a custom TDPF FSI
     /// interface, MBS forces are copied directly...
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces) override;
+    virtual void StoreSolidForces(std::vector<FsiBodyForce>& body_forces) override;
 
-    /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
-    virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
-
-    // ----------
-
-    /// Initialize the TDPF fluid system with FSI support.
-    virtual void Initialize(const std::vector<FsiBodyState>& body_states) override;
-
- #ifdef CHRONO_FEA
-    /// TDPF solver-specific actions taken when a 1D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
-
-    /// TDPF solver-specific actions taken when a 2D deformable solid is added as an FSI object.
-    virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
-
-    // ----------
-
-    /// Initialize the TDPF fluid system with FSI support.
-    virtual void Initialize(const std::vector<FsiBodyState>& body_states,
-                            const std::vector<FsiMeshState>& mesh1D_states,
-                            const std::vector<FsiMeshState>& mesh2D_states) override;
-
-    // ----------
-
+    #ifdef CHRONO_FEA
     /// Load the given body and mesh node states in the TDPF data manager structures.
     /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the TDPF data
     /// manager. LoadSolidStates is always called once during initialization. If the TDPF fluid solver is paired with
@@ -123,15 +96,11 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
                                  const std::vector<FsiMeshState>& mesh2D_states) override;
 
     /// Store the body and mesh node forces from the TDPF data manager to the given vectors.
-    /// If the TDPF fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
+    /// If the TDPF fluid solver is paired with the generic FSI interface, StoreSolidForces is called from
     /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using a custom TDPF FSI
     /// interface, MBS forces are copied directly...
-    virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
-                                  std::vector<FsiMeshForce> mesh1D_forces,
-                                  std::vector<FsiMeshForce> mesh2D_forces) override;
+    virtual void StoreSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) override;
 #endif
-
-    // ----------
 
     /// Function to integrate the fluid system from `time` to `time + step`.
     virtual void OnDoStepDynamics(double time, double step) override;
@@ -141,6 +110,28 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
 
     /// Additional actions taken after loading new solid phase states.
     virtual void OnExchangeSolidStates() override;
+
+  private:
+    enum class WaveType { NONE, REGULAR, IRREGULAR };
+
+    // ----------
+
+    /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
+    virtual void OnAddRigidBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
+
+    /// Initialize the TDPF fluid system with FSI support.
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states) override;
+
+#ifdef CHRONO_FEA
+    /// TDPF solver-specific actions taken when a 1D deformable solid is added as an FSI object.
+    virtual void OnAddFeaMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
+
+    /// TDPF solver-specific actions taken when a 2D deformable solid is added as an FSI object.
+    virtual void OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
+
+    /// Initialize the TDPF fluid system with FSI support.
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states, const std::vector<FsiMeshState>& mesh1D_states, const std::vector<FsiMeshState>& mesh2D_states) override;
+#endif
 
     // ----------
 

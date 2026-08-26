@@ -77,6 +77,8 @@ Since the CRG terrain model currently does not carry any collision and contact i
 ## Deformable SCM (Soil Contact Model) {#vehicle_terrain_scm}
 
 In the [SCMTerrain](@ref chrono::vehicle::SCMTerrain), the terrain is represented by an implicit regular Cartesian grid whose deformation is achieved via vertical deflection of its nodes.  This soil model draws on the general-purpose collision engine in Chrono and its lightweight formulation allows computing vehicle-terrain contact forces in close to real-time.
+
+Optional HIP backends move SCM ray casting and the contact-force loop onto the GPU; see [SCM GPU backends](@ref vehicle_terrain_scm_gpu) for prerequisites, defaults, and validation steps.
 To address memory and computational efficiency concerns, the grid is never created explicitly. Instead, only nodes that have been deformed are maintained in a hash map.  Furthermore, ray-casting in the collision system (the most costly operation in the SCM calculation) is multi-threaded.  To allow efficient visualization of the deformed terrain, the Chrono SCM subsystem provides methods for incrementally updating a visualization mesh and, when using an external visualization system, reporting the subset of nodes deformed over the last time step.
 
 Shown below, a tire makes ruts in deformable soil, illustrating the mesh structure of the Chrono version of the SCM.
@@ -108,7 +110,7 @@ Some other features of the Chrono SCM implementation are:
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
 
-## Deformable DEM (granular dyynamics) {#vehicle_terrain_granular}
+## Deformable DEM (granular dynamics) {#vehicle_terrain_granular}
 
 [GranularTerrain](@ref chrono::vehicle::GranularTerrain) implements a rectangular patch of granular material and leverages Chrono's extensive support for so-called Discrete Element Method (DEM) simulations. Currently, this terrain model is limited to monodisperse spherical granular material.
 
@@ -143,7 +145,7 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 [CRMTerrain](@ref chrono::vehicle::CRMTerrain) provides a deformable terrain model based on the so-called Continuous Representation Model (CRM) approach which involves solving a set of PDEs describing soil dynamics. These PDEs are solved using the [Chrono::FSI-SPH](group__fsisph.html) module with the appropriate underlying dynamics.
 
-CRMTerrain provides a very attractive alternative to granular dynamics as it gives sdimilar accuracy and fidelity of soil dynamics with much better computational performance.
+CRMTerrain provides a very attractive alternative to granular dynamics as it gives similar accuracy and fidelity of soil dynamics with much better computational performance.
 
 Further details on using a CRM terrain with Chrono::Vehicle is provided in:
 * @subpage vehicle_terrain_crm_api_

@@ -18,8 +18,12 @@
 #ifndef CHFILTERSAVEPTCLOUD_H
 #define CHFILTERSAVEPTCLOUD_H
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/utils/CudaMallocHelper.h"
+
+#ifdef CHRONO_HAS_OPTIX
+#include <cuda.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -37,7 +41,7 @@ class CH_SENSOR_API ChFilterSavePtCloud : public ChFilter {
     /// Class constructor
     /// @param data_path Path to where data should be saved
     /// @param name the name of the filter
-    ChFilterSavePtCloud(std::string data_path = "", std::string name = "ChFilterSavePtCloud");
+  ChFilterSavePtCloud(std::string data_path, std::string name = "ChFilterSavePtCloud");
 
     /// Class destructor
     virtual ~ChFilterSavePtCloud();
@@ -55,7 +59,9 @@ class CH_SENSOR_API ChFilterSavePtCloud : public ChFilter {
     unsigned int m_frame_number = 0;                      ///< frame counter for saving sequential frames
     std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_in;  ///< input buffer for point cloud
     std::shared_ptr<SensorHostXYZIBuffer> m_host_buffer;  ///< input buffer for point cloud
+#ifdef CHRONO_HAS_OPTIX
     CUstream m_cuda_stream;
+#endif
 };
 
 /// @}

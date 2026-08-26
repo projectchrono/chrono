@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHLINK_H
-#define CHLINK_H
+#ifndef CH_LINK_H
+#define CH_LINK_H
 
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChLinkBase.h"
@@ -24,16 +24,14 @@ namespace chrono {
 class ChSystem;
 
 /// Base class for joints between two ChBodyFrame objects.
-///
-/// ChLink objects can constrain the motion in the 3D space of ChBodyFrame objects, most often rigid bodies
-/// (ChBody and derived).
+/// ChLink objects can constrain the motion in the 3D space of ChBodyFrame objects, most often rigid bodies (ChBody and derived).
 class ChApi ChLink : public ChLinkBase {
   public:
-    ChLink() : m_body1(NULL), m_body2(NULL), react_force(VNULL), react_torque(VNULL) {}
+    ChLink();
     ChLink(const ChLink& other);
     virtual ~ChLink() {}
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return 12; }
 
     /// Get the constrained body 1.
@@ -66,8 +64,8 @@ class ChApi ChLink : public ChLinkBase {
 
     // UPDATING FUNCTIONS
 
-    /// This function, called by the owner ChSystem at least once per integration step,
-    /// updates any auxiliary data of the link (e.g. internal states, forces, Jacobian matrices).
+    /// Update any auxiliary data of the link (e.g. internal states, forces, Jacobian matrices).
+    /// This function is called by the owner ChSystem at least once per integration step.
     /// This base version, by default, simply updates the time.
     virtual void Update(double time, UpdateFlags update_flags) override;
 
@@ -83,8 +81,8 @@ class ChApi ChLink : public ChLinkBase {
   protected:
     ChBodyFrame* m_body1;     ///< first connected body
     ChBodyFrame* m_body2;     ///< second connected body
-    ChVector3d react_force;   ///< xyz reactions, expressed in local coordinate system of link;
-    ChVector3d react_torque;  ///< torque reactions, expressed in local coordinate system of link;
+    ChVector3d react_force;   ///< force reactions, expressed in local coordinate system of link
+    ChVector3d react_torque;  ///< torque reactions, expressed in local coordinate system of link
 };
 
 CH_CLASS_VERSION(ChLink, 0)

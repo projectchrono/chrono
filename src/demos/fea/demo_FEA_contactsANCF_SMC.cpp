@@ -116,8 +116,8 @@ int main(int argc, char* argv[]) {
         rot_transform(2, 1) = -1;
         std::vector<double> NODE_AVE_AREA;
 
-        ChMeshFileLoader::ANCFShellFromGMFFile(mesh_shells, GetChronoDataFile("fea/Plate.mesh").c_str(), mat_shells,
-                                               NODE_AVE_AREA, BC_NODES, Center, rot_transform, 0.8, false, false);
+        ChMeshFileLoader::ANCFShellFromGMFFile(mesh_shells, GetChronoDataFile("fea/Plate.mesh").c_str(), mat_shells, NODE_AVE_AREA, BC_NODES, Center, rot_transform, 0.8, false,
+                                               false);
     } catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
         return 1;
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh_cables = chrono_types::make_shared<ChMesh>();
 
-    auto section_cables = chrono_types::make_shared<ChBeamSectionCable>();
+    auto section_cables = chrono_types::make_shared<ChBeamSectionCableANCF>();
     section_cables->SetDiameter(0.02);
     section_cables->SetYoungModulus(0.01e9);
     section_cables->SetRayleighDamping(0.05);
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     ChBuilderCableANCF builder;
 
     builder.BuildBeam(mesh_cables,                    // mesh containing nodes and elements
-                      section_cables,                 // ChBeamSectionCable to use for the ChElementCableANCF elements
+                      section_cables,                 // ChBeamSectionCableANCF to use for the ChElementCableANCF elements
                       8,                              // number of ChElementCableANCF to create
                       ChVector3d(+0.15, -0.1, 0.2),   // beam start point
                       ChVector3d(-0.15, -0.1, 0.3));  // beam end point
@@ -214,8 +214,7 @@ int main(int argc, char* argv[]) {
     // Create run-time visualization system
     // ------------------------------------
 
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Contact", ChVector3d(0.8, 0.8, 0.8),
-                                         ChVector3d(-0.25, -0.25, 0.0));
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Contact", ChVector3d(0.8, 0.8, 0.8), ChVector3d(-0.25, -0.25, 0.0));
 
     // -------------------------
     // Set solver and integrator

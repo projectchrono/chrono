@@ -26,6 +26,8 @@
 
 #include "chrono/input_output/ChOutputHDF5.h"
 
+#include <H5Cpp.h>
+
 namespace chrono {
 
 // -----------------------------------------------------------------------------

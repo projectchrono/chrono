@@ -1,5 +1,5 @@
 set(COMPONENT_NAME "FMU3cs_crane")
-set(COMPONENT_MAIN_DIR "${DEMO_FMU_MAIN_DIR}")
+set(COMPONENT_MAIN_DIR ${DEMO_FMU_MAIN_DIR})
 set(COMPONENT_SOURCES craneFMU.h craneFMU.cpp)
 set(COMPONENT_RESOURCES_DIR "")
 if (CH_ENABLE_MODULE_IRRLICHT)
@@ -14,7 +14,7 @@ else()
 endif()
 
 set(FMU_CS TRUE)
-#set(FMU_TESTING ON)
+set(FMU_TESTING ${CH_ENABLE_FMU_TESTING})
 
 #--------------------------------------------------------------
 

@@ -18,14 +18,14 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
+
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/input_output/ChCheckpointASCII.h"
+
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 using namespace chrono;
 using namespace chrono::vsg3d;
-
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // -----------------------------------------------------------------------------
 

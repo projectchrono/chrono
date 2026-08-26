@@ -5,7 +5,7 @@ Suspension models {#tracked_suspension}
 
 Different suspension configurations are available, including torsion spring with linear or rotational dampers and a hydropneumatic suspension template.  A track assembly can contain an arbitrary number of suspension subsystems which, for the templates using a torsion spring, may or may not include a damper.  A Chrono::Vehicle suspension subsystem also contains a road-wheel, itself templatized based on the type of track shoe used (central or lateral guiding pins).
 
-Similar to the case of wheeled vehicle, a tracked vehicle suspension template allows complete freedom in specifying spring and damper forces which can be linear or non-linear, defined through table lookup or implemented in user-provided C++ functions. 
+Similar to the case of a wheeled vehicle, a tracked vehicle suspension template allows complete freedom in specifying spring and damper forces which can be linear or non-linear, defined through table lookup or implemented in user-provided C++ functions. 
 
 
 ## Track suspension models {#suspension_models}

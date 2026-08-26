@@ -103,8 +103,7 @@ int main(int argc, char* argv[]) {
     double render_fps = 100;
     double step_size = 1e-4;
     // Parse command-line arguments
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, cylinder_radius,
-                         cylinder_height, init_spacing, render)) {
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, cylinder_radius, cylinder_height, init_spacing, render)) {
         return 1;
     }
 
@@ -116,8 +115,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetVerbose(verbose);
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
-    // Set soil propertiees
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    // Set soil properties
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = bulk_density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = 0.3;
@@ -125,7 +124,7 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_s = mu_s;
     mat_props.mu_fric_2 = mu_s;
     mat_props.average_diam = granular_particle_diameter;
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
@@ -147,12 +146,11 @@ int main(int argc, char* argv[]) {
     // Dimension of the space domain
     double bxDim = 10 * cylinder_radius;
     double byDim = 10 * cylinder_radius;
-    double bzDim = 1.5 * cylinder_height;  // Higher than the cylinder to allow forparticle settling
+    double bzDim = 1.5 * cylinder_height;  // Higher than the cylinder to allow for particle settling
 
     // Set the periodic boundary condition
     auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 - 3 * initSpace0 / 2.0, -byDim / 2 - 3 * initSpace0 / 2.0,
-                    -1.0 * bzDim - 3 * initSpace0);
+    ChVector3d cMin(-bxDim / 2 - 3 * initSpace0 / 2.0, -byDim / 2 - 3 * initSpace0 / 2.0, -1.0 * bzDim - 3 * initSpace0);
     ChVector3d cMax(bxDim / 2 + 3 * initSpace0 / 2.0, byDim / 2 + 3 * initSpace0 / 2.0, 2.0 * bzDim + 3 * initSpace0);
     sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_NONE);
     sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
@@ -195,7 +193,7 @@ int main(int argc, char* argv[]) {
 
     // Add BCE particles attached on the walls into FSI system
     auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {0, 0, -1});
-    sysFSI.AddFsiBody(box, box_bce, ChFrame<>(ChVector3d(0, 0, 0), QUNIT), false);
+    sysFSI.AddRigidBody(box, box_bce, ChFrame<>(ChVector3d(0, 0, 0), QUNIT), false);
 
     sysFSI.Initialize();
 
@@ -296,8 +294,7 @@ int main(int argc, char* argv[]) {
             if (snapshots) {
                 std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
             }
 

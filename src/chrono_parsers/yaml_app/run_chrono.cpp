@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Application for running Chrono simulations specified through YAML files.
+// Application for running a Chrono simulation specified through YAML files.
 //
 // =============================================================================
 
@@ -22,7 +22,6 @@
 #include <filesystem>
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -57,49 +56,49 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-bool ParseArgs(int argc,
-               char** argv,
-               std::string& yaml_filename,
-               std::string& out_dir,
-               bool& disable_output,
-               bool& disable_vis);
-bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis);
-bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis);
-bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis);
+bool ParseArgs(int argc, char** argv, std::string& yaml_filename, std::string& out_dir, bool& disable_verbose, bool& disable_output, bool& disable_vis);
+bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
-    // Proces command line arguments
+    // Process command line arguments
+    bool disable_verbose = false;
     bool disable_output = false;
     bool disable_vis = false;
     std::string yaml_filename = "";
     std::string out_dir = GetChronoOutputPath() + "YAML_CHRONO/";
-    if (!ParseArgs(argc, argv, yaml_filename, out_dir, disable_output, disable_vis))
+    if (!ParseArgs(argc, argv, yaml_filename, out_dir, disable_verbose, disable_output, disable_vis))
         return 1;
 
     cout << endl;
     cout << "YAML specification file: " << yaml_filename << endl;
-    cout << "Output directory:        " << out_dir << endl;
-    cout << "Disable output?          " << (disable_output ? "yes" : "no") << endl;
-    cout << "Disable visualization?   " << (disable_vis ? "yes" : "no") << endl;
+    cout << "Verbose?          " << (disable_verbose ? "no" : "yes") << endl;
+    cout << "Visualization?    " << (disable_vis ? "no" : "yes") << endl;
+    cout << "Output?           " << (disable_output ? "no" : "yes") << endl;
+    if (!disable_output)
+        cout << "Output directory: " << out_dir << endl;
 
     // Peek in file, read type, and call appropriate function for processing the YAML file
     auto type = ChParserYAML::ReadYamlFileType(yaml_filename);
     switch (type) {
         case ChParserYAML::YamlFileType::MBS:
-            RunMBS(yaml_filename, out_dir, disable_output, disable_vis);
+            RunMBS(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
             break;
         case ChParserYAML::YamlFileType::VEHICLE:
 #ifdef CHRONO_VEHICLE
-            RunVEHICLE(yaml_filename, out_dir, disable_output, disable_vis);
+            RunVEHICLE(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
 #else
             cerr << "The Chrono::Vehicle module is not available. Cannot process a vehicle YAML specification." << endl;
 #endif
             break;
         case ChParserYAML::YamlFileType::FSI:
 #ifdef CHRONO_FSI
-            RunFSI(yaml_filename, out_dir, disable_output, disable_vis);
+            RunFSI(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
 #else
             cerr << "The Chrono::FSI module is not available. Cannot process an FSI YAML specification." << endl;
 #endif
@@ -114,15 +113,11 @@ int main(int argc, char* argv[]) {
 
 // -----------------------------------------------------------------------------
 
-bool ParseArgs(int argc,
-               char** argv,
-               std::string& yaml_filename,
-               std::string& out_dir,
-               bool& disable_output,
-               bool& disable_vis) {
+bool ParseArgs(int argc, char** argv, std::string& yaml_filename, std::string& out_dir, bool& disable_verbose, bool& disable_output, bool& disable_vis) {
     ChCLI cli(argv[0], "");
     cli.AddOption<std::string>("", "s,sim_file", "Simulation specification file (YAML format)");
     cli.AddOption<std::string>("", "o,out_dir", "Output directory", out_dir);
+    cli.AddOption<bool>("", "quiet", "Disable terminal output");
     cli.AddOption<bool>("", "no_output", "Disable output");
     cli.AddOption<bool>("", "no_visualization", "Disable run-time visualization");
 
@@ -137,6 +132,7 @@ bool ParseArgs(int argc,
         return false;
     }
 
+    disable_verbose = cli.GetAsType<bool>("quiet");
     disable_output = cli.GetAsType<bool>("no_output");
     disable_vis = cli.GetAsType<bool>("no_visualization");
 
@@ -147,32 +143,28 @@ bool ParseArgs(int argc,
 
 // -----------------------------------------------------------------------------
 
-bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis) {
+bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
     // Create YAML parser object, load the YAML file, then create a Chrono system and populate it
-    parsers::ChParserMbsYAML parser(yaml_filename, true);
+    parsers::ChParserMbsYAML parser(yaml_filename, !disable_verbose);
     auto sys = parser.CreateSystem();
     parser.Populate(*sys, ChFramed());
 
     // Print hierarchy of modeling components in ChSystem
-    ////std::cout << "Number of moidel instances: " << parser.GetNumInstances() << std::endl;
+    ////std::cout << "Number of model instances: " << parser.GetNumInstances() << std::endl;
     ////sys->ShowHierarchy(std::cout);
 
     // Extract information from parsed YAML files
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
-    bool real_time = parser.EnforceRealtime();
-    bool render = parser.Render() && !disable_vis;
-    double render_fps = parser.GetRenderFPS();
+
+    bool output = parser.OutputEnabled() && !disable_output;
+    bool render = parser.VisualizationEnabled() && !disable_vis;
+
     CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
     const ChVector3d& camera_location = parser.GetCameraLocation();
     const ChVector3d& camera_target = parser.GetCameraTarget();
     bool enable_shadows = parser.EnableShadows();
-    bool output = parser.Output() && !disable_output;
-    double output_fps = parser.GetOutputFPS();
-
-    // Print system hierarchy
-    ////sys->ShowHierarchy(std::cout);
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
@@ -214,47 +206,33 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
     }
 
     // Simulation loop
-    ChRealtimeStepTimer rt_timer;
     double time = 0;
-    int render_frame = 0;
-    int output_frame = 0;
 
     while (true) {
+        if (time_end > 0 && time > time_end)
+            break;
+
         if (render) {
-            if (!vis->Run())
-                break;
-            if (time >= render_frame / render_fps) {
-                vis->BeginScene();
-                vis->Render();
-                vis->EndScene();
-                render_frame++;
-            }
-        } else {
-            std::cout << "\rt = " << time;
-            if (time_end > 0 && time >= time_end)
+            if (!parser.Render(*vis, time))
                 break;
         }
 
-        if (output) {
-            if (time >= output_frame / output_fps) {
-                parser.WriteOutput(time, output_frame);
-                output_frame++;
-            }
-        }
+        if (output)
+            parser.Output(time);
 
-        sys->DoStepDynamics(time_step);
-        if (real_time)
-            rt_timer.Spin(time_step);
+        // Advance multibody system dynamics
+        parser.DoStepDynamics();
+
         time += time_step;
     }
 
     return true;
 }
 
-bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis) {
+bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
 #ifdef CHRONO_VEHICLE
     // Create the YAML parser object
-    parsers::ChParserVehicleYAML parser(yaml_filename, true);
+    parsers::ChParserVehicleYAML parser(yaml_filename, !disable_verbose);
 
     // Create Chrono system and vehicle model
     auto sys = parser.CreateSystem();
@@ -269,14 +247,14 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
     bool real_time = parser.EnforceRealtime();
-    bool render = parser.Render() && !disable_vis;
-    double render_fps = parser.GetRenderFPS();
-    bool enable_shadows = parser.EnableShadows();
-    bool output = parser.Output() && !disable_output;
+
+    bool output = parser.OutputEnabled() && !disable_output;
+    bool render = parser.VisualizationEnabled() && !disable_vis;
 
     const ChVector3d& chassis_point = parser.GetChassisPoint();
     double chase_distance = parser.GetChaseDistance();
     double chase_height = parser.GetChaseHeight();
+    bool enable_shadows = parser.EnableShadows();
 
     // Create an interactive VSG driver system
     auto driver = chrono_types::make_shared<vehicle::ChInteractiveDriver>(*vehicle);
@@ -335,23 +313,13 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
     vehicle->EnableRealtime(real_time);
 
     double time = 0;
-    int render_frame = 0;
 
     while (true) {
-        if (render) {
-            if (!vis->Run())
-                break;
-            if (time >= render_frame / render_fps) {
-                vis->BeginScene();
-                vis->Render();
-                vis->EndScene();
-                render_frame++;
-            }
-        } else {
-            std::cout << "\rt = " << time;
-            if (time_end > 0 && time >= time_end)
-                break;
-        }
+        if (time_end > 0 && time > time_end)
+            break;
+
+        if (render && !parser.Render(*vis, time))
+            break;
 
         // Get driver inputs
         vehicle::DriverInputs driver_inputs = driver->GetInputs();
@@ -385,10 +353,10 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
 
 // -----------------------------------------------------------------------------
 
-bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_output, bool& disable_vis) {
+bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
 #ifdef CHRONO_FSI
     // Create the FSI YAML parser object
-    parsers::ChParserFsiYAML parser(yaml_filename, true);
+    parsers::ChParserFsiYAML parser(yaml_filename, !disable_verbose);
 
     // Create the FSI system and the underlying multibody and fluid systems
     parser.CreateFsiSystem();
@@ -401,19 +369,13 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
     const std::string& model_name = parser.GetName();
     double time_end = parser.GetEndtime();
     double time_step = parser.GetTimestep();
-    bool render = parser.Render() && !disable_vis;
-    double render_fps = parser.GetRenderFPS();
 
-    auto& parserMBS = parser.GetMbsParser();
+    bool output = parser.OutputEnabled() && !disable_output;
+    bool render = parser.VisualizationEnabled() && !disable_vis;
+
     CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
     const ChVector3d& camera_location = parser.GetCameraLocation();
     const ChVector3d& camera_target = parser.GetCameraTarget();
-    bool output_MBS = parserMBS.Output() && !disable_output;
-    double output_fps_MBS = parser.GetOutputFPS();
-
-    auto& parserCFD = parser.GetCfdParser();
-    bool output_CFD = parserCFD.Output() && !disable_output;
-    double output_fps_CFD = parser.GetOutputFPS();
 
     // Create the run-time visualization system
     std::shared_ptr<ChVisualSystem> vis;
@@ -433,7 +395,7 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
         visVSG->EnableShadows(false);
         visVSG->SetAbsFrameScale(2.0);
 
-        auto plugin = parserCFD.GetVisualizationPlugin();
+        auto plugin = parser.GetCfdParser().GetVisualizationPlugin();
         if (plugin)
             visVSG->AttachPlugin(plugin);
 
@@ -445,7 +407,7 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
     #endif
 
     // Create output directory
-    if (output_MBS || output_CFD) {
+    if (output) {
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return false;
@@ -460,35 +422,16 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
 
     // Simulation loop
     double time = 0;
-    int render_frame = 0;
-    int output_frame_MBS = 0;
-    int output_frame_CFD = 0;
 
     while (true) {
-        if (render) {
-            if (!vis->Run())
-                break;
-            if (time >= render_frame / render_fps) {
-                vis->BeginScene();
-                vis->Render();
-                vis->EndScene();
-                render_frame++;
-            }
-        } else {
-            std::cout << "\rt = " << time;
-            if (time_end > 0 && time >= time_end)
-                break;
-        }
+        if (time_end > 0 && time > time_end)
+            break;
 
-        if (output_MBS && time >= output_frame_MBS / output_fps_MBS) {
-            parserMBS.WriteOutput(time, output_frame_MBS);
-            output_frame_MBS++;
-        }
+        if (render && !parser.Render(*vis, time))
+            break;
 
-        if (output_CFD && time >= output_frame_CFD / output_fps_CFD) {
-            parserCFD.WriteOutput(time, output_frame_CFD);
-            output_frame_CFD++;
-        }
+        if (output)
+            parser.Output(time);
 
         sysFSI->DoStepDynamics(time_step);
         time += time_step;

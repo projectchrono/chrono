@@ -786,7 +786,7 @@ if(CH_ENABLE_MODULE_CASCADE)
 
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_definitions(cascade PRIVATE "/DWNT")
+    target_compile_definitions(cascade PRIVATE "WNT")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_compile_definitions(cascade PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(cascade PRIVATE "-DHAVE_LIMITS_H")
@@ -883,7 +883,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   endif()
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_definitions(${CHPY_VEHICLE} PRIVATE "/DWNT")
+    target_compile_definitions(${CHPY_VEHICLE} PRIVATE "WNT")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_compile_definitions(${CHPY_VEHICLE} PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(${CHPY_VEHICLE} PRIVATE "-DHAVE_LIMITS_H")
@@ -1035,6 +1035,7 @@ endif()
 # Module for the robot models
 #-----------------------------------------------------------------------------
 
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
   message(STATUS "Add python ROBOT module")
 
   # Python module name
@@ -1052,7 +1053,7 @@ endif()
   target_link_libraries(${CHPY_RS} PRIVATE Python3::Python Chrono_core ChronoModels_robot)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_definitions(${CHPY_RS} PRIVATE "/DWNT")
+    target_compile_definitions(${CHPY_RS} PRIVATE "WNT")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_compile_definitions(${CHPY_RS} PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(${CHPY_RS} PRIVATE "-DHAVE_LIMITS_H")
@@ -1104,6 +1105,7 @@ endif()
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_ROBOT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
+endif()
 
 #-----------------------------------------------------------------------------
 # MODULE for the parser python wrapper.
@@ -1125,7 +1127,7 @@ if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
   target_link_libraries(parsers PRIVATE Python3::Python Chrono_core Chrono_parsers)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_definitions(parsers PRIVATE "/DWNT")
+    target_compile_definitions(parsers PRIVATE "WNT")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_compile_definitions(parsers PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(parsers PRIVATE "-DHAVE_LIMITS_H")
@@ -1188,7 +1190,7 @@ endif()
 if(CH_ENABLE_MODULE_ROS)
   message(STATUS "Add python ROS module")
 
-  # Force C++17, required by ROS Humble
+  # Force C++17 (rclcpp minimum; used throughout Chrono::ROS)
   set(CMAKE_CXX_STANDARD 17)
 
   # Interface files
@@ -1203,11 +1205,29 @@ if(CH_ENABLE_MODULE_ROS)
     set_source_files_properties(${CHPY_ROS_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
+  # The ros module additionally wraps the vehicle (DriverInputs) and robot (Viper)
+  # handlers when those pychrono modules are built - their Chrono-type ctor args
+  # (ChDriver / ViperDCMotorControl) cross the module boundary at runtime. Tell
+  # SWIG to emit those wrap blocks (the matching C++ compile-defs are set on the
+  # target below). ros is the last swig module, so appending here is local.
+  if(TARGET vehicle)
+    list(APPEND CMAKE_SWIG_FLAGS "-DCHRONO_ROS_HAS_VEHICLE")
+  endif()
+  if(TARGET robot)
+    list(APPEND CMAKE_SWIG_FLAGS "-DCHRONO_ROS_HAS_ROBOT")
+  endif()
+  # RobotModel's ChParserURDF ctor + TF AddURDF (gated CHRONO_HAS_URDF in the
+  # headers) wrap when the parsers module + URDF are present; -DCHRONO_HAS_URDF
+  # lets SWIG see them. The C++ compile-time macro comes from ChConfigROS.h.
+  if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF AND TARGET parsers)
+    list(APPEND CMAKE_SWIG_FLAGS "-DCHRONO_HAS_URDF")
+  endif()
+
   swig_add_library(ros LANGUAGE python SOURCES ${CHPY_ROS_MODULE_FILE})
   target_link_libraries(ros PRIVATE Python3::Python Chrono_core Chrono_ros)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_definitions(ros PRIVATE "/DWNT")
+    target_compile_definitions(ros PRIVATE "WNT")
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_compile_definitions(ros PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(ros PRIVATE "-DHAVE_LIMITS_H")
@@ -1229,6 +1249,32 @@ if(CH_ENABLE_MODULE_ROS)
     target_compile_definitions(ros PRIVATE "CHRONO_HAS_OPTIX")
   endif()
 
+  # The ros module conditionally wraps the sensor handlers (guarded by
+  # CHRONO_SENSOR in ChModuleROS.i). SWIG sees -DCHRONO_SENSOR via the global
+  # CMAKE_SWIG_FLAGS; the generated wrapper's verbatim "#ifdef CHRONO_SENSOR"
+  # block gets the same define at C++ compile time from Chrono's ChConfig.h
+  # (pulled in via the ChSystem header the wrapper includes before the guard) -
+  # no explicit compile-definition needed (adding one only triggers a
+  # "CHRONO_SENSOR redefined" warning against ChConfig.h).
+  if(CH_ENABLE_MODULE_SENSOR)
+    target_link_libraries(ros PRIVATE Chrono_sensor)
+  endif()
+
+  # Vehicle/robot handler wrap: the generated wrapper's verbatim #ifdef blocks
+  # need the same define at C++ compile time, and the ChDriver/Viper headers it
+  # includes need the Chrono_vehicle / ChronoModels_robot include dirs + symbols.
+  if(TARGET vehicle)
+    target_compile_definitions(ros PRIVATE "CHRONO_ROS_HAS_VEHICLE")
+    target_link_libraries(ros PRIVATE Chrono_vehicle)
+  endif()
+  if(TARGET robot)
+    target_compile_definitions(ros PRIVATE "CHRONO_ROS_HAS_ROBOT")
+    target_link_libraries(ros PRIVATE ChronoModels_robot)
+  endif()
+  if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF AND TARGET parsers)
+    target_link_libraries(ros PRIVATE Chrono_parsers)
+  endif()
+
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
     target_link_options(ros PRIVATE -flat_namespace -undefined dynamic_lookup)
@@ -1244,6 +1290,18 @@ if(CH_ENABLE_MODULE_ROS)
   add_dependencies(ros Chrono_core)
   add_dependencies(ros Chrono_ros)
   add_dependencies(ros core)
+  if(CH_ENABLE_MODULE_SENSOR)
+    add_dependencies(ros sensor)  # pychrono.sensor must exist for the runtime %import
+  endif()
+  if(TARGET vehicle)
+    add_dependencies(ros vehicle)  # pychrono.vehicle must exist for the runtime ChDriver type sharing
+  endif()
+  if(TARGET robot)
+    add_dependencies(ros robot)  # pychrono.robot must exist for the runtime ViperDCMotorControl type sharing
+  endif()
+  if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF AND TARGET parsers)
+    add_dependencies(ros parsers)  # pychrono.parsers must exist for the runtime ChParserURDF type sharing
+  endif()
 
   # Copy PY file in a package dir
   set(CHPY_ROS_PY_FILE "${CMAKE_SWIG_OUTDIR}/ros.py")

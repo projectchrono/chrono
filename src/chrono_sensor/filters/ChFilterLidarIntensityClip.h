@@ -14,11 +14,15 @@
 //
 // =============================================================================
 
-#ifndef CHFILTERLIDARPOWERCLIP_H
-#define CHFILTERLIDARPOWERCLIP_H
+#ifndef CHFILTERLIDARINTENSITYCLIP_H
+#define CHFILTERLIDARINTENSITYCLIP_H
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/sensors/ChLidarSensor.h"
+
+#ifdef CHRONO_HAS_OPTIX
+#include <cuda.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -54,7 +58,9 @@ class CH_SENSOR_API ChFilterLidarIntensityClip : public ChFilter {
     float m_intensity_thresh;  ///< intensity threshold for clipping data. Can be determined by max distance of lidar
                                ///< for object with 90% return -> see ChLidarSensor.cpp
     float m_default_dist;      ///< default distance value used when intensity fall below threshold
+#ifdef CHRONO_HAS_OPTIX
     CUstream m_cuda_stream;    ///< cuda stream for the filter graph
+#endif
 };
 
 /// @}

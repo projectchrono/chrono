@@ -475,6 +475,7 @@ set(Chrono_fea_materials_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
+    fea/ChMaterialFEA.h
     fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h
     fea/ChMaterialHexaANCF.h
@@ -490,7 +491,7 @@ set(Chrono_fea_sections_SOURCES
     fea/ChBeamSectionEuler.cpp
     fea/ChBeamSectionTaperedTimoshenko.cpp
     fea/ChBeamSectionTaperedTimoshenkoFPM.cpp
-    fea/ChBeamSectionCable.cpp
+    fea/ChBeamSectionCableANCF.cpp
     )
 set(Chrono_fea_sections_HEADERS
     fea/ChBeamSection.h
@@ -499,7 +500,7 @@ set(Chrono_fea_sections_HEADERS
     fea/ChBeamSectionEuler.h
     fea/ChBeamSectionTaperedTimoshenko.h
     fea/ChBeamSectionTaperedTimoshenkoFPM.h
-    fea/ChBeamSectionCable.h
+    fea/ChBeamSectionCableANCF.h
     )
 source_group(fea\\sections FILES ${Chrono_fea_sections_SOURCES} ${Chrono_fea_sections_HEADERS})
 
@@ -634,13 +635,13 @@ endif()
 
 set(Chrono_geometry_SOURCES
     geometry/ChGeometry.cpp
-    geometry/ChSphere.cpp
-    geometry/ChEllipsoid.cpp
+    geometry/ChAABB.cpp
     geometry/ChBox.cpp
     geometry/ChCone.cpp
     geometry/ChCylinder.cpp
     geometry/ChCapsule.cpp
     geometry/ChDelaunay2D.cpp
+    geometry/ChEllipsoid.cpp
     geometry/ChLine.cpp
     geometry/ChLineArc.cpp
     geometry/ChLineSegment.cpp
@@ -656,6 +657,7 @@ set(Chrono_geometry_SOURCES
     geometry/ChTriangleMeshConnected.cpp
     geometry/ChRoundedBox.cpp
     geometry/ChRoundedCylinder.cpp
+    geometry/ChSphere.cpp
     geometry/ChSurface.cpp
     geometry/ChSurfaceNurbs.cpp
     geometry/ChVolume.cpp
@@ -663,13 +665,13 @@ set(Chrono_geometry_SOURCES
     )
 set(Chrono_geometry_HEADERS
     geometry/ChGeometry.h
-    geometry/ChSphere.h
-    geometry/ChEllipsoid.h
+    geometry/ChAABB.h
     geometry/ChBox.h
     geometry/ChCone.h
     geometry/ChCylinder.h
     geometry/ChCapsule.h
     geometry/ChDelaunay2D.h
+    geometry/ChEllipsoid.h
     geometry/ChLine.h
     geometry/ChLineCam.h
     geometry/ChLinePoly.h
@@ -685,6 +687,7 @@ set(Chrono_geometry_HEADERS
     geometry/ChTriangleMeshConnected.h
     geometry/ChRoundedBox.h
     geometry/ChRoundedCylinder.h
+    geometry/ChSphere.h
     geometry/ChSurface.h
     geometry/ChSurfaceNurbs.h
     geometry/ChVolume.h
@@ -949,6 +952,8 @@ set(Chrono_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtRoundedCylinderShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtRoundedBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtEmptyShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMinkowskiSumShape.cpp
@@ -1501,6 +1506,30 @@ target_include_directories(Chrono_core PUBLIC
 
 target_link_libraries(Chrono_core PUBLIC Eigen3::Eigen)
 
+# -----------------------------------------------------------------------------
+# Precompiled header
+#
+# Chrono_core has ~500 translation units, the vast majority of which include the
+# core linear-algebra headers (and therefore Eigen) plus the STL stream and
+# container headers. Build-Insights profiling shows these dominate the front-end
+# parse and template-instantiation cost (Eigen alone accounts for the top
+# template-instantiation entries, and ChMatrix.h is the single most included
+# header). Parsing them once into a PCH and reusing the result across every TU
+# eliminates that repeated work.
+#
+# ChMatrix.h (not a bare Eigen include) is used as the anchor on purpose: it
+# defines EIGEN_MATRIXBASE_PLUGIN / EIGEN_SPARSEMATRIX_PLUGIN before pulling in
+# Eigen/Dense and Eigen/Sparse, so precompiling it reproduces Chrono's exact
+# Eigen configuration. It also transitively precompiles ChArchive.h /
+# ChArchiveASCII.h, two other widely included, expensive headers.
+#
+# Scope is PRIVATE so the PCH is used only when compiling Chrono_core itself and
+# is not forced onto consumers of the library. The header list lives in
+# ChCorePCH.h, which is guarded by __cplusplus so the precompiled header is empty
+# for the target's C sources.
+target_precompile_headers(Chrono_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ChCorePCH.h")
+# -----------------------------------------------------------------------------
+
 if(CHRONO_THRUST_FOUND)
   target_link_libraries(Chrono_core PRIVATE Thrust::Thrust)
 
@@ -1554,14 +1583,9 @@ if(CHRONO_YAML_ENABLED)
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.
+# On Windows, Winsock is needed regardless of the compiler (MSVC, clang, GCC/MinGW).
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-	endif()
+    target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
@@ -1593,7 +1617,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:__cplusplus">)
 
         # CUDA 13+ CCCL headers require MSVC's conforming preprocessor
-        if(CHRONO_CUDA_FOUND AND ${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "13.0")
+        if(CHRONO_CUDA_FOUND AND CUDAToolkit_VERSION VERSION_GREATER_EQUAL "13.0")
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/Zc:preprocessor>)
           target_compile_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:preprocessor">) # without this flag the memory alignment seems to be broken          
         endif()

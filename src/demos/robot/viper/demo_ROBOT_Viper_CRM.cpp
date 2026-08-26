@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = cohesion;
-    terrain.SetElasticSPH(mat_props);
+    terrain.SetCrmSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
@@ -170,12 +170,12 @@ int main(int argc, char* argv[]) {
         case PatchType::HEIGHT_MAP:
             // Create a patch from a height field map image
             terrain.Construct(GetVehicleDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
-                              terrain_length, terrain_width,                           // length (X) and width (Y)
-                              {0.25, 0.55},                                            // height range
-                              0.25,                                                    // depth
-                              true,                                                    // uniform depth
-                              ChVector3d(terrain_length / 2, 0, 0),                    // patch center
-                              BoxSide::Z_NEG                                           // bottom wall
+                              terrain_length, terrain_width,                         // length (X) and width (Y)
+                              {0.25, 0.55},                                          // height range
+                              0.25,                                                  // depth
+                              true,                                                  // uniform depth
+                              ChVector3d(terrain_length / 2, 0, 0),                  // patch center
+                              BoxSide::Z_NEG                                         // bottom wall
             );
             break;
     }
@@ -184,9 +184,9 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
-    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
-    cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
+    cout << "  SPH particles:        " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Boundary BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
+    cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
     std::shared_ptr<ChVisualSystem> vis;

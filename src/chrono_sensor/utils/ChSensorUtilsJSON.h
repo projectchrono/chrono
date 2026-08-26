@@ -26,8 +26,10 @@
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
-#ifdef CHRONO_HAS_OPTIX
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
     #include "chrono_sensor/sensors/ChCameraSensor.h"
+#endif
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
     #include "chrono_sensor/sensors/ChLidarSensor.h"
     #include "chrono_sensor/sensors/ChRadarSensor.h"
 #endif
@@ -50,7 +52,7 @@ namespace sensor {
 /// @return A shared pointer to a ChSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::shared_ptr<ChBody> parent, ChFrame<double> offsetPose);
 
-#ifdef CHRONO_HAS_OPTIX
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
 
 /// Load and return a camera sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the camera sensor parameters
@@ -58,6 +60,10 @@ CH_SENSOR_API std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filena
 /// @param offsetPose The position and rotation of the Camera Sensor
 /// @return A shared pointer to a ChCameraSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename, std::shared_ptr<ChBody> parent, ChFrame<double> offsetPose);
+
+#endif
+
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
 
 /// Load and return a lidar sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the lidar sensor parameters

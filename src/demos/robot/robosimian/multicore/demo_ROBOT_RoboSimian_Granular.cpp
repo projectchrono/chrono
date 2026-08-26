@@ -93,8 +93,7 @@ int main(int argc, char* argv[]) {
     bool output = true;
     std::string suffix = "";
 
-    if (!GetProblemSpecs(argc, argv, mode, contact_method, duration_sim, step_size, out_fps, pov_fps, nthreads, drop,
-                         output, pov_output, render, suffix)) {
+    if (!GetProblemSpecs(argc, argv, mode, contact_method, duration_sim, step_size, out_fps, pov_fps, nthreads, drop, output, pov_output, render, suffix)) {
         return 1;
     }
 
@@ -107,10 +106,10 @@ int main(int argc, char* argv[]) {
     double duration_settle_robot = 0.5;    // Interval to allow robot settling on terrain
     double duration_hold = duration_settle_terrain + duration_settle_robot;
 
-    double time_create_terrain = duration_pose;  // create terrain after robot assumes initial pose
+    double time_create_terrain = duration_pose;                           // create terrain after robot assumes initial pose
     double time_release = time_create_terrain + duration_settle_terrain;  // release robot after terrain settling
-    double time_start = time_release + duration_settle_robot;  // start actual simulation after robot settling
-    double time_end = time_start + duration_sim;               // end simulation after specified duration
+    double time_start = time_release + duration_settle_robot;             // start actual simulation after robot settling
+    double time_end = time_start + duration_sim;                          // end simulation after specified duration
 
     // -----------------------------
     // Initialize output directories
@@ -265,46 +264,42 @@ int main(int argc, char* argv[]) {
     // Create a driver and attach to robot
     // -----------------------------------
 
-    std::shared_ptr<robosimian::RS_Driver> driver;
+    std::shared_ptr<models::ChRobotActuation> driver;
 
     switch (mode) {
         case robosimian::LocomotionMode::WALK: {
-            auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                "",                                                           // start input file
-                GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
-                "",                                                           // stop input file
-                true);
-            driver = drv;
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                 // num. motors
+                                                                         "",                                                                 // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
+                                                                         "",                                                                 // stop input file
+                                                                         true);
             cout << "Locomotion mode: WALK" << endl;
             break;
         }
         case robosimian::LocomotionMode::SCULL: {
-            auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   // start input file
-                GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    // stop input file
-                true);
-            driver = drv;
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                   // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    // stop input file
+                                                                         true);
             cout << "Locomotion mode: SCULL" << endl;
             break;
         }
         case robosimian::LocomotionMode::INCHWORM: {
-            auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  // start input file
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   // stop input file
-                true);
-            driver = drv;
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                     // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   // stop input file
+                                                                         true);
             cout << "Locomotion mode: INCHWORM" << endl;
             break;
         }
         case robosimian::LocomotionMode::DRIVE: {
-            auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  // start input file
-                GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   // stop input file
-                true);
-            driver = drv;
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                 // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   // stop input file
+                                                                         true);
             cout << "Locomotion mode: DRIVE" << endl;
             break;
         }
@@ -534,9 +529,9 @@ bool GetProblemSpecs(int argc,
     step_size = cli.GetAsType<double>("step_size");
     out_fps = cli.GetAsType<double>("out_fps");
     pov_fps = cli.GetAsType<double>("pov_fps");
-    drop = cli.GetAsType<bool>("drop");    
+    drop = cli.GetAsType<bool>("drop");
     render = cli.GetAsType<bool>("render");
-    output = cli.GetAsType<bool>("output");    
+    output = cli.GetAsType<bool>("output");
     pov_output = cli.GetAsType<bool>("pov_output");
     suffix = cli.GetAsType<std::string>("suffix");
     nthreads = cli.GetAsType<int>("threads");

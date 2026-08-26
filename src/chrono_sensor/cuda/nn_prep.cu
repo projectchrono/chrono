@@ -15,6 +15,7 @@
 // =============================================================================
 
 #include <cuda.h>
+#include <cstdint>
 #include "nn_prep.cuh"
 #include <iostream>
 

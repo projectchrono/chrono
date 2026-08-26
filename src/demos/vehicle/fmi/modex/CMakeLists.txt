@@ -50,6 +50,6 @@ foreach(PROGRAM ${DEMOS})
   ###add_dependencies(${PROGRAM} ${CHRONO_VEHICLE_FMU})
 endforeach()
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   add_dependencies(demo_VEH_FMI2_PathFollower FMU2me_PathFollowerDriver)
 endif()

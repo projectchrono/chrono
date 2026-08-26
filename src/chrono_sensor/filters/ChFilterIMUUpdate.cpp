@@ -25,18 +25,17 @@
 namespace chrono {
 namespace sensor {
 
-ChFilterAccelerometerUpdate::ChFilterAccelerometerUpdate(std::shared_ptr<ChNoiseModel> noise_model)
-    : m_noise_model(noise_model), ChFilter("Accelerometer Updater") {}
+ChFilterAccelerometerUpdate::ChFilterAccelerometerUpdate(std::shared_ptr<ChNoiseModel> noise_model) : m_noise_model(noise_model), ChFilter("Accelerometer Updater") {}
 
 CH_SENSOR_API void ChFilterAccelerometerUpdate::Apply() {
     // default sensor values
     ChVector3d acc = {0, 0, 0};
 
     if (m_accSensor->m_keyframes.size() > 0) {
-        for (auto c : m_accSensor->m_keyframes) {
+        for (const auto& c : m_accSensor->m_keyframes) {
             acc += c;
         }
-        acc /= (float)(m_accSensor->m_keyframes.size());
+        acc /= (double)(m_accSensor->m_keyframes.size());
     }
 
     if (m_noise_model) {
@@ -52,8 +51,7 @@ CH_SENSOR_API void ChFilterAccelerometerUpdate::Apply() {
     m_bufferOut->TimeStamp = (float)m_accSensor->GetParent()->GetSystem()->GetChTime();
 }
 
-CH_SENSOR_API void ChFilterAccelerometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
-                                                           std::shared_ptr<SensorBuffer>& bufferInOut) {
+CH_SENSOR_API void ChFilterAccelerometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (bufferInOut) {
         throw std::runtime_error("Accelerometer update filter must be applied first in filter graph");
     }
@@ -71,15 +69,14 @@ CH_SENSOR_API void ChFilterAccelerometerUpdate::Initialize(std::shared_ptr<ChSen
     bufferInOut = m_bufferOut;
 }
 
-ChFilterGyroscopeUpdate::ChFilterGyroscopeUpdate(std::shared_ptr<ChNoiseModel> noise_model)
-    : m_noise_model(noise_model), ChFilter("Gyroscope Updater") {}
+ChFilterGyroscopeUpdate::ChFilterGyroscopeUpdate(std::shared_ptr<ChNoiseModel> noise_model) : m_noise_model(noise_model), ChFilter("Gyroscope Updater") {}
 
 CH_SENSOR_API void ChFilterGyroscopeUpdate::Apply() {
     // default sensor values
     ChVector3d ang_vel = {0, 0, 0};
 
     if (m_gyroSensor->m_keyframes.size() > 0) {
-        for (auto c : m_gyroSensor->m_keyframes) {
+        for (const auto& c : m_gyroSensor->m_keyframes) {
             ang_vel += c;
         }
         ang_vel = ang_vel / (double)(m_gyroSensor->m_keyframes.size());
@@ -97,8 +94,7 @@ CH_SENSOR_API void ChFilterGyroscopeUpdate::Apply() {
     m_bufferOut->TimeStamp = (float)m_gyroSensor->GetParent()->GetSystem()->GetChTime();
 }
 
-CH_SENSOR_API void ChFilterGyroscopeUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
-                                                       std::shared_ptr<SensorBuffer>& bufferInOut) {
+CH_SENSOR_API void ChFilterGyroscopeUpdate::Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (bufferInOut) {
         throw std::runtime_error("Gyroscope update filter must be applied first in filter graph");
     }
@@ -116,18 +112,17 @@ CH_SENSOR_API void ChFilterGyroscopeUpdate::Initialize(std::shared_ptr<ChSensor>
     bufferInOut = m_bufferOut;
 }
 
-ChFilterMagnetometerUpdate::ChFilterMagnetometerUpdate(std::shared_ptr<ChNoiseModel> noise_model,
-                                                       ChVector3d gps_reference)
+ChFilterMagnetometerUpdate::ChFilterMagnetometerUpdate(std::shared_ptr<ChNoiseModel> noise_model, ChVector3d gps_reference)
     : m_noise_model(noise_model), ChFilter("Magnetometer Updater"), m_gps_reference(gps_reference) {}
 
 CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
     // default sensor values
     ChVector3d pos = {0, 0, 0};
     if (m_magSensor->m_keyframes.size() > 0) {
-        for (auto c : m_magSensor->m_keyframes) {
+        for (const auto& c : m_magSensor->m_keyframes) {
             pos += c.GetPos();
         }
-        pos = pos / (float)(m_magSensor->m_keyframes.size());
+        pos = pos / (double)(m_magSensor->m_keyframes.size());
     }
 
     Cartesian2GPS(pos, m_gps_reference);
@@ -135,23 +130,23 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
     double theta = pos.y() * CH_DEG_TO_RAD;  // latitude
     double h = pos.z();                      // altitude
 
-    double cos_theta_m = cos(theta) * cos(theta_0) + sin(theta) * sin(theta_0) * cos(phi - phi_0);
-    double sin_theta_m = sin(acos(cos_theta_m));
+    double cos_theta_m = std::cos(theta) * std::cos(theta_0) + std::sin(theta) * std::sin(theta_0) * cos(phi - phi_0);
+    double sin_theta_m = std::sin(std::acos(cos_theta_m));
 
     double q = EARTH_RADIUS / (EARTH_RADIUS + h);
-    double B_abs = abs(B_0 * (q * q * q) * sqrt(1 + 3 * cos_theta_m * cos_theta_m));
+    double B_abs = std::abs(B_0 * (q * q * q) * std::sqrt(1 + 3 * cos_theta_m * cos_theta_m));
 
-    double alpha = atan2(2 * cos_theta_m, sin_theta_m);
-    double beta = sin(theta_0);
+    double alpha = std::atan2(2 * cos_theta_m, sin_theta_m);
+    double beta = std::sin(theta_0);
     if (cos_theta_m > beta) {
-        beta = asin(sin(phi - phi_0) * (cos(theta_0) / sin_theta_m));
+        beta = std::asin(std::sin(phi - phi_0) * (std::cos(theta_0) / sin_theta_m));
     } else {
-        beta = asin(cos(phi - phi_0) * (cos(theta_0) / sin_theta_m));
+        beta = std::asin(std::cos(phi - phi_0) * (std::cos(theta_0) / sin_theta_m));
     }
 
     // get magnetic field in sensor frame
-    double H = B_abs * cos(alpha);
-    ChVector3d mag_field = {H * cos(beta), H * sin(beta), B_abs * sin(alpha)};
+    double H = B_abs * std::cos(alpha);
+    ChVector3d mag_field = {H * std::cos(beta), H * std::sin(beta), B_abs * std::sin(alpha)};
 
     double ang;
     ChVector3d axis;
@@ -170,8 +165,7 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
     m_bufferOut->TimeStamp = (float)m_magSensor->GetParent()->GetSystem()->GetChTime();
 }
 
-CH_SENSOR_API void ChFilterMagnetometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
-                                                          std::shared_ptr<SensorBuffer>& bufferInOut) {
+CH_SENSOR_API void ChFilterMagnetometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (bufferInOut) {
         throw std::runtime_error("Magnetometer update filter must be applied first in filter graph");
     }

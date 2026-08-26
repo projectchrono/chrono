@@ -52,6 +52,19 @@ const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";        // single c
 const char ChFilterFloat4AccessName[] = "ChFilterFloat4Access";      // 4 channels of float arrays
 const char ChFilterNormalAccessName[] = "ChFilterNormalAccess";      /// 3 channels of float (32 bit) arrays
 #endif
+#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+const char ChFilterR8AccessName[] = "ChFilterR8Access";              ///< single channel 8 bit array
+const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";        ///< 4 channel 8 bit array
+const char ChFilterRGBA16AccessName[] = "ChFilterRGBA16Access";      ///< 4 channels of u_int16_t (16 bit) arrays
+const char ChFilterRGBDHalf4AccessName[] = "ChFilterRGBDHalf4Access";///< 4 channels of half-compatible 16 bit arrays
+const char ChFilterDIAccessName[] = "ChFilterDIAccess";              ///< 2 channel float array (Depth+Intensity)
+const char ChFilterRadarAccessName[] = "ChFilterRadarAccess";        ///< Radar return array
+const char ChFilterRadarXYZAccessName[] = "ChFilterRadarXYZAccess";  ///< Processed radar XYZ return array
+const char ChFilterSemanticAccessName[] = "ChFilterSemanticAccess";  ///< class/instance labels
+const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";        ///< single channel depth array
+const char ChFilterFloat4AccessName[] = "ChFilterFloat4Access";      ///< 4 channel float array
+const char ChFilterNormalAccessName[] = "ChFilterNormalAccess";      ///< 3 channel normal array
+#endif
 const char ChFilterXYZIAccessName[] = "ChFilterXYZIAccess";      ///< 4 channel float array (XYZ positions+intensity)
 const char ChFilterAccelAccessName[] = "ChFilterAccelAccess";    ///< Accelerometer data format (3 doubles total)
 const char ChFilterGyroAccessName[] = "ChFilterGyroAccess";      ///< Gyroscope data format (3 doubles total)
@@ -149,6 +162,21 @@ class CH_SENSOR_API ChSensor {
     /// WARNING: this operation cannot be undone.
     void LockFilterList() { m_filter_list_locked = true; }
 
+    /// This sensor's registration ordinal within its manager, used to give it RNG streams distinct
+    /// from every other sensor's. Assigned by ChSensorManager::AddSensor in registration order.
+    ///
+    /// Registration order is therefore part of the reproducibility contract: adding or reordering
+    /// AddSensor calls changes which random numbers a sensor draws, even under the same fixed seed.
+    /// @return The ordinal, or CH_SENSOR_UNASSIGNED_RNG_ID if this sensor was never registered.
+    unsigned int GetRngSensorOrdinal() const { return m_rng_sensor_ordinal; }
+
+    /// The id of the manager this sensor is registered with.
+    ///
+    /// Present because the fixed seed is process-global while ordinals restart at zero in each
+    /// manager, so without this the first sensor of two coexisting managers would share a stream.
+    /// @return The manager id, or CH_SENSOR_UNASSIGNED_RNG_ID if this sensor was never registered.
+    unsigned int GetRngManagerId() const { return m_rng_manager_id; }
+
     /// Get the last filter in the list that matches the template type
     /// @return A shared pointer to a ChSensorBuffer of the templated type.
     template <class UserBufferType>
@@ -171,6 +199,30 @@ class CH_SENSOR_API ChSensor {
     template <class UserBufferType, class FilterType, const char* FilterName>
     UserBufferType GetMostRecentBufferHelper();  ///< explicit specializations exist for each buffer type available
     std::mutex m_dataAccess;                     ///< data access mutex to prevent data race in the sensor class
+
+    /// Stamp an RNG stream index onto every filter that does not already have one.
+    ///
+    /// Needed because PushFilter is NOT the only way a filter reaches m_filters: m_filters is
+    /// protected, and a derived sensor may fill it directly. ChPhysCameraSensor's constructor does
+    /// exactly that for its seven-stage pipeline, one stage of which owns a cuRAND buffer, so relying
+    /// on PushFilter alone left that stage with no identity and made it throw when it asked for a
+    /// seed. Called by ChSensorManager::AddSensor, which every sensor must pass through, so this
+    /// cannot be bypassed the way PushFilter can.
+    ///
+    /// Indices already assigned by PushFilter are left alone, so attach order is preserved where it
+    /// exists; the remainder are numbered in list order, which is deterministic for a given sensor.
+    void AssignPendingRngStreamIndices();
+
+    /// RNG stream identity. Private with no public setter, and assigned only by ChSensorManager:
+    /// a user able to set these could silently make two sensors draw identical noise, which is the
+    /// defect this identity exists to prevent.
+    unsigned int m_rng_sensor_ordinal = CH_SENSOR_UNASSIGNED_RNG_ID;
+    unsigned int m_rng_manager_id = CH_SENSOR_UNASSIGNED_RNG_ID;
+
+    /// Monotonic counter handed out to filters as they attach, never reused, never renumbered.
+    unsigned int m_next_rng_stream_index = 0;
+
+    friend class ChSensorManager;  ///< assigns m_rng_sensor_ordinal and m_rng_manager_id in AddSensor
 
 };  // class ChSensor
 

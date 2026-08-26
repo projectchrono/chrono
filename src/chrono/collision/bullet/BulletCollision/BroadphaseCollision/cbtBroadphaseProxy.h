@@ -48,12 +48,14 @@ enum BroadphaseNativeTypes
 	MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE,
 	BOX_2D_SHAPE_PROXYTYPE,
 	CONVEX_2D_SHAPE_PROXYTYPE,
-	CUSTOM_CONVEX_SHAPE_TYPE,
-	CYLSHELL_SHAPE_PROXYTYPE,     /* ***CHRONO*** */
-	BARREL_SHAPE_PROXYTYPE,       /* ***CHRONO*** */
-	POINT_SHAPE_PROXYTYPE,        /* ***CHRONO*** */
-	SEGMENT_SHAPE_PROXYTYPE,      /* ***CHRONO*** */
-	CH_TRIANGLE_SHAPE_PROXYTYPE,  /* ***CHRONO*** */
+    CUSTOM_CONVEX_SHAPE_TYPE,
+    CYLSHELL_SHAPE_PROXYTYPE,    /* ***CHRONO*** */
+    ROUNDEDCYL_SHAPE_PROXYTYPE,  /* ***CHRONO*** */
+    ROUNDEDBOX_SHAPE_PROXYTYPE,  /* ***CHRONO*** */
+    BARREL_SHAPE_PROXYTYPE,      /* ***CHRONO*** */
+    POINT_SHAPE_PROXYTYPE,       /* ***CHRONO*** */
+    SEGMENT_SHAPE_PROXYTYPE,     /* ***CHRONO*** */
+    CH_TRIANGLE_SHAPE_PROXYTYPE, /* ***CHRONO*** */
 
 	// concave shapes
 	CONCAVE_SHAPES_START_HERE,
@@ -67,11 +69,11 @@ enum BroadphaseNativeTypes
 	//terrain
 	TERRAIN_SHAPE_PROXYTYPE,
 
-	// for 2d collision between polylines
-	ARC2D_SHAPE_PROXYTYPE,          /* ***CHRONO*** */
-	SEGMENT2D_SHAPE_PROXYTYPE,      /* ***CHRONO*** */
+    // for 2d collision between polylines
+    ARC2D_SHAPE_PROXYTYPE,     /* ***CHRONO*** */
+    SEGMENT2D_SHAPE_PROXYTYPE, /* ***CHRONO*** */
 
-	// Used for GIMPACT Trimesh integration
+    // Used for GIMPACT Trimesh integration
 	GIMPACT_SHAPE_PROXYTYPE,
 
 	//Multimaterial mesh

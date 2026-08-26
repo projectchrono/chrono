@@ -339,13 +339,13 @@ inline real3 GetSupportPoint_Rect(const real3& B, const real3& n) {
 
 /// Support point for a rounded box, i.e. a sphere-swept box (for GJK and MPR).
 inline real3 GetSupportPoint_RoundedBox(const real4& B, const real3& n) {
-    return GetSupportPoint_Box(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
+    return GetSupportPoint_Box(real3(B.x - B.w, B.y - B.w, B.z - B.w), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
 /// Support point for a rounded cylinder, i.e. a sphere-swept cylinder (for GJK and MPR).
 /// Rounded cylinder assumed to be along Z axis with origin at center.
 inline real3 GetSupportPoint_RoundedCylinder(const real4& B, const real3& n) {
-    return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
+    return GetSupportPoint_Cylinder(real3(B.x - B.w, B.y - B.w, B.z - B.w), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
 /// Support point for a cylindrical shell (for GJK and MPR).

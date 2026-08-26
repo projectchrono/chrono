@@ -22,9 +22,18 @@
 #include "chrono/utils/ChBodyGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_vsg/ChVisualSystemVSG.h"
-
 using namespace chrono;
+
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
 
 // -----------------------------------------------------------------------------
 
@@ -178,19 +187,58 @@ int main(int argc, char* argv[]) {
     sys.Add(custom_contact);
 
     // Create the run-time visualization system
-    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowTitle("Custom contact");
-    vis->SetWindowSize(1280, 800);
-    vis->SetWindowPosition(100, 100);
-    vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->EnableShadows();
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetCameraAngleDeg(40.0);
-    vis->AddCamera(ChVector3d(0, -6, 3));
-    vis->Initialize();
-    vis->SetContactNormalsVisibility(true);
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+            vis_irr->SetWindowSize(1280, 800);
+            vis_irr->SetWindowTitle("Custom contact");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector3d(0, -6, 3));
+            vis_irr->AddTypicalLights();
+            vis_irr->EnableShadows();
+            vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowTitle("Custom contact");
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->EnableShadows();
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->AddCamera(ChVector3d(0, -6, 3));
+            vis_vsg->Initialize();
+            vis_vsg->SetContactNormalsVisibility(true);
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // Simulation loop
     double time_step = 1e-5;

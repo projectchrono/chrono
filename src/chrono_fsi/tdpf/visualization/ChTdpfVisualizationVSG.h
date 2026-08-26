@@ -25,6 +25,12 @@
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
+#ifdef CHRONO_HAS_YAML
+namespace YAML {
+class Node;
+}
+#endif
+
 namespace chrono {
 namespace fsi {
 namespace tdpf {
@@ -63,7 +69,7 @@ class CH_FSI_API ChTdpfVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin 
 
     /// Enable/disable rendering of waves (default: true).
     void SetWaveMeshVisibility(bool val);
-    
+
     void SetWaveMeshParams(const ChVector2d& center, const ChVector2d& size, double resolution = 100);
     void SetWaveMeshWireframe(bool wireframe);
     void SetWaveMeshColorMode(ColorMode mode, const ChVector2d& range);
@@ -86,6 +92,24 @@ class CH_FSI_API ChTdpfVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin 
 
     /// Return color mode as a string.
     static std::string GetWaveMeshColorModeAsString(ColorMode mode);
+
+    /// TDPF run-time visualization settings.
+    struct CH_FSI_API Settings {
+        Settings();
+        Settings(const Settings& other);
+#ifdef CHRONO_HAS_YAML
+        Settings(const YAML::Node& a);
+        static Settings Read(const YAML::Node& a);
+#endif
+        Settings& operator=(const Settings& other);
+        void PrintInfo() const;
+
+        ChColormap::Type colormap;  ///< colormap for wave false coloring
+        ChVector2d range;           ///< data range for false coloring
+        double update_fps;          ///< wave mesh update frequency (in FPS)
+
+        ChTdpfVisualizationVSG::ColorMode mode;  ///< mode for wave false coloring
+    };
 
   private:
     /// Deformable mesh for wave visualization.

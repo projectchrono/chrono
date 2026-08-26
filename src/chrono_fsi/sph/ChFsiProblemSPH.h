@@ -58,12 +58,12 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Access the underlying MBS system.
     ChSystem& GetMultibodySystem() { return m_sysFSI->GetMultibodySystem(); }
 
-    /// Enable solution of a CFD problem.
+    /// Enable solution of a CFD SPH problem.
     void SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& fluid_props);
 
-    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// Enable solution of a CRM SPH problem.
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
-    void SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props);
+    void SetCrmSPH(const ChFsiFluidSystemSPH::SoilProperties& mat_props);
 
     /// Set SPH method parameters.
     void SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params);
@@ -73,10 +73,10 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
-    /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape
-    /// surface). Generation of BCE markers on a uniform Cartesian grid can be enforced setting use_grid_bce=true.
-    /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are
-    /// pruned). To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape surface).
+    /// Generation of BCE markers on a uniform Cartesian grid can be enforced setting use_grid_bce=true.
+    /// Creation of FSI bodies embedded in the fluid phase is allowed (SPH markers inside the body geometry volume are pruned).
+    /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     void AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded, bool use_grid_bce = false);
 
@@ -85,10 +85,25 @@ class CH_FSI_API ChFsiProblemSPH {
     void AddRigidBodyCylinderX(std::shared_ptr<ChBody> body, const ChFramed& pos, double radius, double length, bool use_grid_bce = false);
     void AddRigidBodyMesh(std::shared_ptr<ChBody> body, const ChFramed& pos, const std::string& obj_file, const ChVector3d& interior_point, double scale);
 
+    /// Add a rigid body to the FSI problem with user-specified BCE markers.
+    /// The BCE markers can be specified relative to a frame different from the body reference frame.
+    /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// This function must be called before Initialize().
+    void AddRigidBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded);
+
+    /// Check if the specified body was added as an FSI solid.
+    bool IsFsiSolid(std::shared_ptr<ChBody> body);
+
+    /// Set the active domain for the specified body (assume already added with AddRigidBody).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainBody(std::shared_ptr<ChBody> body, const ChAABB& aabb);
+
     /// Return the number of BCE markers associated with the specified rigid body.
     size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
 
 #ifdef CHRONO_FEA
+
     /// Enable use and set method of obtaining FEA node directions for generating FEA BCE marker location.
     /// By default, node directions are not used, resulting in linear interpolation between nodes.
     /// If enabled, exact node direction vectors are received from the FEA solver (NodeDirectionsMode::EXACT), or else
@@ -112,35 +127,26 @@ class CH_FSI_API ChFsiProblemSPH {
     /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     void AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+
+    /// Check if the specified FEA mesh was added as an FSI solid.
+    bool IsFsiSolid(std::shared_ptr<fea::ChMesh> mesh);
+
+    /// Set the active domain for the nodes of the specified mesh (assumed already added with AddFeaMesh).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainMesh(std::shared_ptr<fea::ChMesh> mesh, const ChAABB& aabb);
+
 #endif
 
-    /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
-    class CH_FSI_API ParticlePropertiesCallback {
-      public:
-        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL), pre_pressure_scale0(1.01) {}
-        ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
-        virtual ~ParticlePropertiesCallback() {}
-
-        /// Set values for particle properties.
-        /// The default implementation sets pressure and velocity to zero and constant density and viscosity.
-        /// If an override is provided, it must set *all* particle properties.
-        virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) {
-            p0 = 0;
-            rho0 = sysSPH.GetDensity();
-            mu0 = sysSPH.GetViscosity();
-            v0 = VNULL;
-            pre_pressure_scale0 = 1.01;
-        }
-
-        double p0;
-        double rho0;
-        double mu0;
-        ChVector3d v0;
-        double pre_pressure_scale0;
-    };
+    /// Set the active domain for all FSI solids (bodies and mesh nodes) to an AABB of given dimensions, centered at the solid origin.
+    /// If this function is called (and therefore a default AABB  is defined), the default AABB will be used for all solids
+    /// with an invalid (inverted) AABB; this includes solids for which an explicit AABB was not provided.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomain(const ChVector3d& box_dim);
 
     /// Register a callback for setting SPH particle initial properties.
-    void RegisterParticlePropertiesCallback(std::shared_ptr<ParticlePropertiesCallback> callback) { m_props_cb = callback; }
+    /// If no custom callback is used, the default ChFsiFluidSystemSPH::ParticlePropertiesCallback is used.
+    void RegisterParticlePropertiesCallback(std::shared_ptr<ChFsiFluidSystemSPH::ParticlePropertiesCallback> callback) { m_props_cb = callback; }
 
     /// Set gravitational acceleration for both multibody and fluid systems.
     void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI->SetGravitationalAcceleration(gravity); }
@@ -234,8 +240,6 @@ class CH_FSI_API ChFsiProblemSPH {
     std::string GetPhysicsProblemString() const { return m_sysSPH->GetPhysicsProblemString(); }
     std::string GetSphIntegrationSchemeString() const { return m_sysSPH->GetSphIntegrationSchemeString(); }
 
-    void SetActiveDomain(const ChVector3d& box_dim) { m_sysSPH->SetActiveDomain(box_dim); }
-
   protected:
     /// Create a ChFsiProblemSPH object.
     /// No SPH parameters are set.
@@ -307,8 +311,12 @@ class CH_FSI_API ChFsiProblemSPH {
     ChAABB m_sph_aabb;                                 ///< SPH volume bounding box
 
     std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
+#ifdef CHRONO_FEA
+    std::unordered_map<std::shared_ptr<fea::ChMesh>, size_t> m_fsi_meshes1D;  ///< map from ChMesh pointer to index in FSI mesh1D list
+    std::unordered_map<std::shared_ptr<fea::ChMesh>, size_t> m_fsi_meshes2D;  ///< map from ChMesh pointer to index in FSI mesh2D list
+#endif
 
-    std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
+    std::shared_ptr<ChFsiFluidSystemSPH::ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 
     std::unique_ptr<SphParticleRelocator> m_relocator;
 
@@ -472,26 +480,6 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
   private:
     virtual ChVector3i Snap2Grid(const ChVector3d& point) override;
     virtual ChVector3d Grid2Point(const ChVector3i& p) override;
-};
-
-// ----------------------------------------------------------------------------
-
-/// Predefined SPH particle initial properties callback (depth-based pressure).
-class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
-  public:
-    DepthPressurePropertiesCallback(double zero_height) : ParticlePropertiesCallback(), zero_height(zero_height) {}
-
-    virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
-        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
-        double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
-        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysSPH.GetDensity() + p0 / c2;
-        mu0 = sysSPH.GetViscosity();
-        v0 = VNULL;
-    }
-
-  private:
-    double zero_height;
 };
 
 // ----------------------------------------------------------------------------

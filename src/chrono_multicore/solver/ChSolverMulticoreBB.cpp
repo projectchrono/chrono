@@ -41,12 +41,7 @@ void ChSolverMulticoreBB::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
-                                ChProjectConstraints& Project,
-                                const uint max_iter,
-                                const uint size,
-                                const VectorType& r,
-                                VectorType& gamma) {
+uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, const uint max_iter, const uint size, const VectorType& r, VectorType& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -97,8 +92,7 @@ uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
             alpha = 0.0001;
         }
     } else if (data_manager->settings.solver.use_power_iteration) {
-        data_manager->measures.solver.lambda_max =
-            LargestEigenValue(SchurProduct, temp, data_manager->measures.solver.lambda_max);
+        data_manager->measures.solver.lambda_max = LargestEigenValue(SchurProduct, temp, data_manager->measures.solver.lambda_max);
         alpha = 1.95 / data_manager->measures.solver.lambda_max;
     }
     real gmma = 1e-4;

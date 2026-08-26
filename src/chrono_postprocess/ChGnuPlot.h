@@ -28,9 +28,9 @@
 #include "chrono_postprocess/ChApiPostProcess.h"
 
 #ifdef __APPLE__
-#define GNUTRM "qt"
+    #define GNUTRM "qt"
 #else
-#define GNUTRM "wxt"
+    #define GNUTRM "wxt"
 #endif
 
 namespace chrono {
@@ -134,10 +134,7 @@ class ChGnuPlot {
     }
 
     /// Plot 2D (x,y) data from two dynamic Eigen vectors.
-    void Plot(ChVectorDynamic<>& x,
-              ChVectorDynamic<>& y,
-              const std::string& title = "",
-              const std::string& customsettings = " with lines ") {
+    void Plot(ChVectorDynamic<>& x, ChVectorDynamic<>& y, const std::string& title = "", const std::string& customsettings = " with lines ") {
         assert(x.size() == y.size());
 
         ChGnuPlotDataplot dataplot;
@@ -145,8 +142,7 @@ class ChGnuPlot {
         dataplot.data.col(0) = x;
         dataplot.data.col(1) = y;
 
-        dataplot.command +=
-            "$x" + std::to_string(m_curr_idx) + std::to_string(m_map_plots.at(m_curr_idx).size()) + " using 1:2 ";
+        dataplot.command += "$x" + std::to_string(m_curr_idx) + std::to_string(m_map_plots.at(m_curr_idx).size()) + " using 1:2 ";
 
         dataplot.command += customsettings;
         dataplot.command += " title '" + title + "' ";
@@ -155,20 +151,14 @@ class ChGnuPlot {
     }
 
     /// Plot 2D (x,y) data from two columns of a matrix.
-    void Plot(ChMatrixConstRef data,
-              int colX,
-              int colY,
-              const std::string& title = "",
-              const std::string& customsettings = " with lines ") {
+    void Plot(ChMatrixConstRef data, int colX, int colY, const std::string& title = "", const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> x = data.col(colX);
         ChVectorDynamic<> y = data.col(colY);
         Plot(x, y, title, customsettings);
     }
 
     /// Plot 2D (x,y) data from a ChFunctionInterp
-    void Plot(ChFunctionInterp& fun_table,
-              const std::string& title = "",
-              const std::string& customsettings = " with lines ") {
+    void Plot(ChFunctionInterp& fun_table, const std::string& title = "", const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> x(fun_table.GetTable().size());
         ChVectorDynamic<> y(fun_table.GetTable().size());
 
@@ -182,10 +172,7 @@ class ChGnuPlot {
     }
 
     /// Plot 2D (x,y) data from two vectors.
-    void Plot(const std::vector<double>& vals_x,
-              const std::vector<double>& vals_y,
-              const std::string& title = "",
-              const std::string& customsettings = " with lines ") {
+    void Plot(const std::vector<double>& vals_x, const std::vector<double>& vals_y, const std::string& title = "", const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> x = ChVectorDynamic<>::Map(vals_x.data(), vals_x.size());
         ChVectorDynamic<> y = ChVectorDynamic<>::Map(vals_y.data(), vals_y.size());
         Plot(x, y, title, customsettings);
@@ -194,12 +181,7 @@ class ChGnuPlot {
     /// Plot 2D (x,y) data from a generic ChFunction.
     /// Note that if the ChFunction is of type ChFunctionInterp there
     /// is a specific Plot() function
-    void Plot(ChFunction& funct,
-              double xmin,
-              double xmax,
-              double dx,
-              const std::string& title = "",
-              const std::string& customsettings = " with lines ") {
+    void Plot(ChFunction& funct, double xmin, double xmax, double dx, const std::string& title = "", const std::string& customsettings = " with lines ") {
         int samples = static_cast<int>(std::floor((xmax - xmin) / dx));
         ChVectorDynamic<> x(samples);
         ChVectorDynamic<> y(samples);
@@ -214,13 +196,7 @@ class ChGnuPlot {
     }
 
     /// Plot 2D (x,y) data from a generic ChFunction's 0th, 1st, 2nd, or 3rd derivative.
-    void Plot(ChFunction& funct,
-              int der_order,
-              double xmin,
-              double xmax,
-              double dx,
-              const std::string& title = "",
-              const std::string& customsettings = " with lines ") {
+    void Plot(ChFunction& funct, int der_order, double xmin, double xmax, double dx, const std::string& title = "", const std::string& customsettings = " with lines ") {
         int samples = static_cast<int>(std::floor((xmax - xmin) / dx));
         ChVectorDynamic<> x(samples);
         ChVectorDynamic<> y(samples);
@@ -244,11 +220,7 @@ class ChGnuPlot {
     }
 
     /// Plot 2D (x,y) data from an external file.
-    void Plot(const std::string& datfile,
-              int colX,
-              int colY,
-              const std::string& title,
-              const std::string& customsettings = " with lines ") {
+    void Plot(const std::string& datfile, int colX, int colY, const std::string& title, const std::string& customsettings = " with lines ") {
         ChGnuPlotDataplot dataplot;
 
         dataplot.command += " \"";
@@ -564,11 +536,10 @@ class ChGnuPlot {
     std::string m_commandfile;   ///< gnuplot script
     bool m_persist = true;       ///< prevent window closure after plotting
 
-    bool m_subplots = false;  ///< activate subplot mode
-    int m_curr_idx = 0;       ///< current subplot index
-    int m_end_idx = 0;        ///< index of last subplot
-    std::unordered_map<int, std::vector<ChGnuPlotDataplot>>
-        m_map_plots;  ///< index of subplot in figure, multiplots inside subplot
+    bool m_subplots = false;                                              ///< activate subplot mode
+    int m_curr_idx = 0;                                                   ///< current subplot index
+    int m_end_idx = 0;                                                    ///< index of last subplot
+    std::unordered_map<int, std::vector<ChGnuPlotDataplot>> m_map_plots;  ///< index of subplot in figure, multi-plots inside subplot
 };
 
 /// @} postprocess_module

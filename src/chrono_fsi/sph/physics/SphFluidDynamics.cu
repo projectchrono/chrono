@@ -33,7 +33,6 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
@@ -41,22 +40,22 @@ void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> par
     gpuCheckError();
 }
 
-#endif
-
-SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors)
-    : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors) {
+SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, bool verbose, bool check_errors)
+    : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors), m_errflagD(nullptr) {
     collisionSystem = chrono_types::make_shared<SphCollisionSystem>(data_mgr);
 
     if (m_data_mgr.paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH)
-        forceSystem = chrono_types::make_shared<SphForceISPH>(data_mgr, bce_mgr, verbose, m_check_errors);
+        forceSystem = chrono_types::make_shared<SphForceISPH>(data_mgr, verbose, m_check_errors);
     else
-        forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, bce_mgr, verbose, m_check_errors);
+        forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, verbose, m_check_errors);
 
     gpuStreamCreate(&m_copy_stream);
+    gpuMallocErrorFlag(m_errflagD);
 }
 
 SphFluidDynamics::~SphFluidDynamics() {
     gpuStreamDestroy(m_copy_stream);
+    gpuFreeErrorFlag(m_errflagD);
 }
 
 // -----------------------------------------------------------------------------
@@ -83,7 +82,7 @@ void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& 
     thrust::copy(in->posRadD.begin(), in->posRadD.begin() + m_data_mgr.countersH->numExtendedParticles, out->posRadD.begin());
     thrust::copy(in->velMasD.begin(), in->velMasD.begin() + m_data_mgr.countersH->numExtendedParticles, out->velMasD.begin());
     thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.begin() + m_data_mgr.countersH->numExtendedParticles, out->rhoPresMuD.begin());
-    if (m_data_mgr.paramsH->elastic_SPH) {
+    if (m_data_mgr.paramsH->physics_problem == PhysicsProblem::CRM) {
         thrust::copy(in->tauXxYyZzD.begin(), in->tauXxYyZzD.end(), out->tauXxYyZzD.begin());
         thrust::copy(in->tauXyXzYzD.begin(), in->tauXyXzYzD.end(), out->tauXyXzYzD.begin());
         thrust::copy(in->pcEvSvD.begin(), in->pcEvSvD.end(), out->pcEvSvD.begin());
@@ -168,11 +167,63 @@ void SphFluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t,
 
 // -----------------------------------------------------------------------------
 
+// Check if specified point is inside the AABB {min,max}.
+__device__ int32_t inAABB(const Real3& pos, const Real3& min, const Real3& max) {
+    if ((pos.x >= min.x && pos.x <= max.x) &&  //
+        (pos.y >= min.y && pos.y <= max.y) &&  //
+        (pos.z >= min.z && pos.z <= max.z))
+        return 1;
+    return 0;
+}
+
+// Check if the specified point is within any object AABB (active=1) and within any extended object AABB (ext_active=1).
+// An inverted AABB does not change activity.
+__device__ void checkActivityD(const Real3& pos,
+                               const ActiveDomain* __restrict__ ad_body_D,
+                               const ActiveDomain* __restrict__ ad_node1D_D,
+                               const ActiveDomain* __restrict__ ad_node2D_D,
+                               int32_t& active,
+                               int32_t& ext_active) {
+    active = 0;
+    ext_active = 0;
+
+    for (uint ib = 0; ib < countersD.numFsiBodies; ib++) {
+        if (ad_body_D[ib].inverted)
+            continue;
+        active |= inAABB(pos, ad_body_D[ib].a_min, ad_body_D[ib].a_max);
+        ext_active |= inAABB(pos, ad_body_D[ib].e_min, ad_body_D[ib].e_max);
+        if (active == 1 && ext_active == 1)
+            return;
+    }
+
+    for (uint ib = 0; ib < countersD.numFsiNodes1D; ib++) {
+        if (ad_node1D_D[ib].inverted)
+            continue;
+        active |= inAABB(pos, ad_node1D_D[ib].a_min, ad_node1D_D[ib].a_max);
+        ext_active |= inAABB(pos, ad_node1D_D[ib].e_min, ad_node1D_D[ib].e_max);
+        if (active == 1 && ext_active == 1)
+            return;
+    }
+
+    for (uint ib = 0; ib < countersD.numFsiNodes2D; ib++) {
+        if (ad_node2D_D[ib].inverted)
+            continue;
+        active |= inAABB(pos, ad_node2D_D[ib].a_min, ad_node2D_D[ib].a_max);
+        ext_active |= inAABB(pos, ad_node2D_D[ib].e_min, ad_node2D_D[ib].e_max);
+        if (active == 1 && ext_active == 1)
+            return;
+    }
+}
+
 __global__ void UpdateActivityD(const Real4* posRadD,
                                 Real3* velMasD,
                                 const Real3* pos_bodies_D,
                                 const Real3* pos_nodes1D_D,
                                 const Real3* pos_nodes2D_D,
+                                bool has_ad,
+                                const ActiveDomain* __restrict__ ad_body_D,
+                                const ActiveDomain* __restrict__ ad_node1D_D,
+                                const ActiveDomain* __restrict__ ad_node2D_D,
                                 int32_t* activityIdentifierD,
                                 int32_t* extendedActivityIdD,
                                 const Real4* rhoPreMuD,
@@ -182,76 +233,41 @@ __global__ void UpdateActivityD(const Real4* posRadD,
         return;
     }
 
-    // Set the particle as an active particle
+    // Particle position
+    Real3 pos = mR3(posRadD[index]);
+
+    // Set particle activity: a particle is active if it is within the active AABB of a body or mesh node
+    // All particles are considered active during a settling phase
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
+    if (has_ad && time >= paramsD.free_flow_duration) {
+        checkActivityD(pos, ad_body_D, ad_node1D_D, ad_node2D_D, activityIdentifierD[index], extendedActivityIdD[index]);
+        if (activityIdentifierD[index] == 0)
+            velMasD[index] = mR3(0.0);
+    }
+
+    // Check if the particle is outside the zombie domain
     Real3 domainDims = paramsD.boxDims;
     Real3 domainOrigin = paramsD.worldOrigin;
     bool x_periodic = paramsD.x_periodic;
     bool y_periodic = paramsD.y_periodic;
     bool z_periodic = paramsD.z_periodic;
 
-    Real3 posRadA = mR3(posRadD[index]);
-    if (time >= paramsD.settlingTime) {
-        size_t numFsiBodies = countersD.numFsiBodies;
-        size_t numFsiNodes1D = countersD.numFsiNodes1D;
-        size_t numFsiNodes2D = countersD.numFsiNodes2D;
-        size_t numTotal = numFsiBodies + numFsiNodes1D + numFsiNodes2D;
-
-        // Check the activity of this particle
-        uint isNotActive = 0;
-        uint isNotExtended = 0;
-        Real3 Acdomain = paramsD.bodyActiveDomain;
-        Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
-
-        for (uint num = 0; num < numFsiBodies; num++) {
-            Real3 detPos = posRadA - pos_bodies_D[num];
-            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-                isNotActive = isNotActive + 1;
-            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-                isNotExtended = isNotExtended + 1;
-        }
-
-        for (uint num = 0; num < numFsiNodes1D; num++) {
-            Real3 detPos = posRadA - pos_nodes1D_D[num];
-            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-                isNotActive = isNotActive + 1;
-            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-                isNotExtended = isNotExtended + 1;
-        }
-
-        for (uint num = 0; num < numFsiNodes2D; num++) {
-            Real3 detPos = posRadA - pos_nodes2D_D[num];
-            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-                isNotActive = isNotActive + 1;
-            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-                isNotExtended = isNotExtended + 1;
-        }
-
-        // Set the particle as an inactive particle if needed
-        if (isNotActive == numTotal && numTotal > 0) {
-            activityIdentifierD[index] = 0;
-            velMasD[index] = mR3(0.0);
-        }
-        if (isNotExtended == numTotal && numTotal > 0)
-            extendedActivityIdD[index] = 0;
-    }
-    // Check if the particle is outside the zombie domain
     if (IsFluidParticle(rhoPreMuD[index].w)) {
         bool outside_domain = false;
 
         // Check X boundaries - only inactivate if not periodic
-        if (!x_periodic && (posRadA.x < domainOrigin.x || posRadA.x > domainOrigin.x + domainDims.x)) {
+        if (!x_periodic && (pos.x < domainOrigin.x || pos.x > domainOrigin.x + domainDims.x)) {
             outside_domain = true;
         }
 
         // Check Y boundaries - only inactivate if not periodic
-        if (!y_periodic && (posRadA.y < domainOrigin.y || posRadA.y > domainOrigin.y + domainDims.y)) {
+        if (!y_periodic && (pos.y < domainOrigin.y || pos.y > domainOrigin.y + domainDims.y)) {
             outside_domain = true;
         }
 
         // Check Z boundaries - only inactivate if not periodic
-        if (!z_periodic && (posRadA.z < domainOrigin.z || posRadA.z > domainOrigin.z + domainDims.z)) {
+        if (!z_periodic && (pos.z < domainOrigin.z || pos.z > domainOrigin.z + domainDims.z)) {
             outside_domain = true;
         }
 
@@ -269,10 +285,15 @@ void SphFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkers
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
-    UpdateActivityD<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-                                               mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
-                                               INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-                                               mR4CAST(sphMarkersD->rhoPresMuD), time);
+    UpdateActivityD<<<numBlocks, numThreads>>>(                                                                                         //
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),                                                                   //
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),  //
+        m_data_mgr.has_ad,
+        thrust::raw_pointer_cast(m_data_mgr.ad_body_D.data()),                                                           //
+        thrust::raw_pointer_cast(m_data_mgr.ad_node1D_D.data()),                                                         //
+        thrust::raw_pointer_cast(m_data_mgr.ad_node2D_D.data()),                                                         //
+        INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),  //
+        mR4CAST(sphMarkersD->rhoPresMuD), time);
 }
 
 // -----------------------------------------------------------------------------
@@ -341,7 +362,7 @@ __device__ void TauEulerStep(Real dT,
                              Real3& tau_offdiag,
                              Real4& rho_p,
                              Real3& pcEvSv,
-                             bool& error_occurred) {
+                             volatile bool* error_flag) {
     if (paramsD.rheology_model_crm == RheologyCRM::MU_OF_I) {
         Real3 new_tau_diag = tau_diag + dT * deriv_tau_diag;
         Real3 new_tau_offdiag = tau_offdiag + dT * deriv_tau_offdiag;
@@ -370,6 +391,18 @@ __device__ void TauEulerStep(Real dT,
         // Real xi = 1.1;
         Real dia = paramsD.ave_diam;
         Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
+
+        // Zero-tension cutoff (Mohr-Coulomb tension cut-off convention): cohesion
+        // contributes shear strength through tau_max = mu * p + c below, but grants
+        // no tension capacity. The previous cutoff at p_tr < -c/mu_s let particles
+        // sustain negative pressure, which (a) drives the SPH tensile instability
+        // (particle clumping that destabilizes geostatic stress states and collapses
+        // bearing responses whenever c > 0), and (b) made the inertial number I NaN
+        // for p_tr < 0 (sqrt of a negative), silently disabling the yield check for
+        // tensile particles. For c = 0 this update is identical to the previous one.
+        if (p_tr < Real(0))
+            p_tr = Real(0);
+
         Real I = Chi * dia * sqrt(paramsD.rho0 / (p_tr + 1.0e-9));
 
         Real coh = paramsD.Coh_coeff;
@@ -381,32 +414,24 @@ __device__ void TauEulerStep(Real dT,
         //     coh = 0.0;
         // }
 
-        Real inv_mus = 1.0 / paramsD.mu_fric_s;
-        Real p_cri = -coh * inv_mus;
-        if (p_tr < p_cri) {
-            new_tau_diag = mR3(0.0);
-            new_tau_offdiag = mR3(0.0);
-            p_tr = 0.0;
-        } else {
-            Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0e-9) / (I0 + I + 1.0e-9);
-            // Real G0 = paramsD.G_shear;
-            // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
-            // Real B0 = s_2 + tau_tr + alpha;
-            // Real H0 = s_2*tau_tr + s_0*alpha;
-            // Real tau_n1 = (B0+sqrt(B0*B0-4*H0))/(2*H0+1e-9);
-            // if(tau_tr>s_0){
-            //     Real coeff = tau_n1/(tau_tr+1e-9);
-            //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
-            //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
-            // }
-            Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
-            // should use tau_max instead of s_0 according to
-            // "A constitutive law for dense granular flows" Nature 2006
-            if (tau_tr > tau_max) {
-                Real coeff = tau_max / (tau_tr + 1e-9);
-                new_tau_diag *= coeff;
-                new_tau_offdiag *= coeff;
-            }
+        Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0e-9) / (I0 + I + 1.0e-9);
+        // Real G0 = paramsD.G_shear;
+        // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
+        // Real B0 = s_2 + tau_tr + alpha;
+        // Real H0 = s_2*tau_tr + s_0*alpha;
+        // Real tau_n1 = (B0+sqrt(B0*B0-4*H0))/(2*H0+1e-9);
+        // if(tau_tr>s_0){
+        //     Real coeff = tau_n1/(tau_tr+1e-9);
+        //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
+        //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
+        // }
+        Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
+        // should use tau_max instead of s_0 according to
+        // "A constitutive law for dense granular flows" Nature 2006
+        if (tau_tr > tau_max) {
+            Real coeff = tau_max / (tau_tr + 1e-9);
+            new_tau_diag *= coeff;
+            new_tau_offdiag *= coeff;
         }
 
         // Set stress to zero if the particle is close to free surface
@@ -495,24 +520,30 @@ __device__ void TauEulerStep(Real dT,
                 a = square(mcc_M * K_n * c_v);
                 b = -K_n * square(c_v);
             }
-            // Solve quadratic robustly
+            // Solve quadratic robustly, in double precision: in single precision b^2
+            // overflows to inf once |b| > 1.84e19, which is reached for q_N_tr ~ 390 kPa
+            // at clamped moduli (b ~ -3*G*(2q)^2). The inf then propagates through
+            // delta_lambda to the hardening update and permanently poisons p_c.
             if (a <= 0) {
                 delta_lambda_N = 0.0;
             } else {
-                Real disc = square(b) - 4 * a * c;
-                disc = fmax(disc, Real(0.0));
-                Real sqrt_disc = sqrt(disc);
-                Real inv_2a = Real(0.5) / a;
-                Real r1 = (-b + sqrt_disc) * inv_2a;
-                Real r2 = (-b - sqrt_disc) * inv_2a;
+                double ad = (double)a;
+                double bd = (double)b;
+                double cd = (double)c;
+                double disc = fmax(bd * bd - 4.0 * ad * cd, 0.0);
+                double sqrt_disc = sqrt(disc);
+                double inv_2a = 0.5 / ad;
+                double r1 = (-bd + sqrt_disc) * inv_2a;
+                double r2 = (-bd - sqrt_disc) * inv_2a;
                 // pick the smallest positive root (or 0 if none)
-                delta_lambda_N = Real(0.0);
+                double dl = 0.0;
                 if (r1 > 0 && r2 > 0)
-                    delta_lambda_N = (r1 < r2) ? r1 : r2;
+                    dl = (r1 < r2) ? r1 : r2;
                 else if (r1 > 0)
-                    delta_lambda_N = r1;
+                    dl = r1;
                 else if (r2 > 0)
-                    delta_lambda_N = r2;
+                    dl = r2;
+                delta_lambda_N = (Real)dl;
             }
 
             // Get the mapped stress
@@ -531,9 +562,12 @@ __device__ void TauEulerStep(Real dT,
                 tau_offdiag = s_offdiag_N;
                 rho_p.y = p_N;
             }
-            // Update the consolidation pressure (only if we are not close to the free surface)
+            // Update the consolidation pressure (only if we are not close to the free surface).
+            // Guard against a non-finite plastic strain increment: without this, one bad
+            // delta_lambda makes p_c infinite forever (the fmax floor does not catch inf)
+            // and the particle never yields again.
             Real plastic_volumentric_strain = delta_lambda_N * c_v;
-            if (!close_to_surface) {
+            if (!close_to_surface && isfinite(plastic_volumentric_strain)) {
                 pcEvSv.x *= (1 + plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
                 // pcEvSv.x *= exp(plastic_volumentric_strain * (specific_volume_n / (mcc_lambda - mcc_kappa)));
                 pcEvSv.x = fmax(Real(100.0), pcEvSv.x);
@@ -555,6 +589,21 @@ __device__ void TauEulerStep(Real dT,
         pcEvSv.z *= (1 - pcEvSv.y * dT);
         // Set min to prevent collapse of the specific volume
         pcEvSv.z = fmax(Real(1.0), pcEvSv.z);
+    }
+
+    // Flag a rheology failure (non-finite updated stress state) so the host can abort.
+    // This complements the host-side position/density NaN scans, which do not cover stress.
+    // Nothing is evaluated when error checking is disabled (error_flag is then null).
+    // Check only state the active rheology model integrates: mu(I) neither reads nor
+    // updates the consolidation state (pcEvSv), which can legitimately be non-finite
+    // straight out of default initialization (AddSphParticle derives the specific volume
+    // with log(pc / p1), which is not finite for the default zero initial pressure).
+    if (error_flag) {
+        bool rheology_failed = !IsFinite(tau_diag) || !IsFinite(tau_offdiag) || !IsFinite(rho_p);
+        if (paramsD.rheology_model_crm == RheologyCRM::MCC)
+            rheology_failed = rheology_failed || !IsFinite(pcEvSv);
+        if (rheology_failed)
+            *error_flag = true;
     }
 }
 
@@ -581,7 +630,7 @@ __global__ void EulerStep_D(Real4* posRadD,
                             const int32_t* activityIdentifierSortedD,
                             const uint numActive,
                             Real dT,
-                            bool& error_occurred) {
+                            volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -596,10 +645,10 @@ __global__ void EulerStep_D(Real4* posRadD,
     // Euler step for velocity
     VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
 
-    if (paramsD.elastic_SPH) {
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
-                     pcEvSvD[index], error_occurred);
+                     pcEvSvD[index], error_flag);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -630,7 +679,7 @@ __global__ void MidpointStep_D(Real4* posRadD,
                                const int32_t* activityIdentifierSortedD,
                                const uint numActive,
                                Real dT,
-                               bool& error_occurred) {
+                               volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -646,10 +695,10 @@ __global__ void MidpointStep_D(Real4* posRadD,
     // Advance velocity
     VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
 
-    if (paramsD.elastic_SPH) {
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
-                     pcEvSvD[index], error_occurred);
+                     pcEvSvD[index], error_flag);
     } else {
         // Euler step for density and pressure update from EOS
         DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
@@ -664,13 +713,18 @@ struct check_infinite {
 void SphFluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT) {
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
-    bool error_occurred = false;
     computeGridSize(numActive, 256, numBlocks, numThreads);
+
+    bool* error_flagD = nullptr;
+    if (m_check_errors) {
+        gpuResetErrorFlag(m_errflagD);
+        error_flagD = m_errflagD;
+    }
 
     EulerStep_D<<<numBlocks, numThreads>>>(mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD), mR3CAST(sortedMarkers->tauXxYyZzD),
                                            mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
                                            mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD),
-                                           INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
+                                           INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_flagD);
 
     if (m_check_errors) {
         gpuCheckError();
@@ -679,8 +733,7 @@ void SphFluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.begin() + numActive, check_infinite<Real4>()))
             gpuThrowError("A particle density is NaN");
         // Even if one particle has this problem, we can't proceed
-        if (error_occurred)
-            gpuThrowError("Rheology model failed");
+        gpuCheckErrorFlag(error_flagD, "TauEulerStep (rheology model failure)");
     }
 }
 
@@ -688,21 +741,25 @@ void SphFluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarker
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 256, numBlocks, numThreads);
-    bool error_occurred = false;
+
+    bool* error_flagD = nullptr;
+    if (m_check_errors) {
+        gpuResetErrorFlag(m_errflagD);
+        error_flagD = m_errflagD;
+    }
     MidpointStep_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD), mR3CAST(sortedMarkers->tauXxYyZzD),
         mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(sortedMarkers->pcEvSvD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD),
-        mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_occurred);
+        mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_flagD);
 
     if (m_check_errors) {
         gpuCheckError();
-        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
+        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.begin() + numActive, check_infinite<Real4>()))
             gpuThrowError("A particle position is NaN");
-        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
+        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.begin() + numActive, check_infinite<Real4>()))
             gpuThrowError("A particle density is NaN");
         // Even if one particle has this problem, we can't proceed
-        if (error_occurred)
-            gpuThrowError("Rheology model failed");
+        gpuCheckErrorFlag(error_flagD, "TauEulerStep (rheology model failure)");
     }
 }
 
@@ -976,7 +1033,7 @@ __device__ void collideCellDensityReInit(Real& numerator,
                                          Real& denominator,
                                          int3 gridPos,
                                          uint index,
-                                         Real3 posRadA,
+                                         Real3 posA,
                                          Real4* sortedPosRad,
                                          Real3* sortedVelMas,
                                          Real4* sortedRhoPreMu,
@@ -988,15 +1045,15 @@ __device__ void collideCellDensityReInit(Real& numerator,
         // iterate over particles in this cell
         uint endIndex = cellEnd[gridHash];
         for (uint j = startIndex; j < endIndex; j++) {
-            Real3 posRadB = mR3(sortedPosRad[j]);
-            Real4 rhoPreMuB = sortedRhoPreMu[j];
-            Real3 dist3 = Distance(posRadA, posRadB);
+            Real3 posB = mR3(sortedPosRad[j]);
+            Real rhoB = sortedRhoPreMu[j].x;
+            Real3 dist3 = Distance(posA, posB);
             Real d = length(dist3);
             if (d > paramsD.h_multiplier * paramsD.h)
                 continue;
             Real w = W3h(paramsD.kernel_type, d, paramsD.ooh);
             numerator += paramsD.markerMass * w;
-            denominator += paramsD.markerMass / rhoPreMuB.x * w;
+            denominator += paramsD.markerMass / rhoB * w;
         }
     }
 }
@@ -1011,11 +1068,11 @@ ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real4* sortedPosRad, Real3* sorted
         return;
 
     // read particle data from sorted arrays
-    Real3 posRadA = mR3(sortedPosRad[index]);
+    Real3 posA = mR3(sortedPosRad[index]);
     Real4 rhoPreMuA = sortedRhoPreMu[index];
 
     // get address in grid
-    int3 gridPos = calcGridPos(posRadA);
+    int3 gridPos = calcGridPos(posA);
 
     Real numerator = 0.0;
     Real denominator = 0.0;
@@ -1024,7 +1081,7 @@ ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real4* sortedPosRad, Real3* sorted
         for (int y = -1; y <= 1; y++) {
             for (int x = -1; x <= 1; x++) {
                 int3 neighbourPos = gridPos + mI3(x, y, z);
-                collideCellDensityReInit(numerator, denominator, neighbourPos, index, posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
+                collideCellDensityReInit(numerator, denominator, neighbourPos, index, posA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
             }
         }
     }

@@ -1,7 +1,7 @@
 chrono-version: 10.0
 
 model:
-  name: Inverted pendulum with external MOTOR controller
+  name: Inverted_pendulum_MOTOR
   angle_degrees: true
   
   data_path:

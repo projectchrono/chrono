@@ -19,14 +19,14 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeCylinder)
 
-ChVisualShapeCylinder::ChVisualShapeCylinder() {}
+ChVisualShapeCylinder::ChVisualShapeCylinder() : ChVisualShape(Type::CYLINDER) {}
 
-ChVisualShapeCylinder::ChVisualShapeCylinder(double radius, double height) {
+ChVisualShapeCylinder::ChVisualShapeCylinder(double radius, double height) : ChVisualShape(Type::CYLINDER) {
     gcylinder.r = radius;
     gcylinder.h = height;
 }
 
-ChVisualShapeCylinder::ChVisualShapeCylinder(const ChCylinder& cyl) : gcylinder(cyl) {}
+ChVisualShapeCylinder::ChVisualShapeCylinder(const ChCylinder& cyl) : ChVisualShape(Type::CYLINDER), gcylinder(cyl) {}
 
 void ChVisualShapeCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

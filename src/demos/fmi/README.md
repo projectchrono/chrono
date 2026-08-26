@@ -34,7 +34,7 @@ For additional examples of Chrono-based FMUs, see the Chrono::Vehicle [FMI demos
 ## FMU export compatibility information
 
 During export, any FMU generated with fmu-forge can be automatically tested with the `fmusim` validation tool (see [Reference-FMUs](https://github.com/modelica/Reference-FMUs)).<br>
-This option, available for both FMI 2.0 and FMI 3.0, can be enabled by setting the `FMU_TESTING` CMake variable to `ON`. See for example [CMakeLists.txt](https://github.com/projectchrono/fmu-forge/blob/01cda9654dc48adbd310267de1915a11f369e250/examples/fmi2/cosimulation/CMakeLists.txt#L10) for the FMI 2.0 co-simulation examples.<br>
+This option, available for both FMI 2.0 and FMI 3.0, can be enabled by setting the `CH_ENABLE_FMU_TESTING` CMake variable to `ON`. See for example [CMakeLists.txt](https://github.com/projectchrono/fmu-forge/blob/01cda9654dc48adbd310267de1915a11f369e250/examples/fmi2/cosimulation/CMakeLists.txt#L10) for the FMI 2.0 co-simulation examples.<br>
 All Chrono example FMUs provided here have been validated with `fmusim`. 
 
 The two FMI 2.0 CS FMUs for a [double-pendulum crane](https://github.com/projectchrono/chrono/tree/main/src/demos/fmi/cosim/fmu2_crane) and a [hydraulic actuator](https://github.com/projectchrono/chrono/tree/main/src/demos/fmi/cosim/fmu2_actuator) have been imported and co-simulated using [Simulink](https://mathworks.com/products/simulink.html).<br>

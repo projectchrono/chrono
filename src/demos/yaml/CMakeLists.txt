@@ -6,6 +6,10 @@ set(DEMOS
     demo_YAML_mbs_controller
 )
 
+if(CH_ENABLE_MODULE_FEA)
+  set(DEMOS ${DEMOS} demo_YAML_fea)
+endif()
+
 if(CH_ENABLE_MODULE_FSI)
   set(DEMOS ${DEMOS} demo_YAML_fsi)
 endif()
