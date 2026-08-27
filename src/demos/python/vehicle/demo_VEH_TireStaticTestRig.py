@@ -80,7 +80,7 @@ def main():
 
     # Set tire options
     rig.SetTireStepsize(step_size)
-    rig.SetTireVisualizationType(veh.VisualizationType_MESH)
+    rig.SetTireVisualizationType(chrono.VisualizationType_MESH)
 
     # Set rig options
     rig.SetPlateMaterialProperties(0.8, 0, 2e7)
@@ -154,10 +154,10 @@ def main():
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
+veh.SetVehicleDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
-tire_json = veh.GetDataFile("hmmwv/tire/HMMWV_MBTire.json")
-wheel_json = veh.GetDataFile("hmmwv/wheel/HMMWV_Wheel.json")
+tire_json = veh.GetVehicleDataFile("hmmwv/tire/HMMWV_MBTire.json")
+wheel_json = veh.GetVehicleDataFile("hmmwv/wheel/HMMWV_Wheel.json")
 
 # Tire contact model (nodes or faces)
 surface_type = veh.ChTire.ContactSurfaceType_NODE_CLOUD
