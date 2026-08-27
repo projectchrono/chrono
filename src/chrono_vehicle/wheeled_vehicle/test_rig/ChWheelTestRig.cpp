@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 
 ChWheelTestRig::ChWheelTestRig(std::shared_ptr<WheelAssembly> wheel, ChSystem& system)
-    : m_wheel(wheel),
+    : m_wheel_assembly(wheel),
       m_system(system),
       m_grav(9.8),
       m_camber_angle(0),
@@ -223,7 +223,7 @@ void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
     // Override motion functions to enforce specified constant longitudinal slip
     if (m_long_slip_constant) {
         m_ls_fun = chrono_types::make_shared<LinSpeedFunction>(m_base_speed);
-        m_rs_fun = chrono_types::make_shared<RotSpeedFunction>(m_long_slip, m_base_speed, m_wheel->GetRadius());
+        m_rs_fun = chrono_types::make_shared<RotSpeedFunction>(m_long_slip, m_base_speed, m_wheel_assembly->GetRadius());
     }
 }
 
@@ -231,9 +231,9 @@ void ChWheelTestRig::Advance(double step) {
     double time = m_system.GetChTime();
 
     // Check end of dropping phase
-    if (m_mode == Mode::TEST &&                                                    // in TEST mode
-        !m_drop_motor->IsDisabled() &&                                             // dropping is ongoing
-        m_wheel->GetHub()->GetPos().z() < m_terrain_height + m_wheel->GetRadius()  // wheel bottom reached terrain
+    if (m_mode == Mode::TEST &&                                                                      // in TEST mode
+        !m_drop_motor->IsDisabled() &&                                                               // dropping is ongoing
+        m_wheel_assembly->GetHub()->GetPos().z() < m_terrain_height + m_wheel_assembly->GetRadius()  // wheel bottom reached terrain
     ) {
         std::cout << "\n  time : " << time << " - end drop phase" << std::endl;
 
@@ -270,11 +270,11 @@ void ChWheelTestRig::Advance(double step) {
     } else {
         // Synchronize subsystems
         m_terrain->Synchronize(time);
-        m_wheel->Synchronize(time, *m_terrain.get());
+        m_wheel_assembly->Synchronize(time, *m_terrain.get());
 
         // Advance state
         m_terrain->Advance(step);
-        m_wheel->Advance(step);
+        m_wheel_assembly->Advance(step);
         m_system.DoStepDynamics(step);
     }
 }
@@ -290,11 +290,11 @@ void ChWheelTestRig::CreateMechanism() {
     // Initialize wheel system
     ChQuaternion<> qc;
     qc.SetFromAngleX(-m_camber_angle);
-    m_wheel->Initialize(ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
+    m_wheel_assembly->Initialize(ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
     // Create rig bodies with mass and inertia commensurate with those of the wheel system
-    const double mass = m_wheel->GetMass();
-    const double radius = m_wheel->GetRadius();
+    const double mass = m_wheel_assembly->GetMass();
+    const double radius = m_wheel_assembly->GetRadius();
     ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
 
     m_ground_body = chrono_types::make_shared<ChBody>();
@@ -396,17 +396,17 @@ void ChWheelTestRig::CreateMechanism() {
     if (m_mode == Mode::TEST && m_rs_actuated) {
         m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         m_system.AddLink(m_rot_motor);
-        m_rot_motor->Initialize(m_wheel->GetHub(), m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
+        m_rot_motor->Initialize(m_wheel_assembly->GetHub(), m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
     } else {
         auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
         m_system.AddLink(revolute);
-        revolute->Initialize(m_wheel->GetHub(), m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
+        revolute->Initialize(m_wheel_assembly->GetHub(), m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
     }
 
     // Update chassis mass to satisfy requested normal load
     if (m_grav > 0) {
         m_total_mass = m_normal_load / m_grav;
-        double other_mass = m_slip_body->GetMass() + m_wheel->GetMass();
+        double other_mass = m_slip_body->GetMass() + m_wheel_assembly->GetMass();
         double chassis_mass = m_total_mass - other_mass;
         if (chassis_mass > mass) {
             m_chassis_body->SetMass(chassis_mass);
@@ -417,7 +417,7 @@ void ChWheelTestRig::CreateMechanism() {
 
     // Set terrain offset (based on wheel center) and terrain height (below wheel)
     m_terrain_offset = 3 * dim;
-    m_terrain_height = -4 * dim - m_wheel->GetRadius() - 0.1;
+    m_terrain_height = -4 * dim - m_wheel_assembly->GetRadius() - 0.1;
 }
 
 // -----------------------------------------------------------------------------
@@ -444,7 +444,7 @@ void ChWheelTestRig::CreateTerrain() {
 }
 
 void ChWheelTestRig::CreateTerrainSCM() {
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel->GetRadius(), m_terrain_offset, m_terrain_height);
+    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, m_terrain_height);
 
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
@@ -457,13 +457,13 @@ void ChWheelTestRig::CreateTerrainSCM() {
         E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
     terrain->Initialize(m_terrain_size.length, m_terrain_size.width, m_params_SCM.grid_spacing);
-    terrain->AddActiveDomain(m_chassis_body, ChVector3d(0, 0, 0), ChVector3d(2 * m_wheel->GetRadius(), 1.0, 2 * m_wheel->GetRadius()));
+    terrain->AddActiveDomain(m_chassis_body, ChVector3d(0, 0, 0), ChVector3d(2 * m_wheel_assembly->GetRadius(), 1.0, 2 * m_wheel_assembly->GetRadius()));
 
     m_terrain = terrain;
 }
 
 void ChWheelTestRig::CreateTerrainRigid() {
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel->GetRadius(), m_terrain_offset, m_terrain_height);
+    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, m_terrain_height);
 
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(&m_system);
 
@@ -522,9 +522,9 @@ void ChWheelTestRig::CreateTerrainGranular() {
 
     terrain->Initialize(location, m_terrain_size.length, m_terrain_size.width, num_layers, m_params_granular.radius, m_params_granular.density);
 
-    double buffer_dist = 2.0 * m_wheel->GetRadius();
-    double shift_dist = 0.5 * m_wheel->GetRadius();
-    terrain->EnableMovingPatch(m_wheel->GetHub(), buffer_dist, shift_dist, ChVector3d(0, 0, -2));
+    double buffer_dist = 2.0 * m_wheel_assembly->GetRadius();
+    double shift_dist = 0.5 * m_wheel_assembly->GetRadius();
+    terrain->EnableMovingPatch(m_wheel_assembly->GetHub(), buffer_dist, shift_dist, ChVector3d(0, 0, -2));
 
     m_terrain = terrain;
 }
@@ -576,7 +576,7 @@ void ChWheelTestRig::SetWheelActiveDomain(const ChAABB& aabb) {
 }
 
 void ChWheelTestRig::SetWheelActiveDomain() {
-    auto corner = ChVector3d(m_wheel->GetRadius(), m_wheel->GetWidth() / 2, m_wheel->GetRadius());
+    auto corner = ChVector3d(m_wheel_assembly->GetRadius(), m_wheel_assembly->GetWidth() / 2, m_wheel_assembly->GetRadius());
     m_wheel_AABB.min = -1.25 * corner;
     m_wheel_AABB.max = +1.25 * corner;
 }
@@ -595,18 +595,18 @@ void ChWheelTestRig::CreateTerrainCRM() {
     terrain->SetSPHParameters(m_params_crm.sph_params);
 
     double loc_z = m_terrain_height - m_terrain_size.depth;
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel->GetRadius(), m_terrain_offset, loc_z);
+    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, loc_z);
     terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location, BoxSide::ALL & ~BoxSide::Z_POS);
 
     // Add wheel FSI bodies
-    m_wheel->AddFSIBodies(*terrain, m_params_crm.sph_params.initial_spacing);
+    m_wheel_assembly->AddFSIBodies(*terrain, m_params_crm.sph_params.initial_spacing);
 
-    // If a wheel-level active domain was defined, associate it with the spindle (hub) body
+    // If a wheel-level active domain was defined, associate it with the hub body
     if (!m_wheel_AABB.IsInverted()) {
         // Add the hub as a (dummy) FSI body if not already so declared
-        if (!terrain->IsFsiSolid(m_wheel->GetHub()))
-            terrain->AddRigidBody(m_wheel->GetHub(), nullptr, false);
-        terrain->SetActiveDomainBody(m_wheel->GetHub(), m_wheel_AABB);
+        if (!terrain->IsFsiSolid(m_wheel_assembly->GetHub()))
+            terrain->AddRigidBody(m_wheel_assembly->GetHub(), nullptr, false);
+        terrain->SetActiveDomainBody(m_wheel_assembly->GetHub(), m_wheel_AABB);
     }
 
     terrain->Initialize();
@@ -643,7 +643,7 @@ TerrainForce ChWheelTestRig::ReportWheelForce() const {
     if (!m_output)
         return TerrainForce();
 
-    return m_wheel->ReportForces(*m_terrain);
+    return m_wheel_assembly->ReportForces(*m_terrain);
 }
 
 double ChWheelTestRig::GetDBP() const {
@@ -657,10 +657,10 @@ double ChWheelTestRig::GetLongitudinalSlip() const {
     if (!m_output)
         return 0;
 
-    double r = m_wheel->GetRadius();                       // current wheel radius
-    double o = m_wheel->GetHub()->GetAngVelLocal().y();    // spindle rotation angular speed (local)
-    auto v = m_wheel->GetHub()->GetPosDt();                // spindle 3D velocity (global)
-    double vx = std::sqrt(v.x() * v.x() + v.y() * v.y());  // spindle horizontal speed (global)
+    double r = m_wheel_assembly->GetRadius();                     // current wheel radius
+    double o = m_wheel_assembly->GetHub()->GetAngVelLocal().y();  // hub rotation angular speed (local)
+    auto v = m_wheel_assembly->GetHub()->GetPosDt();              // hub 3D velocity (global)
+    double vx = std::sqrt(v.x() * v.x() + v.y() * v.y());         // hub horizontal speed (global)
     double abs_vx = std::abs(vx);
 
     double long_slip = (abs_vx > 1e-4) ? (r * o - vx) / abs_vx : 0.0;
@@ -671,7 +671,7 @@ double ChWheelTestRig::GetSlipAngle() const {
     if (!m_output)
         return 0;
 
-    auto dir = m_wheel->GetHub()->GetRotMat().GetAxisY();
+    auto dir = m_wheel_assembly->GetHub()->GetRotMat().GetAxisY();
     double slip_angle = std::atan(dir.x() / dir.y());
     return slip_angle;
 }
@@ -680,7 +680,7 @@ double ChWheelTestRig::GetCamberAngle() const {
     if (!m_output)
         return 0;
 
-    auto dir = m_wheel->GetHub()->GetRotMat().GetAxisY();
+    auto dir = m_wheel_assembly->GetHub()->GetRotMat().GetAxisY();
     double camber_angle = std::atan(-dir.z());
     return camber_angle;
 }
@@ -693,14 +693,6 @@ ChWheelTestRig::VehicleWheel::VehicleWheel(std::shared_ptr<ChWheel> wheel, std::
     spindle->SetMass(0);
     spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
     system.AddBody(spindle);
-
-    // Note: Initialize wheel and tire on construction to have access to quantities that may only be computed at this stage (e.g., mass, inertia, radius)
-    wheel->Initialize(nullptr, spindle, LEFT);
-    wheel->SetVisualizationType(VisualizationType::NONE);
-    wheel->SetTire(tire);
-    tire->Initialize(wheel);
-
-    tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
 }
 
 double ChWheelTestRig::VehicleWheel::GetMass() const {
@@ -752,6 +744,12 @@ void ChWheelTestRig::VehicleWheel::Initialize(const ChFramed& frame, bool fixed,
     spindle->SetRot(frame.GetRot());
     spindle->SetFixed(fixed);
 
+    wheel->Initialize(nullptr, spindle, LEFT);
+    wheel->SetVisualizationType(VisualizationType::NONE);
+    wheel->SetTire(tire);
+
+    tire->Initialize(wheel);
+    tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
     tire->SetStepsize(step_size);
     tire->SetVisualizationType(vis_type);
 }
