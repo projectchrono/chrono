@@ -94,7 +94,9 @@
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_SinglePin)
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_DoublePin)
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandBushing)
+#ifdef CHRONO_FEA
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandANCF)
+#endif
 
 %shared_ptr(chrono::vehicle::kraz::kraz)
 %shared_ptr(chrono::vehicle::kraz::Kraz_tractor)
