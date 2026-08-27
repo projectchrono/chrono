@@ -144,13 +144,13 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
     MBTireModel();
 
   private:
-    // Construct the MB tire relative to the associated wheel/spindle body.
-    void Construct(ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family);
+    // Construct the MB tire relative to the associated wheel hub body.
+    void Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family);
 
-    // Calculate COG and inertia, expressed relative to the frame of the associated wheel/spindle body.
+    // Calculate COG and inertia, expressed relative to the frame of the associated wheel hub body.
     void CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia);
 
-    // Set position and velocity of rim nodes from wheel/spindle state.
+    // Set position and velocity of rim nodes from wheel hub state.
     void SetRimNodeStates();
 
     // Calculate nodal forces (expressed in the global frame).
@@ -176,48 +176,22 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
     virtual void InjectKRMMatrices(ChSystemDescriptor& mdescriptor) override;
 
-    virtual void IntStateGather(const unsigned int off_x,
-                                ChState& x,
-                                const unsigned int off_v,
-                                ChStateDelta& v,
-                                double& T) override;
-    virtual void IntStateScatter(const unsigned int off_x,
-                                 const ChState& x,
-                                 const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const double T,
-                                 UpdateFlags update_flags) override;
+    virtual void IntStateGather(const unsigned int off_x, ChState& x, const unsigned int off_v, ChStateDelta& v, double& T) override;
+    virtual void IntStateScatter(const unsigned int off_x, const ChState& x, const unsigned int off_v, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
-    virtual void IntStateIncrement(const unsigned int off_x,
-                                   ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   const ChStateDelta& Dv) override;
-    virtual void IntStateGetIncrement(const unsigned int off_x,
-                                      const ChState& x_new,
-                                      const ChState& x,
-                                      const unsigned int off_v,
-                                      ChStateDelta& Dv) override;
+    virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void IntStateGetIncrement(const unsigned int off_x, const ChState& x_new, const ChState& x, const unsigned int off_v, ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-    virtual void IntLoadResidual_Mv(const unsigned int off,
-                                    ChVectorDynamic<>& R,
-                                    const ChVectorDynamic<>& w,
-                                    const double c) override;
-    virtual void IntLoadLumpedMass_Md(const unsigned int off,
-                                      ChVectorDynamic<>& Md,
-                                      double& err,
-                                      const double c) override;
+    virtual void IntLoadResidual_Mv(const unsigned int off, ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
@@ -416,9 +390,9 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
     std::vector<std::shared_ptr<Load>> m_loads;  // all loads in the system
     int m_num_loads;                             // number of all loads in the system
 
-    std::shared_ptr<ChBody> m_wheel;  // associated wheel body
-    ChVector3d m_wheel_force;         // applied wheel spindle force (in global frame)
-    ChVector3d m_wheel_torque;        // applied wheel spindle torque (in body frame)
+    std::shared_ptr<ChBody> m_hub;  // associated wheel hub body
+    ChVector3d m_hub_force;         // applied wheel hub force (in global frame)
+    ChVector3d m_hub_torque;        // applied wheel hub torque (in body frame)
 
     bool m_stiff;  // true if loads are stiff (triggers Jacobian calculation)
 

@@ -60,7 +60,7 @@ void MBTire::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Geometry"));
 
     int num_radius = d["Geometry"]["Radius"].Size();
-    assert(d["Geometry"]["Offset"].Size() == num_radius);
+    assert((int)d["Geometry"]["Offset"].Size() == num_radius);
     std::vector<double> radius(num_radius);
     std::vector<double> offset(num_radius);
     for (int i = 0; i < num_radius; i++) {

@@ -42,10 +42,7 @@ ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name) {
     m_model->m_stiff = false;
 }
 
-void ChMBTire::SetTireGeometry(const std::vector<double>& ring_radii,
-                               const std::vector<double>& ring_offsets,
-                               int num_divs,
-                               double rim_radius) {
+void ChMBTire::SetTireGeometry(const std::vector<double>& ring_radii, const std::vector<double>& ring_offsets, int num_divs, double rim_radius) {
     assert(ring_radii.size() > 1);
     assert(ring_radii.size() == ring_offsets.size());
 
@@ -100,8 +97,7 @@ double ChMBTire::GetWidth() const {
 }
 
 void ChMBTire::CreateContactMaterial() {
-    m_contact_mat =
-        std::static_pointer_cast<ChContactMaterialSMC>(m_contact_mat_data.CreateMaterial(ChContactMethod::SMC));
+    m_contact_mat = std::static_pointer_cast<ChContactMaterialSMC>(m_contact_mat_data.CreateMaterial(ChContactMethod::SMC));
 }
 
 void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
@@ -122,9 +118,8 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     if (m_contact_enabled)
         CreateContactMaterial();
 
-    // Construct the underlying tire model, attached to the wheel spindle body
-    m_model->m_wheel = wheel->GetSpindle();
-    m_model->Construct(m_contact_surface_type, m_contact_surface_dim, m_collision_family);
+    // Construct the underlying tire model, attached to the wheel hub body
+    m_model->Initialize(wheel->GetSpindle(), m_contact_surface_type, m_contact_surface_dim, m_collision_family);
 }
 
 void ChMBTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -137,8 +132,8 @@ void ChMBTire::Advance(double step) {
 
 TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain) const {
     TerrainForce terrain_force;
-    terrain_force.force = m_model->m_wheel_force;
-    terrain_force.moment = m_model->m_wheel_torque;
+    terrain_force.force = m_model->m_hub_force;
+    terrain_force.moment = m_model->m_hub_torque;
     terrain_force.point = m_wheel->GetPos();
     return terrain_force;
 }
@@ -184,13 +179,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
 
 // =============================================================================
 
-MBTireModel::MBTireModel()
-    : m_num_pressure_loads(0),
-      m_num_grid_lin_springs(0),
-      m_num_edge_lin_springs(0),
-      m_num_grid_rot_springs(0),
-      m_num_edge_rot_springs(0),
-      m_num_loads(0) {}
+MBTireModel::MBTireModel() : m_num_pressure_loads(0), m_num_grid_lin_springs(0), m_num_edge_lin_springs(0), m_num_grid_rot_springs(0), m_num_edge_rot_springs(0), m_num_loads(0) {}
 
 int MBTireModel::NodeIndex(int ir, int id) const {
     // If ring index out-of-bounds, return -1
@@ -224,8 +213,7 @@ double MBTireModel::CalculateArea() const {
     double area = 0;
 
     for (int ir = 0; ir < m_num_rings - 1; ir++) {
-        double l2 = (m_radii[ir + 1] - m_radii[ir]) * (m_radii[ir + 1] - m_radii[ir]) +
-                    (m_offsets[ir + 1] - m_offsets[ir]) * (m_offsets[ir + 1] - m_offsets[ir]);
+        double l2 = (m_radii[ir + 1] - m_radii[ir]) * (m_radii[ir + 1] - m_radii[ir]) + (m_offsets[ir + 1] - m_offsets[ir]) * (m_offsets[ir + 1] - m_offsets[ir]);
         area += CH_PI * (m_radii[ir + 1] + m_radii[ir]) * std::sqrt(l2);
     }
 
@@ -826,10 +814,8 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ1(double K
     ChMatrix33<> dA1 = skew_dn * (ChMatrix33<>::Identity() - D_pp);
     ChMatrix33<> dA3 = skew_dp * (ChMatrix33<>::Identity() - D_nn);
 
-    ChVectorN<double, 3> dA_dalp_13 =
-        scale2 * dA1.transpose() * t.eigen() + sinA * (ChMatrix33<>::Identity() - D_pp).transpose() * dn.eigen();
-    ChVectorN<double, 3> dA_dalp_79 =
-        scale2 * dA3.transpose() * t.eigen() - sinA * (ChMatrix33<>::Identity() - D_nn).transpose() * dp.eigen();
+    ChVectorN<double, 3> dA_dalp_13 = scale2 * dA1.transpose() * t.eigen() + sinA * (ChMatrix33<>::Identity() - D_pp).transpose() * dn.eigen();
+    ChVectorN<double, 3> dA_dalp_79 = scale2 * dA3.transpose() * t.eigen() - sinA * (ChMatrix33<>::Identity() - D_nn).transpose() * dp.eigen();
     ChVectorN<double, 3> dA_dalp_46 = -dA_dalp_13 - dA_dalp_79;
 
     ChVectorN<double, 9> dA_dalp;
@@ -1145,7 +1131,9 @@ void MBTireModel::EdgeSpring3::CalculateJacobianFD(double Kfactor, double Rfacto
 
 // -----------------------------------------------------------------------------
 
-void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family) {
+void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family) {
+    m_hub = hub;
+
     m_num_rim_nodes = 2 * m_num_divs;
     m_num_nodes = m_num_rings * m_num_divs;
     m_num_faces = 2 * (m_num_rings - 1) * m_num_divs;
@@ -1176,7 +1164,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             double phi = id * dphi;
             double x = r * std::cos(phi);
             double z = r * std::sin(phi);
-            vertices[k] = m_wheel->TransformPointLocalToParent(ChVector3d(x, y, z));
+            vertices[k] = m_hub->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(vertices[k]);
             m_nodes[k]->SetMass(m_node_mass);
             m_nodes[k]->m_TotalMass = m_node_mass;
@@ -1193,7 +1181,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             double phi = id * dphi;
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto loc = m_wheel->TransformPointLocalToParent(ChVector3d(x, y, z));
+            auto loc = m_hub->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
             m_rim_nodes[k]->m_TotalMass = m_node_mass;
@@ -1206,7 +1194,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             double phi = id * dphi;
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto loc = m_wheel->TransformPointLocalToParent(ChVector3d(x, y, z));
+            auto loc = m_hub->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
             m_rim_nodes[k]->m_TotalMass = m_node_mass;
@@ -1226,7 +1214,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             auto load = chrono_types::make_shared<NodePressure>();
             load->inode = inode;
             load->node = m_nodes[inode].get();
-            load->wheel = m_wheel.get();
+            load->wheel = m_hub.get();
             load->p_times_a = p_times_a;
 
             load->Initialize(m_stiff);
@@ -1252,7 +1240,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->inode2 = inode2;
             spring->node1 = m_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->k = m_kC;
             spring->c = m_cC;
 
@@ -1278,11 +1266,11 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->inode2 = inode2;
             spring->node1 = m_rim_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->k = m_kR;
             spring->c = m_cR;
 
-            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
+            spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
             spring->Initialize(m_stiff);
 
@@ -1303,7 +1291,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->inode2 = inode2;
             spring->node1 = m_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->k = m_kT;
             spring->c = m_cT;
 
@@ -1326,11 +1314,11 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->inode2 = inode2;
             spring->node1 = m_rim_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->k = m_kR;
             spring->c = m_cR;
 
-            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
+            spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
             spring->Initialize(m_stiff);
 
@@ -1356,7 +1344,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->node_p = m_nodes[inode_p].get();
             spring->node_c = m_nodes[inode_c].get();
             spring->node_n = m_nodes[inode_n].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->t0 = ChVector3d(0, 1, 0);
             spring->k = m_kB;
             spring->c = m_cB;
@@ -1389,12 +1377,12 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->node_p = m_rim_nodes[inode_p].get();
             spring->node_c = m_nodes[inode_c].get();
             spring->node_n = m_nodes[inode_n].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->t0 = t0;
             spring->k = m_kB;
             spring->c = m_cB;
 
-            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
+            spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
             spring->Initialize(m_stiff);
 
@@ -1418,7 +1406,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->node_p = m_nodes[inode_p].get();
             spring->node_c = m_nodes[inode_c].get();
             spring->node_n = m_nodes[inode_n].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->t0 = t0;
             spring->k = m_kB;
             spring->c = m_cB;
@@ -1445,12 +1433,12 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
             spring->node_p = m_rim_nodes[inode_p].get();
             spring->node_c = m_nodes[inode_c].get();
             spring->node_n = m_nodes[inode_n].get();
-            spring->wheel = m_wheel.get();
+            spring->wheel = m_hub.get();
             spring->t0 = -t0;
             spring->k = m_kB;
             spring->c = m_cB;
 
-            spring->local_pos = m_wheel->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
+            spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
             spring->Initialize(m_stiff);
 
@@ -1549,8 +1537,7 @@ void MBTireModel::Construct(ChTire::ContactSurfaceType surface_type, double surf
     std::vector<int> accumulators(m_num_nodes, 0);
     for (int it = 0; it < m_num_faces; it++) {
         // Calculate the triangle normal as a normalized cross product.
-        ChVector3d nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
-                                vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
+        ChVector3d nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]], vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
         nrm.Normalize();
         // Increment the normals of all incident vertices by the face normal
         normals[idx_normals[it][0]] += nrm;
@@ -1572,7 +1559,7 @@ void MBTireModel::CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& iner
     //// TODO
 }
 
-// Set position and velocity of rim nodes from wheel/spindle state
+// Set position and velocity of rim nodes from wheel hub state
 void MBTireModel::SetRimNodeStates() {
     double dphi = CH_2PI / m_num_divs;
     int k = 0;
@@ -1584,8 +1571,8 @@ void MBTireModel::SetRimNodeStates() {
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
             auto pos_loc = ChVector3d(x, y, z);
-            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPosDt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPos(m_hub->TransformPointLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPosDt(m_hub->PointSpeedLocalToParent(pos_loc));
             k++;
         }
     }
@@ -1597,8 +1584,8 @@ void MBTireModel::SetRimNodeStates() {
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
             auto pos_loc = ChVector3d(x, y, z);
-            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPosDt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPos(m_hub->TransformPointLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPosDt(m_hub->PointSpeedLocalToParent(pos_loc));
             k++;
         }
     }
@@ -1611,8 +1598,8 @@ void MBTireModel::CalculateForces() {
     std::vector<ChVector3d> nodal_forces(m_num_nodes, VNULL);
 
     // Initialize wheel force and moment accumulators
-    m_wheel_force = VNULL;   // body force, expressed in global frame
-    m_wheel_torque = VNULL;  // body torque, expressed in local frame
+    m_hub_force = VNULL;   // body force, expressed in global frame
+    m_hub_torque = VNULL;  // body torque, expressed in local frame
 
     // ------------ Gravitational nodal forces
 
@@ -1647,8 +1634,8 @@ void MBTireModel::CalculateForces() {
     // Forces in edge linear springs (rim node: node1)
     for (auto& spring : m_edge_lin_springs) {
         spring->CalculateForce();
-        m_wheel_force += spring->force_wheel;
-        m_wheel_torque += spring->torque_wheel;
+        m_hub_force += spring->force_wheel;
+        m_hub_torque += spring->torque_wheel;
         nodal_forces[spring->inode2] += spring->force2;
     }
 
@@ -1663,8 +1650,8 @@ void MBTireModel::CalculateForces() {
     // Forces in edge rotational springs (rim node: node_p)
     for (auto& spring : m_edge_rot_springs) {
         spring->CalculateForce();
-        m_wheel_force += spring->force_wheel;
-        m_wheel_torque += spring->torque_wheel;
+        m_hub_force += spring->force_wheel;
+        m_hub_torque += spring->torque_wheel;
         nodal_forces[spring->inode_c] += spring->force_c;
         nodal_forces[spring->inode_n] += spring->force_n;
     }
@@ -1691,8 +1678,8 @@ void MBTireModel::CalculateForces() {
     }
 
     for (auto& spring : m_edge_lin_springs) {
-        m_wheel_force += spring->force_wheel;
-        m_wheel_torque += spring->torque_wheel;
+        m_hub_force += spring->force_wheel;
+        m_hub_torque += spring->torque_wheel;
         nodal_forces[spring->inode2] += spring->force2;
     }
 
@@ -1703,8 +1690,8 @@ void MBTireModel::CalculateForces() {
     }
 
     for (auto& spring : m_edge_rot_springs) {
-        m_wheel_force += spring->force_wheel;
-        m_wheel_torque += spring->torque_wheel;
+        m_hub_force += spring->force_wheel;
+        m_hub_torque += spring->torque_wheel;
         nodal_forces[spring->inode_c] += spring->force_c;
         nodal_forces[spring->inode_n] += spring->force_n;
     }
@@ -1743,8 +1730,8 @@ void MBTireModel::CalculateForces() {
         spring->CalculateForce();
     #pragma omp critical
         {
-            m_wheel_force += spring->force_wheel;
-            m_wheel_torque += spring->torque_wheel;
+            m_hub_force += spring->force_wheel;
+            m_hub_torque += spring->torque_wheel;
             nodal_forces[spring->inode2] += spring->force2;
         }
     }
@@ -1769,8 +1756,8 @@ void MBTireModel::CalculateForces() {
         spring->CalculateForce();
     #pragma omp critical
         {
-            m_wheel_force += spring->force_wheel;
-            m_wheel_torque += spring->torque_wheel;
+            m_hub_force += spring->force_wheel;
+            m_hub_torque += spring->torque_wheel;
             nodal_forces[spring->inode_c] += spring->force_c;
             nodal_forces[spring->inode_n] += spring->force_n;
         }
@@ -1841,8 +1828,8 @@ void MBTireModel::Setup() {
     // Update visualization mesh
     auto trimesh = m_trimesh_shape->GetMesh();
     auto& vertices = trimesh->GetCoordsVertices();
-    auto& normals = trimesh->GetCoordsNormals();
-    auto& colors = trimesh->GetCoordsColors();
+    ////auto& normals = trimesh->GetCoordsNormals();
+    ////auto& colors = trimesh->GetCoordsColors();
 
     for (int k = 0; k < m_num_nodes; k++) {
         vertices[k] = m_nodes[k]->GetPos();
@@ -1870,8 +1857,8 @@ void MBTireModel::AddVisualizationAssets(VisualizationType vis) {
     for (const auto& node : m_rim_nodes) {
         auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.01);
         sph->SetColor(ChColor(1.0f, 0.0f, 0.0f));
-        auto loc = m_wheel->TransformPointParentToLocal(node->GetPos());
-        m_wheel->AddVisualShape(sph, ChFrame<>(loc));
+        auto loc = m_hub->TransformPointParentToLocal(node->GetPos());
+        m_hub->AddVisualShape(sph, ChFrame<>(loc));
     }
 
     //// TODO
@@ -1916,11 +1903,7 @@ void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor
         spring->CalculateJacobian(Kfactor, Rfactor);
 }
 
-void MBTireModel::IntStateGather(const unsigned int off_x,
-                                 ChState& x,
-                                 const unsigned int off_v,
-                                 ChStateDelta& v,
-                                 double& T) {
+void MBTireModel::IntStateGather(const unsigned int off_x, ChState& x, const unsigned int off_v, ChStateDelta& v, double& T) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -1932,12 +1915,7 @@ void MBTireModel::IntStateGather(const unsigned int off_x,
     T = GetChTime();
 }
 
-void MBTireModel::IntStateScatter(const unsigned int off_x,
-                                  const ChState& x,
-                                  const unsigned int off_v,
-                                  const ChStateDelta& v,
-                                  const double T,
-                                  UpdateFlags update_flags) {
+void MBTireModel::IntStateScatter(const unsigned int off_x, const ChState& x, const unsigned int off_v, const ChStateDelta& v, const double T, UpdateFlags update_flags) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -1965,11 +1943,7 @@ void MBTireModel::IntStateScatterAcceleration(const unsigned int off_a, const Ch
     }
 }
 
-void MBTireModel::IntStateIncrement(const unsigned int off_x,
-                                    ChState& x_new,
-                                    const ChState& x,
-                                    const unsigned int off_v,
-                                    const ChStateDelta& Dv) {
+void MBTireModel::IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -1979,11 +1953,7 @@ void MBTireModel::IntStateIncrement(const unsigned int off_x,
     }
 }
 
-void MBTireModel::IntStateGetIncrement(const unsigned int off_x,
-                                       const ChState& x_new,
-                                       const ChState& x,
-                                       const unsigned int off_v,
-                                       ChStateDelta& Dv) {
+void MBTireModel::IntStateGetIncrement(const unsigned int off_x, const ChState& x_new, const ChState& x, const unsigned int off_v, ChStateDelta& Dv) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -1994,12 +1964,12 @@ void MBTireModel::IntStateGetIncrement(const unsigned int off_x,
 }
 
 void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
-    // Synchronize position and velocity of rim nodes with wheel/spindle state
+    // Synchronize position and velocity of rim nodes with wheel hub state
     SetRimNodeStates();
 
     // Calculate spring forces:
     // - set them as applied forces on the FEA nodes
-    // - accumulate force and torque on wheel/spindle body
+    // - accumulate force and torque on wheel hun body
     CalculateForces();
 
     // Load nodal forces into R
@@ -2010,16 +1980,13 @@ void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R
     }
 
     // Load wheel body forces into R
-    if (m_wheel->Variables().IsActive()) {
-        R.segment(m_wheel->Variables().GetOffset() + 0, 3) += c * m_wheel_force.eigen();
-        R.segment(m_wheel->Variables().GetOffset() + 3, 3) += c * m_wheel_torque.eigen();
+    if (m_hub->Variables().IsActive()) {
+        R.segment(m_hub->Variables().GetOffset() + 0, 3) += c * m_hub_force.eigen();
+        R.segment(m_hub->Variables().GetOffset() + 3, 3) += c * m_hub_torque.eigen();
     }
 }
 
-void MBTireModel::IntLoadResidual_Mv(const unsigned int off,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& w,
-                                     const double c) {
+void MBTireModel::IntLoadResidual_Mv(const unsigned int off, ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
@@ -2048,10 +2015,7 @@ void MBTireModel::IntToDescriptor(const unsigned int off_v,
     }
 }
 
-void MBTireModel::IntFromDescriptor(const unsigned int off_v,
-                                    ChStateDelta& v,
-                                    const unsigned int off_L,
-                                    ChVectorDynamic<>& L) {
+void MBTireModel::IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) {
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntFromDescriptor(off_v + local_off_v, v);
