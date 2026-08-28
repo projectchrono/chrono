@@ -57,14 +57,17 @@ def main():
     tire = veh.ReadTireJSON(veh.GetVehicleDataFile(tire_json))
 
     # Identify Tire Type
-    # Note: In PyChrono, we check types using isinstance or generic casts if necessary
-    # Here we assume standard handling unless Deformable is detected
-    handling_tire = isinstance(tire, veh.ChForceElementTire)
-    fea_tire = isinstance(tire, veh.ChDeformableTire)
+    # Note: ReadTireJSON returns a ChTire-typed proxy regardless of the concrete tire model, so isinstance() cannot be used here;
+    # use the generated CastTo... functions instead (they return None when the cast fails).
+    handling_tire = veh.CastToChForceElementTire(tire) is not None
+    fea_tire = veh.CastToChDeformableTire(tire) is not None
 
     if handling_tire and terrain_type == TerrainType.SCM:
         print("ERROR: Handling tire models cannot be used with SCM terrain.")
         return
+
+    if handling_tire:
+       tire.SetCollisionType(veh.ChTire.CollisionType_FOUR_POINTS)
 
     # Set tire contact surface (relevant for FEA tires only)
     if fea_tire:
@@ -117,16 +120,15 @@ def main():
     # Create and configure test rig
     # -----------------------------
 
-    rig = veh.ChTireTestRig(wheel, tire, sys)
+    rig = veh.ChWheelTestRig(wheel, tire, sys)
 
     rig.SetGravitationalAcceleration(9.8)
     rig.SetNormalLoad(3000)
     
     # rig.SetCamberAngle(15 * chrono.CH_DEG_TO_RAD)
 
-    rig.SetTireStepsize(step_size)
-    rig.SetTireCollisionType(veh.ChTire.CollisionType_FOUR_POINTS)
-    rig.SetTireVisualizationType(chrono.VisualizationType_MESH)
+    rig.SetStepsize(step_size)
+    rig.SetVisualizationType(chrono.VisualizationType_MESH)
 
     # Terrain Setup
     patch_size = veh.TerrainPatchSize()
@@ -175,7 +177,7 @@ def main():
     rig.SetAngSpeedFunction(chrono.ChFunctionConst(10 * chrono.CH_RPM_TO_RAD_S))
     rig.SetSlipAngleFunction(chrono.ChFunctionSine(5 * chrono.CH_DEG_TO_RAD, 0.2))
 
-    # Scenario: specified longitudinal slip (overrrides other definitions of motion functions)
+    # Scenario: specified longitudinal slip (overrides other definitions of motion functions)
     # rig.SetConstantLongitudinalSlip(0.2, 0.1);
 
     # Set delay before applying inputs (settling time)
@@ -183,14 +185,13 @@ def main():
     rig.SetTimeDelay(input_time_delay)
 
     # Initialize the tire test rig; in TEST mode set a drop speed of 0.05
-    # rig.Initialize(veh.ChTireTestRig.Mode_SUSPEND)
-    # rig.Initialize(veh.ChTireTestRig.Mode_DROP)
-    rig.Initialize(veh.ChTireTestRig.Mode_TEST, 0.05)
+    # rig.Initialize(veh.ChWheelTestRig.Mode_SUSPEND)
+    # rig.Initialize(veh.ChWheelTestRig.Mode_DROP)
+    rig.Initialize(veh.ChWheelTestRig.Mode_TEST, 0.05)
 
     # Optionally, modify tire visualization (can be done only after initialization)
-    if (isinstance(tire, veh.ChDeformableTire)):
-        tire_def = chrono.CastToChDeformableTire(tire)
-
+    tire_def = veh.CastToChDeformableTire(tire)
+    if tire_def is not None:
         visFEA = chrono.ChVisualShapeFEA()
         visFEA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
         visFEA.SetShellResolution(3)
@@ -222,9 +223,6 @@ def main():
         vis_irr.AddSkyBox()
         vis_irr.AddCamera(chrono.ChVector3d(1.0, 2.5, 1.0))
         vis_irr.AddLightDirectional()
-
-        # vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
-
         vis = vis_irr
     if vis_type == chrono.ChVisualSystem.Type_VSG:
         vis_vsg = vsg3d.ChVisualSystemVSG()
@@ -236,9 +234,6 @@ def main():
         vis_vsg.SetLightDirection(1.5 * chrono.CH_PI_2, chrono.CH_PI_4)
         vis_vsg.EnableShadows()
         vis_vsg.Initialize()
-
-        # vis_vsg.GetActiveCamera().setFOV(irr::core::PI / 4.5f);
-
         vis = vis_vsg
 
     # ----------------

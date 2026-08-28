@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/ChConfig.h"
+#include <stdexcept>
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 
@@ -49,10 +49,12 @@ M113::M113()
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_shoe_topology(DoublePinTrackShoeType::ONE_CONNECTOR),
+#ifdef CHRONO_FEA
       m_ancf_element_type(ChTrackShoeBandANCF::ElementType::ANCF_4),
       m_ancf_num_elements_length(3),
       m_ancf_num_elements_width(4),
       m_ancf_constrain_curvature(false),
+#endif
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
@@ -62,7 +64,8 @@ M113::M113()
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_gyration_mode(false),
-      m_apply_drag(false) {}
+      m_apply_drag(false) {
+}
 
 M113::M113(ChSystem* system)
     : m_system(system),
@@ -77,10 +80,12 @@ M113::M113(ChSystem* system)
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_shoe_topology(DoublePinTrackShoeType::ONE_CONNECTOR),
+#ifdef CHRONO_FEA
       m_ancf_element_type(ChTrackShoeBandANCF::ElementType::ANCF_4),
       m_ancf_num_elements_length(3),
       m_ancf_num_elements_width(4),
       m_ancf_constrain_curvature(false),
+#endif
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_engineType(EngineModelType::SHAFTS),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SHAFTS),
@@ -110,17 +115,65 @@ void M113::SetAerodynamicDrag(double Cd, double area, double air_density) {
 
 void M113::Initialize() {
     // Create and initialize the M113 vehicle
-    if (m_system) {
-        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_ancf_element_type,
-                                     m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,
-                                     m_driveline_type, m_brake_type, m_use_track_bushings, m_use_suspension_bushings,
-                                     m_use_track_RSDA, m_system, m_chassisCollisionType);
-    } else {
-        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_ancf_element_type,
-                                     m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,
-                                     m_driveline_type, m_brake_type, m_use_track_bushings, m_use_suspension_bushings,
-                                     m_use_track_RSDA, m_contactMethod, m_chassisCollisionType);
+    switch (m_shoe_type) {
+        case TrackShoeType::SINGLE_PIN:
+            if (m_system)
+                m_vehicle = new M113_Vehicle_SinglePin(m_fixed,                                                            //
+                                                       m_driveline_type, m_brake_type,                                     //
+                                                       m_use_track_bushings, m_use_suspension_bushings, m_use_track_RSDA,  //
+                                                       m_system, m_chassisCollisionType);                                  //
+            else
+                m_vehicle = new M113_Vehicle_SinglePin(m_fixed,                                                            //
+                                                       m_driveline_type, m_brake_type,                                     //
+                                                       m_use_track_bushings, m_use_suspension_bushings, m_use_track_RSDA,  //
+                                                       m_contactMethod, m_chassisCollisionType);                           //
+            break;
+        case TrackShoeType::DOUBLE_PIN:
+            if (m_system)
+                m_vehicle = new M113_Vehicle_DoublePin(m_fixed,                                                            //
+                                                       m_shoe_topology,                                                    //
+                                                       m_driveline_type, m_brake_type,                                     //
+                                                       m_use_track_bushings, m_use_suspension_bushings, m_use_track_RSDA,  //
+                                                       m_system, m_chassisCollisionType);                                  //
+            else
+                m_vehicle = new M113_Vehicle_DoublePin(m_fixed,                                                            //
+                                                       m_shoe_topology,                                                    //
+                                                       m_driveline_type, m_brake_type,                                     //
+                                                       m_use_track_bushings, m_use_suspension_bushings, m_use_track_RSDA,  //
+                                                       m_contactMethod, m_chassisCollisionType);                           //
+            break;
+        case TrackShoeType::BAND_BUSHING:
+            if (m_system)
+                m_vehicle = new M113_Vehicle_BandBushing(m_fixed,                            //
+                                                         m_driveline_type, m_brake_type,     //
+                                                         m_use_suspension_bushings,          //
+                                                         m_system, m_chassisCollisionType);  //
+            else
+                m_vehicle = new M113_Vehicle_BandBushing(m_fixed,                                   //
+                                                         m_driveline_type, m_brake_type,            //
+                                                         m_use_suspension_bushings,                 //
+                                                         m_contactMethod, m_chassisCollisionType);  //
+            break;
+        case TrackShoeType::BAND_ANCF:
+#ifdef CHRONO_FEA
+            if (m_system)
+                m_vehicle = new M113_Vehicle_BandANCF(m_fixed,                                                                                                 //
+                                                      m_ancf_element_type, m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,  //
+                                                      m_driveline_type, m_brake_type,                                                                          //
+                                                      m_use_suspension_bushings,                                                                               //
+                                                      m_system, m_chassisCollisionType);                                                                       //
+            else
+                m_vehicle = new M113_Vehicle_BandANCF(m_fixed,                                                                                                 //
+                                                      m_ancf_element_type, m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,  //
+                                                      m_driveline_type, m_brake_type,                                                                          //
+                                                      m_use_suspension_bushings,                                                                               //
+                                                      m_contactMethod, m_chassisCollisionType);                                                                //
+#else
+            throw std::runtime_error("BAND_ANCF track requires Chrono::FEA.");
+#endif
+            break;
     }
+
     m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->CreateTrack(m_create_track);
     m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);
@@ -176,10 +229,7 @@ void M113::Synchronize(double time, const DriverInputs& driver_inputs) {
     m_vehicle->Synchronize(time, driver_inputs);
 }
 
-void M113::Synchronize(double time,
-                       const DriverInputs& driver_inputs,
-                       const TerrainForces& shoe_forces_left,
-                       const TerrainForces& shoe_forces_right) {
+void M113::Synchronize(double time, const DriverInputs& driver_inputs, const TerrainForces& shoe_forces_left, const TerrainForces& shoe_forces_right) {
     m_vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 }
 
