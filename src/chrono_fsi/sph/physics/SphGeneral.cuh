@@ -138,7 +138,7 @@ inline __host__ __device__ Real3 GradW3h_Quadratic(Real3 d, Real invh) {
 
 inline __host__ __device__ Real W3h_QuinticSpline(Real d, Real invh) {
     Real q = fabs(d) * invh;
-    Real alpha = 3 * INVPI * cube(invh) / 359;
+    Real alpha = INVPI * cube(invh) / 120;
 
     if (q < 1) {
         return alpha * (quintic(3 - q) - 6 * quintic(2 - q) + 15 * quintic(1 - q));
@@ -158,7 +158,7 @@ inline __host__ __device__ Real3 GradW3h_QuinticSpline(Real3 d, Real invh) {
         return mR3(0);
 
     // beta = -5 * alpha / h^2
-    Real beta = -15 * INVPI * quintic(invh) / 359;
+    Real beta = -5 * INVPI * quintic(invh) / 120;
     if (q < 1) {
         return ((beta / q) * (quartic(3 - q) - 6 * quartic(2 - q) + 15 * quartic(1 - q))) * d;
     }
