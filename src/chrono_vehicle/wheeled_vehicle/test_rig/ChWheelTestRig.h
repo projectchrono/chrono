@@ -241,10 +241,13 @@ class CH_VEHICLE_API ChWheelTestRig {
     };
 
     /// Enable use of CRM terrain.
-    /// The terrain subsystem is modeled through continuum with CRM.
+    /// This version sets all SPH solver settings and CRM material properties from the given structure.
     void SetTerrainCRM(const TerrainPatchSize& size, const TerrainParamsCRM& params);
 
     /// Enable use of CRM terrain.
+    /// This version sets only the SPH initial particle spacing (leaving all other SPH solver settings to their default values)
+    /// and a simple CRM material with constant friction rheology. For real mu(I) or MCC rheologies, use the version of SetTerrainCRM
+    /// that accepts a full set of CRM soil properties.
     void SetTerrainCRM(const TerrainPatchSize& size,  ///< terrain patch size
                        double spacing,                ///< SPH particle spacing
                        double density,                ///< material density

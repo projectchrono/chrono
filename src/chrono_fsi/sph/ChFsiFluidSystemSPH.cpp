@@ -610,12 +610,17 @@ void ChFsiFluidSystemSPH::SetCrmSPH(const SoilProperties& mat_props) {
             m_paramsH->mcc_v_lambda = Real(mat_props.mcc_v_lambda);
             break;
         case RheologyCRM::MU_OF_I:
+            if (mat_props.mu_fric_2 < mat_props.mu_fric_s) {
+                cerr << "Incorrect static and dynamic friction coefficients for MU(I) rheology (mu2 < muS)." << endl;
+                throw std::runtime_error("Incorrect friction coefficients for MU(I) rheology");
+            }
             m_paramsH->mu_I0 = Real(mat_props.mu_I0);
             m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
             m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
             m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
             break;
         default:
+            cerr << "Invalid rheology model." << endl;
             throw std::runtime_error("Invalid rheology model");
     }
 }
