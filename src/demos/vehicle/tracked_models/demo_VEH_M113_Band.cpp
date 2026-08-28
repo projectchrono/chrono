@@ -18,7 +18,6 @@
 
 #include "chrono/ChConfig.h"
 
-#include "chrono/fea/ChMeshExporter.h"
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
@@ -28,6 +27,7 @@
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 #ifdef CHRONO_FEA
+    #include "chrono/fea/ChMeshExporter.h"
     #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 #endif
 
@@ -48,6 +48,7 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
 
 using std::cout;
+using std::cerr;
 using std::endl;
 
 // =============================================================================
@@ -56,6 +57,8 @@ using std::endl;
 
 // Band track type (BAND_BUSHING or BAND_ANCF)
 TrackShoeType shoe_type = TrackShoeType::BAND_ANCF;
+
+#ifdef CHRONO_FEA
 
 // ANCF element type for BAND_ANCF (ANCF_4 or ANCF_8)
 ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_4;
@@ -66,6 +69,8 @@ int num_elements_width = 1;
 
 // Enable/disable curvature constraints (ANCF_8 only)
 bool constrain_curvature = true;
+
+#endif
 
 // Simulation step size and duration
 double step_size = 5e-5;
@@ -130,18 +135,27 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
+#ifndef CHRONO_FEA
+    if (shoe_type == TrackShoeType::BAND_ANCF) {
+        cerr << "BAND_ANCF track requires Chrono::FEA (not enabled). Switching to shoe_type BAND_BUSHING." << endl;
+        shoe_type = TrackShoeType::BAND_BUSHING;
+    }
+#endif
+
     M113 m113;
 
     m113.SetTrackShoeType(shoe_type);
-    m113.SetANCFTrackShoeElementType(element_type);
-    m113.SetANCFTrackShoeNumElements(num_elements_length, num_elements_width);
-    m113.SetANCFTrackShoeCurvatureConstraints(constrain_curvature);
     m113.SetEngineType(EngineModelType::SIMPLE_MAP);
     m113.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
     m113.SetSuspensionBushings(false);
     m113.SetGyrationMode(false);
+#ifdef CHRONO_FEA
+    m113.SetANCFTrackShoeElementType(element_type);
+    m113.SetANCFTrackShoeNumElements(num_elements_length, num_elements_width);
+    m113.SetANCFTrackShoeCurvatureConstraints(constrain_curvature);
+#endif
 
     m113.SetContactMethod(ChContactMethod::SMC);
     m113.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);

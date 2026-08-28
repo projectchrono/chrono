@@ -16,6 +16,7 @@
 #define CH_EVENT_HANDLER_VSG_H
 
 #include <vsg/ui/KeyEvent.h>
+#include <vsg/ui/WindowEvent.h>
 
 #include "chrono_vsg/ChApiVSG.h"
 
@@ -37,6 +38,15 @@ class CH_VSG_API ChEventHandlerVSG {
     virtual void process(vsg::ButtonReleaseEvent& ev) {}
     virtual void process(vsg::MoveEvent& ev) {}
     virtual void process(vsg::TouchEvent& ev) {}
+
+    /// The render window acquired keyboard focus.
+    virtual void process(vsg::FocusInEvent& ev) {}
+
+    /// The render window lost keyboard focus.
+    /// A handler that tracks which keys are currently held down should treat this as a release of all of them:
+    /// key events are delivered to whichever window has focus, so any release that happens from now on is never
+    /// seen here.
+    virtual void process(vsg::FocusOutEvent& ev) {}
 };
 
 /// @} vsg_module

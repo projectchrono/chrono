@@ -41,7 +41,10 @@ def main():
     wheel = veh.ReadWheelJSON(veh.GetVehicleDataFile(wheel_json))
     tire = veh.ReadTireJSON(veh.GetVehicleDataFile(tire_json))
 
-    fea_tire = isinstance(tire, veh.ChDeformableTire)
+    # Identify Tire Type
+    # Note: ReadTireJSON returns a ChTire-typed proxy regardless of the concrete tire model, so isinstance() cannot be used here;
+    # use the generated CastTo... functions instead (they return None when the cast fails).
+    fea_tire = veh.CastToChDeformableTire(tire) is not None
 
     # Set tire contact surface (relevant for FEA tires only)
     if fea_tire:
@@ -91,13 +94,13 @@ def main():
     # -----------------------------
     # Create and configure test rig
     # -----------------------------
-    rig = veh.ChTireTestRig(wheel, tire, sys)
+    rig = veh.ChWheelTestRig(wheel, tire, sys)
 
     rig.SetGravitationalAcceleration(9.8)
     rig.SetNormalLoad(2500)
 
-    rig.SetTireStepsize(step_size)
-    rig.SetTireVisualizationType(chrono.VisualizationType_COLLISION)
+    rig.SetStepsize(step_size)
+    rig.SetVisualizationType(chrono.VisualizationType_COLLISION)
 
     size = veh.TerrainPatchSize()
     size.length = 10
@@ -105,12 +108,24 @@ def main():
     size.depth = 0.2
 
     params = veh.TerrainParamsCRM()
-    params.sph_params.initial_spacing = 0.02
-    params.mat_props.density = 1700
-    params.mat_props.Young_modulus = 2e6
-    params.mat_props.cohesion_coeff = 1e2
+
+    # sph_params/mat_props are plain C++ struct members, so their getters return a copy in Python; 
+    # mutating that copy in place (e.g. params.sph_params.initial_spacing = ...) is silently lost.
+    # Modify a local copy, then assign it back through the setter.
+    sph_params = params.sph_params
+    sph_params.initial_spacing = 0.02
+    params.sph_params = sph_params
+
+    mat_props = params.mat_props
+    mat_props.density = 1700
+    mat_props.Young_modulus = 2e6
+    mat_props.cohesion_coeff = 1e2
+    params.mat_props = mat_props
 
     rig.SetTerrainCRM(size, params)
+
+    # Set a single active domain of estimated size associated with the spindle body
+    rig.SetWheelActiveDomain()
 
     # -----------------
     # Set test scenario
@@ -120,11 +135,11 @@ def main():
 
     input_time_delay = 1.0
     rig.SetTimeDelay(input_time_delay)
-    rig.Initialize(veh.ChTireTestRig.Mode_TEST, 0.05)
+    rig.Initialize(veh.ChWheelTestRig.Mode_TEST, 0.05)
 
     # Optionally, modify tire visualization (can be done only after initialization)
-    if isinstance(tire, veh.ChDeformableTire):
-        tire_def = veh.CastToChDeformableTire(tire)
+    tire_def = veh.CastToChDeformableTire(tire)
+    if tire_def is not None:
         visFEA = chrono.ChVisualShapeFEA()
         visFEA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
         visFEA.SetShellResolution(3)

@@ -145,6 +145,12 @@ void ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body, const ChFra
     AddRigidBody(body, geometry, true, true);
 }
 
+bool ChFsiProblemSPH::IsFsiSolid(std::shared_ptr<ChBody> body) {
+    if (!m_fsi_meshes1D.empty() && m_fsi_bodies.find(body) != m_fsi_bodies.end())
+        return true;
+    return false;
+}
+
 void ChFsiProblemSPH::SetActiveDomainBody(std::shared_ptr<ChBody> body, const ChAABB& aabb) {
     auto index = m_fsi_bodies.at(body);
     m_sysFSI->SetActiveDomainBody(index, aabb);
@@ -180,7 +186,7 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
     if (m_verbose) {
         if (fsi_mesh1D) {
             cout << "  added " << fsi_mesh1D->GetNumElements() << " segments" << endl;
-            m_fsi_meshes1D[mesh] = fsi_mesh1D->index; 
+            m_fsi_meshes1D[mesh] = fsi_mesh1D->index;
         } else {
             cout << "  mesh does not contain any 1D elements" << endl;
         }
@@ -196,6 +202,14 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
             cout << "  mesh does not contain any 2D elements" << endl;
         }
     }
+}
+
+bool ChFsiProblemSPH::IsFsiSolid(std::shared_ptr<fea::ChMesh> mesh) {
+    if (!m_fsi_meshes1D.empty() && m_fsi_meshes1D.find(mesh) != m_fsi_meshes1D.end())
+        return true;
+    if (!m_fsi_meshes2D.empty() && m_fsi_meshes2D.find(mesh) != m_fsi_meshes2D.end())
+        return true;
+    return false;
 }
 
 void ChFsiProblemSPH::SetActiveDomainMesh(std::shared_ptr<fea::ChMesh> mesh, const ChAABB& aabb) {
