@@ -282,6 +282,26 @@ __device__ inline Real FerrariCi(Real rho) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
+// The attribute below has to be spelled per compiler, and this cannot be simplified away. This device
+// header is also compiled directly by the host compiler (ChFsiFluidSystemSPH.cpp includes it), and on
+// Windows that is MSVC, which rejects GNU attribute syntax with "error C2065: 'noinline': undeclared
+// identifier". An unrecognized compiler gets no attribute at all, which costs speed and not
+// correctness: the function is then free to be inlined, which is what the measurement below calls the
+// slower variant.
+#if defined(_MSC_VER)
+    #define CH_FSI_SPH_NOINLINE __declspec(noinline)
+#elif defined(__GNUC__) || defined(__clang__)
+    #define CH_FSI_SPH_NOINLINE __attribute__((noinline))
+#else
+    #define CH_FSI_SPH_NOINLINE
+#endif
+
+__device__ inline CH_FSI_SPH_NOINLINE Real MinimumImageShiftMultiPeriod(Real dist, Real period) {
+    return period * rint(dist / period);
+}
+
+#undef CH_FSI_SPH_NOINLINE
+
 /// Shift that brings marker b onto the periodic image of b closest to a, along one axis.
 ///
 /// \a period is the box length on an axis carrying periodic boundary conditions, and ZERO on a
@@ -310,26 +330,6 @@ __device__ inline Real FerrariCi(Real rho) {
 /// leaves after one comparison. Register counts, occupancy and spill counts are identical for all
 /// of those variants across every kernel of both translation units that include this header, so
 /// register pressure is NOT the explanation for the inline form's cost, and none is claimed.
-// The attribute below has to be spelled per compiler, and this cannot be simplified away. This device
-// header is also compiled directly by the host compiler (ChFsiFluidSystemSPH.cpp includes it), and on
-// Windows that is MSVC, which rejects GNU attribute syntax with "error C2065: 'noinline': undeclared
-// identifier". An unrecognized compiler gets no attribute at all, which costs speed and not
-// correctness: the function is then free to be inlined, which is what the measurement below calls the
-// slower variant.
-#if defined(_MSC_VER)
-    #define CH_FSI_SPH_NOINLINE __declspec(noinline)
-#elif defined(__GNUC__) || defined(__clang__)
-    #define CH_FSI_SPH_NOINLINE __attribute__((noinline))
-#else
-    #define CH_FSI_SPH_NOINLINE
-#endif
-
-__device__ inline CH_FSI_SPH_NOINLINE Real MinimumImageShiftMultiPeriod(Real dist, Real period) {
-    return period * rint(dist / period);
-}
-
-#undef CH_FSI_SPH_NOINLINE
-
 __device__ inline Real MinimumImageShift(Real dist, Real period) {
     // A non-periodic axis exits first and must: it has period == 0, and falling through to the
     // division would evaluate 0 * rint(dist / 0), which is 0 * inf, which is NaN, in the distance
@@ -524,7 +524,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
                               uint* cellEnd,
                               volatile bool* error_flag);
 
-__global__ void calcRho_kernel(Real4* sortedPosRad,  // input: sorted positionsmin(
+__global__ void calcRho_kernel(Real4* sortedPosRad,  // input: sorted positions
                                Real4* sortedRhoPreMu,
                                Real* sumWij_inv,
                                const uint* neighborList,
@@ -547,8 +547,8 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
                                                      Real* sumWij_inv,
                                                      Real* G_tensor,
                                                      Real* L_tensor,
-                                                     Real* A_L,   // velocity Laplacian matrix;
-                                                     Real3* A_G,  // This is a matrix in a way that A*p gives the gradp
+                                                     Real* A_L,   // velocity Laplacian matrix
+                                                     Real3* A_G,  // This is the matrix for which gradp = A*p
                                                      Real* A_f,
                                                      uint* csrColInd,
                                                      uint* numContacts,

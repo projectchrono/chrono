@@ -927,6 +927,7 @@ void PrintDeviceProperties(const gpuDeviceProp& prop) {
 
 void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "Simulation parameters" << endl;
+
     switch (params.viscosity_method) {
         case ViscosityMethod::LAMINAR:
             cout << "  Viscosity treatment: Laminar" << endl;
@@ -940,13 +941,16 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             cout << "  (coefficient: " << params.artificial_viscosity << ")" << endl;
             break;
     }
-    if (params.boundary_method == BoundaryMethod::ADAMI) {
-        cout << "  Boundary treatment: Adami" << endl;
-    } else if (params.boundary_method == BoundaryMethod::HOLMES) {
-        cout << "  Boundary treatment: Holmes" << endl;
-    } else {
-        cout << "  Boundary treatment: Adami" << endl;
+
+    switch (params.boundary_method) {
+        case BoundaryMethod::ADAMI:
+            cout << "  Boundary treatment: Adami" << endl;
+            break;
+        case BoundaryMethod::HOLMES:
+            cout << "  Boundary treatment: Holmes" << endl;
+            break;
     }
+
     switch (params.kernel_type) {
         case KernelType::QUADRATIC:
             cout << "  Kernel type: Quadratic" << endl;
@@ -997,18 +1001,8 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             cout << "  Integration scheme: Implicit SPH" << endl;
             break;
     }
-    switch (params.rheology_model_crm) {
-        case RheologyCRM::MU_OF_I:
-            cout << "  Rheology model: MU_OF_I" << endl;
-            break;
-        case RheologyCRM::MCC:
-            cout << "  Rheology model: MCC" << endl;
-            break;
-    }
+
     cout << "  num_neighbors: " << params.num_neighbors << endl;
-    cout << "  rho0: " << params.rho0 << endl;
-    cout << "  invrho0: " << params.invrho0 << endl;
-    cout << "  mu0: " << params.mu0 << endl;
     cout << "  bodyForce3: " << params.bodyForce3.x << " " << params.bodyForce3.y << " " << params.bodyForce3.z << endl;
     cout << "  gravity: " << params.gravity.x << " " << params.gravity.y << " " << params.gravity.z << endl;
 
@@ -1020,12 +1014,8 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
 
     cout << "  num_bce_layers: " << params.num_bce_layers << endl;
     cout << "  epsMinMarkersDis: " << params.epsMinMarkersDis << endl;
-    cout << "  markerMass: " << params.markerMass << endl;
     cout << "  volume0: " << params.volume0 << endl;
     cout << "  gradient_type: " << params.gradient_type << endl;
-
-    cout << "  v_Max: " << params.v_Max << endl;
-    cout << "  Cs: " << params.Cs << endl;
 
     if (params.shifting_method == ShiftingMethod::XSPH) {
         cout << "  shifting_xsph_eps: " << params.shifting_xsph_eps << endl;
@@ -1052,28 +1042,6 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  use_variable_time_step: " << params.use_variable_time_step << endl;
     cout << "  dT: " << params.dT << endl;
 
-    cout << "  non_newtonian: " << params.non_newtonian << endl;
-    cout << "  mu_of_I : " << (int)params.mu_of_I << endl;
-    cout << "  rheology_model: " << (int)params.rheology_model << endl;
-    cout << "  ave_diam: " << params.ave_diam << endl;
-    cout << "  mu_max: " << params.mu_max << endl;
-    cout << "  mu_fric_s: " << params.mu_fric_s << endl;
-    cout << "  mu_fric_2: " << params.mu_fric_2 << endl;
-    cout << "  mu_I0: " << params.mu_I0 << endl;
-    cout << "  mu_I_b: " << params.mu_I_b << endl;
-    cout << "  mcc_M: " << params.mcc_M << endl;
-    cout << "  mcc_kappa: " << params.mcc_kappa << endl;
-    cout << "  mcc_lambda: " << params.mcc_lambda << endl;
-    cout << "  mcc_v_lambda: " << params.mcc_v_lambda << endl;
-    cout << "  HB_k: " << params.HB_k << endl;
-    cout << "  HB_n: " << params.HB_n << endl;
-    cout << "  HB_tau0: " << params.HB_tau0 << endl;
-    cout << "  Coh_coeff: " << params.Coh_coeff << endl;
-
-    cout << "  E_young: " << params.E_young << endl;
-    cout << "  G_shear: " << params.G_shear << endl;
-    cout << "  INV_G_shear: " << params.INV_G_shear << endl;
-    cout << "  K_bulk: " << params.K_bulk << endl;
     cout << "  free_surface_threshold: " << params.free_surface_threshold << endl;
 
     cout << "  PPE_relaxation: " << params.PPE_relaxation << endl;
@@ -1090,6 +1058,69 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     ////Real dt_nu = 0.2 * params.h * params.h / (params.mu0 / params.rho0);
     ////Real dt_body = 0.1 * sqrt(params.h / length(params.bodyForce3 + params.gravity));
     ////Real dt = std::min(dt_body, std::min(dt_CFL, dt_nu));
+
+    // ------------
+
+    switch (params.physics_problem) {
+        case PhysicsProblem::CFD:
+            cout << "Fluid material properties" << endl;
+
+            cout << "  rho0: " << params.rho0 << endl;
+            cout << "  invrho0: " << params.invrho0 << endl;
+            cout << "  markerMass: " << params.markerMass << endl;
+
+            cout << "  mu0: " << params.mu0 << endl;
+            cout << "  L_Characteristic: " << params.L_Characteristic << endl;
+            cout << "  v_Max: " << params.v_Max << endl;
+            cout << "  Cs: " << params.Cs << endl;
+
+            cout << "  rheology_model: " << (int)params.rheology_model << endl;
+            cout << "  non_newtonian: " << params.non_newtonian << endl;
+            cout << "  mu_max: " << params.mu_max << endl;
+            cout << "  HB_k: " << params.HB_k << endl;
+            cout << "  HB_n: " << params.HB_n << endl;
+            cout << "  HB_tau0: " << params.HB_tau0 << endl;
+
+            break;
+
+        case PhysicsProblem::CRM:
+            cout << "Soil material properties" << endl;
+
+            cout << "  rho0: " << params.rho0 << endl;
+            cout << "  invrho0: " << params.invrho0 << endl;
+            cout << "  markerMass: " << params.markerMass << endl;
+
+            cout << "  E_young: " << params.E_young << endl;
+            cout << "  Nu_Poisson: " << params.Nu_poisson << endl;
+            cout << "  G_shear: " << params.G_shear << endl;
+            cout << "  INV_G_shear: " << params.INV_G_shear << endl;
+            cout << "  K_bulk: " << params.K_bulk << endl;
+            cout << "  ave_diam: " << params.ave_diam << endl;
+            cout << "  Cs: " << params.Cs << endl;
+
+            if (params.rheology_model_crm == RheologyCRM::MU_OF_I) {
+                cout << "  CRM rheology model: MU_OF_I" << endl;
+
+                cout << "    mu_fric_s: " << params.mu_fric_s << endl;
+                cout << "    mu_fric_2: " << params.mu_fric_2 << endl;
+                cout << "    mu_I0: " << params.mu_I0 << endl;
+                cout << "    Coh_coeff: " << params.Coh_coeff << endl;
+                cout << "    mu_of_I : " << (int)params.mu_of_I << endl;
+                cout << "    mu_I_b: " << params.mu_I_b << endl;
+
+            } else {
+                cout << "  CRM rheology model: MCC" << endl;
+
+                cout << "    mcc_M: " << params.mcc_M << endl;
+                cout << "    mcc_kappa: " << params.mcc_kappa << endl;
+                cout << "    mcc_lambda: " << params.mcc_lambda << endl;
+                cout << "    mcc_v_lambda: " << params.mcc_v_lambda << endl;
+            }
+
+            break;
+    }
+
+    // ------------
 
     cout << "Counters" << endl;
     cout << "  numFsiBodies:       " << counters.numFsiBodies << endl;
