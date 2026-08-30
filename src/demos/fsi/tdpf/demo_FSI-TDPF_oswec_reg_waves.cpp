@@ -20,8 +20,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/input_output/ChWriterCSV.h"
 
-#include "chrono_postprocess/ChGnuPlot.h"
-
 #include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
 #include "chrono_fsi/tdpf/ChFsiFluidSystemTDPF.h"
 
@@ -37,6 +35,8 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -47,26 +47,56 @@ using namespace chrono::fsi::tdpf;
 
 // -----------------------------------------------------------------------------
 
-double t_end = 100;
-double time_step = 1.0e-2;
-bool enforce_realtime = true;
+bool GetProblemSpecs(int argc, char** argv, double& t_end, bool& verbose, bool& realtime, bool& render, bool& snapshots) {
+    ChCLI cli(argv[0], "FSI_TDPF OSWEC regular waves");
 
-bool verbose = false;
+    std::string verbose_str = verbose ? "true" : "false";
+    std::string realtime_str = realtime ? "true" : "false";
+    std::string render_str = render ? "true" : "false";
+    std::string snapshots_str = snapshots ? "true" : "false";
 
-bool render_waves = true;
-double render_fps = 30;
-bool snapshots = false;
+    cli.AddOption<double>("", "t_end", "End time", std::to_string(t_end));
+    cli.AddOption<bool>("", "verbose", "Verbose output", verbose_str);
+    cli.AddOption<bool>("", "realtime", "Enforce soft real-time", realtime_str);
+    cli.AddOption<bool>("", "visualization", "Run-time VSG visualization", render_str);
+    cli.AddOption<bool>("", "snapshots", "Enable snapshots", snapshots_str);
 
-////ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
-////ChSolver::Type solver_type = ChSolver::Type::SPARSE_LU;
-ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
-////ChSolver::Type solver_type = ChSolver::Type::GMRES;
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
 
-bool use_diag_precond = true;
+    t_end = cli.GetAsType<double>("t_end");
+    verbose = cli.GetAsType<bool>("verbose");
+    realtime = cli.GetAsType<bool>("realtime");
+    render = cli.GetAsType<bool>("visualization");
+    snapshots = cli.GetAsType<bool>("snapshots");
+
+    return true;
+}
 
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+    // Parse command-line arguments
+    double t_end = 100;
+    bool verbose = false;
+    bool render = true;
+    bool snapshots = false;
+    bool enforce_realtime = true;
+
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, enforce_realtime, render, snapshots)) {
+        return 1;
+    }
+
+    // Other problem and simulation settings
+    double time_step = 1.0e-2;
+    double render_fps = 30;
+    ////ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
+    ////ChSolver::Type solver_type = ChSolver::Type::SPARSE_LU;
+    ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
+    ////ChSolver::Type solver_type = ChSolver::Type::GMRES;
+    bool use_diag_precond = true;
     auto base_meshfile = GetChronoDataFile("fsi-tdpf/oswec/base.obj");
     auto flap_meshfile = GetChronoDataFile("fsi-tdpf/oswec/flap.obj");
     auto oswec_hydrofile = GetChronoDataFile("fsi-tdpf/oswec/oswec.h5");
@@ -175,29 +205,31 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     // ----- Run-time visualization
-    std::shared_ptr<ChVisualSystem> vis;
 #ifdef CHRONO_VSG
-    auto visFSI = chrono_types::make_shared<ChTdpfVisualizationVSG>(&sysFSI);
-    visFSI->SetWaveMeshVisibility(render_waves);
-    visFSI->SetWaveMeshColormap(ChColormap::Type::BLUE, 0.95f);
-    visFSI->SetWaveMeshColorMode(ChTdpfVisualizationVSG::ColorMode::HEIGHT, {-wave_amplitude, +wave_amplitude});
-    visFSI->SetWaveMeshUpdateFrequency(render_fps);
+    auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+    if (render) {
+        auto visFSI = chrono_types::make_shared<ChTdpfVisualizationVSG>(&sysFSI);
+        visFSI->SetWaveMeshVisibility(true);
+        visFSI->SetWaveMeshColormap(ChColormap::Type::BLUE, 0.95f);
+        visFSI->SetWaveMeshColorMode(ChTdpfVisualizationVSG::ColorMode::HEIGHT, {-wave_amplitude, +wave_amplitude});
+        visFSI->SetWaveMeshUpdateFrequency(render_fps);
 
-    auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-    visVSG->AttachPlugin(visFSI);
-    visVSG->AttachSystem(&sysMBS);
-    visVSG->SetWindowTitle("FSI-TDPF RM3 regular waves");
-    visVSG->SetWindowSize(1280, 720);
-    visVSG->SetBackgroundColor(ChColor(0.04f, 0.11f, 0.18f));
-    visVSG->AddCamera(ChVector3d(58, -65, 18), ChVector3d(2, -1, -6));
-    visVSG->SetLightIntensity(0.9f);
-    visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
-    visVSG->SetModelScale(15);
-    visVSG->SetRefFrameVisibility(true);
-    visVSG->ToggleCOMSymbolVisibility();
+        vis->AttachPlugin(visFSI);
+        vis->AttachSystem(&sysMBS);
+        vis->SetWindowTitle("FSI-TDPF OSWEC regular waves");
+        vis->SetWindowSize(1280, 720);
+        vis->SetBackgroundColor(ChColor(0.04f, 0.11f, 0.18f));
+        vis->AddCamera(ChVector3d(58, -65, 18), ChVector3d(2, -1, -6));
+        vis->SetLightIntensity(0.9f);
+        vis->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        vis->SetModelScale(15);
+        vis->SetRefFrameVisibility(true);
+        vis->ToggleCOMSymbolVisibility();
 
-    visVSG->Initialize();
-    vis = visVSG;
+        vis->Initialize();
+    }
+#else
+    render = false;
 #endif
 
     // ----- Create output directory
@@ -223,7 +255,7 @@ int main(int argc, char* argv[]) {
 
     while (time <= t_end) {
 #ifdef CHRONO_VSG
-        if (time >= render_frame / render_fps) {
+        if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
             vis->Render();
@@ -237,29 +269,33 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 #endif
+        if (!render)
+            cout << "\rTime: " << time << std::flush;
         double flap_rot = flap_body->GetRot().GetCardanAnglesXYZ().y();
         csv << time << flap_rot * CH_RAD_TO_DEG << endl;
 
         sysFSI.DoStepDynamics(time_step);
 
         time += time_step;
-        if (enforce_realtime)
+        if (render && enforce_realtime)
             realtime_timer.Spin(time_step);
     }
 
     csv.WriteToFile(out_file, "time(s)  Float_heave(m)  Plate_heave(m)  Float_drift(m)");
 
 #ifdef CHRONO_POSTPROCESS
-    // ----- Output plot
-    postprocess::ChGnuPlot gplot(out_dir + "/reg_waves.gpl");
-    gplot.SetGrid();
-    gplot.SetLabelX("time (s)");
-    gplot.SetLabelY("flap rot (deg)");
-    gplot.SetTitle("OSWEC regular waves");
-    gplot.Plot(out_file, 1, 2, "", " with lines lt rgb '#FF5500' lw 2");
+    // ----- Output plot (skipped in headless runs)
+    if (render) {
+        postprocess::ChGnuPlot gplot(out_dir + "/reg_waves.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time (s)");
+        gplot.SetLabelY("flap rot (deg)");
+        gplot.SetTitle("OSWEC regular waves");
+        gplot.Plot(out_file, 1, 2, "", " with lines lt rgb '#FF5500' lw 2");
+    }
 #endif
 
-    cout << "Output in " << out_dir << endl;
+    cout << "\n\nOutput in " << out_dir << endl;
 
     return 0;
 }
