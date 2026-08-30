@@ -57,29 +57,33 @@ struct CH_SENSOR_API ChVulkanRTTexCoord {
 };
 
 struct CH_SENSOR_API ChVulkanRTMaterial {
-    // OptiX implicit material fallback for shapes without an explicit ChVisualMaterial.
-    ChVector3f diffuse = ChVector3f(0.5f, 0.5f, 0.5f);
-    ChVector3f ambient = ChVector3f(0.5f, 0.5f, 0.5f);
-    ChVector3f specular = ChVector3f(0.2f, 0.2f, 0.2f);
-    ChVector3f emissive = ChVector3f(0.f, 0.f, 0.f);
+    /// Construct the implicit Vulkan material from Chrono's canonical visual default.
+    /// Keeping this conversion centralized prevents the backend from drifting when
+    /// ChVisualMaterial::Default() changes.
+    ChVulkanRTMaterial();
+
+    ChVector3f diffuse;
+    ChVector3f ambient;
+    ChVector3f specular;
+    ChVector3f emissive;
 
     // Mirrors the fields consumed by the OptiX camera shaders. OptiX names this
     // value "transparency", but it is used as opacity/surface weight: 1 is
     // opaque, 0 is fully transparent and traces through the surface.
-    float opacity = 1.f;
-    float roughness = 1.f;
-    float metallic = 0.f;
-    float emissive_power = 0.f;
-    float shininess = 32.f;
-    bool use_specular_workflow = false;
+    float opacity;
+    float roughness;
+    float metallic;
+    float emissive_power;
+    float shininess;
+    bool use_specular_workflow;
 
     // Non-camera sensor response parameters. OptiX keeps these in its material
     // record; mirror them here so LiDAR/Radar parity does not depend on OptiX.
     float lidar_intensity = 1.f;
     float radar_backscatter = 1.f;
 
-    float tex_scale_u = 1.f;
-    float tex_scale_v = 1.f;
+    float tex_scale_u;
+    float tex_scale_v;
     std::string diffuse_texture;
     std::string specular_texture;
     std::string emissive_texture;
@@ -89,8 +93,8 @@ struct CH_SENSOR_API ChVulkanRTMaterial {
     std::string opacity_texture;
     std::string weight_texture;
 
-    unsigned short int class_id = 0;
-    unsigned short int instance_id = 0;
+    unsigned short int class_id;
+    unsigned short int instance_id;
 };
 
 struct CH_SENSOR_API ChVulkanRTTriangle {

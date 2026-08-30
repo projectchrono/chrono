@@ -23,7 +23,7 @@ struct GpuLight {
     vec4 pos_range;    // pos xyz, range
     vec4 dir_type;     // dir xyz, LightType as float
     vec4 color_atten;  // color rgb, attenuation scale; negative means constant color
-    vec4 params;       // angle, angle falloff start, angle attenuation rate, area/radius
+    vec4 params;       // angle, angle falloff start, angle attenuation rate, spot cos-half-angle or area/radius
 };
 
 struct GpuSceneData {
@@ -102,7 +102,9 @@ layout(push_constant) uniform PushConstants {
     uint height;
     uint pipeline;
     uint flags;
-    uint frame_index;  // VulkanCameraFrameRng
+    uint frame_index;
+    uint rng_seed_lo;
+    uint rng_seed_hi;
 } pc;
 
 const uint PIPE_CAMERA = 0u;
@@ -159,6 +161,12 @@ uint hash_u32(uint x) {
 
 float hash_unit(uint x) {
     return float(hash_u32(x) & 0x00ffffffu) / float(0x01000000u);
+}
+
+uint camera_rng_key() {
+    // Fold both halves of the 64-bit ChSensorManager stream seed into the
+    // shader's 32-bit hash domain. frame_index remains a separate dimension.
+    return hash_u32(pc.rng_seed_lo ^ (pc.rng_seed_hi * 0x9e3779b9u));
 }
 
 float wrap01(float x) {
@@ -243,10 +251,10 @@ vec3 gamma_correct(vec3 c, float gamma) {
 }
 
 float normal_dist_optix(float ndh, float roughness) {
-    float r = max(0.02, roughness);
-    float rough_sqr = r * r;
+    // Keep this algebra identical to OptiX shader_utils.cuh::NormalDist().
+    float rough_sqr = roughness * roughness;
     float den = ndh * ndh * (rough_sqr - 1.0) + 1.0;
-    return rough_sqr / max(1e-5, den * den);
+    return rough_sqr / (den * den);
 }
 
 float hammon_smith_optix(float ndv, float ndl, float roughness) {
@@ -301,7 +309,7 @@ EvalMaterial eval_material(TraceResult hit) {
     out_mat.specular = mat.specular.rgb;
     out_mat.emissive = mat.emissive.rgb;
     out_mat.opacity = saturate(mat.params.x);
-    out_mat.roughness = clamp(mat.params.y, 0.02, 1.0);
+    out_mat.roughness = clamp(mat.params.y, 0.0, 1.0);
     out_mat.metallic = saturate(mat.params.z);
     out_mat.emissive_power = max(0.0, mat.emissive.w);
     out_mat.use_specular_workflow = mat.params.w > 0.5;
@@ -321,7 +329,7 @@ EvalMaterial eval_material(TraceResult hit) {
         if (mat.texture0.z != INVALID_TEXTURE)
             out_mat.emissive = sample_texture(mat.texture0.z, hit.uv, scale).rgb;
         if (mat.texture1.x != INVALID_TEXTURE)
-            out_mat.roughness = clamp(sample_texture(mat.texture1.x, hit.uv, scale).r, 0.02, 1.0);
+            out_mat.roughness = clamp(sample_texture(mat.texture1.x, hit.uv, scale).r, 0.0, 1.0);
         if (mat.texture1.y != INVALID_TEXTURE)
             out_mat.metallic = saturate(sample_texture(mat.texture1.y, hit.uv, scale).r);
         if (mat.texture1.z != INVALID_TEXTURE)
@@ -589,10 +597,15 @@ vec3 shade_direct(TraceResult hit, vec3 origin, vec3 dir, bool include_ambient, 
 
             if (type == LIGHT_SPOT) {
                 vec3 spot_dir = normalize(light.dir_type.xyz);
-                float angle = acos(clamp(dot(spot_dir, -light_dir), -1.0, 1.0));
-                if (2.0 * angle > light.params.x) {
+                float cos_angle = clamp(dot(spot_dir, -light_dir), -1.0, 1.0);
+                // The hard cone is a dot/cosine comparison. Avoid making a boundary
+                // decision from GLSL acos(), whose permitted error differs by vendor.
+                if (cos_angle < light.params.w) {
                     attenuation = 0.0;
                 } else if (light.color_atten.w >= 0.0 && light.params.z >= 0.0) {
+                    // Keep the existing angular soft-falloff formula for OptiX parity.
+                    // The transcendental is therefore paid only when soft falloff is enabled.
+                    float angle = acos(cos_angle);
                     float a = saturate(light.params.z * (light.params.x - 2.0 * angle));
                     attenuation *= a * a;
                 }
@@ -644,7 +657,8 @@ vec4 trace_camera(vec3 origin, vec3 dir, uint camera_sample_index) {
     uint path_seed = (gl_LaunchIDEXT.x + 1u) * 73856093u ^
                      (gl_LaunchIDEXT.y + 1u) * 19349663u ^
                      (camera_sample_index + 1u) * 83492791u ^
-                     (pc.frame_index + 1u) * 2654435761u;
+                     (pc.frame_index + 1u) * 2654435761u ^
+                     camera_rng_key();
     float first_depth = 0.0;
     vec3 throughput = vec3(1.0);
     vec3 ro = origin;
@@ -734,7 +748,8 @@ float camera_sample_jitter(uint x, uint y, uint sample_index, uint axis) {
                      (y + 1u) * 19349663u ^
                      (sample_index + 1u) * 83492791u ^
                      axis * 2654435761u ^
-                     (pc.frame_index + 1u) * 2246822519u);
+                     (pc.frame_index + 1u) * 2246822519u ^
+                     camera_rng_key());
 }
 
 vec3 camera_ray_sample(uint x, uint y, float jitter_x, float jitter_y, bool aux_projection) {
