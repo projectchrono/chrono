@@ -110,7 +110,6 @@ if(CH_ENABLE_MODULE_FSI_SPH)
 endif()
 
 if(CH_ENABLE_MODULE_FSI_TDPF)
-  target_include_directories(Chrono_precice PRIVATE "${CH_HYDROCHRONO_DIR}/include")
   target_link_libraries(Chrono_precice PRIVATE Chrono_fsitdpf)
   if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(Chrono_precice PRIVATE Chrono_fsitdpf_vsg)
