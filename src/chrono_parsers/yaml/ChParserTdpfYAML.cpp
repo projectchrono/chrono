@@ -34,7 +34,12 @@ namespace chrono {
 namespace parsers {
 
 ChParserTdpfYAML::ChParserTdpfYAML(const std::string& yaml_filename, bool verbose)
-    : ChParserCfdYAML(verbose), m_gravity({0, 0, -9.8}), m_loaded(false), m_solver_loaded(false), m_model_loaded(false) {
+    : ChParserCfdYAML(verbose),
+      m_gravity({0, 0, -9.8}),
+      m_ramp_duration(0),
+      m_loaded(false),
+      m_solver_loaded(false),
+      m_model_loaded(false) {
     SetVerbose(verbose);
     LoadFile(yaml_filename);
 }
@@ -163,25 +168,74 @@ void ChParserTdpfYAML::LoadModelData(const YAML::Node& yaml) {
         m_wave_type = ReadWaveType(waves["type"]);
         switch (m_wave_type) {
             case WaveType::NONE:
+                m_sea_state.type = "none";
                 break;
-            case WaveType::REGULAR:
+            case WaveType::REGULAR: {
                 ChAssertAlways(waves["height"]);
                 ChAssertAlways(waves["period"]);
-                m_reg_wave_params.regular_wave_amplitude = 0.5 * waves["height"].as<double>();
-                m_reg_wave_params.regular_wave_omega = CH_2PI / waves["period"].as<double>();
+                m_sea_state.type = "regular";
+                m_sea_state.amplitude = 0.5 * waves["height"].as<double>();
+                m_sea_state.omega = CH_2PI / waves["period"].as<double>();
                 if (waves["phase"])
-                    m_reg_wave_params.regular_wave_phase = waves["phase"].as<double>();
-                else
-                    m_reg_wave_params.regular_wave_phase = 0;
-                if (waves["stretching"])
-                    m_reg_wave_params.wave_stretching = waves["stretching"].as<bool>();
-                else
-                    m_reg_wave_params.wave_stretching = true;
+                    m_sea_state.phase_rad = waves["phase"].as<double>();
+                if (waves["direction"]) {
+                    double dir = waves["direction"].as<double>();
+                    m_sea_state.direction_deg = m_use_degrees ? dir : dir * CH_RAD_TO_DEG;
+                }
                 break;
-            case WaveType::IRREGULAR:
-                //// TODO
+            }
+            case WaveType::IRREGULAR: {
+                ChAssertAlways(waves["height"]);
+                ChAssertAlways(waves["period"]);
+                m_sea_state.type = "irregular";
+
+                fsi::tdpf::ChTdpfSeaStatePartition partition;
+                partition.spectrum.Hs = waves["height"].as<double>();
+                partition.spectrum.Tp = waves["period"].as<double>();
+                if (waves["spectrum"])
+                    partition.spectrum.type = waves["spectrum"].as<std::string>();
+                if (waves["gamma"])
+                    partition.spectrum.gamma = waves["gamma"].as<double>();
+                if (waves["direction"]) {
+                    double dir = waves["direction"].as<double>();
+                    partition.spreading.mean_direction_deg = m_use_degrees ? dir : dir * CH_RAD_TO_DEG;
+                }
+                if (waves["spreading"]) {
+                    auto spreading = waves["spreading"];
+                    if (spreading["type"])
+                        partition.spreading.type = spreading["type"].as<std::string>();
+                    if (spreading["s"])
+                        partition.spreading.s = spreading["s"].as<double>();
+                }
+                m_sea_state.partitions.push_back(partition);
+
+                // Frequency range and discretization. YAML carries frequencies in
+                // Hz; the TDPF API uses angular frequencies.
+                if (waves["frequency_min"])
+                    m_sea_state.omega_min = CH_2PI * waves["frequency_min"].as<double>();
+                if (waves["frequency_max"])
+                    m_sea_state.omega_max = CH_2PI * waves["frequency_max"].as<double>();
+                if (waves["nfrequencies"])
+                    m_sea_state.n_omega = waves["nfrequencies"].as<int>();
+                if (waves["discretization"]) {
+                    auto discretization = waves["discretization"];
+                    if (discretization["n_omega"])
+                        m_sea_state.n_omega = discretization["n_omega"].as<int>();
+                    if (discretization["n_theta"])
+                        m_sea_state.n_theta = discretization["n_theta"].as<int>();
+                }
+                if (waves["seed"])
+                    m_sea_state.seed = waves["seed"].as<int>();
+                if (waves["eta_file"])
+                    m_sea_state.eta_file_path = waves["eta_file"].as<std::string>();
                 break;
+            }
         }
+
+        if (waves["depth"])
+            m_sea_state.depth = waves["depth"].as<double>();
+        if (waves["ramp_duration"])
+            m_ramp_duration = waves["ramp_duration"].as<double>();
     }
 
     m_model_loaded = true;
@@ -213,18 +267,11 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
     m_sysTDPF->SetHydroFilename(h5_file);
     m_sysTDPF->SetGravitationalAcceleration(m_gravity);
 
-    // Add waves (note that the number of bodies is set during initialization of the TDPF system)
-    switch (m_wave_type) {
-        case WaveType::NONE:
-            break;
-        case WaveType::REGULAR: {
-            m_sysTDPF->AddWaves(m_reg_wave_params);
-            break;
-        }
-        case WaveType::IRREGULAR:
-            m_sysTDPF->AddWaves(m_irreg_wave_params);
-            break;
-    }
+    // Set the sea state (note that the number of bodies is set during initialization
+    // of the TDPF system)
+    m_sysTDPF->SetSeaState(m_sea_state);
+    if (m_ramp_duration > 0)
+        m_sysTDPF->SetRampDuration(m_ramp_duration);
 
     // Create a Chrono::FSI-TDPF system with no MBS attached
     m_sysFSI = chrono_types::make_shared<fsi::tdpf::ChFsiSystemTDPF>(nullptr, m_sysTDPF.get());

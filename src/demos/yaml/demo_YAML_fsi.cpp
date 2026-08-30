@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     if (!input.empty()) {
         std::istringstream stream(input);
         stream >> model;
-        ChClampValue(model, 1, 5);
+        ChClampValue(model, 1, 7);
     }
 
     // Set input file name

@@ -103,8 +103,8 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     static WaveType ReadWaveType(const YAML::Node& a);
 
   private:
-    RegularWaveParams m_reg_wave_params;      ///< regular wave settings
-    IrregularWaveParams m_irreg_wave_params;  ///< irregular wave settings
+    fsi::tdpf::ChTdpfSeaState m_sea_state;  ///< sea state settings
+    double m_ramp_duration;                 ///< excitation ramp duration [s]; 0 = no ramp
 
     OutputData m_output_data;  ///< output data
     std::string m_h5_file;     ///< hydrodynamics input file (HDF5 format)
