@@ -69,7 +69,7 @@ void ChFsiSystemTDPF::Initialize() {
     auto num_bodies = m_fsi_interface->GetNumBodies();
     if (num_bodies > 0) {
         auto& fsi_bodies = m_fsi_interface->GetBodies();
-        const auto& body_info = m_sysTDPF->m_impl->m_hydro_data.GetBodyInfos();
+        const auto& body_info = m_sysTDPF->m_impl->GetHydroData().GetBodyInfos();
 
         ChBodyAddedMassBlocks body_blocks;
         for (size_t i = 0; i < num_bodies; i++) {

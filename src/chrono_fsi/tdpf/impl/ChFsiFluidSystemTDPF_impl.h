@@ -11,21 +11,27 @@
 // =============================================================================
 // Author: Radu Serban
 // =============================================================================
+//
+// Private implementation of the TDPF fluid solver, wrapping SEA-Stack.
+//
+// This is the only place where SEA-Stack headers are included; no public Chrono
+// header refers to any seastack:: type.
+//
+// =============================================================================
 
 #pragma once
 
-#include "hydroc/core/hydro_types.h"
-#include "hydroc/core/system_state.h"
-#include "hydroc/core/hydro_forces.h"
+#include <memory>
+#include <string>
 
-#include "hydro/force_components/excitation_component.h"
-#include "hydro/force_components/hydrostatics_component.h"
-#include "hydro/force_components/radiation_component.h"
+#include <Eigen/Dense>
 
-#include "hydroc/waves/regular_wave.h"
-#include "hydroc/waves/irregular_wave.h"
+#include <seastack/core/system_state.h>
+#include <seastack/core/types.h>
+#include <seastack/hydro/hydro_model_builder.h>
+#include <seastack/hydro/waves/wave_base.h>
 
-#include "hydroc/io/h5_reader.h"
+#include "chrono_fsi/tdpf/ChFsiTdpfTypes.h"
 
 namespace chrono {
 namespace fsi {
@@ -34,37 +40,48 @@ namespace tdpf {
 class ChFsiFluidSystemTDPF_impl {
   public:
     ChFsiFluidSystemTDPF_impl();
-    ~ChFsiFluidSystemTDPF_impl() {}
+    ~ChFsiFluidSystemTDPF_impl();
 
   private:
+    /// Read the hydro data file and assemble the SEA-Stack hydrodynamic model.
+    /// All force components are created here through HydroModelBuilder.
     void Initialize(const std::string& hydro_filename, unsigned int num_bodies);
 
-    std::unique_ptr<hydrochrono::hydro::ExcitationComponent> CreateExcitationComponent() const;
-    std::unique_ptr<hydrochrono::hydro::HydrostaticsComponent> CreateHydrostaticsComponent() const;
-    std::unique_ptr<hydrochrono::hydro::RadiationComponent> CreateRadiationComponent() const;
-
+    /// Evaluate hydrodynamic forces for the cached solid state at the given time.
     void CalculateHydroForces(double time);
 
-    HydroData m_hydro_data;
+    /// Access the hydrodynamic coefficient data owned by the model.
+    /// Only valid after Initialize().
+    const seastack::hydro::HydroData& GetHydroData() const;
 
-    unsigned int m_num_rigid_bodies;
-    Eigen::Vector3d m_g;
+    /// Access the wave model owned by the model (never null after Initialize()).
+    const std::shared_ptr<seastack::hydro::WaveBase>& GetWaves() const { return m_waves; }
 
-    // Additional properties related to equilibrium and hydrodynamics
-    std::vector<double> m_equilibrium;
-    std::vector<double> m_cb_minus_cg;
-    Eigen::VectorXd m_rirf_time_vector;
-    Eigen::VectorXd m_rirf_width_vector;
+    unsigned int m_num_rigid_bodies;  ///< number of rigid bodies
+    Eigen::Vector3d m_g;              ///< gravitational acceleration
 
-    hydrochrono::hydro::RadiationConvolutionMode m_convolution_mode;
-    hydrochrono::hydro::TaperedDirectOptions m_tapered_opts;
+    // Solver configuration, staged before Initialize() and translated to
+    // SEA-Stack types there.
+    ChTdpfSeaState m_sea_state;
+    ChTdpfRadiationMethod m_radiation_method;
+    ChTdpfRadiationKernelProcessing m_kernel_processing;
+    ChTdpfStateSpaceOptions m_state_space_options;
+    ChTdpfExcitationMethod m_excitation_method;
+    ChTdpfExcitationInterpolation m_excitation_interpolation;
+    double m_ramp_duration;
+    double m_radiation_truncation_time;
+    double m_excitation_truncation_time;
     std::string m_diagnostics_output_dir;
 
-    std::shared_ptr<WaveBase> m_waves;
+    // SEA-Stack model. Owns the HydroData, the wave object, and the force
+    // components; force components hold a reference to the HydroData, so the
+    // model must outlive any force evaluation.
+    std::unique_ptr<seastack::hydro::HydroModel> m_model;
+    std::shared_ptr<seastack::hydro::WaveBase> m_waves;
 
-    hydrochrono::hydro::SystemState m_hc_state;
-    hydrochrono::hydro::BodyForces m_hc_forces;
-    std::unique_ptr<hydrochrono::hydro::HydroForces> m_hc_force_system;
+    // Exchange buffers.
+    seastack::hydro::SystemState m_ss_state;
+    seastack::hydro::BodyForces m_ss_forces;
 
     friend class ChFsiSystemTDPF;
     friend class ChFsiFluidSystemTDPF;

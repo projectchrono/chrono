@@ -21,10 +21,7 @@
 
 #include "chrono_fsi/ChFsiFluidSystem.h"
 
-#include "hydroc/core/hydro_types.h"
-#include "hydroc/waves/regular_wave.h"
-#include "hydroc/waves/irregular_wave.h"
-#include "hydroc/radiation/radiation_types.h"
+#include "chrono_fsi/tdpf/ChFsiTdpfTypes.h"
 
 namespace chrono {
 namespace fsi {
@@ -51,16 +48,38 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     /// Return gravitational acceleration.
     ChVector3d GetGravitationalAcceleration() const;
 
-    void SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode);
-    void SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts);
+    /// Set the sea state (still water, regular, or irregular waves).
+    /// Note that the number of bodies is set during initialization.
+    void SetSeaState(const ChTdpfSeaState& sea_state);
 
-    /// Add regular wave conditions.
-    /// Note that the number of bodies is overwritten during initialization.
-    void AddWaves(const RegularWaveParams& params);
+    /// Select the radiation damping method (default: RIRF convolution).
+    void SetRadiationMethod(ChTdpfRadiationMethod method);
 
-    /// Add irregular wave conditions.
-    /// Note that the number of bodies is overwritten during initialization.
-    void AddWaves(const IrregularWaveParams& params);
+    /// Configure RIRF kernel processing (smoothing / tapering).
+    /// Only applies with ChTdpfRadiationMethod::RIRF_CONVOLUTION.
+    void SetRadiationKernelProcessing(const ChTdpfRadiationKernelProcessing& opts);
+
+    /// Configure state-space fitting parameters.
+    /// Only applies with ChTdpfRadiationMethod::STATE_SPACE.
+    void SetStateSpaceOptions(const ChTdpfStateSpaceOptions& opts);
+
+    /// Select the wave excitation force method (default: automatic).
+    void SetExcitationMethod(ChTdpfExcitationMethod method);
+
+    /// Select the excitation transfer function interpolation method.
+    void SetExcitationInterpolation(ChTdpfExcitationInterpolation interp);
+
+    /// Set the excitation ramp duration [s]. 0 = no ramp.
+    void SetRampDuration(double seconds);
+
+    /// Truncate the radiation RIRF to [0, T] seconds. 0 = use full RIRF.
+    void SetRadiationTruncationTime(double seconds);
+
+    /// Truncate the excitation IRF to [-T, T] seconds. 0 = use full IRF.
+    void SetExcitationTruncationTime(double seconds);
+
+    /// Set the directory for diagnostics output (kernel CSVs, etc.).
+    void SetDiagnosticsOutputDir(const std::string& dir);
 
     /// Get current wave elevation at specified position (in X-Y plane).
     double GetWaveElevation(const ChVector3d& pos);
@@ -112,8 +131,6 @@ public:
     virtual void OnExchangeSolidStates() override;
 
   private:
-    enum class WaveType { NONE, REGULAR, IRREGULAR };
-
     // ----------
 
     /// TDPF solver-specific actions taken when a rigid solid is added as an FSI object.
@@ -145,10 +162,6 @@ public:
 
     std::string m_hydro_filename;                       ///< input hydro file name (HDF5 format)
     std::unique_ptr<ChFsiFluidSystemTDPF_impl> m_impl;  ///< private implementation
-
-    WaveType m_wave_type;
-    RegularWaveParams m_reg_wave_params;      ///< regular wave parameters (optional)
-    IrregularWaveParams m_irreg_wave_params;  ///< irregular wave parameters (optional)
 
     friend class ChFsiSystemTDPF;
     friend class ChFsiInterfaceTDPF;
