@@ -124,14 +124,20 @@ int main(int argc, char* argv[]) {
     sysTDPF.SetHydroFilename(sphere_hydrofile);
 
     // Add irregular waves
-    IrregularWaveParams irreg_wave_params;
-    irreg_wave_params.ramp_duration = 60.0;
-    irreg_wave_params.wave_height = wave_height;
-    irreg_wave_params.wave_period = wave_period;
-    irreg_wave_params.frequency_min = 0.001;
-    irreg_wave_params.frequency_max = 1.0;
-    irreg_wave_params.nfrequencies = 1000;
-    sysTDPF.AddWaves(irreg_wave_params);
+    ChTdpfSeaState sea_state;
+    sea_state.type = "irregular";
+    sea_state.n_omega = 1000;
+    sea_state.omega_min = CH_2PI * 0.001;  // 0.001 Hz
+    sea_state.omega_max = CH_2PI * 1.0;    // 1.0 Hz
+
+    ChTdpfSeaStatePartition partition;
+    partition.spectrum.type = "pierson_moskowitz";
+    partition.spectrum.Hs = wave_height;
+    partition.spectrum.Tp = wave_period;
+    sea_state.partitions.push_back(partition);
+
+    sysTDPF.SetSeaState(sea_state);
+    sysTDPF.SetRampDuration(60.0);
 
     // ----- FSI system
     ChFsiSystemTDPF sysFSI(&sysMBS, &sysTDPF);

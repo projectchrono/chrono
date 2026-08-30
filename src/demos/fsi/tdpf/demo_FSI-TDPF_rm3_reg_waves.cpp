@@ -150,10 +150,11 @@ int main(int argc, char* argv[]) {
     sysTDPF.SetHydroFilename(rm3_hydrofile);
 
     // Add regular wave
-    RegularWaveParams reg_wave_params;
-    reg_wave_params.regular_wave_amplitude = wave_amplitude;
-    reg_wave_params.regular_wave_omega = CH_2PI / wave_period;
-    sysTDPF.AddWaves(reg_wave_params);
+    ChTdpfSeaState sea_state;
+    sea_state.type = "regular";
+    sea_state.amplitude = wave_amplitude;
+    sea_state.omega = CH_2PI / wave_period;
+    sysTDPF.SetSeaState(sea_state);
 
     // ----- FSI system
     ChFsiSystemTDPF sysFSI(&sysMBS, &sysTDPF);
