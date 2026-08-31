@@ -63,6 +63,10 @@ endif()
 # Set SWIG flags for optional modules
 #-----------------------------------------------------------------------------
 
+if(CH_ENABLE_MODULE_FEA)
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FEA")
+endif()
+
 if(CH_ENABLE_MODULE_VSG)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_VSG")
 endif()
@@ -73,6 +77,7 @@ endif()
 
 if(CH_ENABLE_MODULE_FSI_SPH)
   set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_FSI_SPH")
+  set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_CRM")
 endif()
 
 if(CH_ENABLE_MODULE_PARSERS)

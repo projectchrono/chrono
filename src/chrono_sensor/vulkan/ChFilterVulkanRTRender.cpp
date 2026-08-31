@@ -18,6 +18,7 @@
 #include "chrono_sensor/vulkan/ChVulkanRTUtils.h"
 #include "chrono_sensor/vulkan/ChVulkanRTBuffer.h"
 #include "chrono_sensor/ChConfigSensor.h"
+#include "chrono_sensor/ChSensorManager.h"
 
 #include <algorithm>
 #include <array>
@@ -132,14 +133,33 @@ struct TextureSample4 {
 };
 
 struct EvaluatedMaterial {
-    ChVector3f diffuse = ChVector3f(0.5f, 0.5f, 0.5f);
-    ChVector3f specular = ChVector3f(0.2f, 0.2f, 0.2f);
-    ChVector3f emissive = ChVector3f(0.f, 0.f, 0.f);
-    float opacity = 1.f;
-    float roughness = 1.f;
-    float metallic = 0.f;
-    bool use_specular_workflow = false;
+    ChVector3f diffuse;
+    ChVector3f specular;
+    ChVector3f emissive;
+    float opacity;
+    float roughness;
+    float metallic;
+    bool use_specular_workflow;
 };
+
+const EvaluatedMaterial& DefaultEvaluatedMaterial() {
+    static const EvaluatedMaterial defaults = [] {
+        const auto material = ChVisualMaterial::Default();
+        const auto& kd = material->GetDiffuseColor();
+        const auto& ks = material->GetSpecularColor();
+        const auto& ke = material->GetEmissiveColor();
+        EvaluatedMaterial out{};
+        out.diffuse = ChVector3f(kd.R, kd.G, kd.B);
+        out.specular = ChVector3f(ks.R, ks.G, ks.B);
+        out.emissive = ChVector3f(ke.R, ke.G, ke.B);
+        out.opacity = material->GetOpacity();
+        out.roughness = material->GetRoughness();
+        out.metallic = material->GetMetallic();
+        out.use_specular_workflow = material->GetUseSpecularWorkflow();
+        return out;
+    }();
+    return defaults;
+}
 
 inline uint8_t ToByte(float v) {
     v = std::max(0.f, std::min(1.f, v));
@@ -205,16 +225,29 @@ inline float HashUnitFloat(uint32_t x) {
     return static_cast<float>(HashU32(x) & 0x00ffffffu) / static_cast<float>(0x01000000u);
 }
 
-inline float OptixJitterComponent(unsigned int x, unsigned int y, unsigned int sample_idx, unsigned int axis) {
-    return HashUnitFloat((x + 1u) * 73856093u ^ (y + 1u) * 19349663u ^ (sample_idx + 1u) * 83492791u ^ axis * 2654435761u);
+inline uint32_t CameraRngKey(unsigned long long rng_seed) {
+    const uint32_t lo = static_cast<uint32_t>(rng_seed);
+    const uint32_t hi = static_cast<uint32_t>(rng_seed >> 32);
+    return HashU32(lo ^ hi * 0x9e3779b9u);
+}
+
+inline float OptixJitterComponent(unsigned int x,
+                                  unsigned int y,
+                                  unsigned int sample_idx,
+                                  unsigned int axis,
+                                  uint32_t frame_index,
+                                  unsigned long long rng_seed) {
+    return HashUnitFloat((x + 1u) * 73856093u ^ (y + 1u) * 19349663u ^
+                         (sample_idx + 1u) * 83492791u ^ axis * 2654435761u ^
+                         (frame_index + 1u) * 2246822519u ^ CameraRngKey(rng_seed));
 }
 
 inline float NormalDistOptix(float ndh, float roughness) {
-    // Keep the same microfacet normalization used by OptiX shader_utils.cuh::NormalDist():
-    // the 1/pi factor is intentionally omitted there and must not be reintroduced here.
-    const float rough_sqr = std::max(0.02f, roughness) * std::max(0.02f, roughness);
+    // Match OptiX shader_utils.cuh::NormalDist() exactly. In particular, do not
+    // impose a Vulkan-only roughness or denominator floor at mirror-like values.
+    const float rough_sqr = roughness * roughness;
     const float den = ndh * ndh * (rough_sqr - 1.f) + 1.f;
-    return rough_sqr / std::max(1e-5f, den * den);
+    return rough_sqr / (den * den);
 }
 
 inline float HammonSmithOptix(float ndv, float ndl, float roughness) {
@@ -530,12 +563,12 @@ TextureSample4 SampleEnvironmentTexture(
 }
 
 EvaluatedMaterial EvaluateMaterial(const ChVulkanRTRenderCache* cache, const RayHit& hit) {
-    EvaluatedMaterial out;
+    EvaluatedMaterial out = DefaultEvaluatedMaterial();
     out.diffuse = hit.material.diffuse;
     out.specular = hit.material.specular;
     out.emissive = hit.material.emissive;
     out.opacity = ClampFloat(hit.material.opacity, 0.f, 1.f);
-    out.roughness = ClampFloat(hit.material.roughness, 0.02f, 1.f);
+    out.roughness = ClampFloat(hit.material.roughness, 0.f, 1.f);
     out.metallic = ClampFloat(hit.material.metallic, 0.f, 1.f);
     out.use_specular_workflow = hit.material.use_specular_workflow;
 
@@ -562,7 +595,7 @@ EvaluatedMaterial EvaluateMaterial(const ChVulkanRTRenderCache* cache, const Ray
         if (!hit.material.roughness_texture.empty()) {
             const auto tex = SampleTexture(cache, hit.material.roughness_texture, hit.uv, hit.material.tex_scale_u, hit.material.tex_scale_v);
             if (tex.valid)
-                out.roughness = ClampFloat(tex.r, 0.02f, 1.f);
+                out.roughness = ClampFloat(tex.r, 0.f, 1.f);
         }
         if (!hit.material.metallic_texture.empty()) {
             const auto tex = SampleTexture(cache, hit.material.metallic_texture, hit.uv, hit.material.tex_scale_u, hit.material.tex_scale_v);
@@ -1343,11 +1376,15 @@ ChVector3f Shade(const ChVulkanRTRenderCache* cache,
                 }
                 if (light.type == LightType::SPOT_LIGHT) {
                     const ChVector3d spot_dir = NormalizeSafe(ChVector3d(light.dir));
-                    const double angle = std::acos(std::max(-1.0, std::min(1.0, spot_dir.Dot(-light_dir))));
-                    if (2.0 * angle > static_cast<double>(light.angle)) {
+                    const double cos_angle =
+                        std::max(-1.0, std::min(1.0, spot_dir.Dot(-light_dir)));
+                    if (cos_angle < std::cos(0.5 * static_cast<double>(light.angle))) {
                         attenuation = 0.f;
                     } else if (!light.const_color && light.angle_atten_rate >= 0.f) {
-                        float angle_attenuation = ClampFloat(light.angle_atten_rate * (light.angle - 2.f * static_cast<float>(angle)), 0.f, 1.f);
+                        // Keep the OptiX-compatible soft falloff in angle space.
+                        const double angle = std::acos(cos_angle);
+                        float angle_attenuation = ClampFloat(
+                            light.angle_atten_rate * (light.angle - 2.f * static_cast<float>(angle)), 0.f, 1.f);
                         attenuation *= angle_attenuation * angle_attenuation;
                     }
                 } else if (light.type == LightType::RECTANGLE_LIGHT || light.type == LightType::DISK_LIGHT) {
@@ -1794,7 +1831,7 @@ struct ChVulkanRTGpuLight {
     float pos_range[4];    // pos xyz, range
     float dir_type[4];     // dir xyz, LightType as float
     float color_atten[4];  // color rgb, attenuation scale
-    float params[4];       // angle, angle_falloff_start, angle_atten_rate, area/radius
+    float params[4];       // angle, angle_falloff_start, angle_atten_rate, spot cos-half-angle or area/radius
 };
 
 struct ChVulkanRTGpuSceneData {
@@ -1815,8 +1852,12 @@ struct ChVulkanRTGpuPushConstants {
     uint32_t height;
     uint32_t pipeline;
     uint32_t flags;
-    uint32_t frame_index;  // VulkanCameraFrameRng: decorrelate stochastic camera launches.
+    uint32_t frame_index;  // Decorrelate stochastic camera launches.
+    uint32_t rng_seed_lo;  // Low half of ChSensorManager-derived stream seed.
+    uint32_t rng_seed_hi;  // High half of ChSensorManager-derived stream seed.
 };
+static_assert(sizeof(ChVulkanRTGpuPushConstants) <= 128,
+              "Vulkan RT push constants exceed Vulkan's guaranteed 128-byte minimum");
 
 struct ChVulkanRTGpuFrame {
     std::shared_ptr<ChVulkanSensor> sensor;
@@ -1842,6 +1883,7 @@ struct ChVulkanRTGpuFrame {
     uint32_t ray_recursions = 1;
     uint32_t sample_factor = 1;
     uint32_t frame_index = 0;
+    unsigned long long rng_seed = 0;
     SensorHostRGBA8Buffer* rgba8 = nullptr;
     SensorHostRGBDHalf4Buffer* rgbd = nullptr;
     SensorHostDepthBuffer* depth = nullptr;
@@ -1937,7 +1979,9 @@ ChVulkanRTGpuLight MakeGpuLight(const ChVulkanRTLight& light) {
     out.params[0] = light.angle;
     out.params[1] = light.angle_falloff_start;
     out.params[2] = light.angle_atten_rate;
-    out.params[3] = light.radius > 0.f ? light.radius : light.area;
+    out.params[3] = (light.type == LightType::SPOT_LIGHT)
+                        ? static_cast<float>(std::cos(0.5 * static_cast<double>(light.angle)))
+                        : (light.radius > 0.f ? light.radius : light.area);
     return out;
 }
 
@@ -2027,6 +2071,8 @@ struct ChVulkanRTGpuRenderer {
         const uint32_t sample_factor = std::min<uint32_t>(32u, std::max<uint32_t>(1u, frame.sample_factor));
         pc.flags = (frame.use_gi ? 1u : 0u) | (recursion_count << 8) | (sample_factor << 16);
         pc.frame_index = frame.frame_index;
+        pc.rng_seed_lo = static_cast<uint32_t>(frame.rng_seed);
+        pc.rng_seed_hi = static_cast<uint32_t>(frame.rng_seed >> 32);
 
         RecordAndSubmitRender(pc, frame.width, frame.height, frame.pipeline);
         CopyOutputToHost(frame);
@@ -2290,11 +2336,12 @@ struct ChVulkanRTGpuRenderer {
     void EnsureBuffer(std::unique_ptr<ChVulkanRTBuffer>& buffer,
                       VkDeviceSize size,
                       VkBufferUsageFlags usage,
-                      VkMemoryPropertyFlags memory_flags) {
+                      VkMemoryPropertyFlags memory_flags,
+                      VkMemoryPropertyFlags preferred_flags = 0) {
         if (size == 0)
             size = 1;
         if (!buffer || buffer->GetSize() < size) {
-            buffer = std::make_unique<ChVulkanRTBuffer>(m_device, size, usage, memory_flags);
+            buffer = std::make_unique<ChVulkanRTBuffer>(m_device, size, usage, memory_flags, preferred_flags);
             m_descriptors_dirty = true;
         }
     }
@@ -3028,7 +3075,8 @@ struct ChVulkanRTGpuRenderer {
         EnsureBuffer(m_output_staging_buffer,
                      needed,
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                     VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
     }
 
     void WriteDescriptors() {
@@ -3313,6 +3361,23 @@ void ChFilterVulkanRTRender::Initialize(std::shared_ptr<ChSensor> pSensor, std::
     }
 
     m_sensor = vulkan_sensor;
+
+    // Use the same manager/sensor/filter stream derivation as OptiX. With a
+    // pinned ChSensorManager seed this is repeatable; otherwise it is clock-seeded.
+    switch (vulkan_sensor->GetPipelineType()) {
+        case VulkanPipelineType::CAMERA:
+            m_rng_seed = ChSensorManager::GetDeterministicSeed(
+                pSensor, RngUsage::VulkanCameraRaygen, GetRngStreamIndex());
+            break;
+        case VulkanPipelineType::PHYS_CAMERA:
+            m_rng_seed = ChSensorManager::GetDeterministicSeed(
+                pSensor, RngUsage::VulkanPhysCameraRaygen, GetRngStreamIndex());
+            break;
+        default:
+            m_rng_seed = 0;
+            break;
+    }
+
     const unsigned int width = vulkan_sensor->GetWidth();
     const unsigned int height = vulkan_sensor->GetHeight();
     const size_t count = static_cast<size_t>(width) * static_cast<size_t>(height);
@@ -3494,8 +3559,10 @@ void ChFilterVulkanRTRender::Apply() {
         gpu_frame.use_gi = CameraUseGI(sensor);
         gpu_frame.ray_recursions = static_cast<uint32_t>(std::max(1, m_ray_recursions));
         gpu_frame.sample_factor = CameraSampleFactor(sensor);
-        // VulkanCameraFrameRng: OptiX persists and advances per-pixel RNG state across launches.
+        // Frame index advances the stream across launches; m_rng_seed selects the
+        // run/manager/sensor/filter stream according to ChSensorManager's seeding API.
         gpu_frame.frame_index = static_cast<uint32_t>(sensor->GetNumLaunches());
+        gpu_frame.rng_seed = m_rng_seed;
         gpu_frame.max_depth = CameraMaxDepth(sensor);
         gpu_frame.max_distance = gpu_frame.max_depth;
         gpu_frame.clip_near = 0.001f;
@@ -3642,6 +3709,7 @@ void ChFilterVulkanRTRender::Apply() {
     const unsigned int sample_factor = is_color_pipeline ? CameraSampleFactor(sensor) : 1u;
     const ChVulkanRTRenderCache* cache = m_render_cache.get();
     const int camera_hit_limit = OptiXCameraHitLimit(m_ray_recursions);
+    const uint32_t camera_frame_index = static_cast<uint32_t>(sensor->GetNumLaunches());
 
     auto render_pixel = [&](unsigned int x, unsigned int y) {
         const size_t idx = static_cast<size_t>(y) * width + x;
@@ -3654,8 +3722,14 @@ void ChFilterVulkanRTRender::Apply() {
                 for (unsigned int sx = 0; sx < sample_factor; ++sx) {
                     const unsigned int sample_idx = sy * sample_factor + sx;
                     const bool center_sample = (sample_idx + 1u == spp);
-                    const double jx = (sample_factor == 1u || center_sample) ? 0.5 : static_cast<double>(OptixJitterComponent(x, y, sample_idx, 0u));
-                    const double jy = (sample_factor == 1u || center_sample) ? 0.5 : static_cast<double>(OptixJitterComponent(x, y, sample_idx, 1u));
+                    const double jx = (sample_factor == 1u || center_sample)
+                                          ? 0.5
+                                          : static_cast<double>(OptixJitterComponent(
+                                                x, y, sample_idx, 0u, camera_frame_index, m_rng_seed));
+                    const double jy = (sample_factor == 1u || center_sample)
+                                          ? 0.5
+                                          : static_cast<double>(OptixJitterComponent(
+                                                x, y, sample_idx, 1u, camera_frame_index, m_rng_seed));
                     const double fx = static_cast<double>(x) + jx;
                     const double fy = static_cast<double>(y) + jy;
                     double uv_x = 2.0 * fx / static_cast<double>(width) - 1.0;

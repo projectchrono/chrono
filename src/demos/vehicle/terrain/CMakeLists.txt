@@ -66,7 +66,6 @@ set(UTILS "../../SetChronoSolver.h")
 
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
-list(APPEND LIBS "ChronoModels_robot")
 
 if(CH_ENABLE_MODULE_MULTICORE)
     list(APPEND LIBS "Chrono_multicore")

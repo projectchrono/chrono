@@ -44,15 +44,10 @@
 // light so run 2 has a measurable gradient.
 //
 // NOTE on geometry choice: an explicit mesh keeps this demo self-contained, needing
-// no Chrono data directory on the machine running the comparison, and it sidesteps a
-// separate defect in the OptiX primitive path. ChOptixPipeline::GetBoxMaterial sets
-// num_blended_materials = mat_list.size(), which is 0 for a box carrying no explicit
-// ChVisualMaterial, and every shading loop in the OptiX shaders is
-// "for (b = 0; b < num_blended_materials; b++)", so such a surface accumulates no
-// color and renders pure black. GetSphereMaterial and GetNVDBMaterial set the count
-// the same way; GetCylinderMaterial and GetMeshMaterial hardcode 1 and are immune.
-// Run with --probe-box-material to see it: two identical boxes, one with a material
-// and one without, where OptiX blacks out the second and Vulkan shades it correctly.
+// no Chrono data directory on the machine running the comparison. The
+// --probe-box-material mode separately exercises the implicit-material path with two
+// otherwise identical boxes, one explicit and one material-less; both render backends
+// are expected to resolve the latter through ChVisualMaterial::Default().
 //
 // =============================================================================
 
@@ -312,10 +307,8 @@ int main(int argc, char* argv[]) {
     bool material_sweep = false;
     int material_index = -1;  // >= 0 isolates a single material sample (floor + that cube only)
     // Overrides the isolated sample's roughness. The fixed sample list below bottoms out at 0.1,
-    // which leaves a region of the parameter space unreachable: the Vulkan reference clamps
-    // roughness to [0.02, 1], and ChVisualMaterial's default roughness is 0, so the value a shape
-    // gets when it carries the default material is inside the clamped region and no configuration
-    // of this demo could reach it. Negative means "use the sample's own value".
+    // so this flag also covers the mirror-like region around the canonical default. Negative means
+    // "use the sample's own value".
     float roughness_override = -1.f;
     std::string feature;      // mesh | texture | normalmap | opacity | envmap (Florian steps c-f)
     std::string data_dir;    // optional Chrono data directory override
@@ -328,13 +321,9 @@ int main(int argc, char* argv[]) {
     // numbers: per-stream seeds include the sensor's identity, which is what the environment-map
     // convergence study relies on.
     //
-    // Only the OptiX arm currently responds to this. The Vulkan RT backend derives its per-pixel
-    // sample sequence from the launch index and GetNumLaunches() alone and never reads the manager's
-    // base seed, so its images repeat across invocations either way: measured on the envmap
-    // configuration, the four OptiX images from two pinned and two clock runs are identical in the
-    // pinned pair and all different otherwise, while the four Vulkan images share one hash. So a
-    // --seed clock run here is a one-sided test, and independent Monte Carlo trials on the Vulkan
-    // path would share camera noise. Remove this paragraph once the backend mixes the base seed in.
+    // Both render backends derive their stochastic streams through ChSensorManager. A pinned seed
+    // must reproduce each backend across runs, while --seed clock must change stochastic samples
+    // across invocations. The streams remain intentionally distinct between sensors/usages.
     bool pin_seed = true;
     unsigned int random_seed = 20260802u;
     std::string out_dir = "SENSOR_OUTPUT/vulkan_validation/";
@@ -528,8 +517,8 @@ int main(int argc, char* argv[]) {
         tag += "_probe";  // the probe changes the scene, so it must not overwrite the plain run's images
     if (roughness_override >= 0.f) {
         // Same reason as the probe: an overridden sample is a different material, so it gets its own
-        // filenames. Written in hundredths, so 0.00 and 0.02 (the Vulkan clamp boundary) cannot
-        // collide, and the name stays free of a decimal point.
+        // filenames. Written in hundredths, so nearby low-roughness overrides such as 0.00 and 0.02
+        // cannot collide, and the name stays free of a decimal point.
         std::string hundredths = std::to_string((int)(roughness_override * 100.f + 0.5f));
         hundredths.insert(hundredths.begin(), 3 - hundredths.size(), '0');
         tag += "_rough" + hundredths;

@@ -35,6 +35,7 @@
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -70,8 +71,16 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     /// Feed button number and callback function to implement a custom callback.
     void SetButtonCallback(int button, void (*cbfun)());
 
+    /// Select the semantics of the keyboard driving controls (default: ChInteractiveDriver::KeyboardMode::CUMULATIVE,
+    /// unchanged from the ChInteractiveDriver default).
+    /// Overrides the default proposed to an attached ChInteractiveDriver; see ChInteractiveDriver::SetKeyboardMode.
+    void SetKeyboardMode(ChInteractiveDriver::KeyboardMode mode);
+
     /// Attach a vehicle to this Irrlicht vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
+
+    /// Attach a driver to this Irrlicht vehicle visualization system.
+    virtual void AttachDriver(ChDriver* driver) override;
 
     /// Set the upper-left point of HUD elements.
     void SetHUDLocation(int HUD_x, int HUD_y) {
@@ -117,12 +126,14 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
 
     void renderStats();
 
-    ChChaseCameraEventReceiver* m_camera_control;  ///< event receiver for chase-cam control
-    ChVehicleEventReceiver* m_vehicle_control;     ///< event receiver for vehicle control
-    ChJoystickIRR* m_joystick;                     ///< joystick setup
-    bool m_renderStats;                            ///< turn on/off rendering of stats
-    int m_HUD_x;                                   ///< x-coordinate of upper-left corner of HUD elements
-    int m_HUD_y;                                   ///< y-coordinate of upper-left corner of HUD elements
+    ChChaseCameraEventReceiver* m_camera_control;       ///< event receiver for chase-cam control
+    ChVehicleEventReceiver* m_vehicle_control;          ///< event receiver for vehicle control
+    ChJoystickIRR* m_joystick;                          ///< joystick setup
+    ChInteractiveDriver::KeyboardMode m_keyboard_mode;  ///< semantics of the keyboard driving controls
+    bool m_window_focused;                              ///< keyboard focus state of the render window
+    bool m_renderStats;                                 ///< turn on/off rendering of stats
+    int m_HUD_x;                                        ///< x-coordinate of upper-left corner of HUD elements
+    int m_HUD_y;                                        ///< y-coordinate of upper-left corner of HUD elements
 
     friend class ChChaseCameraEventReceiver;
     friend class ChVehicleEventReceiver;

@@ -36,6 +36,13 @@ namespace vehicle {
 ChInteractiveDriver::ChInteractiveDriver(ChVehicle& vehicle)
     : ChDriver(vehicle),
       m_mode(InputMode::KEYBOARD),
+      m_keyboard_mode(KeyboardMode::CUMULATIVE),
+      m_keyboard_mode_user_set(false),
+      m_key_throttle(false),
+      m_key_brake(false),
+      m_key_steer_left(false),
+      m_key_steer_right(false),
+      m_key_clutch(false),
       m_steering_target(0),
       m_throttle_target(0),
       m_braking_target(0),
@@ -55,6 +62,7 @@ ChInteractiveDriver::ChInteractiveDriver(ChVehicle& vehicle)
 void ChInteractiveDriver::SetInputMode(InputMode mode) {
     switch (mode) {
         case InputMode::KEYBOARD:
+            ReleaseAllKeys();
             m_throttle_target = 0;
             m_steering_target = 0;
             m_braking_target = 0;
@@ -72,6 +80,69 @@ void ChInteractiveDriver::SetInputMode(InputMode mode) {
             break;
     }
 }
+
+void ChInteractiveDriver::SetKeyboardMode(KeyboardMode mode) {
+    m_keyboard_mode_user_set = true;
+    if (mode == m_keyboard_mode)
+        return;
+    ReleaseAllKeys();
+    m_steering_target = 0;
+    m_throttle_target = 0;
+    m_braking_target = 0;
+    m_clutch_target = 0;
+    m_keyboard_mode = mode;
+}
+
+void ChInteractiveDriver::SetDefaultKeyboardMode(KeyboardMode mode) {
+    if (m_keyboard_mode_user_set)
+        return;
+    bool user_set = m_keyboard_mode_user_set;
+    SetKeyboardMode(mode);
+    m_keyboard_mode_user_set = user_set;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChInteractiveDriver::SetKeyState(InputKey key, bool pressed) {
+    switch (key) {
+        case InputKey::THROTTLE:
+            m_key_throttle = pressed;
+            break;
+        case InputKey::BRAKE:
+            m_key_brake = pressed;
+            break;
+        case InputKey::STEER_LEFT:
+            m_key_steer_left = pressed;
+            break;
+        case InputKey::STEER_RIGHT:
+            m_key_steer_right = pressed;
+            break;
+        case InputKey::CLUTCH:
+            m_key_clutch = pressed;
+            break;
+    }
+}
+
+void ChInteractiveDriver::ReleaseAllKeys() {
+    m_key_throttle = false;
+    m_key_brake = false;
+    m_key_steer_left = false;
+    m_key_steer_right = false;
+    m_key_clutch = false;
+}
+
+void ChInteractiveDriver::UpdateTargetsFromHeldKeys() {
+    // The brake pedal takes precedence over the accelerator pedal.
+    m_throttle_target = (m_key_throttle && !m_key_brake) ? 1.0 : 0.0;
+    m_braking_target = m_key_brake ? 1.0 : 0.0;
+
+    // Steering self-centers when neither (or both) steering keys are held.
+    m_steering_target = (m_key_steer_left ? 1.0 : 0.0) - (m_key_steer_right ? 1.0 : 0.0);
+
+    m_clutch_target = m_key_clutch ? 1.0 : 0.0;
+}
+
+// -----------------------------------------------------------------------------
 
 void ChInteractiveDriver::SetGains(double steering_gain,
                                    double throttle_gain,
@@ -114,10 +185,15 @@ void ChInteractiveDriver::DecreaseClutch() {
 }
 
 void ChInteractiveDriver::SteeringCenter() {
+    m_key_steer_left = false;
+    m_key_steer_right = false;
     m_steering_target = 0.0;
 }
 
 void ChInteractiveDriver::ReleasePedals() {
+    m_key_throttle = false;
+    m_key_brake = false;
+    m_key_clutch = false;
     m_throttle_target = 0.0;
     m_braking_target = 0.0;
     m_clutch_target = 0.0;
@@ -129,6 +205,10 @@ void ChInteractiveDriver::Advance(double step) {
     // Do nothing if not in KEYBOARD mode.
     if (m_mode != InputMode::KEYBOARD)
         return;
+
+    // With held-key semantics, the targets are a pure function of the keys currently down.
+    if (m_keyboard_mode == KeyboardMode::HELD)
+        UpdateTargetsFromHeldKeys();
 
     // Integrate dynamics, taking as many steps as required to reach the value 'step'
     double t = 0;

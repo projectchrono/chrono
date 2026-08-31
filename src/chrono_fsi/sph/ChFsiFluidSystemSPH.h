@@ -259,10 +259,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set use variable time step.
     void SetUseVariableTimeStep(bool use_variable_time_step);
 
-    /// Enable solution of a CFD SPH problem.
+    /// Enable solution of a CFD SPH problem and set fluid properties.
     void SetCfdSPH(const FluidProperties& fluid_props);
 
-    /// Enable solution of a CRM SPH problem.
+    /// Enable solution of a CRM SPH problem and set soil material properties.
+    /// Note that only parameters from the provided structure that do not belong to the specified rheology are ignored and discarded.
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
     void SetCrmSPH(const SoilProperties& mat_props);
 

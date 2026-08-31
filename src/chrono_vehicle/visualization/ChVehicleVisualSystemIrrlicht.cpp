@@ -292,7 +292,33 @@ bool ChVehicleEventReceiver::ProcessKeyboardEvents(const SEvent& event,
         transmission_manual = vehicle->GetTransmission()->asManual();   // nullptr for an automatic transmission
     }
 
-    if (event.KeyInput.PressedDown) {
+    // In KeyboardMode::HELD, Irrlicht reports both press and release through KeyInput.PressedDown; the state
+    // updates below are idempotent, so auto-repeat presses and repeated releases are harmless.
+    if (driver->GetKeyboardMode() == ChInteractiveDriver::KeyboardMode::HELD) {
+        bool pressed = event.KeyInput.PressedDown;
+        switch (event.KeyInput.Key) {
+            case KEY_KEY_A:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::STEER_LEFT, pressed);
+                return true;
+            case KEY_KEY_D:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::STEER_RIGHT, pressed);
+                return true;
+            case KEY_KEY_W:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::THROTTLE, pressed);
+                return true;
+            case KEY_KEY_S:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::BRAKE, pressed);
+                return true;
+            case KEY_KEY_E:
+                if (transmission_manual) {
+                    driver->SetKeyState(ChInteractiveDriver::InputKey::CLUTCH, pressed);
+                    return true;
+                }
+                break;
+            default:
+                break;
+        }
+    } else if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
             case KEY_KEY_A:
                 driver->SteeringLeft();
@@ -321,7 +347,9 @@ bool ChVehicleEventReceiver::ProcessKeyboardEvents(const SEvent& event,
                     break;
             }
         }
-    } else {
+    }
+
+    if (!event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
             case KEY_KEY_C:
                 driver->SteeringCenter();
@@ -494,7 +522,7 @@ bool ChVehicleEventReceiver::ProcessJoystickEvents(const SEvent& event,
 // -----------------------------------------------------------------------------
 
 ChVehicleVisualSystemIrrlicht::ChVehicleVisualSystemIrrlicht()
-    : ChVisualSystemIrrlicht(), m_renderStats(true), m_HUD_x(600), m_HUD_y(20) {
+    : ChVisualSystemIrrlicht(), m_keyboard_mode(ChInteractiveDriver::KeyboardMode::CUMULATIVE), m_window_focused(true), m_renderStats(true), m_HUD_x(600), m_HUD_y(20) {
     // Set default window size and title
     SetWindowSize(1000, 800);
     SetWindowTitle("Chrono::Vehicle");
@@ -532,6 +560,21 @@ void ChVehicleVisualSystemIrrlicht::SetJoystickDebug(bool val) {
 void ChVehicleVisualSystemIrrlicht::SetButtonCallback(int button, void (*cbfun)()) {
     m_joystick->callback_function = cbfun;
     m_joystick->callback_button = button;
+}
+
+void ChVehicleVisualSystemIrrlicht::SetKeyboardMode(ChInteractiveDriver::KeyboardMode mode) {
+    m_keyboard_mode = mode;
+    if (auto driver = dynamic_cast<ChInteractiveDriver*>(GetDriver()))
+        driver->SetKeyboardMode(mode);
+}
+
+void ChVehicleVisualSystemIrrlicht::AttachDriver(ChDriver* driver) {
+    ChVehicleVisualSystem::AttachDriver(driver);
+
+    // The Irrlicht device reports key releases, so held-key driving controls can be supported. This only
+    // proposes a default; an explicit call to ChInteractiveDriver::SetKeyboardMode always wins.
+    if (auto idriver = dynamic_cast<ChInteractiveDriver*>(driver))
+        idriver->SetDefaultKeyboardMode(m_keyboard_mode);
 }
 
 void ChVehicleVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
@@ -572,6 +615,17 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
 // needed to advance by the specified duration.
 // -----------------------------------------------------------------------------
 void ChVehicleVisualSystemIrrlicht::Advance(double step) {
+    // A key release while the render window lacks focus would never reach this handler, leaving the input
+    // pinned; release all driving control keys as soon as focus is lost.
+    if (GetDevice()) {
+        bool focused = GetDevice()->isWindowFocused();
+        if (m_window_focused && !focused) {
+            if (auto driver = dynamic_cast<ChInteractiveDriver*>(GetDriver()))
+                driver->ReleaseAllKeys();
+        }
+        m_window_focused = focused;
+    }
+
     // Update the ChChaseCamera: take as many integration steps as needed to
     // exactly reach the value 'step'
     double t = 0;
