@@ -250,6 +250,11 @@ void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
         ChAssertAlways(slvr["type"]);
         m_sim.solver.type = ReadSolverType(slvr["type"]);
         switch (m_sim.solver.type) {
+            case ChSolver::Type::PARDISO_MKL:
+            case ChSolver::Type::MUMPS:
+                if (slvr["lock_sparsity_pattern"])
+                    m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
+                break;
             case ChSolver::Type::SPARSE_LU:
             case ChSolver::Type::SPARSE_QR:
                 if (slvr["lock_sparsity_pattern"])
