@@ -422,7 +422,7 @@ model:
           type:
             type: string
             description: Type of joint
-            enum: [LOCK, REVOLUTE, SPHERICAL, PRISMATIC, UNIVERSAL, POINT_LINE, POINT_PLANE ]
+            enum: [LOCK, REVOLUTE, SPHERICAL, PRISMATIC, CYLINDRICAL, UNIVERSAL, POINT_LINE, POINT_PLANE ]
           body1:
             type: string
             description: Name of the first body to connect

@@ -139,6 +139,10 @@ ChJoint::Type ReadJointTypeJSON(const Value& a) {
         return ChJoint::Type::REVOLUTE;
     } else if (type.compare("Spherical") == 0) {
         return ChJoint::Type::SPHERICAL;
+    } else if (type.compare("Prismatic") == 0) {
+        return ChJoint::Type::PRISMATIC;
+    } else if (type.compare("Cylindrical") == 0) {
+        return ChJoint::Type::CYLINDRICAL;
     } else if (type.compare("Universal") == 0) {
         return ChJoint::Type::UNIVERSAL;
     } else {

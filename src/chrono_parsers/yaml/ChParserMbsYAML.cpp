@@ -2135,6 +2135,8 @@ ChJoint::Type ChParserMbsYAML::ReadJointType(const YAML::Node& a) {
         return ChJoint::Type::SPHERICAL;
     } else if (type == "PRISMATIC") {
         return ChJoint::Type::PRISMATIC;
+    } else if (type == "CYLINDRICAL") {
+        return ChJoint::Type::CYLINDRICAL;
     } else if (type == "UNIVERSAL") {
         return ChJoint::Type::UNIVERSAL;
     } else {
@@ -2153,7 +2155,8 @@ ChFramed ChParserMbsYAML::ReadJointFrame(const YAML::Node& a) {
             rot = QUNIT;
             break;
         case ChJoint::Type::REVOLUTE:
-        case ChJoint::Type::PRISMATIC: {
+        case ChJoint::Type::PRISMATIC:
+        case ChJoint::Type::CYLINDRICAL: {
             ChAssertAlways(a["axis"]);
             auto axis = ReadVector(a["axis"]);
             axis.Normalize();

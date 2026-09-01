@@ -148,22 +148,22 @@ On the other hand, a `MESH` shape is assumed to be provided only through an OBJ 
 
 Joints are connection between two bodies and constrain their relative motion.
 They can be represented through constraints (ideal kinematic joints) or through stiff compliance (bushings).
-Currently supported joint `type` are: `LOCK`, `REVOLUTE`, `SPHERICAL`, `PRISMATIC`, `UNIVERSAL`, `POINT_LINE`, `POINT_PLANE`.
+Currently supported joint `type` are: `LOCK`, `REVOLUTE`, `SPHERICAL`, `PRISMATIC`, `CYLINDRICAL`, `UNIVERSAL`, `POINT_LINE`, `POINT_PLANE`.
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Joint type | string | `LOCK`,<br> `REVOLUTE`,<br>`SPHERICAL`,<br>`PRISMATIC`,<br>`UNIVERSAL`,<br>`POINT_LINE`,<br>`POINT_PLANE` | Yes | -- |
+| `type` | Joint type | string | `LOCK`,<br> `REVOLUTE`,<br>`SPHERICAL`,<br>`PRISMATIC`,<br>`CYLINDRICAL`,<br>`UNIVERSAL`,<br>`POINT_LINE`,<br>`POINT_PLANE` | Yes | -- |
 | `name` | Unique identifier for the joint | string | -- | Yes | -- |
 | `body1` | Name of the first body to connect | string | -- | Yes | -- |
 | `body2` | Name of the second body to connect | string | -- | Yes | -- |
 | `location` | Joint location | array[3] | -- | Yes | -- |
-| `axis` | Axis of motion for revolute/prismatic joints | array[3] | -- | Yes | -- |
+| `axis` | Axis of motion for revolute/prismatic/cylindrical joints | array[3] | -- | Yes | -- |
 | `axis1` | First axis for universal joints | array[3] | -- | Yes | -- |
 | `axis2` | Second axis for universal joints | array[3] | -- | Yes | -- |
 | `bushing_data` | Bushing compliance data; if not present, the joint is kinematic | object | -- | No | no bushing |
 
 The `bushing_data` models compliance behavior along the joint's constrained degrees of freedom (i.e., relaxations of the rigid constraints for an ideal kinematic joint). 
-Note that a `joint` of type `PRISMATIC`, `POINT_LINE` or `POINT_PLANE` is prohibited.
+Note that a `joint` of type `PRISMATIC`, `CYLINDRICAL`, `POINT_LINE` or `POINT_PLANE` is prohibited.
 
 For the constrained DOF, one can specify stiffness and damping coefficients, 
 
