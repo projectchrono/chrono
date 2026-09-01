@@ -33,6 +33,74 @@ namespace sensor {
 
 namespace {
 
+struct ChVulkanRTCanonicalMaterialDefaults {
+    ChVector3f diffuse;
+    ChVector3f ambient;
+    ChVector3f specular;
+    ChVector3f emissive;
+    float opacity;
+    float roughness;
+    float metallic;
+    float emissive_power;
+    float shininess;
+    bool use_specular_workflow;
+    float tex_scale_u;
+    float tex_scale_v;
+    unsigned short int class_id;
+    unsigned short int instance_id;
+};
+
+const ChVulkanRTCanonicalMaterialDefaults& GetCanonicalMaterialDefaults() {
+    static const ChVulkanRTCanonicalMaterialDefaults defaults = [] {
+        const auto material = ChVisualMaterial::Default();
+        const auto& kd = material->GetDiffuseColor();
+        const auto& ka = material->GetAmbientColor();
+        const auto& ks = material->GetSpecularColor();
+        const auto& ke = material->GetEmissiveColor();
+        const auto& tex_scale = material->GetTextureScale();
+
+        ChVulkanRTCanonicalMaterialDefaults out;
+        out.diffuse = ChVector3f(kd.R, kd.G, kd.B);
+        out.ambient = ChVector3f(ka.R, ka.G, ka.B);
+        out.specular = ChVector3f(ks.R, ks.G, ks.B);
+        out.emissive = ChVector3f(ke.R, ke.G, ke.B);
+        out.opacity = material->GetOpacity();
+        out.roughness = material->GetRoughness();
+        out.metallic = material->GetMetallic();
+        out.emissive_power = material->GetEmissivePower();
+        out.shininess = material->GetSpecularExponent();
+        out.use_specular_workflow = material->GetUseSpecularWorkflow();
+        out.tex_scale_u = tex_scale.x();
+        out.tex_scale_v = tex_scale.y();
+        out.class_id = material->GetClassID();
+        out.instance_id = material->GetInstanceID();
+        return out;
+    }();
+    return defaults;
+}
+
+}  // namespace
+
+ChVulkanRTMaterial::ChVulkanRTMaterial() {
+    const auto& defaults = GetCanonicalMaterialDefaults();
+    diffuse = defaults.diffuse;
+    ambient = defaults.ambient;
+    specular = defaults.specular;
+    emissive = defaults.emissive;
+    opacity = defaults.opacity;
+    roughness = defaults.roughness;
+    metallic = defaults.metallic;
+    emissive_power = defaults.emissive_power;
+    shininess = defaults.shininess;
+    use_specular_workflow = defaults.use_specular_workflow;
+    tex_scale_u = defaults.tex_scale_u;
+    tex_scale_v = defaults.tex_scale_v;
+    class_id = defaults.class_id;
+    instance_id = defaults.instance_id;
+}
+
+namespace {
+
 constexpr double CH_VKRT_SCENE_EPS = 1e-12;
 constexpr float CH_VKRT_PI = 3.14159265358979323846f;
 
@@ -65,7 +133,7 @@ ChVulkanRTMaterial MaterialFromVisual(const std::shared_ptr<ChVisualMaterial>& v
     mat.specular = ChVector3f(ks.R, ks.G, ks.B);
     mat.emissive = ChVector3f(ke.R, ke.G, ke.B);
     mat.opacity = std::max(0.f, std::min(1.f, visual_mat->GetOpacity()));
-    mat.roughness = std::max(0.02f, std::min(1.f, visual_mat->GetRoughness()));
+    mat.roughness = std::max(0.f, std::min(1.f, visual_mat->GetRoughness()));
     mat.metallic = std::max(0.f, std::min(1.f, visual_mat->GetMetallic()));
     mat.emissive_power = std::max(0.f, visual_mat->GetEmissivePower());
     mat.shininess = std::max(1.f, visual_mat->GetSpecularExponent());

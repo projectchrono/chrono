@@ -37,7 +37,8 @@ class CH_SENSOR_API ChVulkanRTBuffer {
     ChVulkanRTBuffer(std::shared_ptr<ChVulkanRTDevice> device,
                      VkDeviceSize size,
                      VkBufferUsageFlags usage,
-                     VkMemoryPropertyFlags memory_flags);
+                     VkMemoryPropertyFlags memory_flags,
+                     VkMemoryPropertyFlags preferred_flags = 0);
     ~ChVulkanRTBuffer();
 
     ChVulkanRTBuffer(const ChVulkanRTBuffer&) = delete;

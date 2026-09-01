@@ -47,7 +47,7 @@ namespace sensor {
 /// @addtogroup sensor
 /// @{
 
-/// What a cuRAND buffer is used for. One constant per independent random-number stream in the sensor
+/// What an independent random-number stream is used for. One constant per stream in the sensor
 /// module, and part of the key that keeps those streams from coinciding.
 ///
 /// Closed on purpose: a new stochastic filter must add its own constant here rather than borrow or
@@ -66,6 +66,8 @@ enum class RngUsage : unsigned int {
     OptixSegmentationRaygen = 7,///< ChFilterOptixRender, segmentation camera
     OptixDepthRaygen = 8,       ///< ChFilterOptixRender, depth camera
     OptixNormalRaygen = 9,      ///< ChFilterOptixRender, normal camera
+    VulkanCameraRaygen = 10,    ///< ChFilterVulkanRTRender, camera
+    VulkanPhysCameraRaygen = 11,///< ChFilterVulkanRTRender, physical camera
     Count                       ///< sentinel; keep last
 };
 
@@ -222,7 +224,7 @@ class CH_SENSOR_API ChSensorManager {
     /// @param sensor the sensor owning the buffer; must already be registered via AddSensor
     /// @param usage what the buffer is for
     /// @param filter_stream_index the calling filter's ChFilter::GetRngStreamIndex()
-    /// @return the 64-bit seed to pass to init_cuda_rng
+    /// @return the 64-bit seed used to initialize the backend RNG stream
     /// @throws std::runtime_error if the sensor is null or was never registered, if the calling filter
     /// has no stream index, if `usage` is RngUsage::Unknown or a value at or past RngUsage::Count, or
     /// if any field of the stream key exceeds its bit width. Every one of these would otherwise

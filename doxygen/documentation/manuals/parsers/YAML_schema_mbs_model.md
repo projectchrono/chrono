@@ -36,7 +36,9 @@ The table below lists the main fields of the `model` object:
 | `tsdas` | Array of TSDA (translational spring-damper) objects | array[`tsda`] | -- | No | -- |
 | `rsdas` | Array of RSDA (rotational spring-damper) objects | array[`rsda`] | -- | No | -- |
 | `motors` | Array of motor objects | array[`motor`] | -- | No | -- |
-| `body_loads` | Array of external loads applied to bodies | array[`body_load`] | -- | No | -- | 
+| `body_loads` | Array of external loads applied to bodies | array[`body_load`] | -- | No | -- |
+| `load_controllers` | Array of body loads applied by external controllers | array[`body_load`] | -- | No | -- |
+| `FEA` | Finite element components of the model | object, see below | -- | No | -- |
 
 The `data_path` object can have the following fields if specified:
 
@@ -85,13 +87,13 @@ Depending on the contact method, smooth contact formulation (SMC) or non-smooth 
 | `name` | Unique identifier for the material | string | -- | Yes | -- |
 | `coefficient_of_friction`    | Friction coefficient | double | -- | No | 0.8 |
 | `coefficient_of_restitution` | Coefficient of restitution | double | -- | No | 0.01|
-| `physical__properties` | (SMC only) contact material-based properties, such as Young's modulus and Poisson's ratio | object | -- | No | see below |
+| `physical_properties` | (SMC only) contact material-based properties, such as Young's modulus and Poisson's ratio | object | -- | No | see below |
 | `coefficients`         | (SMC only) contact spring-damper coefficients, such as normal stiffness and damping       | object | -- | No | see below |
 <br>
 Properties for `material`->`physical__properties`:
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `Youngs_modulus` | Young's modulus of the material | double | -- | Yes | 2e7 |
+| `Young_modulus` | Young's modulus of the material | double | -- | Yes | 2e7 |
 | `Poisson_ratio`  | Poisson's ratio of the material | double | -- | Yes | 0.3 |
 <br>
 Properties for `material`->`coefficients`:
@@ -148,22 +150,22 @@ On the other hand, a `MESH` shape is assumed to be provided only through an OBJ 
 
 Joints are connection between two bodies and constrain their relative motion.
 They can be represented through constraints (ideal kinematic joints) or through stiff compliance (bushings).
-Currently supported joint `type` are: `LOCK`, `REVOLUTE`, `SPHERICAL`, `PRISMATIC`, `UNIVERSAL`, `POINT_LINE`, `POINT_PLANE`.
+Currently supported joint `type` are: `LOCK`, `REVOLUTE`, `SPHERICAL`, `PRISMATIC`, `CYLINDRICAL`, `UNIVERSAL`, `POINT_LINE`, `POINT_PLANE`.
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Joint type | string | `LOCK`,<br> `REVOLUTE`,<br>`SPHERICAL`,<br>`PRISMATIC`,<br>`UNIVERSAL`,<br>`POINT_LINE`,<br>`POINT_PLANE` | Yes | -- |
+| `type` | Joint type | string | `LOCK`,<br> `REVOLUTE`,<br>`SPHERICAL`,<br>`PRISMATIC`,<br>`CYLINDRICAL`,<br>`UNIVERSAL`,<br>`POINT_LINE`,<br>`POINT_PLANE` | Yes | -- |
 | `name` | Unique identifier for the joint | string | -- | Yes | -- |
 | `body1` | Name of the first body to connect | string | -- | Yes | -- |
 | `body2` | Name of the second body to connect | string | -- | Yes | -- |
 | `location` | Joint location | array[3] | -- | Yes | -- |
-| `axis` | Axis of motion for revolute/prismatic joints | array[3] | -- | Yes | -- |
+| `axis` | Axis of motion for revolute/prismatic/cylindrical joints | array[3] | -- | Yes | -- |
 | `axis1` | First axis for universal joints | array[3] | -- | Yes | -- |
 | `axis2` | Second axis for universal joints | array[3] | -- | Yes | -- |
 | `bushing_data` | Bushing compliance data; if not present, the joint is kinematic | object | -- | No | no bushing |
 
 The `bushing_data` models compliance behavior along the joint's constrained degrees of freedom (i.e., relaxations of the rigid constraints for an ideal kinematic joint). 
-Note that a `joint` of type `PRISMATIC`, `POINT_LINE` or `POINT_PLANE` is prohibited.
+Note that a `joint` of type `PRISMATIC`, `CYLINDRICAL`, `POINT_LINE` or `POINT_PLANE` is prohibited.
 
 For the constrained DOF, one can specify stiffness and damping coefficients, 
 
@@ -247,6 +249,14 @@ tsdas:
       resolution: 80
       turns: 15
 ```
+
+A degressive damper is obtained by specifying `damping_coefficient` together with both
+`degressivity_compression` and `degressivity_expansion` (and no `spring_coefficient`):
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `degressivity_compression` | Degressivity coefficient in compression | double | -- | Yes for degressive damper | -- |
+| `degressivity_expansion` | Degressivity coefficient in expansion | double | -- | Yes for degressive damper | -- |
 
 For nonlinear behavior, use `spring_curve_data` and/or `damping_curve_data` and/or the pair `deformation`/`map_data`. 
 These properties allow specification of spring-damper characteristics as tabular data (which will be linearly interpolated by Chrono at run-time). 
@@ -359,6 +369,118 @@ repeat:
   width: 2.0
   shift: 3.0
 ```
+### Finite element components
+
+Finite element components are listed in an `FEA` object.
+This object requires the Chrono::FEA module; in a build without it, the entire `FEA` object is ignored with a warning.
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `beam_sections` | Array of beam section definitions, referenced by name from `beams` | array | -- | No | -- |
+| `materials` | Array of FEA material definitions, referenced by name from `beams` and `shells` | array | -- | No | -- |
+| `beams` | Array of FEA beams | array | -- | No | -- |
+| `shells` | Array of FEA shells | array | -- | No | -- |
+| `constraints` | Array of constraints involving FEA nodes | array | -- | No | -- |
+
+Note that FEA support in the YAML parser is still partial.
+Of the beam section types only `ANCF_CABLE` is implemented, none of the FEA material types is implemented, shell
+elements are not implemented, and of the FEA constraint types only `NODE_FRAME`, `NODESLOPE_FRAME`, and `NODE_NODE` are
+implemented. Specifying an unimplemented type raises a run-time error.
+
+#### Beam sections
+
+Each entry of `beam_sections` specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `name` | Unique identifier for the section | string | -- | Yes | -- |
+| `type` | Beam section type | string | `EULER_SIMPLE`,`ANCF_CABLE`,<br>`COSSERAT`,`TIMOSHENKO` | Yes | -- |
+| `diameter` | Section diameter | double | -- | Yes, for `ANCF_CABLE` | -- |
+| `Young_modulus` | Young's modulus | double | -- | Yes, for `ANCF_CABLE` | -- |
+| `density` | Material density | double | -- | Yes, for `ANCF_CABLE` | -- |
+| `Rayleight_damping` | Rayleigh damping factor | double | -- | Yes, for `ANCF_CABLE` | -- |
+
+Note the spelling of the `Rayleight_damping` key.
+
+#### FEA materials
+
+Each entry of `materials` specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `name` | Unique identifier for the material | string | -- | Yes | -- |
+| `type` | FEA material type | string | `BEAM_ANCF`,`HEXA_ANCF`,<br>`SHELL_ANCF`,`SHELL_KIRCHHOFF`,<br>`SHELL_REISSNER` | Yes | -- |
+
+#### Beams
+
+Each beam is a straight run of `num_elements` elements from `start_point` to `end_point` and constitutes one mesh,
+referenced by name from the FEA constraints.
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `name` | Unique identifier for the beam, used as the mesh name in FEA constraints | string | -- | Yes | -- |
+| `type` | Beam element type | string | `EULER`,`ANCF_CABLE`,<br>`ANCF_3243`,`ANCF_3333`,<br>`IGA`,`TIMOSHENKO` | Yes | -- |
+| `num_elements` | Number of elements along the beam | integer | -- | Yes | -- |
+| `start_point` | Location of the first beam node | array[3] | -- | Yes | -- |
+| `end_point` | Location of the last beam node | array[3] | -- | Yes | -- |
+| `section` | Name of a section defined in `beam_sections` | string | -- | Yes, for `EULER`, `ANCF_CABLE`, `IGA`, `TIMOSHENKO` | -- |
+| `material` | Name of a material defined in `materials` | string | -- | Yes, for `ANCF_3243`, `ANCF_3333` | -- |
+| `up` | Section "up" direction | array[3] | -- | Yes, for `EULER` | -- |
+| `visualization` | Visualization settings for this beam mesh | object | -- | No | no visualization |
+
+#### FEA constraints
+
+Each entry of `constraints` specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `name` | Unique identifier for the constraint | string | -- | Yes | -- |
+| `type` | Constraint type | string | `NODE_FRAME`,`NODESLOPE_FRAME`,<br>`NODE_NODE`,`NODE_FACE` | Yes | -- |
+| `node` | Constrained node | object | -- | Yes, for `NODE_FRAME` and `NODESLOPE_FRAME` | -- |
+| `body` | Name of the connected body | string | -- | Yes, for `NODE_FRAME` and `NODESLOPE_FRAME` | -- |
+| `body_direction` | Direction on the body to which the node slope is constrained, in the body frame | array[3] | -- | Yes, for `NODESLOPE_FRAME` | -- |
+| `node1` | First constrained node | object | -- | Yes, for `NODE_NODE` | -- |
+| `node2` | Second constrained node | object | -- | Yes, for `NODE_NODE` | -- |
+
+`NODE_FRAME` connects a node to a body, `NODESLOPE_FRAME` additionally constrains the node slope (gradient) direction,
+and `NODE_NODE` connects two FEA nodes.
+
+A node reference (`node`, `node1`, `node2`) is an object with the following properties, both required:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `mesh` | Name of the FEA mesh, e.g. the name of a beam | string | -- | Yes | -- |
+| `index` | 1-based index of the node within that mesh | integer | -- | Yes | -- |
+
+#### FEA mesh visualization
+
+The `visualization` object of an FEA mesh supports a `data` object for colormap-based rendering of a nodal or elemental
+quantity, and a `glyphs` object for glyph rendering.
+
+The `data` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Quantity used for coloring | string | `NONE`, `SURFACE`,<br>`NODE_DISP_NORM`, `NODE_SPEED_NORM`,<br>`NODE_ACCEL_NORM`, `NODE_FIELD_VALUE`,<br>`ELEM_STRAIN_VONMISES`, `ELEM_STRESS_VONMISES`,<br>`ELEM_BEAM_MX`, `ELEM_BEAM_MY`,<br>`ELEM_BEAM_TX`, `ELEM_BEAM_TY`,<br>`ANCF_BEAM_AX`, `ANCF_BEAM_BD` | Yes | -- |
+| `range` | Color data range [min, max] | array[2] | -- | No | [0, 1] |
+| `colormap` | Colormap | string | `BLACK_BODY`,`BLUE`,`BROWN`,<br>`COPPER`,`FAST`,`INFERNO`,<br>`JET`,`KINDLMANN`,`PLASMA`,<br>`RED_BLUE` | No | `FAST` |
+| `smooth_faces` | Whether to render with smooth (averaged) normals | boolean | -- | No | `true` |
+| `wireframe` | Whether to render the mesh in wireframe mode | boolean | -- | No | `false` |
+
+The `glyphs` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Glyph type | string | `NONE`, `NODE_DOT_POS`,<br>`NODE_CSYS`, `NODE_VECT_SPEED`,<br>`NODE_VECT_ACCEL`, `ELEM_TENS_STRAIN`,<br>`ELEM_TENS_STRESS`, `ELEM_VECT_DP` | Yes | -- |
+| `size` | Glyph size | double | -- | No | 0.002 |
+| `color` | Glyph color in RGB format [r, g, b] | array[3] | -- | No | [1, 1, 1] |
+
+#### Example
+
+Below is an example of a model with ANCF cable elements:
+
+\include data/yaml/fea/model_cables.yaml
+
 ## YAML schema
 
 The YAML MBS model specification file must follow the ``data/yaml/schema/mbs_model.schema.yaml`` provided in the Chrono data directory: 

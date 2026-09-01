@@ -72,20 +72,53 @@ simulation:
       <<: *VECTOR3D
       description: Gravitational acceleration vector [x, y, z]
       default: [0, 0, -9.8]
+    num_threads:
+      type: object
+      description: |
+        Number of threads used by the various parallel components.
+        Any entry that is omitted keeps its default value of 1.
+      properties:
+        chrono:
+          type: integer
+          description: Number of threads used by Chrono
+          minimum: 1
+          default: 1
+        collision:
+          type: integer
+          description: Number of threads used by the collision detection system
+          minimum: 1
+          default: 1
+        eigen:
+          type: integer
+          description: Number of threads used by Eigen
+          minimum: 1
+          default: 1
+        pardiso:
+          type: integer
+          description: Number of threads used by the PARDISO solver (used only with the PARDISO solver type)
+          minimum: 1
+          default: 1
     
 output:
   description: Output settings
   type: object
+  required: [format]
   properties:
      format:
         type: string
         description: Output DB format
         enum: [NONE, ASCII, HDF5]
         default: NONE
+     mode:
+        type: string
+        description: Output mode (one file per output frame, or a single time-series file)
+        enum: [FRAMES, SERIES]
+        default: FRAMES
      fps:
         type: number
-        description: Output frequency
+        description: Output frequency (FPS or Hz)
         minimum: 0
+        default: 100
 
 visualization:
   description: Visualization settings
@@ -93,9 +126,11 @@ visualization:
   properties:
       type:
           type: string
-          description: Visualization type.
+          description: |
+            Type of body visualization shapes.
+            A value of NONE (the default) also disables run-time visualization altogether.
           enum: [MODEL_FILE, PRIMITIVES, COLLISION, NONE]
-          default: MODEL_FILE
+          default: NONE
       render_fps:
           type: number
           description: Target frames per second for visualization.
@@ -121,4 +156,16 @@ visualization:
                   <<: *VECTOR3D
                   description: Initial camera look-at point
                   default: [0, 0, 0]
+      output:
+          type: object
+          description: Run-time visualization image output
+          properties:
+              save_images:
+                  type: boolean
+                  description: Whether to save rendered frames as image files
+                  default: false
+              image_type:
+                  type: string
+                  description: Image file type, specified through the file extension
+                  default: bmp
   
