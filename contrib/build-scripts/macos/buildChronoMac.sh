@@ -34,7 +34,6 @@
 #     - COSIMULATION
 #     - SENSOR
 #     - SYNCHRONO
-#     - MATLAB (Apple Silicon)
 #     - MODAL
 #     - PARDISO_MKL (Apple Silicon)
 #     - PARDISO_PROJECT (Apple Silicon)
