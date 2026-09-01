@@ -6,6 +6,21 @@ Change Log
 
 - [Unreleased (development branch)](#unreleased-development-branch)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
+  - [\[Added\] Chrono::FEA multiphysics framework](#added-chronofea-multiphysics-framework)
+  - [\[Added\] Chrono::PRECICE module](#added-chronoprecice-module)
+  - [\[Changed\] Velocity-level constraints and end-of-step state updates](#changed-velocity-level-constraints-and-end-of-step-state-updates)
+  - [\[Changed\] Refactoring of Chrono output and checkpointing](#changed-refactoring-of-chrono-output-and-checkpointing)
+  - [\[Changed\] Chrono::FSI-SPH API and terminology](#changed-chronofsi-sph-api-and-terminology)
+  - [\[Added\] AMD GPU support and vendor-agnostic GPU layer](#added-amd-gpu-support-and-vendor-agnostic-gpu-layer)
+  - [\[Added\] Vulkan ray-tracing backend in Chrono::Sensor](#added-vulkan-ray-tracing-backend-in-chronosensor)
+  - [\[Added\] Rounded shapes and visual shape type queries](#added-rounded-shapes-and-visual-shape-type-queries)
+  - [\[Added\] New geometry and collision utilities](#added-new-geometry-and-collision-utilities)
+  - [\[Changed\] Chrono::Vehicle API updates](#changed-chronovehicle-api-updates)
+  - [\[Added\] Extended YAML and JSON model specification support](#added-extended-yaml-and-json-model-specification-support)
+  - [\[Added\] Chrono::Modal reduced model serialization and applied loads](#added-chronomodal-reduced-model-serialization-and-applied-loads)
+  - [\[Changed\] Build requirements and third-party dependencies](#changed-build-requirements-and-third-party-dependencies)
+  - [\[Removed\] Chrono::Matlab module](#removed-chronomatlab-module)
+  - [\[Fixed\] Miscellaneous bug fixes and stability improvements](#fixed-miscellaneous-bug-fixes-and-stability-improvements)
 - [Release 10.0.0 (2026-03-27)](#release-1000-2026-03-27)
   - [\[Changed\] Python support in conda packages](#changed-python-support-in-conda-packages)
   - [\[Added\] PyChrono-NumPy integration](#added-pychrono-numpy-integration)
@@ -160,6 +175,358 @@ pool is built, not a live reference to the singleton. That happens when the sens
 constructed, on the first sensor update, and not again, so mutating `ChVisualMaterial::Default()`
 after that point has no effect on what a sensor renders. Mutating it at all is unsupported and
 always was: it is shared by every material-less shape in the scene.
+
+## [Added] Chrono::FEA multiphysics framework
+
+A new FEA framework was added alongside the existing Chrono::FEA classes. It is built on the idea
+that node states, element geometry, constitutive laws, and material-point data are orthogonal and
+can be combined freely, which makes it possible to solve coupled problems (e.g., thermo-elasticity)
+on a single discretization and to add new physics without modifying existing elements or materials.
+
+The building blocks are:
+- `ChField` - a collection of scalar or vector properties attached to each discretization point
+  (`ChFieldScalar`, `ChFieldTemperature`, `ChFieldDisplacement3D`);
+- `ChFEModel` - a collection of finite elements operating on one or more fields
+  (`ChFEModelDeformation`, `ChFEModelThermal`, `ChFEModelThermoDeformation`);
+- `ChFieldElement` - element geometry and shape functions, independent of the physics
+  (`ChFieldElementTetrahedron4`, `ChFieldElementHexahedron8`, and their face wrappers);
+- `ChMaterial3D...` - constitutive laws: St.Venant-Kirchhoff, Neo-Hookean and Ogden
+  hyperelasticity, linear and nonlinear thermal materials, viscous damping
+  (`ChMaterial3DStressViscoLinear`, `ChMaterial3DStressViscoNewton`), and arbitrary composition of
+  two stress laws through `ChMaterial3DStressParallel` (e.g., to assemble a Kelvin-Voigt model);
+- `ChDrawer` and `ChVisualDataExtractor` - a modular postprocessing system that extracts nodal or
+  Gauss-point data (including tensor invariants and von Mises measures, optionally extrapolated to
+  nodes) and renders it as glyphs or false-color meshes.
+
+Loads and boundary conditions are applied with FEA-specific loaders (pressure, volumetric heat
+source, imposed surface heat flux, convection, Stefan-Boltzmann radiation) and constraints
+(`ChLinkField` to fix or drive field values, including rheonomic ones, `ChLinkFieldField` between
+field nodes, and `ChLinkFieldFrame` to attach a field node to a `ChBody`). Collision of deformable
+bodies is supported through both node clouds and extracted surface meshes. The helper class
+`ChBuilderVolumeBox` generates regular grids of tetrahedra or hexahedra together with the
+corresponding face lists, for easy application of surface loads.
+
+```cpp
+// A field of xyz displacements, a deformation model operating on it, and its material
+auto field = chrono_types::make_shared<ChFieldDisplacement3D>();
+sys.Add(field);
+
+auto model = chrono_types::make_shared<ChFEModelDeformation>(field);
+model->SetAutomaticGravity(true);
+sys.Add(model);
+
+auto material = chrono_types::make_shared<ChMaterial3DStressNeoHookean>();
+material->SetDensity(1000);
+material->SetYoungModulus(3e6);
+material->SetPoissonRatio(0.39);
+model->material = material;
+
+// Discretize a box with a regular grid of elements and fix one end
+ChBuilderVolumeBox builder;
+builder.BuildVolume(ChFrame<>(), 8, 3, 3,  // number of elements in x,y,z
+                    3.0, 0.5, 0.5);        // dimensions in x,y,z
+builder.AddToModel(model);
+for (auto& node : builder.nodes.list())
+    if (node->x() <= 0)
+        field->NodeData(node).SetFixed(true);
+```
+
+These classes are provided by a new FEA-MULTIPHYSICS module (sources under
+`src/chrono/fea/multiphysics/`), enabled by default and controlled through the CMake option
+`CH_ENABLE_MODULE_FEA_MULTIPHYSICS`, itself conditional on the new option `CH_ENABLE_MODULE_FEA`.
+
+Note that the default `EULER_IMPLICIT_LINEARIZED` timestepper should not be used with these
+classes, since it omits the stiffness and damping contributions on the right-hand side. Use
+`EULER_IMPLICIT` or `HHT` instead.
+
+See `demo_FEA_multiphysics`, `demo_FEA_multiphysics_viscous` (structural damping and node-to-frame
+constraints), `demo_FEA_multiphysics_contacts` (collision between deformable shapes), and
+`demo_FEA_multiphysics_custom` (how to write a custom element, field, field data, and FE model).
+
+## [Added] Chrono::PRECICE module
+
+A new module provides adapters that expose a Chrono simulation as a
+[preCICE](https://precice.org/) participant, for co-simulation with external solvers (e.g., CFD).
+`ChPreciceAdapter` is the base class implementing the preCICE coupling loop, data exchange, and
+optional run-time visualization, output, and soft real-time enforcement; `ChPreciceAdapterMbs` and
+`ChPreciceAdapterSph` specialize it for a Chrono MBS system and for a Chrono::FSI-SPH fluid system,
+respectively.
+
+Coupling interfaces are described by a mesh type (`CouplingMeshType`: `GENERIC`, `RIGID_BODY_REFS`,
+`RIGID_BODY_POINTS`, `FEA_MESH_NODES`, `FEA_MESH_POINTS`) and a data type (`CouplingDataType`:
+`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `FORCES`,
+`TORQUES`, `GENERIC`). Coupling mesh vertices on rigid bodies can be specified either through a
+triangular mesh (OBJ or STL) or as an explicit list of 3D points, and callbacks are available for
+user-defined operations before and after each dynamics advance. A generic driver program is also
+provided, which runs an arbitrary Chrono preCICE adapter defined entirely through a YAML
+specification file.
+
+See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH) and
+`demo_PRECICE_flap_openfoam` (Chrono MBS coupled with OpenFOAM, matching the corresponding preCICE
+tutorial).
+
+## [Changed] Velocity-level constraints and end-of-step state updates
+
+Two related changes were made to the `ChIntegrable` and `ChPhysicsItem` interfaces. Both affect user
+code that implements custom physics items or custom integrable objects.
+
+The functions `LoadConstraint_C`, `LoadConstraint_Ct`, `IntLoadConstraint_C`, and
+`IntLoadConstraint_Ct` take an additional scaling factor `c_vel`, to be used in place of the usual
+factor `c` when the constraint acts at the velocity level (nonholonomic constraints, constraints
+imposing motor velocities, etc.). This also allows constraints on the coordinates of first-order
+ODEs, which are stored in the "velocity" part of the usual second-order ODE state. The Chrono
+timesteppers were updated to exploit this mechanism.
+
+```cpp
+void MyItem::IntLoadConstraint_C(const unsigned int off,
+                                 ChVectorDynamic<>& Qc,
+                                 const double c,      // scaling at the position level
+                                 const double c_vel,  // scaling if constraint is at velocity level
+                                 bool do_clamp,
+                                 double recovery_clamp) override;
+```
+
+New functions `ChIntegrable::StateOnEndStep()`, `ChPhysicsItem::IntStateOnEndStep()`, and
+`ChElementBase::ElementUpdateEndStep()` provide a hook that is invoked once per completed time step
+(and, in static analysis, after each incremental outer step) rather than at every state scatter and
+update. This is what constitutive models with internal history - plasticity, damage, creep - need,
+since those must not be advanced during the Newton iterations of an implicit or static solver. The
+default implementations do nothing, so existing elements and physics items are unaffected.
+
+## [Changed] Refactoring of Chrono output and checkpointing
+
+The output and checkpointing classes introduced in Chrono 10.0.0 were refactored and relocated to
+`src/chrono/input_output/`. The main user-visible changes are:
+
+- `ChOutput::Type` was renamed to `ChOutput::Format` (`ASCII`, `HDF5`, `NONE`), to distinguish the
+  output file format from the new output organization mode.
+- A new `ChOutput::Mode`, set in the `ChOutput` constructor, selects how output is organized:
+  `FRAMES` groups data frame by frame and is suited for postprocessing and rendering, while the new
+  `SERIES` mode groups data component-by-component, producing time histories for individual
+  quantities. `SERIES` is supported for both the ASCII and HDF5 formats.
+- Output and visualization settings were collected in `Settings` structures owned by the respective
+  classes, and are used consistently by the Chrono YAML parsers and the Chrono preCICE adapters.
+- Various output and checkpointing functions were renamed for consistency, the functions that write
+  the time stamp and section of an output database were exposed in the public API, and functions
+  were added to set and get the time associated with a checkpoint and to write and read custom state
+  information to and from a checkpoint database (`COMPONENT`-type checkpoints only).
+- `ChAssembly::Components` now also reports shaft-body constraints.
+- All `ChObj` instances receive a default name, so that output and checkpoint databases always have
+  usable section identifiers.
+
+Chrono::Vehicle output was updated accordingly. See `demo_MBS_checkpoint`, `demo_FEA_checkpoint`, and
+`demo_VEH_Checkpoint`.
+
+## [Changed] Chrono::FSI-SPH API and terminology
+
+The Chrono::FSI-SPH public API was reworked for consistency, and the "elastic SPH" terminology was
+replaced throughout by "CRM" (continuous representation method):
+
+- The boolean flag `elastic_SPH` was replaced by an enum `PhysicsProblem` (`CFD` or `CRM`).
+  Accordingly, `SetElasticSPH(const ElasticMaterialProperties&)` was replaced by
+  `SetCrmSPH(const SoilProperties&)`, alongside the existing `SetCfdSPH(const FluidProperties&)`.
+  Numerous functions, member variables, and printed diagnostics were renamed to match; only the
+  parameters relevant to the current physics problem and rheology model are now reported.
+- The active-domain (CRM) API was redesigned to use explicit per-solid axis-aligned bounding boxes:
+  `SetActiveDomainBody()`, `SetActiveDomainMesh1D()`, and `SetActiveDomainMesh2D()` now take a
+  `ChAABB`, with corresponding wrappers on `ChFsiProblemSPH` that accept a `ChBody` or a
+  `fea::ChMesh`. `SetActiveDomainDelay()` was renamed `SetFreeFlowDuration()`.
+- Configuration setters now throw if called after `Initialize()`, instead of being silently ignored,
+  and post-initialization updates of the computational domain are propagated to the device.
+- Functions to add SPH particles and BCE markers were reorganized, an FSI body can be added with
+  user-specified BCE markers, utility functions were added to query whether a rigid body or FEA mesh
+  was declared as an FSI solid, and an FSI system or interface may now be created with no associated
+  MBS system.
+- Chrono::FSI-TDPF functions needed outside the Chrono::FSI framework were exposed as public.
+
+Configuration and run-time issues with double-precision Chrono::FSI-SPH builds were also fixed. See
+`demo_FSI-SPH_PlateSinkage` and the YAML-driven `demo_YAML_fsi`.
+
+## [Added] AMD GPU support and vendor-agnostic GPU layer
+
+Chrono modules that offload to the GPU can now be built against the AMD ROCm/HIP stack in addition
+to CUDA, on both Linux and native Windows. Internally, CUDA-specific names were replaced by
+architecture-agnostic ones (wrapper functions carrying a `gpu` prefix) across Chrono::FSI-SPH and
+Chrono::DEM, GPU backends are resolved from the hardware actually present rather than from the SDKs
+that happen to be installed, and the exported Chrono CMake package configuration is aware of the HIP
+backend. A `CHRONO_HAS_HIP` configuration macro is defined when building with HIP, and the ROCm
+version actually found is reported instead of the one Chrono was built with.
+
+Chrono was also updated for CUDA 13.x (including Thrust/CCCL 3.x), GCC 15, and the IntelLLVM
+compiler. Documentation was added covering ROCm/HIP installation, Chrono::FSI CUDA/HIP requirements,
+and tuning of the Chrono::FSI-SPH demos on AMD Instinct hardware.
+
+## [Added] Vulkan ray-tracing backend in Chrono::Sensor
+
+Chrono::Sensor gained a Vulkan ray-tracing camera backend, validated for parity against the OptiX
+backend and enabled with the CMake option `CH_USE_SENSOR_VULKAN_RT` (with
+`CH_USE_SENSOR_VULKAN_RT_GPU` selecting the GPU renderer, falling back to a CPU renderer when no
+Vulkan RT device is available). Being vendor-neutral, this backend also makes Chrono::Sensor usable
+on AMD hardware.
+
+Related changes: `ChScene` was renamed and relocated as `ChOptixScene` for consistency; run-time
+shader compilation uses OptiX-IR instead of PTX, with shaders staged at build time and guarded
+against going stale; every RNG buffer receives its own stream under a fixed seed, and the
+reproducibility contract for stochastic sensors is now documented. Chrono::Sensor can also render
+Chrono::FSI-SPH particle systems.
+
+## [Added] Rounded shapes and visual shape type queries
+
+`ChVisualShape` now exposes an enum `ChVisualShape::Type` and a `GetType()` accessor, which replaces
+chains of `dynamic_cast` when dispatching on shape type. Visualization and collision backends use it
+to report, rather than silently ignore, visual and collision shapes they cannot handle.
+
+Rounded boxes and rounded cylinders are now supported end to end: tessellation was added for rounded
+visualization shapes and rendering enabled in Chrono::VSG, and rounded box and cylinder collision
+shapes are supported by the Bullet-based collision system. Support-point computation for rounded
+shapes was fixed in both the Bullet-based and multicore collision systems. See
+`demo_MBS_object_drop` and `demo_VSG_assets`.
+
+## [Added] New geometry and collision utilities
+
+- `ChDelaunay2D` performs a 2D Delaunay triangulation of a set of points, either returning a new mesh
+  or filling an existing `ChTriangleMeshConnected`:
+  ```cpp
+  auto mesh = ChDelaunay2D::CreateMesh(points);
+  ```
+- `ChConvexDecompositionVHACD` provides volumetric convex decomposition of complex triangle meshes,
+  based on the modern V-HACD 4.1 library. The original HACD implementation was deprecated and
+  removed. See `demo_MBS_convex_decomp` and `demo_IRR_decomposition`.
+- `ChTriangleMeshConnected::WriteSTL()` writes a mesh to a binary STL file, and the documentation and
+  behavior of `RepairDuplicateVertices()` were clarified.
+- `ChAABB` and `ChIntAABB` were separated into their own header and implementation files.
+- `ChBodyGeometry::Combine()` merges several body geometry objects, each defined relative to its own
+  reference frame, into a single object; `CreateVisualizationAssets()` and `CreateCollisionShapes()`
+  accept an optional body-relative frame.
+- Utility functions were added for inertia and gyration calculations, for creating output
+  directories, and for reading a `ChVector2d` from JSON and YAML specification files.
+- `ChConvexHullLibraryWrapper::ComputeHull()` is now static and returns a success flag,
+  `ChCollisionModel::GetPhysicsItem()` was obsoleted, `ChIrrTools` methods were properly capitalized,
+  and const correctness was improved across the geometry, asset, and collision classes.
+- `ChSystem` gained an option to skip the collision detection phase for a given dynamics advance
+  step, functions to query whether the system is initialized and updated, and getters for the
+  registered collision callbacks.
+
+## [Changed] Chrono::Vehicle API updates
+
+- The vehicle chassis initialization callback `ChChassis::Construct` was renamed `OnInitialize`, and
+  a mechanism was added to overwrite the collision geometry of a rigid chassis.
+- New functions return the linear and angular velocities of a `ChVehicle`, collect all bodies in a
+  wheeled or tracked vehicle, and relocate a vehicle after initialization
+  (`ChVehicle::Relocate(const ChVector2d& xy_pos, double yaw_angle)`). Accessors were added for the
+  shaft-body axle connections of a suspension subsystem, and TSDA and RSDA force and torque functor
+  parameters can now be modified after construction.
+- The lateral and longitudinal vehicle controllers and the path-follower driver models were
+  refactored.
+- `ChInteractiveDriver` supports game-style driving through a new `KeyboardMode::HELD` mode, in which
+  inputs follow the keys currently held down; the historical incremental behavior remains available
+  as `KeyboardMode::CUMULATIVE`.
+- The single-wheel test rig was refactored, including a new mechanism for using CRM terrain and for
+  setting active domains for the wheel parts.
+- `SCMTerrain` gained an optional GPU backend for ray casting and contact forces (guarded by
+  `CHRONO_HAS_SCM_GPU`, with a CPU reference implementation available for validation).
+- A `ChJoint` can now be of type `CYLINDRICAL`, and this joint type is exposed in the YAML parser.
+- The M113, `M113_Vehicle`, and derived classes were redesigned to properly guard FEA-based options.
+  A RoboSimian model constructed from a URDF file was added, together with a Chrono::VSG plugin for
+  URDF models. `ChRobotActuation` was moved to the Chrono robot models library, which can now be
+  excluded from the build.
+- The Chrono::Vehicle FMUs and demos were updated to reflect the current Chrono::Vehicle API.
+
+## [Added] Extended YAML and JSON model specification support
+
+Basic utilities for parsing YAML and JSON files were implemented in the core Chrono library, along
+with `ChYamlFileHandler`, a utility class for handling data files referenced from a YAML
+specification (and which can also be defined programmatically). The Chrono YAML parsers were
+extended and made consistent:
+
+- Initial support for specifying FEA models (see `demo_YAML_fea`) and Chrono::FSI-SPH problems (see
+  `demo_YAML_fsi`).
+- Output and run-time visualization settings now use the common `Settings` definitions shared with
+  `ChOutput` and the visualization systems. Note that the default visualization type is now `NONE`,
+  which disables run-time visualization altogether.
+- Thread counts can be set from an MBS YAML simulation file.
+- Generic functions for reading body geometry eliminate duplication across parsers, errors while
+  opening a JSON file now throw, and a command line parsing error is rethrown rather than exiting.
+
+The YAML schema documentation was audited against the parser code, and several documented settings
+that were unreachable in practice were fixed.
+
+## [Added] Chrono::Modal reduced model serialization and applied loads
+
+A reduced modal model can now be saved and reloaded through the Chrono archive system, using
+`ChModalAssembly::SaveReducedModel()` and `ChModalAssembly::LoadReducedModel()`. Serialization
+support was added for real and complex sparse matrices to make this possible.
+
+`ChModalAssembly` also supports applied loads (`ChLoad` subclasses through a `ChLoadContainer`).
+Currently, only loads derived from `ChLoadBodyForce`, `ChLoadBodyTorque`, and `ChLoadBodyBody` are
+supported. Stiff loads contribute to the reduced stiffness and damping matrices, so they can be used
+as internal bushings, while non-stiff loads are treated as external forces projected onto the modal
+basis. Gravity handling in modal assemblies was also fixed.
+
+See the Chrono::Modal demos and the corresponding unit tests.
+
+## [Changed] Build requirements and third-party dependencies
+
+- Chrono now requires a C++17-capable compiler, and this is enforced throughout the build.
+- The bundled `filesystem` and `variant` implementations were removed and replaced with
+  `std::filesystem` and `std::variant`. Note that `std::filesystem::path::extension()` includes the
+  leading `.` character, unlike the previous custom implementation.
+- The bundled GIMPACT and Easy_BMP third-party libraries, as well as the original HACD convex
+  decomposition code, were removed.
+- Chrono::Multicore now uses Eigen instead of Blaze for its linear algebra.
+- The HDF5 dependency was bumped to version 2.0.0, the Chrono::VSG library versions were updated, and
+  the VSG build scripts now use assimp 6.0.5.
+- New CMake options allow disabling the FEA (`CH_ENABLE_MODULE_FEA`), FEA-MULTIPHYSICS
+  (`CH_ENABLE_MODULE_FEA_MULTIPHYSICS`), and robot models libraries, all enabled by default.
+- A precompiled header was added to `Chrono_core` to reduce build times, and the unused CMake
+  variable `CH_COMPILER` was eliminated.
+- The obsolete AppVeyor configuration scripts were removed.
+
+## [Removed] Chrono::Matlab module
+
+The Chrono::Matlab module, which allowed exchanging matrices and variables with a running Matlab
+engine and provided the `ChSolverMatlab` linear solver wrapper, was obsoleted and removed, together
+with its demos (`demo_MTLB_matlab`, `demo_MTLB_functions_plot`, `demo_FEA_cablesMATLAB`), its
+installation guide, and its tutorials. The CMake option `CH_ENABLE_MODULE_MATLAB`, the configuration
+macro `CHRONO_MATLAB`, and the `Matlab` component of the exported Chrono CMake package no longer
+exist.
+
+Note that the Chrono::Cosimulation module, which supports co-simulation with Simulink over TCP/IP
+sockets, is unaffected and still available.
+
+## [Fixed] Miscellaneous bug fixes and stability improvements
+
+Notable fixes since the 10.0.0 release:
+
+- Tapered Timoshenko beam sections used shear correction factors computed from a mismatched section
+  length.
+- The approximate Jacobian evaluation of `ChHexahedronFace` was four times larger than the correct
+  value, which affected simulations applying a pressure load to a hexahedron face. A related indexing
+  error when generating the hexahedron face in the `-eta_1` direction was also fixed.
+- Meshing of box shapes with tetrahedra now uses a Kuhn decomposition (6 tetrahedra per cell) instead
+  of the previous 5-tetrahedra decomposition, which was not conformal on interior faces.
+- The joint locking feature (link-lock formulation) now correctly keeps the bodies in their current
+  relative configuration.
+- Several mesh-mesh collision issues were fixed in the Bullet-based collision system, and
+  uninitialized memory was fixed in the Chrono::Multicore MINRES solver.
+- In Chrono::FSI-SPH: an fp32 overflow in the MCC plastic return mapping that poisoned the
+  consolidation pressure and produced NaN particle densities; a mu(I) cohesion term that destabilized
+  statics and bearing response (now with a zero-tension cutoff); the normalization factor of the
+  quintic spline SPH kernel; handling of markers outside the computational domain; and the
+  rheology-failure error flag, which never actually reported.
+- Transparent objects did not cast shadows, and Chrono::VSG rendering was incorrect when physics
+  items were bound after visualization initialization or when body frame visibility was set
+  beforehand. `ChColormap` crashed on NaN values (now rendered black), Irrlicht node lifetime
+  management was reworked (fixing a debug crash with multiple cameras), and glyph rendering and
+  scaling were corrected in Irrlicht.
+- `ChObjectExplorer` leaked every `ChValue` allocated by a search, and an out-of-bounds access was
+  fixed in the `ChVector3::GetDirectionAxes()` fallback.
+- Point transformation from local to absolute frame was incorrect for `ChBodyAuxRef`, the `ChBox`
+  constructor taking individual lengths was fixed, and the AABB calculation for `ChBodyGeometry` was
+  corrected.
+- Materials loaded from an MTL file are now stored in the order referenced by the associated OBJ
+  file, and only materials actually referenced are retained.
+- FMU resource directories resolved to a relative path on POSIX systems.
 
 # Release 10.0.0 (2026-03-27)
 
