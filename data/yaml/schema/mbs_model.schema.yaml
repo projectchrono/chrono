@@ -84,6 +84,38 @@ inertia33: &INERTIA33
         minItems: 3
         maxItems: 3
 
+# Specification of a data array with 2 columns
+data_array_2: &DATA_ARRAY_2
+    type: array
+    description: Array of number pairs
+    items:
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+
+# Specification of a data array with 3 columns
+data_array_3: &DATA_ARRAY_3
+    type: array
+    description: Array of number 3-tuples
+    items:
+      type: array
+      items:
+        type: number
+      minItems: 3
+      maxItems: 3
+
+# Specification of a data array with N columns
+data_array_N: &DATA_ARRAY_N
+    type: array
+    description: Array of N-tuples
+    items:
+      type: array
+      items:
+        type: number
+      minItems: 1
+
 # Specification of a function of one variable
 function: &FUNCTION
     type: object
@@ -136,37 +168,79 @@ function: &FUNCTION
         <<: *DATA_ARRAY_2
         description: Interpolation data points for DATA type [[x, f(x)], ...]  
 
-# Specification of a data array with 2 columns
-data_array_2: &DATA_ARRAY_2
-    type: array
-    description: Array of number pairs
-    items:
-      type: array
-      items:
-        type: number
-      minItems: 2
-      maxItems: 2
+# Specification of a reference to a node of an FEA mesh
+fea_node: &FEA_NODE
+    type: object
+    description: Reference to a node of an FEA mesh
+    required: [mesh, index]
+    properties:
+      mesh:
+        type: string
+        description: Name of the FEA mesh (e.g. the name of a beam)
+      index:
+        type: integer
+        description: 1-based index of the node within that mesh
 
-# Specification of a data array with 3 columns
-data_array_3: &DATA_ARRAY_3
-    type: array
-    description: Array of number 3-tuples
-    items:
-      type: array
-      items:
-        type: number
-      minItems: 3
-      maxItems: 3
-
-# Specification of a data array with N columns
-data_array_N: &DATA_ARRAY_N
-    type: array
-    description: Array of N-tuples
-    items:
-      type: array
-      items:
-        type: number
-      minItems: 1
+# Specification of visualization settings for an FEA mesh
+fea_visualization: &FEA_VISUALIZATION
+    type: object
+    description: Visualization settings for an FEA mesh
+    properties:
+      data:
+        type: object
+        description: Colormap-based rendering of a nodal or elemental quantity
+        required: [type]
+        properties:
+          type:
+            type: string
+            description: Quantity used for coloring
+            enum: [NONE, SURFACE,
+                   NODE_DISP_NORM, NODE_SPEED_NORM, NODE_ACCEL_NORM, NODE_FIELD_VALUE,
+                   ELEM_STRAIN_VONMISES, ELEM_STRESS_VONMISES,
+                   ELEM_BEAM_MX, ELEM_BEAM_MY, ELEM_BEAM_MZ,
+                   ELEM_BEAM_TX, ELEM_BEAM_TY, ELEM_BEAM_TZ,
+                   ANCF_BEAM_AX, ANCF_BEAM_BD]
+            default: NONE
+          range:
+            type: array
+            description: Color data range [min, max]
+            items:
+              type: number
+            minItems: 2
+            maxItems: 2
+            default: [0, 1]
+          colormap:
+            type: string
+            description: Colormap
+            enum: [BLACK_BODY, BLUE, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE]
+            default: FAST
+          smooth_faces:
+            type: boolean
+            description: Whether to render with smooth (averaged) normals
+            default: true
+          wireframe:
+            type: boolean
+            description: Whether to render the mesh in wireframe mode
+            default: false
+      glyphs:
+        type: object
+        description: Glyph rendering of nodal or elemental quantities
+        required: [type]
+        properties:
+          type:
+            type: string
+            description: Glyph type
+            enum: [NONE, NODE_DOT_POS, NODE_CSYS, NODE_VECT_SPEED, NODE_VECT_ACCEL,
+                   ELEM_TENS_STRAIN, ELEM_TENS_STRESS, ELEM_VECT_DP]
+            default: NONE
+          size:
+            type: number
+            description: Glyph size
+            default: 0.002
+          color:
+            <<: *COLOR
+            description: Glyph color
+            default: [1, 1, 1]
 
 # Specification of geometric shapes for visualization and collision
 shape : &SHAPE
@@ -249,9 +323,9 @@ contact_material: &CONTACT_MATERIAL
     physical_properties: 
       type: object
       description: physical material properties for SMC contact
-      required: [Youngs_modulus, Poisson_ratio]
+      required: [Young_modulus, Poisson_ratio]
       properties:
-        Youngs_modulus:
+        Young_modulus:
           type: number
           description: Young's modulus of the material
         Poisson_ratio:
@@ -361,6 +435,14 @@ model:
           orientation:
             <<: *ORIENTATION3D
             description: Initial body reference frame orientation relative to global frame
+            default: [0, 0, 0]
+          initial_linear_velocity:
+            <<: *VECTOR3D
+            description: Initial linear velocity of the body reference frame, in the global frame
+            default: [0, 0, 0]
+          initial_angular_velocity:
+            <<: *VECTOR3D
+            description: Initial angular velocity of the body, expressed in the body reference frame
             default: [0, 0, 0]
           mass:
             type: number
@@ -542,6 +624,15 @@ model:
           damping_curve_data:
             <<: *DATA_ARRAY_2
             description: Nonlinear damping curve data [[velocity, force], ...]
+          degressivity_compression:
+            type: number
+            description: |
+              Degressivity coefficient in compression.
+              A degressive damper is created if this and degressivity_expansion are both present
+              together with damping_coefficient (and no spring_coefficient).
+          degressivity_expansion:
+            type: number
+            description: Degressivity coefficient in expansion (see degressivity_compression)
           deformation:
             type: array
             description: TSDA deformation values for full non-linear map TSDA (required if map_data present)
@@ -563,14 +654,24 @@ model:
           visualization:
             type: object
             description: Visualization settings for the element
+            required: [type]
             properties:
               type:
                 type: string
-                enum: [segment, spring]
+                enum: [SEGMENT, SPRING]
                 description: Type of visualization
               radius:
                 type: number
-                description: Radius of the visualization element
+                description: Radius of the visualization element (SPRING type)
+                default: 0.05
+              resolution:
+                type: integer
+                description: Number of segments used to render one coil (SPRING type)
+                default: 65
+              turns:
+                type: number
+                description: Number of coils (SPRING type)
+                default: 5
               color:
                 <<: *COLOR
 
@@ -607,10 +708,10 @@ model:
             description: Linear damping coefficient
           spring_curve_data:
             <<: *DATA_ARRAY_2
-            description: Nonlinear spring curve data [[displacement, force], ...]
+            description: Nonlinear spring curve data [[angle, torque], ...]
           damping_curve_data:
             <<: *DATA_ARRAY_2
-            description: Nonlinear damping curve data [[velocity, force], ...]
+            description: Nonlinear damping curve data [[angular velocity, torque], ...]
           preload:
             type: number
             description: Preload torque
@@ -672,3 +773,155 @@ model:
       description: List of body loads applied by external controllers
       items:
         <<: *BODY_LOAD
+
+    FEA:
+      description: |
+        Finite element components of the model (requires the Chrono::FEA module).
+        If the Chrono::FEA module is not enabled, this object is ignored with a warning.
+      type: object
+      properties:
+
+        beam_sections:
+          description: |
+            List of beam section definitions, referenced by name from `beams`.
+            Only the ANCF_CABLE section type is currently implemented.
+          type: array
+          items:
+            type: object
+            required: [name, type]
+            properties:
+              name:
+                type: string
+                description: Unique identifier for the section
+              type:
+                type: string
+                description: Beam section type
+                enum: [EULER_SIMPLE, ANCF_CABLE, COSSERAT, TIMOSHENKO]
+              diameter:
+                type: number
+                description: Section diameter (ANCF_CABLE type)
+                minimum: 0
+              Young_modulus:
+                type: number
+                description: Young's modulus (ANCF_CABLE type)
+                minimum: 0
+              density:
+                type: number
+                description: Material density (ANCF_CABLE type)
+                minimum: 0
+              Rayleight_damping:
+                type: number
+                description: Rayleigh damping factor (ANCF_CABLE type). Note the spelling of this key.
+                minimum: 0
+
+        materials:
+          description: |
+            List of FEA material definitions, referenced by name from `beams` and `shells`.
+            None of the material types is currently implemented.
+          type: array
+          items:
+            type: object
+            required: [name, type]
+            properties:
+              name:
+                type: string
+                description: Unique identifier for the material
+              type:
+                type: string
+                description: FEA material type
+                enum: [BEAM_ANCF, HEXA_ANCF, SHELL_ANCF, SHELL_KIRCHHOFF, SHELL_REISSNER]
+
+        beams:
+          description: |
+            List of FEA beams. Each beam is a straight run of `num_elements` elements from
+            `start_point` to `end_point`, and constitutes one mesh (referenced by name from
+            FEA constraints). Only the ANCF_CABLE beam type is currently implemented.
+          type: array
+          items:
+            type: object
+            required: [name, type, num_elements, start_point, end_point]
+            properties:
+              name:
+                type: string
+                description: Unique identifier for the beam (used as the mesh name in FEA constraints)
+              type:
+                type: string
+                description: Beam element type
+                enum: [EULER, ANCF_CABLE, ANCF_3243, ANCF_3333, IGA, TIMOSHENKO]
+              num_elements:
+                type: integer
+                description: Number of elements along the beam
+                minimum: 1
+              start_point:
+                <<: *VECTOR3D
+                description: Location of the first beam node
+              end_point:
+                <<: *VECTOR3D
+                description: Location of the last beam node
+              section:
+                type: string
+                description: |
+                  Name of a beam section defined in `beam_sections`.
+                  Required for the EULER, ANCF_CABLE, IGA, and TIMOSHENKO types.
+              material:
+                type: string
+                description: |
+                  Name of an FEA material defined in `materials`.
+                  Required for the ANCF_3243 and ANCF_3333 types.
+              up:
+                <<: *VECTOR3D
+                description: Section "up" direction (required for the EULER type)
+              visualization:
+                <<: *FEA_VISUALIZATION
+                description: Visualization settings for this beam mesh
+
+        shells:
+          description: |
+            List of FEA shells.
+            Shell elements are not currently implemented.
+          type: array
+          items:
+            type: object
+            required: [name, type]
+            properties:
+              name:
+                type: string
+                description: Unique identifier for the shell mesh
+              type:
+                type: string
+                description: Shell element type
+
+        constraints:
+          description: List of constraints between FEA nodes and rigid bodies, or between FEA nodes
+          type: array
+          items:
+            type: object
+            required: [name, type]
+            properties:
+              name:
+                type: string
+                description: Unique identifier for the constraint
+              type:
+                type: string
+                description: |
+                  Constraint type. NODE_FRAME connects a node to a body, NODESLOPE_FRAME
+                  additionally constrains the node slope (gradient) direction, and NODE_NODE
+                  connects two FEA nodes. NODE_FACE is not currently implemented.
+                enum: [NODE_FRAME, NODESLOPE_FRAME, NODE_NODE, NODE_FACE]
+              node:
+                <<: *FEA_NODE
+                description: Constrained node (NODE_FRAME and NODESLOPE_FRAME types)
+              node1:
+                <<: *FEA_NODE
+                description: First constrained node (NODE_NODE type)
+              node2:
+                <<: *FEA_NODE
+                description: Second constrained node (NODE_NODE type)
+              body:
+                type: string
+                description: Name of the connected body (NODE_FRAME and NODESLOPE_FRAME types)
+              body_direction:
+                <<: *VECTOR3D
+                description: |
+                  Direction on the body to which the node slope is constrained, expressed in the
+                  body frame (required for the NODESLOPE_FRAME type).

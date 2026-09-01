@@ -76,16 +76,23 @@ simulation:
 output:
   description: Output settings
   type: object
+  required: [format]
   properties:
      format:
         type: string
         description: Output DB format
         enum: [NONE, ASCII, HDF5]
         default: NONE
+     mode:
+        type: string
+        description: Output mode (one file per output frame, or a single time-series file)
+        enum: [FRAMES, SERIES]
+        default: FRAMES
      fps:
         type: number
-        description: Output frequency
+        description: Output frequency (FPS or Hz)
         minimum: 0
+        default: 100
 
 visualization:
   description: Visualization settings
@@ -123,4 +130,16 @@ visualization:
                   <<: *VECTOR3D
                   description: Initial camera look-at point
                   default: [0, 0, 0]
+      output:
+          type: object
+          description: Run-time visualization image output
+          properties:
+              save_images:
+                  type: boolean
+                  description: Whether to save rendered frames as image files
+                  default: false
+              image_type:
+                  type: string
+                  description: Image file type, specified through the file extension
+                  default: bmp
   

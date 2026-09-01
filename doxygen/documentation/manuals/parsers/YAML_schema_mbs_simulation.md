@@ -38,9 +38,12 @@ If the `output` key is present, it must specify a YAML object with the following
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `format` | Output DB format | enum | `NONE`,`ASCII`,`HDF5`  | No | `NONE` |
-| `mode` | Output mode | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
-| `fps` | Output frequency (FPS or Hz) | double | -- | No | 30 |
+| `format` | Output DB format | enum | `NONE`,`ASCII`,`HDF5`  | Yes | -- |
+| `mode` | Output mode (one file per output frame, or a single time-series file) | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
+| `fps` | Output frequency (FPS or Hz) | double | -- | No | 100 |
+
+Note that `format` is required whenever the `output` key is present.
+`HDF5` output silently falls back to `NONE` in a build without HDF5 support.
 
 #### Visualization options
 
@@ -52,6 +55,7 @@ If the `visualization` key is present, it must specify a YAML object with the fo
 | `render_fps` | Rendering frequency (FPS or Hz) | double | -- | No | 120 |
 | `enable_shadows` | Turn on shadow rendering | boolean | -- | No | `true` |
 | `camera` | Camera settings | object | -- | No | -- |
+| `output` | Image output settings | object | -- | No | -- |
 
 The `camera` key, if present, specifies the following properties:
 
@@ -60,6 +64,13 @@ The `camera` key, if present, specifies the following properties:
 | `vertical` | Vertical direction (camera "up") | enum | `Y`,`Z`  | No | `Z` |
 | `location` | Camera initial location | array[3] | -- | No | [0,-1,0] |
 | `target` | Camera initial target ("look-at" point) | array[3] | -- | No | [0,0,0]  |
+
+The `output` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default |
+|----------|-------------|------|------------------|----------|---------|
+| `save_images` | Whether to save rendered frames as image files | boolean | -- | No | `false` |
+| `image_type` | Image file type, specified through the file extension | string | -- | No | `bmp` |
 
 Run-time visualization is enabled only if the `visualization` key is present *and* specifies a `type` other than
 `NONE`. In other words, omitting the `visualization` key and specifying `type: NONE` are equivalent and both result in

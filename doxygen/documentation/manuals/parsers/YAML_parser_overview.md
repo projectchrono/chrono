@@ -58,7 +58,7 @@ The Chrono distribution includes (in the `data\yaml\` directory) several YAML sp
   `./run_chrono -s ../data/yaml/vehicle/vehicle.yaml`<br>
   (modify the mbs.yaml file to point to a different vehicle model)
 - FSI-SPH problem (defaults to a CFD simulation of a cylinder dropped in water):<br>
-  `./run_chrono -s ../data/yaml/fsi/objectdrop/fsi_objectdrop.yaml`<br>
+  `./run_chrono -s ../data/yaml/fsi/cylinder_drop/fsi_cylinder_drop.yaml`<br>
   (use a different FSI specification file for other examples)
 - FSI-TDPF problem <br>
   `./run_chrono -s ../data/yaml/fsi/sphere_decay/fsi_sphere_decay.yaml`
