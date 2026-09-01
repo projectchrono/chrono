@@ -72,6 +72,32 @@ simulation:
       <<: *VECTOR3D
       description: Gravitational acceleration vector [x, y, z]
       default: [0, 0, -9.8]
+    num_threads:
+      type: object
+      description: |
+        Number of threads used by the various parallel components.
+        Any entry that is omitted keeps its default value of 1.
+      properties:
+        chrono:
+          type: integer
+          description: Number of threads used by Chrono
+          minimum: 1
+          default: 1
+        collision:
+          type: integer
+          description: Number of threads used by the collision detection system
+          minimum: 1
+          default: 1
+        eigen:
+          type: integer
+          description: Number of threads used by Eigen
+          minimum: 1
+          default: 1
+        pardiso:
+          type: integer
+          description: Number of threads used by the PARDISO solver (used only with the PARDISO solver type)
+          minimum: 1
+          default: 1
 
 output:
   description: Output settings

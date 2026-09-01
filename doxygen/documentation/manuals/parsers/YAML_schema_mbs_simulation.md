@@ -30,6 +30,18 @@ the YAML file with an MBS solver specification (which must follow the [MBS solve
 | `enforce_realtime` | Whether to enforce real-time simulation | boolean | -- | No | false |
 | `end_time` | Total simulation time in seconds | double | -- | No | -1 for infinite simulation |
 | `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
+| `num_threads` | Number of threads used by the parallel components | object | -- | No | -- |
+
+The `num_threads` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `chrono` | Number of threads used by Chrono | integer | -- | No | 1 |
+| `collision` | Number of threads used by the collision detection system | integer | -- | No | 1 |
+| `eigen` | Number of threads used by Eigen | integer | -- | No | 1 |
+| `pardiso` | Number of threads used by the PARDISO solver | integer | -- | No | 1 |
+
+The `pardiso` entry is used only when the solver file selects the `PARDISO` solver type.
 
 
 #### Output options

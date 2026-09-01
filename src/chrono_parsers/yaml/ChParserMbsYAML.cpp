@@ -182,6 +182,17 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
             m_sim.enforce_realtime = sim["enforce_realtime"].as<bool>();
         if (sim["gravity"])
             m_sim.gravity = ReadVector(sim["gravity"]);
+        if (sim["num_threads"]) {
+            auto nt = sim["num_threads"];
+            if (nt["chrono"])
+                m_sim.num_threads_chrono = nt["chrono"].as<int>();
+            if (nt["collision"])
+                m_sim.num_threads_collision = nt["collision"].as<int>();
+            if (nt["eigen"])
+                m_sim.num_threads_eigen = nt["eigen"].as<int>();
+            if (nt["pardiso"])
+                m_sim.num_threads_pardiso = nt["pardiso"].as<int>();
+        }
     }
 
     // MBS-specific run-time visualization settings (optional)
