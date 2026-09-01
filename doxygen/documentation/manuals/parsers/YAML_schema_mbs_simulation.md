@@ -48,7 +48,7 @@ If the `visualization` key is present, it must specify a YAML object with the fo
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Type of visualization shapes | enum | `NONE`,`PRIMITIVES`,`MODEL_FILE`,`COLLISION`  | No | `NONE` |
+| `type` | Type of body visualization shapes | enum | `NONE`,`PRIMITIVES`,`MODEL_FILE`,`COLLISION`  | No | `NONE` |
 | `render_fps` | Rendering frequency (FPS or Hz) | double | -- | No | 120 |
 | `enable_shadows` | Turn on shadow rendering | boolean | -- | No | `true` |
 | `camera` | Camera settings | object | -- | No | -- |
@@ -60,6 +60,10 @@ The `camera` key, if present, specifies the following properties:
 | `vertical` | Vertical direction (camera "up") | enum | `Y`,`Z`  | No | `Z` |
 | `location` | Camera initial location | array[3] | -- | No | [0,-1,0] |
 | `target` | Camera initial target ("look-at" point) | array[3] | -- | No | [0,0,0]  |
+
+Run-time visualization is enabled only if the `visualization` key is present *and* specifies a `type` other than
+`NONE`. In other words, omitting the `visualization` key and specifying `type: NONE` are equivalent and both result in
+a simulation run with no run-time visualization.
 
 
 ## Example

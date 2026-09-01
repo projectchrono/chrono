@@ -93,9 +93,11 @@ visualization:
   properties:
       type:
           type: string
-          description: Visualization type.
+          description: |
+            Type of body visualization shapes.
+            A value of NONE (the default) also disables run-time visualization altogether.
           enum: [MODEL_FILE, PRIMITIVES, COLLISION, NONE]
-          default: MODEL_FILE
+          default: NONE
       render_fps:
           type: number
           description: Target frames per second for visualization

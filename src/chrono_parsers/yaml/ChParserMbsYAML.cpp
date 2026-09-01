@@ -84,11 +84,11 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserMbsYAML::ChParserMbsYAML(bool verbose) : ChParserYAML(), m_loaded(false), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
+ChParserMbsYAML::ChParserMbsYAML(bool verbose) : ChParserYAML(), m_loaded(false), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1), m_vis_type(VisualizationType::NONE) {
     SetVerbose(verbose);
 }
 
-ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_filename, bool verbose) : ChParserYAML(), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
+ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_filename, bool verbose) : ChParserYAML(), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1), m_vis_type(VisualizationType::NONE) {
     SetVerbose(verbose);
     LoadFile(yaml_filename);
 }
@@ -189,6 +189,11 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
         if (yaml["visualization"]["type"])
             m_vis_type = ReadVisualizationType(yaml["visualization"]["type"]);
     }
+
+    // Run-time visualization is enabled only if a body visualization type other than NONE was specified.
+    // Note that this overrides the setting inferred in ChParserYAML::LoadSimData from the mere presence
+    // of a "visualization" node.
+    m_vis_settings.render = (m_vis_type != VisualizationType::NONE);
 }
 
 void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
