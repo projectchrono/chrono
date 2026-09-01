@@ -991,11 +991,9 @@ void ChPreciceAdapter::WriteDataAM() {
         cout << m_prefix1 << "Write AM data" << endl;
 
     size_t num_bodies = GetNumFsiBodies();
-    std::vector<ChMatrix66d> blocks(num_bodies);
+    std::vector<ChMatrix66d> blocks(num_bodies, ChMatrix66d::Zero());
 
     OnWriteDataAM(blocks);
-
-    m_participant->writeData(m_AMmesh_name, "am_coeffs", m_AMmesh_vertexIDs, m_AMmesh_values);
 
     int i = 0;
     for (size_t i_body = 0; i_body < num_bodies; i_body++) {
@@ -1005,6 +1003,8 @@ void ChPreciceAdapter::WriteDataAM() {
             }
         }
     }
+
+    m_participant->writeData(m_AMmesh_name, "am_coeffs", m_AMmesh_vertexIDs, m_AMmesh_values);
 }
 
 }  // end namespace ch_precice
