@@ -398,8 +398,8 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
-        // with SCM GPU support).
+            // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
+            // with SCM GPU support).
 #ifdef CHRONO_HAS_SCM_GPU
     {
         auto scm_cfg = terrain.GetScmGpuConfig();
@@ -483,12 +483,9 @@ int main(int argc, char* argv[]) {
     double steady_ms = steady_steps > 0 ? 1e3 * steady_timer() / steady_steps : 0.0;
     double ms_per_step = 1e3 * sim_timer() / (nsteps > 0 ? nsteps : 1);
     double avg_rtf = (sim_timer() / (nsteps > 0 ? nsteps : 1)) / 5e-4;  // wall/sim per step
-    std::cout << "[BENCH] delta=" << mesh_resolution << " rocks=" << num_rocks << "  steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s"
-              << "  wall=" << sim_timer() << "s"
-              << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")"
-              << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
-              << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")"
-              << "  x_end=" << Body_1->GetPos().x();
+    std::cout << "[BENCH] delta=" << mesh_resolution << " rocks=" << num_rocks << "  steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s" << "  wall=" << sim_timer() << "s"
+              << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")" << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
+              << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")" << "  x_end=" << Body_1->GetPos().x();
 #ifdef CHRONO_HAS_SCM_GPU
     std::cout << "  gpu_steps: raycast=" << terrain.GetNumRaycastGpuSteps() << "/" << nsteps << " forces=" << terrain.GetNumContactForceGpuSteps() << "/" << nsteps;
 #endif

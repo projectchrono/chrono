@@ -560,8 +560,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
             : level_initial(static_cast<ScmReal>(init_level)),
               level(static_cast<ScmReal>(level)),
               hit_level(static_cast<ScmReal>(1e9)),
-              normal(ChVector3<ScmReal>(static_cast<ScmReal>(n.x()), static_cast<ScmReal>(n.y()),
-                                        static_cast<ScmReal>(n.z()))),
+              normal(ChVector3<ScmReal>(static_cast<ScmReal>(n.x()), static_cast<ScmReal>(n.y()), static_cast<ScmReal>(n.z()))),
               sinkage(static_cast<ScmReal>(init_level - level)),
               sinkage_plastic(0),
               sinkage_elastic(0),
@@ -620,9 +619,9 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     /// than silently keeping map semantics that no longer hold.
     class NodeMap {
       public:
-        static constexpr int kShift = 4;             ///< log2 of the tile edge
-        static constexpr int kDim = 1 << kShift;     ///< tile edge, in nodes
-        static constexpr int kArea = kDim * kDim;    ///< records per tile
+        static constexpr int kShift = 4;           ///< log2 of the tile edge
+        static constexpr int kDim = 1 << kShift;   ///< tile edge, in nodes
+        static constexpr int kArea = kDim * kDim;  ///< records per tile
 
         /// Return a pointer to the record for this node, or nullptr if the node is undeformed.
         NodeRecord* Find(const ChVector2i& ij) {
@@ -888,10 +887,10 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int m_ny;              ///< range for grid indices in Y direction: [-m_ny, +m_ny]
 
     ChMatrixDynamic<ScmReal> m_heights;  ///< (base) grid heights (when initializing from height-field map)
-    double m_base_height;         ///< default height for vertices outside the projection of input mesh
+    double m_base_height;                ///< default height for vertices outside the projection of input mesh
 
-    NodeMap m_grid_map;  ///< deformed grid nodes (persistent, tiled; see NodeMap)
-    std::vector<ChVector2i> m_modified_nodes;                          ///< modified grid nodes (current)
+    NodeMap m_grid_map;                        ///< deformed grid nodes (persistent, tiled; see NodeMap)
+    std::vector<ChVector2i> m_modified_nodes;  ///< modified grid nodes (current)
 
     ChAABB m_aabb;    ///< user-specified SCM terrain boundary
     bool m_boundary;  ///< user-specified SCM terrain boundary?

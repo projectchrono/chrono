@@ -138,8 +138,7 @@ int main(int argc, char* argv[]) {
     // Create the body
     // ---------------
 
-    ChVector3d pos(terrain.GetPatchRear(), (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
-                   terrain_height + 2 * body_rad);
+    ChVector3d pos(terrain.GetPatchRear(), (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2, terrain_height + 2 * body_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
@@ -193,8 +192,7 @@ int main(int argc, char* argv[]) {
     while (time < time_end) {
         // Rotate gravity vector
         if (!is_pitched && time > time_pitch) {
-            std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
-                      << std::endl;
+            std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z() << std::endl;
             sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }

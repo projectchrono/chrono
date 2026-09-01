@@ -293,9 +293,7 @@ void SCMTerrain::AddActiveDomain(std::shared_ptr<ChBody> body, const ChVector3d&
 std::size_t SCMTerrain::RemoveActiveDomain(std::shared_ptr<ChBody> body) {
     auto& domains = m_loader->m_active_domains;
     const std::size_t before = domains.size();
-    domains.erase(std::remove_if(domains.begin(), domains.end(),
-                                 [&body](const SCMLoader::ActiveDomainInfo& ad) { return ad.m_body == body; }),
-                  domains.end());
+    domains.erase(std::remove_if(domains.begin(), domains.end(), [&body](const SCMLoader::ActiveDomainInfo& ad) { return ad.m_body == body; }), domains.end());
     // m_user_domains deliberately stays set even if this emptied the list. Clearing it would send
     // ComputeInternalForces down the default-domain branch, which asserts a single domain exists
     // and would then rebuild one spanning every collision shape in the scene -- the opposite of
@@ -455,8 +453,7 @@ void SCMTerrain::PrintStepStatistics(std::ostream& os) const {
     os << "   Number ray hits:         " << m_loader->m_num_ray_hits << std::endl;
     os << "   Number contact patches:  " << m_loader->m_num_contact_patches << std::endl;
     os << "   Number erosion nodes:    " << m_loader->m_num_erosion_nodes << std::endl;
-    os << "   Number deformed nodes:   " << m_loader->m_grid_map.size() << "  (cumulative, never evicted)"
-       << std::endl;
+    os << "   Number deformed nodes:   " << m_loader->m_grid_map.size() << "  (cumulative, never evicted)" << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -603,8 +600,7 @@ void SCMLoader::Initialize(const std::string& heightmap_file, double sizeX, doub
             double g22 = hmap.Gray(jx2, jy2);
 
             // Bilinear interpolation (gray level)
-            m_heights(ix, iy) = static_cast<ScmReal>((1 - ax) * (1 - ay) * g11 + (1 - ax) * ay * g12 +
-                                                     ax * (1 - ay) * g21 + ax * ay * g22);
+            m_heights(ix, iy) = static_cast<ScmReal>((1 - ax) * (1 - ay) * g11 + (1 - ax) * ay * g12 + ax * (1 - ay) * g21 + ax * ay * g22);
             // Map into height range
             m_heights(ix, iy) = static_cast<ScmReal>(hMin + m_heights(ix, iy) * h_scale);
         }
@@ -720,10 +716,10 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     // 2^31 -- leaving the resize calls below to run on a negative count.
     const std::int64_t nvx = 2 * static_cast<std::int64_t>(m_nx) + 1;  // grid vertices in X direction
     const std::int64_t nvy = 2 * static_cast<std::int64_t>(m_ny) + 1;  // grid vertices in Y direction
-    const std::int64_t n_verts = nvx * nvy;                  // total vertices for initial visualization trimesh
-    const std::int64_t n_faces = 2 * (nvx - 1) * (nvy - 1);  // total faces for initial visualization trimesh
-    double x_scale = 0.5 / m_nx;                             // scale for texture coordinates (U direction)
-    double y_scale = 0.5 / m_ny;                             // scale for texture coordinates (V direction)
+    const std::int64_t n_verts = nvx * nvy;                            // total vertices for initial visualization trimesh
+    const std::int64_t n_faces = 2 * (nvx - 1) * (nvy - 1);            // total faces for initial visualization trimesh
+    double x_scale = 0.5 / m_nx;                                       // scale for texture coordinates (U direction)
+    double y_scale = 0.5 / m_ny;                                       // scale for texture coordinates (V direction)
 
     // Widening the counters does not lift the underlying limit: a face stores its three
     // vertex indices in a ChVector3i, so a vertex index must still fit in int32 however the
@@ -731,12 +727,10 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     // spacing of ~0.0221 m over a 1024 m patch. Past that, fail with a diagnostic that names
     // the way out rather than corrupting the mesh.
     if (n_verts > static_cast<std::int64_t>(std::numeric_limits<int>::max())) {
-        std::cerr << "\nError: SCM visualization mesh would need " << n_verts << " vertices, exceeding the "
-                  << std::numeric_limits<int>::max() << " addressable by the 32-bit face indices of "
-                  << "ChTriangleMeshConnected.\n"
+        std::cerr << "\nError: SCM visualization mesh would need " << n_verts << " vertices, exceeding the " << std::numeric_limits<int>::max()
+                  << " addressable by the 32-bit face indices of " << "ChTriangleMeshConnected.\n"
                   << "Grid is " << nvx << " x " << nvy << " vertices at " << m_delta << " m spacing.\n"
-                  << "Coarsen the grid, shrink the patch, or construct SCMTerrain with visualization "
-                  << "disabled -- the soil model does not use this mesh." << std::endl;
+                  << "Coarsen the grid, shrink the patch, or construct SCMTerrain with visualization " << "disabled -- the soil model does not use this mesh." << std::endl;
         throw std::runtime_error("SCM visualization mesh exceeds the 32-bit vertex index limit");
     }
 
@@ -1755,7 +1749,7 @@ void SCMLoader::ComputeInternalForces() {
         for (auto& h : hits) {
             ChVector2d ij = h.first;
 
-            auto& nr = m_grid_map.at(ij);      // node record
+            auto& nr = m_grid_map.at(ij);     // node record
             const double ca = nr.normal.z();  // cosine of angle between local normal and SCM plane vertical
 
             ChContactable* contactable = h.second.contactable;
@@ -1961,10 +1955,10 @@ void SCMLoader::ComputeInternalForces() {
                     ChVector2i nbr_ij = ij + neighbors4[k];  //     neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                     //     if neighbor out of bounds
                     ////    continue;                                     //       skip neighbor
-                    if (!m_grid_map.Find(nbr_ij))                     //     if neighbor not yet recorded
-                        p_boundary.insert(nbr_ij);                    //       set neighbor as boundary
-                    else if (m_grid_map.at(nbr_ij).sigma <= 0)        //     if neighbor not touched
-                        p_boundary.insert(nbr_ij);                    //       set neighbor as boundary
+                    if (!m_grid_map.Find(nbr_ij))               //     if neighbor not yet recorded
+                        p_boundary.insert(nbr_ij);              //       set neighbor as boundary
+                    else if (m_grid_map.at(nbr_ij).sigma <= 0)  //     if neighbor not touched
+                        p_boundary.insert(nbr_ij);              //       set neighbor as boundary
                 }
             }
             tot_step_flow *= GetSystem()->GetStep();
@@ -1973,13 +1967,13 @@ void SCMLoader::ComputeInternalForces() {
             double diff = m_flow_factor * tot_step_flow / p_boundary.size();
 
             // Raise boundary (create a sharp spike which will be later smoothed out with erosion)
-            for (const auto& ij : p_boundary) {                                  // for each node in boundary
-                m_modified_nodes.push_back(ij);                                  //   mark as modified
-                if (!m_grid_map.Find(ij)) {                                      //   if not yet recorded
-                    double z = GetInitHeight(ij);                                //     undeformed height
-                    const ChVector3d& n = GetInitNormal(ij);                     //     terrain normal
-                    m_grid_map.Emplace(ij, NodeRecord(z, z, n));                 //     add new node record
-                    m_modified_nodes.push_back(ij);                              //     mark as modified
+            for (const auto& ij : p_boundary) {                   // for each node in boundary
+                m_modified_nodes.push_back(ij);                   //   mark as modified
+                if (!m_grid_map.Find(ij)) {                       //   if not yet recorded
+                    double z = GetInitHeight(ij);                 //     undeformed height
+                    const ChVector3d& n = GetInitNormal(ij);      //     terrain normal
+                    m_grid_map.Emplace(ij, NodeRecord(z, z, n));  //     add new node record
+                    m_modified_nodes.push_back(ij);               //     mark as modified
                 }
                 auto& nr = m_grid_map.at(ij);  //   node record
                 nr.erosion = true;             //   add to erosion domain
@@ -2005,20 +1999,20 @@ void SCMLoader::ComputeInternalForces() {
                     ChVector2i nbr_ij = ij + neighbors4[k];  //   neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                       //   if out of bounds
                     ////    continue;                                       //     ignore neighbor
-                    if (!m_grid_map.Find(nbr_ij)) {                     //   if neighbor not yet recorded
-                        double z = GetInitHeight(nbr_ij);               //     undeformed height at neighbor location
-                        const ChVector3d& n = GetInitNormal(nbr_ij);    //     terrain normal at neighbor location
-                        NodeRecord nr(z, z, n);                         //     create new record
-                        nr.erosion = true;                              //     include in erosion domain
-                        m_grid_map.Emplace(nbr_ij, nr);                 //     add new node record
-                        front.insert(nbr_ij);                           //     add neighbor to new front
-                        m_modified_nodes.push_back(nbr_ij);             //     mark as modified
-                    } else {                                            //   if neighbor previously recorded
-                        NodeRecord& nr = m_grid_map.at(nbr_ij);         //     get existing record
-                        if (!nr.erosion && nr.sigma <= 0) {             //     if neighbor not touched
-                            nr.erosion = true;                          //       include in erosion domain
-                            front.insert(nbr_ij);                       //       add neighbor to new front
-                            m_modified_nodes.push_back(nbr_ij);         //       mark as modified
+                    if (!m_grid_map.Find(nbr_ij)) {                   //   if neighbor not yet recorded
+                        double z = GetInitHeight(nbr_ij);             //     undeformed height at neighbor location
+                        const ChVector3d& n = GetInitNormal(nbr_ij);  //     terrain normal at neighbor location
+                        NodeRecord nr(z, z, n);                       //     create new record
+                        nr.erosion = true;                            //     include in erosion domain
+                        m_grid_map.Emplace(nbr_ij, nr);               //     add new node record
+                        front.insert(nbr_ij);                         //     add neighbor to new front
+                        m_modified_nodes.push_back(nbr_ij);           //     mark as modified
+                    } else {                                          //   if neighbor previously recorded
+                        NodeRecord& nr = m_grid_map.at(nbr_ij);       //     get existing record
+                        if (!nr.erosion && nr.sigma <= 0) {           //     if neighbor not touched
+                            nr.erosion = true;                        //       include in erosion domain
+                            front.insert(nbr_ij);                     //       add neighbor to new front
+                            m_modified_nodes.push_back(nbr_ij);       //       mark as modified
                         }
                     }
                 }
@@ -2209,9 +2203,7 @@ std::vector<SCMTerrain::NodeLevel> SCMLoader::GetModifiedNodes(bool all_nodes) c
     std::vector<SCMTerrain::NodeLevel> nodes;
     if (all_nodes) {
         nodes.reserve(m_grid_map.size());
-        m_grid_map.ForEach([&nodes](const ChVector2i& ij, const NodeRecord& nr) {
-            nodes.push_back(std::make_pair(ij, nr.level));
-        });
+        m_grid_map.ForEach([&nodes](const ChVector2i& ij, const NodeRecord& nr) { nodes.push_back(std::make_pair(ij, nr.level)); });
     } else {
         for (const auto& ij : m_modified_nodes) {
             const NodeRecord* rec = m_grid_map.Find(ij);

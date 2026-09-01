@@ -63,8 +63,7 @@ int main(int argc, char* argv[]) {
     wheel->Initialize(nullptr, spindle, LEFT);
 
     // The tire:
-    auto tire_reissner =
-        chrono_types::make_shared<ReissnerTire>(GetVehicleDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
+    auto tire_reissner = chrono_types::make_shared<ReissnerTire>(GetVehicleDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
     tire_reissner->EnablePressure(false);
     tire_reissner->EnableContact(true);
     tire_reissner->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH);
