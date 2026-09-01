@@ -575,23 +575,25 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             case CouplingDataType::ROTATIONS: {
-                assert(data_dim == mesh_dim);
+                // Note: RotVecFromQuat gives a rotation angle in [-2*pi, 2*pi].
+                //       A complete implementation would require proper 2*pi wrap handling which would take care of cases such as a continuously rotating body.
+                //// TODO
+                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& rot_abs = c_body->body->GetFrameRefToAbs().GetRot();
-                    const auto angle_set_abs = AngleSetFromQuat(RotRepresentation::CARDAN_ANGLES_XYZ, rot_abs);
-                    const auto& angles_abs = angle_set_abs.angles;
-                    if (data_dim == 2) {
-                        data_values[i_data + 0] = angles_abs.z();
+                    auto rotvec_abs = RotVecFromQuat(rot_abs);
+                    if (data_dim == 1) {
+                        data_values[i_data + 0] = rotvec_abs.z();
                         i_data += 1;
                     } else {
-                        data_values[i_data + 0] = angles_abs.x();
-                        data_values[i_data + 1] = angles_abs.y();
-                        data_values[i_data + 2] = angles_abs.z();
+                        data_values[i_data + 0] = rotvec_abs.x();
+                        data_values[i_data + 1] = rotvec_abs.y();
+                        data_values[i_data + 2] = rotvec_abs.z();
                         i_data += 3;
                     }
                     if (m_verbose)
-                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | angles:  " << angles_abs << endl;
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | rot dir:  " << rotvec_abs.GetNormalized() << " rot angle: " << rotvec_abs.Length() << endl;
                 }
                 break;
             }
@@ -636,11 +638,11 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             case CouplingDataType::ANGULAR_VELOCITIES: {
-                assert(data_dim == mesh_dim);
+                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& ang_vel_abs = c_body->body->GetAngVelParent();
-                    if (data_dim == 2) {
+                    if (data_dim == 1) {
                         data_values[i_data + 0] = ang_vel_abs.z();
                         i_data += 1;
                     } else {

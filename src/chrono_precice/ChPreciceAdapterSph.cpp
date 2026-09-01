@@ -375,15 +375,14 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
-                    ChQuaterniond q1 = QuatFromAngleZ(data_values[i_data + 0]);  // roll
-                    ChQuaterniond q2 = QuatFromAngleY(data_values[i_data + 1]);  // pitch
-                    ChQuaterniond q3 = QuatFromAngleX(data_values[i_data + 2]);  // yaw
-                    bstates.rot = q1 * q2 * q3;
+                    ChVector3d rotvec_abs;
+                    rotvec_abs.x() = data_values[i_data + 0];
+                    rotvec_abs.y() = data_values[i_data + 1];
+                    rotvec_abs.z() = data_values[i_data + 2];
+                    bstates.rot = QuatFromRotVec(rotvec_abs);
                     i_data += 3;
-                    if (m_verbose) {
-                        ChVector3d angles_abs({data_values[i_data + 0], data_values[i_data + 1], data_values[i_data + 2]});
-                        cout << m_prefix2 << "body: " << i_body << " | angles:  " << angles_abs << endl;
-                    }
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | rot dir:  " << rotvec_abs.GetNormalized() << " rot angle: " << rotvec_abs.Length() << endl;
                 }
                 break;
             }

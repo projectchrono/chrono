@@ -61,7 +61,7 @@ class ChApiPrecice ChPreciceAdapter {
     enum class CouplingDataType {
         GENERIC,             ///< generic data
         POSITIONS,           ///< 3D positions (of body ref frames, body points, or FEA nodes)
-        ROTATIONS,           ///< 3D rotations (of body ref frames)
+        ROTATIONS,           ///< 3D rotations (of body ref frames, expressed as rotation vectors)
         DISPLACEMENTS,       ///< 3D displacements (relative to initial position)
         LINEAR_VELOCITIES,   ///< 3D velocities (of body ref frames, body points, or FEA nodes)
         ANGULAR_VELOCITIES,  ///< 3D angular velocities (of body ref frames)
