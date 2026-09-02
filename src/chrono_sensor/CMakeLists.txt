@@ -619,6 +619,9 @@ set(SENSOR_TINYOBJ_FILES
 )
 source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${SENSOR_STB_FILES} ${SENSOR_TINYOBJ_FILES})
+
 #-----------------------------------------------------------------------------
 # Shader directory in the build tree
 #
@@ -1013,6 +1016,15 @@ if(MSVC)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4661>)   # template member not defined (forward to host compiler for .cu files)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4005>)   # macro defined twice (forward to host compiler for .cu files)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--diag-suppress=1394>) # missing DLL interface (matches /wd4251 for CXX)
+
+  # nvcc places the host-side launch stub for a __global__ kernel in a generated
+  # <tu>.cudafe1.stub.c, and when the kernel lives in an anonymous namespace it declares that
+  # stub without "static" in the .cudafe1.cpp but defines it "static" with a qualified name in
+  # the stub. MSVC accepts the combination only as a nonstandard extension, hence C4211. The
+  # construct is in nvcc-generated code, not in Chrono sources (see fsi_sph_render.cu), so
+  # there is nothing to fix here and no include-directory mechanism can reach a file that nvcc
+  # writes into the temp directory.
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4211>)   # redefined extern to static (nvcc launch stub)
 
   # Treat headers included via <...> (CUDA Toolkit, OptiX, standard library, etc.) as external
   # and silence warnings originating from them, e.g. the double4/double4_16a/double4_32a

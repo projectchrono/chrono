@@ -75,6 +75,11 @@ if("${VCS_REVISION}" MATCHES ".*-NOTFOUND$")
     set(VCS_REVISION "")
 endif()
 
+# Utilities used throughout the project to keep warnings coming from third-party
+# code (bundled sources under src/chrono_thirdparty/, the embedded Bullet
+# collision library, and external dependency headers) out of the build output.
+include(ChronoWarnings)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #-----------------------------------------------------------------------------

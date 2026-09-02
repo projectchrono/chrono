@@ -212,6 +212,9 @@ set(FSISPH_STB_FILES
 )
 source_group("stb" FILES ${FSISPH_STB_FILES})
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${FSISPH_STB_FILES})
+
 # --------------- SPH FSI VSG INTERFACE
 
 if(CH_ENABLE_MODULE_VSG)

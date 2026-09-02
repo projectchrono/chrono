@@ -424,7 +424,14 @@ if(CH_ENABLE_YAML)
         mark_as_advanced(FORCE YAML_CPP_INSTALL)
         mark_as_advanced(FORCE YAML_CPP_INSTALL_CMAKEDIR)
         
-        # Disable warnings
+        # Disable all warnings from the yaml-cpp build itself
+        # (see cmake/ChronoWarnings.cmake).
+        ch_disable_warnings_on_target(yaml-cpp)
+
+        # Warnings raised in the yaml-cpp headers when compiling Chrono code.
+        # These are PUBLIC (unlike the above) because they are triggered in
+        # consumers, and yaml-cpp is included through Chrono's own src/ include
+        # root, where the SYSTEM include mechanism cannot reach it.
         if (MSVC)
           target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
           target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4275>)
@@ -455,6 +462,9 @@ if(BUILD_TESTING)
 
     add_subdirectory(chrono_thirdparty/googletest)
 
+    # Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+    ch_disable_warnings_on_target(gtest gtest_main gmock gmock_main)
+
     # Hide some Google test-related variables
     mark_as_advanced(FORCE BUILD_GMOCK)
     mark_as_advanced(FORCE INSTALL_GTEST)
@@ -479,6 +489,9 @@ if(BUILD_BENCHMARKING)
     set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
 
     add_subdirectory(chrono_thirdparty/googlebenchmark)
+
+    # Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+    ch_disable_warnings_on_target(benchmark benchmark_main)
 
     # Hide some Google benchmark-related variables
     mark_as_advanced(FORCE BENCHMARK_BUILD_32_BITS)
