@@ -56,6 +56,15 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
+// Supplies CHRONO_HAS_OPTIX for the guarded blocks below: this wrapper is compiled as
+// C++, so that macro has to come from the generated configuration header, not from the
+// -D in CMAKE_SWIG_FLAGS, which only SWIG itself sees. The header exists only when the
+// sensor module is enabled, hence the guard - and CHRONO_SENSOR is available by this
+// point because the ChSystem headers above pull in chrono/ChConfig.h.
+#ifdef CHRONO_SENSOR
+    #include "chrono_sensor/ChConfigSensor.h"
+#endif
+
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/ChROSBridge.h"
 #include "chrono_ros/ChROSHandler.h"

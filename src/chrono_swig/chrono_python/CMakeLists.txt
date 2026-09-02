@@ -1004,9 +1004,9 @@ if(CH_ENABLE_MODULE_SENSOR)
     target_compile_options(${CHPY_SENSOR} PRIVATE "-Wno-unused-variable")
   endif()
 
-  if (CH_USE_SENSOR_OPTIX)
-    target_compile_definitions(${CHPY_SENSOR} PRIVATE "CHRONO_HAS_OPTIX")
-  endif()
+  # CHRONO_HAS_OPTIX is defined by the generated chrono_sensor/ChConfigSensor.h.
+  # Do not define it here as well: the command line would define it as 1 while the
+  # header defines it empty, which MSVC reports as a macro redefinition (C4005).
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
@@ -1259,9 +1259,9 @@ if(CH_ENABLE_MODULE_ROS)
     target_compile_options(ros PRIVATE "-Wno-unused-variable")
   endif()
 
-  if (CH_USE_SENSOR_OPTIX)
-    target_compile_definitions(ros PRIVATE "CHRONO_HAS_OPTIX")
-  endif()
+  # CHRONO_HAS_OPTIX is defined by the generated chrono_sensor/ChConfigSensor.h.
+  # Do not define it here as well: the command line would define it as 1 while the
+  # header defines it empty, which MSVC reports as a macro redefinition (C4005).
 
   # The ros module conditionally wraps the sensor handlers (guarded by
   # CHRONO_SENSOR in ChModuleROS.i). SWIG sees -DCHRONO_SENSOR via the global

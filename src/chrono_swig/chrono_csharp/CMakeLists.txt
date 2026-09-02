@@ -526,9 +526,9 @@ if(CH_ENABLE_MODULE_SENSOR)
 
   target_compile_definitions(Chrono_csharp_sensor PRIVATE "CH_IGNORE_DEPRECATED")
   target_compile_definitions(Chrono_csharp_sensor PRIVATE "IGNORE_DEPRECATED_WARNING")
-  if (CH_USE_SENSOR_OPTIX)
-    target_compile_definitions(Chrono_csharp_sensor PRIVATE "CHRONO_HAS_OPTIX")
-  endif()
+  # CHRONO_HAS_OPTIX is defined by the generated chrono_sensor/ChConfigSensor.h.
+  # Do not define it here as well: the command line would define it as 1 while the
+  # header defines it empty, which MSVC reports as a macro redefinition (C4005).
 
   add_dependencies(Chrono_csharp_sensor Chrono_core)
   add_dependencies(Chrono_csharp_sensor Chrono_sensor)
@@ -644,9 +644,9 @@ if(CH_ENABLE_MODULE_ROS)
   target_compile_definitions(Chrono_csharp_ros PRIVATE "CH_IGNORE_DEPRECATED")
   target_compile_definitions(Chrono_csharp_ros PRIVATE "IGNORE_DEPRECATED_WARNING")
 
-  if (CH_USE_SENSOR_OPTIX)
-    target_compile_definitions(Chrono_csharp_ros PRIVATE "CHRONO_HAS_OPTIX")
-  endif()
+  # CHRONO_HAS_OPTIX is defined by the generated chrono_sensor/ChConfigSensor.h.
+  # Do not define it here as well: the command line would define it as 1 while the
+  # header defines it empty, which MSVC reports as a macro redefinition (C4005).
 
   add_dependencies(Chrono_csharp_ros Chrono_core)
   add_dependencies(Chrono_csharp_ros Chrono_ros)
