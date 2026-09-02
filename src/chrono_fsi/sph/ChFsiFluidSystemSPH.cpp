@@ -720,12 +720,17 @@ PhysicsProblem ChFsiFluidSystemSPH::GetPhysicsProblem() const {
 }
 
 std::string ChFsiFluidSystemSPH::GetPhysicsProblemString() const {
+    std::string problem = "";
     switch (m_paramsH->physics_problem) {
         case PhysicsProblem::CFD:
-            return "CFD";
+            problem = "CFD";
+            break;
         case PhysicsProblem::CRM:
-            return "CRM";
+            problem = "CRM";
+            break;
     }
+
+    return problem;
 }
 
 std::string ChFsiFluidSystemSPH::GetSphIntegrationSchemeString() const {

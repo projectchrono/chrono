@@ -678,20 +678,20 @@ int main(int argc, char* argv[]) {
             auto shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             shape->SetMesh(m);
             shape->SetMutable(false);
-            auto mat = chrono_types::make_shared<ChVisualMaterial>();
-            mat->SetDiffuseColor({1.0f, 1.0f, 1.0f});
-            mat->SetSpecularColor({0.0f, 0.0f, 0.0f});
-            mat->SetRoughness(1.0f);
-            mat->SetMetallic(0.0f);
+            auto mat_texture = chrono_types::make_shared<ChVisualMaterial>();
+            mat_texture->SetDiffuseColor({1.0f, 1.0f, 1.0f});
+            mat_texture->SetSpecularColor({0.0f, 0.0f, 0.0f});
+            mat_texture->SetRoughness(1.0f);
+            mat_texture->SetMetallic(0.0f);
             if (feature == "texture") {
-                mat->SetKdTexture(GetChronoDataFile("sensor/textures/checkerboard.png"));
+                mat_texture->SetKdTexture(GetChronoDataFile("sensor/textures/checkerboard.png"));
                 std::cout << "FEATURE texture: diffuse checkerboard.png on a 1.8 m cube\n";
             } else {
-                mat->SetKdTexture(GetChronoDataFile("sensor/textures/brick.png"));
-                mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/brick_normal.png"));
+                mat_texture->SetKdTexture(GetChronoDataFile("sensor/textures/brick.png"));
+                mat_texture->SetNormalMapTexture(GetChronoDataFile("sensor/textures/brick_normal.png"));
                 std::cout << "FEATURE normalmap: brick.png diffuse + brick_normal.png normal map\n";
             }
-            shape->AddMaterial(mat);
+            shape->AddMaterial(mat_texture);
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos({-2.0, 0.0, 0.9});
             body->SetFixed(true);
@@ -708,13 +708,13 @@ int main(int argc, char* argv[]) {
             auto shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             shape->SetMesh(m);
             shape->SetMutable(false);
-            auto mat = chrono_types::make_shared<ChVisualMaterial>();
-            mat->SetDiffuseColor({surface_gray, surface_gray, surface_gray});
-            mat->SetSpecularColor({0.0f, 0.0f, 0.0f});
-            mat->SetRoughness(1.0f);
-            mat->SetMetallic(0.0f);
-            mat->SetOpacity(0.5f);
-            shape->AddMaterial(mat);
+            auto mat_opacity = chrono_types::make_shared<ChVisualMaterial>();
+            mat_opacity->SetDiffuseColor({surface_gray, surface_gray, surface_gray});
+            mat_opacity->SetSpecularColor({0.0f, 0.0f, 0.0f});
+            mat_opacity->SetRoughness(1.0f);
+            mat_opacity->SetMetallic(0.0f);
+            mat_opacity->SetOpacity(0.5f);
+            shape->AddMaterial(mat_opacity);
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos({-2.0, 0.0, 0.9 + opacity_contact_clearance});
             body->SetFixed(true);

@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cmath>
+#include <cctype>
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChApiCE.h"
@@ -51,13 +52,15 @@ namespace chrono {
 
 /// Convert a string to upper case.
 inline std::string ChToUpper(std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(), ::toupper);
+    std::transform(in.begin(), in.end(), in.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
     return in;
 }
 
 /// Convert a string to lower case.
 inline std::string ChToLower(std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(), ::tolower);
+    std::transform(in.begin(), in.end(), in.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
     return in;
 }
 
