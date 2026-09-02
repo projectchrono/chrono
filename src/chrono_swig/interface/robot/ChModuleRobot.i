@@ -187,6 +187,11 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
+// RoboSimian::SetDriver takes a std::shared_ptr<models::ChRobotActuation>. Without this
+// registration ChRobotActuation is wrapped as a plain class, so no driver object can be
+// passed to it from Python or C#.
+%shared_ptr(chrono::models::ChRobotActuation)
+
 %shared_ptr(chrono::robosimian::RS_Part)
 %shared_ptr(chrono::robosimian::RS_Chassis)
 %shared_ptr(chrono::robosimian::RS_Sled)
