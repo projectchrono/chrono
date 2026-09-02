@@ -21,7 +21,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineArc)
 
-ChLineArc::ChLineArc(const ChCoordsys<>& morigin,
+ChLineArc::ChLineArc(const ChCoordsysd& morigin,
                      double mradius,
                      double mangle1,
                      double mangle2,

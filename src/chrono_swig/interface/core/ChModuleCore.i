@@ -372,6 +372,11 @@ inline const char* ChUtils_GetFilename() {
 
 
 //collision classes
+// ChColor.i comes before anything that takes a ChColor: the shape types nested in
+// ChBodyGeometry, and ChCollisionSystem::VisualizationCallback below. A type SWIG has not
+// seen yet is wrapped as an opaque placeholder instead.
+%include "ChColor.i"
+
 %include "ChContactMaterial.i"
 %include "ChCollisionShape.i"
 %include "ChCollisionModel.i"
@@ -393,12 +398,16 @@ inline const char* ChUtils_GetFilename() {
 %include "ChUpdateFlags.i"
 #endif              // --------------------------------------------------------------------- CSHARP
 
+// Hoisted: ChMesh, ChPhysicsItem and ChNodeBase below refer to these types, which would
+// otherwise first be parsed via ChTimestepper.i / ChSolver.i further down.
+%include "../../../chrono/timestepper/ChState.h"
+%include "../../../chrono/solver/ChSystemDescriptor.h"
+
 #ifdef CHRONO_FEA
 %include "../../../chrono/fea/ChMesh.h"
 #endif
 
 // assets
-%include "ChColor.i"
 %include "ChColormap.i"
 %include "ChVisualBSDFType.i"
 %include "ChVisualMaterial.i"
@@ -450,6 +459,8 @@ inline const char* ChUtils_GetFilename() {
 %include "ChTimestepper.i"
 %include "ChSolver.i"
 %include "ChContactContainer.i"
+// ChOutput precedes ChSystem.i, which refers to it.
+%include "../../../chrono/input_output/ChOutput.h"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"
@@ -484,7 +495,6 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
 
-%include "../../../chrono/input_output/ChOutput.h"
 
 %include "ChParticleFactory.i"
 %include "ChOpenMP.i"

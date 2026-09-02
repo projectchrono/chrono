@@ -317,7 +317,7 @@ void ChVisualSystemIrrlicht::AddGuiColorbar(const std::string& title,  // title
     m_colorbar_size = size;
 }
 
-void ChVisualSystemIrrlicht::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+void ChVisualSystemIrrlicht::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsysd pos, ChColor col) {
     m_grids.push_back({x_step, y_step, nx, ny, pos, col});
 }
 

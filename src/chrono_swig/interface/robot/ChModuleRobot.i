@@ -268,6 +268,10 @@ using namespace chrono::industrial;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
+// ChColor and the VisualizationType enum (declared in ChBodyGeometry.h) are used by the robot
+// models; without these imports SWIG wraps them as opaque placeholders in this module.
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyGeometry.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"

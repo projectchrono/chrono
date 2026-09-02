@@ -43,9 +43,9 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     ChMarker();
     ChMarker(const std::string& name,
              ChBody* body,
-             const ChCoordsys<>& rel_csys,
-             const ChCoordsys<>& rel_csys_dt,
-             const ChCoordsys<>& rel_csys_dtdt);
+             const ChCoordsysd& rel_csys,
+             const ChCoordsysd& rel_csys_dt,
+             const ChCoordsysd& rel_csys_dtdt);
     ChMarker(const ChMarker& other);
     ~ChMarker();
 
@@ -60,11 +60,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Set body-relative marker frame and update auxiliary variables.
     /// The current position becomes the 'resting position' coordinates for the current time.
-    void ImposeRelativeTransform(const ChFrame<>& frame);
+    void ImposeRelativeTransform(const ChFramed& frame);
 
     /// Set absolute coordinate marker frame and update auxiliary variables.
     /// The current position becomes the 'resting position' coordinates for the current time.
-    void ImposeAbsoluteTransform(const ChFrame<>& frame);
+    void ImposeAbsoluteTransform(const ChFramed& frame);
 
     /// Get the 'resting position'.
     /// This is the position which the marker should have when the x,y,z motion laws are at time=0.
