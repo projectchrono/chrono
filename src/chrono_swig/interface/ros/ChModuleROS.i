@@ -39,6 +39,7 @@
 }
 
 %include "../chrono_cast.i"
+%include "../chrono_ignore_operators.i"
 %include <std_shared_ptr.i>
 
 // ---------------------------------------------------------------------------
@@ -155,6 +156,12 @@ using namespace chrono::ros;
 // ---------------------------------------------------------------------------
 // A - shared_ptr enablement (every public class handed around as shared_ptr)
 // ---------------------------------------------------------------------------
+// Importing ChFrame.i marks ChFrame<double> as a smart pointer, so ChFrameMoving<double>
+// must be marked too or SWIG reports the derived class, and everything deriving from it
+// (ChBodyFrame, ChMarker, ChBody), as inconsistently marked (warning 520). The core,
+// robot, vehicle, fea and cascade modules all declare both.
+%shared_ptr(chrono::ChFrameMoving<double>)
+
 %shared_ptr(chrono::ros::ChROSBridge)
 %shared_ptr(chrono::ros::ChROSHandler)
 %shared_ptr(chrono::ros::ChROSSubscriptionCallback)
