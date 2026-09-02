@@ -133,7 +133,7 @@ class ChMaterial3DStressParallel : public ChMaterial3DStress {
     virtual void ComputeUpdateEndStep(ChFieldData* data_per_point,          ///< pointer to auxiliary data (ex states), if any, per quadrature point
                                       ChElementData* data_per_element,      ///< pointer to auxiliary data (ex states), if any, per element 
                                       const double time
-    ) {
+    ) override {
         auto parallel_data_per_point = (ChFieldDataParallel*)data_per_point;
         material_A->ComputeUpdateEndStep(parallel_data_per_point->data_A.get(), data_per_element, time);
         material_B->ComputeUpdateEndStep(parallel_data_per_point->data_B.get(), data_per_element, time);
