@@ -419,8 +419,15 @@ if(CH_ENABLE_YAML)
           yaml-cpp
           SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp"
         )
+        # yaml-cpp builds three sample executables (parse, read, sandbox) by default.
+        # Chrono uses none of them, and they are separate targets that the warning
+        # suppression applied to the library below does not reach. FORCE because build
+        # trees configured earlier already have this cached as ON.
+        set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+
         FetchContent_MakeAvailable(yaml-cpp)
         
+        mark_as_advanced(FORCE YAML_CPP_BUILD_TOOLS)
         mark_as_advanced(FORCE YAML_CPP_INSTALL)
         mark_as_advanced(FORCE YAML_CPP_INSTALL_CMAKEDIR)
         

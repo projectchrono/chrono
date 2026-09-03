@@ -23,3 +23,9 @@
 // operator itself, which it does whether or not a replacement exists.
 // (SWIG warning 389.)
 %ignore *::operator[];
+
+// Insertion. SWIG cannot wrap it under this name in any target language. The
+// only one it currently parses is ChGnuPlot::operator<<, which the header itself
+// documents as equivalent to SetCommand() - already wrapped, so nothing is lost.
+// (SWIG warning 503.)
+%ignore *::operator<<;

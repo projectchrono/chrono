@@ -64,8 +64,8 @@ using namespace chrono::vsg3d;
 %include "wchar.i"
 #ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 %include "python/cwstring.i"
-#endif              // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
+#endif              // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
 
 %import(module="pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"

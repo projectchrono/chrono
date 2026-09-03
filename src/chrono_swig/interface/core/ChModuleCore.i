@@ -121,7 +121,7 @@ using namespace chrono::fea;
 %inline %{
 // if needed there can be a pinvoke func instead of a broken char constant that SWIG produces from the macro
 inline const char* ChUtils_GetFilename() {
-    return __FILE__ + SOURCE_PATH_SIZE;
+    return &__FILE__[SOURCE_PATH_SIZE];
 }
 %}
 // make the new function visible as a public static for c#

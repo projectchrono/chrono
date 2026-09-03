@@ -29,7 +29,14 @@ namespace chrono {
     #define SOURCE_PATH_SIZE 0
 #endif
 
-#define __FILENAME__ ((__FILE__) + (SOURCE_PATH_SIZE))
+// Array indexing rather than (__FILE__ + SOURCE_PATH_SIZE): adding an integer to a
+// string literal is pointer arithmetic, which clang reports as -Wstring-plus-int.
+// Hidden from SWIG, which tries to turn every object-like macro into a constant and
+// cannot parse this one (Warning 305). Nothing wrapped uses it: it serves ChDebugLog
+// below, and the C# bindings call ChUtils_GetFilename() instead.
+#ifndef SWIG
+    #define __FILENAME__ (&(__FILE__)[SOURCE_PATH_SIZE])
+#endif
 
 #ifdef DEBUG_LOG
     #define ChDebugLog(x)                                                                       \
