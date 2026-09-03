@@ -212,6 +212,9 @@ set(FSISPH_STB_FILES
 )
 source_group("stb" FILES ${FSISPH_STB_FILES})
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${FSISPH_STB_FILES})
+
 # --------------- SPH FSI VSG INTERFACE
 
 if(CH_ENABLE_MODULE_VSG)
@@ -317,8 +320,17 @@ chrono_apply_gpu_backend(Chrono_fsisph ${CHRONO_FSISPH_BACKEND}
 if(CHRONO_FSISPH_BACKEND STREQUAL "CUDA")
 
   target_link_libraries(Chrono_fsisph PUBLIC Thrust::Thrust)
-  target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-  target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+
+  # PRIVATE for the same reason the HIP branch below exports nothing: no installed
+  # Chrono::FSI::SPH header includes <thrust/...>, so no consumer needs a Thrust
+  # configuration from us. Exporting one put THRUST_DEVICE_SYSTEM_CUDA on the command
+  # line of every consumer, where it collided with the THRUST_DEVICE_SYSTEM_OMP that
+  # Chrono::Multicore exports - two different values, last one silently winning, and a
+  # macro redefinition warning on every target linking both (several vehicle demos).
+  # Consumers that do include Thrust keep their own default; the nvcc default is CUDA,
+  # which is what Chrono::Sensor needs for the one .cu file where it uses Thrust.
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
 elseif(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
 

@@ -341,8 +341,6 @@ void ChPreciceAdapterSph::OnWriteData() {
 }
 
 void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     size_t num_bodies = m_coupling_bodies.size();
     std::vector<fsi::FsiBodyState> body_states(num_bodies);
 
@@ -353,11 +351,10 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
             continue;
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
-        assert(data_values.size() == data_dim * m_coupling_bodies.size());
+        assert(data_values.size() == GetCouplingDataDimensions(mesh_name, data_name) * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
@@ -371,7 +368,7 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             case CouplingDataType::ROTATIONS: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
@@ -387,7 +384,7 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             case CouplingDataType::LINEAR_VELOCITIES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
@@ -401,7 +398,7 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             case CouplingDataType::ANGULAR_VELOCITIES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
@@ -426,8 +423,6 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
 }
 
 void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     size_t num_bodies = m_coupling_bodies.size();
     std::vector<fsi::FsiBodyForce> body_forces(num_bodies);
 
@@ -442,11 +437,10 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
             continue;
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
-        assert(data_values.size() == data_dim * m_coupling_bodies.size());
+        assert(data_values.size() == GetCouplingDataDimensions(mesh_name, data_name) * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::FORCES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     const auto& bforces = body_forces[i_body];
@@ -460,7 +454,7 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             case CouplingDataType::TORQUES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     const auto& bforces = body_forces[i_body];

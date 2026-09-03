@@ -24,6 +24,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <cctype>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -146,7 +147,8 @@ int main(int argc, char* argv[]) {
     bool enable_vis = !no_vis;
 
     // Convert to lowercase for case-insensitive comparison
-    std::transform(gravity_planet.begin(), gravity_planet.end(), gravity_planet.begin(), ::tolower);
+    std::transform(gravity_planet.begin(), gravity_planet.end(), gravity_planet.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
     if (gravity_planet == "earth") {
         gravity_magnitude = EARTH_GRAVITY;

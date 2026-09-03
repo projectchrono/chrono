@@ -56,7 +56,7 @@ function(build_demos DEMOS LIBS)
           set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
         endif()
 
-        target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+        target_include_directories(${PROGRAM} ${CH_SYSTEM_INCLUDE_KEYWORD} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
         target_link_libraries(${PROGRAM} ${LIBS})
         
         install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
@@ -126,14 +126,6 @@ if(CH_ENABLE_MODULE_VSG)
     mark_as_advanced(FORCE BUILD_DEMOS_VSG)
     if(BUILD_DEMOS_VSG)
         add_subdirectory(vsg)
-    endif()
-endif()
-
-if(CH_ENABLE_MODULE_MATLAB)
-    option(BUILD_DEMOS_MATLAB "Build demo programs for Matlab module" TRUE)
-    mark_as_advanced(FORCE BUILD_DEMOS_MATLAB)
-    if(BUILD_DEMOS_MATLAB)
-        add_subdirectory(matlab)
     endif()
 endif()
 

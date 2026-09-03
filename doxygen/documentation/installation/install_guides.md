@@ -19,8 +19,6 @@ Additional Chrono functionality is provided through optional modules, enabled du
 
 -   [IRRLICHT module](@ref module_irrlicht_installation)
 
--   [MATLAB module](@ref module_matlab_installation)
-
 -   [MODAL module](@ref module_modal_installation)
 
 -   [MULTICORE module](@ref module_multicore_installation)

@@ -180,7 +180,7 @@ void ChGlyphs::SetGlyphVectorLocal(unsigned int id, ChVector3d mpoint, ChVector3
 
 // Fast method to set a glyph for GLYPH_COORDSYS draw mode.
 // If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
-void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
+void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsysd mcoord) {
     if (this->draw_mode != GLYPH_COORDSYS)
         SetDrawMode(GLYPH_COORDSYS);
 

@@ -419,12 +419,26 @@ if(CH_ENABLE_YAML)
           yaml-cpp
           SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp"
         )
+        # yaml-cpp builds three sample executables (parse, read, sandbox) by default.
+        # Chrono uses none of them, and they are separate targets that the warning
+        # suppression applied to the library below does not reach. FORCE because build
+        # trees configured earlier already have this cached as ON.
+        set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+
         FetchContent_MakeAvailable(yaml-cpp)
         
+        mark_as_advanced(FORCE YAML_CPP_BUILD_TOOLS)
         mark_as_advanced(FORCE YAML_CPP_INSTALL)
         mark_as_advanced(FORCE YAML_CPP_INSTALL_CMAKEDIR)
         
-        # Disable warnings
+        # Disable all warnings from the yaml-cpp build itself
+        # (see cmake/ChronoWarnings.cmake).
+        ch_disable_warnings_on_target(yaml-cpp)
+
+        # Warnings raised in the yaml-cpp headers when compiling Chrono code.
+        # These are PUBLIC (unlike the above) because they are triggered in
+        # consumers, and yaml-cpp is included through Chrono's own src/ include
+        # root, where the SYSTEM include mechanism cannot reach it.
         if (MSVC)
           target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
           target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4275>)
@@ -455,6 +469,9 @@ if(BUILD_TESTING)
 
     add_subdirectory(chrono_thirdparty/googletest)
 
+    # Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+    ch_disable_warnings_on_target(gtest gtest_main gmock gmock_main)
+
     # Hide some Google test-related variables
     mark_as_advanced(FORCE BUILD_GMOCK)
     mark_as_advanced(FORCE INSTALL_GTEST)
@@ -479,6 +496,9 @@ if(BUILD_BENCHMARKING)
     set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
 
     add_subdirectory(chrono_thirdparty/googlebenchmark)
+
+    # Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+    ch_disable_warnings_on_target(benchmark benchmark_main)
 
     # Hide some Google benchmark-related variables
     mark_as_advanced(FORCE BENCHMARK_BUILD_32_BITS)
@@ -521,7 +541,6 @@ add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_pardisomkl)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_parsers)
-add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_vsg)
 add_subdirectory(chrono_fmi)
@@ -654,12 +673,6 @@ if(CH_ENABLE_MODULE_MULTICORE)
   set(CHRONO_MULTICORE "#define CHRONO_MULTICORE")
 else()
   set(CHRONO_MULTICORE "#undef CHRONO_MULTICORE")
-endif()
-
-if(CH_ENABLE_MODULE_MATLAB)
-  set(CHRONO_MATLAB "#define CHRONO_MATLAB")
-else()
-  set(CHRONO_MATLAB "#undef CHRONO_MATLAB")
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)

@@ -63,7 +63,7 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
     /// Access the coordinate system of the rectangular outlet.
     /// The outlet width is on the X direction of this csys, and the
     /// outled height is on the Y direction of this csys.
-    ChCoordsys<>& Outlet() { return outlet; }
+    ChCoordsysd& Outlet() { return outlet; }
 
     /// Access the width of the rectangular outlet, that is on the X axis of the coordinate
     double& OutletWidth() { return width; }
@@ -72,7 +72,7 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
     double& OutletHeight() { return height; }
 
   private:
-    ChCoordsys<> outlet;
+    ChCoordsysd outlet;
     double width;
     double height;
 };
@@ -103,14 +103,14 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     /// Set the parametric surface used for this outlet.
     /// The surface will be sampled uniformly over its U,V parametric coordinates. In cas of lines, only U is used, in
     /// case of parametric volumes, U,V,W.
-    void SetGeometry(std::shared_ptr<ChGeometry> geometry, const ChFrame<>& frame) {
+    void SetGeometry(std::shared_ptr<ChGeometry> geometry, const ChFramed& frame) {
         m_geometry = geometry;
         m_frame = frame;
     }
 
   private:
     std::shared_ptr<ChGeometry> m_geometry;
-    ChFrame<> m_frame;
+    ChFramed m_frame;
 };
 
 }  // end of namespace particlefactory

@@ -73,7 +73,7 @@ function(build_utests ADD_TESTS TESTS LABEL LIBS)
           set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
         endif()
 
-        target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+        target_include_directories(${PROGRAM} ${CH_SYSTEM_INCLUDE_KEYWORD} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
         target_link_libraries(${PROGRAM} ${LIBS} gtest_main)
         
         install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})

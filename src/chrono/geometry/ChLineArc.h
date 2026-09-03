@@ -28,14 +28,14 @@ namespace chrono {
 /// By default it is evaluated clockwise from angle1 to angle2.
 class ChApi ChLineArc : public ChLine {
   public:
-    ChCoordsys<> origin;    ///< center position and plane of the arc: xy used for plane, z for axis.
+    ChCoordsysd origin;    ///< center position and plane of the arc: xy used for plane, z for axis.
     double radius;          ///< arc radius
     double angle1;          ///< start angle in radians
     double angle2;          ///< end angle in radians
     bool counterclockwise;  ///< flag indicating arc direction
 
   public:
-    ChLineArc(const ChCoordsys<>& morigin = CSYSNULL, double mradius = 1, double mangle1 = CH_2PI, double mangle2 = 0, bool mcounterclockwise = false);
+    ChLineArc(const ChCoordsysd& morigin = CSYSNULL, double mradius = 1, double mangle1 = CH_2PI, double mangle2 = 0, bool mcounterclockwise = false);
     ChLineArc(const ChLineArc& source);
     ~ChLineArc() {}
 

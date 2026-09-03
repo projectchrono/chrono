@@ -73,6 +73,15 @@ if(SWIG_FOUND)
   message(STATUS "  SWIG executable:   ${SWIG_EXECUTABLE}")
 endif()
 
+# Have SWIG report its own dependencies - the %include'd interface files and the
+# C++ headers it parses - so that editing any of them regenerates the bindings.
+# By default swig_add_library() tracks only the top-level .i file, and UseSWIG's
+# IMPLICIT_DEPENDS fallback works only with Makefile generators, so with Visual
+# Studio or Ninja an edit to an included interface file is silently ignored until
+# the wrapper output is deleted by hand.
+# Requires CMake 3.20 or newer; older versions keep the previous behavior.
+set(SWIG_USE_SWIG_DEPENDENCIES TRUE)
+
 include(${SWIG_USE_FILE})
 
 # Set location of SWIG-generated files.
@@ -995,9 +1004,9 @@ if(CH_ENABLE_MODULE_SENSOR)
     target_compile_options(${CHPY_SENSOR} PRIVATE "-Wno-unused-variable")
   endif()
 
-  if (CH_USE_SENSOR_OPTIX)
-    target_compile_definitions(${CHPY_SENSOR} PRIVATE "CHRONO_HAS_OPTIX")
-  endif()
+  # CHRONO_HAS_OPTIX is defined by the generated chrono_sensor/ChConfigSensor.h.
+  # Do not define it here as well: the command line would define it as 1 while the
+  # header defines it empty, which MSVC reports as a macro redefinition (C4005).
 
   if(APPLE)
     # See https://github.com/swig/swig/issues/3278
@@ -1250,9 +1259,9 @@ if(CH_ENABLE_MODULE_ROS)
     target_compile_options(ros PRIVATE "-Wno-unused-variable")
   endif()
 
-  if (CH_USE_SENSOR_OPTIX)
-    target_compile_definitions(ros PRIVATE "CHRONO_HAS_OPTIX")
-  endif()
+  # CHRONO_HAS_OPTIX is defined by the generated chrono_sensor/ChConfigSensor.h.
+  # Do not define it here as well: the command line would define it as 1 while the
+  # header defines it empty, which MSVC reports as a macro redefinition (C4005).
 
   # The ros module conditionally wraps the sensor handlers (guarded by
   # CHRONO_SENSOR in ChModuleROS.i). SWIG sees -DCHRONO_SENSOR via the global

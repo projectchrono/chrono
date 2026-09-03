@@ -38,7 +38,7 @@ class ChApi ChBodyAuxRef : public ChBody {
 
     /// Set the auxiliary reference frame with respect to the absolute frame.
     /// This moves the entire body; the body COM is rigidly moved as well.
-    void SetFrameRefToAbs(const ChFrame<>& frame);
+    void SetFrameRefToAbs(const ChFramed& frame);
 
     /// Get the auxiliary reference frame with respect to the absolute frame.
     /// Note that, in general, this is different from GetFrameCOMToAbs().
@@ -46,22 +46,22 @@ class ChApi ChBodyAuxRef : public ChBody {
 
     /// Set the body COM frame with respect to the absolute frame.
     /// This moves the entire body; the body REF is rigidly moved as well.
-    void SetFrameCOMToAbs(const ChFrame<>& frame);
+    void SetFrameCOMToAbs(const ChFramed& frame);
 
     /// Set the COM frame with respect to the auxiliary reference frame.
     /// Note that this also moves the body absolute COM (the REF is fixed).
     /// The position of contained ChMarker objects, if any, is not changed with respect to the reference.
-    void SetFrameCOMToRef(const ChFrame<>& frame);
+    void SetFrameCOMToRef(const ChFramed& frame);
 
     /// Get the COM frame with respect to the auxiliary reference frame.
-    ChFrame<> GetFrameCOMToRef() const { return ref_to_com.GetInverse(); }
+    ChFramed GetFrameCOMToRef() const { return ref_to_com.GetInverse(); }
 
     /// Set the auxiliary reference frame with respect to the COM frame.
     /// Note that this does not move the body absolute COM (the COM is fixed).
-    void SetFrameRefToCOM(const ChFrame<>& frame) { ref_to_com = frame; }
+    void SetFrameRefToCOM(const ChFramed& frame) { ref_to_com = frame; }
 
     /// Get the auxiliary reference frame with respect to the COM frame.
-    const ChFrame<>& GetFrameRefToCOM() const { return ref_to_com; }
+    const ChFramed& GetFrameRefToCOM() const { return ref_to_com; }
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
@@ -83,7 +83,7 @@ class ChApi ChBodyAuxRef : public ChBody {
     virtual void SetPos(const ChVector3<>& pos) override;
     virtual void SetRot(const ChMatrix33<>& R) override;
     virtual void SetRot(const ChQuaternion<>& q) override;
-    virtual void SetCoordsys(const ChCoordsys<>& C) override;
+    virtual void SetCoordsys(const ChCoordsysd& C) override;
     virtual void SetCoordsys(const ChVector3<>& v, const ChQuaternion<>& q) override;
 
     virtual void SetPosDt(const ChVector3<>& p_dt) override;
@@ -91,7 +91,7 @@ class ChApi ChBodyAuxRef : public ChBody {
     virtual void SetRotDt(const ChQuaternion<>& q_dt) override;
     virtual void SetAngVelLocal(const ChVector3<>& w) override;
     virtual void SetAngVelParent(const ChVector3<>& w) override;
-    virtual void SetCoordsysDt(const ChCoordsys<>& csys_dt) override;
+    virtual void SetCoordsysDt(const ChCoordsysd& csys_dt) override;
 
   private:
     ChFrameMoving<> ref_to_com;  ///< auxiliary REF location, relative to COM

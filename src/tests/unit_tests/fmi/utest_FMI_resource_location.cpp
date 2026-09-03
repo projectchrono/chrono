@@ -102,11 +102,11 @@ TEST(FmuResourceLocation, PercentEncoding) {
     EXPECT_EQ(ResourceLocationToPath("file:///tmp/100%/res"), "/tmp/100%/res");
     // Octets above 0x7F must survive decoding: bytes are bytes, and the hex test must not depend on
     // locale or on char signedness. "caf%C3%A9" is UTF-8 for "café".
-    const std::string cafe = std::string("/tmp/caf") + char(0xC3) + char(0xA9) + "/res";
+    const std::string cafe = "/tmp/caf" "\xC3" "\xA9" "/res";
     EXPECT_EQ(ResourceLocationToPath("file:///tmp/caf%C3%A9/res"), cafe);
     // A raw (unescaped) high byte is left alone, and must not be mistaken for a drive letter.
-    const std::string raw = std::string("/tmp/") + char(0xC3) + "/res";
-    EXPECT_EQ(ResourceLocationToPath(std::string("file:///tmp/") + char(0xC3) + "/res"), raw);
+    const std::string raw = "/tmp/" "\xC3" "/res";
+    EXPECT_EQ(ResourceLocationToPath("file:///tmp/" "\xC3" "/res"), raw);
 }
 
 // -----------------------------------------------------------------------------

@@ -8,19 +8,14 @@
 //
 ///////////////////////////////////////////////////
 
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono.pardisomkl'
-
-
+// Define the module to be used in Python when typing  'import pychrono.pardisomkl'
 %module(directors="1") pardisomkl
 
-
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 
+// Flatten nested strctures
+%feature("flatnested", "1");
 
 // Turn on the exception handling to intercept C++ exceptions
 %include "exception.i"
@@ -33,17 +28,15 @@
   }
 }
 
-
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
 
 
-
 // Include C++ headers this way...
-
 %{
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSolverVI.h"
@@ -63,9 +56,7 @@
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 using namespace chrono;
-
 %}
-
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApiPardisoMKL
@@ -86,12 +77,9 @@ using namespace chrono;
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
 
-
-
 //
 // For each class, keep updated the  A, B, C sections: 
 // 
-
 
 //
 // A- ENABLE SHARED POINTERS
@@ -101,9 +89,7 @@ using namespace chrono;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-
 %shared_ptr(chrono::ChSolverPardisoMKL)
-
 
 //
 // B- INCLUDE HEADERS
@@ -127,7 +113,6 @@ using namespace chrono;
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChSolver.i"
 
 %include "../../../chrono_pardisomkl/ChSolverPardisoMKL.h"
-
 
 //
 // C- CASTING OF SHARED POINTERS

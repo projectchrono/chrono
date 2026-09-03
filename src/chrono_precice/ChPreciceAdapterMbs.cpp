@@ -480,8 +480,6 @@ void ChPreciceAdapterMbs::OnWriteData() {
 }
 
 void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     for (const auto& data_name : m_data_read[mesh_name]) {
         const auto& data_info = mesh_info.data.at(data_name);
         if (!data_info.used)
@@ -492,7 +490,7 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
         assert(data_values.size() == data_dim * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::FORCES: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     ChVector3d force_abs;
@@ -514,7 +512,7 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
                 break;
             }
             case CouplingDataType::TORQUES: {
-                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
+                assert((GetCouplingMeshDimensions(mesh_name) == 3 && data_dim == 3) || (GetCouplingMeshDimensions(mesh_name) == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     ChVector3d torque_abs;
@@ -543,8 +541,6 @@ void ChPreciceAdapterMbs::ReadBodyRefData(const std::string& mesh_name, const Co
 }
 
 void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     for (const auto& data_name : m_data_write[mesh_name]) {
         auto& data_info = mesh_info.data[data_name];
         if (!data_info.used)
@@ -555,7 +551,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
         assert(data_values.size() == data_dim * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& pos_abs = c_body->body->GetFrameRefToAbs().GetPos();
@@ -578,7 +574,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 // Note: RotVecFromQuat gives a rotation angle in [-2*pi, 2*pi].
                 //       A complete implementation would require proper 2*pi wrap handling which would take care of cases such as a continuously rotating body.
                 //// TODO
-                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
+                assert((GetCouplingMeshDimensions(mesh_name) == 3 && data_dim == 3) || (GetCouplingMeshDimensions(mesh_name) == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& rot_abs = c_body->body->GetFrameRefToAbs().GetRot();
@@ -598,7 +594,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             case CouplingDataType::DISPLACEMENTS: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     auto displ_abs = c_body->body->GetFrameRefToAbs().GetPos() - c_body->init_body_frame.GetPos();
@@ -618,7 +614,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             case CouplingDataType::LINEAR_VELOCITIES: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& lin_vel_abs = c_body->body->GetFrameRefToAbs().GetPosDt();
@@ -638,7 +634,7 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 break;
             }
             case CouplingDataType::ANGULAR_VELOCITIES: {
-                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
+                assert((GetCouplingMeshDimensions(mesh_name) == 3 && data_dim == 3) || (GetCouplingMeshDimensions(mesh_name) == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     const auto& ang_vel_abs = c_body->body->GetAngVelParent();
@@ -664,8 +660,6 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
 }
 
 void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     for (const auto& data_name : m_data_read[mesh_name]) {
         const auto& data_info = mesh_info.data.at(data_name);
         if (!data_info.used)
@@ -676,7 +670,7 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
         assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
         switch (data_type) {
             case CouplingDataType::FORCES: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
@@ -699,10 +693,10 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
                 break;
             }
             case CouplingDataType::TORQUES: {
-                assert((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
+                assert((GetCouplingMeshDimensions(mesh_name) == 3 && data_dim == 3) || (GetCouplingMeshDimensions(mesh_name) == 2 && data_dim == 1));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
-                    for (const auto& pos_loc : c_body->points) {
+                    for ([[maybe_unused]] const auto& pos_loc : c_body->points) {
                         ChVector3d torque_abs;
                         if (data_dim == 1) {
                             torque_abs.x() = 0;
@@ -728,8 +722,6 @@ void ChPreciceAdapterMbs::ReadBodyMeshData(const std::string& mesh_name, const C
 }
 
 void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     for (const auto& data_name : m_data_write[mesh_name]) {
         auto& data_info = mesh_info.data[data_name];
         if (!data_info.used)
@@ -740,7 +732,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
         assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
@@ -760,7 +752,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 break;
             }
             case CouplingDataType::DISPLACEMENTS: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
@@ -780,7 +772,7 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 break;
             }
             case CouplingDataType::LINEAR_VELOCITIES: {
-                assert(data_dim == mesh_dim);
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {

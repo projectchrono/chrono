@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <cctype>
 
 #include "chrono/utils/ChUtils.h"
 #ifdef CHRONO_HAS_YAML
@@ -100,7 +101,8 @@ void ChPreciceAdapter::SetVisualizationSettings(double render_fps,
 #ifdef CHRONO_HAS_YAML
 
 static std::string ToUpper(std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(), ::toupper);
+    std::transform(in.begin(), in.end(), in.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
     return in;
 }
 

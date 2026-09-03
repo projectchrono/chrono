@@ -56,7 +56,7 @@ ChLinkRevoluteSpherical::ChLinkRevoluteSpherical(const ChLinkRevoluteSpherical& 
 
 // -----------------------------------------------------------------------------
 
-ChFrame<> ChLinkRevoluteSpherical::GetFrame1Rel() const {
+ChFramed ChLinkRevoluteSpherical::GetFrame1Rel() const {
     ChVector3d pos2_F1 = m_body1->TransformPointParentToLocal(m_body2->TransformPointLocalToParent(m_pos2));
 
     ChVector3d u = (pos2_F1 - m_pos1).GetNormalized();
@@ -64,10 +64,10 @@ ChFrame<> ChLinkRevoluteSpherical::GetFrame1Rel() const {
     ChVector3d v = Vcross(w, u);
     ChMatrix33<> A(u, v, w);
 
-    return ChFrame<>(m_pos1, A.GetQuaternion());
+    return ChFramed(m_pos1, A.GetQuaternion());
 }
 
-ChFrame<> ChLinkRevoluteSpherical::GetFrame2Rel() const {
+ChFramed ChLinkRevoluteSpherical::GetFrame2Rel() const {
     ChVector3d pos1_F2 = m_body2->TransformPointParentToLocal(m_body1->TransformPointLocalToParent(m_pos1));
 
     ChVector3d u = (m_pos2 - pos1_F2).GetNormalized();
@@ -75,7 +75,7 @@ ChFrame<> ChLinkRevoluteSpherical::GetFrame2Rel() const {
     ChVector3d v = Vcross(w, u);
     ChMatrix33<> A(u, v, w);
 
-    return ChFrame<>(m_pos2, A.GetQuaternion());
+    return ChFramed(m_pos2, A.GetQuaternion());
 }
 
 // -----------------------------------------------------------------------------
@@ -98,7 +98,7 @@ ChWrenchd ChLinkRevoluteSpherical::GetReaction2() const {
 // -----------------------------------------------------------------------------
 void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
                                          std::shared_ptr<ChBody> body2,
-                                         const ChCoordsys<>& csys,
+                                         const ChCoordsysd& csys,
                                          double distance) {
     m_body1 = body1.get();
     m_body2 = body2.get();
