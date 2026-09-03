@@ -283,6 +283,16 @@ if(MSVC)
   target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>)   # unreferenced formal parameter (forward to host compiler for .cu files)
   target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4324>)   # structure padded due to alignment specifier
   target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--diag-suppress=1394>) # missing DLL interface (matches /wd4251 for CXX)
+
+  # Debug only: MSVC raises _ITERATOR_DEBUG_LEVEL to 2, which makes standard iterators
+  # derive from std::_Iterator_base12, whose copy constructor and destructor are host-only.
+  # The implicitly-generated members of cuda::std::pair are __host__ __device__, so their
+  # host instantiation over such an iterator reports #20011. The device path is never taken
+  # for these host-side types, and the warning cannot arise in Release, where
+  # _ITERATOR_DEBUG_LEVEL is 0 and _Iterator_base12 drops out of the hierarchy. Keep the
+  # diagnostic enabled in Release so a genuine __host__ call from device code still shows up.
+  target_compile_options(Chrono_fsisph PRIVATE
+                         $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CONFIG:Debug>>:--diag-suppress=20011>)
   set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
