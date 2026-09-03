@@ -41,7 +41,7 @@ cbtRoundedCylinderShape : public cbtConvexInternalShape {
         return s_radius;
     }
 
-    void getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const;
+    virtual void getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbtVector3& aabbMax) const override;
 
     virtual void calculateLocalInertia(cbtScalar mass, cbtVector3 & inertia) const override;
 
