@@ -33,6 +33,16 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+// Reduction operators.
+// Defined locally rather than using thrust::minimum / thrust::plus /
+// thrust::equal_to: those are deprecated in CCCL 3.1 (CUDA 13.x) in favor of
+// cuda::minimum / cuda::std::plus / cuda::std::equal_to, which are libcu++ and
+// therefore unavailable under rocThrust (the Thrust device system used on AMD).
+
+struct real_min {
+    __host__ __device__ Real operator()(const Real& a, const Real& b) const { return a < b ? a : b; }
+};
+
 void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
@@ -93,10 +103,10 @@ double SphFluidDynamics::computeTimeStep() const {
     size_t valid_entries = m_data_mgr.countersH->numExtendedParticles;
     double min_courant_viscous_time_step =
         static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(), m_data_mgr.courantViscousTimeStepD.begin() + valid_entries,
-                                           std::numeric_limits<Real>::max(), thrust::minimum<Real>()));
+                                           std::numeric_limits<Real>::max(), real_min()));
     double min_acceleration_time_step =
         static_cast<double>(thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(), m_data_mgr.accelerationTimeStepD.begin() + valid_entries,
-                                           std::numeric_limits<Real>::max(), thrust::minimum<Real>()));
+                                           std::numeric_limits<Real>::max(), real_min()));
 
     double adjusted_time_step = 0.3 * std::min(min_courant_viscous_time_step, min_acceleration_time_step);
     // Log the time step values for analysis
