@@ -68,7 +68,7 @@ extern "C" __global__ void __raygen__normal_camera() {
     float4 ray_quat = nlerp(raygen->rot0, raygen->rot1, t_frac);
     // float3 ray_origin = raygen->pos0;
     // float4 ray_quat = raygen->rot0;
-    const float h_factor = camera.hFOV / CUDART_PI_F * 2.0;
+    const float h_factor = tanf(camera.hFOV / 2.f);
     float3 forward;
     float3 left;
     float3 up;
