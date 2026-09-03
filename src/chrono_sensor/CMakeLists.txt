@@ -1202,6 +1202,15 @@ if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
   target_link_libraries(Chrono_sensor PUBLIC GLEW::glew)
   target_link_libraries(Chrono_sensor PUBLIC glfw)
   target_link_libraries(Chrono_sensor PUBLIC OpenGL::GL)
+
+  if(APPLE)
+    # ChFilterVisualizeGuards.h reaches the Cocoa run loop through the Objective-C runtime rather
+    # than through Objective-C++, so that the visualize filters stay plain C++ and need no .mm
+    # translation unit. That still needs libobjc at link time, and nothing else in this module
+    # pulls it in when no backend does: a Vulkan RT or backend-free build with GLFW enabled
+    # compiles the guards and then fails to link objc_msgSend.
+    target_link_libraries(Chrono_sensor PUBLIC objc)
+  endif()
 else()
   message(STATUS "  GL libraries not found; Chrono::Sensor OpenGL support disabled")
 endif()

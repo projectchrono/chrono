@@ -17,6 +17,7 @@
 #define PROFILE false
 
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
+#include "chrono_sensor/filters/ChFilterVisualizeGuards.h"
 #ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
@@ -54,6 +55,9 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Initialize(std::shared_ptr<ChS
 
 CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
 #ifdef USE_SENSOR_GLFW
+    // Hand back whatever GL context the caller had current (see ChFilterVisualizeGuards.h).
+    GLContextGuard gl_context_guard;
+
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
         float hfov = m_radar->GetHFOV();
@@ -136,7 +140,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         glFlush();
 
         glfwSwapBuffers(m_window.get());
-        glfwPollEvents();
+        PollGlfwEventsPreservingHostEvents();  // not glfwPollEvents: see ChFilterVisualizeGuards.h
     }
 #endif
 }
