@@ -58,7 +58,7 @@ void ChLoadHydrodynamics::UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66
     auto num_bodies = m_body_blocks.size();
     ChAssertAlways(blocks.size() == num_bodies);
     for (size_t i = 0; i < num_bodies; i++) {
-        m_body_blocks[i].block(Eigen::seq(i, i + 5), Eigen::seq(i, i + 5)) = blocks[i];
+        m_body_blocks[i].block.block(0, 6 * i, 6, 6) = blocks[i];
     }
 }
 
