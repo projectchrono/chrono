@@ -3,7 +3,8 @@ type: MBS
 
 model:  "model_inverted_pendulum_load.yaml"
 #model:  "model_inverted_pendulum_motor.yaml"
-solver: "solver_mbs.yaml"
+
+solver: "solver_nonstiff.yaml"
 
 simulation:
   time_step: 1e-4

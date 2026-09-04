@@ -12,9 +12,3 @@ model:
    
   waves:
     type: no_wave
-    
-    #type: regular
-    #height: 3.0
-    #period: 5.0
-    #direction: 0.0  # degrees, 0 = positive x
-    #phase: 0.0

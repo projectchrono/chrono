@@ -3,10 +3,9 @@ type: FSI
 
 mbs:   "mbs.yaml"
 fluid: "tdpf.yaml"
-#fluid: "sph.yaml"
 
 fsi:
-  name: FSI_sphere_decay
+  name: FSI_sphere_regular_waves
   angle_degrees: true
   
   data_path:
@@ -31,7 +30,7 @@ visualization:
   enable_shadows: false
   camera:
     vertical: Z
-    location: [2, -6, 2]
+    location: [20, -60, 20]
     target: [0, 0, 0]
   output:
     save_images: false
