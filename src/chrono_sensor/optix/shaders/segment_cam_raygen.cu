@@ -64,7 +64,7 @@ extern "C" __global__ void __raygen__segment_camera() {
     const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent
     float3 ray_origin = lerp(raygen->pos0, raygen->pos1, t_frac);
     float4 ray_quat = nlerp(raygen->rot0, raygen->rot1, t_frac);
-    const float h_factor = camera.hFOV / CUDART_PI_F * 2.0;
+    const float h_factor = tanf(camera.hFOV / 2.f);
     float3 forward;
     float3 left;
     float3 up;
