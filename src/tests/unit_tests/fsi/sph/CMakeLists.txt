@@ -5,6 +5,7 @@ set(TESTS
     utest_FSI-SPH_setter_guard
     utest_FSI-SPH_rheology_error_flag
     utest_FSI-SPH_mcc_parameters
+    utest_FSI-SPH_init_guard
 )
 
 list(APPEND LIBS Chrono_core)

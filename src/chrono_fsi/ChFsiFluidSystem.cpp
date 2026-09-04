@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <stdexcept>
 #include <filesystem>
 
 #include "chrono/core/ChTypes.h"
@@ -53,9 +54,24 @@ void ChFsiFluidSystem::Initialize() {
 #else
     Initialize(std::vector<FsiBodyState>());
 #endif
+    // A standalone fluid system (no ChFsiSystem wrapper) is initialized through this call. Mark it
+    // here, after the derived Initialize returned without throwing, so that every derived class gets
+    // the flag on this path whether or not its own Initialize sets it (ChFsiSystem sets it on the
+    // wrapper path). A derived Initialize that throws leaves the flag false and DoStepDynamics refuses.
+    m_is_initialized = true;
 }
 
 void ChFsiFluidSystem::DoStepDynamics(double step) {
+    // Refuse to step an uninitialized system. The wrapper ChFsiSystem::DoStepDynamics already
+    // does this; without the same guard here, a standalone fluid system can be stepped before
+    // Initialize(), which bypasses CheckSPHParameters() and then dereferences the null
+    // m_fluid_dynamics that Initialize() would have constructed. Same message and exception as
+    // the wrapper, so a caller handles both identically.
+    if (!m_is_initialized) {
+        cout << "ERROR: FSI system not initialized!\n" << endl;
+        throw std::runtime_error("FSI system not initialized!\n");
+    }
+
     m_timer_step.reset();
     m_timer_step.start();
 
