@@ -272,8 +272,13 @@ int main(int argc, char* argv[]) {
     // THE DEFORMABLE TERRAIN
     //
 
-    // Create the 'deformable terrain' object
-    vehicle::SCMTerrain terrain(&sys);
+    // Create the 'deformable terrain' object.
+    //
+    // The visualization mesh is built only when this run actually renders. It is not free when it is
+    // never drawn: m_trimesh_shape gates a per-node vertex update inside the modified-node loop of
+    // ComputeInternalForces, and that cost is charged to the node loop rather than to the
+    // visualization timer, so a headless benchmark silently measures it as if it were soil physics.
+    vehicle::SCMTerrain terrain(&sys, render);
 
     // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
@@ -420,7 +425,7 @@ int main(int argc, char* argv[]) {
             std::cout << "SCM ray-cast backend: CPU (Bullet)" << std::endl;
         } else {
             terrain.EnableRaycastGpuHip(true);
-            std::cout << "SCM ray-cast backend: HIP" << (e ? "" : " (default)") << std::endl;
+            std::cout << "SCM ray-cast backend: GPU" << (e ? "" : " (default)") << std::endl;
             const char* prec = std::getenv("SCM_RAYCAST_GPU_PRECISION");
             std::cout << "  precision: " << (prec ? prec : "fp32 (default on every platform)") << std::endl;
         }
