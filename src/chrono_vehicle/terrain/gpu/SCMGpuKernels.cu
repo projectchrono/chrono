@@ -1,6 +1,35 @@
-// SCMGpuKernels.hip.cpp — HIP kernels for SCM contact forces.
+// SCMGpuKernels.cu — SCM contact-force kernels, compiled as CUDA or HIP.
 
-#include <hip/hip_runtime.h>
+// Backend-neutral source: this file is compiled by nvcc for the CUDA backend and by hipcc for the HIP
+// one, selected by chrono_set_gpu_source_language() -- the same single-source arrangement Chrono::DEM
+// and Chrono::FSI::SPH use.
+//
+// The conditional below is not optional. nvcc implicitly includes <cuda_runtime.h> for a .cu, but
+// HIP-clang provides nothing: a .cu with no includes compiles under nvcc and fails under
+// `hipcc --offload-arch=gfx942` with threadIdx/blockIdx/blockDim undeclared.
+//
+// gpuStream_t and gpuGetLastError are the ONLY two runtime names this file touches; everything else
+// here is device syntax, which CUDA and HIP spell identically. The host bridges, which use around
+// thirty runtime symbols, are duplicated per backend instead -- they can be, and Chrono has no
+// precedent for a compatibility layer. This file cannot be duplicated: it is the shared source.
+// Which branch each build takes, verified rather than assumed:
+//   CUDA backend      nvcc                                -> CUDA branch (nvcc implicitly includes
+//                                                            <cuda_runtime.h> for a .cu)
+//   HIP on NVIDIA     nvcc -D__HIP_PLATFORM_NVIDIA__      -> CUDA branch. CMake's HIP language calls
+//                                                            nvcc directly here and defines neither
+//                                                            __HIPCC__ nor __HIP_PLATFORM_AMD__; that
+//                                                            is correct, because on this platform
+//                                                            hipStream_t IS cudaStream_t.
+//   HIP on AMD        hipcc / HIP-clang                   -> HIP branch, the only one that needs the
+//                                                            header.
+#if defined(__HIPCC__) || defined(__HIP_PLATFORM_AMD__)
+    #include <hip/hip_runtime.h>
+using gpuStream_t = hipStream_t;
+    #define gpuGetLastError hipGetLastError
+#else
+using gpuStream_t = cudaStream_t;
+    #define gpuGetLastError cudaGetLastError
+#endif
 
 #include <cmath>
 #include <cstring>
@@ -181,7 +210,7 @@ extern "C" int scm_launch_compute_forces(const void* soil_host,
                                          const void* in_dev,
                                          void* out_dev,
                                          int n,
-                                         hipStream_t stream) {
+                                         gpuStream_t stream) {
     if (n <= 0)
         return 0;
 
@@ -194,7 +223,7 @@ extern "C" int scm_launch_compute_forces(const void* soil_host,
                                                           static_cast<const HitInputDev*>(in_dev),
                                                           static_cast<HitOutputDev*>(out_dev),
                                                           n);
-    return hipGetLastError();
+    return gpuGetLastError();
 }
 
 extern "C" int scm_launch_reduce_body_forces(const void* in_dev,
@@ -202,7 +231,7 @@ extern "C" int scm_launch_reduce_body_forces(const void* in_dev,
                                              void* body_forces_dev,
                                              int n,
                                              int n_bodies,
-                                             hipStream_t stream) {
+                                             gpuStream_t stream) {
     if (n <= 0 || n_bodies <= 0)
         return 0;
 
@@ -213,5 +242,5 @@ extern "C" int scm_launch_reduce_body_forces(const void* in_dev,
                                                               static_cast<double*>(body_forces_dev),
                                                               n,
                                                               n_bodies);
-    return hipGetLastError();
+    return gpuGetLastError();
 }
