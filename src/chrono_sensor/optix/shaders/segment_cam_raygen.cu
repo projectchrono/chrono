@@ -18,8 +18,7 @@
 
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 
-
-/// Default of segmentation per ray data (PRD)
+// Default of segmentation per ray data (PRD)
 __device__ __inline__ PerRayData_segment DefaultSegmentPRD() {
     PerRayData_segment prd = {};
     prd.class_id = 0;
@@ -27,7 +26,7 @@ __device__ __inline__ PerRayData_segment DefaultSegmentPRD() {
     return prd;
 };
 
-/// Ray generation program for segmentation camera
+// Ray generation program for segmentation camera
 extern "C" __global__ void __raygen__segment_camera() {
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
     const SemanticCameraParameters& camera = raygen->specific.segmentation;

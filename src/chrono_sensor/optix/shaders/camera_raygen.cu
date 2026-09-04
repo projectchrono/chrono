@@ -22,7 +22,7 @@
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 #include "chrono_sensor/optix/shaders/camera_utils.cuh"
 
-/// Camera ray generation program with using a lens distortion model
+// Camera ray generation program with using a lens distortion model
 extern "C" __global__ void __raygen__camera() {
     
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
@@ -50,7 +50,7 @@ extern "C" __global__ void __raygen__camera() {
     float3 cam_forward, cam_left, cam_up;
     for (int sample_idx = 0; sample_idx < num_spp; sample_idx++) {
     
-        //// Get camera's pose (origin of the ray to be launched) ////
+        // ---- Get camera's pose (origin of the ray to be launched)
         
         // Add motion-blur effect
         // rng_buffer is unconditionally allocated for this record (ChFilterOptixRender.cpp,
@@ -65,7 +65,8 @@ extern "C" __global__ void __raygen__camera() {
         
         basis_from_quaternion(ray_quat, cam_forward, cam_left, cam_up);
 
-        //// Get (u, v) location on the view plane ////
+        // ---- Get (u, v) location on the view plane
+
         // Last jitter must be at the center of the pixel
         float2 jitter = (sample_idx == num_spp - 1) ? make_float2(0.5f, 0.5f) : make_float2(curand_uniform(&rng), curand_uniform(&rng)); 
         
@@ -92,7 +93,6 @@ extern "C" __global__ void __raygen__camera() {
         }
         
         // Compute ray direction
-        // const float h_factor = camera.hFOV / CUDART_PI_F * 2.0; // bug here
         const float h_factor = tanf(camera.hFOV / 2.f);
         float3 ray_direction = normalize(cam_forward - uv.x * cam_left * h_factor + uv.y * cam_up * h_factor);
 
@@ -164,4 +164,5 @@ extern "C" __global__ void __raygen__camera() {
     );
 }
 
-#endif // CAMERA_RAYGEN_CU
+#endif
+
