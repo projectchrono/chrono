@@ -46,7 +46,7 @@ class ChSensor;
 template <class BufferType>
 inline void CopyAccessSpecificMetadata(BufferType&, const BufferType&) {}
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 inline void CopyAccessSpecificMetadata(SensorHostDIBuffer& dst, const SensorHostDIBuffer& src) {
     dst.Beam_return_count = src.Beam_return_count;
     dst.Dual_return = src.Dual_return;
@@ -201,7 +201,7 @@ using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBuffe
 
 #endif
 
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 /// Access to grayscale data produced by the Vulkan RT backend
 using ChFilterR8Access = ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>;
 /// Access to RGBA8 data produced by the Vulkan RT backend

@@ -44,6 +44,8 @@ ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,    // obj
     : ChOptixSensor(parent, updateRate, offsetPose, w, h),
 #elif defined(CHRONO_HAS_VULKAN_RT)
     : ChVulkanSensor(parent, updateRate, offsetPose, w, h, VulkanPipelineType::CAMERA),
+#elif defined(CHRONO_HAS_METAL_RT)
+    : ChMetalSensor(parent, updateRate, offsetPose, w, h, MetalPipelineType::CAMERA),
 #else
     : ChSensor(parent, updateRate, offsetPose),
 #endif

@@ -25,6 +25,8 @@
     #include "chrono_sensor/sensors/ChOptixSensor.h"
 #elif defined(CHRONO_HAS_VULKAN_RT)
     #include "chrono_sensor/sensors/ChVulkanSensor.h"
+#elif defined(CHRONO_HAS_METAL_RT)
+    #include "chrono_sensor/sensors/ChMetalSensor.h"
 #else
     #include "chrono_sensor/sensors/ChSensor.h"
 #endif
@@ -36,6 +38,8 @@ namespace sensor {
 using ChRadarSensorBase = ChOptixSensor;
 #elif defined(CHRONO_HAS_VULKAN_RT)
 using ChRadarSensorBase = ChVulkanSensor;
+#elif defined(CHRONO_HAS_METAL_RT)
+using ChRadarSensorBase = ChMetalSensor;
 #else
 using ChRadarSensorBase = ChSensor;
 #endif
