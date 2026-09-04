@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-#ifndef PHYS_CAM_RAYGEN_CU
-#define PHYS_CAM_RAYGEN_CU
-
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
@@ -176,5 +173,3 @@ extern "C" __global__ void __raygen__phys_camera() {
     camera.rgbd_buffer[pixel_idx] = make_half4(pow(color_result.x, 1.0f / gamma), pow(color_result.y, 1.0f / gamma), pow(color_result.z, 1.0f / gamma), prd_distance);
 
 }
-
-#endif

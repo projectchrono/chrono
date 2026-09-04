@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-#ifndef CAMERA_RAYGEN_CU
-#define CAMERA_RAYGEN_CU
-
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 #include "chrono_sensor/optix/shaders/camera_utils.cuh"
 
@@ -163,6 +160,3 @@ extern "C" __global__ void __raygen__camera() {
         pow(color_result.x, 1.0f / gamma), pow(color_result.y, 1.0f / gamma), pow(color_result.z, 1.0f / gamma), opacity_result
     );
 }
-
-#endif
-

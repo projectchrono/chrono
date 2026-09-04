@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-#ifndef NORMAL_CAM_RAYGEN_CU
-#define NORMAL_CAM_RAYGEN_CU
-
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 // Default of normal camera per ray data (PRD)
@@ -81,5 +78,3 @@ extern "C" __global__ void __raygen__normal_camera() {
 
     camera.frame_buffer[image_index] = make_float3(prd.normal.x, prd.normal.y, prd.normal.z);
 }
-
-#endif

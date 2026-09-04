@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-#ifndef RADAR_RAYGEN_CU
-#define RADAR_RAYGEN_CU
-
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 
@@ -92,5 +89,3 @@ extern "C" __global__ void __raygen__radar() {
     radar.frame_buffer[8 * image_index + 7] = prd_radar.objectId;  // objectId
     ////printf("%f %f\n", prd_radar.range, azimuth);
 }
-
-#endif
