@@ -38,9 +38,11 @@ set(CH_USE_SCM_GPU OFF)
 
 # The GPU requirement is declared for this FEATURE, not for Chrono::Vehicle:
 # the module builds fine with no GPU backend at all, and only the optional SCM
-# GPU path needs one. The kernels themselves are backend-neutral (single-source .cu,
-# compiled as CUDA or HIP), but the host bridges are still HIP-only, hence REQUIRES HIP
-# for now; this becomes CUDA_OR_HIP once the CUDA host bridges land. Both HIP platforms are accepted: nothing here depends on
+# GPU path needs one. The kernels are backend-neutral (single-source .cu compiled as
+# CUDA or HIP) and the host bridges are duplicated per backend under terrain/gpu/cuda
+# and terrain/gpu/hip, so either toolchain is sufficient. Both HIP platforms remain
+# acceptable: nothing here uses the ROCm-only libraries that restrict Chrono::DEM and
+# Chrono::FSI::SPH to the amd platform. Both HIP platforms are accepted: nothing here depends on
 # the ROCm-only libraries (hipCUB/rocPRIM, rocThrust) that restrict
 # Chrono::DEM and Chrono::FSI::SPH to the amd platform. So "HIP + ROCm on AMD"
 # and "HIP + nvcc on NVIDIA" both give the GPU path with no further
@@ -50,7 +52,7 @@ if(CH_ENABLE_VEHICLE_SCM_GPU)
   chrono_select_gpu_backend(CHRONO_VEHICLE_SCM_BACKEND
                             FEATURE  "Chrono::Vehicle SCM GPU"
                             NAME     VEHICLE_SCM
-                            REQUIRES HIP
+                            REQUIRES CUDA_OR_HIP
                             HIP_PLATFORMS amd nvidia)
 
   if(CHRONO_VEHICLE_SCM_BACKEND STREQUAL "NONE")
@@ -66,7 +68,7 @@ if(CH_ENABLE_VEHICLE_SCM_GPU)
     # silently build the CPU path. Leaving the cache alone lets availability be
     # re-evaluated every configure.
     chrono_gpu_feature_unavailable(FEATURE  "Chrono::Vehicle SCM GPU"
-                                   REQUIRES "HIP"
+                                   REQUIRES "CUDA or HIP"
                                    CLASS    IMPLIED)
 
   else()
@@ -328,16 +330,26 @@ if(CH_USE_SCM_GPU)
         terrain/gpu/SCMRaycastGpuKernels.cu
     )
     chrono_set_gpu_source_language(${CHRONO_VEHICLE_SCM_BACKEND} ${CV_SCM_GPU_KERNEL_FILES})
+    # Host bridges are duplicated, not shared: they are almost entirely runtime API calls
+    # (about thirty symbols), and Chrono has no compatibility layer for those. Exactly one
+    # directory is compiled per build; the two files in each pair must be kept in step by
+    # hand, which the banner at the top of each states.
+    if(CHRONO_VEHICLE_SCM_BACKEND STREQUAL "CUDA")
+        set(CV_SCM_GPU_HOST_DIR terrain/gpu/cuda)
+    else()
+        set(CV_SCM_GPU_HOST_DIR terrain/gpu/hip)
+    endif()
+
     list(APPEND CV_TERRAIN_FILES
         terrain/SCMGpu.h
         terrain/SCMGpuTypes.h
         terrain/SCMTerrainGpu.h
         terrain/SCMTerrainGpu.cpp
-        terrain/gpu/SCMGpuHost.cpp
+        ${CV_SCM_GPU_HOST_DIR}/SCMGpuHost.cpp
         terrain/SCMRaycastGpu.h
         terrain/SCMRaycastGpuTypes.h
         terrain/SCMTerrainRaycastGpu.cpp
-        terrain/gpu/SCMRaycastGpuHost.cpp
+        ${CV_SCM_GPU_HOST_DIR}/SCMRaycastGpuHost.cpp
         ${CV_SCM_GPU_KERNEL_FILES}
     )
 endif()

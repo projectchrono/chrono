@@ -19,8 +19,6 @@
     #include <unordered_map>
     #include <vector>
 
-    #include <hip/hip_runtime.h>
-
     #include "chrono/physics/ChBody.h"
     #include "chrono/collision/ChCollisionShapeTriangleMesh.h"
     #include "chrono/geometry/ChTriangleMeshConnected.h"

@@ -1,4 +1,12 @@
-// SCMRaycastGpuHost.cpp — HIP host bridge for the SCM ray-cast backend: device buffer management,
+// SCMRaycastGpuHost.cpp — CUDA host bridge for the SCM ray-cast backend: device buffer management,
+// NOTE: this file is DUPLICATED per GPU backend. Its counterpart is
+// terrain/gpu/hip/SCMRaycastGpuHost.cpp, and the two differ only in the runtime API names
+// (about thirty symbols). Any change here must be made there too -- nothing enforces it,
+// because only one of the two is compiled in a given build. Chrono has no compatibility
+// layer for this and deliberately does not grow one; the kernels, which CAN be shared,
+// are single-source .cu files instead.
+//
+// Not a name-for-name mapping: hipHostMalloc(p, n) is cudaHostAlloc(p, n, flags).
 // synchronous upload/run (v1 -- see SCMRaycastGpu.h for why this isn't pipelined yet).
 //
 // Supports two kernel precisions (ScmRaycastGpuPrecision): FP64, the validated default, and FP32, added for GPUs with weak double-precision throughput --
@@ -15,7 +23,7 @@
 
 #include "chrono_vehicle/terrain/SCMRaycastGpu.h"
 
-#include <hip/hip_runtime.h>
+#include <cuda_runtime.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -32,9 +40,9 @@ using chrono::vehicle::scm::gpu::RaycastResult;
 using chrono::vehicle::scm::gpu::RaycastVertex;
 
 // Float mirrors of the double-precision public types. Only the memory layout needs to match the
-// .hip.cpp kernel's own VertexDevT<float>/TransformDevT<float>/MarginDevT<float>/QueryDevT<float>/
+// SCMRaycastGpuKernels.cu kernel's own VertexDevT<float>/TransformDevT<float>/MarginDevT<float>/QueryDevT<float>/
 // ResultDevT<float> -- not the C++ type identity -- since the two are compiled by different compilers
-// (g++ here, hipcc there) and only ever communicate via raw device pointers.
+// (g++ here, nvcc there) and only ever communicate via raw device pointers.
 struct VertexF {
     float x, y, z;
 };
@@ -70,7 +78,7 @@ extern "C" int scm_launch_raycast_fp64(const void* queries_dev,
                                        const void* margins_dev,
                                        int n_bodies,
                                        void* results_dev,
-                                       hipStream_t stream);
+                                       cudaStream_t stream);
 extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
                                        int n_queries,
                                        const void* verts_dev,
@@ -80,18 +88,18 @@ extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
                                        const void* margins_dev,
                                        int n_bodies,
                                        void* results_dev,
-                                       hipStream_t stream);
+                                       cudaStream_t stream);
 
-void die_hip(const char* msg, hipError_t err) {
-    fprintf(stderr, "SCM RAYCAST GPU FATAL: %s -- %s\n", msg, hipGetErrorString(err));
+void die_cuda(const char* msg, cudaError_t err) {
+    fprintf(stderr, "SCM RAYCAST GPU FATAL: %s -- %s\n", msg, cudaGetErrorString(err));
     std::abort();
 }
 
 void ensure_device(int device) {
     int current = -1;
-    hipGetDevice(&current);
+    cudaGetDevice(&current);
     if (current != device)
-        hipSetDevice(device);
+        cudaSetDevice(device);
 }
 
 template <typename T>
@@ -99,10 +107,10 @@ void ensure_capacity(T** d_ptr, std::size_t& capacity, std::size_t n) {
     if (n <= capacity)
         return;
     if (*d_ptr)
-        (void)hipFree(*d_ptr);
-    hipError_t e = hipMalloc(d_ptr, n * sizeof(T));
-    if (e != hipSuccess)
-        die_hip("hipMalloc", e);
+        (void)cudaFree(*d_ptr);
+    cudaError_t e = cudaMalloc(d_ptr, n * sizeof(T));
+    if (e != cudaSuccess)
+        die_cuda("cudaMalloc", e);
     capacity = n;
 }
 
@@ -157,27 +165,27 @@ extern "C" void scm_raycast_gpu_destroy(ScmRaycastGpuContext* ctx) {
         return;
     ensure_device(ctx->device);
     if (ctx->d_verts)
-        hipFree(ctx->d_verts);
+        cudaFree(ctx->d_verts);
     if (ctx->d_faces)
-        hipFree(ctx->d_faces);
+        cudaFree(ctx->d_faces);
     if (ctx->d_xforms)
-        hipFree(ctx->d_xforms);
+        cudaFree(ctx->d_xforms);
     if (ctx->d_margins)
-        hipFree(ctx->d_margins);
+        cudaFree(ctx->d_margins);
     if (ctx->d_queries)
-        hipFree(ctx->d_queries);
+        cudaFree(ctx->d_queries);
     if (ctx->d_results)
-        hipFree(ctx->d_results);
+        cudaFree(ctx->d_results);
     if (ctx->d_verts_f)
-        hipFree(ctx->d_verts_f);
+        cudaFree(ctx->d_verts_f);
     if (ctx->d_xforms_f)
-        hipFree(ctx->d_xforms_f);
+        cudaFree(ctx->d_xforms_f);
     if (ctx->d_margins_f)
-        hipFree(ctx->d_margins_f);
+        cudaFree(ctx->d_margins_f);
     if (ctx->d_queries_f)
-        hipFree(ctx->d_queries_f);
+        cudaFree(ctx->d_queries_f);
     if (ctx->d_results_f)
-        hipFree(ctx->d_results_f);
+        cudaFree(ctx->d_results_f);
     delete ctx;
 }
 
@@ -199,20 +207,20 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
                 tmp[i] = {static_cast<float>(verts[i].x), static_cast<float>(verts[i].y),
                          static_cast<float>(verts[i].z)};
             ensure_capacity(&ctx->d_verts_f, ctx->cap_verts_f, static_cast<std::size_t>(n_verts));
-            hipError_t e = hipMemcpy(ctx->d_verts_f, tmp.data(), n_verts * sizeof(VertexF), hipMemcpyHostToDevice);
-            if (e != hipSuccess)
+            cudaError_t e = cudaMemcpy(ctx->d_verts_f, tmp.data(), n_verts * sizeof(VertexF), cudaMemcpyHostToDevice);
+            if (e != cudaSuccess)
                 return static_cast<int>(e);
         } else {
             ensure_capacity(&ctx->d_verts, ctx->cap_verts, static_cast<std::size_t>(n_verts));
-            hipError_t e = hipMemcpy(ctx->d_verts, verts, n_verts * sizeof(RaycastVertex), hipMemcpyHostToDevice);
-            if (e != hipSuccess)
+            cudaError_t e = cudaMemcpy(ctx->d_verts, verts, n_verts * sizeof(RaycastVertex), cudaMemcpyHostToDevice);
+            if (e != cudaSuccess)
                 return static_cast<int>(e);
         }
     }
     if (n_faces > 0) {
         ensure_capacity(&ctx->d_faces, ctx->cap_faces, static_cast<std::size_t>(n_faces));
-        hipError_t e = hipMemcpy(ctx->d_faces, faces, n_faces * sizeof(RaycastFace), hipMemcpyHostToDevice);
-        if (e != hipSuccess)
+        cudaError_t e = cudaMemcpy(ctx->d_faces, faces, n_faces * sizeof(RaycastFace), cudaMemcpyHostToDevice);
+        if (e != cudaSuccess)
             return static_cast<int>(e);
     }
     if (n_bodies > 0) {
@@ -221,22 +229,22 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
             for (int i = 0; i < n_bodies; ++i)
                 tmp[i] = {static_cast<float>(margins[i].margin), margins[i].face_begin, margins[i].face_end};
             ensure_capacity(&ctx->d_margins_f, ctx->cap_margins_f, static_cast<std::size_t>(n_bodies));
-            hipError_t e =
-                hipMemcpy(ctx->d_margins_f, tmp.data(), n_bodies * sizeof(MarginF), hipMemcpyHostToDevice);
-            if (e != hipSuccess)
+            cudaError_t e =
+                cudaMemcpy(ctx->d_margins_f, tmp.data(), n_bodies * sizeof(MarginF), cudaMemcpyHostToDevice);
+            if (e != cudaSuccess)
                 return static_cast<int>(e);
         } else {
             ensure_capacity(&ctx->d_margins, ctx->cap_margins, static_cast<std::size_t>(n_bodies));
-            hipError_t e =
-                hipMemcpy(ctx->d_margins, margins, n_bodies * sizeof(RaycastBodyMargin), hipMemcpyHostToDevice);
-            if (e != hipSuccess)
+            cudaError_t e =
+                cudaMemcpy(ctx->d_margins, margins, n_bodies * sizeof(RaycastBodyMargin), cudaMemcpyHostToDevice);
+            if (e != cudaSuccess)
                 return static_cast<int>(e);
         }
     }
 
     ctx->n_faces_current = n_faces;
     ctx->n_bodies_current = n_bodies;
-    return static_cast<int>(hipSuccess);
+    return static_cast<int>(cudaSuccess);
 }
 
 extern "C" int scm_raycast_gpu_upload_transforms(ScmRaycastGpuContext* ctx,
@@ -260,18 +268,18 @@ extern "C" int scm_raycast_gpu_upload_transforms(ScmRaycastGpuContext* ctx,
                      static_cast<float>(t.bx1), static_cast<float>(t.by1), static_cast<float>(t.bz1)};
         }
         ensure_capacity(&ctx->d_xforms_f, ctx->cap_bodies_f, static_cast<std::size_t>(n_bodies));
-        hipError_t e = hipMemcpy(ctx->d_xforms_f, tmp.data(), n_bodies * sizeof(TransformF), hipMemcpyHostToDevice);
-        if (e != hipSuccess)
+        cudaError_t e = cudaMemcpy(ctx->d_xforms_f, tmp.data(), n_bodies * sizeof(TransformF), cudaMemcpyHostToDevice);
+        if (e != cudaSuccess)
             return static_cast<int>(e);
     } else {
         ensure_capacity(&ctx->d_xforms, ctx->cap_bodies, static_cast<std::size_t>(n_bodies));
-        hipError_t e =
-            hipMemcpy(ctx->d_xforms, xforms, n_bodies * sizeof(RaycastBodyTransform), hipMemcpyHostToDevice);
-        if (e != hipSuccess)
+        cudaError_t e =
+            cudaMemcpy(ctx->d_xforms, xforms, n_bodies * sizeof(RaycastBodyTransform), cudaMemcpyHostToDevice);
+        if (e != cudaSuccess)
             return static_cast<int>(e);
     }
 
-    return static_cast<int>(hipSuccess);
+    return static_cast<int>(cudaSuccess);
 }
 
 extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
@@ -295,23 +303,23 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
         ensure_capacity(&ctx->d_queries_f, ctx->cap_queries_f, static_cast<std::size_t>(n_queries));
         ensure_capacity(&ctx->d_results_f, ctx->cap_results_f, static_cast<std::size_t>(n_queries));
 
-        hipError_t e1 = hipMemcpy(ctx->d_queries_f, q_tmp.data(), n_queries * sizeof(QueryF), hipMemcpyHostToDevice);
-        if (e1 != hipSuccess)
+        cudaError_t e1 = cudaMemcpy(ctx->d_queries_f, q_tmp.data(), n_queries * sizeof(QueryF), cudaMemcpyHostToDevice);
+        if (e1 != cudaSuccess)
             return static_cast<int>(e1);
 
         int launch_err = scm_launch_raycast_fp32(ctx->d_queries_f, n_queries, ctx->d_verts_f, ctx->d_faces,
                                                  ctx->n_faces_current, ctx->d_xforms_f, ctx->d_margins_f,
                                                  ctx->n_bodies_current, ctx->d_results_f, nullptr);
-        if (launch_err != hipSuccess)
+        if (launch_err != cudaSuccess)
             return launch_err;
 
-        hipError_t e2 = hipDeviceSynchronize();
-        if (e2 != hipSuccess)
+        cudaError_t e2 = cudaDeviceSynchronize();
+        if (e2 != cudaSuccess)
             return static_cast<int>(e2);
         std::vector<ResultF> r_tmp(n_queries);
-        hipError_t e3 =
-            hipMemcpy(r_tmp.data(), ctx->d_results_f, n_queries * sizeof(ResultF), hipMemcpyDeviceToHost);
-        if (e3 != hipSuccess)
+        cudaError_t e3 =
+            cudaMemcpy(r_tmp.data(), ctx->d_results_f, n_queries * sizeof(ResultF), cudaMemcpyDeviceToHost);
+        if (e3 != cudaSuccess)
             return static_cast<int>(e3);
 
         for (int i = 0; i < n_queries; ++i) {
@@ -321,29 +329,29 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
             out_results[i].hit_y = r_tmp[i].hit_y;
             out_results[i].hit_z = r_tmp[i].hit_z;
         }
-        return static_cast<int>(hipSuccess);
+        return static_cast<int>(cudaSuccess);
     }
 
     ensure_capacity(&ctx->d_queries, ctx->cap_queries, static_cast<std::size_t>(n_queries));
     ensure_capacity(&ctx->d_results, ctx->cap_results, static_cast<std::size_t>(n_queries));
 
-    hipError_t e1 = hipMemcpy(ctx->d_queries, queries, n_queries * sizeof(RaycastQuery), hipMemcpyHostToDevice);
-    if (e1 != hipSuccess)
+    cudaError_t e1 = cudaMemcpy(ctx->d_queries, queries, n_queries * sizeof(RaycastQuery), cudaMemcpyHostToDevice);
+    if (e1 != cudaSuccess)
         return static_cast<int>(e1);
 
     int launch_err = scm_launch_raycast_fp64(ctx->d_queries, n_queries, ctx->d_verts, ctx->d_faces,
                                              ctx->n_faces_current, ctx->d_xforms, ctx->d_margins,
                                              ctx->n_bodies_current, ctx->d_results, nullptr);
-    if (launch_err != hipSuccess)
+    if (launch_err != cudaSuccess)
         return launch_err;
 
-    hipError_t e2 = hipDeviceSynchronize();
-    if (e2 != hipSuccess)
+    cudaError_t e2 = cudaDeviceSynchronize();
+    if (e2 != cudaSuccess)
         return static_cast<int>(e2);
 
-    hipError_t e3 = hipMemcpy(out_results, ctx->d_results, n_queries * sizeof(RaycastResult), hipMemcpyDeviceToHost);
-    if (e3 != hipSuccess)
+    cudaError_t e3 = cudaMemcpy(out_results, ctx->d_results, n_queries * sizeof(RaycastResult), cudaMemcpyDeviceToHost);
+    if (e3 != cudaSuccess)
         return static_cast<int>(e3);
 
-    return static_cast<int>(hipSuccess);
+    return static_cast<int>(cudaSuccess);
 }
