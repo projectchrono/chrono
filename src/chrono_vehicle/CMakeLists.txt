@@ -38,8 +38,9 @@ set(CH_USE_SCM_GPU OFF)
 
 # The GPU requirement is declared for this FEATURE, not for Chrono::Vehicle:
 # the module builds fine with no GPU backend at all, and only the optional SCM
-# GPU path needs one. The kernels are written in HIP and have no CUDA variant,
-# hence REQUIRES HIP. Both HIP platforms are accepted: nothing here depends on
+# GPU path needs one. The kernels themselves are backend-neutral (single-source .cu,
+# compiled as CUDA or HIP), but the host bridges are still HIP-only, hence REQUIRES HIP
+# for now; this becomes CUDA_OR_HIP once the CUDA host bridges land. Both HIP platforms are accepted: nothing here depends on
 # the ROCm-only libraries (hipCUB/rocPRIM, rocThrust) that restrict
 # Chrono::DEM and Chrono::FSI::SPH to the amd platform. So "HIP + ROCm on AMD"
 # and "HIP + nvcc on NVIDIA" both give the GPU path with no further
@@ -318,11 +319,15 @@ endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
 
 if(CH_USE_SCM_GPU)
-    set(CV_SCM_GPU_HIP_FILES
-        terrain/gpu/SCMGpuKernels.hip.cpp
-        terrain/gpu/SCMRaycastGpuKernels.hip.cpp
+    # Single source for both backends: .cu is CUDA by default and
+    # chrono_set_gpu_source_language() relabels it LANGUAGE HIP when the HIP backend is
+    # selected, exactly as Chrono::DEM and Chrono::FSI::SPH do. The host bridges below are
+    # NOT shared -- they are almost entirely runtime API calls and are duplicated per backend.
+    set(CV_SCM_GPU_KERNEL_FILES
+        terrain/gpu/SCMGpuKernels.cu
+        terrain/gpu/SCMRaycastGpuKernels.cu
     )
-    chrono_set_gpu_source_language(${CHRONO_VEHICLE_SCM_BACKEND} ${CV_SCM_GPU_HIP_FILES})
+    chrono_set_gpu_source_language(${CHRONO_VEHICLE_SCM_BACKEND} ${CV_SCM_GPU_KERNEL_FILES})
     list(APPEND CV_TERRAIN_FILES
         terrain/SCMGpu.h
         terrain/SCMGpuTypes.h
@@ -333,7 +338,7 @@ if(CH_USE_SCM_GPU)
         terrain/SCMRaycastGpuTypes.h
         terrain/SCMTerrainRaycastGpu.cpp
         terrain/gpu/SCMRaycastGpuHost.cpp
-        ${CV_SCM_GPU_HIP_FILES}
+        ${CV_SCM_GPU_KERNEL_FILES}
     )
 endif()
 
