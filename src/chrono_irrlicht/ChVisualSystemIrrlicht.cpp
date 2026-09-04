@@ -16,7 +16,9 @@
 //// Allow attaching more than one ChSystem to the same Irrlicht visualization
 
 #include <codecvt>
+#include <filesystem>
 #include <locale>
+#include <system_error>
 
 #include "chrono/utils/ChProfiler.h"
 #include "chrono/utils/ChUtils.h"
@@ -25,6 +27,10 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 #include "chrono_irrlicht/ChIrrSkyBoxSceneNode.h"
+
+#ifdef __APPLE__
+    #include "chrono_irrlicht/ChIrrMacOS.h"
+#endif
 
 namespace chrono {
 namespace irrlicht {
@@ -48,7 +54,13 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     m_device_params.AntiAlias = true;
     m_device_params.Bits = 32;
     m_device_params.Fullscreen = false;
+    // Direct3D9 exists only on Windows; requesting it elsewhere always fails and falls back, and on
+    // macOS that failed attempt builds and tears down a whole CIrrDeviceMacOSX first.
+#ifdef _WIN32
     m_device_params.DriverType = video::EDT_DIRECT3D9;
+#else
+    m_device_params.DriverType = video::EDT_OPENGL;
+#endif
     m_device_params.WindowSize = core::dimension2d<irr::u32>(640, 480);
     m_device_params.Stencilbuffer = false;
     m_device_params.LoggingLevel = irr::ELL_INFORMATION;
@@ -185,17 +197,51 @@ void ChVisualSystemIrrlicht::Initialize() {
     if (!m_verbose)
         m_device_params.LoggingLevel = irr::ELL_NONE;
 
+    // CIrrDeviceMacOSX chdir()s the process to the parent of the main bundle path on creation. For an
+    // unbundled executable that is one directory above where it was launched, so every relative path
+    // used afterwards resolves wrongly. Save the working directory and put it back.
+    std::error_code cwd_ec;
+    auto saved_cwd = std::filesystem::current_path(cwd_ec);
+    bool restore_cwd = !cwd_ec;
+
     // Create Irrlicht device using current parameter values
     m_device = irr::createDeviceEx(m_device_params);
+#ifdef _WIN32
+    // Only Windows asked for something other than OpenGL, so only Windows has anything to fall back
+    // from; elsewhere this would repeat the call that just failed.
     if (!m_device) {
         std::cerr << "Cannot use default video driver - fall back to OpenGL" << std::endl;
         m_device_params.DriverType = video::EDT_OPENGL;
         m_device = irr::createDeviceEx(m_device_params);
-        if (!m_device) {
-            std::cerr << "Failed to create the video driver - giving up" << std::endl;
-            return;
+    }
+#endif
+    if (!m_device) {
+        if (restore_cwd)
+            std::filesystem::current_path(saved_cwd, cwd_ec);
+        std::cerr << "Failed to create the video driver - giving up" << std::endl;
+        return;
+    }
+
+    // A failed restore is deliberately ignored; the only plausible cause is the directory having been
+    // removed underneath the process.
+    if (restore_cwd)
+        std::filesystem::current_path(saved_cwd, cwd_ec);
+
+#ifdef __APPLE__
+    // AppKit gives the view a backing store backingScaleFactor times the window's point size, while
+    // Irrlicht keeps its viewport and GUI layout in points, so it draws into one corner and leaves the
+    // rest black. See ChIrrMacOS.h.
+    {
+        double backing_scale = ChIrrMacOSMatchGLSurfaceToWindowSize();
+        if (m_verbose && backing_scale > 1.0) {
+            std::cout << "Matched the Irrlicht OpenGL surface to the window size (backing scale " << backing_scale << ")" << std::endl;
         }
     }
+
+    // An unbundled executable is registered as background-only, so its window never becomes key and
+    // receives no keyboard events at all. See ChIrrMacOS.h.
+    ChIrrMacOSActivateApplication();
+#endif
 
     // m_device->grab();
 
