@@ -20,11 +20,14 @@
 
 #include "gtest/gtest.h"
 
+#include <memory>
 #include <typeinfo>
+#include <typeindex>
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/serialization/ChObjectExplorer.h"
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/solver/ChSolverPSOR.h"
 
@@ -39,9 +42,44 @@
 
 using namespace chrono;
 
+enum ExplorerMode { Idle = 0, Running = 1 };
+
+CH_ENUM_MAPPER_BEGIN(ExplorerMode);
+CH_ENUM_VAL(Idle);
+CH_ENUM_VAL(Running, "running_mode_with_a_long_descriptive_name");
+CH_ENUM_MAPPER_END(ExplorerMode);
+
+struct ExplorerEnumSample {
+    ExplorerMode mode = Running;
+
+    void ArchiveOut(ChArchiveOut& archive_out) {
+        ExplorerMode_mapper mapper;
+        archive_out << CHNVP(mapper(mode), "mode");
+    }
+};
+
 const double ABS_ERR = 1e-5;
 enum class ArchiveType { BINARY, JSON, XML };
 const std::string out_dir = GetChronoTestOutputPath() + "/ch_archive/";
+
+TEST(ChObjectExplorer, EnumValueLifetime) {
+    ExplorerEnumSample sample;
+    ChObjectExplorer explorer;
+
+    std::string mode;
+    ASSERT_TRUE(explorer.FetchValue(mode, sample, "mode"));
+    EXPECT_EQ(mode, "running_mode_with_a_long_descriptive_name");
+
+    auto& values = explorer.FetchValues(sample, "*");
+    ASSERT_EQ(values.size(), 1u);
+    EXPECT_TRUE(values.front()->GetTypeid() == std::type_index(typeid(std::string)));
+    EXPECT_NE(dynamic_cast<ChValueSpecific<std::string>*>(values.front()), nullptr);
+    EXPECT_EQ(*static_cast<std::string*>(values.front()->GetRawPtr()), "running_mode_with_a_long_descriptive_name");
+
+    std::unique_ptr<ChValue> clone(values.front()->new_clone());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_EQ(*static_cast<std::string*>(clone->GetRawPtr()), "running_mode_with_a_long_descriptive_name");
+}
 
 TEST(ChArchiveJSON, ChSparseMatrix) {
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {

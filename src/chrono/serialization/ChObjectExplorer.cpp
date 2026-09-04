@@ -1,6 +1,39 @@
 #include "chrono/serialization/ChObjectExplorer.h"
 
 namespace chrono {
+
+namespace {
+
+// Enum mappers expose a temporary string to archive backends.  ChValueSpecific
+// intentionally keeps a non-owning pointer, so using it for that temporary
+// would leave search results dangling as soon as out() returns.  Keep the
+// owning value in the result object instead; this also leaves the public
+// ChObjectExplorer layout and ABI unchanged.
+class ChOwnedStringValue final : public ChValueSpecific<std::string> {
+  public:
+    ChOwnedStringValue(const std::string& value, const std::string& name, char flags, ChCausalityType causality, ChVariabilityType variability)
+        : ChValueSpecific<std::string>(placeholder(), name, flags, causality, variability), value_(value) {}
+
+    ChValue* new_clone() override { return new ChOwnedStringValue(value_, _name, _flags, _causality, _variability); }
+
+    void* GetRawPtr() override { return &value_; }
+
+    void CallOut(ChArchiveOut& archive_out) override { archive_out.out(ChNameValue<std::string>(_name, value_, _flags, _causality, _variability)); }
+
+  protected:
+    void thrower() const override { throw const_cast<std::string*>(&value_); }
+
+  private:
+    static std::string& placeholder() {
+        static std::string value;
+        return value;
+    }
+
+    std::string value_;
+};
+
+}  // namespace
+
 ChObjectExplorer::ChObjectExplorer() {
     this->found = false;
     this->searched_property = "";
@@ -118,14 +151,13 @@ void ChObjectExplorer::out(ChNameValue<unsigned long long> bVal) {
     }
 }
 void ChObjectExplorer::out(ChNameValue<ChEnumMapperBase> bVal) {
-    std::string mstr = bVal.value().GetValueAsString();
     if (this->found && !this->find_all)
         return;
     if (this->tablevel != this->search_tokens.size() - 1)
         return;
     if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-        this->results.push_back(new ChValueSpecific<std::string>(mstr, bVal.name(), bVal.flags(), bVal.GetCausality(),
-                                                                 bVal.GetVariability()));
+        this->results.push_back(new ChOwnedStringValue(bVal.value().GetValueAsString(), bVal.name(), bVal.flags(),
+                                                       bVal.GetCausality(), bVal.GetVariability()));
         this->found = true;
     }
 }
