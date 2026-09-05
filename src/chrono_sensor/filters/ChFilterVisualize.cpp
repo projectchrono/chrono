@@ -117,7 +117,12 @@ void ChFilterVisualize::CreateGlfwWindow(std::string window_name) {
     glOrtho(0, 1, 0, 1, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glViewport(0, 0, m_w, m_h);
+    // Framebuffer size, not the requested window size: on a high-DPI display the framebuffer is
+    // larger than the window in each axis, and a viewport sized in window points covers only part
+    // of it. The two are equal everywhere else.
+    int fb_w, fb_h;
+    glfwGetFramebufferSize(m_window.get(), &fb_w, &fb_h);
+    glViewport(0, 0, fb_w, fb_h);
 
     if (!m_gl_tex_id)
         glGenTextures(1, &m_gl_tex_id);
@@ -171,9 +176,9 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
 
     glfwMakeContextCurrent(m_window.get());
 
-    int window_w, window_h;
-    glfwGetWindowSize(m_window.get(), &window_w, &window_h);
-    glViewport(0, 0, window_w, window_h);
+    int fb_w, fb_h;
+    glfwGetFramebufferSize(m_window.get(), &fb_w, &fb_h);
+    glViewport(0, 0, fb_w, fb_h);
 
     glBindTexture(GL_TEXTURE_2D, m_gl_tex_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -419,10 +424,10 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         }
         glBindTexture(GL_TEXTURE_2D, m_gl_tex_id);
 
-        // Set Viewport to window dimensions
-        int window_w, window_h;
-        glfwGetWindowSize(m_window.get(), &window_w, &window_h);
-        glViewport(0, 0, window_w, window_h);
+        // Set viewport to the framebuffer size, which is the window size except on a high-DPI display
+        int fb_w, fb_h;
+        glfwGetFramebufferSize(m_window.get(), &fb_w, &fb_h);
+        glViewport(0, 0, fb_w, fb_h);
 
         // update the textures, making sure data has finished memcpy first
         cudaStreamSynchronize(m_cuda_stream);
@@ -617,7 +622,9 @@ CH_SENSOR_API void ChFilterVisualize::CreateGlfwWindow(std::string window_name) 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        glViewport(0, 0, m_w, m_h);
+        int fb_w, fb_h;
+        glfwGetFramebufferSize(m_window.get(), &fb_w, &fb_h);
+        glViewport(0, 0, fb_w, fb_h);
     } else {
         std::cerr << "WARNING: requested window could not be created by GLFW. Will proceed with no window.\n";
         m_window_disabled = true;
