@@ -262,7 +262,11 @@ class CH_VEHICLE_API ChWheelTestRig {
     void SetWheelActiveDomain(const ChAABB& aabb);
 
     /// Set a single active domain of estimated dimensions associated with the entire wheel assembly (CRM terrain only).
-    /// The default size is based on the wheel AABB inflated by 25%.
+    /// The estimated box extends 2.5 times the wheel's half-dimensions (radius, half-width, radius) from the hub,
+    /// twice the previous estimate. That factor was fitted on one Viper wheel case at 40 percent slip and 10 mm
+    /// particle spacing, where the previous estimate understated the drawbar pull by 12 to 43 percent. A box
+    /// that stops inside the soil the wheel is shearing understates the force; to check any box for your own
+    /// wheel, slip and spacing, double it and rerun: if the answer moves, the box was too small.
     /// This active AABB is associated with the hub body. If the wheel assembly has multiple bodies,
     /// it may be more efficient to set CRM active domains for each body individually.
     void SetWheelActiveDomain();

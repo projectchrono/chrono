@@ -576,9 +576,16 @@ void ChWheelTestRig::SetWheelActiveDomain(const ChAABB& aabb) {
 }
 
 void ChWheelTestRig::SetWheelActiveDomain() {
+    // The box must extend well past the soil the wheel is shearing. Measured on one Viper wheel case
+    // (40 percent slip, 10 mm spacing, single precision): at 1.25 times the wheel's half-dimensions
+    // (the previous estimate) the drawbar pull read 12 to 43 percent below the value obtained with
+    // larger boxes and fluctuated strongly inside the measurement window; at 2.5 times (twice the
+    // previous estimate) it matches the values obtained with 4 and 8 times the previous estimate
+    // (5 and 10 times the wheel's half-dimensions). The factor was fitted at that one operating point.
+    // To check any box, including this one, double it and rerun: if the answer moves, it was too small.
     auto corner = ChVector3d(m_wheel_assembly->GetRadius(), m_wheel_assembly->GetWidth() / 2, m_wheel_assembly->GetRadius());
-    m_wheel_AABB.min = -1.25 * corner;
-    m_wheel_AABB.max = +1.25 * corner;
+    m_wheel_AABB.min = -2.5 * corner;
+    m_wheel_AABB.max = +2.5 * corner;
 }
 
 void ChWheelTestRig::CreateTerrainCRM() {
