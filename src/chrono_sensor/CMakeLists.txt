@@ -1184,22 +1184,32 @@ endif()
 message(STATUS "Looking for optional OpenGL support")
 
 find_package(OpenGL QUIET)
-find_package(GLEW QUIET)
+# Not on Apple: the visualization filters use only OpenGL 1.1 entry points, which the OpenGL
+# framework exports directly, so the extension loader has nothing to load.
+if(NOT APPLE)
+  find_package(GLEW QUIET)
+endif()
 find_package(glfw3 QUIET)
 
 message(STATUS "  OpenGL found: ${OPENGL_FOUND}")
-message(STATUS "  GLEW found:   ${GLEW_FOUND}")
+if(NOT APPLE)
+  message(STATUS "  GLEW found:   ${GLEW_FOUND}")
+endif()
 message(STATUS "  glfw3 found:  ${glfw3_FOUND}")
 
-if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
+if(OPENGL_FOUND AND (GLEW_FOUND OR APPLE) AND glfw3_FOUND)
   message(STATUS "  GL libraries found")
   message(STATUS "    OpenGL include dir: ${OPENGL_INCLUDE_DIR}")
   message(STATUS "    OpenGL libraries:   ${OPENGL_LIBRARIES}")
-  message(STATUS "    GLEW include dir:   ${GLEW_INCLUDE_DIRS}")
-  message(STATUS "    GLEW libraries:     ${GLEW_LIBRARIES}")
+  if(NOT APPLE)
+    message(STATUS "    GLEW include dir:   ${GLEW_INCLUDE_DIRS}")
+    message(STATUS "    GLEW libraries:     ${GLEW_LIBRARIES}")
+  endif()
 
   target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_SENSOR_GLFW>)
-  target_link_libraries(Chrono_sensor PUBLIC GLEW::glew)
+  if(NOT APPLE)
+    target_link_libraries(Chrono_sensor PUBLIC GLEW::glew)
+  endif()
   target_link_libraries(Chrono_sensor PUBLIC glfw)
   target_link_libraries(Chrono_sensor PUBLIC OpenGL::GL)
 

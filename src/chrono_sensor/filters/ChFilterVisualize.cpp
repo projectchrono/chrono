@@ -121,11 +121,13 @@ void ChFilterVisualize::CreateGlfwWindow(std::string window_name) {
     glfwMakeContextCurrent(m_window.get());
     glfwSwapInterval(0);
 
+#ifndef __APPLE__
     GLenum glew_status = glewInit();
     if (glew_status != GLEW_OK) {
         std::cerr << "WARNING: GLEW initialization failed for Chrono::Sensor visualization window: "
                   << reinterpret_cast<const char*>(glewGetErrorString(glew_status)) << "\n";
     }
+#endif
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
