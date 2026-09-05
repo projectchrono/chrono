@@ -17,15 +17,15 @@
 
 #include "chrono_sensor/filters/ChFilterSave.h"
 
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <vector>
+    #include <filesystem>
+    #include <fstream>
+    #include <iostream>
+    #include <sstream>
+    #include <vector>
 
-#include "chrono_thirdparty/stb/stb_image_write.h"
+    #include "chrono_thirdparty/stb/stb_image_write.h"
 
 namespace chrono {
 namespace sensor {

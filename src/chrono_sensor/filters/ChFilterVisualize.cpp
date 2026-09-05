@@ -16,7 +16,12 @@
 
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+// At file scope, because PollGlfwEventsPreservingHostEvents is called from BOTH arms of the
+// #if below. The header self-guards per platform, so including it where it is not needed
+// costs nothing, and the sibling visualize filters include it in the same place.
+#include "chrono_sensor/filters/ChFilterVisualizeGuards.h"
+
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
 #include <algorithm>
 #include <cmath>
@@ -62,6 +67,7 @@ void ChFilterVisualize::OnNewWindow() {
 #ifdef USE_SENSOR_GLFW
     std::lock_guard<std::mutex> lock(s_glfwMutex);
     if (s_windowCount++ == 0) {
+        CocoaAppDelegateGuard delegate_guard;
         if (!glfwInit()) {
             --s_windowCount;
             std::cerr << "WARNING: GLFW initialization failed. Chrono::Sensor visualization window disabled.\n";
@@ -73,13 +79,15 @@ void ChFilterVisualize::OnNewWindow() {
 void ChFilterVisualize::OnCloseWindow() {
 #ifdef USE_SENSOR_GLFW
     std::lock_guard<std::mutex> lock(s_glfwMutex);
-    if (s_windowCount > 0 && --s_windowCount == 0)
+    if (s_windowCount > 0 && --s_windowCount == 0) {
+        CocoaAppDelegateGuard delegate_guard;
         glfwTerminate();
+    }
 #endif
 }
 
 void ChFilterVisualize::CreateGlfwWindow(std::string window_name) {
-#ifdef USE_SENSOR_GLFW
+    #ifdef USE_SENSOR_GLFW
     if (m_window || m_window_disabled)
         return;
 
@@ -92,14 +100,21 @@ void ChFilterVisualize::CreateGlfwWindow(std::string window_name) {
     }
 
     GLFWmonitor* monitor = m_fullscreen ? glfwGetPrimaryMonitor() : nullptr;
-    m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), monitor,
-                                    nullptr));
+    // Chrono::Sensor's windows are secondary debug views, so they must not take keyboard focus from the
+    // window that owns the host run loop (typically Irrlicht's). A new GLFW window is focused on creation
+    // by default, and on macOS a window that is not key receives no key events at all, which silently
+    // disables every Chrono key binding while a sensor window is open.
+    glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
+    glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_FALSE);
+    m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), monitor, nullptr));
     if (!m_window) {
         std::cerr << "WARNING: requested GLFW window could not be created. Chrono::Sensor will continue without this "
                      "visualization window.\n";
         m_window_disabled = true;
-        if (s_windowCount > 0 && --s_windowCount == 0)
+        if (s_windowCount > 0 && --s_windowCount == 0) {
+            CocoaAppDelegateGuard delegate_guard;
             glfwTerminate();
+        }
         return;
     }
 
@@ -121,12 +136,12 @@ void ChFilterVisualize::CreateGlfwWindow(std::string window_name) {
 
     if (!m_gl_tex_id)
         glGenTextures(1, &m_gl_tex_id);
-#else
+    #else
     (void)window_name;
     if (!m_window_disabled)
         std::cerr << "WARNING: Chrono::Sensor not built with GLFW support. Will proceed with no visualization window.\n";
     m_window_disabled = true;
-#endif
+    #endif
 }
 
 CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSensor,
@@ -151,15 +166,20 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
         InvalidFilterGraphBufferTypeMismatch(pSensor);
         return;
     }
-#ifndef USE_SENSOR_GLFW
+    #ifndef USE_SENSOR_GLFW
     if (!m_window_disabled)
         std::cerr << "WARNING: Chrono::Sensor not built with GLFW support. Will proceed with no visualization window.\n";
     m_window_disabled = true;
-#endif
+    #endif
 }
 
 CH_SENSOR_API void ChFilterVisualize::Apply() {
-#ifdef USE_SENSOR_GLFW
+    #ifdef USE_SENSOR_GLFW
+    // Hand back whatever GL context the caller had current (see ChFilterVisualizeGuards.h).
+    // Without this the host toolkit's next draw call runs against this window's context.
+    GLContextGuard gl_context_guard;
+    #endif
+    #ifdef USE_SENSOR_GLFW
     if (!m_window && !m_window_disabled)
         CreateGlfwWindow(Name());
 
@@ -323,8 +343,8 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
     glDisable(GL_TEXTURE_2D);
 
     glfwSwapBuffers(m_window.get());
-    glfwPollEvents();
-#endif
+    PollGlfwEventsPreservingHostEvents();  // not glfwPollEvents: see ChFilterVisualizeGuards.h
+    #endif
 }
 
 }  // namespace sensor
@@ -361,9 +381,7 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         // do all memcpy
         cudaStreamSynchronize(m_cuda_stream);
         if (m_bufferR8) {
-            cudaMemcpyAsync(m_hostR8->Buffer.get(), m_bufferR8->Buffer.get(),
-                            m_bufferR8->Width * m_bufferR8->Height * sizeof(char), cudaMemcpyDeviceToHost,
-                            m_cuda_stream);
+            cudaMemcpyAsync(m_hostR8->Buffer.get(), m_bufferR8->Buffer.get(), m_bufferR8->Width * m_bufferR8->Height * sizeof(char), cudaMemcpyDeviceToHost, m_cuda_stream);
         } else if (m_bufferRGBA8) {
             cudaMemcpyAsync(m_hostRGBA8->Buffer.get(), m_bufferRGBA8->Buffer.get(),
                             m_hostRGBA8->Width * m_hostRGBA8->Height * sizeof(PixelRGBA8), cudaMemcpyDeviceToHost,
@@ -381,14 +399,12 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
             cudaMemcpyAsync(m_hostSemantic->Buffer.get(), m_bufferSemantic->Buffer.get(),
                             m_hostSemantic->Width * m_hostSemantic->Height * sizeof(PixelSemantic),
                             cudaMemcpyDeviceToHost, m_cuda_stream);
-        } else if(m_bufferDepth) {
-             cudaMemcpyAsync(m_hostDepth->Buffer.get(), m_bufferDepth->Buffer.get(),
-                            m_hostDepth->Width * m_hostDepth->Height * sizeof(PixelDepth),
-                            cudaMemcpyDeviceToHost, m_cuda_stream);
+        } else if (m_bufferDepth) {
+            cudaMemcpyAsync(m_hostDepth->Buffer.get(), m_bufferDepth->Buffer.get(), m_hostDepth->Width * m_hostDepth->Height * sizeof(PixelDepth), cudaMemcpyDeviceToHost,
+                            m_cuda_stream);
         } else if (m_bufferNormal) {
-             cudaMemcpyAsync(m_hostNormal->Buffer.get(), m_bufferNormal->Buffer.get(),
-                            m_hostNormal->Width * m_hostNormal->Height * sizeof(PixelNormal),
-                            cudaMemcpyDeviceToHost, m_cuda_stream);
+            cudaMemcpyAsync(m_hostNormal->Buffer.get(), m_bufferNormal->Buffer.get(), m_hostNormal->Width * m_hostNormal->Height * sizeof(PixelNormal), cudaMemcpyDeviceToHost,
+                            m_cuda_stream);
         } else if (m_bufferDI) {
             cudaMemcpyAsync(m_hostDI->Buffer.get(), m_bufferDI->Buffer.get(),
                             m_hostDI->Width * m_hostDI->Height * sizeof(PixelDI), cudaMemcpyDeviceToHost,
@@ -477,7 +493,7 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         glDisable(GL_TEXTURE_2D);
 
         glfwSwapBuffers(m_window.get());
-        glfwPollEvents();
+        PollGlfwEventsPreservingHostEvents();  // not glfwPollEvents: see ChFilterVisualizeGuards.h
 
         // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
         // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
@@ -602,11 +618,9 @@ CH_SENSOR_API void ChFilterVisualize::CreateGlfwWindow(std::string window_name) 
     std::lock_guard<std::mutex> lck(s_glfwMutex);
 
     if (m_fullscreen)
-        m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(),
-                                        glfwGetPrimaryMonitor(), NULL));
+        m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), glfwGetPrimaryMonitor(), NULL));
     else
-        m_window.reset(
-            glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), NULL, NULL));
+        m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), NULL, NULL));
     if (m_window) {
         glfwMakeContextCurrent(m_window.get());
         glfwSwapInterval(0);  // disable vsync as we are "fast as possible"
