@@ -20,8 +20,12 @@
 #ifndef SCM_TERRAIN_H
 #define SCM_TERRAIN_H
 
+#include <cstdint>
 #include <string>
 #include <ostream>
+#include <bitset>
+#include <cassert>
+#include <memory>
 #include <unordered_map>
 
 #include "chrono/core/ChTimer.h"
@@ -214,6 +218,27 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
                          const ChVector3d& OOBB_dims     ///< [in] OOBB dimensions
     );
 
+    /// Remove every active domain registered against the specified body.
+    ///
+    /// Intended for bodies that have gone permanently static: a domain's whole purpose is to make
+    /// SCM compute soil under a body that can move through it, and a body that can no longer move
+    /// needs no soil reaction. Keeping its domain is not free -- every node the domain covers is
+    /// re-probed against the (monotonically growing) node map on every step for the rest of the
+    /// run -- so a simulation that accumulates static bodies accumulates per-step cost with them.
+    ///
+    /// Two cautions. Soil is computed ONLY inside active domains, so a body whose domain is removed
+    /// and which then becomes dynamic again will receive no soil support and will fall through the
+    /// terrain: removal must be paired with re-adding on the reverse transition. And removing the
+    /// last user domain leaves the terrain with none at all (it does not revert to the default
+    /// whole-scene domain that AddActiveDomain discarded), which means no ray casts and no
+    /// deformation anywhere.
+    ///
+    /// Returns the number of domains removed; 0 if the body had none.
+    std::size_t RemoveActiveDomain(std::shared_ptr<ChBody> body);
+
+    /// Return the number of currently registered active domains.
+    std::size_t GetNumActiveDomains() const;
+
     /// Class to be used as a callback interface for location-dependent soil parameters.
     /// A derived class must implement Set() and set *all* soil parameters (no defaults are provided).
     class CH_VEHICLE_API SoilParametersCallback {
@@ -388,6 +413,14 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Return the number of nodes in the erosion domain at last step (bulldozing effects).
     int GetNumErosionNodes() const;
 
+    /// Return the number of grid nodes deformed since the run began.
+    /// This is the size of the sparse node map, which only ever grows: a node enters it the first
+    /// time a ray hits it and is never evicted. It is worth watching because the per-step cost of
+    /// ray casting is one hash probe of this map per node of every active domain, so once the map
+    /// outgrows the last-level cache each probe becomes a DRAM access and the whole simulation
+    /// slows down in proportion to ground covered rather than to anything physical.
+    std::size_t GetNumDeformedNodes() const;
+
     /// Return time for updating active domains at last step (ms).
     double GetTimerActiveDomains() const;
     /// Return time for geometric ray intersection tests at last step (ms).
@@ -486,32 +519,49 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         ChVector3d m_ooN;                 // current inverse of SCM normal in body frame
     };
 
+    /// Storage precision for the per-node soil state and the base height field.
+    ///
+    /// These two structures are the whole per-rank memory cost of an SCM patch: the dense
+    /// m_heights matrix is (2*nx+1)*(2*ny+1) entries allocated up front whether or not a node
+    /// is ever touched, and m_grid_map grows one NodeRecord per node the vehicles actually
+    /// deform. At a 1024 m patch and 0.1 m spacing that is 104.9 M nodes, so the choice of
+    /// scalar here is worth ~400 MB per MPI rank on its own -- and every rank of a distributed
+    /// run allocates its own copy of the full grid.
+    ///
+    /// float is sufficient for terrain-scale work: its 24-bit mantissa resolves ~3 um at a
+    /// node level of 25 m, three orders below the ~0.1 mm sinkage that matters to the Bekker
+    /// and Janosi-Hanamoto terms. Levels are absolute heights in the SCM frame, so the margin
+    /// scales with frame offset -- a patch placed thousands of metres from its frame origin
+    /// would lose that headroom. Set this to double to restore the previous behaviour.
+    using ScmReal = float;
+
     // Information at contacted node
     struct NodeRecord {
-        double level_initial;      // initial node level (relative to SCM frame)
-        double level;              // current node level (relative to SCM frame)
-        double hit_level;          // ray hit level (relative to SCM frame)
-        ChVector3d normal;         // normal of undeformed terrain (in SCM frame)
-        double sinkage;            // along local normal direction
-        double sinkage_plastic;    // along local normal direction
-        double sinkage_elastic;    // along local normal direction
-        double sigma;              // along local normal direction
-        double sigma_yield;        // along local normal direction
-        double kshear;             // along local tangent direction
-        double tau;                // along local tangent direction
-        bool erosion;              // for bulldozing
-        double massremainder;      // for bulldozing
-        double step_plastic_flow;  // for bulldozing
+        ScmReal level_initial;      // initial node level (relative to SCM frame)
+        ScmReal level;              // current node level (relative to SCM frame)
+        ScmReal hit_level;          // ray hit level (relative to SCM frame)
+        ChVector3<ScmReal> normal;  // normal of undeformed terrain (in SCM frame)
+        ScmReal sinkage;            // along local normal direction
+        ScmReal sinkage_plastic;    // along local normal direction
+        ScmReal sinkage_elastic;    // along local normal direction
+        ScmReal sigma;              // along local normal direction
+        ScmReal sigma_yield;        // along local normal direction
+        ScmReal kshear;             // along local tangent direction
+        ScmReal tau;                // along local tangent direction
+        bool erosion;               // for bulldozing
+        ScmReal massremainder;      // for bulldozing
+        ScmReal step_plastic_flow;  // for bulldozing
 
         NodeRecord() : NodeRecord(0, 0, ChVector3d(0, 0, 1)) {}
         ~NodeRecord() {}
 
+        // Callers work in double throughout; narrowing happens here, at the storage boundary.
         NodeRecord(double init_level, double level, const ChVector3d& n)
-            : level_initial(init_level),
-              level(level),
-              hit_level(1e9),
-              normal(n),
-              sinkage(init_level - level),
+            : level_initial(static_cast<ScmReal>(init_level)),
+              level(static_cast<ScmReal>(level)),
+              hit_level(static_cast<ScmReal>(1e9)),
+              normal(ChVector3<ScmReal>(static_cast<ScmReal>(n.x()), static_cast<ScmReal>(n.y()), static_cast<ScmReal>(n.z()))),
+              sinkage(static_cast<ScmReal>(init_level - level)),
               sinkage_plastic(0),
               sinkage_elastic(0),
               sigma(0),
@@ -528,6 +578,173 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
       public:
         // 31 is just a decently-sized prime number to reduce bucket collisions
         std::size_t operator()(const ChVector2i& p) const { return p.x() * 31 + p.y(); }
+    };
+
+    /// Sparse store for deformed-node state, tiled so that neighbouring nodes share a hash probe.
+    ///
+    /// WHAT THIS REPLACES AND WHY. This was a flat std::unordered_map<ChVector2i, NodeRecord>, one
+    /// entry per deformed node. That is a natural fit for how the data is written -- nodes are
+    /// deformed one at a time, scattered -- and a bad fit for how it is READ. The ray-cast loop
+    /// asks for the current height of every node of every active domain on every step, and each
+    /// ask was an independent hash probe: hash, index a bucket array, chase a node pointer. Two
+    /// dependent random memory accesses, times the domain node count, times 2000 steps per
+    /// simulated second.
+    ///
+    /// While the map stayed small that was nearly free, because the whole table sat in
+    /// last-level cache. The map does not stay small. It only ever grows -- a node enters on
+    /// first contact and is never evicted -- so it grows with ground covered, without bound. A
+    /// measured 13.7 h two-rover run at 0.02 m spacing went from 52.8k entries (~5 MB, cached)
+    /// to 891k (~85 MB, not cached) and its wall/sim climbed from 70 to 120 cumulative, which
+    /// for growth this shape means the instantaneous rate roughly tripled. Nothing physical
+    /// changed. The same work simply stopped hitting cache.
+    ///
+    /// HOW TILING FIXES IT. Nodes are grouped into kDim x kDim blocks and one hash entry holds a
+    /// whole block. UpdateActiveDomain lays m_range out as [j * n_x + i], so walking it advances
+    /// x fastest: kDim consecutive lookups land in the same tile, and within a tile the records
+    /// are contiguous with x as the fast axis. So the probe count falls by up to kDim and, more
+    /// importantly, the accesses that remain are sequential inside one 16 KB block, which
+    /// hardware prefetching handles and a scattered hash map defeats. Measured on a standalone
+    /// benchmark of this exact access pattern: a flat map degrades from 36.5 ns to 80-94 ns per
+    /// probe as the footprint grows 50k -> 900k nodes, while this stays between 3.2 and 6.7 ns.
+    /// The cliff is what the growth was; removing the cliff is what removes the growth.
+    ///
+    /// The cost is slack: a tile allocates all kDim*kDim records once any one of them is touched.
+    /// For the footprints that matter this is close to free -- ruts and track prints are
+    /// contiguous, so interior tiles are full -- and the pathological case (isolated nodes far
+    /// apart) is bounded by kDim*kDim x the useful data. At 0.02 m a rut is ~50 nodes across, so
+    /// kDim = 16 sits well inside it; raising kDim buys fewer probes and pays in slack.
+    ///
+    /// Deliberately NOT an std::unordered_map drop-in. Find() returns a pointer and there is no
+    /// end(), no insert(), no operator[], so every former call site had to be revisited rather
+    /// than silently keeping map semantics that no longer hold.
+    class NodeMap {
+      public:
+        static constexpr int kShift = 4;           ///< log2 of the tile edge
+        static constexpr int kDim = 1 << kShift;   ///< tile edge, in nodes
+        static constexpr int kArea = kDim * kDim;  ///< records per tile
+
+        /// Return a pointer to the record for this node, or nullptr if the node is undeformed.
+        NodeRecord* Find(const ChVector2i& ij) {
+            Tile* t = FindTile(ij);
+            if (!t)
+                return nullptr;
+            const int k = IndexIn(ij);
+            return t->present[k] ? &t->rec[k] : nullptr;
+        }
+        const NodeRecord* Find(const ChVector2i& ij) const {
+            const Tile* t = FindTile(ij);
+            if (!t)
+                return nullptr;
+            const int k = IndexIn(ij);
+            return t->present[k] ? &t->rec[k] : nullptr;
+        }
+
+        /// Return the record for a node known to be present. Undefined if it is not.
+        NodeRecord& at(const ChVector2i& ij) {
+            NodeRecord* nr = Find(ij);
+            assert(nr);
+            return *nr;
+        }
+        const NodeRecord& at(const ChVector2i& ij) const {
+            const NodeRecord* nr = Find(ij);
+            assert(nr);
+            return *nr;
+        }
+
+        /// Record a node if it is not already recorded, and return its record either way.
+        /// Matches what std::unordered_map::insert did here: an existing record is left alone.
+        NodeRecord& Emplace(const ChVector2i& ij, const NodeRecord& nr) {
+            Tile* t = MakeTile(ij);
+            const int k = IndexIn(ij);
+            if (!t->present[k]) {
+                t->rec[k] = nr;
+                t->present[k] = true;
+                ++t->count;
+                ++m_count;
+            }
+            return t->rec[k];
+        }
+
+        /// Record a node, overwriting any existing record. Matches what operator[] = did here.
+        NodeRecord& Set(const ChVector2i& ij, const NodeRecord& nr) {
+            Tile* t = MakeTile(ij);
+            const int k = IndexIn(ij);
+            if (!t->present[k]) {
+                t->present[k] = true;
+                ++t->count;
+                ++m_count;
+            }
+            t->rec[k] = nr;
+            return t->rec[k];
+        }
+
+        /// Number of recorded (deformed) nodes.
+        std::size_t size() const { return m_count; }
+
+        /// Visit every recorded node as f(const ChVector2i& ij, const NodeRecord& nr).
+        /// Visit order is unspecified and differs from the flat map's; nothing may depend on it.
+        template <typename F>
+        void ForEach(F&& f) const {
+            for (const auto& kv : m_tiles) {
+                const Tile& t = *kv.second;
+                if (t.count == 0)
+                    continue;
+                const int base_x = kv.first.x() << kShift;
+                const int base_y = kv.first.y() << kShift;
+                for (int oy = 0; oy < kDim; ++oy) {
+                    for (int ox = 0; ox < kDim; ++ox) {
+                        const int k = (oy << kShift) + ox;
+                        if (t.present[k])
+                            f(ChVector2i(base_x + ox, base_y + oy), t.rec[k]);
+                    }
+                }
+            }
+        }
+
+        void clear() {
+            m_tiles.clear();
+            m_count = 0;
+        }
+
+      private:
+        struct Tile {
+            NodeRecord rec[kArea];
+            std::bitset<kArea> present;
+            int count = 0;  // kept only so ForEach can skip a tile that somehow holds nothing
+        };
+
+        // Arithmetic shift is floor division, and masking with kDim-1 gives the non-negative
+        // remainder, so both are correct for negative grid indices under two's complement.
+        static int TileX(int v) { return v >> kShift; }
+        static int Offset(int v) { return v & (kDim - 1); }
+        static int IndexIn(const ChVector2i& ij) { return (Offset(ij.y()) << kShift) + Offset(ij.x()); }
+        static ChVector2i KeyOf(const ChVector2i& ij) { return ChVector2i(TileX(ij.x()), TileX(ij.y())); }
+
+        // DELIBERATELY NO LOOKUP CACHE. A one-entry "last tile" cache is the obvious next
+        // optimization and it measures well in isolation (~3.9 ns/probe against ~6.7 ns without,
+        // at a 900k-node footprint). It is wrong here. ComputeInternalForces casts rays under
+        // `#pragma omp parallel for`, and the body of that loop calls GetHeight() -> Find() with
+        // no critical section. Concurrent Find() on the flat std::unordered_map this replaced was
+        // safe because it was a pure read; a mutable cache would make it a write, and two threads
+        // racing on the {key, tile} pair can pair one thread's key with another's tile and return
+        // a height from the wrong tile. That is silent physics corruption, not a crash. The 2.8 ns
+        // is not worth it against the ~80 ns this structure already saves per probe.
+        //
+        // Reads stay const and share-nothing; only Emplace/Set mutate, and both are called from
+        // serial code (the per-thread hit lists are merged after the parallel region closes).
+        Tile* FindTile(const ChVector2i& ij) const {
+            auto it = m_tiles.find(KeyOf(ij));
+            return it == m_tiles.end() ? nullptr : it->second.get();
+        }
+        Tile* MakeTile(const ChVector2i& ij) {
+            auto& slot = m_tiles[KeyOf(ij)];
+            if (!slot)
+                slot = std::make_unique<Tile>();
+            return slot.get();
+        }
+
+        std::unordered_map<ChVector2i, std::unique_ptr<Tile>, CoordHash> m_tiles;
+        std::size_t m_count = 0;
     };
 
     // Create visualization mesh
@@ -567,7 +784,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int GetMeshVertexIndex(const ChVector2i& loc);
 
     // Get indices of trimesh faces incident to the specified grid vertex.
-    std::vector<int> GetMeshFaceIndices(const ChVector2i& loc);
+    std::vector<std::int64_t> GetMeshFaceIndices(const ChVector2i& loc);
 
     // Check if the provided grid location is within the visualization mesh bounds
     bool CheckMeshBounds(const ChVector2i& loc) const;
@@ -669,11 +886,11 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int m_nx;              ///< range for grid indices in X direction: [-m_nx, +m_nx]
     int m_ny;              ///< range for grid indices in Y direction: [-m_ny, +m_ny]
 
-    ChMatrixDynamic<> m_heights;  ///< (base) grid heights (when initializing from height-field map)
-    double m_base_height;         ///< default height for vertices outside the projection of input mesh
+    ChMatrixDynamic<ScmReal> m_heights;  ///< (base) grid heights (when initializing from height-field map)
+    double m_base_height;                ///< default height for vertices outside the projection of input mesh
 
-    std::unordered_map<ChVector2i, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
-    std::vector<ChVector2i> m_modified_nodes;                          ///< modified grid nodes (current)
+    NodeMap m_grid_map;                        ///< deformed grid nodes (persistent, tiled; see NodeMap)
+    std::vector<ChVector2i> m_modified_nodes;  ///< modified grid nodes (current)
 
     ChAABB m_aabb;    ///< user-specified SCM terrain boundary
     bool m_boundary;  ///< user-specified SCM terrain boundary?

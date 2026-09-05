@@ -150,16 +150,14 @@ int main(int argc, char* argv[]) {
     auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     switch (tire_type) {
         case TireType::LUGGED: {
-            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-                GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
+            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
             auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             vis_shape->SetMesh(trimesh);
             vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             wheel->AddVisualShape(vis_shape);
 
-            auto ct_shape =
-                chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, 0.01);
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, 0.01);
             wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, ChMatrix33<>(1)));
             break;
         }
@@ -238,12 +236,11 @@ int main(int argc, char* argv[]) {
     }
 
     if (enable_bulldozing) {
-        terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-        terrain.SetBulldozingParameters(
-            55,  // angle of friction for erosion of displaced material at the border of the rut
-            1,   // displaced material vs downward pressed material.
-            5,   // number of erosion refinements per timestep
-            6);  // number of concentric vertex selections subject to erosion
+        terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
+        terrain.SetBulldozingParameters(55,  // angle of friction for erosion of displaced material at the border of the rut
+                                        1,   // displaced material vs downward pressed material.
+                                        5,   // number of erosion refinements per timestep
+                                        6);  // number of concentric vertex selections subject to erosion
     }
 
     // Optionally, enable active domains feature (reduces number of ray casts)
@@ -307,6 +304,12 @@ int main(int argc, char* argv[]) {
     */
 
     // Simulation loop
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (output) {
@@ -326,10 +329,13 @@ int main(int argc, char* argv[]) {
         ////std::cout << "Wheel pos: " << wheel->GetPos() << std::endl;
         ////std::cout << "Wheel rot: " << wheel->GetRot() << std::endl;
 
-        vis->BeginScene();
-        vis->SetCameraTarget(wheel->GetPos());
-        vis->Render();
-        vis->EndScene();
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->SetCameraTarget(wheel->GetPos());
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 
         sys.DoStepDynamics(0.002);
         ////terrain.PrintStepStatistics(std::cout);

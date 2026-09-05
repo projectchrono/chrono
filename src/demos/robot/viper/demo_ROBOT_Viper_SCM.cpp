@@ -60,6 +60,17 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 bool render = false;
 double t_end = 2.0;  // simulation end time when running headless (seconds)
 
+// Rendering rate, in frames per second of simulated time.
+//
+// The render call used to be unguarded, so a windowed run drew one frame per integration
+// step -- 2000 frames per simulated second at the 5e-4 step below. That is not a display
+// rate anyone asked for, and it makes the on-screen RTF a measure of the renderer rather
+// than of the solver: the VSG overlay reports wall time between consecutive render frames
+// divided by the simulation time advanced in that interval, so drawing 10x more often
+// inflates it directly. Gating here keeps the windowed number comparable to the headless
+// one and to demos that were already gated (demo_ROBOT_Viper_CRM.cpp among them).
+double render_fps = 60;
+
 bool output = false;
 
 // SCM grid spacing (BENCH: override with env SCM_DELTA, in metres)
@@ -387,8 +398,8 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
-        // with SCM GPU support).
+            // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
+            // with SCM GPU support).
 #ifdef CHRONO_HAS_SCM_GPU
     {
         auto scm_cfg = terrain.GetScmGpuConfig();
@@ -436,13 +447,15 @@ int main(int argc, char* argv[]) {
 
     ChTimer sim_timer;
     int nsteps = 0;
+    int render_frame = 0;
     sim_timer.start();
     while (render ? vis->Run() : (sys.GetChTime() < t_end)) {
-        if (render) {
+        if (render && sys.GetChTime() >= render_frame / render_fps) {
             vis->BeginScene();
             vis->SetCameraTarget(Body_1->GetPos());
             vis->Render();
             vis->EndScene();
+            render_frame++;
         }
 
         if (output) {
@@ -470,12 +483,9 @@ int main(int argc, char* argv[]) {
     double steady_ms = steady_steps > 0 ? 1e3 * steady_timer() / steady_steps : 0.0;
     double ms_per_step = 1e3 * sim_timer() / (nsteps > 0 ? nsteps : 1);
     double avg_rtf = (sim_timer() / (nsteps > 0 ? nsteps : 1)) / 5e-4;  // wall/sim per step
-    std::cout << "[BENCH] delta=" << mesh_resolution << " rocks=" << num_rocks << "  steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s"
-              << "  wall=" << sim_timer() << "s"
-              << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")"
-              << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
-              << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")"
-              << "  x_end=" << Body_1->GetPos().x();
+    std::cout << "[BENCH] delta=" << mesh_resolution << " rocks=" << num_rocks << "  steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s" << "  wall=" << sim_timer() << "s"
+              << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")" << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
+              << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")" << "  x_end=" << Body_1->GetPos().x();
 #ifdef CHRONO_HAS_SCM_GPU
     std::cout << "  gpu_steps: raycast=" << terrain.GetNumRaycastGpuSteps() << "/" << nsteps << " forces=" << terrain.GetNumContactForceGpuSteps() << "/" << nsteps;
 #endif
