@@ -132,7 +132,11 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->GetSystem()->SetNumThreads(4);
 
     // Create the terrain using 4 moving patches
-    m_terrain = new SCMTerrain(m_hmmwv->GetSystem());
+    // No visualization mesh. A benchmark never draws it, and it is not free when it is not drawn:
+    // m_trimesh_shape gates a per-node vertex update inside the modified-node loop of
+    // ComputeInternalForces, charged to that loop rather than to the visualization timer, so it
+    // would be measured here as though it were soil physics.
+    m_terrain = new SCMTerrain(m_hmmwv->GetSystem(), false);
     m_terrain->SetSoilParameters(2e6,   // Bekker Kphi
                                  0,     // Bekker Kc
                                  1.1,   // Bekker n exponent
@@ -152,7 +156,6 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_terrain->AddActiveDomain(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
                               ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
 
-    m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
 
     m_terrain->Initialize(patch_size, patch_size, patch_size / num_div);
 
