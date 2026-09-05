@@ -81,40 +81,64 @@ namespace sph {
 
 // ----------------------------------------------------------------------------
 
-#define gpuMallocErrorFlag(error_flag_D)                \
-    {                                                   \
-        gpuMalloc((void**)&error_flag_D, sizeof(bool)); \
+// The four error-flag macros call gpuMalloc, gpuMemcpy and gpuFree, each of which returns a
+// gpuError. Discarding those codes lets an allocation or copy failure pass unnoticed: the flag is
+// then read from memory that was never written, and a failed device-to-host copy reports "no error"
+// because error_flag_H keeps whatever the stack held. So every call is checked. gpuFreeErrorFlag
+// reports rather than throws, because it runs from destructors.
+#define gpuMallocErrorFlag(error_flag_D)                                    \
+    {                                                                       \
+        gpuError err_ = gpuMalloc((void**)&error_flag_D, sizeof(bool));     \
+        if (err_ != gpuSuccess)                                             \
+            gpuThrowError(gpuGetErrorString(err_));                         \
     }
 
-#define gpuFreeErrorFlag(error_flag_D) \
-    {                                  \
-        gpuFree(error_flag_D);         \
+#define gpuFreeErrorFlag(error_flag_D)                                                  \
+    {                                                                                   \
+        if (error_flag_D) {                                                             \
+            bool* flag_to_free_ = error_flag_D;                                         \
+            error_flag_D = nullptr; /* null first; nothing below may skip it */         \
+            gpuError err_ = gpuFree(flag_to_free_);                                     \
+            if (err_ != gpuSuccess) {                                                   \
+                try { /* runs from destructors: report, never throw */                  \
+                    std::cerr << "GPU failure in " << __FILE__ << ":" << __LINE__       \
+                              << " Message: " << gpuGetErrorString(err_) << std::endl;  \
+                } catch (...) {                                                         \
+                }                                                                       \
+            }                                                                           \
+        }                                                                               \
     }
 
-#define gpuResetErrorFlag(error_flag_D)                                              \
-    {                                                                                \
-        bool error_flag_H = false;                                                   \
-        gpuMemcpy(error_flag_D, &error_flag_H, sizeof(bool), gpuMemcpyHostToDevice); \
+#define gpuResetErrorFlag(error_flag_D)                                                              \
+    {                                                                                                \
+        bool error_flag_H = false;                                                                   \
+        gpuError err_ = gpuMemcpy(error_flag_D, &error_flag_H, sizeof(bool), gpuMemcpyHostToDevice); \
+        if (err_ != gpuSuccess)                                                                      \
+            gpuThrowError(gpuGetErrorString(err_));                                                  \
     }
 
-#define gpuCheckErrorFlag(error_flag_D, kernel_name)                                                       \
-    {                                                                                                      \
-        bool error_flag_H;                                                                                 \
-        gpuDeviceSynchronize();                                                                            \
-        gpuMemcpy(&error_flag_H, error_flag_D, sizeof(bool), gpuMemcpyDeviceToHost);                       \
-        if (error_flag_H) {                                                                                \
-            char buffer[256];                                                                              \
-            sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);   \
-            std::cerr << buffer << std::endl;                                                              \
-            throw std::runtime_error(buffer);                                                              \
-        }                                                                                                  \
-        gpuError e = gpuGetLastError();                                                                    \
-        if (e != gpuSuccess) {                                                                             \
-            char buffer[256];                                                                              \
-            sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e)); \
-            std::cerr << buffer << std::endl;                                                              \
-            throw std::runtime_error(buffer);                                                              \
-        }                                                                                                  \
+#define gpuCheckErrorFlag(error_flag_D, kernel_name)                                                         \
+    {                                                                                                        \
+        bool error_flag_H = false;                                                                           \
+        gpuError err_ = gpuDeviceSynchronize();                                                              \
+        if (err_ != gpuSuccess)                                                                              \
+            gpuThrowError(gpuGetErrorString(err_));                                                          \
+        err_ = gpuMemcpy(&error_flag_H, error_flag_D, sizeof(bool), gpuMemcpyDeviceToHost);                  \
+        if (err_ != gpuSuccess)                                                                              \
+            gpuThrowError(gpuGetErrorString(err_));                                                          \
+        if (error_flag_H) {                                                                                  \
+            char buffer[256];                                                                                \
+            sprintf(buffer, "Error flag intercepted in %s:%d from %s", __FILE__, __LINE__, kernel_name);     \
+            std::cerr << buffer << std::endl;                                                                \
+            throw std::runtime_error(buffer);                                                                \
+        }                                                                                                    \
+        gpuError e = gpuGetLastError(); /* a synchronous launch error is not returned by the calls above */  \
+        if (e != gpuSuccess) {                                                                               \
+            char buffer[256];                                                                                \
+            sprintf(buffer, "GPU failure in %s:%d Message: %s", __FILE__, __LINE__, gpuGetErrorString(e));   \
+            std::cerr << buffer << std::endl;                                                                \
+            throw std::runtime_error(buffer);                                                                \
+        }                                                                                                    \
     }
 
 #define gpuCheckError()                                                                                    \
