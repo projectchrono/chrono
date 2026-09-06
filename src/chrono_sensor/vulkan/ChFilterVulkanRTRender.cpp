@@ -3567,7 +3567,7 @@ void ChFilterVulkanRTRender::Apply() {
         gpu_frame.max_distance = gpu_frame.max_depth;
         gpu_frame.clip_near = 0.001f;
         gpu_frame.tan_half_hfov = static_cast<float>(std::tan(0.5 * static_cast<double>(gpu_frame.hfov)));
-        gpu_frame.aux_ray_factor = static_cast<float>(static_cast<double>(gpu_frame.hfov) / CH_VKRT_PI * 2.0);
+        gpu_frame.aux_ray_factor = gpu_frame.tan_half_hfov;
         gpu_frame.rgba8 = m_buffer_rgba8.get();
         gpu_frame.rgbd = m_buffer_rgbd.get();
         gpu_frame.depth = m_buffer_depth.get();
@@ -3594,13 +3594,17 @@ void ChFilterVulkanRTRender::Apply() {
         if (m_gpu_renderer->Render(m_scene, gpu_frame))
             return;
 
-        throw std::runtime_error("Chrono::Sensor Vulkan RT GPU renderer had a Vulkan device but no renderable GPU scene; CPU fallback is only used when no Vulkan RT GPU is available");
+        // A scene with no geometry is valid and renders as pure background, but the GPU path has
+        // no acceleration structure to trace against, so that frame falls through to the CPU
+        // renderer. Anything else is a real failure.
+        if (m_scene && !m_scene->GetPrimitives().empty())
+            throw std::runtime_error("Chrono::Sensor Vulkan RT GPU renderer failed to render a scene that holds geometry");
     }
 #endif
 
-    // CPU fallback is only reached when no Vulkan RT device exists.  Do not build
-    // the host BVH/cache on the GPU path; doing so was a large serial cost before
-    // every Vulkan render and masked ray-tracing parallelism.
+    // Reached when no Vulkan RT device exists, and for a scene with no geometry, which the GPU
+    // path cannot trace.  Do not build the host BVH/cache on the GPU path otherwise; doing so was
+    // a large serial cost before every Vulkan render and masked ray-tracing parallelism.
     if (!m_render_cache)
         m_render_cache = std::make_unique<ChVulkanRTRenderCache>();
     if (!m_scene || m_render_cache->scene != m_scene.get() || m_render_cache->scene_revision != m_scene->GetRevision())
@@ -3766,10 +3770,8 @@ void ChFilterVulkanRTRender::Apply() {
         uv_y *= 1.0 / std::max(CH_VKRT_EPS, aspect);
         ApplyOptixLensModel(uv_x, uv_y, hfov, lens_model, lens_params);
 
-        // Camera raygen uses tan(hFOV/2).  The current OptiX depth/normal/segmentation
-        // raygens still use hFOV/pi*2; mirror that convention for pixel-identical
-        // auxiliary buffers instead of silently changing their projection.
-        const double ray_factor = hfov / CH_VKRT_PI * 2.0;
+        // tan(hFOV/2), the same pinhole factor the camera raygen uses.
+        const double ray_factor = std::tan(0.5 * hfov);
         const ChVector3d dir = NormalizeSafe(forward + right * (uv_x * ray_factor) + up * (uv_y * ray_factor), forward);
         const RayHit best = TraceRay(cache, m_scene, origin, dir);
 

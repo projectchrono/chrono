@@ -20,9 +20,9 @@
 // first to B and require the two to become identical. A field the modify path forgets to write
 // fails immediately, and the test does not have to be updated when a field is added.
 //
-// Comparing bytes is sound here because both lights reach the comparison through the same
-// construction helper, which zero-initializes the struct before filling it, so padding is equal
-// whenever the members are.
+// How two lights are compared depends on the backend's light type. Only a trivially copyable
+// struct can be compared by its object representation; the Vulkan light holds a std::string and
+// the Metal one holds ChVector3f and ChColor, so both get a field-wise comparison instead.
 //
 // Runs against whichever backend the build selected: the scene classes are different types with
 // different light structs, and the test is written against neither.
@@ -32,6 +32,7 @@
 #include "gtest/gtest.h"
 
 #include <cstring>
+#include <type_traits>
 #include <functional>
 #include <vector>
 
@@ -66,9 +67,34 @@ struct LightPair {
     std::function<void(SceneType&, unsigned int)> modify_a_to_b;
 };
 
+// Comparing two lights. Byte comparison is only valid for a trivially copyable type, which the
+// OptiX light struct is and the other two are not: the Vulkan one holds a std::string, the Metal
+// one holds ChVector3f and ChColor. Those get a field-wise comparison here rather than in the
+// backend headers, since comparing lights is something only this test needs.
+template <typename L>
+bool LightsEqual(const L& lhs, const L& rhs) {
+    static_assert(std::is_trivially_copyable_v<L>, "add a LightsEqual overload for this light type");
+    return std::memcmp(&lhs, &rhs, sizeof(L)) == 0;
+}
+
+    #ifdef CHRONO_HAS_VULKAN_RT
+bool LightsEqual(const chrono::sensor::ChVulkanRTLight& a, const chrono::sensor::ChVulkanRTLight& b) {
+    return a.type == b.type && a.pos == b.pos && a.dir == b.dir && a.color == b.color && a.range == b.range && a.angle == b.angle && a.const_color == b.const_color &&
+           a.atten_scale == b.atten_scale && a.angle_falloff_start == b.angle_falloff_start && a.angle_atten_rate == b.angle_atten_rate && a.length_vec == b.length_vec &&
+           a.width_vec == b.width_vec && a.radius == b.radius && a.area == b.area && a.texture == b.texture;
+}
+    #endif
+
+    #ifdef CHRONO_HAS_METAL_RT
+bool LightsEqual(const chrono::sensor::MetalSceneLight& a, const chrono::sensor::MetalSceneLight& b) {
+    return a.pos == b.pos && a.range == b.range && a.color.R == b.color.R && a.color.G == b.color.G && a.color.B == b.color.B && a.type == b.type && a.dir == b.dir &&
+           a.cosOuter == b.cosOuter && a.cosInner == b.cosInner && a.p0 == b.p0 && a.const_color == b.const_color;
+}
+    #endif
+
 template <typename L>
 ::testing::AssertionResult SameLight(const L& lhs, const L& rhs, const char* which) {
-    if (std::memcmp(&lhs, &rhs, sizeof(L)) == 0)
+    if (LightsEqual(lhs, rhs))
         return ::testing::AssertionSuccess();
     return ::testing::AssertionFailure() << which << ": Modify*Light did not reproduce what Add*Light builds from the same "
                                          << "parameters, so at least one field is not written by the modify path";
@@ -104,8 +130,8 @@ TEST(ChSensorSceneLights, modify_reproduces_add_for_every_light_type) {
         // Sanity: A and B differ before the modify, or the comparison afterwards proves nothing.
         const auto before = scene.GetLights();
         ASSERT_EQ(before.size(), 2u) << c.name;
-        ASSERT_NE(0, std::memcmp(&before[a], &before[b], sizeof(before[0]))) << c.name << ": the two parameter sets produce identical lights, so this case cannot detect a "
-                                                                             << "modify path that writes nothing";
+        ASSERT_FALSE(LightsEqual(before[a], before[b])) << c.name << ": the two parameter sets produce identical lights, so this case cannot detect a "
+                                                        << "modify path that writes nothing";
 
         c.modify_a_to_b(scene, a);
 
@@ -125,7 +151,7 @@ TEST(ChSensorSceneLights, modify_out_of_range_is_ignored) {
 
     const auto after = scene.GetLights();
     ASSERT_EQ(after.size(), before.size());
-    EXPECT_EQ(0, std::memcmp(&after[id], &before[id], sizeof(after[0]))) << "an out-of-range Modify*Light changed an existing light";
+    EXPECT_TRUE(LightsEqual(after[id], before[id])) << "an out-of-range Modify*Light changed an existing light";
 }
 
 #endif  // any render backend
