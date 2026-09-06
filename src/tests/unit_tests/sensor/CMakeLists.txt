@@ -23,7 +23,7 @@ if(CH_SENSOR_HAS_RENDER_BACKEND)
     utest_SEN_threadsafety     # buffer ownership handover out of the filter graph
     utest_SEN_radar            # radar clustering utilities
     utest_SEN_analytic_render  # rendered images vs closed-form ground truth
-    #utest_SEN_scene_lights     # Modify*Light reproduces Add*Light, for every light type
+    utest_SEN_scene_lights     # Modify*Light reproduces Add*Light, for every light type
   )
 endif()
 

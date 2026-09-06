@@ -43,13 +43,12 @@
 
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/optix/ChOptixScene.h"
-using SceneType = chrono::sensor::ChOptixScene;
-#elif defined(CHRONO_HAS_METAL_RT)
+#endif
+#ifdef CHRONO_HAS_METAL_RT
     #include "chrono_sensor/metal/ChMetalRTScene.h"
-using SceneType = chrono::sensor::ChMetalRTScene;
-#elif defined(CHRONO_HAS_VULKAN_RT)
+#endif
+#ifdef CHRONO_HAS_VULKAN_RT
     #include "chrono_sensor/vulkan/ChVulkanRTScene.h"
-using SceneType = chrono::sensor::ChVulkanRTScene;
 #endif
 
 using namespace chrono;
@@ -60,6 +59,7 @@ namespace {
 
 // Two distinct parameter sets per light type. They differ in every argument, so a modify path that
 // drops one is caught rather than passing because the two happened to agree there.
+template <typename SceneType>
 struct LightPair {
     const char* name;
     std::function<unsigned int(SceneType&)> add_a;
@@ -102,8 +102,9 @@ template <typename L>
 
 }  // namespace
 
-TEST(ChSensorSceneLights, modify_reproduces_add_for_every_light_type) {
-    const std::vector<LightPair> cases = {
+template <typename SceneType>
+void CheckModifyReproducesAdd() {
+    const std::vector<LightPair<SceneType>> cases = {
         {"point", [](SceneType& s) { return s.AddPointLight(ChVector3f(1, 2, 3), ChColor(0.2f, 0.3f, 0.4f), 10.f, true); },
          [](SceneType& s) { return s.AddPointLight(ChVector3f(-4, 5, 6), ChColor(0.7f, 0.6f, 0.5f), 25.f, false); },
          [](SceneType& s, unsigned int i) { s.ModifyPointLight(i, ChVector3f(-4, 5, 6), ChColor(0.7f, 0.6f, 0.5f), 25.f, false); }},
@@ -141,7 +142,8 @@ TEST(ChSensorSceneLights, modify_reproduces_add_for_every_light_type) {
     }
 }
 
-TEST(ChSensorSceneLights, modify_out_of_range_is_ignored) {
+template <typename SceneType>
+void CheckModifyOutOfRangeIsIgnored() {
     SceneType scene;
     const unsigned int id = scene.AddPointLight(ChVector3f(1, 2, 3), ChColor(0.5f, 0.5f, 0.5f), 10.f, true);
     const auto before = scene.GetLights();
@@ -152,6 +154,50 @@ TEST(ChSensorSceneLights, modify_out_of_range_is_ignored) {
     const auto after = scene.GetLights();
     ASSERT_EQ(after.size(), before.size());
     EXPECT_TRUE(LightsEqual(after[id], before[id])) << "an out-of-range Modify*Light changed an existing light";
+}
+
+// Each check runs for every backend the build enabled, not just the first. SCOPED_TRACE names the
+// backend so a failure in a multi-backend build says which one.
+TEST(ChSensorSceneLights, modify_reproduces_add_for_every_light_type) {
+    #ifdef CHRONO_HAS_OPTIX
+    {
+        SCOPED_TRACE("OptiX");
+        CheckModifyReproducesAdd<chrono::sensor::ChOptixScene>();
+    }
+    #endif
+    #ifdef CHRONO_HAS_METAL_RT
+    {
+        SCOPED_TRACE("Metal RT");
+        CheckModifyReproducesAdd<chrono::sensor::ChMetalRTScene>();
+    }
+    #endif
+    #ifdef CHRONO_HAS_VULKAN_RT
+    {
+        SCOPED_TRACE("Vulkan RT");
+        CheckModifyReproducesAdd<chrono::sensor::ChVulkanRTScene>();
+    }
+    #endif
+}
+
+TEST(ChSensorSceneLights, modify_out_of_range_is_ignored) {
+    #ifdef CHRONO_HAS_OPTIX
+    {
+        SCOPED_TRACE("OptiX");
+        CheckModifyOutOfRangeIsIgnored<chrono::sensor::ChOptixScene>();
+    }
+    #endif
+    #ifdef CHRONO_HAS_METAL_RT
+    {
+        SCOPED_TRACE("Metal RT");
+        CheckModifyOutOfRangeIsIgnored<chrono::sensor::ChMetalRTScene>();
+    }
+    #endif
+    #ifdef CHRONO_HAS_VULKAN_RT
+    {
+        SCOPED_TRACE("Vulkan RT");
+        CheckModifyOutOfRangeIsIgnored<chrono::sensor::ChVulkanRTScene>();
+    }
+    #endif
 }
 
 #endif  // any render backend
