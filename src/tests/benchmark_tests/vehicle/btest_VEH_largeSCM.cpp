@@ -77,11 +77,12 @@ const double height_max = 0.25;     // m
 // Pre-seeded ruts. Each is 15 nodes (0.30 m) wide -- one HMMWV tire track -- and spans the full
 // patch in x, giving 15 * 15001 = 225,015 nodes per track.
 //
-// The starting rows are deliberately not multiples of any power of two. A rut falls where a vehicle
-// drove, not where a storage scheme would like it to, and a layout that happened to line up with an
-// internal block size would flatter one implementation over another.
+// Row spacing is deliberately not a multiple of any power of two, and neither is the first row. A
+// rut falls where a vehicle drove, not where a storage scheme would like it to, and a layout that
+// happened to line up with an internal block size would flatter one implementation over another.
 const int track_width = 15;
-const int track_j_start[] = {2003, 2117, 2231, 2347};
+const int track_j_first = 2003;
+const int track_j_pitch = 114;
 const double rut_depth = 0.04;  // m below the undeformed surface
 
 const double step_size = 2e-3;
@@ -114,6 +115,11 @@ class LargeScmDriver : public ChDriver {
 // Resident set size in MiB, or 0 where it cannot be read. Reported because half of what this test
 // exercises is memory, not time: the dense base-height matrix and the per-node soil records are the
 // whole per-rank cost of an SCM patch, and a wall-clock number does not show them.
+//
+// Only trustworthy for the FIRST variant constructed in a process. Google Benchmark tears down and
+// rebuilds the fixture between repetitions, and glibc does not hand a freed multi-hundred-MB matrix
+// back to the OS, so by the second variant RSS reflects allocator retention as much as live data.
+// To compare variants, run each in its own process (--benchmark_filter=SEEDn).
 static double ResidentMiB() {
 #if defined(__linux__)
     long pages = 0, resident = 0;
@@ -234,7 +240,7 @@ void LargeScmTest<SEED_TRACKS>::Preseed() {
 
     for (int t = 0; t < SEED_TRACKS; t++) {
         for (int w = 0; w < track_width; w++) {
-            int j = track_j_start[t] + w;
+            int j = track_j_first + t * track_j_pitch + w;
             double y = j * grid_spacing;
             for (int i = -nx; i <= nx; i++) {
                 double x = i * grid_spacing;
@@ -290,11 +296,19 @@ void LargeScmTest<SEED_TRACKS>::ExecuteStep() {
 #define NUM_SIM_STEPS 2000   // timed window (2e-3 * 2000 = 4 s)
 #define REPEATS 5
 
+// A sweep, not a single point. Whether the cost of a large modified-node map is worth doing anything
+// about depends on how it grows, and one seeded size cannot show that. 0 / 1 / 4 / 16 tracks is
+// 0 / 225k / 900k / 3.6M nodes; a 13.7 h two-rover run at 0.02 m spacing reached ~891k, so the
+// middle of this range is a real working point and the top of it is where a longer run heads.
 typedef LargeScmTest<0> large_seed0_test_type;
+typedef LargeScmTest<1> large_seed1_test_type;
 typedef LargeScmTest<4> large_seed4_test_type;
+typedef LargeScmTest<16> large_seed16_test_type;
 
 CH_BM_SCM_SIMULATION_ONCE(LargeSCM_SEED0, large_seed0_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SCM_SIMULATION_ONCE(LargeSCM_SEED1, large_seed1_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
 CH_BM_SCM_SIMULATION_ONCE(LargeSCM_SEED4, large_seed4_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SCM_SIMULATION_ONCE(LargeSCM_SEED16, large_seed16_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
 
 // =============================================================================
 
