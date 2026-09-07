@@ -187,6 +187,12 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// Set visualization type for the wheel assembly (default: PRIMITIVES).
     void SetVisualizationType(VisualizationType vis) { m_vis_type = vis; }
 
+    /// Enable/disable the SCM terrain visualization mesh (default: enabled).
+    /// Disable when the rig is driven headless. The mesh is not free when it is never drawn: it gates a per-node
+    /// vertex update inside the modified-node loop of SCM's force computation, and that cost is charged to the node
+    /// loop rather than to a visualization timer.
+    void EnableTerrainVisualizationMesh(bool val) { m_terrain_vis_mesh = val; }
+
     // Terrain setup
 
     /// Enable use of rigid terrain.
@@ -382,6 +388,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     bool m_output;  ///< if false, report default measurements (typically 0)
 
     std::shared_ptr<ChTerrain> m_terrain;             ///< handle to underlying terrain subsystem
+    bool m_terrain_vis_mesh = true;                   ///< enable SCM terrain visualization mesh
     std::shared_ptr<WheelAssembly> m_wheel_assembly;  ///< wheel assembly
     VisualizationType m_vis_type;                     ///< visualization type for wheel assembly
     double m_step_size;                               ///< step size for wheel assembly integration

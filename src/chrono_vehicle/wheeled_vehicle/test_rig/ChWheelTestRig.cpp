@@ -449,7 +449,7 @@ void ChWheelTestRig::CreateTerrainSCM() {
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
-    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(&m_system);
+    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(&m_system, m_terrain_vis_mesh);
     terrain->SetReferenceFrame(ChCoordsys<>(location));
     terrain->SetSoilParameters(                                                             //
         m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,            //
