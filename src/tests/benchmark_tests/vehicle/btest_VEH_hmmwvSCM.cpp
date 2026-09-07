@@ -27,6 +27,8 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
+#include "tests/benchmark_tests/vehicle/ScmBenchmarkUtils.h"
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
@@ -86,6 +88,10 @@ class HmmwvScmTest : public utils::ChBenchmarkTest {
 
     ChSystem* GetSystem() override { return m_hmmwv->GetSystem(); }
     void ExecuteStep() override;
+
+    const SCMTerrain& GetTerrain() const { return *m_terrain; }
+
+    scm_bench::ScmStats m_scm;
 
     void SimulateVis();
 
@@ -205,6 +211,8 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::ExecuteStep() {
     m_driver->Advance(m_step);
     m_terrain->Advance(m_step);
     m_hmmwv->Advance(m_step);
+
+    m_scm.Accumulate(*m_terrain);
 }
 
 template <int TIRE_TYPE, bool OBJECTS>
@@ -243,10 +251,10 @@ typedef HmmwvScmTest<CYL_TIRE, false> cyl_0_test_type;
 typedef HmmwvScmTest<MESH_TIRE, true> mesh_1_test_type;
 typedef HmmwvScmTest<CYL_TIRE, true> cyl_1_test_type;
 
-CH_BM_SIMULATION_ONCE(HmmwvSCM_MESH_0, mesh_0_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(HmmwvSCM_CYL_0, cyl_0_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(HmmwvSCM_MESH_1, mesh_1_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
-CH_BM_SIMULATION_ONCE(HmmwvSCM_CYL_1, cyl_1_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SCM_SIMULATION_ONCE(HmmwvSCM_MESH_0, mesh_0_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SCM_SIMULATION_ONCE(HmmwvSCM_CYL_0, cyl_0_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SCM_SIMULATION_ONCE(HmmwvSCM_MESH_1, mesh_1_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SCM_SIMULATION_ONCE(HmmwvSCM_CYL_1, cyl_1_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
 
 // =============================================================================
 
