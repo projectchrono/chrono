@@ -17,7 +17,6 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 

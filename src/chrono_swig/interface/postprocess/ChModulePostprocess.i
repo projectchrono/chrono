@@ -27,6 +27,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -133,6 +134,7 @@ using namespace chrono::postprocess;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualShape.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColormap.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
@@ -144,6 +146,7 @@ using namespace chrono::postprocess;
 %import  "chrono_swig/interface/core/ChVisualShape.i"
 %import  "chrono_swig/interface/core/ChColor.i"
 %import  "chrono_swig/interface/core/ChColormap.i"
+%import  "chrono_swig/interface/core/ChFrame.i"
 %import  "chrono_swig/interface/core/ChSystem.i"
 %import  "chrono_swig/interface/core/ChBodyAuxRef.i"
 %import  "chrono_swig/interface/core/ChPhysicsItem.i"

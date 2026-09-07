@@ -19,7 +19,13 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChTimer.h"
+
 #include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChVisualShapes.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColormap.h"
+#include "chrono/assets/ChGlyphs.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
@@ -117,7 +123,7 @@ class ChApi ChVisualSystem {
                          double y_step,     ///< spacing in y direction
                          int nx,            ///< number of divisions in x direction
                          int ny,            ///< number of divisions in y direction
-                         ChCoordsys<> pos,  ///< grid reference frame
+                         ChCoordsysd pos,   ///< grid reference frame
                          ChColor col        ///< grid line color
     ) {}
 

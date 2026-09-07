@@ -204,7 +204,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI,
     double inner_radius = wheel_radius;
     auto bce = ViperRigWheel::CreateBCE(inner_radius, wheel_width - iniSpacing, grouser_height, grouser_wide, grouser_num, iniSpacing, false);
     ChQuaternion<> wheel_Rot_bce = Q_ROTATE_Z_TO_Y;
-    sysFSI.AddFsiBody(wheel, bce, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(wheel_Rot_bce)), false);
+    sysFSI.AddRigidBody(wheel, bce, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(wheel_Rot_bce)), false);
 
     // Create the chassis -- always THIRD body in the system
     auto chassis = chrono_types::make_shared<ChBody>();
@@ -455,7 +455,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetGravitationalAcceleration(gravity);
 
     // Set Parameters
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     mat_props.density = density;
@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = 0;
 
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
 
     if (params.integration_scheme == "euler") {
         sph_params.integration_scheme = IntegrationScheme::EULER;
@@ -535,7 +535,8 @@ int main(int argc, char* argv[]) {
     CreateSolidPhase(sysFSI, wheel_IniPos, wheel_IniVel, params.wheel_AngVel, params.render, params.grouser_height, kernelLength, params.total_mass, params.initial_spacing);
 
     sysSPH.SetActiveDomain(ChVector3d(0.6, 0.6, 0.8));
-    sysSPH.SetActiveDomainDelay(1.0);
+    sysSPH.SetFreeFlowDuration(1.0);
+
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();
 

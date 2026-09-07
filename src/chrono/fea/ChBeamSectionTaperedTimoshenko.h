@@ -255,7 +255,11 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     virtual ~ChBeamSectionTaperedTimoshenkoAdvancedGeneric() {}
 
     /// Set the length of beam element with two sections
-    void SetLength(double mv) { length = mv; };
+    void SetLength(double mv) {
+      if (mv != length)
+        compute_ave_sec_par = false;
+      length = mv;
+    };
     /// Get the length of beam element with two sections
     double GetLength() const { return length; };
 

@@ -180,7 +180,11 @@ inline gpuError gpuEventElapsedTime(float* ms, gpuEvent start, gpuEvent stop) {
 
 #elif defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__) || defined(CHRONO_USE_HIP) || defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_NVIDIA__)
 
-    #ifndef __HIP_PLATFORM_AMD__
+    // Default to the AMD platform only when neither platform macro is already
+    // set. Defining __HIP_PLATFORM_AMD__ unconditionally breaks HIP targeting
+    // NVIDIA, where __HIP_PLATFORM_NVIDIA__ is already defined and HIP's own
+    // headers reject having both.
+    #if !defined(__HIP_PLATFORM_AMD__) && !defined(__HIP_PLATFORM_NVIDIA__)
         #define __HIP_PLATFORM_AMD__
     #endif
     #include <hip/hip_runtime.h>
@@ -284,6 +288,17 @@ inline gpuError gpuMemAdvise(const void* ptr, std::size_t bytes, gpuMemoryAdvise
     }
     return err;
 }
+
+    #if defined(__HIP_PLATFORM_NVIDIA__) && defined(CUDART_VERSION) && (CUDART_VERSION >= 13000)
+// CUDA 13 changed cudaMemAdvise to take a cudaMemLocation, and callers written
+// against it build that struct. The CUDA branch of this header already offers
+// both spellings; the HIP branch offered only the device-ordinal one, so those
+// callers failed to compile when HIP targets NVIDIA. Forward to the ordinal
+// form, which HIP provides on both platforms.
+inline gpuError gpuMemAdvise(const void* ptr, std::size_t bytes, gpuMemoryAdvise advice, cudaMemLocation location) {
+    return gpuMemAdvise(ptr, bytes, advice, location.id);
+}
+    #endif
 
 inline gpuError gpuStreamCreate(gpuStream* stream) {
     return hipStreamCreate(stream);

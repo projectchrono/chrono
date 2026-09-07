@@ -132,7 +132,7 @@ void SaveAllCFD(const std::string& dir,
                     referenceArray[haveHelper + haveGhost + 1].x, referenceArray[haveHelper + haveGhost + 1].y);  //
     }
 
-    // Save rigid BCE particles to files
+    // Save rigid body BCE particles to files
     int refSize = (int)referenceArray.size();
     if (refSize > haveHelper + haveGhost + 2 && referenceArray[2].z == 1) {
         std::string filename = dir + "/rigidBCE" + std::to_string(frame) + ".csv";
@@ -142,12 +142,12 @@ void SaveAllCFD(const std::string& dir,
     }
 
     // Save flexible BCE particles to files
-    int refSize_Flex = (int)referenceArrayFEA.size();
-    if (refSize_Flex > 0) {
-        std::string filename = dir + "/flexBCE" + std::to_string(frame) + ".csv";
+    int refSize_fea = (int)referenceArrayFEA.size();
+    if (refSize_fea > 0) {
+        std::string filename = dir + "/feaBCE" + std::to_string(frame) + ".csv";
         SaveFileCFD(filename, level, implicit_scheme,                                //
                     pos, vel, acc, rhoPresMu, srTauMu,                               //
-                    referenceArrayFEA[0].x, referenceArrayFEA[refSize_Flex - 1].y);  //
+                    referenceArrayFEA[0].x, referenceArrayFEA[refSize_fea - 1].y);  //
     }
 }
 
@@ -303,12 +303,12 @@ void SaveAllCRM(const std::string& dir,
     }
 
     // Save flexible BCE particles to files
-    int refSize_Flex = (int)referenceArrayFEA.size();
-    if (refSize_Flex > 0) {
+    int refSize_fea = (int)referenceArrayFEA.size();
+    if (refSize_fea > 0) {
         std::string filename = dir + "/flexBCE" + std::to_string(frame) + ".csv";
         SaveFileCRM(filename, level,                                                         //
                     pos, vel, acc, rhoPresMu, tau_normal, tau_shear,                         //
-                    pcEvSv, referenceArrayFEA[0].x, referenceArrayFEA[refSize_Flex - 1].y);  //
+                    pcEvSv, referenceArrayFEA[0].x, referenceArrayFEA[refSize_fea - 1].y);  //
     }
 }
 

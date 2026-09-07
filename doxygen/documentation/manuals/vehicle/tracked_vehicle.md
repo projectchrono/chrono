@@ -5,7 +5,7 @@ Similar to the wheeled vehicle, a track vehicle in Chrono::Vehicle is a speciali
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/tracked_subsystems.png" width="800" />
 
-Currently, a single topology of tracked vehicles is supported which includes, at the top-level a chassis subsystem, the vehicle driveline, a steering mechanism, and two track assembly subsystems.  The latter are containers of further subsystems and each includes a sprocket mechanism, an idler tensioner subsystem, an arbitrary number of suspension components, and an arbitrary number of track-shoe assemblies.
+Currently, a single topology of tracked vehicles is supported which includes, at the top-level, a chassis subsystem, the vehicle driveline, a steering mechanism, and two track assembly subsystems.  The latter are containers of further subsystems and each includes a sprocket mechanism, an idler tensioner subsystem, an arbitrary number of suspension components, and an arbitrary number of track-shoe assemblies.
 
 See [ChTrackedVehicle](@ref chrono::vehicle::ChTrackedVehicle).
 

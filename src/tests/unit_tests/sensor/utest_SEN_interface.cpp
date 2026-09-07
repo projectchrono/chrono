@@ -29,10 +29,17 @@
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/optix/ChOptixEngine.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 
-#include "chrono_sensor/optix/ChOptixUtils.h"
+// The render-engine handle is backend specific; everything else in this file is public
+// sensor API and runs unchanged on OptiX, Vulkan RT or Metal RT.
+#if defined(CHRONO_HAS_OPTIX)
+    #include "chrono_sensor/optix/ChOptixEngine.h"
+    #include "chrono_sensor/optix/ChOptixUtils.h"
+#elif defined(CHRONO_HAS_METAL_RT)
+    #include "chrono_sensor/metal/ChMetalRTEngine.h"
+#endif
+
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
@@ -86,7 +93,14 @@ TEST(SensorInterface, sensors) {
 
     ASSERT_EQ(manager->GetSensorList().size(), 6);  // 7 total sensors
 
-    ASSERT_EQ(manager->GetEngine(0)->GetNumSensor(), 2);  // 3 sensors are optix sensors
+    // Two of the six are ray-traced (camera, lidar); the rest are dynamic sensors that
+    // never reach a render engine. Same expectation on every backend.
+#if defined(CHRONO_HAS_OPTIX)
+    ASSERT_EQ(manager->GetEngine(0)->GetNumSensor(), 2);
+#elif defined(CHRONO_HAS_METAL_RT)
+    ASSERT_EQ(manager->GetNumMetalEngines(), 1);
+    ASSERT_EQ(manager->GetMetalEngine(0)->GetNumSensor(), 2);
+#endif
 
     while (sys.GetChTime() < 0.1) {
         manager->Update();

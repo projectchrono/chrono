@@ -39,6 +39,9 @@ IF (MSVC)
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtConvexHullComputer.cpp
   )
   SOURCE_GROUP(bullet FILES ${BULLET_FILES})
+
+  # Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+  ch_disable_warnings_on_sources(${BULLET_FILES})
 ELSE()
   SET(BULLET_FILES "")
 ENDIF()

@@ -5,6 +5,7 @@ model:  "model_slider_crank.yaml"
 #model:  "model_slider_crank_reduced.yaml"
 #model:  "model_motors.yaml"
 #model:  "model_bushing.yaml"
+#model:  "model_cylindrical_joint.yaml"
 
 solver: "solver_mbs.yaml"
 #solver: "solver_mbs_stiff.yaml"

@@ -8,6 +8,8 @@ endif()
 
 cmake_dependent_option(CH_ENABLE_MODULE_VEHICLE_FMI  "Enable FMI support for Chrono::Vehicle" ON "CH_ENABLE_MODULE_FMI" OFF)
 
+set(CH_ENABLE_MODULE_VEHICLE_FMI ${CH_ENABLE_MODULE_VEHICLE_FMI} PARENT_SCOPE)
+
 if(NOT CH_ENABLE_MODULE_VEHICLE_FMI)
    return()
 endif()

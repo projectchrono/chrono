@@ -66,9 +66,9 @@ To run a modal analysis few steps are required:
 
 ## Modal Reduction
 
-Modal reduction methods allow to reduce the computational effort of a given Chrono model by replacing it with a simplified version by preserving the behaviour of the original system over a given set of frequencies. To leverage this functionality the user must add all the bodies, FE nodes and constraints to be reduced into a specific @ref chrono::modal::ChModalAssembly "ChModalAssembly" instead of adding them to the system directly, by calling:
-- @ref chrono::modal::ChModalAssembly::Add() "ChModalAssembly::Add()" on those objects that has be considered as "boundary" i.e. that stay on the border between the internal (reduced) nodes and the external world
-- @ref chrono::modal::ChModalAssembly::AddInternal() "ChModalAssembly::AddInternal()" on those objects that has be considered as "internal" i.e. that will be later reduced
+Modal reduction methods allow to reduce the computational effort of a given Chrono model by replacing it with a simplified version by preserving the behavior of the original system over a given set of frequencies. To leverage this functionality the user must add all the bodies, FE nodes and constraints to be reduced into a specific @ref chrono::modal::ChModalAssembly "ChModalAssembly" instead of adding them to the system directly, by calling:
+- @ref chrono::modal::ChModalAssembly::Add() "ChModalAssembly::Add()" on those objects that have to be considered as "boundary" i.e. that stay on the border between the internal (reduced) nodes and the external world
+- @ref chrono::modal::ChModalAssembly::AddInternal() "ChModalAssembly::AddInternal()" on those objects that have to be considered as "internal" i.e. that will be later reduced
 The @ref chrono::modal::ChModalAssembly "ChModalAssembly" should then be added to the usual @ref chrono::ChSystem "ChSystem".
 
 By calling @ref chrono::modal::ChModalAssembly::DoModalReduction() "ChModalAssembly::DoModalReduction()" Chrono will apply the conversion. After the call, it can be seen that the ChModalAssembly has a lower number of states thus allowing for a significant performance improvement during the simulation. At the same time, the ChModalAssembly graphical aspect will still look the same as the full model: the full internal state is indeed retrieved from the reduced one in order to allow the visualization.

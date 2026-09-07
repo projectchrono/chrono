@@ -27,6 +27,8 @@ namespace chrono {
 /// a single statement.
 class ChApi ChObjectExplorer : public ChArchiveOut {
   public:
+    using ChArchiveOut::out;  // un-hide the ChArchiveOut::out overloads not overridden here
+
     ChObjectExplorer();
 
     virtual ~ChObjectExplorer() { ClearSearch(); };

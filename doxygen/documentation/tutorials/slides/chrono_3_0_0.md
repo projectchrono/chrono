@@ -18,7 +18,7 @@ These slides refer to the API of Chrono release 3.0.0.
 - CMake primer 
   [pdf](http://www.projectchrono.org/assets/slides_3_0_0/1_Intro/4_Cmake_Primer.pdf)
 
-- OVerview of available Chrono demos 
+- Overview of available Chrono demos 
   [pdf](http://www.projectchrono.org/assets/slides_3_0_0/1_Intro/5_ProjectChrono_Demos.pdf)
 
 ## Multibody Dynamics with Chrono

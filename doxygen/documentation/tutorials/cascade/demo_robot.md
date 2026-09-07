@@ -2,7 +2,7 @@ Load a STEP file and simulate a robot (demo_CAS_robot.cpp)  {#tutorial_demo_robo
 ==========================
 
 <div class="ce-warning">
-This demos is obsolete and should undergo deep interventions to be updated to latest Chrono version.
+This demo is obsolete and should undergo deep interventions to be updated to latest Chrono version.
 </div>
 
 
@@ -42,7 +42,7 @@ Creating a demo mechanism (a car, a robot, etc.) might take hours. To make thing
 
   ![](http://projectchrono.org/assets/manual/Tutorial_robot_01.jpg)
 
-- Note that the assembly is made of many parts. Maybe that there is not a one-to-one correspondence from rigid bodies for our simulation, and CAD parts, so we want to organize N sub-assemblies, that represent our N rigid bodies in the simulation. That is, it would be nice if each part stays in a separate sub-assebly that represents a 'rigid body', and such subassemblies can optionally contain some auxiliary objects (we call them 'markers') that can be used later on the C++ side to find the position of the joints.
+- Note that the assembly is made of many parts. Maybe there is not a one-to-one correspondence from rigid bodies for our simulation, and CAD parts, so we want to organize N sub-assemblies, that represent our N rigid bodies in the simulation. That is, it would be nice if each part stays in a separate sub-assembly that represents a 'rigid body', and such subassemblies can optionally contain some auxiliary objects (we call them 'markers') that can be used later on the C++ side to find the position of the joints.
 
 - To make the sub assembles: 
 	- Select the 'Parts library' panel, 
@@ -87,7 +87,7 @@ Creating a demo mechanism (a car, a robot, etc.) might take hours. To make thing
 
 The key of the remaining process is the functionality of the ChCascadeDoc class. Such class has the functionality of loading sub-assemblies from a STEP file by using the function `mydoc.GetNamedShape(...)` that takes, as argument, the ASCII name of the subassembly (or sub part). 
 
-A small inconvenience happens here: because of a SolidEdge-specific issue, the names of the subassemblies in the STEP file are not always the same names that you read in the Assembly PAthFinder window. In detail, all the names of the assemblies are automatically translated to `Assem1`, `Assem2`, etc., whereas you would expect the names of the assemblies that you created, such as `Base`, `Turret`, etc.
+A small inconvenience happens here: because of a SolidEdge-specific issue, the names of the subassemblies in the STEP file are not always the same names that you read in the Assembly PathFinder window. In detail, all the names of the assemblies are automatically translated to `Assem1`, `Assem2`, etc., whereas you would expect the names of the assemblies that you created, such as `Base`, `Turret`, etc.
 
 A workaround to this inconvenience is the following: you use the `mydoc.Dump(std::cout)` function to print the hierarchy on the console and take note of the STEP names on a piece of paper (or just use the demo_converter.exe to show that hierarchy), you will see something like:
 
@@ -229,7 +229,7 @@ Print the contained shapes, showing the assembly hierarchy:
 ~~~
 
 
-Retrieve some sub shapes from the loaded model, using the GetNamedShape() function, that can use path/subpath/subsubpath/part syntax and * or ? wldcards, etc.
+Retrieve some sub shapes from the loaded model, using the GetNamedShape() function, that can use path/subpath/subsubpath/part syntax and * or ? wildcards, etc.
 Using the / slash is like addressing a Unix directory (in fact the STEP file is organized like a directory with subdirectory, each representing a subassembly).
 
 ~~~{.cpp}

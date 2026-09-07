@@ -81,10 +81,10 @@ namespace fea {
         dNdX(0, 0) = vai.x();   dNdX(0, 1) = vbi.x();   dNdX(0, 2) = vci.x();   dNdX(0, 3) = -vai.x() - vbi.x() - vci.x();
         dNdX(1, 0) = vai.y();   dNdX(1, 1) = vbi.y();   dNdX(1, 2) = vci.y();   dNdX(1, 3) = -vai.y() - vbi.y() - vci.y();
         dNdX(2, 0) = vai.z();   dNdX(2, 1) = vbi.z();   dNdX(2, 2) = vci.z();   dNdX(2, 3) = -vai.z() - vbi.z() - vci.z();
-        //***TEST***
+        // ***TEST***
         //ChMatrixDynamic<> test_dNdX(3, 4);
         //ChFieldElement::ComputedNdX(eta, test_dNdX);
-        //**** 
+        // **** 
     }
 */
     // Compute Jacobian J, and returns its determinant. J is square 3x3

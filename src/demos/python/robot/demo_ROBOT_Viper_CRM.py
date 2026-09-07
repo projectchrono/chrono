@@ -23,7 +23,7 @@ import pychrono.vehicle as veh
 from pychrono.fsi import (
     ChFsiFluidSystemSPH,
     ChFsiSystemSPH,
-    ElasticMaterialProperties,
+    SoillProperties,
     SPHParameters,
     IntegrationScheme_RK2,
     ViscosityMethod_ARTIFICIAL_BILATERAL,
@@ -111,7 +111,7 @@ terrain.SetVerbose(verbose)
 terrain.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 terrain.SetStepSizeCFD(step_size)
 
-mat_props: ElasticMaterialProperties = ElasticMaterialProperties()
+mat_props: SoilProperties = SoilProperties()
 mat_props.density = density
 mat_props.Young_modulus = youngs_modulus
 mat_props.Poisson_ratio = poisson_ratio
@@ -120,7 +120,7 @@ mat_props.mu_fric_s = friction
 mat_props.mu_fric_2 = friction
 mat_props.average_diam = 0.005
 mat_props.cohesion_coeff = cohesion
-terrain.SetElasticSPH(mat_props)
+terrain.SetCrmSPH(mat_props)
 
 sph_params: SPHParameters = SPHParameters()
 sph_params.integration_scheme = IntegrationScheme_RK2

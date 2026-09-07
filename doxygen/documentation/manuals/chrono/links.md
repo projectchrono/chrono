@@ -6,17 +6,17 @@ Links      {#links}
 A Chrono body can be constrained in its relative motion with respect to a different body or ground. This is achieved by using ChLink classes.  
 From the @ref chrono::ChLink "ChLink" class various sets of links are derived. The most noticeable are those derived from:
 - @ref chrono::ChLinkMate "ChLinkMate": more efficient, however they do not implement limits and only few of them can have an imposed motion;
-- @ref chrono::ChLinkLock "ChLinkLock": more general, the relative motion can be limited within boundaries, forces and relative displacements can easily be retrieved; it is possible to specify a constraint over points that are _moving_ respect to the body reference frame;
+- @ref chrono::ChLinkLock "ChLinkLock": more general, the relative motion can be limited within boundaries, forces and relative displacements can easily be retrieved; it is possible to specify a constraint over points that are _moving_ with respect to the body reference frame;
 - @ref chrono::ChLinkMotor "ChLinkMotor": ChLinkMate derived joints with included actuation.
 
 Thus, some of the ChLinkMate and ChLinkLock derived classes may overlap. The latter being more flexible, the first more efficient. Because of this, the ChLinkMate version should be preferred, in general.
 
 ![](http://www.projectchrono.org/assets/manual/pic_ChLink.png)
 
-Some general information are fundamental to effectively use these classes:
+Some general information is fundamental to effectively use these classes:
 - links often refer to a pair of @ref chrono::ChMarker "ChMarker", but such markers can be automatically added to bodies during link initialization; see below;
 - each link has a reference/master frame; reaction forces and axis directions are computed with respect to this reference marker;
-- it is worth to set the initial position of the markers/bodies to a feasible position;
+- it is worth setting the initial position of the markers/bodies to a feasible position;
 - it is generally useful to set the solver parameters to finer values when constraints are present; see [Solvers](@ref solvers);
 
 # ChLink Quick Reference
@@ -52,16 +52,16 @@ Additionally, if a body has to be fixed to the global frame and reaction forces 
 | :-: | :-: | :--- | :-- | :-- |
 | 0\|3\|5 | 1 | Linear Actuator | Applies linear force\|speed\|position between frames; <br> optionally adds none\|prismatic\|spherical joints to its ends <br> can be paired with 1D @ref chrono::ChShaft "ChShaft" | @ref chrono::ChLinkMotorLinear "ChLinkMotorLinear" and derived |
 | 0\|3\|5 | 1 | Rotating Actuator | Applies torque\|speed\|position between frames; <br> optionally adds none\|revolute\|cylindrical\|Oldham joints to its ends <br> can be paired with 1D @ref chrono::ChShaft "ChShaft" | @ref chrono::ChLinkMotorRotation "ChLinkMotorRotation" and derived |
-| 0 | 1 | Linear Spring+Damper | Spring+Damper depending to frame distance; also with custom force | @ref chrono::ChLinkTSDA "ChLinkTSDA" |
-| 0 | 1 | Rotational Spring+Damper | Spring+Damper depending to frame rotation along Z axis; also with custom force | @ref chrono::ChLinkRSDA "ChLinkRSDA" |
+| 0 | 1 | Linear Spring+Damper | Spring+Damper depending on frame distance; also with custom force | @ref chrono::ChLinkTSDA "ChLinkTSDA" |
+| 0 | 1 | Rotational Spring+Damper | Spring+Damper depending on frame rotation along Z axis; also with custom force | @ref chrono::ChLinkRSDA "ChLinkRSDA" |
 
 Also @ref chrono::ChLinkLockLock "ChLinkLockLock" can be used to impose a motion between bodies.
 
 ## Usage
-In many cases there is no need to explicitly create two markers. Use in the case the ChLink::Initialize() 
+In many cases there is no need to explicitly create two markers. In this case, use the ChLink::Initialize() 
 function, passing the two bodies and the position of the constraint. This function will automatically create the two markers and it will add them to the bodies.
 
-Alternatively, one can create the two markers by explicitly, add them to
+Alternatively, one can create the two markers explicitly, add them to
 the two bodies, and then call ```Initialize()``` by passing the two markers.
 
 In general, the process involves the following steps:

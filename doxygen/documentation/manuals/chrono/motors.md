@@ -32,7 +32,7 @@ All rotational motors are inherited from @ref chrono::ChLinkMotorRotation "ChLin
 
 ![](http://www.projectchrono.org/assets/manual/pic_ChLinkMotorRotation.png)
 
-Rotational motors allow multiple turns and offers either the wrapped @ref chrono::ChLinkMotorRotation::GetMotorAngleWrapped() "GetMotorAngleWrapped()" or unwrapped @ref chrono::ChLinkMotorRotation::GetMotorAngle() "GetMotorAngle()" motor angle.
+Rotational motors allow multiple turns and offer either the wrapped @ref chrono::ChLinkMotorRotation::GetMotorAngleWrapped() "GetMotorAngleWrapped()" or unwrapped @ref chrono::ChLinkMotorRotation::GetMotorAngle() "GetMotorAngle()" motor angle.
 
 Relative displacement|speed|acceleration are retrieved through @ref chrono::ChLinkMotorRotation::GetMotorAngle() "GetMotorAngle()" | @ref chrono::ChLinkMotorRotation::GetMotorAngleDt() "GetMotorAngleDt()" | @ref chrono::ChLinkMotorRotation::GetMotorAngleDt2() "GetMotorAngleDt2()"
 
@@ -81,7 +81,7 @@ rotmotor->SetSpeedFunction(mwspeed);
 
 These motors connect two parts of class @ref chrono::ChBodyFrame "ChBodyFrame", i.e objects that have translation+rotation in space, for example @ref chrono::ChBody "ChBody" or @ref chrono::fea::ChNodeFEAxyzrot "ChNodeFEAxyzrot".
 
-All linear motors are inherited from @ref chrono::ChLinkMotorLinear "ChLinkMotorLinear" and the assume the Z axis being the direction of the allowed direction.
+All linear motors are inherited from @ref chrono::ChLinkMotorLinear "ChLinkMotorLinear" and assume the Z axis being the allowed direction.
  
 ![](http://www.projectchrono.org/assets/manual/pic_ChLinkMotorLinear.png)
 
@@ -104,13 +104,13 @@ The @ref chrono::ChLinkMotorLinearDriveline "ChLinkMotorLinearDriveline" and @re
 
 Because of this coupling any motion imposed on the shaft leads to a consequent motion on the constrained frames (linear or rotational, depending on the motor type), but especially any reaction force/torque felt by the constrained bodies is reflected back to the shaft.
 
-This means that, contrary to the other @ref chrono::ChLinkMotor "ChLinkMotor"s that were fed directly by a "signal" provided through a @ref chrono::ChFunction "ChFunction", this class preserve the balance of power and describes a full coupling at both displacement and force level.
+This means that, contrary to the other @ref chrono::ChLinkMotor "ChLinkMotor"s that were fed directly by a "signal" provided through a @ref chrono::ChFunction "ChFunction", this class preserves the balance of power and describes a full coupling at both displacement and force level.
 
 Particular care should be put in setting proper values to the inertia of the @ref chrono::ChShaft "ChShaft"s objects to avoid instabilities, especially with low inertias and high speeds.
 
 ## 1D Motors  {#shaft_motors}
 
-Motors of the @ref chrono::ChShaftsMotor "ChShaftsMotor" kind are operating on pair of objects of the 1D space.
+Motors of the @ref chrono::ChShaftsMotor "ChShaftsMotor" kind are operating on a pair of objects of the 1D space.
 
 The usage is similar to those of the @ref chrono::ChLinkMotor "ChLinkMotor" types with the difference that constrained objects are of the @ref chrono::ChShaft "ChShaft" type.
 

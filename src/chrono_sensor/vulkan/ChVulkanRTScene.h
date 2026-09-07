@@ -23,6 +23,10 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualMaterial.h"
+
+#include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChVisualShapes.h"
+
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/ChApiSensor.h"
@@ -53,29 +57,33 @@ struct CH_SENSOR_API ChVulkanRTTexCoord {
 };
 
 struct CH_SENSOR_API ChVulkanRTMaterial {
-    // OptiX implicit material fallback for shapes without an explicit ChVisualMaterial.
-    ChVector3f diffuse = ChVector3f(0.5f, 0.5f, 0.5f);
-    ChVector3f ambient = ChVector3f(0.5f, 0.5f, 0.5f);
-    ChVector3f specular = ChVector3f(0.2f, 0.2f, 0.2f);
-    ChVector3f emissive = ChVector3f(0.f, 0.f, 0.f);
+    /// Construct the implicit Vulkan material from Chrono's canonical visual default.
+    /// Keeping this conversion centralized prevents the backend from drifting when
+    /// ChVisualMaterial::Default() changes.
+    ChVulkanRTMaterial();
+
+    ChVector3f diffuse;
+    ChVector3f ambient;
+    ChVector3f specular;
+    ChVector3f emissive;
 
     // Mirrors the fields consumed by the OptiX camera shaders. OptiX names this
     // value "transparency", but it is used as opacity/surface weight: 1 is
     // opaque, 0 is fully transparent and traces through the surface.
-    float opacity = 1.f;
-    float roughness = 1.f;
-    float metallic = 0.f;
-    float emissive_power = 0.f;
-    float shininess = 32.f;
-    bool use_specular_workflow = false;
+    float opacity;
+    float roughness;
+    float metallic;
+    float emissive_power;
+    float shininess;
+    bool use_specular_workflow;
 
     // Non-camera sensor response parameters. OptiX keeps these in its material
     // record; mirror them here so LiDAR/Radar parity does not depend on OptiX.
     float lidar_intensity = 1.f;
     float radar_backscatter = 1.f;
 
-    float tex_scale_u = 1.f;
-    float tex_scale_v = 1.f;
+    float tex_scale_u;
+    float tex_scale_v;
     std::string diffuse_texture;
     std::string specular_texture;
     std::string emissive_texture;
@@ -85,8 +93,8 @@ struct CH_SENSOR_API ChVulkanRTMaterial {
     std::string opacity_texture;
     std::string weight_texture;
 
-    unsigned short int class_id = 0;
-    unsigned short int instance_id = 0;
+    unsigned short int class_id;
+    unsigned short int instance_id;
 };
 
 struct CH_SENSOR_API ChVulkanRTTriangle {
@@ -142,7 +150,7 @@ struct CH_SENSOR_API ChVulkanRTLight {
 
     // Area-light parameters. Vulkan RT currently evaluates area lights from
     // their center point, but keeping the full public data here preserves the
-    // OptiX ChScene API and allows a renderer upgrade without API changes.
+    // OptiX ChOptixScene API and allows a renderer upgrade without API changes.
     ChVector3f length_vec = ChVector3f(0.f, 0.f, 0.f);
     ChVector3f width_vec = ChVector3f(0.f, 0.f, 0.f);
     float radius = 0.f;
@@ -153,7 +161,7 @@ struct CH_SENSOR_API ChVulkanRTLight {
 
 /// Staging scene for the Vulkan backend.
 ///
-/// This object mirrors the public ChScene methods used by existing Sensor demos
+/// This object mirrors the public ChOptixScene methods used by existing Sensor demos
 /// while collecting a compact renderable representation. The representation is
 /// intentionally independent from OptiX/CUDA and can feed either the Vulkan RT
 /// BLAS/TLAS builder or the host fallback used for bring-up/testing.
@@ -201,6 +209,26 @@ class CH_SENSOR_API ChVulkanRTScene {
                               float radius,
                               bool const_color = true);
 
+    // Redefine an existing light in place. Each takes the ID returned by the matching
+    // Add*Light plus that function's own parameters, mirroring ChOptixScene's backend-neutral
+    // Modify*Light overloads. Out-of-range IDs are ignored.
+    void ModifyPointLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, bool const_color = true);
+
+    void ModifyDirectionalLight(unsigned int light_ID, ChColor color, float elevation, float azimuth);
+
+    void ModifySpotLight(unsigned int light_ID,
+                         ChVector3f pos,
+                         ChColor color,
+                         float max_range,
+                         ChVector3f light_dir,
+                         float angle_falloff_start,
+                         float angle_range,
+                         bool const_color = true);
+
+    void ModifyRectangleLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color = true);
+
+    void ModifyDiskLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color = true);
+
     unsigned int AddEnvironmentLight(const std::string& env_tex, const ChVector3f& color = ChVector3f(1.f, 1.f, 1.f));
     unsigned int AddEnvironmentLight(std::string env_tex_path, float intensity_scale);
 
@@ -210,6 +238,12 @@ class CH_SENSOR_API ChVulkanRTScene {
 
   private:
     void Touch() { ++m_revision; }
+
+    /// Append a light and return its ID (its index).
+    unsigned int Append(const ChVulkanRTLight& light);
+
+    /// Overwrite the light at `id`; out-of-range IDs are ignored.
+    void Replace(unsigned int id, const ChVulkanRTLight& light);
 
     ChVulkanRTMaterial ExtractMaterial(const std::shared_ptr<ChVisualShape>& shape) const;
 

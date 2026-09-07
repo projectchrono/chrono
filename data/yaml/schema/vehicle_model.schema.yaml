@@ -35,11 +35,34 @@ vector3d: &VECTOR3D   # Specification of a ChVector3d
 
 model:
   description: |
-    Schema for FSDI problem parameters.
-    This schema defines the multibody and fluid models, the simulation parameters for the two solvers, and the co-simulation metastep.
+    Definition of a Chrono::Vehicle model.
+    The vehicle and its sub-systems are specified through Chrono::Vehicle JSON specification files.
+    The vehicle type (wheeled or tracked) is inferred from the "Template" field of the vehicle JSON file.
   type: object
   required: [vehicle_json, engine_json, transmission_json]
   properties:
+    name:
+      type: string
+      description: Name of the model
+      default: ''
+    angle_degrees:
+      type: boolean
+      description: Whether angles are specified in degrees (true) or radians (false)
+      default: true
+    data_path:
+      type: object
+      description: Location of the JSON data files referenced in this model specification
+      required: [type]
+      properties:
+        type:
+            type: string
+            description: Mode for data file location
+            enum: [ABSOLUTE, RELATIVE]
+            default: ABSOLUTE
+        root:
+            type: string
+            description: Root of data files, relative to the location of this script
+            default: "."
     vehicle_json:
       description: JSON file for vehicle model specification
       type: string
@@ -49,12 +72,15 @@ model:
     transmission_json:
       description: JSON file for transmission model specification
       type: string
-    time_json:
-      description: JSON file for tire model specification (WHEELED vehicles only)
+    tire_json:
+      description: JSON file for tire model specification (required for WHEELED vehicles)
       type: string
 
+# Note: the following four objects are specified at the top level of the vehicle model file
+#       (as siblings of the `model` object), not nested inside `model`.
+
 terrain_json:
-  description: JSON file for rigid terrain specification
+  description: JSON file for rigid terrain specification. If absent, no terrain is created.
   type: string
   default: ""
       
@@ -64,12 +90,12 @@ initial_position:
   default: [0, 0, 0]
 
 initial_yaw:
-  description: Initial vehicle yaw
+  description: Initial vehicle yaw angle, always in degrees (independent of the model `angle_degrees` setting)
   type: number
   default: 0.0
 
 chase_camera:
-  description: PArameters for the vehicle chase camera
+  description: Parameters for the vehicle chase camera
   type: object
   required: [chassis_point, chase_distance, chase_height]
   properties:

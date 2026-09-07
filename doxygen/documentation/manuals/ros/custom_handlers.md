@@ -128,5 +128,5 @@ while (sys.GetChTime() < t_end) {
 *   **Rate.** The constructor rate is in simulation time, so a handler ticks consistently regardless of how fast the simulation runs relative to real time. Use `0` for "every step". Wall-clock pacing is the application's responsibility (`ChRealtimeStepTimer`).
 *   **Time stamps.** Stamp `header.stamp` fields with the simulation time and register a `ChROSClockHandler` so downstream nodes can run with `use_sim_time:=true`.
 *   **Threading.** Handler callbacks run on the simulation thread inside `Update()`. Do not spawn threads that touch Chrono objects or call into a handler.
-*   **Discovery.** `bridge.DescribeType("sensor_msgs/msg/Image")` returns the field names and types; a misspelled field fails fast with the valid list. This ensures a ROS2 message type to be published/subscribed to is sources in your environemnt.
+*   **Discovery.** `bridge.DescribeType("sensor_msgs/msg/Image")` returns the field names and types; a misspelled field fails fast with the valid list. This ensures a ROS2 message type to be published/subscribed to is sourced in your environment.
 *   **Examples.** `ChROSCameraHandler` (bulk image data), `ChROSLidarHandler` (sequences of nested messages), `ChROSDriverInputsHandler` (subscriber, custom message package), and the `demo_ROS_custom_handler` demo (C++ and Python).

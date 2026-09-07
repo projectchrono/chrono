@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     fsi.Initialize();
 
     auto sysSPH = fsi.GetFluidSystemSPH();
-    int numPart = sysSPH->GetNumFluidMarkers();
+    auto numPart = sysSPH->GetNumFluidMarkers();
 
     // Create output directories
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
 
         double KE = 0;
         double Rho = 0;
-        for (int i = 0; i < numPart; i++) {
+        for (size_t i = 0; i < numPart; i++) {
             KE += 0.5 * vel[i].Length();
             Rho += rhoPresMu[i].x();
         }

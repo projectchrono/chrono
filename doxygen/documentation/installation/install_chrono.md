@@ -45,9 +45,9 @@ Note that most modern IDEs have git integration (e.g. the free [Visual Studio Co
 ------------------------------------------------------------
 ## Optional support {#optional}
 
-During CMake configuration, Chrono also checks availability of additional support in terms of compiler capabilities (e.g., SIMD-level support, OpenMP availability) and environments (e.g., availability of MPI and GPU toolchains). If any of these is not found, specific optimizations in building Chrono and some modules is disabled (e.g., no multi-threaded support in FEA, Bullet collision, and Eigen if the C++ compiler is not OpenMP capable), some features are disabled (e.g., no multi-core collision detection algorithm if OpenMP or Thrust), or entire modules are disabled (e.g., Chrono::FSI-SPH and Chrono::DEM require a GPU backend (**CUDA** or **HIP**); Chrono::Sensor ray-tracing paths require **CUDA** and NVIDIA OptiX; Chrono::Multicore cannot be built without OpenMP and Thrust; Chrono::Synchrono and the Chrono::Vehicle co-simulation module cannot be built without MPI).
+During CMake configuration, Chrono also checks availability of additional support in terms of compiler capabilities (e.g., SIMD-level support, OpenMP availability) and environments (e.g., availability of MPI and GPU toolchains). If any of these is not found, specific optimizations in building Chrono and some modules are disabled (e.g., no multi-threaded support in FEA, Bullet collision, and Eigen if the C++ compiler is not OpenMP capable), some features are disabled (e.g., no multi-core collision detection algorithm if OpenMP or Thrust), or entire modules are disabled (e.g., Chrono::FSI-SPH and Chrono::DEM require a GPU backend (**CUDA** or **HIP**); Chrono::Sensor ray-tracing paths require **CUDA** and NVIDIA OptiX; Chrono::Multicore cannot be built without OpenMP and Thrust; Chrono::Synchrono and the Chrono::Vehicle co-simulation module cannot be built without MPI).
 
-Additional support is checked if enabling specific Chrono modules. For example, a Fortran compiler is required to enable the Chrono::MUMPS module.
+Additional support is checked when enabling specific Chrono modules. For example, a Fortran compiler is required to enable the Chrono::MUMPS module.
 
 #### GPU accelerator support {#gpu}
 
@@ -286,7 +286,7 @@ Each Chrono module adds its own set of demos and tests and these are built only 
 
 Executables are available under a subdirectory `bin/<config>/` (e.g., `bin/Release/` or `bin/Debug/`) for a multi-config generator or directly under `bin/` otherwise. 
 
-Unit tests do not use run-time visualization and are based on googletest. Running any of the Chrono unit tests will generate a standard report, indicating whether the test succeeded or failed. You can run all unit tests at once using `ctest`. For example, o run all unit tests for a Release build (mult-config generator), execute the following command from the top-level build directory:<br>
+Unit tests do not use run-time visualization and are based on googletest. Running any of the Chrono unit tests will generate a standard report, indicating whether the test succeeded or failed. You can run all unit tests at once using `ctest`. For example, to run all unit tests for a Release build (multi-config generator), execute the following command from the top-level build directory:<br>
 `ctest -C Release`
 
 -----------------------------------------------------------

@@ -24,21 +24,6 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeEllipsoid.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeCapsule.h"
-#include "chrono/assets/ChVisualShapeBarrel.h"
-#include "chrono/assets/ChVisualShapeCone.h"
-#include "chrono/assets/ChVisualShapeRoundedBox.h"
-#include "chrono/assets/ChVisualShapeRoundedCylinder.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
-#include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/assets/ChVisualShapePath.h"
-
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/impl/BaseGuiComponents.h"
 #include "chrono_vsg/impl/BaseEventHandlers.h"
@@ -134,6 +119,8 @@ class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrappe
     void apply(vsg::ButtonReleaseEvent& buttonRelease) override { m_component->process(buttonRelease); }
     void apply(vsg::MoveEvent& moveEvent) override { m_component->process(moveEvent); }
     void apply(vsg::TouchEvent& touchEvent) override { m_component->process(touchEvent); }
+    void apply(vsg::FocusInEvent& focusIn) override { m_component->process(focusIn); }
+    void apply(vsg::FocusOutEvent& focusOut) override { m_component->process(focusOut); }
 
   private:
     std::shared_ptr<ChEventHandlerVSG> m_component;
@@ -3094,7 +3081,7 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsysd pos, ChColor col) {
     m_decoScene->addChild(m_shapeBuilder->CreateGrid(x_step, y_step, nx, ny, pos, col));
 }
 

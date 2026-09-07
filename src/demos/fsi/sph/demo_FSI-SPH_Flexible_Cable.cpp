@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case PhysicsProblem::CRM: {
-            ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+            ChFsiFluidSystemSPH::SoilProperties mat_props;
             mat_props.density = 1700;
             mat_props.Young_modulus = 1e6;
             mat_props.Poisson_ratio = 0.3;
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
             mat_props.average_diam = 0.005;
             mat_props.cohesion_coeff = 0;
 
-            fsi.SetElasticSPH(mat_props);
+            fsi.SetCrmSPH(mat_props);
 
             break;
         }
@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->EnableFlexBodyMarkers(show_mesh_bce);
+        visFSI->EnableFeaMeshMarkers(show_mesh_bce);
         visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::FAST);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 

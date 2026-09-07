@@ -22,7 +22,7 @@ Refer to the [user manual](@ref manual_parsers) for additional information.
 - The Python parser requires Python 3 and the PythonInterp and PythonLibs libraries.
 
 
-## Building and installing prerequisistes
+## Building and installing prerequisites
 
 The dependencies for the Python parser are satisfied by a Python 3 installation.
 

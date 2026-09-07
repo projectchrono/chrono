@@ -94,11 +94,11 @@ Run command `ninja` while in the same build directory as the newly created Makef
 
 #### 8) Test the demos
 
-Navigate to the directory that you used to build Chrono earlier. Change the current directory to the subdirectory, `bin`. Demo example files are stored here, they are great resource to **demo**nstrate the capacities of Project Chrono.
+Navigate to the directory that you used to build Chrono earlier. Change the current directory to the subdirectory, `bin`. Demo example files are stored here, they are a great resource to **demo**nstrate the capacities of Project Chrono.
 
 For each demo, there are two files generated, a binary file ending in `.wasm` and a JavaScript wrapper ending in `.js`.
 
-- For command-line demos, A JavaScript engine such as [Node.js](https://nodejs.org/en/) can be used to execute the demo right in your terminal. 
+- For command-line demos, a JavaScript engine such as [Node.js](https://nodejs.org/en/) can be used to execute the demo right in your terminal. 
 
 - For more complicated demos, including those which employ visualization, the JavaScript file must be loaded into a web page. This process is somewhat more complicated, but it is detailed in [Emscripten's documentation](https://emscripten.org/docs/compiling/Deploying-Pages.html).
 

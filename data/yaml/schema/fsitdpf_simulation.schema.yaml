@@ -55,23 +55,55 @@ solver:
 output:
   description: Output settings
   type: object
+  required: [format]
   properties:
      format:
         type: string
         description: Output DB format
         enum: [NONE, ASCII, HDF5]
         default: NONE
+     mode:
+        type: string
+        description: Output mode (one file per output frame, or a single time-series file)
+        enum: [FRAMES, SERIES]
+        default: FRAMES
      fps:
         type: number
-        description: Output frequency
+        description: Output frequency (FPS or Hz)
         minimum: 0
+        default: 100
 
 visualization:
   description: TDPF-specific run-time visualization settings (water surface visualization)
   type: object
   properties:
-    update_fsp:
+    update_fps:
+      type: number
+      description: Frequency (FPS or Hz) at which the wave mesh is updated
+      minimum: 0
+      default: 30
+
     color_map:
-    output:
-    # TODO
+      description: Colormap-based coloring of the wave mesh
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          description: Wave mesh quantity used for coloring
+          enum: [NONE, HEIGHT, VELOCITY]
+          default: NONE
+        map:
+          type: string
+          description: Colormap
+          enum: [BLACK_BODY, BLUE, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE]
+          default: FAST
+        min:
+          type: number
+          description: Lower end of the color data range
+          default: -1
+        max:
+          type: number
+          description: Upper end of the color data range
+          default: 1
 

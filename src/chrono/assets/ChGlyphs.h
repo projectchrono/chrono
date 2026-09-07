@@ -113,7 +113,7 @@ class ChApi ChGlyphs : public ChVisualShape {
 
     /// Fast method to set a glyph for GLYPH_COORDSYS draw mode.
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
-    void SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord);
+    void SetGlyphCoordsys(unsigned int id, ChCoordsysd mcoord);
 
     /// Fast method to set a glyph for GLYPH_TENSOR draw mode.
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the tensors are inflated.

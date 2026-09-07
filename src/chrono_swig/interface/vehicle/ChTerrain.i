@@ -7,6 +7,7 @@
 #include "chrono/core/ChFrame.h"
 
 #include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChAABB.h"
 #include "chrono/geometry/ChVolume.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChBox.h"
@@ -63,6 +64,7 @@
 %import "chrono_swig/interface/core/ChColor.i"
 %import "chrono_swig/interface/core/ChColormap.i"
 %import "chrono_swig/interface/core/ChGeometry.i"
+%import "../../../chrono/geometry/ChAABB.h"
 %import "chrono_swig/interface/core/ChSystem.i"
 %import "chrono_swig/interface/core/ChVector2.i"
 %import "chrono_swig/interface/core/ChVector3.i"
@@ -77,6 +79,7 @@
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChColormap.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChGeometry.i"
+%import(module = "pychrono.core") "../../../chrono/geometry/ChAABB.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVector3.i"

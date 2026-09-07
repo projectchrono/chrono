@@ -5,7 +5,7 @@ Install the MUMPS module {#module_mumps_installation}
 
 Chrono::Mumps is an optional module that enables Chrono to use the MUMPS linear solver.
 
-Chrono usually relies on its [built-in solvers](@ref solvers), whose good performance are guaranteed by leveraging the internal data structure. 
+Chrono usually relies on its [built-in solvers](@ref solvers), whose good performance is guaranteed by leveraging the internal data structure. 
 In fact, for a wide range of applications, these suffice.<br>
 However, for higher accuracy results, a direct solver could still be needed.
 
@@ -14,16 +14,16 @@ This module provides an interface to the third-party MUMPS solver.
 
 ## Features
 
-The Chrono::Mumps module allows to plug the MUMPS solver into Chrono and provides two interface:
+The Chrono::Mumps module allows to plug the MUMPS solver into Chrono and provides two interfaces:
 - an interface for Chrono - namely @ref chrono::ChSolverMumps<> - that is **not** intended to be used directly by the user.<br>
 This is the interface that the user should plug into the Chrono environment.
 - an interface for the end-user - namely @ref chrono::ChMumpsEngine - that allows to directly operate with MUMPS using the Chrono data classes (if the user would ever have this need).<br>
-The demo_MUMPS_MumpsEngine.cpp shows its usage, but the average usare should not be interested in it.
+The demo_MUMPS_MumpsEngine.cpp shows its usage, but the average user should not be interested in it.
 
 Look at the [API section](group__mumps__module.html) of this module for a more in-depth discussion.
 
 	
-## Building and installing prerequisistes
+## Building and installing prerequisites
 
 The Chrono::Mumps module requires the [MUMPS](https://mumps-solver.org/index.php) library. 
 Mumps does not provide a CMake-based installation system. To address this issue, we provide (with the Chrono source code) a set of utility scripts which download the Mumps sources, build all necessary libraries, and install them in a user-specified location.

@@ -221,7 +221,7 @@ void ChParserFsiYAML::CreateFsiSystem() {
                 if (bodies.empty())
                     cerr << "  Warning: No body with name '" << fsi_body.name << "' was found. Ignoring." << endl;
                 for (const auto& body : bodies)
-                    problemTDPF->AddFsiBody(body, fsi_body.geometry, true);
+                    problemTDPF->AddRigidBody(body, fsi_body.geometry, true);
             }
 
             // Initialize the FSI problem (now that an MBS system and FSI solids are specified)

@@ -25,17 +25,6 @@
 #include "chrono/core/ChRandom.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapePath.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeEllipsoid.h"
-#include "chrono/assets/ChVisualShapeCone.h"
-#include "chrono/assets/ChVisualShapeCapsule.h"
-#include "chrono/assets/ChVisualShapeRoundedBox.h"
-#include "chrono/assets/ChVisualShapeRoundedCylinder.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 

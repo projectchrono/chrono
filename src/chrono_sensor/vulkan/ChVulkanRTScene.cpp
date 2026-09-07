@@ -25,17 +25,79 @@
 #include <utility>
 #include <unordered_map>
 
-#include "chrono/assets/ChVisualModel.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace sensor {
+
+namespace {
+
+struct ChVulkanRTCanonicalMaterialDefaults {
+    ChVector3f diffuse;
+    ChVector3f ambient;
+    ChVector3f specular;
+    ChVector3f emissive;
+    float opacity;
+    float roughness;
+    float metallic;
+    float emissive_power;
+    float shininess;
+    bool use_specular_workflow;
+    float tex_scale_u;
+    float tex_scale_v;
+    unsigned short int class_id;
+    unsigned short int instance_id;
+};
+
+const ChVulkanRTCanonicalMaterialDefaults& GetCanonicalMaterialDefaults() {
+    static const ChVulkanRTCanonicalMaterialDefaults defaults = [] {
+        const auto material = ChVisualMaterial::Default();
+        const auto& kd = material->GetDiffuseColor();
+        const auto& ka = material->GetAmbientColor();
+        const auto& ks = material->GetSpecularColor();
+        const auto& ke = material->GetEmissiveColor();
+        const auto& tex_scale = material->GetTextureScale();
+
+        ChVulkanRTCanonicalMaterialDefaults out;
+        out.diffuse = ChVector3f(kd.R, kd.G, kd.B);
+        out.ambient = ChVector3f(ka.R, ka.G, ka.B);
+        out.specular = ChVector3f(ks.R, ks.G, ks.B);
+        out.emissive = ChVector3f(ke.R, ke.G, ke.B);
+        out.opacity = material->GetOpacity();
+        out.roughness = material->GetRoughness();
+        out.metallic = material->GetMetallic();
+        out.emissive_power = material->GetEmissivePower();
+        out.shininess = material->GetSpecularExponent();
+        out.use_specular_workflow = material->GetUseSpecularWorkflow();
+        out.tex_scale_u = tex_scale.x();
+        out.tex_scale_v = tex_scale.y();
+        out.class_id = material->GetClassID();
+        out.instance_id = material->GetInstanceID();
+        return out;
+    }();
+    return defaults;
+}
+
+}  // namespace
+
+ChVulkanRTMaterial::ChVulkanRTMaterial() {
+    const auto& defaults = GetCanonicalMaterialDefaults();
+    diffuse = defaults.diffuse;
+    ambient = defaults.ambient;
+    specular = defaults.specular;
+    emissive = defaults.emissive;
+    opacity = defaults.opacity;
+    roughness = defaults.roughness;
+    metallic = defaults.metallic;
+    emissive_power = defaults.emissive_power;
+    shininess = defaults.shininess;
+    use_specular_workflow = defaults.use_specular_workflow;
+    tex_scale_u = defaults.tex_scale_u;
+    tex_scale_v = defaults.tex_scale_v;
+    class_id = defaults.class_id;
+    instance_id = defaults.instance_id;
+}
 
 namespace {
 
@@ -71,7 +133,7 @@ ChVulkanRTMaterial MaterialFromVisual(const std::shared_ptr<ChVisualMaterial>& v
     mat.specular = ChVector3f(ks.R, ks.G, ks.B);
     mat.emissive = ChVector3f(ke.R, ke.G, ke.B);
     mat.opacity = std::max(0.f, std::min(1.f, visual_mat->GetOpacity()));
-    mat.roughness = std::max(0.02f, std::min(1.f, visual_mat->GetRoughness()));
+    mat.roughness = std::max(0.f, std::min(1.f, visual_mat->GetRoughness()));
     mat.metallic = std::max(0.f, std::min(1.f, visual_mat->GetMetallic()));
     mat.emissive_power = std::max(0.f, visual_mat->GetEmissivePower());
     mat.shininess = std::max(1.f, visual_mat->GetSpecularExponent());
@@ -745,7 +807,11 @@ void ChVulkanRTScene::SyncFromSystem(ChSystem* system) {
     }
 }
 
-unsigned int ChVulkanRTScene::AddPointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
+// Each Make*Light packs the public (backend-neutral) parameters into a ChVulkanRTLight.
+// Add*Light appends the result, Modify*Light overwrites an existing slot with it, so the two
+// paths cannot drift apart.
+
+static ChVulkanRTLight MakePointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
     ChVulkanRTLight light;
     light.type = LightType::POINT_LIGHT;
     light.pos = pos;
@@ -753,26 +819,95 @@ unsigned int ChVulkanRTScene::AddPointLight(ChVector3f pos, ChColor color, float
     light.range = max_range;
     light.const_color = const_color;
     light.atten_scale = (max_range > 0.f) ? (0.01f * max_range * max_range) : 1.f;
-    m_lights.push_back(light);
-    Touch();
-    return static_cast<unsigned int>(m_lights.size() - 1);
+    return light;
 }
 
-unsigned int ChVulkanRTScene::AddDirectionalLight(const ChVector3f& dir, const ChVector3f& color) {
+static ChVulkanRTLight MakeDirectionalLight(const ChVector3f& dir, const ChVector3f& color) {
     ChVulkanRTLight light;
     light.type = LightType::DIRECTIONAL_LIGHT;
     light.dir = dir;
     light.color = color;
+    return light;
+}
+
+/// Direction TO the light from spherical angles, matching ChOptixScene::AddDirectionalLight.
+static ChVector3f DirectionFromAngles(float elevation, float azimuth) {
+    return ChVector3f(std::cos(elevation) * std::cos(azimuth), std::cos(elevation) * std::sin(azimuth), std::sin(elevation));
+}
+
+static ChVulkanRTLight MakeSpotLight(ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float angle_falloff_start, float angle_range, bool const_color) {
+    ChVulkanRTLight light;
+    light.type = LightType::SPOT_LIGHT;
+    light.pos = pos;
+    light.dir = light_dir.GetNormalized();
+    light.color = ChVector3f(color.R, color.G, color.B);
+    light.range = max_range;
+    light.angle = angle_range;
+    light.const_color = const_color;
+    light.atten_scale = (max_range > 0.f) ? (0.01f * max_range * max_range) : 1.f;
+    if (angle_falloff_start < angle_range - 1e-6f) {
+        light.angle_falloff_start = angle_falloff_start;
+        light.angle_atten_rate = 1.f / (angle_range - angle_falloff_start);
+    } else {
+        light.angle_falloff_start = angle_range;
+        light.angle_atten_rate = -1.f;
+    }
+    return light;
+}
+
+static ChVulkanRTLight MakeRectangleLight(ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color) {
+    ChVulkanRTLight light;
+    light.type = LightType::RECTANGLE_LIGHT;
+    light.pos = pos;
+    light.color = ChVector3f(color.R, color.G, color.B);
+    light.range = max_range;
+    light.const_color = const_color;
+    light.atten_scale = (max_range > 0.f) ? (0.01f * max_range * max_range) : 1.f;
+    light.length_vec = length_vec;
+    light.width_vec = width_vec;
+    const ChVector3f normal = Cross(length_vec, width_vec);
+    light.area = normal.Length();
+    light.dir = NormalizeOrDefault(normal, ChVector3f(0.f, 0.f, -1.f));
+    return light;
+}
+
+static ChVulkanRTLight MakeDiskLight(ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color) {
+    ChVulkanRTLight light;
+    light.type = LightType::DISK_LIGHT;
+    light.pos = pos;
+    light.dir = NormalizeOrDefault(light_dir, ChVector3f(0.f, 0.f, -1.f));
+    light.color = ChVector3f(color.R, color.G, color.B);
+    light.range = max_range;
+    light.const_color = const_color;
+    light.atten_scale = (max_range > 0.f) ? (0.01f * max_range * max_range) : 1.f;
+    light.radius = radius;
+    light.area = CH_VKRT_PI * radius * radius;
+    return light;
+}
+
+unsigned int ChVulkanRTScene::Append(const ChVulkanRTLight& light) {
     m_lights.push_back(light);
     Touch();
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
+void ChVulkanRTScene::Replace(unsigned int id, const ChVulkanRTLight& light) {
+    if (id < m_lights.size()) {
+        m_lights[id] = light;
+        Touch();
+    }
+}
+
+unsigned int ChVulkanRTScene::AddPointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
+    return Append(MakePointLight(pos, color, max_range, const_color));
+}
+
+unsigned int ChVulkanRTScene::AddDirectionalLight(const ChVector3f& dir, const ChVector3f& color) {
+    return Append(MakeDirectionalLight(dir, color));
+}
+
 unsigned int ChVulkanRTScene::AddDirectionalLight(ChColor color, float elevation, float azimuth) {
-    ChVector3f dir(std::cos(elevation) * std::cos(azimuth),
-                   std::cos(elevation) * std::sin(azimuth),
-                   std::sin(elevation));
-    return AddDirectionalLight(dir, ChVector3f(color.R, color.G, color.B));
+    return AddDirectionalLight(DirectionFromAngles(elevation, azimuth), ChVector3f(color.R, color.G, color.B));
 }
 
 unsigned int ChVulkanRTScene::AddSpotLight(const ChVector3f& pos,
@@ -791,9 +926,7 @@ unsigned int ChVulkanRTScene::AddSpotLight(const ChVector3f& pos,
     light.atten_scale = (range > 0.f) ? (0.01f * range * range) : 1.f;
     light.angle_falloff_start = angle;
     light.angle_atten_rate = -1.f;
-    m_lights.push_back(light);
-    Touch();
-    return static_cast<unsigned int>(m_lights.size() - 1);
+    return Append(light);
 }
 
 unsigned int ChVulkanRTScene::AddSpotLight(ChVector3f pos,
@@ -803,25 +936,7 @@ unsigned int ChVulkanRTScene::AddSpotLight(ChVector3f pos,
                                            float angle_falloff_start,
                                            float angle_range,
                                            bool const_color) {
-    ChVulkanRTLight light;
-    light.type = LightType::SPOT_LIGHT;
-    light.pos = pos;
-    light.dir = light_dir.GetNormalized();
-    light.color = ChVector3f(color.R, color.G, color.B);
-    light.range = max_range;
-    light.angle = angle_range;
-    light.const_color = const_color;
-    light.atten_scale = (max_range > 0.f) ? (0.01f * max_range * max_range) : 1.f;
-    if (angle_falloff_start < angle_range - 1e-6f) {
-        light.angle_falloff_start = angle_falloff_start;
-        light.angle_atten_rate = 1.f / (angle_range - angle_falloff_start);
-    } else {
-        light.angle_falloff_start = angle_range;
-        light.angle_atten_rate = -1.f;
-    }
-    m_lights.push_back(light);
-    Touch();
-    return static_cast<unsigned int>(m_lights.size() - 1);
+    return Append(MakeSpotLight(pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color));
 }
 
 
@@ -831,21 +946,7 @@ unsigned int ChVulkanRTScene::AddRectangleLight(ChVector3f pos,
                                                 ChVector3f length_vec,
                                                 ChVector3f width_vec,
                                                 bool const_color) {
-    ChVulkanRTLight light;
-    light.type = LightType::RECTANGLE_LIGHT;
-    light.pos = pos;
-    light.color = ChVector3f(color.R, color.G, color.B);
-    light.range = max_range;
-    light.const_color = const_color;
-    light.atten_scale = (max_range > 0.f) ? (0.01f * max_range * max_range) : 1.f;
-    light.length_vec = length_vec;
-    light.width_vec = width_vec;
-    const ChVector3f normal = Cross(length_vec, width_vec);
-    light.area = normal.Length();
-    light.dir = NormalizeOrDefault(normal, ChVector3f(0.f, 0.f, -1.f));
-    m_lights.push_back(light);
-    Touch();
-    return static_cast<unsigned int>(m_lights.size() - 1);
+    return Append(MakeRectangleLight(pos, color, max_range, length_vec, width_vec, const_color));
 }
 
 unsigned int ChVulkanRTScene::AddDiskLight(ChVector3f pos,
@@ -854,19 +955,34 @@ unsigned int ChVulkanRTScene::AddDiskLight(ChVector3f pos,
                                            ChVector3f light_dir,
                                            float radius,
                                            bool const_color) {
-    ChVulkanRTLight light;
-    light.type = LightType::DISK_LIGHT;
-    light.pos = pos;
-    light.dir = NormalizeOrDefault(light_dir, ChVector3f(0.f, 0.f, -1.f));
-    light.color = ChVector3f(color.R, color.G, color.B);
-    light.range = max_range;
-    light.const_color = const_color;
-    light.atten_scale = (max_range > 0.f) ? (0.01f * max_range * max_range) : 1.f;
-    light.radius = radius;
-    light.area = CH_VKRT_PI * radius * radius;
-    m_lights.push_back(light);
-    Touch();
-    return static_cast<unsigned int>(m_lights.size() - 1);
+    return Append(MakeDiskLight(pos, color, max_range, light_dir, radius, const_color));
+}
+
+void ChVulkanRTScene::ModifyPointLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, bool const_color) {
+    Replace(light_ID, MakePointLight(pos, color, max_range, const_color));
+}
+
+void ChVulkanRTScene::ModifyDirectionalLight(unsigned int light_ID, ChColor color, float elevation, float azimuth) {
+    Replace(light_ID, MakeDirectionalLight(DirectionFromAngles(elevation, azimuth), ChVector3f(color.R, color.G, color.B)));
+}
+
+void ChVulkanRTScene::ModifySpotLight(unsigned int light_ID,
+                                      ChVector3f pos,
+                                      ChColor color,
+                                      float max_range,
+                                      ChVector3f light_dir,
+                                      float angle_falloff_start,
+                                      float angle_range,
+                                      bool const_color) {
+    Replace(light_ID, MakeSpotLight(pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color));
+}
+
+void ChVulkanRTScene::ModifyRectangleLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color) {
+    Replace(light_ID, MakeRectangleLight(pos, color, max_range, length_vec, width_vec, const_color));
+}
+
+void ChVulkanRTScene::ModifyDiskLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color) {
+    Replace(light_ID, MakeDiskLight(pos, color, max_range, light_dir, radius, const_color));
 }
 
 unsigned int ChVulkanRTScene::AddEnvironmentLight(const std::string& env_tex, const ChVector3f& color) {

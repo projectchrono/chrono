@@ -44,6 +44,7 @@ cmake -G "Visual Studio 17 2022" -T "v143,cuda=C:/Program Files/NVIDIA GPU Compu
  -DCH_USE_SENSOR_NVRTC=OFF ^
  -DCH_USE_SENSOR_OPTIX=ON ^
  -DCUDA_ARCH_NAME=Manual ^
+ -DCHRONO_GPU_VENDOR="NVIDIA" ^
  -DCHRONO_CUDA_ARCHITECTURES=60 ^
  -DBUILD_DEMOS=OFF ^
  -DIrrlicht_ROOT="%PREFIX%"/Library/include/irrlicht ^

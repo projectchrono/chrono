@@ -26,7 +26,8 @@ namespace sensor {
 ChVulkanRTBuffer::ChVulkanRTBuffer(std::shared_ptr<ChVulkanRTDevice> device,
                                    VkDeviceSize size,
                                    VkBufferUsageFlags usage,
-                                   VkMemoryPropertyFlags memory_flags)
+                                   VkMemoryPropertyFlags memory_flags,
+                                   VkMemoryPropertyFlags preferred_flags)
     : m_device_owner(std::move(device)), m_size(size) {
     VkBufferCreateInfo buffer_info = {};
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -46,7 +47,8 @@ ChVulkanRTBuffer::ChVulkanRTBuffer(std::shared_ptr<ChVulkanRTDevice> device,
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.pNext = (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) ? &flags_info : nullptr;
     alloc_info.allocationSize = requirements.size;
-    alloc_info.memoryTypeIndex = m_device_owner->FindMemoryType(requirements.memoryTypeBits, memory_flags);
+    alloc_info.memoryTypeIndex =
+        m_device_owner->FindMemoryType(requirements.memoryTypeBits, memory_flags, preferred_flags);
 
     CH_VULKAN_CHECK(vkAllocateMemory(m_device_owner->GetDevice(), &alloc_info, nullptr, &m_memory));
     CH_VULKAN_CHECK(vkBindBufferMemory(m_device_owner->GetDevice(), m_buffer, m_memory, 0));

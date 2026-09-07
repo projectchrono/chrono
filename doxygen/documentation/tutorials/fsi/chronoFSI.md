@@ -26,7 +26,7 @@ The Chrono distribution includes several demos for simulation of fluid-solid int
 - [demo_FSI-SPH_AngleRepose](https://github.com/projectchrono/chrono/blob/main/src/demos/fsi/sph/demo_FSI-SPH_AngleRepose.cpp)
   Angle of repose test with granular material modeled as a continuum using the CRM method.
 
-- [demo_FSI-APH_Cratering](https://github.com/projectchrono/chrono/blob/main/src/demos/fsi/sph/demo_FSI-SPH_Cratering.cpp)
+- [demo_FSI-SPH_Cratering](https://github.com/projectchrono/chrono/blob/main/src/demos/fsi/sph/demo_FSI-SPH_Cratering.cpp)
   Interaction of a falling sphere with a granular material bed. This demo can be used to validate against experimental/analytical results available in the [literature](https://www.sciencedirect.com/science/article/pii/S0045782521003534?ref=pdf_download&fr=RR-2&rr=8c4472d7d99222ff).
 
 - [demo_FSI_WaveTank](https://github.com/projectchrono/chrono/blob/main/src/demos/fsi/sph/demo_FSI-SPH_WaveTank.cpp)

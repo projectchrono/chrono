@@ -60,7 +60,7 @@ simulation:
       type: number
       description: |
         Total simulation duration in seconds.
-        The simulation will run from t=0 to t=end_time. A negative value indicates na infinite end time.
+        The simulation will run from t=0 to t=end_time. A negative value indicates an infinite end time.
       minimum: 0
       default: -1
     gravity:
@@ -72,16 +72,23 @@ simulation:
 output:
   description: Output settings
   type: object
+  required: [format]
   properties:
      format:
         type: string
         description: Output DB format
         enum: [NONE, ASCII, HDF5]
         default: NONE
+     mode:
+        type: string
+        description: Output mode (one file per output frame, or a single time-series file)
+        enum: [FRAMES, SERIES]
+        default: FRAMES
      fps:
         type: number
-        description: Output frequency
+        description: Output frequency (FPS or Hz)
         minimum: 0
+        default: 100
 
 visualization:
   description: SPH-specific run-time visualization settings
@@ -103,5 +110,90 @@ visualization:
       type: boolean
       description: Render BCE markers on flexible solids
       default: true
-    # TODO
+    active_boxes:
+      type: boolean
+      description: Render the active domain boxes associated with FSI solids
+      default: false
+
+    color_map:
+      description: Colormap-based coloring of SPH particles
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          description: Particle quantity used for coloring
+          enum: [NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE]
+          default: NONE
+        map:
+          type: string
+          description: Colormap
+          enum: [BLACK_BODY, BLUE, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE]
+          default: JET
+        min:
+          type: number
+          description: Lower end of the color data range (required unless type is NONE)
+        max:
+          type: number
+          description: Upper end of the color data range (required unless type is NONE)
+        up:
+          <<: *VECTOR3D
+          description: Direction along which height is measured (HEIGHT type only)
+          default: [0, 0, 1]
+        bimodal:
+          type: boolean
+          description: Use a bimodal (two-sided) color scale (required for PRESSURE type)
+
+    visibility:
+      description: |
+        Marker visibility control through a set of half-spaces.
+        A marker is hidden depending on its position relative to the specified planes.
+      type: object
+      required: [planes]
+      properties:
+        planes:
+          description: List of planes defining the half-spaces
+          type: array
+          items:
+            type: object
+            required: [point, normal]
+            properties:
+              point:
+                <<: *VECTOR3D
+                description: A point on the plane
+              normal:
+                <<: *VECTOR3D
+                description: Plane normal direction
+        mode:
+          type: string
+          description: Whether a marker must be inside all half-spaces or any one of them
+          enum: [ALL, ANY]
+          default: ALL
+        SPH:
+          type: boolean
+          description: Apply the visibility criterion to SPH particles
+          default: true
+        BCE:
+          type: boolean
+          description: Apply the visibility criterion to BCE markers
+          default: true
+
+    splashsurf:
+      description: |
+        Fluid surface reconstruction (splashsurf).
+        The mere presence of this object enables surface reconstruction.
+      type: object
+      properties:
+        smoothing_length:
+          type: number
+          description: Smoothing length for the SPH kernel, in multiples of the particle radius
+          default: 1.5
+        cube_size:
+          type: number
+          description: Marching-cubes edge length, in multiples of the particle radius
+          default: 0.5
+        surface_threshold:
+          type: number
+          description: Iso-surface density threshold, in multiples of the rest density
+          default: 0.6
 

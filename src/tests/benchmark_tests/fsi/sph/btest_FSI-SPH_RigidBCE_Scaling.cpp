@@ -103,7 +103,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
 
     double box_multiplier = 1.2;
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties material;
+    ChFsiFluidSystemSPH::SoilProperties material;
     material.density = 1760;       // kg / m^3
     material.Young_modulus = 1e6;  // kg / m s ^2
     material.Poisson_ratio = 0.3;
@@ -113,7 +113,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     material.average_diam = 0.005;  // m
     material.cohesion_coeff = 0;    // default
 
-    m_sysSPH->SetElasticSPH(material);
+    m_sysSPH->SetCrmSPH(material);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
@@ -199,7 +199,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     // Add BCE particles attached on the walls into FSI system
     auto ground_bce = m_sysSPH->CreatePointsBoxContainer(
         ChVector3d(box_multiplier * m_box_size.x(), box_multiplier * m_box_size.y(), m_box_size.z()), {0, 0, -1});
-    m_sysFSI->AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0., 0., 0.), QUNIT), false);
+    m_sysFSI->AddRigidBody(ground, ground_bce, ChFrame<>(ChVector3d(0., 0., 0.), QUNIT), false);
 
     // Create rigid bodies
     ChVector3d box_size(0.1, 0.1, 0.06);
@@ -215,7 +215,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         m_sysMBS->AddBody(box);
 
         auto box_points = m_sysSPH->CreatePointsBoxInterior(box_size);
-        m_sysFSI->AddFsiBody(box, box_points, ChFrame<>(), false);
+        m_sysFSI->AddRigidBody(box, box_points, ChFrame<>(), false);
     }
 
     m_sysFSI->Initialize();

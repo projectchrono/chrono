@@ -27,6 +27,8 @@ namespace chrono {
 /// Serialize objects using JSON format.
 class ChApi ChArchiveOutXML : public ChArchiveOut {
   public:
+    using ChArchiveOut::out;  // un-hide the ChArchiveOut::out overloads not overridden here
+
     ChArchiveOutXML(std::ostream& stream_out);
 
     virtual ~ChArchiveOutXML();

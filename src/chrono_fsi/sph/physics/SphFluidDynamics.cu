@@ -40,14 +40,14 @@ void CopyParametersToDevice_SphFluidDynamics(std::shared_ptr<ChFsiParamsSPH> par
     gpuCheckError();
 }
 
-SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors)
+SphFluidDynamics::SphFluidDynamics(FsiDataManager& data_mgr, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors), m_errflagD(nullptr) {
     collisionSystem = chrono_types::make_shared<SphCollisionSystem>(data_mgr);
 
     if (m_data_mgr.paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH)
-        forceSystem = chrono_types::make_shared<SphForceISPH>(data_mgr, bce_mgr, verbose, m_check_errors);
+        forceSystem = chrono_types::make_shared<SphForceISPH>(data_mgr, verbose, m_check_errors);
     else
-        forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, bce_mgr, verbose, m_check_errors);
+        forceSystem = chrono_types::make_shared<SphForceWCSPH>(data_mgr, verbose, m_check_errors);
 
     gpuStreamCreate(&m_copy_stream);
     gpuMallocErrorFlag(m_errflagD);
@@ -82,7 +82,7 @@ void SphFluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& 
     thrust::copy(in->posRadD.begin(), in->posRadD.begin() + m_data_mgr.countersH->numExtendedParticles, out->posRadD.begin());
     thrust::copy(in->velMasD.begin(), in->velMasD.begin() + m_data_mgr.countersH->numExtendedParticles, out->velMasD.begin());
     thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.begin() + m_data_mgr.countersH->numExtendedParticles, out->rhoPresMuD.begin());
-    if (m_data_mgr.paramsH->elastic_SPH) {
+    if (m_data_mgr.paramsH->physics_problem == PhysicsProblem::CRM) {
         thrust::copy(in->tauXxYyZzD.begin(), in->tauXxYyZzD.end(), out->tauXxYyZzD.begin());
         thrust::copy(in->tauXyXzYzD.begin(), in->tauXyXzYzD.end(), out->tauXyXzYzD.begin());
         thrust::copy(in->pcEvSvD.begin(), in->pcEvSvD.end(), out->pcEvSvD.begin());
@@ -167,11 +167,63 @@ void SphFluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t,
 
 // -----------------------------------------------------------------------------
 
+// Check if specified point is inside the AABB {min,max}.
+__device__ int32_t inAABB(const Real3& pos, const Real3& min, const Real3& max) {
+    if ((pos.x >= min.x && pos.x <= max.x) &&  //
+        (pos.y >= min.y && pos.y <= max.y) &&  //
+        (pos.z >= min.z && pos.z <= max.z))
+        return 1;
+    return 0;
+}
+
+// Check if the specified point is within any object AABB (active=1) and within any extended object AABB (ext_active=1).
+// An inverted AABB does not change activity.
+__device__ void checkActivityD(const Real3& pos,
+                               const ActiveDomain* __restrict__ ad_body_D,
+                               const ActiveDomain* __restrict__ ad_node1D_D,
+                               const ActiveDomain* __restrict__ ad_node2D_D,
+                               int32_t& active,
+                               int32_t& ext_active) {
+    active = 0;
+    ext_active = 0;
+
+    for (uint ib = 0; ib < countersD.numFsiBodies; ib++) {
+        if (ad_body_D[ib].inverted)
+            continue;
+        active |= inAABB(pos, ad_body_D[ib].a_min, ad_body_D[ib].a_max);
+        ext_active |= inAABB(pos, ad_body_D[ib].e_min, ad_body_D[ib].e_max);
+        if (active == 1 && ext_active == 1)
+            return;
+    }
+
+    for (uint ib = 0; ib < countersD.numFsiNodes1D; ib++) {
+        if (ad_node1D_D[ib].inverted)
+            continue;
+        active |= inAABB(pos, ad_node1D_D[ib].a_min, ad_node1D_D[ib].a_max);
+        ext_active |= inAABB(pos, ad_node1D_D[ib].e_min, ad_node1D_D[ib].e_max);
+        if (active == 1 && ext_active == 1)
+            return;
+    }
+
+    for (uint ib = 0; ib < countersD.numFsiNodes2D; ib++) {
+        if (ad_node2D_D[ib].inverted)
+            continue;
+        active |= inAABB(pos, ad_node2D_D[ib].a_min, ad_node2D_D[ib].a_max);
+        ext_active |= inAABB(pos, ad_node2D_D[ib].e_min, ad_node2D_D[ib].e_max);
+        if (active == 1 && ext_active == 1)
+            return;
+    }
+}
+
 __global__ void UpdateActivityD(const Real4* posRadD,
                                 Real3* velMasD,
                                 const Real3* pos_bodies_D,
                                 const Real3* pos_nodes1D_D,
                                 const Real3* pos_nodes2D_D,
+                                bool has_ad,
+                                const ActiveDomain* __restrict__ ad_body_D,
+                                const ActiveDomain* __restrict__ ad_node1D_D,
+                                const ActiveDomain* __restrict__ ad_node2D_D,
                                 int32_t* activityIdentifierD,
                                 int32_t* extendedActivityIdD,
                                 const Real4* rhoPreMuD,
@@ -181,76 +233,41 @@ __global__ void UpdateActivityD(const Real4* posRadD,
         return;
     }
 
-    // Set the particle as an active particle
+    // Particle position
+    Real3 pos = mR3(posRadD[index]);
+
+    // Set particle activity: a particle is active if it is within the active AABB of a body or mesh node
+    // All particles are considered active during a settling phase
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
+    if (has_ad && time >= paramsD.free_flow_duration) {
+        checkActivityD(pos, ad_body_D, ad_node1D_D, ad_node2D_D, activityIdentifierD[index], extendedActivityIdD[index]);
+        if (activityIdentifierD[index] == 0)
+            velMasD[index] = mR3(0.0);
+    }
+
+    // Check if the particle is outside the zombie domain
     Real3 domainDims = paramsD.boxDims;
     Real3 domainOrigin = paramsD.worldOrigin;
     bool x_periodic = paramsD.x_periodic;
     bool y_periodic = paramsD.y_periodic;
     bool z_periodic = paramsD.z_periodic;
 
-    Real3 posRadA = mR3(posRadD[index]);
-    if (time >= paramsD.settlingTime) {
-        size_t numFsiBodies = countersD.numFsiBodies;
-        size_t numFsiNodes1D = countersD.numFsiNodes1D;
-        size_t numFsiNodes2D = countersD.numFsiNodes2D;
-        size_t numTotal = numFsiBodies + numFsiNodes1D + numFsiNodes2D;
-
-        // Check the activity of this particle
-        uint isNotActive = 0;
-        uint isNotExtended = 0;
-        Real3 Acdomain = paramsD.bodyActiveDomain;
-        Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
-
-        for (uint num = 0; num < numFsiBodies; num++) {
-            Real3 detPos = posRadA - pos_bodies_D[num];
-            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-                isNotActive = isNotActive + 1;
-            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-                isNotExtended = isNotExtended + 1;
-        }
-
-        for (uint num = 0; num < numFsiNodes1D; num++) {
-            Real3 detPos = posRadA - pos_nodes1D_D[num];
-            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-                isNotActive = isNotActive + 1;
-            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-                isNotExtended = isNotExtended + 1;
-        }
-
-        for (uint num = 0; num < numFsiNodes2D; num++) {
-            Real3 detPos = posRadA - pos_nodes2D_D[num];
-            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-                isNotActive = isNotActive + 1;
-            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-                isNotExtended = isNotExtended + 1;
-        }
-
-        // Set the particle as an inactive particle if needed
-        if (isNotActive == numTotal && numTotal > 0) {
-            activityIdentifierD[index] = 0;
-            velMasD[index] = mR3(0.0);
-        }
-        if (isNotExtended == numTotal && numTotal > 0)
-            extendedActivityIdD[index] = 0;
-    }
-    // Check if the particle is outside the zombie domain
     if (IsFluidParticle(rhoPreMuD[index].w)) {
         bool outside_domain = false;
 
         // Check X boundaries - only inactivate if not periodic
-        if (!x_periodic && (posRadA.x < domainOrigin.x || posRadA.x > domainOrigin.x + domainDims.x)) {
+        if (!x_periodic && (pos.x < domainOrigin.x || pos.x > domainOrigin.x + domainDims.x)) {
             outside_domain = true;
         }
 
         // Check Y boundaries - only inactivate if not periodic
-        if (!y_periodic && (posRadA.y < domainOrigin.y || posRadA.y > domainOrigin.y + domainDims.y)) {
+        if (!y_periodic && (pos.y < domainOrigin.y || pos.y > domainOrigin.y + domainDims.y)) {
             outside_domain = true;
         }
 
         // Check Z boundaries - only inactivate if not periodic
-        if (!z_periodic && (posRadA.z < domainOrigin.z || posRadA.z > domainOrigin.z + domainDims.z)) {
+        if (!z_periodic && (pos.z < domainOrigin.z || pos.z > domainOrigin.z + domainDims.z)) {
             outside_domain = true;
         }
 
@@ -268,10 +285,15 @@ void SphFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkers
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
-    UpdateActivityD<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-                                               mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
-                                               INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-                                               mR4CAST(sphMarkersD->rhoPresMuD), time);
+    UpdateActivityD<<<numBlocks, numThreads>>>(                                                                                         //
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),                                                                   //
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),  //
+        m_data_mgr.has_ad,
+        thrust::raw_pointer_cast(m_data_mgr.ad_body_D.data()),                                                           //
+        thrust::raw_pointer_cast(m_data_mgr.ad_node1D_D.data()),                                                         //
+        thrust::raw_pointer_cast(m_data_mgr.ad_node2D_D.data()),                                                         //
+        INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),  //
+        mR4CAST(sphMarkersD->rhoPresMuD), time);
 }
 
 // -----------------------------------------------------------------------------
@@ -623,7 +645,7 @@ __global__ void EulerStep_D(Real4* posRadD,
     // Euler step for velocity
     VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
 
-    if (paramsD.elastic_SPH) {
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
                      pcEvSvD[index], error_flag);
@@ -673,7 +695,7 @@ __global__ void MidpointStep_D(Real4* posRadD,
     // Advance velocity
     VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
 
-    if (paramsD.elastic_SPH) {
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         // Euler step for tau and pressure update
         TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], derivVelRhoD[index].w, freeSurfaceIdD[index], tauXxYyZzD[index], tauXyXzYzD[index], rhoPresMuD[index],
                      pcEvSvD[index], error_flag);
@@ -1011,7 +1033,7 @@ __device__ void collideCellDensityReInit(Real& numerator,
                                          Real& denominator,
                                          int3 gridPos,
                                          uint index,
-                                         Real3 posRadA,
+                                         Real3 posA,
                                          Real4* sortedPosRad,
                                          Real3* sortedVelMas,
                                          Real4* sortedRhoPreMu,
@@ -1023,15 +1045,15 @@ __device__ void collideCellDensityReInit(Real& numerator,
         // iterate over particles in this cell
         uint endIndex = cellEnd[gridHash];
         for (uint j = startIndex; j < endIndex; j++) {
-            Real3 posRadB = mR3(sortedPosRad[j]);
-            Real4 rhoPreMuB = sortedRhoPreMu[j];
-            Real3 dist3 = Distance(posRadA, posRadB);
+            Real3 posB = mR3(sortedPosRad[j]);
+            Real rhoB = sortedRhoPreMu[j].x;
+            Real3 dist3 = Distance(posA, posB);
             Real d = length(dist3);
             if (d > paramsD.h_multiplier * paramsD.h)
                 continue;
             Real w = W3h(paramsD.kernel_type, d, paramsD.ooh);
             numerator += paramsD.markerMass * w;
-            denominator += paramsD.markerMass / rhoPreMuB.x * w;
+            denominator += paramsD.markerMass / rhoB * w;
         }
     }
 }
@@ -1046,11 +1068,11 @@ ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real4* sortedPosRad, Real3* sorted
         return;
 
     // read particle data from sorted arrays
-    Real3 posRadA = mR3(sortedPosRad[index]);
+    Real3 posA = mR3(sortedPosRad[index]);
     Real4 rhoPreMuA = sortedRhoPreMu[index];
 
     // get address in grid
-    int3 gridPos = calcGridPos(posRadA);
+    int3 gridPos = calcGridPos(posA);
 
     Real numerator = 0.0;
     Real denominator = 0.0;
@@ -1059,7 +1081,7 @@ ReCalcDensityD_F1(Real4* dummySortedRhoPreMu, Real4* sortedPosRad, Real3* sorted
         for (int y = -1; y <= 1; y++) {
             for (int x = -1; x <= 1; x++) {
                 int3 neighbourPos = gridPos + mI3(x, y, z);
-                collideCellDensityReInit(numerator, denominator, neighbourPos, index, posRadA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
+                collideCellDensityReInit(numerator, denominator, neighbourPos, index, posA, sortedPosRad, sortedVelMas, sortedRhoPreMu, cellStart, cellEnd);
             }
         }
     }

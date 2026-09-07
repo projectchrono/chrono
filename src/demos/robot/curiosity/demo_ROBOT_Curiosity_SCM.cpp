@@ -25,7 +25,6 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChMassProperties.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/utils/ChUtilsCreators.h"
 

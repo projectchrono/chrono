@@ -98,6 +98,9 @@ set(FSITDPF_HC_SOURCES
 
 source_group("tdpf" FILES ${FSITDPF_HC_HEADERS} ${FSITDPF_HC_SOURCES})
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${FSITDPF_HC_SOURCES})
+
 # --------------- 3rd party STB FILES
 
 set(FSITDPF_STB_FILES
@@ -108,6 +111,9 @@ set(FSITDPF_STB_FILES
     ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
 )
 source_group("stb" FILES ${FSITDPF_STB_FILES})
+
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${FSITDPF_STB_FILES})
 
 # --------------- TDPF FSI VSG INTERFACE
 

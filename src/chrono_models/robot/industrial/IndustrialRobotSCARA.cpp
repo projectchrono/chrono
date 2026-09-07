@@ -20,8 +20,10 @@
 
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
+
 #include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 
 namespace chrono {
 namespace industrial {

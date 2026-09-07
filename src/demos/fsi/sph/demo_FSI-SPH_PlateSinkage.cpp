@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     // The CRM soil is an elastic-plastic continuum. Two rheologies are offered:
     //   mu(I): inertial-number granular friction; cohesion enters here.
     //   MCC  : Modified Cam-Clay critical-state plasticity.
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat;
+    ChFsiFluidSystemSPH::SoilProperties mat;
     mat.density = p.rho;
     mat.Young_modulus = p.Emod;
     mat.Poisson_ratio = p.nu;
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
         mat.average_diam = p.grain_diam;  // mean grain diameter [m]
         mat.cohesion_coeff = p.cohesion;  // cohesion [Pa]
     }
-    sysSPH.SetElasticSPH(mat);
+    sysSPH.SetCrmSPH(mat);
 
     // ---- SPH numerical parameters (held at validated values) ----------------
     ChFsiFluidSystemSPH::SPHParameters sph;
@@ -392,7 +392,7 @@ int main(int argc, char* argv[]) {
     plate->SetInertiaXX(ChVector3d(Izz, Izz, Izz));
     sysMBS.AddBody(plate);
     auto plate_bce = sysSPH.CreatePointsCylinderInterior(plate_radius, plate_thickness, true);
-    sysFSI.AddFsiBody(plate, plate_bce, ChFrame<>(ChVector3d(0), QUNIT), false);
+    sysFSI.AddRigidBody(plate, plate_bce, ChFrame<>(ChVector3d(0), QUNIT), false);
 
     // ---- Linear motor: holds the plate during settle, then pushes -----------
     // ChLinkMotorLinearPosition prescribes translation along the link Z axis; an

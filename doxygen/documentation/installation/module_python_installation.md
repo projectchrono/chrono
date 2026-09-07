@@ -156,5 +156,5 @@ If you need it because you recompile the python module in debug mode, either you
    #if defined(_DEBUG)
    #pragma comment(lib,"python33.lib")
    ~~~
-3. Press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link 'python33.lib' instead than 'python33_d.lib'.
+3. Press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link 'python33.lib' instead of 'python33_d.lib'.
 </div>

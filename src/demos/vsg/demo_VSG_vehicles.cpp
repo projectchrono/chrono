@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 // Use the namespace of Chrono

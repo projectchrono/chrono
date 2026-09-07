@@ -50,9 +50,9 @@ We are going to model a small set of columns with capitals, that will be shaken 
 This shape will be used for computing the mass, the tensor of inertia, the coordinates of the part, and also the visualization mesh if you are using POVray or other types of postprocessing, *but it won't produce any collisions yet!*
 Therefore, now we assign a collision shape to this part.
 
-Collision shapes that can be converted to Chrono .py files are of simple types: spheres, cylinders, boxes, etc (or compounds of them). So now we will approximate the column with a single cylinder, assuming the at this level of approximation is enough for the simulation that we want to do.
+Collision shapes that can be converted to Chrono .py files are of simple types: spheres, cylinders, boxes, etc (or compounds of them). So now we will approximate the column with a single cylinder, assuming that this level of approximation is enough for the simulation that we want to do.
 
-To add a collision shape, we exploit a possibility of SolidWorks: each part can contain more than a single 'shapes' - those shapes are called *solid bodies* in SolidWorks (not to be confused with the concept of *rigid bodies* in Chrono).
+To add a collision shape, we exploit a possibility of SolidWorks: each part can contain more than a single 'shape' - those shapes are called *solid bodies* in SolidWorks (not to be confused with the concept of *rigid bodies* in Chrono).
 
 + So, we will create an additional cylindrical body: use the tool 
 ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_03.jpg)
@@ -64,7 +64,7 @@ To add a collision shape, we exploit a possibility of SolidWorks: each part can 
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_04.jpg)
 
-+ Thanks to the unckecked *Merge results* option, now you can see that you have *two* bodies in the left panel (if you forgot this, by default SolidWorks will merge the cylinder with the column and you still get a single body because they are overlapping).
++ Thanks to the unchecked *Merge results* option, now you can see that you have *two* bodies in the left panel (if you forgot this, by default SolidWorks will merge the cylinder with the column and you still get a single body because they are overlapping).
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_05.jpg)
 
@@ -85,7 +85,7 @@ Anyway, you can still assign SolidWorks materials with the desired density to th
 
 <div class = "ce-info">
 The tool also changed the visualization of the collision shape, that turns into semi-transparent pink. This is more comfortable, since collision shapes usually are overlapping with the complete shapes. 
-Once you are sure that the collision shape is in the proper place, you an also hide it.  
+Once you are sure that the collision shape is in the proper place, you can also hide it.  
 </div>
 
 <div class = "ce-warning">
@@ -106,7 +106,7 @@ After you created the collision shape with the tool, **do not modify** its solid
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_10.jpg)
 
-+ Now we show another way to define a collision shape: select the box solid body and use the menu **Insert/Features.../Copy...** , be sure that **Copy** is selected, and accept the tool without moving anything.
++ Now we show another way to define a collision shape: select the box solid body and use the menu **Insert/Features.../Copy...**, be sure that **Copy** is selected, and accept the tool without moving anything.
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_11.jpg)
 
@@ -167,7 +167,7 @@ Note that in this case you defined the collision shape with a group of different
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_19.jpg)
 
-+ If you want, you can create an array of columns by selecting lower capital *column* higher capital and use the circular array tool ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_21.jpg). This will produce the following result:
++ If you want, you can create an array of columns by selecting lower capital, column, higher capital and use the circular array tool ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_21.jpg). This will produce the following result:
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_20.jpg)
 
@@ -192,7 +192,7 @@ In the next steps we will modify the simulation by writing a customized Python s
 
 + Open run_test_modified.py in your Python IDE (for example, Spyder). 
 
-+ Although is not mandatory, it is wise to set the inward and outward collision envelopes of the collision detection algorithm. This is epecially important for very large or very small objects. 
++ Although it is not mandatory, it is wise to set the inward and outward collision envelopes of the collision detection algorithm. This is especially important for very large or very small objects. 
 Note, this must be put *before* importing the models and/or creating the ChSystem.
 ~~~{.py}
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.005)
@@ -212,7 +212,7 @@ brick_material.SetFriction(0.6)
 ~~~
 
 <div class = "ce-info">
-Optionally, one can define surface materials with *compliance*. In such a case, one should write, for example, a material that has some friction, damping coefficient (Raleygh type), orthogonal compliance, and tangential compliance:
+Optionally, one can define surface materials with *compliance*. In such a case, one should write, for example, a material that has some friction, damping coefficient (Rayleigh type), orthogonal compliance, and tangential compliance:
 ~~~{.py}
 brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
@@ -220,9 +220,9 @@ brick_material.SetDampingF(0.05)
 brick_material.SetCompliance (0.000000003)
 brick_material.SetComplianceT(0.000000001)
 ~~~
-Note that for materials with compliance you should use smaller time steps .
+Note that for materials with compliance you should use smaller time steps.
 <br>
-Also note that for materials with compliance you should no collision safe envelope, i.e.: 
+Also note that for materials with compliance you should use no collision safe envelope, i.e.: 
 ```chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0)```
 </div>
 
@@ -307,8 +307,8 @@ light_source{ <1,3,1.5> color rgb<1,1,1> }
 ...)
 ~~~
 
-+ After we customized the ```run-test-modified.py``` file with the code snippets above and other small modifications, we can **run** it to compute the simulation in few seconds.
++ After we customized the ```run-test-modified.py``` file with the code snippets above and other small modifications, we can **run** it to compute the simulation in a few seconds.
 
-+ Use POVray to render the animation and VirtualDub to assembly the .bmp frames into an .avi file, as explained in the previous tutorials; you should see an animation of the earthquake:
++ Use POVray to render the animation and VirtualDub to assemble the .bmp frames into an .avi file, as explained in the previous tutorials; you should see an animation of the earthquake:
 
 ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_23.jpg)

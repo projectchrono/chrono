@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/solver/ChSolverBB.h"
 

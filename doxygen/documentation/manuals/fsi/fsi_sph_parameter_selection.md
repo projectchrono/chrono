@@ -80,7 +80,7 @@ Parameter Cheat Sheet
 | `d0_multiplier` | Kernel length ratio `h/d0`; controls neighbor support width. | Increase for smoother, more robust kernels; decrease for sharper features and less diffusion. | `SPHParameters::d0_multiplier`, `SetKernelMultiplier` |
 | `kernel_type` | Kernel shape/support quality (pairing resistance, smoothness, support radius multiplier). | Wendland is often more pairing-robust for larger support; cubic spline is common baseline. | `SPHParameters::kernel_type`, `SetKernelType` |
 | `num_bce_layers` | Boundary marker thickness for kernel support near walls/solids. | See `manual_fsi_rigid_bce_markers`.| `SPHParameters::num_bce_layers`, `SetNumBCELayers` |
-| `num_proximity_search_steps` | Frequency of neighbor-list rebuild. | Lower value (e.g., `1`) for rapidly changing flow (if you are doing CFD); higher values reduce computational cost but risk stale neighbors. Tested upto 10 for CRM with no loss in accuracy. | `SPHParameters::num_proximity_search_steps`, `SetNumProximitySearchSteps` |
+| `num_proximity_search_steps` | Frequency of neighbor-list rebuild. | Lower value (e.g., `1`) for rapidly changing flow (if you are doing CFD); higher values reduce computational cost but risk stale neighbors. Tested up to 10 for CRM with no loss in accuracy. | `SPHParameters::num_proximity_search_steps`, `SetNumProximitySearchSteps` |
 ### B) Time integration and compressibility control
 
 | Parameter | Physical intuition | Practical tuning direction | API |

@@ -31,6 +31,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i"
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -85,7 +86,7 @@
   #include "chrono_sensor/sensors/ChDepthCamera.h"
   #include "chrono_sensor/sensors/ChLidarSensor.h"
   #include "chrono_sensor/sensors/ChRadarSensor.h"
-  #include "chrono_sensor/optix/scene/ChScene.h"
+  #include "chrono_sensor/optix/ChOptixScene.h"
   #include "chrono_sensor/optix/ChOptixDefinitions.h"
   #include "chrono_sensor/optix/ChOptixUtils.h"
 
@@ -173,7 +174,7 @@ using namespace chrono::sensor;
 
 #ifdef CHRONO_HAS_OPTIX
 
-  %shared_ptr(chrono::sensor::ChScene)
+  %shared_ptr(chrono::sensor::ChOptixScene)
   %shared_ptr(chrono::sensor::PixelDI)
   %shared_ptr(chrono::sensor::PixelXYZI)
   %shared_ptr(chrono::sensor::PixelRGBA8)

@@ -20,13 +20,6 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChBodyGeometry.h"
 
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCone.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeRoundedBox.h"
-#include "chrono/assets/ChVisualShapeRoundedCylinder.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 using namespace chrono;

@@ -123,7 +123,7 @@ void ChParserTdpfYAML::LoadSimData(const YAML::Node& yaml) {
 #ifdef CHRONO_VSG
         m_visTDPF_settings = fsi::tdpf::ChTdpfVisualizationVSG::Settings::Read(yaml["visualization"]);
 #else
-        m_vis.render = false;
+        m_vis_settings.render = false;
 #endif
     }
 }

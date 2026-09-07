@@ -25,6 +25,8 @@ namespace sensor {
 using ChSegmentationCameraBase = ChOptixSensor;
 #elif defined(CHRONO_HAS_VULKAN_RT)
 using ChSegmentationCameraBase = ChVulkanSensor;
+#elif defined(CHRONO_HAS_METAL_RT)
+using ChSegmentationCameraBase = ChMetalSensor;
 #else
 using ChSegmentationCameraBase = ChSensor;
 #endif

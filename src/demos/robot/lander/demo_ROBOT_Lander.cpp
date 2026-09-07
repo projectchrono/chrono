@@ -26,11 +26,9 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkLock.h"
 
-#include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualShapeBox.h"
-
 #include "chrono/core/ChRealtimeStep.h"
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 using namespace chrono::vsg3d;

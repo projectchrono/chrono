@@ -47,6 +47,21 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
         JOYSTICK   ///< driver inputs from joystick
     };
 
+    /// Semantics of the keyboard driving controls (used only in InputMode::KEYBOARD).
+    enum class KeyboardMode {
+        CUMULATIVE,  ///< each keypress nudges the input by a fixed increment; historical Chrono::Vehicle behavior
+        HELD         ///< inputs follow the keys currently held down, as in a driving game (see SetKeyState)
+    };
+
+    /// Driving controls tracked in KeyboardMode::HELD.
+    enum class InputKey {
+        THROTTLE,     ///< accelerator pedal (default key 'W')
+        BRAKE,        ///< brake pedal (default key 'S')
+        STEER_LEFT,   ///< steer left (default key 'A')
+        STEER_RIGHT,  ///< steer right (default key 'D')
+        CLUTCH        ///< clutch pedal (default key 'E'; manual transmission only)
+    };
+
     /// Construct an interactive driver.
     ChInteractiveDriver(ChVehicle& vehicle);
 
@@ -60,41 +75,65 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
 
     InputMode GetInputMode() const { return m_mode; }
 
+    /// Select the semantics of the keyboard driving controls.
+    /// Takes precedence over any default proposed by an input backend (see SetDefaultKeyboardMode).
+    void SetKeyboardMode(KeyboardMode mode);
+
+    KeyboardMode GetKeyboardMode() const { return m_keyboard_mode; }
+
+    /// Propose a keyboard mode, to be called by an input backend that knows which modes it can support.
+    /// Has no effect if the application already made an explicit call to SetKeyboardMode.
+    void SetDefaultKeyboardMode(KeyboardMode mode);
+
+    /// Report that a driving control key was pressed (true) or released (false).
+    /// Used only in KeyboardMode::HELD. Calls are idempotent, so key auto-repeat is harmless.
+    void SetKeyState(InputKey key, bool pressed);
+
+    /// Report that all driving control keys are released.
+    /// Call this when the input backend can no longer observe the keyboard (e.g., on loss of window focus), so
+    /// that inputs do not stay pinned at their last value.
+    void ReleaseAllKeys();
+
     /// Set the increment in throttle input for each recorded keypress (default 1/50).
+    /// Used only in KeyboardMode::CUMULATIVE.
     void SetThrottleDelta(double delta) { m_throttle_delta = delta; }
 
     /// Set the increment in steering input for each recorded keypress (default 1/50).
+    /// Used only in KeyboardMode::CUMULATIVE.
     void SetSteeringDelta(double delta) { m_steering_delta = delta; }
 
     /// Set the increment in braking input for each recorded keypress (default 1/50).
+    /// Used only in KeyboardMode::CUMULATIVE.
     void SetBrakingDelta(double delta) { m_braking_delta = delta; }
 
     /// Set the increment in clutch input for each recorded keypress (default 1/50).
+    /// Used only in KeyboardMode::CUMULATIVE.
     void SetClutchDelta(double delta) { m_clutch_delta = delta; }
 
     /// Set the step size for integration of the internal driver dynamics.
     void SetStepsize(double val) { m_stepsize = val; }
 
-    /// Set gains for internal dynamics.
-    /// Default values are 4.0.
+    /// Set gains for internal dynamics (default values are 4.0).
+    /// Each input approaches its target exponentially with time constant 1/gain; in KeyboardMode::HELD this also
+    /// sets how fast a held key ramps an input up or down.
     void SetGains(double steering_gain = 1, double throttle_gain = 1, double braking_gain = 1, double clutch_gain = 1);
 
-    /// Increase Throttle
+    /// Increase Throttle (KeyboardMode::CUMULATIVE)
     void IncreaseThrottle();
 
-    /// Decrease Throttle
+    /// Decrease Throttle (KeyboardMode::CUMULATIVE)
     void DecreaseThrottle();
 
-    /// Steering Left
+    /// Steering Left (KeyboardMode::CUMULATIVE)
     void SteeringLeft();
 
-    /// Steering Right
+    /// Steering Right (KeyboardMode::CUMULATIVE)
     void SteeringRight();
 
-    /// Increase Clutch
+    /// Increase Clutch (KeyboardMode::CUMULATIVE)
     void IncreaseClutch();
 
-    /// Decrease Clutch
+    /// Decrease Clutch (KeyboardMode::CUMULATIVE)
     void DecreaseClutch();
 
     /// Center Steering
@@ -110,9 +149,20 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
     virtual void Advance(double step) override;
 
   protected:
+    /// Recompute the input targets from the set of keys currently held down (KeyboardMode::HELD).
+    void UpdateTargetsFromHeldKeys();
+
     InputMode m_mode;  ///< current mode of the driver
 
     // Variables for mode=KEYBOARD
+    KeyboardMode m_keyboard_mode;   ///< semantics of the keyboard driving controls
+    bool m_keyboard_mode_user_set;  ///< application explicitly selected a keyboard mode
+    bool m_key_throttle;            ///< throttle key currently held down
+    bool m_key_brake;               ///< brake key currently held down
+    bool m_key_steer_left;          ///< steer-left key currently held down
+    bool m_key_steer_right;         ///< steer-right key currently held down
+    bool m_key_clutch;              ///< clutch key currently held down
+
     double m_steering_target;  ///< current target value for steering input
     double m_throttle_target;  ///< current target value for throttle input
     double m_braking_target;   ///< current target value for braking input

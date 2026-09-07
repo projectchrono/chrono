@@ -77,7 +77,7 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     void SetColorCallback(std::shared_ptr<ParticleColorCallback> functor,
                           ChColormap::Type type = ChColormap::Type::JET);
 
-    /// Class to be used as a callback interface for dynamic visibility of SPH particles or BCE markers.
+    /// Class to be used as a callback interface for particle dynamic visibility.
     class CH_DEM_API ParticleVisibilityCallback : public ChParticleCloud::VisibilityCallback {
       public:
         virtual bool get(unsigned int n) const = 0;
@@ -130,8 +130,8 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     std::shared_ptr<ParticleVisibilityCallback> m_vis_fun;  ///< visibility functor for particles
 
     // Data for color and visibility functors
-    std::vector<ChVector3f> m_pos;  ///< SPH and BCE positions
-    std::vector<ChVector3f> m_vel;  ///< SPH and BCE positions
+    std::vector<ChVector3f> m_pos;  ///< particle positions
+    std::vector<ChVector3f> m_vel;  ///< particle positions
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files

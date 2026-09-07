@@ -47,6 +47,8 @@ inline void StreamSwapBytes(T* ptData) {
 /// Data will always be written with little-endianness even in big-endian machines.
 class ChApi ChArchiveOutBinary : public ChArchiveOut {
   public:
+    using ChArchiveOut::out;  // un-hide the ChArchiveOut::out overloads not overridden here
+
     ChArchiveOutBinary(std::ostream& stream_out);
 
     virtual ~ChArchiveOutBinary();

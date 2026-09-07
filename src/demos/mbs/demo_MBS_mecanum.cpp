@@ -26,7 +26,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/assets/ChVisualShapeBarrel.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

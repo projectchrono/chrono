@@ -60,7 +60,7 @@ The ```chrono.cls``` class provides some macros to create links to the Chrono AP
   
 - For links to a C++ module of Chrono: ```\urlChronoAPImodule```. Pass the name 
   of the Chrono module in upper case.  
-  For example: ```\urlChronoAPImodule{FEA}``` or ```\urlChronoAPIclass{MATLAB}```.
+  For example: ```\urlChronoAPImodule{FEA}```.
   
 - For typing the Chrono name with custom font, use ```\Chrono```.
 
@@ -69,7 +69,7 @@ The ```chrono.cls``` class provides some macros to create links to the Chrono AP
   
 ## Where should the PDF be stored?
 
-Once you generated the PDF, you can store it in a repository or in an FTP site. 
+Once you have generated the PDF, you can store it in a repository or in an FTP site. 
 Then, add the link to your document in the ```whitepapers.md``` file in ```chrono\doxygen\documentation\whitepapers```.
 
 <div class="ce-warning">

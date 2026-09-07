@@ -3,17 +3,17 @@ Steering mechanism models {#wheeled_steering}
 
 \tableofcontents
 
-The base class [ChSteering](@ref chrono::vehicle::ChSteering) imposes that any derived steering mechanism class (a steering mechanism template) provide a steering link body to which a steerable suspension can be sonnected (usually through the suspension's tierods).
+The base class [ChSteering](@ref chrono::vehicle::ChSteering) imposes that any derived steering mechanism class (a steering mechanism template) provide a steering link body to which a steerable suspension can be connected (usually through the suspension's tierods).
 
 A derived steering mechanism type defines the bodies, joints, force elements, and topology of a particular type of steering mechanism. All locations are assumed to be provided with respect to a mechanism reference frame (a derived steering mechanism type is free to pick the location and orientation of this frame).
 
 A steering mechanism assembly is attached to a vehicle's chassis by specifying the location and orientation of the mechanism assembly reference frame with respect to the chassis reference frame (see the definition of the [ISO reference frame](@ref vehicle_ISO_frame)).
 
-A wheeled vehicle may have multiple steering mechanisms, each associated with a different steerable vehicle axle. Similalry, a single steering mechanism may be connected to multiple steerable vehicle axles.
+A wheeled vehicle may have multiple steering mechanisms, each associated with a different steerable vehicle axle. Similarly, a single steering mechanism may be connected to multiple steerable vehicle axles.
 
 ## Pitman arm {#wheeled_steering_pitman}
 
-This steering mechanism is a four-bar linkage with the steering link body connected to the chassis via the Pitman arm and an idler arm. The Pitman arm body is connected through an universal joint to the steering link and a revolute joint to the chassis. The driver steering input is used to control the angle of the revolute joint.  In the Chrono::Vehicle Pitman arm template, the idler arm is modeled using a composite revolute-spherical joint.
+This steering mechanism is a four-bar linkage with the steering link body connected to the chassis via the Pitman arm and an idler arm. The Pitman arm body is connected through a universal joint to the steering link and a revolute joint to the chassis. The driver steering input is used to control the angle of the revolute joint.  In the Chrono::Vehicle Pitman arm template, the idler arm is modeled using a composite revolute-spherical joint.
 
 See [ChPitmanArm](@ref chrono::vehicle::ChPitmanArm) and [PitmanArm](@ref chrono::vehicle::PitmanArm).
 

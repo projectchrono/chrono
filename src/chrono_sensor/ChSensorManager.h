@@ -27,11 +27,15 @@
 
 #ifdef CHRONO_HAS_OPTIX
     #include "chrono_sensor/optix/ChOptixEngine.h"
-    #include "chrono_sensor/optix/scene/ChScene.h"
+    #include "chrono_sensor/optix/ChOptixScene.h"
 #endif
 #ifdef CHRONO_HAS_VULKAN_RT
     #include "chrono_sensor/vulkan/ChVulkanRTEngine.h"
     #include "chrono_sensor/vulkan/ChVulkanRTScene.h"
+#endif
+#ifdef CHRONO_HAS_METAL_RT
+    #include "chrono_sensor/metal/ChMetalRTEngine.h"
+    #include "chrono_sensor/metal/ChMetalRTScene.h"
 #endif
 
 #ifdef CHRONO_FSI_SPH
@@ -47,7 +51,7 @@ namespace sensor {
 /// @addtogroup sensor
 /// @{
 
-/// What a cuRAND buffer is used for. One constant per independent random-number stream in the sensor
+/// What an independent random-number stream is used for. One constant per stream in the sensor
 /// module, and part of the key that keeps those streams from coinciding.
 ///
 /// Closed on purpose: a new stochastic filter must add its own constant here rather than borrow or
@@ -56,17 +60,21 @@ namespace sensor {
 /// the purpose field meaningless, which is what keeps a camera's noise independent of a lidar's.
 /// GetDeterministicSeed rejects RngUsage::Unknown and any value at or past Count.
 enum class RngUsage : unsigned int {
-    Unknown = 0,                ///< never seed from this; present so the enum has a defined zero
-    CameraNoiseConstNormal = 1, ///< ChFilterCameraNoiseConstNormal
-    CameraNoisePixDep = 2,      ///< ChFilterCameraNoisePixDep
-    LidarNoiseXYZI = 3,         ///< ChFilterLidarNoiseXYZI
-    PhysCameraShotNoise = 4,    ///< ChFilterPhysCameraNoise, shot noise only; FPN keeps its own seed
-    OptixCameraRaygen = 5,      ///< ChFilterOptixRender, camera
-    OptixPhysCameraRaygen = 6,  ///< ChFilterOptixRender, physical camera
-    OptixSegmentationRaygen = 7,///< ChFilterOptixRender, segmentation camera
-    OptixDepthRaygen = 8,       ///< ChFilterOptixRender, depth camera
-    OptixNormalRaygen = 9,      ///< ChFilterOptixRender, normal camera
-    Count                       ///< sentinel; keep last
+    Unknown = 0,                  ///< never seed from this; present so the enum has a defined zero
+    CameraNoiseConstNormal = 1,   ///< ChFilterCameraNoiseConstNormal
+    CameraNoisePixDep = 2,        ///< ChFilterCameraNoisePixDep
+    LidarNoiseXYZI = 3,           ///< ChFilterLidarNoiseXYZI
+    PhysCameraShotNoise = 4,      ///< ChFilterPhysCameraNoise, shot noise only; FPN keeps its own seed
+    OptixCameraRaygen = 5,        ///< ChFilterOptixRender, camera
+    OptixPhysCameraRaygen = 6,    ///< ChFilterOptixRender, physical camera
+    OptixSegmentationRaygen = 7,  ///< ChFilterOptixRender, segmentation camera
+    OptixDepthRaygen = 8,         ///< ChFilterOptixRender, depth camera
+    OptixNormalRaygen = 9,        ///< ChFilterOptixRender, normal camera
+    VulkanCameraRaygen = 10,      ///< ChFilterVulkanRTRender, camera
+    VulkanPhysCameraRaygen = 11,  ///< ChFilterVulkanRTRender, physical camera
+    MetalCameraRaygen = 12,       ///< ChFilterMetalRTRender, camera
+    MetalPhysCameraRaygen = 13,   ///< ChFilterMetalRTRender, physical camera
+    Count                         ///< sentinel; keep last
 };
 
 /// Bit widths of the four fields packed into an RNG stream id. They sum to exactly 64, and each
@@ -129,6 +137,10 @@ class CH_SENSOR_API ChSensorManager {
     /// Get the number of render engines the manager is currently using.
     /// Preserves the OptiX-era count API for Vulkan-only builds.
     int GetNumEngines() { return (int)m_vulkan_engines.size(); }
+#elif defined(CHRONO_HAS_METAL_RT)
+    /// Get the number of render engines the manager is currently using.
+    /// Preserves the OptiX-era count API for Metal-only builds.
+    int GetNumEngines() { return (int)m_metal_engines.size(); }
 #endif
 #ifdef CHRONO_HAS_VULKAN_RT
     /// Get the number of Vulkan RT engines the manager is currently using.
@@ -136,6 +148,13 @@ class CH_SENSOR_API ChSensorManager {
 
     /// Get a pointer to a Vulkan RT engine based on its id.
     std::shared_ptr<ChVulkanRTEngine> GetVulkanEngine(int context_id);
+#endif
+#ifdef CHRONO_HAS_METAL_RT
+    /// Get the number of Metal RT engines the manager is currently using.
+    int GetNumMetalEngines() { return (int)m_metal_engines.size(); }
+
+    /// Get a pointer to a Metal RT engine based on its id.
+    std::shared_ptr<ChMetalRTEngine> GetMetalEngine(int context_id);
 #endif
 
     /// Calls on the sensor manager to rebuild the scene.
@@ -222,7 +241,7 @@ class CH_SENSOR_API ChSensorManager {
     /// @param sensor the sensor owning the buffer; must already be registered via AddSensor
     /// @param usage what the buffer is for
     /// @param filter_stream_index the calling filter's ChFilter::GetRngStreamIndex()
-    /// @return the 64-bit seed to pass to init_cuda_rng
+    /// @return the 64-bit seed used to initialize the backend RNG stream
     /// @throws std::runtime_error if the sensor is null or was never registered, if the calling filter
     /// has no stream index, if `usage` is RngUsage::Unknown or a value at or past RngUsage::Count, or
     /// if any field of the stream key exceeds its bit width. Every one of these would otherwise
@@ -248,14 +267,21 @@ class CH_SENSOR_API ChSensorManager {
 #ifdef CHRONO_HAS_OPTIX
     /// Public pointer to the OptiX scene.
     /// This is used to specify additional components including lights, background colors, etc.
-    std::shared_ptr<ChScene> scene;
+    std::shared_ptr<ChOptixScene> scene;
 #elif defined(CHRONO_HAS_VULKAN_RT)
     /// Public scene pointer preserved for OptiX-compatible demos when Vulkan RT is the render backend.
     std::shared_ptr<ChVulkanRTScene> scene;
+#elif defined(CHRONO_HAS_METAL_RT)
+    /// Public scene pointer preserved for OptiX-compatible demos when Metal RT is the render backend.
+    std::shared_ptr<ChMetalRTScene> scene;
 #endif
 #ifdef CHRONO_HAS_VULKAN_RT
     /// Public pointer to the Vulkan RT scene staging object.
     std::shared_ptr<ChVulkanRTScene> vulkan_scene;
+#endif
+#ifdef CHRONO_HAS_METAL_RT
+    /// Public pointer to the Metal RT scene staging object.
+    std::shared_ptr<ChMetalRTScene> metal_scene;
 #endif
 
   private:
@@ -272,6 +298,9 @@ class CH_SENSOR_API ChSensorManager {
 #endif
 #ifdef CHRONO_HAS_VULKAN_RT
     std::vector<std::shared_ptr<ChVulkanRTEngine>> m_vulkan_engines;  ///< Vulkan RT engine(s) used for rendered sensors
+#endif
+#ifdef CHRONO_HAS_METAL_RT
+    std::vector<std::shared_ptr<ChMetalRTEngine>> m_metal_engines;  ///< Metal RT engine(s) used for rendered sensors
 #endif
 
     int m_allowable_groups = 1;  ///< default maximum number of allowable engines

@@ -3,7 +3,7 @@ Chrono DEM module tutorials {#tutorial_table_of_content_chrono_dem}
 
 The Chrono distribution contains several demos for granular dynamics with the [DEM module](group__dem__module.html).
 
-Chrono::Dem provides support for GPU-accelerated granular dynamics via the penalty-based discrete element method (*aka SMC*).
+Chrono::DEM provides support for GPU-accelerated granular dynamics via the penalty-based discrete element method (*aka SMC*).
 
 Granular dynamics demos:
 
@@ -13,7 +13,7 @@ Granular dynamics demos:
         
 - demo_DEM_fixedTerrain
 
-    A terrain initialization utility that generates fixed particles on a surface mesh of the terrain and load additional particles from the above. 
+    A terrain initialization utility that generates fixed particles on a surface mesh of the terrain and loads additional particles from the above. 
     
 - demo_DEM_movingBoundary
 

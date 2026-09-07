@@ -218,7 +218,7 @@ FsiTdpfSolverTest<T>::FsiTdpfSolverTest() : wave_amplitude(0.5 * wave_height) {
 
     // Add FSI bodies
     for (auto& body : bodies)
-        sysFSI->AddFsiBody(body, nullptr, false);
+        sysFSI->AddRigidBody(body, nullptr, false);
 
     sysFSI->Initialize();
 }

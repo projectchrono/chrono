@@ -28,8 +28,6 @@
 #include <vsgImGui/implot.h>
 
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualModel.h"
-#include "chrono/assets/ChColormap.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLink.h"
@@ -326,7 +324,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
                          double y_step,     ///< spacing in y direction
                          int nx,            ///< number of divisions in x direction
                          int ny,            ///< number of divisions in y direction
-                         ChCoordsys<> pos,  ///< grid reference frame
+                         ChCoordsysd pos,   ///< grid reference frame
                          ChColor col        ///< grid line color
                          ) override;
 

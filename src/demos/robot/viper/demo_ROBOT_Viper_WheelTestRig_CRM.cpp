@@ -107,6 +107,9 @@ int main() {
 
     rig.SetTerrainCRM(size, params);
 
+    // Set a single active domain of estimated size associated with the spindle body
+    rig.SetWheelActiveDomain();
+
     // -----------------
     // Set test scenario
     // -----------------

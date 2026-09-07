@@ -78,20 +78,20 @@ class CH_FSI_API ChFsiSystem {
     void SetStepsizeMBD(double step);
 
     /// Add a rigid body to the FSI system.
-    std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded);
+    std::shared_ptr<FsiBody> AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded);
 
 #ifdef CHRONO_FEA
-    /// Add an FEA mesh to the FSI system.
+    /// Add a 1-D FEA mesh to the FSI system.
     /// Any SegmentSet contact surfaces already defined for the FEA mesh are used to generate the interface between the
     /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
     /// mesh.
-    std::shared_ptr<FsiMesh1D> AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+    std::shared_ptr<FsiMesh1D> AddFeaMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
-    /// Add an FEA mesh to the FSI system.
+    /// Add a 2-D FEA mesh to the FSI system.
     /// Any TriMesh contact surfaces already defined for the FEA mesh are used to generate the interface between the
     /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA
     /// mesh.
-    std::shared_ptr<FsiMesh2D> AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+    std::shared_ptr<FsiMesh2D> AddFeaMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
     /// Enable use and set method of obtaining FEA node directions.
     /// If provided, node direction vectors can be used to provide a more accurate interpolation of positions between
@@ -187,11 +187,11 @@ class CH_FSI_API ChFsiSystem {
 
     //// TODO: change these to take a shared_ptr to a ChBody
 
-    /// Return the FSI applied force on the body with specified index (as returned by AddFsiBody).
+    /// Return the FSI applied force on the body with specified index (as returned by AddRigidBody).
     /// The force is applied at the body COM and is expressed in the absolute frame.
     const ChVector3d& GetFsiBodyForce(size_t i) const;
 
-    /// Return the FSI applied torque on the body with specified index (as returned by AddFsiBody).
+    /// Return the FSI applied torque on the body with specified index (as returned by AddRigidBody).
     /// The torque is expressed in the absolute frame.
     const ChVector3d& GetFsiBodyTorque(size_t i) const;
 

@@ -14,7 +14,7 @@
 #
 # =============================================================================
 
-required: [chrono-version, contact_method, integrator, solver]
+required: [chrono-version, contact_method]
 
 chrono-version:
   type: string
@@ -27,8 +27,10 @@ contact_method:
 
 integrator:
   type: object
-  description: Integrator type and parameters
-  required: [type, time-step]
+  description: |
+    Integrator type and parameters.
+    If this object is omitted, an EULER_IMPLICIT_LINEARIZED integrator with a time step of 1e-3 is used.
+  required: [type, time_step]
   properties:
       type:
           type: string
@@ -69,7 +71,9 @@ integrator:
     
 solver:
   type: object
-  description: Solver type and parameters.
+  description: |
+    Solver type and parameters.
+    If this object is omitted, a BARZILAI_BORWEIN solver with default settings is used.
   required: [type]
   properties:
       type:
@@ -98,14 +102,18 @@ solver:
           default: 0.0
       enable_diagonal_preconditioner:
           type: boolean
-          description: Whether to use a diagonal preconditioner for iterative Krylov linear solvers
+          description: Whether to use a diagonal preconditioner (iterative DVI and Krylov linear solvers)
+          default: false
+      warm_start:
+          type: boolean
+          description: Whether to warm start the solver from the previous solution (iterative DVI and Krylov linear solvers)
           default: false
       lock_sparsity_pattern:
           type: boolean
-          description: Keep matrix sparsity pattern unchanged (direct sparse linear solvers)
+          description: Keep matrix sparsity pattern unchanged (direct sparse linear solvers, including PARDISO and MUMPS)
           default: false
       use_sparsity_pattern_learner:
           type: boolean
-          description: Evaluate matrix sparsity pattern in a pre-processing stage (direct sparse linear solvers)
+          description: Evaluate matrix sparsity pattern in a pre-processing stage (SPARSE_LU and SPARSE_QR only)
           default: true
   

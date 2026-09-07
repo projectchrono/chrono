@@ -55,11 +55,6 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
            demo_FEA_cablesMUMPS
        )
     endif()
-    if(CH_ENABLE_MODULE_MATLAB)
-       set(FEA_DEMOS ${FEA_DEMOS}
-           demo_FEA_cablesMATLAB
-       )
-    endif()
     if(CH_ENABLE_MODULE_PARDISO_MKL)
        set(FEA_DEMOS ${FEA_DEMOS}
            demo_FEA_beamsEuler
@@ -105,10 +100,6 @@ endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "Chrono_mumps")
-endif()
-
-if(CH_ENABLE_MODULE_MATLAB)
-  list(APPEND LIBS "Chrono_matlab")
 endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)

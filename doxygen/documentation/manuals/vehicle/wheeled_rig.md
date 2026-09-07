@@ -32,7 +32,7 @@ The following image is a snapshot from a simulation of ChSuspensionTestRigPushro
 
 [ChTireTestRig](@ref chrono::vehicle::ChTireTestRig) is a mechanism for testing a single tire interacting with [rigid](@ref vehicle_terrain_rigid), [SCM deformable](@ref vehicle_terrain_scm), or [granular](@ref vehicle_terrain_granular) terrain.  All available Chrono::Vehicle [tire models](@ref wheeled_tire) can be used with this test rig, but only in conjunction with a consistent terrain model.
 
-The tire test rig allows  variation of longitudinal speed, wheel angular speed, and wheel slip angle as functions of time, provides support for automatic selection of longitudinal and angular speeds in order to enforce a specified longitudinal slip value, and allows specifying a camber angle (kept fixed during the simulation). 
+The tire test rig allows variation of longitudinal speed, wheel angular speed, and wheel slip angle as functions of time, provides support for automatic selection of longitudinal and angular speeds in order to enforce a specified longitudinal slip value, and allows specifying a camber angle (kept fixed during the simulation). 
 
 See demo_VEH_TireTestRig and demo_VEH_TireTestRig_Multicore.
 

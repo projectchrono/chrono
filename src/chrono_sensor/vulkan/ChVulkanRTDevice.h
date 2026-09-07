@@ -51,7 +51,11 @@ class CH_SENSOR_API ChVulkanRTDevice {
     const VkPhysicalDeviceProperties& GetPhysicalDeviceProperties() const { return m_properties; }
     const ChVulkanRTCapabilities& GetCapabilities() const { return m_capabilities; }
 
-    uint32_t FindMemoryType(uint32_t type_bits, VkMemoryPropertyFlags required_flags) const;
+    /// Choose a memory type carrying all required flags, preferring extra flags when available.
+    /// If no supported type also carries preferred_flags, retry with required_flags only.
+    uint32_t FindMemoryType(uint32_t type_bits,
+                            VkMemoryPropertyFlags required_flags,
+                            VkMemoryPropertyFlags preferred_flags = 0) const;
 
     PFN_vkGetBufferDeviceAddressKHR vkGetBufferDeviceAddressKHR = nullptr;
     PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR = nullptr;

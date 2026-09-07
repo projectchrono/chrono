@@ -21,8 +21,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/assets/ChVisualShapeBox.h"
-
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
@@ -32,7 +30,6 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 

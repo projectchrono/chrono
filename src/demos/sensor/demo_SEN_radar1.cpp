@@ -22,7 +22,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_sensor/sensors/Sensor.h"
 #include "chrono_sensor/ChSensorManager.h"

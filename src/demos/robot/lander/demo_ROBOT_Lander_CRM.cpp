@@ -24,6 +24,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <cctype>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -146,7 +147,8 @@ int main(int argc, char* argv[]) {
     bool enable_vis = !no_vis;
 
     // Convert to lowercase for case-insensitive comparison
-    std::transform(gravity_planet.begin(), gravity_planet.end(), gravity_planet.begin(), ::tolower);
+    std::transform(gravity_planet.begin(), gravity_planet.end(), gravity_planet.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
     if (gravity_planet == "earth") {
         gravity_magnitude = EARTH_GRAVITY;
@@ -225,7 +227,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepsizeMBD(step_size);
 
     // Set soil properties
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -244,7 +246,7 @@ int main(int argc, char* argv[]) {
         mat_props.mcc_kappa = kappa;
         mat_props.mcc_lambda = lambda;
     }
-    fsi.SetElasticSPH(mat_props);
+    fsi.SetCrmSPH(mat_props);
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;

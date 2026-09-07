@@ -69,7 +69,7 @@ chrono.ChFrameMovingd     # as ChFrameMoving<double>  in C++
 chrono.ChCoordsysd        # as ChCoordsysd  in C++
 ~~~~~~~~~~~~~~~
 
-There is a (quite limited) support for templates of templates, especially
+There is (quite limited) support for templates of templates, especially
 for the std::vector<> container. The concept is the same: the C++ template 
 is translated in a special name in Python. For std::vector, we prepend
 the vector_ prefix: 
@@ -115,8 +115,7 @@ pointers are a C++ technology that allows the user to create objects and
 do not worry about deletion, because deletion is managed automatically.
 In the Chrono C++ API such shared pointers are based on
 templates; as we said previously templates are not supported in Python,
-but this is not an issue, because PyChrono **automatically handle objects with shared pointers if necessary**
-PyChrono.
+but this is not an issue, because PyChrono **automatically handles objects with shared pointers if necessary**.
 
 This is an example of **shared pointers in C++** :
 
@@ -147,7 +146,7 @@ Downcasting and upcasting
 Upcasting of derived classes to the base class works **automatically**
 in Python and does not require intervention. We managed to do this also
 for shared pointers. For example *ChSystem.Add()* requires a
-(shared)pointer to a *ChPhysicsItem* object, that is a base class, but
+(shared) pointer to a *ChPhysicsItem* object, that is a base class, but
 you can pass it a *ChBody*, a *ChLinkLockGear*, etc. that are derived
 classes. The same in Python.
 

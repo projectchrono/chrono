@@ -32,4 +32,7 @@
 // If CRM support was enabled, define CHRONO_CRM
 @CHRONO_CRM@
 
+// If SCM GPU support was enabled, define CHRONO_HAS_SCM_GPU
+@CHRONO_SCM_GPU@
+
 #endif

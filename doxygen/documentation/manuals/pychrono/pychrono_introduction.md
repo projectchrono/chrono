@@ -24,7 +24,7 @@ Chrono API functions, classes, methods, etc.
 
 * Python is simple,
 * Python can be interpreted on the fly,
-* there are lot of third party modules for Python, for instance Matplotlib for plotting, Numpy for algebra, etc.,
+* there are a lot of third party modules for Python, for instance Matplotlib for plotting, Numpy for algebra, etc.,
 * a minimal installation is required. 
 
 **Disadvantages** of Python programming vs. C++ programming:
@@ -60,7 +60,7 @@ save it on disk, etc.
 Let's see a first program.
 
 -   First of all, you should use the **import** keyword to specify which
-    Python modules must be load and used in your program. Most of the
+    Python modules must be loaded and used in your program. Most of the
     core functionalities of Chrono are in a module called
     **pychrono**, hence write:
 
@@ -127,7 +127,7 @@ print ('quat. product=',     my_qconjugate % my_quat)
 my_vec = chrono.ChVector3d(1,2,3)
 my_vec_rot = my_quat.Rotate(my_vec)
 ~~~~~~~~~~~~~
-PyChrono linear algebra (ChMatrixDynamicd and ChVectorDynamicd) are interfaced with Python lists, this allows to use any third-party package to perform linear algebra operation. In the following example we use NumPy:
+PyChrono linear algebra (ChMatrixDynamicd and ChVectorDynamicd) are interfaced with Python lists, this allows using any third-party package to perform linear algebra operation. In the following example we use NumPy:
 ~~~~~~~~~~~~~{.py}
 mlist = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]]
 ma = chrono.ChMatrixDynamicd() 

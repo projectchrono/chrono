@@ -3,7 +3,7 @@ Camera Sensor Model {#camera_sensor}
 
 \tableofcontents
 
-In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware accelerated support and the headless rendering capabilities provided by NVIDIA Optix Library.
+In Chrono::Sensor::ChCameraSensor, the synthetic data is generated via GPU-based ray-tracing, by leveraging hardware accelerated support and the headless rendering capabilities provided by NVIDIA Optix Library.
 
 ## Camera sensor Setup
 
@@ -46,25 +46,25 @@ If the camera supersample_factor is greater than 1, the setup process will adjus
 
 ## Rendering steps
 
-The Camera sensor in Chrono::sensor uses Optix as the render engine. For each pixel, the engine will shoot out a ray at that direction and find the first object intersects with the ray. By default, the engine uses the physically based BRDF shader for rendering objects. It will spawn additional rays for shadows, reflection, and refraction in a recursive fashion.
+The Camera sensor in Chrono::sensor uses Optix as the render engine. For each pixel, the engine will shoot out a ray at that direction and find the first object that intersects with the ray. By default, the engine uses the physically based BRDF shader for rendering objects. It will spawn additional rays for shadows, reflection, and refraction in a recursive fashion.
 
 The camera update frequency is much slower than the physics. Therefore the [ChOptixEngine](@ref chrono::sensor::ChOptixEngine) spawns a thread to perform the
 rendering, and it will not block the main thread
 
 ### Each Update (main thread)
-1. Check if there is any camera need to be updated. If there is such camera
+1. Check if there is any camera that needs to be updated. If there is such a camera
     - Update the scene information
     - Push it into render queue
-2. Check if any camera should have the data ready to ship, or wait until they finish.
+2. Check if any cameras should have the data ready to ship, or wait until they finish.
 3. Continue to the next time step
 
 ### Rendering thread
 1. Wait until there is a camera in the render queue
-2. Update those camera, clear the render queue, go back to step 1
+2. Update those cameras, clear the render queue, go back to step 1
 
 ## Filter Graphs
 
-Any number of filters can be append to the list and modify the final result. The filters are executed as the order in filter list. Here are some examples.
+Any number of filters can be appended to the list and modify the final result. The filters are executed in the order in the filter list. Here are some examples.
 
 * [Camera Noise](@ref chrono::sensor::ChFilterCameraNoiseConstNormal)
 * [Image Alias Filter](@ref chrono::sensor::ChFilterImgAlias)

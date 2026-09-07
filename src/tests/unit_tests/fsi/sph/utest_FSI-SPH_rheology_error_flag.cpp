@@ -79,7 +79,7 @@ bool RunBed(RheologyCRM rheology, std::string& what, bool depth_pressure = false
     fsi.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -93,7 +93,7 @@ bool RunBed(RheologyCRM rheology, std::string& what, bool depth_pressure = false
     mat_props.mcc_kappa = 0.01;
     mat_props.mcc_lambda = 0.1;
     mat_props.mcc_v_lambda = 2.0;
-    fsi.SetElasticSPH(mat_props);
+    fsi.SetCrmSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
