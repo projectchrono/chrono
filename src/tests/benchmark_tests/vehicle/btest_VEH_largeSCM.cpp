@@ -222,6 +222,8 @@ LargeScmTest<SEED_TRACKS>::LargeScmTest() : m_seeded(0) {
         }
     }
 
+    scm_bench::SelectRaycastBackend(*m_terrain, true);
+
     m_driver = new LargeScmDriver(m_hmmwv->GetVehicle(), 1.0);
     m_driver->Initialize();
 

@@ -31,12 +31,48 @@
 #ifndef SCM_BENCHMARK_UTILS_H
 #define SCM_BENCHMARK_UTILS_H
 
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
 #include <benchmark/benchmark.h>
 
 #include "chrono/utils/ChBenchmark.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 namespace scm_bench {
+
+/// Select the SCM ray-cast backend and say, once, which one is active.
+///
+/// Which backend runs is otherwise invisible in the output, and it is not a property of the test:
+/// it depends on how Chrono was configured (CUDA, HIP, or neither) and on whether the test declared
+/// active domains, without which the GPU path silently defers to the CPU. A recorded number that
+/// does not name its backend cannot be compared against anything, so every test calls this and the
+/// backend name appears above the results.
+///
+/// SCM_BENCH_GPU=0 forces the CPU path in a GPU-capable build, which is how the CPU column of the
+/// baseline table is produced without reconfiguring.
+inline void SelectRaycastBackend(chrono::vehicle::SCMTerrain& terrain, bool has_active_domains) {
+    const char* e = std::getenv("SCM_BENCH_GPU");
+    const bool want_gpu = !(e && std::string(e) == "0");
+
+#ifdef CHRONO_HAS_SCM_GPU
+    terrain.EnableRaycastGpuHip(want_gpu);
+    if (!want_gpu)
+        std::cout << "SCM ray-cast backend: CPU (SCM_BENCH_GPU=0)" << std::endl;
+    else if (!has_active_domains)
+        std::cout << "SCM ray-cast backend: CPU (no active domains declared)" << std::endl;
+    else
+        std::cout << "SCM ray-cast backend: GPU" << std::endl;
+#else
+    (void)terrain;
+    (void)has_active_domains;
+    if (want_gpu)
+        std::cout << "SCM ray-cast backend: CPU (built without the SCM GPU backend)" << std::endl;
+    else
+        std::cout << "SCM ray-cast backend: CPU" << std::endl;
+#endif
+}
 
 /// Per-step SCM timings, summed over a run.
 struct ScmStats {

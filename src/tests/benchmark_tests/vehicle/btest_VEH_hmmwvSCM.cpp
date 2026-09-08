@@ -163,6 +163,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
                               ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
 
 
+    scm_bench::SelectRaycastBackend(*m_terrain, true);
+
     m_terrain->Initialize(patch_size, patch_size, patch_size / num_div);
 
     // Custom driver
