@@ -1,18 +1,11 @@
 #include "chrono/serialization/ChArchiveJSON.h"
 
 #include <limits>
+#include <charconv>
 
 namespace chrono {
 
-ChArchiveOutJSON::ChArchiveOutJSON(std::ostream& stream_out) : m_ostream(stream_out) {
-    // Write floating point values with enough digits to be read back bit-exactly. The default
-    // ostream precision is 6 significant digits, which silently discards about ten digits of a
-    // double and makes a save/load cycle lossy. max_digits10 is the number of decimal digits that
-    // uniquely distinguishes every value of the type (17 for double).
-    // The caller owns the stream and may well be reusing it (std::cout, for instance), so the
-    // previous precision is recorded here and put back by the destructor.
-    m_precision_saved = m_ostream.precision(std::numeric_limits<double>::max_digits10);
-
+ChArchiveOutJSON::ChArchiveOutJSON(std::ostream& stream_out, bool full_precision) : m_ostream(stream_out), m_full_precision(full_precision) {
     m_ostream << "{ ";
     ++tablevel;
 
@@ -25,15 +18,13 @@ ChArchiveOutJSON::~ChArchiveOutJSON() {
     --tablevel;
     nitems.pop();
     is_array.pop();
-
     m_ostream << "\n}" << std::endl;
-
-    m_ostream.precision(m_precision_saved);
 }
 
 void ChArchiveOutJSON::indent() {
-    for (int i = 0; i < tablevel; ++i)
+    for (int i = 0; i < tablevel; ++i) {
         m_ostream << "\t";
+    }
 }
 
 void ChArchiveOutJSON::comma_cr() {
@@ -47,8 +38,7 @@ void ChArchiveOutJSON::out(ChNameValue<unsigned int> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     m_ostream << bVal.value();
     ++nitems.top();
 }
@@ -57,8 +47,7 @@ void ChArchiveOutJSON::out(ChNameValue<char> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     m_ostream << (int)bVal.value();
     ++nitems.top();
 }
@@ -67,14 +56,14 @@ void ChArchiveOutJSON::out(ChNameValue<float> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
-    // The stream is set to double precision for the archive's lifetime, which would print a float
-    // with eight digits more than it actually carries, exposing binary noise: 0.6f would be written
-    // as 0.60000002384185791. Nine digits is what uniquely identifies a float.
-    const std::streamsize saved = m_ostream.precision(std::numeric_limits<float>::max_digits10);
-    m_ostream << bVal.value();
-    m_ostream.precision(saved);
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
+    if (m_full_precision) {
+        char buffer[32];
+        auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), bVal.value());
+        m_ostream.write(buffer, ptr - buffer);
+    } else {
+        m_ostream << bVal.value();
+    }
     ++nitems.top();
 }
 
@@ -82,9 +71,14 @@ void ChArchiveOutJSON::out(ChNameValue<double> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
-    m_ostream << bVal.value();
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
+    if (m_full_precision) {
+        char buffer[32];
+        auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), bVal.value());
+        m_ostream.write(buffer, ptr - buffer);
+    } else {
+        m_ostream << bVal.value();
+    }
     ++nitems.top();
 }
 
@@ -92,8 +86,7 @@ void ChArchiveOutJSON::out(ChNameValue<int> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     m_ostream << bVal.value();
     ++nitems.top();
 }
@@ -102,12 +95,8 @@ void ChArchiveOutJSON::out(ChNameValue<bool> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
-    if (bVal.value())
-        m_ostream << "true";
-    else
-        m_ostream << "false";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
+    bVal.value() ? m_ostream << "true" : m_ostream << "false";
     ++nitems.top();
 }
 
@@ -115,8 +104,7 @@ void ChArchiveOutJSON::out(ChNameValue<const char*> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     m_ostream << "\"" << bVal.value() << "\"";
     ++nitems.top();
 }
@@ -125,8 +113,7 @@ void ChArchiveOutJSON::out(ChNameValue<std::string> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     m_ostream << "\"" << bVal.value() << "\"";
     ++nitems.top();
 }
@@ -135,8 +122,7 @@ void ChArchiveOutJSON::out(ChNameValue<unsigned long> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     m_ostream << bVal.value();
     ++nitems.top();
 }
@@ -145,8 +131,7 @@ void ChArchiveOutJSON::out(ChNameValue<unsigned long long> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     m_ostream << bVal.value();
     ++nitems.top();
 }
@@ -155,8 +140,7 @@ void ChArchiveOutJSON::out(ChNameValue<ChEnumMapperBase> bVal) {
     comma_cr();
     indent();
     if (is_array.top() == false)
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     std::string mstr = bVal.value().GetValueAsString();
     m_ostream << "\"" << mstr << "\"";
     ++nitems.top();
@@ -166,8 +150,7 @@ void ChArchiveOutJSON::out_array_pre(ChValue& bVal, size_t msize) {
     comma_cr();
     if (is_array.top() == false) {
         indent();
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: ";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: ";
     }
     m_ostream << "\n";
     indent();
@@ -195,8 +178,7 @@ void ChArchiveOutJSON::out(ChValue& bVal, bool tracked, size_t obj_ID) {
     comma_cr();
     if (is_array.top() == false) {
         indent();
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: \n";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: \n";
     }
     indent();
     m_ostream << "{";
@@ -231,8 +213,7 @@ void ChArchiveOutJSON::out_ref(ChValue& bVal, bool already_inserted, size_t obj_
     comma_cr();
     if (is_array.top() == false) {
         indent();
-        m_ostream << "\"" << bVal.name() << "\""
-                  << "\t: \n";
+        m_ostream << "\"" << bVal.name() << "\"" << "\t: \n";
     }
     indent();
     m_ostream << "{ ";
@@ -244,8 +225,7 @@ void ChArchiveOutJSON::out_ref(ChValue& bVal, bool already_inserted, size_t obj_
     if (classname.length() > 0) {
         comma_cr();
         indent();
-        m_ostream << "\"_type\"\t: "
-                  << "\"" << classname.c_str() << "\"";
+        m_ostream << "\"_type\"\t: " << "\"" << classname.c_str() << "\"";
         ++nitems.top();
     }
 
@@ -284,25 +264,24 @@ void ChArchiveOutJSON::out_ref(ChValue& bVal, bool already_inserted, size_t obj_
 
 // =============================================================================
 
-ChArchiveInJSON::ChArchiveInJSON(std::istream& stream_in) 
-    : m_istream(stream_in) 
-{
+ChArchiveInJSON::ChArchiveInJSON(std::istream& stream_in, bool full_precision) : m_istream(stream_in) {
     std::stringstream buffer;
     buffer << m_istream.rdbuf();
     std::string mstr = buffer.str();
     const char* stringbuffer = mstr.c_str();
 
-    document.Parse<0>(stringbuffer);
+    full_precision ? document.Parse<rapidjson::kParseFullPrecisionFlag>(stringbuffer) : document.Parse<rapidjson::kParseDefaultFlags>(stringbuffer);
+
     if (document.HasParseError()) {
         std::string errstrA((const char*)(&stringbuffer[std::max((int)document.GetErrorOffset() - 10, 0)]));
         errstrA.resize(10);
         std::string errstrB((const char*)(&stringbuffer[document.GetErrorOffset()]));
         errstrB.resize(20);
-        throw std::invalid_argument("ERROR: the file has bad JSON syntax," + std::to_string(document.GetParseError()) +
-                                    " \n\n[...]" + errstrA + " <--- " + errstrB + "[...]");
+        throw std::invalid_argument("ERROR: the file has bad JSON syntax," + std::to_string(document.GetParseError()) + " \n\n[...]" + errstrA + " <--- " + errstrB + "[...]");
     }
-    if (!document.IsObject())
+    if (!document.IsObject()) {
         throw std::invalid_argument("ERROR: the file is not a valid JSON document");
+    }
 
     level = &document;
     levels.push(level);
@@ -349,7 +328,7 @@ bool ChArchiveInJSON::in(ChNameValue<char> bVal) {
     if (!mval->IsInt()) {
         throw std::runtime_error("Invalid char code after '" + std::string(bVal.name()) + "'");
     }
-    bVal.value() = (char)mval->GetInt();
+    bVal.value() = static_cast<char>(mval->GetInt());
     return true;
 }
 
@@ -360,7 +339,7 @@ bool ChArchiveInJSON::in(ChNameValue<float> bVal) {
     if (!mval->IsNumber()) {
         throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
     }
-    bVal.value() = (float)mval->GetDouble();
+    bVal.value() = static_cast<float>(mval->GetDouble());
     return true;
 }
 
@@ -371,6 +350,7 @@ bool ChArchiveInJSON::in(ChNameValue<double> bVal) {
     if (!mval->IsNumber()) {
         throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
     }
+
     bVal.value() = mval->GetDouble();
     return true;
 }
@@ -577,19 +557,15 @@ bool ChArchiveInJSON::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, s
     } else {
         if (ref_ID) {
             if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
-                throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
-                                         std::to_string((int)ref_ID) + " is not a valid number.");
+                throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " + std::to_string((int)ref_ID) + " is not a valid number.");
             }
-            bVal.value().SetRawPtr(
-                ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
+            bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
 
         } else if (ext_ID) {
             if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
-                throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _external_ID " +
-                                         std::to_string((int)ext_ID) + " is not valid.");
+                throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _external_ID " + std::to_string((int)ext_ID) + " is not valid.");
             }
-            bVal.value().SetRawPtr(
-                ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
+            bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
 
         } else
             bVal.value().SetRawPtr(nullptr);

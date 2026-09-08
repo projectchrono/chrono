@@ -15,6 +15,7 @@
 #include "chrono/serialization/ChArchive.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/reader.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/filewritestream.h"
@@ -30,7 +31,7 @@ namespace chrono {
 /// Input stream should be kept valid for the entire lifespan of the archive class.
 class ChApi ChArchiveOutJSON : public ChArchiveOut {
   public:
-    ChArchiveOutJSON(std::ostream& stream_out);
+    ChArchiveOutJSON(std::ostream& stream_out, bool full_precision = true);
 
     virtual ~ChArchiveOutJSON();
 
@@ -60,18 +61,20 @@ class ChApi ChArchiveOutJSON : public ChArchiveOut {
     virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID);
 
   protected:
+    const bool m_full_precision;
     int tablevel;
     std::ostream& m_ostream;
     std::stack<int> nitems;
     std::stack<bool> is_array;
-    std::streamsize m_precision_saved;  ///< caller's stream precision, restored by the destructor
 };
 
 /// Deserialize objects using JSON format.
 /// Input stream should be kept valid for the entire lifespan of the archive class.
 class ChApi ChArchiveInJSON : public ChArchiveIn {
   public:
-    ChArchiveInJSON(std::istream& stream_in);
+    /// Deserialize from JSON stream.
+    /// Precision can be lowered (3 ULP) to achieve faster reading by setting full_precision = false.
+    ChArchiveInJSON(std::istream& stream_in, bool full_precision = true);
 
     virtual ~ChArchiveInJSON();
 

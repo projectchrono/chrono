@@ -6,17 +6,13 @@
 #include <sstream>
 #include <string>
 #include <cstring>
+#include <charconv>
 
 namespace chrono {
 
 ///////////////////////// ChArchiveOutXML /////////////////////////
 
-ChArchiveOutXML::ChArchiveOutXML(std::ostream& stream_out) : m_ostream(stream_out) {
-    // See the note in ChArchiveOutJSON's constructor: the default ostream precision of 6 significant
-    // digits makes a save/load cycle lossy, so ask for enough digits to read a double back exactly,
-    // and restore the caller's setting in the destructor.
-    m_precision_saved = m_ostream.precision(std::numeric_limits<double>::max_digits10);
-
+ChArchiveOutXML::ChArchiveOutXML(std::ostream& stream_out, bool full_precision) : m_ostream(stream_out), m_full_precision(full_precision) {
     tablevel = 0;
     nitems.push(0);
     is_array.push(false);
@@ -24,8 +20,6 @@ ChArchiveOutXML::ChArchiveOutXML(std::ostream& stream_out) : m_ostream(stream_ou
 ChArchiveOutXML::~ChArchiveOutXML() {
     nitems.pop();
     is_array.pop();
-
-    m_ostream.precision(m_precision_saved);
 }
 void ChArchiveOutXML::indent() {
     for (int i = 0; i < tablevel; ++i)
@@ -53,11 +47,13 @@ void ChArchiveOutXML::out(ChNameValue<float> bVal) {
     indent();
     // if (is_array.top() == false)
     m_ostream << "<" << bVal.name() << ">";
-    // See the note in ChArchiveOutJSON: a float needs nine digits, not the double's seventeen, so
-    // print it at its own precision rather than exposing eight digits of binary noise.
-    const std::streamsize saved = m_ostream.precision(std::numeric_limits<float>::max_digits10);
-    m_ostream << bVal.value();
-    m_ostream.precision(saved);
+    if (m_full_precision) {
+        char buffer[32];
+        auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), bVal.value());
+        m_ostream.write(buffer, ptr - buffer);
+    } else {
+        m_ostream << bVal.value();
+    }
     // if (is_array.top() == false)
     m_ostream << "</" << bVal.name() << ">\n";
     ++nitems.top();
@@ -66,7 +62,13 @@ void ChArchiveOutXML::out(ChNameValue<double> bVal) {
     indent();
     // if (is_array.top() == false)
     m_ostream << "<" << bVal.name() << ">";
-    m_ostream << bVal.value();
+    if (m_full_precision) {
+        char buffer[32];
+        auto [ptr, ec] = std::to_chars(buffer, buffer + sizeof(buffer), bVal.value());
+        m_ostream.write(buffer, ptr - buffer);
+    } else {
+        m_ostream << bVal.value();
+    }
     // if (is_array.top() == false)
     m_ostream << "</" << bVal.name() << ">\n";
     ++nitems.top();
@@ -245,6 +247,9 @@ void ChArchiveOutXML::out_ref(ChValue& bVal, bool already_inserted, size_t obj_I
     m_ostream << "</" << bVal.name() << ">\n";
     //}
 }
+
+///////////////////////// ChArchiveInXML /////////////////////////
+
 ChArchiveInXML::ChArchiveInXML(std::istream& stream_in) : m_istream(stream_in) {
     buffer.assign((std::istreambuf_iterator<char>(m_istream)), std::istreambuf_iterator<char>());
     buffer.push_back('\0');
@@ -268,9 +273,8 @@ ChArchiveInXML::ChArchiveInXML(std::istream& stream_in) : m_istream(stream_in) {
     try_tolerate_missing_tokens = false;
 }
 
-///////////////////////// ChArchiveInXML /////////////////////////
-
 ChArchiveInXML::~ChArchiveInXML() {}
+
 rapidxml::xml_node<>* ChArchiveInXML::GetValueFromNameOrArray(const std::string& mname) {
     rapidxml::xml_node<>* mnode = level->first_node(mname.c_str());
     if (!mnode)
@@ -303,22 +307,24 @@ bool ChArchiveInXML::in(ChNameValue<float> bVal) {
     rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
         return false;
-    try {
-        bVal.value() = std::stof(mval->value());
-    } catch (...) {
+
+    auto [ptr, ec] = std::from_chars(mval->value(), mval->value() + mval->value_size(), bVal.value());
+
+    if (ec != std::errc())
         throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
-    }
+
     return true;
 }
 bool ChArchiveInXML::in(ChNameValue<double> bVal) {
     rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
     if (!mval)
         return false;
-    try {
-        bVal.value() = std::stod(mval->value());
-    } catch (...) {
+
+    auto [ptr, ec] = std::from_chars(mval->value(), mval->value() + mval->value_size(), bVal.value());
+
+    if (ec != std::errc())
         throw std::runtime_error("Invalid number after '" + std::string(bVal.name()) + "'");
-    }
+
     return true;
 }
 bool ChArchiveInXML::in(ChNameValue<int> bVal) {
@@ -510,19 +516,15 @@ bool ChArchiveInXML::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, st
         } else {
             if (ref_ID) {
                 if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
-                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
-                                             std::to_string((int)ref_ID) + " is not a valid number.");
+                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _reference_ID " + std::to_string((int)ref_ID) + " is not a valid number.");
                 }
 
-                bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(),
-                                                             internal_id_ptr[ref_ID]));
+                bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
             } else if (ext_ID) {
                 if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
-                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _external_ID " +
-                                             std::to_string((int)ext_ID) + " is not valid.");
+                    throw std::runtime_error("In object '" + std::string(bVal.name()) + "' the _external_ID " + std::to_string((int)ext_ID) + " is not valid.");
                 }
-                bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(),
-                                                             external_id_ptr[ext_ID]));
+                bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
             } else
                 bVal.value().SetRawPtr(nullptr);
         }
