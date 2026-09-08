@@ -2055,6 +2055,16 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
             m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
         }
         m_fluid_dynamics->ProximitySearch();
+    } else {
+        // On a step without a proximity search the sorted arrays are not rebuilt from the original
+        // ones, so the solid BCE markers keep the velocity slot the previous step's boundary-condition
+        // kernel overwrote (CrmAdamiBC and CfdAdamiBC read the wall velocity from sortedVelMasD and
+        // write the extrapolated ghost velocity back into the same slot). Refresh the solid marker
+        // state from the current solid poses so the kernel reads a wall velocity, not its own output.
+        // Each update returns at once when there are no solids of its kind.
+        m_bce_mgr->UpdateBodyMarkerState();
+        m_bce_mgr->UpdateMeshMarker1DState();
+        m_bce_mgr->UpdateMeshMarker2DState();
     }
 
     // Zero-out step data (derivatives and intermediate vectors)
