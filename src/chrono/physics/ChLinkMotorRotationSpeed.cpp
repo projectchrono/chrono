@@ -50,7 +50,7 @@ void ChLinkMotorRotationSpeed::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotorRotation::Update(time, update_flags);
 
-    // Override the rotational jacobian [Cq] and the rotational residual C,
+    // Override the rotational Jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:
 
     if (m_body1 && m_body2) {
@@ -74,9 +74,8 @@ void ChLinkMotorRotationSpeed::Update(double time, UpdateFlags update_flags) {
 
         ChFrame<> aframe1rotating2 = aframe2.TransformParentToLocal(aframe1rotating);
 
-        // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        P = 0.5 *
-            (ChMatrix33<>(aframe1rotating2.GetRot().e0()) + ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
+        // Pre-multiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
+        P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) + ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
 
         ChMatrix33<> Jw1 = P.transpose() * aframe2.GetRotMat().transpose() * m_body1->GetRotMat();
         ChMatrix33<> Jw2 = -P.transpose() * aframe2.GetRotMat().transpose() * m_body2->GetRotMat();
@@ -148,20 +147,16 @@ void ChLinkMotorRotationSpeed::LoadKRMMatrices(double Kfactor, double Rfactor, d
         ChMatrixDynamic<> Km;
         Km.setZero(12, 12);
         Km.block<3, 3>(0, 9) = -R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
-        Km.block<3, 3>(3, 3) =
-            rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W +
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(P * gamma_m) * R_F2_W.transpose() * R_B1_W;
-        Km.block<3, 3>(3, 9) =
-            -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W -
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(P * gamma_m) * R_F2_W.transpose() * R_B2_W;
+        Km.block<3, 3>(3, 3) = rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W +
+                               R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(P * gamma_m) * R_F2_W.transpose() * R_B1_W;
+        Km.block<3, 3>(3, 9) = -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W -
+                               R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(P * gamma_m) * R_F2_W.transpose() * R_B2_W;
         Km.block<3, 3>(6, 9) = R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
 
         Km.block<3, 3>(9, 0) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Km.block<3, 3>(9, 3) =
-            -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W * rtilde_F1_B1;
+        Km.block<3, 3>(9, 3) = -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W * rtilde_F1_B1;
         Km.block<3, 3>(9, 6) = -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Km.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W *
-                               ChStarMatrix33<>(P12_B2 + r_F2_B2);
+        Km.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W * ChStarMatrix33<>(P12_B2 + r_F2_B2);
 
         // Recover the quaternion of the shadow frame 'aframe1rotating2' from the projection matrix P
         ChQuaternion<> q_F1M_F2;
@@ -173,8 +168,7 @@ void ChLinkMotorRotationSpeed::LoadKRMMatrices(double Kfactor, double Rfactor, d
         ChVector3d v_F1M_F2 = q_F1M_F2.GetVector();
         ChMatrix33<> I33;
         I33.setIdentity();
-        ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1M_F2) -
-                         0.25 * ChStarMatrix33<>(gamma_m) * (s_F1M_F2 * I33 + ChStarMatrix33<>(v_F1M_F2));
+        ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1M_F2) - 0.25 * ChStarMatrix33<>(gamma_m) * (s_F1M_F2 * I33 + ChStarMatrix33<>(v_F1M_F2));
 
         // Stabilization part
         ChMatrixDynamic<> Ks;
@@ -261,10 +255,7 @@ void ChLinkMotorRotationSpeed::IntLoadResidual_Mv(const unsigned int off,      /
     R(off) += c * 1.0 * w(off);
 }
 
-void ChLinkMotorRotationSpeed::IntLoadLumpedMass_Md(const unsigned int off,
-                                                    ChVectorDynamic<>& Md,
-                                                    double& err,
-                                                    const double c) {
+void ChLinkMotorRotationSpeed::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     Md(off) += c * 1.0;
 }
 
