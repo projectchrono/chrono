@@ -730,8 +730,8 @@ void ChWheelTestRigBase::SetWheelActiveDomain(const ChAABB& aabb) {
 
 void ChWheelTestRigBase::SetWheelActiveDomain() {
     auto corner = ChVector3d(m_wheel_assembly->GetRadius(), m_wheel_assembly->GetWidth() / 2, m_wheel_assembly->GetRadius());
-    m_wheel_AABB.min = -1.25 * corner;
-    m_wheel_AABB.max = +1.25 * corner;
+    m_wheel_AABB.min = -2.5 * corner;
+    m_wheel_AABB.max = +2.5 * corner;
 }
 
 void ChWheelTestRigBase::CreateTerrainCRM() {

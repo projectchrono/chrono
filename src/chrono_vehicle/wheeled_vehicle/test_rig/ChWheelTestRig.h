@@ -296,9 +296,9 @@ class CH_VEHICLE_API ChWheelTestRigBase {
     void SetWheelActiveDomain(const ChAABB& aabb);
 
     /// Set a single active domain of estimated dimensions associated with the entire wheel assembly (CRM terrain only).
-    /// The default size is based on the wheel AABB inflated by 25%.
-    /// This active AABB is associated with the hub body. If the wheel assembly has multiple bodies,
-    /// it may be more efficient to set CRM active domains for each body individually.
+    /// The default size is 2.5 times the wheel AABB.
+    /// This active AABB is associated with the hub body. If the wheel assembly has multiple bodies, it may be more
+    /// efficient to set CRM active domains for each body individually.
     void SetWheelActiveDomain();
 
 #endif
