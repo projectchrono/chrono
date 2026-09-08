@@ -12,6 +12,7 @@ Change Log
   - [\[Changed\] Refactoring of Chrono output and checkpointing](#changed-refactoring-of-chrono-output-and-checkpointing)
   - [\[Changed\] Chrono::FSI-SPH API and terminology](#changed-chronofsi-sph-api-and-terminology)
   - [\[Added\] AMD GPU support and vendor-agnostic GPU layer](#added-amd-gpu-support-and-vendor-agnostic-gpu-layer)
+  - [\[Added\] Metal ray-tracing backend in Chrono::Sensor](#added-metal-ray-tracing-backend-in-chronosensor)
   - [\[Added\] Vulkan ray-tracing backend in Chrono::Sensor](#added-vulkan-ray-tracing-backend-in-chronosensor)
   - [\[Added\] Rounded shapes and visual shape type queries](#added-rounded-shapes-and-visual-shape-type-queries)
   - [\[Added\] New geometry and collision utilities](#added-new-geometry-and-collision-utilities)
@@ -355,6 +356,25 @@ version actually found is reported instead of the one Chrono was built with.
 Chrono was also updated for CUDA 13.x (including Thrust/CCCL 3.x), GCC 15, and the IntelLLVM
 compiler. Documentation was added covering ROCm/HIP installation, Chrono::FSI CUDA/HIP requirements,
 and tuning of the Chrono::FSI-SPH demos on AMD Instinct hardware.
+
+## [Added] Metal ray-tracing backend in Chrono::Sensor
+
+Chrono::Sensor gained a third rendered-sensor backend, built on Apple's Metal ray-tracing API and
+enabled with the CMake option `CH_USE_SENSOR_METAL_RT` (on by default on Apple platforms, where it is
+the only option: OptiX requires CUDA and MoltenVK does not implement the Vulkan ray-tracing
+extensions). It covers the RGB, depth, normal, segmentation and physical cameras, lidar and radar.
+
+`ChMetalRTScene` mirrors the public surface of `ChOptixScene`, so a program that configures lights,
+background, fog and environment maps through `manager->scene` compiles unchanged against whichever
+backend the build selected. Shading targets parity with the OptiX backend rather than a separate
+look, including rectangle and disk area lights and the shared `ChVisualMaterial::Default()` shading
+of shapes that carry no material.
+
+The sensor demos, the sensor-equipped Viper and Curiosity SCM demos, and the sensor unit tests that
+only exercise the public API now build on any render backend rather than on OptiX alone, gated on
+the new `CH_SENSOR_HAS_RENDER_BACKEND` rather than on a particular one. `verify_render_math` checks
+rendered images against analytically computed ground truth, and `utest_SEN_metal_stochastic` asserts
+statistically on the features that are stochastic by construction.
 
 ## [Added] Vulkan ray-tracing backend in Chrono::Sensor
 

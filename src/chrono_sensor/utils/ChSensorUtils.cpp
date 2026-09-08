@@ -20,7 +20,7 @@
 namespace chrono {
 namespace sensor {
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 
 std::string CameraLensModelTypeAsString(CameraLensModelType type) {
     switch (type) {
@@ -94,7 +94,7 @@ std::string LightTypeAsString(LightType type) {
 
 #endif
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 #endif
 
 }  // namespace sensor

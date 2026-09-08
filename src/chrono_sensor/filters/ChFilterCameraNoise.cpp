@@ -18,11 +18,11 @@
 
 #include "chrono_sensor/filters/ChFilterCameraNoise.h"
 
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
-#include <algorithm>
-#include <cmath>
-#include <random>
+    #include <algorithm>
+    #include <cmath>
+    #include <random>
 
 namespace chrono {
 namespace sensor {

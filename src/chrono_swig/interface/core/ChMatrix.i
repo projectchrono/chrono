@@ -484,8 +484,14 @@ def __matr_getitem(self,index):
 
 setattr(ChMatrixDynamicd, "__getitem__", __matr_getitem)
 setattr(ChMatrixDynamicd, "__setitem__", __matr_setitem)
+%}
 
+// NOTE: SWIG does not run its preprocessor inside a %pythoncode block, so an #ifdef
+// placed there is emitted verbatim into the generated module as a Python comment and
+// guards nothing. Close the block and test the macro at the interface level instead.
 #ifdef CHRONO_PYTHON_NUMPY
+%pythoncode %{
+
 def __matrdyn_array__(self, dtype=None):
     import numpy as np
     a = self.to_numpy()
@@ -498,8 +504,8 @@ def __matr66_array__(self, dtype=None):
 
 setattr(ChMatrixDynamicd, "__array__", __matrdyn_array__)
 setattr(ChMatrix66d, "__array__", __matr66_array__)
-#endif
 %}
+#endif
 
 #endif             // --------------------------------------------------------------------- PYTHON
 
