@@ -9,9 +9,10 @@
 // Not a name-for-name mapping: hipHostMalloc(p, n) is cudaHostAlloc(p, n, flags).
 // synchronous upload/run (v1 -- see SCMRaycastGpu.h for why this isn't pipelined yet).
 //
-// Supports two kernel precisions (ScmRaycastGpuPrecision): FP64, the validated default, and FP32, added for GPUs with weak double-precision throughput --
-// notably consumer NVIDIA cards (e.g. RTX 4080/5090), unlike this project's AMD MI300X target, a proper
-// datacenter part with strong FP64. The public API types (SCMRaycastGpuTypes.h) stay double-precision
+// Supports two kernel precisions (ScmRaycastGpuPrecision). FP32 is the default on every backend and
+// target -- see DesiredRaycastGpuPrecision in SCMTerrainRaycastGpu.cpp -- and it is also what makes
+// this usable on GPUs with weak double-precision throughput, notably consumer NVIDIA cards (e.g. RTX
+// 4080/5090) as opposed to a datacenter part with strong FP64 such as the MI300X. The public API types (SCMRaycastGpuTypes.h) stay double-precision
 // throughout -- Chrono itself is double internally -- this file downcasts to float on upload and
 // upconverts results back to double when precision == kFP32, so callers (SCMTerrainRaycastGpu.cpp)
 // don't need to know or care which precision is active.

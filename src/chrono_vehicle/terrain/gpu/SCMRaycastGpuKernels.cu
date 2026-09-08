@@ -13,13 +13,16 @@
 // ~2400-3400 x kThreadsPerRay threads, without changing the total amount of work
 // (queries x triangles) or the algorithm itself.
 //
-// Templated on Real (double or float) so the same kernel logic runs at either precision. double is the
-// validated default for this project's AMD MI300X target. float is offered for GPUs with weak double-precision throughput -- notably consumer NVIDIA
-// cards (RTX 4080/5090-class), where FP64 is deliberately throttled relative to FP32 (unlike MI300X, a
-// proper datacenter part) -- so a straight double-precision port would be correct there but far slower
-// than it needs to be. Both precisions are exported (scm_launch_raycast_fp64 / _fp32); the host bridge
-// (SCMRaycastGpuHost.cpp) selects one per-context based on ScmRaycastGpuPrecision, which
-// SCMTerrainRaycastGpu.cpp defaults by which HIP platform (AMD vs NVIDIA) this build targets.
+// Templated on Real (double or float) so the same kernel logic runs at either precision. FP32 is the
+// default, on every backend and every target: making it depend on the hardware would let the same
+// model diverge between machines, which is worse than the precision itself. See the comment on
+// DesiredRaycastGpuPrecision in SCMTerrainRaycastGpu.cpp for the validation behind that choice.
+// FP32 also matters on GPUs with weak double-precision throughput -- notably consumer NVIDIA cards
+// (RTX 4080/5090-class), where FP64 is deliberately throttled relative to FP32, unlike a datacenter
+// part such as the MI300X -- so a double-only port would be correct there but far slower than it
+// needs to be. Both precisions are exported (scm_launch_raycast_fp64 / _fp32) and the host bridge
+// (SCMRaycastGpuHost.cpp) selects one per context from ScmRaycastGpuPrecision; env
+// SCM_RAYCAST_GPU_PRECISION=fp32|fp64 overrides the default at run time.
 //
 // Includes the empirically-determined margin-correction sign; an exact match to Bullet's hit set is
 // not the goal.
