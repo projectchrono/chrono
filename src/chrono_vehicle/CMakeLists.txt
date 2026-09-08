@@ -40,13 +40,11 @@ set(CH_USE_SCM_GPU OFF)
 # the module builds fine with no GPU backend at all, and only the optional SCM
 # GPU path needs one. The kernels are backend-neutral (single-source .cu compiled as
 # CUDA or HIP) and the host bridges are duplicated per backend under terrain/gpu/cuda
-# and terrain/gpu/hip, so either toolchain is sufficient. Both HIP platforms remain
-# acceptable: nothing here uses the ROCm-only libraries that restrict Chrono::DEM and
-# Chrono::FSI::SPH to the amd platform. Both HIP platforms are accepted: nothing here depends on
-# the ROCm-only libraries (hipCUB/rocPRIM, rocThrust) that restrict
-# Chrono::DEM and Chrono::FSI::SPH to the amd platform. So "HIP + ROCm on AMD"
-# and "HIP + nvcc on NVIDIA" both give the GPU path with no further
-# configuration.
+# and terrain/gpu/hip, so either toolchain is sufficient. Both HIP platforms are
+# accepted: nothing here depends on the ROCm-only libraries (hipCUB/rocPRIM,
+# rocThrust) that restrict Chrono::DEM and Chrono::FSI::SPH to the amd
+# platform. So "HIP + ROCm on AMD" and "HIP + nvcc on NVIDIA" both give the GPU
+# path with no further configuration.
 if(CH_ENABLE_VEHICLE_SCM_GPU)
 
   chrono_select_gpu_backend(CHRONO_VEHICLE_SCM_BACKEND
