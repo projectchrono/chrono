@@ -1751,8 +1751,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     CheckSPHParameters();
 
-    // Mark the fluid system as initialized. This arms the configuration-setter guards
-    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    // Mark the fluid system as initialized.
     m_is_initialized = true;
 }
 
@@ -1964,8 +1963,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     CheckSPHParameters();
 
-    // Mark the fluid system as initialized. This arms the configuration-setter guards
-    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    // Mark the fluid system as initialized.
     m_is_initialized = true;
 }
 
