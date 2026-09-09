@@ -104,7 +104,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_ppst_pull;                     ///< shifting beta coefficient (default: 1.0)
         double shifting_beta_implicit;                 ///< shifting coefficient used in implicit solver (default: 1.0)
         double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 1.0, range 1 to 6)
-        double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 3.0)
+        double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 2.9)
         double shifting_diffusion_AFST;                ///< shifting coefficient used in diffusion (default: 2.0)
         double min_distance_coefficient;               ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;                      ///< number of steps between density re-initializations (default: 2e8)
@@ -117,7 +117,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double free_surface_threshold;                 ///< threshold for identifying free surface. The divergence of the position
                                                        ///< field is computed and compared to this threshold. Particles with divergence
                                                        ///< less than this threshold are considered free surface particles (CRM only,
-                                                       ///< default: 2.0)
+                                                       ///< default: 2.4)
         int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 1)
         bool use_variable_time_step;                   ///< use variable time step (default: false)
 
