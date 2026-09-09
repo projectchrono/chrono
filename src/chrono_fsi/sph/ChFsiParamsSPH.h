@@ -168,8 +168,9 @@ struct ChFsiParamsSPH {
     Real Coh_coeff;               ///< Cohesion coefficient
     Real free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
     ///< field is computed and compared to this threshold. Particles with divergence
-    ///< less than this threshold are considered free surface particles (CRM only,
-    ///< default: 2.4)
+    ///< less than this threshold are considered free surface particles. Evaluated for
+    ///< both CFD and CRM problems, but currently only the CRM solution consumes the
+    ///< result (the stress state is zeroed at flagged particles); default: 2.4
     Real mcc_M;         ///< Cam-Clay critical state line slope, q = M p
     Real mcc_kappa;     ///< Cam-Clay swelling index: slope of the elastic unload/reload line in
                         ///< v-ln(p). Sets the elastic bulk modulus, K = v p / kappa.

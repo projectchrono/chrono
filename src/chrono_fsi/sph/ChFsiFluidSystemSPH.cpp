@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-//// TODO:
-////   - use ChFsiParamsSPH::free_surface_threshold (kernel threshold) for both CFD and CRM (currently, only CRM)
-
 //// #define DEBUG_LOG
 
 #include <cmath>
