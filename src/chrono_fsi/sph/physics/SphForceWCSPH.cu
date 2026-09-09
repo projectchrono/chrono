@@ -35,8 +35,12 @@ void CopyParametersToDevice_SphForceWCSPH(std::shared_ptr<ChFsiParamsSPH> params
 
 // =============================================================================
 
-__device__ __inline__ void
-calc_G_Matrix(Real4* sortedPosRad, Real3* sortedVelMas, Real4* sortedRhoPreMu, Real* G_i, const uint* numNeighborsPerPart, const uint* neighborList, const uint numActive) {
+__device__ __inline__ void calc_G_Matrix(const Real4* __restrict__ sortedPosRad,
+                                         const Real4* __restrict__ sortedRhoPreMu,
+                                         Real* G_i,
+                                         const uint* __restrict__ numNeighborsPerPart,
+                                         const uint* __restrict__ neighborList,
+                                         const uint numActive) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -103,13 +107,12 @@ calc_G_Matrix(Real4* sortedPosRad, Real3* sortedVelMas, Real4* sortedRhoPreMu, R
     }
 }
 
-__device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
-                                         Real3* sortedVelMas,
-                                         Real4* sortedRhoPreMu,
+__device__ __inline__ void calc_A_Matrix(const Real4* __restrict__ sortedPosRad,
+                                         const Real4* __restrict__ sortedRhoPreMu,
                                          Real* A_i,
                                          Real* G_i,
-                                         const uint* numNeighborsPerPart,
-                                         const uint* neighborList,
+                                         const uint* __restrict__ numNeighborsPerPart,
+                                         const uint* __restrict__ neighborList,
                                          const uint numActive) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
@@ -176,14 +179,13 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
     }
 }
 
-__device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
-                                         Real3* sortedVelMas,
-                                         Real4* sortedRhoPreMu,
+__device__ __inline__ void calc_L_Matrix(const Real4* __restrict__ sortedPosRad,
+                                         const Real4* __restrict__ sortedRhoPreMu,
                                          Real* A_i,
                                          Real* L_i,
                                          Real* G_i,
-                                         const uint* numNeighborsPerPart,
-                                         const uint* neighborList,
+                                         const uint* __restrict__ numNeighborsPerPart,
+                                         const uint* __restrict__ neighborList,
                                          const uint numActive) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
@@ -1165,7 +1167,7 @@ __device__ inline Real4 CrmCalcDvDt_D(const Real W_ini_inv,
 }
 
 __global__ void CrmCalcRHS_D(const Real4* __restrict__ sortedPosRad,
-                             const Real3* sortedVelMas,
+                             const Real3* __restrict__ sortedVelMas,
                              const Real4* __restrict__ sortedRhoPreMu,
                              const Real3* __restrict__ sortedTauXxYyZz,
                              const Real3* __restrict__ sortedTauXyXzYz,
@@ -1369,7 +1371,8 @@ void SphForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
 // CfdCalcRHS
 // -----------------------------------------------------------------------------
 
-__device__ inline Real4 CfdCalcDvDt_D(Real3 gradW, Real3 dist3, Real d, Real4 posRadA, Real4 posRadB, Real3 velMasA, Real3 velMasB, Real4 rhoPresMuA, Real4 rhoPresMuB, Real* max_vel_diff) {
+__device__ inline Real4
+CfdCalcDvDt_D(Real3 gradW, Real3 dist3, Real d, Real4 posRadA, Real4 posRadB, Real3 velMasA, Real3 velMasB, Real4 rhoPresMuA, Real4 rhoPresMuB, Real* max_vel_diff) {
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0);
 
@@ -1421,18 +1424,17 @@ __device__ inline Real4 CfdCalcDvDt_D(Real3 gradW, Real3 dist3, Real d, Real4 po
 }
 
 // Implementation of the Navier-Stokes equations for CFD
-__global__ void CfdCalcRHS_D(Real4* sortedDerivVelRho,
-                             Real4* sortedPosRad,
-                             Real3* sortedVelMas,
-                             Real4* sortedRhoPreMu,
-                             uint* gridMarkerIndex,
-                             const uint* numNeighborsPerPart,
-                             const uint* neighborList,
+__global__ void CfdCalcRHS_D(Real4* __restrict__ sortedDerivVelRho,
+                             const Real4* __restrict__ sortedPosRad,
+                             const Real3* __restrict__ sortedVelMas,
+                             const Real4* __restrict__ sortedRhoPreMu,
+                             const uint* __restrict__ numNeighborsPerPart,
+                             const uint* __restrict__ neighborList,
                              const uint numActive,
                              uint* __restrict__ sortedFreeSurfaceIdD,
                              Real* __restrict__ sortedPosDivergence,
-                             Real* courantViscousTimeStep,
-                             Real* accelerationTimeStep,
+                             Real* __restrict__ courantViscousTimeStep,
+                             Real* __restrict__ accelerationTimeStep,
                              volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
@@ -1461,12 +1463,12 @@ __global__ void CfdCalcRHS_D(Real4* sortedDerivVelRho,
     Real G_i[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     Real L_i[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     if (paramsD.use_consistent_gradient_discretization)
-        calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, numNeighborsPerPart, neighborList, numActive);
+        calc_G_Matrix(sortedPosRad, sortedRhoPreMu, G_i, numNeighborsPerPart, neighborList, numActive);
 
     if (paramsD.use_consistent_laplacian_discretization) {
         Real A_i[27] = {0};
-        calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList, numActive);
-        calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList, numActive);
+        calc_A_Matrix(sortedPosRad, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList, numActive);
+        calc_L_Matrix(sortedPosRad, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList, numActive);
     }
     float Gi[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     float Li[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
@@ -1597,9 +1599,9 @@ void SphForceWCSPH::CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
 
     computeGridSize(numActive, 256, numBlocks, numThreads);
     CfdCalcRHS_D<<<numBlocks, numThreads>>>(mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-                                            mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.numNeighborsPerPart),
-                                            U1CAST(m_data_mgr.neighborList), numActive, U1CAST(m_data_mgr.freeSurfaceIdD), R1CAST(m_data_mgr.posDivergenceD),
-                                            R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
+                                            mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive,
+                                            U1CAST(m_data_mgr.freeSurfaceIdD), R1CAST(m_data_mgr.posDivergenceD), R1CAST(m_data_mgr.courantViscousTimeStepD),
+                                            R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
 
     if (m_check_errors)
         gpuCheckErrorFlag(m_errflagD, "CfdCalcRHS_D");
