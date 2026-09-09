@@ -1195,7 +1195,6 @@ __global__ void CrmCalcRHS_D(const Real4* __restrict__ sortedPosRad,
     Real3 TauXxYyZzA = sortedTauXxYyZz[index];
     Real3 TauXyXzYzA = sortedTauXyXzYz[index];
     Real4 derivVelRho = mR4(0);
-    Real3 deltaV = mR3(0);
 
     Real tauxx = sortedTauXxYyZz[index].x;
     Real tauyy = sortedTauXxYyZz[index].y;
@@ -1329,7 +1328,7 @@ __global__ void CrmCalcRHS_D(const Real4* __restrict__ sortedPosRad,
     }
 
     if (!IsFinite(derivVelRho)) {
-        printf("ERROR (CrmCalcRHS_D): particle derivVel is NaN.\n");
+        printf("ERROR (CrmCalcRHS_D): particle derivVelRho is NaN.\n");
         *error_flag = true;
     }
 
@@ -1369,11 +1368,9 @@ void SphForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
 // CfdCalcRHS
 // -----------------------------------------------------------------------------
 
-__device__ inline Real4 CfdCalcDvDt_D(Real3 dist3, Real d, Real4 posRadA, Real4 posRadB, Real3 velMasA, Real3 velMasB, Real4 rhoPresMuA, Real4 rhoPresMuB, Real* max_vel_diff) {
+__device__ inline Real4 CfdCalcDvDt_D(Real3 gradW, Real3 dist3, Real d, Real4 posRadA, Real4 posRadB, Real3 velMasA, Real3 velMasB, Real4 rhoPresMuA, Real4 rhoPresMuB, Real* max_vel_diff) {
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0);
-
-    Real3 gradW = GradW3h(paramsD.kernel_type, dist3, paramsD.ooh);
 
     // Continuity equation
     Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW);
@@ -1431,6 +1428,7 @@ __global__ void CfdCalcRHS_D(Real4* sortedDerivVelRho,
                              const uint* numNeighborsPerPart,
                              const uint* neighborList,
                              const uint numActive,
+                             uint* __restrict__ sortedFreeSurfaceIdD,
                              Real* courantViscousTimeStep,
                              Real* accelerationTimeStep,
                              volatile bool* error_flag) {
@@ -1502,6 +1500,8 @@ __global__ void CfdCalcRHS_D(Real4* sortedDerivVelRho,
     Real sum_w_i = W3h(paramsD.kernel_type, 0, paramsD.ooh) * paramsD.volume0;
     Real max_vel_diff = 0;
 
+    Real nabla_r = 0;
+
     for (int n = NLStart; n < NLEnd; n++) {
         uint j = neighborList[n];
         if (j == index) {
@@ -1520,13 +1520,18 @@ __global__ void CfdCalcRHS_D(Real4* sortedDerivVelRho,
 
         Real d = length(dist3);
 
-        // modifyPressure(rhoPresMuB, dist3Alpha);
-        // if (!IsFinite(rhoPresMuB)) {
-        //     printf("Error! particle rhoPresMuB is NAN: thrown from modifyPressure !\n");
-        // }
+        Real3 gradW = GradW3h(paramsD.kernel_type, dist3, paramsD.ooh);
+        if (d > paramsD.h * Real(1.0e-9))
+            nabla_r += paramsD.volume0 * dot(-dist3, gradW);
+
+        ////modifyPressure(rhoPresMuB, dist3Alpha);
+        ////if (!IsFinite(rhoPresMuB)) {
+        ////    printf("ERROR (CfdCalcRHS_D): particle rhoPresMuB is NaN.\n");
+        ////    *error_flag = true;
+        ////}
         Real3 velMasB = sortedVelMas[j];
 
-        derivVelRho += CfdCalcDvDt_D(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, &max_vel_diff);
+        derivVelRho += CfdCalcDvDt_D(gradW, dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, &max_vel_diff);
 
         if (paramsD.use_consistent_gradient_discretization && paramsD.use_consistent_laplacian_discretization) {
             preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y, rhoPresMuB.y, rhoPresMuA, rhoPresMuB);
@@ -1558,8 +1563,11 @@ __global__ void CfdCalcRHS_D(Real4* sortedDerivVelRho,
         }
     }
 
+    // Identify free-surface particles using the divergence of the position field
+    sortedFreeSurfaceIdD[index] = (nabla_r < paramsD.free_surface_threshold) ? 1 : 0;
+
     if (!IsFinite(derivVelRho)) {
-        printf("ERROR (CfdCalcRHS_D): particle derivVel is NaN.\n");
+        printf("ERROR (CfdCalcRHS_D): particle derivVelRho is NaN.\n");
         *error_flag = true;
     }
 
@@ -1585,7 +1593,8 @@ void SphForceWCSPH::CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
     computeGridSize(numActive, 256, numBlocks, numThreads);
     CfdCalcRHS_D<<<numBlocks, numThreads>>>(mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
                                             mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.numNeighborsPerPart),
-                                            U1CAST(m_data_mgr.neighborList), numActive, R1CAST(m_data_mgr.courantViscousTimeStepD), R1CAST(m_data_mgr.accelerationTimeStepD),
+                                            U1CAST(m_data_mgr.neighborList), numActive, U1CAST(m_data_mgr.freeSurfaceIdD), R1CAST(m_data_mgr.courantViscousTimeStepD),
+                                            R1CAST(m_data_mgr.accelerationTimeStepD),
                                             m_errflagD);
 
     if (m_check_errors)
