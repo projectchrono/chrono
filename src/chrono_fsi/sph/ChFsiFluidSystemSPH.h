@@ -103,9 +103,14 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_ppst_push;                     ///< PPST pushing coefficient (default: 3.0)
         double shifting_ppst_pull;                     ///< shifting beta coefficient (default: 1.0)
         double shifting_beta_implicit;                 ///< shifting coefficient used in implicit solver (default: 1.0)
-        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 1.0, range 1 to 6)
-        double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 2.9)
-        double shifting_diffusion_AFST;                ///< shifting coefficient used in diffusion (default: 2.0)
+        double shifting_diffusion_A;                   ///< Fickian shifting coefficient, scaling the shifting velocity driven by
+                                                       ///< the discrete gradient of particle concentration (default: 1.0, range 1 to 6)
+        double shifting_diffusion_AFSM;                ///< upper anchor of the free-surface taper on diffusion shifting: particles
+                                                       ///< whose position-field divergence reaches AFSM get the full shift, and
+                                                       ///< between AFST and AFSM the shift ramps linearly (default: 2.9)
+        double shifting_diffusion_AFST;                ///< lower anchor of the free-surface taper on diffusion shifting: particles
+                                                       ///< whose position-field divergence is at or below AFST are not shifted
+                                                       ///< (default: 2.0)
         double min_distance_coefficient;               ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;                      ///< number of steps between density re-initializations (default: 2e8)
         bool use_density_based_projection;             ///< (ISPH only, default: false)

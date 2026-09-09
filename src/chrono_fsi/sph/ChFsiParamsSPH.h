@@ -87,9 +87,16 @@ struct ChFsiParamsSPH {
                                    ///< sphere is detected
     Real shifting_ppst_pull;       ///< Coefficient for PPST pulling - this is applied when penetration with fictitious
     Real shifting_beta_implicit;   ///< Coefficient for shifting used in implicit scheme
-    Real shifting_diffusion_A;     ///< TODO: Add documentation
-    Real shifting_diffusion_AFSM;  ///< TODO: Add documentation
-    Real shifting_diffusion_AFST;  ///< TODO: Add documentation
+    Real shifting_diffusion_A;     ///< Fickian shifting coefficient. Scales the shifting velocity
+                                   ///< -A h |v_i| sum_j (m_j / rho_j) grad W_ij, whose sum is the discrete
+                                   ///< gradient of particle concentration (default: 1.0, range 1 to 6)
+    Real shifting_diffusion_AFSM;  ///< Upper anchor of the free-surface taper applied to diffusion
+                                   ///< shifting. Particles whose position-field divergence reaches AFSM are
+                                   ///< given the full shift; between AFST and AFSM the shift ramps linearly.
+                                   ///< Complete 3D kernel support yields about 2.9 (default: 2.9)
+    Real shifting_diffusion_AFST;  ///< Lower anchor of the free-surface taper applied to diffusion
+                                   ///< shifting. Particles whose position-field divergence is at or below
+                                   ///< AFST are not shifted at all (default: 2.0)
 
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to
               ///< use is to run simulations multiple time and find which one is the largest dT that produces a
