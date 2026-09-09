@@ -50,27 +50,54 @@ namespace scm_bench {
 /// does not name its backend cannot be compared against anything, so every test calls this and the
 /// backend name appears above the results.
 ///
-/// SCM_BENCH_GPU=0 forces the CPU path in a GPU-capable build, which is how the CPU column of the
-/// baseline table is produced without reconfiguring.
+/// SCM_BENCH_RAYCAST selects among three paths, which is more than a convenience:
+///
+///   gpu  (default)  the GPU backend
+///   ref             the GPU backend's ray set, computed on the CPU (EnableRaycastGpuReference)
+///   cpu             Chrono's default ray-cast loop
+///
+/// `ref` exists because `cpu` is NOT a controlled comparison against `gpu`. The two build different
+/// ray sets -- the default loop casts per contact-patch node, the GPU path per active-domain node --
+/// so they differ severalfold in SCM_Rays and cannot be divided into a speedup. `ref` casts exactly
+/// the rays the GPU casts, so gpu-vs-ref isolates the executor, and cpu remains the reference for
+/// what a default Chrono build actually does.
+///
+/// SCM_BENCH_GPU=0 is accepted as a synonym for SCM_BENCH_RAYCAST=cpu.
 inline void SelectRaycastBackend(chrono::vehicle::SCMTerrain& terrain, bool has_active_domains) {
-    const char* e = std::getenv("SCM_BENCH_GPU");
-    const bool want_gpu = !(e && std::string(e) == "0");
+    std::string mode = "gpu";
+    if (const char* e = std::getenv("SCM_BENCH_RAYCAST"))
+        mode = e;
+    else if (const char* g = std::getenv("SCM_BENCH_GPU"))
+        mode = (std::string(g) == "0") ? "cpu" : "gpu";
+
+    if (mode == "ref") {
+        terrain.EnableRaycastGpuReference(true);
+#ifdef CHRONO_HAS_SCM_GPU
+        terrain.EnableRaycastGpuHip(false);
+#endif
+        std::cout << "SCM ray-cast backend: REF (GPU ray set, computed on the CPU)"
+                  << (has_active_domains ? "" : " -- NO ACTIVE DOMAINS, will fall back") << std::endl;
+        return;
+    }
+
+    const bool want_gpu = (mode == "gpu");
+    if (!want_gpu && mode != "cpu") {
+        std::cout << "SCM_BENCH_RAYCAST=" << mode << " is not one of gpu|ref|cpu" << std::endl;
+        std::exit(1);
+    }
 
 #ifdef CHRONO_HAS_SCM_GPU
     terrain.EnableRaycastGpuHip(want_gpu);
     if (!want_gpu)
-        std::cout << "SCM ray-cast backend: CPU (SCM_BENCH_GPU=0)" << std::endl;
+        std::cout << "SCM ray-cast backend: CPU (default loop)" << std::endl;
     else if (!has_active_domains)
         std::cout << "SCM ray-cast backend: CPU (no active domains declared)" << std::endl;
     else
         std::cout << "SCM ray-cast backend: GPU" << std::endl;
 #else
-    (void)terrain;
     (void)has_active_domains;
-    if (want_gpu)
-        std::cout << "SCM ray-cast backend: CPU (built without the SCM GPU backend)" << std::endl;
-    else
-        std::cout << "SCM ray-cast backend: CPU" << std::endl;
+    std::cout << "SCM ray-cast backend: CPU"
+              << (want_gpu ? " (built without the SCM GPU backend)" : " (default loop)") << std::endl;
 #endif
 }
 
