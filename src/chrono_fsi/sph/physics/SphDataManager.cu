@@ -382,6 +382,7 @@ void FsiDataManager::ResetData() {
     thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), zero4);
     thrust::fill(derivVelRhoOriginalD.begin(), derivVelRhoOriginalD.end(), zero4);
     thrust::fill(freeSurfaceIdD.begin(), freeSurfaceIdD.end(), 0);
+    thrust::fill(posDivergenceD.begin(), posDivergenceD.end(), Real(0));
 
     thrust::fill(vel_XSPH_D.begin(), vel_XSPH_D.end(), zero3);
 
@@ -427,6 +428,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         sortedSphMarkers1_D->tauXyXzYzD.reserve(new_capacity);
         sortedSphMarkers1_D->pcEvSvD.reserve(new_capacity);
         freeSurfaceIdD.reserve(new_capacity);
+        posDivergenceD.reserve(new_capacity);
         vel_XSPH_D.reserve(new_capacity);
         courantViscousTimeStepD.reserve(new_capacity);
         accelerationTimeStepD.reserve(new_capacity);
@@ -460,6 +462,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
     derivTauXxYyZzD.resize(numExtended);
     derivTauXyXzYzD.resize(numExtended);
     freeSurfaceIdD.resize(numExtended);
+    posDivergenceD.resize(numExtended);
     vel_XSPH_D.resize(numExtended);
     courantViscousTimeStepD.resize(numExtended);
     accelerationTimeStepD.resize(numExtended);
@@ -483,6 +486,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         derivTauXxYyZzD.shrink_to_fit();
         derivTauXyXzYzD.shrink_to_fit();
         freeSurfaceIdD.shrink_to_fit();
+        posDivergenceD.shrink_to_fit();
         vel_XSPH_D.shrink_to_fit();
         courantViscousTimeStepD.shrink_to_fit();
         accelerationTimeStepD.shrink_to_fit();
@@ -1035,6 +1039,7 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
     total_bytes += numNeighborsPerPart.capacity() * sizeof(uint);
     total_bytes += neighborList.capacity() * sizeof(uint);
     total_bytes += freeSurfaceIdD.capacity() * sizeof(uint);
+    total_bytes += posDivergenceD.capacity() * sizeof(Real);
 
     // BCE data
     total_bytes += rigid_BCEcoords_D.capacity() * sizeof(Real3);

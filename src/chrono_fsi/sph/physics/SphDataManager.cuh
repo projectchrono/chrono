@@ -426,6 +426,7 @@ struct FsiDataManager {
     // List of all neighbors (indexed with information from numNeighborsPerPart)
     thrust::device_vector<uint> neighborList;    ///< neighbor list for all particles
     thrust::device_vector<uint> freeSurfaceIdD;  ///< identifiers for particles close to free surface
+    thrust::device_vector<Real> posDivergenceD;  ///< divergence of the position field (basis of the free-surface test)
 
     thrust::device_vector<Real> courantViscousTimeStepD;  ///< Courant time step for viscosity
     thrust::device_vector<Real> accelerationTimeStepD;    ///< Courant time step for acceleration - unsorted
