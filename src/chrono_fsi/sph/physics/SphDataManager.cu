@@ -32,6 +32,7 @@
 #include <thrust/functional.h>
 #include <thrust/transform.h>
 #include <thrust/partition.h>
+#include <thrust/scatter.h>
 #include <thrust/zip_function.h>
 
 #include "chrono/utils/ChUtils.h"
@@ -760,6 +761,33 @@ std::vector<Real3> FsiDataManager::GetForces() {
     std::transform(frc_H.begin(), frc_H.end(), frc_H.begin(), scale_functor(paramsH->markerMass));
     return frc_H;
 }
+
+// Predicate selecting the markers whose free-surface flag is meaningful: active fluid particles.
+// Marker state is provided as a (activity identifier, rhoPresMu) tuple, both in sorted order.
+struct report_free_surface_functor {
+    __host__ __device__ bool operator()(const thrust::tuple<int32_t, Real4>& state) const { return thrust::get<0>(state) == 1 && IsFluidParticle(thrust::get<1>(state).w); }
+};
+
+std::vector<int> FsiDataManager::GetFreeSurfaceFlags() {
+    // The flags are calculated and stored in sorted order; scatter them back to original marker order through the
+    // sort map. Markers that are filtered out keep the initial zero: BCE markers, inactive particles, and any
+    // marker beyond the extended set.
+    thrust::device_vector<int> flags_D(countersH->numAllMarkers, 0);
+
+    auto marker_state = thrust::make_zip_iterator(thrust::make_tuple(activityIdentifierSortedD.begin(), sortedSphMarkers2_D->rhoPresMuD.begin()));
+
+    thrust::scatter_if(freeSurfaceIdD.begin(), freeSurfaceIdD.begin() + countersH->numExtendedParticles,  //
+                       markersProximity_D->gridMarkerIndexD.begin(),                                      //
+                       thrust::make_transform_iterator(marker_state, report_free_surface_functor()),      //
+                       flags_D.begin());                                                                  //
+
+    // Copy to output
+    std::vector<int> flags_H(flags_D.size());
+    thrust::copy(flags_D.begin(), flags_D.end(), flags_H.begin());
+    return flags_H;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<Real3> FsiDataManager::GetProperties() {
     auto& prop4_D = sphMarkers_D->rhoPresMuD;

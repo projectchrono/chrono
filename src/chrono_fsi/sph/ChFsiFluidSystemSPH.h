@@ -501,6 +501,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
     std::vector<Real3> GetProperties() const;
 
+    /// Extract free-surface identification flags of all markers (SPH and BCE).
+    /// The flags are returned in the same marker order as GetPositions(), so the two can be indexed together to
+    /// extract the free surface. A value of 1 marks an SPH particle at or near the free surface, as determined by
+    /// comparing the divergence of the position field against ChFsiParamsSPH::free_surface_threshold. Note that a
+    /// particle adjacent to a solid is not flagged: BCE markers contribute to that divergence, so they complete the
+    /// kernel support of the particles next to them.
+    /// Zero is reported for BCE markers and for SPH particles that are not active, namely particles in the extended
+    /// halo of an active domain and particles that left the computational domain. Such particles have a truncated
+    /// neighborhood by construction, so their free-surface test is meaningless and would otherwise report a spurious
+    /// surface along the active domain boundary.
+    std::vector<int> GetFreeSurfaceFlags() const;
+
     /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
     std::vector<Real3> GetPositions(const std::vector<int>& indices) const;
 
