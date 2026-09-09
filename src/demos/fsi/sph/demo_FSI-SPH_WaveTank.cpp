@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
 
     sph_params.shifting_method = ShiftingMethod::DIFFUSION;
     sph_params.shifting_diffusion_A = 1.;
-    sph_params.shifting_diffusion_AFSM = 3.;
+    sph_params.shifting_diffusion_AFSM = 2.9;
     sph_params.shifting_diffusion_AFST = 2.;
 
     sph_params.use_consistent_gradient_discretization = false;
