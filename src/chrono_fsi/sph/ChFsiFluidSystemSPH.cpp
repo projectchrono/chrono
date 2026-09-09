@@ -3211,6 +3211,11 @@ std::vector<Real3> ChFsiFluidSystemSPH::GetProperties() const {
     return m_data_mgr->GetProperties();
 }
 
+std::vector<int> ChFsiFluidSystemSPH::GetFreeSurfaceFlags() const {
+    SynchronizeCopyStream();
+    return m_data_mgr->GetFreeSurfaceFlags();
+}
+
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions(const std::vector<int>& indices) const {
     SynchronizeCopyStream();
     return m_data_mgr->GetPositions(indices);
