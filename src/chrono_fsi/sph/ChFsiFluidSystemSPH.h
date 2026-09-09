@@ -116,8 +116,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double delta_sph_coefficient;                  ///< delta SPH coefficient (default: 0.1)
         double free_surface_threshold;                 ///< threshold for identifying free surface. The divergence of the position
                                                        ///< field is computed and compared to this threshold. Particles with divergence
-                                                       ///< less than this threshold are considered free surface particles (CRM only,
-                                                       ///< default: 2.4)
+                                                       ///< less than this threshold are considered free surface particles. Evaluated
+                                                       ///< for both CFD and CRM problems, but currently only the CRM solution consumes
+                                                       ///< the result (the stress state is zeroed at flagged particles);
+                                                       ///< default: 2.4
         int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 1)
         bool use_variable_time_step;                   ///< use variable time step (default: false)
 
