@@ -128,12 +128,9 @@ WheelScmTest<GRID_MM>::WheelScmTest() {
 
     m_terrain = std::dynamic_pointer_cast<SCMTerrain>(m_rig->GetTerrain());
 
-    // One active domain around the wheel. The GPU ray-cast backend requires explicit domains and
-    // silently defers to the CPU without them, so this is what makes the small case measurable on
-    // both paths rather than only on the CPU. It also matches what the medium and large tests do,
-    // which is the point of a scaling set: the domain is the same 1.0 x 0.3 x 1.0 m box.
-    m_terrain->AddActiveDomain(wheel->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
-
+    // No AddActiveDomain here: ChWheelTestRig::CreateTerrainSCM already declares one, on the
+    // chassis body and sized to the wheel. Adding a second casts the nodes under the wheel once
+    // per domain -- same hits, same deformed nodes, inflated SCM_Rays and SCM_RayCast.
     scm_bench::SelectRaycastBackend(*m_terrain, true);
 }
 
