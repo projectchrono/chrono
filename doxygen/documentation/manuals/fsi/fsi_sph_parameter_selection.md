@@ -113,14 +113,14 @@ Parameter Cheat Sheet
 | `shifting_ppst_pull` | PPST attractive component in sparse neighborhoods. | Increase to fill voids and improve uniformity; too high can over-cluster. | `SPHParameters::shifting_ppst_pull`, `SetShiftingPPSTParameters` |
 | `shifting_beta_implicit` | ISPH-specific shifting scale. | Increase to regularize implicit particle distribution; decrease to reduce artificial drift. | `SPHParameters::shifting_beta_implicit` |
 | `shifting_diffusion_A` | Overall diffusion-shifting magnitude. | Increase for stronger particle regularization; decrease for less artificial transport. | `SPHParameters::shifting_diffusion_A`, `SetShiftingDiffusionParameters` |
-| `shifting_diffusion_AFSM` | Diffusion-shifting limiter threshold parameter. | Tune with `AFST` to gate behavior near free-surface-like regions. | `SPHParameters::shifting_diffusion_AFSM`, `SetShiftingDiffusionParameters` |
-| `shifting_diffusion_AFST` | Diffusion-shifting limiter threshold parameter. | Tune with `AFSM` to avoid aggressive shifting near interfaces. | `SPHParameters::shifting_diffusion_AFST`, `SetShiftingDiffusionParameters` |
+| `shifting_diffusion_AFSM` | Upper anchor of the free-surface taper on diffusion shifting: at or above `AFSM` a particle gets the full shift. | Set to the position-field divergence of a fully supported particle, about 2.9 in 3D. Raising it above that attenuates the shift everywhere, including in the bulk. | `SPHParameters::shifting_diffusion_AFSM`, `SetShiftingDiffusionParameters` |
+| `shifting_diffusion_AFST` | Lower anchor of the taper: at or below `AFST` a particle is not shifted at all, and between `AFST` and `AFSM` the shift ramps linearly. | Raise to suppress shifting deeper below the surface; lower to shift closer to it. | `SPHParameters::shifting_diffusion_AFST`, `SetShiftingDiffusionParameters` |
 
 ### E) CRM-specific free-surface and ISPH solver controls
 
 | Parameter | Physical intuition | Practical tuning direction | API |
 |---|---|---|---|
-| `free_surface_threshold` | Threshold for free-surface identification in CRM using position-field divergence. | Increase/decrease based on desired sensitivity of free-surface tagging. See dedicated free-surface section below. | `SPHParameters::free_surface_threshold` |
+| `free_surface_threshold` | Threshold for free-surface identification using position-field divergence. Evaluated for both CFD and CRM, but only the CRM solution consumes the result. | Increase/decrease based on desired sensitivity of free-surface tagging. See dedicated free-surface section below. | `SPHParameters::free_surface_threshold` |
 | `LinSolverParameters::{type, atol, rtol, max_num_iters}` | Pressure/linear solve behavior for ISPH. | Tighter tolerances improve accuracy but increase cost. | `SetLinSolverParameters`, `SetSPHLinearSolver` |
 
 Equation of State (CFD Only) and Pressure Closure
@@ -225,7 +225,9 @@ Chrono computes a shifting velocity and adds it in the position update.
   `inner_sum = sum[(m_j/rho_j) gradW_ij]`
   then
   `v_shift ~ -A h |v_i| inner_sum`.
-- Uses limiter parameters `AFSM`, `AFST` to reduce over-shifting near under-supported regions.
+- Tapers the shift where kernel support degrades toward a free surface: no shift at or below `AFST`,
+  ramping linearly to the full shift at `AFSM`, using the same position-field divergence `nabla_r` as the
+  free-surface test described below.
 - Main controls: `shifting_diffusion_A`, `shifting_diffusion_AFSM`, `shifting_diffusion_AFST`.
 
 `DIFFUSION_XSPH`
@@ -238,12 +240,14 @@ Practical selection:
 - CFD with severe disorder/clustering: `DIFFUSION` or `DIFFUSION_XSPH`.
 - CRM excavation/terramechanics baseline: `PPST_XSPH`.
 
-Free-Surface Threshold in CRM
------------------------------
+Free-Surface Threshold
+----------------------
 
-`free_surface_threshold` is used in CRM to classify particles as near free surface based on support deficiency.
+`free_surface_threshold` classifies particles as near a free surface based on support deficiency. The test is
+evaluated for both CFD and CRM problems, but only the CRM solution currently consumes the result; on the CFD side
+the flag is computed and can be read back (see below) but does not affect the solution.
 
-In `CrmRHS` (`SphForceWCSPH.cu`), Chrono computes:
+In `CrmCalcRHS` and `CfdCalcRHS` (`SphForceWCSPH.cu`), Chrono computes:
 
 - `nabla_r = sum_j (V_j * (-r_ij · gradW_ij))`, with `V_j = m_j / rho_j`.
 
@@ -256,14 +260,24 @@ Physical interpretation:
 - Interior particles with full 3D support have larger `nabla_r`.
 - Particles missing neighbors (top boundary, excavated face, splash/front) have smaller `nabla_r`.
 
+Note that BCE markers contribute to `nabla_r`, so they complete the kernel support of the particles next to them:
+a particle packed against a wall or against a solid is not flagged. Only genuinely exposed particles are.
+
 How this flag is used:
 
 - In CRM stress update (`TauEulerStep`), near-surface particles have stress reset and pressure set to zero.
 - This prevents unphysical tensile stress retention at the exposed surface.
+- For CFD there is no consumer yet; the flag is informational.
+- In either case the flags can be read with `ChFsiFluidSystemSPH::GetFreeSurfaceFlags()`, which returns one value
+  per marker in the same order as `GetPositions()`. Inactive particles (the extended halo of an active domain, and
+  particles that left the computational domain) always report zero, since their neighborhoods are truncated by
+  construction and their test would otherwise fire everywhere along the active-domain boundary.
 
 Practical tuning:
 
-- Default: `2.0`.
+- Default: `2.4`. In a settled bed the position-field divergence is about 2.9 in the bulk and about 2.01 in the
+  exposed top layer, so 2.4 sits between the two and flags exactly the free surface. The previous default of 2.0
+  fell below the 2.01 minimum and therefore flagged nothing at all.
 - Increase threshold:
   more particles treated as free surface (softer/less load-bearing surface, more damping of near-surface stress).
 - Decrease threshold:

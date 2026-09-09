@@ -65,7 +65,7 @@ sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
 sph_params.shifting_xsph_eps = 0.25;
 sph_params.shifting_ppst_push = 3.0;
 sph_params.shifting_ppst_pull = 1.0;
-sph_params.free_surface_threshold = 2.0;
+sph_params.free_surface_threshold = 2.4;
 sysSPH.SetSPHParameters(sph_params);
 ~~~
 
@@ -126,7 +126,7 @@ Parameter Selection Workflow
 3. Tune `mu_I0` to control how quickly rate strengthening appears.
 4. Set `average_diam` from representative grains/aggregate size used in calibration experiments.
 5. Add `cohesion_coeff` only if low-pressure strength is under-predicted.
-6. Stabilize numerics with `ARTIFICIAL_BILATERAL`, PPST/XSPH shifting, and `free_surface_threshold = 2.0`.
+6. Stabilize numerics with `ARTIFICIAL_BILATERAL`, PPST/XSPH shifting, and `free_surface_threshold = 2.4`.
 
 
 Common Failure Modes and First Fixes
