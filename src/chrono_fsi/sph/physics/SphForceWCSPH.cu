@@ -1751,9 +1751,14 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 
         result = -paramsD.shifting_diffusion_A * paramsD.h * inner_sum * vA;
 
-        if (nabla_r < AFST) {
-            result = result * (nabla_r - AFST) / (AFSM - AFST);
-        }
+        // Taper the shift as the kernel support degrades toward the free surface: no shift at or
+        // below AFST, ramping linearly up to the full shift at AFSM. Note that the previous form
+        // applied the ramp only for nabla_r < AFST, where the factor is negative (reaching -AFST as
+        // nabla_r -> 0 with the default AFSM - AFST = 1): the shift of the very particles the taper
+        // targets was reversed in direction and grew without bound, while the AFST..AFSM band the
+        // taper is meant to attenuate was left at the full shift.
+        Real ramp = (nabla_r - AFST) / (AFSM - AFST);
+        result = result * fmin(fmax(ramp, Real(0)), Real(1));
 
     } else if constexpr (SHIFT == ShiftingMethod::DIFFUSION_XSPH) {
         Real vA = length(velMasA);
@@ -1766,10 +1771,10 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 
         result = -paramsD.shifting_diffusion_A * paramsD.h * inner_sum * vA;
 
-        if (nabla_r < AFST) {
-            // printf("Nabla_r: %f, coeff, %f\n", nabla_r, (nabla_r - AFST) / (AFSM - AFST));
-            result = result * (nabla_r - AFST) / (AFSM - AFST);
-        }
+        // See the DIFFUSION branch above for the rationale of this taper
+        Real ramp = (nabla_r - AFST) / (AFSM - AFST);
+        result = result * fmin(fmax(ramp, Real(0)), Real(1));
+
         result = xsphVel + result;
     }
 
