@@ -62,7 +62,7 @@ Equivalent direct setters exist for many fields:
 For material/model context:
 
 - CFD: `SetCfdSPH(const FluidProperties&)`
-- CRM: `SetElasticSPH(const ElasticMaterialProperties&)`
+- CRM: `SetCrmSPH(const SoilProperties&)`
 - ISPH linear solve: `SetLinSolverParameters(const LinSolverParameters&)` (or `SetSPHLinearSolver`)
 
 For high-level problem builders (`ChFsiProblemSPH` and derived classes), use:
