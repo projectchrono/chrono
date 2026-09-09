@@ -734,8 +734,6 @@ macos-apple:sonoma:build:
     - macos
     - sonoma
     - apple
-  rules:
-    - when: never
 
 macos-apple:sonoma:test:
   extends: .macos-sonoma-test
@@ -745,8 +743,6 @@ macos-apple:sonoma:test:
     - apple
   needs: ["macos-apple:sonoma:build"]
   dependencies: ["macos-apple:sonoma:build"]
-  rules:
-    - when: never
 
 # macOS Conda Deployment
 
