@@ -119,7 +119,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->shifting_ppst_pull = Real(1.0);
     m_paramsH->shifting_beta_implicit = Real(1.0);
     m_paramsH->shifting_diffusion_A = Real(1.0);
-    m_paramsH->shifting_diffusion_AFSM = Real(3.0);
+    m_paramsH->shifting_diffusion_AFSM = Real(2.9);
     m_paramsH->shifting_diffusion_AFST = Real(2);
     m_paramsH->density_reinit_steps = 2147483647;
     m_paramsH->Conservative_Form = true;
@@ -153,7 +153,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->ClampPressure = false;
 
     // CRM SPH
-    m_paramsH->free_surface_threshold = Real(2.0);
+    m_paramsH->free_surface_threshold = Real(2.4);
     m_paramsH->free_flow_duration = Real(0);
     m_paramsH->Max_Pressure = Real(1e20);
 
@@ -636,7 +636,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       shifting_ppst_pull(1.0),
       shifting_beta_implicit(1.0),
       shifting_diffusion_A(1.0),
-      shifting_diffusion_AFSM(3.0),
+      shifting_diffusion_AFSM(2.9),
       shifting_diffusion_AFST(2),
       min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
@@ -650,7 +650,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
-      free_surface_threshold(2.0),
+      free_surface_threshold(2.4),
       num_proximity_search_steps(1),
       eos_type(EosType::ISOTHERMAL),
       use_variable_time_step(false) {}
