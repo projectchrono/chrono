@@ -86,12 +86,17 @@ Chrono's CRM mu(I) branch is implemented in `TauEulerStep(...)` (`SphFluidDynami
 | Friction law | `mu = mu_s + (mu_2 - mu_s) * I / (I0 + I)` |
 | Yield limit (with cohesion) | `tau_max = mu * p_tr + c` |
 | Plastic correction | radial return when `tau_tr > tau_max` |
-| Cohesive tension cutoff | if `p_tr < -c/mu_s`, stress is zeroed |
+| Tension cutoff | trial mean pressure is clamped at zero, `p_tr = max(p_tr, 0)`, so no particle carries tension; cohesion still contributes shear strength through `tau_max` |
 | Free-surface treatment | if flagged (`nabla_r < free_surface_threshold`), stress and pressure are zeroed |
 
 Important model notes (current Chrono code behavior):
 
 - EOS is not used in CRM; pressure comes from stress trace.
+- The tension cutoff is applied to `p_tr` before both the inertial number and the yield limit are
+  evaluated, so a particle that would have gone into tension yields at `tau_max = c`. Earlier versions
+  cut off at `p_tr < -c/mu_s` instead, which let particles sustain negative pressure; that drove the
+  SPH tensile instability and made `I` non-finite for `p_tr < 0`, silently disabling the yield check
+  for those particles. For `c = 0` the two forms agree.
 
 Core mu(I) Material Parameters
 ------------------------------
