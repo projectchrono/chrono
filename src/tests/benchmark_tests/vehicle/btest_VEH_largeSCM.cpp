@@ -136,7 +136,9 @@ static double ResidentMiB() {
 
 // =============================================================================
 
-// SEED_TRACKS is the number of pre-worked ruts laid down before the run (0 to 4).
+// SEED_TRACKS is the number of pre-worked ruts written into the modified-node map at setup, which
+// is how this test reaches a map size that driving would take hours to build. Registered as 0, 1, 4
+// and 16; ruts are the only difference between the variants.
 template <int SEED_TRACKS>
 class LargeScmTest : public utils::ChBenchmarkTest {
   public:

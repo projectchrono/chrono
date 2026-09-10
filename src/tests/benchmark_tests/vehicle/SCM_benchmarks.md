@@ -3,11 +3,33 @@
 Three benchmark programs covering the range SCM is used over, and a recorded baseline on NVIDIA and
 AMD so a change to SCM can be judged without re-running everything on every platform.
 
-| | test | patch | spacing | nodes deformed |
+| | test | vehicle | patch | grid spacing |
 |---|---|---|---|---|
-| small | `btest_VEH_wheelSCM` | 10 x 1 m | 0.02 / 0.01 m | 1.7k / 7.2k |
-| medium | `btest_VEH_hmmwvSCM` | 50 x 50 m | 0.05 m | 5.4k |
-| large | `btest_VEH_largeSCM` | 300 x 300 m | 0.02 m | 34.6k - 3.63M |
+| small | `btest_VEH_wheelSCM` | one Polaris wheel on a test rig | 10 x 1 m | 0.02 / 0.01 m |
+| medium | `btest_VEH_hmmwvSCM` | HMMWV, four wheels | 50 x 50 m | 0.05 m |
+| large | `btest_VEH_largeSCM` | HMMWV, four wheels | 300 x 300 m | 0.02 m |
+
+Each test has variants, and the tables below use their benchmark-suite names. What they mean:
+
+| variant | what it changes | nodes deformed |
+|---|---|---|
+| `WheelSCM_D20` | 20 mm grid under the wheel | 1.7k |
+| `WheelSCM_D10` | 10 mm grid -- four times as many nodes over the same ground | 7.2k |
+| `HmmwvSCM_MESH_0` | four `RIGID_MESH` tyres, nothing else on the terrain | 5.4k |
+| `HmmwvSCM_MESH_1` | the same, plus 20 spheres dropped on the soil | 5.4k GPU / 8.9k CPU |
+| `LargeSCM_SEED0` | no pre-worked ruts: only what the vehicle itself digs | 34.6k |
+| `LargeSCM_SEED1` | 1 rut laid into the node map before the run | 260k |
+| `LargeSCM_SEED4` | 4 ruts | 935k |
+| `LargeSCM_SEED16` | 16 ruts | 3.63M |
+
+The `SEED` number is how many pre-worked ruts are written into the modified-node map at setup, which
+is how the large test reaches a map size that would otherwise take hours of driving. The number of
+ruts is the only difference between them -- same vehicle, same patch, same route -- so the spread
+across `SEED0` to `SEED16` is what map size alone costs.
+
+`btest_VEH_hmmwvSCM` also registers `CYL_0` and `CYL_1`, the same runs with `RIGID` cylinder tyres.
+They are not benchmarked here: the GPU ray-cast path accepts only triangle-mesh collision shapes, so
+a cylinder tyre silently falls back to the CPU and the cell would not measure what its label claims.
 
 ## What the baseline shows
 

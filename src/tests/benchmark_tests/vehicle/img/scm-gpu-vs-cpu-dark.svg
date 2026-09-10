@@ -8,32 +8,32 @@
 <text x="429.0" y="388.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="middle">1 ms</text>
 <line x1="650.0" y1="104" x2="650.0" y2="372" stroke="#33322e" stroke-width="1"/>
 <text x="650.0" y="388.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="middle">10 ms</text>
-<text x="158.0" y="137.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">WheelSCM_D20</text>
+<text x="158.0" y="137.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">wheel, 20 mm grid</text>
 <line x1="206.2" y1="133.3" x2="501.2" y2="133.3" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
 <circle cx="501.2" cy="133.3" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="206.2" cy="133.3" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
 <text x="680.0" y="137.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">21.6x</text>
-<text x="158.0" y="180.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">WheelSCM_D10</text>
+<text x="158.0" y="180.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">wheel, 10 mm grid</text>
 <line x1="363.8" y1="176.0" x2="635.7" y2="176.0" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
 <circle cx="635.7" cy="176.0" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="363.8" cy="176.0" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
 <text x="680.0" y="180.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">17.0x</text>
-<text x="158.0" y="222.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">HmmwvSCM_MESH_0</text>
+<text x="158.0" y="222.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">HMMWV, mesh tyres</text>
 <line x1="221.3" y1="218.7" x2="328.4" y2="218.7" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
 <circle cx="328.4" cy="218.7" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="221.3" cy="218.7" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
 <text x="680.0" y="222.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">3.1x</text>
-<text x="158.0" y="265.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">HmmwvSCM_MESH_1*</text>
+<text x="158.0" y="265.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">HMMWV, + 20 spheres*</text>
 <line x1="262.3" y1="261.3" x2="476.8" y2="261.3" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
 <circle cx="476.8" cy="261.3" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="262.3" cy="261.3" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
 <text x="680.0" y="265.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">9.3x</text>
-<text x="158.0" y="308.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">LargeSCM_SEED0</text>
+<text x="158.0" y="308.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">300 m patch, 35k nodes</text>
 <line x1="401.3" y1="304.0" x2="509.7" y2="304.0" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
 <circle cx="509.7" cy="304.0" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="401.3" cy="304.0" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
 <text x="680.0" y="308.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">3.1x</text>
-<text x="158.0" y="350.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">LargeSCM_SEED16</text>
+<text x="158.0" y="350.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">300 m patch, 3.6M nodes</text>
 <line x1="415.6" y1="346.7" x2="510.8" y2="346.7" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
 <circle cx="510.8" cy="346.7" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="415.6" cy="346.7" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
