@@ -107,60 +107,49 @@ GPU cells are the mean of 2 processes, `ref` and CPU of 1, each itself Google Be
 5 or 10 internal repetitions. Worst internal cv on `SCM_Total` was 3.21% (clang/CPU `MESH_0`); every
 other cell was under 2%.
 
-## SCM_Total, ms/step
+## Results, ms/step
+
+Each cell is `SCM_Total` / `SCM_RayCast`.
 
 | variant | GCC/CUDA | GCC/HIP | clang/CUDA | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
 |---|---|---|---|---|---|---|---|
-| `WheelSCM_D20` | 0.0971 | 0.0982 | 0.0694 | 0.0681 | 6.8687 | 2.1204 | 2.1706 |
-| `WheelSCM_D10` | 0.5046 | 0.5070 | 0.2897 | 0.2899 | - | 8.6116 | 8.2832 |
-| `HmmwvSCM_MESH_0` | 0.1152 | 0.1149 | 0.1063 | 0.1050 | 6.1585 | 0.3506 | 0.4024 |
-| `HmmwvSCM_MESH_1` | 0.1780 | 0.1761 | 0.1649 | 0.1632 | 6.2126 | 1.6448 | 1.6400 |
-| `LargeSCM_SEED0` | 0.7514 | 0.7493 | 0.6008 | 0.5918 | 34.3628 | 2.3183 | 2.2628 |
-| `LargeSCM_SEED1` | 0.7891 | 0.7786 | 0.6425 | 0.6298 | - | 2.3377 | 2.3180 |
-| `LargeSCM_SEED4` | 0.8075 | 0.8182 | 0.6408 | 0.6332 | - | 2.3303 | 2.3086 |
-| `LargeSCM_SEED16` | 0.8704 | 0.8702 | 0.7264 | 0.7198 | 34.5411 | 2.3447 | 2.3022 |
-
-## SCM_RayCast, ms/step
-
-| variant | GCC/CUDA | GCC/HIP | clang/CUDA | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
-|---|---|---|---|---|---|---|---|
-| `WheelSCM_D20` | 0.0359 | 0.0370 | 0.0365 | 0.0352 | 6.7994 | 1.9911 | 2.0941 |
-| `WheelSCM_D10` | 0.0978 | 0.1000 | 0.0975 | 0.0975 | - | 7.7662 | 7.8633 |
-| `HmmwvSCM_MESH_0` | 0.0628 | 0.0629 | 0.0635 | 0.0634 | 6.0965 | 0.2925 | 0.3513 |
-| `HmmwvSCM_MESH_1` | 0.1229 | 0.1214 | 0.1193 | 0.1201 | 6.1485 | 0.8998 | 1.0522 |
-| `LargeSCM_SEED0` | 0.3260 | 0.3248 | 0.3288 | 0.3261 | 33.9085 | 1.8237 | 1.9392 |
-| `LargeSCM_SEED1` | 0.3516 | 0.3473 | 0.3615 | 0.3537 | - | 1.8418 | 1.9865 |
-| `LargeSCM_SEED4` | 0.3669 | 0.3757 | 0.3641 | 0.3611 | - | 1.8351 | 1.9833 |
-| `LargeSCM_SEED16` | 0.4431 | 0.4427 | 0.4524 | 0.4516 | 34.0860 | 1.8498 | 1.9782 |
+| `WheelSCM_D20` | 0.0971 / 0.0359 | 0.0982 / 0.0370 | 0.0694 / 0.0365 | 0.0681 / 0.0352 | 6.8687 / 6.7994 | 2.1204 / 1.9911 | 2.1706 / 2.0941 |
+| `WheelSCM_D10` | 0.5046 / 0.0978 | 0.5070 / 0.1000 | 0.2897 / 0.0975 | 0.2899 / 0.0975 | - | 8.6116 / 7.7662 | 8.2832 / 7.8633 |
+| `HmmwvSCM_MESH_0` | 0.1152 / 0.0628 | 0.1149 / 0.0629 | 0.1063 / 0.0635 | 0.1050 / 0.0634 | 6.1585 / 6.0965 | 0.3506 / 0.2925 | 0.4024 / 0.3513 |
+| `HmmwvSCM_MESH_1` | 0.1780 / 0.1229 | 0.1761 / 0.1214 | 0.1649 / 0.1193 | 0.1632 / 0.1201 | 6.2126 / 6.1485 | 1.6448 / 0.8998 | 1.6400 / 1.0522 |
+| `LargeSCM_SEED0` | 0.7514 / 0.3260 | 0.7493 / 0.3248 | 0.6008 / 0.3288 | 0.5918 / 0.3261 | 34.3628 / 33.9085 | 2.3183 / 1.8237 | 2.2628 / 1.9392 |
+| `LargeSCM_SEED1` | 0.7891 / 0.3516 | 0.7786 / 0.3473 | 0.6425 / 0.3615 | 0.6298 / 0.3537 | - | 2.3377 / 1.8418 | 2.3180 / 1.9865 |
+| `LargeSCM_SEED4` | 0.8075 / 0.3669 | 0.8182 / 0.3757 | 0.6408 / 0.3641 | 0.6332 / 0.3611 | - | 2.3303 / 1.8351 | 2.3086 / 1.9833 |
+| `LargeSCM_SEED16` | 0.8704 / 0.4431 | 0.8702 / 0.4427 | 0.7264 / 0.4524 | 0.7198 / 0.4516 | 34.5411 / 34.0860 | 2.3447 / 1.8498 | 2.3022 / 1.9782 |
 
 ## Work per step
 
-Two cells did the same work if their **deformed-node counts** agree. Ray counts do not compare
-across paths -- see the caveats.
+Two cells did the same work if their **deformed-node counts** agree. Ray counts do not
+compare across paths -- see the caveats.
 
 | variant | path | SCM_Rays | SCM_Nodes |
 |---|---|---|---|
-| `WheelSCM_D20` | GPU (all four cells) | 363.2 | 1717 |
-| `WheelSCM_D20` | ref | 1680.4 | 1717 |
-| `WheelSCM_D20` | CPU | 1681.7 | 2414 |
-| `WheelSCM_D10` | GPU (all four cells) | 1518.9 | 7162 |
-| `WheelSCM_D10` | CPU | 6665.4 | 9352 |
-| `HmmwvSCM_MESH_0` | GPU (all four cells) | 637.2 | 5420 |
-| `HmmwvSCM_MESH_0` | ref | 646.3 | 5422 |
-| `HmmwvSCM_MESH_0` | CPU | 641.6 | 5474 |
-| `HmmwvSCM_MESH_1` | GPU (all four cells) | 645.2-684.1 | 5420 |
-| `HmmwvSCM_MESH_1` | ref | 646.3 | 5422 |
-| `HmmwvSCM_MESH_1` | CPU | 3572.3-3612.6 | 8811-9020 |
-| `LargeSCM_SEED0` | GPU (all four cells) | 3995.7-3997.2 | 34557-34587 |
-| `LargeSCM_SEED0` | ref | 4052.5 | 34601 |
-| `LargeSCM_SEED0` | CPU | 4024.9 | 35724 |
-| `LargeSCM_SEED1` | GPU (all four cells) | 3995.7-3997.2 | 259572-259602 |
-| `LargeSCM_SEED1` | CPU | 4024.9 | 260739 |
-| `LargeSCM_SEED4` | GPU (all four cells) | 3995.7-3997.2 | 934617-934647 |
-| `LargeSCM_SEED4` | CPU | 4024.9 | 935784 |
-| `LargeSCM_SEED16` | GPU (all four cells) | 3995.7-3997.2 | 3634797-3634827 |
-| `LargeSCM_SEED16` | ref | 4052.5 | 3634841 |
-| `LargeSCM_SEED16` | CPU | 4024.9 | 3635964 |
+| `D20` | GPU (all four cells) | 363.2 | 1717 |
+| `D20` | ref | 1680.4 | 1717 |
+| `D20` | CPU | 1681.7 | 2414 |
+| `D10` | GPU (all four cells) | 1518.9 | 7162 |
+| `D10` | CPU | 6665.4 | 9352 |
+| `MESH_0` | GPU (all four cells) | 637.2 | 5420 |
+| `MESH_0` | ref | 646.3 | 5422 |
+| `MESH_0` | CPU | 641.6 | 5474 |
+| `MESH_1` | GPU (all four cells) | 645.2-684.1 | 5420 |
+| `MESH_1` | ref | 646.3 | 5422 |
+| `MESH_1` | CPU | 3572.3-3612.6 | 8811-9020 |
+| `SEED0` | GPU (all four cells) | 3995.7-3997.2 | 34557-34587 |
+| `SEED0` | ref | 4052.5 | 34601 |
+| `SEED0` | CPU | 4024.9 | 35724 |
+| `SEED1` | GPU (all four cells) | 3995.7-3997.2 | 259572-259602 |
+| `SEED1` | CPU | 4024.9 | 260739 |
+| `SEED4` | GPU (all four cells) | 3995.7-3997.2 | 934617-934647 |
+| `SEED4` | CPU | 4024.9 | 935784 |
+| `SEED16` | GPU (all four cells) | 3995.7-3997.2 | 3634797-3634827 |
+| `SEED16` | ref | 4052.5 | 3634841 |
+| `SEED16` | CPU | 4024.9 | 3635964 |
 
 ## Memory -- resident set after setup, MiB
 
@@ -180,27 +169,16 @@ offset moves, and most of that offset is the base-height matrix -- 15001^2 entri
 EPYC 9684X, 16-core slice, 233 GB. ROCm 7.2.4, HIP backend, GCC 11.4.0 and ROCm clang 22.0.0git.
 Release, benchmarks set 4 Chrono OpenMP threads internally. All cv <= 0.18%. One process per cell.
 
-`SCM_Total`, ms/step:
+Each cell is `SCM_Total` / `SCM_RayCast`.
 
 | variant | GCC/HIP | GCC/CPU | clang/HIP | clang/CPU |
 |---|---|---|---|---|
-| `WheelSCM_D20` | 0.1726 | 3.3830 | 0.1985 | 3.4522 |
-| `WheelSCM_D10` | 0.6863 | 13.8749 | 0.8582 | 13.7305 |
-| `HmmwvSCM_MESH_0` | 0.2214 | 0.7856 | 0.2370 | 0.6313 |
-| `HmmwvSCM_MESH_1` | 0.3172 | 3.7637 | 0.3394 | 4.0699 |
-| `LargeSCM_SEED0` | 1.1186 | 3.5594 | 1.2941 | 4.7062 |
-| `LargeSCM_SEED16` | 1.3809 | 4.7167 | 1.5779 | 4.8605 |
-
-`SCM_RayCast`, ms/step:
-
-| variant | GCC/HIP | GCC/CPU | clang/HIP | clang/CPU |
-|---|---|---|---|---|
-| `WheelSCM_D20` | 0.0939 | 3.1726 | 0.0971 | 3.2355 |
-| `WheelSCM_D10` | 0.1882 | 12.6312 | 0.2036 | 12.4352 |
-| `HmmwvSCM_MESH_0` | 0.1464 | 0.6282 | 0.1501 | 0.5076 |
-| `HmmwvSCM_MESH_1` | 0.2387 | 2.3370 | 0.2481 | 2.4669 |
-| `LargeSCM_SEED0` | 0.5670 | 2.8957 | 0.5868 | 3.4875 |
-| `LargeSCM_SEED16` | 0.8256 | 3.6066 | 0.8656 | 3.6381 |
+| `WheelSCM_D20` | 0.1726 / 0.0939 | 3.3830 / 3.1726 | 0.1985 / 0.0971 | 3.4522 / 3.2355 |
+| `WheelSCM_D10` | 0.6863 / 0.1882 | 13.8749 / 12.6312 | 0.8582 / 0.2036 | 13.7305 / 12.4352 |
+| `HmmwvSCM_MESH_0` | 0.2214 / 0.1464 | 0.7856 / 0.6282 | 0.2370 / 0.1501 | 0.6313 / 0.5076 |
+| `HmmwvSCM_MESH_1` | 0.3172 / 0.2387 | 3.7637 / 2.3370 | 0.3394 / 0.2481 | 4.0699 / 2.4669 |
+| `LargeSCM_SEED0` | 1.1186 / 0.5670 | 3.5594 / 2.8957 | 1.2941 / 0.5868 | 4.7062 / 3.4875 |
+| `LargeSCM_SEED16` | 1.3809 / 0.8256 | 4.7167 / 3.6066 | 1.5779 / 0.8656 | 4.8605 / 3.6381 |
 
 Resident set after setup, MiB: `SEED0` 2366 GPU / 1745 CPU, `SEED16` 2961 GPU / 2340 CPU. The
 595 MiB node-storage delta matches the NVIDIA host exactly; the GPU builds carry ~620 MiB more
@@ -209,6 +187,24 @@ constant offset than the CPU-only builds.
 Ray and node counts agree with the RTX 4080 host to the digit on every variant -- 363.2 / 1681.7
 rays on `D20`, 1518.9 / 6665 on `D10`, 3995.8 / 4025 on the `SEED` pair -- so the two platforms ran
 the same work and the columns are directly comparable.
+
+## The two hosts side by side
+
+`SCM_Total` in ms/step, GCC on both, so the only variable is the machine:
+
+| variant | GPU 4080 | GPU gfx942 | CPU 4080 | CPU gfx942 |
+|---|---|---|---|---|
+| `D20` | 0.0982 | 0.1726 | 2.1204 | 3.3830 |
+| `D10` | 0.5070 | 0.6863 | 8.6116 | 13.8749 |
+| `MESH_0` | 0.1149 | 0.2214 | 0.3506 | 0.7856 |
+| `MESH_1` | 0.1761 | 0.3172 | 1.6448 | 3.7637 |
+| `SEED0` | 0.7493 | 1.1186 | 2.3183 | 3.5594 |
+| `SEED16` | 0.8702 | 1.3809 | 2.3447 | 4.7167 |
+
+The 4080 is ahead everywhere: 1.4-1.9x on the GPU path, 1.5-2.2x on the CPU path. That is the
+expected shape rather than a surprise. These are small kernels -- a few hundred to a few thousand
+rays per step -- where a high-clocked consumer part beats a datacenter GPU built for wide parallel
+work, and a shared 16-core EPYC slice loses to a 5.3 GHz Raptor Lake on a four-thread CPU path.
 
 # Caveats
 
