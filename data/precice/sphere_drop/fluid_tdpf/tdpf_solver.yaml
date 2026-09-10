@@ -1,3 +1,19 @@
 chrono-version: 10.0
 
- 
+# Chrono::FSI-TDPF solver settings for the preCICE fluid participant.
+# Every section and key is optional; see data/yaml/schema/fsitdpf_solver.schema.yaml for the full
+# schema, and data/yaml/fsi/sphere_regular_waves/tdpf_solver.yaml for a fully populated example.
+
+radiation:
+  method: RIRF_CONVOLUTION
+
+  # This demo uses the same 0.12 m sphere hydro data as the sphere_decay FSI example. Its
+  # retardation kernel spans 30 s but is spent after about 1 s (99.98% of its energy lies in the
+  # first second), so truncating at 3 s leaves the response unchanged while cutting both the
+  # retained velocity history and the per-step cost. The saving grows as the time window shrinks.
+  truncation_time: 3.0
+
+excitation:
+  # Still water, so the wave excitation force is identically zero and these have no effect.
+  method: AUTO
+  truncation_time: 0

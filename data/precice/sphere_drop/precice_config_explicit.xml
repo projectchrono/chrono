@@ -58,7 +58,14 @@
   <m2n:sockets acceptor="Solid" connector="Fluid" exchange-directory="." />
 
   <coupling-scheme:serial-explicit>
-    <participants first="Solid" second="Fluid" />
+    <!-- The fluid participant runs first within each time window, so the forces it produces are
+         available to the solid participant in that same window. Combined with
+         'read_data_time: WINDOW_END' on the solid participant, this makes the force applied over a
+         window derive from the solid state at the *beginning* of that window, instead of lagging it
+         by a full window. A serial scheme runs the two participants one after the other in any case,
+         so this ordering costs nothing; switch to coupling-scheme:parallel-explicit (and
+         'read_data_time: WINDOW_START') only if the concurrency is worth reinstating the lag. -->
+    <participants first="Fluid" second="Solid" />
     <max-time-windows value="1000" />
     <time-window-size value="0.001" />
     <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>

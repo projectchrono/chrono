@@ -5,8 +5,12 @@ model:  "mbs_model.yaml"
 solver: "mbs_solver.yaml"
 
 simulation:
-  end_time: 100
+  end_time: 40
   enforce_realtime: true
+  # Must match the gravity used by the fluid participant. Note that the TDPF participant has no
+  # YAML key for gravity and is hard-wired to [0, 0, -9.8], so this value cannot be changed here
+  # alone without silently desynchronizing the two phases.
+  gravity: [0, 0, -9.8]
   
 output:
   format: HDF5
@@ -27,6 +31,11 @@ visualization:
 
 precice_adapter_config:
   participant_name: Solid
+
+  # Sample the fluid forces at the end of the coupling time window. Valid because this participant
+  # is listed as 'second' in the serial coupling scheme and therefore runs after the fluid within
+  # each window; the adapter verifies this against the preCICE configuration during initialization.
+  read_data_time: WINDOW_END
   
   data_path:
     type: RELATIVE
@@ -36,17 +45,22 @@ precice_adapter_config:
   - name: ball
   
   added_mass:
-    #h5_filename: "sphere.h5"
-    density: 1000
-    blocks:
-    - name: ball
-      data:
-      - [ 71.57,    0,      0,       0,    143.14, 0       ]
-      - [  0,      71.57,   0,    -143.14,   0,    0       ]
-      - [  0,       0,    130.88,    0,      0,    0       ]
-      - [  0,    -143.14,   0,     286.27,   0,    0       ]
-      - [143.14,    0,      0,       0,    286.27, 0       ]
-      - [  0,       0,      0,       0,      0,    6.82e-8 ]
+    # Infinite-frequency added mass read from the hydro file; the density is taken from the file
+    # itself (simulation_parameters/rho), not from the 'density' key below.
+    h5_filename: "sphere.h5"
+    # Alternative to h5_filename: give the blocks explicitly, non-dimensionalized by 'density'.
+    # 'density' is read only on this path. The values below are for a 5 m sphere and do NOT
+    # correspond to the 0.12 m sphere used by this demo.
+    #density: 1000
+    #blocks:
+    #- name: ball
+    #  data:
+    #  - [ 71.57,    0,      0,       0,    143.14, 0       ]
+    #  - [  0,      71.57,   0,    -143.14,   0,    0       ]
+    #  - [  0,       0,    130.88,    0,      0,    0       ]
+    #  - [  0,    -143.14,   0,     286.27,   0,    0       ]
+    #  - [143.14,    0,      0,       0,    286.27, 0       ]
+    #  - [  0,       0,      0,       0,      0,    6.82e-8 ]
 
   interfaces:
   - mesh_name: SolidMesh
