@@ -51,6 +51,12 @@ class ChApiPrecice ChPreciceAdapterTdpf : public ChPreciceAdapter {
   public:
     // Implementation of base class virtual methods
     virtual size_t GetNumFsiBodies() const override;
+
+    /// Provide the added mass blocks sent to the solid participant when using dynamic added mass.
+    /// The TDPF solver reports the infinite-frequency added mass from its HDF5 hydro file, which is
+    /// constant in time; the exchange therefore delivers the same coefficients the solid participant
+    /// would read directly from that file, but over the coupling interface.
+    virtual void OnWriteDataAM(std::vector<ChMatrix66d>& blocks) override;
     virtual void InitializeParticipant() override;
     virtual void OnReadData() override;
     virtual void OnWriteData() override;

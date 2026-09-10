@@ -132,6 +132,17 @@ public:
     /// Additional actions taken after loading new solid phase states.
     virtual void OnExchangeSolidStates() override;
 
+    /// Return the infinite-frequency added mass self-block for each FSI rigid body.
+    /// Blocks are returned in the order in which the bodies were added and are read from the HDF5 hydro
+    /// file (already scaled by the fluid density). Only valid after initialization.
+    ///
+    /// Note that this returns only the 6x6 self-block of each body. When the HDF5 file stores full
+    /// hydrodynamic coupling between bodies, the infinite-frequency added mass is 6x(6N) per body and
+    /// the off-diagonal blocks coupling distinct bodies are not reported here. Those cross terms are
+    /// still applied when the added mass is installed directly as a Chrono ChLoadHydrodynamics (see
+    /// ChFsiSystemTDPF::Initialize); they are dropped only by consumers restricted to 6x6 blocks.
+    std::vector<ChMatrix66d> GetInfiniteFrequencyAddedMass() const;
+
     /// Return the current step size for the TDPF fluid solver.
     /// TDPF is not a time integrator: evaluating hydrodynamic forces is an algebraic operation on the current solid
     /// state (plus the radiation velocity history), so the solver has no internal step size. Returning an unbounded

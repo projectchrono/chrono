@@ -287,6 +287,18 @@ void ChPreciceAdapterTdpf::OnReadData() {
     }
 }
 
+void ChPreciceAdapterTdpf::OnWriteDataAM(std::vector<ChMatrix66d>& blocks) {
+    auto am_blocks = m_sysTDPF->GetInfiniteFrequencyAddedMass();
+
+    if (am_blocks.size() != blocks.size()) {
+        cerr << "\nERROR: TDPF reports " << am_blocks.size() << " added mass blocks but the coupling "
+             << "interface expects " << blocks.size() << "." << endl;
+        throw std::runtime_error("Added mass block count mismatch");
+    }
+
+    blocks = am_blocks;
+}
+
 void ChPreciceAdapterTdpf::OnWriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {

@@ -239,6 +239,27 @@ void ChFsiFluidSystemTDPF::OnExchangeSolidStates() {
     m_state_refreshed = true;
 }
 
+//------------------------------------------------------------------------------
+
+std::vector<ChMatrix66d> ChFsiFluidSystemTDPF::GetInfiniteFrequencyAddedMass() const {
+    ChAssertAlways(m_is_initialized);
+
+    const auto& body_info = m_impl->GetHydroData().GetBodyInfos();
+
+    std::vector<ChMatrix66d> blocks(m_num_rigid_bodies);
+    for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
+        // inf_added_mass has 6 rows and either 6 or 6*num_bodies columns; the self-block of body i
+        // starts at column 6*i.
+        const auto& M = body_info[i].inf_added_mass;
+        ChAssertAlways(M.rows() == 6);
+        Eigen::Index col0 = (M.cols() == 6) ? 0 : static_cast<Eigen::Index>(6 * i);
+        ChAssertAlways(col0 + 6 <= M.cols());
+        blocks[i] = M.block<6, 6>(0, col0);
+    }
+
+    return blocks;
+}
+
 }  // end namespace tdpf
 }  // end namespace fsi
 }  // end namespace chrono
