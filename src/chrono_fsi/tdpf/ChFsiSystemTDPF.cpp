@@ -32,6 +32,11 @@ namespace tdpf {
 
 ChFsiSystemTDPF::ChFsiSystemTDPF(ChSystem* sysMBS, ChFsiFluidSystemTDPF* sysTDPF, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysTDPF), m_sysTDPF(sysTDPF), m_generic_fsi_interface(use_generic_interface) {
+    // The TDPF hydrostatic restoring force is stiff in the body position, so a fluid force that lags the solid state
+    // acts as negative damping and corrupts the response (it can render a decay test undamped or even unstable).
+    // This is fixed, not configurable: CouplingScheme::CONCURRENT is never valid for this solver.
+    SetCouplingScheme(CouplingScheme::SEQUENTIAL);
+
     if (use_generic_interface)
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysTDPF);
     else

@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <stdexcept>
 
 #include "chrono/core/ChTypes.h"
 
@@ -47,7 +48,8 @@ ChFsiFluidSystemTDPF::ChFsiFluidSystemTDPF()
       m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
-      m_impl(chrono_types::make_unique<ChFsiFluidSystemTDPF_impl>()) {}
+      m_impl(chrono_types::make_unique<ChFsiFluidSystemTDPF_impl>()),
+      m_state_refreshed(false) {}
 
 ChFsiFluidSystemTDPF::~ChFsiFluidSystemTDPF() {}
 
@@ -150,6 +152,7 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
 
     // Cache initial solid states in the TDPF structure
     LoadSolidStates(body_states);
+    m_state_refreshed = true;
 
     // Mark the fluid system as initialized.
     m_is_initialized = true;
@@ -167,6 +170,7 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
 
     // Cache initial solid states in the TDPF structure
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
+    m_state_refreshed = true;
 
     // Mark the fluid system as initialized.
     m_is_initialized = true;
@@ -214,12 +218,26 @@ void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce>& body_forc
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemTDPF::OnDoStepDynamics(double time, double step) {
+    // Enforce exactly one force evaluation per solid state load. Evaluating twice against the same cached state
+    // would record the same body velocity at two distinct times and corrupt the radiation convolution history,
+    // silently and without any error from the underlying solver. See GetCurrentStepSize.
+    if (!m_state_refreshed) {
+        cerr << "ERROR: TDPF hydrodynamic forces evaluated twice against the same solid state (t = " << time << ")."
+             << endl;
+        throw std::runtime_error(
+            "ChFsiFluidSystemTDPF: hydrodynamic forces evaluated twice against the same solid state. The TDPF fluid "
+            "system must be advanced exactly once per co-simulation step.");
+    }
+    m_state_refreshed = false;
+
     m_impl->CalculateHydroForces(time);
 }
 
 void ChFsiFluidSystemTDPF::OnExchangeSolidForces() {}
 
-void ChFsiFluidSystemTDPF::OnExchangeSolidStates() {}
+void ChFsiFluidSystemTDPF::OnExchangeSolidStates() {
+    m_state_refreshed = true;
+}
 
 }  // end namespace tdpf
 }  // end namespace fsi

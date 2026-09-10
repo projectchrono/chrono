@@ -19,6 +19,8 @@
 #ifndef CH_FLUID_SYSTEM_TDPF_H
 #define CH_FLUID_SYSTEM_TDPF_H
 
+#include <limits>
+
 #include "chrono_fsi/ChFsiFluidSystem.h"
 
 #include "chrono_fsi/tdpf/ChFsiTdpfTypes.h"
@@ -130,6 +132,15 @@ public:
     /// Additional actions taken after loading new solid phase states.
     virtual void OnExchangeSolidStates() override;
 
+    /// Return the current step size for the TDPF fluid solver.
+    /// TDPF is not a time integrator: evaluating hydrodynamic forces is an algebraic operation on the current solid
+    /// state (plus the radiation velocity history), so the solver has no internal step size. Returning an unbounded
+    /// value makes ChFsiSystem::AdvanceCFD take the entire co-simulation step in a single evaluation. This is
+    /// required, not merely an optimization: the cached solid state is refreshed only once per co-simulation step, so
+    /// a sub-cycled advance would record the same body velocity at several distinct times and corrupt the radiation
+    /// convolution history.
+    virtual double GetCurrentStepSize() override { return std::numeric_limits<double>::max(); }
+
   private:
     // ----------
 
@@ -162,6 +173,11 @@ public:
 
     std::string m_hydro_filename;                       ///< input hydro file name (HDF5 format)
     std::unique_ptr<ChFsiFluidSystemTDPF_impl> m_impl;  ///< private implementation
+
+    /// True if new solid states were loaded since the last force evaluation.
+    /// Enforces the invariant of exactly one hydrodynamic force evaluation per solid state load; see
+    /// GetCurrentStepSize.
+    bool m_state_refreshed;
 
     friend class ChFsiSystemTDPF;
     friend class ChFsiInterfaceTDPF;
