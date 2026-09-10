@@ -34,10 +34,10 @@
 <rect x="354.8" y="166.5" width="26.0" height="26.5" rx="3" fill="#d95926"/>
 <rect x="382.8" y="164.0" width="26.0" height="2.5" rx="3" fill="#199e70"/>
 <text x="490.2" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#ffffff" text-anchor="middle">HMMWV</text>
-<text x="490.2" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#c3c2b7" text-anchor="middle">+ 20 spheres</text>
-<rect x="449.2" y="166.5" width="26.0" height="3.1" rx="3" fill="#3987e5"/>
-<rect x="477.2" y="166.5" width="26.0" height="22.5" rx="3" fill="#d95926"/>
-<rect x="505.2" y="166.5" width="26.0" height="3.3" rx="3" fill="#199e70"/>
+<text x="490.2" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#c3c2b7" text-anchor="middle">+ 20 rocks</text>
+<rect x="449.2" y="162.6" width="26.0" height="3.9" rx="3" fill="#3987e5"/>
+<rect x="477.2" y="166.5" width="26.0" height="9.5" rx="3" fill="#d95926"/>
+<rect x="505.2" y="166.5" width="26.0" height="2.9" rx="3" fill="#199e70"/>
 <text x="612.5" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#ffffff" text-anchor="middle">300 m patch</text>
 <text x="612.5" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#c3c2b7" text-anchor="middle">35k nodes</text>
 <rect x="571.5" y="166.5" width="26.0" height="1.5" rx="3" fill="#3987e5"/>

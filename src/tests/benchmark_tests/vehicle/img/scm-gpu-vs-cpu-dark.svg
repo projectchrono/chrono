@@ -23,11 +23,11 @@
 <circle cx="328.4" cy="218.7" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
 <circle cx="221.3" cy="218.7" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
 <text x="680.0" y="222.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">3.1x</text>
-<text x="158.0" y="265.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">HMMWV, + 20 spheres*</text>
-<line x1="262.3" y1="261.3" x2="476.8" y2="261.3" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
-<circle cx="476.8" cy="261.3" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
-<circle cx="262.3" cy="261.3" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
-<text x="680.0" y="265.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">9.3x</text>
+<text x="158.0" y="265.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">HMMWV, + 20 rocks</text>
+<line x1="331.6" y1="261.3" x2="447.7" y2="261.3" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
+<circle cx="447.7" cy="261.3" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="331.6" cy="261.3" r="6" fill="#3987e5" stroke="#1a1a19" stroke-width="2"/>
+<text x="680.0" y="265.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">3.4x</text>
 <text x="158.0" y="308.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#ffffff" text-anchor="end">300 m patch, 35k nodes</text>
 <line x1="401.3" y1="304.0" x2="509.7" y2="304.0" stroke="#8a8983" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
 <circle cx="509.7" cy="304.0" r="6" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
@@ -42,5 +42,4 @@
 <text x="188.0" y="70.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">GPU</text>
 <circle cx="239" cy="66" r="5" fill="#d95926"/>
 <text x="250.0" y="70.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">CPU (default loop)</text>
-<text x="20.0" y="406.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#8a8983" text-anchor="start">* MESH_1 is not the same scenario on both paths: its 20 primitive spheres deform nothing on the GPU path.</text>
 </svg>

@@ -16,7 +16,7 @@ Each test has variants, and the tables below use their benchmark-suite names. Wh
 | `WheelSCM_D20` | 20 mm grid under the wheel | 1.7k |
 | `WheelSCM_D10` | 10 mm grid -- four times as many nodes over the same ground | 7.2k |
 | `HmmwvSCM_MESH_0` | four `RIGID_MESH` tyres, nothing else on the terrain | 5.4k |
-| `HmmwvSCM_MESH_1` | the same, plus 20 spheres dropped on the soil | 5.4k GPU / 8.9k CPU |
+| `HmmwvSCM_MESH_1` | the same, plus 20 scaled rock meshes dropped on the soil | 6.1k |
 | `LargeSCM_SEED0` | no pre-worked ruts: only what the vehicle itself digs | 34.6k |
 | `LargeSCM_SEED1` | 1 rut laid into the node map before the run | 260k |
 | `LargeSCM_SEED4` | 4 ruts | 935k |
@@ -83,12 +83,13 @@ appear once.
 | `D20` | 4.63x | 1.406 | 53.8x | **11.6x** | 33.8x | **7.3x** |
 | `D10` | 4.39x | 1.306 | 77.7x | **17.7x** | 67.1x | **15.3x** |
 | `MESH_0` | 1.01x | 1.012 | 4.6x | **4.6x** | 4.3x | **4.3x** |
-| `MESH_1` | 5.54x | 1.628 | 7.4x | **1.3x** | 9.8x | **1.8x** |
+| `MESH_1` | 2.49x | 0.996 | 5.3x | **2.1x** | - | - |
 | `SEED0` | 1.01x | 1.033 | 5.6x | **5.6x** | 5.1x | **5.1x** |
 | `SEED16` | 1.01x | 1.000 | 4.2x | **4.1x** | 4.4x | **4.3x** |
 
-Read `MESH_1` with care: its ray reduction is large because its 20 falling spheres are primitives
-that the GPU path does not accept at all, so per-ray is where the honest number is.
+`MESH_1` used sphere primitives as obstacles until they were found to fall through the terrain on
+the GPU path -- see the caveat below -- and now uses rock meshes. Its figures here are from the mesh
+version; the gfx942 column has not been re-run.
 
 # Baseline -- RTX 4080
 
@@ -109,7 +110,7 @@ Each cell is `SCM_Total` / `SCM_RayCast`.
 | `WheelSCM_D20` | 0.0971 / 0.0359 | 0.0982 / 0.0370 | 0.0694 / 0.0365 | 0.0681 / 0.0352 | 6.8687 / 6.7994 | 2.1204 / 1.9911 | 2.1706 / 2.0941 |
 | `WheelSCM_D10` | 0.5046 / 0.0978 | 0.5070 / 0.1000 | 0.2897 / 0.0975 | 0.2899 / 0.0975 | - | 8.6116 / 7.7662 | 8.2832 / 7.8633 |
 | `HmmwvSCM_MESH_0` | 0.1152 / 0.0628 | 0.1149 / 0.0629 | 0.1063 / 0.0635 | 0.1050 / 0.0634 | 6.1585 / 6.0965 | 0.3506 / 0.2925 | 0.4024 / 0.3513 |
-| `HmmwvSCM_MESH_1` | 0.1780 / 0.1229 | 0.1761 / 0.1214 | 0.1649 / 0.1193 | 0.1632 / 0.1201 | 6.2126 / 6.1485 | 1.6448 / 0.8998 | 1.6400 / 1.0522 |
+| `HmmwvSCM_MESH_1` | 0.3579 / 0.1913 | 0.3625 / 0.1942 | 0.3487 / 0.1911 | 0.3513 / 0.1923 | 44.6546 / 44.4682 | 1.2149 / 1.0325 | 1.4578 / 1.2762 |
 | `LargeSCM_SEED0` | 0.7514 / 0.3260 | 0.7493 / 0.3248 | 0.6008 / 0.3288 | 0.5918 / 0.3261 | 34.3628 / 33.9085 | 2.3183 / 1.8237 | 2.2628 / 1.9392 |
 | `LargeSCM_SEED1` | 0.7891 / 0.3516 | 0.7786 / 0.3473 | 0.6425 / 0.3615 | 0.6298 / 0.3537 | - | 2.3377 / 1.8418 | 2.3180 / 1.9865 |
 | `LargeSCM_SEED4` | 0.8075 / 0.3669 | 0.8182 / 0.3757 | 0.6408 / 0.3641 | 0.6332 / 0.3611 | - | 2.3303 / 1.8351 | 2.3086 / 1.9833 |
@@ -133,14 +134,15 @@ offset moves, and most of that offset is the base-height matrix -- 15001^2 entri
 EPYC 9684X, 16-core slice, 233 GB. ROCm 7.2.4, HIP backend, GCC 11.4.0 and ROCm clang 22.0.0git.
 Release, benchmarks set 4 Chrono OpenMP threads internally. All cv <= 0.18%. One process per cell.
 
-Each cell is `SCM_Total` / `SCM_RayCast`.
+Each cell is `SCM_Total` / `SCM_RayCast`. The `MESH_1` row predates the obstacle change and is
+not comparable to the NVIDIA table above.
 
 | variant | GCC/HIP | GCC/CPU | clang/HIP | clang/CPU |
 |---|---|---|---|---|
 | `WheelSCM_D20` | 0.1726 / 0.0939 | 3.3830 / 3.1726 | 0.1985 / 0.0971 | 3.4522 / 3.2355 |
 | `WheelSCM_D10` | 0.6863 / 0.1882 | 13.8749 / 12.6312 | 0.8582 / 0.2036 | 13.7305 / 12.4352 |
 | `HmmwvSCM_MESH_0` | 0.2214 / 0.1464 | 0.7856 / 0.6282 | 0.2370 / 0.1501 | 0.6313 / 0.5076 |
-| `HmmwvSCM_MESH_1` | 0.3172 / 0.2387 | 3.7637 / 2.3370 | 0.3394 / 0.2481 | 4.0699 / 2.4669 |
+| `HmmwvSCM_MESH_1` (stale) | 0.3172 / 0.2387 | 3.7637 / 2.3370 | 0.3394 / 0.2481 | 4.0699 / 2.4669 |
 | `LargeSCM_SEED0` | 1.1186 / 0.5670 | 3.5594 / 2.8957 | 1.2941 / 0.5868 | 4.7062 / 3.4875 |
 | `LargeSCM_SEED16` | 1.3809 / 0.8256 | 4.7167 / 3.6066 | 1.5779 / 0.8656 | 4.8605 / 3.6381 |
 
@@ -161,7 +163,7 @@ the same work and the columns are directly comparable.
 | `D20` | 0.0982 | 0.1726 | 2.1204 | 3.3830 |
 | `D10` | 0.5070 | 0.6863 | 8.6116 | 13.8749 |
 | `MESH_0` | 0.1149 | 0.2214 | 0.3506 | 0.7856 |
-| `MESH_1` | 0.1761 | 0.3172 | 1.6448 | 3.7637 |
+| `MESH_1` | 0.3625 | not re-run | 1.2149 | not re-run |
 | `SEED0` | 0.7493 | 1.1186 | 2.3183 | 3.5594 |
 | `SEED16` | 0.8702 | 1.3809 | 2.3447 | 4.7167 |
 
@@ -178,15 +180,18 @@ work, and a shared 16-core EPYC slice loses to a 5.3 GHz Raptor Lake on a four-t
   `in_footprint` test); the CPU loop does not. Those rays could not have hit anything, so both paths
   find the same hits from different ray counts -- 363 against 1682 on `D20`. Compare `SCM_Nodes`.
 
-- **GPU and CPU do not deform the same nodes, and it is not fully explained.** The GPU path
-  considers only bodies that overlap the active-domain region and contribute triangle meshes
-  ([`DiscoverRaycastCandidates`](../../../chrono_vehicle/terrain/SCMTerrain.cpp)); the CPU loop
-  ray-casts the whole collision system. On `MESH_1` that accounts for the 1.63x node ratio outright
-  -- its 20 falling spheres are primitives the GPU path never sees. But `MESH_0` and `SEED16` agree
-  to 1.01x while `D20` and `D10` differ by 1.41x and 1.31x on mesh-only scenes, where the two paths
-  should agree. Whether the wheel-rig gap is a modelling difference or a defect in the GPU path is
-  open; the ray-cast footprint cull is not the cause, since `ref` applies no cull and matches the
-  GPU node count exactly.
+- **Primitive-shaped bodies get no contact force on the GPU path.** The GPU backend intersects
+  triangle meshes only: a primitive collision shape contributes no faces, never appears as a hit's
+  contactable, and receives nothing back from the soil. It falls through the terrain. The bail-out
+  in `ComputeRayCastGpuHip` fires only when *no* candidate carries a mesh, so a mixed scene keeps
+  the GPU path and silently drops its primitives. This is why `MESH_1`'s obstacles are rock meshes:
+  as spheres they fell through, and the variant timed a scene its obstacles were absent from. The
+  defect is in the backend, not the benchmark, and is unfixed.
+
+- **`D20` and `D10` deform 1.41x and 1.31x more nodes on the CPU loop than on the GPU path.** Not
+  the above -- the wheel rig has no primitive collidables -- and not the footprint cull, since `ref`
+  applies no cull and matches the GPU node count exactly. Unexplained. Everywhere else the paths
+  agree: `MESH_0` 1.01x, `MESH_1` 1.00x, `SEED16` 1.00x.
 
 - **`ref` carries no speedup claim.** It reproduces the GPU path's physics on the CPU, which is what
   makes the node-count agreement meaningful, but it is a validation aid and runs several times
