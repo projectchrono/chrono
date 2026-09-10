@@ -69,6 +69,22 @@ class ChApiPrecice ChPreciceAdapter {
         TORQUES              ///< 3D torques (on body ref frames)
     };
 
+    /// Point within the coupling time window at which data from other participants is sampled.
+    /// preCICE associates data written by a participant during a time window with the *end* of that
+    /// window; reading at the start of the window therefore returns the value produced during the
+    /// *previous* window.
+    enum class CouplingReadTime {
+        /// Read data valid at the beginning of the coupling time window (default). Every participant
+        /// then consumes data produced by the others during the previous window, so a force sent from
+        /// a fluid to a solid phase lags the solid state it was evaluated at by one window.
+        WINDOW_START,
+        /// Read data valid at the end of the coupling time window. Only meaningful for the participant
+        /// listed as `second` in a serial coupling scheme: that participant runs after the `first` one
+        /// within each window, so the data the `first` participant produced in the current window is
+        /// already available. This removes the one-window lag described above.
+        WINDOW_END
+    };
+
     virtual ~ChPreciceAdapter() {}
 
     /// Enable/disable verbose terminal output (default: false).
@@ -155,6 +171,15 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Get the maximum time step size from preCICE.
     double GetMaxTimeStepSize() const;
+
+    /// Set the point within the coupling time window at which data from other participants is read
+    /// (default: CouplingReadTime::WINDOW_START).
+    /// The setting is checked against the coupling scheme declared in the preCICE configuration file
+    /// during initialization; see CouplingReadTime. Must be set before InitializeSimulation().
+    void SetCouplingReadTime(CouplingReadTime read_time) { m_coupling_read_time = read_time; }
+
+    /// Get the point within the coupling time window at which data from other participants is read.
+    CouplingReadTime GetCouplingReadTime() const { return m_coupling_read_time; }
 
     /// Get the preCICE participant name.
     const std::string& GetParticipantName() const;
@@ -404,6 +429,8 @@ class ChApiPrecice ChPreciceAdapter {
     bool m_use_added_mass;                                   ///<
     bool m_use_dynamic_added_mass;                           ///<
 
+    CouplingReadTime m_coupling_read_time;  ///< where in the time window read data is sampled
+
     std::unique_ptr<precice::Participant> m_participant;  ///< preCICE instance
     std::string m_participant_name;                       ///< name of the Chrono preCICE participant/solver
 
@@ -448,8 +475,18 @@ class ChApiPrecice ChPreciceAdapter {
     /// - Mark mesh data as used (referenced) or not.
     void ProcessXML();
 
+    /// Check the configured coupling read time against the coupling scheme found in the preCICE
+    /// configuration file. Throws if preCICE cannot honor the request (reading at the end of the window
+    /// on a participant that runs first, or under a scheme with no serial ordering) and warns if the
+    /// request leaves the coupling lagging by one time window.
+    void ValidateCouplingReadTime() const;
+
     MeshDataNames m_defined_meshes;                          ///< meshes defined in preCICE configuration file
     std::map<std::string, MeshDataNames> m_provided_meshes;  ///< meshes provided by a participant
+
+    bool m_serial_coupling;            ///< true if the configuration declares a serial coupling scheme
+    std::string m_first_participant;   ///< participant listed as 'first' in a serial coupling scheme
+    std::string m_second_participant;  ///< participant listed as 'second' in a serial coupling scheme
 
   protected:
     /// Return dimension of one added mass block.

@@ -40,6 +40,8 @@ ChPreciceAdapter::ChPreciceAdapter(const std::string& precice_config_filename, c
       m_participant(nullptr),
       m_use_added_mass(false),
       m_use_dynamic_added_mass(false),
+      m_coupling_read_time(CouplingReadTime::WINDOW_START),
+      m_serial_coupling(false),
       m_interfaces_created(false),
       m_participant_created(false),
       m_initialized(false),
@@ -123,6 +125,17 @@ static ChPreciceAdapter::CouplingMeshType ReadCouplingMeshType(const YAML::Node&
     throw std::runtime_error("Invalid mesh type");
 }
 
+static ChPreciceAdapter::CouplingReadTime ReadCouplingReadTime(const YAML::Node& a) {
+    auto type = ChToUpper(a.as<std::string>());
+    if (type == "WINDOW_START")
+        return ChPreciceAdapter::CouplingReadTime::WINDOW_START;
+    if (type == "WINDOW_END")
+        return ChPreciceAdapter::CouplingReadTime::WINDOW_END;
+
+    cerr << "\nERROR: Unknown coupling read time: " << a.as<std::string>() << endl;
+    throw std::runtime_error("Invalid coupling read time");
+}
+
 static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node& a) {
     auto type = ChToUpper(a.as<std::string>());
     if (type == "GENERIC")
@@ -172,6 +185,10 @@ void ChPreciceAdapter::ReadParticipantConfigurationYAML(const std::string& input
     m_use_degrees = true;
     if (config["angle_degrees"])
         m_use_degrees = config["angle_degrees"].as<bool>();
+
+    // Point in the coupling time window at which data from other participants is read
+    if (config["read_data_time"])
+        m_coupling_read_time = ReadCouplingReadTime(config["read_data_time"]);
 
     // Read mesh interfaces and data names for writing and reading from the YAML configuration, and initialize the data maps for each mesh/data pair
     ChAssertAlways(config["interfaces"]);
@@ -470,6 +487,9 @@ void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size)
     // Check mesh and data consistency
     ProcessXML();
 
+    // Check the requested coupling read time against the declared coupling scheme
+    ValidateCouplingReadTime();
+
     // If using dynamic added mass, create and register the necessary data exchange mesh
     if (m_use_dynamic_added_mass)
         RegisterMeshAM();
@@ -529,6 +549,42 @@ void ChPreciceAdapter::FinalizeSimulation() {
         cout << m_prefix1 << "Shutdown" << endl;
     FinalizeParticipant();
     m_participant->finalize();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChPreciceAdapter::ValidateCouplingReadTime() const {
+    bool read_at_end = (m_coupling_read_time == CouplingReadTime::WINDOW_END);
+
+    if (!m_serial_coupling) {
+        // Without a serial ordering, no participant is guaranteed to have produced data for the current
+        // window by the time another one reads it.
+        if (read_at_end) {
+            cerr << "\nERROR: read_data_time = WINDOW_END requires a serial coupling scheme "
+                 << "(coupling-scheme:serial-explicit or coupling-scheme:serial-implicit), but none was "
+                 << "found in '" << m_precice_config_filename << "'." << endl;
+            throw std::runtime_error("read_data_time = WINDOW_END requires a serial coupling scheme");
+        }
+        return;
+    }
+
+    bool is_second = (m_participant_name == m_second_participant);
+    bool is_first = (m_participant_name == m_first_participant);
+
+    if (read_at_end && !is_second) {
+        cerr << "\nERROR: read_data_time = WINDOW_END is only valid for the participant listed as "
+             << "'second' in the serial coupling scheme. Participant '" << m_participant_name << "' is "
+             << (is_first ? "listed as 'first'" : "not part of that scheme")
+             << ", so no data for the current time window is available to it." << endl;
+        throw std::runtime_error("read_data_time = WINDOW_END is only valid for the 'second' participant");
+    }
+
+    if (!read_at_end && is_second && m_verbose) {
+        cout << m_prefix1 << "WARNING: this participant is 'second' in a serial coupling scheme but reads "
+             << "data at the start of the time window, so the data it consumes lags the other participant "
+             << "by one window. Set 'read_data_time: WINDOW_END' to consume data produced in the current "
+             << "window instead." << endl;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -629,7 +685,39 @@ void ChPreciceAdapter::ParseXML() {
             cout << endl;
     }
 
+    // Loop over all nodes and extract the coupling scheme. A serial scheme runs its participants one
+    // after the other within each time window, so the one listed as 'second' can consume data the
+    // 'first' produced in the current window (see CouplingReadTime). Only the first serial scheme found
+    // that involves this participant is recorded; schemes with no serial ordering (parallel-* and
+    // coupling-scheme:multi) leave m_serial_coupling false.
+    for (auto c_node = root_node->first_node(); c_node; c_node = c_node->next_sibling()) {
+        std::string scheme(c_node->name());
+        if (scheme.rfind("coupling-scheme:", 0) != 0)
+            continue;
+        if (scheme.find("serial") == std::string::npos)
+            continue;
+
+        auto p_node = c_node->first_node("participants");
+        if (!p_node)
+            continue;
+        auto first_attr = p_node->first_attribute("first");
+        auto second_attr = p_node->first_attribute("second");
+        if (!first_attr || !second_attr)
+            continue;
+
+        m_serial_coupling = true;
+        m_first_participant = first_attr->value();
+        m_second_participant = second_attr->value();
+        break;
+    }
+
     if (m_verbose) {
+        cout << "  Coupling scheme: ";
+        if (m_serial_coupling)
+            cout << "serial | first: '" << m_first_participant << "' | second: '" << m_second_participant << "'" << endl;
+        else
+            cout << "no serial ordering declared" << endl;
+
         if (m_use_added_mass) {
             cout << "  Use added mass: YES ";
             cout << (m_use_dynamic_added_mass ? "(dynamic)" : "(static)") << endl;
@@ -725,6 +813,12 @@ void ChPreciceAdapter::WriteData() {
 }
 
 void ChPreciceAdapter::ReadData() {
+    // Sample either at the beginning of the current time window or at its end. Note that the offset is
+    // measured from the beginning of the current step and must span the remaining window, not the
+    // negotiated solver step: a participant that sub-steps within a window would otherwise sample
+    // part-way through it.
+    double read_time = (m_coupling_read_time == CouplingReadTime::WINDOW_END) ? GetMaxTimeStepSize() : 0.0;
+
     std::string msg = m_prefix1 + "Read data\n";
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         for (const auto& data_name : m_data_read[mesh_name]) {
@@ -732,7 +826,7 @@ void ChPreciceAdapter::ReadData() {
                 continue;
             auto data_dim = std::to_string(GetCouplingDataDimensions(mesh_name, data_name));
             msg += m_prefix2 + mesh_name + ":" + data_name + " (" + data_dim + "," + GetCouplingDataTypeAsString(mesh_name, data_name) + ")\n";
-            mesh_info.data[data_name].values = ReadDataBlock(mesh_name, data_name);
+            ReadDataBlock(mesh_name, data_name, read_time);
         }
         if (m_verbose)
             cout << msg;
@@ -971,7 +1065,10 @@ void ChPreciceAdapter::ReadDataAM() {
     if (m_verbose)
         cout << m_prefix1 << "Read AM data" << endl;
 
-    m_participant->readData(m_AMmesh_name, "am_coeffs", m_AMmesh_vertexIDs, 0, m_AMmesh_values);
+    // Sample at the same point in the time window as the other read data, so that the added-mass
+    // coefficients and the forces evaluated with them refer to the same instant.
+    double read_time = (m_coupling_read_time == CouplingReadTime::WINDOW_END) ? GetMaxTimeStepSize() : 0.0;
+    m_participant->readData(m_AMmesh_name, "am_coeffs", m_AMmesh_vertexIDs, read_time, m_AMmesh_values);
 
     size_t num_bodies = GetNumFsiBodies();
     std::vector<ChMatrix66d> blocks(num_bodies);
