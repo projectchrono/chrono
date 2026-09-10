@@ -3,7 +3,6 @@ type: FSI
 
 mbs:   "mbs.yaml"
 fluid: "tdpf.yaml"
-#fluid: "sph.yaml"
 
 fsi:
   name: FSI_sphere_decay
@@ -18,12 +17,11 @@ fsi:
       shapes:
         - type: SPHERE
           location: [0, 0, 0]
-          radius: 5.0
+          radius: 0.12
         
 simulation:
-  time_step: 1e-2
-  #time_step: 1e-4
-  end_time: -1
+  time_step: 1e-3
+  end_time: 40
   gravity: [0, 0, -9.8]
 
 visualization:

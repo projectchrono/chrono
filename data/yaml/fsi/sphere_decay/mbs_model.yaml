@@ -11,7 +11,7 @@ model:
   bodies:
     - name: body1
       location: [0, 0, 1.0]
-      mass: 3.62
+      mass: 3.522
       fixed: false
       inertia:
         moments: [0.021, 0.021, 0.021]

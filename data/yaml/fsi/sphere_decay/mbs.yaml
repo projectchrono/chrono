@@ -5,12 +5,13 @@ model:  "mbs_model.yaml"
 solver: "mbs_solver.yaml"
 
 simulation:
-  end_time: 100
+  end_time: 40
   enforce_realtime: true
   
 output:
   format: NONE
-  fps: 20
+  mode: SERIES
+  fps: 100
 
 visualization:
   type: Model_file

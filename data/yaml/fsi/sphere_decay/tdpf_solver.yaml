@@ -1,3 +1,64 @@
 chrono-version: 10.0
 
- 
+# Chrono::FSI-TDPF solver settings.
+# Every section and key below is optional; omitted entries keep the solver defaults.
+# Enumeration values are read case-insensitively.
+
+radiation:
+  # RIRF_CONVOLUTION: direct convolution of the retardation kernel with the velocity history.
+  # STATE_SPACE:      state-space approximation of the kernel.
+  method: RIRF_CONVOLUTION
+
+  # Truncate the retardation kernel at this time [s]; 0 uses the full kernel from the HDF5 file.
+  # The velocity history is retained over the kernel length, so truncating a long kernel whose
+  # tail is negligible reduces both memory and per-step cost, substantially so at small time steps.
+  # The kernel in this model spans 30 s but is spent after about 1 s: 99.98% of its energy lies in
+  # the first second, and truncating at 3 s reproduces the full-kernel heave response to within
+  # 1.5e-4 m while cutting the run time by 2.3x at a 2e-3 step.
+  truncation_time: 3.0
+
+  # Kernel smoothing (RIRF_CONVOLUTION only).
+  #   type: NONE, SG (Savitzky-Golay), or MOVING_AVERAGE
+  #   window_length: forced to be odd and at least 3
+  smoothing:
+    type: NONE
+    window_length: 5
+
+  # Half-cosine kernel taper (RIRF_CONVOLUTION only). The presence of this block enables the
+  # taper; keep the block and set 'enabled: false' to switch it off without deleting the settings.
+  #taper:
+  #  enabled: true
+  #  start_fraction: 0.8
+  #  end_fraction: 1.0
+  #  final_amplitude: 0.0
+
+  # State-space kernel fit (STATE_SPACE only).
+  #state_space:
+  #  max_order: 10
+  #  r2_threshold: 0.95
+  #  max_hankel_size: 200
+  #  r2_num_samples: 50
+
+  # Export a before/after summary of the retardation kernel (first DOF pair, one file per body).
+  # Only has an effect when smoothing or tapering is active.
+  #diagnostics:
+  #  export_csv: false
+
+excitation:
+  # AUTO:             frequency-domain for regular and multi-heading irregular seas, IRF otherwise
+  # IRF_CONVOLUTION:  time-domain convolution with the excitation IRF
+  # FREQUENCY_DOMAIN: superposition of the excitation transfer function
+  method: AUTO
+
+  # Interpolation of the excitation transfer function read from the HDF5 file.
+  #   CARTESIAN: real/imaginary interpolation (avoids phase-wrap artefacts)
+  #   POLAR:     magnitude/phase interpolation (matches legacy HydroChrono behavior)
+  interpolation: CARTESIAN
+
+  # Truncate the excitation IRF at this time [s]; 0 uses the full kernel.
+  truncation_time: 0
+
+# Destination directory for the radiation kernel CSV export, its only consumer. Left empty or absent,
+# those files are written to the current working directory.
+#diagnostics:
+#  output_dir: ""
