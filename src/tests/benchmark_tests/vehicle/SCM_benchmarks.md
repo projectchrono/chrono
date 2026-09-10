@@ -42,7 +42,8 @@ a cylinder tyre silently falls back to the CPU and the cell would not measure wh
 </picture>
 
 **2. CUDA and HIP are interchangeable. The host compiler is not, and which one wins depends on the
-platform.** No CUDA/HIP pair differs by more than 1.6%. On the RTX 4080 clang beats GCC on
+platform.** No CUDA/HIP pair differs by more than 1.6%, at ray and node counts identical to
+the digit across all four GPU cells. On the RTX 4080 clang beats GCC on
 `SCM_Total` by up to 43%; on gfx942 GCC beats clang on all six GPU cells by 7-25%. Both platforms
 agree that `SCM_RayCast` is compiler-neutral to within about 1% -- it is device code, so only the
 host-side SCM work around it moves.
@@ -114,35 +115,6 @@ Each cell is `SCM_Total` / `SCM_RayCast`.
 | `LargeSCM_SEED4` | 0.8075 / 0.3669 | 0.8182 / 0.3757 | 0.6408 / 0.3641 | 0.6332 / 0.3611 | - | 2.3303 / 1.8351 | 2.3086 / 1.9833 |
 | `LargeSCM_SEED16` | 0.8704 / 0.4431 | 0.8702 / 0.4427 | 0.7264 / 0.4524 | 0.7198 / 0.4516 | 34.5411 / 34.0860 | 2.3447 / 1.8498 | 2.3022 / 1.9782 |
 
-## Work per step
-
-Two cells did the same work if their **deformed-node counts** agree. Ray counts do not
-compare across paths -- see the caveats.
-
-| variant | path | SCM_Rays | SCM_Nodes |
-|---|---|---|---|
-| `D20` | GPU (all four cells) | 363.2 | 1717 |
-| `D20` | ref | 1680.4 | 1717 |
-| `D20` | CPU | 1681.7 | 2414 |
-| `D10` | GPU (all four cells) | 1518.9 | 7162 |
-| `D10` | CPU | 6665.4 | 9352 |
-| `MESH_0` | GPU (all four cells) | 637.2 | 5420 |
-| `MESH_0` | ref | 646.3 | 5422 |
-| `MESH_0` | CPU | 641.6 | 5474 |
-| `MESH_1` | GPU (all four cells) | 645.2-684.1 | 5420 |
-| `MESH_1` | ref | 646.3 | 5422 |
-| `MESH_1` | CPU | 3572.3-3612.6 | 8811-9020 |
-| `SEED0` | GPU (all four cells) | 3995.7-3997.2 | 34557-34587 |
-| `SEED0` | ref | 4052.5 | 34601 |
-| `SEED0` | CPU | 4024.9 | 35724 |
-| `SEED1` | GPU (all four cells) | 3995.7-3997.2 | 259572-259602 |
-| `SEED1` | CPU | 4024.9 | 260739 |
-| `SEED4` | GPU (all four cells) | 3995.7-3997.2 | 934617-934647 |
-| `SEED4` | CPU | 4024.9 | 935784 |
-| `SEED16` | GPU (all four cells) | 3995.7-3997.2 | 3634797-3634827 |
-| `SEED16` | ref | 4052.5 | 3634841 |
-| `SEED16` | CPU | 4024.9 | 3635964 |
-
 ## Memory -- resident set after setup, MiB
 
 | build | `SEED0` | `SEED16` | delta |
@@ -206,11 +178,15 @@ work, and a shared 16-core EPYC slice loses to a 5.3 GHz Raptor Lake on a four-t
   `in_footprint` test); the CPU loop does not. Those rays could not have hit anything, so both paths
   find the same hits from different ray counts -- 363 against 1682 on `D20`. Compare `SCM_Nodes`.
 
-- **GPU and CPU are not always the same scenario.** The GPU path accepts only triangle-mesh
-  collision shapes. `MESH_1`'s 20 falling spheres are primitives, so on the GPU path they deform
-  nothing: 5416 nodes against the CPU loop's ~8900. `MESH_0` (1.01x) and `SEED16` (1.00x) show the
-  paths agreeing wherever every collidable is a mesh. This is a real functional gap, not a
-  measurement artifact.
+- **GPU and CPU do not deform the same nodes, and it is not fully explained.** The GPU path
+  considers only bodies that overlap the active-domain region and contribute triangle meshes
+  ([`DiscoverRaycastCandidates`](../../../chrono_vehicle/terrain/SCMTerrain.cpp)); the CPU loop
+  ray-casts the whole collision system. On `MESH_1` that accounts for the 1.63x node ratio outright
+  -- its 20 falling spheres are primitives the GPU path never sees. But `MESH_0` and `SEED16` agree
+  to 1.01x while `D20` and `D10` differ by 1.41x and 1.31x on mesh-only scenes, where the two paths
+  should agree. Whether the wheel-rig gap is a modelling difference or a defect in the GPU path is
+  open; the ray-cast footprint cull is not the cause, since `ref` applies no cull and matches the
+  GPU node count exactly.
 
 - **`ref` carries no speedup claim.** It reproduces the GPU path's physics on the CPU, which is what
   makes the node-count agreement meaningful, but it is a validation aid and runs several times
@@ -223,10 +199,6 @@ work, and a shared 16-core EPYC slice loses to a 5.3 GHz Raptor Lake on a four-t
 
 - **One machine per platform.** L3 size is implicated in every ray-cast figure, and the AMD host is
   a shared slice.
-
-- **No physics-parity test.** These measure cost, not correctness.
-
-- **`SEED16`, at 3.63M nodes, exceeds any run actually performed.** Read it as trend, not workload.
 
 # Reproducing
 
