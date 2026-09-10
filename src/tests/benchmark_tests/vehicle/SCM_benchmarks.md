@@ -47,6 +47,11 @@ platform.** No CUDA/HIP pair differs by more than 1.6%. On the RTX 4080 clang be
 agree that `SCM_RayCast` is compiler-neutral to within about 1% -- it is device code, so only the
 host-side SCM work around it moves.
 
+Each bar in the chart below divides one build by another; there is no single reference build. Blue is
+`GCC/HIP` over `GCC/CUDA`, so it isolates the backend with the compiler held fixed. Orange and green
+are `clang/HIP` over `GCC/HIP`, isolating the compiler with the backend held fixed. 1.00 means the
+two builds are identical and below 1.00 means the first is faster.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="img/scm-what-moves-it-dark.svg">
   <img alt="Relative time: backend makes no difference, host compiler does" src="img/scm-what-moves-it-light.svg">
