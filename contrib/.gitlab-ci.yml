@@ -695,14 +695,14 @@ windows:vs2022:deploy-installer:
   # VSG
   - sh $CI_PROJECT_DIR/contrib/build-scripts/macos/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
 
-.macos-sonoma:
+.macos-tahoe:
   extends: .macos
   tags:
-    - sonoma
+    - tahoe
 
-.macos-sonoma-build:
+.macos-tahoe-build:
   stage: build
-  extends: .macos-sonoma
+  extends: .macos-tahoe
   script:
   # Configuring chrono
   - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_macos" --preset=macosci
@@ -715,9 +715,9 @@ windows:vs2022:deploy-installer:
     paths:
     - build/
 
-.macos-sonoma-test:
+.macos-tahoe-test:
   stage: test
-  extends: .macos-sonoma
+  extends: .macos-tahoe
   script:
   - cd build
   # Copying files to correct directory for CI because of Ninja Multi-Config
@@ -728,21 +728,21 @@ windows:vs2022:deploy-installer:
   - ninja test
 
 
-macos-apple:sonoma:build:
-  extends: .macos-sonoma-build
+macos-apple:tahoe:build:
+  extends: .macos-tahoe-build
   tags:
     - macos
-    - sonoma
+    - tahoe
     - apple
 
-macos-apple:sonoma:test:
-  extends: .macos-sonoma-test
+macos-apple:tahoe:test:
+  extends: .macos-tahoe-test
   tags:
     - macos
-    - sonoma
+    - tahoe
     - apple
-  needs: ["macos-apple:sonoma:build"]
-  dependencies: ["macos-apple:sonoma:build"]
+  needs: ["macos-apple:tahoe:build"]
+  dependencies: ["macos-apple:tahoe:build"]
 
 # macOS Conda Deployment
 
@@ -789,7 +789,7 @@ macos-apple:macos-deploy-python3.12:
   when: manual
   tags:
     - macos
-    - sonoma
+    - tahoe
     - apple
 
 macos-apple:macos-deploy-python3.13:
@@ -804,7 +804,7 @@ macos-apple:macos-deploy-python3.13:
   when: manual
   tags:
     - macos
-    - sonoma
+    - tahoe
     - apple
 
 
