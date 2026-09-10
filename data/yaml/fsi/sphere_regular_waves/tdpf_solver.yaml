@@ -1,3 +1,120 @@
 chrono-version: 10.0
 
- 
+# =============================================================================
+# Chrono::FSI-TDPF solver settings.
+#
+# This file spells out every available setting at its default value, as a
+# worked reference; see data/yaml/schema/fsitdpf_solver.schema.yaml for the
+# formal schema. Every object and key is optional, so a solver file containing
+# only `chrono-version` is valid and selects all of the values below.
+#
+# Enumeration values are read case-insensitively.
+#
+# Note that a TDPF solver file specifies neither an integrator nor a linear
+# solver. The fluid phase only contributes applied forces on the FSI bodies,
+# and the multibody system is advanced by the MBS solver, so those settings
+# belong in the MBS solver file. What is configured here is how the
+# hydrodynamic forces themselves are evaluated.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Radiation force
+# -----------------------------------------------------------------------------
+radiation:
+
+  # Radiation force evaluation method.
+  #   RIRF_CONVOLUTION - convolve the retardation (impulse response) kernel from the HDF5 file
+  #                      with the body velocity history
+  #   STATE_SPACE      - replace the kernel with a fitted state-space model, trading a one-time
+  #                      fit for a per-step cost independent of the kernel length
+  method: RIRF_CONVOLUTION
+
+  # Time [s] at which the retardation kernel is truncated; 0 uses the full kernel from the file.
+  #
+  # The body velocity history is retained over the kernel length, so the per-step cost and the
+  # memory both scale with it. Truncating is worthwhile only when the kernel has genuinely decayed,
+  # and how soon that happens is a property of the body: this 5 m sphere heaves with a ~4.5 s
+  # period and its 15 s kernel still holds 16% of its energy at 2 s, so it needs most of its
+  # length. The 0.12 m sphere in the sphere_decay example is spent after about 1 s and is
+  # truncated at 3 s there.
+  truncation_time: 0
+
+  # Smoothing of the retardation kernel. Only valid with method RIRF_CONVOLUTION.
+  # Useful when a kernel computed by a BEM code carries numerical noise.
+  smoothing:
+    # NONE, SG (Savitzky-Golay), or MOVING_AVERAGE
+    type: NONE
+    # Filter window length, in kernel samples. Forced to be odd and at least 3.
+    window_length: 5
+
+  # Half-cosine taper applied near the end of the retardation kernel. Only valid with method
+  # RIRF_CONVOLUTION. Useful when a kernel does not decay to zero at its end, where the residual
+  # tail would otherwise be convolved with the whole velocity history.
+  #
+  # The presence of this object turns the taper on, so that only the fractions need be given.
+  # An explicit `enabled` key takes precedence, which is what lets the settings below be kept on
+  # record while the taper is switched off.
+  taper:
+    enabled: false
+    # Start and end of the taper, as fractions of the kernel length.
+    start_fraction: 0.8
+    end_fraction: 1.0
+    # Kernel scale at the end of the taper: 0 forces the kernel to zero, 1 leaves it unchanged.
+    final_amplitude: 0.0
+
+  # Settings for the state-space kernel fit. Used only with method STATE_SPACE; ignored otherwise.
+  state_space:
+    # Maximum number of state-space modes per DOF pair.
+    max_order: 10
+    # Minimum coefficient of determination for accepting a fit.
+    r2_threshold: 0.95
+    # Maximum Hankel matrix size used in the singular value decomposition.
+    max_hankel_size: 200
+    # Number of subsamples used for the fit quality check.
+    r2_num_samples: 50
+
+  diagnostics:
+    # Write a summary of the retardation kernel before and after smoothing/tapering, as one
+    # rirf_body<N>_summary.csv file per body tabulating the first DOF pair. This has an effect only when
+    # kernel processing is active, i.e. when smoothing.type is not NONE or the taper is enabled; with
+    # neither active there is no processing pass to report on and nothing is written.
+    export_csv: false
+
+# -----------------------------------------------------------------------------
+# Wave excitation force
+#
+# These settings have no effect in still water, where the wave excitation force is identically
+# zero and the excitation component is not even created. The sphere_regular_waves model does
+# specify a regular wave, so they are live here.
+# -----------------------------------------------------------------------------
+excitation:
+
+  # Wave excitation force evaluation method.
+  #   AUTO             - frequency domain for regular seas and for irregular seas carrying more
+  #                      than one wave heading; excitation IRF convolution otherwise
+  #   IRF_CONVOLUTION  - time-domain convolution with the excitation impulse response function
+  #   FREQUENCY_DOMAIN - superposition of the excitation transfer function over wave components
+  #
+  # AUTO resolves to FREQUENCY_DOMAIN for this model, because the wave is regular.
+  method: AUTO
+
+  # Interpolation of the excitation transfer function read from the HDF5 file, when the wave
+  # frequencies fall between the tabulated ones.
+  #   CARTESIAN - interpolate real and imaginary parts; avoids phase-wrap artefacts
+  #   POLAR     - interpolate magnitude and phase; matches legacy HydroChrono behavior
+  interpolation: CARTESIAN
+
+  # Time [s] at which the excitation impulse response function is truncated; 0 uses the full
+  # kernel from the file. Applies to IRF convolution only, and note that the excitation IRF is
+  # two-sided (this file tabulates -62.5 s to +62.5 s), since the wave elevation ahead of the
+  # body influences the force on it.
+  truncation_time: 0
+
+# -----------------------------------------------------------------------------
+# Solver diagnostics
+# -----------------------------------------------------------------------------
+diagnostics:
+  # Destination directory for the radiation kernel CSV export above, currently the only consumer of this
+  # setting. It selects where those files go, not whether they are written: left empty, they are written
+  # to the current working directory.
+  output_dir: ""

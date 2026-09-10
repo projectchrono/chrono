@@ -130,7 +130,11 @@ radiation:
           properties:
               export_csv:
                   type: boolean
-                  description: Write the retardation kernels before and after processing
+                  description: |
+                    Write a summary of the retardation kernel before and after smoothing/tapering, as one
+                    rirf_body<N>_summary.csv file per body tabulating the first DOF pair. This has an effect
+                    only when kernel processing is active, that is when smoothing.type is not NONE or the
+                    taper is enabled; there is otherwise no processing pass to report on.
                   default: false
 
 excitation:
@@ -169,5 +173,8 @@ diagnostics:
   properties:
       output_dir:
           type: string
-          description: Directory for solver diagnostics output; omit or leave empty for none
+          description: |
+            Destination directory for the radiation kernel CSV export, currently the only consumer of this
+            setting. It selects where those files are written, not whether anything is written: if it is
+            empty or absent, they go to the current working directory.
           default: ""
