@@ -2,56 +2,48 @@
 <rect width="820" height="410" fill="#fcfcfb"/>
 <text x="20.0" y="30.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="start">What actually moves the number: the compiler, not the backend</text>
 <text x="20.0" y="50.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#52514e" text-anchor="start">each bar is one build divided by another - 1.00 means the two are identical, below 1.00 means the first is faster</text>
-<line x1="62" y1="319.6" x2="796" y2="319.6" stroke="#e3e2dd" stroke-width="1"/>
-<text x="52.0" y="323.6" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.50</text>
-<line x1="62" y1="289.0" x2="796" y2="289.0" stroke="#e3e2dd" stroke-width="1"/>
-<text x="52.0" y="293.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.60</text>
-<line x1="62" y1="258.4" x2="796" y2="258.4" stroke="#e3e2dd" stroke-width="1"/>
-<text x="52.0" y="262.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.70</text>
-<line x1="62" y1="227.7" x2="796" y2="227.7" stroke="#e3e2dd" stroke-width="1"/>
-<text x="52.0" y="231.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.80</text>
-<line x1="62" y1="197.1" x2="796" y2="197.1" stroke="#e3e2dd" stroke-width="1"/>
-<text x="52.0" y="201.1" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.90</text>
-<line x1="62" y1="166.5" x2="796" y2="166.5" stroke="#e3e2dd" stroke-width="1"/>
-<text x="52.0" y="170.5" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">1.00</text>
-<line x1="62" y1="135.9" x2="796" y2="135.9" stroke="#e3e2dd" stroke-width="1"/>
-<text x="52.0" y="139.9" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">1.10</text>
-<line x1="62" y1="166.5" x2="796" y2="166.5" stroke="#52514e" stroke-width="2" stroke-dasharray="5 4"/>
-<text x="66.0" y="158.5" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#52514e" text-anchor="start">no difference</text>
+<line x1="62" y1="320.0" x2="796" y2="320.0" stroke="#e3e2dd" stroke-width="1"/>
+<text x="52.0" y="324.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.50</text>
+<line x1="62" y1="288.8" x2="796" y2="288.8" stroke="#e3e2dd" stroke-width="1"/>
+<text x="52.0" y="292.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.60</text>
+<line x1="62" y1="257.7" x2="796" y2="257.7" stroke="#e3e2dd" stroke-width="1"/>
+<text x="52.0" y="261.7" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.70</text>
+<line x1="62" y1="226.6" x2="796" y2="226.6" stroke="#e3e2dd" stroke-width="1"/>
+<text x="52.0" y="230.6" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.80</text>
+<line x1="62" y1="195.4" x2="796" y2="195.4" stroke="#e3e2dd" stroke-width="1"/>
+<text x="52.0" y="199.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.90</text>
+<line x1="62" y1="164.3" x2="796" y2="164.3" stroke="#e3e2dd" stroke-width="1"/>
+<text x="52.0" y="168.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">1.00</text>
+<line x1="62" y1="133.1" x2="796" y2="133.1" stroke="#e3e2dd" stroke-width="1"/>
+<text x="52.0" y="137.1" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">1.10</text>
+<line x1="62" y1="164.3" x2="796" y2="164.3" stroke="#52514e" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="66.0" y="156.3" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#52514e" text-anchor="start">no difference</text>
 <text x="123.2" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#0b0b0b" text-anchor="middle">wheel</text>
 <text x="123.2" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#52514e" text-anchor="middle">20 mm grid</text>
-<rect x="82.2" y="162.7" width="26.0" height="3.8" rx="3" fill="#2a78d6"/>
-<rect x="110.2" y="166.5" width="26.0" height="94.0" rx="3" fill="#eb6834"/>
-<rect x="138.2" y="166.5" width="26.0" height="14.9" rx="3" fill="#1baf7a"/>
+<rect x="96.2" y="160.5" width="26.0" height="3.8" rx="3" fill="#2a78d6"/>
+<rect x="124.2" y="164.3" width="26.0" height="95.6" rx="3" fill="#eb6834"/>
 <text x="245.5" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#0b0b0b" text-anchor="middle">wheel</text>
 <text x="245.5" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#52514e" text-anchor="middle">10 mm grid</text>
-<rect x="204.5" y="165.0" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
-<rect x="232.5" y="166.5" width="26.0" height="131.2" rx="3" fill="#eb6834"/>
-<rect x="260.5" y="166.5" width="26.0" height="7.5" rx="3" fill="#1baf7a"/>
+<rect x="218.5" y="162.7" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
+<rect x="246.5" y="164.3" width="26.0" height="133.4" rx="3" fill="#eb6834"/>
 <text x="367.8" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#0b0b0b" text-anchor="middle">HMMWV</text>
 <text x="367.8" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#52514e" text-anchor="middle">mesh tyres</text>
-<rect x="326.8" y="166.5" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
-<rect x="354.8" y="166.5" width="26.0" height="26.5" rx="3" fill="#eb6834"/>
-<rect x="382.8" y="164.0" width="26.0" height="2.5" rx="3" fill="#1baf7a"/>
+<rect x="340.8" y="164.3" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
+<rect x="368.8" y="164.3" width="26.0" height="27.0" rx="3" fill="#eb6834"/>
 <text x="490.2" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#0b0b0b" text-anchor="middle">HMMWV</text>
 <text x="490.2" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#52514e" text-anchor="middle">+ 20 rocks</text>
-<rect x="449.2" y="162.6" width="26.0" height="3.9" rx="3" fill="#2a78d6"/>
-<rect x="477.2" y="166.5" width="26.0" height="9.5" rx="3" fill="#eb6834"/>
-<rect x="505.2" y="166.5" width="26.0" height="2.9" rx="3" fill="#1baf7a"/>
+<rect x="463.2" y="160.3" width="26.0" height="3.9" rx="3" fill="#2a78d6"/>
+<rect x="491.2" y="164.3" width="26.0" height="9.6" rx="3" fill="#eb6834"/>
 <text x="612.5" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#0b0b0b" text-anchor="middle">300 m patch</text>
 <text x="612.5" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#52514e" text-anchor="middle">35k nodes</text>
-<rect x="571.5" y="166.5" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
-<rect x="599.5" y="166.5" width="26.0" height="64.4" rx="3" fill="#eb6834"/>
-<rect x="627.5" y="165.3" width="26.0" height="1.5" rx="3" fill="#1baf7a"/>
+<rect x="585.5" y="164.3" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
+<rect x="613.5" y="164.3" width="26.0" height="65.5" rx="3" fill="#eb6834"/>
 <text x="734.8" y="352.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#0b0b0b" text-anchor="middle">300 m patch</text>
 <text x="734.8" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="10" font-weight="400" fill="#52514e" text-anchor="middle">3.6M nodes</text>
-<rect x="693.8" y="166.5" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
-<rect x="721.8" y="166.5" width="26.0" height="52.9" rx="3" fill="#eb6834"/>
-<rect x="749.8" y="160.3" width="26.0" height="6.2" rx="3" fill="#1baf7a"/>
+<rect x="707.8" y="164.3" width="26.0" height="1.5" rx="3" fill="#2a78d6"/>
+<rect x="735.8" y="164.3" width="26.0" height="53.8" rx="3" fill="#eb6834"/>
 <rect x="62" y="74" width="10" height="10" rx="2" fill="#2a78d6"/>
-<text x="77.0" y="83.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#52514e" text-anchor="start">GCC/HIP over GCC/CUDA, SCM_Total</text>
+<text x="77.0" y="83.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#52514e" text-anchor="start">GCC/HIP over GCC/CUDA</text>
 <rect x="312" y="74" width="10" height="10" rx="2" fill="#eb6834"/>
-<text x="327.0" y="83.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#52514e" text-anchor="start">clang/HIP over GCC/HIP, SCM_Total</text>
-<rect x="562" y="74" width="10" height="10" rx="2" fill="#1baf7a"/>
-<text x="577.0" y="83.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#52514e" text-anchor="start">clang/HIP over GCC/HIP, SCM_RayCast</text>
+<text x="327.0" y="83.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#52514e" text-anchor="start">clang/HIP over GCC/HIP</text>
 </svg>

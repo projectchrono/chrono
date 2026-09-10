@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img">
 <rect width="720" height="420" fill="#1a1a19"/>
-<text x="20.0" y="30.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="15" font-weight="600" fill="#ffffff" text-anchor="start">Ray-cast cost grows with the modified-node map</text>
+<text x="20.0" y="30.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="15" font-weight="600" fill="#ffffff" text-anchor="start">Step cost grows with the modified-node map</text>
 <text x="20.0" y="50.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">btest_VEH_largeSCM, GCC + HIP on RTX 4080 - identical 3997 rays/step at every point</text>
 <line x1="70" y1="362.0" x2="570" y2="362.0" stroke="#33322e" stroke-width="1"/>
 <text x="60.0" y="366.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#8a8983" text-anchor="end">0.0</text>
@@ -26,16 +26,4 @@
 <text x="584.0" y="176.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">SCM_Total</text>
 <text x="584.0" y="193.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">+16% over the sweep</text>
 <circle cx="576.0" cy="168.8" r="0"/>
-<path d="M70.0,291.4 L286.6,286.5 L424.2,280.3 L570.0,265.8" fill="none" stroke="#d95926" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="70.0" cy="291.4" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
-<circle cx="286.6" cy="286.5" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
-<circle cx="424.2" cy="280.3" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
-<circle cx="570.0" cy="265.8" r="5" fill="#d95926" stroke="#1a1a19" stroke-width="2"/>
-<text x="584.0" y="269.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="start">SCM_RayCast</text>
-<text x="584.0" y="286.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">+36% over the sweep</text>
-<circle cx="576.0" cy="261.8" r="0"/>
-<rect x="70" y="70" width="10" height="10" rx="2" fill="#3987e5"/>
-<text x="85.0" y="79.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">SCM_Total</text>
-<rect x="175" y="70" width="10" height="10" rx="2" fill="#d95926"/>
-<text x="190.0" y="79.0" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">SCM_RayCast</text>
 </svg>
