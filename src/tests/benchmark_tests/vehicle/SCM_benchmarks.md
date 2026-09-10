@@ -72,30 +72,22 @@ culls nodes outside every mesh body's XY footprint before casting; the CPU loop 
 the win is issuing fewer rays and part is casting each one faster. The ray-count reduction is a
 property of the algorithm and is identical on both platforms; the per-ray figure is the hardware.
 
-RTX 4080, GCC:
+Both hosts, GCC, in one table. `raw` is the `SCM_RayCast` column ratio; `per ray` divides that
+by the ray-count reduction, leaving only how much faster each individual ray is. The ray- and
+node-count ratios are properties of the algorithm, so they are the same on both hosts and
+appear once.
 
-| variant | rays CPU/GPU | raw `SCM_RayCast` | per ray | nodes CPU/GPU |
-|---|---|---|---|---|
-| `D20` | 4.63x | 53.8x | **11.6x** | 1.406 |
-| `D10` | 4.39x | 77.7x | **17.7x** | 1.306 |
-| `MESH_0` | 1.01x | 4.6x | **4.6x** | 1.012 |
-| `MESH_1` | 5.54x | 7.4x | **1.3x** | 1.628 |
-| `SEED0` | 1.01x | 5.6x | **5.6x** | 1.033 |
-| `SEED16` | 1.01x | 4.2x | **4.1x** | 1.000 |
+| variant | rays CPU/GPU | nodes CPU/GPU | raw 4080 | **per ray 4080** | raw gfx942 | **per ray gfx942** |
+|---|---|---|---|---|---|---|
+| `D20` | 4.63x | 1.406 | 53.8x | **11.6x** | 33.8x | **7.3x** |
+| `D10` | 4.39x | 1.306 | 77.7x | **17.7x** | 67.1x | **15.3x** |
+| `MESH_0` | 1.01x | 1.012 | 4.6x | **4.6x** | 4.3x | **4.3x** |
+| `MESH_1` | 5.54x | 1.628 | 7.4x | **1.3x** | 9.8x | **1.8x** |
+| `SEED0` | 1.01x | 1.033 | 5.6x | **5.6x** | 5.1x | **5.1x** |
+| `SEED16` | 1.01x | 1.000 | 4.2x | **4.1x** | 4.4x | **4.3x** |
 
-gfx942, GCC:
-
-| variant | rays CPU/GPU | raw `SCM_RayCast` | per ray | nodes CPU/GPU |
-|---|---|---|---|---|
-| `D20` | 4.63x | 33.8x | **7.3x** | 1.406 |
-| `D10` | 4.39x | 67.1x | **15.3x** | 1.306 |
-| `MESH_0` | 1.01x | 4.3x | **4.3x** | 1.009 |
-| `MESH_1` | 5.54x | 9.8x | **1.8x** | 1.650 |
-| `SEED0` | 1.01x | 5.1x | **5.1x** | 1.034 |
-| `SEED16` | 1.01x | 4.4x | **4.3x** | 1.000 |
-
-Read `MESH_1` with care in both tables: its ray reduction is large because its 20 falling spheres are
-primitives that the GPU path does not accept at all, so per-ray is where the honest number is.
+Read `MESH_1` with care: its ray reduction is large because its 20 falling spheres are primitives
+that the GPU path does not accept at all, so per-ray is where the honest number is.
 
 # Baseline -- RTX 4080
 
