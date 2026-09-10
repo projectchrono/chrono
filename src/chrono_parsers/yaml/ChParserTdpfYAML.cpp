@@ -37,6 +37,11 @@ ChParserTdpfYAML::ChParserTdpfYAML(const std::string& yaml_filename, bool verbos
     : ChParserCfdYAML(verbose),
       m_gravity({0, 0, -9.8}),
       m_ramp_duration(0),
+      m_radiation_method(fsi::tdpf::ChTdpfRadiationMethod::RIRF_CONVOLUTION),
+      m_radiation_truncation_time(0),
+      m_excitation_method(fsi::tdpf::ChTdpfExcitationMethod::AUTO),
+      m_excitation_interp(fsi::tdpf::ChTdpfExcitationInterpolation::CARTESIAN),
+      m_excitation_truncation_time(0),
       m_loaded(false),
       m_solver_loaded(false),
       m_model_loaded(false) {
@@ -134,8 +139,154 @@ void ChParserTdpfYAML::LoadSimData(const YAML::Node& yaml) {
 }
 
 void ChParserTdpfYAML::LoadSolverData(const YAML::Node& yaml) {
-    // Nothing to do here
+    // Radiation force settings (optional)
+    if (yaml["radiation"]) {
+        auto rad = yaml["radiation"];
+
+        if (rad["method"])
+            m_radiation_method = ReadRadiationMethod(rad["method"]);
+        if (rad["truncation_time"])
+            m_radiation_truncation_time = rad["truncation_time"].as<double>();
+
+        // RIRF kernel smoothing
+        if (rad["smoothing"]) {
+            auto smoothing = rad["smoothing"];
+            if (smoothing["type"])
+                m_kernel_processing.smoothing_type = ChToLower(smoothing["type"].as<std::string>());
+            if (smoothing["window_length"])
+                m_kernel_processing.smoothing_window = smoothing["window_length"].as<int>();
+        }
+
+        // RIRF kernel tapering.
+        // Presence of the block turns tapering on, so that only the fractions need be given; an explicit
+        // 'enabled' key still wins (allowing a taper block to be kept but switched off).
+        if (rad["taper"]) {
+            auto taper = rad["taper"];
+            m_kernel_processing.taper_enabled = true;
+            if (taper["start_fraction"])
+                m_kernel_processing.taper_start_fraction = taper["start_fraction"].as<double>();
+            if (taper["end_fraction"])
+                m_kernel_processing.taper_end_fraction = taper["end_fraction"].as<double>();
+            if (taper["final_amplitude"])
+                m_kernel_processing.taper_final_amplitude = taper["final_amplitude"].as<double>();
+            if (taper["enabled"])
+                m_kernel_processing.taper_enabled = taper["enabled"].as<bool>();
+        }
+
+        // State-space fit settings
+        if (rad["state_space"]) {
+            auto ss = rad["state_space"];
+            if (ss["max_order"])
+                m_state_space_options.max_order = ss["max_order"].as<int>();
+            if (ss["r2_threshold"])
+                m_state_space_options.r2_threshold = ss["r2_threshold"].as<double>();
+            if (ss["max_hankel_size"])
+                m_state_space_options.max_hankel_size = ss["max_hankel_size"].as<int>();
+            if (ss["r2_num_samples"])
+                m_state_space_options.r2_num_samples = ss["r2_num_samples"].as<int>();
+        }
+
+        if (rad["diagnostics"]) {
+            auto diagnostics = rad["diagnostics"];
+            if (diagnostics["export_csv"])
+                m_kernel_processing.export_csv = diagnostics["export_csv"].as<bool>();
+        }
+    }
+
+    // Wave excitation force settings (optional)
+    if (yaml["excitation"]) {
+        auto exc = yaml["excitation"];
+
+        if (exc["method"])
+            m_excitation_method = ReadExcitationMethod(exc["method"]);
+        if (exc["interpolation"])
+            m_excitation_interp = ReadExcitationInterpolation(exc["interpolation"]);
+        if (exc["truncation_time"])
+            m_excitation_truncation_time = exc["truncation_time"].as<double>();
+    }
+
+    // Solver diagnostics output (optional)
+    if (yaml["diagnostics"] && yaml["diagnostics"]["output_dir"])
+        m_diagnostics_output_dir = yaml["diagnostics"]["output_dir"].as<std::string>();
+
+    // The Savitzky-Golay and moving-average filters require an odd window of at least 3 samples.
+    if (m_kernel_processing.smoothing_type != "none") {
+        int window = std::max(3, m_kernel_processing.smoothing_window);
+        if (window % 2 == 0)
+            window++;
+        if (window != m_kernel_processing.smoothing_window) {
+            cerr << "Warning: radiation.smoothing.window_length (" << m_kernel_processing.smoothing_window
+                 << ") must be odd and at least 3; using " << window << "." << endl;
+            m_kernel_processing.smoothing_window = window;
+        }
+    }
+
+    // Kernel processing operates on the RIRF and has no meaning for the state-space approximation. The
+    // underlying model builder rejects the combination; catch it here, where the offending keys can be named.
+    bool kernel_processing = (m_kernel_processing.smoothing_type != "none") || m_kernel_processing.taper_enabled;
+    if (m_radiation_method == fsi::tdpf::ChTdpfRadiationMethod::STATE_SPACE && kernel_processing) {
+        cerr << "Error: radiation.smoothing and radiation.taper are only supported with "
+             << "radiation.method = RIRF_CONVOLUTION." << endl;
+        throw std::runtime_error("Invalid TDPF solver settings: kernel processing with state-space radiation");
+    }
+
+    if (m_verbose)
+        PrintSolverInfo();
+
     m_solver_loaded = true;
+}
+
+void ChParserTdpfYAML::PrintSolverInfo() const {
+    cout << "radiation" << endl;
+    cout << "  method:               "
+         << (m_radiation_method == fsi::tdpf::ChTdpfRadiationMethod::STATE_SPACE ? "STATE_SPACE"
+                                                                                : "RIRF_CONVOLUTION")
+         << endl;
+    cout << "  truncation time:      "
+         << (m_radiation_truncation_time > 0 ? std::to_string(m_radiation_truncation_time) + " s"
+                                             : std::string("none (full kernel)"))
+         << endl;
+    if (m_radiation_method == fsi::tdpf::ChTdpfRadiationMethod::STATE_SPACE) {
+        cout << "  max order:            " << m_state_space_options.max_order << endl;
+        cout << "  R2 threshold:         " << m_state_space_options.r2_threshold << endl;
+        cout << "  max Hankel size:      " << m_state_space_options.max_hankel_size << endl;
+        cout << "  R2 num samples:       " << m_state_space_options.r2_num_samples << endl;
+    } else {
+        cout << "  smoothing:            " << m_kernel_processing.smoothing_type;
+        if (m_kernel_processing.smoothing_type != "none")
+            cout << " (window " << m_kernel_processing.smoothing_window << ")";
+        cout << endl;
+        cout << "  taper:                " << (m_kernel_processing.taper_enabled ? "enabled" : "disabled");
+        if (m_kernel_processing.taper_enabled) {
+            cout << " (" << m_kernel_processing.taper_start_fraction << " -> "
+                 << m_kernel_processing.taper_end_fraction << ", final amplitude "
+                 << m_kernel_processing.taper_final_amplitude << ")";
+        }
+        cout << endl;
+    }
+
+    cout << "excitation" << endl;
+    switch (m_excitation_method) {
+        case fsi::tdpf::ChTdpfExcitationMethod::IRF_CONVOLUTION:
+            cout << "  method:               IRF_CONVOLUTION" << endl;
+            break;
+        case fsi::tdpf::ChTdpfExcitationMethod::FREQUENCY_DOMAIN:
+            cout << "  method:               FREQUENCY_DOMAIN" << endl;
+            break;
+        default:
+            cout << "  method:               AUTO" << endl;
+            break;
+    }
+    cout << "  interpolation:        "
+         << (m_excitation_interp == fsi::tdpf::ChTdpfExcitationInterpolation::POLAR ? "POLAR" : "CARTESIAN")
+         << endl;
+    cout << "  truncation time:      "
+         << (m_excitation_truncation_time > 0 ? std::to_string(m_excitation_truncation_time) + " s"
+                                              : std::string("none (full kernel)"))
+         << endl;
+
+    if (!m_diagnostics_output_dir.empty())
+        cout << "diagnostics output dir: '" << m_diagnostics_output_dir << "'" << endl;
 }
 
 void ChParserTdpfYAML::LoadModelData(const YAML::Node& yaml) {
@@ -273,11 +424,26 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
     if (m_ramp_duration > 0)
         m_sysTDPF->SetRampDuration(m_ramp_duration);
 
+    // Set solver parameters
+    m_sysTDPF->SetRadiationMethod(m_radiation_method);
+    m_sysTDPF->SetRadiationKernelProcessing(m_kernel_processing);
+    m_sysTDPF->SetStateSpaceOptions(m_state_space_options);
+    m_sysTDPF->SetExcitationMethod(m_excitation_method);
+    m_sysTDPF->SetExcitationInterpolation(m_excitation_interp);
+    if (m_radiation_truncation_time > 0)
+        m_sysTDPF->SetRadiationTruncationTime(m_radiation_truncation_time);
+    if (m_excitation_truncation_time > 0)
+        m_sysTDPF->SetExcitationTruncationTime(m_excitation_truncation_time);
+    if (!m_diagnostics_output_dir.empty())
+        m_sysTDPF->SetDiagnosticsOutputDir(m_diagnostics_output_dir);
+
     // Create a Chrono::FSI-TDPF system with no MBS attached
     m_sysFSI = chrono_types::make_shared<fsi::tdpf::ChFsiSystemTDPF>(nullptr, m_sysTDPF.get());
     m_sysFSI->SetVerbose(m_verbose);
 
-    // Set a dummy time step (not needed by TDPF)
+    // TDPF has no internal time step: it evaluates hydrodynamic forces over the entire co-simulation step in a
+    // single call (see ChFsiFluidSystemTDPF::GetCurrentStepSize). This value is required only to satisfy the
+    // step-size check in ChFsiSystem::Initialize and does not affect the fluid advance.
     m_sysFSI->SetStepSizeCFD(1);
 
     // Initialize FSI problem
@@ -325,6 +491,35 @@ ChParserTdpfYAML::WaveType ChParserTdpfYAML::ReadWaveType(const YAML::Node& a) {
     if (val == "IRREGULAR")
         return WaveType::IRREGULAR;
     return WaveType::NONE;
+}
+
+fsi::tdpf::ChTdpfRadiationMethod ChParserTdpfYAML::ReadRadiationMethod(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+    if (val == "STATE_SPACE")
+        return fsi::tdpf::ChTdpfRadiationMethod::STATE_SPACE;
+    if (val != "RIRF_CONVOLUTION")
+        cerr << "Warning: unknown radiation.method '" << a.as<std::string>() << "'; using RIRF_CONVOLUTION." << endl;
+    return fsi::tdpf::ChTdpfRadiationMethod::RIRF_CONVOLUTION;
+}
+
+fsi::tdpf::ChTdpfExcitationMethod ChParserTdpfYAML::ReadExcitationMethod(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+    if (val == "IRF_CONVOLUTION" || val == "IRF")
+        return fsi::tdpf::ChTdpfExcitationMethod::IRF_CONVOLUTION;
+    if (val == "FREQUENCY_DOMAIN" || val == "FD")
+        return fsi::tdpf::ChTdpfExcitationMethod::FREQUENCY_DOMAIN;
+    if (val != "AUTO")
+        cerr << "Warning: unknown excitation.method '" << a.as<std::string>() << "'; using AUTO." << endl;
+    return fsi::tdpf::ChTdpfExcitationMethod::AUTO;
+}
+
+fsi::tdpf::ChTdpfExcitationInterpolation ChParserTdpfYAML::ReadExcitationInterpolation(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+    if (val == "POLAR")
+        return fsi::tdpf::ChTdpfExcitationInterpolation::POLAR;
+    if (val != "CARTESIAN")
+        cerr << "Warning: unknown excitation.interpolation '" << a.as<std::string>() << "'; using CARTESIAN." << endl;
+    return fsi::tdpf::ChTdpfExcitationInterpolation::CARTESIAN;
 }
 
 }  // namespace parsers

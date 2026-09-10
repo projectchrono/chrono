@@ -57,6 +57,36 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     void LoadModelData(const YAML::Node& yaml);
 
     /// Load the solver parameters from the specified YAML node.
+    /// All sections and keys are optional; any that are absent keep the Chrono::FSI-TDPF defaults.
+    /// The expected structure is:
+    /// <pre>
+    /// radiation:
+    ///   method: RIRF_CONVOLUTION       # RIRF_CONVOLUTION (default) or STATE_SPACE
+    ///   truncation_time: 0             # [s] truncate the RIRF kernel; 0 = use the full kernel
+    ///   smoothing:                     # RIRF_CONVOLUTION only
+    ///     type: NONE                   # NONE (default), SG (Savitzky-Golay), or MOVING_AVERAGE
+    ///     window_length: 5             # forced to be odd and at least 3
+    ///   taper:                         # RIRF_CONVOLUTION only; presence of this block enables tapering
+    ///     enabled: true
+    ///     start_fraction: 0.8          # taper start, as a fraction of the RIRF length
+    ///     end_fraction: 1.0            # taper end, as a fraction of the RIRF length
+    ///     final_amplitude: 0.0         # kernel scale at the end of the taper (0 = zero, 1 = unchanged)
+    ///   state_space:                   # STATE_SPACE only
+    ///     max_order: 10
+    ///     r2_threshold: 0.95
+    ///     max_hankel_size: 200
+    ///     r2_num_samples: 50
+    ///   diagnostics:
+    ///     export_csv: false            # write before/after RIRF kernels
+    /// excitation:
+    ///   method: AUTO                   # AUTO (default), IRF_CONVOLUTION, or FREQUENCY_DOMAIN
+    ///   interpolation: CARTESIAN       # CARTESIAN (default) or POLAR
+    ///   truncation_time: 0             # [s] truncate the excitation IRF; 0 = use the full kernel
+    /// diagnostics:
+    ///   output_dir: ""                 # directory for solver diagnostics; empty = none
+    /// </pre>
+    /// Enumeration values are read case-insensitively, so the SEA-Stack spellings (e.g. `state_space`,
+    /// `irf_convolution`) are accepted as well.
     void LoadSolverData(const YAML::Node& yaml);
 
     // --------------
@@ -101,10 +131,26 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
 
   private:
     static WaveType ReadWaveType(const YAML::Node& a);
+    static fsi::tdpf::ChTdpfRadiationMethod ReadRadiationMethod(const YAML::Node& a);
+    static fsi::tdpf::ChTdpfExcitationMethod ReadExcitationMethod(const YAML::Node& a);
+    static fsi::tdpf::ChTdpfExcitationInterpolation ReadExcitationInterpolation(const YAML::Node& a);
+
+    /// Report the cached solver settings.
+    void PrintSolverInfo() const;
 
   private:
     fsi::tdpf::ChTdpfSeaState m_sea_state;  ///< sea state settings
     double m_ramp_duration;                 ///< excitation ramp duration [s]; 0 = no ramp
+
+    // Solver settings (from the TDPF solver YAML file)
+    fsi::tdpf::ChTdpfRadiationMethod m_radiation_method;              ///< radiation force method
+    fsi::tdpf::ChTdpfRadiationKernelProcessing m_kernel_processing;   ///< RIRF kernel smoothing/tapering
+    fsi::tdpf::ChTdpfStateSpaceOptions m_state_space_options;         ///< state-space fit settings
+    double m_radiation_truncation_time;                               ///< RIRF truncation time [s]; 0 = none
+    fsi::tdpf::ChTdpfExcitationMethod m_excitation_method;            ///< wave excitation force method
+    fsi::tdpf::ChTdpfExcitationInterpolation m_excitation_interp;     ///< excitation transfer interpolation
+    double m_excitation_truncation_time;                              ///< excitation IRF truncation time [s]; 0 = none
+    std::string m_diagnostics_output_dir;                             ///< solver diagnostics directory; empty = none
 
     OutputData m_output_data;  ///< output data
     std::string m_h5_file;     ///< hydrodynamics input file (HDF5 format)

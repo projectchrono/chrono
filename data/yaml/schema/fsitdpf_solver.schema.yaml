@@ -11,11 +11,163 @@
 #
 # Schema for a Chrono::TDPF YAML fluid solver specification file.
 # The `chrono-version` must match the Chrono major and minor version numbers.
-# TDPF simulations do not need to specify any integrator or solver settings
-# as they only represent applied forces on FSI bodies (and therefore use the
-# MBS solver).
+#
+# A TDPF simulation does not specify an integrator or a linear solver: the fluid
+# phase only contributes applied forces on the FSI bodies and the multibody
+# system is advanced with the MBS solver. This file instead configures how those
+# hydrodynamic forces are evaluated. Every object and key below is optional; any
+# that is omitted keeps the Chrono::FSI-TDPF default.
+#
+# Enumeration values are read case-insensitively.
 #
 # =============================================================================
 
 required: [chrono-version]
-  
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
+
+radiation:
+  type: object
+  description: |
+    Radiation force settings.
+    If this object is omitted, the radiation force is evaluated by direct convolution of the
+    retardation (impulse response) kernel from the HDF5 file, over its full length.
+  properties:
+      method:
+          type: string
+          description: |
+            Radiation force evaluation method.
+            RIRF_CONVOLUTION convolves the retardation kernel with the body velocity history.
+            STATE_SPACE replaces the kernel with a fitted state-space model.
+          enum: [RIRF_CONVOLUTION, STATE_SPACE]
+          default: RIRF_CONVOLUTION
+      truncation_time:
+          type: number
+          description: |
+            Time in seconds at which the retardation kernel is truncated; 0 uses the full kernel
+            from the HDF5 file. The body velocity history is retained over the kernel length, so
+            truncating a long kernel whose tail is negligible reduces both memory and per-step
+            cost. The saving grows as the integration step is reduced.
+          minimum: 0
+          default: 0
+      smoothing:
+          type: object
+          description: |
+            Retardation kernel smoothing. Only valid with method RIRF_CONVOLUTION.
+          properties:
+              type:
+                  type: string
+                  description: Smoothing filter applied to the kernel
+                  enum: [NONE, SG, MOVING_AVERAGE]
+                  default: NONE
+              window_length:
+                  type: number
+                  description: Filter window length; forced to be odd and at least 3
+                  minimum: 3
+                  default: 5
+      taper:
+          type: object
+          description: |
+            Half-cosine taper applied near the end of the retardation kernel, to suppress a
+            non-decaying kernel tail. Only valid with method RIRF_CONVOLUTION.
+            The presence of this object enables the taper, so that only the fractions need be
+            given; an explicit `enabled` key still takes precedence, which allows the settings to
+            be kept but switched off.
+          properties:
+              enabled:
+                  type: boolean
+                  description: Whether the taper is applied
+                  default: true
+              start_fraction:
+                  type: number
+                  description: Taper start, as a fraction of the kernel length
+                  minimum: 0
+                  maximum: 1
+                  default: 0.8
+              end_fraction:
+                  type: number
+                  description: Taper end, as a fraction of the kernel length
+                  minimum: 0
+                  maximum: 1
+                  default: 1.0
+              final_amplitude:
+                  type: number
+                  description: Kernel scale at the end of the taper (0 = zero, 1 = unchanged)
+                  minimum: 0
+                  maximum: 1
+                  default: 0.0
+      state_space:
+          type: object
+          description: |
+            Settings for the state-space kernel fit. Only used with method STATE_SPACE.
+          properties:
+              max_order:
+                  type: number
+                  description: Maximum number of state-space modes per DOF pair
+                  minimum: 1
+                  default: 10
+              r2_threshold:
+                  type: number
+                  description: Minimum coefficient of determination for accepting a fit
+                  minimum: 0
+                  maximum: 1
+                  default: 0.95
+              max_hankel_size:
+                  type: number
+                  description: Maximum Hankel matrix size used in the singular value decomposition
+                  minimum: 1
+                  default: 200
+              r2_num_samples:
+                  type: number
+                  description: Number of subsamples used for the fit quality check
+                  minimum: 1
+                  default: 50
+      diagnostics:
+          type: object
+          description: Radiation kernel diagnostics
+          properties:
+              export_csv:
+                  type: boolean
+                  description: Write the retardation kernels before and after processing
+                  default: false
+
+excitation:
+  type: object
+  description: |
+    Wave excitation force settings.
+    These have no effect in still water, where the wave excitation force is identically zero.
+  properties:
+      method:
+          type: string
+          description: |
+            Wave excitation force evaluation method.
+            AUTO selects the frequency domain for regular seas and for irregular seas with more
+            than one wave heading, and IRF convolution otherwise.
+          enum: [AUTO, IRF_CONVOLUTION, FREQUENCY_DOMAIN]
+          default: AUTO
+      interpolation:
+          type: string
+          description: |
+            Interpolation of the excitation transfer function read from the HDF5 file.
+            CARTESIAN interpolates the real and imaginary parts, which avoids phase-wrap
+            artefacts. POLAR interpolates magnitude and phase, matching legacy HydroChrono.
+          enum: [CARTESIAN, POLAR]
+          default: CARTESIAN
+      truncation_time:
+          type: number
+          description: |
+            Time in seconds at which the excitation impulse response function is truncated;
+            0 uses the full kernel from the HDF5 file.
+          minimum: 0
+          default: 0
+
+diagnostics:
+  type: object
+  description: Solver diagnostics output
+  properties:
+      output_dir:
+          type: string
+          description: Directory for solver diagnostics output; omit or leave empty for none
+          default: ""
