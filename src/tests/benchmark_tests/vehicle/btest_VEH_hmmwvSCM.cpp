@@ -18,7 +18,12 @@
 
 #include "chrono/utils/ChBenchmark.h"
 #include "chrono/core/ChRandom.h"
-#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/collision/ChCollisionShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/physics/ChMassProperties.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -36,6 +41,12 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
+
+// True only for the interactive run below. The SCM visualization mesh is not free when it is never
+// drawn -- it gates a per-node vertex update inside SCM's modified-node loop, and that cost lands in
+// the node loop rather than in a visualization timer -- so a timed run must not build it. A run that
+// renders must, or the soil does not deform on screen.
+static bool scm_render = false;
 
 // =============================================================================
 
@@ -142,7 +153,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     // m_trimesh_shape gates a per-node vertex update inside the modified-node loop of
     // ComputeInternalForces, charged to that loop rather than to the visualization timer, so it
     // would be measured here as though it were soil physics.
-    m_terrain = new SCMTerrain(m_hmmwv->GetSystem(), false);
+    m_terrain = new SCMTerrain(m_hmmwv->GetSystem(), scm_render);
     m_terrain->SetSoilParameters(2e6,   // Bekker Kphi
                                  0,     // Bekker Kc
                                  1.1,   // Bekker n exponent
@@ -171,21 +182,58 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_driver = new HmmwvScmDriver(m_hmmwv->GetVehicle(), 1.0);
     m_driver->Initialize();
 
-    // Create falling objects
+    // Obstacles: triangle-mesh rocks, NOT primitives.
+    //
+    // These were ChBodyEasySphere, which made this variant measure a scene its own obstacles were
+    // absent from. The GPU ray-cast backend intersects triangle meshes only: a primitive collision
+    // shape contributes no faces, never appears as a hit's contactable, and therefore receives no
+    // reaction force from the soil -- the spheres fell straight through the terrain while the
+    // mesh-tyred vehicle behaved normally. A scaled rock mesh is a real obstacle on both paths, so
+    // OBJECTS now measures what it claims to: the cost of taking the active-domain count from 4 to
+    // 24 with geometry that both backends can actually see.
     if (OBJECTS) {
-        auto sph_mat = chrono_types::make_shared<ChContactMaterialSMC>();
-        sph_mat->SetFriction(0.2f);
-        for (int i = 0; i < 20; i++) {
-            auto sphere = chrono_types::make_shared<ChBodyEasySphere>(0.5,       // radius size
-                                                                      500,       // density
-                                                                      true,      // visualization?
-                                                                      true,      // collision?
-                                                                      sph_mat);  // contact material
-            sphere->SetPos(ChVector3d((2 * ChRandom::Get() - 1) * 0.45 * patch_size,
-                                      (2 * ChRandom::Get() - 1) * 0.45 * patch_size, 1.0));
-            m_hmmwv->GetSystem()->Add(sphere);
+        auto rock_mat = ChContactMaterial::DefaultMaterial(m_hmmwv->GetSystem()->GetContactMethod());
+        rock_mat->SetFriction(0.2f);
+        const double rock_density = 2500;
+        const double rock_scale = 0.3;
 
-            m_terrain->AddActiveDomain(sphere, ChVector3d(0, 0, 0), ChVector3d(0.6, 0.6, 0.6));
+        for (int i = 0; i < 20; i++) {
+            const char* meshfile = (i % 2) ? "robot/curiosity/rocks/rock1.obj"  //
+                                           : "robot/curiosity/rocks/rock3.obj";
+            auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(meshfile), false, true);
+            mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(rock_scale));
+
+            double mass;
+            ChVector3d cog;
+            ChMatrix33<> inertia;
+            mesh->ComputeMassProperties(true, mass, cog, inertia);
+            ChMatrix33<> principal_rot;
+            ChVector3d principal_I;
+            ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_rot);
+
+            // Drop each rock a fixed short distance above the soil, measured from its own scaled
+            // geometry, so settling takes the same time for every mesh and fits the hot-start window.
+            ChVector3d pos((2 * ChRandom::Get() - 1) * 0.45 * patch_size,
+                           (2 * ChRandom::Get() - 1) * 0.45 * patch_size, 0.0);
+            pos.z() = 0.05 - mesh->GetBoundingBox().min.z();
+
+            auto rock = chrono_types::make_shared<ChBodyAuxRef>();
+            rock->SetFrameRefToAbs(ChFrame<>(pos, QUNIT));
+            rock->SetFrameCOMToRef(ChFrame<>(cog, principal_rot));
+            rock->SetMass(mass * rock_density);
+            rock->SetInertiaXX(rock_density * principal_I);
+
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rock_mat, mesh, false, false, 0.005);
+            rock->AddCollisionShape(ct_shape);
+            rock->EnableCollision(true);
+
+            auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            vis_shape->SetMesh(mesh);
+            vis_shape->SetBackfaceCull(true);
+            rock->AddVisualShape(vis_shape);
+
+            m_hmmwv->GetSystem()->Add(rock);
+            m_terrain->AddActiveDomain(rock, ChVector3d(0, 0, 0), ChVector3d(0.6, 0.6, 0.6));
         }
     }
 }
@@ -265,6 +313,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
+        scm_render = true;  // must be set before the fixture builds the terrain
         HmmwvScmTest<MESH_TIRE, true> test;
         ////HmmwvScmTest<MESH_TIRE, false> test;
         ////HmmwvScmTest<CYL_TIRE, true> test;
