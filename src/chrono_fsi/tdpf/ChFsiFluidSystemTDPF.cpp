@@ -150,6 +150,9 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
 
     // Cache initial solid states in the TDPF structure
     LoadSolidStates(body_states);
+
+    // Mark the fluid system as initialized.
+    m_is_initialized = true;
 }
 
 #ifdef CHRONO_FEA
@@ -164,6 +167,9 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
 
     // Cache initial solid states in the TDPF structure
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
+
+    // Mark the fluid system as initialized.
+    m_is_initialized = true;
 }
 #endif
 

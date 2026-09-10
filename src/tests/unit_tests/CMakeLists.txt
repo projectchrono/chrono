@@ -49,14 +49,6 @@ function(build_utests ADD_TESTS TESTS LABEL LIBS)
       set(EXTRA_FILES "")
     endif()
 
-    # A hack to set the working directory in which to execute the CTest runs.
-    # This is needed for tests that need to access the Chrono data directory (since we use a relative path to it)
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
-    else()
-        set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
-    endif()
-
     # Build all tests in the list TESTS, linking to LIBS
     foreach(PROGRAM ${TESTS})
         add_executable(${PROGRAM} ${PROGRAM}.cpp ${EXTRA_FILES})
@@ -78,10 +70,15 @@ function(build_utests ADD_TESTS TESTS LABEL LIBS)
         
         install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
         if(${ADD_TESTS})
-           add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-           set_tests_properties(${PROGRAM} PROPERTIES 
-                                WORKING_DIRECTORY ${MY_WORKING_DIR}
-                                LABELS "${LABEL}")
+           # Run each test in the directory where its executable was created. This is required
+           # because tests use paths relative to the current directory, both for locating the
+           # Chrono data directory and for creating their output directory.
+           # Specifying the test command through the target name and the working directory
+           # through a generator expression works with both single- and multi-config generators.
+           add_test(NAME ${PROGRAM}
+                    COMMAND ${PROGRAM}
+                    WORKING_DIRECTORY $<TARGET_FILE_DIR:${PROGRAM}>)
+           set_tests_properties(${PROGRAM} PROPERTIES LABELS "${LABEL}")
         endif()
     endforeach()
 

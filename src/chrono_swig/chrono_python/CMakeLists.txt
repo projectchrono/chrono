@@ -1346,6 +1346,11 @@ endif()
 
 cmake_path(GET CHPY_LIBRARY_OUTPUT_DIRECTORY PARENT_PATH PYTHONPATH_BUILD)
 
+# Cache the build-tree PYTHONPATH so that it is also visible in other directories
+# (in particular, in src/tests/unit_tests/python, which uses it to run the PyChrono unit tests).
+set(PYTHONPATH_BUILD "${PYTHONPATH_BUILD}" CACHE INTERNAL
+    "Path to be added to PYTHONPATH for the Chrono::Python modules in the build tree")
+
 message(STATUS "")
 message(STATUS "To have access to the Chrono::Python wrapper modules, after building and (optionally) installing,")
 message(STATUS "append one of the following to the PYTHONPATH environment variable:")

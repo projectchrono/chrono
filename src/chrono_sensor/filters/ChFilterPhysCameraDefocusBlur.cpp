@@ -17,13 +17,16 @@
 // =============================================================================
 
 #include "chrono_sensor/ChConfigSensor.h"
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
-#include "chrono_sensor/filters/ChFilterPhysCameraDefocusBlur.h"
+    #include "chrono_sensor/filters/ChFilterPhysCameraDefocusBlur.h"
+    #ifdef CHRONO_HAS_METAL_RT
+        #include "chrono_sensor/metal/ChMetalPhysCamOps.h"
+    #endif
 
-#include <algorithm>
-#include <cmath>
-#include <memory>
+    #include <algorithm>
+    #include <cmath>
+    #include <memory>
 
 namespace chrono {
 namespace sensor {
@@ -80,6 +83,13 @@ CH_SENSOR_API void ChFilterPhysCameraDefocusBlur::Apply() {
     m_buffer_out->Height = img_h;
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
     m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;
+    #ifdef CHRONO_HAS_METAL_RT
+    // GPU path (port of cuda_phys_cam_defocus_blur). This stage is O(w*h*k^2), by far the most
+    // expensive of the five, so the CPU loop below is only a fallback when Metal is unavailable.
+    if (metal_phys_cam::DefocusBlur(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), img_w, img_h, m_focal_length, m_focus_dist, m_aperture_num, m_pixel_size, m_defocus_gain,
+                                    m_defocus_bias))
+        return;
+    #endif
     const float denom_const = m_aperture_num * m_pixel_size;
     for (unsigned int y = 0; y < img_h; ++y) {
         for (unsigned int x = 0; x < img_w; ++x) {
