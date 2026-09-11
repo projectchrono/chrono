@@ -61,7 +61,6 @@ simulation:
       description: |
         Total simulation duration in seconds.
         The simulation will run from t=0 to t=end_time. A negative value indicates an infinite end time.
-      minimum: 0
       default: -1
     enforce_realtime:
       type: boolean
