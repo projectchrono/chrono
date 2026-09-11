@@ -111,15 +111,15 @@ offset moves, and most of that offset is the base-height matrix -- 15001^2 entri
 EPYC 9684X, 16-core slice, 233 GB. ROCm 7.2.4, HIP backend, GCC 11.4.0 and ROCm clang 22.0.0git.
 Release, benchmarks set 4 Chrono OpenMP threads internally. All cv <= 0.18%. One process per cell.
 
-`SCM_Total` in ms/step. The `MESH_1` row predates the obstacle change and is not comparable to the
-NVIDIA table above.
+`SCM_Total` in ms/step. The `MESH_1` row was measured at `1753904fd` and the rest of the grid at
+`7c0d0ea20`; the only change to the other tests in between adds the backend selector and no physics.
 
 | variant | GCC/HIP | GCC/CPU | clang/HIP | clang/CPU |
 |---|---|---|---|---|
 | `WheelSCM_D20` | 0.1726 | 3.3830 | 0.1985 | 3.4522 |
 | `WheelSCM_D10` | 0.6863 | 13.8749 | 0.8582 | 13.7305 |
 | `HmmwvSCM_MESH_0` | 0.2214 | 0.7856 | 0.2370 | 0.6313 |
-| `HmmwvSCM_MESH_1` (stale) | 0.3172 | 3.7637 | 0.3394 | 4.0699 |
+| `HmmwvSCM_MESH_1` | 0.5178 | 2.1898 | 0.5631 | 2.2433 |
 | `LargeSCM_SEED0` | 1.1186 | 3.5594 | 1.2941 | 4.7062 |
 | `LargeSCM_SEED16` | 1.3809 | 4.7167 | 1.5779 | 4.8605 |
 
@@ -127,8 +127,10 @@ Resident set after setup, MiB: `SEED0` 2366 GPU / 1745 CPU, `SEED16` 2961 GPU / 
 595 MiB node-storage delta matches the NVIDIA host exactly; the GPU builds carry ~620 MiB more
 constant offset than the CPU-only builds.
 
-Deformed-node counts agree with the RTX 4080 host to the digit on every variant, so the two
-platforms ran the same work and the columns are directly comparable.
+Deformed-node counts agree with the RTX 4080 host to the digit on every variant except `MESH_1`,
+where the two hosts span 6106 to 6155 -- 0.8%, and the residual is between the two gfx942 GPU cells
+rather than between the paths. The two platforms ran the same work and the columns are directly
+comparable.
 
 ## The two hosts side by side
 
@@ -139,7 +141,7 @@ platforms ran the same work and the columns are directly comparable.
 | `D20` | 0.0982 | 0.1726 | 2.1204 | 3.3830 |
 | `D10` | 0.5070 | 0.6863 | 8.6116 | 13.8749 |
 | `MESH_0` | 0.1149 | 0.2214 | 0.3506 | 0.7856 |
-| `MESH_1` | 0.3625 | not re-run | 1.2149 | not re-run |
+| `MESH_1` | 0.3625 | 0.5178 | 1.2149 | 2.1898 |
 | `SEED0` | 0.7493 | 1.1186 | 2.3183 | 3.5594 |
 | `SEED16` | 0.8702 | 1.3809 | 2.3447 | 4.7167 |
 
@@ -236,6 +238,6 @@ gfx942, ms/step:
 | `WheelSCM_D20` | 0.0939 | 3.1726 | 0.0971 | 3.2355 |
 | `WheelSCM_D10` | 0.1882 | 12.6312 | 0.2036 | 12.4352 |
 | `HmmwvSCM_MESH_0` | 0.1464 | 0.6282 | 0.1501 | 0.5076 |
-| `HmmwvSCM_MESH_1` (stale) | 0.2387 | 2.3370 | 0.2481 | 2.4669 |
+| `HmmwvSCM_MESH_1` | 0.2998 | 1.8277 | 0.3105 | 1.8714 |
 | `LargeSCM_SEED0` | 0.5670 | 2.8957 | 0.5868 | 3.4875 |
 | `LargeSCM_SEED16` | 0.8256 | 3.6066 | 0.8656 | 3.6381 |
