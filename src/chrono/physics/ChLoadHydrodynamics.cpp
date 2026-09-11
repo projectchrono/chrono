@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_blocks) : m_body_blocks(body_blocks), m_verbose(false) {
+ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_blocks) : m_body_blocks(body_blocks), m_verbose(false), m_system_size(0) {
     // Traverse list of hydro bodies, check added mass block size, and collect list of variables
     std::vector<ChVariables*> variables;
     auto num_bodies = (int)body_blocks.size();
@@ -31,8 +31,11 @@ ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_block
         variables.push_back(&b.body->Variables());
     }
 
-    // Set variables for KRM block
+    // Set variables for the KRM block. The block spans only the hydrodynamic bodies, so its matrix is
+    // 6*num_bodies square and is indexed in the order in which those variables are declared here, which
+    // is the order of the body blocks. It is *not* indexed by system offsets.
     m_KRM.SetVariables(variables);
+    m_KRM.GetMatrix().setZero(6 * num_bodies, 6 * num_bodies);
 
     // Indicate that the KRM block only includes the mass component
     m_KRM.SetNoKRComponents();
@@ -41,6 +44,8 @@ ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_block
 ChLoadHydrodynamics::ChLoadHydrodynamics(const ChLoadHydrodynamics& other) {
     m_body_blocks = other.m_body_blocks;
     m_KRM = other.m_KRM;
+    m_verbose = other.m_verbose;
+    m_system_size = other.m_system_size;
 }
 
 ChLoadHydrodynamics::~ChLoadHydrodynamics() {}
@@ -63,34 +68,32 @@ void ChLoadHydrodynamics::UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66
 }
 
 void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
-    // If the system problem size has changed, recompute the system-wide added mass matrix
+    // Check whether the solver needs the inverse of the total mass matrix (Schur complement-based
+    // solvers). That is the only system-wide work here: the KRM block this load injects spans the
+    // hydrodynamic bodies alone and is filled in LoadKRMMatrices.
+    auto solver_type = system->GetSolverType();
+    bool calc_M_inv = (solver_type == ChSolver::Type::APGD ||             //
+                       solver_type == ChSolver::Type::BARZILAIBORWEIN ||  //
+                       solver_type == ChSolver::Type::PSOR);              //
+
+    // Recompute whenever the system problem size changes.
     auto size = GetSystem()->GetNumCoordsVelLevel();
-    if (m_added_mass.rows() != size) {
+    if (calc_M_inv && m_system_size != size) {
+        m_system_size = size;
+
         if (m_verbose)
-            std::cout << "Resize added_mass matrix at t = " << time << std::endl;
-
-        m_KRM.GetMatrix().resize(size, size);
-        m_added_mass.resize(size, size);
-        m_added_mass.setZero();
-
-        // Check if inverse of mass matrix is required (when a Schur complement-based solver is used)
-        auto solver_type = system->GetSolverType();
-        bool calc_M_inv = (solver_type == ChSolver::Type::APGD ||             //
-                           solver_type == ChSolver::Type::BARZILAIBORWEIN ||  //
-                           solver_type == ChSolver::Type::PSOR);              //
+            std::cout << "Assemble total mass matrix at t = " << time << std::endl;
 
         // Load mass matrix with body inertia (sparse, block-diagonal)
         ChSparseMatrix M_sparse;
-        if (calc_M_inv) {
-            system->DescriptorPrepareInject();
-            system->GetMassMatrix(M_sparse);
+        system->DescriptorPrepareInject();
+        system->GetMassMatrix(M_sparse);
 #ifdef DEBUG_PRINT
-            std::cout << "Mass matrix" << std::endl;
-            std::cout << total_mass << std::endl;
+        std::cout << "Mass matrix" << std::endl;
+        std::cout << total_mass << std::endl;
 #endif
-        }
 
-        m_added_mass.setZero();
+        // Add the added mass blocks. These are indexed by system offsets, since M_sparse is system-wide.
         for (const auto& b1 : m_body_blocks) {
             auto row = b1.body->GetOffset_w();
             if (m_verbose)
@@ -102,22 +105,13 @@ void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
                 if (m_verbose)
                     std::cout << "  add 6x6 block starting at (" << row << "," << col << ")" << std::endl;
 
-                // Current block (at row x col)
-                auto block = b1.block(Eigen::seq(0, 5), Eigen::seq(i, i + 5));
-
-                // Set block in added mass matrix
-                m_added_mass.block(row, col, 6, 6) = block;
-
-                if (calc_M_inv) {
-                    // Add block to sparse total mass matrix
-                    PasteMatrix(M_sparse, block, row, col, false);
-                }
+                PasteMatrix(M_sparse, b1.block(Eigen::seq(0, 5), Eigen::seq(i, i + 5)), row, col, false);
                 i += 6;
             }
         }
 
         // Calculate inverse of total mass
-        if (calc_M_inv) {
+        {
             if (m_verbose)
                 std::cout << "  compute inverse of total mass matrix" << std::endl;
 
@@ -167,7 +161,13 @@ void ChLoadHydrodynamics::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
 }
 
 void ChLoadHydrodynamics::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    m_KRM.GetMatrix() = Mfactor * m_added_mass;
+    // The KRM block is indexed in the order in which its variables were declared, i.e. the order of the
+    // body blocks, so it is simply the stack of the per-body 6 x 6*num_bodies blocks. Indexing it by
+    // system offsets instead is correct only when the hydrodynamic bodies happen to occupy the leading
+    // offsets of the system, in that same order.
+    auto num_bodies = m_body_blocks.size();
+    for (size_t i = 0; i < num_bodies; i++)
+        m_KRM.GetMatrix().block(6 * i, 0, 6, 6 * num_bodies) = Mfactor * m_body_blocks[i].block;
 }
 
 }  // end namespace chrono

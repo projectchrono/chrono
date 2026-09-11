@@ -90,8 +90,8 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
   protected:
     bool m_verbose;
     ChBodyAddedMassBlocks m_body_blocks;  ///< added mass blocks for hydrodynamic bodies
-    ChMatrixDynamic<> m_added_mass;       ///< added mass matrix (system size)
-    ChKRMBlock m_KRM;                     ///< scaled added mass matrix (system size)
+    ChKRMBlock m_KRM;                     ///< scaled added mass matrix (6*num_bodies square, in block order)
+    unsigned int m_system_size;           ///< system size for which the mass inverse was last computed
 };
 
 }  // end namespace chrono
