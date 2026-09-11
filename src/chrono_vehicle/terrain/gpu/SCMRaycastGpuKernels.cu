@@ -1,4 +1,4 @@
-// SCMRaycastGpuKernels.hip.cpp — HIP kernel for the SCM GPU ray-cast backend.
+// SCMRaycastGpuKernels.cu — ray-cast kernel for the SCM GPU backend, compiled as CUDA or HIP.
 //
 // One thread BLOCK per query (SCM grid node ray), not one thread. Threads within a block split the
 // triangle scan (each thread handles a strided subset), transform each triangle from local to world
@@ -13,18 +13,50 @@
 // ~2400-3400 x kThreadsPerRay threads, without changing the total amount of work
 // (queries x triangles) or the algorithm itself.
 //
-// Templated on Real (double or float) so the same kernel logic runs at either precision. double is the
-// validated default for this project's AMD MI300X target. float is offered for GPUs with weak double-precision throughput -- notably consumer NVIDIA
-// cards (RTX 4080/5090-class), where FP64 is deliberately throttled relative to FP32 (unlike MI300X, a
-// proper datacenter part) -- so a straight double-precision port would be correct there but far slower
-// than it needs to be. Both precisions are exported (scm_launch_raycast_fp64 / _fp32); the host bridge
-// (SCMRaycastGpuHost.cpp) selects one per-context based on ScmRaycastGpuPrecision, which
-// SCMTerrainRaycastGpu.cpp defaults by which HIP platform (AMD vs NVIDIA) this build targets.
+// Templated on Real (double or float) so the same kernel logic runs at either precision. FP32 is the
+// default, on every backend and every target: making it depend on the hardware would let the same
+// model diverge between machines, which is worse than the precision itself. See the comment on
+// DesiredRaycastGpuPrecision in SCMTerrainRaycastGpu.cpp for the validation behind that choice.
+// FP32 also matters on GPUs with weak double-precision throughput -- notably consumer NVIDIA cards
+// (RTX 4080/5090-class), where FP64 is deliberately throttled relative to FP32, unlike a datacenter
+// part such as the MI300X -- so a double-only port would be correct there but far slower than it
+// needs to be. Both precisions are exported (scm_launch_raycast_fp64 / _fp32) and the host bridge
+// (SCMRaycastGpuHost.cpp) selects one per context from ScmRaycastGpuPrecision; env
+// SCM_RAYCAST_GPU_PRECISION=fp32|fp64 overrides the default at run time.
 //
 // Includes the empirically-determined margin-correction sign; an exact match to Bullet's hit set is
 // not the goal.
 
-#include <hip/hip_runtime.h>
+// Backend-neutral source: this file is compiled by nvcc for the CUDA backend and by hipcc for the HIP
+// one, selected by chrono_set_gpu_source_language() -- the same single-source arrangement Chrono::DEM
+// and Chrono::FSI::SPH use.
+//
+// The conditional below is not optional. nvcc implicitly includes <cuda_runtime.h> for a .cu, but
+// HIP-clang provides nothing: a .cu with no includes compiles under nvcc and fails under
+// `hipcc --offload-arch=gfx942` with threadIdx/blockIdx/blockDim undeclared.
+//
+// gpuStream_t and gpuGetLastError are the ONLY two runtime names this file touches; everything else
+// here is device syntax, which CUDA and HIP spell identically. The host bridges, which use around
+// thirty runtime symbols, are duplicated per backend instead -- they can be, and Chrono has no
+// precedent for a compatibility layer. This file cannot be duplicated: it is the shared source.
+// Which branch each build takes, verified rather than assumed:
+//   CUDA backend      nvcc                                -> CUDA branch (nvcc implicitly includes
+//                                                            <cuda_runtime.h> for a .cu)
+//   HIP on NVIDIA     nvcc -D__HIP_PLATFORM_NVIDIA__      -> CUDA branch. CMake's HIP language calls
+//                                                            nvcc directly here and defines neither
+//                                                            __HIPCC__ nor __HIP_PLATFORM_AMD__; that
+//                                                            is correct, because on this platform
+//                                                            hipStream_t IS cudaStream_t.
+//   HIP on AMD        hipcc / HIP-clang                   -> HIP branch, the only one that needs the
+//                                                            header.
+#if defined(__HIPCC__) || defined(__HIP_PLATFORM_AMD__)
+    #include <hip/hip_runtime.h>
+using gpuStream_t = hipStream_t;
+    #define gpuGetLastError hipGetLastError
+#else
+using gpuStream_t = cudaStream_t;
+    #define gpuGetLastError cudaGetLastError
+#endif
 
 #include <cstdint>
 
@@ -309,7 +341,7 @@ int launch(const void* queries_dev,
           const void* margins_dev,
           int n_bodies,
           void* results_dev,
-          hipStream_t stream) {
+          gpuStream_t stream) {
     if (n_queries <= 0)
         return 0;
 
@@ -322,7 +354,7 @@ int launch(const void* queries_dev,
                                                          static_cast<const MarginDevT<Real>*>(margins_dev),
                                                          n_bodies,
                                                          static_cast<ResultDevT<Real>*>(results_dev));
-    return hipGetLastError();
+    return gpuGetLastError();
 }
 
 }  // namespace
@@ -336,7 +368,7 @@ extern "C" int scm_launch_raycast_fp64(const void* queries_dev,
                                        const void* margins_dev,
                                        int n_bodies,
                                        void* results_dev,
-                                       hipStream_t stream) {
+                                       gpuStream_t stream) {
     return launch<double>(queries_dev, n_queries, verts_dev, faces_dev, n_faces, xforms_dev, margins_dev, n_bodies,
                           results_dev, stream);
 }
@@ -350,7 +382,7 @@ extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
                                        const void* margins_dev,
                                        int n_bodies,
                                        void* results_dev,
-                                       hipStream_t stream) {
+                                       gpuStream_t stream) {
     return launch<float>(queries_dev, n_queries, verts_dev, faces_dev, n_faces, xforms_dev, margins_dev, n_bodies,
                          results_dev, stream);
 }
