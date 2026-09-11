@@ -317,9 +317,15 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
 
 // =============================================================================
 
-SphCollisionSystem::SphCollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
+SphCollisionSystem::SphCollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_errflagD(nullptr), m_sphMarkersD(nullptr) {
+    // Allocated once here rather than on every ArrangeData call: that runs every step, and a
+    // device allocation plus free per step is pure overhead for a one-byte flag.
+    gpuMallocErrorFlag(m_errflagD);
+}
 
-SphCollisionSystem::~SphCollisionSystem() {}
+SphCollisionSystem::~SphCollisionSystem() {
+    gpuFreeErrorFlag(m_errflagD);
+}
 
 void SphCollisionSystem::Initialize() {
     gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
@@ -327,9 +333,7 @@ void SphCollisionSystem::Initialize() {
 }
 
 void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    bool* error_flagD;
-    gpuMallocErrorFlag(error_flagD);
-    gpuResetErrorFlag(error_flagD);
+    gpuResetErrorFlag(m_errflagD);
 
     m_sphMarkersD = sphMarkersD;  //// TODO RADU: why is this cached?!?!
 
@@ -350,8 +354,8 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
                                          U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-                                         (uint)m_data_mgr.countersH->numExtendedParticles, error_flagD);
-    gpuCheckErrorFlag(error_flagD, "calcHashD");
+                                         (uint)m_data_mgr.countersH->numExtendedParticles, m_errflagD);
+    gpuCheckErrorFlag(m_errflagD, "calcHashD");
 
     // Sort Particles based on Hash
     thrust::sort_by_key(m_data_mgr.markersProximity_D->gridMarkerHashD.begin(), m_data_mgr.markersProximity_D->gridMarkerHashD.begin() + m_data_mgr.countersH->numExtendedParticles,
@@ -382,8 +386,6 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
         mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
         mR3CAST(m_sphMarkersD->tauXyXzYzD), mR3CAST(m_sphMarkersD->pcEvSvD), INT_32CAST(m_data_mgr.activityIdentifierOriginalD), (uint)m_data_mgr.countersH->numExtendedParticles);
     gpuCheckError();
-
-    gpuFreeErrorFlag(error_flagD);
 }
 
 void SphCollisionSystem::NeighborSearch(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {

@@ -77,6 +77,17 @@ class CH_SENSOR_API ChOptixScene {
     /// @param point_light the new point light
     void ModifyPointLight(unsigned int light_ID, const ChOptixLight& point_light);
 
+    /// @brief Redefine an existing point light from the same parameters AddPointLight takes.
+    /// Backend-neutral: it names no CUDA type, so the Metal and Vulkan RT scenes can mirror it and
+    /// the same simulation code drives any ray-tracing backend.
+    /// @param light_ID the index of the point light to be modified
+    /// @param pos The world position of the point light
+    /// @param color [W/sr/m^2] or [lumen/sr/m^2], color radiance of the light
+    /// @param max_range [m], range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
+    /// @param const_color whether to use constant color (no attenuation with distance)
+    void ModifyPointLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, bool const_color = true);
+
     /// @brief Add a directional light that emits light in a particular direction.
     /// @param color [W/m^2] or [lumen/m^2], color irradiance of the light
     /// @param elevation [rad], elevation angle of the directional light comes from
@@ -88,6 +99,14 @@ class CH_SENSOR_API ChOptixScene {
     /// @param light_ID the index of the directional light to be modified
     /// @param directional_light the new directional light
     void ModifyDirectionalLight(unsigned int light_ID, const ChOptixLight& directional_light);
+
+    /// @brief Redefine an existing directional light from the same parameters AddDirectionalLight takes.
+    /// Backend-neutral -- see ModifyPointLight.
+    /// @param light_ID the index of the directional light to be modified
+    /// @param color [W/m^2] or [lumen/m^2], color irradiance of the light
+    /// @param elevation [rad], elevation angle of the directional light comes from
+    /// @param azimuth [rad], azimuth angle of the directional light comes from
+    void ModifyDirectionalLight(unsigned int light_ID, ChColor color, float elevation, float azimuth);
 
     /// @brief Add a spot light that emits light in a particular direction.
     /// @param pos the world position of the spot light
@@ -106,6 +125,26 @@ class CH_SENSOR_API ChOptixScene {
     /// @param spot_light the new spot light
     void ModifySpotLight(unsigned int light_ID, const ChOptixLight& spot_light);
 
+    /// @brief Redefine an existing spot light from the same parameters AddSpotLight takes.
+    /// Backend-neutral -- see ModifyPointLight.
+    /// @param light_ID the index of the spot light to be modified
+    /// @param pos the world position of the spot light
+    /// @param color color radiance of the light
+    /// @param max_range range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
+    /// @param light_dir the direction in which the spotlight points (no need to be normalized)
+    /// @param angle_falloff_start [m], angle at which the spotlight starts to linearly fall off
+    /// @param angle_range [rad], angle range of the spotlight falling off to zero.
+    /// @param const_color whether to use constant color (no attenuation with distance)
+    void ModifySpotLight(unsigned int light_ID,
+                         ChVector3f pos,
+                         ChColor color,
+                         float max_range,
+                         ChVector3f light_dir,
+                         float angle_falloff_start,
+                         float angle_range,
+                         bool const_color = true);
+
     /// @brief Add a rectangle light that emits light forward from a rectangle area.
     /// @param pos [m], the world position of the rectangle light
     /// @param color [W/m^2] or [lumen/m^2], color radiance of the light
@@ -121,6 +160,18 @@ class CH_SENSOR_API ChOptixScene {
     /// @param light_ID the index of the rectangle light to be modified
     /// @param rectangle_light the new rectangle light
     void ModifyRectangleLight(unsigned int light_ID, const ChOptixLight& rectangle_light);
+
+    /// @brief Redefine an existing rectangle light from the same parameters AddRectangleLight takes.
+    /// Backend-neutral -- see ModifyPointLight.
+    /// @param light_ID the index of the rectangle light to be modified
+    /// @param pos [m], the world position of the rectangle light
+    /// @param color [W/m^2] or [lumen/m^2], color radiance of the light
+    /// @param max_range [m], range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
+    /// @param length_vec [m], one edge vector of the rectangle light
+    /// @param width_vec [m], the other edge vector of the rectangle light perpendicular to `length_vec`.
+    /// @param const_color whether to use constant color (no attenuation with distance)
+    void ModifyRectangleLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color = true);
 
     /// @brief Add a disk light that emits light forward from a circular area.
     /// @param pos [m], the world position of the rectangle light
@@ -138,6 +189,18 @@ class CH_SENSOR_API ChOptixScene {
     /// @param disk_light the new disk light
     void ModifyDiskLight(unsigned int light_ID, const ChOptixLight& disk_light);
 
+    /// @brief Redefine an existing disk light from the same parameters AddDiskLight takes.
+    /// Backend-neutral -- see ModifyPointLight.
+    /// @param light_ID the index of the disk light to be modified
+    /// @param pos [m], the world position of the disk light
+    /// @param color [W/m^2] or [lumen/m^2], color radiance of the light
+    /// @param max_range [m], range at which the light intensity falls to 1% of its maximum color intensity.
+    /// If set to -1, follows inverse square law.
+    /// @param light_dir the direction in which the disk light points (no need to be normalized)
+    /// @param radius [m], radius of the disk light
+    /// @param const_color whether to use constant color (no attenuation with distance)
+    void ModifyDiskLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color = true);
+
     /// @brief Add the environment light that emits light from all directions based on an environment map.
     /// @param env_tex_path the full path of the environment map texture.
     /// @param intensity_scale a scale factor for the intensity of the environment light. Default value is 1.0 (no scaling).
@@ -147,6 +210,14 @@ class CH_SENSOR_API ChOptixScene {
     /// Function for gaining access to the vector of lights which can be used to modify lighting dynamically.
     /// @return A vector of lights in the scene currently
     std::vector<ChOptixLight> GetLights() { return m_lights; }
+
+    /// Remove every light from the scene. Simplest way to re-specify lighting each frame
+    /// (as an alternative to Modify*Light), and mirrored by the Metal backend's scene so
+    /// the same simulation code drives either renderer.
+    void ClearLights() {
+        m_lights.clear();
+        lights_changed = true;
+    }
 
     /// Function for gaining access to the background. Can be used to dynamically change the background color, or
     /// texture

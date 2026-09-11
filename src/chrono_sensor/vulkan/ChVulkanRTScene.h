@@ -209,6 +209,26 @@ class CH_SENSOR_API ChVulkanRTScene {
                               float radius,
                               bool const_color = true);
 
+    // Redefine an existing light in place. Each takes the ID returned by the matching
+    // Add*Light plus that function's own parameters, mirroring ChOptixScene's backend-neutral
+    // Modify*Light overloads. Out-of-range IDs are ignored.
+    void ModifyPointLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, bool const_color = true);
+
+    void ModifyDirectionalLight(unsigned int light_ID, ChColor color, float elevation, float azimuth);
+
+    void ModifySpotLight(unsigned int light_ID,
+                         ChVector3f pos,
+                         ChColor color,
+                         float max_range,
+                         ChVector3f light_dir,
+                         float angle_falloff_start,
+                         float angle_range,
+                         bool const_color = true);
+
+    void ModifyRectangleLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color = true);
+
+    void ModifyDiskLight(unsigned int light_ID, ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color = true);
+
     unsigned int AddEnvironmentLight(const std::string& env_tex, const ChVector3f& color = ChVector3f(1.f, 1.f, 1.f));
     unsigned int AddEnvironmentLight(std::string env_tex_path, float intensity_scale);
 
@@ -218,6 +238,12 @@ class CH_SENSOR_API ChVulkanRTScene {
 
   private:
     void Touch() { ++m_revision; }
+
+    /// Append a light and return its ID (its index).
+    unsigned int Append(const ChVulkanRTLight& light);
+
+    /// Overwrite the light at `id`; out-of-range IDs are ignored.
+    void Replace(unsigned int id, const ChVulkanRTLight& light);
 
     ChVulkanRTMaterial ExtractMaterial(const std::shared_ptr<ChVisualShape>& shape) const;
 

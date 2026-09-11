@@ -1,5 +1,6 @@
 SET(TESTS
     utest_CH_archive
+    utest_CH_archive_precision
     utest_CH_ChFunctions
     utest_CH_ChVector
     utest_CH_ChQuaternion
