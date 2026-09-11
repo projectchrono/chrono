@@ -326,15 +326,23 @@ void LargeScmTest<SEED_TRACKS>::SimulateVis() {
     vis->AddLightDirectional();
     vis->AddSkyBox();
 
+    double render_fps = 50;  // see the note in btest_VEH_hmmwvSCM; SCM_BENCH_VIS_FPS overrides
+    if (const char* e = std::getenv("SCM_BENCH_VIS_FPS"))
+        render_fps = std::atof(e);
+    int render_frame = 0;
+
     while (vis->Run()) {
         DriverInputs driver_inputs = m_driver->GetInputs();
 
-        vis->BeginScene();
-        vis->Render();
+        if (render_fps <= 0 || m_sys->GetChTime() >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
         ExecuteStep();
         vis->Synchronize(m_sys->GetChTime(), driver_inputs);
         vis->Advance(step_size);
-        vis->EndScene();
     }
 #endif
 }

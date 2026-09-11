@@ -173,12 +173,27 @@ void WheelScmTest<GRID_MM>::SimulateVis() {
     vis->AddSkyBox();
     vis->AddCamera(ChVector3d(0, -2.0, 1.0), ChVector3d(0, 0, 0));
 
+    // Render on a frame budget, not once per step. The rig integrates at 2e-4 s, so a render per
+    // step is 5000 frames per simulated second: the window sets the pace and the run crawls, even
+    // though the physics alone is faster than real time. SCM_BENCH_VIS_FPS overrides; 0 restores a
+    // render per step.
+    double render_fps = 50;
+    if (const char* e = std::getenv("SCM_BENCH_VIS_FPS"))
+        render_fps = std::atof(e);
+    int render_frame = 0;
+
+    std::cout << "Rig drops the wheel and settles for the first " << 2.0 + settle_time
+              << " s of simulated time before it rolls." << std::endl;
+
     while (vis->Run()) {
-        const auto& loc = m_rig->GetPos();
-        vis->UpdateCamera(loc + ChVector3d(0, -2.0, 1.0), loc);
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (render_fps <= 0 || m_sys->GetChTime() >= render_frame / render_fps) {
+            const auto& loc = m_rig->GetPos();
+            vis->UpdateCamera(loc + ChVector3d(0, -2.0, 1.0), loc);
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
         ExecuteStep();
     }
 #endif

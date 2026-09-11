@@ -279,15 +279,25 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
     vis->AddLightDirectional();
     vis->AddSkyBox();
 
+    // Render on a frame budget rather than once per step: at 2e-3 s that is 500 frames per
+    // simulated second, which no display can use and the run pays for. SCM_BENCH_VIS_FPS overrides.
+    double render_fps = 50;
+    if (const char* e = std::getenv("SCM_BENCH_VIS_FPS"))
+        render_fps = std::atof(e);
+    int render_frame = 0;
+
     while (vis->Run()) {
         DriverInputs driver_inputs = m_driver->GetInputs();
 
-        vis->BeginScene();
-        vis->Render();
+        if (render_fps <= 0 || m_hmmwv->GetSystem()->GetChTime() >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
         ExecuteStep();
         vis->Synchronize(m_hmmwv->GetSystem()->GetChTime(), driver_inputs);
         vis->Advance(m_step);
-        vis->EndScene();
     }
 #endif
 }
