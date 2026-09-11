@@ -9,7 +9,7 @@ Chrono is a CMake-based C++ project with most production code under `src/`. Core
 ## Build, Test, and Development Commands
 Chrono forbids in-source builds, so configure into `build/` or another separate directory.
 
-- `git submodule init && git submodule update`: fetch the bundled third-party sources. There are five, and a missing one surfaces as a confusing configure error: `googletest` (unit tests), `googlebenchmark` (benchmark tests), `flatbuffers` (Chrono::SynChrono), `fmu-forge` (Chrono::FMI), and `HydroChrono` (Chrono::FSI, TDPF solver).
+- `git submodule init && git submodule update`: fetch the bundled third-party sources. There are five, and a missing one surfaces as a confusing configure error: `googletest` (unit tests), `googlebenchmark` (benchmark tests), `flatbuffers` (Chrono::SynChrono), `fmu-forge` (Chrono::FMI), and `SEA-Stack` (Chrono::FSI, TDPF solver).
 - `cmake -S . -B build -G Ninja -DBUILD_TESTING=ON -DBUILD_DEMOS=ON`: configure a local development build.
 - `cmake --build build -j`: compile the configured targets.
 - `ctest --test-dir build --output-on-failure`: run the registered CTest suite.
