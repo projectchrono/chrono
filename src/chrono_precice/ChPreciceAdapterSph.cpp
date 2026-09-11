@@ -22,8 +22,7 @@ namespace chrono {
 namespace ch_precice {
 
 ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& precice_config_filename, std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose)
-    : ChPreciceAdapter(precice_config_filename, "model_SPH", verbose), m_sysSPH(sysSPH), m_time_step(time_step) {
-}
+    : ChPreciceAdapter(precice_config_filename, "model_SPH", verbose), m_sysSPH(sysSPH), m_time_step(time_step) {}
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
 ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& precice_config_filename, const std::string& input_filename, bool verbose)

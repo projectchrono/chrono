@@ -425,9 +425,9 @@ class ChApiPrecice ChPreciceAdapter {
 
     std::string m_model_name;  ///< Chrono model name
 
-    std::string m_precice_config_filename;                   ///< name of the preCICE configuration file
-    bool m_use_added_mass;                                   ///<
-    bool m_use_dynamic_added_mass;                           ///<
+    std::string m_precice_config_filename;  ///< name of the preCICE configuration file
+    bool m_use_added_mass;                  ///<
+    bool m_use_dynamic_added_mass;          ///<
 
     CouplingReadTime m_coupling_read_time;  ///< where in the time window read data is sampled
 

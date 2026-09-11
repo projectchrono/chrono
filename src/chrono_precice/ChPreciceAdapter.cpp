@@ -103,8 +103,7 @@ void ChPreciceAdapter::SetVisualizationSettings(double render_fps,
 #ifdef CHRONO_HAS_YAML
 
 static std::string ToUpper(std::string in) {
-    std::transform(in.begin(), in.end(), in.begin(),
-                   [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+    std::transform(in.begin(), in.end(), in.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
     return in;
 }
 
@@ -573,8 +572,7 @@ void ChPreciceAdapter::ValidateCouplingReadTime() const {
 
     if (read_at_end && !is_second) {
         cerr << "\nERROR: read_data_time = WINDOW_END is only valid for the participant listed as "
-             << "'second' in the serial coupling scheme. Participant '" << m_participant_name << "' is "
-             << (is_first ? "listed as 'first'" : "not part of that scheme")
+             << "'second' in the serial coupling scheme. Participant '" << m_participant_name << "' is " << (is_first ? "listed as 'first'" : "not part of that scheme")
              << ", so no data for the current time window is available to it." << endl;
         throw std::runtime_error("read_data_time = WINDOW_END is only valid for the 'second' participant");
     }
@@ -751,7 +749,7 @@ void ChPreciceAdapter::ProcessXML() {
         if (mesh_name == "SolidAddedMass" || mesh_name == "FluidAddedMass")
             continue;
 
-        // Check that the participant is configured to provide this mesh 
+        // Check that the participant is configured to provide this mesh
         auto coupling_mesh = m_coupling_meshes.find(mesh_name);
         if (coupling_mesh == m_coupling_meshes.end()) {
             if (m_verbose)

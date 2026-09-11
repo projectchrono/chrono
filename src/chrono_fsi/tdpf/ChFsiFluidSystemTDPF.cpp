@@ -222,8 +222,7 @@ void ChFsiFluidSystemTDPF::OnDoStepDynamics(double time, double step) {
     // would record the same body velocity at two distinct times and corrupt the radiation convolution history,
     // silently and without any error from the underlying solver. See GetCurrentStepSize.
     if (!m_state_refreshed) {
-        cerr << "ERROR: TDPF hydrodynamic forces evaluated twice against the same solid state (t = " << time << ")."
-             << endl;
+        cerr << "ERROR: TDPF hydrodynamic forces evaluated twice against the same solid state (t = " << time << ")." << endl;
         throw std::runtime_error(
             "ChFsiFluidSystemTDPF: hydrodynamic forces evaluated twice against the same solid state. The TDPF fluid "
             "system must be advanced exactly once per co-simulation step.");
