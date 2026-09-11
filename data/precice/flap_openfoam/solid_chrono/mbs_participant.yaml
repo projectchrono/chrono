@@ -5,8 +5,17 @@ model:  "mbs_model.yaml"
 solver: "mbs_solver.yaml"
 
 simulation:
-  end_time: 100
+  # This value is ignored: a preCICE adapter terminates on the coupling status reported by
+  # preCICE alone. A negative end time is the Chrono convention for "no end time of my own".
+  end_time: -1
+  # Note that precice_config.xml for this case declares no max-time-windows either, so the
+  # simulated duration is bounded only by preCICE's own default limit.
+
   enforce_realtime: true
+
+  # Gravitational acceleration for the solid phase. Must match the gravity of the fluid participant:
+  # the two participants are separate processes and nothing reconciles these values for you.
+  # Zero here: gravity is neglected for this channel-flow flap.
   gravity: [0, 0, 0]
   
 output:

@@ -5,11 +5,14 @@ model:  "mbs_model.yaml"
 solver: "mbs_solver.yaml"
 
 simulation:
-  end_time: 40
+  # This value is ignored: a preCICE adapter terminates on the coupling status reported by
+  # preCICE alone. A negative end time is the Chrono convention for "no end time of my own".
+  end_time: -1
+
   enforce_realtime: true
-  # Must match the gravity used by the fluid participant. Note that the TDPF participant has no
-  # YAML key for gravity and is hard-wired to [0, 0, -9.8], so this value cannot be changed here
-  # alone without silently desynchronizing the two phases.
+  
+  # Gravitational acceleration for the solid phase. Must match the gravity of the fluid participant:
+  # the two participants are separate processes and nothing reconciles these values for you.
   gravity: [0, 0, -9.8]
   
 output:
