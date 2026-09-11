@@ -25,7 +25,9 @@
 //
 // =============================================================================
 
+#include <cstdlib>
 #include <iostream>
+#include <string>
 
 #include "chrono/utils/ChBenchmark.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -37,6 +39,10 @@
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 
 #include "tests/benchmark_tests/vehicle/ScmBenchmarkUtils.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -59,6 +65,12 @@ const double settle_time = 0.5;     // s before rig inputs are applied
 
 const double step_size = 2e-4;  // s
 
+// True only for the interactive run below. The rig's own visual assets and the SCM visualization
+// mesh are both off in a timed run: the SCM mesh gates a per-node vertex update inside the
+// modified-node loop, which would be charged to soil physics rather than to a visualization timer.
+// A run that renders needs both, or there is nothing to see and the soil does not deform on screen.
+static bool scm_render = false;
+
 // =============================================================================
 
 // GRID_MM is the SCM grid spacing in millimeters (a template parameter has to be integral).
@@ -69,6 +81,8 @@ class WheelScmTest : public utils::ChBenchmarkTest {
     ~WheelScmTest();
 
     ChSystem* GetSystem() override { return m_sys; }
+
+    void SimulateVis();
 
     void ExecuteStep() override {
         m_rig->Advance(step_size);
@@ -103,10 +117,10 @@ WheelScmTest<GRID_MM>::WheelScmTest() {
     m_rig->SetGravitationalAcceleration(9.8);
     m_rig->SetNormalLoad(normal_load);
     m_rig->SetStepsize(step_size);
-    m_rig->SetVisualizationType(VisualizationType::NONE);
+    m_rig->SetVisualizationType(scm_render ? VisualizationType::MESH : VisualizationType::NONE);
 
-    // No SCM visualization mesh: see EnableTerrainVisualizationMesh.
-    m_rig->EnableTerrainVisualizationMesh(false);
+    // No SCM visualization mesh in a timed run: see the note on scm_render.
+    m_rig->EnableTerrainVisualizationMesh(scm_render);
 
     ChWheelTestRig::TerrainPatchSize size;
     size.length = patch_length;
@@ -143,6 +157,33 @@ WheelScmTest<GRID_MM>::~WheelScmTest() {
     delete m_sys;
 }
 
+// Interactive run. The wheel is driven at a constant longitudinal slip along a 10 x 1 m patch, so
+// the camera tracks it down the patch; what to look for is a single continuous rut behind the
+// contact patch and a raised bow wave ahead of it.
+template <int GRID_MM>
+void WheelScmTest<GRID_MM>::SimulateVis() {
+#ifdef CHRONO_IRRLICHT
+    auto vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+    vis->AttachSystem(m_sys);
+    vis->SetWindowTitle("Polaris wheel on SCM -- " + std::to_string(GRID_MM) + " mm grid");
+    vis->SetWindowSize(1280, 720);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->Initialize();
+    vis->AddLightDirectional();
+    vis->AddSkyBox();
+    vis->AddCamera(ChVector3d(0, -2.0, 1.0), ChVector3d(0, 0, 0));
+
+    while (vis->Run()) {
+        const auto& loc = m_rig->GetPos();
+        vis->UpdateCamera(loc + ChVector3d(0, -2.0, 1.0), loc);
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
+        ExecuteStep();
+    }
+#endif
+}
+
 // =============================================================================
 
 // ChWheelTestRig runs its own start-up sequence before the wheel rolls: a 2 s drop phase, then the
@@ -163,5 +204,22 @@ CH_BM_SCM_SIMULATION_ONCE(WheelSCM_D10, wheel_d10_test_type, NUM_SKIP_STEPS, NUM
 
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
+
+#ifdef CHRONO_IRRLICHT
+    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
+        scm_render = true;  // must be set before the fixture builds the rig and the terrain
+        const char* g = std::getenv("SCM_BENCH_VARIANT");
+        const std::string variant = g ? g : "D20";
+        if (variant == "D10") {
+            WheelScmTest<10> test;
+            test.SimulateVis();
+        } else {
+            WheelScmTest<20> test;
+            test.SimulateVis();
+        }
+        return 0;
+    }
+#endif
+
     ::benchmark::RunSpecifiedBenchmarks();
 }

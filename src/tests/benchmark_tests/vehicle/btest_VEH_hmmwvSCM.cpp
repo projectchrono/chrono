@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+#include <cstdlib>
+#include <string>
+
 #include "chrono/utils/ChBenchmark.h"
 #include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -314,11 +317,26 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
         scm_render = true;  // must be set before the fixture builds the terrain
-        HmmwvScmTest<MESH_TIRE, true> test;
-        ////HmmwvScmTest<MESH_TIRE, false> test;
-        ////HmmwvScmTest<CYL_TIRE, true> test;
-        ////HmmwvScmTest<CYL_TIRE, false> test;
-        test.SimulateVis();
+        // SCM_BENCH_VARIANT picks which of the four registered variants to render. CYL_0 and CYL_1
+        // are not benchmarked -- a cylinder tyre is a primitive collision shape, which the GPU
+        // ray-cast backend cannot intersect -- but they are worth being able to look at, since that
+        // is the failure this selector makes visible.
+        const char* e = std::getenv("SCM_BENCH_VARIANT");
+        const std::string variant = e ? e : "MESH_1";
+        std::cout << "SCM variant: " << variant << std::endl;
+        if (variant == "MESH_0") {
+            HmmwvScmTest<MESH_TIRE, false> test;
+            test.SimulateVis();
+        } else if (variant == "CYL_0") {
+            HmmwvScmTest<CYL_TIRE, false> test;
+            test.SimulateVis();
+        } else if (variant == "CYL_1") {
+            HmmwvScmTest<CYL_TIRE, true> test;
+            test.SimulateVis();
+        } else {
+            HmmwvScmTest<MESH_TIRE, true> test;
+            test.SimulateVis();
+        }
         return 0;
     }
 #endif

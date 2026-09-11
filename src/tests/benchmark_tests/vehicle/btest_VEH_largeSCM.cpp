@@ -50,6 +50,9 @@
     #include <unistd.h>
 #endif
 
+#include <cstdlib>
+#include <string>
+
 #include "chrono/utils/ChBenchmark.h"
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -61,6 +64,10 @@
 
 #include "tests/benchmark_tests/vehicle/ScmBenchmarkUtils.h"
 
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -69,7 +76,7 @@ using namespace chrono::vehicle::hmmwv;
 
 const std::string heightmap_file = "terrain/height_maps/terrain3.bmp";
 
-const double patch_size = 300.0;    // m, square patch
+double patch_size = 300.0;          // m, square patch (reduced by the interactive run, see main)
 const double grid_spacing = 0.02;   // m
 const double height_min = -0.25;    // m, height map range about the SCM plane
 const double height_max = 0.25;     // m
@@ -81,11 +88,17 @@ const double height_max = 0.25;     // m
 // rut falls where a vehicle drove, not where a storage scheme would like it to, and a layout that
 // happened to line up with an internal block size would flatter one implementation over another.
 const int track_width = 15;
-const int track_j_first = 2003;
+int track_j_first = 2003;
 const int track_j_pitch = 114;
 const double rut_depth = 0.04;  // m below the undeformed surface
 
 const double step_size = 2e-3;
+
+// True only for the interactive run below, which is NOT the timed configuration: the SCM
+// visualization mesh spans the whole patch, and at 300 m by 0.02 m that is 15001^2 = 225M vertices.
+// The interactive run therefore shrinks the patch (SCM_BENCH_VIS_PATCH, default 20 m) and re-bases
+// the seeded ruts into it. It is for looking at the scene, never for a number.
+static bool scm_render = false;
 
 // =============================================================================
 
@@ -148,6 +161,8 @@ class LargeScmTest : public utils::ChBenchmarkTest {
     ChSystem* GetSystem() override { return m_sys; }
     void ExecuteStep() override;
 
+    void SimulateVis();
+
     const SCMTerrain& GetTerrain() const { return *m_terrain; }
 
     scm_bench::ScmStats m_scm;
@@ -178,7 +193,7 @@ LargeScmTest<SEED_TRACKS>::LargeScmTest() : m_seeded(0) {
     // ComputeInternalForces, charged to that loop rather than to the visualization timer, so it
     // would be measured here as though it were soil physics. At this patch size it would also be
     // the dominant allocation.
-    m_terrain = new SCMTerrain(m_sys, false);
+    m_terrain = new SCMTerrain(m_sys, scm_render);
     m_terrain->SetSoilParameters(2e6,   // Bekker Kphi
                                  0,     // Bekker Kc
                                  1.1,   // Bekker n exponent
@@ -210,11 +225,12 @@ LargeScmTest<SEED_TRACKS>::LargeScmTest() : m_seeded(0) {
     m_hmmwv->SetAerodynamicDrag(0.5, 5.0, 1.2);
     m_hmmwv->Initialize();
 
-    m_hmmwv->SetChassisVisualizationType(VisualizationType::NONE);
-    m_hmmwv->SetSuspensionVisualizationType(VisualizationType::NONE);
-    m_hmmwv->SetSteeringVisualizationType(VisualizationType::NONE);
-    m_hmmwv->SetWheelVisualizationType(VisualizationType::NONE);
-    m_hmmwv->SetTireVisualizationType(VisualizationType::NONE);
+    const auto vis_type = scm_render ? VisualizationType::MESH : VisualizationType::NONE;
+    m_hmmwv->SetChassisVisualizationType(vis_type);
+    m_hmmwv->SetSuspensionVisualizationType(vis_type);
+    m_hmmwv->SetSteeringVisualizationType(vis_type);
+    m_hmmwv->SetWheelVisualizationType(vis_type);
+    m_hmmwv->SetTireVisualizationType(vis_type);
 
     // Same four wheel domains, at the same dimensions, as btest_VEH_hmmwvSCM.
     for (int axle = 0; axle < 2; axle++) {
@@ -245,6 +261,8 @@ void LargeScmTest<SEED_TRACKS>::Preseed() {
     for (int t = 0; t < SEED_TRACKS; t++) {
         for (int w = 0; w < track_width; w++) {
             int j = track_j_first + t * track_j_pitch + w;
+            if (std::abs(j) > nx)  // outside the patch (only reachable on the reduced viz patch)
+                continue;
             double y = j * grid_spacing;
             for (int i = -nx; i <= nx; i++) {
                 double x = i * grid_spacing;
@@ -294,6 +312,33 @@ void LargeScmTest<SEED_TRACKS>::ExecuteStep() {
     m_scm.Accumulate(*m_terrain);
 }
 
+// Interactive run. NOT the timed configuration -- the patch is shrunk so the SCM visualization
+// mesh can exist at all. What to look for: the pre-seeded ruts as straight depressions across the
+// patch, and the HMMWV cutting its own diagonal track across them.
+template <int SEED_TRACKS>
+void LargeScmTest<SEED_TRACKS>::SimulateVis() {
+#ifdef CHRONO_IRRLICHT
+    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->AttachVehicle(&m_hmmwv->GetVehicle());
+    vis->SetWindowTitle("Large SCM patch -- " + std::to_string(SEED_TRACKS) + " seeded ruts");
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 8.0, 0.5);
+    vis->Initialize();
+    vis->AddLightDirectional();
+    vis->AddSkyBox();
+
+    while (vis->Run()) {
+        DriverInputs driver_inputs = m_driver->GetInputs();
+
+        vis->BeginScene();
+        vis->Render();
+        ExecuteStep();
+        vis->Synchronize(m_sys->GetChTime(), driver_inputs);
+        vis->Advance(step_size);
+        vis->EndScene();
+    }
+#endif
+}
+
 // =============================================================================
 
 #define NUM_SKIP_STEPS 500   // hot start (2e-3 * 500 = 1 s)
@@ -318,5 +363,38 @@ CH_BM_SCM_SIMULATION_ONCE(LargeSCM_SEED16, large_seed16_test_type, NUM_SKIP_STEP
 
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
+
+#ifdef CHRONO_IRRLICHT
+    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
+        scm_render = true;  // must be set before the fixture builds the terrain
+
+        // The timed patch cannot be drawn: 300 m at 0.02 m is 15001^2 visualization vertices. Shrink
+        // it, and re-base the seeded ruts from row 2003 (y = 40 m) into the smaller patch, keeping
+        // their width and 114-row pitch. Everything else -- soil parameters, grid spacing, vehicle,
+        // active domains, route -- is as benchmarked.
+        if (const char* e = std::getenv("SCM_BENCH_VIS_PATCH"))
+            patch_size = std::atof(e);
+        else
+            patch_size = 20.0;
+        track_j_first = 50;
+        std::cout << "Interactive run: patch " << patch_size << " m, NOT the benchmarked size"
+                  << std::endl;
+
+        const char* v = std::getenv("SCM_BENCH_VARIANT");
+        const std::string variant = v ? v : "SEED4";
+        if (variant == "SEED0") {
+            LargeScmTest<0> test;
+            test.SimulateVis();
+        } else if (variant == "SEED1") {
+            LargeScmTest<1> test;
+            test.SimulateVis();
+        } else {
+            LargeScmTest<4> test;
+            test.SimulateVis();
+        }
+        return 0;
+    }
+#endif
+
     ::benchmark::RunSpecifiedBenchmarks();
 }
