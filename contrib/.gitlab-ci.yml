@@ -725,7 +725,8 @@ windows:vs2022:deploy-installer:
   - cp -r bin/data .
   - export CTEST_OUTPUT_ON_FAILURE=1
   - cmake --install . --config Release
-  - ninja test
+  # - ninja test
+  - ctest --output-on-failure -C Release
 
 
 macos-apple:tahoe:build:
