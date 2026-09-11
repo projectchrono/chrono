@@ -113,7 +113,7 @@ WheelScmTest<GRID_MM>::WheelScmTest() {
 
     tire->SetStepsize(step_size);
 
-    m_rig = new ChWheelTestRig(wheel, tire, *m_sys);
+    m_rig = new ChWheelTestRig(*m_sys, wheel, tire);
     m_rig->SetGravitationalAcceleration(9.8);
     m_rig->SetNormalLoad(normal_load);
     m_rig->SetStepsize(step_size);
