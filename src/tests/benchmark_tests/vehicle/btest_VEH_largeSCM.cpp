@@ -384,12 +384,18 @@ int main(int argc, char* argv[]) {
             patch_size = std::atof(e);
         else
             patch_size = 20.0;
-        track_j_first = 50;
-        std::cout << "Interactive run: patch " << patch_size << " m, NOT the benchmarked size"
-                  << std::endl;
 
         const char* v = std::getenv("SCM_BENCH_VARIANT");
         const std::string variant = v ? v : "SEED4";
+        const int variant_tracks = (variant == "SEED0") ? 0 : (variant == "SEED1") ? 1 : 4;
+        // Centre the ruts on the reduced patch instead of leaving them at row 2003 (y = 40 m,
+        // off-patch at this size). Width and pitch are unchanged, so they look as they do in the
+        // benchmarked configuration; only where they sit moves.
+        const int tracks = (variant_tracks > 0) ? variant_tracks : 1;
+        track_j_first = -((tracks - 1) * track_j_pitch) / 2;
+        std::cout << "Interactive run: patch " << patch_size << " m, NOT the benchmarked size"
+                  << std::endl;
+
         if (variant == "SEED0") {
             LargeScmTest<0> test;
             test.SimulateVis();
