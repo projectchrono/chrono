@@ -18,6 +18,33 @@ The various types of Chrono simulations that can be conducted through YAML files
 <img src="http://www.projectchrono.org/assets/manual/YAML_schemas.png" width="600">
 
 
+## Specification file types
+
+Every YAML specification file declares its kind through a required `type` key, which the parsers use both
+to dispatch to the right parser and to verify that a file is being read as the kind it claims to be. The
+recognized values are:
+
+| `type` | Meaning |
+|--------|---------|
+| `MBS` | Rigid multibody simulation, see the [MBS simulation schema](@ref YAML_schema_mbs_simulation) |
+| `VEHICLE` | Vehicle simulation, see the [vehicle simulation schema](@ref YAML_schema_vehicle_simulation) |
+| `FSI` | Coupled fluid-solid interaction simulation, see the [FSI simulation schema](@ref YAML_schema_fsi_simulation) |
+| `SPH` | Chrono::FSI-SPH fluid phase, see the [FSI-SPH simulation schema](@ref YAML_schema_fsisph_simulation) |
+| `TDPF` | Chrono::FSI-TDPF fluid phase, see the [FSI-TDPF simulation schema](@ref YAML_schema_fsitdpf_simulation) |
+| `CUSTOM` | A file that is not consumed by any Chrono YAML parser, but read by application code |
+
+Values are matched case-insensitively.
+
+`CUSTOM` exists for files that follow the YAML conventions but are interpreted by user code rather than by
+one of the parsers above. The participant configuration of a preCICE adapter implemented in a user program
+is an example: it carries a `precice_adapter_config` object that the adapter base class reads directly, and
+neither `chrono-version` nor `type` is consumed. Declaring `type: CUSTOM` documents that intent rather than
+leaving the reader to infer it from the absence of a recognized type.
+
+An unrecognized `type` value is not an error. It is reported as `CUSTOM` together with a warning naming the
+offending value, so that a misspelling does not silently masquerade as a deliberate `CUSTOM` declaration.
+
+
 ## Reference frames {#YAML_parser_frames}
 
 A Chrono model is specified with respect to an implied model reference frame (M). You can think of this reference frame as a global frame for the purpose of defining the model.  In other words, all body positions (location and orientation, <sub>M</sub>X<sub>B</sub>), joint frames (if joints are specified through an absolute joint frame), TSDA end point locations (if specified through absolute locations), etc. are assumed to be given relative to this model frame.
