@@ -11,6 +11,10 @@ if(CH_ENABLE_MODULE_PARSERS)
       demo_PRECICE_sphere_drop
       demo_PRECICE_flap_openfoam
   )
+
+  if(CH_ENABLE_MODULE_FSI_TDPF)
+    set(DEMOS ${DEMOS} demo_PRECICE_rm3_reg_waves)
+  endif()
   
   #if(CH_ENABLE_MODULE_VEHICLE)
   #  set(DEMOS ${DEMOS} demo_PRECICE_vehicle)

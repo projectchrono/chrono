@@ -62,7 +62,7 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);
 
     /// Modify the added mass block.
-    /// In this case, each given block is assumed to have size 6 x 6 and is added to the diagonal of the generalized mass matrix.
+    /// In this case, each given block is assumed to have size 6 x 6 and overwrites the diagonal block of the added mass matrix.
     void UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66d>& blocks);
 
     /// Perform setup operations at the beginning of a step.
