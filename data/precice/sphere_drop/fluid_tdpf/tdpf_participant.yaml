@@ -15,6 +15,12 @@ output:
   fps: 20
 
 visualization:
+  camera:
+    vertical: Z
+    location: [2, 2, 0.6]
+    target: [0, 0, -0.4]
+
+  # TDPF-specific settings (water surface visualization).
   update_fps: 30
   color_map:
     type: HEIGHT

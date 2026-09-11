@@ -68,9 +68,10 @@ class ChApiPrecice ChPreciceAdapterTdpf : public ChPreciceAdapter {
 
   private:
     struct CouplingBody {
-        int index;                       ///< index of coupling body
-        std::vector<ChVector3d> points;  ///< BCE markers on body expressed in local frame
-        ChFramed init_body_frame;        ///< initial body reference frame (absolute)
+        int index;                           ///< index of coupling body
+        std::vector<ChVector3d> points;      ///< BCE markers on body expressed in local frame
+        ChFramed init_body_frame;            ///< initial body reference frame (absolute)
+        std::shared_ptr<ChBodyAuxRef> body;  ///< dummy body tracking the state of this coupling body
     };
 
 #ifdef CHRONO_FEA

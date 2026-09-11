@@ -86,15 +86,17 @@ ChPreciceAdapterTdpf::ChPreciceAdapterTdpf(const std::string& precice_config_fil
 // -----------------------------------------------------------------------------
 
 void ChPreciceAdapterTdpf::AddCouplingBody(const std::string& name, const ChFramed& frame) {
+    // Create a dummy body to allow rendering of its reference frame
+    auto body = chrono_types::make_shared<ChBodyAuxRef>();
+    body->SetName(name);
+    body->SetFrameRefToAbs(frame);
+
     auto c_body = chrono_types::make_shared<CouplingBody>();
     c_body->index = (int)m_coupling_bodies.size();
     c_body->init_body_frame = frame;
     c_body->points = std::vector<ChVector3d>();
+    c_body->body = body;
     m_coupling_bodies.push_back(c_body);
-
-    // Create a dummy body
-    auto body = chrono_types::make_shared<ChBodyAuxRef>();
-    body->SetFrameRefToAbs(frame);
 
     m_sysFSI->AddRigidBody(body, nullptr, false);
 }
@@ -231,12 +233,17 @@ void ChPreciceAdapterTdpf::InitializeParticipant() {
         if (m_verbose)
             cout << m_prefix1 << "Set up run-time visualization" << endl;
 
-        // TDPF visualization plugin
+        // TDPF visualization plugin. 
+        // - always enable water surface rendering
+        // - add dummy FSI bodies to the internal system to render their reference frames
         auto visFSI = chrono_types::make_shared<fsi::tdpf::ChTdpfVisualizationVSG>(m_sysTDPF.get());
         visFSI->SetWaveMeshVisibility(true);
         visFSI->SetWaveMeshColormap(m_visTDPF_settings.colormap, 0.95f);
         visFSI->SetWaveMeshColorMode(m_visTDPF_settings.mode, m_visTDPF_settings.range);
         visFSI->SetWaveMeshUpdateFrequency(m_visTDPF_settings.update_fps);
+
+        for (const auto& c_body : m_coupling_bodies)
+            visFSI->GetSystem()->AddBody(c_body->body);
 
         // VSG visual system (attach visFSI as plugin)
         m_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
@@ -245,11 +252,16 @@ void ChPreciceAdapterTdpf::InitializeParticipant() {
         m_vsg->SetWindowSize(1280, 800);
         m_vsg->SetWindowPosition(100, 100);
         m_vsg->AddCamera(m_vis_settings.camera_location, m_vis_settings.camera_target);
+        m_vsg->SetBackgroundColor(ChColor(0.04f, 0.11f, 0.18f));
         m_vsg->SetCameraVertical(m_vis_settings.camera_vertical);
         m_vsg->SetCameraAngleDeg(40.0);
         m_vsg->SetLightIntensity(0.9f);
         m_vsg->SetLightDirection(CH_PI_2, CH_PI / 6);
         m_vsg->EnableShadows(false);
+
+        // Enable rendering of the global frame and of body reference frames
+        m_vsg->ToggleAbsFrameVisibility();
+        m_vsg->SetRefFrameVisibility(true);
 
         m_vsg->Initialize();
     }
@@ -396,6 +408,12 @@ void ChPreciceAdapterTdpf::ReadBodyRefData(const std::string& mesh_name, const C
                 cerr << "\nERROR: Invalid Chrono TDPF read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono TDPF read data type");
         }
+    }
+
+    // Update the dummy bodies, so that the rendered reference frames follow the FSI solids
+    for (size_t i_body = 0; i_body < num_bodies; i_body++) {
+        const auto& bstates = body_states[i_body];
+        m_coupling_bodies[i_body]->body->SetFrameRefToAbs(ChFramed(bstates.pos, bstates.rot));
     }
 
     // Pass the body states to the TDPF solver

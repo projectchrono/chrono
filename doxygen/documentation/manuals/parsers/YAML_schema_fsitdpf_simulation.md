@@ -70,8 +70,13 @@ The `color_map` key, if present, specifies the following properties:
 | `min` | Lower end of the color data range | double | -- | No | -1 |
 | `max` | Upper end of the color data range | double | -- | No | 1 |
 
-Note that camera and general rendering settings for a coupled FSI simulation are specified in the
-[FSI simulation file](@ref YAML_schema_fsi_simulation), not here.
+Settings common to all Chrono run-time visualization (`render_fps`, `camera`, and `output`, documented
+with the [MBS simulation schema](@ref YAML_schema_mbs_simulation)) are read from this same `visualization`
+object. In a coupled FSI simulation they are overridden by the corresponding settings in the
+[FSI simulation file](@ref YAML_schema_fsi_simulation), so there is no reason to duplicate them here.
+They do take effect when this file is the top-level specification, as it is for a Chrono preCICE
+participant; in that case a `camera` entry is effectively required, since the default places the eye in
+the z=0 plane.
 
 
 ## Example

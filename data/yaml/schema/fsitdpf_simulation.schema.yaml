@@ -89,7 +89,13 @@ output:
         default: 100
 
 visualization:
-  description: TDPF-specific run-time visualization settings (water surface visualization)
+  description: |
+      Run-time visualization settings.
+      Settings common to all Chrono run-time visualization (`render_fps`, `camera`, and `output`) are read
+      from this same object, per the mbs_simulation schema. In a coupled FSI simulation they are overridden
+      by those in the FSI simulation file; they take effect when this file is the top-level specification,
+      as it is for a Chrono preCICE participant.
+      The TDPF-specific settings below control water surface visualization.
   type: object
   properties:
     update_fps:
