@@ -66,8 +66,12 @@
          so this ordering costs nothing; switch to coupling-scheme:parallel-explicit (and
          'read_data_time: WINDOW_START') only if the concurrency is worth reinstating the lag. -->
     <participants first="Fluid" second="Solid" />
+    <!-- 1000 windows x 1e-3 s = 1 s.
+         Note that the adapters terminate on preCICE's coupling status alone (they never read
+         end_time), so this window count is what actually sets the simulated duration. -->
     <max-time-windows value="1000" />
     <time-window-size value="0.001" />
+
     <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
     <exchange data="velocities" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
     <exchange data="forces" mesh="SolidMesh" from="Fluid" to="Solid" />

@@ -68,17 +68,17 @@
   <m2n:sockets acceptor="Solid" connector="Fluid" exchange-directory="." />
 
   <coupling-scheme:serial-explicit>
-    <!-- The fluid participant runs first within each time window, so the forces it produces are
-         available to the solid participant in that same window. Combined with
-         'read_data_time: WINDOW_END' on the solid participant, this makes the force applied over a
-         window derive from the solid state at the *beginning* of that window. With the solid first,
-         or with either participant reading at the window start, the force lags the solid state by a
-         full window and acts as negative damping. -->
+    <!-- The fluid participant runs first within each time window, so the forces and added-mass
+         coefficients it produces are available to the solid participant in that same window.
+         Combined with 'read_data_time: WINDOW_END' on the solid participant, this makes the data
+         applied over a window derive from the solid state at the *beginning* of that window. With
+         the solid first, or with the solid reading at the window start, the fluid data lags the
+         solid state by a full window and the force term acts as negative damping. -->
     <participants first="Fluid" second="Solid" />
-    <!-- 40000 windows x 1e-3 s = 40 s, matching end_time in mbs_participant.yaml.
+    <!-- 5000 windows x 1e-3 s = 5 s.
          Note that the adapters terminate on preCICE's coupling status alone (they never read
          end_time), so this window count is what actually sets the simulated duration. -->
-    <max-time-windows value="40000" />
+    <max-time-windows value="5000" />
     <time-window-size value="0.001" />
     <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
     <exchange data="velocities" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
