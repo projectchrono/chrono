@@ -28,6 +28,8 @@ namespace sensor {
 using ChDepthCameraBase = ChOptixSensor;
 #elif defined(CHRONO_HAS_VULKAN_RT)
 using ChDepthCameraBase = ChVulkanSensor;
+#elif defined(CHRONO_HAS_METAL_RT)
+using ChDepthCameraBase = ChMetalSensor;
 #else
 using ChDepthCameraBase = ChSensor;
 #endif

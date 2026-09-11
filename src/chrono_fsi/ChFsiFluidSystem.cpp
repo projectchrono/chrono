@@ -56,6 +56,11 @@ void ChFsiFluidSystem::Initialize() {
 }
 
 void ChFsiFluidSystem::DoStepDynamics(double step) {
+    if (!m_is_initialized) {
+        cout << "ERROR: FSI fluid system not initialized!\n" << endl;
+        throw std::runtime_error("FSI fluid system not initialized!\n");
+    }
+
     m_timer_step.reset();
     m_timer_step.start();
 

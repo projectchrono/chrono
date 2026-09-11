@@ -30,6 +30,9 @@
 /// If Vulkan ray tracing Chrono::Sensor features are available and enabled, define CHRONO_HAS_VULKAN_RT.
 @CHRONO_HAS_VULKAN_RT@
 
+/// If Metal ray tracing Chrono::Sensor features are available and enabled, define CHRONO_HAS_METAL_RT.
+@CHRONO_HAS_METAL_RT@
+
 /// If any rendered sensor backend is available, define CHRONO_HAS_SENSOR_RENDER.
 @CHRONO_HAS_SENSOR_RENDER@
 

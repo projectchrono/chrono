@@ -150,7 +150,7 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
         if (last_contact_rolling != contacts_rolling.end()) {
             // reuse old contacts
             (*last_contact_rolling)->Reset(contactableA, contactableB, cinfo, cmat, GetMinBounceSpeed());
-            last_contact++;
+            ++last_contact_rolling;
         } else {
             // add new contact
             auto c = new ChContactNSCrolling(this, contactableA, contactableB, cinfo, cmat, GetMinBounceSpeed());
@@ -162,7 +162,7 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
         if (last_contact != contacts.end()) {
             // reuse old contacts
             (*last_contact)->Reset(contactableA, contactableB, cinfo, cmat, GetMinBounceSpeed());
-            last_contact++;
+            ++last_contact;
         } else {
             // add new contact
             auto c = new ChContactNSC(this, contactableA, contactableB, cinfo, cmat, GetMinBounceSpeed());

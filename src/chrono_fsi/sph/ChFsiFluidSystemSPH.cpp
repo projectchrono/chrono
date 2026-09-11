@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-//// TODO:
-////   - use ChFsiParamsSPH::free_surface_threshold (kernel threshold) for both CFD and CRM (currently, only CRM)
-
 //// #define DEBUG_LOG
 
 #include <cmath>
@@ -119,7 +116,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->shifting_ppst_pull = Real(1.0);
     m_paramsH->shifting_beta_implicit = Real(1.0);
     m_paramsH->shifting_diffusion_A = Real(1.0);
-    m_paramsH->shifting_diffusion_AFSM = Real(3.0);
+    m_paramsH->shifting_diffusion_AFSM = Real(2.9);
     m_paramsH->shifting_diffusion_AFST = Real(2);
     m_paramsH->density_reinit_steps = 2147483647;
     m_paramsH->Conservative_Form = true;
@@ -153,7 +150,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->ClampPressure = false;
 
     // CRM SPH
-    m_paramsH->free_surface_threshold = Real(2.0);
+    m_paramsH->free_surface_threshold = Real(2.4);
     m_paramsH->free_flow_duration = Real(0);
     m_paramsH->Max_Pressure = Real(1e20);
 
@@ -636,7 +633,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       shifting_ppst_pull(1.0),
       shifting_beta_implicit(1.0),
       shifting_diffusion_A(1.0),
-      shifting_diffusion_AFSM(3.0),
+      shifting_diffusion_AFSM(2.9),
       shifting_diffusion_AFST(2),
       min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
@@ -650,7 +647,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
-      free_surface_threshold(2.0),
+      free_surface_threshold(2.4),
       num_proximity_search_steps(1),
       eos_type(EosType::ISOTHERMAL),
       use_variable_time_step(false) {}
@@ -1751,8 +1748,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     CheckSPHParameters();
 
-    // Mark the fluid system as initialized. This arms the configuration-setter guards
-    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    // Mark the fluid system as initialized.
     m_is_initialized = true;
 }
 
@@ -1964,8 +1960,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     CheckSPHParameters();
 
-    // Mark the fluid system as initialized. This arms the configuration-setter guards
-    // also for standalone use (without a ChFsiSystem wrapper, which sets this flag too).
+    // Mark the fluid system as initialized.
     m_is_initialized = true;
 }
 
@@ -2057,6 +2052,16 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
             m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
         }
         m_fluid_dynamics->ProximitySearch();
+    } else {
+        // On a step without a proximity search the sorted arrays are not rebuilt from the original
+        // ones, so the solid BCE markers keep the velocity slot the previous step's boundary-condition
+        // kernel overwrote (CrmAdamiBC and CfdAdamiBC read the wall velocity from sortedVelMasD and
+        // write the extrapolated ghost velocity back into the same slot). Refresh the solid marker
+        // state from the current solid poses so the kernel reads a wall velocity, not its own output.
+        // Each update returns at once when there are no solids of its kind.
+        m_bce_mgr->UpdateBodyMarkerState();
+        m_bce_mgr->UpdateMeshMarker1DState();
+        m_bce_mgr->UpdateMeshMarker2DState();
     }
 
     // Zero-out step data (derivatives and intermediate vectors)
@@ -3204,6 +3209,11 @@ std::vector<Real3> ChFsiFluidSystemSPH::GetForces() const {
 std::vector<Real3> ChFsiFluidSystemSPH::GetProperties() const {
     SynchronizeCopyStream();
     return m_data_mgr->GetProperties();
+}
+
+std::vector<int> ChFsiFluidSystemSPH::GetFreeSurfaceFlags() const {
+    SynchronizeCopyStream();
+    return m_data_mgr->GetFreeSurfaceFlags();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions(const std::vector<int>& indices) const {

@@ -228,8 +228,7 @@ void ChFsiSystem::Initialize() {
     m_sysCFD->Initialize(body_states);
 #endif
 
-    // Mark systems as initialized
-    m_sysCFD->m_is_initialized = true;
+    // Mark as initialized
     m_is_initialized = true;
 }
 
