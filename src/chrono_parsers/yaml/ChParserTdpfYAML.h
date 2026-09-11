@@ -51,6 +51,10 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     void LoadFile(const std::string& yaml_filename);
 
     /// Load the simulation, output, and visualization settings from the specified YAML node.
+    /// The optional `simulation` object may specify `gravity` (default: [0, 0, -9.8]), the gravitational
+    /// acceleration applied to the fluid phase. Note that in a coupled FSI simulation the gravity given in
+    /// the FSI simulation file governs both phases and overrides this value; it therefore takes effect when
+    /// the TDPF fluid system is driven on its own, as it is through the Chrono preCICE adapter.
     void LoadSimData(const YAML::Node& yaml) override;
 
     /// Load the MBS model from the specified YAML node.
@@ -143,14 +147,14 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
     double m_ramp_duration;                 ///< excitation ramp duration [s]; 0 = no ramp
 
     // Solver settings (from the TDPF solver YAML file)
-    fsi::tdpf::ChTdpfRadiationMethod m_radiation_method;              ///< radiation force method
-    fsi::tdpf::ChTdpfRadiationKernelProcessing m_kernel_processing;   ///< RIRF kernel smoothing/tapering
-    fsi::tdpf::ChTdpfStateSpaceOptions m_state_space_options;         ///< state-space fit settings
-    double m_radiation_truncation_time;                               ///< RIRF truncation time [s]; 0 = none
-    fsi::tdpf::ChTdpfExcitationMethod m_excitation_method;            ///< wave excitation force method
-    fsi::tdpf::ChTdpfExcitationInterpolation m_excitation_interp;     ///< excitation transfer interpolation
-    double m_excitation_truncation_time;                              ///< excitation IRF truncation time [s]; 0 = none
-    std::string m_diagnostics_output_dir;                             ///< solver diagnostics directory; empty = none
+    fsi::tdpf::ChTdpfRadiationMethod m_radiation_method;             ///< radiation force method
+    fsi::tdpf::ChTdpfRadiationKernelProcessing m_kernel_processing;  ///< RIRF kernel smoothing/tapering
+    fsi::tdpf::ChTdpfStateSpaceOptions m_state_space_options;        ///< state-space fit settings
+    double m_radiation_truncation_time;                              ///< RIRF truncation time [s]; 0 = none
+    fsi::tdpf::ChTdpfExcitationMethod m_excitation_method;           ///< wave excitation force method
+    fsi::tdpf::ChTdpfExcitationInterpolation m_excitation_interp;    ///< excitation transfer interpolation
+    double m_excitation_truncation_time;                             ///< excitation IRF truncation time [s]; 0 = none
+    std::string m_diagnostics_output_dir;                            ///< solver diagnostics directory; empty = none
 
     OutputData m_output_data;  ///< output data
     std::string m_h5_file;     ///< hydrodynamics input file (HDF5 format)

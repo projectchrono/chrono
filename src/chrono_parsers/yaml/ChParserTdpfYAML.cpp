@@ -128,6 +128,13 @@ void ChParserTdpfYAML::LoadSimData(const YAML::Node& yaml) {
     // Read common simulation settings
     ChParserYAML::LoadSimData(yaml);
 
+    // Simulation settings (optional)
+    if (yaml["simulation"]) {
+        auto sim = yaml["simulation"];
+        if (sim["gravity"])
+            m_gravity = ReadVector(sim["gravity"]);
+    }
+
     // TDPF-specific run-time visualization (optional)
     if (yaml["visualization"]) {
 #ifdef CHRONO_VSG
@@ -215,8 +222,7 @@ void ChParserTdpfYAML::LoadSolverData(const YAML::Node& yaml) {
         if (window % 2 == 0)
             window++;
         if (window != m_kernel_processing.smoothing_window) {
-            cerr << "Warning: radiation.smoothing.window_length (" << m_kernel_processing.smoothing_window
-                 << ") must be odd and at least 3; using " << window << "." << endl;
+            cerr << "Warning: radiation.smoothing.window_length (" << m_kernel_processing.smoothing_window << ") must be odd and at least 3; using " << window << "." << endl;
             m_kernel_processing.smoothing_window = window;
         }
     }
@@ -238,14 +244,8 @@ void ChParserTdpfYAML::LoadSolverData(const YAML::Node& yaml) {
 
 void ChParserTdpfYAML::PrintSolverInfo() const {
     cout << "radiation" << endl;
-    cout << "  method:               "
-         << (m_radiation_method == fsi::tdpf::ChTdpfRadiationMethod::STATE_SPACE ? "STATE_SPACE"
-                                                                                : "RIRF_CONVOLUTION")
-         << endl;
-    cout << "  truncation time:      "
-         << (m_radiation_truncation_time > 0 ? std::to_string(m_radiation_truncation_time) + " s"
-                                             : std::string("none (full kernel)"))
-         << endl;
+    cout << "  method:               " << (m_radiation_method == fsi::tdpf::ChTdpfRadiationMethod::STATE_SPACE ? "STATE_SPACE" : "RIRF_CONVOLUTION") << endl;
+    cout << "  truncation time:      " << (m_radiation_truncation_time > 0 ? std::to_string(m_radiation_truncation_time) + " s" : std::string("none (full kernel)")) << endl;
     if (m_radiation_method == fsi::tdpf::ChTdpfRadiationMethod::STATE_SPACE) {
         cout << "  max order:            " << m_state_space_options.max_order << endl;
         cout << "  R2 threshold:         " << m_state_space_options.r2_threshold << endl;
@@ -258,8 +258,7 @@ void ChParserTdpfYAML::PrintSolverInfo() const {
         cout << endl;
         cout << "  taper:                " << (m_kernel_processing.taper_enabled ? "enabled" : "disabled");
         if (m_kernel_processing.taper_enabled) {
-            cout << " (" << m_kernel_processing.taper_start_fraction << " -> "
-                 << m_kernel_processing.taper_end_fraction << ", final amplitude "
+            cout << " (" << m_kernel_processing.taper_start_fraction << " -> " << m_kernel_processing.taper_end_fraction << ", final amplitude "
                  << m_kernel_processing.taper_final_amplitude << ")";
         }
         cout << endl;
@@ -277,13 +276,8 @@ void ChParserTdpfYAML::PrintSolverInfo() const {
             cout << "  method:               AUTO" << endl;
             break;
     }
-    cout << "  interpolation:        "
-         << (m_excitation_interp == fsi::tdpf::ChTdpfExcitationInterpolation::POLAR ? "POLAR" : "CARTESIAN")
-         << endl;
-    cout << "  truncation time:      "
-         << (m_excitation_truncation_time > 0 ? std::to_string(m_excitation_truncation_time) + " s"
-                                              : std::string("none (full kernel)"))
-         << endl;
+    cout << "  interpolation:        " << (m_excitation_interp == fsi::tdpf::ChTdpfExcitationInterpolation::POLAR ? "POLAR" : "CARTESIAN") << endl;
+    cout << "  truncation time:      " << (m_excitation_truncation_time > 0 ? std::to_string(m_excitation_truncation_time) + " s" : std::string("none (full kernel)")) << endl;
 
     if (!m_diagnostics_output_dir.empty())
         cout << "diagnostics output dir: '" << m_diagnostics_output_dir << "'" << endl;
@@ -412,8 +406,12 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
 
     // Create a TDPF fluid system and associate the HDF5 file
     auto h5_file = m_file_handler.GetFilename(m_h5_file);
-    if (m_verbose)
-        cout << "HDF5 hydro file: " << h5_file << endl;
+    if (m_verbose) {
+        cout << "HDF5 hydro file:  " << h5_file << endl;
+        // Reported before any override: in a coupled FSI run, ChParserFsiYAML subsequently applies the
+        // gravity from the FSI simulation file to both phases.
+        cout << "fluid gravity:    " << m_gravity << "  (overridden by the FSI simulation file, if any)" << endl;
+    }
     m_sysTDPF = chrono_types::make_unique<fsi::tdpf::ChFsiFluidSystemTDPF>();
     m_sysTDPF->SetHydroFilename(h5_file);
     m_sysTDPF->SetGravitationalAcceleration(m_gravity);

@@ -3,6 +3,11 @@ type: TDPF
 
 model:  "tdpf_model.yaml"
 solver: "tdpf_solver.yaml"
+
+simulation:
+  # Gravitational acceleration for the fluid phase. Must match the gravity of the solid participant:
+  # the two participants are separate processes and nothing reconciles these values for you.
+  gravity: [0, 0, -9.8]
   
 output:
   format: NONE
