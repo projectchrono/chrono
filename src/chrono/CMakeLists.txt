@@ -1653,9 +1653,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
-endif()
+# NOTE: do not add -Wl,-no_compact_unwind here. On arm64 macOS clang emits only
+# __compact_unwind for nearly every function, so suppressing the linker's __unwind_info leaves
+# each library with landing-pad tables (__gcc_except_tab) but no unwind tables. Every exception
+# thrown by Chrono then terminates the process instead of propagating: the unwinder cannot walk
+# out of the throwing frame, so not even catch(...) in the caller runs, and PyChrono aborts
+# instead of raising. x86_64 objects also carry __eh_frame, so Intel Macs never showed this.
 
 # Compiler warning level and disabled warnings
 
