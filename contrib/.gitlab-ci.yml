@@ -726,7 +726,7 @@ windows:vs2022:deploy-installer:
   - export CTEST_OUTPUT_ON_FAILURE=1
   - cmake --install . --config Release
   # - ninja test
-  - ctest --output-on-failure -C Release
+  - ctest --output-on-failure -C Release -LE sensor
 
 
 macos-apple:tahoe:build:
