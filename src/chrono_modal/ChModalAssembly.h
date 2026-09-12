@@ -157,13 +157,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// configuration.
     void SetFullStateReset();
 
-    /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded)
+    /// Optimization flag. When in modal reduced mode, during simulations the internal (discarded)
     /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing purposes.
     /// In sake of high CPU performance, if no interest in visualization/postprocessing, one can disable this by setting
-    /// to false, then automatically set m_num_coords_static_correction = 0 to disable the static correction mode.
+    /// to false. m_num_coords_static_correction will be automatically be set to 0 in order to disable the static correction mode.
     void SetInternalNodesUpdate(bool flag);
 
-    /// If true, as by default, this modal assembly will add automatically a gravity load
+    /// If true this modal assembly will add automatically a gravity load
     /// to all contained boundary and internal bodies/nodes (that support gravity) in the modal reduced state using the
     /// G value from the ChSystem.
     ///  - In modal reduced state, this flag will overwrite mesh->SetAutomaticGravity() for both boundary and internal
@@ -554,6 +554,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     // Internal use only. Compute P_W * H * P_W^T
     ChMatrixDynamic<> GetCorotationalTransformation(const ChMatrixDynamic<>& H);
 
+    // Internal use only. Compute v_W = P_W * v_F
+    ChVectorDynamic<> TransformCorotationalToAbs(const ChVectorDynamic<>& v_F);
+
+    // Internal use only. Compute v_F = P_W^T * v_W
+    ChVectorDynamic<> TransformAbsToCorotational(const ChVectorDynamic<>& v_W);
+
     virtual void SetupInitial() override;
 
     /// Resize modal matrices and hook up the variables to the M K R block for the solver. To be used all times
@@ -671,14 +677,14 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     ReductionType m_modal_reduction_type = ReductionType::CRAIG_BAMPTON;  ///< methods for modal reduction, Craig-Bampton as default
 
-    bool m_is_model_reduced;  ///< flag to indicate whether in the modal "reduced" state.
+    bool m_is_model_reduced = false;  ///< flag to indicate whether in the modal "reduced" state.
 
     bool m_verbose = false;  ///< output m_verbose info
 
-    bool m_internal_nodes_update;  ///< flag to indicate whether the internal nodes will update for
-                                   ///< visualization/postprocessing
+    bool m_internal_nodes_update = false;  ///< flag to indicate whether the internal nodes will update for
+                                           ///< visualization/postprocessing
 
-    bool m_modal_automatic_gravity;  ///< switch of the gravity load in modal reduced state
+    bool m_modal_automatic_gravity = true;  ///< switch of the gravity load in modal reduced state
 
     bool m_use_linear_inertial_term = true;  // for internal test
 
@@ -714,10 +720,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     unsigned int m_num_constr_uni_boundary;  ///< number of unilateral scalar constraints (velocity level) at boundary
 
     // MODES: represent the motion of the modal assembly (internal, boundary nodes)
-    unsigned int m_num_coords_modal;  ///< number of scalar coordinates at modal level (position and velocity level are the same)
+    unsigned int m_num_coords_modal = 0;  ///< number of scalar coordinates at modal level (position and velocity level are the same)
 
-    unsigned int m_num_coords_static_correction;  ///< number of the static correction mode. If
-                                                  ///< SetUseStaticCorrection(true), =1; else =0.
+    unsigned int m_num_coords_static_correction = 0;  ///< number of the static correction mode. If
+                                                      ///< SetUseStaticCorrection(true), =1; else =0.
 
     mutable ChTimer m_timer_matrix_assembly;
     mutable ChTimer m_timer_modal_solver_call;
@@ -726,7 +732,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     friend class ChSystem;
     friend class ChSystemMulticore;
 
-  public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
