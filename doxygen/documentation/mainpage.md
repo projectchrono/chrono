@@ -33,6 +33,10 @@ Instructions for setting up an external project that uses Chrono.
 
   Fluid-solid interaction with the Chrono::FSI-SPH and Chrono::FSI-TDPF modules
 
+- [Chrono::preCICE](@ref manual_precice)
+
+  Partitioned multi-physics co-simulation with the preCICE coupling library
+
 - [Chrono::Sensor](@ref manual_sensor)
 
   Sensor modeling and simulation with the Chrono::Sensor module

@@ -31,6 +31,8 @@ Additional Chrono functionality is provided through optional modules, enabled du
 
 -   [POSTPROCESS module](@ref module_postprocess_installation)
 
+-   [PRECICE module](@ref module_precice_installation)
+
 -   [PYTHON module](@ref module_python_installation)
 
 -   [ROS module](@ref module_ros_installation)
