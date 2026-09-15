@@ -31,6 +31,33 @@ across `SEED0` to `SEED16` is what map size alone costs.
 They are not benchmarked here: the GPU ray-cast path accepts only triangle-mesh collision shapes, so
 a cylinder tyre silently falls back to the CPU and the cell would not measure what its label claims.
 
+## Real-time factor
+
+RTF is execution time over simulated time, for the whole step -- vehicle dynamics, solver and
+terrain -- so it is the figure a human-in-the-loop or hardware-in-the-loop run has to meet. Below 1
+is real time. RTX 4080, GCC, 4 OpenMP threads.
+
+| variant | simulated | RTF, GPU path | RTF, CPU loop |
+|---|---|---|---|
+| `WheelSCM_D20` | 3.0 s | **0.80** | 10.93 |
+| `WheelSCM_D10` | 3.0 s | 2.90 | 43.57 |
+| `HmmwvSCM_MESH_0` | 4.0 s | **0.24** | **0.36** |
+| `HmmwvSCM_MESH_1` | 4.0 s | **0.39** | **0.82** |
+| `LargeSCM_SEED0` | 4.0 s | **0.45** | 1.23 |
+| `LargeSCM_SEED16` | 4.0 s | **0.53** | 1.25 |
+
+`HmmwvSCM` is the configuration used to assess the 2023 SCM redesign -- a 50 x 50 m patch at 0.05 m
+spacing under a full HMMWV ([Serban, Taves and Zhou, *J. Comput. Nonlinear Dyn.* 18(8):081007,
+2023](https://doi.org/10.1115/1.4056851), sec. 3.1). That paper reports RTF 4.03 for the mesh-based
+implementation that preceded it, and sub-1 for the redesign it introduced. `MESH_0` here puts the
+current implementation at 0.36 on a newer host, and the GPU ray-cast path at 0.24 -- close to the
+0.3 that paper quotes for the same vehicle on *rigid* terrain, which is the point at which
+terramechanics stops being the bottleneck.
+
+Read the wheel rows against their step size rather than against the others: the rig integrates at
+2e-4 s, five times finer than the vehicle tests, so 5000 steps buy one simulated second. `D10` at
+2.90 is not a real-time result and is not meant to be one.
+
 ## What the baseline shows
 
 **1. The GPU ray-cast path costs 2.7x to 22x less than Chrono's default CPU loop** on

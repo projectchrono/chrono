@@ -106,7 +106,7 @@ WheelScmTest<GRID_MM>::WheelScmTest() {
 
     m_sys = new ChSystemNSC;
     m_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_sys->SetNumThreads(4, 1, 1);
+    m_sys->SetNumThreads(scm_bench::BenchThreads(), 1, 1);
     m_sys->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     m_sys->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     m_sys->GetSolver()->AsIterative()->SetMaxIterations(150);

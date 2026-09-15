@@ -63,6 +63,23 @@ namespace scm_bench {
 /// what a default Chrono build actually does.
 ///
 /// SCM_BENCH_GPU=0 is accepted as a synonym for SCM_BENCH_RAYCAST=cpu.
+/// OpenMP threads for the run, from SCM_BENCH_THREADS (default 4).
+///
+/// SCM parallelizes its ray casting across these, so a thread sweep is how the strong scaling of
+/// the ray-cast stage is measured -- the analysis in Serban, Taves and Zhou (JCND 18(8):081007,
+/// 2023, fig. 3), where Amdahl's law flattens the curve past a few threads because ray casting is
+/// only part of a step. Pinned to one value a run cannot show that.
+inline int BenchThreads() {
+    int n = 4;
+    if (const char* e = std::getenv("SCM_BENCH_THREADS")) {
+        const int v = std::atoi(e);
+        if (v > 0)
+            n = v;
+    }
+    std::cout << "SCM OpenMP threads: " << n << std::endl;
+    return n;
+}
+
 inline void SelectRaycastBackend(chrono::vehicle::SCMTerrain& terrain, bool has_active_domains) {
     std::string mode = "gpu";
     if (const char* e = std::getenv("SCM_BENCH_RAYCAST"))

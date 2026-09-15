@@ -149,7 +149,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->SetWheelVisualizationType(VisualizationType::NONE);
     m_hmmwv->SetTireVisualizationType(tire_vis);
 
-    m_hmmwv->GetSystem()->SetNumThreads(4);
+    m_hmmwv->GetSystem()->SetNumThreads(scm_bench::BenchThreads());
 
     // Create the terrain using 4 moving patches
     // No visualization mesh. A benchmark never draws it, and it is not free when it is not drawn:

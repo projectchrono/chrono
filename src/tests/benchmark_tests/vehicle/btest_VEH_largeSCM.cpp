@@ -183,7 +183,7 @@ LargeScmTest<SEED_TRACKS>::LargeScmTest() : m_seeded(0) {
     m_sys = new ChSystemSMC;
     m_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
-    m_sys->SetNumThreads(4);
+    m_sys->SetNumThreads(scm_bench::BenchThreads());
 
     // Terrain first: the vehicle has to be dropped onto whatever height the map gives at the spawn
     // point, and that is only known once the patch is initialized.
