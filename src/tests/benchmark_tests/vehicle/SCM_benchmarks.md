@@ -58,6 +58,38 @@ Read the wheel rows against their step size rather than against the others: the 
 2e-4 s, five times finer than the vehicle tests, so 5000 steps buy one simulated second. `D10` at
 2.90 is not a real-time result and is not meant to be one.
 
+## Strong scaling of the ray cast
+
+SCM parallelizes ray casting across OpenMP threads, so how far that scales decides how much of a
+host the terrain needs. `HmmwvSCM_MESH_0`, RTX 4080 host, GCC, 3 repetitions per cell.
+
+| threads | `SCM_RayCast` CPU | speedup | `SCM_RayCast` GPU | RTF CPU | RTF GPU |
+|---|---|---|---|---|---|
+| 1 | 0.6143 | 1.00x | 0.0662 | 0.523 | 0.243 |
+| 2 | 0.3529 | 1.74x | 0.0630 | 0.394 | 0.242 |
+| 4 | 0.2951 | 2.08x | 0.0628 | 0.364 | 0.240 |
+| 6 | 0.2167 | 2.83x | 0.0623 | 0.324 | 0.241 |
+| 8 | 0.1754 | 3.50x | 0.0625 | 0.304 | 0.239 |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="img/scm-threads-dark.svg">
+  <img alt="RTF against OpenMP thread count, GPU and CPU ray-cast paths" src="img/scm-threads-light.svg">
+</picture>
+
+Three things follow.
+
+**The CPU cast scales, but not well.** 3.50x on eight threads is 44% parallel efficiency. Fitting
+Amdahl to that puts the serial fraction at 0.18, which caps the cast at 5.45x however many cores are
+added -- 0.113 ms/step. The GPU cast already runs at 0.0625, so it sits a factor of 1.8 beyond the
+limit of the threaded implementation rather than merely ahead of its current thread count.
+
+**The GPU path does not care about threads at all.** 0.0662 to 0.0625 across the sweep: the cast is
+off the CPU, and what remains around it is not the part that parallelizes.
+
+**One thread on the GPU path beats eight on the CPU loop** -- RTF 0.243 against 0.304. The seven
+threads that buys back are available to the rest of the simulation, which is the argument for the
+GPU path on a host doing anything else at the same time.
+
 ## What the baseline shows
 
 **1. The GPU ray-cast path costs 2.7x to 22x less than Chrono's default CPU loop** on
