@@ -100,21 +100,18 @@ GPU path on a host doing anything else at the same time.
   <img alt="GPU vs CPU SCM_Total per benchmark variant, log scale" src="img/scm-gpu-vs-cpu-light.svg">
 </picture>
 
-**2. CUDA and HIP are interchangeable. The host compiler is not, and which one wins depends on the
-platform.** No CUDA/HIP pair differs by more than 1.6%, at deformed-node counts identical to the
-digit across all four GPU cells. On the RTX 4080 clang beats GCC on
-`SCM_Total` by up to 43%; on gfx942 GCC beats clang on all six GPU cells by 7-25%. The kernel is not
-what moves -- it is device code, identical in both builds -- so this is the host-side SCM work around
-it.
+**2. The host compiler moves `SCM_Total`, and which compiler wins depends on the platform.** On the
+RTX 4080 clang beats GCC by up to 43%; on gfx942 GCC beats clang on all six GPU cells by 7-25%. The
+kernel is not what moves -- it is device code, identical in both builds -- so this is the host-side
+SCM work around it, and it means a compiler chosen on one platform's numbers is the wrong choice on
+the other.
 
-Each bar in the chart below divides one build by another; there is no single reference build. Blue is
-`GCC/HIP` over `GCC/CUDA`, isolating the backend with the compiler held fixed. Orange is `clang/HIP`
-over `GCC/HIP`, isolating the compiler with the backend held fixed. 1.00 means the two builds are
-identical and below 1.00 means the first is faster.
+Each bar below is `clang/HIP` divided by `GCC/HIP` on one host, at identical deformed-node counts.
+1.00 means the two builds are identical, below 1.00 means clang is faster, above means GCC is.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="img/scm-what-moves-it-dark.svg">
-  <img alt="Relative time: backend makes no difference, host compiler does" src="img/scm-what-moves-it-light.svg">
+  <img alt="clang over GCC on SCM_Total, opposite directions on the two hosts" src="img/scm-what-moves-it-light.svg">
 </picture>
 
 **3. Once the cast is on the GPU, the node work is the larger half of the step, and it grows with the
@@ -133,11 +130,7 @@ would remove, and `btest_VEH_largeSCM` exists to measure it.
 
 i7-13700K (16 cores / 24 threads, 30 MiB L3), 62 GB. Release, `-O3 -march=native`, Chrono OpenMP
 threads 4, container `atk/chrono:orb`. GCC 11.4.0 and AMD clang 22.0 (ships with ROCm 7.2.4).
-CUDA 13.2.78; HIP columns are ROCm 7.2.4 with `CMAKE_HIP_PLATFORM=nvidia`.
-
-**The `CUDA` columns need a backend that is not in the tree.** SCM ships HIP kernels only
-(`SCMRaycastGpuKernels.hip.cpp`); the CUDA path is a separate change. These cells were measured with
-it applied and cannot be reproduced until it lands. Every other column builds from this branch.
+GPU columns are ROCm 7.2.4 with `CMAKE_HIP_PLATFORM=nvidia`, over CUDA 13.2.78.
 
 GPU cells are the mean of 2 processes, `ref` and CPU of 1, each itself Google Benchmark's mean over
 5 or 10 internal repetitions. Worst internal cv on `SCM_Total` was 3.21% (clang/CPU `MESH_0`); every
@@ -145,27 +138,26 @@ other cell was under 2%.
 
 ## `SCM_Total`, ms/step
 
-| variant | GCC/CUDA | GCC/HIP | clang/CUDA | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
-|---|---|---|---|---|---|---|---|
-| `WheelSCM_D20` | 0.0971 | 0.0982 | 0.0694 | 0.0681 | 6.8687 | 2.1204 | 2.1706 |
-| `WheelSCM_D10` | 0.5046 | 0.5070 | 0.2897 | 0.2899 | - | 8.6116 | 8.2832 |
-| `HmmwvSCM_MESH_0` | 0.1152 | 0.1149 | 0.1063 | 0.1050 | 6.1585 | 0.3506 | 0.4024 |
-| `HmmwvSCM_MESH_1` | 0.3579 | 0.3625 | 0.3487 | 0.3513 | 44.6546 | 1.2149 | 1.4578 |
-| `LargeSCM_SEED0` | 0.7514 | 0.7493 | 0.6008 | 0.5918 | 34.3628 | 2.3183 | 2.2628 |
-| `LargeSCM_SEED1` | 0.7891 | 0.7786 | 0.6425 | 0.6298 | - | 2.3377 | 2.3180 |
-| `LargeSCM_SEED4` | 0.8075 | 0.8182 | 0.6408 | 0.6332 | - | 2.3303 | 2.3086 |
-| `LargeSCM_SEED16` | 0.8704 | 0.8702 | 0.7264 | 0.7198 | 34.5411 | 2.3447 | 2.3022 |
+| variant | GCC/HIP | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
+|---|---|---|---|---|---|
+| `WheelSCM_D20` | 0.0982 | 0.0681 | 6.8687 | 2.1204 | 2.1706 |
+| `WheelSCM_D10` | 0.5070 | 0.2899 | - | 8.6116 | 8.2832 |
+| `HmmwvSCM_MESH_0` | 0.1149 | 0.1050 | 6.1585 | 0.3506 | 0.4024 |
+| `HmmwvSCM_MESH_1` | 0.3625 | 0.3513 | 44.6546 | 1.2149 | 1.4578 |
+| `LargeSCM_SEED0` | 0.7493 | 0.5918 | 34.3628 | 2.3183 | 2.2628 |
+| `LargeSCM_SEED1` | 0.7786 | 0.6298 | - | 2.3377 | 2.3180 |
+| `LargeSCM_SEED4` | 0.8182 | 0.6332 | - | 2.3303 | 2.3086 |
+| `LargeSCM_SEED16` | 0.8702 | 0.7198 | 34.5411 | 2.3447 | 2.3022 |
 
 ## Memory -- resident set after setup, MiB
 
 | build | `SEED0` | `SEED16` | delta |
 |---|---|---|---|
-| GCC (any backend) | 1862.1 | 2457.0 | 594.9 |
+| GCC/HIP | 1862.1 | 2457.0 | 594.9 |
 | clang/HIP | 1864.1 | 2458.9 | 594.9 |
-| clang/CUDA | 2085.1 | 2680.0 | 594.8 |
 
 The delta is what 3.60M added nodes cost: 165 B/node, against a 128-byte `NodeRecord` plus
-`unordered_map` overhead and allocator rounding. It is the same in every build; only the constant
+`unordered_map` overhead and allocator rounding. It is the same in both builds; only the constant
 offset moves, and most of that offset is the base-height matrix -- 15001^2 entries at 8 bytes is
 1716.8 MiB.
 
@@ -289,16 +281,16 @@ and the numbers to compare against are the `SCM_Total` tables above.
 
 RTX 4080, ms/step:
 
-| variant | GCC/CUDA | GCC/HIP | clang/CUDA | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
-|---|---|---|---|---|---|---|---|
-| `WheelSCM_D20` | 0.0359 | 0.0370 | 0.0365 | 0.0352 | 6.7994 | 1.9911 | 2.0941 |
-| `WheelSCM_D10` | 0.0978 | 0.1000 | 0.0975 | 0.0975 | - | 7.7662 | 7.8633 |
-| `HmmwvSCM_MESH_0` | 0.0628 | 0.0629 | 0.0635 | 0.0634 | 6.0965 | 0.2925 | 0.3513 |
-| `HmmwvSCM_MESH_1` | 0.1913 | 0.1942 | 0.1911 | 0.1923 | 44.4682 | 1.0325 | 1.2762 |
-| `LargeSCM_SEED0` | 0.3260 | 0.3248 | 0.3288 | 0.3261 | 33.9085 | 1.8237 | 1.9392 |
-| `LargeSCM_SEED1` | 0.3516 | 0.3473 | 0.3615 | 0.3537 | - | 1.8418 | 1.9865 |
-| `LargeSCM_SEED4` | 0.3669 | 0.3757 | 0.3641 | 0.3611 | - | 1.8351 | 1.9833 |
-| `LargeSCM_SEED16` | 0.4431 | 0.4427 | 0.4524 | 0.4516 | 34.0860 | 1.8498 | 1.9782 |
+| variant | GCC/HIP | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
+|---|---|---|---|---|---|
+| `WheelSCM_D20` | 0.0370 | 0.0352 | 6.7994 | 1.9911 | 2.0941 |
+| `WheelSCM_D10` | 0.1000 | 0.0975 | - | 7.7662 | 7.8633 |
+| `HmmwvSCM_MESH_0` | 0.0629 | 0.0634 | 6.0965 | 0.2925 | 0.3513 |
+| `HmmwvSCM_MESH_1` | 0.1942 | 0.1923 | 44.4682 | 1.0325 | 1.2762 |
+| `LargeSCM_SEED0` | 0.3248 | 0.3261 | 33.9085 | 1.8237 | 1.9392 |
+| `LargeSCM_SEED1` | 0.3473 | 0.3537 | - | 1.8418 | 1.9865 |
+| `LargeSCM_SEED4` | 0.3757 | 0.3611 | - | 1.8351 | 1.9833 |
+| `LargeSCM_SEED16` | 0.4427 | 0.4516 | 34.0860 | 1.8498 | 1.9782 |
 
 gfx942, ms/step:
 
