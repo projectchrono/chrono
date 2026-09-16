@@ -158,6 +158,10 @@ class CH_FSI_API ChFsiProblemSPH {
     /// If a value is not provided, the MBS system is integrated with the same step used for fluid dynamics.
     void SetStepsizeMBD(double step) { m_sysFSI->SetStepsizeMBD(step); }
 
+    /// Set the co-simulation coupling scheme (default: ChFsiSystem::CouplingScheme::CONCURRENT).
+    /// Must be set before the first call to DoStepDynamics.
+    void SetCouplingScheme(ChFsiSystem::CouplingScheme scheme) { m_sysFSI->SetCouplingScheme(scheme); }
+
     /// Explicitly set the computational domain limits.
     /// By default, this encompasses all SPH and BCE markers with no boundary conditions imposed in any direction.
     void SetComputationalDomain(const ChAABB& aabb, BoundaryConditions bc_type = {BCType::NONE, BCType::NONE, BCType::NONE}) {

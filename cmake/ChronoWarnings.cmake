@@ -13,7 +13,7 @@
 # channels, which require two distinct remedies:
 #
 #   1. Third-party *translation units* that Chrono compiles itself (the Bullet
-#      .cpp files, HACD, VHACD, stb, tinyobjloader, libstl, HydroChrono, ...).
+#      .cpp files, HACD, VHACD, stb, tinyobjloader, libstl, SEA-Stack, ...).
 #      The warning level is a property of the compiler invocation, so these are
 #      silenced per source file - see ch_disable_warnings_on_sources() - or per
 #      target when the third-party code has a target of its own - see

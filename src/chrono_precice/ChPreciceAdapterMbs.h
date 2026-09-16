@@ -22,7 +22,7 @@
 #include "chrono/input_output/ChOutput.h"
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadHydrodynamics.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -53,20 +53,18 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
   public:
     /// Construct a Chrono MBS preCICE participant for the specified Chrono system.
     /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
-    ChPreciceAdapterMbs(std::shared_ptr<ChSystem> sys, double time_step, bool verbose = false);
+    /// If enabled and if added mass blocks are defined, a hydrodynamics load object will be created during initialization.
+    ChPreciceAdapterMbs(const std::string& precice_config_filename, std::shared_ptr<ChSystem> sys, double time_step, bool verbose = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     /// Construct a Chrono MBS preCICE participant configured from the specified YAML file.
     /// The provided YAML file must be of type `MBS` and include a member `precice_adapter_configuration`.
     /// The preCICE interfaces (coupling bodies and FEA meshes and their associated coupling meshes and mesh data)
     /// are read from the YAML specification file.
-    ChPreciceAdapterMbs(const std::string& input_filename, bool verbose = false);
+    ChPreciceAdapterMbs(const std::string& precice_config_filename, const std::string& input_filename, bool verbose = false);
 #endif
 
     ~ChPreciceAdapterMbs() {}
-
-    /// Get underlying Chrono multibody system.
-    ChSystem& GetSystem() { return *m_sys; }
 
     /// Enable/disable soft real-time for MBS simulation (default: false).
     void EnforceRealtime(bool realtime) { m_enforce_realtime = realtime; }
@@ -82,6 +80,19 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     /// - if the MBS preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
 #endif
+
+    /// Set added mass blocks from specified HDF5 hydrodynamics file.
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    void SetAddedMassBlocks(const std::string& h5_filename);
+
+    /// Set added mass blocks (simultaneously for all interface objects).
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    void SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>> blocks);
+
+    /// Get underlying Chrono multibody system.
+    ChSystem& GetSystem() { return *m_sys; }
 
     /// Class to be used as a callback interface for user-defined actions to be performed before advancing MBS dynamics.
     /// The `OnStepDynamics` is called at each step, before the call to `DoStepDynamics`.
@@ -107,14 +118,16 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
   private:
     // Implementation of base class virtual methods
+    virtual size_t GetNumFsiBodies() const override;
     virtual void InitializeParticipant() override;
-    virtual void WriteCheckpoint(double time) override;
-    virtual void ReadCheckpoint(double time) override;
-    virtual void ReadData() override;
+    virtual void OnReadData() override;
+    virtual void OnWriteData() override;
+    virtual void OnReadDataAM(const std::vector<ChMatrix66d>& blocks) override;
+    virtual void OnReadCheckpoint(double time) override;
+    virtual void OnWriteCheckpoint(double time) override;
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
-    virtual void WriteData() override;
-    virtual void WriteOutput(int frame, double time) override;
+    virtual void OnWriteOutput(int frame, double time) override;
 
   private:
     /// Checkpoint data.
@@ -141,6 +154,12 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     };
 #endif
 
+#if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
+    void LoadBodiesYAML(const YAML::Node& bodies, const parsers::ChParserMbsYAML& parser);
+    void LoadMeshesYAML(const YAML::Node& meshes, const parsers::ChParserMbsYAML& parser);
+    void LoadAddedMassYAML(const YAML::Node& added_mass, const parsers::ChParserMbsYAML& parser);
+#endif
+
     void ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
@@ -160,6 +179,10 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 #ifdef CHRONO_FEA
     std::vector<std::shared_ptr<CouplingFEAMesh>> m_coupling_fea;  ///< coupling FEA meshes
 #endif
+
+    bool m_has_added_mass;                               ///< participant provides added mass
+    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;  ///< added mass blocks
+    std::shared_ptr<ChLoadHydrodynamics> m_hydro_load;   ///< hydrodynamic added mass loads
 
     // Dynamics callbacks
     std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics

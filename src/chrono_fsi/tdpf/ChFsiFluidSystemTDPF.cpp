@@ -18,8 +18,7 @@
 
 #include <cmath>
 #include <algorithm>
-
-#include <H5Cpp.h>
+#include <stdexcept>
 
 #include "chrono/core/ChTypes.h"
 
@@ -49,8 +48,8 @@ ChFsiFluidSystemTDPF::ChFsiFluidSystemTDPF()
       m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
-      m_wave_type(WaveType::NONE),
-      m_impl(chrono_types::make_unique<ChFsiFluidSystemTDPF_impl>()) {}
+      m_impl(chrono_types::make_unique<ChFsiFluidSystemTDPF_impl>()),
+      m_state_refreshed(false) {}
 
 ChFsiFluidSystemTDPF::~ChFsiFluidSystemTDPF() {}
 
@@ -90,39 +89,56 @@ void ChFsiFluidSystemTDPF::OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, b
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemTDPF::AddWaves(const RegularWaveParams& params) {
-    m_reg_wave_params = params;
-    m_wave_type = WaveType::REGULAR;
-}
-
-void ChFsiFluidSystemTDPF::AddWaves(const IrregularWaveParams& params) {
-    m_irreg_wave_params = params;
-    m_wave_type = WaveType::IRREGULAR;
+void ChFsiFluidSystemTDPF::SetSeaState(const ChTdpfSeaState& sea_state) {
+    m_impl->m_sea_state = sea_state;
 }
 
 double ChFsiFluidSystemTDPF::GetWaveElevation(const ChVector3d& pos) {
-    return m_impl->m_waves->GetElevation(pos.eigen(), m_time);
+    return m_impl->GetWaves()->GetElevation(pos.eigen(), m_time);
 }
 
 ChVector3d ChFsiFluidSystemTDPF::GetWaveVelocity(const ChVector3d& pos) {
-    return m_impl->m_waves->GetVelocity(pos.eigen(), m_time);
+    return m_impl->GetWaves()->GetVelocity(pos.eigen(), m_time);
 }
 
 ChVector3d ChFsiFluidSystemTDPF::GetWaveVelocity(const ChVector3d& pos, double elevation) {
-    return m_impl->m_waves->GetVelocity(pos.eigen(), m_time, elevation);
+    return m_impl->GetWaves()->GetVelocity(pos.eigen(), m_time, elevation);
 }
 
-void ChFsiFluidSystemTDPF::SetRadiationConvolutionMode(hydrochrono::hydro::RadiationConvolutionMode mode) {
-    m_impl->m_convolution_mode = mode;
-
-    //// RADU - when is it OK to call this so that InvalidateRadiationComponent can be called?
-    ////InvalidateRadiationComponent();  // Invalidate component to recreate with new settings
+void ChFsiFluidSystemTDPF::SetRadiationMethod(ChTdpfRadiationMethod method) {
+    m_impl->m_radiation_method = method;
 }
 
-void ChFsiFluidSystemTDPF::SetTaperedDirectOptions(const hydrochrono::hydro::TaperedDirectOptions& opts) {
-    m_impl->m_tapered_opts = opts;
-    //// RADU - when is it OK to call this so that InvalidateRadiationComponent can be called?
-    ////InvalidateRadiationComponent();  // Invalidate component to recreate with new settings
+void ChFsiFluidSystemTDPF::SetRadiationKernelProcessing(const ChTdpfRadiationKernelProcessing& opts) {
+    m_impl->m_kernel_processing = opts;
+}
+
+void ChFsiFluidSystemTDPF::SetStateSpaceOptions(const ChTdpfStateSpaceOptions& opts) {
+    m_impl->m_state_space_options = opts;
+}
+
+void ChFsiFluidSystemTDPF::SetExcitationMethod(ChTdpfExcitationMethod method) {
+    m_impl->m_excitation_method = method;
+}
+
+void ChFsiFluidSystemTDPF::SetExcitationInterpolation(ChTdpfExcitationInterpolation interp) {
+    m_impl->m_excitation_interpolation = interp;
+}
+
+void ChFsiFluidSystemTDPF::SetRampDuration(double seconds) {
+    m_impl->m_ramp_duration = seconds;
+}
+
+void ChFsiFluidSystemTDPF::SetRadiationTruncationTime(double seconds) {
+    m_impl->m_radiation_truncation_time = seconds;
+}
+
+void ChFsiFluidSystemTDPF::SetExcitationTruncationTime(double seconds) {
+    m_impl->m_excitation_truncation_time = seconds;
+}
+
+void ChFsiFluidSystemTDPF::SetDiagnosticsOutputDir(const std::string& dir) {
+    m_impl->m_diagnostics_output_dir = dir;
 }
 
 //------------------------------------------------------------------------------
@@ -130,41 +146,13 @@ void ChFsiFluidSystemTDPF::SetTaperedDirectOptions(const hydrochrono::hydro::Tap
 void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_states) {
     ChAssertAlways(!m_hydro_filename.empty());
 
-    // Initialize and add waves
-    switch (m_wave_type) {
-        case WaveType::NONE:
-            m_impl->m_waves = chrono_types::make_shared<NoWave>();
-            break;
-        case WaveType::REGULAR:
-            m_impl->m_waves = chrono_types::make_shared<RegularWave>(m_reg_wave_params);
-            break;
-        case WaveType::IRREGULAR:
-            m_impl->m_waves = chrono_types::make_shared<IrregularWaves>(m_irreg_wave_params);
-            break;
-    }
-    m_impl->m_waves->SetNumBodies(m_num_rigid_bodies);
-
-    // Initialize low-level implementation object
+    // Read hydro data and assemble the hydrodynamic model (waves and force
+    // components are created by the SEA-Stack model builder).
     m_impl->Initialize(m_hydro_filename, m_num_rigid_bodies);
 
-    // Build force components for HydroForces
-    std::vector<std::unique_ptr<hydrochrono::hydro::IHydroForceComponent>> components;
-
-    // Hydrostatics component (uses shared factory for consistent construction)
-    components.push_back(m_impl->CreateHydrostaticsComponent());
-
-    // Radiation component (uses shared factory for consistent construction)
-    components.push_back(m_impl->CreateRadiationComponent());
-
-    // Excitation component (uses shared factory for consistent construction)
-    components.push_back(m_impl->CreateExcitationComponent());
-
-    // Construct HydroForces (takes ownership of components)
-    m_impl->m_hc_force_system = std::make_unique<hydrochrono::hydro::HydroForces>(m_num_rigid_bodies, std::move(components));
-
     // Cache initial solid states in the TDPF structure
-    m_impl->m_hc_state.bodies.resize(m_num_rigid_bodies);
     LoadSolidStates(body_states);
+    m_state_refreshed = true;
 
     // Mark the fluid system as initialized.
     m_is_initialized = true;
@@ -176,41 +164,13 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
                                       const std::vector<FsiMeshState>& mesh2D_states) {
     ChAssertAlways(!m_hydro_filename.empty());
 
-    // Initialize and add waves
-    switch (m_wave_type) {
-        case WaveType::NONE:
-            m_impl->m_waves = chrono_types::make_shared<NoWave>();
-            break;
-        case WaveType::REGULAR:
-            m_impl->m_waves = chrono_types::make_shared<RegularWave>(m_reg_wave_params);
-            break;
-        case WaveType::IRREGULAR:
-            m_impl->m_waves = chrono_types::make_shared<IrregularWaves>(m_irreg_wave_params);
-            break;
-    }
-    m_impl->m_waves->SetNumBodies(m_num_rigid_bodies);
-
-    // Initialize low-level implementation object
+    // Read hydro data and assemble the hydrodynamic model (waves and force
+    // components are created by the SEA-Stack model builder).
     m_impl->Initialize(m_hydro_filename, m_num_rigid_bodies);
 
-    // Build force components for HydroForces
-    std::vector<std::unique_ptr<hydrochrono::hydro::IHydroForceComponent>> components;
-
-    // Hydrostatics component (uses shared factory for consistent construction)
-    components.push_back(m_impl->CreateHydrostaticsComponent());
-
-    // Radiation component (uses shared factory for consistent construction)
-    components.push_back(m_impl->CreateRadiationComponent());
-
-    // Excitation component (uses shared factory for consistent construction)
-    components.push_back(m_impl->CreateExcitationComponent());
-
-    // Construct HydroForces (takes ownership of components)
-    m_impl->m_hc_force_system = std::make_unique<hydrochrono::hydro::HydroForces>(m_num_rigid_bodies, std::move(components));
-
     // Cache initial solid states in the TDPF structure
-    m_impl->m_hc_state.bodies.resize(m_num_rigid_bodies);
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
+    m_state_refreshed = true;
 
     // Mark the fluid system as initialized.
     m_is_initialized = true;
@@ -221,17 +181,17 @@ void ChFsiFluidSystemTDPF::Initialize(const std::vector<FsiBodyState>& body_stat
 
 void ChFsiFluidSystemTDPF::LoadSolidStates(const std::vector<FsiBodyState>& body_states) {
     for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
-        m_impl->m_hc_state.bodies[i].position = body_states[i].pos.eigen();
-        m_impl->m_hc_state.bodies[i].orientation_rpy = body_states[i].rot.GetCardanAnglesXYZ().eigen();
-        m_impl->m_hc_state.bodies[i].linear_velocity = body_states[i].lin_vel.eigen();
-        m_impl->m_hc_state.bodies[i].angular_velocity = body_states[i].ang_vel.eigen();
+        m_impl->m_ss_state.bodies[i].position = body_states[i].pos.eigen();
+        m_impl->m_ss_state.bodies[i].orientation_rpy = body_states[i].rot.GetCardanAnglesXYZ().eigen();
+        m_impl->m_ss_state.bodies[i].linear_velocity = body_states[i].lin_vel.eigen();
+        m_impl->m_ss_state.bodies[i].angular_velocity = body_states[i].ang_vel.eigen();
     }
 }
 
 void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce>& body_forces) {
     for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
-        body_forces[i].force = m_impl->m_hc_forces[i].segment(0, 3);
-        body_forces[i].torque = m_impl->m_hc_forces[i].segment(3, 3);
+        body_forces[i].force = m_impl->m_ss_forces[i].force;
+        body_forces[i].torque = m_impl->m_ss_forces[i].moment;
     }
 }
 
@@ -240,17 +200,17 @@ void ChFsiFluidSystemTDPF::LoadSolidStates(const std::vector<FsiBodyState>& body
                                            const std::vector<FsiMeshState>& mesh1D_states,
                                            const std::vector<FsiMeshState>& mesh2D_states) {
     for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
-        m_impl->m_hc_state.bodies[i].position = body_states[i].pos.eigen();
-        m_impl->m_hc_state.bodies[i].orientation_rpy = body_states[i].rot.GetCardanAnglesXYZ().eigen();
-        m_impl->m_hc_state.bodies[i].linear_velocity = body_states[i].lin_vel.eigen();
-        m_impl->m_hc_state.bodies[i].angular_velocity = body_states[i].ang_vel.eigen();
+        m_impl->m_ss_state.bodies[i].position = body_states[i].pos.eigen();
+        m_impl->m_ss_state.bodies[i].orientation_rpy = body_states[i].rot.GetCardanAnglesXYZ().eigen();
+        m_impl->m_ss_state.bodies[i].linear_velocity = body_states[i].lin_vel.eigen();
+        m_impl->m_ss_state.bodies[i].angular_velocity = body_states[i].ang_vel.eigen();
     }
 }
 
 void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce>& body_forces, std::vector<FsiMeshForce>& mesh1D_forces, std::vector<FsiMeshForce>& mesh2D_forces) {
     for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
-        body_forces[i].force = m_impl->m_hc_forces[i].segment(0, 3);
-        body_forces[i].torque = m_impl->m_hc_forces[i].segment(3, 3);
+        body_forces[i].force = m_impl->m_ss_forces[i].force;
+        body_forces[i].torque = m_impl->m_ss_forces[i].moment;
     }
 }
 #endif
@@ -258,12 +218,46 @@ void ChFsiFluidSystemTDPF::StoreSolidForces(std::vector<FsiBodyForce>& body_forc
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemTDPF::OnDoStepDynamics(double time, double step) {
+    // Enforce exactly one force evaluation per solid state load. Evaluating twice against the same cached state
+    // would record the same body velocity at two distinct times and corrupt the radiation convolution history,
+    // silently and without any error from the underlying solver. See GetCurrentStepSize.
+    if (!m_state_refreshed) {
+        cerr << "ERROR: TDPF hydrodynamic forces evaluated twice against the same solid state (t = " << time << ")." << endl;
+        throw std::runtime_error(
+            "ChFsiFluidSystemTDPF: hydrodynamic forces evaluated twice against the same solid state. The TDPF fluid "
+            "system must be advanced exactly once per co-simulation step.");
+    }
+    m_state_refreshed = false;
+
     m_impl->CalculateHydroForces(time);
 }
 
 void ChFsiFluidSystemTDPF::OnExchangeSolidForces() {}
 
-void ChFsiFluidSystemTDPF::OnExchangeSolidStates() {}
+void ChFsiFluidSystemTDPF::OnExchangeSolidStates() {
+    m_state_refreshed = true;
+}
+
+//------------------------------------------------------------------------------
+
+std::vector<ChMatrix66d> ChFsiFluidSystemTDPF::GetInfiniteFrequencyAddedMass() const {
+    ChAssertAlways(m_is_initialized);
+
+    const auto& body_info = m_impl->GetHydroData().GetBodyInfos();
+
+    std::vector<ChMatrix66d> blocks(m_num_rigid_bodies);
+    for (unsigned int i = 0; i < m_num_rigid_bodies; i++) {
+        // inf_added_mass has 6 rows and either 6 or 6*num_bodies columns; the self-block of body i
+        // starts at column 6*i.
+        const auto& M = body_info[i].inf_added_mass;
+        ChAssertAlways(M.rows() == 6);
+        Eigen::Index col0 = (M.cols() == 6) ? 0 : static_cast<Eigen::Index>(6 * i);
+        ChAssertAlways(col0 + 6 <= M.cols());
+        blocks[i] = M.block<6, 6>(0, col0);
+    }
+
+    return blocks;
+}
 
 }  // end namespace tdpf
 }  // end namespace fsi

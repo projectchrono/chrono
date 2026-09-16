@@ -156,9 +156,11 @@ simulation:
       type: number
       minimum: 0
     end_time:
-      description: Simulation duration
+      description: |
+        Simulation duration in seconds.
+        The simulation will run from t=0 to t=end_time. A negative value indicates an infinite end time.
       type: number
-      minimum: 0
+      default: -1
     gravity:
       type: array
       <<: *VECTOR3D

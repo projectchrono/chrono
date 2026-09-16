@@ -705,11 +705,11 @@ windows:vs2022:deploy-installer:
   extends: .macos-tahoe
   script:
   # Configuring chrono
-  - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_macos" --preset=macosci
+  - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_macos" --preset=macosci
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
   - cd build
   # Building chrono
-  - cmake --build . --config Release -j 7
+  - cmake --build . -j 7
   artifacts:
     expire_in: 60m
     paths:
@@ -720,13 +720,9 @@ windows:vs2022:deploy-installer:
   extends: .macos-tahoe
   script:
   - cd build
-  # Copying files to correct directory for CI because of Ninja Multi-Config
-  - cp -r bin/Release/* bin/
-  - cp -r bin/data .
   - export CTEST_OUTPUT_ON_FAILURE=1
-  - cmake --install . --config Release
-  - ninja test
-
+  - cmake --install .
+  - ctest --output-on-failure -LE sensor
 
 macos-apple:tahoe:build:
   extends: .macos-tahoe-build

@@ -34,6 +34,10 @@ namespace sph {
 
 ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS, ChFsiFluidSystemSPH* sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH), m_generic_fsi_interface(use_generic_interface) {
+    // Overlap the SPH and MBS advances. The resulting one-step lag in the fluid forces applied to the MBS is
+    // acceptable for SPH coupling and is worth the concurrency; see SetCouplingScheme to select the alternative.
+    SetCouplingScheme(CouplingScheme::CONCURRENT);
+
     if (use_generic_interface) {
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysSPH);
     } else {

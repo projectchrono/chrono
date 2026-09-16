@@ -52,6 +52,21 @@ solver:
       The solver file must follow the fsitdpf_solver.schema.
   type: string
 
+simulation:
+  description: |
+      Simulation settings for the fluid phase.
+      Note that in a coupled FSI simulation the gravitational acceleration given in the FSI simulation
+      file governs both phases and overrides the value below, exactly as for Chrono::FSI-SPH. This
+      setting therefore takes effect when the TDPF fluid system is driven on its own, as it is through
+      the Chrono preCICE adapter.
+  type: object
+  properties:
+    gravity:
+      type: array
+      <<: *VECTOR3D
+      description: Gravitational acceleration vector [x, y, z]
+      default: [0, 0, -9.8]
+
 output:
   description: Output settings
   type: object
@@ -74,7 +89,13 @@ output:
         default: 100
 
 visualization:
-  description: TDPF-specific run-time visualization settings (water surface visualization)
+  description: |
+      Run-time visualization settings.
+      Settings common to all Chrono run-time visualization (`render_fps`, `camera`, and `output`) are read
+      from this same object, per the mbs_simulation schema. In a coupled FSI simulation they are overridden
+      by those in the FSI simulation file; they take effect when this file is the top-level specification,
+      as it is for a Chrono preCICE participant.
+      The TDPF-specific settings below control water surface visualization.
   type: object
   properties:
     update_fps:

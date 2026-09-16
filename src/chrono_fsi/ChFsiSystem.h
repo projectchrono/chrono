@@ -44,6 +44,17 @@ namespace fsi {
 /// A derived class must always set the FSI interface for coupling the two physics systems.
 class CH_FSI_API ChFsiSystem {
   public:
+    /// Co-simulation coupling scheme used by DoStepDynamics.
+    /// - CONCURRENT: Advance both phases concurrently, then exchange.
+    ///     The fluid force applied over a step is evaluated from the solid state one step earlier.
+    ///     Appropriate when the fluid advance is expensive and the coupling is weak (e.g. SPH),
+    ///     where overlapping the two phases pays for the extra step of lag.
+    /// - SEQUENTIAL: Exchange states, advance the fluid, exchange forces, then advance the MBS.
+    ///     The fluid force applied over a step is evaluated from the solid state at the beginning of that step.
+    ///     Required when the fluid force is stiff in the solid state (e.g. potential-flow hydrostatic restoring),
+    ///     where a lagged force acts as negative damping.
+    enum class CouplingScheme { CONCURRENT, SEQUENTIAL };
+
     /// Destructor for the FSI system.
     virtual ~ChFsiSystem();
 
@@ -76,6 +87,9 @@ class CH_FSI_API ChFsiSystem {
     /// Set integration step size for multibody dynamics.
     /// If a value is not provided, the MBS system is integrated with the same step used for fluid dynamics.
     void SetStepsizeMBD(double step);
+
+    /// Get the co-simulation coupling scheme in effect.
+    CouplingScheme GetCouplingScheme() const { return m_coupling; }
 
     /// Add a rigid body to the FSI system.
     std::shared_ptr<FsiBody> AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded);
@@ -126,18 +140,33 @@ class CH_FSI_API ChFsiSystem {
     void RegisterMBDCallback(std::shared_ptr<MBDCallback> callback) { m_MBD_callback = callback; }
 
     /// Function to advance the FSI system combined state.
-    /// This implements an explicit force-displacement co-simulation step:
+    /// This implements an explicit force-displacement co-simulation step, in one of two orderings selected by the
+    /// active CouplingScheme (see GetCouplingScheme).
+    ///
+    /// With CouplingScheme::CONCURRENT:
     /// - advance fluid dynamics (CFD) to new data exchange point;
     /// - advance multibody dynamics (MBD) to new data exchange point;
     /// - extract (from fluid system) and apply (to MBS) fluid forces on FSI solid objects;
     /// - extract (from MBS) and apply (to fluid system) new states for FSI solid objects;
+    /// No data exchange is performed before the first step; this assumes that FSI solid states and FSI solid forces
+    /// are properly initialized. The fluid forces applied to the MBS over a step were evaluated from the solid state
+    /// one step earlier.
+    ///
+    /// With CouplingScheme::SEQUENTIAL:
+    /// - extract (from MBS) and apply (to fluid system) new states for FSI solid objects;
+    /// - advance fluid dynamics (CFD) to new data exchange point;
+    /// - extract (from fluid system) and apply (to MBS) fluid forces on FSI solid objects;
+    /// - advance multibody dynamics (MBD) to new data exchange point.
+    /// The fluid forces applied to the MBS over a step are evaluated from the solid state at the beginning of that
+    /// step, and the two phases are advanced serially.
+    ///
     /// Notes:
-    /// - no data exchange is performed before the first step;
-    ///   this assumes that FSI solid states and FSI solid forces are properly initialized
-    /// - CFD advance calls ChFsiFluidSystem::DoStepDynamics multiple times (see SetStepsizeCFD);
-    /// - MBD advance is executed in a separate, concurrent thread and does not block execution;
+    /// - CFD advance calls ChFsiFluidSystem::DoStepDynamics multiple times (see SetStepSizeCFD);
+    /// - with CouplingScheme::CONCURRENT, MBD advance is executed in a separate, concurrent thread and does not
+    ///   block execution;
     /// - the caller can register a custom callback (of type ChFsiSystem::MBDCallback) to control MBD advance;
     /// - if MBDCallback not provided, MBD advance calls ChSystem::DoStepDynamics multiple times (see SetStepsizeMBD);
+    /// - with CouplingScheme::SEQUENTIAL, the reported step timer (GetTimerStep) includes the data exchange time.
     void DoStepDynamics(double step);
 
     /// Get current simulation time.
@@ -202,6 +231,12 @@ class CH_FSI_API ChFsiSystem {
     /// Derived classes must also construct and set the FSI interface (`m_fsi_interface`).
     ChFsiSystem(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD);
 
+    /// Select the co-simulation coupling scheme.
+    /// This is deliberately not part of the public API: a concrete ChFsiSystem is responsible for selecting the
+    /// scheme that is valid for its fluid solver, and may choose to expose this setting to its own users.
+    /// Must be set before the first call to DoStepDynamics.
+    void SetCouplingScheme(CouplingScheme scheme) { m_coupling = scheme; }
+
     ChSystem* m_sysMBS;                               ///< multibody system
     ChFsiFluidSystem* m_sysCFD;                       ///< FSI fluid solver
     std::shared_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system
@@ -216,6 +251,8 @@ class CH_FSI_API ChFsiSystem {
     double m_step_MBD;  ///< time step for multibody dynamics
     double m_step_CFD;  ///< time step for fluid dynamics
     double m_time;      ///< current fluid dynamics simulation time
+
+    CouplingScheme m_coupling;  ///< co-simulation coupling scheme
 
     std::shared_ptr<MBDCallback> m_MBD_callback;  ///< callback for MBS dynamics
 

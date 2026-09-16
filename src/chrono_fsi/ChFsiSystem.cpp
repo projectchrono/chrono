@@ -49,6 +49,7 @@ ChFsiSystem::ChFsiSystem(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
       m_step_MBD(-1),
       m_step_CFD(-1),
       m_time(0),
+      m_coupling(CouplingScheme::SEQUENTIAL),
       m_RTF(-1),
       m_ratio_MBD(-1) {}
 
@@ -288,29 +289,58 @@ void ChFsiSystem::DoStepDynamics(double step) {
     m_timer_step.reset();
     m_timer_FSI.reset();
 
-    // Advance dynamics of the two phases.
-    //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
-    //   2. Advance the dynamics of the fluid system (in the main thread)
-    //   3. Wait for the MBS thread to finish execution.
-    m_timer_step.start();
-    std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
-    AdvanceCFD(step, threshold_CFD);
-    th.join();
-    m_timer_step.stop();
+    if (m_coupling == CouplingScheme::CONCURRENT) {
+        // Advance dynamics of the two phases.
+        //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
+        //   2. Advance the dynamics of the fluid system (in the main thread)
+        //   3. Wait for the MBS thread to finish execution.
+        // Note that the fluid forces applied to the MBS over this step were evaluated from the solid states loaded
+        // at the *previous* data exchange point.
+        m_timer_step.start();
+        std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
+        AdvanceCFD(step, threshold_CFD);
+        th.join();
+        m_timer_step.stop();
 
-    // Data exchange between phases:
-    //   1. [CFD -> MBS] Apply fluid forces and torques on FSI solids
-    //   2. [MBS -> CFD] Load new solid phase states
-    m_timer_FSI.start();
-    m_sysCFD->OnExchangeSolidForces();
-    m_fsi_interface->ExchangeSolidForces();
-    m_fsi_interface->ExchangeSolidStates();
-    m_sysCFD->OnExchangeSolidStates();
-    m_timer_FSI.stop();
+        // Data exchange between phases:
+        //   1. [CFD -> MBS] Apply fluid forces and torques on FSI solids
+        //   2. [MBS -> CFD] Load new solid phase states
+        m_timer_FSI.start();
+        m_sysCFD->OnExchangeSolidForces();
+        m_fsi_interface->ExchangeSolidForces();
+        m_fsi_interface->ExchangeSolidStates();
+        m_sysCFD->OnExchangeSolidStates();
+        m_timer_FSI.stop();
+    } else {
+        // Advance the dynamics of the two phases serially, exchanging data such that the fluid forces applied to the
+        // MBS over this step are evaluated from the solid states at the beginning of this step.
+        m_timer_step.start();
+
+        // [MBS -> CFD] Load solid phase states at the beginning of the step
+        m_timer_FSI.start();
+        m_fsi_interface->ExchangeSolidStates();
+        m_sysCFD->OnExchangeSolidStates();
+        m_timer_FSI.stop();
+
+        // Advance the dynamics of the fluid system, using the solid states just loaded
+        AdvanceCFD(step, threshold_CFD);
+
+        // [CFD -> MBS] Apply the fluid forces and torques that act on the FSI solids over this step
+        m_timer_FSI.start();
+        m_sysCFD->OnExchangeSolidForces();
+        m_fsi_interface->ExchangeSolidForces();
+        m_timer_FSI.stop();
+
+        // Advance the dynamics of the multibody system, with those forces held constant over the step
+        AdvanceMBS(step, threshold_MBD);
+
+        m_timer_step.stop();
+    }
 
     // Calculate RTF and MBD/CFD timer ratio
     m_RTF = m_timer_step() / step;
-    m_ratio_MBD = m_timer_MBD / m_timer_CFD;
+    if (m_timer_CFD > 0)
+        m_ratio_MBD = m_timer_MBD / m_timer_CFD;
 
     // Update simulation time
     m_time += step;
