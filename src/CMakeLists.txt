@@ -488,7 +488,7 @@ endif()
 if(BUILD_BENCHMARKING)
   message(STATUS "Build Google benchmark framework")
 
-  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty/googletest/CMakeLists.txt")
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty/googlebenchmark/CMakeLists.txt")
     # Build google benchmark (target: benchmark).
     # Disable installation of benchmark.
     # Do not build tests of benchmarking lib.
