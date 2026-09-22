@@ -90,6 +90,10 @@ if(CHRONO_GPU_VENDOR_RESOLVED STREQUAL "NVIDIA")
 
     # Architecture 50 has no double-precision atomicAdd.
     list(REMOVE_ITEM CHRONO_CUDA_ARCHITECTURES "50" "50-real")
+
+    # Then drop whatever this toolkit no longer accepts. The list above may come
+    # from CMake's table rather than the toolkit, so the two can disagree.
+    chrono_drop_unsupported_cuda_archs(CHRONO_CUDA_ARCHITECTURES)
     message(STATUS "  CUDA archs (filtered):   ${CHRONO_CUDA_ARCHITECTURES}")
 
     if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")

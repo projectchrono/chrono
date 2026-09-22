@@ -13,6 +13,11 @@ services:
       dockerfile: "./dev.dockerfile"
       args:
         PROJECT: "${COMPOSE_PROJECT_NAME}"
+        # Base, ROS distro and CUDA have to be contemporaries: the all-major architecture list
+        # comes from CMake, not from the toolkit, so an older base cannot drive a newer CUDA.
+        # Built and verified: 26.04/lyrical/13-3 and 24.04/jazzy/12-9 with the architectures
+        # left empty; 24.04/jazzy/13-3 only with them pinned, since CMake 3.28 still emits the
+        # sm_60 that CUDA 13 dropped.
         IMAGE_BASE: "ubuntu"
         IMAGE_TAG: "26.04"
         USER_GROUPS: "dialout video"
@@ -49,6 +54,54 @@ services:
             - gpu
             count: all
             driver: nvidia
+  # AMD / ROCm counterpart to `dev`, built from dev-amd.dockerfile. It is a separate service
+  # rather than a variant of `dev` because the two need different GPU wiring, and because a
+  # dockerfile INCLUDE cannot be made conditional.
+  dev-amd:
+    image: "${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}:dev-amd"
+    hostname: '${COMPOSE_PROJECT_NAME}-amd'
+    container_name: '${COMPOSE_PROJECT_NAME}-dev-amd'
+    shm_size: 2g
+    ports:
+      - "9092:9090" # RosBridge; host side offset so this can run beside `dev`
+    build:
+      context: "./"
+      network: "host"
+      dockerfile: "./dev-amd.dockerfile"
+      args:
+        PROJECT: "${COMPOSE_PROJECT_NAME}"
+        # ROCm comes from the distro, so the base fixes its version: 26.04 gives ROCm 7.1,
+        # 24.04 gives 5.7 (Chrono's floor is 5.7.0). Both built and verified.
+        IMAGE_BASE: "ubuntu"
+        IMAGE_TAG: "26.04"
+        USER_GROUPS: "dialout video render"
+        PIP_REQUIREMENTS: "black"
+        APT_DEPENDENCIES: "vim cmake-curses-gui"
+        USER_SHELL_ADD_ONS: "alias python=python3"
+
+        # Unlike CUDA, HIP has no all-major fallback, so this should name the target card:
+        # gfx1100 (RX 7900), gfx1030 (RX 6800/6900), gfx90a (MI200), gfx942 (MI300). A list
+        # works ("gfx1030;gfx1100") at the cost of build time. Not "native".
+        CHRONO_HIP_ARCHITECTURES: "gfx1100"
+        ROS_DISTRO: "lyrical"
+    volumes:
+      - '../../:/home/${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}-dev'
+      - '/tmp/.X11-unix:/tmp/.X11-unix'
+    environment:
+      DISPLAY: '${DISPLAY:-vnc:0.0}'
+    working_dir: '/home/${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}-dev'
+    tty: true
+    # ROCm reaches the GPU through the KFD compute device and a render node, so there is no
+    # AMD equivalent of the `deploy` reservation above; the devices are passed through
+    # directly and the user has to be in the groups that own them.
+    devices:
+      - '/dev/kfd:/dev/kfd'
+      - '/dev/dri:/dev/dri'
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
   vnc:
     image: "${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}:vnc"
     hostname: "${COMPOSE_PROJECT_NAME}-vnc"

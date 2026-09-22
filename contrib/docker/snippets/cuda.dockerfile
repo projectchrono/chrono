@@ -32,3 +32,16 @@ RUN if [ ! -e /usr/local/cuda ]; then \
 # Set environment variables
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/cuda/lib:${LD_LIBRARY_PATH}"
+
+# Update CMake options
+#
+# The vendor is declared rather than detected. `docker build` sees no GPU, so Layer 0 would
+# fall back to inferring it from the installed SDKs; that happens to give NVIDIA here, but it
+# is a guess, and it turns ambiguous the moment an image carries both toolkits.
+#
+# CMAKE_LIBRARY_PATH points at the CUDA stub directory so the linker can resolve libcuda in an
+# image with no driver. It belongs with the toolkit rather than in chrono_build.dockerfile,
+# which has to stay vendor-neutral. The $(...) is expanded by the eval there.
+ENV CMAKE_OPTIONS="${CMAKE_OPTIONS} \
+    -DCHRONO_GPU_VENDOR=NVIDIA \
+    -DCMAKE_LIBRARY_PATH=$(find /usr/local/cuda/ -type d -name stubs)"

@@ -1,6 +1,11 @@
 # SPDX-License-Identifier: MIT
-# This snippet install Chrono in ${PACKAGE_DIR}/chrono
-# It includes other snippets, where specific modules can be added or removed based on need
+# This snippet fetches Chrono and its module dependencies into ${CHRONO_DIR}.
+# It includes other snippets, where specific modules can be added or removed based on need.
+#
+# It does NOT configure or build: chrono_build.dockerfile does that, and is included
+# separately so the top-level dockerfile can slot vendor-specific snippets (a GPU toolkit,
+# the OptiX renderer) in between. INCLUDE is textual, so anything that has to vary per GPU
+# vendor has to be composed at that level rather than chosen here.
 
 ARG CHRONO_BRANCH="main"
 ARG CHRONO_REPO="https://github.com/projectchrono/chrono.git"
@@ -8,12 +13,6 @@ ARG CHRONO_DIR="${USERHOME}/chrono"
 ARG CHRONO_INSTALL_DIR="${USERHOME}/packages/chrono"
 ARG PACKAGE_DIR="${USERHOME}/packages"
 RUN mkdir -p ${PACKAGE_DIR}
-
-# This variable will be used by snippets to add cmake options
-ENV CMAKE_OPTIONS=""
-# This variable is used before building (but in the same RUN command)
-# This is useful for setting environment variables that are used in the build process
-ENV PRE_BUILD_SCRIPTS=""
 
 # Install Chrono dependencies that are required for all modules (or some but are fairly small)
 RUN sudo apt update && \
@@ -44,7 +43,9 @@ RUN git clone --recursive -b ${CHRONO_BRANCH} ${CHRONO_REPO} ${CHRONO_DIR}
 
 # Include the snippets which install shared dependencies
 # These can be commented out or removed if they are no longer needed
-INCLUDE ./cuda.dockerfile
+#
+# The GPU toolkit is NOT included here: cuda.dockerfile and rocm.dockerfile are alternatives,
+# so the top-level dockerfile picks one.
 INCLUDE ./ros.dockerfile
 
 # Then include the snippets for the modules you want to install
@@ -60,39 +61,3 @@ INCLUDE ./ch_python.dockerfile
 # does not build under GCC 15. Not needed for Chrono::ROS. Re-enable by
 # uncommenting once SynChrono is updated for the new toolchain.
 # INCLUDE ./ch_synchrono.dockerfile
-
-
-# Install Chrono
-#
-# CHRONO_CUDA_ARCHITECTURES is declared here rather than with the other ARGs at the top of
-# the file on purpose: a build arg invalidates the build cache from its declaration onward,
-# even for instructions that never read it, and everything above this point (the CUDA
-# toolkit, ROS, the VSG build and the OptiX SDK) is expensive to rebuild.
-#
-# `docker build` runs with no GPU visible, so CMake resolves the vendor from the installed
-# SDK, reports a cross-target build and falls back to a fat binary covering every major
-# architecture. Empty keeps that default, which is the portable choice and costs little
-# build time; what it costs is binary size. Set this to a concrete compute capability to
-# target one GPU. Never set it to "native" -- with no GPU visible that is a FATAL_ERROR.
-ARG CHRONO_CUDA_ARCHITECTURES=""
-RUN ${PRE_BUILD_SCRIPTS} && \
-    # Evaluate the cmake options to expand any $(...) commands or variables
-    eval "_CMAKE_OPTIONS=\"${CMAKE_OPTIONS}\"" && \
-    mkdir ${CHRONO_DIR}/build && \
-    cd ${CHRONO_DIR}/build && \
-    cmake ../ -G Ninja \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DBUILD_DEMOS=OFF \
-        -DBUILD_BENCHMARKING=OFF \
-        -DBUILD_TESTING=OFF \
-        -DCMAKE_LIBRARY_PATH=$(find /usr/local/cuda/ -type d -name stubs) \
-        -DEigen3_DIR=/usr/share/eigen3/cmake \
-        -DCMAKE_INSTALL_PREFIX=${CHRONO_INSTALL_DIR} \
-        -DCHRONO_CUDA_ARCHITECTURES="${CHRONO_CUDA_ARCHITECTURES}" \
-        ${_CMAKE_OPTIONS} \
-        && \
-    ninja && ninja install
-
-
-# Update shell config
-RUN echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${CHRONO_INSTALL_DIR}/lib" >> ${USERSHELLPROFILE}

@@ -175,6 +175,74 @@ function(chrono_guard_cross_target_arch lang var_name)
 endfunction()
 
 #-----------------------------------------------------------------------------
+# chrono_drop_unsupported_cuda_archs(var_name)
+#
+# Keep only the architectures the installed nvcc will actually accept.
+#
+# CMAKE_CUDA_ARCHITECTURES_ALL_MAJOR is built from CMake's own table rather than
+# from the toolkit in use, so a CMake older than the CUDA it drives proposes
+# architectures that nvcc has since removed. CMake 3.28 with CUDA 13 yields
+# 50;60;70;80;90; CUDA 13 dropped Pascal and Volta; the build then dies long
+# after configure with
+#     nvcc fatal : Unsupported gpu architecture 'compute_60'
+# which names neither the list nor where it came from. Ubuntu 24.04 ships
+# exactly that pairing, so this is a default-configuration failure rather than
+# an exotic one, and it cannot be fixed by filtering a hardcoded set: which
+# architectures are gone depends on the toolkit.
+#
+# So ask the compiler instead of trusting the table. Anything unexpected -- no
+# compiler yet, a failed query, an answer that does not parse -- leaves the list
+# exactly as it was. This runs on every CUDA configure, so it must never be able
+# to turn a working build into a broken one; declining to act is always safe,
+# because not filtering is the behavior that shipped before.
+#-----------------------------------------------------------------------------
+
+function(chrono_drop_unsupported_cuda_archs var_name)
+  if(NOT CMAKE_CUDA_COMPILER OR "${${var_name}}" STREQUAL "")
+    return()
+  endif()
+
+  execute_process(COMMAND "${CMAKE_CUDA_COMPILER}" --list-gpu-arch
+                  RESULT_VARIABLE _rc
+                  OUTPUT_VARIABLE _txt
+                  ERROR_QUIET
+                  TIMEOUT 10)
+  if(NOT _rc EQUAL 0)
+    return()
+  endif()
+
+  string(REGEX MATCHALL "compute_[0-9]+" _matches "${_txt}")
+  if(NOT _matches)
+    return()
+  endif()
+
+  set(_supported "")
+  foreach(_m IN LISTS _matches)
+    string(REGEX REPLACE "^compute_" "" _m "${_m}")
+    list(APPEND _supported "${_m}")
+  endforeach()
+
+  set(_kept "")
+  set(_dropped "")
+  foreach(_entry IN LISTS ${var_name})
+    # Entries may carry a -real or -virtual suffix, or a feature letter such as
+    # 90a. The leading number is what nvcc reports, so key on that.
+    string(REGEX MATCH "^[0-9]+" _num "${_entry}")
+    if(_num AND NOT _num IN_LIST _supported)
+      list(APPEND _dropped "${_entry}")
+    else()
+      list(APPEND _kept "${_entry}")
+    endif()
+  endforeach()
+
+  if(_dropped)
+    string(REPLACE ";" " " _dropped_txt "${_dropped}")
+    message(STATUS "  CUDA archs (dropped, unsupported by this toolkit): ${_dropped_txt}")
+    set(${var_name} "${_kept}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------
 # chrono_report_missing_gpu_toolchain()
 #
 # Signpost the dead end.

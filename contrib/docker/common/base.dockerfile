@@ -43,5 +43,16 @@ RUN if getent passwd ${USER_UID}; then \
         done; \
     fi
 
+# Accumulators that the snippets append to.
+#
+# They are initialised here, not in chrono.dockerfile, because a snippet included BEFORE it --
+# cuda.dockerfile and rocm.dockerfile are, since the top-level dockerfile picks the GPU vendor --
+# would otherwise have its contribution erased when chrono.dockerfile reset them to empty.
+#
+# CMAKE_OPTIONS collects cmake arguments; chrono_build.dockerfile consumes it.
+# PRE_BUILD_SCRIPTS collects commands to run in the same shell as the build.
+ENV CMAKE_OPTIONS=""
+ENV PRE_BUILD_SCRIPTS=""
+
 # Change to the user
 USER ${USERNAME}

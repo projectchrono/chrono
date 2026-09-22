@@ -1,17 +1,18 @@
 # syntax = devthefuture/dockerfile-x
 # The INCLUDE directive is provided by the devthefuture/dockerfile-x project
 #
-# NVIDIA / CUDA development image. dev-amd.dockerfile is the AMD / ROCm counterpart; the two
-# differ only in which GPU toolkit is installed and in the OptiX renderer, which is CUDA-only.
+# AMD / ROCm development image, the counterpart to dev.dockerfile.
 #
-# INCLUDE is textual concatenation, so it cannot be made conditional. Anything that varies by
-# GPU vendor is therefore composed here rather than chosen inside a snippet.
+# Chrono::DEM, Chrono::FSI::SPH and the Chrono::Vehicle SCM GPU backend all declare
+# REQUIRES CUDA_OR_HIP, so they build here through HIP. Chrono::Sensor builds too: its
+# default backend is Vulkan RT, which is vendor-neutral. Only the OptiX renderer is missing,
+# since OptiX is NVIDIA-only.
 
 # Will copy in the base configuration for the build
 INCLUDE ./common/base.dockerfile
 
 # GPU toolkit. cuda.dockerfile and rocm.dockerfile are alternatives; include exactly one.
-INCLUDE ./snippets/cuda.dockerfile
+INCLUDE ./snippets/rocm.dockerfile
 
 # Chrono sources, shared dependencies, and the vendor-neutral module snippets
 INCLUDE ./snippets/chrono.dockerfile
@@ -19,9 +20,6 @@ INCLUDE ./snippets/chrono.dockerfile
 # Modules that require a GPU backend and accept either CUDA or HIP
 INCLUDE ./snippets/ch_dem.dockerfile
 INCLUDE ./snippets/ch_fsi.dockerfile
-
-# The Chrono::Sensor OptiX renderer. CUDA-only, so it has no place in the AMD image.
-INCLUDE ./snippets/ch_sensor_optix.dockerfile
 
 # Configure, build and install. Must come after every snippet that appends to CMAKE_OPTIONS.
 INCLUDE ./snippets/chrono_build.dockerfile
