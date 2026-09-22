@@ -114,7 +114,14 @@ Each bar below is `clang/HIP` divided by `GCC/HIP` on one host, at identical def
   <img alt="clang over GCC on SCM_Total, opposite directions on the two hosts" src="img/scm-what-moves-it-light.svg">
 </picture>
 
-**3. Once the cast is on the GPU, the node work is the larger half of the step, and it grows with the
+**3. The two GPU backends are not distinguishable by these benchmarks.** Across all sixteen
+CUDA/HIP pairs the largest gap in `SCM_Total` is 2.0%, and it favours neither -- eight cells above
+parity, eight below. That is smaller than this suite's own run-to-run spread, where repeated
+processes of `WheelSCM_D20` on one build differ by as much as 10%. `SCM_Rays` and `SCM_Nodes` agree
+to the digit on every variant, so the two are doing identical work. There is no chart for this:
+sixteen ratios scattered about 1.00 would imply a structure the measurements do not support.
+
+**4. Once the cast is on the GPU, the node work is the larger half of the step, and it grows with the
 size of the modified-node map.** The cast is 79-94% of `SCM_Total` on the CPU loop and 20-55% of it
 on the GPU path, so what is left to win is no longer in the cast. Ray count is 3997.2 per step at
 every point below, so the growth there is map size alone: `GetHeight()` is called once per candidate
@@ -130,7 +137,8 @@ would remove, and `btest_VEH_largeSCM` exists to measure it.
 
 i7-13700K (16 cores / 24 threads, 30 MiB L3), 62 GB. Release, `-O3 -march=native`, Chrono OpenMP
 threads 4, container `atk/chrono:orb`. GCC 11.4.0 and AMD clang 22.0 (ships with ROCm 7.2.4).
-GPU columns are ROCm 7.2.4 with `CMAKE_HIP_PLATFORM=nvidia`, over CUDA 13.2.78.
+CUDA 13.2.78; the HIP columns are ROCm 7.2.4 with `CMAKE_HIP_PLATFORM=nvidia`, over that same
+toolkit. Both GPU backends are built from the same kernel sources.
 
 GPU cells are the mean of 2 processes, `ref` and CPU of 1, each itself Google Benchmark's mean over
 5 or 10 internal repetitions. Worst internal cv on `SCM_Total` was 3.21% (clang/CPU `MESH_0`); every
@@ -138,26 +146,27 @@ other cell was under 2%.
 
 ## `SCM_Total`, ms/step
 
-| variant | GCC/HIP | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
-|---|---|---|---|---|---|
-| `WheelSCM_D20` | 0.0982 | 0.0681 | 6.8687 | 2.1204 | 2.1706 |
-| `WheelSCM_D10` | 0.5070 | 0.2899 | - | 8.6116 | 8.2832 |
-| `HmmwvSCM_MESH_0` | 0.1149 | 0.1050 | 6.1585 | 0.3506 | 0.4024 |
-| `HmmwvSCM_MESH_1` | 0.3625 | 0.3513 | 44.6546 | 1.2149 | 1.4578 |
-| `LargeSCM_SEED0` | 0.7493 | 0.5918 | 34.3628 | 2.3183 | 2.2628 |
-| `LargeSCM_SEED1` | 0.7786 | 0.6298 | - | 2.3377 | 2.3180 |
-| `LargeSCM_SEED4` | 0.8182 | 0.6332 | - | 2.3303 | 2.3086 |
-| `LargeSCM_SEED16` | 0.8702 | 0.7198 | 34.5411 | 2.3447 | 2.3022 |
+| variant | GCC/CUDA | GCC/HIP | clang/CUDA | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
+|---|---|---|---|---|---|---|---|
+| `WheelSCM_D20` | 0.0971 | 0.0982 | 0.0694 | 0.0681 | 6.8687 | 2.1204 | 2.1706 |
+| `WheelSCM_D10` | 0.5046 | 0.5070 | 0.2897 | 0.2899 | - | 8.6116 | 8.2832 |
+| `HmmwvSCM_MESH_0` | 0.1152 | 0.1149 | 0.1063 | 0.1050 | 6.1585 | 0.3506 | 0.4024 |
+| `HmmwvSCM_MESH_1` | 0.3579 | 0.3625 | 0.3487 | 0.3513 | 44.6546 | 1.2149 | 1.4578 |
+| `LargeSCM_SEED0` | 0.7514 | 0.7493 | 0.6008 | 0.5918 | 34.3628 | 2.3183 | 2.2628 |
+| `LargeSCM_SEED1` | 0.7891 | 0.7786 | 0.6425 | 0.6298 | - | 2.3377 | 2.3180 |
+| `LargeSCM_SEED4` | 0.8075 | 0.8182 | 0.6408 | 0.6332 | - | 2.3303 | 2.3086 |
+| `LargeSCM_SEED16` | 0.8704 | 0.8702 | 0.7264 | 0.7198 | 34.5411 | 2.3447 | 2.3022 |
 
 ## Memory -- resident set after setup, MiB
 
 | build | `SEED0` | `SEED16` | delta |
 |---|---|---|---|
-| GCC/HIP | 1862.1 | 2457.0 | 594.9 |
+| GCC, either backend | 1862.1 | 2457.0 | 594.9 |
 | clang/HIP | 1864.1 | 2458.9 | 594.9 |
+| clang/CUDA | 2085.1 | 2680.0 | 594.8 |
 
 The delta is what 3.60M added nodes cost: 165 B/node, against a 128-byte `NodeRecord` plus
-`unordered_map` overhead and allocator rounding. It is the same in both builds; only the constant
+`unordered_map` overhead and allocator rounding. It is the same in every build; only the constant
 offset moves, and most of that offset is the base-height matrix -- 15001^2 entries at 8 bytes is
 1716.8 MiB.
 
@@ -281,16 +290,16 @@ and the numbers to compare against are the `SCM_Total` tables above.
 
 RTX 4080, ms/step:
 
-| variant | GCC/HIP | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
-|---|---|---|---|---|---|
-| `WheelSCM_D20` | 0.0370 | 0.0352 | 6.7994 | 1.9911 | 2.0941 |
-| `WheelSCM_D10` | 0.1000 | 0.0975 | - | 7.7662 | 7.8633 |
-| `HmmwvSCM_MESH_0` | 0.0629 | 0.0634 | 6.0965 | 0.2925 | 0.3513 |
-| `HmmwvSCM_MESH_1` | 0.1942 | 0.1923 | 44.4682 | 1.0325 | 1.2762 |
-| `LargeSCM_SEED0` | 0.3248 | 0.3261 | 33.9085 | 1.8237 | 1.9392 |
-| `LargeSCM_SEED1` | 0.3473 | 0.3537 | - | 1.8418 | 1.9865 |
-| `LargeSCM_SEED4` | 0.3757 | 0.3611 | - | 1.8351 | 1.9833 |
-| `LargeSCM_SEED16` | 0.4427 | 0.4516 | 34.0860 | 1.8498 | 1.9782 |
+| variant | GCC/CUDA | GCC/HIP | clang/CUDA | clang/HIP | GCC/ref | GCC/CPU | clang/CPU |
+|---|---|---|---|---|---|---|---|
+| `WheelSCM_D20` | 0.0359 | 0.0370 | 0.0365 | 0.0352 | 6.7994 | 1.9911 | 2.0941 |
+| `WheelSCM_D10` | 0.0978 | 0.1000 | 0.0975 | 0.0975 | - | 7.7662 | 7.8633 |
+| `HmmwvSCM_MESH_0` | 0.0628 | 0.0629 | 0.0635 | 0.0634 | 6.0965 | 0.2925 | 0.3513 |
+| `HmmwvSCM_MESH_1` | 0.1913 | 0.1942 | 0.1911 | 0.1923 | 44.4682 | 1.0325 | 1.2762 |
+| `LargeSCM_SEED0` | 0.3260 | 0.3248 | 0.3288 | 0.3261 | 33.9085 | 1.8237 | 1.9392 |
+| `LargeSCM_SEED1` | 0.3516 | 0.3473 | 0.3615 | 0.3537 | - | 1.8418 | 1.9865 |
+| `LargeSCM_SEED4` | 0.3669 | 0.3757 | 0.3641 | 0.3611 | - | 1.8351 | 1.9833 |
+| `LargeSCM_SEED16` | 0.4431 | 0.4427 | 0.4524 | 0.4516 | 34.0860 | 1.8498 | 1.9782 |
 
 gfx942, ms/step:
 

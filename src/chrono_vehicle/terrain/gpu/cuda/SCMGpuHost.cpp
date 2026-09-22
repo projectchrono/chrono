@@ -1,8 +1,16 @@
-// SCMGpuHost.cpp — HIP host bridge: pinned staging, async copy/compute streams, body reduce.
+// SCMGpuHost.cpp — CUDA host bridge: pinned staging, async copy/compute streams, body reduce.
+// NOTE: this file is DUPLICATED per GPU backend. Its counterpart is
+// terrain/gpu/hip/SCMGpuHost.cpp, and the two differ only in the runtime API names
+// (about thirty symbols). Any change here must be made there too -- nothing enforces it,
+// because only one of the two is compiled in a given build. Chrono has no compatibility
+// layer for this and deliberately does not grow one; the kernels, which CAN be shared,
+// are single-source .cu files instead.
+//
+// Not a name-for-name mapping: hipHostMalloc(p, n) is cudaHostAlloc(p, n, flags).
 
 #include "chrono_vehicle/terrain/SCMGpu.h"
 
-#include <hip/hip_runtime.h>
+#include <cuda_runtime.h>
 
 #include <algorithm>
 #include <cstdio>
@@ -20,14 +28,14 @@ extern "C" int scm_launch_compute_forces(const void* soil_host,
                                          const void* in_dev,
                                          void* out_dev,
                                          int n,
-                                         hipStream_t stream);
+                                         cudaStream_t stream);
 
 extern "C" int scm_launch_reduce_body_forces(const void* in_dev,
                                              const void* out_dev,
                                              void* body_forces_dev,
                                              int n,
                                              int n_bodies,
-                                             hipStream_t stream);
+                                             cudaStream_t stream);
 
 struct BufferSlot {
     HitInput* h_in = nullptr;
@@ -38,10 +46,10 @@ struct BufferSlot {
 
 struct ScmGpuContextImpl {
     int device = 0;
-    hipStream_t stream_copy = nullptr;
-    hipStream_t stream_compute = nullptr;
-    hipEvent_t event_h2d_done = nullptr;
-    hipEvent_t event_compute_done = nullptr;
+    cudaStream_t stream_copy = nullptr;
+    cudaStream_t stream_compute = nullptr;
+    cudaEvent_t event_h2d_done = nullptr;
+    cudaEvent_t event_compute_done = nullptr;
 
     BufferSlot slot;
     bool in_flight = false;
@@ -58,27 +66,27 @@ chrono::vehicle::scm_gpu::Config& MutableConfig() {
     return cfg;
 }
 
-void die_hip(const char* msg, hipError_t err) {
-    fprintf(stderr, "SCM GPU FATAL: %s — %s\n", msg, hipGetErrorString(err));
+void die_cuda(const char* msg, cudaError_t err) {
+    fprintf(stderr, "SCM GPU FATAL: %s — %s\n", msg, cudaGetErrorString(err));
     std::abort();
 }
 
 void ensure_device(int device) {
     int current = -1;
-    hipGetDevice(&current);
+    cudaGetDevice(&current);
     if (current != device)
-        hipSetDevice(device);
+        cudaSetDevice(device);
 }
 
 void free_slot(BufferSlot& slot) {
     if (slot.d_in)
-        (void)hipFree(slot.d_in);
+        (void)cudaFree(slot.d_in);
     if (slot.d_out)
-        (void)hipFree(slot.d_out);
+        (void)cudaFree(slot.d_out);
     if (slot.h_in)
-        (void)hipHostFree(slot.h_in);
+        (void)cudaFreeHost(slot.h_in);
     if (slot.h_out)
-        (void)hipHostFree(slot.h_out);
+        (void)cudaFreeHost(slot.h_out);
     slot = {};
 }
 
@@ -91,18 +99,18 @@ void ensure_hit_capacity(ScmGpuContextImpl* ctx, std::size_t n) {
     const std::size_t bytes_in = n * sizeof(HitInput);
     const std::size_t bytes_out = n * sizeof(HitOutput);
 
-    hipError_t e1 = hipMalloc(&ctx->slot.d_in, bytes_in);
-    if (e1 != hipSuccess)
-        die_hip("hipMalloc d_in", e1);
-    hipError_t e2 = hipMalloc(&ctx->slot.d_out, bytes_out);
-    if (e2 != hipSuccess)
-        die_hip("hipMalloc d_out", e2);
-    hipError_t e3 = hipHostMalloc(&ctx->slot.h_in, bytes_in);
-    if (e3 != hipSuccess)
-        die_hip("hipHostMalloc h_in", e3);
-    hipError_t e4 = hipHostMalloc(&ctx->slot.h_out, bytes_out);
-    if (e4 != hipSuccess)
-        die_hip("hipHostMalloc h_out", e4);
+    cudaError_t e1 = cudaMalloc(&ctx->slot.d_in, bytes_in);
+    if (e1 != cudaSuccess)
+        die_cuda("cudaMalloc d_in", e1);
+    cudaError_t e2 = cudaMalloc(&ctx->slot.d_out, bytes_out);
+    if (e2 != cudaSuccess)
+        die_cuda("cudaMalloc d_out", e2);
+    cudaError_t e3 = cudaHostAlloc(&ctx->slot.h_in, bytes_in, cudaHostAllocDefault);
+    if (e3 != cudaSuccess)
+        die_cuda("cudaHostAlloc h_in", e3);
+    cudaError_t e4 = cudaHostAlloc(&ctx->slot.h_out, bytes_out, cudaHostAllocDefault);
+    if (e4 != cudaSuccess)
+        die_cuda("cudaHostAlloc h_out", e4);
 
     ctx->hit_capacity = n;
 }
@@ -112,17 +120,17 @@ void ensure_body_capacity(ScmGpuContextImpl* ctx, std::size_t n_bodies) {
         return;
 
     if (ctx->d_body)
-        (void)hipFree(ctx->d_body);
+        (void)cudaFree(ctx->d_body);
     if (ctx->h_body)
-        (void)hipHostFree(ctx->h_body);
+        (void)cudaFreeHost(ctx->h_body);
 
     const std::size_t bytes = n_bodies * 6 * sizeof(double);
-    hipError_t e1 = hipMalloc(&ctx->d_body, bytes);
-    if (e1 != hipSuccess)
-        die_hip("hipMalloc d_body", e1);
-    hipError_t e2 = hipHostMalloc(reinterpret_cast<void**>(&ctx->h_body), bytes);
-    if (e2 != hipSuccess)
-        die_hip("hipHostMalloc h_body", e2);
+    cudaError_t e1 = cudaMalloc(&ctx->d_body, bytes);
+    if (e1 != cudaSuccess)
+        die_cuda("cudaMalloc d_body", e1);
+    cudaError_t e2 = cudaHostAlloc(reinterpret_cast<void**>(&ctx->h_body), bytes, cudaHostAllocDefault);
+    if (e2 != cudaSuccess)
+        die_cuda("cudaHostAlloc h_body", e2);
 
     ctx->body_capacity = n_bodies;
 }
@@ -134,12 +142,12 @@ BufferSlot& current_slot(ScmGpuContextImpl* impl) {
 void sync_impl(ScmGpuContextImpl* impl) {
     if (!impl->in_flight)
         return;
-    hipError_t e1 = hipStreamSynchronize(impl->stream_copy);
-    if (e1 != hipSuccess)
-        die_hip("hipStreamSynchronize copy", e1);
-    hipError_t e2 = hipStreamSynchronize(impl->stream_compute);
-    if (e2 != hipSuccess)
-        die_hip("hipStreamSynchronize compute", e2);
+    cudaError_t e1 = cudaStreamSynchronize(impl->stream_copy);
+    if (e1 != cudaSuccess)
+        die_cuda("cudaStreamSynchronize copy", e1);
+    cudaError_t e2 = cudaStreamSynchronize(impl->stream_compute);
+    if (e2 != cudaSuccess)
+        die_cuda("cudaStreamSynchronize compute", e2);
     impl->in_flight = false;
 }
 
@@ -157,17 +165,17 @@ int launch_pipelined(ScmGpuContextImpl* impl,
 
     sync_impl(impl);
 
-    hipError_t e_h2d =
-        hipMemcpyAsync(slot.d_in, slot.h_in, bytes_in, hipMemcpyHostToDevice, impl->stream_copy);
-    if (e_h2d != hipSuccess)
+    cudaError_t e_h2d =
+        cudaMemcpyAsync(slot.d_in, slot.h_in, bytes_in, cudaMemcpyHostToDevice, impl->stream_copy);
+    if (e_h2d != cudaSuccess)
         return static_cast<int>(e_h2d);
 
-    hipError_t e_rec_h2d = hipEventRecord(impl->event_h2d_done, impl->stream_copy);
-    if (e_rec_h2d != hipSuccess)
+    cudaError_t e_rec_h2d = cudaEventRecord(impl->event_h2d_done, impl->stream_copy);
+    if (e_rec_h2d != cudaSuccess)
         return static_cast<int>(e_rec_h2d);
 
-    hipError_t e_wait_h2d = hipStreamWaitEvent(impl->stream_compute, impl->event_h2d_done, 0);
-    if (e_wait_h2d != hipSuccess)
+    cudaError_t e_wait_h2d = cudaStreamWaitEvent(impl->stream_compute, impl->event_h2d_done, 0);
+    if (e_wait_h2d != cudaSuccess)
         return static_cast<int>(e_wait_h2d);
 
     const int launch_err = scm_launch_compute_forces(&soil,
@@ -175,14 +183,14 @@ int launch_pipelined(ScmGpuContextImpl* impl,
                                                      slot.d_out,
                                                      static_cast<int>(n_hits),
                                                      impl->stream_compute);
-    if (launch_err != hipSuccess)
+    if (launch_err != cudaSuccess)
         return launch_err;
 
     if (reduce_bodies) {
         const std::size_t body_bytes = n_bodies * 6 * sizeof(double);
-        hipError_t e_zero =
-            hipMemsetAsync(impl->d_body, 0, body_bytes, impl->stream_compute);
-        if (e_zero != hipSuccess)
+        cudaError_t e_zero =
+            cudaMemsetAsync(impl->d_body, 0, body_bytes, impl->stream_compute);
+        if (e_zero != cudaSuccess)
             return static_cast<int>(e_zero);
 
         const int reduce_err = scm_launch_reduce_body_forces(slot.d_in,
@@ -191,37 +199,37 @@ int launch_pipelined(ScmGpuContextImpl* impl,
                                                              static_cast<int>(n_hits),
                                                              static_cast<int>(n_bodies),
                                                              impl->stream_compute);
-        if (reduce_err != hipSuccess)
+        if (reduce_err != cudaSuccess)
             return reduce_err;
     }
 
-    hipError_t e_rec_compute = hipEventRecord(impl->event_compute_done, impl->stream_compute);
-    if (e_rec_compute != hipSuccess)
+    cudaError_t e_rec_compute = cudaEventRecord(impl->event_compute_done, impl->stream_compute);
+    if (e_rec_compute != cudaSuccess)
         return static_cast<int>(e_rec_compute);
 
-    hipError_t e_wait_compute = hipStreamWaitEvent(impl->stream_copy, impl->event_compute_done, 0);
-    if (e_wait_compute != hipSuccess)
+    cudaError_t e_wait_compute = cudaStreamWaitEvent(impl->stream_copy, impl->event_compute_done, 0);
+    if (e_wait_compute != cudaSuccess)
         return static_cast<int>(e_wait_compute);
 
-    hipError_t e_d2h_out =
-        hipMemcpyAsync(slot.h_out, slot.d_out, bytes_out, hipMemcpyDeviceToHost, impl->stream_copy);
-    if (e_d2h_out != hipSuccess)
+    cudaError_t e_d2h_out =
+        cudaMemcpyAsync(slot.h_out, slot.d_out, bytes_out, cudaMemcpyDeviceToHost, impl->stream_copy);
+    if (e_d2h_out != cudaSuccess)
         return static_cast<int>(e_d2h_out);
 
     if (reduce_bodies) {
         const std::size_t body_bytes = n_bodies * 6 * sizeof(double);
-        hipError_t e_d2h_body = hipMemcpyAsync(impl->h_body,
+        cudaError_t e_d2h_body = cudaMemcpyAsync(impl->h_body,
                                                impl->d_body,
                                                body_bytes,
-                                               hipMemcpyDeviceToHost,
+                                               cudaMemcpyDeviceToHost,
                                                impl->stream_copy);
-        if (e_d2h_body != hipSuccess)
+        if (e_d2h_body != cudaSuccess)
             return static_cast<int>(e_d2h_body);
     }
 
     impl->in_flight = true;
     sync_impl(impl);
-    return static_cast<int>(hipSuccess);
+    return static_cast<int>(cudaSuccess);
 }
 
 int launch_simple(ScmGpuContextImpl* impl, const SoilParams& soil, std::size_t n_hits, std::size_t n_bodies) {
@@ -233,8 +241,8 @@ int launch_simple(ScmGpuContextImpl* impl, const SoilParams& soil, std::size_t n
     if (reduce_bodies)
         ensure_body_capacity(impl, n_bodies);
 
-    hipError_t e1 = hipMemcpy(slot.d_in, slot.h_in, bytes_in, hipMemcpyHostToDevice);
-    if (e1 != hipSuccess)
+    cudaError_t e1 = cudaMemcpy(slot.d_in, slot.h_in, bytes_in, cudaMemcpyHostToDevice);
+    if (e1 != cudaSuccess)
         return static_cast<int>(e1);
 
     const int launch_err = scm_launch_compute_forces(&soil,
@@ -242,13 +250,13 @@ int launch_simple(ScmGpuContextImpl* impl, const SoilParams& soil, std::size_t n
                                                      slot.d_out,
                                                      static_cast<int>(n_hits),
                                                      impl->stream_compute);
-    if (launch_err != hipSuccess)
+    if (launch_err != cudaSuccess)
         return launch_err;
 
     if (reduce_bodies) {
         const std::size_t body_bytes = n_bodies * 6 * sizeof(double);
-        hipError_t e_zero = hipMemset(impl->d_body, 0, body_bytes);
-        if (e_zero != hipSuccess)
+        cudaError_t e_zero = cudaMemset(impl->d_body, 0, body_bytes);
+        if (e_zero != cudaSuccess)
             return static_cast<int>(e_zero);
 
         const int reduce_err = scm_launch_reduce_body_forces(slot.d_in,
@@ -257,19 +265,19 @@ int launch_simple(ScmGpuContextImpl* impl, const SoilParams& soil, std::size_t n
                                                              static_cast<int>(n_hits),
                                                              static_cast<int>(n_bodies),
                                                              impl->stream_compute);
-        if (reduce_err != hipSuccess)
+        if (reduce_err != cudaSuccess)
             return reduce_err;
 
-        hipError_t e_body = hipMemcpy(impl->h_body, impl->d_body, body_bytes, hipMemcpyDeviceToHost);
-        if (e_body != hipSuccess)
+        cudaError_t e_body = cudaMemcpy(impl->h_body, impl->d_body, body_bytes, cudaMemcpyDeviceToHost);
+        if (e_body != cudaSuccess)
             return static_cast<int>(e_body);
     }
 
-    hipError_t e2 = hipMemcpy(slot.h_out, slot.d_out, bytes_out, hipMemcpyDeviceToHost);
-    if (e2 != hipSuccess)
+    cudaError_t e2 = cudaMemcpy(slot.h_out, slot.d_out, bytes_out, cudaMemcpyDeviceToHost);
+    if (e2 != cudaSuccess)
         return static_cast<int>(e2);
 
-    return static_cast<int>(hipSuccess);
+    return static_cast<int>(cudaSuccess);
 }
 
 }  // namespace
@@ -307,18 +315,18 @@ extern "C" ScmGpuContext* scm_gpu_create(int device_id) {
     impl->device = device_id;
     ensure_device(device_id);
 
-    hipError_t e1 = hipStreamCreateWithFlags(&impl->stream_copy, hipStreamNonBlocking);
-    if (e1 != hipSuccess)
-        die_hip("hipStreamCreate copy", e1);
-    hipError_t e2 = hipStreamCreateWithFlags(&impl->stream_compute, hipStreamNonBlocking);
-    if (e2 != hipSuccess)
-        die_hip("hipStreamCreate compute", e2);
-    hipError_t e3 = hipEventCreateWithFlags(&impl->event_h2d_done, hipEventDisableTiming);
-    if (e3 != hipSuccess)
-        die_hip("hipEventCreate h2d", e3);
-    hipError_t e4 = hipEventCreateWithFlags(&impl->event_compute_done, hipEventDisableTiming);
-    if (e4 != hipSuccess)
-        die_hip("hipEventCreate compute", e4);
+    cudaError_t e1 = cudaStreamCreateWithFlags(&impl->stream_copy, cudaStreamNonBlocking);
+    if (e1 != cudaSuccess)
+        die_cuda("cudaStreamCreate copy", e1);
+    cudaError_t e2 = cudaStreamCreateWithFlags(&impl->stream_compute, cudaStreamNonBlocking);
+    if (e2 != cudaSuccess)
+        die_cuda("cudaStreamCreate compute", e2);
+    cudaError_t e3 = cudaEventCreateWithFlags(&impl->event_h2d_done, cudaEventDisableTiming);
+    if (e3 != cudaSuccess)
+        die_cuda("cudaEventCreate h2d", e3);
+    cudaError_t e4 = cudaEventCreateWithFlags(&impl->event_compute_done, cudaEventDisableTiming);
+    if (e4 != cudaSuccess)
+        die_cuda("cudaEventCreate compute", e4);
 
     return reinterpret_cast<ScmGpuContext*>(impl);
 }
@@ -331,17 +339,17 @@ extern "C" void scm_gpu_destroy(ScmGpuContext* ctx) {
     sync_impl(impl);
     free_slot(impl->slot);
     if (impl->d_body)
-        hipFree(impl->d_body);
+        cudaFree(impl->d_body);
     if (impl->h_body)
-        hipHostFree(impl->h_body);
+        cudaFreeHost(impl->h_body);
     if (impl->event_h2d_done)
-        hipEventDestroy(impl->event_h2d_done);
+        cudaEventDestroy(impl->event_h2d_done);
     if (impl->event_compute_done)
-        hipEventDestroy(impl->event_compute_done);
+        cudaEventDestroy(impl->event_compute_done);
     if (impl->stream_copy)
-        hipStreamDestroy(impl->stream_copy);
+        cudaStreamDestroy(impl->stream_copy);
     if (impl->stream_compute)
-        hipStreamDestroy(impl->stream_compute);
+        cudaStreamDestroy(impl->stream_compute);
     delete impl;
 }
 
@@ -455,7 +463,7 @@ extern "C" int scm_gpu_compute_forces(ScmGpuContext* ctx,
         std::memcpy(slot.h_in, in, bytes_in);
 
     const int err = scm_gpu_compute_forces_staged(ctx, soil, n_hits, n_bodies);
-    if (err != hipSuccess)
+    if (err != cudaSuccess)
         return err;
     if (out_host != slot.h_out)
         std::memcpy(out_host, slot.h_out, bytes_out);
