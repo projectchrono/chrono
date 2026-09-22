@@ -12,8 +12,8 @@ RUN if [ ! -f /etc/os-release ] || ! grep -q 'ID=ubuntu' /etc/os-release; then e
 RUN sudo apt update && \
       sudo apt install -y --no-install-recommends curl ca-certificates software-properties-common && \
       sudo add-apt-repository -y universe && \
-      ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') && \
-      curl -L -o /tmp/ros2-apt-source.deb \
+      ROS_APT_SOURCE_VERSION=$(curl -fsSL https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') && \
+      curl -fL -o /tmp/ros2-apt-source.deb \
         "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo ${VERSION_CODENAME})_all.deb" && \
       sudo dpkg -i /tmp/ros2-apt-source.deb && \
       sudo rm /tmp/ros2-apt-source.deb && \
