@@ -35,10 +35,6 @@
     #include "chrono_precice/ChPreciceAdapterTdpf.h"
 #endif
 
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-#endif
-
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -166,10 +162,6 @@ void RunParticipantSPH(const std::string& precice_config_filename, const std::st
         }
         participant.SetOutputDir(sph_out_dir);
     }
-#else
-    cerr << "Chrono was not configured with FSI-SPH support!" << endl;
-    throw("Chrono was not configured with FSI-SPH support");
-#endif
 
     participant.EnableOutput(output);
     participant.EnableVisualization(visualize);
@@ -186,6 +178,10 @@ void RunParticipantSPH(const std::string& precice_config_filename, const std::st
 
     participant.RunSimulation();
     participant.FinalizeSimulation();
+#else
+    cerr << "Chrono was not configured with FSI-SPH support!" << endl;
+    throw("Chrono was not configured with FSI-SPH support");
+#endif
 }
 
 // =============================================================================
@@ -202,10 +198,6 @@ void RunParticipantTDPF(const std::string& precice_config_filename, const std::s
         }
         participant.SetOutputDir(tdpf_out_dir);
     }
-#else
-    cerr << "Chrono was not configured with FSI-TDPF support!" << endl;
-    throw("Chrono was not configured with FSI-TDPF support");
-#endif
 
     participant.EnableOutput(output);
     participant.EnableVisualization(visualize);
@@ -222,6 +214,10 @@ void RunParticipantTDPF(const std::string& precice_config_filename, const std::s
 
     participant.RunSimulation();
     participant.FinalizeSimulation();
+#else
+    cerr << "Chrono was not configured with FSI-TDPF support!" << endl;
+    throw("Chrono was not configured with FSI-TDPF support");
+#endif
 }
 
 // =============================================================================
