@@ -771,6 +771,19 @@ void ChWheelTestRigBase::CreateTerrainCRM() {
     m_terrain = terrain;
 }
 
+const ChAABB& ChWheelTestRigBase::GetWheelActiveDomain() const {
+    return m_wheel_AABB;
+}
+
+const ChAABB& ChWheelTestRigBase::GetTerrainSPHBoundingBox() const {
+    auto crm = std::dynamic_pointer_cast<CRMTerrain>(m_terrain);
+    if (!crm) {
+        std::cerr << "ERROR: GetTerrainSPHBoundingBox called for non-CRM terrain." << std::endl;
+        throw std::runtime_error("ERROR: GetTerrainSPHBoundingBox called for non-CRM terrain.");
+    }
+    return crm->GetSPHBoundingBox();
+}
+
 #endif
 
 // -----------------------------------------------------------------------------

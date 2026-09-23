@@ -307,6 +307,12 @@ class CH_VEHICLE_API ChWheelTestRigBase {
     /// efficient to set CRM active domains for each body individually.
     void SetWheelActiveDomain();
 
+    /// Get the current wheel active domain AABB.
+    const ChAABB& GetWheelActiveDomain() const;
+
+    /// Get the SPH domain for a CRM terrain.
+    const ChAABB& GetTerrainSPHBoundingBox() const;
+
 #endif
 
     /// Set time delay before applying motion functions (default: 0 s).
