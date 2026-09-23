@@ -472,8 +472,15 @@ void ChWheelTestRigBase::CreateMechanism() {
     m_system.AddBody(m_ground_body);
     m_ground_body->SetName("rig_ground");
     m_ground_body->SetFixed(true);
+
+    // Rig colors are muted so that the mechanism reads without competing with the wheel and terrain.
     {
+        auto mat = chrono_types::make_shared<ChVisualMaterial>();
+        mat->SetDiffuseColor({0.42f, 0.40f, 0.37f});
+        mat->SetRoughness(0.55f);
+
         auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim * CH_1_3, dim * CH_1_3);
+        box->AddMaterial(mat);
         m_ground_body->AddVisualShape(box);
     }
 
@@ -483,7 +490,8 @@ void ChWheelTestRigBase::CreateMechanism() {
     m_carrier_body->SetPos(ChVector3d(0, 0, 0));
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.6f, 0.2f, 0.2f});
+        mat->SetDiffuseColor({0.56f, 0.45f, 0.35f});
+        mat->SetRoughness(0.45f);
 
         utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier_body,              //
                                                         ChVector3d(+2 * dim, 0, 0),  //
@@ -502,7 +510,8 @@ void ChWheelTestRigBase::CreateMechanism() {
     m_chassis_body->SetPos(ChVector3d(0, 0, 0));
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.6f, 0.2f});
+        mat->SetDiffuseColor({0.63f, 0.53f, 0.43f});
+        mat->SetRoughness(0.45f);
 
         auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(dim);
         sphere->AddMaterial(mat);
@@ -890,7 +899,8 @@ void ChWheelTestRig::OnCreateMechanism(double dim) {
     m_slip_body->SetInertia(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.2f, 0.6f});
+        mat->SetDiffuseColor({0.35f, 0.32f, 0.29f});
+        mat->SetRoughness(0.6f);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(4 * dim, dim, 4 * dim);
         box->AddMaterial(mat);
