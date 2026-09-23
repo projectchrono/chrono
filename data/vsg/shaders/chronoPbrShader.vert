@@ -88,6 +88,12 @@ out gl_PerVertex{
 #endif
 };
 
+// Chrono colors are authored in sRGB; lighting is computed in linear space
+vec3 sRGBToLinear(vec3 c)
+{
+    return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
+}
+
 #ifdef VSG_BILLBOARD
 mat4 computeBillboadMatrix(vec4 center_eye, float autoScaleDistance)
 {
@@ -185,7 +191,7 @@ void main()
     viewDir = - (mv * vertex).xyz;
     normalDir = (mv * normal).xyz;
 
-    vertexColor = vsg_Color;
+    vertexColor = vec4(sRGBToLinear(vsg_Color.rgb), vsg_Color.a);
 
 #ifdef VSG_TEXTURECOORD_0
     texCoord[0] = vsg_TexCoord0;

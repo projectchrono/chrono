@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono_vsg/utils/ChShaderUtilsVSG.h"
+#include "chrono_vsg/utils/ChDataUtilsVSG.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -235,8 +236,9 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKdTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKdTexture(), options);
-        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
+            // color texture, authored in sRGB: an sRGB format makes the GPU decode it to linear when sampled
+            image->properties.format = vsg::uNorm_to_sRGB(image->properties.format);
             auto sampler = vsg::Sampler::create();
             sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -255,8 +257,9 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKeTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKeTexture(), options);
-        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
+            // color texture, authored in sRGB: an sRGB format makes the GPU decode it to linear when sampled
+            image->properties.format = vsg::uNorm_to_sRGB(image->properties.format);
             auto sampler = vsg::Sampler::create();
             sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -273,8 +276,9 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (!material->GetKsTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKsTexture(), options);
-        // image->properties.format = vsg::sRGB_to_uNorm(image->properties.format);
         if (image) {
+            // color texture, authored in sRGB: an sRGB format makes the GPU decode it to linear when sampled
+            image->properties.format = vsg::uNorm_to_sRGB(image->properties.format);
             auto sampler = vsg::Sampler::create();
             sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -454,13 +458,13 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<ChVisualMaterial> chronoMat) {
     auto pbrMat = vsg::PbrMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
-    float dim = 1.0f;
-    pbrMat->value().baseColorFactor.set(dim * chronoMat->GetDiffuseColor().R, dim * chronoMat->GetDiffuseColor().G, dim * chronoMat->GetDiffuseColor().B, alpha);
-    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G, chronoMat->GetEmissiveColor().B, alpha);
-    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    // Chrono colors are authored in sRGB; the shader computes lighting in linear space
+    pbrMat->value().baseColorFactor = vsg::vec4CHLinear(chronoMat->GetDiffuseColor(), alpha);
+    pbrMat->value().emissiveFactor = vsg::vec4CHLinear(chronoMat->GetEmissiveColor(), alpha);
+    pbrMat->value().specularFactor = vsg::vec4CHLinear(chronoMat->GetSpecularColor(), alpha);
     pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
     pbrMat->value().metallicFactor = chronoMat->GetMetallic();
-    pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G, chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().diffuseFactor = vsg::vec4CHLinear(chronoMat->GetDiffuseColor(), alpha);
     pbrMat->value().alphaMask = alpha;
     pbrMat->value().alphaMaskCutoff = 0.3f;
 
@@ -471,12 +475,13 @@ vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(std:
     auto phongMat = vsg::PhongMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
 
-    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G, chronoMat->GetEmissiveColor().B, alpha);
-    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
-    phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G, chronoMat->GetDiffuseColor().B, alpha);
+    // Chrono colors are authored in sRGB; the shader computes lighting in linear space
+    phongMat->value().emissive = vsg::vec4CHLinear(chronoMat->GetEmissiveColor(), alpha);
+    phongMat->value().specular = vsg::vec4CHLinear(chronoMat->GetSpecularColor(), alpha);
+    phongMat->value().diffuse = vsg::vec4CHLinear(chronoMat->GetDiffuseColor(), alpha);
     phongMat->value().alphaMask = alpha;
     phongMat->value().alphaMaskCutoff = 0.3f;
-    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G, chronoMat->GetAmbientColor().B, alpha);
+    phongMat->value().ambient = vsg::vec4CHLinear(chronoMat->GetAmbientColor(), alpha);
     return phongMat;
 }
 

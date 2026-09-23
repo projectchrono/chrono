@@ -41,6 +41,8 @@ vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename,
         std::cout << "Error: failed to load texture file : " << filename << std::endl;
         return {};
     }
+    // sky image, authored in sRGB: an sRGB format makes the GPU decode it to linear when sampled
+    textureData->properties.format = vsg::uNorm_to_sRGB(textureData->properties.format);
 
     auto vertexShader = vsg::ShaderStage::create(VK_SHADER_STAGE_VERTEX_BIT, "main", skysphere_vert);
     auto fragmentShader = vsg::ShaderStage::create(VK_SHADER_STAGE_FRAGMENT_BIT, "main", skysphere_frag);
@@ -187,6 +189,8 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename,
         std::cout << "Error: failed to load cubemap file : " << filename << std::endl;
         return {};
     }
+    // sky images, authored in sRGB: an sRGB format makes the GPU decode them to linear when sampled
+    data->properties.format = vsg::uNorm_to_sRGB(data->properties.format);
 
     auto vertexShader = vsg::ShaderStage::create(VK_SHADER_STAGE_VERTEX_BIT, "main", skybox_vert);
     auto fragmentShader = vsg::ShaderStage::create(VK_SHADER_STAGE_FRAGMENT_BIT, "main", skybox_frag);
