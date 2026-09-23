@@ -294,7 +294,8 @@ void ChWheelTestRigBase::SetTerrainSCM(const TerrainPatchSize& size,
                                        double Mohr_cohesion,
                                        double Mohr_friction,
                                        double Janosi_shear,
-                                       double grid_spacing) {
+                                       double grid_spacing,
+                                       bool vis_mesh) {
     m_terrain_type = TerrainType::SCM;
     m_terrain_size = size;
 
@@ -305,6 +306,8 @@ void ChWheelTestRigBase::SetTerrainSCM(const TerrainPatchSize& size,
     m_params_SCM.Mohr_friction = Mohr_friction;
     m_params_SCM.Janosi_shear = Janosi_shear;
     m_params_SCM.grid_spacing = grid_spacing;
+
+    m_params_SCM.vis_mesh = vis_mesh;
 }
 
 void ChWheelTestRigBase::SetTerrainGranular(const TerrainPatchSize& size, const TerrainParamsGranular& params) {
@@ -611,7 +614,7 @@ void ChWheelTestRigBase::CreateTerrainSCM() {
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
-    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(&m_system, m_terrain_vis_mesh);
+    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(&m_system, m_params_SCM.vis_mesh);
     terrain->SetReferenceFrame(ChCoordsys<>(location));
     terrain->SetSoilParameters(                                                             //
         m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,            //
