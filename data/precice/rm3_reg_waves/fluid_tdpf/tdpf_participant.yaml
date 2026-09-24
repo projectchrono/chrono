@@ -1,0 +1,67 @@
+chrono-version: 10.0
+type: TDPF
+
+model:  "tdpf_model.yaml"
+solver: "tdpf_solver.yaml"
+
+simulation:
+  # Gravitational acceleration for the fluid phase. Must match the gravity of the solid participant:
+  # the two participants are separate processes and nothing reconciles these values for you.
+  gravity: [0, 0, -9.81]
+
+output:
+  format: NONE
+  mode: FRAMES
+  fps: 20
+
+visualization:
+  # A camera is effectively required here. This file is the top-level specification for a preCICE
+  # participant, so the common visualization settings are read from this object rather than from an
+  # FSI simulation file, and the default camera places the eye at [0, -1, 0] looking at the origin,
+  # i.e. in the z=0 water plane. The camera below matches the one in the monolithic RM3 demo.
+  render_fps: 120
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [58, -65, 18]
+    target: [2, -1, -6]
+  output:
+    save_images: false
+    image_type: "bmp"
+
+  # TDPF-specific settings (water surface visualization). The color range spans one wave amplitude
+  # either side of the mean water level.
+  update_fps: 30
+  color_map:
+    type: HEIGHT
+    map: BLUE
+    min: -1.0
+    max: 1.0
+
+precice_adapter_config:
+  participant_name: Fluid
+
+  # Order must match the 'bodies' list of the solid participant: data is exchanged by mesh vertex
+  # index, and the hydro coefficients are looked up by body index within rm3.h5. The locations are
+  # the initial body reference frames and must agree with those in the solid model.
+  bodies:
+  - name: body1
+    location: [0, 0, -0.72]
+    orientation: [0, 0, 0]
+  - name: body2
+    location: [0, 0, -21.29]
+    orientation: [0, 0, 0]
+
+  interfaces:
+  - mesh_name: FluidMesh
+    mesh_type: RIGID_BODY_REFS
+    write_data:
+    - name: forces
+      type: FORCES
+    - name: torques
+      type: TORQUES
+    read_data:
+    - name: positions
+      type: POSITIONS
+    - name: velocities
+      type: LINEAR_VELOCITIES

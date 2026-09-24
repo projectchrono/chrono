@@ -21,6 +21,12 @@ using namespace chrono;
 %csmethodmodifiers chrono::ChBodyAuxRef::SetRotDt "public new"
 %csmethodmodifiers chrono::ChBodyAuxRef::SetAngVelLocal "public new"
 %csmethodmodifiers chrono::ChBodyAuxRef::SetAngVelParent "public new"
+// SetCoordsys / SetCoordsysDt override ChFrame / ChFrameMoving members. C# has no multiple
+// inheritance, so SWIG drops the ChBodyFrame base and - unlike the setters above, which ChBody
+// re-exposes - these are in no C# base class here: "override" has nothing to override and
+// "new" nothing to hide.
+%csmethodmodifiers chrono::ChBodyAuxRef::SetCoordsys "public"
+%csmethodmodifiers chrono::ChBodyAuxRef::SetCoordsysDt "public"
 #endif             // --------------------------------------------------------------------- CSHARP
 
 /* Parse the header file to generate wrappers */

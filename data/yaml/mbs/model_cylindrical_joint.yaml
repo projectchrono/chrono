@@ -1,0 +1,90 @@
+chrono-version: 10.0
+
+# Pendulum with an end sphere attached to ground through a cylindrical joint.
+#
+# The cylindrical joint is located at the global origin and its axis is the global X direction; it therefore allows
+# the pendulum to translate along the global X axis and rotate about the same axis (i.e., swing in the global Y-Z
+# plane). The pendulum reference frame is located at the joint, with the sphere center 1 m below it (in the pendulum
+# nominal, hanging configuration); the pendulum is set at an initial angle of 45 degrees in the Y-Z plane.
+#
+# The translational degree of freedom of the cylindrical joint is actuated by a linear position motor between ground
+# and the pendulum, driven with a sinusoidal function. The motor guide constraint is FREE, since the relative motion
+# in all directions other than the actuated one is already enforced by the cylindrical joint.
+
+model:
+  name: Cylindrical joint
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "../.."
+
+  bodies:
+    - name: ground
+      location: [0, 0, 0]
+      fixed: true
+      # Visualize the axis of the cylindrical joint (global X direction)
+      visualization:
+        shapes:
+          - type: CYLINDER
+            radius: 0.05
+            length: 3.0
+            location: [0, 0, 0]
+            axis: [1, 0, 0]
+            color: [0.7, 0.7, 0.7]
+
+    - name: pendulum
+      # Body reference frame at the cylindrical joint, rotated by 45 degrees about the global X axis
+      location: [0, 0, 0]
+      orientation: [0, 0, 45]
+      # Mass and inertia of a sphere of radius 0.2 and density 1000
+      mass: 33.5103216
+      com:
+        location: [0, 0, -1]
+        orientation: [0, 0, 0]
+      inertia:
+        moments: [0.53616515, 0.53616515, 0.53616515]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: CYLINDER
+            radius: 0.06
+            length: 0.4
+            location: [0, 0, 0]
+            axis: [1, 0, 0]
+            color: [0.2, 0.6, 0.2]
+          - type: CYLINDER
+            radius: 0.04
+            length: 1.0
+            location: [0, 0, -0.5]
+            axis: [0, 0, 1]
+            color: [0.2, 0.6, 0.2]
+          - type: SPHERE
+            radius: 0.2
+            location: [0, 0, -1]
+            color: [0.6, 0.2, 0.2]
+
+  joints:
+    # Cylindrical joint with translation and rotation along/about the global X axis
+    - name: ground_pendulum
+      type: CYLINDRICAL
+      body1: ground
+      body2: pendulum
+      location: [0, 0, 0]
+      axis: [1, 0, 0]
+
+  motors:
+    # Linear position motor acting along the translation axis of the cylindrical joint
+    - name: ground_pendulum_motor
+      type: LINEAR
+      guide: FREE
+      body1: pendulum
+      body2: ground
+      location: [0, 0, 0]
+      axis: [1, 0, 0]
+      actuation_type: POSITION
+      actuation_function:
+        type: SINE
+        amplitude: 0.5
+        frequency: 0.5
+        phase: 0.0

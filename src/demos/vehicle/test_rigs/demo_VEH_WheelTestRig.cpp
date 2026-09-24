@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demonstration of the single-wheel test rig.
+// Single-wheel test rig using Chrono::Vehicle wheel and tire.
 //
 // =============================================================================
 
@@ -171,7 +171,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChWheelTestRig rig(wheel, tire, *sys);
+    ChWheelTestRig rig(*sys, wheel, tire);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(3000);
@@ -187,9 +187,9 @@ int main() {
 
     if (terrain_type == ChWheelTestRig::TerrainType::RIGID) {
         ChWheelTestRig::TerrainParamsRigid params;
-        params.friction = 0.8f;
-        params.restitution = 0;
-        params.Young_modulus = 2e7f;
+        params.mu = 0.8f;
+        params.cr = 0;
+        params.Y = 2e7f;
 
         rig.SetTerrainRigid(size, params);
     } else {
@@ -210,17 +210,14 @@ int main() {
     // -----------------
 
     // Scenario: driven wheel
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
-    ////rig.Initialize();
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(60.0 * CH_RPM_TO_RAD_S));
 
     // Scenario: pulled wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
-    ////rig.Initialize();
 
     // Scenario: immobilized wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
-    ////rig.Initialize();
 
     // Scenario: prescribe all motion functions
     //   longitudinal speed: 0.2 m/s
@@ -320,12 +317,9 @@ int main() {
         time = sys->GetChTime();
 
         if (time >= render_frame / render_fps) {
-            auto& loc = rig.GetPos();
-            vis->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
-
-            vis->BeginScene();
+            auto loc = rig.GetWheelPos();
+            vis->UpdateCamera(loc + ChVector3d(2.0, 2.5, 1.0), loc + ChVector3d(0, 0.25, -0.25));
             vis->Render();
-            vis->EndScene();
 
 #ifdef CHRONO_POSTPROCESS
             if (blender_output)

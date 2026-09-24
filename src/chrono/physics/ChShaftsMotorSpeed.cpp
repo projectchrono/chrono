@@ -23,7 +23,7 @@ ChShaftsMotorSpeed::ChShaftsMotorSpeed() : motor_load(0) {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    motor_function = chrono_types::make_shared<ChFunctionConst>(1.0);
+    motor_function = chrono_types::make_shared<ChFunctionConst>(0.0);
 
     rot_offset = 0;
 

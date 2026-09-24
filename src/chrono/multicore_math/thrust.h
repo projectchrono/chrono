@@ -30,6 +30,10 @@
 // Thrust related defines
 // -----------------------------------------------------------------------------
 
+#if defined(_LIBCPP_VERSION) && !defined(_VSTD)
+  #define _VSTD std
+#endif
+
 // Always include ChConfig.h *before* any Thrust headers!
 #include "chrono/ChConfig.h"
 #include <thrust/reduce.h>

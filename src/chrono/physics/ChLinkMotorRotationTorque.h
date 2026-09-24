@@ -24,8 +24,8 @@ namespace chrono {
 /// this does not enforce precise motion via constraint.
 /// Example of application:
 /// - mimic a PID controlled system with some feedback (user-defined)
-/// - force that is updated by a cosimulation
-/// - force from a human-in-the-loop setpoint
+/// - force that is updated by a co-simulation
+/// - force from a human-in-the-loop set-point
 /// Use SetTorqueFunction() to change to other torque function (default zero torque).
 
 class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {

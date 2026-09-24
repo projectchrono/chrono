@@ -39,6 +39,9 @@ set(STB_FILES
    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
 )
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${STB_FILES})
+
 #--------------------------------------------------------------
 # Create the executables
 

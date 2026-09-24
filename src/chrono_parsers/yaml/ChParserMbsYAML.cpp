@@ -84,11 +84,11 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserMbsYAML::ChParserMbsYAML(bool verbose) : ChParserYAML(), m_loaded(false), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
+ChParserMbsYAML::ChParserMbsYAML(bool verbose) : ChParserYAML(), m_loaded(false), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1), m_vis_type(VisualizationType::NONE) {
     SetVerbose(verbose);
 }
 
-ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_filename, bool verbose) : ChParserYAML(), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1) {
+ChParserMbsYAML::ChParserMbsYAML(const std::string& yaml_filename, bool verbose) : ChParserYAML(), m_solver_loaded(false), m_model_loaded(false), m_crt_instance(-1), m_vis_type(VisualizationType::NONE) {
     SetVerbose(verbose);
     LoadFile(yaml_filename);
 }
@@ -182,6 +182,17 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
             m_sim.enforce_realtime = sim["enforce_realtime"].as<bool>();
         if (sim["gravity"])
             m_sim.gravity = ReadVector(sim["gravity"]);
+        if (sim["num_threads"]) {
+            auto nt = sim["num_threads"];
+            if (nt["chrono"])
+                m_sim.num_threads_chrono = nt["chrono"].as<int>();
+            if (nt["collision"])
+                m_sim.num_threads_collision = nt["collision"].as<int>();
+            if (nt["eigen"])
+                m_sim.num_threads_eigen = nt["eigen"].as<int>();
+            if (nt["pardiso"])
+                m_sim.num_threads_pardiso = nt["pardiso"].as<int>();
+        }
     }
 
     // MBS-specific run-time visualization settings (optional)
@@ -189,6 +200,11 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
         if (yaml["visualization"]["type"])
             m_vis_type = ReadVisualizationType(yaml["visualization"]["type"]);
     }
+
+    // Run-time visualization is enabled only if a body visualization type other than NONE was specified.
+    // Note that this overrides the setting inferred in ChParserYAML::LoadSimData from the mere presence
+    // of a "visualization" node.
+    m_vis_settings.render = (m_vis_type != VisualizationType::NONE);
 }
 
 void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
@@ -245,6 +261,11 @@ void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
         ChAssertAlways(slvr["type"]);
         m_sim.solver.type = ReadSolverType(slvr["type"]);
         switch (m_sim.solver.type) {
+            case ChSolver::Type::PARDISO_MKL:
+            case ChSolver::Type::MUMPS:
+                if (slvr["lock_sparsity_pattern"])
+                    m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
+                break;
             case ChSolver::Type::SPARSE_LU:
             case ChSolver::Type::SPARSE_QR:
                 if (slvr["lock_sparsity_pattern"])
@@ -2135,6 +2156,8 @@ ChJoint::Type ChParserMbsYAML::ReadJointType(const YAML::Node& a) {
         return ChJoint::Type::SPHERICAL;
     } else if (type == "PRISMATIC") {
         return ChJoint::Type::PRISMATIC;
+    } else if (type == "CYLINDRICAL") {
+        return ChJoint::Type::CYLINDRICAL;
     } else if (type == "UNIVERSAL") {
         return ChJoint::Type::UNIVERSAL;
     } else {
@@ -2153,7 +2176,8 @@ ChFramed ChParserMbsYAML::ReadJointFrame(const YAML::Node& a) {
             rot = QUNIT;
             break;
         case ChJoint::Type::REVOLUTE:
-        case ChJoint::Type::PRISMATIC: {
+        case ChJoint::Type::PRISMATIC:
+        case ChJoint::Type::CYLINDRICAL: {
             ChAssertAlways(a["axis"]);
             auto axis = ReadVector(a["axis"]);
             axis.Normalize();

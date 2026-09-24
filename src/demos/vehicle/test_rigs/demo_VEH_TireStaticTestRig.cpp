@@ -225,7 +225,6 @@ int main() {
     vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->SetWindowSize(1200, 600);
     vis->SetWindowTitle("Tire Test Rig");
-    vis->SetBackgroundColor(ChColor(0.4f, 0.5f, 0.6f));
     vis->AddCamera(ChVector3d(1.0, 2.5, 1.0), rig.GetWheelPos());
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();

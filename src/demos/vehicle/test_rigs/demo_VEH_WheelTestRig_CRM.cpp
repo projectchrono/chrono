@@ -130,13 +130,12 @@ int main() {
 
     sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
     SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);
-    tire->SetStepsize(step_size);
 
     // -----------------------------
     // Create and configure test rig
     // -----------------------------
 
-    ChWheelTestRig rig(wheel, tire, *sys);
+    ChWheelTestRig rig(*sys, wheel, tire);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(2500);
@@ -167,17 +166,14 @@ int main() {
     // -----------------
 
     // Scenario: driven wheel
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
-    ////rig.Initialize();
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(60.0 * CH_RPM_TO_RAD_S));
 
     // Scenario: pulled wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
-    ////rig.Initialize();
 
     // Scenario: imobilized wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
-    ////rig.Initialize();
 
     // Scenario: prescribe all motion functions
     //   longitudinal speed: 0.2 m/s

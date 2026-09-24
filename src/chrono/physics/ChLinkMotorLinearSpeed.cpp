@@ -23,7 +23,7 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    this->c_z = true;
+    c_z = true;
     SetupLinkMask();
 
     m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
@@ -53,24 +53,24 @@ void ChLinkMotorLinearSpeed::Update(double time, UpdateFlags update_flags) {
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
     // with d_error = z_pos_1 - z_pos_2, and d_setpoint = x(t)
-    if (this->avoid_position_drift)
-        C(m_actuated_idx) = this->mpos - aux_dt - this->pos_offset;
+    if (avoid_position_drift)
+        C(m_actuated_idx) = mpos - aux_dt - pos_offset;
     else
         C(m_actuated_idx) = 0.0;
 }
 
 void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c, const double c_vel) {
-    double mCt = -m_func->GetVal(this->GetChTime());
+    double mCt = -m_func->GetVal(GetChTime());
     if (mask.GetConstraint(m_actuated_idx).IsActive()) {
         Qc(off_L + m_actuated_idx) += c * mCt;
     }
 }
 
 void ChLinkMotorLinearSpeed::ConstraintsBiLoad_Ct(double factor) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
-    double mCt = -m_func->GetVal(this->GetChTime());
+    double mCt = -m_func->GetVal(GetChTime());
     if (mask.GetConstraint(m_actuated_idx).IsActive()) {
         mask.GetConstraint(m_actuated_idx).SetRightHandSide(mask.GetConstraint(m_actuated_idx).GetRightHandSide() + factor * mCt);
     }
@@ -94,7 +94,7 @@ void ChLinkMotorLinearSpeed::IntStateScatter(const unsigned int off_x,  // offse
                                              const unsigned int off_v,  // offset in v state vector
                                              const ChStateDelta& v,     // state vector, speed part
                                              const double T,            // time
-                                             UpdateFlags update_flags    // perform complete update?
+                                             UpdateFlags update_flags   // perform complete update?
 ) {
     // aux = x(off_x);
     aux_dt = v(off_v);
@@ -114,7 +114,7 @@ void ChLinkMotorLinearSpeed::IntLoadResidual_F(const unsigned int off,  // offse
                                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                                const double c           // a scaling factor
 ) {
-    double imposed_speed = m_func->GetVal(this->GetChTime());
+    double imposed_speed = m_func->GetVal(GetChTime());
     R(off) += imposed_speed * c;
 }
 
@@ -126,10 +126,7 @@ void ChLinkMotorLinearSpeed::IntLoadResidual_Mv(const unsigned int off,      // 
     R(off) += c * 1.0 * w(off);
 }
 
-void ChLinkMotorLinearSpeed::IntLoadLumpedMass_Md(const unsigned int off,
-                                                  ChVectorDynamic<>& Md,
-                                                  double& err,
-                                                  const double c) {
+void ChLinkMotorLinearSpeed::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     Md(off) += c * 1.0;
 }
 
@@ -142,8 +139,8 @@ void ChLinkMotorLinearSpeed::IntToDescriptor(const unsigned int off_v,  // offse
     // inherit parent
     ChLinkMotorLinear::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
-    this->variable.State()(0, 0) = v(off_v);
-    this->variable.Force()(0, 0) = R(off_v);
+    variable.State()(0, 0) = v(off_v);
+    variable.Force()(0, 0) = R(off_v);
 }
 
 void ChLinkMotorLinearSpeed::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -153,7 +150,7 @@ void ChLinkMotorLinearSpeed::IntFromDescriptor(const unsigned int off_v,  // off
     // inherit parent
     ChLinkMotorLinear::IntFromDescriptor(off_v, v, off_L, L);
 
-    v(off_v) = this->variable.State()(0, 0);
+    v(off_v) = variable.State()(0, 0);
 }
 
 ////
@@ -168,7 +165,7 @@ void ChLinkMotorLinearSpeed::VariablesFbReset() {
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbLoadForces(double factor) {
-    double imposed_speed = m_func->GetVal(this->GetChTime());
+    double imposed_speed = m_func->GetVal(GetChTime());
     variable.Force()(0) += imposed_speed * factor;
 }
 

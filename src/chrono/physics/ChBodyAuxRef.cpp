@@ -25,7 +25,7 @@ ChBodyAuxRef::ChBodyAuxRef(const ChBodyAuxRef& other) : ChBody(other) {
     ref_to_abs = other.ref_to_abs;
 }
 
-void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
+void ChBodyAuxRef::SetFrameCOMToRef(const ChFramed& frame) {
     ChFrameMoving<> old_com_to_abs = *this;
 
     ref_to_abs = TransformLocalToParent(ref_to_com);
@@ -48,13 +48,13 @@ void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
     }
 }
 
-void ChBodyAuxRef::SetFrameRefToAbs(const ChFrame<>& frame) {
+void ChBodyAuxRef::SetFrameRefToAbs(const ChFramed& frame) {
     auto cog_to_abs = frame.TransformLocalToParent(ref_to_com.GetInverse());
     ChBody::SetCoordsys(cog_to_abs.GetCoordsys());
     ref_to_abs = frame;
 }
 
-void ChBodyAuxRef::SetFrameCOMToAbs(const ChFrame<>& frame) {
+void ChBodyAuxRef::SetFrameCOMToAbs(const ChFramed& frame) {
     ChBody::SetCoordsys(frame.GetCoordsys());
     ref_to_abs = frame.TransformLocalToParent(ref_to_com);
 }
@@ -81,7 +81,7 @@ void ChBodyAuxRef::SetRot(const ChQuaternion<>& q) {
     SetFrameCOMToAbs(ChFramed(GetPos(), q));
 }
 
-void ChBodyAuxRef::SetCoordsys(const ChCoordsys<>& C) {
+void ChBodyAuxRef::SetCoordsys(const ChCoordsysd& C) {
     SetFrameCOMToAbs(ChFramed(C));
 }
 
@@ -117,7 +117,7 @@ void ChBodyAuxRef::SetAngVelParent(const ChVector3<>& w) {
     ref_to_abs.SetRotDt(GetRotDt());
 }
 
-void ChBodyAuxRef::SetCoordsysDt(const ChCoordsys<>& csys_dt) {
+void ChBodyAuxRef::SetCoordsysDt(const ChCoordsysd& csys_dt) {
     ChBody::SetCoordsysDt(csys_dt);
     ref_to_abs.SetPosDt(GetPosDt());
     ref_to_abs.SetRotDt(GetRotDt());

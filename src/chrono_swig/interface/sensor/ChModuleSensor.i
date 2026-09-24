@@ -31,6 +31,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i"
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -233,6 +234,9 @@ using namespace chrono::sensor;
 %include "ChNoiseModel.i"
 %include "ChSensorBuffer.i"
 %include "ChFilter.i"
+#ifdef CHRONO_HAS_OPTIX
+  %include "ChScene.i"
+#endif
 %include "ChSensor.i"
 %include "ChGPSSensor.i"
 %include "ChIMUSensor.i"

@@ -92,6 +92,9 @@ if(NOT VSGXCHANGE_STATIC)
         ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
     )
     source_group("impl//stb" FILES ${CE_VSG_STB_FILES})
+
+    # Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+    ch_disable_warnings_on_sources(${CE_VSG_STB_FILES})
 else()
     set(CE_VSG_STB_FILES "")
 endif()

@@ -88,6 +88,9 @@ class CH_SENSOR_API ChFilterPhysCameraNoise : public ChFilter {
 		std::shared_ptr<curandState_t> m_rng_shot;	// cuda random number generator for shot and dark current noises
 		std::shared_ptr<curandState_t> m_rng_FPN;	// cuda random number generator for read and FPN noises
 		CUstream m_cuda_stream;								// reference to the cuda stream
+#elif defined(CHRONO_HAS_METAL_RT)
+        unsigned int m_shot_seed = 0;  // seed of the shot/dark-current noise stream, derived in
+                                       // Initialize from ChSensorManager::GetDeterministicSeed
 #endif
 		std::shared_ptr<SensorDeviceHalf4Buffer> m_in_out;	// input/output buffer for RGBA(Half4)
 };

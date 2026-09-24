@@ -32,6 +32,7 @@
 #include <thrust/functional.h>
 #include <thrust/transform.h>
 #include <thrust/partition.h>
+#include <thrust/scatter.h>
 #include <thrust/zip_function.h>
 
 #include "chrono/utils/ChUtils.h"
@@ -382,6 +383,7 @@ void FsiDataManager::ResetData() {
     thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), zero4);
     thrust::fill(derivVelRhoOriginalD.begin(), derivVelRhoOriginalD.end(), zero4);
     thrust::fill(freeSurfaceIdD.begin(), freeSurfaceIdD.end(), 0);
+    thrust::fill(posDivergenceD.begin(), posDivergenceD.end(), Real(0));
 
     thrust::fill(vel_XSPH_D.begin(), vel_XSPH_D.end(), zero3);
 
@@ -427,6 +429,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         sortedSphMarkers1_D->tauXyXzYzD.reserve(new_capacity);
         sortedSphMarkers1_D->pcEvSvD.reserve(new_capacity);
         freeSurfaceIdD.reserve(new_capacity);
+        posDivergenceD.reserve(new_capacity);
         vel_XSPH_D.reserve(new_capacity);
         courantViscousTimeStepD.reserve(new_capacity);
         accelerationTimeStepD.reserve(new_capacity);
@@ -460,6 +463,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
     derivTauXxYyZzD.resize(numExtended);
     derivTauXyXzYzD.resize(numExtended);
     freeSurfaceIdD.resize(numExtended);
+    posDivergenceD.resize(numExtended);
     vel_XSPH_D.resize(numExtended);
     courantViscousTimeStepD.resize(numExtended);
     accelerationTimeStepD.resize(numExtended);
@@ -483,6 +487,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         derivTauXxYyZzD.shrink_to_fit();
         derivTauXyXzYzD.shrink_to_fit();
         freeSurfaceIdD.shrink_to_fit();
+        posDivergenceD.shrink_to_fit();
         vel_XSPH_D.shrink_to_fit();
         courantViscousTimeStepD.shrink_to_fit();
         accelerationTimeStepD.shrink_to_fit();
@@ -756,6 +761,33 @@ std::vector<Real3> FsiDataManager::GetForces() {
     std::transform(frc_H.begin(), frc_H.end(), frc_H.begin(), scale_functor(paramsH->markerMass));
     return frc_H;
 }
+
+// Predicate selecting the markers whose free-surface flag is meaningful: active fluid particles.
+// Marker state is provided as a (activity identifier, rhoPresMu) tuple, both in sorted order.
+struct report_free_surface_functor {
+    __host__ __device__ bool operator()(const thrust::tuple<int32_t, Real4>& state) const { return thrust::get<0>(state) == 1 && IsFluidParticle(thrust::get<1>(state).w); }
+};
+
+std::vector<int> FsiDataManager::GetFreeSurfaceFlags() {
+    // The flags are calculated and stored in sorted order; scatter them back to original marker order through the
+    // sort map. Markers that are filtered out keep the initial zero: BCE markers, inactive particles, and any
+    // marker beyond the extended set.
+    thrust::device_vector<int> flags_D(countersH->numAllMarkers, 0);
+
+    auto marker_state = thrust::make_zip_iterator(thrust::make_tuple(activityIdentifierSortedD.begin(), sortedSphMarkers2_D->rhoPresMuD.begin()));
+
+    thrust::scatter_if(freeSurfaceIdD.begin(), freeSurfaceIdD.begin() + countersH->numExtendedParticles,  //
+                       markersProximity_D->gridMarkerIndexD.begin(),                                      //
+                       thrust::make_transform_iterator(marker_state, report_free_surface_functor()),      //
+                       flags_D.begin());                                                                  //
+
+    // Copy to output
+    std::vector<int> flags_H(flags_D.size());
+    thrust::copy(flags_D.begin(), flags_D.end(), flags_H.begin());
+    return flags_H;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<Real3> FsiDataManager::GetProperties() {
     auto& prop4_D = sphMarkers_D->rhoPresMuD;
@@ -1035,6 +1067,7 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
     total_bytes += numNeighborsPerPart.capacity() * sizeof(uint);
     total_bytes += neighborList.capacity() * sizeof(uint);
     total_bytes += freeSurfaceIdD.capacity() * sizeof(uint);
+    total_bytes += posDivergenceD.capacity() * sizeof(Real);
 
     // BCE data
     total_bytes += rigid_BCEcoords_D.capacity() * sizeof(Real3);

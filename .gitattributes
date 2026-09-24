@@ -1,1 +1,20 @@
+# Line-ending policy
+#
+# Everything git detects as text is stored in the repository with LF and checked
+# out with the platform's native endings. This relies on git's content-based
+# detection rather than an extension whitelist, which keeps it correct for file
+# types nobody has thought to list yet - and for *.obj, which in this repository
+# is a Wavefront mesh (text) rather than a compiler object file (binary).
+#
+# Without this, a file once committed with CRLF stays that way, and the next
+# contributor whose core.autocrlf normalizes it produces a diff touching every
+# line of the file (ChPac02Tire.cpp was one such case).
+* text=auto
+
+# Files whose endings must be fixed regardless of the checkout platform.
+*.sh   text eol=lf
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
 data/** -linguist-detectable

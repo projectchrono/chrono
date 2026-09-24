@@ -23,6 +23,11 @@ boundary_conditions:
    num_bce_layers: 4
 
 integration:
+   # The step size for the SPH solver is set at 1e-4 for stability reasons.
+   # If the preCICE meta step is larger than that, the fluid solver will take
+   # multiple consecutive steps with the same MBS state. For more accurate
+   # (but slightly less efficient) co-simulation, consider reducing the preCICE
+   # meta step to the same value as the SPH fluid solver step size.
    integration_scheme: RK2
    time_step: 1e-4
    use_variable_time_step: false

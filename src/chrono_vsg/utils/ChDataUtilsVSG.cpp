@@ -12,6 +12,8 @@
 // Radu Serban
 // =============================================================================
 
+#include <vsg/utils/CoordinateSpace.h>
+
 #include "chrono_vsg/utils/ChDataUtilsVSG.h"
 
 namespace vsg {
@@ -54,13 +56,26 @@ vec4CH::vec4CH(const chrono::ChVector3d& vec, double w) {
     x = static_cast<float>(vec.x());
     y = static_cast<float>(vec.y());
     z = static_cast<float>(vec.z());
-    w = static_cast<float>(w);
+    this->w = static_cast<float>(w);  // the parameter shadows the member
 }
 
 vec4CH::vec4CH(const chrono::ChColor& col, float a) {
     x = col.R;
     y = col.G;
     z = col.B;
+    w = a;
+}
+
+vec3CHLinear::vec3CHLinear(const chrono::ChColor& col) {
+    x = sRGB_to_linear(col.R);
+    y = sRGB_to_linear(col.G);
+    z = sRGB_to_linear(col.B);
+}
+
+vec4CHLinear::vec4CHLinear(const chrono::ChColor& col, float a) {
+    x = sRGB_to_linear(col.R);
+    y = sRGB_to_linear(col.G);
+    z = sRGB_to_linear(col.B);
     w = a;
 }
 

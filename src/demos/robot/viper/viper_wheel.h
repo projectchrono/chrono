@@ -15,7 +15,7 @@
 /// Viper wheel for use in a ChWheelTestRig.
 class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
   public:
-    ViperRigWheel(chrono::ChSystem& system);
+    ViperRigWheel(chrono::ChSystem& system, bool attached_to_suspension);
 
     void SetRadius(double radius) { m_radius = radius; }
     void SetWidth(double width) { m_width = width; }
@@ -28,9 +28,12 @@ class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
     virtual double GetRadius() const override { return m_radius + m_grouser_height; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetMass() const override { return m_mass; }
+
     virtual std::shared_ptr<chrono::ChBody> GetHub() const override { return m_wheel; }
 
     virtual void Initialize(const chrono::ChFramed& frame, bool fixed, double step_size, chrono::VisualizationType vis_type) override {
+        ChAssertAlways(!attached_to_suspension);
+
         m_wheel->SetPos(frame.GetPos());
         m_wheel->SetRot(frame.GetRot());
         m_wheel->SetFixed(fixed);
@@ -63,8 +66,8 @@ class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
 
 // -----------------------------------------------------------------------------
 
-ViperRigWheel::ViperRigWheel(chrono::ChSystem& system)
-    : chrono::vehicle::ChWheelTestRig::WheelAssembly(system), m_radius(0.225), m_width(0.2), m_grouser_height(0.01), m_grouser_width(0.005), m_num_grousers(24) {
+ViperRigWheel::ViperRigWheel(chrono::ChSystem& system, bool attached_to_suspension)
+    : chrono::vehicle::ChWheelTestRig::WheelAssembly(system, attached_to_suspension), m_radius(0.225), m_width(0.2), m_grouser_height(0.01), m_grouser_width(0.005), m_num_grousers(24) {
     // Create trimesh
     std::string mesh_filename = chrono::GetChronoDataFile("robot/viper/obj/nasa_viper_wheel.obj");
 

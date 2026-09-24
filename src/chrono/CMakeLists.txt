@@ -1285,9 +1285,11 @@ set(Chrono_inputoutput_SOURCES
 )
 if(HDF5_FOUND)
     set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChUtilsHDF5.h
         input_output/ChOutputHDF5.h
     )
     set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChUtilsHDF5.cpp
         input_output/ChOutputHDF5.cpp
     )
 endif()
@@ -1447,24 +1449,20 @@ set(Chrono_FILES
 
 # -------------------------------------------------------------------------------------------------
 # Disable all warnings from external code
+#
+# See cmake/ChronoWarnings.cmake for how this is done on each compiler. Note that
+# Chrono_collision_bullet_SOURCES also holds the four Chrono-authored Bullet
+# interface files (ChCollision*Bullet.cpp); they are silenced together with the
+# Bullet sources they wrap, as they were before.
 # -------------------------------------------------------------------------------------------------
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-elseif(MSVC)
-  set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-else()
-  set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-endif()
+ch_disable_warnings_on_sources(
+    ${Chrono_collision_bullet_SOURCES}
+    ${Chrono_collision_convexdecompHACDv2_FILES}
+    ${Chrono_collision_convexdecompVHACD_FILES}
+    ${Chrono_tiny_obj_FILES}
+    ${Chrono_libstl_FILES}
+)
 
 # -------------------------------------------------------------------------------------------------
 # Add the Chrono_core library to the project
@@ -1492,16 +1490,28 @@ endif()
 # TODO DARIOM: CH_INCLUDES_BUILD can be removed, used only here now
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src")
 list(APPEND CH_INCLUDES_BUILD "${PROJECT_BINARY_DIR}")
-list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet" )
-list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
 
 list(APPEND CH_INCLUDES_INSTALL "include")
-list(APPEND CH_INCLUDES_INSTALL "include/chrono/collision/bullet")
-list(APPEND CH_INCLUDES_INSTALL "include/chrono_thirdparty/HACDv2")
+
+# Include directories that resolve third-party headers only. Kept separate from
+# the ones above so they can be marked SYSTEM: warnings raised inside these
+# headers are then not reported, neither here nor in projects consuming Chrono.
+list(APPEND CH_EXTERNAL_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet")
+list(APPEND CH_EXTERNAL_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+list(APPEND CH_EXTERNAL_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
+
+list(APPEND CH_EXTERNAL_INCLUDES_INSTALL "include/chrono/collision/bullet")
+list(APPEND CH_EXTERNAL_INCLUDES_INSTALL "include/chrono_thirdparty")
+list(APPEND CH_EXTERNAL_INCLUDES_INSTALL "include/chrono_thirdparty/HACDv2")
 
 target_include_directories(Chrono_core PUBLIC
   "$<BUILD_INTERFACE:${CH_INCLUDES_BUILD}>"
   "$<INSTALL_INTERFACE:${CH_INCLUDES_INSTALL}>"
+)
+
+target_include_directories(Chrono_core ${CH_SYSTEM_INCLUDE_KEYWORD} PUBLIC
+  "$<BUILD_INTERFACE:${CH_EXTERNAL_INCLUDES_BUILD}>"
+  "$<INSTALL_INTERFACE:${CH_EXTERNAL_INCLUDES_INSTALL}>"
 )
 
 target_link_libraries(Chrono_core PUBLIC Eigen3::Eigen)
@@ -1645,9 +1655,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
-endif()
+# NOTE: do not add -Wl,-no_compact_unwind here. On arm64 macOS clang emits only
+# __compact_unwind for nearly every function, so suppressing the linker's __unwind_info leaves
+# each library with landing-pad tables (__gcc_except_tab) but no unwind tables. Every exception
+# thrown by Chrono then terminates the process instead of propagating: the unwinder cannot walk
+# out of the throwing frame, so not even catch(...) in the caller runs, and PyChrono aborts
+# instead of raising. x86_64 objects also carry __eh_frame, so Intel Macs never showed this.
 
 # Compiler warning level and disabled warnings
 

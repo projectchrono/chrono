@@ -22,6 +22,8 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #include "chrono_models/vehicle/marder/Marder.h"
 
@@ -42,8 +44,15 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
+// Mode: interactive or prescribed
+enum class ControlMode {INTERACTIVE, PRESCRIBED};
+ControlMode control_mode = ControlMode::PRESCRIBED;
+
+// Maximum simulation time (PRESCRIBED mode only)
+double time_end = 10;
+
 // Initial vehicle position
-ChVector3d initLoc(-40, 0, 0.9);
+ChVector3d initLoc(-90, 0, 0.9);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -54,8 +63,8 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
-double terrainLength = 100.0;  // size in X direction
-double terrainWidth = 100.0;   // size in Y direction
+double terrainLength = 200.0;  // size in X direction
+double terrainWidth = 50.0;   // size in Y direction
 
 // Simulation step size
 double step_size = 5e-4;
@@ -63,8 +72,8 @@ double step_size = 5e-4;
 // Use HHT + MKL
 bool use_mkl = false;
 
-// Time interval between two render frames
-double render_step_size = 1.0 / 120;  // FPS = 120
+// Render frequency (FPS)
+double render_fps = 60;
 
 // Point on chassis tracked by the camera
 ChVector3d trackPoint(0.0, 0.0, 0.0);
@@ -77,7 +86,7 @@ bool dbg_output = false;
 // =============================================================================
 
 // Forward declarations
-void AddFixedObstacles(ChSystem* system);
+void AddFixedObstacles(ChSystem* system, const ChVector3d& loc);
 void AddFallingObjects(ChSystem* system);
 
 // =============================================================================
@@ -109,20 +118,15 @@ int main(int argc, char* argv[]) {
     ////marder.SetChassisFixed(true);
     ////marder.CreateTrack(false);
 
-    // Control steering type (enable crossdrive capability)
-    ////marder.GetDriveline()->SetGyrationMode(true);
-
     // Change collision detection system
     ////marder.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
-    // Change collision shape for road wheels, idlers, and rollers (true: cylinder; false: cylshell)
-    ////marder.SetWheelCollisionType(false, false, false);
-
-    // ------------------------------------------------
     // Initialize the vehicle at the specified position
-    // ------------------------------------------------
     marder.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     marder.Initialize();
+
+    // Control steering type (enable cross-drive capability)
+    ////marder.GetDriveline()->SetGyrationMode(true);
 
     // Set visualization type for vehicle components.
     VisualizationType track_vis = VisualizationType::MESH;
@@ -191,30 +195,46 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
-    patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    patch->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 20, 20);
+    patch->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 100, 50);
     terrain.Initialize();
 
     // --------------------------------
     // Add fixed and/or falling objects
     // --------------------------------
 
-    ////AddFixedObstacles(vehicle.GetSystem());
+    AddFixedObstacles(vehicle.GetSystem(), ChVector3d(-87, 0, 0));
+    AddFixedObstacles(vehicle.GetSystem(), ChVector3d(-47, 0, 0));
     ////AddFallingObjects(vehicle.GetSystem());
 
     // ------------------------
     // Create the driver system
     // ------------------------
 
-    ChInteractiveDriver driver(vehicle);
-    double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
-    driver.SetGains(2, 5, 5);
-    driver.Initialize();
+    std::shared_ptr<ChDriver> driver;
+    
+    switch (control_mode) {
+        case ControlMode::INTERACTIVE: {
+            auto driver_interactive = chrono_types::make_shared<ChInteractiveDriver>(vehicle);
+            driver_interactive->SetSteeringDelta(1 / 50.0);
+            driver_interactive->SetThrottleDelta(1 / 50.0);
+            driver_interactive->SetBrakingDelta(1 / 50.0);
+            driver_interactive->SetGains(2, 5, 5);
+            driver = driver_interactive;
+            break;
+        }
+        case ControlMode::PRESCRIBED: {
+            double target_speed = 10;
+            auto path = StraightLinePath(initLoc + ChVector3d(-4, 0, -0.5), initLoc + ChVector3d(150, 0, -0.5), 4);
+            auto driver_path = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
+            driver_path->GetSteeringController().SetLookAheadDistance(4.0);
+            driver_path->GetSteeringController().SetGains(1.0, 0, 0);
+            driver_path->GetSpeedController().SetGains(0.6, 0.05, 0);
+            driver = driver_path;
+            break;
+        }
+    }
+
+    driver->Initialize();
 
     // -----------------------------------------
     // Create the vehicle run-time visualization
@@ -223,10 +243,12 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
     vis->SetWindowTitle("Marder Vehicle Demo");
     vis->SetWindowSize(1280, 800);
-    vis->SetChaseCamera(trackPoint, 12.0, 0.75);
+    vis->SetChaseCamera(trackPoint, 8.0, 0.75);
     vis->AttachVehicle(&vehicle);
-    vis->AttachDriver(&driver);
+    vis->AttachDriver(driver.get());
     vis->EnableSkyTexture(SkyMode::DOME);
+    vis->EnableShadows();
+    vis->SetLightDirection(5*CH_PI/4, CH_PI/4);
     vis->Initialize();
 
     // -----------------
@@ -319,15 +341,51 @@ int main(int argc, char* argv[]) {
     std::cout << "\n============ Vehicle subsystems ============" << std::endl;
     vehicle.LogSubsystemTypes();
 
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    // Initialize simulation frame counter
+    // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
 
     vehicle.EnableRealtime(true);
-    while (vis->Run()) {
+    while (true) {
+        double time = vehicle.GetChTime();
+
+        if (control_mode == ControlMode::PRESCRIBED) {
+            if (time >= time_end)
+                break;
+
+            if (time >= time_end / 2) {
+                uint16_t vtag = vehicle.GetVehicleTag();
+                int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::CHASSIS);
+                vis->SetBodyObjVisibility(false, tag);
+            }
+
+            const auto& loc = vehicle.GetPos() + vehicle.GetRot().Rotate(ChVector3d(-5, 0, 0));
+            ChVector3d cam_loc = loc + ChVector3d(-6, -4, 1.75);
+            ChVector3d cam_point = loc;
+            vis->UpdateCamera(cam_loc, cam_point);
+        }
+
+        // Render and save visualization frames
+        if (time >= render_frame / render_fps) {
+            if (!vis->Run())
+                break;
+
+            vis->Render();
+
+            if (povray_output) {
+                std::ostringstream filename;
+                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
+                utils::WriteVisualizationAssets(marder.GetSystem(), filename.str());
+            }
+            if (img_output && step_number > 200) {
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
+            }
+
+            render_frame++;
+        }
+
         // Debugging output
         if (dbg_output) {
             auto track_L = vehicle.GetTrackAssembly(LEFT);
@@ -365,38 +423,17 @@ int main(int argc, char* argv[]) {
             cout << endl;
         }
 
-        if (step_number % render_steps == 0) {
-            // Render scene
-            vis->BeginScene();
-            vis->Render();
-            vis->EndScene();
-
-            // Zero-pad frame numbers in file names for postprocessing
-            if (povray_output) {
-                std::ostringstream filename;
-                filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
-                utils::WriteVisualizationAssets(marder.GetSystem(), filename.str());
-            }
-            if (img_output && step_number > 200) {
-                std::ostringstream filename;
-                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
-                vis->WriteImageToFile(filename.str());
-            }
-            render_frame++;
-        }
-
         // Current driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetChTime();
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         terrain.Synchronize(time);
         marder.Synchronize(time, driver_inputs);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         terrain.Advance(step_size);
         marder.Advance(step_size);
         vis->Advance(step_size);
@@ -417,12 +454,12 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 
-void AddFixedObstacles(ChSystem* system) {
-    double radius = 2.2;
+void AddFixedObstacles(ChSystem* system, const ChVector3d& loc) {
+    double radius = 0.5;
     double length = 6;
 
     auto obstacle = chrono_types::make_shared<ChBody>();
-    obstacle->SetPos(ChVector3d(10, 0, -1.8));
+    obstacle->SetPos(loc + ChVector3d(0, 0, -0.4));
     obstacle->SetFixed(true);
     obstacle->EnableCollision(true);
 

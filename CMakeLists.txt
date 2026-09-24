@@ -58,7 +58,7 @@ set(CH_VERSION 0x00100000)
 #-----------------------------------------------------------------------------
 # Detect operating system and processor for host and target
 #-----------------------------------------------------------------------------
-message(STATUS "We are on a ${CMAKE_HOST_SYSTEM_NAME} system")
+message(STATUS "We are on a ${CMAKE_HOST_SYSTEM_NAME} system. Version: ${CMAKE_HOST_SYSTEM_VERSION}")
 message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 message(STATUS "Building for a ${CMAKE_SYSTEM_NAME} system")
 message(STATUS "The target processor is ${CMAKE_SYSTEM_PROCESSOR}")
@@ -74,6 +74,11 @@ get_git_head_revision(GIT_REFSPEC VCS_REVISION)
 if("${VCS_REVISION}" MATCHES ".*-NOTFOUND$")
     set(VCS_REVISION "")
 endif()
+
+# Utilities used throughout the project to keep warnings coming from third-party
+# code (bundled sources under src/chrono_thirdparty/, the embedded Bullet
+# collision library, and external dependency headers) out of the build output.
+include(ChronoWarnings)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

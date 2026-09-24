@@ -16,12 +16,12 @@
 
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
-#include <limits>
+    #include <algorithm>
+    #include <cmath>
+    #include <cstdint>
+    #include <limits>
 
 namespace chrono {
 namespace sensor {

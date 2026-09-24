@@ -12,16 +12,13 @@
 // Authors: Asher Elmquist
 // =============================================================================
 //
-// RT kernels for tracing and measureing depth for a scanning TOF lidar
+// RT kernels for tracing and measuring depth for a scanning TOF lidar
 //
 // =============================================================================
 
-#ifndef LIDAR_RAYGEN_CU
-#define LIDAR_RAYGEN_CU
-
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 
-/// Default of LiDAR per ray data (PRD)
+// Default of LiDAR per ray data (PRD)
 __device__ __inline__ PerRayData_lidar DefaultLidarPRD() {
     PerRayData_lidar prd = {
         0.f,  // default range
@@ -38,8 +35,8 @@ extern "C" __global__ void __raygen__lidar_single() {
     const uint3 screen = optixGetLaunchDimensions();
     const unsigned int image_index = screen.x * idx.y + idx.x;
 
-    float phi = (idx.y / (float)(max(1,screen.y-1))) * (lidar.max_vert_angle -  lidar.min_vert_angle) +  lidar.min_vert_angle;
-    float theta = (idx.x / (float)(max(1,screen.x-1))) * lidar.hFOV - lidar.hFOV / 2.;
+    float phi = (idx.y / (float)(max(1, screen.y - 1))) * (lidar.max_vert_angle - lidar.min_vert_angle) + lidar.min_vert_angle;
+    float theta = (idx.x / (float)(max(1, screen.x - 1))) * lidar.hFOV - lidar.hFOV / 2.;
 
     float xy_proj = cos(phi);
     float z = sin(phi);
@@ -55,14 +52,14 @@ extern "C" __global__ void __raygen__lidar_single() {
     float3 up;
     basis_from_quaternion(ray_quat, forward, left, up);
     float3 ray_direction = normalize(forward * x + left * y + up * z);
-    
+
     PerRayData_lidar prd_lidar = DefaultLidarPRD();
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd_lidar, opt1, opt2);
     unsigned int raytype = (unsigned int)RayType::LIDAR_RAY_TYPE;
-    optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse,
-               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+    optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse, OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2,
+               raytype);
 
     lidar.frame_buffer[image_index] = make_float2(prd_lidar.range, prd_lidar.intensity);
 }
@@ -76,24 +73,22 @@ extern "C" __global__ void __raygen__lidar_multi() {
     const unsigned int image_index = screen.x * idx.y + idx.x;
 
     // global_beam_dims = number of horizontal and vertical samples
-    const int2 global_beam_dims =
-        make_int2(screen.x / (lidar.sample_radius * 2 - 1), screen.y / (lidar.sample_radius * 2 - 1));
+    const int2 global_beam_dims = make_int2(screen.x / (lidar.sample_radius * 2 - 1), screen.y / (lidar.sample_radius * 2 - 1));
     const int2 local_beam_dims = make_int2(lidar.sample_radius * 2 - 1, lidar.sample_radius * 2 - 1);
 
     // index of center of beam
     const int beam_index_x = idx.x / (lidar.sample_radius * 2 - 1);
     const int beam_index_y = idx.y / (lidar.sample_radius * 2 - 1);
 
-    float beam_phi = (beam_index_y / (float)(max(1,global_beam_dims.y-1))) * (lidar.max_vert_angle -  lidar.min_vert_angle) +  lidar.min_vert_angle;
-    float beam_theta = (beam_index_x / (float)(max(1,global_beam_dims.x-1))) * lidar.hFOV - lidar.hFOV / 2.;
+    float beam_phi = (beam_index_y / (float)(max(1, global_beam_dims.y - 1))) * (lidar.max_vert_angle - lidar.min_vert_angle) + lidar.min_vert_angle;
+    float beam_theta = (beam_index_x / (float)(max(1, global_beam_dims.x - 1))) * lidar.hFOV - lidar.hFOV / 2.;
 
     // index of local ray in beam,  0~sample_radius * 2 - 1, and sample_radius - 1 is index of center ray
     const int local_ray_index_x = idx.x % (lidar.sample_radius * 2 - 1);
     const int local_ray_index_y = idx.y % (lidar.sample_radius * 2 - 1);
 
-    const float2 local_ray_id_fraction = (make_float2(local_ray_index_x, local_ray_index_y) + make_float2(0.5, 0.5)) /
-                                             make_float2(local_beam_dims) * 2.f -
-                                         make_float2(1.f);  //[-1,1]
+    const float2 local_ray_id_fraction =
+        (make_float2(local_ray_index_x, local_ray_index_y) + make_float2(0.5, 0.5)) / make_float2(local_beam_dims) * 2.f - make_float2(1.f);  //[-1,1]
 
     // relative theta and phi for local ray in beam
     float local_ray_theta;
@@ -101,10 +96,11 @@ extern "C" __global__ void __raygen__lidar_multi() {
 
     // beam shape is rectangular
     if (lidar.beam_shape == LidarBeamShape::ELLIPTICAL) {
+        // beam shape is elliptical
         local_ray_theta = local_ray_id_fraction.x * lidar.horiz_div_angle / 2.0;
         local_ray_phi = local_ray_id_fraction.y * lidar.vert_div_angle / 2.0;
-        // beam shape is elliptical
-    } else {  // defaulting to rectangular
+    } else {
+        // defaulting to rectangular
         float angle = atan2(local_ray_id_fraction.y, local_ray_id_fraction.x);
         float ring = max(abs(local_ray_id_fraction.x), abs(local_ray_id_fraction.y));
         float2 axis = make_float2(lidar.vert_div_angle / 2.0 * ring, lidar.horiz_div_angle / 2.0 * ring);
@@ -112,8 +108,7 @@ extern "C" __global__ void __raygen__lidar_multi() {
         if (axis.y == 0 && axis.x == 0) {
             radius = 0;
         } else {
-            radius = (axis.x * axis.y) /
-                     sqrtf(axis.x * axis.x * sinf(angle) * sinf(angle) + axis.y * axis.y * cosf(angle) * cosf(angle));
+            radius = (axis.x * axis.y) / sqrtf(axis.x * axis.x * sinf(angle) * sinf(angle) + axis.y * axis.y * cosf(angle) * cosf(angle));
         }
         local_ray_theta = radius * sinf(angle);
         local_ray_phi = radius * cosf(angle);
@@ -143,10 +138,8 @@ extern "C" __global__ void __raygen__lidar_multi() {
     unsigned int opt2;
     pointer_as_ints(&prd_lidar, opt1, opt2);
     unsigned int raytype = (unsigned int)RayType::LIDAR_RAY_TYPE;
-    optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse,
-               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+    optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse, OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2,
+               raytype);
 
     lidar.frame_buffer[image_index] = make_float2(prd_lidar.range, prd_lidar.intensity);
 }
-
-#endif // # LIDAR_RAYGEN_CU

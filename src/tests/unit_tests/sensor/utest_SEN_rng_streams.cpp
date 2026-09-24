@@ -137,8 +137,8 @@ struct Scene {
 // -----------------------------------------------------------------------------
 
 // Grok's binding requirement from the design audit, verbatim in intent: distinct ids for the first
-// 10k ordinals crossed with 20 purposes. Note this deliberately uses 20 usage values, more than the
-// 10 constants RngUsage currently defines, so the field keeps room for future stochastic filters.
+// 10k ordinals crossed with 20 purposes. The deliberately larger usage range leaves room for future
+// stochastic filters beyond the currently defined RngUsage values.
 TEST(ChSensorRngStreams, stream_id_injective_over_10k_ordinals_x_20_usages) {
     const unsigned int kOrdinals = 10000;
     const unsigned int kUsages = 20;
@@ -163,7 +163,7 @@ TEST(ChSensorRngStreams, stream_id_injective_across_all_four_fields) {
     for (unsigned int mgr = 0; mgr < 7; ++mgr) {
         for (unsigned int ordinal = 0; ordinal < 13; ++ordinal) {
             for (unsigned int filt = 0; filt < 11; ++filt) {
-                for (unsigned int u = 0; u < 10; ++u) {
+                for (unsigned int u = 0; u < static_cast<unsigned int>(RngUsage::Count); ++u) {
                     unsigned long long id = ChSensorManager::MakeRngStreamId(mgr, ordinal, filt, (RngUsage)u);
                     ASSERT_TRUE(seen.insert(id).second) << "collision at (" << mgr << "," << ordinal << ","
                                                         << filt << "," << u << ")";

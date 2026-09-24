@@ -55,6 +55,26 @@
 // %constant chrono::ChVector3<double> VECT_Z= chrono::ChVector3<double>(0,0,1);
 
 
+// Indexing must raise IndexError, not the RuntimeError that the module-wide
+// %exception would produce, or Python iteration over the components breaks.
+%exception chrono::ChVector3<double>::__getitem__ {
+	try {
+		$action
+	} catch (const std::out_of_range& e) {
+		SWIG_exception(SWIG_IndexError, e.what());
+	}
+}
+
+// Indexing must raise IndexError, not the RuntimeError that the module-wide
+// %exception would produce, or Python iteration over the components breaks.
+%exception chrono::ChVector3<double>::__setitem__ {
+	try {
+		$action
+	} catch (const std::out_of_range& e) {
+		SWIG_exception(SWIG_IndexError, e.what());
+	}
+}
+
 %extend chrono::ChVector3<double>{
 		public:
 					// Add function to support python 'print(...)'
@@ -64,11 +84,22 @@
 						sprintf(temp,"[ %g, %g, %g ]", $self->x(),$self->y(),$self->z());
 						return &temp[0];
 					}
-					// operator  ^  as ^ in c++ 
-			double __xor__(const ChVector3<double>& other) const 
-					{ 
-						return $self->operator^(other);
-					}
+
+					// Component access as v[i]. The C++ subscript operator itself is not
+					// wrapped (see chrono_ignore_operators.i); these provide the Python form.
+			double __getitem__(int i) const {
+				if (i < 0) i += 3;
+				if (i < 0 || i >= 3) throw std::out_of_range("index out of range");
+				return (*$self)[(unsigned)i];
+			}
+
+			void __setitem__(int i, double value) {
+				if (i < 0) i += 3;
+				if (i < 0 || i >= 3) throw std::out_of_range("index out of range");
+				(*$self)[(unsigned)i] = value;
+			}
+
+			int __len__() const { return 3; }
 
 // NumPy integration: single-call conversion to numpy array
 #ifdef CHRONO_PYTHON_NUMPY
@@ -86,15 +117,21 @@
 
 // This because constants do not work well, so implement them in script-side
 
-%pythoncode %{
+// NOTE: SWIG does not run its preprocessor inside a %pythoncode block, so an #ifdef
+// placed there is emitted verbatim into the generated module as a Python comment and
+// guards nothing. Close the block and test the macro at the interface level instead.
 #ifdef CHRONO_PYTHON_NUMPY
+%pythoncode %{
 	def _chvector3_array(self, dtype=None):
 		import numpy as np
 		a = self.to_numpy()
 		return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 	ChVector3d.__array__ = _chvector3_array
+%}
 #endif
+
+%pythoncode %{
 
 	VNULL  = ChVector3d(0,0,0)
 	VECT_X = ChVector3d(1,0,0)

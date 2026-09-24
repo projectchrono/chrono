@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.3;
-    sph_params.free_surface_threshold = 2.0;
+    sph_params.free_surface_threshold = 2.4;
     sph_params.artificial_viscosity = 0.5;
     sph_params.use_consistent_gradient_discretization = false;
     sph_params.use_consistent_laplacian_discretization = false;

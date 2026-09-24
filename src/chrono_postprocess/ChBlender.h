@@ -110,12 +110,12 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
     /// Set transformation from Chrono frame to Blender
-    void SetBlenderFrame(const ChFrame<> mframe) { this->blender_frame = mframe; }
+    void SetBlenderFrame(const ChFramed mframe) { this->blender_frame = mframe; }
     /// Set transformation from Chrono frame to Blender (in Blender, Z is up axis). Default.
-    void SetBlenderUp_is_ChronoY() { this->blender_frame = ChFrame<>(VNULL, Q_ROTATE_Y_TO_Z); }
+    void SetBlenderUp_is_ChronoY() { this->blender_frame = ChFramed(VNULL, Q_ROTATE_Y_TO_Z); }
     /// Set transformation from Chrono frame to Blender (in Blender, Z is up axis). Useful when using Chrono::Vehicle,
     /// based on SAE standard with Z up.
-    void SetBlenderUp_is_ChronoZ() { this->blender_frame = ChFrame<>(VNULL, QUNIT); }
+    void SetBlenderUp_is_ChronoZ() { this->blender_frame = ChFramed(VNULL, QUNIT); }
 
     /// Set the filename of the output Blender script.
     /// If not set, it defaults to "render_frames.assets.py".
@@ -258,7 +258,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
                          const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
                          bool per_frame,
                          std::shared_ptr<ChVisualShape> mshape);
-    void ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item, const ChFrame<>& parentframe);
+    void ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item, const ChFramed& parentframe);
 
     const std::string unique_bl_id(size_t mpointer) const;
 
@@ -287,7 +287,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
     unsigned int framenumber;
 
-    ChFrame<> blender_frame;
+    ChFramed blender_frame;
 
     bool camera_add_default;
     ChVector3d camera_location;

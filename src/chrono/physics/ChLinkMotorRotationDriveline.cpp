@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorRotationDriveline)
 
 ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline() {
-    this->c_rz = false;
+    c_rz = false;
     SetupLinkMask();
 
     innershaft1 = chrono_types::make_shared<ChShaft>();
@@ -39,7 +39,7 @@ ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline(const ChLinkMotorRota
 ChLinkMotorRotationDriveline::~ChLinkMotorRotationDriveline() {}
 
 void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1, std::shared_ptr<ChBodyFrame> mbody2, ChFrame<> mabsframe) {
-    this->Initialize(mbody1, mbody2, false, mabsframe, mabsframe);
+    Initialize(mbody1, mbody2, false, mabsframe, mabsframe);
 }
 
 void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
@@ -66,16 +66,16 @@ void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody
 
 void ChLinkMotorRotationDriveline::Setup() {
     if (innershaft1->IsActive()) {
-        innershaft1->SetOffset_x(this->offset_x + 0);
-        innershaft1->SetOffset_w(this->offset_w + 0);
+        innershaft1->SetOffset_x(offset_x + 0);
+        innershaft1->SetOffset_w(offset_w + 0);
     }
     if (innershaft2->IsActive()) {
-        innershaft2->SetOffset_x(this->offset_x + 1);
-        innershaft2->SetOffset_w(this->offset_w + 1);
+        innershaft2->SetOffset_x(offset_x + 1);
+        innershaft2->SetOffset_w(offset_w + 1);
     }
     unsigned int nc = mask.GetNumConstraints();
-    innerconstraint1->SetOffset_L(this->offset_L + nc + 0);
-    innerconstraint2->SetOffset_L(this->offset_L + nc + 1);
+    innerconstraint1->SetOffset_L(offset_L + nc + 0);
+    innerconstraint2->SetOffset_L(offset_L + nc + 1);
 }
 
 void ChLinkMotorRotationDriveline::Update(double time, UpdateFlags update_flags) {
@@ -83,9 +83,9 @@ void ChLinkMotorRotationDriveline::Update(double time, UpdateFlags update_flags)
     ChLinkMotorRotation::Update(time, update_flags);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
-    ChVector3d abs_shaftdir = this->GetFrame2Abs().TransformDirectionLocalToParent(VECT_Z);
-    ChVector3d shaftdir_b1 = this->m_body1->TransformDirectionParentToLocal(abs_shaftdir);
-    ChVector3d shaftdir_b2 = this->m_body2->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d abs_shaftdir = GetFrame2Abs().TransformDirectionLocalToParent(VECT_Z);
+    ChVector3d shaftdir_b1 = m_body1->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d shaftdir_b2 = m_body2->TransformDirectionParentToLocal(abs_shaftdir);
 
     innerconstraint1->SetShaftDirection(shaftdir_b1);
     innerconstraint2->SetShaftDirection(shaftdir_b2);
@@ -218,7 +218,7 @@ void ChLinkMotorRotationDriveline::IntLoadConstraint_C(const unsigned int off_L,
     // innerconstraint1->IntLoadConstraint_C(off_L + nc + 0, Qc, c, c_vel, do_clamp, recovery_clamp);
     // innerconstraint2->IntLoadConstraint_C(off_L + nc + 1, Qc, c, c_vel, do_clamp, recovery_clamp);
     // ...and compute custom violation C:
-    double cnstr_rot_error = this->GetMotorAngle() - (this->innershaft1->GetPos() - this->innershaft2->GetPos());
+    double cnstr_rot_error = GetMotorAngle() - (innershaft1->GetPos() - innershaft2->GetPos());
 
     double cnstr_violation = c * cnstr_rot_error;
 
