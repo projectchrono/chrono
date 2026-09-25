@@ -98,7 +98,7 @@ int main() {
     SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
 
     // Create and configure test rig
-    ChWheelSuspensionTestRig rig(sys, wheel, tire, suspension);
+    ChWheelTestRig rig(sys, wheel, tire, suspension);
 
     rig.SetGravitationalAcceleration(9.8);
     rig.SetNormalLoad(3000);

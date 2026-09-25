@@ -29,6 +29,9 @@
 #ifndef CH_WHEEL_TEST_RIG_H
 #define CH_WHEEL_TEST_RIG_H
 
+#include <vector>
+
+#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChShaft.h"
@@ -59,44 +62,21 @@ namespace vehicle {
 /// - Allows variation of longitudinal speed, wheel angular speed, and wheel slip angle as functions of time
 /// - Provides support for automatic selection of longitudinal and angular speeds in order to enforce a specified longitudinal slip value
 /// - Allows specification of camber angle (kept constant through the simulation)
-class CH_VEHICLE_API ChWheelTestRigBase {
+class CH_VEHICLE_API ChWheelTestRig {
   public:
-    /// Definition of a suspension assembly for rig testing.
-    class SuspensionAssembly {
-      public:
-        virtual ~SuspensionAssembly() {}
-
-        /// Return the total mass of the wheel assembly.
-        virtual double GetMass() const = 0;
-
-        /// Get a handle to the spindle body.
-        /// This is the suspension body to which a wheel assembly  attached  itself.
-        virtual std::shared_ptr<ChBody> GetSpindle() const = 0;
-
-        /// Initialize the wheel assembly at the specified hub location.
-        virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body, const ChVector3d& loc, bool fixed, VisualizationType vis_type) {}
-
-        /// Synchronize the wheel and suspension assemblies at the current simulation time.
-        virtual void Synchronize(double time, const ChTerrain& terrain) {}
-
-        /// Advance the dynamics of the wheel and suspension assemblies (if any) by the given step size.
-        virtual void Advance(double step_size) {}
-
-      protected:
-        /// Construct the suspension assembly in the specified Chrono system.
-        /// The constructor must create and set all suspension assembly parts so that its properties can be queried even before initialization.
-        SuspensionAssembly(ChSystem& system) : system(system) {}
-
-        ChSystem& system;  ///< containing system
-    };
-
     /// Definition of a wheel assembly for rig testing.
     class WheelAssembly {
       public:
         virtual ~WheelAssembly() {}
 
+        /// Return `true` if the assembly includes a suspension subsystem and `false` otherwise.
+        virtual bool HasSuspension() const = 0;
+
         /// Return the total mass of the wheel assembly.
         virtual double GetMass() const = 0;
+
+        /// Return the mass of the wheel.
+        virtual double GetWheelMass() const = 0;
 
         /// Return the wheel assembly outer radius.
         virtual double GetRadius() const = 0;
@@ -111,21 +91,10 @@ class CH_VEHICLE_API ChWheelTestRigBase {
         virtual void AddFSIBodies(CRMTerrain& terrain, double spacing) { throw std::runtime_error("CreateBCEMarkers must be implemented when using CRMTerrain."); }
 #endif
 
-        /// Initialize the wheel assembly connected directly to the rig chassis body at the specified location (absolute frame).
-        virtual void Initialize(const ChFramed& frame, bool fixed, double step_size, VisualizationType vis_type) {
-            if (!attached_to_suspension) {
-                std::cerr << "ERROR: Override for the Initialize() function not provided for a wheel assembly attached to chassis." << std::endl;
-                throw std::runtime_error("Override for the Initialize() function not provided for a wheel assembly attached to chassis");
-            }
-        }
-
-        /// Initialize the wheel assembly connected to the specified suspension assembly.
-        virtual void Initialize(std::shared_ptr<SuspensionAssembly> suspension, double step_size, VisualizationType vis_type) {
-            if (attached_to_suspension) {
-                std::cerr << "ERROR: Override for the Initialize() function not provided for a wheel assembly attached to suspension." << std::endl;
-                throw std::runtime_error("Override for the Initialize() function not provided for a wheel assembly attached to suspension");
-            }
-        }
+        /// Initialize the wheel assembly.
+        /// An assembly that includes a suspension subsystem should attach the suspension to the provided chassis body at the provided frame.
+        /// An assembly without a suspension subsystem should only create the wheel at the provided frame and, if indicated, set it as fixed.
+        virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body, const ChFramed& frame, bool fixed_wheel, double step_size, VisualizationType vis_type) {}
 
         /// Synchronize the wheel assembly at the current simulation time.
         virtual void Synchronize(double time, const ChTerrain& terrain) {}
@@ -136,13 +105,17 @@ class CH_VEHICLE_API ChWheelTestRigBase {
         /// Report the current resultant terrain forces and torques as applied to the hub.
         virtual TerrainForce ReportForces(ChTerrain& terrain) const { return TerrainForce(); }
 
+        /// Remove from the containing system all physics items created by this assembly in Initialize().
+        /// This function is called by the test rig destructor. It should remove only items that the wheel assembly
+        /// created directly; subsystems that remove their own items on destruction (e.g., wheel, tire, suspension) are not affected.
+        virtual void RemoveFromSystem() {}
+
       protected:
         /// Construct the wheel assembly in the specified Chrono system.
         /// The constructor must create and set all wheel assembly parts so that its properties can be queried even before initialization.
-        WheelAssembly(ChSystem& system, bool attached_to_suspension) : system(system), attached_to_suspension(attached_to_suspension) {}
+        WheelAssembly(ChSystem& system) : system(system) {}
 
-        ChSystem& system;             ///< containing system
-        bool attached_to_suspension;  ///< attached to suspension or directly to chassis
+        ChSystem& system;  ///< containing system
     };
 
     /// Tire test rig operation mode.
@@ -194,10 +167,31 @@ class CH_VEHICLE_API ChWheelTestRigBase {
         double Young_modulus;  ///< particle contact material Young's modulus (Pa)
     };
 
-    virtual ~ChWheelTestRigBase();
+    /// Construct a test rig within the specified system using the given custom wheel.
+    ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> wheel);
+
+    /// Construct a test rig within the specified system using the given Chrono::Vehicle wheel and tire.
+    ChWheelTestRig(ChSystem& system,                ///< containing mechanical system
+                   std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
+                   std::shared_ptr<ChTire> tire     ///< tire subsystem
+    );
+
+    /// Construct a test rig within the specified system using the given Chrono::Vehicle wheel, tire, and suspension subsystems.
+    ChWheelTestRig(ChSystem& system,                         ///< containing mechanical system
+                   std::shared_ptr<ChWheel> wheel,           ///< wheel subsystem
+                   std::shared_ptr<ChTire> tire,             ///< tire subsystem
+                   std::shared_ptr<ChSuspension> suspension  ///< suspension subsystem
+    );
+
+    ~ChWheelTestRig();
 
     /// Set gravitational acceleration (default: 9.81 m/s2).
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
+
+    /// Set camber angle (default: 0 rad).
+    /// Camber angle is set only if the wheel is not attached to a suspension subsystem
+    /// (in that case, the suspension geometry dictates camber).
+    void SetCamberAngle(double camber) { m_camber_angle = camber; }
 
     /// Set desired normal load (default: 1000 N).
     void SetNormalLoad(double load) { m_normal_load = load; }
@@ -215,6 +209,11 @@ class CH_VEHICLE_API ChWheelTestRigBase {
     /// slip value indicates that the wheel is spinning. A negative slip value indicates that the wheel is sliding
     /// (skidding); in particular, s=-1 indicates sliding without rotation.
     void SetConstantLongitudinalSlip(double long_slip, double base_speed = 1);
+
+    /// Specify wheel slip angle as function of time (default: constant value 0).
+    /// A slip angle function can be used only if the wheel is not attached to a suspension subsystem
+    /// (in that case, the suspension dictates slip angle).
+    void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
 
     /// Set the time step for advancing wheel assembly dynamics (default: 1e-3 s).
     void SetStepsize(double step) { m_step_size = step; }
@@ -379,12 +378,11 @@ class CH_VEHICLE_API ChWheelTestRigBase {
     /// Get the rotation motor used to actuate the wheel.
     std::shared_ptr<ChShaftsMotorSpeed> GetMotorWheel() const { return m_rot_motor; }
 
-  protected:
-    /// Construct a test rig within the specified system using the given custom wheel.
-    ChWheelTestRigBase(ChSystem& system, std::shared_ptr<WheelAssembly> wheel);
-
+  private:
     /// Create the single-wheel test rig mechanism.
-    virtual void CreateMechanism();
+    void CreateMechanism();
+    void CreateWheelSuspensionMechanism(double dim);
+    void CreateWheelMechanism(double dim);
 
     /// Create the terrain patch of specified type.
     void CreateTerrain();
@@ -396,25 +394,17 @@ class CH_VEHICLE_API ChWheelTestRigBase {
     void CreateTerrainCRM();
 #endif
 
-    /// Additional operations to be performed during rig construction.
-    /// A derived class must:
-    /// - create any additional necessary bodies, links, and motors;
-    /// - initialize the wheel assembly and connect it to the rig mechanism;
-    /// - adjust mass properties of the rig bodies to be commensurate with those of the wheel assembly.
-    /// 'dim' represents a characteristic length for the rig mechanism.
-    virtual void OnCreateMechanism(double dim) = 0;
-
-    /// Additional operations to be performed on rig initialization.
-    virtual void OnInitialize(Mode mode) {}
-
-    /// Additional operations to be performed on rig advance.
-    virtual void OnAdvance(double step) {}
-
-    /// Additional operations to be performed when actuation is enabled.
-    /// This is called a single time and only in TEST mode at the end of the drop phase.
-    virtual void OnStartActuation() {}
+    /// Add the specified physics item to the containing system and record it for removal on rig destruction.
+    template <typename T>
+    std::shared_ptr<T> AddItem(std::shared_ptr<T> item) {
+        m_system.Add(item);
+        m_items.push_back(item);
+        return item;
+    }
 
     ChSystem& m_system;  ///< containing Chrono system
+
+    std::vector<std::shared_ptr<ChPhysicsItem>> m_items;  ///< all physics items created by the rig
 
     Mode m_mode;    ///< testing mode
     bool m_output;  ///< if false, report default measurements (typically 0)
@@ -440,11 +430,14 @@ class CH_VEHICLE_API ChWheelTestRigBase {
     TerrainParamsCRM m_params_crm;  ///< granular terrain parameters
 #endif
 
+    double m_camber_angle;  ///< wheel camber angle (used only if no suspension)
+
     ChAABB m_wheel_AABB;  ///< AABB for the entire wheel assembly (estimated or user-provided)
 
     std::shared_ptr<ChBody> m_ground_body;         ///< ground body
     std::shared_ptr<ChBodyAuxRef> m_carrier_body;  ///< rig carrier body
     std::shared_ptr<ChBodyAuxRef> m_chassis_body;  ///< "chassis" body which carries normal load
+    std::shared_ptr<ChBody> m_slip_body;           ///< intermediate body for controlling slip angle
 
     bool m_ls_actuated;  ///< is linear speed actuated?
     bool m_rs_actuated;  ///< is angular speed actuated?
@@ -455,88 +448,12 @@ class CH_VEHICLE_API ChWheelTestRigBase {
 
     std::shared_ptr<ChFunction> m_ls_fun;  ///< longitudinal speed function of time
     std::shared_ptr<ChFunction> m_rs_fun;  ///< angular speed function of time
+    std::shared_ptr<ChFunction> m_sa_fun;  ///< slip angle function of time
 
     std::shared_ptr<ChLinkMotorLinearSpeed> m_drop_motor;  ///< actuator for controlled wheel drop
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;   ///< carrier actuator
     std::shared_ptr<ChShaftsMotorSpeed> m_rot_motor;       ///< wheel actuator
-};
-
-// -----------------------------------------------------------------------------
-
-/// Single-wheel test rig with the wheel assembly directly attached to the rig chassis.
-/// - Accepts an arbitrary wheel assembly (derived from ChWheelTestRig::WheelAssembly)
-/// - Accepts a Chrono::Vehicle wheel-tire assembly
-class CH_VEHICLE_API ChWheelTestRig : public ChWheelTestRigBase {
-  public:
-    /// Construct a test rig within the specified system using the given custom wheel.
-    ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> wheel);
-
-    /// Construct a test rig within the specified system using the given Chrono::Vehicle wheel and tire.
-    ChWheelTestRig(ChSystem& system,                ///< containing mechanical system
-                   std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
-                   std::shared_ptr<ChTire> tire     ///< tire subsystem
-    );
-
-    ~ChWheelTestRig();
-
-    /// Set camber angle (default: 0 rad).
-    void SetCamberAngle(double camber) { m_camber_angle = camber; }
-
-    /// Specify wheel slip angle as function of time (default: constant value 0).
-    void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
-
-  private:
-    /// Additional operations to be performed during rig construction.
-    virtual void OnCreateMechanism(double dim) override;
-
-    /// Additional operations to be performed on rig initialization.
-    virtual void OnInitialize(Mode mode) override;
-
-    /// Additional operations to be performed on rig advance.
-    virtual void OnAdvance(double step) override;
-
-    /// Additional operations to be performed when actuation is enabled.
-    /// Set function for slip angle control.
-    virtual void OnStartActuation() override;
-
-    double m_camber_angle;  ///< wheel camber angle
-
-    std::shared_ptr<ChFunction> m_sa_fun;         ///< slip angle function of time
-    std::shared_ptr<ChBody> m_slip_body;          ///< intermediate body for controlling slip angle
-    std::shared_ptr<ChLinkLockLock> m_slip_lock;  ///< slip angle actuator
-};
-
-// -----------------------------------------------------------------------------
-
-/// Single-wheel test rig with the wheel assembly attached to a suspension assembly.
-/// - Accepts arbitrary suspension (derived from ChWheelTestRig::SuspensionAssembly) and
-///   wheel (derived from ChWheelTestRig::WheelAssembly) assemblies
-/// - Accepts a Chrono::Vehicle suspension and wheel-tire assembly
-class CH_VEHICLE_API ChWheelSuspensionTestRig : public ChWheelTestRigBase {
-  public:
-    /// Construct a test rig within the specified system using the given wheel and suspension assemblies.
-    ChWheelSuspensionTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> wheel, std::shared_ptr<SuspensionAssembly> suspension);
-
-    /// Construct a test rig within the specified system using the given Chrono::Vehicle wheel, tire, and suspension subsystems.
-    ChWheelSuspensionTestRig(ChSystem& system,                         ///< containing mechanical system
-                             std::shared_ptr<ChWheel> wheel,           ///< wheel subsystem
-                             std::shared_ptr<ChTire> tire,             ///< tire subsystem
-                             std::shared_ptr<ChSuspension> suspension  ///< suspension subsystem
-    );
-
-    ~ChWheelSuspensionTestRig();
-
-  private:
-    /// Additional operations to be performed during rig construction.
-    virtual void OnCreateMechanism(double dim) override;
-
-    /// Additional operations to be performed on rig initialization.
-    virtual void OnInitialize(Mode mode) override;
-
-    /// Additional operations to be performed on rig advance.
-    virtual void OnAdvance(double step) override;
-
-    std::shared_ptr<SuspensionAssembly> m_suspension_assembly;  ///< suspension assembly
+    std::shared_ptr<ChLinkLockLock> m_slip_lock;           ///< slip angle actuator
 };
 
 /// @} vehicle_wheeled_test_rig
