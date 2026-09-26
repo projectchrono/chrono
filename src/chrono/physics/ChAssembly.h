@@ -91,6 +91,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// effectively add them and clean the batch. Called automatically at each Setup().
     void FlushBatch();
 
+    // Removal functions.
+    // If this assembly belongs to a system, the collision models of the removed items are also removed from the
+    // collision system of that system.
+
     /// Remove a body from this assembly.
     void RemoveBody(std::shared_ptr<ChBody> body);
     /// Remove a shaft from this assembly.
@@ -324,6 +328,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
   protected:
     virtual void SetupInitial() override;
+
+    /// Remove the collision models of an item being removed from this assembly from the collision system of the
+    /// system this assembly belongs to (if any).
+    void RemoveCollisionModels(const ChPhysicsItem& item) const;
 
     std::vector<std::shared_ptr<ChBody>> bodylist;      ///< list of rigid bodies
     std::vector<std::shared_ptr<ChShaft>> shaftlist;    ///< list of 1-D shafts

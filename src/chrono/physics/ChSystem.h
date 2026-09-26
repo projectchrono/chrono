@@ -329,6 +329,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// effectively add them and clean the batch. Called automatically at each Setup().
     void FlushBatch() { assembly.FlushBatch(); }
 
+    // Removal functions.
+    // The collision models of the removed items are also removed from the collision system.
+    // Note that removal of collision models is not supported by the Multicore collision system.
+
     /// Remove a body from this assembly.
     virtual void RemoveBody(std::shared_ptr<ChBody> body);
 
@@ -439,7 +443,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
     void ShowHierarchy(std::ostream& m_file, int level = 0) const { assembly.ShowHierarchy(m_file, level); }
 
-    /// Removes all bodies/marker/forces/links/contacts, also resets timers and events.
+    /// Remove all physics items (bodies, shafts, links, meshes, and other items) and their collision models.
     void Clear();
 
     /// Return the contact method supported by this system.
