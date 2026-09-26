@@ -36,6 +36,12 @@
 /// If any rendered sensor backend is available, define CHRONO_HAS_SENSOR_RENDER.
 @CHRONO_HAS_SENSOR_RENDER@
 
+/// Locations of the shaders and of the headers of an installation, relative to the Chrono::Sensor library.
+/// At run time, Chrono::Sensor uses these if they exist (see LocateSensorDirectory) and the absolute locations below
+/// otherwise, so that an installation keeps working after it is moved.
+#define CHRONO_SENSOR_SHADER_DIR_REL "@SHADER_DIR_REL@"
+#define CHRONO_SENSOR_INCLUDE_DIR_REL "@INCLUDE_DIR_REL@"
+
 #ifdef CHRONO_HAS_VULKAN_RT
   /// Location of compiled Vulkan RT GPU shaders.
   #define CHRONO_SENSOR_VULKAN_SHADER_DIR "@VULKAN_SHADER_DIR@"
@@ -48,8 +54,11 @@
   /// Location of shaders.
   #define CHRONO_SENSOR_SHADER_DIR "@SHADER_DIR@"
 
-  /// List of headers and compilation flags for NVRTC runtime compilation of RT programs.
-  #define CUDA_NVRTC_INCLUDE_LIST @CUDA_NVRTC_INCLUDE_LIST@
+  /// Header locations and compilation flags for NVRTC runtime compilation of RT programs.
+  /// These are the locations used to build Chrono; see ChOptixUtils.cpp for how they are resolved at run time.
+  #define CUDA_NVRTC_OPTIX_INCLUDE "@CUDA_NVRTC_OPTIX_INCLUDE@"
+  #define CUDA_NVRTC_CUDA_INCLUDE_LIST @CUDA_NVRTC_CUDA_INCLUDE_LIST@
+  #define CUDA_NVRTC_CHRONO_INCLUDE "@CUDA_NVRTC_CHRONO_INCLUDE@"
   #define CUDA_NVRTC_FLAG_LIST @CUDA_NVRTC_FLAG_LIST@
 
 #endif

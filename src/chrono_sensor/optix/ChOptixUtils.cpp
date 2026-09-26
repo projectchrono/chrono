@@ -16,7 +16,9 @@
 //
 // =============================================================================
 
+#include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -27,6 +29,7 @@
 
 #include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
+#include "chrono_sensor/utils/ChSensorUtils.h"
 
 #ifdef USE_CUDA_NVRTC
     #include <cuda.h>  // for CUDA_VERSION
@@ -64,15 +67,88 @@
 namespace chrono {
 namespace sensor {
 
-static std::string shader_dir = CHRONO_SENSOR_SHADER_DIR;
+// Shader directory, resolved on first use: the shaders of the installation (relative to the Chrono::Sensor library)
+// if Chrono::Sensor is installed, and otherwise those of the build tree.
+static std::string& ShaderDir() {
+    static std::string shader_dir = LocateSensorDirectory(CHRONO_SENSOR_SHADER_DIR_REL, CHRONO_SENSOR_SHADER_DIR);
+    return shader_dir;
+}
 
 void SetSensorShaderDir(const std::string& path) {
-    shader_dir = path;
+    ShaderDir() = path;
 }
 
 const std::string& GetSensorShaderDir() {
-    return shader_dir;
+    return ShaderDir();
 }
+
+#ifdef USE_CUDA_NVRTC
+
+// Value of an environment variable, or an empty string if it is not set.
+static std::string GetEnvironmentValue(const char* name) {
+    #ifdef _MSC_VER
+    char* value = nullptr;
+    size_t length = 0;
+    std::string result;
+    if (_dupenv_s(&value, &length, name) == 0 && value != nullptr)
+        result = value;
+    free(value);
+    return result;
+    #else
+    const char* value = std::getenv(name);
+    return value ? std::string(value) : std::string();
+    #endif
+}
+
+// Include directories for NVRTC compilation of the RT programs.
+// The OptiX SDK and CUDA toolkit headers are taken from the locations used to build Chrono if these exist, and
+// otherwise from the OptiX_INSTALL_DIR and CUDA_PATH (or CUDA_HOME) environment variables. The Chrono headers are those
+// of the installation if Chrono::Sensor is installed, and otherwise those of the source tree.
+static std::vector<std::string> GetNvrtcIncludeDirs() {
+    auto is_dir = [](const std::string& dir) {
+        std::error_code ec;
+        return !dir.empty() && std::filesystem::is_directory(dir, ec);
+    };
+
+    std::vector<std::string> dirs;
+
+    std::string optix_dir = CUDA_NVRTC_OPTIX_INCLUDE;
+    if (!is_dir(optix_dir)) {
+        const std::string optix_root = GetEnvironmentValue("OptiX_INSTALL_DIR");
+        if (!optix_root.empty() && is_dir(optix_root + "/include"))
+            optix_dir = optix_root + "/include";
+    }
+    dirs.push_back(optix_dir);
+
+    const char* cuda_dirs[] = {CUDA_NVRTC_CUDA_INCLUDE_LIST};
+    const int num_cuda_dirs = sizeof(cuda_dirs) / sizeof(cuda_dirs[0]) - 1;
+    std::vector<std::string> found_cuda_dirs;
+    for (int i = 0; i < num_cuda_dirs; i++) {
+        if (is_dir(cuda_dirs[i]))
+            found_cuda_dirs.push_back(cuda_dirs[i]);
+    }
+    if (found_cuda_dirs.empty()) {
+        std::string cuda_root = GetEnvironmentValue("CUDA_PATH");
+        if (cuda_root.empty())
+            cuda_root = GetEnvironmentValue("CUDA_HOME");
+        if (!cuda_root.empty() && is_dir(cuda_root + "/include")) {
+            found_cuda_dirs.push_back(cuda_root + "/include");
+            // CUDA 13 places the CCCL/libcu++ headers in include/cccl (see the Chrono::Sensor CMake script)
+            if (is_dir(cuda_root + "/include/cccl"))
+                found_cuda_dirs.push_back(cuda_root + "/include/cccl");
+        } else {
+            // Keep the build-time locations, so that a failed compilation reports where headers were expected
+            found_cuda_dirs.assign(cuda_dirs, cuda_dirs + num_cuda_dirs);
+        }
+    }
+    dirs.insert(dirs.end(), found_cuda_dirs.begin(), found_cuda_dirs.end());
+
+    dirs.push_back(LocateSensorDirectory(CHRONO_SENSOR_INCLUDE_DIR_REL, CUDA_NVRTC_CHRONO_INCLUDE, "chrono_sensor"));
+
+    return dirs;
+}
+
+#endif
 
 void GetShaderFromFile(OptixDeviceContext context,
                        OptixModule& module,
@@ -81,7 +157,7 @@ void GetShaderFromFile(OptixDeviceContext context,
                        OptixPipelineCompileOptions& pipeline_compile_options) {
     
 #ifdef USE_CUDA_NVRTC
-    std::string cuda_file = shader_dir + "/" + file_name + ".cu";
+    std::string cuda_file = GetSensorShaderDir() + "/" + file_name + ".cu";
     std::string str;
     std::ifstream f(cuda_file);
     if (f.good()) {
@@ -109,12 +185,10 @@ void GetShaderFromFile(OptixDeviceContext context,
         // complete list of flags to be used for NVRTC
         std::vector<const char*> nvrtc_compiler_flag_list;
 
-        // include directories passed from CMake
+        // include directories, resolved at run time from those passed from CMake
         std::vector<std::string> scoping_dir_list;  // to keep the flags from going out of scope
-        const char* nvrtc_include_dirs[] = {CUDA_NVRTC_INCLUDE_LIST};
-        int num_dirs = sizeof(nvrtc_include_dirs) / sizeof(nvrtc_include_dirs[0]);
-        for (int i = 0; i < num_dirs - 1; i++) {
-            scoping_dir_list.push_back(std::string("-I") + nvrtc_include_dirs[i]);
+        for (const std::string& dir : GetNvrtcIncludeDirs()) {
+            scoping_dir_list.push_back("-I" + dir);
         }
         for (const std::string& include_dir : scoping_dir_list) {
             nvrtc_compiler_flag_list.push_back(include_dir.c_str());
@@ -142,8 +216,11 @@ void GetShaderFromFile(OptixDeviceContext context,
             NVRTC_ERROR_CHECK(nvrtcGetProgramLog(nvrtc_program, &nvrt_compilation_log[0]));
         }
         if (compile_result != NVRTC_SUCCESS) {
-            throw std::runtime_error(std::string("Error: ").append(__FILE__) + " at line " + std::to_string(__LINE__) +
-                                     "\n" + nvrt_compilation_log);
+            std::string include_dirs;
+            for (const std::string& flag : scoping_dir_list)
+                include_dirs += "\n  " + flag.substr(2);
+            throw std::runtime_error(std::string("Error: ").append(__FILE__) + " at line " + std::to_string(__LINE__) + "\n" + nvrt_compilation_log +
+                                     "\nNVRTC include directories:" + include_dirs + "\nIf OptiX or CUDA headers are not found, set OptiX_INSTALL_DIR or CUDA_PATH.");
         }
 
         // Retrieve the module. OptiX-IR is binary and can contain embedded NULs, which is safe
@@ -192,7 +269,7 @@ void GetShaderFromFile(OptixDeviceContext context,
                                         ptx.size(), log, &sizeof_log, &module));
 
 #else
-    std::string ptx_file = shader_dir + "/" + file_name + ".ptx";
+    std::string ptx_file = GetSensorShaderDir() + "/" + file_name + ".ptx";
     std::string ptx;
     std::ifstream f(ptx_file);
     if (f.good()) {
