@@ -215,6 +215,9 @@ void GetShaderFromFile(OptixDeviceContext context,
         if (log_length > 0) {
             NVRTC_ERROR_CHECK(nvrtcGetProgramLog(nvrtc_program, &nvrt_compilation_log[0]));
         }
+        // The log size includes the terminating null character, which would cut off anything appended to the log
+        while (!nvrt_compilation_log.empty() && nvrt_compilation_log.back() == '\0')
+            nvrt_compilation_log.pop_back();
         if (compile_result != NVRTC_SUCCESS) {
             std::string include_dirs;
             for (const std::string& flag : scoping_dir_list)
