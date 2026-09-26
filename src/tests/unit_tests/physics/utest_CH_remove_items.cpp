@@ -14,7 +14,8 @@
 //
 // Removing an item from a system must also remove its collision models from the
 // collision system, whatever the removal path (single item, all items of a kind,
-// Clear, or removal from a sub-assembly). A collision model must also be detached
+// Clear, or removal from a sub-assembly), and must discard the current contacts,
+// which may involve the removed item. A collision model must also be detached
 // from its implementation when the collision system is destroyed, so that the
 // item can be used in another system (issue #845).
 //
@@ -74,6 +75,7 @@ TEST(ChSystemRemoveItems, remove_body) {
     ASSERT_EQ(scene.sys.ComputeCollisions(), 1u);
 
     scene.sys.RemoveBody(scene.s.a);
+    EXPECT_EQ(scene.sys.GetNumContacts(), 0u);  // contacts involving the removed body are discarded
     scene.sys.RemoveBody(scene.s.b);
 
     EXPECT_FALSE(scene.s.Registered());
@@ -87,6 +89,7 @@ TEST(ChSystemRemoveItems, remove_all_bodies) {
 
     scene.sys.RemoveAllBodies();
     EXPECT_EQ(scene.sys.GetBodies().size(), 0u);
+    EXPECT_EQ(scene.sys.GetNumContacts(), 0u);
     EXPECT_FALSE(scene.s.Registered());
     EXPECT_EQ(scene.sys.ComputeCollisions(), 0u);
     ExpectCollisionInNewSystem(scene.s);
@@ -97,6 +100,7 @@ TEST(ChSystemRemoveItems, clear) {
     ASSERT_EQ(scene.sys.ComputeCollisions(), 1u);
 
     scene.sys.Clear();
+    EXPECT_EQ(scene.sys.GetNumContacts(), 0u);
     EXPECT_FALSE(scene.s.Registered());
     EXPECT_EQ(scene.sys.ComputeCollisions(), 0u);
     ExpectCollisionInNewSystem(scene.s);
@@ -115,6 +119,7 @@ TEST(ChSystemRemoveItems, sub_assembly) {
 
     // Removal of a single body from the sub-assembly
     sub->RemoveBody(s.a);
+    EXPECT_EQ(sys.GetNumContacts(), 0u);
     EXPECT_FALSE(s.a->GetCollisionModel()->HasImplementation());
     EXPECT_EQ(sys.ComputeCollisions(), 0u);
 

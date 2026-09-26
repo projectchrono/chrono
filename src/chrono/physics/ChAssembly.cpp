@@ -62,8 +62,8 @@ ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
 
 ChAssembly::~ChAssembly() {
     // An assembly being destroyed is not part of a system that is still in use: either it was removed from its system,
-    // or it is the assembly of a system being destroyed, whose collision system may already be gone. Detach the items
-    // without touching the system.
+    // or it is the assembly of a system being destroyed, whose collision system and contact container may already be
+    // gone. Detach the items without touching the system.
     system = nullptr;
 
     RemoveAllBodies();
@@ -149,6 +149,7 @@ void ChAssembly::RemoveBody(std::shared_ptr<ChBody> body) {
     assert(itr != bodylist.end());
 
     RemoveCollisionModels(*body);
+    RemoveContacts();
     bodylist.erase(itr);
     body->SetSystem(nullptr);
 
@@ -215,6 +216,7 @@ void ChAssembly::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
     assert(itr != meshlist.end());
 
     RemoveCollisionModels(*mesh);
+    RemoveContacts();
     meshlist.erase(itr);
     mesh->SetSystem(nullptr);
 
@@ -245,6 +247,7 @@ void ChAssembly::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assert(itr != otherphysicslist.end());
 
     RemoveCollisionModels(*item);
+    RemoveContacts();
     otherphysicslist.erase(itr);
     item->SetSystem(nullptr);
 
@@ -321,6 +324,8 @@ void ChAssembly::RemoveAllBodies() {
     // Unregister all items before detaching any, so that a failure does not leave detached items in the list
     for (const auto& body : bodylist)
         RemoveCollisionModels(*body);
+    if (!bodylist.empty())
+        RemoveContacts();
 
     for (auto& body : bodylist) {
         body->SetSystem(nullptr);
@@ -364,6 +369,8 @@ void ChAssembly::RemoveAllMeshes() {
     // Unregister all items before detaching any, so that a failure does not leave detached items in the list
     for (const auto& mesh : meshlist)
         RemoveCollisionModels(*mesh);
+    if (!meshlist.empty())
+        RemoveContacts();
 
     for (auto& mesh : meshlist) {
         mesh->SetSystem(nullptr);
@@ -379,6 +386,8 @@ void ChAssembly::RemoveAllOtherPhysicsItems() {
     // Unregister all items before detaching any, so that a failure does not leave detached items in the list
     for (const auto& item : otherphysicslist)
         RemoveCollisionModels(*item);
+    if (!otherphysicslist.empty())
+        RemoveContacts();
 
     for (auto& item : otherphysicslist) {
         item->SetSystem(nullptr);
@@ -392,6 +401,11 @@ void ChAssembly::RemoveAllOtherPhysicsItems() {
 void ChAssembly::RemoveCollisionModels(const ChPhysicsItem& item) const {
     if (system && system->GetCollisionSystem())
         item.RemoveCollisionModelsFromSystem(system->GetCollisionSystem().get());
+}
+
+void ChAssembly::RemoveContacts() const {
+    if (system && system->GetContactContainer())
+        system->GetContactContainer()->RemoveAllContacts();
 }
 
 std::shared_ptr<ChBody> ChAssembly::SearchBody(const std::string& name) const {

@@ -93,7 +93,8 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     // Removal functions.
     // If this assembly belongs to a system, the collision models of the removed items are also removed from the
-    // collision system of that system.
+    // collision system of that system and, if an item that can be in contact is removed, all contacts currently in its
+    // contact container are discarded (they are recreated by the next collision detection).
 
     /// Remove a body from this assembly.
     void RemoveBody(std::shared_ptr<ChBody> body);
@@ -332,6 +333,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Remove the collision models of an item being removed from this assembly from the collision system of the
     /// system this assembly belongs to (if any).
     void RemoveCollisionModels(const ChPhysicsItem& item) const;
+
+    /// Discard the contacts in the system this assembly belongs to (if any), since they may involve an item being
+    /// removed.
+    void RemoveContacts() const;
 
     std::vector<std::shared_ptr<ChBody>> bodylist;      ///< list of rigid bodies
     std::vector<std::shared_ptr<ChShaft>> shaftlist;    ///< list of 1-D shafts

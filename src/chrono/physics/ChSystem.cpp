@@ -143,13 +143,11 @@ std::shared_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
 }
 
 void ChSystem::Clear() {
-    // This also removes the collision models of all items from the collision system
+    // This also removes the collision models of all items from the collision system and discards all contacts
     assembly.Clear();
 
     if (visual_system)
         visual_system->OnClear(this);
-
-    // contact_container->RemoveAllContacts();
 
     // ResetTimers();
 }
