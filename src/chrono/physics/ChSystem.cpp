@@ -123,6 +123,11 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
 }
 
 ChSystem::~ChSystem() {
+    // Release the collision system first. When destroyed, it detaches the collision models it holds, so the physics
+    // items are then removed without removing their collision models one by one (not all collision systems support
+    // that). A collision system still shared elsewhere keeps its models, whose implementations then remain valid.
+    collision_system.reset();
+
     Clear();
 }
 
@@ -138,12 +143,11 @@ std::shared_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
 }
 
 void ChSystem::Clear() {
+    // This also removes the collision models of all items from the collision system and discards all contacts
     assembly.Clear();
 
     if (visual_system)
         visual_system->OnClear(this);
-
-    // contact_container->RemoveAllContacts();
 
     // ResetTimers();
 }
@@ -180,38 +184,28 @@ void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChSystem::RemoveBody(std::shared_ptr<ChBody> body) {
-    if (collision_system)
-        body->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveBody(body);
     body->SetSystem(nullptr);
 }
 
 void ChSystem::RemoveShaft(std::shared_ptr<ChShaft> shaft) {
-    if (collision_system)
-        shaft->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveShaft(shaft);
     shaft->SetSystem(nullptr);
 }
 
 void ChSystem::RemoveLink(std::shared_ptr<ChLinkBase> link) {
-    if (collision_system)
-        link->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveLink(link);
     link->SetSystem(nullptr);
 }
 
 #ifdef CHRONO_FEA
 void ChSystem::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
-    if (collision_system)
-        mesh->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveMesh(mesh);
     mesh->SetSystem(nullptr);
 }
 #endif
 
 void ChSystem::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
-    if (collision_system)
-        item->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveOtherPhysicsItem(item);
     item->SetSystem(nullptr);
 }

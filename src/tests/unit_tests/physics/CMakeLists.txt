@@ -6,6 +6,7 @@ SET(TESTS
     utest_CH_assembly
     utest_CH_composite_inertia
     utest_CH_prismatic_spring
+    utest_CH_remove_items
 )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
