@@ -342,6 +342,7 @@ set(CHRONO_FSI_SPH_GPU_BACKEND "@CHRONO_FSISPH_BACKEND@")
 # Vulkan RT renderer is vendor-neutral. Keying on the module would force a
 # pointless CUDA search on consumers of an AMD or CPU-only Sensor build.
 set(CHRONO_SENSOR_USES_OPTIX   "@CH_USE_SENSOR_OPTIX@")
+set(CHRONO_SENSOR_USES_VULKAN_RT "@CH_USE_SENSOR_VULKAN_RT@")
 
 set(CHRONO_GPU_VENDOR          "@CHRONO_GPU_VENDOR_RESOLVED@")
 set(CHRONO_HIP_PLATFORM        "@CHRONO_HIP_PLATFORM@")
@@ -571,10 +572,23 @@ endif()
 #-------------------------------------------------------------------------------
 
 list(PREPEND CHRONO_LIB_NAMES "Chrono_core")
-list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
 if (NOT CHRONO_STATIC)
   list(APPEND CHRONO_DLL_NAMES "Chrono_core.dll")
-  list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
+endif()
+
+# The robot models link to Chrono::Parsers if Chrono was built with Parsers URDF support. Chrono::Parsers in turn
+# depends on most other Chrono modules and their dependencies, so in that case the robot models are provided only with
+# the Parsers component (requested directly or as a dependency of another component); see below.
+set(CHRONO_ROBOT_MODELS_USE_PARSERS FALSE)
+if("@CH_ENABLE_MODULE_PARSERS@" AND "@CH_USE_URDF@")
+  set(CHRONO_ROBOT_MODELS_USE_PARSERS TRUE)
+endif()
+
+if(NOT CHRONO_ROBOT_MODELS_USE_PARSERS)
+  list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
+  if (NOT CHRONO_STATIC)
+    list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
+  endif()
 endif()
 
 
@@ -853,6 +867,16 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "SENSOR")
 
+    # Chrono_sensor links to Vulkan (and Threads) when built with the Vulkan RT renderer
+    if(CHRONO_SENSOR_USES_VULKAN_RT)
+      find_package(Vulkan QUIET)
+      find_package(Threads QUIET)
+      if(NOT TARGET Vulkan::Vulkan OR NOT TARGET Threads::Threads)
+        message("WARNING: Chrono::Sensor requires Vulkan, but Vulkan was not found")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
+    endif()
+
     if(CHRONO_OPTIX_AVAILABLE)
         _chrono_default_path(OptiX_INSTALL_DIR "@OptiX_INSTALL_DIR@" PATH "Path to the installed location of the OptiX SDK.")
         find_package(OptiX QUIET)
@@ -1113,6 +1137,14 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     list(PREPEND CHRONO_LIB_NAMES "Chrono_parsers")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_parsers.dll")
+    endif()
+
+    # The robot models link to Chrono::Parsers in this case (see above)
+    if(CHRONO_ROBOT_MODELS_USE_PARSERS)
+      list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
+      endif()
     endif()
 
     if(@CH_USE_URDF@)

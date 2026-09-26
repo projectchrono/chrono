@@ -148,6 +148,11 @@ if(CH_ENABLE_MODULE_SENSOR)
   list (APPEND DEPENDENCIES_SYNCHRONO "IRRLICHT")
 endif()
 
+# Chrono_synchrono links to the robot models, which link to Chrono_parsers when URDF support is enabled
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  list (APPEND DEPENDENCIES_SYNCHRONO "PARSERS")
+endif()
+
 set(DEPENDENCIES_SYNCHRONO ${DEPENDENCIES_SYNCHRONO} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------

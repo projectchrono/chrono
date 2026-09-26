@@ -1281,6 +1281,17 @@ install(TARGETS Chrono_sensor
         INCLUDES DESTINATION include/chrono_sensor)
 
 # ----------------------------------------------------------------------------
+# Chrono modules that Chrono_sensor links to (for the Chrono package configuration script)
+# ----------------------------------------------------------------------------
+
+set(DEPENDENCIES_SENSOR "")
+if(CH_USE_SENSOR_OPTIX AND CH_ENABLE_MODULE_FSI_SPH)
+  list(APPEND DEPENDENCIES_SENSOR "FSI_SPH")
+endif()
+
+set(DEPENDENCIES_SENSOR ${DEPENDENCIES_SENSOR} PARENT_SCOPE)
+
+# ----------------------------------------------------------------------------
 # Generate and install configuration files
 # ----------------------------------------------------------------------------
 
