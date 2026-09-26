@@ -109,10 +109,19 @@ include(CMakeFindDependencyMacro)
 # normal CMake search (CMAKE_PREFIX_PATH, <Package>_ROOT, system locations).
 # No empty cache entry is created in that case: find_path and find_library treat any value already in the cache,
 # including an empty one, as a result and would then skip the search.
+# The value may be a list (e.g., the include directories of a target); it is used only if all its entries exist.
 function(_chrono_default_path VAR VALUE TYPE DOC)
-  if(NOT DEFINED ${VAR} AND NOT "${VALUE}" STREQUAL "" AND EXISTS "${VALUE}")
-    set(${VAR} "${VALUE}" CACHE ${TYPE} "${DOC}")
+  if(DEFINED ${VAR} OR "${VALUE}" STREQUAL "")
+    return()
   endif()
+  set(paths ${VALUE})
+  list(REMOVE_DUPLICATES paths)
+  foreach(path ${paths})
+    if(NOT EXISTS "${path}")
+      return()
+    endif()
+  endforeach()
+  set(${VAR} "${paths}" CACHE ${TYPE} "${DOC}")
 endfunction()
 
 # Handle MSVC Runtime Library
