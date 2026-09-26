@@ -929,7 +929,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(CH_USE_SENSOR_OPTIX)
-  target_include_directories(Chrono_sensor SYSTEM PUBLIC "${OptiX_INCLUDE}")
+  # Only for the build tree: an absolute path to the OptiX SDK must not be exported. The Chrono package configuration
+  # script adds the OptiX include directory found on the consumer's machine.
+  target_include_directories(Chrono_sensor SYSTEM PUBLIC "$<BUILD_INTERFACE:${OptiX_INCLUDE}>")
 
   # CUDA::cudart_static (and the other CUDA::* imports linked below) bring in the CUDA
   # Toolkit's own include directories transitively. Re-declaring that same path here as

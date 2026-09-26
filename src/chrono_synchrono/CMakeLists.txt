@@ -197,11 +197,8 @@ target_include_directories(Chrono_synchrono PUBLIC
 
 # Add dependencies
 if (CH_ENABLE_MODULE_SENSOR)
+  # The OptiX include directory, if used, is propagated by Chrono_sensor.
   target_link_libraries(Chrono_synchrono PUBLIC Chrono_sensor)
-  if(CH_USE_SENSOR_OPTIX)
-    find_package(OptiX REQUIRED)
-    target_include_directories(Chrono_synchrono PUBLIC "${OptiX_INCLUDE}")
-  endif()
 endif()
   
 if (CH_ENABLE_MODULE_IRRLICHT)

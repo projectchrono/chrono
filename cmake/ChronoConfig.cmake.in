@@ -102,6 +102,19 @@ include("${CMAKE_CURRENT_LIST_DIR}/ChronoTargets.cmake")
 
 include(CMakeFindDependencyMacro)
 
+# Default a dependency location to the one used when Chrono was built.
+# The default is applied only if the caller has not already set the variable (on the command line, in the cache, or
+# in their own project) and only if that location exists on this machine. If Chrono was moved to another machine, or
+# a dependency was moved since Chrono was built, the variable is left undefined and the dependency is located by the
+# normal CMake search (CMAKE_PREFIX_PATH, <Package>_ROOT, system locations).
+# No empty cache entry is created in that case: find_path and find_library treat any value already in the cache,
+# including an empty one, as a result and would then skip the search.
+function(_chrono_default_path VAR VALUE TYPE DOC)
+  if(NOT DEFINED ${VAR} AND NOT "${VALUE}" STREQUAL "" AND EXISTS "${VALUE}")
+    set(${VAR} "${VALUE}" CACHE ${TYPE} "${DOC}")
+  endif()
+endfunction()
+
 # Handle MSVC Runtime Library
 set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
 
@@ -154,7 +167,11 @@ else()
 endif()
 
 if(@CH_INSTALL_SWIG_INTERFACE@)
-   set(CHRONO_SWIG_DIR "@CHRONO_SWIG_DIR@")
+  if(CHRONO_INSTALL_TREE)
+    set(CHRONO_SWIG_DIR "${CHRONO_PACKAGE_PREFIX_DIR}/include/chrono_swig")
+  else()
+    set(CHRONO_SWIG_DIR "@CHRONO_SWIG_DIR@")
+  endif()
 endif()
 
 #-------------------------------------------------------------------------------
@@ -266,8 +283,8 @@ endif()
 # Find Eigen3
 #-------------------------------------------------------------------------------
 
-set(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
-set(Eigen3_DIR "@Eigen3_DIR@" CACHE PATH "Path to Eigen3 config file (should contain the \"Eigen3Config.cmake\" file")
+_chrono_default_path(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@" PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
+_chrono_default_path(Eigen3_DIR "@Eigen3_DIR@" PATH "Path to Eigen3 config file (should contain the \"Eigen3Config.cmake\" file")
 
 find_package(Eigen3 3.3 QUIET)
 
@@ -367,15 +384,22 @@ endif()
 #-------------------------------------------------------------------------------
 
 if(_chrono_need_cuda)
-  set(CMAKE_CUDA_COMPILER "@CMAKE_CUDA_COMPILER@" CACHE PATH "CUDA compiler")
-  set(CUDAToolkit_DIR "@CUDAToolkit_LIBRARY_ROOT@" CACHE PATH "CUDAToolkit library location (should contain 'version.json')")
+  _chrono_default_path(CMAKE_CUDA_COMPILER "@CMAKE_CUDA_COMPILER@" FILEPATH "CUDA compiler")
+  _chrono_default_path(CUDAToolkit_DIR "@CUDAToolkit_LIBRARY_ROOT@" PATH "CUDAToolkit library location (should contain 'version.json')")
 
   set(CHRONO_CUDA_FOUND TRUE)
 
+  find_package(CUDAToolkit QUIET)
+
+  # If the CUDA compiler used to build Chrono is not available on this machine (and none was selected through CUDACXX),
+  # use the compiler of the CUDA toolkit found here. This keeps compiler and toolkit consistent and also works with the
+  # Visual Studio generators, which do not detect a CUDA compiler on their own.
+  if(NOT DEFINED CMAKE_CUDA_COMPILER AND NOT DEFINED ENV{CUDACXX} AND CUDAToolkit_NVCC_EXECUTABLE)
+    set(CMAKE_CUDA_COMPILER "${CUDAToolkit_NVCC_EXECUTABLE}" CACHE FILEPATH "CUDA compiler")
+  endif()
+
   include(CheckLanguage)
   check_language(CUDA)
-
-  find_package(CUDAToolkit QUIET)
 
   if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
     if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
@@ -418,7 +442,7 @@ endif()
 #-------------------------------------------------------------------------------
 
 if(_chrono_need_hip)
-  set(CHRONO_ROCM_ROOT "@CHRONO_ROCM_ROOT@" CACHE PATH "ROCm root used to build Chrono")
+  _chrono_default_path(CHRONO_ROCM_ROOT "@CHRONO_ROCM_ROOT@" PATH "ROCm root used to build Chrono")
 
   # Do NOT mutate CMAKE_PREFIX_PATH here. This code runs in the CONSUMER's scope,
   # so prepending the ROCm root would persist after find_package(Chrono) returns
@@ -460,7 +484,7 @@ endif()
 #-------------------------------------------------------------------------------
 
 if(CHRONO_THRUST_AVAILABLE)
-  set(Thrust_ROOT "@THRUST_INCLUDE_DIR@" CACHE PATH "Thrust library location (should contain 'thrust/version.h')")
+  _chrono_default_path(Thrust_ROOT "@THRUST_INCLUDE_DIR@" PATH "Thrust library location (should contain 'thrust/version.h')")
   find_package(Thrust QUIET)
 
   if(Thrust_FOUND)
@@ -502,7 +526,7 @@ endif()
 #-------------------------------------------------------------------------------
 
 if(CHRONO_HDF5_AVAILABLE)
-  set(HDF5_DIR "@HDF5_DIR@" CACHE PATH "Path to HDF5 config file (should contain the \"hdf5-config.cmake\" file")
+  _chrono_default_path(HDF5_DIR "@HDF5_DIR@" PATH "Path to HDF5 config file (should contain the \"hdf5-config.cmake\" file")
 
   find_package(HDF5 COMPONENTS CXX QUIET)
 
@@ -629,7 +653,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "MODAL")
 
-    set(spectra_INCLUDE_DIR "@spectra_INCLUDE_DIR@" CACHE PATH "Path to Spectra include directory (should contain a subdirectory 'Spectra')")
+    _chrono_default_path(spectra_INCLUDE_DIR "@spectra_INCLUDE_DIR@" PATH "Path to Spectra include directory (should contain a subdirectory 'Spectra')")
     find_package(Spectra QUIET)
 
     if (NOT spectra_FOUND)
@@ -651,9 +675,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "IRRLICHT")
 
-    set(Irrlicht_INCLUDE_DIR "@CH_IRRLICHT_INCLUDE_DIR@" CACHE STRING "Irrlicht include directory")
-    set(Irrlicht_LIBRARY "@CH_IRRLICHT_LIBRARY@" CACHE STRING "Irrlicht library")
-    set(Irrlicht_DLL "@CH_IRRLICHT_DLL@" CACHE STRING "Irrlicht DLL")
+    _chrono_default_path(Irrlicht_INCLUDE_DIR "@CH_IRRLICHT_INCLUDE_DIR@" STRING "Irrlicht include directory")
+    _chrono_default_path(Irrlicht_LIBRARY "@CH_IRRLICHT_LIBRARY@" STRING "Irrlicht library")
+    _chrono_default_path(Irrlicht_DLL "@CH_IRRLICHT_DLL@" STRING "Irrlicht DLL")
     find_package(Irrlicht QUIET)
 
     if (NOT Irrlicht_FOUND)
@@ -689,12 +713,12 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       message("WARNING: Chrono::VSG requires C++, but C++ language was not enabled")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     else()
-      set(vsg_DIR "@vsg_DIR@" CACHE PATH "Path to vsg installation.")
-      set(vsgImGui_DIR "@vsgImGui_DIR@" CACHE PATH "Path to vsgImGui installation.")
-      set(vsgXchange_DIR "@vsgXchange_DIR@" CACHE PATH "Path to vsgXchange installation.")
-      set(glslang_DIR "@glslang_DIR@" CACHE PATH "Path to glslang installation.")
-      set(SPIRV-Tools_DIR "@SPIRV-Tools_DIR@" CACHE PATH "Path to SPIRV-Tools installation.")
-      set(SPIRV-Tools-opt_DIR "@SPIRV-Tools-opt_DIR@" CACHE PATH "Path to SPIRV-Tools-opt installation.")
+      _chrono_default_path(vsg_DIR "@vsg_DIR@" PATH "Path to vsg installation.")
+      _chrono_default_path(vsgImGui_DIR "@vsgImGui_DIR@" PATH "Path to vsgImGui installation.")
+      _chrono_default_path(vsgXchange_DIR "@vsgXchange_DIR@" PATH "Path to vsgXchange installation.")
+      _chrono_default_path(glslang_DIR "@glslang_DIR@" PATH "Path to glslang installation.")
+      _chrono_default_path(SPIRV-Tools_DIR "@SPIRV-Tools_DIR@" PATH "Path to SPIRV-Tools installation.")
+      _chrono_default_path(SPIRV-Tools-opt_DIR "@SPIRV-Tools-opt_DIR@" PATH "Path to SPIRV-Tools-opt installation.")
       find_package(vsg QUIET)
       find_package(vsgImGui QUIET)
       find_package(vsgXchange QUIET)
@@ -830,7 +854,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
   elseif(${COMPONENT_UPPER} STREQUAL "SENSOR")
 
     if(CHRONO_OPTIX_AVAILABLE)
-        set(OptiX_INSTALL_DIR "@OptiX_INSTALL_DIR@" CACHE PATH "Path to the installed location of the OptiX SDK.")
+        _chrono_default_path(OptiX_INSTALL_DIR "@OptiX_INSTALL_DIR@" PATH "Path to the installed location of the OptiX SDK.")
         find_package(OptiX QUIET)
 
         if(NOT OptiX_INCLUDE)
@@ -840,12 +864,14 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
         else()
           message(STATUS "OptiX found")
           mark_as_advanced(FORCE OptiX_INSTALL_DIR)
+          # The Chrono targets do not export the OptiX location used to build Chrono; use the one found here
+          target_include_directories(Chrono::Chrono_sensor SYSTEM INTERFACE "${OptiX_INCLUDE}")
         endif()
     endif()
 
-    set(OpenGL_DIR "@OpenGL_DIR@" CACHE PATH "Path to the OpenGL installation.")
-    set(GLEW_DIR "@GLEW_DIR@" CACHE PATH "Path to the GLEW installation.")
-    set(glfw3_DIR "@glfw3_DIR@" CACHE PATH "Path to the glfw3 installation.")
+    _chrono_default_path(OpenGL_DIR "@OpenGL_DIR@" PATH "Path to the OpenGL installation.")
+    _chrono_default_path(GLEW_DIR "@GLEW_DIR@" PATH "Path to the GLEW installation.")
+    _chrono_default_path(glfw3_DIR "@glfw3_DIR@" PATH "Path to the glfw3 installation.")
     find_package(OpenGL QUIET)
     find_package(GLEW QUIET)
     find_package(glfw3 QUIET)
@@ -879,7 +905,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
     if(@FASTDDS_FOUND@)
       # TODO: no fastcdr?
-      set(fastrtps_DIR "@fastrtps_DIR@" CACHE PATH "Path to FastDDS installation")
+      _chrono_default_path(fastrtps_DIR "@fastrtps_DIR@" PATH "Path to FastDDS installation")
       find_package(fastrtps QUIET)
       if (NOT fastrtps_FOUND)
         message("WARNING: Chrono::Synchrono was compiled with FastDDS, but FastDDS has not been found on this machine.")
@@ -899,13 +925,13 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "ROS")
 
-    set(rclcpp_DIR "@rclcpp_DIR@" CACHE PATH "Path to rclcpp installation")
-    set(tf2_ros_DIR "@tf2_ros_DIR@" CACHE PATH "Path to tf2_ros installation")
-    set(rcl_interfaces_DIR "@rcl_interfaces_DIR@" CACHE PATH "Path to rcl_interfaces installation")
-    set(std_msgs_DIR "@std_msgs_DIR@" CACHE PATH "Path to std_msgs installation")
-    set(geometry_msgs_DIR "@geometry_msgs_DIR@" CACHE PATH "Path to geometry_msgs installation")
-    set(sensor_msgs_DIR "@sensor_msgs_DIR@" CACHE PATH "Path to sensor_msgs installation")
-    set(tf2_msgs_DIR "@tf2_msgs_DIR@" CACHE PATH "Path to tf2_msgs installation")
+    _chrono_default_path(rclcpp_DIR "@rclcpp_DIR@" PATH "Path to rclcpp installation")
+    _chrono_default_path(tf2_ros_DIR "@tf2_ros_DIR@" PATH "Path to tf2_ros installation")
+    _chrono_default_path(rcl_interfaces_DIR "@rcl_interfaces_DIR@" PATH "Path to rcl_interfaces installation")
+    _chrono_default_path(std_msgs_DIR "@std_msgs_DIR@" PATH "Path to std_msgs installation")
+    _chrono_default_path(geometry_msgs_DIR "@geometry_msgs_DIR@" PATH "Path to geometry_msgs installation")
+    _chrono_default_path(sensor_msgs_DIR "@sensor_msgs_DIR@" PATH "Path to sensor_msgs installation")
+    _chrono_default_path(tf2_msgs_DIR "@tf2_msgs_DIR@" PATH "Path to tf2_msgs installation")
     find_package(rclcpp QUIET)
     find_package(tf2_ros QUIET)
     find_package(rcl_interfaces QUIET)
@@ -935,7 +961,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (@CH_ROS_HAS_INTERFACES@)
-      set(chrono_ros_interfaces_DIR "@chrono_ros_interfaces_DIR@" CACHE PATH "Path to chrono_ros_interfaces installation")
+      _chrono_default_path(chrono_ros_interfaces_DIR "@chrono_ros_interfaces_DIR@" PATH "Path to chrono_ros_interfaces installation")
       find_package(chrono_ros_interfaces QUIET)
 
       if(chrono_ros_interfaces_FOUND)
@@ -990,7 +1016,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
   elseif(${COMPONENT_UPPER} STREQUAL "PARDISOMKL")
 
     # TODO: DARIOM not sure if we should force the consumer to link against MKL using exactly the same settings as the main Chrono library
-    if(NOT MKL_ROOT)
+    # An MKL selected through the MKLROOT environment variable (e.g., by the oneAPI setvars script) takes precedence
+    # over the one used to build Chrono, which is used only if it exists on this machine.
+    if(NOT MKL_ROOT AND NOT DEFINED ENV{MKLROOT} AND EXISTS "@MKL_ROOT@")
       set(MKL_ROOT "@MKL_ROOT@")
     endif()
 
@@ -1031,7 +1059,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "MUMPS")
 
-    set(MUMPS_DIR "@MUMPS_DIR@" CACHE PATH "Path to MUMPS installation.")
+    _chrono_default_path(MUMPS_DIR "@MUMPS_DIR@" PATH "Path to MUMPS installation.")
     find_package(MUMPS QUIET)
 
     if(NOT MUMPS_FOUND)
@@ -1056,13 +1084,15 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
   elseif(${COMPONENT_UPPER} STREQUAL "CASCADE")
 
 
-    set(OpenCASCADE_DIR "@OpenCASCADE_DIR@" CACHE PATH "The directory containing a CMake configuration for OpenCASCADE")
+    _chrono_default_path(OpenCASCADE_DIR "@OpenCASCADE_DIR@" PATH "The directory containing a CMake configuration for OpenCASCADE")
     find_package(OpenCASCADE QUIET)
 
     if (NOT OpenCASCADE_FOUND)
       message("WARNING: Could not find OpenCASCADE")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     else()
+      # The Chrono targets do not export the OpenCASCADE location used to build Chrono; use the one found here
+      target_include_directories(Chrono::Chrono_cascade SYSTEM INTERFACE "${OpenCASCADE_INCLUDE_DIR}")
       list(PREPEND CHRONO_LIB_NAMES "Chrono_cascade")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "Chrono_cascade.dll")
@@ -1080,10 +1110,10 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(@CH_USE_URDF@)
-      set(urdfdom_DIR "@urdfdom_DIR@" CACHE PATH "The directory containing a CMake configuration for urdfdom")
-      set(urdfdom_headers_DIR "@urdfdom_headers_DIR@" CACHE PATH "The directory containing a CMake configuration for urdfdom_headers")
-      set(console_bridge_DIR "@console_bridge_DIR@" CACHE PATH "The directory containing a CMake configuration for console_bridge")
-      set(tinyxml2_DIR "@tinyxml2_DIR@" CACHE PATH "The directory containing a CMake configuration for tinyxml2")
+      _chrono_default_path(urdfdom_DIR "@urdfdom_DIR@" PATH "The directory containing a CMake configuration for urdfdom")
+      _chrono_default_path(urdfdom_headers_DIR "@urdfdom_headers_DIR@" PATH "The directory containing a CMake configuration for urdfdom_headers")
+      _chrono_default_path(console_bridge_DIR "@console_bridge_DIR@" PATH "The directory containing a CMake configuration for console_bridge")
+      _chrono_default_path(tinyxml2_DIR "@tinyxml2_DIR@" PATH "The directory containing a CMake configuration for tinyxml2")
       find_package(urdfdom REQUIRED)
       find_package(urdfdom_headers REQUIRED)
       find_package(console_bridge REQUIRED)

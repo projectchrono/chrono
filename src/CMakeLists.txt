@@ -843,7 +843,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
 # Create Chrono project configuration script for the install tree
 set(CH_INSTALL_TREE TRUE)
 set(CH_BUILD_TREE_DIR "")
-set(CHRONO_SWIG_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_swig")
+set(CHRONO_SWIG_DIR "")  # the install-tree script locates the SWIG interface files relative to its own location
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/ChronoConfig.cmake-install"
