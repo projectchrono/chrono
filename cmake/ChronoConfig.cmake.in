@@ -1018,8 +1018,14 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     # TODO: DARIOM not sure if we should force the consumer to link against MKL using exactly the same settings as the main Chrono library
     # An MKL selected through the MKLROOT environment variable (e.g., by the oneAPI setvars script) takes precedence
     # over the one used to build Chrono, which is used only if it exists on this machine.
-    if(NOT MKL_ROOT AND NOT DEFINED ENV{MKLROOT} AND EXISTS "@MKL_ROOT@")
-      set(MKL_ROOT "@MKL_ROOT@")
+    # MKL_ROOT is also passed to find_package below as a search location: MKLConfig.cmake reads MKLROOT only once it
+    # has been found, which otherwise depends on MKL being on the PATH.
+    if(NOT MKL_ROOT)
+      if(DEFINED ENV{MKLROOT})
+        file(TO_CMAKE_PATH "$ENV{MKLROOT}" MKL_ROOT)
+      elseif(EXISTS "@MKL_ROOT@")
+        set(MKL_ROOT "@MKL_ROOT@")
+      endif()
     endif()
 
     if(NOT MKL_ARCH)
@@ -1043,7 +1049,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(NOT TARGET MKL::MKL)
-      find_package(MKL CONFIG QUIET)
+      find_package(MKL CONFIG QUIET HINTS "${MKL_ROOT}")
     elseif(NOT Chrono_FIND_QUIETLY)
       message(STATUS "MKL::MKL already available.")
     endif()
