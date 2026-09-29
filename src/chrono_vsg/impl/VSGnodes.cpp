@@ -42,7 +42,8 @@ vsg::ref_ptr<vsg::Node> createSkysphere(const vsg::Path& filename,
         return {};
     }
     // sky image, authored in sRGB: an sRGB format makes the GPU decode it to linear when sampled
-    textureData->properties.format = vsg::uNorm_to_sRGB(textureData->properties.format);
+    // should not be used after commit aa3922df4a, when texture file is already in sRGB format!
+    // textureData->properties.format = vsg::uNorm_to_sRGB(textureData->properties.format);
 
     auto vertexShader = vsg::ShaderStage::create(VK_SHADER_STAGE_VERTEX_BIT, "main", skysphere_vert);
     auto fragmentShader = vsg::ShaderStage::create(VK_SHADER_STAGE_FRAGMENT_BIT, "main", skysphere_frag);
