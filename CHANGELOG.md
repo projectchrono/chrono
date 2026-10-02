@@ -547,6 +547,23 @@ Notable fixes since the 10.0.0 release:
 - Materials loaded from an MTL file are now stored in the order referenced by the associated OBJ
   file, and only materials actually referenced are retained.
 - FMU resource directories resolved to a relative path on POSIX systems.
+- `ChSystem::DoAssembly()` at the acceleration level reported the velocity increment of a small
+  linearized step as the acceleration. That increment satisfies `Cq a = 0`, so it omitted the
+  quadratic-velocity term (for a swinging pendulum, the entire centripetal acceleration) from both
+  the accelerations and the reactions it scattered; at rest the result was correct, which is how it
+  went unnoticed. The acceleration level now takes a second linearized step whose constraint
+  right-hand side carries the quadratic-velocity term (obtained by central differencing of the
+  constraints), so bilateral constraints get the correct acceleration-level solution while unilateral
+  constraints and frictional contacts keep their velocity-level treatment. The differencing (step
+  1e-6) puts a roundoff floor on the reported accelerations, also at rest where they were previously
+  exact, of about 1e-4 times the constraint's length scale (SI units), and on the reactions of that
+  times the mass involved. With active contacts, resting and separating cases are unchanged; for a
+  sliding frictional contact the relaxed cone complementarity of the velocity-level step already
+  alters the sliding velocity, so the reported acceleration is not meaningful there, before or after
+  (a pre-existing limitation of assembly with active contacts, to be addressed separately). Also,
+  `DoAssembly()` no longer leaves its internal 1e-6 step in the system, so `DoFrameKinematics()`
+  advances by the requested step. Unit tests check a pendulum against its closed form at two lengths
+  (#846).
 
 # Release 10.0.0 (2026-03-27)
 
