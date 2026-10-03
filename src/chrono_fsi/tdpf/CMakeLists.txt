@@ -102,9 +102,9 @@ foreach(ss_target ${SEASTACK_TARGETS})
 
     set_target_properties(${ss_target} PROPERTIES FOLDER seastack)
 
-    if(CH_STATIC)
-        set_target_properties(${ss_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    endif()
+    # The SEA-Stack libraries are always STATIC; they must be PIC so they can be
+    # linked into a shared Chrono_fsitdpf (and harmlessly so into a static one).
+    set_target_properties(${ss_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
     if(MSVC)
         set_target_properties(${ss_target} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
