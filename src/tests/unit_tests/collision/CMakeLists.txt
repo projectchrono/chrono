@@ -1,5 +1,6 @@
 set(TESTS
     utest_COLL_bullet_utils
+    utest_COLL_cylshell_box_axis
 )
 
 if (CHRONO_THRUST_FOUND)

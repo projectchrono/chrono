@@ -322,7 +322,7 @@ void cbtCylshellBoxCollisionAlgorithm::processCollision(const cbtCollisionObject
     const cbtTransform& abs_X_box = boxObjWrap->getWorldTransform();
     cbtTransform box_X_cyl = abs_X_box.inverseTimes(abs_X_cyl);
 
-    cbtVector3 a = box_X_cyl.getBasis().getColumn(1);  // cylinder axis (expressed in box frame)
+    cbtVector3 a = box_X_cyl.getBasis().getColumn(2);  // cylinder axis (expressed in box frame)
     cbtVector3 c = box_X_cyl.getOrigin();              // cylinder center (expressed in box frame)
 
     // Box dimensions
