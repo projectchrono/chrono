@@ -506,7 +506,7 @@ void ChCollisionSystemMulticore::GenerateAABB() {
 
             } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL) {
                 real4 T = cd_data->shape_data.rbox_like_rigid[start];
-                real3 B = real3(T.x, T.y, T.z) + T.w + envelope;
+                real3 B = real3(T.x, T.y, T.z) + envelope;
                 ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::CAPSULE) {

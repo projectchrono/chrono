@@ -193,7 +193,7 @@ bool cylinder_sphere(const real3& pos1,
 
 // RoundedCylinder-sphere narrow phase collision detection.
 // In:  roundedcyl at pos1, with orientation rot1
-//              roundedcyl has radius1 and half-length hlen1 (in Z direction)
+//              roundedcyl has (outer) radius1 and half-length hlen1 (in Z direction)
 //              radius of the sweeping sphere is srad1
 //      sphere centered at pos2 with radius2
 
@@ -214,8 +214,9 @@ bool roundedcyl_sphere(const real3& pos1,
     real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
     // Snap the sphere position to the surface of the skeleton cylinder.
+    // The skeleton cylinder is obtained by shrinking the outer dimensions by the sweeping sphere radius.
     real3 cylPos = spherePos;
-    uint code = snap_to_cylinder(radius1, hlen1, cylPos);
+    uint code = snap_to_cylinder(radius1 - srad1, hlen1 - srad1, cylPos);
 
     // Quick return: no contact if the sphere center is inside the skeleton
     // cylinder.
@@ -316,7 +317,7 @@ bool box_sphere(const real3& pos1,
 
 // RoundedBox-sphere narrow phase collision detection.
 // In:  roundedbox at position pos1, with orientation rot1
-//              roundedbox has half-dimensions hdims1
+//              roundedbox has (outer) half-dimensions hdims1
 //              radius of the sweeping sphere is srad1
 //      sphere centered at pos2 and with radius2
 
@@ -336,8 +337,9 @@ bool roundedbox_sphere(const real3& pos1,
     real3 spherePos = TransformParentToLocal(pos1, rot1, pos2);
 
     // Snap the sphere position to the surface of the skeleton box.
+    // The skeleton box is obtained by shrinking the outer dimensions by the sweeping sphere radius.
     real3 boxPos = spherePos;
-    uint code = snap_to_box(hdims1, boxPos);
+    uint code = snap_to_box(hdims1 - srad1, boxPos);
 
     // Reduce the problem to the interaction between two spheres:
     //    (a) a sphere with radius srad1, centered at boxPos
@@ -1460,18 +1462,16 @@ bool ChNarrowphase::PRIMSCollision(const ConvexBase* shapeA,  // first candidate
     }
 
     if (shapeA->Type() == ChCollisionShape::Type::ROUNDEDCYL && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (roundedcyl_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox().x, shapeA->Rbox().y, shapeA->Rbox().w,
-                              shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2,
-                              *ct_eff_rad)) {
+        if (roundedcyl_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox().x, shapeA->Rbox().z, shapeA->Rbox().w, shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth,
+                              *ct_pt1, *ct_pt2, *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
     if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::ROUNDEDCYL) {
-        if (roundedcyl_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox().x, shapeB->Rbox().y, shapeB->Rbox().w,
-                              shapeA->A(), shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1,
-                              *ct_eff_rad)) {
+        if (roundedcyl_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox().x, shapeB->Rbox().z, shapeB->Rbox().w, shapeA->A(), shapeA->Radius(), separation, *ct_norm, *ct_depth,
+                              *ct_pt2, *ct_pt1, *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }
