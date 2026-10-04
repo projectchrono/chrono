@@ -258,6 +258,13 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
 
+// Needed before the hoisted ChState.h and ChSystemDescriptor.h below. Otherwise a ChSystem
+// cannot be passed as the ChIntegrable* of a ChState, and GetSystemDescriptor() returns an
+// unwrapped shared_ptr.
+%shared_ptr(chrono::ChIntegrable)
+%shared_ptr(chrono::ChIntegrableIIorder)
+%shared_ptr(chrono::ChSystemDescriptor)
+
 #ifdef CHRONO_FEA
 %shared_ptr(chrono::fea::ChMesh)
 #endif
@@ -395,9 +402,10 @@ inline const char* ChUtils_GetFilename() {
 // functions/   classes
 %include "ChFunction.i"
 
-#ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
 %include "ChUpdateFlags.i"
-#endif              // --------------------------------------------------------------------- CSHARP
+
+// The time in StateGather / IntStateGather is an output argument (returned in Python, 'out' in C#).
+%apply double& OUTPUT { double& T };
 
 // Hoisted: ChMesh, ChPhysicsItem and ChNodeBase below refer to these types, which would
 // otherwise first be parsed via ChTimestepper.i / ChSolver.i further down.
