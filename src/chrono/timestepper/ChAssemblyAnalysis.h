@@ -42,8 +42,25 @@ enum class ExitFlag {
 /// Class for assembly analysis.
 /// Assembly is performed by satisfying constraints at a position, velocity, and acceleration levels.
 /// Assembly at position level involves solving a non-linear problem. Assembly at velocity level is
-/// performed by taking a small integration step. Consistent accelerations are obtained through
-/// finite differencing.
+/// performed by taking a small linearized integration step. Consistent accelerations and reactions are
+/// obtained from a second such step whose constraint right-hand side carries the quadratic-velocity
+/// term, so that the acceleration-level constraint equations, including that term, are satisfied while
+/// unilateral constraints and frictional contacts keep their velocity-level (DVI) treatment. The
+/// quadratic-velocity term is obtained by central differencing of the constraints (step 1e-6), which puts
+/// a roundoff floor on the reported accelerations, also at rest, of about 1e-4 times the length scale of
+/// the constraint (SI units: about 1e-4 for a 1 m distance constraint, 1e-2 for 100 m); the corresponding
+/// floor on the reactions is that acceleration floor times the mass the constraint acts on.
+/// Like the implicit integrators, the analysis scatters perturbed states to the system and expects the
+/// update of every item to be a function of (position, velocity, time) only. Accelerations and reactions
+/// are formed from a velocity increment over the step dt passed to AssemblyAnalysis() (1e-6 when called
+/// through ChSystem::DoAssembly()), so the residual of an iterative solver is amplified by 1/dt in them:
+/// when they matter, use a direct solver or a tight solver tolerance. This dt is distinct from the fixed
+/// 1e-6 differencing step of the quadratic-velocity term. With active contacts, the active set and the
+/// friction are still decided at velocity level: a resting or separating contact gives the same result as
+/// before this formulation, while for a sliding frictional contact the relaxed cone complementarity of the
+/// velocity-level step already alters the sliding velocity (artificial separation velocity of order mu
+/// times the sliding speed), so accelerations reported for such a contact are not meaningful, before or
+/// after.
 class ChApi ChAssemblyAnalysis {
   public:
     ChAssemblyAnalysis(ChIntegrableIIorder& mintegrable);
@@ -54,7 +71,8 @@ class ChApi ChAssemblyAnalysis {
     /// Assembly is performed by satisfying constraints at position, velocity, and acceleration levels.
     /// Assembly at position level involves solving a non-linear problem.
     /// Assembly at velocity level is performed by taking a small integration step.
-    /// Consistent accelerations are obtained through finite differencing.
+    /// Consistent accelerations and reactions are obtained from a second linearized step that includes the
+    /// quadratic-velocity term, so that Cq a = Qc holds (see the class description for the accuracy floor).
     AssemblyAnalysis::ExitFlag AssemblyAnalysis(int action, double dt = 1e-7);
 
     /// Set the max number of Newton-Raphson iterations for the position assembly procedure.

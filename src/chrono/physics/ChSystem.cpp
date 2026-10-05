@@ -1710,12 +1710,17 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action, int max_num_iteratio
     ChAssemblyAnalysis assembling(*this);
     assembling.SetMaxAssemblyIters(max_num_iterationsNR);
 
-    // Perform analysis
+    // Perform analysis.
+    // The assembly uses a tiny internal step (also visible through GetStep() to items updated during the
+    // analysis); restore the system step afterwards, since DoFrameKinematics() advances time by 'step'
+    // after each assembly and the caller's step size must not be replaced by the internal one.
+    double step_saved = step;
     step = 1e-6;
     assembling.SetAbsToleranceResidual(abstol_residualNR);
     assembling.SetRelToleranceUpdate(reltol_updateNR);
     assembling.SetAbsToleranceUpdate(abstol_updateNR);
     AssemblyAnalysis::ExitFlag exit_flag = assembling.AssemblyAnalysis(action, step);
+    step = step_saved;
 
     // Update any attached visualization system
     if (visual_system)
