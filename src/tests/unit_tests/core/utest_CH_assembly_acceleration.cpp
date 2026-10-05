@@ -36,6 +36,7 @@
 
 #include "gtest/gtest.h"
 
+#include "chrono/functions/ChFunctionRamp.h"
 #include "chrono/functions/ChFunctionSine.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -256,6 +257,34 @@ TEST(AssemblyAnalysis, frame_kinematics_keeps_the_requested_step_and_consistent_
     EXPECT_DOUBLE_EQ(p.sys.GetStep(), 0.001);
     EXPECT_NEAR(p.sys.GetChTime(), 0.002, 1e-9);
     EXPECT_LT((p.bob->GetPosDt2() - p.ExactAcc()).Length(), 1e-3);
+}
+
+TEST(AssemblyAnalysis, frame_kinematics_ends_assembled_at_frame_time) {
+    // A body driven by a ChLinkMotorRotationAngle with angle(t) = t. After DoFrameKinematics(), the
+    // configuration must correspond to the frame end time, not to the start of the last step (issue #851).
+    // The second frame ends with a shortened last step.
+    ChSystemNSC sys;
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+    sys.SetSolverType(ChSolver::Type::SPARSE_QR);
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    sys.Add(ground);
+    auto body = chrono_types::make_shared<ChBody>();
+    body->SetPos(ChVector3d(1, 0, 0));
+    sys.Add(body);
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+    motor->Initialize(body, ground, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, 1));
+    sys.AddLink(motor);
+
+    for (double frame_time : {0.5, 1.05}) {
+        auto flag = sys.DoFrameKinematics(frame_time, 0.1);
+        EXPECT_NE(flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED);
+        EXPECT_NEAR(sys.GetChTime(), frame_time, 1e-12);
+        EXPECT_NEAR(motor->GetMotorAngle(), frame_time, 1e-9);
+        EXPECT_LT((body->GetPos() - ChVector3d(std::cos(frame_time), std::sin(frame_time), 0)).Length(), 1e-9);
+        EXPECT_NEAR(body->GetAngVelParent().z(), 1.0, 1e-6);
+    }
 }
 
 TEST(AssemblyAnalysis, velocity_dependent_force_acceleration_is_F_over_m) {

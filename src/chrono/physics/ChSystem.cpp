@@ -1763,13 +1763,14 @@ AssemblyAnalysis::ExitFlag ChSystem::DoFrameKinematics(double frame_time, double
         if (left_time < (1.3 * step))
             step = left_time;
 
+        // Advance the time first, so that the last assembly is performed at frame_time
+        ch_time += step;
+
         exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
         if (exit_flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED) {
             break;
         }
-
-        ch_time += step;
     }
 
     return exit_flag;
