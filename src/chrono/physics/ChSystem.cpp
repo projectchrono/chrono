@@ -55,6 +55,7 @@ ChSystem::ChSystem(const std::string& name)
       ch_time(0),
       m_RTF(0),
       step(0.04),
+      assembly_acc_tol(1e-2),
       use_sleeping(false),
       max_penetration_recovery_speed(0.6),
       stepcount(0),
@@ -98,6 +99,7 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     m_num_constr_uni = other.m_num_constr_uni;
     ch_time = other.ch_time;
     step = other.step;
+    assembly_acc_tol = other.assembly_acc_tol;
     stepcount = other.stepcount;
     solvecount = other.solvecount;
     setupcount = other.setupcount;
@@ -1720,6 +1722,20 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action, int max_num_iteratio
     assembling.SetRelToleranceUpdate(reltol_updateNR);
     assembling.SetAbsToleranceUpdate(abstol_updateNR);
     AssemblyAnalysis::ExitFlag exit_flag = assembling.AssemblyAnalysis(action, step);
+
+    // Check the accuracy of the acceleration-level solve. The accelerations are a velocity increment over the
+    // internal step, so a constraint residual left by the solver results in an acceleration error of about
+    // residual/step. The descriptor still holds the unknowns of that (last) solve.
+    if ((action & AssemblyAnalysis::Level::ACCELERATION) && exit_flag != AssemblyAnalysis::ExitFlag::NOT_CONVERGED) {
+        double max_violation = 0;
+        for (const auto& constr : descriptor->GetConstraints()) {
+            if (constr->IsActive())
+                max_violation = std::max(max_violation, std::abs(constr->Violation(constr->ComputeResidual())));
+        }
+        if (max_violation / step > assembly_acc_tol)
+            exit_flag = AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE;
+    }
+
     step = step_saved;
 
     // Update any attached visualization system

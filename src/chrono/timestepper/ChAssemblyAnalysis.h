@@ -35,7 +35,9 @@ enum class ExitFlag {
     SUCCESS,          ///< no iterations have been performed, no error during velocity and/or acceleration assembly
     ABSTOL_RESIDUAL,  ///< iterations stopped because residual norm below threshold
     RELTOL_UPDATE,    ///< iterations stopped because relative update (Dx/X) norm below threshold
-    ABSTOL_UPDATE     ///< iterations stopped because update norm below threshold
+    ABSTOL_UPDATE,    ///< iterations stopped because update norm below threshold
+    ACCELERATION_INACCURATE  ///< assembly done, but the acceleration-level solve was not accurate enough (see
+                             ///< ChSystem::SetAssemblyAccelerationTolerance)
 };
 }  // namespace AssemblyAnalysis
 
@@ -53,8 +55,12 @@ enum class ExitFlag {
 /// Like the implicit integrators, the analysis scatters perturbed states to the system and expects the
 /// update of every item to be a function of (position, velocity, time) only. Accelerations and reactions
 /// are formed from a velocity increment over the step dt passed to AssemblyAnalysis() (1e-6 when called
-/// through ChSystem::DoAssembly()), so the residual of an iterative solver is amplified by 1/dt in them:
-/// when they matter, use a direct solver or a tight solver tolerance. This dt is distinct from the fixed
+/// through ChSystem::DoAssembly()), so the residual of an iterative solver is amplified by 1/dt in them.
+/// When they matter, use a direct solver (SPARSE_LU, SPARSE_QR), MINRES or GMRES, or, if unilateral
+/// constraints require a VI solver, BARZILAIBORWEIN. The default PSOR solver can leave acceleration errors of
+/// several m/s^2 near singular configurations (e.g., a slider-crank at a dead centre), APGD and PJACOBI even
+/// in regular ones. ChSystem::DoAssembly() checks the residual of the acceleration-level solve and returns
+/// ExitFlag::ACCELERATION_INACCURATE if it is too large. This dt is distinct from the fixed
 /// 1e-6 differencing step of the quadratic-velocity term. With active contacts, the active set and the
 /// friction are still decided at velocity level: a resting or separating contact gives the same result as
 /// before this formulation, while for a sliding frictional contact the relaxed cone complementarity of the

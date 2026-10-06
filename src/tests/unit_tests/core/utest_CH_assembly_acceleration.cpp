@@ -27,7 +27,7 @@
 // order eps * L for a distance constraint) is amplified by 1/Delta^2: the floor on
 // the reported accelerations and reactions scales with L and is about 1e-4 * L in
 // SI units. The tolerance below follows that scaling and is checked at L = 1 and
-// L = 100, with the default iterative solver and with a direct sparse solver.
+// L = 100, with the Barzilai-Borwein iterative solver and with a direct sparse solver.
 //
 // =============================================================================
 
@@ -103,7 +103,9 @@ PendulumResult RunPendulum(double omega, double L, ChSolver::Type solver, int ac
     Pendulum p(omega, L, solver);
     ChVector3d v_before = p.bob->GetPosDt();
 
-    p.sys.DoAssembly(action);
+    auto flag = p.sys.DoAssembly(action);
+    EXPECT_NE(flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED);
+    EXPECT_NE(flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE);
 
     ChVector3d d = p.bob->GetPosDt2() - p.ExactAcc();
     PendulumResult r;
@@ -208,11 +210,11 @@ class DampedParticle : public ChIntegrableIIorder {
 TEST(AssemblyAnalysis, acceleration_level_includes_quadratic_velocity_term) {
     // The old velocity-increment path was off by omega^2 L along the rod (up to 9 m/s^2 at L = 1).
     for (double L : {1.0, 100.0}) {
-        for (ChSolver::Type solver : {ChSolver::Type::PSOR, ChSolver::Type::SPARSE_QR}) {
+        for (ChSolver::Type solver : {ChSolver::Type::BARZILAIBORWEIN, ChSolver::Type::SPARSE_QR}) {
             const double tol = 1e-3 * L;  // central-difference floor scales with L (see file header)
             for (double omega : {0.0, 1.0, 2.0, 3.0}) {
                 PendulumResult r = RunPendulum(omega, L, solver, AssemblyAnalysis::Level::FULL);
-                std::cout << "L = " << L << "  solver = " << (solver == ChSolver::Type::PSOR ? "PSOR     " : "SPARSE_QR") << "  omega = " << omega << "  |a err| = " << r.acc_err
+                std::cout << "L = " << L << "  solver = " << (solver == ChSolver::Type::SPARSE_QR ? "SPARSE_QR" : "BB       ") << "  omega = " << omega << "  |a err| = " << r.acc_err
                           << "  radial = " << r.acc_err_radial << "  |F err| = " << r.react_err << "  |alpha| = " << r.angacc << std::endl;
                 EXPECT_LT(r.acc_err, tol) << "L = " << L << " omega = " << omega;
                 EXPECT_LT(r.react_err, tol) << "L = " << L << " omega = " << omega;
@@ -225,7 +227,7 @@ TEST(AssemblyAnalysis, acceleration_level_includes_quadratic_velocity_term) {
 TEST(AssemblyAnalysis, acceleration_only_action_does_not_drift_velocity) {
     // Level::ACCELERATION alone still runs the velocity-level step; it may change a consistent
     // velocity only by O(dt * a) with dt = 1e-6.
-    PendulumResult r = RunPendulum(2.0, 1.0, ChSolver::Type::PSOR, AssemblyAnalysis::Level::ACCELERATION);
+    PendulumResult r = RunPendulum(2.0, 1.0, ChSolver::Type::BARZILAIBORWEIN, AssemblyAnalysis::Level::ACCELERATION);
     std::cout << "ACCELERATION only: |a err| = " << r.acc_err << "  |v drift| = " << r.vel_drift << std::endl;
     EXPECT_LT(r.acc_err, 1e-3);
     EXPECT_LT(r.vel_drift, 1e-4);
@@ -251,9 +253,10 @@ TEST(AssemblyAnalysis, free_body_gets_gravity_and_no_reactions) {
 TEST(AssemblyAnalysis, frame_kinematics_keeps_the_requested_step_and_consistent_accelerations) {
     // DoFrameKinematics() advances time by the system step after each DoAssembly(FULL); the assembly
     // must not leave its internal 1e-6 step behind in the system.
-    Pendulum p(2.0, 1.0, ChSolver::Type::PSOR);
+    Pendulum p(2.0, 1.0, ChSolver::Type::BARZILAIBORWEIN);
     auto flag = p.sys.DoFrameKinematics(0.002, 0.001);
     EXPECT_NE(flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED);
+    EXPECT_NE(flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE);
     EXPECT_DOUBLE_EQ(p.sys.GetStep(), 0.001);
     EXPECT_NEAR(p.sys.GetChTime(), 0.002, 1e-9);
     EXPECT_LT((p.bob->GetPosDt2() - p.ExactAcc()).Length(), 1e-3);
@@ -307,17 +310,26 @@ TEST(AssemblyAnalysis, motor_driven_body_matches_prescribed_motion) {
     //
     // Six coupled constraints (revolute lock + angle): the reported acceleration is a velocity increment
     // divided by dt = 1e-6, so an iterative solver's residual in the velocity is amplified by 1e6. The
-    // assertions therefore use the direct sparse solver; the default PSOR result is printed for the
-    // record (its velocity residual, about 1e-2 here at the default iteration count, becomes an O(1e4)
-    // acceleration error). This amplification is a property of the velocity-increment definition that
-    // the assembly has always used, not of the quadratic-velocity term.
+    // accuracy assertions therefore use the direct sparse solver and the Barzilai-Borwein solver. With the
+    // default PSOR settings the velocity residual (about 1e-2 here) becomes an O(1e4) acceleration error,
+    // which DoAssembly() must report as ACCELERATION_INACCURATE, unless the tolerance of that check is raised.
+    // This amplification is a property of the velocity-increment definition that the assembly has always
+    // used, not of the quadratic-velocity term.
     const double r = 0.8;
     const double pi = 3.14159265358979323846;
-    for (ChSolver::Type solver : {ChSolver::Type::SPARSE_QR, ChSolver::Type::PSOR}) {
+    struct Case {
+        ChSolver::Type solver;
+        double acc_tol;  // tolerance of the acceleration accuracy check (0: default)
+    };
+    for (Case c : {Case{ChSolver::Type::SPARSE_QR, 0}, Case{ChSolver::Type::BARZILAIBORWEIN, 0}, Case{ChSolver::Type::PSOR, 0},
+                   Case{ChSolver::Type::PSOR, 1e30}}) {
         ChSystemNSC sys;
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
-        if (solver != ChSolver::Type::PSOR)
-            sys.SetSolverType(solver);
+        if (c.solver != ChSolver::Type::PSOR)
+            sys.SetSolverType(c.solver);
+        EXPECT_DOUBLE_EQ(sys.GetAssemblyAccelerationTolerance(), 1e-2);
+        if (c.acc_tol > 0)
+            sys.SetAssemblyAccelerationTolerance(c.acc_tol);
         auto ground = chrono_types::make_shared<ChBody>();
         ground->SetFixed(true);
         sys.Add(ground);
@@ -345,10 +357,18 @@ TEST(AssemblyAnalysis, motor_driven_body_matches_prescribed_motion) {
         ChVector3d a_exact = Vcross(al_exact, rvec) + Vcross(w_exact, Vcross(w_exact, rvec));
         double v_err = (body->GetPosDt() - v_exact).Length();
         double a_err = (body->GetPosDt2() - a_exact).Length();
-        std::cout << "motor, solver = " << (solver == ChSolver::Type::PSOR ? "PSOR     " : "SPARSE_QR") << "  thd = " << thd << " thdd = " << thdd
-                  << "  w.z = " << body->GetAngVelParent().z() << "  alpha.z = " << body->GetAngAccParent().z() << "  |v err| = " << v_err << "  |a err| = " << a_err << std::endl;
-        if (solver == ChSolver::Type::PSOR)
-            continue;                                            // measurement only, see above
+        const char* name = c.solver == ChSolver::Type::SPARSE_QR ? "SPARSE_QR" : (c.solver == ChSolver::Type::PSOR ? "PSOR     " : "BB       ");
+        std::cout << "motor, solver = " << name << "  thd = " << thd << " thdd = " << thdd << "  w.z = " << body->GetAngVelParent().z()
+                  << "  alpha.z = " << body->GetAngAccParent().z() << "  |v err| = " << v_err << "  |a err| = " << a_err << std::endl;
+        if (c.solver == ChSolver::Type::PSOR) {
+            // inaccurate accelerations, reported unless the check is effectively disabled
+            if (c.acc_tol > 0)
+                EXPECT_NE(flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE);
+            else
+                EXPECT_EQ(flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE);
+            continue;
+        }
+        EXPECT_NE(flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE);
         EXPECT_LT((rvec - ChVector3d(r, 0, 0)).Length(), 1e-9);  // position-level assembly left the consistent configuration alone
         EXPECT_LT(v_err, 1e-6);
         EXPECT_LT((body->GetAngVelParent() - w_exact).Length(), 1e-6);

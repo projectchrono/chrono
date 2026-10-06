@@ -251,13 +251,27 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// The assembling is performed by satisfying constraints at position, velocity, and acceleration levels.
     /// Position-level assembling requires Newton-Raphson iterations.
     /// Velocity-level assembling is performed by taking a small integration step.
-    /// Acceleration-level assembling is obtained through finite differentiation.
+    /// Acceleration-level assembling is performed by a second such step (see ChAssemblyAnalysis).
     /// Argument 'action' can be one of AssemblyLevel enum values (POSITION, VELOCITY, ACCELERATION, or FULL).
     /// These values can also be combined using bit operations.
-    /// Returns true if the assembling converged, false otherwise (impossible assembly?)
+    /// Returns NOT_CONVERGED if the assembly failed (impossible assembly?) and ACCELERATION_INACCURATE if the
+    /// accelerations and reactions are not accurate to the tolerance set with SetAssemblyAccelerationTolerance().
     /// The maximum number of iterations and the tolerance refer to the Newton-Raphson iteration for position-level.
-    /// Iterations and tolerance for the inner linear solver must be set on the solver itself.
+    /// Iterations and tolerance for the inner linear solver must be set on the solver itself. Accurate accelerations
+    /// require an accurate solver: prefer a direct solver, MINRES, GMRES or, with unilateral constraints,
+    /// BARZILAIBORWEIN over the default PSOR.
     AssemblyAnalysis::ExitFlag DoAssembly(int action, int max_num_iterationsNR = 6, double abstol_residualNR = 1e-10, double reltol_updateNR = 1e-6, double abstol_updateNR = 1e-6);
+
+    /// Set the tolerance for the accuracy check of the acceleration-level assembly (default: 1e-2).
+    /// The accelerations are a velocity increment over a 1e-6 internal step, so the largest constraint residual
+    /// left by the solver, divided by that step, estimates their error (in the units of the constraint, e.g.,
+    /// m/s^2 or rad/s^2). If this estimate exceeds the tolerance, DoAssembly() returns ACCELERATION_INACCURATE.
+    /// The check covers the constraint equations only, so it cannot detect an inaccurate solution of the
+    /// equations of motion themselves, as may be returned by BICGSTAB.
+    void SetAssemblyAccelerationTolerance(double tol) { assembly_acc_tol = tol; }
+
+    /// Get the tolerance for the accuracy check of the acceleration-level assembly.
+    double GetAssemblyAccelerationTolerance() const { return assembly_acc_tol; }
 
     /// Remove redundant constraints through QR decomposition of the constraints Jacobian matrix.
     /// This function can be used to improve the stability and performance of the system by removing redundant
@@ -859,6 +873,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     double ch_time;  ///< simulation time of the system
     double step;     ///< time step
+
+    double assembly_acc_tol;  ///< tolerance for the accuracy check of the acceleration-level assembly
 
     bool use_sleeping;  ///< if true, put to sleep objects that come to rest
 
