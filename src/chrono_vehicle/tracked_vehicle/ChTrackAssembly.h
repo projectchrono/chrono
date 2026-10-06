@@ -176,9 +176,6 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Set visualization type for the track shoe subsystems.
     void SetTrackShoeVisualizationType(VisualizationType vis);
 
-    /// Set collision shape type for wheels.
-    void SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder, bool roller_as_cylinder);
-
     /// Update the state of this track assembly at the current time.
     void Synchronize(double time,    ///< [in] current time
                      double braking  ///< [in] braking driver input
@@ -200,10 +197,6 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
 
     /// Log current constraint violations.
     void LogConstraintViolations();
-
-    bool IsRoadwheelCylinder() const { return m_roadwheel_as_cylinder; }
-    bool IsIdlerCylinder() const { return m_idler_as_cylinder; }
-    bool IsRolerCylinder() const { return m_roller_as_cylinder; }
 
   protected:
     ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
@@ -240,10 +233,6 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChTrackSuspensionList m_suspensions;    ///< road-wheel assemblies
     ChTrackWheelList m_rollers;             ///< roller subsystems
-
-    bool m_roadwheel_as_cylinder;
-    bool m_idler_as_cylinder;
-    bool m_roller_as_cylinder;
 
     // Used only in a co-simulation framework
     std::vector<std::shared_ptr<ChLoadBodyForce>> m_shoe_terrain_forces;    ///< terrain force loads on track shoes

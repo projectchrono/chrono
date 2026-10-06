@@ -557,7 +557,6 @@ inline const char* ChUtils_GetFilename() {
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCone)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeConvexHull)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCylinder)
-%DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCylindricalShell)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeEllipsoid)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapePath2D)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapePoint)

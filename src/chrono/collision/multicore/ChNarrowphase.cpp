@@ -122,8 +122,6 @@ int ChNarrowphase::PreprocessCount() {
                 contact_index[index] = 1;
             } else if (type1 == ChCollisionShape::Type::CAPSULE || type2 == ChCollisionShape::Type::CAPSULE) {
                 contact_index[index] = 2;
-            } else if (type1 == ChCollisionShape::Type::CYLSHELL || type2 == ChCollisionShape::Type::CYLSHELL) {
-                contact_index[index] = 8;
             } else if (type1 == ChCollisionShape::Type::BOX && type2 == ChCollisionShape::Type::BOX) {
                 contact_index[index] = 8;
             } else if ((type1 == ChCollisionShape::Type::BOX && type2 == ChCollisionShape::Type::TRIANGLE) ||

@@ -114,13 +114,6 @@ bool WriteBodyShapesCheckpoint(ChSystem* system, const std::string& filename) {
                     dims = {radius, radius, height};
                     break;
                 }
-                case ChCollisionShape::Type::CYLSHELL: {
-                    auto cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
-                    auto height = cylshell->GetHeight();
-                    auto radius = cylshell->GetRadius();
-                    dims = {radius, radius, height};
-                    break;
-                }
                 case ChCollisionShape::Type::CONE: {
                     auto cone = std::static_pointer_cast<ChCollisionShapeCone>(shape);
                     auto height = cone->GetHeight();

@@ -34,7 +34,7 @@ namespace chrono {
 namespace vehicle {
 
 ChTrackAssembly::ChTrackAssembly(const std::string& name, VehicleSide side)
-    : ChPart(name), m_side(side), m_idler_as_cylinder(true), m_roller_as_cylinder(true), m_roadwheel_as_cylinder(true) {}
+    : ChPart(name), m_side(side) {}
 
 // -----------------------------------------------------------------------------
 // Get the complete state for the specified track shoe.
@@ -214,13 +214,6 @@ void ChTrackAssembly::SetTrackShoeVisualizationType(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 
-void ChTrackAssembly::SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder, bool roller_as_cylinder) {
-    m_roadwheel_as_cylinder = roadwheel_as_cylinder;
-    m_idler_as_cylinder = idler_as_cylinder;
-    m_roller_as_cylinder = roller_as_cylinder;
-}
-
-// -----------------------------------------------------------------------------
 // Update the state of this track assembly at the current time.
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::Synchronize(double time, double braking) {

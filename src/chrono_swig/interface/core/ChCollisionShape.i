@@ -16,7 +16,6 @@
 #include "chrono/collision/ChCollisionShapeCone.h"
 #include "chrono/collision/ChCollisionShapeConvexHull.h"
 #include "chrono/collision/ChCollisionShapeCylinder.h"
-#include "chrono/collision/ChCollisionShapeCylindricalShell.h"
 #include "chrono/collision/ChCollisionShapeEllipsoid.h"
 #include "chrono/collision/ChCollisionShapePath2D.h"
 #include "chrono/collision/ChCollisionShapePoint.h"
@@ -46,7 +45,6 @@ class ChCollisionModel;
 %shared_ptr(chrono::ChCollisionShapeCone)
 %shared_ptr(chrono::ChCollisionShapeConvexHull)
 %shared_ptr(chrono::ChCollisionShapeCylinder)
-%shared_ptr(chrono::ChCollisionShapeCylindricalShell)
 %shared_ptr(chrono::ChCollisionShapeEllipsoid)
 %shared_ptr(chrono::ChCollisionShapePath2D)
 %shared_ptr(chrono::ChCollisionShapePoint)
@@ -67,7 +65,6 @@ class ChCollisionModel;
 %include "../../../chrono/collision/ChCollisionShapeCone.h"
 %include "../../../chrono/collision/ChCollisionShapeConvexHull.h"
 %include "../../../chrono/collision/ChCollisionShapeCylinder.h"
-%include "../../../chrono/collision/ChCollisionShapeCylindricalShell.h"
 %include "../../../chrono/collision/ChCollisionShapeEllipsoid.h"
 %include "../../../chrono/collision/ChCollisionShapePath2D.h"
 %include "../../../chrono/collision/ChCollisionShapePoint.h"
