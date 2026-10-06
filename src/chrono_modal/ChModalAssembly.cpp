@@ -344,10 +344,6 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
     floating_frame_F.SetPosDt(vel_F.head(3));
     floating_frame_F.SetAngVelLocal(vel_F.tail(3));
 
-    // update again for safe
-    UpdateTransformationMatrix();
-    ComputeProjectionMatrix();
-
     ComputeConstraintResidualF(m_res_CF);
 
     if (m_verbose) {
