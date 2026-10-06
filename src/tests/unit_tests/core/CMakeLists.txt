@@ -6,6 +6,7 @@ SET(TESTS
     utest_CH_ChQuaternion
     utest_CH_ChState
     utest_CH_assembly_acceleration
+    utest_CH_assembly_acceleration_coupled
     utest_CH_coords
     utest_CH_linalg
     utest_CH_math
