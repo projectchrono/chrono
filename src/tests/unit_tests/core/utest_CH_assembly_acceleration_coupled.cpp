@@ -48,7 +48,10 @@
 // with GetPosDt2(). Assertions use the direct sparse solver, with the tolerance of
 // utest_CH_assembly_acceleration (1e-3 for unit lengths): the acceleration is a
 // velocity increment divided by the internal 1e-6 step, so its floor is set by that
-// step, not by the solve. The default PSOR result is printed for the record.
+// step, not by the solve. The default PSOR result is printed for the record, with
+// the two signals a user could inspect: the exit flag returned by DoAssembly and the
+// iteration count and error of the iterative solver's last solve (the acceleration-
+// level step). PSOR is also run with ten times its default iteration limit.
 //
 // =============================================================================
 
@@ -84,16 +87,32 @@ ChVector3d Tan(double th) {
     return ChVector3d(std::cos(th), std::sin(th), 0);
 }
 
+// Outcome of one assembly: the acceleration error and what Chrono reported.
+struct Outcome {
+    double err = 0;                                             // max |a_chrono - a_exact| over the bodies
+    AssemblyAnalysis::ExitFlag flag = AssemblyAnalysis::ExitFlag::SUCCESS;
+    int iterations = -1, max_iterations = -1;                   // iterative solver only
+    double solver_error = 0, solver_tolerance = 0;              // iterative solver only
+};
+
+// A solver choice: type, plus an iteration limit for the iterative solver (0 = default).
+struct Solver {
+    ChSolver::Type type;
+    int max_iterations;
+};
+
 // A system of point-mass bodies joined by rods and slides.
 struct Mechanism {
     ChSystemNSC sys;
     std::shared_ptr<ChBody> ground;
     std::vector<std::shared_ptr<ChBody>> bodies;
 
-    explicit Mechanism(ChSolver::Type solver) {
+    explicit Mechanism(Solver solver) {
         sys.SetGravitationalAcceleration(ChVector3d(0, -G, 0));
-        if (solver != ChSolver::Type::PSOR)
-            sys.SetSolverType(solver);
+        if (solver.type != ChSolver::Type::PSOR)
+            sys.SetSolverType(solver.type);
+        if (solver.max_iterations > 0 && sys.GetSolver()->IsIterative())
+            sys.GetSolver()->AsIterative()->SetMaxIterations(solver.max_iterations);
         ground = chrono_types::make_shared<ChBody>();
         ground->SetFixed(true);
         sys.Add(ground);
@@ -125,13 +144,19 @@ struct Mechanism {
         sys.AddLink(link);
     }
 
-    // Largest |a_chrono - a_exact| over the bodies after DoAssembly(FULL).
-    double Error(const std::vector<ChVector3d>& exact) {
-        sys.DoAssembly(AssemblyAnalysis::Level::FULL);
-        double err = 0;
+    // Assemble, then compare each body's acceleration with the exact one.
+    Outcome Assemble(const std::vector<ChVector3d>& exact) {
+        Outcome out;
+        out.flag = sys.DoAssembly(AssemblyAnalysis::Level::FULL);
         for (size_t i = 0; i < bodies.size(); i++)
-            err = std::max(err, (bodies[i]->GetPosDt2() - exact[i]).Length());
-        return err;
+            out.err = std::max(out.err, (bodies[i]->GetPosDt2() - exact[i]).Length());
+        if (auto it = sys.GetSolver()->AsIterative()) {
+            out.iterations = it->GetIterations();
+            out.max_iterations = it->GetMaxIterations();
+            out.solver_error = it->GetError();
+            out.solver_tolerance = it->GetTolerance();
+        }
+        return out;
     }
 };
 
@@ -157,7 +182,7 @@ struct Chain {
         return std::vector<double>(thdd.data(), thdd.data() + N);
     }
 
-    double Run(ChSolver::Type solver) const {
+    Outcome Run(Solver solver) const {
         Mechanism mech(solver);
         ChVector3d pos(0, 0, 0), vel(0, 0, 0);
         std::shared_ptr<ChBody> prev;
@@ -175,7 +200,7 @@ struct Chain {
             a += (Tan(th[i]) * thdd[i] - Dir(th[i]) * (thd[i] * thd[i])) * l;
             acc.push_back(a);
         }
-        return mech.Error(acc);
+        return mech.Assemble(acc);
     }
 };
 
@@ -185,7 +210,7 @@ struct CartPole {
     double M, m = 1.0, l = 1.0;
     double x, xd, th, thd;
 
-    double Run(ChSolver::Type solver) const {
+    Outcome Run(Solver solver) const {
         ChMatrixDynamic<> A(2, 2);
         ChVectorDynamic<> f(2);
         A << M + m, m * l * std::cos(th), m * l * std::cos(th), m * l * l;
@@ -201,7 +226,7 @@ struct CartPole {
 
         ChVector3d a_cart(qdd(0), 0, 0);
         ChVector3d a_pole = a_cart + (Tan(th) * qdd(1) - Dir(th) * (thd * thd)) * l;
-        return mech.Error({a_cart, a_pole});
+        return mech.Assemble({a_cart, a_pole});
     }
 };
 
@@ -212,7 +237,7 @@ struct SliderCrank {
     double th, thd;
     double r = 1.0, m_c = 1.0;
 
-    double Run(ChSolver::Type solver) const {
+    Outcome Run(Solver solver) const {
         double l = ratio * r, m_s = mass_ratio * m_c;
         double s = std::sin(th), c = std::cos(th);
         double x = r * c + std::sqrt(l * l - r * r * s * s);  // slider on the +x branch
@@ -236,22 +261,42 @@ struct SliderCrank {
         mech.AddSlideX(slider);
 
         ChVector3d a_crank(r * (-thdd * s - thd * thd * c), r * (thdd * c - thd * thd * s), 0);
-        return mech.Error({a_crank, ChVector3d(xdd, 0, 0)});
+        return mech.Assemble({a_crank, ChVector3d(xdd, 0, 0)});
     }
 };
 
-const char* Name(ChSolver::Type solver) {
-    return solver == ChSolver::Type::PSOR ? "PSOR     " : "SPARSE_QR";
+const char* FlagName(AssemblyAnalysis::ExitFlag flag) {
+    switch (flag) {
+        case AssemblyAnalysis::ExitFlag::NOT_CONVERGED:
+            return "NOT_CONVERGED";
+        case AssemblyAnalysis::ExitFlag::SUCCESS:
+            return "SUCCESS";
+        case AssemblyAnalysis::ExitFlag::ABSTOL_RESIDUAL:
+            return "ABSTOL_RESIDUAL";
+        case AssemblyAnalysis::ExitFlag::RELTOL_UPDATE:
+            return "RELTOL_UPDATE";
+        case AssemblyAnalysis::ExitFlag::ABSTOL_UPDATE:
+            return "ABSTOL_UPDATE";
+    }
+    return "?";
 }
 
-// Assert with the direct solver; print the default PSOR result for the record.
+// Assert with the direct solver; print PSOR (default and 10x iteration limit) for the record.
 template <typename Case>
 void Check(const Case& c, const std::string& label) {
-    for (ChSolver::Type solver : {ChSolver::Type::SPARSE_QR, ChSolver::Type::PSOR}) {
-        double err = c.Run(solver);
-        std::cout << label << "  solver = " << Name(solver) << "  max |a err| = " << err << std::endl;
-        if (solver != ChSolver::Type::PSOR)
-            EXPECT_LT(err, TOL) << label;
+    const Solver solvers[] = {{ChSolver::Type::SPARSE_QR, 0}, {ChSolver::Type::PSOR, 0}, {ChSolver::Type::PSOR, 500}};
+    const char* names[] = {"SPARSE_QR ", "PSOR      ", "PSOR x500 "};
+    for (int k = 0; k < 3; k++) {
+        Outcome r = c.Run(solvers[k]);
+        std::cout << label << "  solver = " << names[k] << "  max |a err| = " << r.err << "  flag = " << FlagName(r.flag);
+        if (r.iterations >= 0)
+            std::cout << "  iterations = " << r.iterations << "/" << r.max_iterations << "  solver error = " << r.solver_error
+                      << " (tolerance " << r.solver_tolerance << ")";
+        std::cout << std::endl;
+        if (k == 0) {
+            EXPECT_LT(r.err, TOL) << label;
+            EXPECT_NE(r.flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED) << label;
+        }
     }
 }
 
