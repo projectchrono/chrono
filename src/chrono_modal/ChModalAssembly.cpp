@@ -2578,7 +2578,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             g_acc_loc.setZero(m_num_coords_vel_boundary + m_num_coords_vel_internal);
 
             unsigned int offset_loc = 0;
-            auto gloc = floating_frame_F.GetRot().RotateBack(GetSystem()->GetGravitationalAcceleration()).eigen();
+            Eigen::Vector3d gloc = floating_frame_F.GetRot().RotateBack(GetSystem()->GetGravitationalAcceleration()).eigen();
             // boundary bodies
             for (unsigned int ip = 0; ip < bodylist.size(); ++ip) {
                 if (!bodylist[ip]->IsActive())
