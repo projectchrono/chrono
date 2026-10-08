@@ -346,8 +346,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
             ChVectorDynamic<> v_mod_loc(m_num_coords_vel);
             v_mod_loc.tail(m_num_coords_modal) = v_mod.tail(m_num_coords_modal);
             for (unsigned int i_node = 0; i_node < m_num_coords_vel_boundary / 6; ++i_node) {
-                v_mod_loc.segment(6 * i_node, 3) =
-                    floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_node, 3)).eigen();
+                v_mod_loc.segment(6 * i_node, 3) = floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_node, 3)).eigen();
                 v_mod_loc.segment(6 * i_node + 3, 3) = v_mod.segment(6 * i_node + 3, 3);
             }
 
@@ -361,7 +360,38 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
             this->UpdateTransformationMatrix();
             this->ComputeProjectionMatrix();
 
-    ComputeConstraintResidualF(m_res_CF);
+            ComputeConstraintResidualF(m_res_CF);
+            break;
+        }
+        case FloatingFrameType::ATTACHED: {
+            ChVector3<> ave_position = {0.0, 0.0, 0.0};
+            ChVector3<> ave_rotv = {0.0, 0.0, 0.0};
+            ChVector3<> ave_vel = {0.0, 0.0, 0.0};
+            ChVector3<> ave_angel_vel = {0.0, 0.0, 0.0};
+
+            int index = 0;
+            for (const auto& frame : attached_F) {
+                ave_position += frame->GetPos() * attached_F_weight[index];
+                auto rot = frame->GetRot();
+                auto rot0 = attached_F_rot0[index];
+                // todo: optimize quaternion average, use slerp? use mean axis?
+                ave_rotv += (rot * rot0.GetConjugate()).GetRotVec() * attached_F_weight[index];
+                ave_vel += frame->GetPosDt() * attached_F_weight[index];
+                ave_angel_vel += frame->GetAngVelLocal() * attached_F_weight[index];
+                index++;
+            }
+
+            this->floating_frame_F.SetPos(ave_position);
+            this->floating_frame_F.SetRot(QuatFromRotVec(ave_rotv));
+            this->floating_frame_F.SetPosDt(ave_vel);
+            this->floating_frame_F.SetAngVelLocal(ave_angel_vel);
+
+            // update again for safe
+            this->UpdateTransformationMatrix();
+            this->ComputeProjectionMatrix();
+            break;
+        }
+    }
 
     if (this->m_verbose) {
         ChVector3d pos_F = this->floating_frame_F.GetPos();
@@ -1397,12 +1427,8 @@ void ChModalAssembly::UpdateInternalStateWithStaticEquilibrium(UpdateFlags updat
         aloc_bou.segment(6 * i_node, 3) = floating_frame_F.GetRot().RotateBack(a_mod.segment(6 * i_node, 3)).eigen();
         aloc_bou.segment(6 * i_node + 3, 3) = a_mod.segment(6 * i_node + 3, 3);
     }
-    ChVectorDynamic<> vloc_int =
-        Psi_S * vloc_bou +
-        Psi_D * v_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction);
-    ChVectorDynamic<> aloc_int =
-        Psi_S * aloc_bou +
-        Psi_D * a_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction);
+    ChVectorDynamic<> vloc_int = Psi_S * vloc_bou + Psi_D * v_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction);
+    ChVectorDynamic<> aloc_int = Psi_S * aloc_bou + Psi_D * a_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal - m_num_coords_static_correction);
     ChVectorDynamic<> v_full_loc(num_coords_vel_bou_int);
     ChVectorDynamic<> a_full_loc(num_coords_vel_bou_int);
     v_full_loc.head(m_num_coords_vel_boundary) = vloc_bou;
@@ -1483,8 +1509,7 @@ void ChModalAssembly::UpdateInternalStateWithStaticEquilibrium(UpdateFlags updat
     for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
         unsigned int offset = m_num_coords_pos_boundary + 7 * i_int;
 
-        ChVector3d r_IF0 = floating_frame_F0.GetRotMat().transpose() *
-                           (m_full_state_x0.segment(offset, 3) - floating_frame_F0.GetPos().eigen());
+        ChVector3d r_IF0 = floating_frame_F0.GetRotMat().transpose() * (m_full_state_x0.segment(offset, 3) - floating_frame_F0.GetPos().eigen());
 
         ChVector3d delta_u(u_full_loc.segment(m_num_coords_vel_boundary + 6 * i_int, 3));
         ChVector3d r_I = floating_frame_F.GetPos() + floating_frame_F.GetRotMat() * (r_IF0 + delta_u);
@@ -1496,8 +1521,7 @@ void ChModalAssembly::UpdateInternalStateWithStaticEquilibrium(UpdateFlags updat
         q_delta.SetFromRotVec(u_full_loc.segment(m_num_coords_vel_boundary + 6 * i_int + 3, 3));
 
         ChQuaternion<> quat_int0 = m_full_state_x0.segment(offset + 3, 4);
-        ChQuaternion<> quat_int =
-            floating_frame_F.GetRot() * floating_frame_F0.GetRot().GetConjugate() * quat_int0 * q_delta;
+        ChQuaternion<> quat_int = floating_frame_F.GetRot() * floating_frame_F0.GetRot().GetConjugate() * quat_int0 * q_delta;
 
         assembly_x_new.segment(offset + 3, 4) = quat_int.eigen();
     }
@@ -1522,8 +1546,7 @@ void ChModalAssembly::UpdateInternalStateWithStaticEquilibrium(UpdateFlags updat
         ChVectorDynamic<> vloc_int_static = Psi_Cor * v_mod.tail(m_num_coords_static_correction);
         ChVectorDynamic<> vpar_int_static(m_num_coords_vel_internal);
         for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; ++i_node) {
-            vpar_int_static.segment(6 * i_node, 3) =
-                floating_frame_F.GetRot().Rotate(vloc_int_static.segment(6 * i_node, 3)).eigen();
+            vpar_int_static.segment(6 * i_node, 3) = floating_frame_F.GetRot().Rotate(vloc_int_static.segment(6 * i_node, 3)).eigen();
             vpar_int_static.segment(6 * i_node + 3, 3) = vloc_int_static.segment(6 * i_node + 3, 3);
         }
         assembly_v_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) += vpar_int_static;
@@ -1541,8 +1564,7 @@ void ChModalAssembly::UpdateInternalStateWithStaticEquilibrium(UpdateFlags updat
         ChVectorDynamic<> aloc_int_static = Psi_Cor * a_mod.tail(m_num_coords_static_correction);
         ChVectorDynamic<> apar_int_static(m_num_coords_vel_internal);
         for (unsigned int i_node = 0; i_node < m_num_coords_vel_internal / 6; ++i_node) {
-            apar_int_static.segment(6 * i_node, 3) =
-                floating_frame_F.GetRot().Rotate(aloc_int_static.segment(6 * i_node, 3)).eigen();
+            apar_int_static.segment(6 * i_node, 3) = floating_frame_F.GetRot().Rotate(aloc_int_static.segment(6 * i_node, 3)).eigen();
             apar_int_static.segment(6 * i_node + 3, 3) = aloc_int_static.segment(6 * i_node + 3, 3);
         }
         assembly_a_new.segment(m_num_coords_vel_boundary, m_num_coords_vel_internal) += apar_int_static;
@@ -1556,37 +1578,30 @@ void ChModalAssembly::UpdateInternalStateWithStaticEquilibrium(UpdateFlags updat
     double T = this->GetChTime();
     for (auto& body : internal_bodylist) {
         if (body->IsActive()) {
-            body->IntStateScatter(body->GetOffset_x() - this->offset_x, assembly_x_new,
-                                  body->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+            body->IntStateScatter(body->GetOffset_x() - this->offset_x, assembly_x_new, body->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
             body->IntStateScatterAcceleration(body->GetOffset_w() - this->offset_w, assembly_a_new);
-            body->IntStateScatterReactions(body->GetOffset_L() - this->offset_L - m_num_constr_boundary,
-                                           Lambda_internal);
+            body->IntStateScatterReactions(body->GetOffset_L() - this->offset_L - m_num_constr_boundary, Lambda_internal);
         } else
             body->Update(T, update_flags);
     }
     for (auto& mesh : internal_meshlist) {
-        mesh->IntStateScatter(mesh->GetOffset_x() - this->offset_x, assembly_x_new,
-                              mesh->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+        mesh->IntStateScatter(mesh->GetOffset_x() - this->offset_x, assembly_x_new, mesh->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
         mesh->IntStateScatterAcceleration(mesh->GetOffset_w() - this->offset_w, assembly_a_new);
         mesh->IntStateScatterReactions(mesh->GetOffset_L() - this->offset_L - m_num_constr_boundary, Lambda_internal);
     }
     for (auto& link : internal_linklist) {
         if (link->IsActive()) {
-            link->IntStateScatter(link->GetOffset_x() - this->offset_x, assembly_x_new,
-                                  link->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+            link->IntStateScatter(link->GetOffset_x() - this->offset_x, assembly_x_new, link->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
             link->IntStateScatterAcceleration(link->GetOffset_w() - this->offset_w, assembly_a_new);
-            link->IntStateScatterReactions(link->GetOffset_L() - this->offset_L - m_num_constr_boundary,
-                                           Lambda_internal);
+            link->IntStateScatterReactions(link->GetOffset_L() - this->offset_L - m_num_constr_boundary, Lambda_internal);
         } else
             link->Update(T, update_flags);
     }
     for (auto& item : internal_otherphysicslist) {
         if (item->IsActive()) {
-            item->IntStateScatter(item->GetOffset_x() - this->offset_x, assembly_x_new,
-                                  item->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
+            item->IntStateScatter(item->GetOffset_x() - this->offset_x, assembly_x_new, item->GetOffset_w() - this->offset_w, assembly_v_new, T, update_flags);
             item->IntStateScatterAcceleration(item->GetOffset_w() - this->offset_w, assembly_a_new);
-            item->IntStateScatterReactions(item->GetOffset_L() - this->offset_L - m_num_constr_boundary,
-                                           Lambda_internal);
+            item->IntStateScatterReactions(item->GetOffset_L() - this->offset_L - m_num_constr_boundary, Lambda_internal);
         }
     }
 }
@@ -2621,7 +2636,7 @@ void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x, const ChSta
 void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                         ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                         const double c)          // a scaling factor
-{    // parent, takes care of boundary elements
+{                                                                // parent, takes care of boundary elements
     ChAssembly::IntLoadResidual_F(off, R, c);
 
     unsigned int displ_v = off - offset_w;
