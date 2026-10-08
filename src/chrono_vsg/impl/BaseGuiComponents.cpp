@@ -34,7 +34,7 @@ ChBaseGuiComponentVSG::ChBaseGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app
 
 void ChBaseGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-    ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
+    ImGui::SetNextWindowPos(ImVec2(GUI_PADDING, GUI_PADDING));
 
     ImGuiTableFlags table_flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
     ImGuiColorEditFlags color_edit_flags = ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoDragDrop;
@@ -393,6 +393,13 @@ void ChColorbarGuiComponentVSG::Initialize() {
 }
 
 void ChColorbarGuiComponentVSG::render(vsg::CommandBuffer& cb) {
+    // Start out at the bottom center of the window, with the same margin padding the 'Simulation' panel
+    // uses. Left to ImGui, a colorbar would be stacked under that panel. Only the initial position is
+    // set, so the panel can still be moved.
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + 0.5f * viewport->WorkSize.x, viewport->WorkPos.y + viewport->WorkSize.y - GUI_PADDING), ImGuiCond_FirstUseEver,
+                            ImVec2(0.5f, 1.0f));
+
     ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
     ImGui::Begin(m_title.c_str());
 

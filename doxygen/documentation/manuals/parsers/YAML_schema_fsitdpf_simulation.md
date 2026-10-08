@@ -7,6 +7,7 @@ A Chrono YAML TDPF simulation file defines the setup for a Chrono::FSI-TDPF simu
 - [required] The simulation `type`, which must be `TDPF` here.
 - [required] The `model` entry which names the YAML specification of the TDPF problem.
 - [required] The `solver` entry which names the YAML specification of the TDPF solver settings.
+- [optional] The `simulation` object which specifies settings for the fluid phase.
 - [optional] The `output` object which specifies output options from the TDPF simulation.
 - [optional] The `visualization` object which specifies TDPF-specific run-time visualization settings.
 
@@ -22,6 +23,20 @@ the YAML file with a TDPF model specification (which must follow the [TDPF model
 
 The `solver` entry (required) must specify the path (relative to the location of this YAML simulation specification file) to
 the YAML file with a TDPF solver specification (which must follow the [TDPF solver schema](@ref YAML_schema_fsitdpf_solver)).
+
+#### Simulation options
+
+If the `simulation` key is present, it must specify a YAML object with the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
+
+Note that in a coupled FSI simulation the gravitational acceleration given in the
+[FSI simulation file](@ref YAML_schema_fsi_simulation) governs both phases and overrides this value,
+exactly as it does for Chrono::FSI-SPH. This setting therefore takes effect when the TDPF fluid system is
+driven on its own, as it is through the Chrono preCICE adapter, where the two phases run as separate
+processes and nothing reconciles their gravity for you.
 
 #### Output options
 
@@ -55,8 +70,13 @@ The `color_map` key, if present, specifies the following properties:
 | `min` | Lower end of the color data range | double | -- | No | -1 |
 | `max` | Upper end of the color data range | double | -- | No | 1 |
 
-Note that camera and general rendering settings for a coupled FSI simulation are specified in the
-[FSI simulation file](@ref YAML_schema_fsi_simulation), not here.
+Settings common to all Chrono run-time visualization (`render_fps`, `camera`, and `output`, documented
+with the [MBS simulation schema](@ref YAML_schema_mbs_simulation)) are read from this same `visualization`
+object. In a coupled FSI simulation they are overridden by the corresponding settings in the
+[FSI simulation file](@ref YAML_schema_fsi_simulation), so there is no reason to duplicate them here.
+They do take effect when this file is the top-level specification, as it is for a Chrono preCICE
+participant; in that case a `camera` entry is effectively required, since the default places the eye in
+the z=0 plane.
 
 
 ## Example

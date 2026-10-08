@@ -929,7 +929,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(CH_USE_SENSOR_OPTIX)
-  target_include_directories(Chrono_sensor SYSTEM PUBLIC "${OptiX_INCLUDE}")
+  # Only for the build tree: an absolute path to the OptiX SDK must not be exported. The Chrono package configuration
+  # script adds the OptiX include directory found on the consumer's machine.
+  target_include_directories(Chrono_sensor SYSTEM PUBLIC "$<BUILD_INTERFACE:${OptiX_INCLUDE}>")
 
   # CUDA::cudart_static (and the other CUDA::* imports linked below) bring in the CUDA
   # Toolkit's own include directories transitively. Re-declaring that same path here as
@@ -1055,20 +1057,17 @@ if(CH_USE_SENSOR_OPTIX)
     endif()
     list(REMOVE_DUPLICATES _CHRONO_CUDA_CCCL_INCLUDE_DIRS)
 
-    set(CUDA_NVRTC_INCLUDE_DIRS
-        ${OptiX_INCLUDE}
-        ${CUDAToolkit_INCLUDE_DIRS}
-        ${_CHRONO_CUDA_CCCL_INCLUDE_DIRS}
-        ${CMAKE_INSTALL_PREFIX}/include
-        ${CMAKE_SOURCE_DIR}/src
-        CACHE STRING "NVRTC include dirs as list." FORCE)
-    mark_as_advanced(CUDA_NVRTC_INCLUDE_DIRS)
-  
-    set(CUDA_NVRTC_INCLUDE_LIST)
-    foreach(item ${CUDA_NVRTC_INCLUDE_DIRS})
-      set(CUDA_NVRTC_INCLUDE_LIST "${CUDA_NVRTC_INCLUDE_LIST} \\\n  \"${item}\",")
+    # NVRTC include directories, in three groups that Chrono::Sensor resolves at run time so that an installation
+    # keeps working after it is moved (see ChOptixUtils.cpp): the OptiX SDK headers and the CUDA toolkit headers at
+    # the locations used to build Chrono, and the Chrono headers from the source tree (an installed Chrono::Sensor
+    # uses the installed headers instead).
+    set(CUDA_NVRTC_OPTIX_INCLUDE "${OptiX_INCLUDE}")
+    set(CUDA_NVRTC_CHRONO_INCLUDE "${CMAKE_SOURCE_DIR}/src")
+    set(CUDA_NVRTC_CUDA_INCLUDE_LIST)
+    foreach(item ${CUDAToolkit_INCLUDE_DIRS} ${_CHRONO_CUDA_CCCL_INCLUDE_DIRS})
+      set(CUDA_NVRTC_CUDA_INCLUDE_LIST "${CUDA_NVRTC_CUDA_INCLUDE_LIST} \\\n  \"${item}\",")
     endforeach()
-    set(CUDA_NVRTC_INCLUDE_LIST "${CUDA_NVRTC_INCLUDE_LIST} \\\n  0,")
+    set(CUDA_NVRTC_CUDA_INCLUDE_LIST "${CUDA_NVRTC_CUDA_INCLUDE_LIST} \\\n  0,")
   
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
    
@@ -1272,6 +1271,7 @@ endif()
 target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_SENSOR>)
 
 target_link_libraries(Chrono_sensor PRIVATE Chrono_core ${LIBRARIES})
+target_link_libraries(Chrono_sensor PRIVATE ${CMAKE_DL_LIBS})  # dladdr, used to locate the library at run time
 
 install(TARGETS Chrono_sensor
         EXPORT ChronoTargets
@@ -1281,10 +1281,32 @@ install(TARGETS Chrono_sensor
         INCLUDES DESTINATION include/chrono_sensor)
 
 # ----------------------------------------------------------------------------
+# Chrono modules that Chrono_sensor links to (for the Chrono package configuration script)
+# ----------------------------------------------------------------------------
+
+set(DEPENDENCIES_SENSOR "")
+if(CH_USE_SENSOR_OPTIX AND CH_ENABLE_MODULE_FSI_SPH)
+  list(APPEND DEPENDENCIES_SENSOR "FSI_SPH")
+endif()
+
+set(DEPENDENCIES_SENSOR ${DEPENDENCIES_SENSOR} PARENT_SCOPE)
+
+# ----------------------------------------------------------------------------
 # Generate and install configuration files
 # ----------------------------------------------------------------------------
 
 message(STATUS "Create Chrono::Sensor configuration file")
+
+# Locations of the installed shaders and headers relative to the installed Chrono::Sensor library (see the install
+# rule for Chrono_sensor: bin/ on Windows, lib/ otherwise). Chrono::Sensor uses these at run time to find its
+# installation wherever it was moved.
+if(WIN32)
+  set(_sensor_lib_dir "${CMAKE_INSTALL_PREFIX}/bin")
+else()
+  set(_sensor_lib_dir "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
+file(RELATIVE_PATH SHADER_DIR_REL "${_sensor_lib_dir}" "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
+file(RELATIVE_PATH INCLUDE_DIR_REL "${_sensor_lib_dir}" "${CMAKE_INSTALL_PREFIX}/include")
 
 if(CH_USE_SENSOR_OPTIX)
 

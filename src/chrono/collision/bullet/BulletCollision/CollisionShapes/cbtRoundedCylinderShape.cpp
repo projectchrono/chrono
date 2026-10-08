@@ -67,7 +67,14 @@ cbtVector3 cbtRoundedCylinderShape::localGetSupportingVertexWithoutMargin(const 
         tmp[ZZ] = vec[ZZ] < 0.0 ? -halfHeight : halfHeight;
     }
 
-    return tmp + s_radius * vec;
+    // Normalize the search direction (the sweeping sphere support point requires a unit vector)
+    cbtVector3 dir = vec;
+    cbtScalar lenSqr = dir.length2();
+    if (lenSqr < SIMD_EPSILON * SIMD_EPSILON)
+        dir.setValue(1, 0, 0);
+    else
+        dir *= cbtScalar(1.) / cbtSqrt(lenSqr);
+    return tmp + s_radius * dir;
 }
 
 void cbtRoundedCylinderShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {

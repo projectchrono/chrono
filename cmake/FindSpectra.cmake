@@ -34,6 +34,8 @@ else()
   find_package(spectra NO_MODULE)
   if(spectra_FOUND)
     get_target_property(spectra_INCLUDE_DIR Spectra::Spectra INTERFACE_INCLUDE_DIRECTORIES)
+    # The Spectra package configuration may list the same directory more than once
+    list(REMOVE_DUPLICATES spectra_INCLUDE_DIR)
     if(NOT Spectra_FIND_QUIETLY)
       message(STATUS "Spectra found through config script")
     endif()

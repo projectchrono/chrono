@@ -1,0 +1,73 @@
+chrono-version: 10.0
+type: MBS
+
+model:  "mbs_model.yaml"
+solver: "mbs_solver.yaml"
+
+simulation:
+  # This value is ignored: a preCICE adapter terminates on the coupling status reported by
+  # preCICE alone. A negative end time is the Chrono convention for "no end time of my own".
+  end_time: -1
+
+  enforce_realtime: true
+
+  # Gravitational acceleration for the solid phase. Must match the gravity of the fluid participant:
+  # the two participants are separate processes and nothing reconciles these values for you.
+  gravity: [0, 0, -9.81]
+
+output:
+  format: HDF5
+  mode: SERIES
+  fps: 20
+
+visualization:
+  type: PRIMITIVES
+  render_fps: 120
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [58, -65, 18]
+    target: [2, -1, -6]
+  output:
+    save_images: false
+    image_type: "bmp"
+
+precice_adapter_config:
+  participant_name: Solid
+
+  # Sample the fluid forces at the end of the coupling time window. Valid because this participant
+  # is listed as 'second' in the serial coupling scheme and therefore runs after the fluid within
+  # each window; the adapter verifies this against the preCICE configuration during initialization.
+  read_data_time: WINDOW_END
+
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  # Order matters: the first entry maps to /body1 in the hydro file and to the first vertex of the
+  # coupling mesh, the second to /body2. The 'top' body of the multibody model is deliberately not
+  # listed, since it carries no hydrodynamics.
+  bodies:
+  - name: body1
+  - name: body2
+
+  added_mass:
+    # Infinite-frequency added mass read from the hydro file; the density is taken from the file
+    # itself (simulation_parameters/rho), not from a 'density' key. The RM3 blocks are 6x12: each
+    # body's rows carry its own 6x6 self-added-mass and the 6x6 cross-coupling to the other body,
+    # so the two hulls are inertially coupled through the fluid.
+    h5_filename: fsi-tdpf/rm3/rm3.h5
+
+  interfaces:
+  - mesh_name: SolidMesh
+    mesh_type: RIGID_BODY_REFS
+    write_data:
+    - name: positions
+      type: POSITIONS
+    - name: velocities
+      type: LINEAR_VELOCITIES
+    read_data:
+    - name: forces
+      type: FORCES
+    - name: torques
+      type: TORQUES

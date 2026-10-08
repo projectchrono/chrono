@@ -163,6 +163,14 @@ if (auto msolver = std::dynamic_pointer_cast<ChSolverMINRES>(my_system.GetSolver
 
 See @ref chrono::ChSolver "ChSolver" API for further details.
 
+### Solver accuracy and system assembly
+
+The accelerations and reaction forces computed by `my_system.DoAssembly(AssemblyAnalysis::Level::FULL)` (and therefore by `DoStepKinematics()` and `DoFrameKinematics()`) are obtained from a velocity increment over a tiny internal step (1e-6 s). Any residual left by an iterative solver is amplified accordingly: with its default settings, `PSOR` can produce acceleration errors of several m/s^2 near singular configurations (for example, a slider-crank at a dead center), and `APGD` and `PJACOBI` even in regular ones; more iterations do not reliably fix this. When accurate accelerations or reactions from an assembly are needed:
+- use a direct solver (`SPARSE_LU`, `SPARSE_QR`, or Pardiso MKL / MUMPS if available), or `MINRES` / `GMRES`;
+- if the system has unilateral constraints (e.g., NSC contacts) and requires a VI solver, use `BARZILAIBORWEIN`.
+
+`DoAssembly()` checks the constraint residual of its acceleration-level solve and returns `AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE` if the resulting acceleration error estimate exceeds a tolerance (1e-2 by default, adjustable with `my_system.SetAssemblyAccelerationTolerance(...)`). Positions and velocities are still assembled in that case. The check cannot detect every failure (for instance, an inaccurate `BICGSTAB` solution), so choosing an accurate solver remains the primary safeguard.
+
 
 # Other parameters  {#other_simulation_parameters}
 

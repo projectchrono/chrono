@@ -11,6 +11,7 @@ endif()
 
 set(DEMOS
     demo_VEH_WheelTestRig
+    demo_VEH_WheelSuspensionTestRig
     demo_VEH_SuspensionTestRig
     demo_VEH_TrackTestRig
 )

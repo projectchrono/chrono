@@ -47,17 +47,11 @@ Even if OptiX is available, users can disable the ray-tracing-based sensor (by s
 
 7. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
-**NOTE**: if linking to Chrono::Sensor install from an external project, make sure to set the directory of the install location where the    shader code (compiled ptx code or shaders/*.cu files) is located. This should be set at the top of any external code that will use    Chrono::Sensor from an install location.
+**NOTE**: an installed Chrono::Sensor locates its shaders and the headers needed for runtime (NVRTC) compilation of the RT kernels relative to its own library, so it keeps working if the installation is moved, including to another machine. The OptiX SDK and CUDA toolkit headers are taken from the locations used to build Chrono; if these do not exist on the machine running the program, set the `OptiX_INSTALL_DIR` and `CUDA_PATH` environment variables to the root directories of the OptiX SDK and CUDA toolkit installed there. To use shaders from a different location, call the following at the top of the program:
 
   ```cpp
   //function to set the shader location (include ChOptixUtils.h)
   chrono::sensor::SetSensorShaderDir("path/to/sensor/shaders");
-  
-  //if USE_CUDA_NVRTC is enabled, use
-  chrono::sensor::SetSensorShaderDir("path/to/install/include/chrono_sensor/optix/shaders/");
-  
-  //if USE_CUDA_NVRTC is disabled, use
-  chrono::sensor::SetSensorShaderDir("path/to/install/lib/sensor_ptx/");
  ```
 
 ## How to use it

@@ -234,6 +234,9 @@ using namespace chrono::sensor;
 %include "ChNoiseModel.i"
 %include "ChSensorBuffer.i"
 %include "ChFilter.i"
+#ifdef CHRONO_HAS_OPTIX
+  %include "ChScene.i"
+#endif
 %include "ChSensor.i"
 %include "ChGPSSensor.i"
 %include "ChIMUSensor.i"

@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHLINKMOTORLINEAR_H
-#define CHLINKMOTORLINEAR_H
+#ifndef CH_LINK_MOTOR_LINEAR_H
+#define CH_LINK_MOTOR_LINEAR_H
 
 #include "chrono/physics/ChLinkMotor.h"
 
@@ -31,18 +31,15 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     ChLinkMotorLinear(const ChLinkMotorLinear& other);
     virtual ~ChLinkMotorLinear();
 
-    /// "Virtual" copy constructor (covariant return type).
-    // virtual ChLinkMotorLinear* Clone() const override { return new ChLinkMotorLinear(*this); }
+    /// Sets which movements (of frame 1 respect to frame 2) are constrained.
+    /// By default, acts as a pure prismatic guide.
+    /// Note that the Z direction is the motorized one, and is never affected by this option.
+    void SetGuideConstraint(const GuideConstraint constraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as a pure prismatic guide.
     /// Note that the Z direction is the motorized one, and is never affected by this option.
-    void SetGuideConstraint(const GuideConstraint mconstraint);
-
-    /// Sets which movements (of frame 1 respect to frame 2) are constrained.
-    /// By default, acts as a pure prismatic guide.
-    /// Note that the Z direction is the motorized one, and is never affected by this option.
-    void SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz);
+    void SetGuideConstraint(bool cx, bool cy, bool crx, bool cry, bool crz);
 
     /// Get the current actuator displacement.
     virtual double GetMotorPos() const { return mpos; }

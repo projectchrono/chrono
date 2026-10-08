@@ -38,41 +38,216 @@ using namespace chrono::fsi::sph;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 
-ChWheelTestRig::ChWheelTestRig(std::shared_ptr<WheelAssembly> wheel, ChSystem& system)
+// Stand-in chassis object for a VehicleWheelAssembly.
+class DummyChassis : public ChChassis {
+  public:
+    DummyChassis(std::shared_ptr<ChBodyAuxRef> chassis_body) : ChChassis("dummy_chassis"), chassis_body(chassis_body) {}
+
+    virtual std::string GetTemplateName() const override { return "dummy_template"; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
+    virtual ChFrame<> GetBodyCOMFrame() const { return ChFrame<>(); }
+    virtual double GetBodyMass() const { return chassis_body->GetMass(); }
+    virtual ChMatrix33<> GetBodyInertia() const { return chassis_body->GetInertia(); }
+    virtual void EnableCollision(bool state) {}
+    virtual void OnInitialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family) override {
+        m_body = chassis_body;  // set the underlying ChChassis body
+
+        // ChChassis::Initialize adds the load containers only when given a vehicle; add them here so that
+        // suspension bushings and chassis external loads are included in the system
+        auto sys = chassis_body->GetSystem();
+        sys->Add(m_container_bushings);
+        sys->Add(m_container_external);
+        sys->Add(m_container_terrain);
+    }
+
+    // Remove the chassis load containers from the system (if present).
+    // The rig owns the chassis body, so ~ChChassis finds it already removed and does not remove the containers.
+    void RemoveContainers() {
+        for (auto& container : {m_container_bushings, m_container_external, m_container_terrain}) {
+            if (container->GetSystem())
+                container->GetSystem()->Remove(container);
+        }
+    }
+
+    std::shared_ptr<ChBodyAuxRef> chassis_body;
+};
+
+// ChWheelTestRig::WheelAssembly that wraps a Chrono::Vehicle tire and wheel assembly and, optionally, a Chrono::vehicle suspension.
+class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
+  public:
+    VehicleWheelAssembly(ChSystem& system, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire);
+    VehicleWheelAssembly(ChSystem& system, std::shared_ptr<ChSuspension> suspension, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire);
+
+    virtual bool HasSuspension() const override { return suspension ? true : false; }
+
+    virtual double GetMass() const override;
+    virtual double GetWheelMass() const override { return wheel->GetMass(); }
+    virtual double GetRadius() const override { return tire->GetRadius(); }
+    virtual double GetWidth() const override { return tire->GetWidth(); }
+
+    virtual std::shared_ptr<ChBody> GetHub() const override { return spindle; }
+
+#ifdef CHRONO_CRM
+    virtual void AddFSIBodies(CRMTerrain& terrain, double spacing) override;
+#endif
+
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body, const ChFramed& frame, bool fixed_wheel, double step_size, VisualizationType vis_type) override;
+
+    virtual void Synchronize(double time, const ChTerrain& terrain) override;
+    virtual void Advance(double step_size) override;
+
+    virtual TerrainForce ReportForces(ChTerrain& terrain) const override;
+
+    virtual void RemoveFromSystem() override;
+
+  private:
+    std::shared_ptr<DummyChassis> chassis;
+    std::shared_ptr<ChSuspension> suspension;
+    std::shared_ptr<ChSpindle> spindle;
+    std::shared_ptr<ChWheel> wheel;
+    std::shared_ptr<ChTire> tire;
+};
+
+VehicleWheelAssembly::VehicleWheelAssembly(ChSystem& system, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire)
+    : WheelAssembly(system), chassis(nullptr), suspension(nullptr), wheel(wheel), tire(tire) {}
+
+VehicleWheelAssembly::VehicleWheelAssembly(ChSystem& system, std::shared_ptr<ChSuspension> suspension, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire)
+    : WheelAssembly(system), chassis(nullptr), suspension(suspension), wheel(wheel), tire(tire) {}
+
+void VehicleWheelAssembly::RemoveFromSystem() {
+    // Suspension case: the rig chassis is wrapped in a DummyChassis
+    if (chassis)
+        chassis->RemoveContainers();
+
+    // No-suspension case: the spindle body was created here (a suspension spindle is removed by the suspension itself)
+    if (!suspension && spindle && spindle->GetSystem())
+        spindle->GetSystem()->Remove(spindle);
+}
+
+double VehicleWheelAssembly::GetMass() const {
+    double mass = wheel->GetMass() + tire->GetTireMass();
+    if (suspension)
+        mass += suspension->GetMass();
+    return mass;
+}
+
+#ifdef CHRONO_CRM
+
+void VehicleWheelAssembly::AddFSIBodies(CRMTerrain& terrain, double spacing) {
+    #ifdef CHRONO_FEA
+    if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
+        auto mesh = fea_tire->GetMesh();
+        terrain.AddFeaMesh(mesh, false);
+        return;
+    }
+    #endif
+
+    if (auto rgd_tire = std::static_pointer_cast<ChRigidTire>(tire)) {
+        assert(rgd_tire->UseContactMesh());
+        auto trimesh = rgd_tire->GetContactMesh();
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
+        terrain.AddRigidBody(spindle, geometry, false);
+        return;
+    }
+
+    if (std::dynamic_pointer_cast<ChForceElementTire>(tire)) {
+        std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
+        throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
+    }
+}
+
+#endif
+
+void VehicleWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body, const ChFramed& frame, bool fixed_wheel, double step_size, VisualizationType vis_type) {
+    if (suspension) {
+        chassis = chrono_types::make_shared<DummyChassis>(chassis_body);
+        chassis->Initialize(nullptr, ChCoordsysd(chassis_body->GetPos(), QUNIT), 0.0);
+        chassis->SetVisualizationType(vis_type);
+
+        suspension->Initialize(chassis, nullptr, nullptr, frame.GetPos());
+        suspension->SetVisualizationType(vis_type);
+
+        spindle = suspension->GetSpindle(VehicleSide::LEFT);
+    } else {
+        spindle = chrono_types::make_shared<ChSpindle>();
+        spindle->SetName("rig_spindle");
+        spindle->SetMass(0);
+        spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
+        system.AddBody(spindle);
+
+        spindle->SetPos(frame.GetPos());
+        spindle->SetRot(frame.GetRot());
+        spindle->SetFixed(fixed_wheel);
+    }
+
+    wheel->Initialize(nullptr, spindle, LEFT);
+    wheel->SetVisualizationType(VisualizationType::NONE);
+    wheel->SetTire(tire);
+
+    tire->Initialize(wheel);
+    tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
+    tire->SetStepsize(step_size);
+    tire->SetVisualizationType(vis_type);
+}
+
+void VehicleWheelAssembly::Synchronize(double time, const ChTerrain& terrain) {
+    if (suspension) {
+        chassis->Synchronize(time);
+        suspension->Synchronize(time);
+    } else {
+        spindle->EmptyTireAccumulator();
+    }
+
+    tire->Synchronize(time, terrain);
+    wheel->Synchronize();
+}
+
+void VehicleWheelAssembly::Advance(double step_size) {
+    if (suspension)
+        suspension->Advance(step_size);
+    tire->Advance(step_size);
+}
+
+TerrainForce VehicleWheelAssembly::ReportForces(ChTerrain& terrain) const {
+    return tire->ReportTireForce(&terrain);
+}
+
+// =============================================================================
+
+ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> wheel)
     : m_wheel_assembly(wheel),
       m_system(system),
       m_grav(9.8),
-      m_camber_angle(0),
       m_normal_load(1000),
       m_total_mass(0),
       m_mode(Mode::SUSPEND),
+      m_camber_angle(0),
       m_output(false),
       m_time_delay(0),
       m_ls_actuated(false),
       m_rs_actuated(false),
       m_long_slip_constant(false),
+      m_sa_fun(chrono_types::make_shared<ChFunctionConst>(0)),
       m_terrain_type(TerrainType::NONE),
       m_terrain_offset(0),
       m_terrain_height(0),
       m_step_size(1e-3),
-      m_vis_type(VisualizationType::PRIMITIVES) {
-    // Default motion function for slip angle control
-    m_sa_fun = chrono_types::make_shared<ChFunctionConst>(0);
-}
+      m_vis_type(VisualizationType::PRIMITIVES) {}
 
-ChWheelTestRig::ChWheelTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, ChSystem& system)
-    : ChWheelTestRig(chrono_types::make_shared<VehicleWheel>(wheel, tire, system), system) {}
+ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire)
+    : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, wheel, tire)) {}
+
+ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, std::shared_ptr<ChSuspension> suspension)
+    : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, suspension, wheel, tire)) {}
 
 ChWheelTestRig::~ChWheelTestRig() {
-    m_system.Remove(m_ground_body);
-    m_system.Remove(m_carrier_body);
-    m_system.Remove(m_chassis_body);
-    m_system.Remove(m_slip_body);
-    m_system.Remove(m_lin_motor);
-    m_system.Remove(m_rot_motor);
-    m_system.Remove(m_slip_lock);
+    // Let the wheel assembly remove the items it created, then remove all rig items (in reverse order of creation)
+    m_wheel_assembly->RemoveFromSystem();
+    for (auto it = m_items.rbegin(); it != m_items.rend(); ++it)
+        m_system.Remove(*it);
 }
 
 // -----------------------------------------------------------------------------
@@ -103,13 +278,13 @@ void ChWheelTestRig::SetTerrainRigid(const TerrainPatchSize& size, const Terrain
     m_params_rigid = params;
 }
 
-void ChWheelTestRig::SetTerrainRigid(const TerrainPatchSize& size, double friction, double restitution, double Young_modulus) {
+void ChWheelTestRig::SetTerrainRigid(const TerrainPatchSize& size, float mu, float cr, float Y) {
     m_terrain_type = TerrainType::RIGID;
     m_terrain_size = size;
 
-    m_params_rigid.friction = (float)friction;
-    m_params_rigid.restitution = (float)restitution;
-    m_params_rigid.Young_modulus = (float)Young_modulus;
+    m_params_rigid.mu = mu;
+    m_params_rigid.cr = cr;
+    m_params_rigid.Y = Y;
 }
 
 void ChWheelTestRig::SetTerrainSCM(const TerrainPatchSize& size, const TerrainParamsSCM& params) {
@@ -125,7 +300,8 @@ void ChWheelTestRig::SetTerrainSCM(const TerrainPatchSize& size,
                                    double Mohr_cohesion,
                                    double Mohr_friction,
                                    double Janosi_shear,
-                                   double grid_spacing) {
+                                   double grid_spacing,
+                                   bool vis_mesh) {
     m_terrain_type = TerrainType::SCM;
     m_terrain_size = size;
 
@@ -136,6 +312,8 @@ void ChWheelTestRig::SetTerrainSCM(const TerrainPatchSize& size,
     m_params_SCM.Mohr_friction = Mohr_friction;
     m_params_SCM.Janosi_shear = Janosi_shear;
     m_params_SCM.grid_spacing = grid_spacing;
+
+    m_params_SCM.vis_mesh = vis_mesh;
 }
 
 void ChWheelTestRig::SetTerrainGranular(const TerrainPatchSize& size, const TerrainParamsGranular& params) {
@@ -214,6 +392,8 @@ void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
     CreateMechanism();
     CreateTerrain();
 
+    std::cout << "Wheel radius: " << m_wheel_assembly->GetRadius() << std::endl;
+
     if (m_mode != Mode::TEST)
         return;
 
@@ -250,7 +430,8 @@ void ChWheelTestRig::Advance(double step) {
         if (m_rs_actuated)
             m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
 
-        m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
+        if (m_slip_lock)
+            m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
     }
 
     // Turn on calculation of measured quantities
@@ -265,6 +446,8 @@ void ChWheelTestRig::Advance(double step) {
 
     if (m_terrain_type == TerrainType::CRM) {
 #ifdef CHRONO_CRM
+        m_wheel_assembly->Synchronize(time, *m_terrain.get());
+        m_wheel_assembly->Advance(step);
         std::static_pointer_cast<CRMTerrain>(m_terrain)->GetFsiSystemSPH()->DoStepDynamics(step);
 #endif
     } else {
@@ -284,37 +467,41 @@ void ChWheelTestRig::Advance(double step) {
 void ChWheelTestRig::CreateMechanism() {
     m_system.SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
+    bool has_suspension = m_wheel_assembly->HasSuspension();
+
     // Set characteristic dimension
     const double dim = 0.1;
 
-    // Initialize wheel system
-    ChQuaternion<> qc;
-    qc.SetFromAngleX(-m_camber_angle);
-    m_wheel_assembly->Initialize(ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
+    // Set total sprung mass based on requested normal load
+    if (m_grav > 0)
+        m_total_mass = m_normal_load / m_grav;
 
-    // Create rig bodies with mass and inertia commensurate with those of the wheel system
-    const double mass = m_wheel_assembly->GetMass();
-    const double radius = m_wheel_assembly->GetRadius();
-    ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
+    // ---- Create the main rig bodies
 
     m_ground_body = chrono_types::make_shared<ChBody>();
-    m_system.AddBody(m_ground_body);
+    AddItem(m_ground_body);
     m_ground_body->SetName("rig_ground");
     m_ground_body->SetFixed(true);
+
+    // Rig colors are muted so that the mechanism reads without competing with the wheel and terrain.
     {
+        auto mat = chrono_types::make_shared<ChVisualMaterial>();
+        mat->SetDiffuseColor({0.42f, 0.40f, 0.37f});
+        mat->SetRoughness(0.55f);
+
         auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim * CH_1_3, dim * CH_1_3);
+        box->AddMaterial(mat);
         m_ground_body->AddVisualShape(box);
     }
 
-    m_carrier_body = chrono_types::make_shared<ChBody>();
-    m_system.AddBody(m_carrier_body);
+    m_carrier_body = chrono_types::make_shared<ChBodyAuxRef>();
+    AddItem(m_carrier_body);
     m_carrier_body->SetName("rig_carrier");
     m_carrier_body->SetPos(ChVector3d(0, 0, 0));
-    m_carrier_body->SetMass(mass);
-    m_carrier_body->SetInertia(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.6f, 0.2f, 0.2f});
+        mat->SetDiffuseColor({0.56f, 0.45f, 0.35f});
+        mat->SetRoughness(0.45f);
 
         utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier_body,              //
                                                         ChVector3d(+2 * dim, 0, 0),  //
@@ -322,102 +509,173 @@ void ChWheelTestRig::CreateMechanism() {
                                                         dim / 2,                     //
                                                         mat);
 
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(dim * CH_1_3, dim * CH_1_3, 10 * dim);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(dim * CH_1_3, dim * CH_1_3, 20 * dim);
         box->AddMaterial(mat);
-        m_carrier_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -5 * dim)));
+        m_carrier_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -10 * dim)));
     }
 
-    m_chassis_body = chrono_types::make_shared<ChBody>();
-    m_system.AddBody(m_chassis_body);
+    m_chassis_body = chrono_types::make_shared<ChBodyAuxRef>();
+    AddItem(m_chassis_body);
     m_chassis_body->SetName("rig_chassis");
     m_chassis_body->SetPos(ChVector3d(0, 0, 0));
-    m_chassis_body->SetMass(mass);
-    m_chassis_body->SetInertia(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.6f, 0.2f});
-
-        auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(dim);
-        sphere->AddMaterial(mat);
-        m_chassis_body->AddVisualShape(sphere);
+        mat->SetDiffuseColor({0.63f, 0.53f, 0.43f});
+        mat->SetRoughness(0.45f);
 
         utils::ChBodyGeometry::AddVisualizationCylinder(m_chassis_body,              //
-                                                        ChVector3d(0, 0, 0),         //
-                                                        ChVector3d(0, 0, -2 * dim),  //
+                                                        ChVector3d(0, 0, -dim),      //
+                                                        ChVector3d(0, 0, -7 * dim),  //
                                                         dim / 2,                     //
                                                         mat);
     }
 
+    // ---- Create main joints and motors
+
+    if (m_mode == Mode::TEST && m_ls_actuated) {
+        m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
+        AddItem(m_lin_motor);
+        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
+    } else {
+        ChQuaternion<> z2x;
+        z2x.SetFromAngleY(CH_PI_2);
+        auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
+        AddItem(prismatic);
+        prismatic->Initialize(m_carrier_body, m_ground_body, ChFrame<>(VNULL, z2x));
+    }
+
+    auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
+    AddItem(prismatic);
+    prismatic->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
+
+    if (m_mode == Mode::TEST) {
+        m_drop_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
+        AddItem(m_drop_motor);
+        m_drop_motor->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
+    }
+
+    // ---- Let concrete rig test classes construct additional physics items, initialize and connect the wheel assembly, and adjust mass properties
+
+    if (has_suspension)
+        CreateWheelSuspensionMechanism(dim);
+    else
+        CreateWheelMechanism(dim);
+
+    // ---- Create shafts and shaft motor used to actuate the wheel (if  needed)
+
+    if (m_mode == Mode::TEST && m_rs_actuated) {
+        auto chassis_shaft = chrono_types::make_shared<ChShaft>();
+        chassis_shaft->SetInertia(0.1);
+        AddItem(chassis_shaft);
+
+        auto wheel_shaft = chrono_types::make_shared<ChShaft>();
+        wheel_shaft->SetInertia(0.1);
+        AddItem(wheel_shaft);
+
+        auto shaft_to_chassis = chrono_types::make_shared<ChShaftBodyRotation>();
+        shaft_to_chassis->Initialize(chassis_shaft, m_chassis_body, ChVector3d(0, -1, 0));
+        AddItem(shaft_to_chassis);
+
+        auto shaft_to_wheel = chrono_types::make_shared<ChShaftBodyRotation>();
+        shaft_to_wheel->Initialize(wheel_shaft, m_wheel_assembly->GetHub(), ChVector3d(0, -1, 0));
+        AddItem(shaft_to_wheel);
+
+        m_rot_motor = chrono_types::make_shared<ChShaftsMotorSpeed>();
+        AddItem(m_rot_motor);
+        m_rot_motor->Initialize(chassis_shaft, wheel_shaft);
+    }
+
+    // ---- Set terrain offset (based on wheel center) and terrain height (below wheel)
+
+    m_terrain_offset = m_wheel_assembly->GetHub()->GetPos().y();
+    m_terrain_height = m_wheel_assembly->GetHub()->GetPos().z() - m_wheel_assembly->GetRadius() - 0.1;
+
+    // ---- Update chassis mass to satisfy requested normal load
+    if (m_grav > 0) {
+        m_total_mass = m_normal_load / m_grav;
+        double other_mass = m_wheel_assembly->GetMass() + (has_suspension ? 0.0 : m_slip_body->GetMass());
+        double chassis_mass = m_total_mass - other_mass;
+        if (chassis_mass > m_wheel_assembly->GetWheelMass()) {
+            m_chassis_body->SetMass(chassis_mass);
+        } else {
+            std::cout << "\nWARNING!  Prescribed normal load too small. Discarded.\n" << std::endl;
+        }
+    }
+}
+
+void ChWheelTestRig::CreateWheelMechanism(double dim) {
+    // Create the slip body
     m_slip_body = chrono_types::make_shared<ChBody>();
-    m_system.AddBody(m_slip_body);
+    AddItem(m_slip_body);
     m_slip_body->SetName("rig_slip");
     m_slip_body->SetPos(ChVector3d(0, 0, -4 * dim));
-    m_slip_body->SetMass(mass);
-    m_slip_body->SetInertia(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.6f, 0.2f});
+        mat->SetDiffuseColor({0.35f, 0.32f, 0.29f});
+        mat->SetRoughness(0.6f);
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(4 * dim, dim, 4 * dim);
         box->AddMaterial(mat);
         m_slip_body->AddVisualShape(box);
     }
 
-    // Create joints and motors
-    if (m_mode == Mode::TEST && m_ls_actuated) {
-        m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
-        m_system.AddLink(m_lin_motor);
-        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
-    } else {
-        ChQuaternion<> z2x;
-        z2x.SetFromAngleY(CH_PI_2);
-        auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-        m_system.AddLink(prismatic);
-        prismatic->Initialize(m_carrier_body, m_ground_body, ChFrame<>(VNULL, z2x));
-    }
+    // Initialize the wheel assembly
+    ChQuaternion<> qc;
+    qc.SetFromAngleX(-m_camber_angle);
+    m_wheel_assembly->Initialize(nullptr, ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
-    auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    m_system.AddLink(prismatic);
-    prismatic->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
+    // Adjust rig body mass and inertia commensurate with those of the wheel
+    double mass = m_wheel_assembly->GetWheelMass();
+    const double radius = m_wheel_assembly->GetRadius();
+    ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
 
-    if (m_mode == Mode::TEST) {
-        m_drop_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
-        m_system.AddLink(m_drop_motor);
-        m_drop_motor->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
-    }
+    m_carrier_body->SetMass(mass);
+    m_carrier_body->SetInertia(inertia);
 
+    m_chassis_body->SetMass(mass);
+    m_chassis_body->SetInertia(inertia);
+
+    m_slip_body->SetMass(mass);
+    m_slip_body->SetInertia(inertia);
+
+    // Create chassis to slip body connection which allows controlling slip angle
     m_slip_lock = chrono_types::make_shared<ChLinkLockLock>();
-    m_system.AddLink(m_slip_lock);
+    AddItem(m_slip_lock);
     m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(VNULL, QUNIT));
     m_slip_lock->SetMotionAxis(ChVector3d(0, 0, 1));
 
+    // Connect wheel to slip body
     ChQuaternion<> z2y;
     z2y.SetFromAngleX(-CH_PI_2 - m_camber_angle);
-    if (m_mode == Mode::TEST && m_rs_actuated) {
-        m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        m_system.AddLink(m_rot_motor);
-        m_rot_motor->Initialize(m_wheel_assembly->GetHub(), m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
-    } else {
-        auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-        m_system.AddLink(revolute);
-        revolute->Initialize(m_wheel_assembly->GetHub(), m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
+    auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
+    AddItem(revolute);
+    revolute->Initialize(m_wheel_assembly->GetHub(), m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
+}
+
+void ChWheelTestRig::CreateWheelSuspensionMechanism(double dim) {
+    {
+        auto mat = chrono_types::make_shared<ChVisualMaterial>();
+        mat->SetDiffuseColor({0.63f, 0.53f, 0.43f});
+        mat->SetRoughness(0.45f);
+
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(4 * dim, dim, 4 * dim);
+        box->AddMaterial(mat);
+        m_chassis_body->AddVisualShape(box, ChFramed(ChVector3d(0, 0, -4 * dim), QUNIT));
     }
 
-    // Update chassis mass to satisfy requested normal load
-    if (m_grav > 0) {
-        m_total_mass = m_normal_load / m_grav;
-        double other_mass = m_slip_body->GetMass() + m_wheel_assembly->GetMass();
-        double chassis_mass = m_total_mass - other_mass;
-        if (chassis_mass > mass) {
-            m_chassis_body->SetMass(chassis_mass);
-        } else {
-            std::cout << "\nWARNING!  Prescribed normal load too small. Discarded.\n" << std::endl;
-        }
-    }
+    // Initialize the suspension and wheel assembly
+    m_wheel_assembly->Initialize(m_chassis_body, ChFramed(ChVector3d(0, 0, -4 * dim), QUNIT), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
-    // Set terrain offset (based on wheel center) and terrain height (below wheel)
-    m_terrain_offset = 3 * dim;
-    m_terrain_height = -4 * dim - m_wheel_assembly->GetRadius() - 0.1;
+    // Adjust rig body mass and inertia commensurate with those of the wheel
+    double mass = m_wheel_assembly->GetWheelMass();
+    const double radius = m_wheel_assembly->GetRadius();
+    ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
+
+    m_carrier_body->SetMass(mass);
+    m_carrier_body->SetInertia(inertia);
+
+    m_chassis_body->SetMass(mass);
+    m_chassis_body->SetInertia(inertia);
 }
 
 // -----------------------------------------------------------------------------
@@ -449,7 +707,7 @@ void ChWheelTestRig::CreateTerrainSCM() {
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
-    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(&m_system);
+    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(&m_system, m_params_SCM.vis_mesh);
     terrain->SetReferenceFrame(ChCoordsys<>(location));
     terrain->SetSoilParameters(                                                             //
         m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,            //
@@ -468,9 +726,9 @@ void ChWheelTestRig::CreateTerrainRigid() {
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(&m_system);
 
     ChContactMaterialData minfo;
-    minfo.mu = m_params_rigid.friction;
-    minfo.cr = m_params_rigid.restitution;
-    minfo.Y = m_params_rigid.Young_modulus;
+    minfo.mu = m_params_rigid.mu;
+    minfo.cr = m_params_rigid.cr;
+    minfo.Y = m_params_rigid.Y;
     auto patch_mat = minfo.CreateMaterial(m_system.GetContactMethod());
 
     auto patch = terrain->AddPatch(patch_mat, ChCoordsys<>(location, QUNIT), m_terrain_size.length, m_terrain_size.width, 0.1);
@@ -577,8 +835,8 @@ void ChWheelTestRig::SetWheelActiveDomain(const ChAABB& aabb) {
 
 void ChWheelTestRig::SetWheelActiveDomain() {
     auto corner = ChVector3d(m_wheel_assembly->GetRadius(), m_wheel_assembly->GetWidth() / 2, m_wheel_assembly->GetRadius());
-    m_wheel_AABB.min = -1.25 * corner;
-    m_wheel_AABB.max = +1.25 * corner;
+    m_wheel_AABB.min = -2.5 * corner;
+    m_wheel_AABB.max = +2.5 * corner;
 }
 
 void ChWheelTestRig::CreateTerrainCRM() {
@@ -616,6 +874,19 @@ void ChWheelTestRig::CreateTerrainCRM() {
     std::cout << "  SPH AABB:             " << aabb.min << "   " << aabb.max << std::endl;
 
     m_terrain = terrain;
+}
+
+const ChAABB& ChWheelTestRig::GetWheelActiveDomain() const {
+    return m_wheel_AABB;
+}
+
+const ChAABB& ChWheelTestRig::GetTerrainSPHBoundingBox() const {
+    auto crm = std::dynamic_pointer_cast<CRMTerrain>(m_terrain);
+    if (!crm) {
+        std::cerr << "ERROR: GetTerrainSPHBoundingBox called for non-CRM terrain." << std::endl;
+        throw std::runtime_error("ERROR: GetTerrainSPHBoundingBox called for non-CRM terrain.");
+    }
+    return crm->GetSPHBoundingBox();
 }
 
 #endif
@@ -683,89 +954,6 @@ double ChWheelTestRig::GetCamberAngle() const {
     auto dir = m_wheel_assembly->GetHub()->GetRotMat().GetAxisY();
     double camber_angle = std::atan(-dir.z());
     return camber_angle;
-}
-
-// =============================================================================
-
-ChWheelTestRig::VehicleWheel::VehicleWheel(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, ChSystem& system) : WheelAssembly(system), wheel(wheel), tire(tire) {
-    spindle = chrono_types::make_shared<ChSpindle>();
-    spindle->SetName("rig_spindle");
-    spindle->SetMass(0);
-    spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
-    system.AddBody(spindle);
-}
-
-double ChWheelTestRig::VehicleWheel::GetMass() const {
-    return wheel->GetMass() + tire->GetTireMass();
-}
-
-double ChWheelTestRig::VehicleWheel::GetRadius() const {
-    return tire->GetRadius();
-}
-
-double ChWheelTestRig::VehicleWheel::GetWidth() const {
-    return tire->GetWidth();
-}
-
-std::shared_ptr<ChBody> ChWheelTestRig::VehicleWheel::GetHub() const {
-    return spindle;
-}
-
-#ifdef CHRONO_CRM
-
-void ChWheelTestRig::VehicleWheel::AddFSIBodies(CRMTerrain& terrain, double spacing) {
-    #ifdef CHRONO_FEA
-    if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-        auto mesh = fea_tire->GetMesh();
-        terrain.AddFeaMesh(mesh, false);
-        return;
-    }
-    #endif
-
-    if (auto rgd_tire = std::static_pointer_cast<ChRigidTire>(tire)) {
-        assert(rgd_tire->UseContactMesh());
-        auto trimesh = rgd_tire->GetContactMesh();
-        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
-        terrain.AddRigidBody(spindle, geometry, false);
-        return;
-    }
-
-    if (std::dynamic_pointer_cast<ChForceElementTire>(tire)) {
-        std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
-        throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
-    }
-}
-
-#endif
-
-void ChWheelTestRig::VehicleWheel::Initialize(const ChFramed& frame, bool fixed, double step_size, VisualizationType vis_type) {
-    spindle->SetPos(frame.GetPos());
-    spindle->SetRot(frame.GetRot());
-    spindle->SetFixed(fixed);
-
-    wheel->Initialize(nullptr, spindle, LEFT);
-    wheel->SetVisualizationType(VisualizationType::NONE);
-    wheel->SetTire(tire);
-
-    tire->Initialize(wheel);
-    tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
-    tire->SetStepsize(step_size);
-    tire->SetVisualizationType(vis_type);
-}
-
-void ChWheelTestRig::VehicleWheel::Synchronize(double time, const ChTerrain& terrain) {
-    spindle->EmptyTireAccumulator();
-    tire->Synchronize(time, terrain);
-    wheel->Synchronize();
-}
-
-void ChWheelTestRig::VehicleWheel::Advance(double step_size) {
-    tire->Advance(step_size);
-}
-
-TerrainForce ChWheelTestRig::VehicleWheel::ReportForces(ChTerrain& terrain) const {
-    return tire->ReportTireForce(&terrain);
 }
 
 }  // end namespace vehicle

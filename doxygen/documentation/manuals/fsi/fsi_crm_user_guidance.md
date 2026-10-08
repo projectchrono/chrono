@@ -136,32 +136,38 @@ steepens the outside of a deposit and leaves the inside alone.
 If you are modelling anything that flows, give `mu_fric_2` a value above `mu_fric_s`. The mu(I)
 parameter guide, not this page, is where to pick the values.
 
-### Check whether the free-surface treatment is actually on
+### Know how deep the free-surface treatment reaches
 
 Particles at the open top of the soil are treated specially: their stress is reset so the surface
 cannot carry tension it should not. Which particles count as "at the surface" is decided by the
 parameter `free_surface_threshold`, compared against a measure of how many neighbours a particle
-has on all sides (`nabla_r`, close to 3 deep in the bed and lower at the surface).
+has on all sides (`nabla_r`, close to 3 deep in the bed and lower at the surface). Note that BCE
+markers count towards that measure, so a particle resting against a wall or against a solid is not
+flagged; only genuinely exposed particles are.
 
-The point to know is that the treatment has a switch-on value, and small changes around it matter.
-In a settled bed at 12.5 mm particle spacing we measured `nabla_r` at about 2.9 deep inside and about
-2.01 in the top layer (the same values came back at 25 mm spacing). A particle is flagged when its
-`nabla_r` is below the threshold. So a threshold below 2.01 flags no particle at all, and the treatment
-is off; the library default is 2.0. A threshold just above 2.01 flags the top layer only. Raising it
-further flags more and more layers, up to the whole bed near 2.9, so there is no single "on" state.
-Whether you want the treatment on, and how deep, is a modelling choice. What you should not do is
-assume it is on because the parameter exists. In our plate tests (12.5 mm spacing, single precision,
-compared at 9.5 mm of sinkage) a threshold of 2.2 lowered the bearing pressure by about a third and a
-threshold of 2.6 by about 45 percent, so this is not a fine-tuning knob.
+The point to know is that small changes in the threshold matter. In a settled bed at 12.5 mm particle
+spacing we measured `nabla_r` at about 2.9 deep inside and about 2.01 in the top layer (the same values
+came back at 25 mm spacing). A particle is flagged when its `nabla_r` is below the threshold, so the
+usable window is roughly 2.01 to 2.9: just above 2.01 flags the top layer only, and raising it further
+flags more and more layers until near 2.9 the whole bed is flagged. There is no single "on" state, and
+how deep you want the treatment to reach is a modelling choice. In our plate tests (12.5 mm spacing,
+single precision, compared at 9.5 mm of sinkage) a threshold of 2.2 lowered the bearing pressure by
+about a third and a threshold of 2.6 by about 45 percent, so this is not a fine-tuning knob.
 
-How to check in your own run: Chrono does not write the free-surface flag to its output files, so
-you cannot count flagged particles from the output. What you can do is find out whether the treatment
-affects the quantity you care about. Run your case once at your threshold and once at a very low
-threshold such as 0.8. In a packed bed no particle sits far below 2.01, so 0.8 flags at most a few
-nearly isolated particles, such as grains thrown clear of the surface; it is a comparison point, not a
-guaranteed off switch. If the two runs differ, the threshold matters for your quantity and you have a
-modelling choice to make. If they agree, you have learned only that those two thresholds give the same
-answer for that quantity. The parameter guide does not yet say what the default is meant to do.
+The library default is 2.4, which flags the exposed top layer and nothing below it. Earlier versions
+defaulted to 2.0, which fell below the 2.01 minimum found anywhere in a settled bed and therefore
+flagged no particle at all, leaving the treatment inert. If you are carrying a threshold over from an
+older script, check it against the window above: a value at or below about 2.0, including the 0.8 seen
+in some older examples, disables the treatment in a packed bed.
+
+How to check in your own run: `ChFsiFluidSystemSPH::GetFreeSurfaceFlags()` returns one flag per marker,
+in the same order as `GetPositions()`, so you can count flagged particles and see where they are. Note
+the CSV output files do not include the flag, so this has to be done from your own code. Beyond
+counting, it is worth finding out whether the treatment affects the quantity you care about: run your
+case once at your threshold and once at a value below 2.0, which flags at most a few nearly isolated
+particles such as grains thrown clear of the surface. If the two runs differ, the threshold matters for
+your quantity and you have a modelling choice to make. If they agree, you have learned only that those
+two thresholds give the same answer for that quantity.
 
 ### The active domain: what it freezes, and what it changes
 

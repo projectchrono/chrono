@@ -50,10 +50,6 @@ class CH_MODELS_API M113 {
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
-    void SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder) {
-        m_wheel_cyl = roadwheel_as_cylinder;
-        m_idler_cyl = idler_as_cylinder;
-    }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
@@ -113,8 +109,6 @@ class CH_MODELS_API M113 {
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_create_track;
-    bool m_wheel_cyl;
-    bool m_idler_cyl;
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;

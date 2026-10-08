@@ -1,0 +1,35 @@
+chrono-version: 10.0
+
+# Chrono::FSI-TDPF solver settings for the preCICE fluid participant.
+# Every section and key is optional; see data/yaml/schema/fsitdpf_solver.schema.yaml for the full
+# schema, and data/yaml/fsi/sphere_regular_waves/tdpf_solver.yaml for a fully populated example.
+
+radiation:
+  method: RIRF_CONVOLUTION
+
+  # Truncate the retardation kernel at this time [s]; 0 uses the full kernel from the HDF5 file.
+  # The velocity history is retained over the kernel length, so truncating a long kernel whose tail
+  # is negligible reduces both memory and per-step cost.
+  #
+  # The kernel in rm3.h5 spans 20 s at a 0.01 s sample rate. Its dominant components (those within
+  # a factor of two of the largest, which are the diagonal heave and pitch terms and their
+  # body-to-body counterparts) hold 97.5% to 98.8% of their energy in the first 5 s. The components
+  # whose tails persist past 5 s are all numerical residue of the boundary element solution: the
+  # largest of them peaks at 5.5e-6 of the peak kernel value for that body.
+  #
+  # Truncating at 10 s halves the retained history and was validated against the untruncated kernel
+  # over the 40 s coupled run: heave changes by at most 1.6e-4 m for the float and 4.5e-4 m for the
+  # plate, i.e. 0.13% and 0.19% of their respective strokes. Both are below the difference between
+  # this co-simulation and the monolithic demo it mirrors (3.2 mm and 1.1 mm), which is the error
+  # already present from the explicit coupling at a 1e-2 window.
+  #
+  # Shorter truncations were measured as well and are not recommended for this model: at 8 s the
+  # plate deviation (1.5 mm) already exceeds that co-simulation error, and below 8 s the deviation
+  # stops decreasing monotonically with kernel length, so it is no longer truncation error alone.
+  truncation_time: 10
+
+excitation:
+  # Unlike the still-water sphere_drop example, the wave excitation force is what drives this
+  # problem, so the excitation kernel is evaluated in full.
+  method: AUTO
+  truncation_time: 0

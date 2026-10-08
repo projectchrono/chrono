@@ -260,10 +260,6 @@ int main(int argc, char* argv[]) {
     cout << "VEHICLE: " << vehicle_model.ModelName() << endl;
     TrackedVehicle vehicle(GetVehicleDataFile(vehicle_model.VehicleJSON()), contact_method);
 
-    // Change collision shape for road wheels and idlers (true: cylinder; false: cylshell)
-    ////vehicle.GetTrackAssembly(LEFT)->SetWheelCollisionType(false, false, false);
-    ////vehicle.GetTrackAssembly(RIGHT)->SetWheelCollisionType(false, false, false);
-
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 

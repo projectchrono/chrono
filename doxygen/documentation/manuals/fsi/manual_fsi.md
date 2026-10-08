@@ -4,7 +4,7 @@ Chrono::FSI Reference Manual {#manual_fsi}
 The [Chrono::FSI](group__fsi.html) module provides a generic interface between a Chrono solid-phase multibody system and an arbitrary fluid solver for Fluid-Solid Interaction (FSI) problems
 Currently, Chrono::FSI provides coupling to:
 - a fluid solver based on the Smoothed Particle Hydrodynamics (SPH) method in the [Chrono::FSI-SPH](group__fsisph.html) sub-module;
-- a time-dependent potential flow (TDPF) solver, in the [Chrono::FSI-TDPF](group__fsitdpf.html) sub-module which interfaces to the 3rd-party [HydroChrono](https://github.com/Project-SEA-Stack/HydroChrono) solver.
+- a time-dependent potential flow (TDPF) solver, in the [Chrono::FSI-TDPF](group__fsitdpf.html) sub-module which interfaces to the 3rd-party [SEA-Stack](https://github.com/Project-SEA-Stack/SEA-Stack) solver.
 
 ## Generic Chrono::FSI module
 
@@ -39,8 +39,13 @@ Further details on the FSI-SPH module are provided in the following pages:
 
 ## TDPF-based FSI module
 
-The [Chrono::FSI-TDPF](group__fsitdpf.html) module provides support for FSI problems solved with a time-domain potential flow approach. The TDPF support is provided by the fluid solver in the external [HydroChrono](https://github.com/Project-SEA-Stack/HydroChrono) project, included in Chrono as a git submodule:
+The [Chrono::FSI-TDPF](group__fsitdpf.html) module provides support for FSI problems solved with a time-domain potential flow approach. The TDPF support is provided by the fluid solver in the external [SEA-Stack](https://github.com/Project-SEA-Stack/SEA-Stack) project, included in Chrono as a git submodule.
 
 The resulting simulation framework is represented schematically in the image below which also illustrates the YAML parsers associated with such FSI problems.
 
 <img src="http://www.projectchrono.org/assets/manual/Chrono_FSI-TDPF.png" width="800">
+
+<br>
+
+Further details on the FSI-TDPF module are provided in the following pages:
+* @subpage manual_fsi_tdpf_added_mass

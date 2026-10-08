@@ -33,7 +33,14 @@ cbtVector3 cbtRoundedBoxShape::localGetSupportingVertexWithoutMargin(const cbtVe
     cbtVector3 tmp(cbtFsels(vec.x(), halfExtents.x(), -halfExtents.x()),  //
                    cbtFsels(vec.y(), halfExtents.y(), -halfExtents.y()),  //
                    cbtFsels(vec.z(), halfExtents.z(), -halfExtents.z()));
-    return tmp + s_radius * vec;
+    // Normalize the search direction (the sweeping sphere support point requires a unit vector)
+    cbtVector3 dir = vec;
+    cbtScalar lenSqr = dir.length2();
+    if (lenSqr < SIMD_EPSILON * SIMD_EPSILON)
+        dir.setValue(1, 0, 0);
+    else
+        dir *= cbtScalar(1.) / cbtSqrt(lenSqr);
+    return tmp + s_radius * dir;
 }
 
 void cbtRoundedBoxShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const {

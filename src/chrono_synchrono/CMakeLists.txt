@@ -148,6 +148,11 @@ if(CH_ENABLE_MODULE_SENSOR)
   list (APPEND DEPENDENCIES_SYNCHRONO "IRRLICHT")
 endif()
 
+# Chrono_synchrono links to the robot models, which link to Chrono_parsers when URDF support is enabled
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  list (APPEND DEPENDENCIES_SYNCHRONO "PARSERS")
+endif()
+
 set(DEPENDENCIES_SYNCHRONO ${DEPENDENCIES_SYNCHRONO} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
@@ -197,11 +202,8 @@ target_include_directories(Chrono_synchrono PUBLIC
 
 # Add dependencies
 if (CH_ENABLE_MODULE_SENSOR)
+  # The OptiX include directory, if used, is propagated by Chrono_sensor.
   target_link_libraries(Chrono_synchrono PUBLIC Chrono_sensor)
-  if(CH_USE_SENSOR_OPTIX)
-    find_package(OptiX REQUIRED)
-    target_include_directories(Chrono_synchrono PUBLIC "${OptiX_INCLUDE}")
-  endif()
 endif()
   
 if (CH_ENABLE_MODULE_IRRLICHT)

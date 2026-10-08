@@ -76,7 +76,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
         texcoords->set(i, tx);
     }
 
-    auto colors = vsg::vec4Array::create(vertices->size(), vsg::vec4CH(material->GetDiffuseColor(), material->GetOpacity()));
+    // The PBR material factor already carries the diffuse color and opacity. White vertex colors keep them from
+    // being applied twice (baseColor = vertexColor * baseColorFactor), as in CreateTrimeshPbrMatShape.
+    auto colors = vsg::vec4Array::create(vertices->size(), vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
     auto scenegraph = vsg::Group::create();
     auto stategraph = createPbrStateGroup(m_options, material, double_faced, wireframe, wire_width);
     transform->subgraphRequiresLocalFrustum = false;

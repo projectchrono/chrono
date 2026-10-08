@@ -12,19 +12,15 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHLINKMOTORROTATION_H
-#define CHLINKMOTORROTATION_H
+#ifndef CH_LINK_MOTOR_ROTATION_H
+#define CH_LINK_MOTOR_ROTATION_H
 
 #include "chrono/physics/ChLinkMotor.h"
 
 namespace chrono {
 
-/// Base class for all rotational "motor" constraints between
-/// two frames on two bodies. Motors of this type assume that
-/// the spindle is directed along Z direction of the master frame.
-/// Look for children classes for specialized behaviors,
-/// for example chrono::ChLinkMotorRotationAngle
-
+/// Base class for all rotational "motor" constraints between two frames on two bodies.
+/// Motors of this type assume that the spindle is directed along Z direction of the master frame.
 class ChApi ChLinkMotorRotation : public ChLinkMotor {
   public:
     /// Type of spindle constraint.
@@ -34,12 +30,12 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     ChLinkMotorRotation(const ChLinkMotorRotation& other);
     virtual ~ChLinkMotorRotation();
 
-    /// Sets which movements (of frame 1 respect to frame 2) are constrained.
+    /// Sets which movements (of frame 1 with respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
     /// Note that the Z direction is the actuated one, and is never affected by this option.
-    void SetSpindleConstraint(const SpindleConstraint mconstraint);
+    void SetSpindleConstraint(const SpindleConstraint constraint);
 
-    /// Sets which movements (of frame 1 respect to frame 2) are constrained.
+    /// Sets which movements (of frame 1 with respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
     /// Note that the Z direction is the actuated one, and is never affected by this option.
     void SetSpindleConstraint(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry);
@@ -52,11 +48,11 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     /// Get the number of complete turns of the motor.
     virtual int GetMotorNumTurns() const { return std::floor(mrot / CH_2PI); }
 
-    /// Get the motor rotation angle [rad] in the range [-PI..+PI].
+    /// Get the motor rotation angle in the range [-PI..+PI].
     /// To retrieve the complete angle value, use GetMotorAngle().
     virtual double GetMotorAngleWrapped() const { return fmod(mrot, CH_2PI); }
 
-    /// Get the current actuator speed [rad/s].
+    /// Get the current actuator speed.
     virtual double GetMotorAngleDt() const { return mrot_dt; }
 
     /// Get the current actuator acceleration [rad/s^2].

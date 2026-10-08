@@ -58,7 +58,7 @@ set(CH_VERSION 0x00100000)
 #-----------------------------------------------------------------------------
 # Detect operating system and processor for host and target
 #-----------------------------------------------------------------------------
-message(STATUS "We are on a ${CMAKE_HOST_SYSTEM_NAME} system")
+message(STATUS "We are on a ${CMAKE_HOST_SYSTEM_NAME} system. Version: ${CMAKE_HOST_SYSTEM_VERSION}")
 message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 message(STATUS "Building for a ${CMAKE_SYSTEM_NAME} system")
 message(STATUS "The target processor is ${CMAKE_SYSTEM_PROCESSOR}")

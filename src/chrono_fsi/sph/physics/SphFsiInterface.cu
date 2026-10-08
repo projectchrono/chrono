@@ -69,6 +69,16 @@ __global__ void calcDir2D(const int3* nodes, const Real3* pos, int* key, Real3* 
     dir[3 * tid + 2] = d;
 }
 
+// Reduction operators.
+// Defined locally rather than using thrust::minimum / thrust::plus /
+// thrust::equal_to: those are deprecated in CCCL 3.1 (CUDA 13.x) in favor of
+// cuda::minimum / cuda::std::plus / cuda::std::equal_to, which are libcu++ and
+// therefore unavailable under rocThrust (the Thrust device system used on AMD).
+
+struct same_key_int {
+    __host__ __device__ bool operator()(const int& a, const int& b) const { return a == b; }
+};
+
 struct add_dir {
     __host__ __device__ Real3 operator()(const Real3& d1, const Real3& d2) { return d1 + d2; }
 };
@@ -93,7 +103,7 @@ void calculateDirectionsMesh1D(FsiDataManager& data_mgr) {
 
     thrust::sort_by_key(key.begin(), key.end(), ext_dir.begin());
 
-    thrust::equal_to<int> binary_pred;
+    same_key_int binary_pred;
     add_dir binary_op;
     thrust::reduce_by_key(key.begin(), key.end(), ext_dir.begin(), out_key.begin(), dir.begin(), binary_pred, binary_op);
 
@@ -119,7 +129,7 @@ void calculateDirectionsMesh2D(FsiDataManager& data_mgr) {
 
     thrust::sort_by_key(key.begin(), key.end(), ext_dir.begin());
 
-    thrust::equal_to<int> binary_pred;
+    same_key_int binary_pred;
     add_dir binary_op;
     thrust::reduce_by_key(key.begin(), key.end(), ext_dir.begin(), out_key.begin(), dir.begin(), binary_pred, binary_op);
 

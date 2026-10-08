@@ -26,15 +26,15 @@ Each integrator can support the following settings depending on the integrator t
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
 | `type` | Integrator type | enum | `EULER_IMPLICIT_LINEARIZED`,<br>`EULER_IMPLICIT_PROJECTED`,<br>`EULER_IMPLICIT`,<br>`HHT` | Yes | -- |
-| `rel_tolerance` | Relative tolerance (HHT and implicit Euler) | double | -- | No | 1e-4 |
 | `time_step` | Integration timestep in seconds | double | -- | Yes | -- |
-
-Both `type` and `time_step` are required if the `integrator` object is present.
+| `rel_tolerance` | Relative tolerance (HHT and implicit Euler) | double | -- | No | 1e-4 |
 | `abs_tolerance_states` | Absolute tolerance for state variables (HHT and implicit Euler) | double | -- | No | 1e-4 |
 | `abs_tolerance_multipliers` | Absolute tolerance for Lagrange multipliers (HHT and implicit Euler) | double | -- | No | 1e2 |
 | `max_iterations` | Maximum number of non-linear iterations for implicit integrators | integer | -- | No | 50 |
 | `use_stepsize_control` | Whether to use internal step-size control (HHT) | boolean | -- | No | false |
 | `use_modified_newton` | Whether to use a modified Newton iteration (HHT) | boolean | -- | No | false |
+
+Both `type` and `time_step` are required if the `integrator` object is present.
 
 
 ## Solver types and parameters

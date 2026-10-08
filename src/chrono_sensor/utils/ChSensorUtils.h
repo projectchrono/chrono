@@ -47,6 +47,12 @@ CH_SENSOR_API std::string LidarReturnModeAsString(LidarReturnMode mode);
 CH_SENSOR_API std::string LidarNoiseModelTypeAsString(LidarNoiseModelType type);
 #endif
 
+/// Locate a Chrono::Sensor run-time directory (e.g., the shader directory).
+/// Returns the directory at the given path relative to the location of the Chrono::Sensor library if that exists (and,
+/// if specified, contains the given entry), which is where an installed Chrono::Sensor finds it, also after the
+/// installation was moved. Otherwise, returns the given fallback location (e.g., the location in the build tree).
+CH_SENSOR_API std::string LocateSensorDirectory(const std::string& relative_path, const std::string& fallback_path, const std::string& required_entry = "");
+
 }  // namespace sensor
 }  // namespace chrono
 

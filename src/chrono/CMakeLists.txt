@@ -808,7 +808,6 @@ set(Chrono_collision_SOURCES
     collision/ChCollisionShapeCone.cpp
     collision/ChCollisionShapeConvexHull.cpp
     collision/ChCollisionShapeCylinder.cpp
-    collision/ChCollisionShapeCylindricalShell.cpp
     collision/ChCollisionShapeEllipsoid.cpp
     collision/ChCollisionShapePath2D.cpp
     collision/ChCollisionShapePoint.cpp
@@ -836,7 +835,6 @@ set(Chrono_collision_HEADERS
     collision/ChCollisionShapeCone.h
     collision/ChCollisionShapeConvexHull.h
     collision/ChCollisionShapeCylinder.h
-    collision/ChCollisionShapeCylindricalShell.h
     collision/ChCollisionShapeEllipsoid.h
     collision/ChCollisionShapePath2D.h
     collision/ChCollisionShapePoint.h
@@ -951,7 +949,6 @@ set(Chrono_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/cbtConvexTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtRoundedCylinderShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtRoundedBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp
@@ -1285,9 +1282,11 @@ set(Chrono_inputoutput_SOURCES
 )
 if(HDF5_FOUND)
     set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChUtilsHDF5.h
         input_output/ChOutputHDF5.h
     )
     set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChUtilsHDF5.cpp
         input_output/ChOutputHDF5.cpp
     )
 endif()
@@ -1653,9 +1652,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
-endif()
+# NOTE: do not add -Wl,-no_compact_unwind here. On arm64 macOS clang emits only
+# __compact_unwind for nearly every function, so suppressing the linker's __unwind_info leaves
+# each library with landing-pad tables (__gcc_except_tab) but no unwind tables. Every exception
+# thrown by Chrono then terminates the process instead of propagating: the unwinder cannot walk
+# out of the throwing frame, so not even catch(...) in the caller runs, and PyChrono aborts
+# instead of raising. x86_64 objects also carry __eh_frame, so Intel Macs never showed this.
 
 # Compiler warning level and disabled warnings
 

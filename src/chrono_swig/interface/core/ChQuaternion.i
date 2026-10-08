@@ -130,16 +130,21 @@
 
 	QNULL  = ChQuaterniond(0,0,0,0)
 	QUNIT  = ChQuaterniond(1,0,0,0)
-	
+%}
+
+// NOTE: SWIG does not run its preprocessor inside a %pythoncode block, so an #ifdef
+// placed there is emitted verbatim into the generated module as a Python comment and
+// guards nothing. Close the block and test the macro at the interface level instead.
 #ifdef CHRONO_PYTHON_NUMPY
+%pythoncode %{
 	def _chquat_array(self, dtype=None):
 		import numpy as np
 		a = self.to_numpy()
 		return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 	ChQuaterniond.__array__ = _chquat_array
-#endif
 %}
+#endif
 
 
 #endif             // --------------------------------------------------------------------- PYTHON

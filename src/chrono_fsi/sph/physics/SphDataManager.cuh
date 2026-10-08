@@ -290,6 +290,14 @@ struct FsiDataManager {
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
     std::vector<Real3> GetProperties();
 
+    /// Extract free-surface identification flags of all markers (SPH and BCE).
+    /// A value of 1 marks an SPH particle at or near the free surface. Zero is reported for BCE markers and for SPH
+    /// particles that are not active, namely particles in the extended halo of an active domain and particles that
+    /// left the computational domain. Such particles have a truncated neighborhood by construction, so their
+    /// free-surface test is meaningless and would otherwise report a spurious surface along the active domain
+    /// boundary.
+    std::vector<int> GetFreeSurfaceFlags();
+
     /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
     std::vector<Real3> GetPositions(const std::vector<int>& indices);
 
@@ -426,6 +434,7 @@ struct FsiDataManager {
     // List of all neighbors (indexed with information from numNeighborsPerPart)
     thrust::device_vector<uint> neighborList;    ///< neighbor list for all particles
     thrust::device_vector<uint> freeSurfaceIdD;  ///< identifiers for particles close to free surface
+    thrust::device_vector<Real> posDivergenceD;  ///< divergence of the position field (basis of the free-surface test)
 
     thrust::device_vector<Real> courantViscousTimeStepD;  ///< Courant time step for viscosity
     thrust::device_vector<Real> accelerationTimeStepD;    ///< Courant time step for acceleration - unsorted

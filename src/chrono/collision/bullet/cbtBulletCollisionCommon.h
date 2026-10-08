@@ -30,7 +30,6 @@ software.
 #include "BulletCollision/CollisionShapes/cbtSphereShape.h"
 #include "BulletCollision/CollisionShapes/cbtCapsuleShape.h"
 #include "BulletCollision/CollisionShapes/cbtCylinderShape.h"
-#include "BulletCollision/CollisionShapes/cbtCylindricalShellShape.h" /* ***CHRONO*** */
 #include "BulletCollision/CollisionShapes/cbtConeShape.h"
 #include "BulletCollision/CollisionShapes/cbtStaticPlaneShape.h"
 #include "BulletCollision/CollisionShapes/cbtConvexHullShape.h"

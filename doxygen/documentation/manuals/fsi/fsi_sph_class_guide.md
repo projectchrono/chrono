@@ -40,7 +40,7 @@ Primary Classes
 ### 2) SPH FSI layer (concrete implementation)
 
 - `chrono::fsi::sph::ChFsiFluidSystemSPH`:
-  SPH solver with CFD mode (`SetCfdSPH`) and CRM mode (`SetElasticSPH`), BCE generation helpers, and SPH parameter API.
+  SPH solver with CFD mode (`SetCfdSPH`) and CRM mode (`SetCrmSPH`), BCE generation helpers, and SPH parameter API.
 - `chrono::fsi::sph::ChFsiSystemSPH`:
   SPH concrete FSI system. By default uses `ChFsiInterfaceSPH` (custom, direct SPH data-manager coupling).
 - `chrono::fsi::sph::ChFsiInterfaceSPH`:
@@ -299,7 +299,7 @@ For new users, this is usually the best sequence:
 3. Set gravity and time steps.
 4. Choose physics mode:
    - `SetCfdSPH(...)` for fluids
-   - `SetElasticSPH(...)` for CRM soil
+   - `SetCrmSPH(...)` for CRM soil
 5. Set `SPHParameters`.
 6. Build particle/BCE domain with `Construct(...)`.
 7. Add interacting solids:

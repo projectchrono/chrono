@@ -1422,8 +1422,8 @@ TEST_P(Collision, cylinder_sphere) {
 TEST_P(Collision, roundedcyl_sphere) {
     // Rounded cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
-    real c_rad = 2.0;   // radius of skeleton cylinder
-    real c_hlen = 1.5;  // half-length of skeleton cylinder
+    real c_rad = 2.0;   // (outer) radius of rounded cylinder
+    real c_hlen = 1.5;  // (outer) half-length of rounded cylinder
     real c_srad = 0.1;  // radius of sweeping sphere
     real3 c_pos(c_hlen, 0, 0);
     quaternion c_rot = FromChQuaternion(QuatFromAngleY(CH_PI_2));
@@ -1431,7 +1431,7 @@ TEST_P(Collision, roundedcyl_sphere) {
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
     shapeC->type = ChCollisionShape::Type::ROUNDEDCYL;
     shapeC->position = c_pos;
-    shapeC->dimensions = real3(c_rad, c_hlen, c_rad);
+    shapeC->dimensions = real3(c_rad, c_rad, c_hlen);
     shapeC->radius = c_srad;
     shapeC->rotation = c_rot;
 
@@ -1474,8 +1474,8 @@ TEST_P(Collision, roundedcyl_sphere) {
         ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(1, 0, 0), precision);
-        ASSERT_NEAR(depth, -0.35, precision);
-        Assert_near(pt1, real3(3.1, 1.5, 0), precision);
+        ASSERT_NEAR(depth, -0.25, precision);
+        Assert_near(pt1, real3(3.0, 1.5, 0), precision);
         Assert_near(pt2, real3(2.75, 1.5, 0), precision);
         ASSERT_NEAR(eff_rad, s_rad, precision);
     }
@@ -1493,8 +1493,8 @@ TEST_P(Collision, roundedcyl_sphere) {
         ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(0, 1, 0), precision);
-        ASSERT_NEAR(depth, -0.6, precision);
-        Assert_near(pt1, real3(2.5, 2.1, 0), precision);
+        ASSERT_NEAR(depth, -0.5, precision);
+        Assert_near(pt1, real3(2.5, 2.0, 0), precision);
         Assert_near(pt2, real3(2.5, 1.5, 0), precision);
         ASSERT_NEAR(eff_rad, s_rad * c_rad / (s_rad + c_rad), precision);
     }
@@ -1512,8 +1512,8 @@ TEST_P(Collision, roundedcyl_sphere) {
         ASSERT_TRUE(ChNarrowphase::PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(oosqrt2, oosqrt2, 0), precision);
-        ASSERT_NEAR(depth, -1.1 + oosqrt2, precision);
-        Assert_near(pt1, real3(3.0 + 0.1 * oosqrt2, 2.0 + 0.1 * oosqrt2, 0), precision);
+        ASSERT_NEAR(depth, -1.1 + 0.6 / oosqrt2, precision);
+        Assert_near(pt1, real3(2.9 + 0.1 * oosqrt2, 1.9 + 0.1 * oosqrt2, 0), precision);
         Assert_near(pt2, real3(3.5 - oosqrt2, 2.5 - oosqrt2, 0), precision);
         ASSERT_NEAR(eff_rad, s_rad * c_srad / (s_rad + c_srad), precision);
     }

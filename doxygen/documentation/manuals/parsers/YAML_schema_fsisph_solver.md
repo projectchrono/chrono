@@ -31,10 +31,11 @@ The `sph` object collects the base parameters of the weakly compressible SPH for
 | `min_distance_coefficient` | Minimum inter-particle distance, as a fraction of the kernel radius | double | -- | No | 0.01 |
 | `density_reinit_steps` | Number of steps between density re-initializations | integer | -- | No | 2e8 |
 | `use_density_based_projection` | Use density-based projection (`IMPLICIT_SPH` only) | boolean | -- | No | `false` |
-| `free_surface_threshold` | Divergence threshold used to identify free-surface particles (CRM only) | double | -- | No | 2.0 |
+| `free_surface_threshold` | Divergence threshold used to identify free-surface particles | double | -- | No | 2.4 |
 
 `free_surface_threshold` is compared against the divergence of the position field; particles with divergence below the
-threshold are treated as free-surface particles.
+threshold are treated as free-surface particles. The identification is performed for both CFD and CRM problems, but only
+the CRM solution currently consumes the result: the stress state of a flagged particle is zeroed.
 
 ## Kernel specification
 
@@ -97,8 +98,8 @@ Which coefficients are relevant depends on the selected `shifting_method`.
 | `shifting_ppst_pull` | PPST pulling coefficient (`PPST`, `PPST_XSPH`) | double | -- | No | 1.0 |
 | `shifting_beta_implicit` | Shifting coefficient used by the implicit solver (`IMPLICIT_SPH` scheme) | double | -- | No | 1.0 |
 | `shifting_diffusion_A` | Diffusion-based shifting coefficient A (`DIFFUSION`, `DIFFUSION_XSPH`) | double | 1 to 6 | No | 1.0 |
-| `shifting_diffusion_AFSM` | Diffusion-based shifting coefficient AFSM (`DIFFUSION`, `DIFFUSION_XSPH`) | double | -- | No | 3.0 |
-| `shifting_diffusion_AFST` | Diffusion-based shifting coefficient AFST (`DIFFUSION`, `DIFFUSION_XSPH`) | double | -- | No | 2.0 |
+| `shifting_diffusion_AFSM` | Upper anchor of the free-surface taper on diffusion shifting: particles whose position-field divergence reaches AFSM get the full shift (`DIFFUSION`, `DIFFUSION_XSPH`) | double | -- | No | 2.9 |
+| `shifting_diffusion_AFST` | Lower anchor of the free-surface taper on diffusion shifting: particles at or below AFST are not shifted, and between AFST and AFSM the shift ramps linearly (`DIFFUSION`, `DIFFUSION_XSPH`) | double | -- | No | 2.0 |
 
 ## Viscosity treatment
 

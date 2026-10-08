@@ -19,6 +19,7 @@
 #include "chrono_sensor/vulkan/ChVulkanRTBuffer.h"
 #include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
+#include "chrono_sensor/utils/ChSensorUtils.h"
 
 #include <algorithm>
 #include <array>
@@ -1895,7 +1896,9 @@ struct ChVulkanRTGpuFrame {
 
 std::string VulkanShaderPath(const std::string& name) {
 #ifdef CHRONO_SENSOR_VULKAN_SHADER_DIR
-    const std::string base = CHRONO_SENSOR_VULKAN_SHADER_DIR;
+    // The shaders of the installation (relative to the Chrono::Sensor library) if Chrono::Sensor is installed, and
+    // otherwise those of the build tree
+    static const std::string base = LocateSensorDirectory(std::string(CHRONO_SENSOR_SHADER_DIR_REL) + "/vulkan", CHRONO_SENSOR_VULKAN_SHADER_DIR);
     if (!base.empty())
         return base + "/" + name;
 #endif
