@@ -103,16 +103,15 @@ public:
         // Isochoric stress
         ChMatrix33d S_iso = ChMatrix33d::Zero();
         for (size_t p = 0; p < mu.size(); ++p) {
-            // Compute average term
-            double avg_term = 0.0;
+            double sum_alpha = 0.0;
             for (int b = 0; b < 3; ++b) {
-                avg_term += std::pow(lambda_bar[b], alpha[p] - 2.0);
+                sum_alpha += std::pow(lambda_bar[b], alpha[p]);
             }
-            avg_term /= 3.0;
+            sum_alpha /= 3.0;
 
-            // Add contributions
             for (int i = 0; i < 3; ++i) {
-                const double term = mu[p] * (std::pow(lambda_bar[i], alpha[p] - 2.0) - avg_term);
+                const double bracket = std::pow(lambda_bar[i], alpha[p]) - sum_alpha;
+                const double term = mu[p] * std::pow(lambda_bar[i], -2.0) * bracket;
                 S_iso += term * (N.col(i) * N.col(i).transpose());
             }
         }
