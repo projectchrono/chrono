@@ -82,8 +82,6 @@ public:
     /// Starts computing Green-Lagrange strain E from C_deformation, the right Cauchy-Green deformation.
     /// For small strains the Green Lagrange strain in Voigt notation coincides with espilon tensor.
     /// Return stress as Piola-Kirchhoff S tensor, in Voigt notation. 
-    /// This is a very simple material, ie. a linear funciton  S=C:E with C as 4th order constant tensor,
-    /// also S=[C]*E with 6x6 C in Voigt notation. 
     
     virtual void ComputeElasticStress(ChStressTensor<>& stress, const ChMatrix33d& C_deformation) override {
         // Ensure symmetry
