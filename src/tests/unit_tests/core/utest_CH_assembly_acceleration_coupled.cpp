@@ -45,13 +45,13 @@
 //                           stops contributing to the effective inertia.
 //
 // The exact generalized accelerations are mapped to body accelerations and compared
-// with GetPosDt2(). Assertions use the direct sparse solver, with the tolerance of
-// utest_CH_assembly_acceleration (1e-3 for unit lengths): the acceleration is a
-// velocity increment divided by the internal 1e-6 step, so its floor is set by that
-// step, not by the solve. The default PSOR result is printed for the record, with
-// the two signals a user could inspect: the exit flag returned by DoAssembly and the
-// iteration count and error of the iterative solver's last solve (the acceleration-
-// level step). PSOR is also run with ten times its default iteration limit.
+// with GetPosDt2(). Accuracy is asserted for the direct sparse solver and the
+// Barzilai-Borwein solver, with the tolerance of utest_CH_assembly_acceleration (1e-3
+// for unit lengths, set by the central-difference floor of the quadratic-velocity
+// term), and neither may report ACCELERATION_INACCURATE. The default PSOR result is
+// printed for the record, with the exit flag returned by DoAssembly and the iteration
+// count and error of the iterative solver's last solve. PSOR is also run with ten
+// times its default iteration limit.
 //
 // =============================================================================
 
@@ -277,25 +277,31 @@ const char* FlagName(AssemblyAnalysis::ExitFlag flag) {
             return "RELTOL_UPDATE";
         case AssemblyAnalysis::ExitFlag::ABSTOL_UPDATE:
             return "ABSTOL_UPDATE";
+        case AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE:
+            return "ACCELERATION_INACCURATE";
     }
     return "?";
 }
 
-// Assert with the direct solver; print PSOR (default and 10x iteration limit) for the record.
+// Assert with the direct and Barzilai-Borwein solvers; print PSOR (default and 10x iteration limit) for the record.
 template <typename Case>
 void Check(const Case& c, const std::string& label) {
-    const Solver solvers[] = {{ChSolver::Type::SPARSE_QR, 0}, {ChSolver::Type::PSOR, 0}, {ChSolver::Type::PSOR, 500}};
-    const char* names[] = {"SPARSE_QR ", "PSOR      ", "PSOR x500 "};
-    for (int k = 0; k < 3; k++) {
+    const Solver solvers[] = {{ChSolver::Type::SPARSE_QR, 0},
+                              {ChSolver::Type::BARZILAIBORWEIN, 0},
+                              {ChSolver::Type::PSOR, 0},
+                              {ChSolver::Type::PSOR, 500}};
+    const char* names[] = {"SPARSE_QR ", "BB        ", "PSOR      ", "PSOR x500 "};
+    for (int k = 0; k < 4; k++) {
         Outcome r = c.Run(solvers[k]);
         std::cout << label << "  solver = " << names[k] << "  max |a err| = " << r.err << "  flag = " << FlagName(r.flag);
         if (r.iterations >= 0)
             std::cout << "  iterations = " << r.iterations << "/" << r.max_iterations << "  solver error = " << r.solver_error
                       << " (tolerance " << r.solver_tolerance << ")";
         std::cout << std::endl;
-        if (k == 0) {
-            EXPECT_LT(r.err, TOL) << label;
-            EXPECT_NE(r.flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED) << label;
+        if (k <= 1) {
+            EXPECT_LT(r.err, TOL) << label << " " << names[k];
+            EXPECT_NE(r.flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED) << label << " " << names[k];
+            EXPECT_NE(r.flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE) << label << " " << names[k];
         }
     }
 }
