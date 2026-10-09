@@ -236,12 +236,23 @@ void ChVulkanRTDevice::LoadDeviceFunctions() {
 #undef LOAD_VK_DEVICE_FUNCTION
 }
 
-uint32_t ChVulkanRTDevice::FindMemoryType(uint32_t type_bits, VkMemoryPropertyFlags required_flags) const {
-    for (uint32_t i = 0; i < m_memory_properties.memoryTypeCount; ++i) {
-        const bool type_supported = (type_bits & (1u << i)) != 0;
-        const bool flags_supported = (m_memory_properties.memoryTypes[i].propertyFlags & required_flags) == required_flags;
-        if (type_supported && flags_supported)
-            return i;
+uint32_t ChVulkanRTDevice::FindMemoryType(uint32_t type_bits,
+                                          VkMemoryPropertyFlags required_flags,
+                                          VkMemoryPropertyFlags preferred_flags) const {
+    // First try required + preferred, then fall back to required only. This makes
+    // HOST_CACHED an optimization rather than a portability requirement.
+    for (int pass = 0; pass < 2; ++pass) {
+        const VkMemoryPropertyFlags wanted =
+            required_flags | ((pass == 0) ? preferred_flags : VkMemoryPropertyFlags{0});
+        for (uint32_t i = 0; i < m_memory_properties.memoryTypeCount; ++i) {
+            const bool type_supported = (type_bits & (1u << i)) != 0;
+            const bool flags_supported =
+                (m_memory_properties.memoryTypes[i].propertyFlags & wanted) == wanted;
+            if (type_supported && flags_supported)
+                return i;
+        }
+        if (preferred_flags == 0)
+            break;
     }
 
     std::ostringstream out;

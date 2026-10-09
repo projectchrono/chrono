@@ -37,6 +37,8 @@ CH_SENSOR_API ChNormalCamera::ChNormalCamera(std::shared_ptr<chrono::ChBody> par
     : ChOptixSensor(parent, updateRate, offsetPose, w, h),
 #elif defined(CHRONO_HAS_VULKAN_RT)
     : ChVulkanSensor(parent, updateRate, offsetPose, w, h, VulkanPipelineType::NORMAL_CAMERA),
+#elif defined(CHRONO_HAS_METAL_RT)
+    : ChMetalSensor(parent, updateRate, offsetPose, w, h, MetalPipelineType::NORMAL_CAMERA),
 #else
     : ChSensor(parent, updateRate, offsetPose),
 #endif

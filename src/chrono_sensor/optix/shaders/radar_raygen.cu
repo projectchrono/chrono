@@ -12,17 +12,14 @@
 // Authors: Han Wang, Asher Elmquist
 // =============================================================================
 //
-// RT kernels for tracing and measureing depth for a RADAR
+// RT kernels for tracing and measuring depth for a RADAR
 //
 // =============================================================================
-
-#ifndef RADAR_RAYGEN_CU
-#define RADAR_RAYGEN_CU
 
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 
-/// Default of RADAR per ray data (PRD)
+// Default of RADAR per ray data (PRD)
 __device__ __inline__ PerRayData_radar DefaultRadarPRD() {
     PerRayData_radar prd = {
         0.f,  // default range
@@ -30,7 +27,6 @@ __device__ __inline__ PerRayData_radar DefaultRadarPRD() {
     };
     return prd;
 };
-
 
 extern "C" __global__ void __raygen__radar() {
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
@@ -40,8 +36,7 @@ extern "C" __global__ void __raygen__radar() {
     const uint3 screen = optixGetLaunchDimensions();
     const unsigned int image_index = screen.x * idx.y + idx.x;
 
-    float2 d = (make_float2(idx.x, idx.y) + make_float2(0.5, 0.5)) / make_float2(screen.x, screen.y) * 2.f -
-               make_float2(1.f);  //[-1,1]
+    float2 d = (make_float2(idx.x, idx.y) + make_float2(0.5, 0.5)) / make_float2(screen.x, screen.y) * 2.f - make_float2(1.f);  //[-1,1]
     float theta = d.x * radar.hFOV / 2.0;
     float phi = -radar.vFOV / 2 + (d.y * .5 + .5) * (radar.vFOV);
     float xy_proj = cos(phi);
@@ -64,36 +59,33 @@ extern "C" __global__ void __raygen__radar() {
     unsigned int opt2;
     pointer_as_ints(&prd_radar, opt1, opt2);
     unsigned int raytype = (unsigned int)RayType::RADAR_RAY_TYPE;
-    optixTrace(params.root, ray_origin, ray_direction, radar.clip_near, 1.5f * radar.max_distance, t_traverse,
-               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0u, 1u, 0u, opt1, opt2,raytype);
-    
+    optixTrace(params.root, ray_origin, ray_direction, radar.clip_near, 1.5f * radar.max_distance, t_traverse, OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0u, 1u, 0u, opt1, opt2,
+               raytype);
+
     float3 vel_global;
     // removing stationary object ray hits
-    if (abs(prd_radar.velocity.x) > 0 || abs(prd_radar.velocity.y) > 0 || abs(prd_radar.velocity.z) > 0){
+    if (abs(prd_radar.velocity.x) > 0 || abs(prd_radar.velocity.y) > 0 || abs(prd_radar.velocity.z) > 0) {
         vel_global = prd_radar.velocity - radar.velocity;
 
-    } else{
-        vel_global = make_float3(0,0,0);
+    } else {
+        vel_global = make_float3(0, 0, 0);
     }
 
-    float3 vel_radar_frame =  make_float3(Dot(forward, vel_global), Dot(left, vel_global), Dot(up, vel_global));
+    float3 vel_radar_frame = make_float3(Dot(forward, vel_global), Dot(left, vel_global), Dot(up, vel_global));
 
     int hIndex = image_index % screen.x;
     int vIndex = image_index / screen.x;
 
     float azimuth = (hIndex / (float)(screen.x)) * radar.hFOV - radar.hFOV / 2.;
     float elevation = (vIndex / (float)(screen.y)) * (radar.vFOV) - radar.vFOV / 2;
-        
+
     radar.frame_buffer[8 * image_index] = prd_radar.range;
     radar.frame_buffer[8 * image_index + 1] = azimuth;
-    radar.frame_buffer[8 * image_index + 2] = elevation; // x velocity
-    radar.frame_buffer[8 * image_index + 3] = vel_radar_frame.x; // y velocity
-    radar.frame_buffer[8 * image_index + 4] = vel_radar_frame.y; // z velocity
-    radar.frame_buffer[8 * image_index + 5] = vel_radar_frame.z; // z velocity
+    radar.frame_buffer[8 * image_index + 2] = elevation;          // x velocity
+    radar.frame_buffer[8 * image_index + 3] = vel_radar_frame.x;  // y velocity
+    radar.frame_buffer[8 * image_index + 4] = vel_radar_frame.y;  // z velocity
+    radar.frame_buffer[8 * image_index + 5] = vel_radar_frame.z;  // z velocity
     radar.frame_buffer[8 * image_index + 6] = prd_radar.rcs;
-    radar.frame_buffer[8 * image_index + 7] = prd_radar.objectId; // objectId
-//    printf("%f %f\n", prd_radar.range, azimuth);
-
+    radar.frame_buffer[8 * image_index + 7] = prd_radar.objectId;  // objectId
+    ////printf("%f %f\n", prd_radar.range, azimuth);
 }
-
-#endif // RADAR_RAYGEN_CU

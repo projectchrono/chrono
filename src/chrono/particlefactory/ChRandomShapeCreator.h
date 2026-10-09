@@ -49,11 +49,11 @@ class ChRandomShapeCreator {
     /// Function that creates a random ChBody particle each
     /// time it is called.
     /// Note: it MUST BE IMPLEMENTED by children classes!
-    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) = 0;
+    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsysd mcoords) = 0;
 
     /// This function does RandomGenerate and also executes the
     /// the custom callback, if provided. Usually no need to override.
-    virtual std::shared_ptr<ChBody> RandomGenerateAndCallbacks(ChCoordsys<> mcoords) {
+    virtual std::shared_ptr<ChBody> RandomGenerateAndCallbacks(ChCoordsysd mcoords) {
         std::shared_ptr<ChBody> mbody = this->RandomGenerate(mcoords);
 
         if (callback_post_creation)
@@ -70,7 +70,7 @@ class ChRandomShapeCreator {
         /// Callback used to process bodies as they are created and added to the system.
         /// A derived class must implement this function. It can be used to modify the
         /// specified body (e.g., add optional assets, adjust material properties, etc)
-        virtual void OnAddBody(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) = 0;
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody, ChCoordsysd mcoords, ChRandomShapeCreator& mcreator) = 0;
     };
 
     /// Set the callback function to execute at each
@@ -108,7 +108,7 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
 
     /// Function that creates a random ChBody particle each
     /// time it is called.
-    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
+    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsysd mcoords) override {
         double mrad = 0.5 * diameter->GetRandom();
         auto mbody = chrono_types::make_shared<ChBodyEasySphere>(
             mrad, density->GetRandom(), this->add_visualization_asset, this->add_collision_shape, material);
@@ -146,7 +146,7 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
 
     /// Function that creates a random ChBody particle each
     /// time it is called.
-    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
+    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsysd mcoords) override {
         double sx = fabs(x_size->GetRandom());
         double sy = fabs(sx * sizeratioYZ->GetRandom());
         double sz = fabs(sx * sizeratioYZ->GetRandom() * sizeratioZ->GetRandom());
@@ -191,7 +191,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
 
     /// Function that creates a random ChBody particle each
     /// time it is called.
-    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
+    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsysd mcoords) override {
         double rad = 0.5 * diameter->GetRandom();
         double height = length_factor->GetRandom() * 2.0 * rad;
         auto mbody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, rad, height, density->GetRandom(),
@@ -235,7 +235,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
 
     /// Function that creates a random ChBody particle each
     /// time it is called.
-    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
+    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsysd mcoords) override {
         double mchord = chord->GetRandom();
         double msizeratioYZ = sizeratioYZ->GetRandom();
         double msizeratioZ = sizeratioZ->GetRandom();
@@ -313,7 +313,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
 
     /// Function that creates a random ChBody particle each
     /// time it is called.
-    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
+    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsysd mcoords) override {
         double mtwistU = twistU->GetRandom();
         double mtwistV = twistV->GetRandom();
         double mdiameter = diameter->GetRandom();
@@ -330,12 +330,12 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         std::vector<double> radii;
         radii.resize(npoints);
 
-        ChFrame<> localframe;
+        ChFramed localframe;
         for (unsigned int ip = 0; ip < npoints; ++ip) {
             radii[ip] = 0.5 * mdiameter;
             points[ip] = localframe.GetPos();
             // compute displacement to next sphere:
-            ChFrame<> displacement;
+            ChFramed displacement;
             displacement.SetPos(ChVector3d(realinterval, 0, 0));  // shift on x
             ChQuaternion<> mrotU;
             mrotU.SetFromAngleY(realinterval * mtwistU);
@@ -410,7 +410,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
     /// Function that creates a random ChBody particle each
     /// time it is called.
 
-    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsys<> mcoords) override {
+    virtual std::shared_ptr<ChBody> RandomGenerate(ChCoordsysd mcoords) override {
         if (family_generators.size() == 0)
             throw std::invalid_argument("Error: cannot randomize particles from a zero length vector of samples");
 

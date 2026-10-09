@@ -1,5 +1,6 @@
 set(TESTS
     utest_COLL_bullet_utils
+    utest_COLL_rounded_shapes
 )
 
 if (CHRONO_THRUST_FOUND)
@@ -28,8 +29,6 @@ IF (MSVC)
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtConeShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.h
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.h
-        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.h
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtAlignedAllocator.h
@@ -39,11 +38,17 @@ IF (MSVC)
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/cbtConvexHullComputer.cpp
   )
   SOURCE_GROUP(bullet FILES ${BULLET_FILES})
+
+  # Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+  ch_disable_warnings_on_sources(${BULLET_FILES})
 ELSE()
   SET(BULLET_FILES "")
 ENDIF()
 
 set(LIBS Chrono_core)
+if(CH_ENABLE_MODULE_VSG)
+    set(LIBS ${LIBS} Chrono_vsg)
+endif()
 
 MESSAGE(STATUS "Add unit test programs for COLLISION")
 build_utests(YES "${TESTS}" "collision" "${LIBS}" "${BULLET_FILES}")

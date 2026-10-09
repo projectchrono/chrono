@@ -16,18 +16,11 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
-// CH_FACTORY_REGISTER(ChLinkMotorLinear)  NO! ABSTRACT!
-
-ChLinkMotorLinear::ChLinkMotorLinear() : m_actuated_idx(0) {
-    this->SetGuideConstraint(GuideConstraint::PRISMATIC);
+ChLinkMotorLinear::ChLinkMotorLinear() : m_actuated_idx(0), mpos(0), mpos_dt(0), mpos_dtdt(0) {
+    SetGuideConstraint(GuideConstraint::PRISMATIC);
 
     // DEVELOPER NOTES: c_z flag should be set by derived classes according to the type of constraint
-    //                  e.g. force constraints has c_z=false since no proper constraint should be added
-
-    mpos = 0;
-    mpos_dt = 0;
-    mpos_dtdt = 0;
+    //                  e.g. force constraints have c_z=false since no proper constraint should be added
 }
 
 ChLinkMotorLinear::ChLinkMotorLinear(const ChLinkMotorLinear& other) : ChLinkMotor(other) {
@@ -38,40 +31,40 @@ ChLinkMotorLinear::ChLinkMotorLinear(const ChLinkMotorLinear& other) : ChLinkMot
 
 ChLinkMotorLinear::~ChLinkMotorLinear() {}
 
-void ChLinkMotorLinear::SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz) {
-    this->c_x = mc_x;
-    this->c_y = mc_y;
-    this->c_rx = mc_rx;
-    this->c_ry = mc_ry;
-    this->c_rz = mc_rz;
+void ChLinkMotorLinear::SetGuideConstraint(bool cx, bool cy, bool crx, bool cry, bool crz) {
+    c_x = cx;
+    c_y = cy;
+    c_rx = crx;
+    c_ry = cry;
+    c_rz = crz;
     SetupLinkMask();
 
     m_actuated_idx = (int)c_x + (int)c_y;
 }
 
-void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
-    if (mconstraint == GuideConstraint::FREE) {
-        this->c_x = false;
-        this->c_y = false;
-        this->c_rx = false;
-        this->c_ry = false;
-        this->c_rz = false;
+void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint constraint) {
+    if (constraint == GuideConstraint::FREE) {
+        c_x = false;
+        c_y = false;
+        c_rx = false;
+        c_ry = false;
+        c_rz = false;
         SetupLinkMask();
     }
-    if (mconstraint == GuideConstraint::PRISMATIC) {
-        this->c_x = true;
-        this->c_y = true;
-        this->c_rx = true;
-        this->c_ry = true;
-        this->c_rz = true;
+    if (constraint == GuideConstraint::PRISMATIC) {
+        c_x = true;
+        c_y = true;
+        c_rx = true;
+        c_ry = true;
+        c_rz = true;
         SetupLinkMask();
     }
-    if (mconstraint == GuideConstraint::SPHERICAL) {
-        this->c_x = true;
-        this->c_y = true;
-        this->c_rx = false;
-        this->c_ry = false;
-        this->c_rz = false;
+    if (constraint == GuideConstraint::SPHERICAL) {
+        c_x = true;
+        c_y = true;
+        c_rx = false;
+        c_ry = false;
+        c_rz = false;
         SetupLinkMask();
     }
 
@@ -82,18 +75,18 @@ void ChLinkMotorLinear::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotor::Update(time, update_flags);
 
-    // compute aux data for future reference (istantaneous pos speed accel)
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*this->m_body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(m_frame2) >> (ChFrameMoving<>)(*this->m_body2);
+    // compute aux data for future reference (instantaneous pos speed accel)
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(m_frame2) >> (ChFrameMoving<>)(*m_body2);
     ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     //// RADU TODO: revisit this.
     //// This is incorrect for GuideConstraint::FREE
     //// Should use something like sqrt(Vdot(relpos,relpos)), but taking into account sign?
 
-    this->mpos = aframe12.GetPos().z();
-    this->mpos_dt = aframe12.GetPosDt().z();
-    this->mpos_dtdt = aframe12.GetPosDt2().z();
+    mpos = aframe12.GetPos().z();
+    mpos_dt = aframe12.GetPosDt().z();
+    mpos_dtdt = aframe12.GetPosDt2().z();
 }
 
 std::string ChLinkMotorLinear::GetGuideTypeString(GuideConstraint type) {

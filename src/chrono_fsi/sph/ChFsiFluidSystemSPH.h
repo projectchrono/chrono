@@ -103,9 +103,14 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double shifting_ppst_push;                     ///< PPST pushing coefficient (default: 3.0)
         double shifting_ppst_pull;                     ///< shifting beta coefficient (default: 1.0)
         double shifting_beta_implicit;                 ///< shifting coefficient used in implicit solver (default: 1.0)
-        double shifting_diffusion_A;                   ///< shifting coefficient used in diffusion (default: 1.0, range 1 to 6)
-        double shifting_diffusion_AFSM;                ///< shifting coefficient used in diffusion (default: 3.0)
-        double shifting_diffusion_AFST;                ///< shifting coefficient used in diffusion (default: 2.0)
+        double shifting_diffusion_A;                   ///< Fickian shifting coefficient, scaling the shifting velocity driven by
+                                                       ///< the discrete gradient of particle concentration (default: 1.0, range 1 to 6)
+        double shifting_diffusion_AFSM;                ///< upper anchor of the free-surface taper on diffusion shifting: particles
+                                                       ///< whose position-field divergence reaches AFSM get the full shift, and
+                                                       ///< between AFST and AFSM the shift ramps linearly (default: 2.9)
+        double shifting_diffusion_AFST;                ///< lower anchor of the free-surface taper on diffusion shifting: particles
+                                                       ///< whose position-field divergence is at or below AFST are not shifted
+                                                       ///< (default: 2.0)
         double min_distance_coefficient;               ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;                      ///< number of steps between density re-initializations (default: 2e8)
         bool use_density_based_projection;             ///< (ISPH only, default: false)
@@ -116,8 +121,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         double delta_sph_coefficient;                  ///< delta SPH coefficient (default: 0.1)
         double free_surface_threshold;                 ///< threshold for identifying free surface. The divergence of the position
                                                        ///< field is computed and compared to this threshold. Particles with divergence
-                                                       ///< less than this threshold are considered free surface particles (CRM only,
-                                                       ///< default: 2.0)
+                                                       ///< less than this threshold are considered free surface particles. Evaluated
+                                                       ///< for both CFD and CRM problems, but currently only the CRM solution consumes
+                                                       ///< the result (the stress state is zeroed at flagged particles);
+                                                       ///< default: 2.4
         int num_proximity_search_steps;                ///< number of steps between updates to neighbor lists (default: 1)
         bool use_variable_time_step;                   ///< use variable time step (default: false)
 
@@ -493,6 +500,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Extract fluid properties of all markers (SPH and BCE).
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
     std::vector<Real3> GetProperties() const;
+
+    /// Extract free-surface identification flags of all markers (SPH and BCE).
+    /// The flags are returned in the same marker order as GetPositions(), so the two can be indexed together to
+    /// extract the free surface. A value of 1 marks an SPH particle at or near the free surface, as determined by
+    /// comparing the divergence of the position field against ChFsiParamsSPH::free_surface_threshold. Note that a
+    /// particle adjacent to a solid is not flagged: BCE markers contribute to that divergence, so they complete the
+    /// kernel support of the particles next to them.
+    /// Zero is reported for BCE markers and for SPH particles that are not active, namely particles in the extended
+    /// halo of an active domain and particles that left the computational domain. Such particles have a truncated
+    /// neighborhood by construction, so their free-surface test is meaningless and would otherwise report a spurious
+    /// surface along the active domain boundary.
+    std::vector<int> GetFreeSurfaceFlags() const;
 
     /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
     std::vector<Real3> GetPositions(const std::vector<int>& indices) const;

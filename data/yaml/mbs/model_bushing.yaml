@@ -22,8 +22,8 @@ model:
     - name: body
       location: [1, 0, 0]
       orientation: [0, 0, 0]
-      lin_vel: [1.0, -0.4, 0.2]
-      ang_vel: [1.5, 1.5, -1.5]
+      initial_linear_velocity: [1.0, -0.4, 0.2]
+      initial_angular_velocity: [1.5, 1.5, -1.5]
       mass: 122.0
       com:
         location: [0, 0, 0]

@@ -12,7 +12,10 @@
 // Author: Radu Serban
 // =============================================================================
 
-#include <H5Cpp.h>
+#include <sstream>
+#include <stdexcept>
+
+#include <seastack/hydro_io/h5_reader.h>
 
 #include "chrono_fsi/tdpf/impl/ChFsiFluidSystemTDPF_impl.h"
 
@@ -20,98 +23,186 @@ namespace chrono {
 namespace fsi {
 namespace tdpf {
 
+namespace ss = seastack::hydro;
+
+//------------------------------------------------------------------------------
+// Translation from the Chrono-native configuration types to SEA-Stack types.
 //------------------------------------------------------------------------------
 
-constexpr int dof_per_body = 6;
-constexpr int lin_dof_per_body = 3;
+namespace {
+
+ss::SeaStateDefinition ToSeaStack(const ChTdpfSeaState& s) {
+    ss::SeaStateDefinition def;
+    def.type = s.type;
+    def.depth = s.depth;
+    def.g = s.g;
+    def.amplitude = s.amplitude;
+    def.omega = s.omega;
+    def.direction_deg = s.direction_deg;
+    def.phase_rad = s.phase_rad;
+    def.eta_file_path = s.eta_file_path;
+    def.n_omega = s.n_omega;
+    def.n_theta = s.n_theta;
+    def.omega_min = s.omega_min;
+    def.omega_max = s.omega_max;
+    def.seed = s.seed;
+
+    def.partitions.reserve(s.partitions.size());
+    for (const auto& p : s.partitions) {
+        ss::SeaStatePartition part;
+        part.spectrum.type = p.spectrum.type;
+        part.spectrum.Hs = p.spectrum.Hs;
+        part.spectrum.Tp = p.spectrum.Tp;
+        part.spectrum.gamma = p.spectrum.gamma;
+        part.spreading.type = p.spreading.type;
+        part.spreading.mean_direction_deg = p.spreading.mean_direction_deg;
+        part.spreading.s = p.spreading.s;
+        def.partitions.push_back(part);
+    }
+
+    return def;
+}
+
+ss::RadiationKernelProcessing ToSeaStack(const ChTdpfRadiationKernelProcessing& k) {
+    ss::RadiationKernelProcessing opts;
+    opts.smoothing_type = k.smoothing_type;
+    opts.smoothing_window = k.smoothing_window;
+    opts.taper_enabled = k.taper_enabled;
+    opts.taper_start_fraction = k.taper_start_fraction;
+    opts.taper_end_fraction = k.taper_end_fraction;
+    opts.taper_final_amplitude = k.taper_final_amplitude;
+    opts.export_csv = k.export_csv;
+    return opts;
+}
+
+ss::StateSpaceOptions ToSeaStack(const ChTdpfStateSpaceOptions& o) {
+    ss::StateSpaceOptions opts;
+    opts.max_order = o.max_order;
+    opts.r2_threshold = o.r2_threshold;
+    opts.max_hankel_size = o.max_hankel_size;
+    opts.r2_num_samples = o.r2_num_samples;
+    return opts;
+}
+
+ss::RadiationMethod ToSeaStack(ChTdpfRadiationMethod m) {
+    switch (m) {
+        case ChTdpfRadiationMethod::STATE_SPACE:
+            return ss::RadiationMethod::kStateSpace;
+        case ChTdpfRadiationMethod::RIRF_CONVOLUTION:
+        default:
+            return ss::RadiationMethod::kRirfConvolution;
+    }
+}
+
+ss::ExcitationMethod ToSeaStack(ChTdpfExcitationMethod m) {
+    switch (m) {
+        case ChTdpfExcitationMethod::IRF_CONVOLUTION:
+            return ss::ExcitationMethod::kIrfConvolution;
+        case ChTdpfExcitationMethod::FREQUENCY_DOMAIN:
+            return ss::ExcitationMethod::kFrequencyDomain;
+        case ChTdpfExcitationMethod::AUTO:
+        default:
+            return ss::ExcitationMethod::kAuto;
+    }
+}
+
+ss::ExcitationInterpolation ToSeaStack(ChTdpfExcitationInterpolation i) {
+    switch (i) {
+        case ChTdpfExcitationInterpolation::POLAR:
+            return ss::ExcitationInterpolation::kPolar;
+        case ChTdpfExcitationInterpolation::CARTESIAN:
+        default:
+            return ss::ExcitationInterpolation::kCartesian;
+    }
+}
+
+/// True if the requested sea state represents still water.
+bool IsStillWater(const ChTdpfSeaState& s) {
+    return s.type.empty() || s.type == "none" || s.type == "no_wave";
+}
+
+}  // namespace
 
 //------------------------------------------------------------------------------
 
 ChFsiFluidSystemTDPF_impl::ChFsiFluidSystemTDPF_impl()
     : m_num_rigid_bodies(0),
       m_g(0, 0, -9.8),
-      m_convolution_mode(hydrochrono::hydro::RadiationConvolutionMode::Baseline),
-      m_waves(std::make_shared<NoWave>()) {}
+      m_radiation_method(ChTdpfRadiationMethod::RIRF_CONVOLUTION),
+      m_excitation_method(ChTdpfExcitationMethod::AUTO),
+      m_excitation_interpolation(ChTdpfExcitationInterpolation::CARTESIAN),
+      m_ramp_duration(0),
+      m_radiation_truncation_time(0),
+      m_excitation_truncation_time(0) {}
+
+ChFsiFluidSystemTDPF_impl::~ChFsiFluidSystemTDPF_impl() {}
+
+const seastack::hydro::HydroData& ChFsiFluidSystemTDPF_impl::GetHydroData() const {
+    return m_model->GetData();
+}
 
 void ChFsiFluidSystemTDPF_impl::Initialize(const std::string& hydro_filename, unsigned int num_bodies) {
     m_num_rigid_bodies = num_bodies;
 
-    // Read hydro data from input file
-    auto h5_file_info = H5FileInfo(hydro_filename, m_num_rigid_bodies);
+    // Read hydro coefficient data from the BEMIO-format HDF5 input file.
+    ss::HydroData hydro_data;
     try {
-        m_hydro_data = H5FileInfo(hydro_filename, m_num_rigid_bodies).ReadH5Data();
-    } catch (const H5::Exception& e) {
+        hydro_data = seastack::hydro_io::H5FileInfo(hydro_filename, (int)m_num_rigid_bodies).ReadH5Data();
+    } catch (const std::exception& e) {
         std::ostringstream oss;
         oss << "Unable to open/read HDF5 hydro data file: " << hydro_filename << "\n";
-        oss << "HDF5 error: " << e.getDetailMsg() << "\n";
+        oss << "Error: " << e.what() << "\n";
         throw std::runtime_error(oss.str());
     }
 
-    //// RADU - the definitions of various quantities below are private in HydroChrono.
-    //// - we include private HydroChrono headers and duplicate some code, or
-    //// - we provide an abstraction of a TDPF solver in HydroChrono (separated from HydroSystem)
+    // Assemble the hydrodynamic model. The builder performs the setup ceremony
+    // (equilibrium, cb - cg, RIRF widths, wave initialization, and force
+    // component construction).
+    ss::HydroModelBuilder builder;
+    builder.FromHydroData(std::move(hydro_data));
 
-    // Set up time vector
-    m_rirf_time_vector = m_hydro_data.GetRIRFTimeVector();
-    // width array
-    m_rirf_width_vector.resize(m_rirf_time_vector.size());
-    for (Eigen::Index ii = 0; ii < m_rirf_width_vector.size(); ii++) {
-        m_rirf_width_vector[ii] = 0.0;
-        if (ii < m_rirf_time_vector.size() - 1) {
-            m_rirf_width_vector[ii] += 0.5 * abs(m_rirf_time_vector[ii + 1] - m_rirf_time_vector[ii]);
-        }
-        if (ii > 0) {
-            m_rirf_width_vector[ii] += 0.5 * abs(m_rirf_time_vector[ii] - m_rirf_time_vector[ii - 1]);
-        }
+    if (IsStillWater(m_sea_state)) {
+        // Still water: install an explicit no-wave model. The builder then skips
+        // creation of the excitation component (its contribution is zero).
+        auto no_wave = std::make_shared<ss::NoWave>();
+        no_wave->SetNumBodies(m_num_rigid_bodies);
+        builder.WithWave(no_wave);
+    } else {
+        builder.WithSeaState(ToSeaStack(m_sea_state));
     }
 
-    // Initialize force vectors
-    m_equilibrium.assign(m_num_rigid_bodies * dof_per_body, 0.0);
-    m_cb_minus_cg.assign(m_num_rigid_bodies * lin_dof_per_body, 0.0);
+    builder.EnableHydrostatics();
+    builder.EnableRadiation();
+    builder.EnableExcitation();
 
-    // Compute equilibrium and cb_minus_cg_ (multibody loop)
-    for (unsigned int b = 0; b < m_num_rigid_bodies; b++) {
-        for (int i = 0; i < lin_dof_per_body; i++) {
-            unsigned int eq_idx = i + dof_per_body * b;
-            unsigned int c_idx = i + lin_dof_per_body * b;
-            m_equilibrium[eq_idx] = m_hydro_data.GetCGVector(b)[i];
-            m_cb_minus_cg[c_idx] = m_hydro_data.GetCBVector(b)[i] - m_hydro_data.GetCGVector(b)[i];
-        }
-    }
+    builder.WithGravity(m_g);
 
-    // Initialize waves (NoWave, RegularWave, or IrregularWaves)
-    switch (m_waves->GetWaveMode()) {
-        case WaveMode::regular:
-            std::static_pointer_cast<RegularWave>(m_waves)->AddH5Data(m_hydro_data.GetRegularWaveInfos(),
-                                                                      m_hydro_data.GetSimulationInfo());
-            break;
-        case WaveMode::irregular:
-            std::static_pointer_cast<IrregularWaves>(m_waves)->AddH5Data(m_hydro_data.GetIrregularWaveInfos(),
-                                                                         m_hydro_data.GetSimulationInfo());
-            break;
-    }
-    m_waves->Initialize();
-}
+    builder.WithRadiationMethod(ToSeaStack(m_radiation_method));
+    builder.WithRadiationOptions(ToSeaStack(m_kernel_processing));
+    builder.WithStateSpaceOptions(ToSeaStack(m_state_space_options));
 
-std::unique_ptr<hydrochrono::hydro::ExcitationComponent> ChFsiFluidSystemTDPF_impl::CreateExcitationComponent() const {
-    return std::make_unique<hydrochrono::hydro::ExcitationComponent>(m_waves, m_num_rigid_bodies);
-}
+    builder.WithExcitationMethod(ToSeaStack(m_excitation_method));
+    builder.WithExcitationInterpolation(ToSeaStack(m_excitation_interpolation));
 
-std::unique_ptr<hydrochrono::hydro::HydrostaticsComponent> ChFsiFluidSystemTDPF_impl::CreateHydrostaticsComponent()
-    const {
-    return std::make_unique<hydrochrono::hydro::HydrostaticsComponent>(m_hydro_data, m_num_rigid_bodies, m_equilibrium,
-                                                                       m_cb_minus_cg, m_g);
-}
+    if (m_ramp_duration > 0)
+        builder.WithRampDuration(m_ramp_duration);
+    if (m_radiation_truncation_time > 0)
+        builder.WithRadiationTruncationTime(m_radiation_truncation_time);
+    if (m_excitation_truncation_time > 0)
+        builder.WithExcitationTruncationTime(m_excitation_truncation_time);
+    if (!m_diagnostics_output_dir.empty())
+        builder.WithDiagnosticsOutputDir(m_diagnostics_output_dir);
 
-std::unique_ptr<hydrochrono::hydro::RadiationComponent> ChFsiFluidSystemTDPF_impl::CreateRadiationComponent() const {
-    const int rirf_steps = m_hydro_data.GetRIRFDims(2);
-    return std::make_unique<hydrochrono::hydro::RadiationComponent>(
-        m_hydro_data, m_num_rigid_bodies, rirf_steps, m_rirf_time_vector, m_rirf_width_vector, m_convolution_mode,
-        m_tapered_opts, m_diagnostics_output_dir);
+    m_model = std::make_unique<ss::HydroModel>(builder.Build());
+    m_waves = m_model->GetWave();
+
+    // Size the exchange buffers.
+    m_ss_state.bodies.resize(m_num_rigid_bodies);
+    m_ss_forces.assign(m_num_rigid_bodies, ss::GeneralizedForce());
 }
 
 void ChFsiFluidSystemTDPF_impl::CalculateHydroForces(double time) {
-    m_hc_forces = m_hc_force_system->Evaluate(m_hc_state, time);
+    m_ss_forces = m_model->Evaluate(m_ss_state, time);
 }
 
 }  // namespace tdpf

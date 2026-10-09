@@ -115,7 +115,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
                          double y_step,     ///< spacing in y direction
                          int nx,            ///< number of divisions in x direction
                          int ny,            ///< number of divisions in y direction
-                         ChCoordsys<> pos,  ///< grid reference frame
+                         ChCoordsysd pos,   ///< grid reference frame
                          ChColor col        ///< grid line color
                          ) override;
 

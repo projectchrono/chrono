@@ -85,7 +85,7 @@ struct RadarBufferT : public SensorBufferT<B> {
     std::vector<float> amplitudes;
 };
 
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
 // Host-visible camera formats used by the experimental Vulkan RT path.
 // Keep these aliases name-compatible with the OptiX/CUDA catalogue so existing

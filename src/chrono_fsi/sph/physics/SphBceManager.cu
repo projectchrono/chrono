@@ -35,6 +35,16 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+// Reduction operators.
+// Defined locally rather than using thrust::minimum / thrust::plus /
+// thrust::equal_to: those are deprecated in CCCL 3.1 (CUDA 13.x) in favor of
+// cuda::minimum / cuda::std::plus / cuda::std::equal_to, which are libcu++ and
+// therefore unavailable under rocThrust (the Thrust device system used on AMD).
+
+struct same_key_uint {
+    __host__ __device__ bool operator()(const uint& a, const uint& b) const { return a == b; }
+};
+
 void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
@@ -772,7 +782,7 @@ void SphBceManager::CalcNodeDirections1D(thrust::device_vector<Real3>& dirs) {
     // Sum directions from adjacent segments
     {
         thrust::device_vector<uint> out_nodes(2 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), thrust::equal_to<uint>());
+        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), same_key_uint());
     }
 
 #if NODAL_DIR_METHOD == 1
@@ -1038,7 +1048,7 @@ void SphBceManager::CalcNodeDirections2D(thrust::device_vector<Real3>& dirs) {
     // Sum directions from adjacent triangles
     {
         thrust::device_vector<uint> out_nodes(3 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), thrust::equal_to<uint>());
+        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), same_key_uint());
     }
 
 #if NODAL_DIR_METHOD == 1

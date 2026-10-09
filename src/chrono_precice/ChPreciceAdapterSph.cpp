@@ -21,15 +21,12 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
-ChPreciceAdapterSph::ChPreciceAdapterSph(std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose)
-    : ChPreciceAdapter("model_SPH"), m_sysSPH(sysSPH), m_time_step(time_step) {
-    SetVerbose(verbose);
-}
+ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& precice_config_filename, std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose)
+    : ChPreciceAdapter(precice_config_filename, "model_SPH", verbose), m_sysSPH(sysSPH), m_time_step(time_step) {}
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
-ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool verbose) {
-    SetVerbose(verbose);
-
+ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& precice_config_filename, const std::string& input_filename, bool verbose)
+    : ChPreciceAdapter(precice_config_filename, "", verbose) {
     // Create an SPH YAML parser and the underlying FSI problem, but do not initialize the FSI problem
     parsers::ChParserSphYAML parser(input_filename, verbose);
     m_model_name = parser.GetName();
@@ -65,16 +62,15 @@ ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& input_filename, bool
             ChQuaterniond body_rot = QUNIT;
             if (bodies[i]["orientation"])
                 body_rot = ReadRotation(bodies[i]["orientation"], m_use_degrees);
-            ChFramed body_frame(body_pos, body_rot);
 
             if (bodies[i]["shapes"]) {
                 ChAssertAlways(bodies[i]["shapes"].IsSequence());
                 auto body_geometry = ReadCollisionGeometry(bodies[i]["shapes"], m_file_handler, m_use_degrees);
-                AddCouplingBody(body_name, body_frame, body_geometry);
+                AddCouplingBody(body_name, ChFramed(body_pos, body_rot), body_geometry);
             } else if (bodies[i]["points"]) {
                 auto points_file = bodies[i]["points"].as<std::string>();
                 auto points = ReadPoints(m_file_handler.GetFilename(points_file));
-                AddCouplingBody(body_name, body_frame, points);
+                AddCouplingBody(body_name, ChFramed(body_pos, body_rot), points);
             } else {
                 throw std::runtime_error("ERROR");
             }
@@ -132,6 +128,10 @@ void ChPreciceAdapterSph::AddCouplingBody(const std::string& name, const ChFrame
 
 // -----------------------------------------------------------------------------
 
+size_t ChPreciceAdapterSph::GetNumFsiBodies() const {
+    return m_coupling_bodies.size();
+}
+
 void ChPreciceAdapterSph::InitializeParticipant() {
     // For each interface mesh:
     // - check that coupling meshes have dimension 3 (as reported by preCICE)
@@ -147,15 +147,17 @@ void ChPreciceAdapterSph::InitializeParticipant() {
         ChAssertAlways(mesh_dim == 3);
 
         if (m_verbose)
-            cout << m_prefix2 << "  mesh: '" << mesh_name << "'" << endl;
+            cout << m_prefix2 << "mesh: '" << mesh_name << "'" << endl;
 
         // Check consistency of mesh dimension and read data dimension
         for (const auto& data_name : GetReadDataNamesOnMesh(mesh_name)) {
             if (!GetCouplingDataUsed(mesh_name, data_name)) {
                 if (m_verbose)
-                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                    cout << m_prefix2 << "  skip unreferenced data block `" << data_name << "`" << endl;
                 continue;
             }
+            if (m_verbose)
+                cout << m_prefix2 << "  read data: '" << data_name << "' ... ";
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -168,18 +170,24 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::FORCES:
                 case CouplingDataType::TORQUES:
-                    cerr << "[InitializeParticipant] Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    if (m_verbose)
+                        cout << "FAIL" << endl;
+                    cerr << "\nERROR: Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono SPH read data type");
             }
+            if (m_verbose)
+                cout << "OK" << endl;
         }
 
         // Check consistency of mesh dimension and write data dimension
         for (const auto& data_name : GetWriteDataNamesOnMesh(mesh_name)) {
             if (!GetCouplingDataUsed(mesh_name, data_name)) {
                 if (m_verbose)
-                    cout << m_prefix2 << "    skip unreferenced data block `" << data_name << "`" << endl;
+                    cout << m_prefix2 << "  skip unreferenced data block `" << data_name << "`" << endl;
                 continue;
             }
+            if (m_verbose)
+                cout << m_prefix2 << "  write data: '" << data_name << "' ... ";
             auto data_type = GetCouplingDataType(mesh_name, data_name);
             auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
             switch (data_type) {
@@ -196,9 +204,13 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
-                    cerr << "[InitializeParticipant] Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                    if (m_verbose)
+                        cout << "FAIL" << endl;
+                    cerr << "\nERROR: Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                     throw std::runtime_error("Invalid Chrono SPH write data type");
             }
+            if (m_verbose)
+                cout << "OK" << endl;
         }
 
         // Set mesh vertices, based on mesh type
@@ -238,13 +250,13 @@ void ChPreciceAdapterSph::InitializeParticipant() {
 
     //// TODO -- checkpointing...
     ////if (m_verbose)
-    ////    cout << m_prefix2 << "Set up checkpointing" << endl;
+    ////    cout << m_prefix1 << "Set up checkpointing" << endl;
 
 #ifdef CHRONO_VSG
     // Enable runtime visualization
     if (m_visualize && m_vis_settings.render) {
         if (m_verbose)
-            cout << m_prefix2 << "Set up run-time visualization" << endl;
+            cout << m_prefix1 << "Set up run-time visualization" << endl;
 
         // SPH visualization plugin
         auto visFSI = chrono_types::make_shared<fsi::sph::ChSphVisualizationVSG>(m_sysSPH.get());
@@ -279,19 +291,17 @@ void ChPreciceAdapterSph::InitializeParticipant() {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::WriteCheckpoint(double time) {
+void ChPreciceAdapterSph::OnWriteCheckpoint(double time) {
     throw std::runtime_error("Checkpointing not available for Chrono::FSI-SPH");
 }
 
-void ChPreciceAdapterSph::ReadCheckpoint(double time) {
+void ChPreciceAdapterSph::OnReadCheckpoint(double time) {
     throw std::runtime_error("Checkpointing not available for Chrono::FSI-SPH");
 }
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::ReadData() {
-    ChPreciceAdapter::ReadData();
-
+void ChPreciceAdapterSph::OnReadData() {
     for (const auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -310,7 +320,7 @@ void ChPreciceAdapterSph::ReadData() {
     }
 }
 
-void ChPreciceAdapterSph::WriteData() {
+void ChPreciceAdapterSph::OnWriteData() {
     for (auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
             case CouplingMeshType::RIGID_BODY_REFS:
@@ -327,13 +337,9 @@ void ChPreciceAdapterSph::WriteData() {
                 break;
         }
     }
-
-    ChPreciceAdapter::WriteData();
 }
 
 void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     size_t num_bodies = m_coupling_bodies.size();
     std::vector<fsi::FsiBodyState> body_states(num_bodies);
 
@@ -344,11 +350,10 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
             continue;
         auto data_type = data_info.type;
         const auto& data_values = data_info.values;
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
-        assert(data_values.size() == data_dim * m_coupling_bodies.size());
+        assert(data_values.size() == GetCouplingDataDimensions(mesh_name, data_name) * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::POSITIONS: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
@@ -356,24 +361,29 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     bstates.pos.y() = data_values[i_data + 1];
                     bstates.pos.z() = data_values[i_data + 2];
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | pos:  " << bstates.pos << endl;
                 }
                 break;
             }
             case CouplingDataType::ROTATIONS: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
-                    ChQuaterniond q1 = QuatFromAngleZ(data_values[i_data + 0]);  // roll
-                    ChQuaterniond q2 = QuatFromAngleY(data_values[i_data + 1]);  // pitch
-                    ChQuaterniond q3 = QuatFromAngleX(data_values[i_data + 2]);  // yaw
-                    bstates.rot = q1 * q2 * q3;
+                    ChVector3d rotvec_abs;
+                    rotvec_abs.x() = data_values[i_data + 0];
+                    rotvec_abs.y() = data_values[i_data + 1];
+                    rotvec_abs.z() = data_values[i_data + 2];
+                    bstates.rot = QuatFromRotVec(rotvec_abs);
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | rot dir:  " << rotvec_abs.GetNormalized() << " rot angle: " << rotvec_abs.Length() << endl;
                 }
                 break;
             }
             case CouplingDataType::LINEAR_VELOCITIES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
@@ -381,11 +391,13 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     bstates.lin_vel.y() = data_values[i_data + 1];
                     bstates.lin_vel.z() = data_values[i_data + 2];
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | lin_vel:  " << bstates.lin_vel << endl;
                 }
                 break;
             }
             case CouplingDataType::ANGULAR_VELOCITIES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     auto& bstates = body_states[i_body];
@@ -393,11 +405,13 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     bstates.ang_vel.y() = data_values[i_data + 1];
                     bstates.ang_vel.z() = data_values[i_data + 2];
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | ang_vel:  " << bstates.ang_vel << endl;
                 }
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono SPH read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono SPH read data type");
         }
     }
@@ -408,8 +422,6 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
 }
 
 void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
-    auto mesh_dim = GetCouplingMeshDimensions(mesh_name);
-
     size_t num_bodies = m_coupling_bodies.size();
     std::vector<fsi::FsiBodyForce> body_forces(num_bodies);
 
@@ -424,11 +436,10 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
             continue;
         auto data_type = data_info.type;
         auto& data_values = data_info.values;
-        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
-        assert(data_values.size() == data_dim * m_coupling_bodies.size());
+        assert(data_values.size() == GetCouplingDataDimensions(mesh_name, data_name) * m_coupling_bodies.size());
         switch (data_type) {
             case CouplingDataType::FORCES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     const auto& bforces = body_forces[i_body];
@@ -436,11 +447,13 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
                     data_values[i_data + 1] = bforces.force.y();
                     data_values[i_data + 2] = bforces.force.z();
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | force: " << bforces.force << endl;
                 }
                 break;
             }
             case CouplingDataType::TORQUES: {
-                assert(data_dim == mesh_dim);
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
                 size_t i_data = 0;
                 for (size_t i_body = 0; i_body < num_bodies; i_body++) {
                     const auto& bforces = body_forces[i_body];
@@ -448,11 +461,13 @@ void ChPreciceAdapterSph::WriteBodyRefData(const std::string& mesh_name, Couplin
                     data_values[i_data + 1] = bforces.torque.y();
                     data_values[i_data + 2] = bforces.torque.z();
                     i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | torque: " << bforces.torque << endl;
                 }
                 break;
             }
             default:
-                cerr << "[ReadBodyRefData] Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                cerr << "\nERROR: Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono SPH write data type");
         }
     }
@@ -489,10 +504,7 @@ void ChPreciceAdapterSph::AdvanceParticipant(double time, double time_step) {
 
 // -----------------------------------------------------------------------------
 
-void ChPreciceAdapterSph::WriteOutput(int frame, double time) {
-    // Invoke first the base class function, to create the output DB if needed
-    ChPreciceAdapter::WriteOutput(frame, time);
-
+void ChPreciceAdapterSph::OnWriteOutput(int frame, double time) {
     //// TODO
 }
 

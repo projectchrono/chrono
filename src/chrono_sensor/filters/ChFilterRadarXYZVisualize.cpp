@@ -14,6 +14,7 @@
 //
 // =============================================================================
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
+#include "chrono_sensor/filters/ChFilterVisualizeGuards.h"
 #ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
@@ -64,6 +65,9 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Initialize(std::shared_ptr<ChSenso
 
 CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
 #ifdef USE_SENSOR_GLFW
+    // Hand back whatever GL context the caller had current (see ChFilterVisualizeGuards.h).
+    GLContextGuard gl_context_guard;
+
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
         float hfov = m_radar->GetHFOV();
@@ -82,7 +86,7 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         glfwMakeContextCurrent(m_window.get());
 
         int window_w, window_h;
-        glfwGetWindowSize(m_window.get(), &window_w, &window_h);
+        glfwGetFramebufferSize(m_window.get(), &window_w, &window_h);
         //
 
         // Set Viewport to window dimensions
@@ -141,7 +145,7 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         glFlush();
 
         glfwSwapBuffers(m_window.get());
-        glfwPollEvents();
+        PollGlfwEventsPreservingHostEvents();  // not glfwPollEvents: see ChFilterVisualizeGuards.h
     }
 #endif
 }

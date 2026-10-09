@@ -161,16 +161,6 @@ void ChCollisionModelBullet::Populate() {
                 InjectShape(shape, bt_shape, frame);
                 break;
             }
-            case ChCollisionShape::Type::CYLSHELL: {
-                auto shape_cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
-                auto height = shape_cylshell->GetHeight();
-                auto radius = shape_cylshell->GetRadius();
-                model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
-                auto bt_shape = chrono_types::make_shared<cbtCylindricalShellShape>((cbtScalar)(radius + envelope), (cbtScalar)(height / 2 + envelope));
-                bt_shape->setMargin((cbtScalar)full_margin);
-                InjectShape(shape, bt_shape, frame);
-                break;
-            }
             case ChCollisionShape::Type::ROUNDEDCYL: {
                 auto shape_rcyl = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
                 auto height = shape_rcyl->GetHeight();

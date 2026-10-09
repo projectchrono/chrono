@@ -45,6 +45,11 @@ class FSITDPFStatsVSG : public vsg3d::ChGuiComponentVSG {
     virtual void render(vsg::CommandBuffer& cb) override {
         ////vsg3d::ChVisualSystemVSG& vsys = m_vsysFSI->GetVisualSystemVSG();
 
+        // Start out in the lower-left corner of the window, with the same margin padding the base
+        // 'Simulation' panel uses. Left to ImGui, this panel would be stacked under that one.
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + GUI_PADDING, viewport->WorkPos.y + viewport->WorkSize.y - GUI_PADDING), ImGuiCond_FirstUseEver, ImVec2(0.0f, 1.0f));
+
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin("TDPF");
 

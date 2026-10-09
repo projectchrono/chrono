@@ -15,7 +15,12 @@ out gl_PerVertex {
     vec4 gl_Position;
 };
 
+// Chrono colors are authored in sRGB; the framebuffer encodes linear values back to sRGB
+vec3 sRGBToLinear(vec3 c) {
+    return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
+}
+
 void main() {
     gl_Position = (pc.projection * pc.modelview) * vec4(inPosition, 1.0);
-    fragColor = inColor;
+    fragColor = sRGBToLinear(inColor);
  }

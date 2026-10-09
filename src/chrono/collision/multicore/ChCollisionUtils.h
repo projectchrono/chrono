@@ -348,12 +348,6 @@ inline real3 GetSupportPoint_RoundedCylinder(const real4& B, const real3& n) {
     return GetSupportPoint_Cylinder(real3(B.x - B.w, B.y - B.w, B.z - B.w), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
-/// Support point for a cylindrical shell (for GJK and MPR).
-/// Cylindrical shell assumed to be along Z axis with origin at center.
-inline real3 GetSupportPoint_CylindricalShell(const real3& B, const real3& n) {
-    return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n);
-}
-
 /// Support point for a generic convex shape (for GJK and MPR).
 inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, const real3& n) {
     real max_dot_p = -CH_REAL_MAX;

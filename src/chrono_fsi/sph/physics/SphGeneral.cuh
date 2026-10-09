@@ -409,9 +409,10 @@ __device__ inline uint calcGridHash(int3 gridPos) {
     return gridPos.z * paramsD.gridSize.y * paramsD.gridSize.x + gridPos.y * paramsD.gridSize.x + gridPos.x;
 }
 
-//// TODO (Huzaifa) check type consistency
-__device__ inline uint calcCellID(uint3 cellPos) {
-    if (cellPos.x < paramsD.gridSize.x && cellPos.y < paramsD.gridSize.y && cellPos.z < paramsD.gridSize.z) {
+__device__ inline uint calcCellID(int3 cellPos) {
+    if (cellPos.x >= 0 && cellPos.x < paramsD.gridSize.x &&  //
+        cellPos.y >= 0 && cellPos.y < paramsD.gridSize.y &&  //
+        cellPos.z >= 0 && cellPos.z < paramsD.gridSize.z) {
         return cellPos.z * paramsD.gridSize.x * paramsD.gridSize.y + cellPos.y * paramsD.gridSize.x + cellPos.x;
     } else {
         printf("shouldn't be here\n");
@@ -419,7 +420,7 @@ __device__ inline uint calcCellID(uint3 cellPos) {
     }
 }
 
-__device__ inline uint getCellPos(int trialCellPos, uint ub) {
+__device__ inline uint getCellPos(int trialCellPos, int ub) {
     if (trialCellPos >= 0 && trialCellPos < ub) {
         return (uint)trialCellPos;
     } else if (trialCellPos < 0) {

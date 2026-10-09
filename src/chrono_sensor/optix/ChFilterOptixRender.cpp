@@ -318,7 +318,9 @@ CH_SENSOR_API ChOptixDenoiser::ChOptixDenoiser(OptixDeviceContext context) : m_c
     OptixDenoiserOptions denoiser_options = {};
     denoiser_options.guideAlbedo = 1;
     denoiser_options.guideNormal = 1;
+#if OPTIX_VERSION >= 80000
     denoiser_options.denoiseAlpha = OPTIX_DENOISER_ALPHA_MODE_COPY; // default value, can be changed when invoking the denoiser
+#endif
 
     OPTIX_ERROR_CHECK(optixDenoiserCreate(context, OPTIX_DENOISER_MODEL_KIND_LDR, &denoiser_options, &m_denoiser));
 }
@@ -385,6 +387,10 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
     OPTIX_ERROR_CHECK(optixDenoiserSetup(m_denoiser, m_cuda_stream, w, h, md_state, m_state_size, md_scratch, m_scratch_size));
     m_params.hdrIntensity = 0;
     m_params.blendFactor = 0.f;
+#if OPTIX_VERSION < 80000
+    // OptiX < 8.0 sets the alpha mode per-invoke rather than at denoiser creation
+    m_params.denoiseAlpha = OPTIX_DENOISER_ALPHA_MODE_COPY;
+#endif
 }
 
 CH_SENSOR_API void ChOptixDenoiser::Execute() {

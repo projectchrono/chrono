@@ -120,7 +120,7 @@ function: &FUNCTION
         description: Interpolation data points for DATA type [[x, f(x)], ...]  
 
 # -----------------------------------------------------------------------------
-# Definition of a Chrono::SPH fluid model
+# Definition of a Chrono::TDPF fluid model
 # -----------------------------------------------------------------------------
 
 model:
@@ -152,7 +152,7 @@ model:
             default: ABSOLUTE
         root:
             type: string
-            description: Root of data files, relatiuve to location of this script
+            description: Root of data files, relative to the location of this script
             default: "."
 
     h5_file:
@@ -160,13 +160,30 @@ model:
       type: string
 
     waves:
-      description: Specification of wave conditions
+      description: |
+        Specification of wave conditions.
+        If this object is omitted, or if `type` is NONE, no waves are added.
       type: object
+      required: [type]
       properties:
         type:
              type: string
-             description: Wave type
-             enum: [NO_WAVE, REGULAR, IRREGULAR]
-             default: NO_WAVE
-        
-        # TODO
+             description: Wave type. IRREGULAR waves are not yet implemented.
+             enum: [NONE, REGULAR, IRREGULAR]
+             default: NONE
+        height:
+             type: number
+             description: Wave height (twice the wave amplitude). Required for REGULAR waves.
+             minimum: 0
+        period:
+             type: number
+             description: Wave period in seconds. Required for REGULAR waves.
+             minimum: 0
+        phase:
+             type: number
+             description: Wave phase (REGULAR waves)
+             default: 0.0
+        stretching:
+             type: boolean
+             description: Whether to apply wave stretching (REGULAR waves)
+             default: true

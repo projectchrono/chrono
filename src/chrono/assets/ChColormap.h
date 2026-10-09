@@ -30,7 +30,7 @@ class ChApi ChColormap {
   public:
     /// Colormap type.
     /// Data obtained from https://www.kennethmoreland.com/color-advice/
-    enum class Type { BLACK_BODY, BLUE, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE, VIRIDIS };
+    enum class Type { BLACK_BODY, BLUE, BROWN, COPPER, FAST, INFERNO, JET, KINDLMANN, PLASMA, RED_BLUE, REGOLITH, VIRIDIS };
 
     /// Names of colormap definition files.
     struct Files {

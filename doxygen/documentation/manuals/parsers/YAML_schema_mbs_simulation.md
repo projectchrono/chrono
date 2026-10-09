@@ -30,6 +30,18 @@ the YAML file with an MBS solver specification (which must follow the [MBS solve
 | `enforce_realtime` | Whether to enforce real-time simulation | boolean | -- | No | false |
 | `end_time` | Total simulation time in seconds | double | -- | No | -1 for infinite simulation |
 | `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
+| `num_threads` | Number of threads used by the parallel components | object | -- | No | -- |
+
+The `num_threads` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `chrono` | Number of threads used by Chrono | integer | -- | No | 1 |
+| `collision` | Number of threads used by the collision detection system | integer | -- | No | 1 |
+| `eigen` | Number of threads used by Eigen | integer | -- | No | 1 |
+| `pardiso` | Number of threads used by the PARDISO solver | integer | -- | No | 1 |
+
+The `pardiso` entry is used only when the solver file selects the `PARDISO` solver type.
 
 
 #### Output options
@@ -38,9 +50,12 @@ If the `output` key is present, it must specify a YAML object with the following
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `format` | Output DB format | enum | `NONE`,`ASCII`,`HDF5`  | No | `NONE` |
-| `mode` | Output mode | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
-| `fps` | Output frequency (FPS or Hz) | double | -- | No | 30 |
+| `format` | Output DB format | enum | `NONE`,`ASCII`,`HDF5`  | Yes | -- |
+| `mode` | Output mode (one file per output frame, or a single time-series file) | enum | `FRAMES`,`SERIES`  | No | `FRAMES` |
+| `fps` | Output frequency (FPS or Hz) | double | -- | No | 100 |
+
+Note that `format` is required whenever the `output` key is present.
+`HDF5` output silently falls back to `NONE` in a build without HDF5 support.
 
 #### Visualization options
 
@@ -48,10 +63,11 @@ If the `visualization` key is present, it must specify a YAML object with the fo
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Type of visualization shapes | enum | `NONE`,`PRIMITIVES`,`MODEL_FILE`,`COLLISION`  | No | `NONE` |
+| `type` | Type of body visualization shapes | enum | `NONE`,`PRIMITIVES`,`MODEL_FILE`,`COLLISION`  | No | `NONE` |
 | `render_fps` | Rendering frequency (FPS or Hz) | double | -- | No | 120 |
 | `enable_shadows` | Turn on shadow rendering | boolean | -- | No | `true` |
 | `camera` | Camera settings | object | -- | No | -- |
+| `output` | Image output settings | object | -- | No | -- |
 
 The `camera` key, if present, specifies the following properties:
 
@@ -60,6 +76,17 @@ The `camera` key, if present, specifies the following properties:
 | `vertical` | Vertical direction (camera "up") | enum | `Y`,`Z`  | No | `Z` |
 | `location` | Camera initial location | array[3] | -- | No | [0,-1,0] |
 | `target` | Camera initial target ("look-at" point) | array[3] | -- | No | [0,0,0]  |
+
+The `output` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default |
+|----------|-------------|------|------------------|----------|---------|
+| `save_images` | Whether to save rendered frames as image files | boolean | -- | No | `false` |
+| `image_type` | Image file type, specified through the file extension | string | -- | No | `bmp` |
+
+Run-time visualization is enabled only if the `visualization` key is present *and* specifies a `type` other than
+`NONE`. In other words, omitting the `visualization` key and specifying `type: NONE` are equivalent and both result in
+a simulation run with no run-time visualization.
 
 
 ## Example

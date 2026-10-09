@@ -16,15 +16,8 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
-// CH_FACTORY_REGISTER(ChLinkMotorRotation)  NO! ABSTRACT!
-
-ChLinkMotorRotation::ChLinkMotorRotation() {
-    this->SetSpindleConstraint(SpindleConstraint::REVOLUTE);
-
-    mrot = 0;
-    mrot_dt = 0;
-    mrot_dtdt = 0;
+ChLinkMotorRotation::ChLinkMotorRotation() : mrot(0), mrot_dt(0), mrot_dtdt(0) {
+    SetSpindleConstraint(SpindleConstraint::REVOLUTE);
 }
 
 ChLinkMotorRotation::ChLinkMotorRotation(const ChLinkMotorRotation& other) : ChLinkMotor(other) {
@@ -35,46 +28,46 @@ ChLinkMotorRotation::ChLinkMotorRotation(const ChLinkMotorRotation& other) : ChL
 
 ChLinkMotorRotation::~ChLinkMotorRotation() {}
 
-void ChLinkMotorRotation::SetSpindleConstraint(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry) {
-    this->c_x = mc_x;
-    this->c_y = mc_y;
-    this->c_z = mc_z;
-    this->c_rx = mc_rx;
-    this->c_ry = mc_ry;
+void ChLinkMotorRotation::SetSpindleConstraint(bool cx, bool cy, bool cz, bool crx, bool cry) {
+    c_x = cx;
+    c_y = cy;
+    c_z = cz;
+    c_rx = crx;
+    c_ry = cry;
     SetupLinkMask();
 }
 
-void ChLinkMotorRotation::SetSpindleConstraint(const SpindleConstraint mconstraint) {
-    if (mconstraint == SpindleConstraint::FREE) {
-        this->c_x = false;
-        this->c_y = false;
-        this->c_z = false;
-        this->c_rx = false;
-        this->c_ry = false;
+void ChLinkMotorRotation::SetSpindleConstraint(const SpindleConstraint constraint) {
+    if (constraint == SpindleConstraint::FREE) {
+        c_x = false;
+        c_y = false;
+        c_z = false;
+        c_rx = false;
+        c_ry = false;
         SetupLinkMask();
     }
-    if (mconstraint == SpindleConstraint::REVOLUTE) {
-        this->c_x = true;
-        this->c_y = true;
-        this->c_z = true;
-        this->c_rx = true;
-        this->c_ry = true;
+    if (constraint == SpindleConstraint::REVOLUTE) {
+        c_x = true;
+        c_y = true;
+        c_z = true;
+        c_rx = true;
+        c_ry = true;
         SetupLinkMask();
     }
-    if (mconstraint == SpindleConstraint::CYLINDRICAL) {
-        this->c_x = true;
-        this->c_y = true;
-        this->c_z = false;
-        this->c_rx = true;
-        this->c_ry = true;
+    if (constraint == SpindleConstraint::CYLINDRICAL) {
+        c_x = true;
+        c_y = true;
+        c_z = false;
+        c_rx = true;
+        c_ry = true;
         SetupLinkMask();
     }
-    if (mconstraint == SpindleConstraint::OLDHAM) {
-        this->c_x = false;
-        this->c_y = false;
-        this->c_z = false;
-        this->c_rx = true;
-        this->c_ry = true;
+    if (constraint == SpindleConstraint::OLDHAM) {
+        c_x = false;
+        c_y = false;
+        c_z = false;
+        c_rx = true;
+        c_ry = true;
         SetupLinkMask();
     }
 }
@@ -83,13 +76,13 @@ void ChLinkMotorRotation::Update(double time, UpdateFlags update_flags) {
     // Inherit parent class:
     ChLinkMotor::Update(time, update_flags);
 
-    // compute aux data for future reference (istantaneous pos speed accel)
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*this->m_body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(m_frame2) >> (ChFrameMoving<>)(*this->m_body2);
+    // compute aux data for future reference (instantaneous pos speed accel)
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(m_frame2) >> (ChFrameMoving<>)(*m_body2);
     ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     // multi-turn rotation code
-    double last_totrot = this->mrot;
+    double last_totrot = mrot;
     double last_rot = remainder(last_totrot, CH_2PI);
     double last_turns = last_totrot - last_rot;
     double new_rot = remainder(aframe12.GetRot().GetRotVec().z(), CH_2PI);
@@ -104,8 +97,8 @@ void ChLinkMotorRotation::Update(double time, UpdateFlags update_flags) {
 }
 
 void ChLinkMotorRotation::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*this->m_body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(m_frame2) >> (ChFrameMoving<>)(*this->m_body2);
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(m_frame2) >> (ChFrameMoving<>)(*m_body2);
     ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     mrot_dt = aframe12.GetAngVelLocal().z();

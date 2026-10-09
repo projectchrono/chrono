@@ -204,10 +204,11 @@ FsiTdpfSolverTest<T>::FsiTdpfSolverTest() : wave_amplitude(0.5 * wave_height) {
     sysTDPF->SetHydroFilename(hydro_file);
 
     // Add regular wave
-    RegularWaveParams reg_wave_params;
-    reg_wave_params.regular_wave_amplitude = wave_amplitude;
-    reg_wave_params.regular_wave_omega = CH_2PI / wave_period;
-    sysTDPF->AddWaves(reg_wave_params);
+    ChTdpfSeaState sea_state;
+    sea_state.type = "regular";
+    sea_state.amplitude = wave_amplitude;
+    sea_state.omega = CH_2PI / wave_period;
+    sysTDPF->SetSeaState(sea_state);
 
     // ----- FSI system
     sysFSI = std::make_unique<ChFsiSystemTDPF>(sysMBS.get(), sysTDPF.get());

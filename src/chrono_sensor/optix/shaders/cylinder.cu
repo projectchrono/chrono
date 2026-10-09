@@ -15,10 +15,11 @@
 // RT kernels for sphere geometries
 //
 // =============================================================================
+
 #ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
 #endif
 
 #include "chrono_sensor/optix/shaders/device_utils.cuh"

@@ -9,6 +9,7 @@ option(CH_ENABLE_MODULE_SENSOR "Enable the Chrono Sensor module" OFF)
 if(NOT CH_ENABLE_MODULE_SENSOR)
   mark_as_advanced(FORCE CH_USE_SENSOR_OPTIX)
   mark_as_advanced(FORCE CH_USE_SENSOR_VULKAN_RT)
+  mark_as_advanced(FORCE CH_USE_SENSOR_METAL_RT)
 
   mark_as_advanced(FORCE CH_USE_SENSOR_NVDB)
   mark_as_advanced(FORCE CH_USE_SENSOR_NVRTC)
@@ -21,6 +22,8 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
   set(CH_USE_SENSOR_OPTIX ${CH_USE_SENSOR_OPTIX} PARENT_SCOPE)
   set(CH_USE_SENSOR_VULKAN_RT FALSE)
   set(CH_USE_SENSOR_VULKAN_RT ${CH_USE_SENSOR_VULKAN_RT} PARENT_SCOPE)
+  set(CH_USE_SENSOR_METAL_RT FALSE)
+  set(CH_USE_SENSOR_METAL_RT ${CH_USE_SENSOR_METAL_RT} PARENT_SCOPE)
 
   return()
 endif()
@@ -29,6 +32,12 @@ message(STATUS "\n==== Chrono Sensor module ====\n")
 
 mark_as_advanced(CLEAR CH_USE_SENSOR_OPTIX)
 mark_as_advanced(CLEAR CH_USE_SENSOR_VULKAN_RT)
+if(APPLE)
+  mark_as_advanced(CLEAR CH_USE_SENSOR_METAL_RT)
+else()
+  # Metal exists only on Apple platforms; do not offer the switch anywhere else.
+  mark_as_advanced(FORCE CH_USE_SENSOR_METAL_RT)
+endif()
 
 if(CH_USE_SENSOR_OPTIX)
   mark_as_advanced(CLEAR CH_USE_SENSOR_NVDB)
@@ -44,7 +53,15 @@ mark_as_advanced(CLEAR glfw3_DIR)
 #-----------------------------------------------------------------------------
 
 set(CH_USE_SENSOR_OPTIX OFF CACHE BOOL "Enable legacy OptiX-dependent Chrono::Sensor features")
-set(CH_USE_SENSOR_VULKAN_RT ON CACHE BOOL "Enable Vulkan ray-tracing Chrono::Sensor features")
+if(APPLE)
+  # Apple has no CUDA/OptiX, and MoltenVK does not implement Vulkan ray tracing.
+  # The native path on Apple Silicon is Metal ray tracing.
+  set(CH_USE_SENSOR_VULKAN_RT OFF CACHE BOOL "Enable Vulkan ray-tracing Chrono::Sensor features")
+  set(CH_USE_SENSOR_METAL_RT ON CACHE BOOL "Enable Metal ray-tracing Chrono::Sensor features")
+else()
+  set(CH_USE_SENSOR_VULKAN_RT ON CACHE BOOL "Enable Vulkan ray-tracing Chrono::Sensor features")
+  set(CH_USE_SENSOR_METAL_RT OFF CACHE BOOL "Enable Metal ray-tracing Chrono::Sensor features")
+endif()
 
 # GPU requirements are declared PER FEATURE here, not per module.
 #
@@ -117,6 +134,25 @@ if(CH_USE_SENSOR_VULKAN_RT)
   endif()
 endif()
 
+#-----------------------------------------------------------------------------
+# Check Metal RT (Apple)
+#-----------------------------------------------------------------------------
+
+if(CH_USE_SENSOR_METAL_RT)
+  if(APPLE)
+    message(STATUS "Looking for Apple Metal ray tracing support")
+    find_library(CH_METAL_FRAMEWORK Metal REQUIRED)
+    find_library(CH_FOUNDATION_FRAMEWORK Foundation REQUIRED)
+    find_library(CH_QUARTZCORE_FRAMEWORK QuartzCore REQUIRED)
+    find_library(CH_COREGRAPHICS_FRAMEWORK CoreGraphics REQUIRED)
+    find_library(CH_IMAGEIO_FRAMEWORK ImageIO REQUIRED)
+    message(STATUS "  Metal framework: ${CH_METAL_FRAMEWORK}")
+  else()
+    message(STATUS "WARNING: Metal RT is only available on Apple platforms; disabling Metal RT Chrono::Sensor features")
+    set(CH_USE_SENSOR_METAL_RT FALSE CACHE BOOL "Enable Metal ray-tracing Chrono::Sensor features" FORCE)
+  endif()
+endif()
+
 if(CH_USE_SENSOR_OPTIX)
 
   message(STATUS "Building Chrono::Sensor with OptiX support")
@@ -149,9 +185,27 @@ else()
   set(CHRONO_HAS_VULKAN_RT "#undef CHRONO_HAS_VULKAN_RT")
 endif()
 
-if(CH_USE_SENSOR_OPTIX OR CH_USE_SENSOR_VULKAN_RT)
+if(CH_USE_SENSOR_METAL_RT)
+  message(STATUS "Building Chrono::Sensor with Metal RT support")
+  set(CHRONO_HAS_METAL_RT "#define CHRONO_HAS_METAL_RT")
+else()
+  set(CHRONO_HAS_METAL_RT "#undef CHRONO_HAS_METAL_RT")
+endif()
+
+# Whether ANY ray-tracing backend was selected. Chrono::Sensor builds without one, and
+# a build like that still has the GPS, IMU and tachometer sensors, but it has no rendered
+# sensors and none of the camera, lidar or radar buffer types: those are declared only
+# inside the per-backend blocks of ChSensorBuffer.h. Demos and tests that touch them have
+# to be gated on this rather than on any single backend.
+#
+# Cached as INTERNAL so that src/demos and src/tests can read it, since a plain set() here
+# would not reach a sibling directory, and so it never appears as a user-facing option: it
+# is derived from the three backend switches, not chosen.
+if(CH_USE_SENSOR_OPTIX OR CH_USE_SENSOR_VULKAN_RT OR CH_USE_SENSOR_METAL_RT)
+  set(CH_SENSOR_HAS_RENDER_BACKEND TRUE CACHE INTERNAL "A Chrono::Sensor ray-tracing backend is enabled")
   set(CHRONO_HAS_SENSOR_RENDER "#define CHRONO_HAS_SENSOR_RENDER")
 else()
+  set(CH_SENSOR_HAS_RENDER_BACKEND FALSE CACHE INTERNAL "A Chrono::Sensor ray-tracing backend is enabled")
   set(CHRONO_HAS_SENSOR_RENDER "#undef CHRONO_HAS_SENSOR_RENDER")
 endif()
 
@@ -374,6 +428,37 @@ if(CH_USE_SENSOR_VULKAN_RT)
   endif()
 endif()
 
+if(CH_USE_SENSOR_METAL_RT)
+  set(Chrono_sensor_SENSORS_SOURCES ${Chrono_sensor_SENSORS_SOURCES}
+      sensors/ChMetalSensor.cpp
+  )
+  set(Chrono_sensor_SENSORS_HEADERS ${Chrono_sensor_SENSORS_HEADERS}
+      sensors/ChMetalSensor.h
+  )
+
+  if(NOT CH_USE_SENSOR_OPTIX AND NOT CH_USE_SENSOR_VULKAN_RT)
+    # Build the standard render sensor front-ends against the Metal backend.
+    list(APPEND Chrono_sensor_SENSORS_SOURCES
+        sensors/ChCameraSensor.cpp
+        sensors/ChPhysCameraSensor.cpp
+        sensors/ChDepthCamera.cpp
+        sensors/ChNormalCamera.cpp
+        sensors/ChSegmentationCamera.cpp
+        sensors/ChLidarSensor.cpp
+        sensors/ChRadarSensor.cpp
+    )
+    list(APPEND Chrono_sensor_SENSORS_HEADERS
+        sensors/ChCameraSensor.h
+        sensors/ChPhysCameraSensor.h
+        sensors/ChDepthCamera.h
+        sensors/ChNormalCamera.h
+        sensors/ChSegmentationCamera.h
+        sensors/ChLidarSensor.h
+        sensors/ChRadarSensor.h
+    )
+  endif()
+endif()
+
 source_group("source" FILES ${Chrono_sensor_SENSORS_SOURCES} ${Chrono_sensor_SENSORS_HEADERS})
 
 #-----------------------------------------------------------------------------
@@ -453,6 +538,64 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
+# LIST THE FILES THAT MAKE THE SENSOR METAL RT LIBRARY (Apple)
+#-----------------------------------------------------------------------------
+
+if(CH_USE_SENSOR_METAL_RT)
+  set(Chrono_sensor_METAL_SOURCES
+      metal/ChMetalSceneBuilder.cpp
+      metal/ChMetalRTScene.cpp
+      metal/ChMetalRTEngine.cpp
+      metal/ChMetalRTDevice.mm
+      metal/ChMetalRTRenderer.mm
+      metal/ChMetalPhysCamOps.mm
+      metal/ChFilterMetalRTRender.mm
+      metal/ChFilterMetalVisualize.mm
+      metal/ChFilterMetalVisualizePointCloud.mm
+      metal/ChMetalPerfOverlay.mm
+  )
+  set(Chrono_sensor_METAL_HEADERS
+      metal/ChMetalRTDefinitions.h
+      metal/ChMetalRenderTypes.h
+      metal/ChMetalSceneBuilder.h
+      metal/ChMetalPhysCamOps.h
+      metal/ChMetalRTDevice.h
+      metal/ChMetalRTScene.h
+      metal/ChMetalRTRenderer.h
+      metal/ChFilterMetalRTRender.h
+      metal/ChFilterMetalVisualize.h
+      metal/ChFilterMetalVisualizePointCloud.h
+      metal/ChMetalPerfOverlay.h
+      metal/ChOrbitCameraControl.h
+      metal/ChMetalRTEngine.h
+  )
+  # The .mm files are Objective-C++ with ARC.
+  set_source_files_properties(
+      metal/ChMetalRTDevice.mm
+      metal/ChMetalRTRenderer.mm
+      metal/ChMetalPhysCamOps.mm
+      metal/ChFilterMetalRTRender.mm
+      metal/ChFilterMetalVisualize.mm
+      metal/ChFilterMetalVisualizePointCloud.mm
+      metal/ChMetalPerfOverlay.mm
+      PROPERTIES LANGUAGE CXX COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
+  # Metal Shading Language sources. Embedded as C string literals and compiled at run time
+  # by the Metal driver, so they are headers rather than separately-compiled shader files,
+  # but they live under shaders/ like the OptiX and Vulkan RT programs do.
+  set(Chrono_sensor_METAL_SHADER_HEADERS
+      metal/shaders/ChMetalRTShaderMSL.h
+      metal/shaders/ChMetalPhysCamOpsMSL.h
+  )
+
+  source_group("Metal RT" FILES ${Chrono_sensor_METAL_SOURCES} ${Chrono_sensor_METAL_HEADERS})
+  source_group("Metal RT\\Shaders" FILES ${Chrono_sensor_METAL_SHADER_HEADERS})
+else()
+  set(Chrono_sensor_METAL_SOURCES "")
+  set(Chrono_sensor_METAL_HEADERS "")
+  set(Chrono_sensor_METAL_SHADER_HEADERS "")
+endif()
+
+#-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE FILTERS FOR THE SENSOR LIBRARY
 #-----------------------------------------------------------------------------
 
@@ -488,6 +631,63 @@ if(CH_USE_SENSOR_OPTIX OR CH_USE_SENSOR_VULKAN_RT)
       filters/ChFilterImageOps.h
       filters/ChFilterVisualize.h
       filters/ChFilterSave.h
+  )
+endif()
+
+if(CH_USE_SENSOR_METAL_RT)
+  # Host-buffer camera filters for the Metal backend. ChFilterVisualize is included: it
+  # already carries a CHRONO_HAS_METAL_RT branch that displays a host buffer through GLFW,
+  # and every pre-existing sensor demo uses it to open a window. ChFilterMetalVisualize
+  # remains available as the native viewer with orbit controls.
+  set(Chrono_sensor_FILTERS_SOURCES ${Chrono_sensor_FILTERS_SOURCES}
+      filters/ChFilterVisualize.cpp
+      filters/ChFilterImageOps.cpp
+      filters/ChFilterGrayscale.cpp
+      filters/ChFilterCameraNoise.cpp
+      filters/ChFilterSave.cpp
+      filters/ChFilterPhysCameraDefocusBlur.cpp
+      filters/ChFilterPhysCameraVignetting.cpp
+      filters/ChFilterPhysCameraAggregator.cpp
+      filters/ChFilterPhysCameraNoise.cpp
+      filters/ChFilterPhysCameraExpsrToDV.cpp
+      # Point-cloud filters. The CUDA kernels in cuda/pointcloud.cu are unavailable here, but
+      # each of these files already carries a host implementation behind #ifdef CHRONO_HAS_OPTIX
+      # -- the transform is per-element polar-to-Cartesian, so the CPU path is equivalent and
+      # fast enough (a 1024x64 scan is 65k points).
+      filters/ChFilterPCfromDepth.cpp
+      filters/ChFilterSavePtCloud.cpp
+      filters/ChFilterRadarXYZReturn.cpp
+      filters/ChFilterRadarXYZVisualize.cpp
+      filters/ChFilterRadarProcess.cpp
+      filters/ChFilterRadarSavePC.cpp
+      filters/ChFilterLidarNoise.cpp
+      filters/ChFilterVisualizePointCloud.cpp
+      filters/ChFilterLidarIntensityClip.cpp
+      filters/ChFilterLidarReduce.cpp
+      filters/ChFilterRadarVisualizeCluster.cpp
+  )
+  set(Chrono_sensor_FILTERS_HEADERS ${Chrono_sensor_FILTERS_HEADERS}
+      filters/ChFilterVisualize.h
+      filters/ChFilterImageOps.h
+      filters/ChFilterGrayscale.h
+      filters/ChFilterCameraNoise.h
+      filters/ChFilterSave.h
+      filters/ChFilterPhysCameraDefocusBlur.h
+      filters/ChFilterPhysCameraVignetting.h
+      filters/ChFilterPhysCameraAggregator.h
+      filters/ChFilterPhysCameraNoise.h
+      filters/ChFilterPhysCameraExpsrToDV.h
+      filters/ChFilterPCfromDepth.h
+      filters/ChFilterSavePtCloud.h
+      filters/ChFilterRadarXYZReturn.h
+      filters/ChFilterRadarXYZVisualize.h
+      filters/ChFilterRadarProcess.h
+      filters/ChFilterRadarSavePC.h
+      filters/ChFilterLidarNoise.h
+      filters/ChFilterVisualizePointCloud.h
+      filters/ChFilterLidarIntensityClip.h
+      filters/ChFilterLidarReduce.h
+      filters/ChFilterRadarVisualizeCluster.h
   )
 endif()
 
@@ -619,6 +819,9 @@ set(SENSOR_TINYOBJ_FILES
 )
 source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${SENSOR_STB_FILES} ${SENSOR_TINYOBJ_FILES})
+
 #-----------------------------------------------------------------------------
 # Shader directory in the build tree
 #
@@ -684,6 +887,9 @@ list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_OPTIX_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_OPTIX_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_VULKAN_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_VULKAN_HEADERS})
+list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_METAL_SOURCES})
+list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_METAL_HEADERS})
+list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_METAL_SHADER_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_FILTERS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${Chrono_sensor_FILTERS_HEADERS})
 
@@ -723,7 +929,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(CH_USE_SENSOR_OPTIX)
-  target_include_directories(Chrono_sensor SYSTEM PUBLIC "${OptiX_INCLUDE}")
+  # Only for the build tree: an absolute path to the OptiX SDK must not be exported. The Chrono package configuration
+  # script adds the OptiX include directory found on the consumer's machine.
+  target_include_directories(Chrono_sensor SYSTEM PUBLIC "$<BUILD_INTERFACE:${OptiX_INCLUDE}>")
 
   # CUDA::cudart_static (and the other CUDA::* imports linked below) bring in the CUDA
   # Toolkit's own include directories transitively. Re-declaring that same path here as
@@ -773,6 +981,17 @@ if(CH_USE_SENSOR_VULKAN_RT)
   if(CH_USE_SENSOR_VULKAN_RT_GPU)
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CHRONO_SENSOR_VULKAN_RT_GPU_ENABLED>)
   endif()
+endif()
+
+if(CH_USE_SENSOR_METAL_RT)
+  find_library(CH_COCOA_FRAMEWORK Cocoa REQUIRED)
+  target_link_libraries(Chrono_sensor PRIVATE
+      ${CH_METAL_FRAMEWORK}
+      ${CH_FOUNDATION_FRAMEWORK}
+      ${CH_QUARTZCORE_FRAMEWORK}
+      ${CH_COREGRAPHICS_FRAMEWORK}
+      ${CH_IMAGEIO_FRAMEWORK}
+      ${CH_COCOA_FRAMEWORK})
 endif()
 
 # print cxx compiler flags\
@@ -838,20 +1057,17 @@ if(CH_USE_SENSOR_OPTIX)
     endif()
     list(REMOVE_DUPLICATES _CHRONO_CUDA_CCCL_INCLUDE_DIRS)
 
-    set(CUDA_NVRTC_INCLUDE_DIRS
-        ${OptiX_INCLUDE}
-        ${CUDAToolkit_INCLUDE_DIRS}
-        ${_CHRONO_CUDA_CCCL_INCLUDE_DIRS}
-        ${CMAKE_INSTALL_PREFIX}/include
-        ${CMAKE_SOURCE_DIR}/src
-        CACHE STRING "NVRTC include dirs as list." FORCE)
-    mark_as_advanced(CUDA_NVRTC_INCLUDE_DIRS)
-  
-    set(CUDA_NVRTC_INCLUDE_LIST)
-    foreach(item ${CUDA_NVRTC_INCLUDE_DIRS})
-      set(CUDA_NVRTC_INCLUDE_LIST "${CUDA_NVRTC_INCLUDE_LIST} \\\n  \"${item}\",")
+    # NVRTC include directories, in three groups that Chrono::Sensor resolves at run time so that an installation
+    # keeps working after it is moved (see ChOptixUtils.cpp): the OptiX SDK headers and the CUDA toolkit headers at
+    # the locations used to build Chrono, and the Chrono headers from the source tree (an installed Chrono::Sensor
+    # uses the installed headers instead).
+    set(CUDA_NVRTC_OPTIX_INCLUDE "${OptiX_INCLUDE}")
+    set(CUDA_NVRTC_CHRONO_INCLUDE "${CMAKE_SOURCE_DIR}/src")
+    set(CUDA_NVRTC_CUDA_INCLUDE_LIST)
+    foreach(item ${CUDAToolkit_INCLUDE_DIRS} ${_CHRONO_CUDA_CCCL_INCLUDE_DIRS})
+      set(CUDA_NVRTC_CUDA_INCLUDE_LIST "${CUDA_NVRTC_CUDA_INCLUDE_LIST} \\\n  \"${item}\",")
     endforeach()
-    set(CUDA_NVRTC_INCLUDE_LIST "${CUDA_NVRTC_INCLUDE_LIST} \\\n  0,")
+    set(CUDA_NVRTC_CUDA_INCLUDE_LIST "${CUDA_NVRTC_CUDA_INCLUDE_LIST} \\\n  0,")
   
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
    
@@ -967,24 +1183,43 @@ endif()
 message(STATUS "Looking for optional OpenGL support")
 
 find_package(OpenGL QUIET)
-find_package(GLEW QUIET)
+# Not on Apple: the visualization filters use only OpenGL 1.1 entry points, which the OpenGL
+# framework exports directly, so the extension loader has nothing to load.
+if(NOT APPLE)
+  find_package(GLEW QUIET)
+endif()
 find_package(glfw3 QUIET)
 
 message(STATUS "  OpenGL found: ${OPENGL_FOUND}")
-message(STATUS "  GLEW found:   ${GLEW_FOUND}")
+if(NOT APPLE)
+  message(STATUS "  GLEW found:   ${GLEW_FOUND}")
+endif()
 message(STATUS "  glfw3 found:  ${glfw3_FOUND}")
 
-if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
+if(OPENGL_FOUND AND (GLEW_FOUND OR APPLE) AND glfw3_FOUND)
   message(STATUS "  GL libraries found")
   message(STATUS "    OpenGL include dir: ${OPENGL_INCLUDE_DIR}")
   message(STATUS "    OpenGL libraries:   ${OPENGL_LIBRARIES}")
-  message(STATUS "    GLEW include dir:   ${GLEW_INCLUDE_DIRS}")
-  message(STATUS "    GLEW libraries:     ${GLEW_LIBRARIES}")
+  if(NOT APPLE)
+    message(STATUS "    GLEW include dir:   ${GLEW_INCLUDE_DIRS}")
+    message(STATUS "    GLEW libraries:     ${GLEW_LIBRARIES}")
+  endif()
 
   target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_SENSOR_GLFW>)
-  target_link_libraries(Chrono_sensor PUBLIC GLEW::glew)
+  if(NOT APPLE)
+    target_link_libraries(Chrono_sensor PUBLIC GLEW::glew)
+  endif()
   target_link_libraries(Chrono_sensor PUBLIC glfw)
   target_link_libraries(Chrono_sensor PUBLIC OpenGL::GL)
+
+  if(APPLE)
+    # ChFilterVisualizeGuards.h reaches the Cocoa run loop through the Objective-C runtime rather
+    # than through Objective-C++, so that the visualize filters stay plain C++ and need no .mm
+    # translation unit. That still needs libobjc at link time, and nothing else in this module
+    # pulls it in when no backend does: a Vulkan RT or backend-free build with GLFW enabled
+    # compiles the guards and then fails to link objc_msgSend.
+    target_link_libraries(Chrono_sensor PUBLIC objc)
+  endif()
 else()
   message(STATUS "  GL libraries not found; Chrono::Sensor OpenGL support disabled")
 endif()
@@ -1014,6 +1249,15 @@ if(MSVC)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4005>)   # macro defined twice (forward to host compiler for .cu files)
   target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--diag-suppress=1394>) # missing DLL interface (matches /wd4251 for CXX)
 
+  # nvcc places the host-side launch stub for a __global__ kernel in a generated
+  # <tu>.cudafe1.stub.c, and when the kernel lives in an anonymous namespace it declares that
+  # stub without "static" in the .cudafe1.cpp but defines it "static" with a qualified name in
+  # the stub. MSVC accepts the combination only as a nonstandard extension, hence C4211. The
+  # construct is in nvcc-generated code, not in Chrono sources (see fsi_sph_render.cu), so
+  # there is nothing to fix here and no include-directory mechanism can reach a file that nvcc
+  # writes into the temp directory.
+  target_compile_options(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4211>)   # redefined extern to static (nvcc launch stub)
+
   # Treat headers included via <...> (CUDA Toolkit, OptiX, standard library, etc.) as external
   # and silence warnings originating from them, e.g. the double4/double4_16a/double4_32a
   # deprecation warning raised from NVIDIA's own curand_poisson.h. Mirrors the SYSTEM include
@@ -1027,6 +1271,7 @@ endif()
 target_compile_definitions(Chrono_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_SENSOR>)
 
 target_link_libraries(Chrono_sensor PRIVATE Chrono_core ${LIBRARIES})
+target_link_libraries(Chrono_sensor PRIVATE ${CMAKE_DL_LIBS})  # dladdr, used to locate the library at run time
 
 install(TARGETS Chrono_sensor
         EXPORT ChronoTargets
@@ -1036,10 +1281,32 @@ install(TARGETS Chrono_sensor
         INCLUDES DESTINATION include/chrono_sensor)
 
 # ----------------------------------------------------------------------------
+# Chrono modules that Chrono_sensor links to (for the Chrono package configuration script)
+# ----------------------------------------------------------------------------
+
+set(DEPENDENCIES_SENSOR "")
+if(CH_USE_SENSOR_OPTIX AND CH_ENABLE_MODULE_FSI_SPH)
+  list(APPEND DEPENDENCIES_SENSOR "FSI_SPH")
+endif()
+
+set(DEPENDENCIES_SENSOR ${DEPENDENCIES_SENSOR} PARENT_SCOPE)
+
+# ----------------------------------------------------------------------------
 # Generate and install configuration files
 # ----------------------------------------------------------------------------
 
 message(STATUS "Create Chrono::Sensor configuration file")
+
+# Locations of the installed shaders and headers relative to the installed Chrono::Sensor library (see the install
+# rule for Chrono_sensor: bin/ on Windows, lib/ otherwise). Chrono::Sensor uses these at run time to find its
+# installation wherever it was moved.
+if(WIN32)
+  set(_sensor_lib_dir "${CMAKE_INSTALL_PREFIX}/bin")
+else()
+  set(_sensor_lib_dir "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
+file(RELATIVE_PATH SHADER_DIR_REL "${_sensor_lib_dir}" "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_SENSOR_SHADERS}")
+file(RELATIVE_PATH INCLUDE_DIR_REL "${_sensor_lib_dir}" "${CMAKE_INSTALL_PREFIX}/include")
 
 if(CH_USE_SENSOR_OPTIX)
 

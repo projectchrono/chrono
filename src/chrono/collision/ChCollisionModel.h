@@ -203,7 +203,10 @@ class ChApi ChCollisionModel {
 // Base class for a concrete collision model, specific to a particular collision detection system.
 class ChCollisionModelImpl {
   public:
-    virtual ~ChCollisionModelImpl() {}
+    /// Destroy this implementation and detach it from its collision model.
+    /// This happens when the collision model is removed from a collision system, or when the collision system is
+    /// destroyed, after which the collision model can be added to another collision system.
+    virtual ~ChCollisionModelImpl();
 
   protected:
     ChCollisionModelImpl(ChCollisionModel* collision_model);

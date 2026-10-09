@@ -5,7 +5,13 @@ model:  "sph_model.yaml"
 solver: "sph_solver.yaml"
 
 simulation:  
-  end_time: 100
+  # This value is ignored: a preCICE adapter terminates on the coupling status reported by
+  # preCICE alone. A negative end time is the Chrono convention for "no end time of my own".
+  end_time: -1
+
+  # Gravitational acceleration for the fluid phase. Must match the gravity of the solid participant:
+  # the two participants are separate processes and nothing reconciles these values for you.
+  gravity: [0, 0, -9.8]
   
 output:
   format: NONE

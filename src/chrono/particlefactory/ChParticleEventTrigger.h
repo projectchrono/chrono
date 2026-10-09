@@ -75,7 +75,7 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
     void SetTriggerOutside(bool minvert) { invert_volume = minvert; }
 
     ChBox m_box;        ///< box volume
-    ChFrame<> m_frame;  ///< box position and orientation
+    ChFramed m_frame;  ///< box position and orientation
 
   protected:
     bool invert_volume;
@@ -157,7 +157,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     double Xsize;
     double Ysize;
     double margin;
-    ChCoordsys<> rectangle_csys;
+    ChCoordsysd rectangle_csys;
 
     ChVector3d last_intersectionUV;  // .x and .y in range 0..1
 

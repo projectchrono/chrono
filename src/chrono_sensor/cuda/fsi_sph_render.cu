@@ -23,7 +23,7 @@ namespace sensor {
 
 namespace {
 
-__device__ unsigned int hash_u32(unsigned int x) {
+static __device__ unsigned int hash_u32(unsigned int x) {
     x ^= x >> 16;
     x *= 0x7feb352dU;
     x ^= x >> 15;
@@ -32,7 +32,7 @@ __device__ unsigned int hash_u32(unsigned int x) {
     return x;
 }
 
-__device__ float hash_unit(unsigned int seed) {
+static __device__ float hash_unit(unsigned int seed) {
     return static_cast<float>(hash_u32(seed) & 0x00ffffffU) / static_cast<float>(0x01000000U);
 }
 

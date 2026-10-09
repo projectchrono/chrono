@@ -42,6 +42,9 @@ ChCollisionModel::ChCollisionModel(const ChCollisionModel& other) : contactable(
 
 ChCollisionModel::~ChCollisionModel() {
     m_shape_instances.clear();
+    // Detach from the implementation (which is owned by a collision system and may outlive this model)
+    if (impl)
+        impl->model = nullptr;
     impl = nullptr;
 }
 
@@ -224,6 +227,12 @@ void ChCollisionShapeInstance::ArchiveIn(ChArchiveIn& archive_in) {
 
 ChCollisionModelImpl::ChCollisionModelImpl(ChCollisionModel* collision_model) : model(collision_model) {
     model->impl = this;
+}
+
+ChCollisionModelImpl::~ChCollisionModelImpl() {
+    // Detach from the collision model (if it still exists and was not given another implementation since)
+    if (model && model->impl == this)
+        model->impl = nullptr;
 }
 
 ChContactable* ChCollisionModelImpl::GetContactable() {

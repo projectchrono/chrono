@@ -82,6 +82,8 @@ CH_SENSOR_API ChPhysCameraSensor::ChPhysCameraSensor(
     ChPhysCameraSensorBase(parent, updateRate, offsetPose, w, h)
 #elif defined(CHRONO_HAS_VULKAN_RT)
     ChPhysCameraSensorBase(parent, updateRate, offsetPose, w, h, VulkanPipelineType::PHYS_CAMERA)
+#elif defined(CHRONO_HAS_METAL_RT)
+      ChPhysCameraSensorBase(parent, updateRate, offsetPose, w, h, MetalPipelineType::PHYS_CAMERA)
 #else
     ChPhysCameraSensorBase(parent, updateRate, offsetPose)
 #endif

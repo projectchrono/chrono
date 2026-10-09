@@ -71,6 +71,7 @@ class CH_SENSOR_API ChFilterVulkanRTRender : public ChFilter {
     std::shared_ptr<SensorHostRadarBuffer> m_buffer_radar;
 
     float m_time_stamp = 0.f;
+    unsigned long long m_rng_seed = 0;
     int m_ray_recursions = 1;
 
     friend class ChVulkanRTEngine;

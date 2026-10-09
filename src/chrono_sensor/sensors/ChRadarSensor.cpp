@@ -34,6 +34,8 @@ ChRadarSensor::ChRadarSensor(std::shared_ptr<ChBody> parent,
     : ChOptixSensor(parent, updateRate, offsetPose, w, h),
 #elif defined(CHRONO_HAS_VULKAN_RT)
     : ChVulkanSensor(parent, updateRate, offsetPose, w, h, VulkanPipelineType::RADAR),
+#elif defined(CHRONO_HAS_METAL_RT)
+    : ChMetalSensor(parent, updateRate, offsetPose, w, h, MetalPipelineType::RADAR),
 #else
     : ChSensor(parent, updateRate, offsetPose),
 #endif

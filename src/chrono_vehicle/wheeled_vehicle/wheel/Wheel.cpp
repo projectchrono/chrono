@@ -61,6 +61,8 @@ void Wheel::Create(const rapidjson::Document& d) {
         m_radius = d["Visualization"]["Radius"].GetDouble();
         m_width = d["Visualization"]["Width"].GetDouble();
     }
+
+    m_inertia_XX = m_inertia.diagonal();
 }
 
 }  // end namespace vehicle

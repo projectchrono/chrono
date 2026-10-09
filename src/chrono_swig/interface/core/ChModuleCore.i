@@ -26,6 +26,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -120,7 +121,7 @@ using namespace chrono::fea;
 %inline %{
 // if needed there can be a pinvoke func instead of a broken char constant that SWIG produces from the macro
 inline const char* ChUtils_GetFilename() {
-    return __FILE__ + SOURCE_PATH_SIZE;
+    return &__FILE__[SOURCE_PATH_SIZE];
 }
 %}
 // make the new function visible as a public static for c#
@@ -257,6 +258,13 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
 
+// Needed before the hoisted ChState.h and ChSystemDescriptor.h below. Otherwise a ChSystem
+// cannot be passed as the ChIntegrable* of a ChState, and GetSystemDescriptor() returns an
+// unwrapped shared_ptr.
+%shared_ptr(chrono::ChIntegrable)
+%shared_ptr(chrono::ChIntegrableIIorder)
+%shared_ptr(chrono::ChSystemDescriptor)
+
 #ifdef CHRONO_FEA
 %shared_ptr(chrono::fea::ChMesh)
 #endif
@@ -372,6 +380,11 @@ inline const char* ChUtils_GetFilename() {
 
 
 //collision classes
+// ChColor.i comes before anything that takes a ChColor: the shape types nested in
+// ChBodyGeometry, and ChCollisionSystem::VisualizationCallback below. A type SWIG has not
+// seen yet is wrapped as an opaque placeholder instead.
+%include "ChColor.i"
+
 %include "ChContactMaterial.i"
 %include "ChCollisionShape.i"
 %include "ChCollisionModel.i"
@@ -389,16 +402,21 @@ inline const char* ChUtils_GetFilename() {
 // functions/   classes
 %include "ChFunction.i"
 
-#ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
 %include "ChUpdateFlags.i"
-#endif              // --------------------------------------------------------------------- CSHARP
+
+// The time in StateGather / IntStateGather is an output argument (returned in Python, 'out' in C#).
+%apply double& OUTPUT { double& T };
+
+// Hoisted: ChMesh, ChPhysicsItem and ChNodeBase below refer to these types, which would
+// otherwise first be parsed via ChTimestepper.i / ChSolver.i further down.
+%include "../../../chrono/timestepper/ChState.h"
+%include "../../../chrono/solver/ChSystemDescriptor.h"
 
 #ifdef CHRONO_FEA
 %include "../../../chrono/fea/ChMesh.h"
 #endif
 
 // assets
-%include "ChColor.i"
 %include "ChColormap.i"
 %include "ChVisualBSDFType.i"
 %include "ChVisualMaterial.i"
@@ -450,6 +468,8 @@ inline const char* ChUtils_GetFilename() {
 %include "ChTimestepper.i"
 %include "ChSolver.i"
 %include "ChContactContainer.i"
+// ChOutput precedes ChSystem.i, which refers to it.
+%include "../../../chrono/input_output/ChOutput.h"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"
@@ -484,7 +504,6 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
 
-%include "../../../chrono/input_output/ChOutput.h"
 
 %include "ChParticleFactory.i"
 %include "ChOpenMP.i"
@@ -538,7 +557,6 @@ inline const char* ChUtils_GetFilename() {
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCone)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeConvexHull)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCylinder)
-%DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCylindricalShell)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeEllipsoid)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapePath2D)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapePoint)

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+  <log>
+    <sink
+      type="stream"
+      output="stdout"
+      filter="%Severity% > debug"
+      format="preCICE:%ColorizedSeverity% %Message%"
+      enabled="true" />
+  </log>
+
+  <data:vector name="positions" />
+  <data:vector name="velocities" />
+  <data:vector name="forces" />
+  <data:vector name="torques" />
+
+  <mesh name="SolidMesh" dimensions="3">
+    <use-data name="positions" />
+    <use-data name="velocities" />
+    <use-data name="forces" />
+    <use-data name="torques" />
+  </mesh>
+
+  <mesh name="FluidMesh" dimensions="3">
+    <use-data name="positions" />
+    <use-data name="velocities" />
+    <use-data name="forces" />
+    <use-data name="torques" />
+  </mesh>
+
+  <!-- Declaring these two meshes is what enables added mass on the solid participant, even though
+       no participant provides them and nothing is exchanged over them: ChPreciceAdapter treats
+       their mere presence as the request for added mass, and requires an 'added_mass' entry in the
+       solid participant YAML. Added mass becomes *dynamic* (updated every window over the coupling
+       interface) only if a participant also provides one of them, which is not the case here: the
+       RM3 infinite-frequency blocks are constant and are read directly from rm3.h5. -->
+  <data:scalar name="am_coeffs" />
+
+  <mesh name="SolidAddedMass" dimensions="3">
+    <use-data name="am_coeffs" />
+  </mesh>
+
+  <mesh name="FluidAddedMass" dimensions="3">
+    <use-data name="am_coeffs" />
+  </mesh>
+
+  <participant name="Solid">
+    <provide-mesh name="SolidMesh" />
+    <write-data name="positions" mesh="SolidMesh" />
+    <write-data name="velocities" mesh="SolidMesh" />
+    <read-data name="forces" mesh="SolidMesh" />
+    <read-data name="torques" mesh="SolidMesh" />
+  </participant>
+
+  <participant name="Fluid">
+    <receive-mesh name="SolidMesh" from="Solid" />
+    <provide-mesh name="FluidMesh" />
+    <mapping:nearest-neighbor
+      direction="write"
+      from="FluidMesh"
+      to="SolidMesh"
+      constraint="conservative" />
+    <mapping:nearest-neighbor
+      direction="read"
+      from="SolidMesh"
+      to="FluidMesh"
+      constraint="consistent" />
+    <write-data name="forces" mesh="FluidMesh" />
+    <write-data name="torques" mesh="FluidMesh" />
+    <read-data name="positions" mesh="FluidMesh" />
+    <read-data name="velocities" mesh="FluidMesh" />
+  </participant>
+
+  <m2n:sockets acceptor="Solid" connector="Fluid" exchange-directory="." />
+
+  <coupling-scheme:serial-explicit>
+    <!-- The fluid participant runs first within each time window, so the forces it produces are
+         available to the solid participant in that same window. Combined with
+         'read_data_time: WINDOW_END' on the solid participant, this makes the data applied over a
+         window derive from the solid state at the *beginning* of that window. With the solid first,
+         or with the solid reading at the window start, the fluid data lags the solid state by a
+         full window and the force term acts as negative damping. -->
+    <participants first="Fluid" second="Solid" />
+    <!-- 4000 windows x 1e-2 s = 40 s, about 13 wave periods.
+         Note that the adapters terminate on preCICE's coupling status alone (they never read
+         end_time), so this window count is what actually sets the simulated duration. -->
+    <max-time-windows value="4000" />
+    <!-- Matches the integrator time step in solid_chrono/mbs_solver.yaml, so that each coupling
+         window is one multibody integration step. -->
+    <time-window-size value="0.01" />
+    <!-- Both meshes carry one vertex per coupling body, so each of these exchanges moves two
+         vectors: one for the float and one for the reaction plate. -->
+    <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
+    <exchange data="velocities" mesh="SolidMesh" from="Solid" to="Fluid" initialize ="yes"/>
+    <exchange data="forces" mesh="SolidMesh" from="Fluid" to="Solid" />
+    <exchange data="torques" mesh="SolidMesh" from="Fluid" to="Solid" />
+  </coupling-scheme:serial-explicit>
+</precice-configuration>

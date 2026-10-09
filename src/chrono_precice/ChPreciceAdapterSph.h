@@ -31,14 +31,14 @@ class ChApiPrecice ChPreciceAdapterSph : public ChPreciceAdapter {
   public:
     /// Construct a Chrono SPH preCICE participant for the specified Chrono::FSI-SPH system.
     /// No preCICE interfaces (coupling bodies and FEA meshes) are defined.
-    ChPreciceAdapterSph(std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose = false);
+    ChPreciceAdapterSph(const std::string& precice_config_filename, std::shared_ptr<fsi::sph::ChFsiFluidSystemSPH> sysSPH, double time_step, bool verbose = false);
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     /// Construct a Chrono SPH preCICE participant configured from the specified YAML file.
     /// The provided YAML file must be of type `SPH` and include a member `precice_adapter_configuration`.
     /// The preCICE interfaces (coupling bodies and FEA meshes, the corresponding geometry, and their
     /// associated coupling meshes and mesh data) are read from the YAML specification file.
-    ChPreciceAdapterSph(const std::string& input_filename, bool verbose = false);
+    ChPreciceAdapterSph(const std::string& precice_config_filename, const std::string& input_filename, bool verbose = false);
 #endif
 
     ~ChPreciceAdapterSph() {}
@@ -57,14 +57,15 @@ class ChApiPrecice ChPreciceAdapterSph : public ChPreciceAdapter {
 
   public:
     // Implementation of base class virtual methods
+    virtual size_t GetNumFsiBodies() const override;
     virtual void InitializeParticipant() override;
-    virtual void WriteCheckpoint(double time) override;
-    virtual void ReadCheckpoint(double time) override;
-    virtual void ReadData() override;
+    virtual void OnReadData() override;
+    virtual void OnWriteData() override;
+    virtual void OnReadCheckpoint(double time) override;
+    virtual void OnWriteCheckpoint(double time) override;
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
-    virtual void WriteData() override;
-    virtual void WriteOutput(int frame, double time) override;
+    virtual void OnWriteOutput(int frame, double time) override;
 
   private:
     struct CouplingBody {

@@ -64,12 +64,12 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     /// Get the link frame 1, relative to body 1.
     /// This frame, defined on body 1 (the revolute side), is centered at the revolute joint location, has its X axis
     /// along the joint connector, and its Z axis aligned with the revolute axis.
-    virtual ChFrame<> GetFrame1Rel() const override;
+    virtual ChFramed GetFrame1Rel() const override;
 
     /// Get the link frame 2, relative to body 2.
     /// This frame, defined on body 2 (the spherical side), is centered at the spherical joint location, has its X axis
     /// along the joint connector, and its Z axis aligned with the revolute axis.
-    virtual ChFrame<> GetFrame2Rel() const override;
+    virtual ChFramed GetFrame2Rel() const override;
 
     /// Get the reaction force and torque on the 1st body, expressed in the link frame 1.
     virtual ChWrenchd GetReaction1() const override;
@@ -88,7 +88,7 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     /// along the X axis.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first frame (revolute side)
                     std::shared_ptr<ChBody> body2,  ///< second frame (spherical side)
-                    const ChCoordsys<>& csys,       ///< joint coordinate system (in absolute frame)
+                    const ChCoordsysd& csys,       ///< joint coordinate system (in absolute frame)
                     double distance                 ///< imposed distance
     );
 

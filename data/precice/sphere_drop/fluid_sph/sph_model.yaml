@@ -1,7 +1,7 @@
 chrono-version: 10.0
 
 model:
-  name: water tank
+  name: sphere_drop
   physics_problem: CFD
   geometry_type: CARTESIAN
   angle_degrees: true

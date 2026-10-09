@@ -834,7 +834,7 @@ void ChVisualSystemVSG::Initialize() {
         cout << "----------------------------------------------------" << endl;
     }
 
-    m_window->clearColor() = vsg::vec4CH(m_background_color, 1.0f);
+    m_window->clearColor() = vsg::vec4CHLinear(m_background_color, 1.0f);
     m_viewer->addWindow(m_window);
 
     // set up the camera
@@ -1050,7 +1050,7 @@ void ChVisualSystemVSG::Render() {
                 m_body_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
                 m_body_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
                 m_body_labels_layout[iPos]->position = vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
-                m_body_labels_layout[iPos]->color = vsg::vec4CH(m_body_labels_color, 1.0f);
+                m_body_labels_layout[iPos]->color = vsg::vec4CHLinear(m_body_labels_color, 1.0f);
                 m_body_labels_text[iPos]->setup(0, m_options);
             }
         }
@@ -1074,7 +1074,7 @@ void ChVisualSystemVSG::Render() {
                 m_link_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
                 m_link_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
                 m_link_labels_layout[iPos]->position = vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
-                m_link_labels_layout[iPos]->color = vsg::vec4CH(m_link_labels_color, 1.0f);
+                m_link_labels_layout[iPos]->color = vsg::vec4CHLinear(m_link_labels_color, 1.0f);
                 m_link_labels_text[iPos]->setup(0, m_options);
             }
         }
@@ -1591,6 +1591,8 @@ void ChVisualSystemVSG::BindCOMSymbols(const std::vector<ChVector3d>& c_pos) {
     stateInfo.billboard = true;
     stateInfo.lighting = false;
     stateInfo.image = vsg::read_cast<vsg::Data>(symbol_texture_filename, m_options);
+    if (stateInfo.image)  // color texture, authored in sRGB
+        stateInfo.image->properties.format = vsg::uNorm_to_sRGB(stateInfo.image->properties.format);
 
     // Convert body COM positions to VSG array
     auto v_pos = vsg::vec4Array::create(c_pos.size());
@@ -1635,7 +1637,7 @@ void ChVisualSystemVSG::BindBodyLabels() {
         layout->position = vsg::vec3(0.0, 0.0, 0.0);
         layout->horizontal = vsg::vec3(m_label_size, 0.0, 0.0);
         layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
-        layout->color = vsg::vec4CH(m_body_labels_color, 1.0f);
+        layout->color = vsg::vec4CHLinear(m_body_labels_color, 1.0f);
         dynamic_text->text = text;
         dynamic_text->font = m_label_font;
         dynamic_text->layout = layout;
@@ -1671,7 +1673,7 @@ void ChVisualSystemVSG::BindLinkLabels() {
         layout->position = vsg::vec3(0.0, 0.0, 0.0);
         layout->horizontal = vsg::vec3(m_label_size, 0.0, 0.0);
         layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
-        layout->color = vsg::vec4CH(m_link_labels_color, 1.0f);
+        layout->color = vsg::vec4CHLinear(m_link_labels_color, 1.0f);
         dynamic_text->text = text;
         dynamic_text->font = m_label_font;
         dynamic_text->layout = layout;
@@ -2152,7 +2154,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
             cloud.colors->set(k, vsg::vec4(0, 0, 0, 1));
         cloud.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
     } else {
-        geomInfo.color.set(shape_color.R, shape_color.G, shape_color.B, 1.0);
+        geomInfo.color = vsg::vec4CHLinear(shape_color, 1.0f);
     }
 
     cloud.positions = vsg::vec3Array::create(num_particles);
@@ -3081,7 +3083,7 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsysd pos, ChColor col) {
     m_decoScene->addChild(m_shapeBuilder->CreateGrid(x_step, y_step, nx, ny, pos, col));
 }
 

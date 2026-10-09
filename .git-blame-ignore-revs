@@ -1,0 +1,10 @@
+# Revisions that git blame should skip, because they changed formatting or line
+# endings rather than code. Enable with:
+#
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Add only whole-tree mechanical rewrites here, never a commit that also changes
+# behavior - blame would then skip the real change too.
+
+# Normalize line endings and add a .gitattributes policy
+73dac122ecc46d01931890fa952dc23c13b7e64d

@@ -21,7 +21,6 @@ subject to the following restrictions:
 #include "cbtTriangleShape.h"
 #include "cbtSphereShape.h"
 #include "cbtCylinderShape.h"
-#include "cbtCylindricalShellShape.h" /* ***CHRONO*** */
 #include "cbtRoundedCylinderShape.h"  /* ***CHRONO*** */
 #include "cbtRoundedBoxShape.h"       /* ***CHRONO*** */
 #include "cbtConeShape.h"
@@ -343,10 +342,6 @@ cbtScalar cbtConvexShape::getMarginNonVirtual() const
 			cbtCylinderShape* cylShape = (cbtCylinderShape*)this;
 			return cylShape->getMarginNV();
 		}
-        case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
-            cbtCylindricalShellShape* cylShape = (cbtCylindricalShellShape*)this;
-            return cylShape->getMarginNV();
-        }
         case ROUNDEDCYL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
             cbtRoundedCylinderShape* cylShape = (cbtRoundedCylinderShape*)this;
             return cylShape->getMarginNV();
@@ -401,7 +396,6 @@ void cbtConvexShape::getAabbNonVirtual(const cbtTransform& t, cbtVector3& aabbMi
 		}
 		break;
         case CYLINDER_SHAPE_PROXYTYPE:
-        case CYLSHELL_SHAPE_PROXYTYPE:   /* ***CHRONO*** */
         case ROUNDEDCYL_SHAPE_PROXYTYPE: /* ***CHRONO*** */
         case ROUNDEDBOX_SHAPE_PROXYTYPE: /* ***CHRONO*** */
 		/* fall through */

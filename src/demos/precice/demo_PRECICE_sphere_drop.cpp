@@ -16,6 +16,7 @@
 // fluid. The fluid phase preCICE participant can be one of:
 // (a) a mock-up fluid solver that only applies buoyancy and drag forces
 // (b) a Chrono::SPH solver
+// (c) a Chrono::TDPF solver
 //
 // =============================================================================
 
@@ -30,8 +31,8 @@
     #include "chrono_precice/ChPreciceAdapterSph.h"
 #endif
 
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
+#ifdef CHRONO_FSI_TDPF
+    #include "chrono_precice/ChPreciceAdapterTdpf.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -53,6 +54,7 @@ using std::endl;
 void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
+void RunParticipantTDPF(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output);
 
 // =============================================================================
 
@@ -66,32 +68,25 @@ int main(int argc, char* argv[]) {
 
     cout << "Copyright (c) 2026 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
-    // Problem settings
-    std::string precice_config_filename = GetChronoDataFile("precice/sphere_drop/precice_config_explicit.xml");
-
     // Enable verbose terminal output
     bool verbose = true;
     bool visualize = true;
     bool output = true;
 
-    // Set root output directory
-    std::string out_dir = GetChronoOutputPath() + "PRECICE_Sphere_Drop/";
-    if (output) {
-        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
-    }
+    // Default preCICE configuration file
+    std::string precice_config_filename = GetChronoDataFile("precice/sphere_drop/precice_config_explicit.xml");
 
     // Get the participant type from the command line arguments
     std::string help =
         "Specify the participant type, one of:\n"                                        //
         " 'Solid'      - Chrono multibody solid phase\n"                                 //
         " 'Fluid_SPH'  - Chrono::SPH fluid solver\n"                                     //
+        " 'Fluid_TDPF' - Chrono::TDPF fluid solver\n"                                    //
         " 'Fluid_BUOY' - mock-up fluid solver that applies buoyancy and drag forces\n";  //
 
     ChCLI cli(argv[0], help);
-    cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_BUOY, Fluid_SPH)");
+    cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_SPH, Fluid_TDPF, Fluid_BUOY)");
+    cli.AddOption<std::string>("", "c,config_file", "preCICE configuration file", precice_config_filename);
 
     if (!cli.Parse(argc, argv, true))
         return 1;
@@ -104,6 +99,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    precice_config_filename = cli.Get("config_file").as<std::string>();
+
+    // Set root output directory
+    std::string out_dir = GetChronoOutputPath() + "PRECICE_Sphere_Drop/";
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+    }
+
     // Run the specified preCICE participant
     if (type == "Solid")
         RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output);
@@ -111,8 +117,10 @@ int main(int argc, char* argv[]) {
         RunParticipantCFD(precice_config_filename, out_dir, verbose, visualize, output);
     else if (type == "Fluid_SPH")
         RunParticipantSPH(precice_config_filename, out_dir, verbose, visualize, output);
+    else if (type == "Fluid_TDPF")
+        RunParticipantTDPF(precice_config_filename, out_dir, verbose, visualize, output);
     else
-        cerr << "Unrecognized participant. Use 'Solid', 'Fluid_BUOY', or 'Fluid_SPH'" << endl;
+        cerr << "Unrecognized participant. Use 'Solid', 'Fluid_BUOY', 'Fluid_TDPF', or 'Fluid_SPH'" << endl;
 
     return 0;
 }
@@ -120,7 +128,7 @@ int main(int argc, char* argv[]) {
 // =============================================================================
 
 void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
-    ChPreciceAdapterMbs participant(GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"), verbose);
+    ChPreciceAdapterMbs participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/solid_chrono/mbs_participant.yaml"), verbose);
 
     auto mbs_out_dir = out_dir + "mbs";
     if (output) {
@@ -135,7 +143,6 @@ void RunParticipantMBS(const std::string& precice_config_filename, const std::st
     participant.EnableVisualization(visualize);
     participant.EnforceRealtime(visualize);
 
-    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();
@@ -145,7 +152,7 @@ void RunParticipantMBS(const std::string& precice_config_filename, const std::st
 
 void RunParticipantSPH(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
 #ifdef CHRONO_FSI_SPH
-    ChPreciceAdapterSph participant(GetChronoDataFile("precice/sphere_drop/fluid_sph/sph_participant.yaml"), verbose);
+    ChPreciceAdapterSph participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/fluid_sph/sph_participant.yaml"), verbose);
 
     auto sph_out_dir = out_dir + "sph";
     if (output) {
@@ -155,15 +162,10 @@ void RunParticipantSPH(const std::string& precice_config_filename, const std::st
         }
         participant.SetOutputDir(sph_out_dir);
     }
-#else
-    cerr << "Chrono was not configured with FSI-SPH support!" << endl;
-    throw("Chrono was not configured with FSI-SPH support");
-#endif
 
     participant.EnableOutput(output);
     participant.EnableVisualization(visualize);
 
-    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
 
     //// DEBUG - advance SPH participant with no data exchange
@@ -176,23 +178,63 @@ void RunParticipantSPH(const std::string& precice_config_filename, const std::st
 
     participant.RunSimulation();
     participant.FinalizeSimulation();
+#else
+    cerr << "Chrono was not configured with FSI-SPH support!" << endl;
+    throw("Chrono was not configured with FSI-SPH support");
+#endif
+}
+
+// =============================================================================
+
+void RunParticipantTDPF(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
+#ifdef CHRONO_FSI_TDPF
+    ChPreciceAdapterTdpf participant(precice_config_filename, GetChronoDataFile("precice/sphere_drop/fluid_tdpf/tdpf_participant.yaml"), verbose);
+
+    auto tdpf_out_dir = out_dir + "tdpf";
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(tdpf_out_dir))) {
+            std::cout << "Error creating directory " << tdpf_out_dir << std::endl;
+            throw std::runtime_error("Error creating TDPF output directory");
+        }
+        participant.SetOutputDir(tdpf_out_dir);
+    }
+
+    participant.EnableOutput(output);
+    participant.EnableVisualization(visualize);
+
+    participant.InitializeSimulation();
+
+    //// DEBUG - advance TDPF participant with no data exchange
+    ////auto h = participant.GetSolverTimeStep(1000);
+    ////double t = 0;
+    ////for (int i = 0; i < 10000; i++) {
+    ////    participant.AdvanceParticipant(t, h);
+    ////    t += h;
+    ////}
+
+    participant.RunSimulation();
+    participant.FinalizeSimulation();
+#else
+    cerr << "Chrono was not configured with FSI-TDPF support!" << endl;
+    throw("Chrono was not configured with FSI-TDPF support");
+#endif
 }
 
 // =============================================================================
 
 class ParticipantCFD : public ChPreciceAdapter {
   public:
-    ParticipantCFD(bool verbose);
+    ParticipantCFD(const std::string& precice_config_filename, bool verbose);
     ~ParticipantCFD();
 
     virtual void InitializeParticipant() override;
-    virtual void WriteCheckpoint(double time) override {}
-    virtual void ReadCheckpoint(double time) override {}
-    virtual void ReadData() override;
+    virtual void OnReadData() override;
+    virtual void OnWriteData() override;
+    virtual void OnReadCheckpoint(double time) override {}
+    virtual void OnWriteCheckpoint(double time) override {}
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
-    virtual void WriteData() override;
-    virtual void WriteOutput(int frame, double time) override {}
+    virtual void OnWriteOutput(int frame, double time) override {}
 
     void PlotResults();
 
@@ -210,7 +252,7 @@ class ParticipantCFD : public ChPreciceAdapter {
     double g = 9.81;       // gravitational acceleration
 };
 
-ParticipantCFD::ParticipantCFD(bool verbose) : ChPreciceAdapter() {
+ParticipantCFD::ParticipantCFD(const std::string& precice_config_filename, bool verbose) : ChPreciceAdapter(precice_config_filename) {
     SetVerbose(verbose);
     ReadParticipantConfigurationYAML(GetChronoDataFile("precice/sphere_drop/fluid_buoyancy/cfd_participant.yaml"));
 }
@@ -240,9 +282,7 @@ void ParticipantCFD::InitializeParticipant() {
     force.resize(3, 0.0);
 }
 
-void ParticipantCFD::ReadData() {
-    ChPreciceAdapter::ReadData();
-
+void ParticipantCFD::OnReadData() {
     position = m_coupling_meshes[mesh_name].data["positions"].values;
     velocity = m_coupling_meshes[mesh_name].data["velocities"].values;
     if (m_verbose) {
@@ -285,13 +325,11 @@ void ParticipantCFD::AdvanceParticipant(double time, double time_step) {
     }
 }
 
-void ParticipantCFD::WriteData() {
+void ParticipantCFD::OnWriteData() {
     m_coupling_meshes[mesh_name].data["forces"].values = force;
     if (m_verbose) {
         cout << m_prefix2 << "force: " << force[0] << " " << force[1] << " " << force[2] << endl;
     }
-
-    ChPreciceAdapter::WriteData();
 }
 
 void ParticipantCFD::PlotResults() {
@@ -323,7 +361,7 @@ void ParticipantCFD::PlotResults() {
 // -----------------------------------------------------------------------------
 
 void RunParticipantCFD(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
-    ParticipantCFD participant(verbose);
+    ParticipantCFD participant(precice_config_filename, verbose);
 
     auto cfd_out_dir = out_dir + "cfd";
     if (output) {
@@ -337,7 +375,6 @@ void RunParticipantCFD(const std::string& precice_config_filename, const std::st
     participant.EnableOutput(output);
     participant.EnableVisualization(visualize);
 
-    participant.RegisterParticipant(precice_config_filename);
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();

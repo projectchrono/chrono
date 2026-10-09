@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <stdexcept>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLinkLock.h"
@@ -113,6 +115,12 @@ void ChJoint::CreateLink(Type type,
             m_joint = link;
             break;
         }
+        case Type::CYLINDRICAL: {
+            auto link = chrono_types::make_shared<ChLinkLockCylindrical>();
+            link->Initialize(body1, body2, link_frame);
+            m_joint = link;
+            break;
+        }
         case Type::UNIVERSAL: {
             auto link = chrono_types::make_shared<ChLinkUniversal>();
             link->Initialize(body1, body2, link_frame);
@@ -167,9 +175,12 @@ void ChJoint::CreateBushing(Type type,
             D_matrix(4, 4) = bd->D_rot_dof;
             break;
         case Type::PRISMATIC:
+        case Type::CYLINDRICAL:
         case Type::POINTLINE:
         case Type::POINTPLANE:
-            return;  // do not create a bushing
+            // A bushing of these types is prohibited
+            std::cerr << "ChJoint: a bushing of type '" + GetTypeString(type) + "' is not supported." << std::endl;
+            throw std::invalid_argument("ChJoint: a bushing of type '" + GetTypeString(type) + "' is not supported.");
     }
 
     m_joint = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(body1, body2, bushing_frame, K_matrix, D_matrix);
@@ -185,6 +196,8 @@ std::string ChJoint::GetTypeString(Type type) {
             return "revolute";
         case Type::PRISMATIC:
             return "prismatic";
+        case Type::CYLINDRICAL:
+            return "cylindrical";
         case Type::UNIVERSAL:
             return "universal";
         case Type::POINTLINE:

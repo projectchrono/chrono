@@ -17,7 +17,7 @@ The provided `docker-compose.yml` defines two services: `dev` and `vnc`. The `de
 
 \include docker-compose.yml
 
-You may also provide additional dependencies or requirements in the `docker-compose.yml` at build time using the `APT_DEPENDENCIES` and `PIP_DEPENDENCIES` environment variables. You can also add additional build args as necessary for your snippets. The base image must be `debian`-based (and some modules may require `ubuntu`-based images).
+You may also provide additional dependencies or requirements in the `docker-compose.yml` at build time using the `APT_DEPENDENCIES` and `PIP_REQUIREMENTS` build arguments. You can also add additional build args as necessary for your snippets. The base image must be `debian`-based (and some modules may require `ubuntu`-based images).
 
 The default `docker-compose.yml` file will attach a NVIDIA GPU to the container if available. If you don't have a NVIDIA GPU, you can comment out the parts which follow `deploy` in the `docker-compose.yml` file.
 
@@ -81,4 +81,4 @@ As noted above, the default `docker-compose.yml` file will attach a NVIDIA GPU t
 
 ### Installing Chrono::Sensor
 
-To install Chrono::Sensor, you need support for CUDA, have a NVIDIA graphics card, and have an OptiX license and build script locally. If you have a NVIDIA graphics card, ensure the `cuda.dockerfile` is included _before_ `ch_sensor.dockerfile`. You can then download the [OptiX 7.7 installation script](https://developer.nvidia.com/designworks/optix/downloads/legacy) and place it at `contrib/docker/data`.
+To install Chrono::Sensor, you need support for CUDA, have a NVIDIA graphics card, and have an OptiX license and build script locally. If you have a NVIDIA graphics card, ensure the `cuda.dockerfile` is included _before_ `ch_sensor.dockerfile`. You can then download an [OptiX installation script](https://developer.nvidia.com/designworks/optix/downloads/legacy) and place it at `contrib/docker/data`, setting `OPTIX_SCRIPT` in `docker-compose.yml` to the file name you downloaded. Chrono::Sensor selects its Vulkan ray-tracing backend by default, so `ch_sensor.dockerfile` asks for the OptiX renderer explicitly with `CH_USE_SENSOR_OPTIX=ON`.

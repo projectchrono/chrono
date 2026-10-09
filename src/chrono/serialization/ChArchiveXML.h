@@ -24,12 +24,12 @@
 
 namespace chrono {
 
-/// Serialize objects using JSON format.
+/// Class for serializing objects into XML archives.
 class ChApi ChArchiveOutXML : public ChArchiveOut {
   public:
     using ChArchiveOut::out;  // un-hide the ChArchiveOut::out overloads not overridden here
 
-    ChArchiveOutXML(std::ostream& stream_out);
+    ChArchiveOutXML(std::ostream& stream_out, bool full_precision = true);
 
     virtual ~ChArchiveOutXML();
 
@@ -52,28 +52,25 @@ class ChApi ChArchiveOutXML : public ChArchiveOut {
     virtual void out_array_between(ChValue& bVal, size_t msize);
     virtual void out_array_end(ChValue& bVal, size_t msize);
 
-    // for custom c++ objects:
+    /// For custom c++ objects:
     virtual void out(ChValue& bVal, bool tracked, size_t obj_ID);
 
     virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID);
 
   protected:
+    const bool m_full_precision;
     int tablevel;
     std::ostream& m_ostream;
     std::stack<int> nitems;
     std::stack<bool> is_array;
 };
 
-///
-/// This is a class for deserializing from XML archives
-///
-
+/// Class for deserializing from XML archives.
 class ChApi ChArchiveInXML : public ChArchiveIn {
   public:
     ChArchiveInXML(std::istream& stream_in);
 
     virtual ~ChArchiveInXML();
-    ;
 
     rapidxml::xml_node<>* GetValueFromNameOrArray(const std::string& mname);
 
@@ -88,16 +85,16 @@ class ChApi ChArchiveInXML : public ChArchiveIn {
     virtual bool in(ChNameValue<unsigned long long> bVal) override;
     virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override;
 
-    // for wrapping arrays and lists
+    /// For wrapping arrays and lists
     virtual bool in_array_pre(const std::string& name, size_t& msize) override;
     virtual void in_array_between(const std::string& name) override;
 
     virtual void in_array_end(const std::string& name) override;
 
-    //  for custom c++ objects:
+    /// For custom c++ objects:
     virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) override;
 
-    // for objects to construct, return non-null ptr if new object, return null ptr if just reused obj
+    /// For objects to construct, return non-null ptr if new object, return null ptr if just reused obj
     virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) override;
 
     virtual bool TryTolerateMissingTokens(bool try_tolerate) override;

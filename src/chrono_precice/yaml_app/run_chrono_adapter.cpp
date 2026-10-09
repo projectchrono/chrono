@@ -106,8 +106,8 @@ bool ParseArgs(int argc,
                bool& disable_output,
                bool& disable_vis) {
     ChCLI cli(argv[0], "");
-    cli.AddOption<std::string>("", "s,sim_file", "preCICE simulation specification file (YAML format)");
-    cli.AddOption<std::string>("", "p,precice_file", "preCICE configuration file (XML format)");
+    cli.AddOption<std::string>("", "p,participant_file", "Chrono preCICE participant specification file (YAML format)");
+    cli.AddOption<std::string>("", "c,precice_config_file", "preCICE configuration file (XML format)");
     cli.AddOption<std::string>("", "o,out_dir", "Output directory", out_dir);
     cli.AddOption<bool>("", "quiet", "Disable terminal output");
     cli.AddOption<bool>("", "no_output", "Disable output");
@@ -117,7 +117,7 @@ bool ParseArgs(int argc,
         return false;
 
     try {
-        yaml_filename = cli.Get("sim_file").as<std::string>();
+        yaml_filename = cli.Get("participant_file").as<std::string>();
     } catch (std::domain_error&) {
         cerr << "\nError: Missing YAML specification file." << endl;
         cli.Help();
@@ -125,7 +125,7 @@ bool ParseArgs(int argc,
     }
 
     try {
-        precice_filename = cli.Get("precice_file").as<std::string>();
+        precice_filename = cli.Get("precice_config_file").as<std::string>();
     } catch (std::domain_error&) {
         cerr << "\nError: Missing XML configuration file." << endl;
         cli.Help();
@@ -145,7 +145,7 @@ bool ParseArgs(int argc,
 
 bool RunMBS(const std::string& yaml_filename, const std::string& precice_filename, const std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
     // Create the preCICE Chrono MBS participant
-    ChPreciceAdapterMbs participant(yaml_filename, !disable_verbose);
+    ChPreciceAdapterMbs participant(precice_filename, yaml_filename, !disable_verbose);
 
     // Create and set output directories
     const auto& model_name = participant.GetModelName();
@@ -166,10 +166,7 @@ bool RunMBS(const std::string& yaml_filename, const std::string& precice_filenam
     participant.EnableVisualization(!disable_vis);
     participant.EnableOutput(!disable_output);
 
-    // Register participant with preCICE
-    participant.RegisterParticipant(precice_filename);
-
-    // Initialize, run, and finalize participant simulation
+    // Create preCICE participant, initialize and run simulation
     participant.InitializeSimulation();
     participant.RunSimulation();
     participant.FinalizeSimulation();

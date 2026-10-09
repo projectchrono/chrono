@@ -19,6 +19,9 @@
 //
 // =============================================================================
 
+#include <algorithm>
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -60,19 +63,34 @@ bool test_box_uniaxial_pressure(std::shared_ptr<ChMaterial3DStress> test_materia
 
     elastic_model->material = test_material;  // set the material in model
 
+    // Mesh resolution and box dimensions. The constrained face and the probed node are addressed
+    // through these same constants below, so they cannot drift out of sync with the mesh.
+    const int nel_x = 10, nel_y = 4, nel_z = 4;      // number of elements along x,y,z
+    const double W_x = 1.0, W_y = 0.5, W_z = 0.5;    // box dimensions along x,y,z
+
     ChBuilderVolumeBox builder;
-    builder.BuildVolume(ChFrame<>(), 10, 4, 4,  // N of elements in x,y,z direction
-                        1, 0.5, 0.5);           // width in x,y,z direction
+    builder.BuildVolume(ChFrame<>(), nel_x, nel_y, nel_z, W_x, W_y, W_z);
     builder.AddToModel(elastic_model);
 
-    // Set some node to fixed:
-    std::shared_ptr<ChNodeFEAfieldXYZ> probed_node;
-    for (auto mnode : builder.nodes.list()) {
-        if (mnode->x() <= 0)
-            displacement_field->NodeData(mnode).SetFixed(true);
-        if (mnode->x() <= 1)
-            probed_node = mnode;
-    }
+    // Fix the entire x=0 face. The nodes are addressed by grid index rather than by comparing
+    // coordinates against 0, so this does not depend on exact floating-point node positions.
+    for (int iy = 0; iy <= nel_y; ++iy)
+        for (int iz = 0; iz <= nel_z; ++iz)
+            displacement_field->NodeData(builder.nodes.at(0, iy, iz)).SetFixed(true);
+
+    // Probe the corner node of the loaded x=W_x face.
+    // This is the node that the original "last node with x <= 1" loop ended up selecting (every node
+    // of the box satisfies x <= W_x, so that test was vacuous and the choice was really determined by
+    // the order in which ChBuilderVolumeBox happens to store its nodes). The reference values below
+    // are therefore unchanged; addressing the node explicitly just makes the choice independent of
+    // the builder's internal storage order.
+    auto probed_node = builder.nodes.at(nel_x, nel_y, nel_z);
+
+    std::cout << "  mesh: " << nel_x << "x" << nel_y << "x" << nel_z << " hexa8 elements ("
+              << builder.elements.list().size() << " elements, " << builder.nodes.list().size()
+              << " nodes)\n";
+    std::cout << "  probed node: grid index (" << nel_x << "," << nel_y << "," << nel_z
+              << "), reference position = " << probed_node->GetReferencePos() << "\n";
 
     // add loads on faces
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
@@ -100,12 +118,14 @@ bool test_box_uniaxial_pressure(std::shared_ptr<ChMaterial3DStress> test_materia
     // Setup solver
     if (use_mkl) {
     #ifdef CHRONO_PARDISO_MKL
+        std::cout << "Using PardisoMKL" << std::endl;
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(false);
         sys.SetSolver(mkl_solver);
     #endif
     } else {
+        std::cout << "Using MINRES" << std::endl;
         auto solver = chrono_types::make_shared<ChSolverMINRES>();
         sys.SetSolver(solver);
         solver->SetMaxIterations(100);
@@ -173,10 +193,18 @@ bool test_box_uniaxial_pressure(std::shared_ptr<ChMaterial3DStress> test_materia
         */
 
     } else {
+        std::cout << "  pressure = " << test_pressure << ", timestep = " << timestep
+                  << ", end time = " << end_time << " (" << (int)std::ceil(end_time / timestep)
+                  << " steps)\n";
         while (sys.GetChTime() < end_time) {
             sys.DoStepDynamics(timestep);
         }
     }
+
+    // Reported after the run: the DOF counts are only populated once the system has been set up.
+    std::cout << "  field: " << displacement_field->GetNumNodes() << " nodes, "
+              << displacement_field->GetNumCoordsPosLevel() << " coords at position level ("
+              << displacement_field->GetNumCoordsVelLevel() << " at velocity level)\n";
 
     // Fetch displaced position of probed node, from the displacement_field:
     ChVector3d pos_probed = displacement_field->NodeData(probed_node).GetPos();
@@ -184,6 +212,28 @@ bool test_box_uniaxial_pressure(std::shared_ptr<ChMaterial3DStress> test_materia
 
     ChVector3d result_node_displ = pos_probed - pos_reference;
 
+    // Under uniform uniaxial pressure every node of the loaded x=W_x face should displace by very
+    // nearly the same amount along x. A large spread here means the solution itself is corrupt
+    // (rather than merely inaccurate), which is a far more useful signal than the single probed
+    // value alone -- it is exactly what a garbage element tangent matrix produces.
+    double dx_min = +1e30, dx_max = -1e30;
+    bool any_nonfinite = false;
+    for (int iy = 0; iy <= nel_y; ++iy) {
+        for (int iz = 0; iz <= nel_z; ++iz) {
+            auto face_node = builder.nodes.at(nel_x, iy, iz);
+            double dx = (displacement_field->NodeData(face_node).GetPos() - face_node->GetReferencePos()).x();
+            if (!std::isfinite(dx))
+                any_nonfinite = true;
+            dx_min = std::min(dx_min, dx);
+            dx_max = std::max(dx_max, dx);
+        }
+    }
+    std::cout << "  loaded face x displacement: min = " << dx_min << ", max = " << dx_max
+              << ", spread = " << (dx_max - dx_min) << "\n";
+    if (any_nonfinite)
+        std::cout << "  WARNING: non-finite displacement on the loaded face (corrupt solution)\n";
+
+    std::cout << "  displacement of probed node = " << result_node_displ << "\n";
     std::cout << "  x displacement of probed node = " << result_node_displ.x() << "\n";
     std::cout << "  x displacement reference = " << reference_x_displ << "\n";
     double error_percent = 100.0 * (reference_x_displ - result_node_displ.x()) / reference_x_displ;
