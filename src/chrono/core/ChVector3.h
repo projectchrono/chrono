@@ -633,12 +633,18 @@ inline ChVector3<Real> ChVector3<Real>::operator*(Real s) const {
 
 template <class Real>
 inline ChVector3<Real> ChVector3<Real>::operator/(Real s) const {
-    Real oos = 1 / s;
     ChVector3<Real> v;
 
-    v.m_data[0] = m_data[0] * oos;
-    v.m_data[1] = m_data[1] * oos;
-    v.m_data[2] = m_data[2] * oos;
+    if constexpr (std::is_integral<Real>::value) {
+        v.m_data[0] = m_data[0] / s;
+        v.m_data[1] = m_data[1] / s;
+        v.m_data[2] = m_data[2] / s;
+    } else {
+        Real oos = 1 / s;
+        v.m_data[0] = m_data[0] * oos;
+        v.m_data[1] = m_data[1] * oos;
+        v.m_data[2] = m_data[2] * oos;
+    }
 
     return v;
 }
@@ -690,11 +696,16 @@ inline ChVector3<Real>& ChVector3<Real>::operator*=(Real s) {
 
 template <class Real>
 inline ChVector3<Real>& ChVector3<Real>::operator/=(Real s) {
-    Real oos = 1 / s;
-
-    m_data[0] *= oos;
-    m_data[1] *= oos;
-    m_data[2] *= oos;
+    if constexpr (std::is_integral<Real>::value) {
+        m_data[0] /= s;
+        m_data[1] /= s;
+        m_data[2] /= s;
+    } else {
+        Real oos = 1 / s;
+        m_data[0] *= oos;
+        m_data[1] *= oos;
+        m_data[2] *= oos;
+    }
 
     return *this;
 }
@@ -1054,7 +1065,11 @@ ChVector3<Real> operator*(typename std::common_type<Real>::type s, const ChVecto
 }
 
 /// Operator for scaling an integer vector by a double scalar, as s*V.
-ChApi ChVector3d operator*(double s, const ChVector3i& V);
+/// Implemented as a template (with Real deduced as int) so that other vector types are not implicitly converted to ChVector3i.
+template <class Real, typename std::enable_if<std::is_same<Real, int>::value, int>::type = 0>
+ChVector3d operator*(double s, const ChVector3<Real>& V) {
+    return ChVector3d(V.x() * s, V.y() * s, V.z() * s);
+}
 
 }  // end namespace chrono
 
