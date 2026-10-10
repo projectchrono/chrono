@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <type_traits>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChClassFactory.h"
@@ -1046,8 +1047,9 @@ inline void ChVector3<Real>::ArchiveIn(ChArchiveIn& archive_in) {
 // Reversed operators
 
 /// Operator for scaling the vector by a scalar value, as s*V.
+/// The scalar type is not deduced (Real is deduced from V only), so that the scalar is converted to the vector type.
 template <class Real>
-ChVector3<Real> operator*(Real s, const ChVector3<Real>& V) {
+ChVector3<Real> operator*(typename std::common_type<Real>::type s, const ChVector3<Real>& V) {
     return ChVector3<Real>(V.x() * s, V.y() * s, V.z() * s);
 }
 

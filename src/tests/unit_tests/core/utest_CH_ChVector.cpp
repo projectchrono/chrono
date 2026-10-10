@@ -24,6 +24,24 @@ using namespace chrono;
 const double ABS_ERR_D = 1e-15;
 const float ABS_ERR_F = 1e-6f;
 
+TEST(ChVector, cast) {
+    float s = 2.0f;
+    {
+        ChVector3f vec(1.5, 2.5, 3.5);
+        ChVector3f res = s * vec;
+        ASSERT_NEAR(res.x(), 3.0f, ABS_ERR_F);
+        ASSERT_NEAR(res.y(), 5.0f, ABS_ERR_F);
+        ASSERT_NEAR(res.z(), 7.0f, ABS_ERR_F);
+    }
+    {
+        ChVector3d vec(1.5, 2.5, 3.5);
+        ChVector3d res = s * vec;
+        ASSERT_NEAR(res.x(), 3.0, ABS_ERR_D);
+        ASSERT_NEAR(res.y(), 5.0, ABS_ERR_D);
+        ASSERT_NEAR(res.z(), 7.0, ABS_ERR_D);
+    }
+}
+
 TEST(ChVectorTest, normalize) {
     ChVector3d ad(1.1, -2.2, 3.3);
     ASSERT_NEAR(ad.GetNormalized().Length(), 1.0, ABS_ERR_D);
