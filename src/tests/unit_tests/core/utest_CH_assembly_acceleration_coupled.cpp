@@ -51,7 +51,11 @@
 // term), and neither may report ACCELERATION_INACCURATE. The default PSOR result is
 // printed for the record, with the exit flag returned by DoAssembly and the iteration
 // count and error of the iterative solver's last solve. PSOR is also run with ten
-// times its default iteration limit.
+// times its default iteration limit. In the near-degenerate configurations (the light
+// cart at th = 0, and the heavy slider at either dead centre) default PSOR leaves
+// acceleration errors of several m/s^2, and DoAssembly must report them as
+// ACCELERATION_INACCURATE. With equal crank and slider masses PSOR stays accurate even
+// at dead centre, so those cases carry no expectation on PSOR.
 //
 // =============================================================================
 
@@ -279,13 +283,16 @@ const char* FlagName(AssemblyAnalysis::ExitFlag flag) {
             return "ABSTOL_UPDATE";
         case AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE:
             return "ACCELERATION_INACCURATE";
+        case AssemblyAnalysis::ExitFlag::UNSUPPORTED_CONTACTS:
+            return "UNSUPPORTED_CONTACTS";
     }
     return "?";
 }
 
 // Assert with the direct and Barzilai-Borwein solvers; print PSOR (default and 10x iteration limit) for the record.
+// If psor_inaccurate is set, the default PSOR solve is known to be inaccurate here and must be reported as such.
 template <typename Case>
-void Check(const Case& c, const std::string& label) {
+void Check(const Case& c, const std::string& label, bool psor_inaccurate = false) {
     const Solver solvers[] = {{ChSolver::Type::SPARSE_QR, 0},
                               {ChSolver::Type::BARZILAIBORWEIN, 0},
                               {ChSolver::Type::PSOR, 0},
@@ -302,6 +309,9 @@ void Check(const Case& c, const std::string& label) {
             EXPECT_LT(r.err, TOL) << label << " " << names[k];
             EXPECT_NE(r.flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED) << label << " " << names[k];
             EXPECT_NE(r.flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE) << label << " " << names[k];
+        }
+        if (k == 2 && psor_inaccurate) {
+            EXPECT_EQ(r.flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE) << label << " " << names[k];
         }
     }
 }
@@ -322,7 +332,9 @@ TEST(AssemblyAnalysisCoupled, pendulum_chain) {
 TEST(AssemblyAnalysisCoupled, cart_pole) {
     for (double M : {10.0, 1.0, 1e-2}) {
         for (double th : {0.0, 1.0, 2.5}) {
-            Check(CartPole{M, 1.0, 1.0, 0.2, 0.5, th, 3.0}, "cart-pole M/m=" + std::to_string(M) + " th=" + std::to_string(th));
+            // A light cart at th = 0 makes the mass matrix nearly singular.
+            Check(CartPole{M, 1.0, 1.0, 0.2, 0.5, th, 3.0}, "cart-pole M/m=" + std::to_string(M) + " th=" + std::to_string(th),
+                  M == 1e-2 && th == 0.0);
         }
     }
 }
@@ -331,8 +343,10 @@ TEST(AssemblyAnalysisCoupled, slider_crank_through_dead_centre) {
     for (double ratio : {3.0, 1.5}) {
         for (double mass_ratio : {1.0, 1e2}) {
             for (double th : {0.0, 0.3, 1.0, PI}) {
+                // A heavy slider at either dead centre leaves PSOR far from the solution.
                 Check(SliderCrank{ratio, mass_ratio, th, 4.0},
-                      "slider-crank l/r=" + std::to_string(ratio) + " ms/mc=" + std::to_string(mass_ratio) + " th=" + std::to_string(th));
+                      "slider-crank l/r=" + std::to_string(ratio) + " ms/mc=" + std::to_string(mass_ratio) + " th=" + std::to_string(th),
+                      mass_ratio == 1e2 && (th == 0.0 || th == PI));
             }
         }
     }
