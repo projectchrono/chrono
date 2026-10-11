@@ -42,12 +42,12 @@ ChFunctionPositionSetpoint::~ChFunctionPositionSetpoint() {}
 
 void ChFunctionPositionSetpoint::Reset(double s) {
     S = s;
-    P = 0;
-    P_ds = 0;
-    P_dsds = 0;
+    P = VNULL;
+    P_ds = VNULL;
+    P_dsds = VNULL;
     last_s = 0;
-    last_P = 0;
-    last_P_ds = 0;
+    last_P = VNULL;
+    last_P_ds = VNULL;
 }
 
 void ChFunctionPositionSetpoint::SetSetpoint(const ChVector3d& p_setpoint, double s) {
@@ -62,8 +62,8 @@ void ChFunctionPositionSetpoint::SetSetpoint(const ChVector3d& p_setpoint, doubl
 
     S = s;
     P = p_setpoint;
-    P_ds = 0;
-    P_dsds = 0;
+    P_ds = VNULL;
+    P_dsds = VNULL;
 
     if (mode == ZERO_ORDER_HOLD) {
     }
@@ -71,7 +71,7 @@ void ChFunctionPositionSetpoint::SetSetpoint(const ChVector3d& p_setpoint, doubl
         double ds = s - last_s;
         if (ds > 0) {
             P_ds = (P - last_P) / ds;
-            P_dsds = 0;
+            P_dsds = VNULL;
         }
     }
     if (mode == SOH) {

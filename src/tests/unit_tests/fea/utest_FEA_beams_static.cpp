@@ -70,7 +70,7 @@ double ANCF3243_test(ChSystem& sys, double tip_load, int nelements) {
     mesh->SetAutomaticGravity(false);
     sys.Add(mesh);
 
-    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, ChVector3d(E_mod), ChVector3d(nu_rat), ChVector3d(E_mod * nu_rat), k1, k2);
 
     ChBuilderBeamANCF_3243 builder;
     builder.BuildBeam(mesh, material, nelements, ChVector3d(0, 0, 0), ChVector3d(beamL, 0, 0), beam_wy, beam_wz, VECT_X,
@@ -99,7 +99,7 @@ double ANCF3333_test(ChSystem& sys, double tip_load, int nelements) {
     mesh->SetAutomaticGravity(false);
     sys.Add(mesh);
 
-    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, ChVector3d(E_mod), ChVector3d(nu_rat), ChVector3d(E_mod * nu_rat), k1, k2);
 
     ChBuilderBeamANCF_3333 builder;
     builder.BuildBeam(mesh, material, nelements, ChVector3d(0, 0, 0), ChVector3d(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,

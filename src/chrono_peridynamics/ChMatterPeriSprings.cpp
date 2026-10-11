@@ -37,7 +37,7 @@ void ChMatterPeriSprings::ComputeForces() {
         ChVector3d vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
         ChVector3d vdir = vdist.GetNormalized();
         double vel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
-        ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
+        double force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
         mbond.nodeB->F_peridyn += -vdir * force_val;
         mbond.nodeA->F_peridyn += vdir * force_val;
     }
@@ -52,15 +52,15 @@ void ChMatterPeriSpringsBreakable::ComputeForces() {
             ChVector3d vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
             ChVector3d vdir = vdist.GetNormalized();
             double vel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
-            ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
+            double force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
             mbond.nodeB->F_peridyn +=
                 -vdir * force_val / mbond.nodeB->volume;  // divide by volumes because F_peridyn are force _densities_
             mbond.nodeA->F_peridyn += vdir * force_val / mbond.nodeA->volume;
 
             double stretch = (vdist.Length() - old_vdist.Length()) / old_vdist.Length();
             if (stretch > max_stretch) {
-                mbond.nodeA->F_peridyn = 0;
-                mbond.nodeB->F_peridyn = 0;
+                mbond.nodeA->F_peridyn = VNULL;
+                mbond.nodeB->F_peridyn = VNULL;
                 mbond.broken = true;
                 // the following will propagate the fracture geometry so that broken parts can collide
                 mbond.nodeA->is_boundary = true;

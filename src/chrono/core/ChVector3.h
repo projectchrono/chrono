@@ -40,7 +40,7 @@ class ChVector3 {
 
     ChVector3();
     ChVector3(Real x, Real y, Real z);
-    ChVector3(Real a);
+    explicit ChVector3(Real a);
     ChVector3(const ChVector3<Real>& other);
 
     /// Copy constructor with type change.

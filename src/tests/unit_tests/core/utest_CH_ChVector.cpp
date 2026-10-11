@@ -92,6 +92,19 @@ TEST(ChVectorTest, int_division) {
     }
 }
 
+TEST(ChVectorTest, no_implicit_scalar_conversion) {
+    // Scalars must not implicitly convert to vectors (e.g. 'v + 1.0' or passing a scalar for a vector argument)
+    static_assert(!std::is_convertible<double, ChVector3d>::value, "double must not implicitly convert to ChVector3d");
+    static_assert(!std::is_convertible<float, ChVector3f>::value, "float must not implicitly convert to ChVector3f");
+    static_assert(!std::is_convertible<int, ChVector3i>::value, "int must not implicitly convert to ChVector3i");
+    static_assert(!std::is_convertible<double, ChVector2d>::value, "double must not implicitly convert to ChVector2d");
+    static_assert(!std::is_convertible<int, ChVector2i>::value, "int must not implicitly convert to ChVector2i");
+
+    // Explicit construction from a scalar is still available
+    ASSERT_EQ(ChVector3d(2.0), ChVector3d(2.0, 2.0, 2.0));
+    ASSERT_EQ(ChVector2d(2.0), ChVector2d(2.0, 2.0));
+}
+
 TEST(ChVectorTest, normalize) {
     ChVector3d ad(1.1, -2.2, 3.3);
     ASSERT_NEAR(ad.GetNormalized().Length(), 1.0, ABS_ERR_D);

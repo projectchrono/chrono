@@ -36,7 +36,7 @@ ChMaterialBeamANCF::ChMaterialBeamANCF(double rho,  // material density
     double G = 0.5 * E / (1 + nu);
     Calc_D0_Dv(ChVector3d(E), ChVector3d(nu), ChVector3d(G), k1, k2);
     Calc_E_eps(ChVector3d(E), ChVector3d(nu), ChVector3d(G), k1, k2);  //(For compatibility with ChElementBeam only)
-    Calc_E_eps_Nu(E, nu, G);                                           //(For compatibility with ChElementBeam only)
+    Calc_E_eps_Nu(ChVector3d(E), ChVector3d(nu), ChVector3d(G));       //(For compatibility with ChElementBeam only)
 }
 
 // Construct a (possibly) orthotropic material.

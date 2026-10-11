@@ -319,7 +319,7 @@ void ChFsiProblemSPH::Initialize() {
     } else {
         // Calculate computational domain based on actual AABB of all markers
         int bce_layers = m_sysSPH->GetNumBCELayers();
-        m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
+        m_domain_aabb = ChAABB(aabb.min - ChVector3d(bce_layers * m_spacing), aabb.max + ChVector3d(bce_layers * m_spacing));
         m_sysSPH->SetComputationalDomain(m_domain_aabb, BC_NONE);
     }
 
@@ -351,7 +351,7 @@ bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p, dou
 
     for (const auto& box : geometry.coll_boxes) {
         auto pp = box.rot.RotateBack(p - box.pos);
-        auto hdims = box.dims / 2 + envelope;
+        auto hdims = box.dims / 2 + ChVector3d(envelope);
         if (std::abs(pp.x()) <= hdims.x() &&  //
             std::abs(pp.y()) <= hdims.y() &&  //
             std::abs(pp.z()) <= hdims.z())
