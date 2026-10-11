@@ -170,7 +170,7 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
         const ChVector3d& spindle_angvel = m_spindle->GetAngVelLocal();
 
         const ChVector3d& rfrc_motor = m_rev_motor->GetReaction2().force;
-        const ChVector3d& rtrq_motor = m_rev_motor->GetMotorTorque();
+        const ChVector3d& rtrq_motor = m_rev_motor->GetReaction2().torque;
 
         m_outf << m_system->GetChTime() << del;
         // Body states
