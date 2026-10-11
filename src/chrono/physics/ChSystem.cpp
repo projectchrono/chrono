@@ -1698,6 +1698,12 @@ bool ChSystem::DoFrameDynamics(double frame_time, double step_size) {
 AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action, int max_num_iterationsNR, double abstol_residualNR, double reltol_updateNR, double abstol_updateNR) {
     Initialize();
 
+    // NSC contacts (present only after a dynamics step or an explicit call to ComputeCollisions) are not supported:
+    // the contact rows corrupt the position, velocity, and acceleration levels alike (see issue #850). Leave the
+    // system state untouched and report it.
+    if (GetContactMethod() == ChContactMethod::NSC && GetNumContacts() > 0)
+        return AssemblyAnalysis::ExitFlag::UNSUPPORTED_CONTACTS;
+
     applied_forces_current = false;
 
     solvecount = 0;
@@ -1784,7 +1790,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoFrameKinematics(double frame_time, double
 
         exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
-        if (exit_flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED) {
+        if (exit_flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED || exit_flag == AssemblyAnalysis::ExitFlag::UNSUPPORTED_CONTACTS) {
             break;
         }
     }

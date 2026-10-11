@@ -4,6 +4,7 @@ SET(TESTS
     utest_CH_shafts
     utest_CH_compute_contact
     utest_CH_assembly
+    utest_CH_assembly_contact
     utest_CH_composite_inertia
     utest_CH_prismatic_spring
     utest_CH_remove_items
