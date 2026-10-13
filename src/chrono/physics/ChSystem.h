@@ -260,6 +260,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Iterations and tolerance for the inner linear solver must be set on the solver itself. Accurate accelerations
     /// require an accurate solver: prefer a direct solver, MINRES, GMRES or, with unilateral constraints,
     /// BARZILAIBORWEIN over the default PSOR.
+    /// Contacts: assembly does not run collision detection, so contacts are present only if the system was already
+    /// advanced in time or ComputeCollisions() was called explicitly. NSC contacts are not supported by the assembly
+    /// analysis (see ChAssemblyAnalysis): if an NSC system has contacts at the call, no assembly is performed, the
+    /// system state is left unchanged, and the function returns UNSUPPORTED_CONTACTS. To obtain consistent
+    /// accelerations or reactions with contacts, use an SMC system (where contacts enter as forces and assemble
+    /// correctly; SMC contact forces are evaluated at collision detection, so call ComputeCollisions() after
+    /// changing the state) or a short settling run with DoStepDynamics().
     AssemblyAnalysis::ExitFlag DoAssembly(int action, int max_num_iterationsNR = 6, double abstol_residualNR = 1e-10, double reltol_updateNR = 1e-6, double abstol_updateNR = 1e-6);
 
     /// Set the tolerance for the accuracy check of the acceleration-level assembly (default: 1e-2).

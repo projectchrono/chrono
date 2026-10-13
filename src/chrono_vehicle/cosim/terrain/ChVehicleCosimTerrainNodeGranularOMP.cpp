@@ -406,7 +406,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->SetDefaultMaterial(m_material_terrain);
     m1->SetDefaultDensity(m_rho_g);
-    m1->SetDefaultSize(m_radius_g);
+    m1->SetDefaultSize(ChVector3d(m_radius_g));
 
     // Set starting value for body identifiers
     gen.SetStartTag(tag_particles);

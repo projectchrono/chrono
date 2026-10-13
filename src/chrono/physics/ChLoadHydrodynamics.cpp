@@ -14,6 +14,7 @@
 
 #include "chrono/physics/ChLoadHydrodynamics.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtils.h"
 
 ////#define DEBUG_PRINT
 

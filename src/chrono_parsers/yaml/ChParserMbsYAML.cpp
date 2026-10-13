@@ -600,7 +600,7 @@ void ChParserMbsYAML::LoadControllers(const YAML::Node& controllers) {
             load.local_point = controllers[i]["local_point"].as<bool>();
             load.point = ReadVector(controllers[i]["point"]);
         }
-        load.value = 0;
+        load.value = VNULL;
 
         if (m_verbose)
             load.PrintInfo(name);
@@ -1365,10 +1365,10 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         std::shared_ptr<ChLoadCustom> load;
         switch (item.second.type) {
             case BodyLoadType::FORCE:
-                load = chrono_types::make_shared<ChLoadBodyForce>(body, 0.0, item.second.local_load, item.second.point, item.second.local_point);
+                load = chrono_types::make_shared<ChLoadBodyForce>(body, VNULL, item.second.local_load, item.second.point, item.second.local_point);
                 break;
             case BodyLoadType::TORQUE:
-                load = chrono_types::make_shared<ChLoadBodyTorque>(body, 0.0, item.second.local_load);
+                load = chrono_types::make_shared<ChLoadBodyTorque>(body, VNULL, item.second.local_load);
                 break;
         }
         load->SetName(model_prefix + item.first);

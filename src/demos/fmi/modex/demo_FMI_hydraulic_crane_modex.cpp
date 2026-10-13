@@ -439,6 +439,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Disable rendering if no run-time visualization system is available
+    if (!vis)
+        render = false;
+
     // -------------------------
     // Create output directories
     // -------------------------

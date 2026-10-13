@@ -122,7 +122,7 @@ void ChCollisionModelBullet::Populate() {
             case ChCollisionShape::Type::ELLIPSOID: {
                 auto shape_ell = std::static_pointer_cast<ChCollisionShapeEllipsoid>(shape);
                 auto haxes = shape_ell->GetSemiaxes();
-                auto bt_axes = cbtVector3CH(haxes + envelope);
+                auto bt_axes = cbtVector3CH(haxes + ChVector3d(envelope));
                 cbtScalar rad = 1.0;
                 cbtVector3 spos(0, 0, 0);
                 auto bt_shape = chrono_types::make_shared<cbtMultiSphereShape>(&spos, &rad, 1);
@@ -135,7 +135,7 @@ void ChCollisionModelBullet::Populate() {
                 auto shape_box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
                 auto len = shape_box->GetLengths();
                 model->SetSafeMargin(std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
-                auto bt_shape = chrono_types::make_shared<cbtBoxShape>(cbtVector3CH(len / 2 + envelope));
+                auto bt_shape = chrono_types::make_shared<cbtBoxShape>(cbtVector3CH(len / 2 + ChVector3d(envelope)));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 InjectShape(shape, bt_shape, frame);
                 break;
@@ -146,7 +146,7 @@ void ChCollisionModelBullet::Populate() {
                 auto radius = shape_cylinder->GetRadius();
                 model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
                 ChVector3d size(radius, radius, height / 2);
-                auto bt_shape = chrono_types::make_shared<cbtCylinderShapeZ>(cbtVector3CH(size + envelope));
+                auto bt_shape = chrono_types::make_shared<cbtCylinderShapeZ>(cbtVector3CH(size + ChVector3d(envelope)));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 InjectShape(shape, bt_shape, frame);
                 break;
@@ -177,7 +177,7 @@ void ChCollisionModelBullet::Populate() {
                 auto len = shape_rbox->GetLengths();
                 auto sradius = shape_rbox->GetSRadius();
                 model->SetSafeMargin(std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
-                auto bt_shape = chrono_types::make_shared<cbtRoundedBoxShape>(cbtVector3CH(len / 2 + envelope), sradius);
+                auto bt_shape = chrono_types::make_shared<cbtRoundedBoxShape>(cbtVector3CH(len / 2 + ChVector3d(envelope)), sradius);
                 bt_shape->setMargin((cbtScalar)full_margin);
                 InjectShape(shape, bt_shape, frame);
                 break;

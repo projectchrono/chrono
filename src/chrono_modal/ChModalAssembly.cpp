@@ -350,15 +350,11 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
                 v_mod_loc.segment(6 * i_node + 3, 3) = v_mod.segment(6 * i_node + 3, 3);
             }
 
-            // update the velocity of the floating frame F
-            ChVectorDynamic<> vel_F(6);  // qdt_F
-            vel_F = this->P_F * (this->Q_0 * v_mod_loc);
-            this->floating_frame_F.SetPosDt(vel_F.head(3));
-            this->floating_frame_F.SetAngVelLocal(vel_F.tail(3));
-
-            // update again for safe
-            this->UpdateTransformationMatrix();
-            this->ComputeProjectionMatrix();
+    // update the velocity of the floating frame F
+    ChVectorDynamic<> vel_F(6);  // qdt_F
+    vel_F = P_F * (Q_0 * v_mod_loc);
+    floating_frame_F.SetPosDt(vel_F.head(3));
+    floating_frame_F.SetAngVelLocal(vel_F.tail(3));
 
             ComputeConstraintResidualF(m_res_CF);
             break;

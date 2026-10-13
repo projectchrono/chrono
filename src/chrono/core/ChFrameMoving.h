@@ -584,7 +584,7 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChCoordsys<R
 template <class Real>
 ChFrameMoving<Real> operator*(const ChVector3<Real>& va, const ChFrameMoving<Real>& Fb) {
     ChFrameMoving<Real> res(Fb);
-    res.m_csys.pos += va;
+    res.Move(va);
     return res;
 }
 
@@ -597,7 +597,7 @@ ChFrameMoving<Real> operator*(const ChVector3<Real>& va, const ChFrameMoving<Rea
 template <class Real>
 ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChVector3<Real>& vb) {
     ChFrameMoving<Real> res(Fa);
-    res.m_csys.pos += vb;
+    res.Move(vb);
     return res;
 }
 
