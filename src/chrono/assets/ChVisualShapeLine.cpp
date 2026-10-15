@@ -17,11 +17,11 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeLine)
 
-ChVisualShapeLine::ChVisualShapeLine() : ChVisualShape(Type::LINE), npoints(200), thickness(10.0) {
-    gline = chrono_types::make_shared<ChLineSegment>();
+ChVisualShapeLine::ChVisualShapeLine() : ChVisualShape(Type::LINE), m_num_render_points(200), m_thickness(10.0) {
+    m_line = chrono_types::make_shared<ChLineSegment>();
 }
 
-ChVisualShapeLine::ChVisualShapeLine(std::shared_ptr<ChLine>& mline) : ChVisualShape(Type::LINE), npoints(200), thickness(10.0), gline(mline) {}
+ChVisualShapeLine::ChVisualShapeLine(std::shared_ptr<ChLine> line) : ChVisualShape(Type::LINE), m_num_render_points(200), m_thickness(10.0), m_line(line) {}
 
 void ChVisualShapeLine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -29,10 +29,10 @@ void ChVisualShapeLine::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
     ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    archive_out << CHNVP(gline);
-    archive_out << CHNVP(npoints);
-    archive_out << CHNVP(thickness);
-    archive_out << CHNVP(name);
+    archive_out << CHNVP(m_line);
+    archive_out << CHNVP(m_num_render_points);
+    archive_out << CHNVP(m_thickness);
+    archive_out << CHNVP(m_name);
 }
 
 void ChVisualShapeLine::ArchiveIn(ChArchiveIn& archive_in) {
@@ -41,10 +41,10 @@ void ChVisualShapeLine::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
     ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    archive_in >> CHNVP(gline);
-    archive_in >> CHNVP(npoints);
-    archive_in >> CHNVP(thickness);
-    archive_in >> CHNVP(name);
+    archive_in >> CHNVP(m_line);
+    archive_in >> CHNVP(m_num_render_points);
+    archive_in >> CHNVP(m_thickness);
+    archive_in >> CHNVP(m_name);
 }
 
 }  // end namespace chrono

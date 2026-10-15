@@ -306,7 +306,7 @@ void ChCollisionModelBullet::InjectShape(std::shared_ptr<ChCollisionShape> shape
 void ChCollisionModelBullet::InjectPath2D(std::shared_ptr<ChCollisionShapePath2D> shape_path, const ChFrame<>& frame) {
     const auto& path = *shape_path->GetGeometry();
     const auto& material = shape_path->GetMaterial();
-    auto thickness = shape_path->GetSRadius();
+    auto thickness = shape_path->GetSweepRadius();
 
     auto full_margin = GetSuggestedFullMargin();
 
