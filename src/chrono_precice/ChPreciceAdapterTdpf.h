@@ -57,6 +57,9 @@ class ChApiPrecice ChPreciceAdapterTdpf : public ChPreciceAdapter {
     /// - if the TDPF preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingBody(const std::string& name, const ChFramed& frame);
 
+    /// Get the underlying Chrono TDPF fluid system.
+    std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> GetFluidSystemTDPF() const { return m_sysTDPF; }
+
   public:
     // Implementation of base class virtual methods
     virtual size_t GetNumFsiBodies() const override;
