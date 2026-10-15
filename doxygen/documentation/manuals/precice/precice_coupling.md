@@ -59,9 +59,12 @@ the data it wants already exists. Combining `participants first="Fluid" second="
 solid state at the beginning of *that* window, which removes the lag. This is the arrangement used by all
 the shipped configurations.
 
-The setting is checked during initialization against the coupling scheme found in the preCICE XML, and an
+The setting is checked during initialization against the coupling schemes found in the preCICE XML, and an
 inconsistent combination is rejected with an explanation rather than producing a quietly wrong answer.
-Requesting `WINDOW_END` without a serial scheme, or for the participant listed `first`, is an error.
+Requesting `WINDOW_END` without a serial scheme, or for the participant listed `first`, is an error. With
+more than two participants, coupled through one bi-coupling scheme per pair, the read time applies to all data
+a participant reads, so `WINDOW_END` requires that participant to be listed `second` in *every* scheme it is
+part of; a solid participant coupled to several fluid participants, each listed `first`, satisfies this.
 
 A parallel explicit scheme, in which both participants run concurrently, is faster in wall-clock terms but
 cannot avoid the lag: neither participant has produced the current window's data when the other needs it.
@@ -80,8 +83,11 @@ participant implicitly to an external solver that supports checkpointing is not 
 ## Added mass over the interface
 
 When a fluid participant contributes added mass, the coefficients cannot be sent as a force: they multiply
-acceleration and belong in the mass matrix. The module therefore carries them on dedicated meshes, declared
-in the preCICE XML as `SolidAddedMass` and `FluidAddedMass` with an `am_coeffs` data block.
+acceleration and belong in the mass matrix. The module therefore carries them on dedicated meshes, recognized
+by name: meshes whose names start with `SolidAddedMass` belong to the solid participant, which reads added mass
+on them, and meshes whose names start with `FluidAddedMass` belong to a fluid participant, which writes added
+mass on them. The data exchanged on these meshes (named `am_coeffs` in the shipped configurations) must be
+scalar data.
 
 Two behaviors follow from those declarations, and the distinction is easy to miss:
 
@@ -100,6 +106,14 @@ received from all fluid participants, while the body-to-body coupling terms keep
 Increments are not cumulative: each window's increments replace those of the previous window. A fluid
 participant whose added mass is the constant infinite-frequency added mass, such as the TDPF adapter, therefore
 sends zero increments.
+
+Any number of fluid participants can send added mass. preCICE requires each mesh to be provided by a single
+participant, so every sending participant provides its own `FluidAddedMass...` mesh (for example
+`FluidAddedMass_TDPF`) and writes exactly one data block on it. The solid participant provides a matching
+`SolidAddedMass...` mesh for each of them (for example `SolidAddedMass_TDPF`), with a read mapping from the
+sender's mesh, and reads the data on it; each such read data block is one source of increments, and the
+increments of all sources are summed. A participant either sends or receives added mass, not both, and a
+participant that does neither need not provide any added mass mesh.
 
 The coefficients are sampled at the same point in the window as the forces, so that a force and the added
 mass it was evaluated with refer to the same instant.
