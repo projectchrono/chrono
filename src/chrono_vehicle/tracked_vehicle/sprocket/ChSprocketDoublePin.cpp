@@ -521,13 +521,13 @@ std::shared_ptr<ChLinePath> ChSprocketDoublePin::GetProfile() const {
         p3R = rot * p3R;
         p4R = rot * p4R;
 
-        ChLineArc arc1(ChCoordsys<>(p0L), D, alpha + CH_PI_2 + beta / 2, alpha + beta / 2);
-        ChLineSegment seg2(p1L, p2L);
-        ChLineArc arc3(ChCoordsys<>(p3L), R, alpha + CH_PI + beta / 2, alpha + 1.5 * CH_PI, true);
-        ChLineSegment seg4(p4L, p4R);
-        ChLineArc arc5(ChCoordsys<>(p3R), R, alpha + 1.5 * CH_PI, alpha + CH_2PI - beta / 2, true);
-        ChLineSegment seg6(p2R, p1R);
-        ChLineArc arc7(ChCoordsys<>(p0R), D, alpha + CH_PI - beta / 2, alpha + CH_PI_2 - beta / 2);
+        auto arc1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(p0L), D, alpha + CH_PI_2 + beta / 2, alpha + beta / 2);
+        auto seg2 = chrono_types::make_shared<ChLineSegment>(p1L, p2L);
+        auto arc3 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(p3L), R, alpha + CH_PI + beta / 2, alpha + 1.5 * CH_PI, true);
+        auto seg4 = chrono_types::make_shared<ChLineSegment>(p4L, p4R);
+        auto arc5 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(p3R), R, alpha + 1.5 * CH_PI, alpha + CH_2PI - beta / 2, true);
+        auto seg6 = chrono_types::make_shared<ChLineSegment>(p2R, p1R);
+        auto arc7 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(p0R), D, alpha + CH_PI - beta / 2, alpha + CH_PI_2 - beta / 2);
 
         profile->AddSubLine(arc1);
         profile->AddSubLine(seg2);

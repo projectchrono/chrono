@@ -71,40 +71,26 @@ class ChApi ChLinePath : public ChLine {
                     double duration = 1            ///< duration of the abscyssa when calling the Evaluate() function
     );
 
-    /// Queue a line (push it back to the array of lines)
-    void AddSubLine(ChLine& line,        ///< line to add
-                    double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
-    );
-
     /// Insert a line at the specified index in line array.
     void InsertSubLine(size_t n,                      ///< index in line array
                        std::shared_ptr<ChLine> line,  ///< line to add
                        double duration = 1            ///< duration of the abscyssa when calling the Evaluate() function
     );
 
-    /// Insert a line at a specified index  n  in line array.
-    /// Note that  n  cannot be higher than GetLineCount().
-    void InsertSubLine(size_t n,            ///< index of line, 0 is first, etc.
-                       ChLine& line,        ///< line to add
-                       double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
-    );
-
     /// Erase the line at the specified index n in line array.
-    /// Note that  n  cannot be higher than GetLineCount().
+    /// Note that 'n'  cannot be higher than GetLineCount().
     void EraseSubLine(size_t n);
 
     /// Tells the duration of the path, sum of the durations of all sub-lines.
-    /// This is useful because ifyou use the Evaluate() function on the path, the U
-    /// parameter should range between 0 and the max duration.
+    /// This is useful because if you use the Evaluate() function on the path, the U parameter should range between 0 and the max duration.
     double GetPathDuration() const;
 
-    /// Shrink or stretch all the durations of the sub-lines so that the
-    /// total duration of the path is equal to a specified value.
+    /// Shrink or stretch all the durations of the sub-lines so that the total duration of the path is equal to a specified value.
     /// For example, you can normalize to 1 so you can use Evaluate() with U in
     /// the 0..1 range like with other lines.
     void SetPathDuration(double mUduration);
 
-    /// Check if the path is topologically connected, i.e. if all the sub lines are queued to have C0 continuity
+    /// Check if the path is topologically connected, i.e. if all the sub lines are queued to have C0 continuity.
     double GetContinuityMaxError() const;
 
     /// Method to allow serialization of transient data to archives.
