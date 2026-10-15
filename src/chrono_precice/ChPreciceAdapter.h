@@ -26,6 +26,7 @@
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChUtils.h"
+#include "chrono/input_output/ChOutput.h"
 
 #ifdef CHRONO_HAS_YAML
     #include "chrono/input_output/ChUtilsYAML.h"

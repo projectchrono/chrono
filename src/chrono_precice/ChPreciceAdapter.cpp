@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cctype>
 
+#include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtils.h"
 #ifdef CHRONO_HAS_YAML
     #include "chrono/input_output/ChUtilsYAML.h"
@@ -468,6 +469,7 @@ void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size)
         m_output = false;
 
     // Disable visualization if not supported; otherwise, create image directory as needed
+#ifdef CHRONO_VSG
     if (!m_vis_settings.render)
         m_visualize = false;
     else if (m_vis_settings.write_images) {
@@ -477,6 +479,9 @@ void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size)
             throw std::runtime_error("Could not create image output directory");
         }
     }
+#else
+    m_visualize = false;
+#endif
 
     // Create the preCICE participant
     assert(m_participant == nullptr);
