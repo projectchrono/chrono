@@ -5,7 +5,7 @@ message(STATUS "Add demo programs for preCICE adapters")
 
 set(DEMOS "")
 
-if(CH_ENABLE_MODULE_PARSERS)
+if(CH_ENABLE_MODULE_PARSERS AND CHRONO_YAML_ENABLED)
 
   set(DEMOS ${DEMOS}
       demo_PRECICE_sphere_drop

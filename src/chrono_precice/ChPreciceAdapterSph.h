@@ -17,6 +17,16 @@
 
 #include "chrono_precice/ChPreciceAdapter.h"
 
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/utils/ChBodyGeometry.h"
+
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
+#include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
+
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
+#endif
+
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     #include "chrono_parsers/yaml/ChParserSphYAML.h"
 #endif
