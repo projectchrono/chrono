@@ -13,6 +13,7 @@ SET(TESTS
     utest_CH_ISO2631
     utest_CH_default_vismat
     utest_CH_default_vismat_firstaccess
+    utest_CH_output_directory
 )
 
 SET(LIBS Chrono_core)
