@@ -496,14 +496,19 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Process added mass data received via preCICE.
     /// Called only if using dynamic added mass on a receiving participant.
-    /// Must be overridden if using dynamic added mass and this is a sending participant; the default implementation throws in that case.
+    /// Must be overridden if using dynamic added mass and this is a receiving participant; the default implementation throws in that case.
+    /// `blocks` holds one 6x6 block per FSI body: the increment to that body's self (diagonal) added mass block,
+    /// accumulated over all participants that send added mass. The receiving participant adds these increments to its
+    /// baseline added mass; increments are not cumulative over time (each call supersedes the previous one).
     virtual void OnReadDataAM(const std::vector<ChMatrix66d>& blocks);
 
     /// Prepare added mass data to be sent via preCICE.
     /// Called only if using dynamic added mass on a sending participant.
     /// Must be overridden if using dynamic added mass and this is a sending participant; the default implementation throws in that case.
     /// On entry, `blocks` is sized to the number of FSI bodies (as reported by `GetNumFsiBodies`) and is zero-initialized.
-    /// The override is expected to set the 6x6 added mass block for every FSI body; any block left untouched is sent as a zero block.
+    /// The override is expected to set, for every FSI body, this participant's increment to the body's self (diagonal)
+    /// added mass block, relative to the baseline added mass held by the receiving participant (typically the
+    /// infinite-frequency added mass). Any block left untouched is sent as a zero increment.
     virtual void OnWriteDataAM(std::vector<ChMatrix66d>& blocks);
 
   private:

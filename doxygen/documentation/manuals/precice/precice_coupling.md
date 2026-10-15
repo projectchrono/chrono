@@ -89,9 +89,17 @@ Two behaviors follow from those declarations, and the distinction is easy to mis
   for added mass, and the solid participant then requires an `added_mass` entry in its YAML naming the
   source of the coefficients. Nothing needs to be exchanged for this to take effect.
 - Added mass becomes *dynamic* — updated every window over the interface — only if a participant also
-  **provides** one of those meshes and the scheme declares an `am_coeffs` exchange. Each update carries one
-  6x6 block per body and replaces that body's own block, leaving any body-to-body coupling terms as they
-  were.
+  **provides** one of those meshes and the scheme declares an `am_coeffs` exchange. In that case the
+  `added_mass` entry is optional.
+
+With dynamic added mass, the `added_mass` entry of the solid participant is the *baseline*, typically the
+infinite-frequency added mass, including any body-to-body coupling terms; without it, the baseline is zero.
+A fluid participant sends, for each body, a 6x6 *increment* to that body's own (self) block relative to this
+baseline. At every window, the solid participant applies its baseline self blocks plus the increments
+received from all fluid participants, while the body-to-body coupling terms keep their baseline values.
+Increments are not cumulative: each window's increments replace those of the previous window. A fluid
+participant whose added mass is the constant infinite-frequency added mass, such as the TDPF adapter, therefore
+sends zero increments.
 
 The coefficients are sampled at the same point in the window as the forces, so that a force and the added
 mass it was evaluated with refer to the same instant.

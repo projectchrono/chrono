@@ -66,12 +66,14 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filen
         LoadMeshesYAML(config["meshes"], parser);
     #endif
 
-    // - if expected, look for specification of added mass blocks
+    // - if expected, look for specification of (baseline) added mass blocks.
+    //   With dynamic added mass, a baseline is optional: if none is provided, a zero baseline is used and the
+    //   added mass consists only of the increments received over the coupling interface.
     if (m_use_added_mass) {
         if (config["added_mass"]) {
             LoadAddedMassYAML(config["added_mass"], parser);
             m_has_added_mass = true;
-        } else {
+        } else if (!m_use_dynamic_added_mass) {
             cerr << "Added mass enabled, but no YAML specification provided." << endl;
             throw std::runtime_error("Added mass enabled, but no YAML specification provided");
         }
@@ -134,6 +136,7 @@ void ChPreciceAdapterMbs::LoadAddedMassYAML(const YAML::Node& added_mass, const 
         ChAssertAlways(blocks.size() == num_bodies);
         if (m_verbose)
             cout << "Read added mass blocks" << endl;
+        m_added_mass_blocks.clear();
         for (size_t ib = 0; ib < num_bodies; ib++) {
             ChAssertAlways(blocks[ib]["name"]);
             auto body_name = blocks[ib]["name"].as<std::string>();
@@ -199,6 +202,7 @@ void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::string& h5_filename) {
         auto rho = ReadDouble(h5_file, "simulation_parameters/rho");
         if (m_verbose)
             cout << "Read added mass blocks" << endl;
+        m_added_mass_blocks.clear();
         auto num_bodies = m_coupling_bodies.size();
         for (size_t i = 0; i < num_bodies; i++) {
             auto data_name = "body" + std::to_string(i + 1) + "/hydro_coeffs/added_mass/inf_freq";
@@ -366,8 +370,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     // Handle added mass info (applied via a Chrono ChLoadHydrodynamics)
     auto num_bodies = m_coupling_bodies.size();
 
-    // 1. if using dynamic added mass but the participant does not provide the necessary information,
-    //    assume zero "static" added mass blocks and allocate space for the updates communicated via preCICE.
+    // 1. if using dynamic added mass but no baseline blocks were provided, use a zero baseline;
+    //    the added mass then consists only of the increments communicated via preCICE.
     if (m_use_dynamic_added_mass && !m_has_added_mass) {
         m_added_mass_blocks.resize(num_bodies);
         for (auto& block : m_added_mass_blocks)
@@ -802,10 +806,18 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
 
 void ChPreciceAdapterMbs::OnReadDataAM(const std::vector<ChMatrix66d>& blocks) {
     auto num_bodies = m_coupling_bodies.size();
-    assert(blocks.size() > 0);
+    ChAssertAlways(blocks.size() == num_bodies);
     assert(m_has_added_mass);
 
-    m_hydro_load->UpdateBodyAddedMassBlocks(blocks);
+    // The received blocks are increments to the self (diagonal) blocks, accumulated over all participants that
+    // send added mass. Add them to the baseline self blocks, which are never modified, so that the result does
+    // not depend on previous updates (e.g., when a time window is repeated in an implicit coupling scheme).
+    // The body-to-body coupling (off-diagonal) blocks are not updated and keep their baseline values.
+    std::vector<ChMatrix66d> self_blocks(num_bodies);
+    for (size_t i = 0; i < num_bodies; i++)
+        self_blocks[i] = m_added_mass_blocks[i].block(0, 6 * i, 6, 6) + blocks[i];
+
+    m_hydro_load->UpdateBodyAddedMassBlocks(self_blocks);
 }
 
 // -----------------------------------------------------------------------------

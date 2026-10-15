@@ -68,8 +68,9 @@ partner wants absolute positions and velocities.
 the added mass meshes, the adapter builds a [ChLoadHydrodynamics](@ref chrono::ChLoadHydrodynamics) so that
 the coefficients enter the system mass matrix rather than being applied as a force. The blocks come either
 from an HDF5 hydrodynamic file or from values given inline in the YAML, and may additionally be updated over
-the coupling interface every window. The semantics of that update, the ordering requirement it imposes on the
-coupling bodies, and why added mass cannot be treated as a force are covered in
+the coupling interface every window. Those blocks are then the baseline to which the increments received from
+fluid participants are added (see [Added mass over the interface](@ref precice_coupling)). The ordering
+requirement added mass imposes on the coupling bodies, and why it cannot be treated as a force, are covered in
 [Added mass in Chrono::FSI-TDPF](@ref manual_fsi_tdpf_added_mass).
 
 **Checkpointing.** The adapter implements it, gathering and scattering the full system state. It is the only
@@ -126,10 +127,11 @@ hydrodynamic body; see [Added mass in Chrono::FSI-TDPF](@ref manual_fsi_tdpf_add
 A TDPF solver has no internal time step of its own: it evaluates the hydrodynamic loads for the given
 interval directly, so there is nothing to sub-cycle.
 
-**Added mass.** This adapter can report infinite-frequency added mass over the coupling interface when the
-preCICE configuration declares the added mass meshes. Because those coefficients are constant for a TDPF
-solver, doing so delivers the same numbers the solid participant could read from the hydrodynamic file
-itself; the path exists for fluid solvers whose added mass does change during the simulation.
+**Added mass.** This adapter can take part in a dynamic added mass exchange when the preCICE configuration
+declares the added mass meshes. A fluid participant sends increments relative to the baseline added mass held
+by the solid participant, and the TDPF added mass is the constant infinite-frequency added mass that the solid
+participant reads from the same hydrodynamic file as its baseline. The increments sent are therefore zero;
+the path exists for fluid solvers whose added mass does change during the simulation.
 
 **Checkpointing.** Not available, for the same reason as the SPH adapter.
 
