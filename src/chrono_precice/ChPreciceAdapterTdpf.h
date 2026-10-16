@@ -17,6 +17,15 @@
 
 #include "chrono_precice/ChPreciceAdapter.h"
 
+#include "chrono/physics/ChBodyAuxRef.h"
+
+#include "chrono_fsi/tdpf/ChFsiSystemTDPF.h"
+#include "chrono_fsi/tdpf/ChFsiFluidSystemTDPF.h"
+
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/tdpf/visualization/ChTdpfVisualizationVSG.h"
+#endif
+
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
     #include "chrono_parsers/yaml/ChParserTdpfYAML.h"
 #endif
@@ -48,14 +57,17 @@ class ChApiPrecice ChPreciceAdapterTdpf : public ChPreciceAdapter {
     /// - if the TDPF preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingBody(const std::string& name, const ChFramed& frame);
 
+    /// Get the underlying Chrono TDPF fluid system.
+    std::shared_ptr<fsi::tdpf::ChFsiFluidSystemTDPF> GetFluidSystemTDPF() const { return m_sysTDPF; }
+
   public:
     // Implementation of base class virtual methods
     virtual size_t GetNumFsiBodies() const override;
 
-    /// Provide the added mass blocks sent to the solid participant when using dynamic added mass.
-    /// The TDPF solver reports the infinite-frequency added mass from its HDF5 hydro file, which is
-    /// constant in time; the exchange therefore delivers the same coefficients the solid participant
-    /// would read directly from that file, but over the coupling interface.
+    /// Provide the added mass increments sent to the solid participant when using dynamic added mass.
+    /// The TDPF added mass is the infinite-frequency added mass from its HDF5 hydro file, which is constant in time
+    /// and is expected to be held by the solid participant as its baseline added mass. The increments sent are
+    /// therefore zero; only the number of bodies is checked for consistency.
     virtual void OnWriteDataAM(std::vector<ChMatrix66d>& blocks) override;
     virtual void InitializeParticipant() override;
     virtual void OnReadData() override;

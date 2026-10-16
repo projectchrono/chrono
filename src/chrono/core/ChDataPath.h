@@ -43,12 +43,14 @@ ChApi void SetChronoTestOutputPath(const std::string& path);
 /// This directory is for internal use with the Chrono unit and benchmark tests.
 ChApi const std::string& GetChronoTestOutputPath();
 
-/// Create the directory for the specified path.
-/// If the directory already exists or is successfully created, return `true`. Otherwise, return `false`.
+/// Create the directory for the specified path, including any missing parent directories.
+/// Return `true` if the directory exists on return (whether it already existed, was created by this call, or was
+/// created concurrently by another thread or process) and `false` otherwise. This function does not throw.
 ChApi bool CreateOutputDirectory(const std::filesystem::path& p);
 
-/// Create the directory with specified name.
-/// If the directory already exists or is successfully created, return `true`. Otherwise, return `false`.
+/// Create the directory with specified name, including any missing parent directories.
+/// Return `true` if the directory exists on return (whether it already existed, was created by this call, or was
+/// created concurrently by another thread or process) and `false` otherwise. This function does not throw.
 ChApi bool CreateOutputDirectory(const std::string& p);
 
 }  // end namespace chrono

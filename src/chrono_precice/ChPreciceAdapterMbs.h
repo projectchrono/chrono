@@ -81,14 +81,21 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
 #endif
 
-    /// Set added mass blocks from specified HDF5 hydrodynamics file.
+    /// Set baseline added mass blocks from specified HDF5 hydrodynamics file (infinite-frequency added mass).
     /// Notes:
     /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    /// - with dynamic added mass, the self (diagonal) blocks applied at each time window are the sum of these baseline
+    ///   blocks and the increments received from all participants that send added mass; the body-to-body coupling
+    ///   blocks keep their baseline values. If no baseline is provided, a zero baseline is used.
     void SetAddedMassBlocks(const std::string& h5_filename);
 
-    /// Set added mass blocks (simultaneously for all interface objects).
+    /// Set baseline added mass blocks (simultaneously for all interface objects).
+    /// Each block must have size 6 x 6n, where n is the number of coupling bodies.
     /// Notes:
     /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    /// - with dynamic added mass, the self (diagonal) blocks applied at each time window are the sum of these baseline
+    ///   blocks and the increments received from all participants that send added mass; the body-to-body coupling
+    ///   blocks keep their baseline values. If no baseline is provided, a zero baseline is used.
     void SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>> blocks);
 
     /// Get underlying Chrono multibody system.
@@ -181,7 +188,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 #endif
 
     bool m_has_added_mass;                               ///< participant provides added mass
-    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;  ///< added mass blocks
+    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;  ///< baseline added mass blocks (not modified by updates)
     std::shared_ptr<ChLoadHydrodynamics> m_hydro_load;   ///< hydrodynamic added mass loads
 
     // Dynamics callbacks

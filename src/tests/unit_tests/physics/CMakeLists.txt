@@ -9,6 +9,7 @@ SET(TESTS
     utest_CH_prismatic_spring
     utest_CH_remove_items
     utest_CH_body_auxref
+    utest_CH_added_mass_update
 )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
