@@ -106,12 +106,13 @@ namespace vehicle {
 /// Terrain object representing an uneven area with controlled roughness.
 ///
 /// By default, this class implements a terrain modeled as an infinite horizontal plane at a specified height with the
-/// uneven terrain lane of specified length and width starting at the origin. This type of terrain can be used in
-/// conjunction with tire models that perform their own collision detection (e.g., ChTMeasy ChPac89, ChPac02, ChFiala).
+/// uneven terrain lane of specified length and width starting at the origin. In this configuration, the terrain carries
+/// no collision geometry and can only be used with handling tire models (ChForceElementTire; e.g., ChTMeasyTire,
+/// ChTMsimpleTire, ChPac89Tire, ChPac02Tire, ChFialaTire).
 ///
 /// Alternatively, this terrain type can be represented as a collision mesh representing the uneven lane with an
-/// optional flat starting lane.  This terrain type can be used with vehicles that require contact for the
-/// vehicle-terrain interaction (wheeled vehicle with rigid tires or tracked vehicles).
+/// optional flat starting lane (see EnableCollisionMesh).  This terrain type can then also be used with vehicles that
+/// require contact for the vehicle-terrain interaction (wheeled vehicles with rigid or FEA tires, or tracked vehicles).
 class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
   public:
     enum class SurfaceType {

@@ -186,6 +186,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetEngineType(EngineModelType::SHAFTS);
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
+    // Only rigid or FEA tires: handling tires have no collision geometry and cannot interact with SCM terrain
     switch (tire_type) {
         case TireType::CYLINDRICAL:
             hmmwv.SetTireType(TireModelType::RIGID_MESH);

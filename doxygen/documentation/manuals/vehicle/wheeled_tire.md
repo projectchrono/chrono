@@ -6,9 +6,21 @@ Tire models {#wheeled_tire}
 
 Chrono::Vehicle currently supports three different classes of tire models: rigid, handling, and finite element. 
 
+The choice of tire model is constrained by the choice of [terrain model](@ref vehicle_terrain). [Handling tires](@ref vehicle_tire_empirical) carry no collision geometry and compute tire forces from the terrain height, normal, and coefficient of friction only; they can be used with flat, rigid, CRG, and other height-field terrains, but not with deformable terrain. [Rigid](@ref wheeled_tire_rigid) and [FEA](@ref wheeled_tire_fea) tires interact with the terrain through the Chrono contact system (or through FSI for CRM terrain) and are required for deformable terrain.
+
+| Terrain                              | Handling tires | Rigid tires | FEA tires |
+|--------------------------------------|:--------------:|:-----------:|:---------:|
+| Flat, CRG                            | yes            | no          | no        |
+| Random surface, obstacle (ObsMod)    | yes            | with collision mesh | with collision mesh |
+| Rigid                                | yes            | yes         | yes       |
+| SCM (deformable)                     | no             | yes         | yes       |
+| Granular / DEM (deformable)          | no             | yes         | yes       |
+| CRM / SPH (deformable)               | no             | yes         | yes       |
+| FEA (deformable)                     | no             | yes         | yes       |
+
 ## Rigid tire model  {#wheeled_tire_rigid}
 
-The rigid tires are the simplest of the three tire classes offered.  The assumption for these models is that the tire is completely rigid and it interacts with the ground and any other rigid objects through the same underlying friction and contact algorithms as the other rigid bodies in Chrono.  The contact geometry for these tires can be as simple as a cylinder or as complex as a 3D triangular mesh.  These models are not only useful for debugging the overall vehicle model, but they can also be used in cases where runtime is important, the terrain is much softer than the tire, and a highly detailed model of the tire is unnecessary.  In fact, the semi-empirical tire models are not suitable for off-road vehicle simulation, i.e. when using a deformable terrain (SCM, granular, or FEA-based; see the description of available [terrain models](@ref vehicle_terrain)).  For such scenarios, rigid or FEA-based tire models are the only two available options currently implemented in Chrono::Vehicle. 
+The rigid tires are the simplest of the three tire classes offered.  The assumption for these models is that the tire is completely rigid and it interacts with the ground and any other rigid objects through the same underlying friction and contact algorithms as the other rigid bodies in Chrono.  The contact geometry for these tires can be as simple as a cylinder or as complex as a 3D triangular mesh.  These models are not only useful for debugging the overall vehicle model, but they can also be used in cases where runtime is important, the terrain is much softer than the tire, and a highly detailed model of the tire is unnecessary.  Together with the FEA-based tires, rigid tires are the only option for off-road vehicle simulation on deformable terrain (SCM, granular, CRM, or FEA-based; see the description of available [terrain models](@ref vehicle_terrain)), since [handling tires](@ref vehicle_tire_empirical) cannot be used with such terrain. 
 
 See [ChRigidTire](@ref chrono::vehicle::ChRigidTire) and [RigidTire](@ref chrono::vehicle::RigidTire).
 
@@ -17,7 +29,9 @@ The following is an example of a rigid tire with mesh geometry provided through 
 
 ## Handling (semi-empirical) tire models {#vehicle_tire_empirical}
 
-The second class of tires models offered are the semi-empirical ones commonly used for vehicle handling.  Chrono::Vehicle currently has implementations for Pacejka (89 and 2002), TMeasy, and Fiala tire models. Handling tire models are designed for flat road surfaces and they normally use single point contact or four point contact (TMeasy). For ride tests on undulated roads or for obstacle crossing a special contact algorithm called "envelope" has been implemented. It is based on a paper of Sui & Hershey and can be used with all handling tire models that are included in Chrono. Validation tests with a technology demonstrator show good results compared to measured real vehicle test data with low numerical effort. If an even better accuracy is needed the user should think about considering FEA based tire models for non-handling tests.
+The second class of tires models offered are the semi-empirical ones commonly used for vehicle handling.  Chrono::Vehicle currently has implementations for Pacejka (89 and 2002), TMeasy, TMsimple, and Fiala tire models (all derived from [ChForceElementTire](@ref chrono::vehicle::ChForceElementTire)). Handling tire models are designed for flat road surfaces and they normally use single point contact or four point contact (TMeasy). For ride tests on undulated roads or for obstacle crossing a special contact algorithm called "envelope" has been implemented. It is based on a paper of Sui & Hershey and can be used with all handling tire models that are included in Chrono. Validation tests with a technology demonstrator show good results compared to measured real vehicle test data with low numerical effort. If an even better accuracy is needed the user should think about considering FEA based tire models for non-handling tests.
+
+Handling tire models do not have any collision geometry: they do not participate in the Chrono collision detection and interact with the terrain exclusively through its height, normal, and coefficient of friction (see [ChTerrain](@ref chrono::vehicle::ChTerrain)). As a consequence, handling tires **cannot be used with deformable terrain** (SCM, granular, CRM, or FEA-based): such a tire would neither deform the soil nor experience sinkage or soil resistance. For deformable terrain, use [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tires.
 
 Some users may want to build their own handling tire parameter sets from tire test data. Be sure to get familiar with the different slip definitions and the different coordinate systems in each tire model!
 
@@ -41,6 +55,13 @@ See [ChTMeasyTire](@ref chrono::vehicle::ChTMeasyTire) and [TMeasyTire](@ref chr
 
 A sample JSON file with a TMeasy tire specification is provided below:
 \include "data/vehicle/hmmwv/tire/HMMWV_TMeasyTire.json"
+
+### TMsimple tire model {#wheeled_tire_tmsimple}
+
+See [ChTMsimpleTire](@ref chrono::vehicle::ChTMsimpleTire) and [TMsimpleTire](@ref chrono::vehicle::TMsimpleTire).
+
+A sample JSON file with a TMsimple tire specification is provided below:
+\include "data/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.json"
 
 
 ### Fiala tire model  {#wheeled_tire_fiala}

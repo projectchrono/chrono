@@ -79,6 +79,8 @@ struct RaycastHit {
 /// This class implements a deformable terrain based on the Soil Contact Model.
 /// Unlike RigidTerrain, the vertical coordinates of this terrain mesh can be deformed
 /// due to interaction with ground vehicles or other collision shapes.
+/// SCM terrain interacts with the collision shapes of rigid or FEA tires and of tracked vehicle shoes. It cannot be used
+/// with handling tires (ChForceElementTire), which carry no collision geometry; such tires would not deform the soil.
 class CH_VEHICLE_API SCMTerrain : public ChTerrain {
   public:
     enum DataPlotType {

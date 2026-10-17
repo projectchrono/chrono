@@ -36,6 +36,10 @@ namespace vehicle {
 /// @{
 
 /// Continuum representation (CRM) deformable terrain model using SPH.
+/// Interaction with the vehicle is through FSI (BCE markers attached to rigid bodies or FEA meshes); as such, only rigid
+/// tires, FEA tires, and tracked vehicles are supported. Handling tires (ChForceElementTire), which carry no collision
+/// geometry, cannot be used. The ChTerrain query functions return placeholder values (zero height, vertical normal, and
+/// zero coefficient of friction).
 class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProblemCartesian {
   public:
     /// Create a CRM terrain object.

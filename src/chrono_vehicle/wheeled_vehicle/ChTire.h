@@ -40,9 +40,13 @@ namespace vehicle {
 /// @{
 
 /// Base class for a tire system.
-/// A tire subsystem is a force element. It is passed position and velocity
-/// information of the wheel body and it produces ground reaction forces and
-/// moments to be applied to the wheel body.
+/// Chrono::Vehicle provides two families of tire models:
+/// - handling tires (see ChForceElementTire), which compute tire forces and moments from the terrain height, normal,
+///   and coefficient of friction obtained through the ChTerrain query functions. These tires carry no collision geometry
+///   and can only be used with non-deformable terrain.
+/// - contact-based tires (see ChRigidTire and ChDeformableTire), which carry collision geometry and interact with the
+///   terrain through the Chrono contact system (or through FSI for CRM terrain). These tires are required for
+///   deformable terrain (SCM, granular, CRM, or FEA).
 class CH_VEHICLE_API ChTire : public ChPart {
   public:
     /// Collision detection type.

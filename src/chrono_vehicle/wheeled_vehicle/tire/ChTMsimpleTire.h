@@ -46,6 +46,8 @@ namespace chrono {
 namespace vehicle {
 
 /// TMsimple handling tire model.
+/// As a handling tire (see ChForceElementTire), this model cannot be used with deformable terrain
+/// (SCM, granular, CRM, or FEA).
 class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
   public:
     ChTMsimpleTire(const std::string& name);

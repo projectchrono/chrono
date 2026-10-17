@@ -39,7 +39,9 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Pacjeka 89 tire model.
+/// Pacejka 89 tire model.
+/// As a handling tire (see ChForceElementTire), this model cannot be used with deformable terrain
+/// (SCM, granular, CRM, or FEA).
 class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
   public:
     ChPac89Tire(const std::string& name);

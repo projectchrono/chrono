@@ -38,10 +38,12 @@ namespace vehicle {
 /// @addtogroup vehicle_terrain
 /// @{
 
-/// Concrete class for a flat horizontal terrain.
-/// This class implements a terrain modeled as an infinite horizontal plane at a specified height.
-/// This type of terrain can be used in conjunction with tire models that perform their own collision detection
-/// (e.g., ChTMeasy ChPac89, ChPac02, ChFiala).
+/// Terrain object representing a simple trench or mound shaped obstacle (as needed for NRMM).
+/// This class implements a terrain modeled as an infinite horizontal plane at a specified height with a single obstacle
+/// defined by its approach angle, length, and height (or depth).
+/// By default, this type of terrain carries no collision geometry and can only be used with handling tire models
+/// (ChForceElementTire; e.g., ChTMeasyTire, ChTMsimpleTire, ChPac89Tire, ChPac02Tire, ChFialaTire). If a collision mesh
+/// is enabled (see EnableCollisionMesh), it can also be used with rigid or FEA tires and with tracked vehicles.
 class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
   public:
     enum class VisualisationType { NONE, MESH };
