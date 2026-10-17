@@ -8,7 +8,7 @@
 
   "Visualization":
   {
-    "Mesh Filename":            "MAN_Kat1/meshes/MAN_rim.obj",
+    "Mesh Filename":            "MAN/meshes/MAN_rim.obj",
     "Radius":                   0.254,
     "Width":                    0.254
   }

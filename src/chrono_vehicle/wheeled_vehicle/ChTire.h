@@ -27,6 +27,7 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/functions/ChFunctionInterp.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -169,7 +170,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
                                      float& mu                            ///< coefficient of friction
     );
 
-    /// Utility function to construct a loopkup table for penetration depth as function of intersection area.
+    /// Utility function to construct a lookup table for penetration depth as function of intersection area.
     /// This table corresponds to a particular disc radius.
     static void ConstructAreaDepthTable(double r, ChFunctionInterp& area2depth);
 
@@ -184,7 +185,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
                                         const ChVector3d& C,       ///< disc center (in global frame)
                                         const ChVector3d& dn,      ///< disc normal (in global frame)
                                         double r,                  ///< disc radius
-                                        ChCoordsys<>& contact,     ///< contact coord sys (in the global frame)
+                                        ChCoordsys<>& contact,     ///< contact coordinate system (in the global frame)
                                         double& depth,             ///< penetration (positive if contact)
                                         float& mu                  ///< coefficient of friction
     );
@@ -235,7 +236,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     /// Get the mass added to the associated spindle body.
     /// Certain tires (e.g., those FEA-based) have their own physical representation and hence do not add mass and
-    /// inertia to the spindle body. All others increment the spindle body mass by the amount repoirted by this
+    /// inertia to the spindle body. All others increment the spindle body mass by the amount reported by this
     /// function.
     virtual double GetAddedMass() const = 0;
 
@@ -257,8 +258,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// The two meshes are assumed to be specified with respect to a frame with origin at the center of the tire and Y
     /// axis pointing towards the outside. This function uses one of the two provided OBJ files, depending on the side
     /// on which the tire is mounted. The name of the output mesh shape is set to be the stem of the input filename.
-    std::shared_ptr<ChVisualShapeTriangleMesh> AddVisualizationMesh(const std::string& mesh_file_left,
-                                                                    const std::string& mesh_file_right);
+    std::shared_ptr<ChVisualShapeTriangleMesh> AddVisualizationMesh(const std::string& mesh_file_left, const std::string& mesh_file_right);
 
     std::shared_ptr<ChWheel> m_wheel;           ///< associated wheel subsystem
     double m_stepsize;                          ///< tire integration step size (if applicable)

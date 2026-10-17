@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// U401 TMeasy tire subsystem
+// HMMWV TMsimple tire subsystem
 //
 // =============================================================================
 
@@ -87,8 +87,6 @@ void HMMWV_TMsimpleTire::RemoveVisualizationAssets() {
     ChTMsimpleTire::RemoveVisualizationAssets();
 }
 
-}  // namespace unimog
+}  // namespace hmmwv
 }  // end namespace vehicle
 }  // end namespace chrono
-
-

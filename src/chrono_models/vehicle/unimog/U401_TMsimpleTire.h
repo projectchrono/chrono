@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// U401 TMeasy tire subsystem
+// U401 TMsimple tire subsystem
 //
 // Updated: 2018-02-24
 // =============================================================================
@@ -31,7 +31,7 @@ namespace unimog {
 /// @addtogroup vehicle_models_unimog
 /// @{
 
-/// TMeasy tire model for the U401.
+/// TMsimple tire model for the U401.
 class CH_MODELS_API U401_TMsimpleTire : public ChTMsimpleTire {
   public:
     U401_TMsimpleTire(const std::string& name);

@@ -1,5 +1,5 @@
 {
-  "Name":     "MAN 7t chassis",
+  "Name":     "MAN 10t chassis",
   "Type":     "Chassis",
   "Template": "RigidChassis",
 
@@ -7,11 +7,11 @@
   [
    {
      "Centroidal Frame":    {
-                              "Location":    [-1.948, 0, 0.744], 
+                              "Location":    [-2.248, 0, 0.744], 
                               "Orientation": [1, 0, 0, 0]
                             },
-     "Mass":                8285,
-     "Moments of Inertia":  [4023, 33309, 34373],
+     "Mass":                10785,
+     "Moments of Inertia":  [5238, 43361, 44746],
      "Products of Inertia": [0, 0, 0],
      "Void":                false
    }
@@ -25,6 +25,6 @@
 
   "Visualization":
   {
-    "Mesh":  "vehicle/MAN_Kat1/meshes/MAN_7t_chassis.obj"
+    "Mesh":  "vehicle/MAN/meshes/MAN_10t_chassis.obj"
   }
 }

@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef MAN5T_TMEASY_TIRE_H
-#define MAN5T_TMEASY_TIRE_H
+#ifndef MAN_TMEASY_TIRE_H
+#define MAN_TMEASY_TIRE_H
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 
@@ -30,11 +30,11 @@ namespace man {
 /// @addtogroup vehicle_models_man
 /// @{
 
-/// TMeasy tire model for the MAN 5t truck vehicle.
-class CH_MODELS_API MAN_5t_TMeasyTire : public ChTMeasyTire {
+/// TMeasy tire model for the MAN truck vehicles.
+class CH_MODELS_API MAN_TMeasyTire : public ChTMeasyTire {
   public:
-    MAN_5t_TMeasyTire(const std::string& name);
-    ~MAN_5t_TMeasyTire() {}
+    MAN_TMeasyTire(const std::string& name);
+    ~MAN_TMeasyTire() {}
 
     virtual double GetVisualizationWidth() const override { return m_width; }
 

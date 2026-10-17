@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// U401 TMeasy tire subsystem
+// HMMWV TMsimple tire subsystem
 //
 // Updated: 2018-02-24
 // =============================================================================
@@ -31,9 +31,9 @@ namespace hmmwv {
 /// @addtogroup vehicle_models_hmmwv
 /// @{
 
-/// TMeasy tire model for the HMMWV.
+/// TMsimple tire model for the HMMWV.
 class CH_MODELS_API HMMWV_TMsimpleTire : public ChTMsimpleTire {
-   public:
+  public:
     HMMWV_TMsimpleTire(const std::string& name);
     ~HMMWV_TMsimpleTire() {}
 
@@ -48,7 +48,7 @@ class CH_MODELS_API HMMWV_TMsimpleTire : public ChTMsimpleTire {
 
     void GenerateCharacteristicPlots(const std::string& dirname);
 
-   private:
+  private:
     static const double m_mass;
     static const ChVector3d m_inertia;
 

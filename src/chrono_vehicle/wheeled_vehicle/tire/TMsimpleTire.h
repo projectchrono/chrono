@@ -30,7 +30,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// TMeasy tire constructed with data from file (JSON format).
+/// TMsimple tire constructed with data from file (JSON format).
 class CH_VEHICLE_API TMsimpleTire : public ChTMsimpleTire {
   public:
     TMsimpleTire(const std::string& filename);

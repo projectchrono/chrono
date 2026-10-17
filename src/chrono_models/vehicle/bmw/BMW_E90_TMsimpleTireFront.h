@@ -31,7 +31,7 @@ namespace bmw {
 /// @addtogroup vehicle_models_bmw
 /// @{
 
-/// TMeasy tire model for the BMW 330i.
+/// TMsimple tire model for the BMW 330i.
 class CH_MODELS_API BMW_E90_TMsimpleTireFront : public ChTMsimpleTire {
   public:
     BMW_E90_TMsimpleTireFront(const std::string& name);

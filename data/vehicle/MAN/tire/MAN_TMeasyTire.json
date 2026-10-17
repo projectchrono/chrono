@@ -27,7 +27,7 @@
 
   // ------------------------------------------------
   // Load index specification.
-  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+  // Takes priority over "bearing capacity" (used only if a full parametrization not provided)
 
   "Load Index": 164,
 
@@ -45,8 +45,8 @@
   // Visualization mesh (OPTIONAL)
 
   "Visualization": {
-    "Mesh Filename Left": "MAN_Kat1/meshes/MAN_tire.obj",
-    "Mesh Filename Right": "MAN_Kat1/meshes/MAN_tire.obj"
+    "Mesh Filename Left": "MAN/meshes/MAN_tire.obj",
+    "Mesh Filename Right": "MAN/meshes/MAN_tire.obj"
   }
 
 }
