@@ -35,6 +35,8 @@
     #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
 
+#include "chrono_thirdparty/rapidxml/rapidxml.hpp"
+
 #include "precice/precice.hpp"
 
 namespace chrono {
@@ -59,12 +61,28 @@ class ChApiPrecice ChPreciceAdapter {
     enum class CouplingDataType {
         GENERIC,             ///< generic data
         POSITIONS,           ///< 3D positions (of body ref frames, body points, or FEA nodes)
-        ROTATIONS,           ///< 3D rotations (of body ref frames)
+        ROTATIONS,           ///< 3D rotations (of body ref frames, expressed as rotation vectors)
         DISPLACEMENTS,       ///< 3D displacements (relative to initial position)
         LINEAR_VELOCITIES,   ///< 3D velocities (of body ref frames, body points, or FEA nodes)
         ANGULAR_VELOCITIES,  ///< 3D angular velocities (of body ref frames)
         FORCES,              ///< 3D forces (on body ref frames, body points, or FEA nodes)
         TORQUES              ///< 3D torques (on body ref frames)
+    };
+
+    /// Point within the coupling time window at which data from other participants is sampled.
+    /// preCICE associates data written by a participant during a time window with the *end* of that
+    /// window; reading at the start of the window therefore returns the value produced during the
+    /// *previous* window.
+    enum class CouplingReadTime {
+        /// Read data valid at the beginning of the coupling time window (default). Every participant
+        /// then consumes data produced by the others during the previous window, so a force sent from
+        /// a fluid to a solid phase lags the solid state it was evaluated at by one window.
+        WINDOW_START,
+        /// Read data valid at the end of the coupling time window. Only meaningful for the participant
+        /// listed as `second` in a serial coupling scheme: that participant runs after the `first` one
+        /// within each window, so the data the `first` participant produced in the current window is
+        /// already available. This removes the one-window lag described above.
+        WINDOW_END
     };
 
     virtual ~ChPreciceAdapter() {}
@@ -119,11 +137,6 @@ class ChApiPrecice ChPreciceAdapter {
     /// Get the name of the Chrono model.
     const std::string& GetModelName() const { return m_model_name; }
 
-    // ---- preCICE participant registration
-
-    /// Register the participant with preCICE, using the specified preCICE configuration file, and the solver process size and index.
-    void RegisterParticipant(const std::string& precice_config_filename, int process_index = 0, int process_size = 1);
-
     // ---- Accessor functions
 
     /// Get the number of spatial dimensions for the mesh with specified name.
@@ -159,6 +172,15 @@ class ChApiPrecice ChPreciceAdapter {
     /// Get the maximum time step size from preCICE.
     double GetMaxTimeStepSize() const;
 
+    /// Set the point within the coupling time window at which data from other participants is read
+    /// (default: CouplingReadTime::WINDOW_START).
+    /// The setting is checked against the coupling scheme declared in the preCICE configuration file
+    /// during initialization; see CouplingReadTime. Must be set before InitializeSimulation().
+    void SetCouplingReadTime(CouplingReadTime read_time) { m_coupling_read_time = read_time; }
+
+    /// Get the point within the coupling time window at which data from other participants is read.
+    CouplingReadTime GetCouplingReadTime() const { return m_coupling_read_time; }
+
     /// Get the preCICE participant name.
     const std::string& GetParticipantName() const;
 
@@ -183,13 +205,13 @@ class ChApiPrecice ChPreciceAdapter {
     /// Check if the time window has completed.
     bool IsTimeWindowComplete();
 
-    /// Wrapper function for initializing the coupled simulation for this participant.
+    /// Create the participant (using the specified solver process size and index) and initialize the coupled simulation for this participant.
     /// The participant initializes the output data (if needed), after which the coupling is initialized.
     /// The operations performed by this function are:
     /// - initialize the participant solver
     /// - let participant to write initial data (if requested)
     /// - initialize the preCICE coupling for this participant
-    void InitializeSimulation();
+    void InitializeSimulation(int process_index = 0, int process_size = 1);
 
     /// Wrapper function for performing the simulation loop.
     /// While coupling is ongoing, at each iteration, the participant:
@@ -209,7 +231,8 @@ class ChApiPrecice ChPreciceAdapter {
     void FinalizeSimulation();
 
   protected:
-    ChPreciceAdapter(const std::string& model_name = "");
+    ChPreciceAdapter(const std::string& precice_config_filename, const std::string& model_name = "", bool verbose = false);
+
     ChPreciceAdapter(const ChPreciceAdapter&) = delete;
     void operator=(const ChPreciceAdapter&) = delete;
 
@@ -265,7 +288,15 @@ class ChApiPrecice ChPreciceAdapter {
 
     // ---- Data exchange
 
-    // Set the (write) data vector for the specified mesh and data names.
+    /// Receive data from other participant(s) via preCICE.
+    /// The received data is then passed to the concrete participant (via `OnReadData`).
+    void ReadData();
+
+    /// Send data to other participant(s) via preCICE.
+    /// The concrete participant first prepares the data to be sent (via `OnWriteData`).
+    void WriteData();
+
+    /// Set the (write) data vector for the specified mesh and data names.
     void SetDataBlock(const std::string& mesh_name, const std::string& data_name, const std::vector<double>& data);
 
     /// Write (send) a block of data to preCICE.
@@ -291,12 +322,17 @@ class ChApiPrecice ChPreciceAdapter {
     /// Write the solver state to a checkpoint if required by preCICE.
     /// If requested by preCISE, this function invokes the solver-specific checkpoint writing function.
     /// The return value indicates whether a checkpoint was written.
-    bool WriteCheckpointIfRequired(double time);
+    bool WriteCheckpoint(double time);
 
     /// Read the solver state from a checkpoint if required by preCICE.
     /// If requested by preCISE, this function invokes the solver-specific checkpoint reading function.
     /// The return value indicates whether a checkpoint was read.
-    bool ReadCheckpointIfRequired(double time);
+    bool ReadCheckpoint(double time);
+
+    // ---- Output
+
+    /// Prepare output database (if needed) and let the concrete participant write output.
+    void WriteOutput(int frame, double time);
 
     // ---- Participant/solver-specific functions to be implemented by derived classes
 
@@ -305,26 +341,24 @@ class ChApiPrecice ChPreciceAdapter {
     /// After the call to InitializeParticipant, it is assumed that the coupling meshes have been set.
     virtual void InitializeParticipant() = 0;
 
-    /// Let the derived class implement the actual checkpoint writing if required by preCICE.
-    virtual void WriteCheckpoint(double time) = 0;
-
-    /// Let the derived class implement the actual checkpoint reading if required by preCICE.
-    /// The solver from a derived class must restore its state at the values in the last saved checkpoint and, if needed, reset its internal time to the provided value.
-    virtual void ReadCheckpoint(double time) = 0;
-
-    /// Read data from other solvers.
+    /// Process data received from other solvers.
     /// A derived class must:
-    /// - *call* the base class function to receive data from preCICE
     /// - perform any necessary processing of the data now stored in m_coupling_meshes
     /// - only access data from entries with names in m_data_read
-    virtual void ReadData() = 0;
+    virtual void OnReadData() = 0;
 
-    /// Write data for other solvers.
+    /// Prepare data to be sent to other solvers.
     /// A derived class must:
     /// - prepare the data to be sent and load it in m_coupling_meshes
     /// - only access data from entries with names in m_data_write
-    /// - *call* the base class function to send data to preCICE
-    virtual void WriteData() = 0;
+    virtual void OnWriteData() = 0;
+
+    /// Read a previously saved checkpoint (if required by preCICE).
+    /// The solver from a derived class must restore its state at the values in the last saved checkpoint and, if needed, reset its internal time to the provided value.
+    virtual void OnReadCheckpoint(double time) = 0;
+
+    /// Write a checkpoint (if required by preCICE).
+    virtual void OnWriteCheckpoint(double time) = 0;
 
     /// Let the derived class implement the actual computation of the solver time step based on the maximum time step provided by preCICE.
     /// The default implementation simply returns the maximum time step provided by preCICE, but derived classes can override this to implement custom time-stepping logic.
@@ -339,9 +373,8 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Write output from the Chrono preCICE participant.
     /// A derived class must:
-    /// - *call* the base class function to create the output DB as necessary.
     /// - write output to the DB
-    virtual void WriteOutput(int frame, double time) = 0;
+    virtual void OnWriteOutput(int frame, double time) = 0;
 
     // ---- Common functions
 
@@ -392,11 +425,14 @@ class ChApiPrecice ChPreciceAdapter {
 
     std::string m_model_name;  ///< Chrono model name
 
+    std::string m_precice_config_filename;  ///< name of the preCICE configuration file
+    bool m_use_added_mass;                  ///<
+    bool m_use_dynamic_added_mass;          ///<
+
+    CouplingReadTime m_coupling_read_time;  ///< where in the time window read data is sampled
+
     std::unique_ptr<precice::Participant> m_participant;  ///< preCICE instance
-    std::string m_precice_config_filename;                ///< name of the preCICE configuration file
-    std::string m_participant_name;                       ///< name of the participant/solver
-    int m_process_size;                                   ///< number of processes used by an instance of this solver
-    int m_process_index;                                  ///< index for each process used by this solver
+    std::string m_participant_name;                       ///< name of the Chrono preCICE participant/solver
 
     CouplingMeshes m_coupling_meshes;  ///< data for all coupling meshes
     MeshDataNames m_data_read;         ///< input data names for all coupling meshes
@@ -404,7 +440,6 @@ class ChApiPrecice ChPreciceAdapter {
 
     bool m_interfaces_created;   ///< true if the data interfaces were created
     bool m_participant_created;  ///< true if the preCICE participant was created
-    bool m_mesh_created;         ///< true if preCICE coupling meshes were created
     bool m_initialized;          ///< true if preCICE participant was initialized
 
     bool m_verbose;         ///< verbose terminal output
@@ -430,8 +465,67 @@ class ChApiPrecice ChPreciceAdapter {
 #endif
 
   private:
-    /// Check consistency between the preCICE configuration and Chrono adapter configuration.
-    void CheckConsistency();
+    /// Parse preCICE configuration.
+    /// - Cache mesh and data information,
+    /// - Check if using added mass.
+    void ParseXML();
+
+    /// Process preCICE configuration information.
+    /// - Check consistency with the Chrono adapter configuration,
+    /// - Mark mesh data as used (referenced) or not.
+    void ProcessXML();
+
+    /// Check the configured coupling read time against the coupling scheme found in the preCICE
+    /// configuration file. Throws if preCICE cannot honor the request (reading at the end of the window
+    /// on a participant that runs first, or under a scheme with no serial ordering) and warns if the
+    /// request leaves the coupling lagging by one time window.
+    void ValidateCouplingReadTime() const;
+
+    MeshDataNames m_defined_meshes;                          ///< meshes defined in preCICE configuration file
+    std::map<std::string, MeshDataNames> m_provided_meshes;  ///< meshes provided by a participant
+
+    bool m_serial_coupling;            ///< true if the configuration declares a serial coupling scheme
+    std::string m_first_participant;   ///< participant listed as 'first' in a serial coupling scheme
+    std::string m_second_participant;  ///< participant listed as 'second' in a serial coupling scheme
+
+  protected:
+    /// Return dimension of one added mass block.
+    /// Called only is using dynamic added mass.
+    virtual size_t GetNumFsiBodies() const;
+
+    /// Process added mass data received via preCICE.
+    /// Called only if using dynamic added mass on a receiving participant.
+    /// Must be overridden if using dynamic added mass and this is a sending participant; the default implementation throws in that case.
+    virtual void OnReadDataAM(const std::vector<ChMatrix66d>& blocks);
+
+    /// Prepare added mass data to be sent via preCICE.
+    /// Called only if using dynamic added mass on a sending participant.
+    /// Must be overridden if using dynamic added mass and this is a sending participant; the default implementation throws in that case.
+    /// On entry, `blocks` is sized to the number of FSI bodies (as reported by `GetNumFsiBodies`) and is zero-initialized.
+    /// The override is expected to set the 6x6 added mass block for every FSI body; any block left untouched is sent as a zero block.
+    virtual void OnWriteDataAM(std::vector<ChMatrix66d>& blocks);
+
+  private:
+    /// Create and register internal exchange mesh for added mass information.
+    /// The approach used here is based on a "pseudo reference domain":
+    /// - use a fictitious mesh with coordinates encoding the FSI body and matrix row and column in the corresponding added mass block.
+    /// - define scalar data on this mesh (each value is an entry in the added mass diagonal block for a body).
+    /// - apply a nearest-neighbor mapping to pass generic arrays representing updates to the added mass generalized mass matrix term.
+    void RegisterMeshAM();
+
+    /// Read added mass data (if using dynamic added mass and if on a receiving participant).
+    /// The received data is then passed to the concrete participant (via `OnReadDataAM`).
+    void ReadDataAM();
+
+    /// Write added mass data (if using dynamic added mass and if on a receiving participant).
+    /// The concrete participant first prepares the data to be sent (via `OnWriteDataAM`).
+    void WriteDataAM();
+
+    bool m_AMmesh_write = false;
+    bool m_AMmesh_read = false;
+    std::string m_AMmesh_name;
+    std::vector<int> m_AMmesh_vertexIDs;
+    std::vector<double> m_AMmesh_values;
 };
 
 /// @} precice_module

@@ -26,6 +26,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -322,7 +323,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
+%shared_ptr(chrono::vehicle::ChWheelTestRigBase)
 %shared_ptr(chrono::vehicle::ChWheelTestRig)
+%shared_ptr(chrono::vehicle::ChWheelSuspensionTestRig)
 
 %shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChSprocket)

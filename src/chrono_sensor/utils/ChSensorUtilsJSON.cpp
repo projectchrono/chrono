@@ -23,14 +23,14 @@
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     #include "chrono_sensor/filters/ChFilterCameraNoise.h"
     #include "chrono_sensor/filters/ChFilterVisualize.h"
     #include "chrono_sensor/filters/ChFilterSave.h"
     #include "chrono_sensor/filters/ChFilterGrayscale.h"
     #include "chrono_sensor/filters/ChFilterImageOps.h"
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     #include "chrono_sensor/filters/ChFilterLidarNoise.h"
     #include "chrono_sensor/filters/ChFilterLidarIntensityClip.h"
     #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
@@ -40,7 +40,7 @@
     #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
     #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 #endif
 #ifdef CHRONO_HAS_OPTIX
@@ -85,12 +85,12 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::share
     } else if (sensor_type.compare("Magnetometer") == 0) {
         sensor = ReadMagnetometerSensorJSON(filename, parent, offsetPose);
     }
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (sensor_type.compare("Camera") == 0) {
         sensor = ReadCameraSensorJSON(filename, parent, offsetPose);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (sensor_type.compare("Lidar") == 0) {
         sensor = ReadLidarSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("Radar") == 0) {
@@ -104,7 +104,7 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::share
     return sensor;
 }
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 
 std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename, std::shared_ptr<ChBody> parent, ChFrame<double> offsetPose) {
     Document d;
@@ -161,7 +161,7 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
 
 #endif
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 
 std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename, std::shared_ptr<ChBody> parent, ChFrame<double> offsetPose) {
     Document d;
@@ -482,7 +482,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
     if (type.compare("ChFilterAccelerometerUpdate") == 0) {
         //// TODO
     }
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterCameraNoiseConstNormal") == 0) {
         float mean = value["Mean"].GetFloat();
         float stdev = value["Standard Deviation"].GetFloat();
@@ -495,7 +495,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterCameraNoisePixDep>(variance_slope, variance_intercept, name);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterLidarNoiseXYZI") == 0) {
         float stdev_range = value["Standard Deviation Range"].GetFloat();
         float stdev_v_angle = value["Standard Deviation Vertical Angle"].GetFloat();
@@ -505,7 +505,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterLidarNoiseXYZI>(stdev_range, stdev_v_angle, stdev_h_angle, stdev_intensity, name);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterVisualize") == 0) {
         int w = value["Width"].GetInt();
         int h = value["Height"].GetInt();
@@ -516,13 +516,13 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterSave>(data_path);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterSavePtCloud") == 0) {
         std::string data_path = GetStringMemberWithDefault(value, "Data Path");
         filter = chrono_types::make_shared<ChFilterSavePtCloud>(data_path);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterGrayscale") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterGrayscale>(name);
@@ -534,7 +534,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterRGBA8Access>(name);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterXYZIAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterXYZIAccess>(name);
@@ -543,7 +543,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterDIAccess>(name);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterAccelAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterAccelAccess>(name);
@@ -558,7 +558,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterGPSAccess>(name);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterPCfromDepth") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterPCfromDepth>(name);
@@ -598,7 +598,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterRadarXYZAccess>(name);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterVisualizePointCloud") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         int w = value["Width"].GetInt();
@@ -607,7 +607,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         filter = chrono_types::make_shared<ChFilterVisualizePointCloud>(w, h, zoom, name);
     }
 #endif
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     else if (type.compare("ChFilterImageResize") == 0) {
         int w = value["Width"].GetInt();
         int h = value["Height"].GetInt();

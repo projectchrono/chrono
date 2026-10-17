@@ -27,6 +27,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -147,11 +148,10 @@ using namespace gui;
 
 #endif             // --------------------------------------------------------------------- CSHARP
 
-%include "IReferenceCounted.h"                         //// RADU: REMOVE?
-%include "IImage.h"                                    //// RADU: REMOVE?
-%include "IImageWriter.h"                              //// RADU: REMOVE?
-%ignore irr::io::createWriteFile;                      //// RADU: REMOVE?
-%include "IWriteFile.h"                                //// RADU: REMOVE?
+// These headers were also included here, before SColor.h and SMaterial.h. Since SWIG parses
+// each file only once, that first (too early) parse was the effective one and left IImage
+// referring to SColor and ECOLOR_FORMAT as opaque placeholders. They are included below, in
+// the correct position.
 %include "irrTypes.h"
 %include "vector2d.h"
 %template(vector2df) irr::core::vector2d<irr::f32>;
@@ -165,8 +165,8 @@ using namespace gui;
 %template(rectf) irr::core::rect<irr::f32>;
 %template(recti) irr::core::rect<irr::s32>;
 %include "SColor.h"
-%include "SMaterial.h"
 %include "SMaterialLayer.h"
+%include "SMaterial.h"
 %include "IReferenceCounted.h"
 %include "IImage.h"
 %include "IImageWriter.h"

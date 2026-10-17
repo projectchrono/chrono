@@ -161,7 +161,7 @@ CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
 
 #endif
 
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
 // Retriever functions for host-visible Vulkan RT buffers.  These mirror the OptiX
 // specializations above so existing Sensor client code can keep using

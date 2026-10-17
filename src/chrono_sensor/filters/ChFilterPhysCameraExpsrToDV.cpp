@@ -24,14 +24,17 @@
 // =============================================================================
 
 #include "chrono_sensor/ChConfigSensor.h"
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
-#include "chrono_sensor/filters/ChFilterPhysCameraExpsrToDV.h"
+    #include "chrono_sensor/filters/ChFilterPhysCameraExpsrToDV.h"
+    #ifdef CHRONO_HAS_METAL_RT
+        #include "chrono_sensor/metal/ChMetalPhysCamOps.h"
+    #endif
 
-#include <algorithm>
-#include <cmath>
-#include <memory>
-#include <stdexcept>
+    #include <algorithm>
+    #include <cmath>
+    #include <memory>
+    #include <stdexcept>
 
 namespace chrono {
 namespace sensor {
@@ -73,6 +76,13 @@ CH_SENSOR_API void ChFilterPhysCameraExpsrToDV::Apply() {
     m_buffer_out->Height = m_buffer_in->Height;
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
     m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;
+    if (m_crf_type < 0 || m_crf_type > 2)
+        throw std::runtime_error("Invalid camera response function type");
+    #ifdef CHRONO_HAS_METAL_RT
+    if (metal_phys_cam::ExpsrToDV(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), m_buffer_in->Width, m_buffer_in->Height, m_ISO, m_expsr2dv_gains, m_expsr2dv_biases,
+                                  m_expsr2dv_gamma, m_crf_type))
+        return;
+    #endif
     const size_t count = static_cast<size_t>(m_buffer_in->Width) * m_buffer_in->Height;
     for (size_t i = 0; i < count; ++i) {
         const auto& in = m_buffer_in->Buffer[i];

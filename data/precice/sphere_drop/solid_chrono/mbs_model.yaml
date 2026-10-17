@@ -11,7 +11,7 @@ model:
   bodies:
     - name: ball
       location: [0, 0, 0.18]
-      mass: 3.62
+      mass: 3.522
       inertia:
         moments: [0.021, 0.021, 0.021]
       visualization:

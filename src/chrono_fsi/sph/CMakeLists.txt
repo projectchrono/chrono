@@ -212,6 +212,9 @@ set(FSISPH_STB_FILES
 )
 source_group("stb" FILES ${FSISPH_STB_FILES})
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${FSISPH_STB_FILES})
+
 # --------------- SPH FSI VSG INTERFACE
 
 if(CH_ENABLE_MODULE_VSG)
@@ -280,6 +283,16 @@ if(MSVC)
   target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>)   # unreferenced formal parameter (forward to host compiler for .cu files)
   target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4324>)   # structure padded due to alignment specifier
   target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--diag-suppress=1394>) # missing DLL interface (matches /wd4251 for CXX)
+
+  # Debug only: MSVC raises _ITERATOR_DEBUG_LEVEL to 2, which makes standard iterators
+  # derive from std::_Iterator_base12, whose copy constructor and destructor are host-only.
+  # The implicitly-generated members of cuda::std::pair are __host__ __device__, so their
+  # host instantiation over such an iterator reports #20011. The device path is never taken
+  # for these host-side types, and the warning cannot arise in Release, where
+  # _ITERATOR_DEBUG_LEVEL is 0 and _Iterator_base12 drops out of the hierarchy. Keep the
+  # diagnostic enabled in Release so a genuine __host__ call from device code still shows up.
+  target_compile_options(Chrono_fsisph PRIVATE
+                         $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CONFIG:Debug>>:--diag-suppress=20011>)
   set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
@@ -317,8 +330,17 @@ chrono_apply_gpu_backend(Chrono_fsisph ${CHRONO_FSISPH_BACKEND}
 if(CHRONO_FSISPH_BACKEND STREQUAL "CUDA")
 
   target_link_libraries(Chrono_fsisph PUBLIC Thrust::Thrust)
-  target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-  target_compile_definitions(Chrono_fsisph PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+
+  # PRIVATE for the same reason the HIP branch below exports nothing: no installed
+  # Chrono::FSI::SPH header includes <thrust/...>, so no consumer needs a Thrust
+  # configuration from us. Exporting one put THRUST_DEVICE_SYSTEM_CUDA on the command
+  # line of every consumer, where it collided with the THRUST_DEVICE_SYSTEM_OMP that
+  # Chrono::Multicore exports - two different values, last one silently winning, and a
+  # macro redefinition warning on every target linking both (several vehicle demos).
+  # Consumers that do include Thrust keep their own default; the nvcc default is CUDA,
+  # which is what Chrono::Sensor needs for the one .cu file where it uses Thrust.
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+  target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
 elseif(CHRONO_FSISPH_BACKEND STREQUAL "HIP")
 

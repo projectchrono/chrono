@@ -36,7 +36,7 @@ API differences that matter most
    - CRM: call `Construct(...)` (box, heightmap, or particle/BCE files), then `Initialize()`.
 3. Soil model parameters:
    - SCM: `SetSoilParameters(...)` or `RegisterSoilParametersCallback(...)`.
-   - CRM: `SetElasticSPH(...)` and `SetSPHParameters(...)` (SPH material + solver settings).
+   - CRM: `SetCrmSPH(...)` and `SetSPHParameters(...)` (SPH material + solver settings).
 4. Vehicle/solid coupling:
    - SCM: vehicle interaction comes through regular Chrono contact shapes (no explicit FSI registration).
    - CRM: you must explicitly add interacting solids to FSI (`AddRigidBody(...)`, `AddFeaMesh(...)`), so BCE markers are
@@ -72,7 +72,7 @@ terrain.SetGravitationalAcceleration({0, 0, -9.81});
 terrain.SetStepSizeCFD(step_size);
 terrain.RegisterVehicle(vehicle.get());           // recommended in vehicle demos
 
-terrain.SetElasticSPH(mat_props);
+terrain.SetCrmSPH(mat_props);
 terrain.SetSPHParameters(sph_params);
 
 terrain.AddRigidBody(spindle, geometry, false);  // or AddFeaMesh(...)

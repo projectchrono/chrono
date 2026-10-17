@@ -57,7 +57,13 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
         return YamlFileType::FSI;
     if (type == "VEHICLE")
         return YamlFileType::VEHICLE;
-    return YamlFileType::UNKNOWN;
+    if (type == "CUSTOM")
+        return YamlFileType::CUSTOM;
+
+    // Report an unrecognized value rather than letting it pass as a deliberate CUSTOM declaration:
+    // a misspelled type would otherwise be indistinguishable from a file meant for application code.
+    cerr << "Warning: unrecognized YAML file type '" << a.as<std::string>() << "'; treating it as CUSTOM." << endl;
+    return YamlFileType::CUSTOM;
 }
 
 // -----------------------------------------------------------------------------

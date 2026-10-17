@@ -9,7 +9,7 @@
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive):
 #   Cascade, CSharp, DEM, FMI, FSI, FSI_SPH, FSI_TDPF, Irrlicht,
-#   Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess,
+#   Modal, Multicore, PardisoMKL, Parsers, Postprocess,
 #   Sensor, Synchrono, Vehicle, VehicleCosim, VSG.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
@@ -129,7 +129,6 @@ set(CHRONO_CUDA_ARCHITECTURES "@CHRONO_CUDA_ARCHITECTURES@")
 
 set(Chrono_CASCADE_AVAILABLE        @CH_ENABLE_MODULE_CASCADE@)
 set(Chrono_IRRLICHT_AVAILABLE       @CH_ENABLE_MODULE_IRRLICHT@)
-set(Chrono_MATLAB_AVAILABLE         @CH_ENABLE_MODULE_MATLAB@)
 set(Chrono_PARDISOMKL_AVAILABLE     @CH_ENABLE_MODULE_PARDISO_MKL@)
 set(Chrono_MUMPS_AVAILABLE          @CH_ENABLE_MODULE_MUMPS@)
 set(Chrono_MULTICORE_AVAILABLE      @CH_ENABLE_MODULE_MULTICORE@)
@@ -164,7 +163,6 @@ endif()
 
 set(Chrono_CASCADE_DEPENDENCIES        "@DEPENDENCIES_CASCADE@")
 set(Chrono_IRRLICHT_DEPENDENCIES       "@DEPENDENCIES_IRRLICHT@")
-set(Chrono_MATLAB_DEPENDENCIES         "@DEPENDENCIES_MATLAB@")
 set(Chrono_PARDISOMKL_DEPENDENCIES     "@DEPENDENCIES_PARDISO_MKL@")
 set(Chrono_MUMPS_DEPENDENCIES          "@DEPENDENCIES_MUMPS@")
 set(Chrono_MULTICORE_DEPENDENCIES      "@DEPENDENCIES_MULTICORE@")
@@ -1103,27 +1101,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
         mark_as_advanced(CLEAR urdfdom_headers_DIR)
         mark_as_advanced(CLEAR console_bridge_DIR)
         mark_as_advanced(CLEAR tinyxml2_DIR)
-      endif()
-    endif()
-
-
-  elseif(${COMPONENT_UPPER} STREQUAL "MATLAB")
-
-    set(Matlab_ROOT_DIR "@Matlab_ROOT_DIR@" CACHE PATH "Matlab installation root path.")
-    find_package(Matlab COMPONENTS MAT_LIBRARY ENG_LIBRARY QUIET)
-
-    if(NOT Matlab_FOUND)
-      message("WARNING: Could not find Matlab.")
-      set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR Matlab_ROOT_DIR)
-    else()
-      mark_as_advanced(FORCE Matlab_ROOT_DIR)
-    endif()
-
-    if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "Chrono_matlab")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "Chrono_matlab.dll")
       endif()
     endif()
 

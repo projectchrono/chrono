@@ -49,6 +49,7 @@
         @defgroup sensor_cuda CUDA wrapper functions
         @defgroup sensor_optix OptiX-based code
         @defgroup sensor_vulkan Vulkan ray tracing backend
+        @defgroup sensor_metal Metal ray tracing backend
         @defgroup sensor_scene Scene
         @defgroup sensor_utils Utilities
     @}

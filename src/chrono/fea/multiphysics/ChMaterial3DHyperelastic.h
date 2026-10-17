@@ -68,6 +68,14 @@ public:
 
         // Use the hyperelastic tangent modulus computation
         ComputeElasticTangentModulus(C, C_deformation);
+
+        // A hyperelastic material has no rate dependence, so the damping tangent modulus is zero.
+        // It must still be initialized whenever the caller provides it: the caller passes a non-null D
+        // whenever Rfactor != 0 (as done by the implicit timesteppers), regardless of
+        // IsSpatialVelocityGradientNeeded(). Leaving D untouched would feed uninitialized memory into
+        // H += Rfactor * (B' * D * B) in ChFEModelDeformation::PointComputeKRMmatrices().
+        if (D)
+            D->setZero();
     };
 
     /// Hyperelastic materials do not need info on the spatial velocity gradient  l=\nabla_x v ,

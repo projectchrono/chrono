@@ -58,7 +58,9 @@ CH_SENSOR_API ChOptixScene::~ChOptixScene() {
 
 /// Point light ///
 
-CH_SENSOR_API unsigned int ChOptixScene::AddPointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
+// Build the device-side light from the public parameters. Shared by AddPointLight and by the
+// backend-neutral ModifyPointLight so the two cannot drift apart.
+static ChOptixLight MakePointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::POINT_LIGHT;
     light.pos = {pos.x(), pos.y(), pos.z()};
@@ -66,26 +68,38 @@ CH_SENSOR_API unsigned int ChOptixScene::AddPointLight(ChVector3f pos, ChColor c
     light.specific.point.color = {color.R, color.G, color.B};
     light.specific.point.max_range = max_range;
     light.specific.point.const_color = const_color;
-    
+
     // Calculate extended parameters
     light.specific.point.atten_scale = (max_range > 0) ? (0.01 * max_range * max_range) : 1.f;
 
-    m_lights.push_back(light);
+    return light;
+}
+
+CH_SENSOR_API unsigned int ChOptixScene::AddPointLight(ChVector3f pos, ChColor color, float max_range, bool const_color) {
+    m_lights.push_back(MakePointLight(pos, color, max_range, const_color));
     lights_changed = true;
 
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
 CH_SENSOR_API void ChOptixScene::ModifyPointLight(unsigned int id, const ChOptixLight& point_light) {
-    if (id <= m_lights.size() && point_light.light_type == LightType::POINT_LIGHT) {
+    if (id < m_lights.size() && point_light.light_type == LightType::POINT_LIGHT) {
         m_lights[id] = point_light;
+        lights_changed = true;
+    }
+}
+
+CH_SENSOR_API void ChOptixScene::ModifyPointLight(unsigned int id, ChVector3f pos, ChColor color, float max_range, bool const_color) {
+    if (id < m_lights.size()) {
+        m_lights[id] = MakePointLight(pos, color, max_range, const_color);
         lights_changed = true;
     }
 }
 
 /// ---- Directional light ---- ///
 
-CH_SENSOR_API unsigned int ChOptixScene::AddDirectionalLight(ChColor color, float elevation, float azimuth) {
+// Shared by AddDirectionalLight and the backend-neutral ModifyDirectionalLight.
+static ChOptixLight MakeDirectionalLight(ChColor color, float elevation, float azimuth) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::DIRECTIONAL_LIGHT;
     light.pos = {0.f, 0.f, 0.f};
@@ -97,24 +111,34 @@ CH_SENSOR_API unsigned int ChOptixScene::AddDirectionalLight(ChColor color, floa
     // Calculate extended parameters
     light.specific.directional.light_dir = {cosf(elevation) * cosf(azimuth), cosf(elevation) * sinf(azimuth), sinf(elevation)};
 
-    m_lights.push_back(light);
+    return light;
+}
+
+CH_SENSOR_API unsigned int ChOptixScene::AddDirectionalLight(ChColor color, float elevation, float azimuth) {
+    m_lights.push_back(MakeDirectionalLight(color, elevation, azimuth));
     lights_changed = true;
 
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
 CH_SENSOR_API void ChOptixScene::ModifyDirectionalLight(unsigned int id, const ChOptixLight& directional_light) {
-    if (id <= m_lights.size() && directional_light.light_type == LightType::DIRECTIONAL_LIGHT) {
+    if (id < m_lights.size() && directional_light.light_type == LightType::DIRECTIONAL_LIGHT) {
         m_lights[id] = directional_light;
+        lights_changed = true;
+    }
+}
+
+CH_SENSOR_API void ChOptixScene::ModifyDirectionalLight(unsigned int id, ChColor color, float elevation, float azimuth) {
+    if (id < m_lights.size()) {
+        m_lights[id] = MakeDirectionalLight(color, elevation, azimuth);
         lights_changed = true;
     }
 }
 
 /// ---- Spot light ---- ///
 
-CH_SENSOR_API unsigned int ChOptixScene::AddSpotLight(
-    ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float angle_falloff_start, float angle_range, bool const_color
-) {
+// Shared by AddSpotLight and the backend-neutral ModifySpotLight.
+static ChOptixLight MakeSpotLight(ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float angle_falloff_start, float angle_range, bool const_color) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::SPOT_LIGHT;
     light.pos = make_float3(pos.x(), pos.y(), pos.z());
@@ -138,24 +162,42 @@ CH_SENSOR_API unsigned int ChOptixScene::AddSpotLight(
     // Calculate extended parameters
     light.specific.spot.atten_scale = (max_range > 0) ? (0.01 * max_range * max_range) : 1.f;
 
-    m_lights.push_back(light);
+    return light;
+}
+
+CH_SENSOR_API unsigned int
+ChOptixScene::AddSpotLight(ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float angle_falloff_start, float angle_range, bool const_color) {
+    m_lights.push_back(MakeSpotLight(pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color));
     lights_changed = true;
 
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
 CH_SENSOR_API void ChOptixScene::ModifySpotLight(unsigned int id, const ChOptixLight& spot_light) {
-    if (id <= m_lights.size() && spot_light.light_type == LightType::SPOT_LIGHT) {
+    if (id < m_lights.size() && spot_light.light_type == LightType::SPOT_LIGHT) {
         m_lights[id] = spot_light;
+        lights_changed = true;
+    }
+}
+
+CH_SENSOR_API void ChOptixScene::ModifySpotLight(unsigned int id,
+                                                 ChVector3f pos,
+                                                 ChColor color,
+                                                 float max_range,
+                                                 ChVector3f light_dir,
+                                                 float angle_falloff_start,
+                                                 float angle_range,
+                                                 bool const_color) {
+    if (id < m_lights.size()) {
+        m_lights[id] = MakeSpotLight(pos, color, max_range, light_dir, angle_falloff_start, angle_range, const_color);
         lights_changed = true;
     }
 }
 
 /// ---- Rectangle light ---- ///
 
-CH_SENSOR_API unsigned int ChOptixScene::AddRectangleLight(
-    ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color
-) {
+// Shared by AddRectangleLight and the backend-neutral ModifyRectangleLight.
+static ChOptixLight MakeRectangleLight(ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::RECTANGLE_LIGHT;
     light.pos = make_float3(pos.x(), pos.y(), pos.z());
@@ -172,25 +214,36 @@ CH_SENSOR_API unsigned int ChOptixScene::AddRectangleLight(
     light.specific.rectangle.area = light_dir.Length();
     light_dir = light_dir / light_dir.Length();
     light.specific.rectangle.light_dir = make_float3(light_dir.x(), light_dir.y(), light_dir.z());
-    
-    m_lights.push_back(light);
+
+    return light;
+}
+
+CH_SENSOR_API unsigned int ChOptixScene::AddRectangleLight(ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color) {
+    m_lights.push_back(MakeRectangleLight(pos, color, max_range, length_vec, width_vec, const_color));
     lights_changed = true;
 
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
 CH_SENSOR_API void ChOptixScene::ModifyRectangleLight(unsigned int id, const ChOptixLight& rectangle_light) {
-    if (id <= m_lights.size() && rectangle_light.light_type == LightType::RECTANGLE_LIGHT) {
+    if (id < m_lights.size() && rectangle_light.light_type == LightType::RECTANGLE_LIGHT) {
         m_lights[id] = rectangle_light;
+        lights_changed = true;
+    }
+}
+
+CH_SENSOR_API void
+ChOptixScene::ModifyRectangleLight(unsigned int id, ChVector3f pos, ChColor color, float max_range, ChVector3f length_vec, ChVector3f width_vec, bool const_color) {
+    if (id < m_lights.size()) {
+        m_lights[id] = MakeRectangleLight(pos, color, max_range, length_vec, width_vec, const_color);
         lights_changed = true;
     }
 }
 
 /// ---- Disk light ---- ///
 
-CH_SENSOR_API unsigned int ChOptixScene::AddDiskLight(
-   ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color
-) {
+// Shared by AddDiskLight and the backend-neutral ModifyDiskLight.
+static ChOptixLight MakeDiskLight(ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color) {
     ChOptixLight light{};   // zero-initialize everything
     light.light_type  = LightType::DISK_LIGHT;
     light.pos = make_float3(pos.x(), pos.y(), pos.z());
@@ -205,16 +258,27 @@ CH_SENSOR_API unsigned int ChOptixScene::AddDiskLight(
     // Calculate extended parameters
     light.specific.disk.atten_scale = (max_range > 0) ? (0.01 * max_range * max_range) : 1.f;
     light.specific.disk.area = CH_PI * radius * radius;
-    
-    m_lights.push_back(light);
+
+    return light;
+}
+
+CH_SENSOR_API unsigned int ChOptixScene::AddDiskLight(ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color) {
+    m_lights.push_back(MakeDiskLight(pos, color, max_range, light_dir, radius, const_color));
     lights_changed = true;
 
     return static_cast<unsigned int>(m_lights.size() - 1);
 }
 
 CH_SENSOR_API void ChOptixScene::ModifyDiskLight(unsigned int id, const ChOptixLight& disk_light) {
-    if (id <= m_lights.size() && disk_light.light_type == LightType::DISK_LIGHT) {
+    if (id < m_lights.size() && disk_light.light_type == LightType::DISK_LIGHT) {
         m_lights[id] = disk_light;
+        lights_changed = true;
+    }
+}
+
+CH_SENSOR_API void ChOptixScene::ModifyDiskLight(unsigned int id, ChVector3f pos, ChColor color, float max_range, ChVector3f light_dir, float radius, bool const_color) {
+    if (id < m_lights.size()) {
+        m_lights[id] = MakeDiskLight(pos, color, max_range, light_dir, radius, const_color);
         lights_changed = true;
     }
 }

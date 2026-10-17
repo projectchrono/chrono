@@ -73,22 +73,23 @@ inline ChIntAABB ToChIntAABB(const IntAABB& aabb) {
 
 /// Convert a ChVector2d to a Real2 data structure.
 inline Real2 ToReal2(const ChVector2d& v2) {
-    return mR2(v2.x(), v2.y());
+    return mR2(static_cast<Real>(v2.x()), static_cast<Real>(v2.y()));
 }
 
 /// Convert a ChVector3d to a Real3 data structure.
 inline Real3 ToReal3(const ChVector3d& v3) {
-    return mR3(v3.x(), v3.y(), v3.z());
+    return mR3(static_cast<Real>(v3.x()), static_cast<Real>(v3.y()), static_cast<Real>(v3.z()));
 }
 
 /// Convert a ChVector3d and a scalar to a Real4 data structure.
 inline Real4 ToReal4(const ChVector3d& v3, Real m) {
-    return mR4(v3.x(), v3.y(), v3.z(), m);
+    return mR4(static_cast<Real>(v3.x()), static_cast<Real>(v3.y()), static_cast<Real>(v3.z()), m);
 }
 
 /// Convert a ChQuaterniond to a Real4 data structure.
 inline Real4 ToReal4(const ChQuaterniond& q4) {
-    return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
+    return mR4(static_cast<Real>(q4.e0()), static_cast<Real>(q4.e1()),  //
+               static_cast<Real>(q4.e2()), static_cast<Real>(q4.e3()));
 }
 
 /// Convert a ChVector3i to an int3 data structure.

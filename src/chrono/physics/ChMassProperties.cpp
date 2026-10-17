@@ -16,6 +16,24 @@
 
 namespace chrono {
 
+ChMassProperties::ChMassProperties() : mass(0) {}
+
+ChMassProperties::ChMassProperties(double mass, const ChVector3d& com, const ChMatrix33d& inertia) : mass(mass), com(com), inertia(inertia) {}
+
+ChMassProperties::ChMassProperties(double mass, const ChVector3d& com, const ChVector3d& inertia_diag, const ChVector3d& inertia_offdiag) : mass(mass), com(com) {
+    inertia(0, 0) = inertia_diag.x();
+    inertia(1, 1) = inertia_diag.y();
+    inertia(2, 2) = inertia_diag.z();
+
+    inertia(0, 1) = inertia_offdiag.x();
+    inertia(0, 2) = inertia_offdiag.y();
+    inertia(1, 2) = inertia_offdiag.z();
+
+    inertia(1, 0) = inertia_offdiag.x();
+    inertia(2, 0) = inertia_offdiag.y();
+    inertia(2, 1) = inertia_offdiag.z();
+}
+
 void ChInertiaUtils::InertiaFromCluster(const std::vector<ChVector3d>& positions,
                                         const std::vector<ChMatrix33<> >& rotations,
                                         const std::vector<ChMatrix33<> >& Jlocal,
@@ -77,10 +95,7 @@ ChMatrix33<> ChInertiaUtils::RotateInertia(const ChMatrix33<> inertiaIn, const C
     return inertiaOut;
 }
 
-void ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn,
-                                      const ChVector3d dist,
-                                      const double mass,
-                                      ChMatrix33<>& inertiaOut) {
+void ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn, const ChVector3d dist, const double mass, ChMatrix33<>& inertiaOut) {
     // Huygens-Steiner parallel axis theorem:
     inertiaOut = inertiaIn;
     inertiaOut(0, 0) += mass * (dist.Length2() - dist.x() * dist.x());
@@ -101,9 +116,7 @@ ChMatrix33<> ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn, cons
     return inertiaOut;
 }
 
-void ChInertiaUtils::PrincipalInertia(const ChMatrix33<>& inertia,
-                                      ChVector3d& principal_inertia,
-                                      ChMatrix33<>& principal_axes) {
+void ChInertiaUtils::PrincipalInertia(const ChMatrix33<>& inertia, ChVector3d& principal_inertia, ChMatrix33<>& principal_axes) {
     ChVectorN<double, 3> principal_I;
     inertia.SelfAdjointEigenSolve(principal_axes, principal_I);
 
@@ -155,11 +168,10 @@ ChMatrix33<> CompositeInertia::GetInertia() const {
 }
 
 // Include sub-component inertia properties.
-void CompositeInertia::AddComponent(
-    const ChFrame<>& frame,       // centroidal frame of sub-component
-    double mass,                  // mass of sub-component
-    const ChMatrix33<>& inertia,  // sub-component inertia tensor w.r.t. its centroidal frame
-    bool is_void                  // indicate if sub-component represents a material void
+void CompositeInertia::AddComponent(const ChFrame<>& frame,       // centroidal frame of sub-component
+                                    double mass,                  // mass of sub-component
+                                    const ChMatrix33<>& inertia,  // sub-component inertia tensor w.r.t. its centroidal frame
+                                    bool is_void                  // indicate if sub-component represents a material void
 ) {
     const ChVector3d& com = frame.GetPos();
     const ChMatrix33<>& A = frame.GetRotMat();

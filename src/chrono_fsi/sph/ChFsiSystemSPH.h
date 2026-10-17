@@ -44,6 +44,12 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Access the associated SPH fluid system.
     ChFsiFluidSystemSPH& GetFluidSystemSPH() const;
 
+    /// Set the co-simulation coupling scheme (default: CouplingScheme::CONCURRENT).
+    /// CONCURRENT overlaps the SPH and MBS advances, at the cost of applying fluid forces that lag the solid states
+    /// by one co-simulation step. SEQUENTIAL removes that lag, but serializes the two phases.
+    /// Must be set before the first call to DoStepDynamics.
+    void SetCouplingScheme(CouplingScheme scheme) { ChFsiSystem::SetCouplingScheme(scheme); }
+
     // Allow using the AddRigidBody method from parent class
     using ChFsiSystem::AddRigidBody;
 

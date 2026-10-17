@@ -39,6 +39,7 @@
 }
 
 %include "../chrono_cast.i"
+%include "../chrono_ignore_operators.i"
 %include <std_shared_ptr.i>
 
 // ---------------------------------------------------------------------------
@@ -55,6 +56,15 @@
 // library still links nothing beyond Chrono_core.
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
+
+// Supplies CHRONO_HAS_OPTIX for the guarded blocks below: this wrapper is compiled as
+// C++, so that macro has to come from the generated configuration header, not from the
+// -D in CMAKE_SWIG_FLAGS, which only SWIG itself sees. The header exists only when the
+// sensor module is enabled, hence the guard - and CHRONO_SENSOR is available by this
+// point because the ChSystem headers above pull in chrono/ChConfig.h.
+#ifdef CHRONO_SENSOR
+    #include "chrono_sensor/ChConfigSensor.h"
+#endif
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/ChROSBridge.h"
@@ -146,6 +156,12 @@ using namespace chrono::ros;
 // ---------------------------------------------------------------------------
 // A - shared_ptr enablement (every public class handed around as shared_ptr)
 // ---------------------------------------------------------------------------
+// Importing ChFrame.i marks ChFrame<double> as a smart pointer, so ChFrameMoving<double>
+// must be marked too or SWIG reports the derived class, and everything deriving from it
+// (ChBodyFrame, ChMarker, ChBody), as inconsistently marked (warning 520). The core,
+// robot, vehicle, fea and cascade modules all declare both.
+%shared_ptr(chrono::ChFrameMoving<double>)
+
 %shared_ptr(chrono::ros::ChROSBridge)
 %shared_ptr(chrono::ros::ChROSHandler)
 %shared_ptr(chrono::ros::ChROSSubscriptionCallback)

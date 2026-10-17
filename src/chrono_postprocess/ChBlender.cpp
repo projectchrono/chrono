@@ -328,8 +328,8 @@ void ChBlender::ExportScript(const std::string& filename) {
             ChVector3d cdiry = Vcross(cdirx, cdirzm);
             ChMatrix33<> cmrot;
             cmrot.SetFromDirectionAxes(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
-            ChFrame<> cframeloc(camera_location, cmrot);
-            ChFrame<> cframeabs = cframeloc >> blender_frame;
+            ChFramed cframeloc(camera_location, cmrot);
+            ChFramed cframeabs = cframeloc >> blender_frame;
             assets_file << "update_camera_coordinates(";
             assets_file << "'" << cameraname << "',";
             assets_file << "(" << cframeabs.GetPos().x() << "," << cframeabs.GetPos().y() << "," << cframeabs.GetPos().z() << "),";
@@ -908,7 +908,7 @@ void ChBlender::ExportMaterials(std::ofstream& mfile,
     }
 }
 
-void ChBlender::ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item, const ChFrame<>& parentframe) {
+void ChBlender::ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item, const ChFramed& parentframe) {
     auto vis_model = item->GetVisualModel();
 
     bool has_stored_assets = false;
@@ -1001,7 +1001,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhy
             state_file << " [";
             for (unsigned int m = 0; m < particleclones->GetNumParticles(); ++m) {
                 // Get the current coordinate frame of the i-th particle
-                ChCoordsys<> partframe = particleclones->Particle(m).GetCoordsys();
+                ChCoordsysd partframe = particleclones->Particle(m).GetCoordsys();
                 state_file << "[(" << partframe.pos.x() << "," << partframe.pos.y() << "," << partframe.pos.z() << "),";
                 state_file << "(" << partframe.rot.e0() << "," << partframe.rot.e1() << "," << partframe.rot.e2() << "," << partframe.rot.e3() << ")], " << std::endl;
             }
@@ -1021,8 +1021,8 @@ void ChBlender::ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhy
             ChVector3d cdiry = Vcross(cdirx, cdirzm);
             ChMatrix33<> cmrot;
             cmrot.SetFromDirectionAxes(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
-            ChFrame<> cframeloc(cpos, cmrot);
-            ChFrame<> cframeabs = cframeloc >> parentframe;
+            ChFramed cframeloc(cpos, cmrot);
+            ChFramed cframeabs = cframeloc >> parentframe;
             state_file << "update_camera_coordinates(";
             state_file << "'" << cameraname << "',";
             state_file << "(" << cframeabs.GetPos().x() << "," << cframeabs.GetPos().y() << "," << cframeabs.GetPos().z() << "),";
@@ -1088,7 +1088,7 @@ void ChBlender::ExportData(const std::string& filename) {
             // saving a body?
             if (const auto& body = std::dynamic_pointer_cast<ChBody>(item)) {
                 // Get the current coordinate frame of the i-th object
-                const ChFrame<>& bodyframe = body->GetFrameRefToAbs();
+                const ChFramed& bodyframe = body->GetFrameRefToAbs();
 
                 // Dump the POV macro that generates the contained asset(s) tree
                 ExportItemState(state_file, body, bodyframe >> blender_frame);
@@ -1109,8 +1109,8 @@ void ChBlender::ExportData(const std::string& filename) {
             // saving a ChLinkMateGeneric constraint?
             if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {
                 if (linkmate->GetBody1() && linkmate->GetBody2() && frames_links_show) {
-                    ChFrame<> frAabs = linkmate->GetFrame1Rel() >> *linkmate->GetBody1() >> blender_frame;
-                    ChFrame<> frBabs = linkmate->GetFrame2Rel() >> *linkmate->GetBody2() >> blender_frame;
+                    ChFramed frAabs = linkmate->GetFrame1Rel() >> *linkmate->GetBody1() >> blender_frame;
+                    ChFramed frBabs = linkmate->GetFrame2Rel() >> *linkmate->GetBody2() >> blender_frame;
                     state_file << "if chrono_view_links_csys:" << std::endl;
                     state_file << "\tmcsysA = make_chrono_csys(";
                     state_file << "(" << frAabs.GetPos().x() << ", " << frAabs.GetPos().y() << ", " << frAabs.GetPos().z() << "),";

@@ -52,7 +52,7 @@ const char ChFilterDepthAccessName[] = "ChFilterDepthAccess";        // single c
 const char ChFilterFloat4AccessName[] = "ChFilterFloat4Access";      // 4 channels of float arrays
 const char ChFilterNormalAccessName[] = "ChFilterNormalAccess";      /// 3 channels of float (32 bit) arrays
 #endif
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 const char ChFilterR8AccessName[] = "ChFilterR8Access";              ///< single channel 8 bit array
 const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";        ///< 4 channel 8 bit array
 const char ChFilterRGBA16AccessName[] = "ChFilterRGBA16Access";      ///< 4 channels of u_int16_t (16 bit) arrays

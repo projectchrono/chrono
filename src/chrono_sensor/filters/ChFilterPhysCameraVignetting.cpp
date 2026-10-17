@@ -17,13 +17,16 @@
 // =============================================================================
 
 #include "chrono_sensor/ChConfigSensor.h"
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
-#include "chrono_sensor/filters/ChFilterPhysCameraVignetting.h"
+    #include "chrono_sensor/filters/ChFilterPhysCameraVignetting.h"
+    #ifdef CHRONO_HAS_METAL_RT
+        #include "chrono_sensor/metal/ChMetalPhysCamOps.h"
+    #endif
 
-#include <algorithm>
-#include <cmath>
-#include <memory>
+    #include <algorithm>
+    #include <cmath>
+    #include <memory>
 
 namespace chrono {
 namespace sensor {
@@ -44,6 +47,10 @@ CH_SENSOR_API void ChFilterPhysCameraVignetting::Apply() {
         return;
     const unsigned int img_w = m_in_out->Width;
     const unsigned int img_h = m_in_out->Height;
+    #ifdef CHRONO_HAS_METAL_RT
+    if (metal_phys_cam::Vignetting(m_in_out->Buffer.get(), img_w, img_h, m_focal_length, m_sensor_width, m_vignetting_gain))
+        return;
+    #endif
     const size_t count = static_cast<size_t>(img_w) * img_h;
     for (size_t i = 0; i < count; ++i) {
         const unsigned int col = static_cast<unsigned int>(i % img_w);

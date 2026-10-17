@@ -3,7 +3,7 @@ type: MBS
 
 model:  "model_cables.yaml"
 
-solver: "solver_mbs.yaml"
+solver: "solver.yaml"
 
 simulation:
   end_time: 100

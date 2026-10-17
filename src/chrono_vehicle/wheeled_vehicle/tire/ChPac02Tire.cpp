@@ -479,7 +479,8 @@ void ChPac02Tire::LoadSectionUnits(FILE* fp) {
         }
         sval = sval.substr(a1pos + 1, a2pos - a1pos - 1);
         // change letters to upper case
-        std::transform(sval.begin(), sval.end(), sval.begin(), ::toupper);
+        std::transform(sval.begin(), sval.end(), sval.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
         if (skey.compare("LENGTH") == 0) {
             if (sval.compare("METER") == 0) {
                 m_par.u_length = 1.0;

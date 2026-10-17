@@ -30,8 +30,10 @@ namespace parsers {
 /// Base class for all YAML parsers.
 class ChApiParsers ChParserYAML {
   public:
-    /// Type of a Chrono YAML specification file.
-    enum class YamlFileType { MBS, SPH, TDPF, FSI, VEHICLE, UNKNOWN };
+    /// Type of a Chrono YAML specification file, as declared by its `type` key.
+    /// `CUSTOM` marks a file that is not consumed by any of the Chrono YAML parsers but is instead read
+    /// by application code. An unrecognized `type` value is also reported as `CUSTOM`, with a warning.
+    enum class YamlFileType { MBS, SPH, TDPF, FSI, VEHICLE, CUSTOM };
 
     ChParserYAML();
     virtual ~ChParserYAML() {}
@@ -88,8 +90,9 @@ class ChApiParsers ChParserYAML {
     /// This base class implementation creates and initializes the output database. Derived classes must
     virtual void WriteOutput(int frame, double time);
 
-    /// Peek in specified YAML file and read the fluid system type.
-    /// Throws a runtime error if the type is unknown.
+    /// Peek in the specified YAML file and read the declared file type.
+    /// Throws a runtime error if the file does not exist or does not contain a `type` key. An unrecognized
+    /// `type` value is not an error: it is reported as YamlFileType::CUSTOM, with a warning.
     static YamlFileType ReadYamlFileType(const std::string& yaml_filename);
 
     // Common utility functions
@@ -105,7 +108,9 @@ class ChApiParsers ChParserYAML {
     virtual bool Render(ChVisualSystem& vis, double time);
 
   protected:
-    /// Read the YAML file type.
+    /// Read the YAML file type from the given node.
+    /// The value is matched case-insensitively against the recognized types. An unrecognized value is
+    /// reported as YamlFileType::CUSTOM, with a warning naming the offending value.
     static YamlFileType ReadYamlFileType(const YAML::Node& a);
 
     std::string m_name;  ///< name of the YAML model

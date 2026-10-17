@@ -36,6 +36,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -109,8 +110,8 @@ using namespace chrono::fsi;
 %include "wchar.i"
 #ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 %include "python/cwstring.i"
-#endif              // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
+#endif              // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
 
 #ifdef SWIGPYTHON

@@ -31,9 +31,8 @@ void ChShaftsMotorLoad::Update(double time, UpdateFlags update_flags) {
     // Inherit time changes of parent class
     ChShaftsMotor::Update(time, update_flags);
 
-    // update class data
-
-    motor_function->Update(time);  // call callbacks if any
+    // Update class data: call callbacks if any
+    motor_function->Update(time);
 }
 
 void ChShaftsMotorLoad::IntLoadResidual_F(const unsigned int off,  // offset in R residual

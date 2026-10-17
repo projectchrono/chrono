@@ -39,8 +39,9 @@ class ChApi ChJoint {
     /// - For a kinematic joint, the wrapped element will be a ChLink of the appropriate type.
     /// - For a bushing, the stiffness and damping in the appropriate directions (as defined by the DOFs of the joint
     /// type) are set to a different value (typically 0).
-    /// - A bushing of type PRISMATIC, POINTLINE, or POINTPLANE is prohibited.
-    enum class Type { LOCK, SPHERICAL, REVOLUTE, PRISMATIC, UNIVERSAL, POINTLINE, POINTPLANE };
+    /// - A bushing of type PRISMATIC, CYLINDRICAL, POINTLINE, or POINTPLANE is prohibited.
+    ///   Requesting such a bushing throws a std::invalid_argument exception.
+    enum class Type { LOCK, SPHERICAL, REVOLUTE, PRISMATIC, CYLINDRICAL, UNIVERSAL, POINTLINE, POINTPLANE };
 
     /// Stiffness and damping data for a bushing specification.
     /// Attention! The Chrono bushing formulation is valid only for small relative rotations. As such, define a non-zero
@@ -67,7 +68,8 @@ class ChApi ChJoint {
     /// Construct a joint wrapper of the specified type, name, connecting the specified bodies.
     /// The joint is constructed at the specified location (expressed in the absolute reference frame).
     /// If no bushing data is provided (default), a kinematic joint is created; otherwise, this function creates a
-    /// bushing.
+    /// bushing. Throws a std::invalid_argument exception if bushing data is provided for a joint type which does not
+    /// allow a bushing (PRISMATIC, CYLINDRICAL, POINTLINE, or POINTPLANE).
     ChJoint(Type type,
             const std::string& name,
             std::shared_ptr<ChBody> body1,

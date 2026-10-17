@@ -48,10 +48,10 @@ Quick Start
 API Map (How To Set MCC Parameters)
 -----------------------------------
 
-Constitutive parameters are set through `ElasticMaterialProperties`:
+Constitutive parameters are set through `SoilProperties`:
 
 ~~~{.cpp}
-ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+ChFsiFluidSystemSPH::SoilProperties mat_props;
 mat_props.rheology_model = RheologyCRM::MCC;
 
 mat_props.density = 1700.0;
@@ -63,10 +63,10 @@ mat_props.mcc_kappa = 0.02;   // swelling/recompression slope
 mat_props.mcc_lambda = 0.10;  // NCL slope
 mat_props.mcc_v_lambda = 2.0; // specific volume at p1 = 1000 Pa
 
-sysSPH.SetElasticSPH(mat_props);
+sysSPH.SetCrmSPH(mat_props);
 ~~~
 
-Important: `p_c0` is not in `ElasticMaterialProperties`. It is per particle and passed through `pc` at particle creation:
+Important: `p_c0` is not in `SoilProperties`. It is per particle and passed through `pc` at particle creation:
 
 ~~~{.cpp}
 // Explicit particle creation path
@@ -123,17 +123,17 @@ Current Chrono safeguards (important for interpretation):
 Core MCC Parameters
 -------------------
 
-Set these through `ElasticMaterialProperties`, plus per-particle `pc`.
+Set these through `SoilProperties`, plus per-particle `pc`.
 
 | Parameter | Physical meaning | Code default | Practical recommendation | API |
 |---|---|---|---|---|
-| `mcc_M` | Critical state line slope (`q = M p`), controls shear strength at critical state. | `0` | Set from triaxial data or friction angle mapping. Typical terramechanics starts are about `0.8-1.4`. | `mat_props.mcc_M` -> `SetElasticSPH` |
-| `mcc_kappa` | Swelling/recompression slope in `v-ln(p)`; controls elastic volumetric stiffness (`K ~ v p / kappa`). | `0` | Must be positive and usually smaller than `lambda`; increasing `kappa` softens elastic reload response. | `mat_props.mcc_kappa` -> `SetElasticSPH` |
-| `mcc_lambda` | Normal consolidation slope in `v-ln(p)`; controls virgin compressibility and hardening rate. | `0` | Must exceed `kappa`; larger `lambda` gives more compressible virgin response. | `mat_props.mcc_lambda` -> `SetElasticSPH` |
-| `mcc_v_lambda` | Specific volume intercept at reference pressure `p1 = 1000 Pa`. | `2.0` | Set from isotropic compression line intercept in `v-ln(p)` space. | `mat_props.mcc_v_lambda` -> `SetElasticSPH` |
+| `mcc_M` | Critical state line slope (`q = M p`), controls shear strength at critical state. | `0` | Set from triaxial data or friction angle mapping. Typical terramechanics starts are about `0.8-1.4`. | `mat_props.mcc_M` -> `SetCrmSPH` |
+| `mcc_kappa` | Swelling/recompression slope in `v-ln(p)`; controls elastic volumetric stiffness (`K ~ v p / kappa`). | `0` | Must be positive and usually smaller than `lambda`; increasing `kappa` softens elastic reload response. | `mat_props.mcc_kappa` -> `SetCrmSPH` |
+| `mcc_lambda` | Normal consolidation slope in `v-ln(p)`; controls virgin compressibility and hardening rate. | `0` | Must exceed `kappa`; larger `lambda` gives more compressible virgin response. | `mat_props.mcc_lambda` -> `SetCrmSPH` |
+| `mcc_v_lambda` | Specific volume intercept at reference pressure `p1 = 1000 Pa`. | `2.0` | Set from isotropic compression line intercept in `v-ln(p)` space. | `mat_props.mcc_v_lambda` -> `SetCrmSPH` |
 | `pc` (per particle) | Initial preconsolidation pressure `p_c0`; sets initial yield cap size / OCR effect. | `1e3` in `AddSPHParticle` signature | Set from OCR/test data or use depth-dependent `p0 * pre_pressure_scale`. This is highly influential in penetration/sinkage response. | `AddSPHParticle(..., pc)` or callback `pre_pressure_scale0` |
-| `density` | Bulk density scale for inertia and pressure/stress coupling. | `1000` | Use measured bulk density for intended initial state. | `mat_props.density` -> `SetElasticSPH` |
-| `Young_modulus`, `Poisson_ratio` | Reference elastic moduli used to compute `K_bulk` and `G_shear` and clamping bounds. | `1e6`, `0.3` | Keep physically plausible; very large `E` can force smaller stable steps in explicit integration. | `mat_props.Young_modulus`, `mat_props.Poisson_ratio` -> `SetElasticSPH` |
+| `density` | Bulk density scale for inertia and pressure/stress coupling. | `1000` | Use measured bulk density for intended initial state. | `mat_props.density` -> `SetCrmSPH` |
+| `Young_modulus`, `Poisson_ratio` | Reference elastic moduli used to compute `K_bulk` and `G_shear` and clamping bounds. | `1e6`, `0.3` | Keep physically plausible; very large `E` can force smaller stable steps in explicit integration. | `mat_props.Young_modulus`, `mat_props.Poisson_ratio` -> `SetCrmSPH` |
 
 Critical consistency checks:
 

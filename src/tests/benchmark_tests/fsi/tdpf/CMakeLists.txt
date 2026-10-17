@@ -29,7 +29,3 @@ endif()
 
 message(STATUS "Add benchmark test programs for FSI-TDPF module")
 build_btests("${TESTS}" "${LIBS}")
-
-foreach(PROGRAM ${TESTS})
-    target_include_directories(${PROGRAM} PRIVATE "${CH_HYDROCHRONO_DIR}/include")
-endforeach()

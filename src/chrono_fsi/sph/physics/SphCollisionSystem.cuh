@@ -34,6 +34,14 @@ class SphCollisionSystem {
     SphCollisionSystem(FsiDataManager& data_mgr);
     ~SphCollisionSystem();
 
+    // The object owns a device allocation (m_errflagD) freed in the destructor, so a copy would
+    // alias it and free it twice. Chrono holds this class through a shared_ptr and never copies it;
+    // deleting the operations makes that a compile-time fact rather than a convention.
+    SphCollisionSystem(const SphCollisionSystem&) = delete;
+    SphCollisionSystem& operator=(const SphCollisionSystem&) = delete;
+    SphCollisionSystem(SphCollisionSystem&&) = delete;
+    SphCollisionSystem& operator=(SphCollisionSystem&&) = delete;
+
     /// Complete construction.
     void Initialize();
 
@@ -46,6 +54,7 @@ class SphCollisionSystem {
 
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
+    bool* m_errflagD = nullptr;  ///< device error flag for the proximity kernels, allocated once
     // Note: this is cached on every call to ArrangeData()
     std::shared_ptr<SphMarkerDataD> m_sphMarkersD;  ///< Information of the particles in the original array
 };

@@ -23,7 +23,10 @@
 namespace chrono {
 
 /// Definition of mass properties of a solid object.
-struct ChMassProperties {
+struct ChApi ChMassProperties {
+    ChMassProperties();
+    ChMassProperties(double mass, const ChVector3d& com, const ChMatrix33d& inertia);
+    ChMassProperties(double mass, const ChVector3d& com, const ChVector3d& inertia_diag, const ChVector3d& inertia_offdiag = VNULL);
     double mass;
     ChVector3d com;
     ChMatrix33d inertia;

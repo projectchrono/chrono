@@ -21,7 +21,7 @@
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/ChConfigSensor.h"
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
     #include "chrono_sensor/ChSensorRenderTypes.h"
     #include "chrono_sensor/sensors/ChCameraSensor.h"
     #include "chrono_sensor/sensors/ChLidarSensor.h"
@@ -36,13 +36,13 @@
 namespace chrono {
 namespace sensor {
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 CH_SENSOR_API std::string CameraLensModelTypeAsString(CameraLensModelType type);
 CH_SENSOR_API std::string CameraNoiseModelTypeAsString(CameraNoiseModelType type);
 CH_SENSOR_API std::string LightTypeAsString(LightType type);
 #endif
 
-#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT)
+#if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 CH_SENSOR_API std::string LidarReturnModeAsString(LidarReturnMode mode);
 CH_SENSOR_API std::string LidarNoiseModelTypeAsString(LidarNoiseModelType type);
 #endif

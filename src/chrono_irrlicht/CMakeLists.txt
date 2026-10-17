@@ -40,6 +40,13 @@ set(IRR_HEADER_FILES
   ChIrrNodeShape.h
 )
 
+# Objective-C++ helper needed to reach Irrlicht's Cocoa view (see ChIrrMacOS.h).
+if(APPLE)
+  list(APPEND IRR_SOURCE_FILES ChIrrMacOS.mm)
+  list(APPEND IRR_HEADER_FILES ChIrrMacOS.h)
+  set_source_files_properties(ChIrrMacOS.mm PROPERTIES LANGUAGE CXX COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
+endif()
+
 source_group("" FILES ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
 
 #-------------------------------------------------------------------------------
@@ -88,7 +95,10 @@ target_link_libraries(Chrono_irrlicht PRIVATE Chrono_core)
 target_link_libraries(Chrono_irrlicht PUBLIC Irrlicht::Irrlicht)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_libraries(Chrono_irrlicht PRIVATE ${MAC_LIBS})
+  # Cocoa and OpenGL are needed by ChIrrMacOS.mm.
+  find_library(COCOA_LIBRARY Cocoa REQUIRED)
+  find_library(OPENGL_FRAMEWORK OpenGL REQUIRED)
+  target_link_libraries(Chrono_irrlicht PRIVATE ${MAC_LIBS} ${COCOA_LIBRARY} ${OPENGL_FRAMEWORK})
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

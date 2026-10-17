@@ -187,7 +187,7 @@ void truncateKrylov(ChMatrixDynamic<std::complex<double>>& Q,
     auto Ho = H;
     // Q = [Q(:, 1 : k),   Q(:, m + 1)];
     Q.setZero(Qo.rows(), k + 1);
-    Q << Qo(Eigen::placeholders::all, seq(0, k - 1)), Qo(Eigen::placeholders::all, m);
+    Q << Qo.leftCols(k), Qo.col(m);
 
     // H = [H(1:k, 1:k); H(m + 1, 1:k)];
     H.setZero(k + 1, k);
@@ -332,8 +332,7 @@ void KrylovSchur(
         H(seq(p - 1, m - 1), seq(p - 1, m - 1)) = T;                               // H(p:m, p:m) = T;
         H(seq(0, p - 1 - 1), seq(p - 1, m - 1)) =
             H(seq(0, p - 1 - 1), seq(p - 1, m - 1)) * U;  // H(1:p-1, p:m) = H(1:p-1, p:m) * U;
-        Q(Eigen::placeholders::all, seq(p - 1, m - 1)) =
-            Q(Eigen::placeholders::all, seq(p - 1, m - 1)) * U;       // Q(:, p:m) = Q(:, p:m) * U;
+        Q.middleCols(p - 1, m - p + 1) = Q.middleCols(p - 1, m - p + 1) * U;  // Q(:, p:m) = Q(:, p:m) * U;
         H.row(m)(seq(p - 1, m - 1)) = H(m, m - 1) * U.bottomRows(1);  // H(m+1, p:m) = H(m+1, m) * U(end, :);
         // disp('err'); disp(Ax(Q(:, 1:m)) - Q(:, 1:m+1) * H(1:m+1, 1:m));
         // disp('Q'); disp(Q); disp('H'); disp(H);

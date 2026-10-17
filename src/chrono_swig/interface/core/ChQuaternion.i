@@ -58,6 +58,26 @@
 %template(vector_ChQuaternionf) std::vector< chrono::ChQuaternion<float> >;
 
 
+// Indexing must raise IndexError, not the RuntimeError that the module-wide
+// %exception would produce, or Python iteration over the components breaks.
+%exception chrono::ChQuaternion<double>::__getitem__ {
+	try {
+		$action
+	} catch (const std::out_of_range& e) {
+		SWIG_exception(SWIG_IndexError, e.what());
+	}
+}
+
+// Indexing must raise IndexError, not the RuntimeError that the module-wide
+// %exception would produce, or Python iteration over the components breaks.
+%exception chrono::ChQuaternion<double>::__setitem__ {
+	try {
+		$action
+	} catch (const std::out_of_range& e) {
+		SWIG_exception(SWIG_IndexError, e.what());
+	}
+}
+
 %extend chrono::ChQuaternion<double>{
 		public:
 					// Add function to support python 'print(...)'
@@ -67,15 +87,26 @@
 						sprintf(temp,"[ %g, %g, %g, %g ]", $self->e0(),$self->e1(),$self->e2(),$self->e3());
 						return &temp[0];
 					}
+
+					// Component access as q[i]. The C++ subscript operator itself is not
+					// wrapped (see chrono_ignore_operators.i); these provide the Python form.
+			double __getitem__(int i) const {
+				if (i < 0) i += 4;
+				if (i < 0 || i >= 4) throw std::out_of_range("index out of range");
+				return (*$self)[(unsigned)i];
+			}
+
+			void __setitem__(int i, double value) {
+				if (i < 0) i += 4;
+				if (i < 0 || i >= 4) throw std::out_of_range("index out of range");
+				(*$self)[(unsigned)i] = value;
+			}
+
+			int __len__() const { return 4; }
 					// operator  ~  as ! in c++ 
 			ChQuaternion<double> __invert__() const  
 					{
 						return $self->operator!();
-					}
-					// operator  ^  as ^ in c++ 
-			double __xor__(const ChQuaternion<double>& other) const 
-					{ 
-						return $self->operator^(other);
 					}
 
 // NumPy integration: single-call conversion to numpy array
@@ -99,16 +130,21 @@
 
 	QNULL  = ChQuaterniond(0,0,0,0)
 	QUNIT  = ChQuaterniond(1,0,0,0)
-	
+%}
+
+// NOTE: SWIG does not run its preprocessor inside a %pythoncode block, so an #ifdef
+// placed there is emitted verbatim into the generated module as a Python comment and
+// guards nothing. Close the block and test the macro at the interface level instead.
 #ifdef CHRONO_PYTHON_NUMPY
+%pythoncode %{
 	def _chquat_array(self, dtype=None):
 		import numpy as np
 		a = self.to_numpy()
 		return np.asarray(a, dtype=dtype) if dtype is not None else a
 
 	ChQuaterniond.__array__ = _chquat_array
-#endif
 %}
+#endif
 
 
 #endif             // --------------------------------------------------------------------- PYTHON

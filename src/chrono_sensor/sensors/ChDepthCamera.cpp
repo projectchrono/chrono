@@ -35,6 +35,8 @@ ChDepthCamera::ChDepthCamera(std::shared_ptr<ChBody> parent,
     : ChOptixSensor(parent, updateRate, offsetPose, w, h),
 #elif defined(CHRONO_HAS_VULKAN_RT)
     : ChVulkanSensor(parent, updateRate, offsetPose, w, h, VulkanPipelineType::DEPTH_CAMERA),
+#elif defined(CHRONO_HAS_METAL_RT)
+    : ChMetalSensor(parent, updateRate, offsetPose, w, h, MetalPipelineType::DEPTH_CAMERA),
 #else
     : ChSensor(parent, updateRate, offsetPose),
 #endif

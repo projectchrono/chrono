@@ -15,6 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+#include "chrono_sensor/filters/ChFilterVisualizeGuards.h"
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 
 #ifdef CHRONO_HAS_OPTIX
@@ -68,6 +69,9 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Initialize(std::shared_ptr<ChSen
 }
 CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
 #ifdef USE_SENSOR_GLFW
+    // Hand back whatever GL context the caller had current (see ChFilterVisualizeGuards.h).
+    GLContextGuard gl_context_guard;
+
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
     }
@@ -87,7 +91,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         glfwMakeContextCurrent(m_window.get());
 
         int window_w, window_h;
-        glfwGetWindowSize(m_window.get(), &window_w, &window_h);
+        glfwGetFramebufferSize(m_window.get(), &window_w, &window_h);
         //
 
         // Set Viewport to window dimensions
@@ -140,7 +144,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         glFlush();
 
         glfwSwapBuffers(m_window.get());
-        glfwPollEvents();
+        PollGlfwEventsPreservingHostEvents();  // not glfwPollEvents: see ChFilterVisualizeGuards.h
     }
 #endif
 }

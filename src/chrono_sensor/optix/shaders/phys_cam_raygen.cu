@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-#ifndef PHYS_CAM_RAYGEN_CU
-#define PHYS_CAM_RAYGEN_CU
-
 #include "chrono_sensor/optix/shaders/device_utils.cuh"
 
 
@@ -36,7 +33,7 @@ __device__ __inline__ PerRayData_phys_camera DefaultPhysCamPRD() {
     return prd;
 };
 
-/// Physics-based camera ray generation program with a lens distortion model
+// Physics-based camera ray generation program with a lens distortion model
 extern "C" __global__ void __raygen__phys_camera() {
 
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
@@ -64,14 +61,14 @@ extern "C" __global__ void __raygen__phys_camera() {
     float3 cam_forward, cam_left, cam_up;
     for (int sample_idx = 0; sample_idx < num_spp; sample_idx++) {
     
-        //// Get camera's pose (origin of the ray to be launched) ////
+        // ---- Get camera's pose (origin of the ray to be launched)
         
         // Add motion-blur effect
         // rng_buffer is unconditionally allocated for this record (ChFilterOptixRender.cpp,
         // phys_camera branch), and it is already dereferenced above to seed `rng`, so a null check
         // here could never fire. Kept unguarded so the code matches the documented invariant.
         float t_frac = curand_uniform(&rng);
-        // float t_frac = static_cast<float>((sample_idx + 1)) * recip_num_spp;  // evenly-spaced midpoint samples over span to compose motion blu
+        ////float t_frac = static_cast<float>((sample_idx + 1)) * recip_num_spp;  // evenly-spaced midpoint samples over span to compose motion blu
         
         const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent during the frame
         float3 ray_origin = lerp(raygen->pos0, raygen->pos1, t_frac);
@@ -79,7 +76,8 @@ extern "C" __global__ void __raygen__phys_camera() {
         
         basis_from_quaternion(ray_quat, cam_forward, cam_left, cam_up);
 
-        //// Get (u, v) location on the view plane ////
+        // ---- Get (u, v) location on the view plane
+        
         // Last jitter must be at the center of the pixel 
         float2 jitter = (sample_idx == num_spp - 1) ? make_float2(0.5f, 0.5f) : make_float2(curand_uniform(&rng), curand_uniform(&rng)); 
         
@@ -106,7 +104,6 @@ extern "C" __global__ void __raygen__phys_camera() {
         }
         
         // Compute ray direction
-        // const float h_factor = camera.hFOV / CUDART_PI_F * 2.0; // bug here
         const float h_factor = tanf(camera.hFOV / 2.f);
         float3 ray_direction = normalize(cam_forward - uv.x * cam_left * h_factor + uv.y * cam_up * h_factor);
 
@@ -124,7 +121,7 @@ extern "C" __global__ void __raygen__phys_camera() {
         unsigned int opt2;
         pointer_as_ints(&prd, opt1, opt2);
         unsigned int raytype = (unsigned int)RayType::PHYS_CAMERA_RAY_TYPE;
-        // printf("CameraRayGen: orig: (%f,%f,%f), dir:(%f,%f,%f)\n", ray_origin.x,ray_origin.y,ray_origin.z, ray_direction.x, ray_direction.y, ray_direction.z);
+        ////printf("CameraRayGen: orig: (%f,%f,%f), dir:(%f,%f,%f)\n", ray_origin.x,ray_origin.y,ray_origin.z, ray_direction.x, ray_direction.y, ray_direction.z);
         optixTrace(
             params.root,            // The scene traversable handle (OptixTraversableHandle); basically the top-level acceleration structure (TLAS).
             ray_origin,             // origin of the traced ray
@@ -176,5 +173,3 @@ extern "C" __global__ void __raygen__phys_camera() {
     camera.rgbd_buffer[pixel_idx] = make_half4(pow(color_result.x, 1.0f / gamma), pow(color_result.y, 1.0f / gamma), pow(color_result.z, 1.0f / gamma), prd_distance);
 
 }
-
-#endif // PHYS_CAM_RAYGEN_CU

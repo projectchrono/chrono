@@ -35,7 +35,7 @@ endif()
 #--------------------------------------------------------------
 # Add path to google benchmark
 
-include_directories(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/include)
+include_directories(${CH_SYSTEM_INCLUDE_KEYWORD} ${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/include)
 
 #--------------------------------------------------------------
 
@@ -63,7 +63,7 @@ function(build_btests TESTS LIBS)
           set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
         endif()
 
-        target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+        target_include_directories(${PROGRAM} ${CH_SYSTEM_INCLUDE_KEYWORD} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
         target_link_libraries(${PROGRAM} ${LIBS} benchmark_main)
         
         install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})

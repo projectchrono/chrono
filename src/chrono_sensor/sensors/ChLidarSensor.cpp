@@ -52,6 +52,11 @@ ChLidarSensor::ChLidarSensor(
                      w * (2 * sample_radius - 1),
                      h * (2 * sample_radius - 1),
                      sample_radius > 1 ? VulkanPipelineType::LIDAR_MULTI : VulkanPipelineType::LIDAR_SINGLE),
+#elif defined(CHRONO_HAS_METAL_RT)
+    // Metal keeps the native w x h grid; beam sub-sampling (sample_radius) and
+    // return-mode reduction are done in the shader, so no dimension inflation
+    // or separate reduce filter is needed.
+    : ChMetalSensor(parent, updateRate, offsetPose, w, h, MetalPipelineType::LIDAR_SINGLE),
 #else
     : ChSensor(parent, updateRate, offsetPose),
 #endif
@@ -69,7 +74,9 @@ ChLidarSensor::ChLidarSensor(
 #ifdef CHRONO_HAS_OPTIX
         m_pipeline_type = PipelineType::LIDAR_MULTI;
 #endif
+#if !defined(CHRONO_HAS_METAL_RT)
         PushFilter(chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
+#endif
     } else {
 #ifdef CHRONO_HAS_OPTIX
         m_pipeline_type = PipelineType::LIDAR_SINGLE;

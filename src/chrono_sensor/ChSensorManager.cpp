@@ -31,6 +31,9 @@
 #ifdef CHRONO_HAS_VULKAN_RT
     #include "chrono_sensor/sensors/ChVulkanSensor.h"
 #endif
+#ifdef CHRONO_HAS_METAL_RT
+    #include "chrono_sensor/sensors/ChMetalSensor.h"
+#endif
 #ifdef CHRONO_FSI_SPH
     #include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 #endif
@@ -60,6 +63,12 @@ CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verb
     scene = vulkan_scene;
     #endif
 #endif
+#ifdef CHRONO_HAS_METAL_RT
+    metal_scene = chrono_types::make_shared<ChMetalRTScene>();
+    #if !defined(CHRONO_HAS_OPTIX) && !defined(CHRONO_HAS_VULKAN_RT)
+    scene = metal_scene;
+    #endif
+#endif
 }
 
 CH_SENSOR_API ChSensorManager::~ChSensorManager() {
@@ -80,6 +89,15 @@ CH_SENSOR_API std::shared_ptr<ChVulkanRTEngine> ChSensorManager::GetVulkanEngine
     if (context_id < m_vulkan_engines.size())
         return m_vulkan_engines[context_id];
     cerr << "ERROR: index out of Vulkan render group vector bounds\n";
+    return nullptr;
+}
+#endif
+
+#ifdef CHRONO_HAS_METAL_RT
+CH_SENSOR_API std::shared_ptr<ChMetalRTEngine> ChSensorManager::GetMetalEngine(int context_id) {
+    if (context_id < m_metal_engines.size())
+        return m_metal_engines[context_id];
+    cerr << "ERROR: index out of Metal render group vector bounds\n";
     return nullptr;
 }
 #endif
@@ -214,6 +232,11 @@ CH_SENSOR_API void ChSensorManager::Update() {
         pEngine->UpdateSensors(active_vulkan_scene);
     }
 #endif
+#ifdef CHRONO_HAS_METAL_RT
+    for (auto pEngine : m_metal_engines) {
+        pEngine->UpdateSensors(metal_scene);
+    }
+#endif
     // have the sensor manager update all of the non-optix sensor (IMU and GPS).
     // TODO: perhaps create a thread that takes care of this? Trade-off since IMU should require some data from EVERY
     // step
@@ -238,6 +261,11 @@ CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
 #endif
 #ifdef CHRONO_HAS_VULKAN_RT
     for (auto eng : m_vulkan_engines) {
+        eng->ConstructScene();
+    }
+#endif
+#ifdef CHRONO_HAS_METAL_RT
+    for (auto eng : m_metal_engines) {
         eng->ConstructScene();
     }
 #endif
@@ -405,6 +433,47 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             }
         } catch (std::exception& e) {
             cerr << "Failed to create a ChVulkanRTEngine, with error:\n" << e.what() << endl;
+            exit(1);
+        }
+
+        return;
+    }
+#endif
+
+#ifdef CHRONO_HAS_METAL_RT
+    if (auto pMetalSensor = std::dynamic_pointer_cast<ChMetalSensor>(sensor)) {
+        m_render_sensor.push_back(sensor);
+        bool found_group = false;
+
+        for (auto engine : m_metal_engines) {
+            if (!found_group && engine->GetSensor().size() > 0 && abs(engine->GetSensor()[0]->GetUpdateRate() - sensor->GetUpdateRate()) < 0.001) {
+                found_group = true;
+                engine->AssignSensor(pMetalSensor);
+                if (m_verbose)
+                    cout << "Sensor added to existing Metal RT engine\n";
+            }
+        }
+
+        try {
+            if (!found_group) {
+                if (m_metal_engines.size() < m_allowable_groups) {
+                    if (m_verbose)
+                        cout << "Create new Metal RT engine\n";
+
+                    auto engine = chrono_types::make_shared<ChMetalRTEngine>(m_system, m_device_list[(int)m_metal_engines.size()], m_optix_reflections, m_verbose, m_debug);
+                    engine->AssignSensor(pMetalSensor);
+                    m_metal_engines.push_back(engine);
+
+                    if (m_verbose)
+                        cout << "Number of Metal RT engines: " << m_metal_engines.size() << endl;
+                } else {
+                    m_metal_engines[0]->AssignSensor(pMetalSensor);
+                    if (m_verbose)
+                        cout << "Couldn't find suitable existing Metal RT engine, so adding to first engine\n";
+                }
+            }
+        } catch (std::exception& e) {
+            cerr << "Failed to create a ChMetalRTEngine, with error:\n" << e.what() << endl;
             exit(1);
         }
 

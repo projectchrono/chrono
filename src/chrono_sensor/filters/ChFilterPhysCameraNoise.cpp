@@ -15,14 +15,18 @@
 // =============================================================================
 
 #include "chrono_sensor/ChConfigSensor.h"
-#if defined(CHRONO_HAS_VULKAN_RT) && !defined(CHRONO_HAS_OPTIX)
+#if (defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)) && !defined(CHRONO_HAS_OPTIX)
 
-#include "chrono_sensor/filters/ChFilterPhysCameraNoise.h"
+    #include "chrono_sensor/ChSensorManager.h"
+    #include "chrono_sensor/filters/ChFilterPhysCameraNoise.h"
+    #ifdef CHRONO_HAS_METAL_RT
+        #include "chrono_sensor/metal/ChMetalPhysCamOps.h"
+    #endif
 
-#include <algorithm>
-#include <cmath>
-#include <memory>
-#include <random>
+    #include <algorithm>
+    #include <cmath>
+    #include <memory>
+    #include <random>
 
 namespace chrono {
 namespace sensor {
@@ -51,11 +55,27 @@ CH_SENSOR_API void ChFilterPhysCameraNoise::Initialize(std::shared_ptr<ChSensor>
     m_in_out = std::dynamic_pointer_cast<SensorDeviceHalf4Buffer>(bufferInOut);
     if (!m_in_out)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
+    #ifdef CHRONO_HAS_METAL_RT
+    // Shot and dark-current noise take their own RNG stream, exactly as the CUDA path does, while
+    // the FPN/read stream keeps the user-supplied, reproducible m_FPN_seed. Going through
+    // GetDeterministicSeed is what makes ChSensorManager::SetRandomSeed reach this filter, and what
+    // keeps two physical cameras in one scene from drawing the same shot-noise sequence.
+    //
+    // Only on the Metal path, because only the Metal kernel consumes it: the host fallback below
+    // draws everything from m_FPN_seed, so deriving a stream it would ignore would add a way for
+    // this filter to throw without changing a single pixel.
+    m_shot_seed = static_cast<unsigned int>(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::PhysCameraShotNoise, GetRngStreamIndex()));
+    #endif
 }
 
 CH_SENSOR_API void ChFilterPhysCameraNoise::Apply() {
     if (!m_in_out || !m_in_out->Buffer)
         return;
+    #ifdef CHRONO_HAS_METAL_RT
+    if (metal_phys_cam::Noise(m_in_out->Buffer.get(), m_in_out->Width, m_in_out->Height, m_expsr_time, m_dark_currents, m_noise_gains, m_STD_reads, m_shot_seed, m_FPN_seed,
+                              m_in_out->LaunchedCount))
+        return;
+    #endif
     const size_t count = static_cast<size_t>(m_in_out->Width) * m_in_out->Height;
     for (size_t i = 0; i < count; ++i) {
         std::mt19937 rng(static_cast<uint32_t>(m_FPN_seed + 0x9e3779b9u * static_cast<uint32_t>(i + 1u) + 1013904223u * m_in_out->LaunchedCount));

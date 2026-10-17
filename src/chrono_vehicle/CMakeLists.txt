@@ -841,6 +841,9 @@ set(CV_STB_FILES
 )
 source_group("utils\\stb" FILES ${CV_STB_FILES})
 
+# Disable all warnings from external code (see cmake/ChronoWarnings.cmake)
+ch_disable_warnings_on_sources(${CV_STB_FILES})
+
 # --------------- VEHICLE IRRLICHT INTERFACE
 
 if(CH_ENABLE_MODULE_IRRLICHT)

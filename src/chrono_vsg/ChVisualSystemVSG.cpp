@@ -3081,7 +3081,7 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsysd pos, ChColor col) {
     m_decoScene->addChild(m_shapeBuilder->CreateGrid(x_step, y_step, nx, ny, pos, col));
 }
 

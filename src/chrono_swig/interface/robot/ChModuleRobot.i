@@ -36,6 +36,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -187,6 +188,11 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
+// RoboSimian::SetDriver takes a std::shared_ptr<models::ChRobotActuation>. Without this
+// registration ChRobotActuation is wrapped as a plain class, so no driver object can be
+// passed to it from Python or C#.
+%shared_ptr(chrono::models::ChRobotActuation)
+
 %shared_ptr(chrono::robosimian::RS_Part)
 %shared_ptr(chrono::robosimian::RS_Chassis)
 %shared_ptr(chrono::robosimian::RS_Sled)
@@ -263,6 +269,10 @@ using namespace chrono::industrial;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
+// ChColor and the VisualizationType enum (declared in ChBodyGeometry.h) are used by the robot
+// models; without these imports SWIG wraps them as opaque placeholders in this module.
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyGeometry.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"

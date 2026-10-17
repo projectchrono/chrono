@@ -20,7 +20,7 @@
 #include "chrono/core/ChApiCE.h"
 
 #include "chrono/physics/ChPhysicsItem.h"
-#include <chrono/physics/ChBody.h>
+#include "chrono/physics/ChBody.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
@@ -57,6 +57,14 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     /// Enable/disable verbose terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Modify the added mass blocks.
+    /// In this case, each given block is assumed to have size 6 x 6n.
+    void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);
+
+    /// Modify the added mass block.
+    /// In this case, each given block is assumed to have size 6 x 6 and overwrites the diagonal block of the added mass matrix.
+    void UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66d>& blocks);
+
     /// Perform setup operations at the beginning of a step.
     virtual void Setup() override {}
 
@@ -82,8 +90,8 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
   protected:
     bool m_verbose;
     ChBodyAddedMassBlocks m_body_blocks;  ///< added mass blocks for hydrodynamic bodies
-    ChMatrixDynamic<> m_added_mass;       ///< added mass matrix (system size)
-    ChKRMBlock m_KRM;                     ///< scaled added mass matrix (system size)
+    ChKRMBlock m_KRM;                     ///< scaled added mass matrix (6*num_bodies square, in block order)
+    unsigned int m_system_size;           ///< system size for which the mass inverse was last computed
 };
 
 }  // end namespace chrono

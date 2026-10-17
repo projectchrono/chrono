@@ -104,7 +104,7 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     virtual double GetMotorForce() const override { return GetInnerForce1(); }
 
     /// Initialize the generic mate, given the two bodies to be connected, and the absolute position of
-    /// the mate (the two frames to connect on the bodies will be initially coincindent to that frame).
+    /// the mate (the two frames to connect on the bodies will be initially coincident to that frame).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             ChFrame<> mabsframe                   ///< mate frame, in abs. coordinate
@@ -149,57 +149,26 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     std::shared_ptr<ChShaftBodyRotation> innerconstraint2rot;
     ChVector3d shaft2_rotation_dir;
 
-    /// Update this object. Also relinks the innerconstraints.
+    /// Update this object. Also re-links the inner constraints.
     virtual void Update(double time, UpdateFlags update_flags) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override;
     virtual unsigned int GetNumConstraints() override;
     virtual unsigned int GetNumConstraintsBilateral() override;
 
-    virtual void IntStateGather(const unsigned int off_x,
-                                ChState& x,
-                                const unsigned int off_v,
-                                ChStateDelta& v,
-                                double& T) override;
-    virtual void IntStateScatter(const unsigned int off_x,
-                                 const ChState& x,
-                                 const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const double T,
-                                 UpdateFlags update_flags) override;
+    virtual void IntStateGather(const unsigned int off_x, ChState& x, const unsigned int off_v, ChStateDelta& v, double& T) override;
+    virtual void IntStateScatter(const unsigned int off_x, const ChState& x, const unsigned int off_v, const ChStateDelta& v, const double T, UpdateFlags update_flags) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
-    virtual void IntStateIncrement(const unsigned int off_x,
-                                   ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   const ChStateDelta& Dv) override;
-    virtual void IntStateGetIncrement(const unsigned int off_x,
-                                      const ChState& x_new,
-                                      const ChState& x,
-                                      const unsigned int off_v,
-                                      ChStateDelta& Dv) override;
+    virtual void IntStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void IntStateGetIncrement(const unsigned int off_x, const ChState& x_new, const ChState& x, const unsigned int off_v, ChStateDelta& Dv) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-    virtual void IntLoadResidual_Mv(const unsigned int off,
-                                    ChVectorDynamic<>& R,
-                                    const ChVectorDynamic<>& w,
-                                    const double c) override;
-    virtual void IntLoadLumpedMass_Md(const unsigned int off,
-                                      ChVectorDynamic<>& Md,
-                                      double& err,
-                                      const double c) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     const double c_vel, 
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
+    virtual void IntLoadResidual_Mv(const unsigned int off, ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override;
+    virtual void IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L, ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel, bool do_clamp, double recovery_clamp) override;
     virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c, const double c_vel) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
@@ -207,10 +176,7 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
+    virtual void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L) override;
 
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;

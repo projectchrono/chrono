@@ -87,9 +87,16 @@ struct ChFsiParamsSPH {
                                    ///< sphere is detected
     Real shifting_ppst_pull;       ///< Coefficient for PPST pulling - this is applied when penetration with fictitious
     Real shifting_beta_implicit;   ///< Coefficient for shifting used in implicit scheme
-    Real shifting_diffusion_A;     ///< TODO: Add documentation
-    Real shifting_diffusion_AFSM;  ///< TODO: Add documentation
-    Real shifting_diffusion_AFST;  ///< TODO: Add documentation
+    Real shifting_diffusion_A;     ///< Fickian shifting coefficient. Scales the shifting velocity
+                                   ///< -A h |v_i| sum_j (m_j / rho_j) grad W_ij, whose sum is the discrete
+                                   ///< gradient of particle concentration (default: 1.0, range 1 to 6)
+    Real shifting_diffusion_AFSM;  ///< Upper anchor of the free-surface taper applied to diffusion
+                                   ///< shifting. Particles whose position-field divergence reaches AFSM are
+                                   ///< given the full shift; between AFST and AFSM the shift ramps linearly.
+                                   ///< Complete 3D kernel support yields about 2.9 (default: 2.9)
+    Real shifting_diffusion_AFST;  ///< Lower anchor of the free-surface taper applied to diffusion
+                                   ///< shifting. Particles whose position-field divergence is at or below
+                                   ///< AFST are not shifted at all (default: 2.0)
 
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to
               ///< use is to run simulations multiple time and find which one is the largest dT that produces a
@@ -168,8 +175,9 @@ struct ChFsiParamsSPH {
     Real Coh_coeff;               ///< Cohesion coefficient
     Real free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
     ///< field is computed and compared to this threshold. Particles with divergence
-    ///< less than this threshold are considered free surface particles (CRM only,
-    ///< default: 2.0)
+    ///< less than this threshold are considered free surface particles. Evaluated for
+    ///< both CFD and CRM problems, but currently only the CRM solution consumes the
+    ///< result (the stress state is zeroed at flagged particles); default: 2.4
     Real mcc_M;         ///< Cam-Clay critical state line slope, q = M p
     Real mcc_kappa;     ///< Cam-Clay swelling index: slope of the elastic unload/reload line in
                         ///< v-ln(p). Sets the elastic bulk modulus, K = v p / kappa.
