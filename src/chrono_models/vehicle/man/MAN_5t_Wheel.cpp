@@ -36,7 +36,7 @@ const double MAN_5t_Wheel::m_width = 0.254;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 MAN_5t_Wheel::MAN_5t_Wheel(const std::string& name) : ChWheel(name) {
-    m_vis_mesh_file = "MAN_Kat1/meshes/MAN_rim.obj";
+    m_vis_mesh_file = "MAN/meshes/MAN_rim.obj";
 }
 
 }  // namespace man

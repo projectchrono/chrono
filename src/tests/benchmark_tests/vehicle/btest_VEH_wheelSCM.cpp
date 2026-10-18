@@ -119,9 +119,6 @@ WheelScmTest<GRID_MM>::WheelScmTest() {
     m_rig->SetStepsize(step_size);
     m_rig->SetVisualizationType(scm_render ? VisualizationType::MESH : VisualizationType::NONE);
 
-    // No SCM visualization mesh in a timed run: see the note on scm_render.
-    m_rig->EnableTerrainVisualizationMesh(scm_render);
-
     ChWheelTestRig::TerrainPatchSize size;
     size.length = patch_length;
     size.width = patch_width;
@@ -134,6 +131,7 @@ WheelScmTest<GRID_MM>::WheelScmTest() {
     params.Mohr_friction = 30;
     params.Janosi_shear = 0.01;
     params.grid_spacing = GRID_MM / 1000.0;
+    params.vis_mesh = scm_render;
 
     m_rig->SetTerrainSCM(size, params);
     m_rig->SetConstantLongitudinalSlip(long_slip, base_speed);

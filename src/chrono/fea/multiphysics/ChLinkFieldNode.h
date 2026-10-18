@@ -75,8 +75,8 @@ class ChApi ChLinkField : public ChLinkBase {
     /// Get the connected node.
     std::shared_ptr<fea::ChNodeFEAbase> GetNode() const { return m_node; }
 
-    /// Get the reaction force considered as applied to the 1st node.
-    ChVector3d GetReactionOnNode() const { return -react; }
+    /// Get the (scalar) reaction considered as applied to the node.
+    double GetReactionOnNode() const { return -react; }
 
     /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double time, UpdateFlags update_flags) override;
@@ -203,11 +203,11 @@ public:
     /// Get the 2nd connected xyz node.
     std::shared_ptr<fea::ChNodeFEAbase> GetNode2() const { return m_node2; }
 
-    /// Get the reaction force considered as applied to the 1st node.
-    ChVector3d GetReactionOnNode1() const { return +react; }
+    /// Get the (scalar) reaction considered as applied to the 1st node.
+    double GetReactionOnNode1() const { return +react; }
 
-    /// Get the reaction force considered as applied to the 2nd node.
-    ChVector3d GetReactionOnNode2() const { return -react; }
+    /// Get the (scalar) reaction considered as applied to the 2nd node.
+    double GetReactionOnNode2() const { return -react; }
 
     /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double time, UpdateFlags update_flags) override;

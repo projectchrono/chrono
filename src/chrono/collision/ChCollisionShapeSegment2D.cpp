@@ -22,11 +22,9 @@ CH_UPCASTING(ChCollisionShapeSegment2D, ChCollisionShape)
 
 ChCollisionShapeSegment2D::ChCollisionShapeSegment2D() : ChCollisionShape(Type::SEGMENT2D) {}
 
-ChCollisionShapeSegment2D::ChCollisionShapeSegment2D(std::shared_ptr<ChContactMaterial> material,
-                                                     const ChLineSegment& segment,
-                                                     double radius)
-    : ChCollisionShape(Type::SEGMENT2D, material), gsegment(segment) {
-    this->radius = radius;
+ChCollisionShapeSegment2D::ChCollisionShapeSegment2D(std::shared_ptr<ChContactMaterial> material, const ChLineSegment& segment, double sweep_radius)
+    : ChCollisionShape(Type::SEGMENT2D, material), m_segment(segment) {
+    m_sweep_radius = sweep_radius;
 }
 
 void ChCollisionShapeSegment2D::ArchiveOut(ChArchiveOut& archive_out) {
@@ -35,8 +33,8 @@ void ChCollisionShapeSegment2D::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
     ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    archive_out << CHNVP(gsegment);
-    archive_out << CHNVP(radius);
+    archive_out << CHNVP(m_segment);
+    archive_out << CHNVP(m_sweep_radius);
 }
 
 void ChCollisionShapeSegment2D::ArchiveIn(ChArchiveIn& archive_in) {
@@ -45,8 +43,8 @@ void ChCollisionShapeSegment2D::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
     ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    archive_in >> CHNVP(gsegment);
-    archive_in >> CHNVP(radius);
+    archive_in >> CHNVP(m_segment);
+    archive_in >> CHNVP(m_sweep_radius);
 }
 
 }  // end namespace chrono

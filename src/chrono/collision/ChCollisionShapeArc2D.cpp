@@ -22,11 +22,9 @@ CH_UPCASTING(ChCollisionShapeArc2D, ChCollisionShape)
 
 ChCollisionShapeArc2D::ChCollisionShapeArc2D() : ChCollisionShape(Type::ARC2D) {}
 
-ChCollisionShapeArc2D::ChCollisionShapeArc2D(std::shared_ptr<ChContactMaterial> material,
-                                             const ChLineArc& arc,
-                                             double radius)
-    : ChCollisionShape(Type::ARC2D, material), garc(arc) {
-    this->radius = radius;
+ChCollisionShapeArc2D::ChCollisionShapeArc2D(std::shared_ptr<ChContactMaterial> material, const ChLineArc& arc, double sweep_radius)
+    : ChCollisionShape(Type::ARC2D, material), m_arc(arc) {
+    m_sweep_radius = sweep_radius;
 }
 
 void ChCollisionShapeArc2D::ArchiveOut(ChArchiveOut& archive_out) {
@@ -35,8 +33,8 @@ void ChCollisionShapeArc2D::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
     ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    archive_out << CHNVP(garc);
-    archive_out << CHNVP(radius);
+    archive_out << CHNVP(m_arc);
+    archive_out << CHNVP(m_sweep_radius);
 }
 
 void ChCollisionShapeArc2D::ArchiveIn(ChArchiveIn& archive_in) {
@@ -45,8 +43,8 @@ void ChCollisionShapeArc2D::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
     ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    archive_in >> CHNVP(garc);
-    archive_in >> CHNVP(radius);
+    archive_in >> CHNVP(m_arc);
+    archive_in >> CHNVP(m_sweep_radius);
 }
 
 }  // end namespace chrono

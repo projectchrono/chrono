@@ -130,9 +130,7 @@ class Polaris_Model : public WheeledVehicleJSON {
         ////return "Polaris/Polaris_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override { return "Polaris/Polaris_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json"; }
     virtual double CameraDistance() const override { return 7.0; }
 };
 
@@ -150,9 +148,7 @@ class UAZ_Model : public WheeledVehicleJSON {
         return "uaz/tire/UAZBUS_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override { return "uaz/powertrain/UAZBUS_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "uaz/powertrain/UAZBUS_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "uaz/powertrain/UAZBUS_AutomaticTransmissionSimpleMap.json"; }
     virtual double CameraDistance() const override { return 8.0; }
 };
 
@@ -162,9 +158,7 @@ class G500_Model : public WheeledVehicleJSON {
     virtual std::string VehicleJSON() const override { return "gclass/vehicle/G500_Vehicle.json"; }
     virtual std::string TireJSON(unsigned int axle) const override { return "gclass/tire/G500_TMeasyTire.json"; }
     virtual std::string EngineJSON() const override { return "gclass/powertrain/G500_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "gclass/powertrain/G500_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "gclass/powertrain/G500_AutomaticTransmissionSimpleMap.json"; }
     virtual double CameraDistance() const override { return 10.0; }
 };
 
@@ -181,9 +175,7 @@ class VW_Microbus_Model : public WheeledVehicleJSON {
         ////return "VW_microbus/json/van_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override { return "VW_microbus/json/van_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "VW_microbus/json/van_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "VW_microbus/json/van_AutomaticTransmissionSimpleMap.json"; }
     virtual double CameraDistance() const override { return 7.0; }
 };
 
@@ -197,9 +189,7 @@ class CityBus_Model : public WheeledVehicleJSON {
         return "citybus/tire/CityBus_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override { return "citybus/powertrain/CityBus_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json"; }
 
     virtual double CameraDistance() const override { return 16.0; }
 };
@@ -210,9 +200,7 @@ class Duro_Model : public WheeledVehicleJSON {
     virtual std::string VehicleJSON() const override { return "duro/vehicle/duro_vehicle.json"; }
     virtual std::string TireJSON(unsigned int axle) const override { return "duro/tires/duro_tmeasy_tire.json"; }
     virtual std::string EngineJSON() const override { return "duro/powertrain/duro_engine_simple_map.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "duro/powertrain/duro_automatic_transmission_simple_map.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "duro/powertrain/duro_automatic_transmission_simple_map.json"; }
 
     virtual double CameraDistance() const override { return 10.0; }
 };
@@ -221,15 +209,16 @@ class MAN_Model : public WheeledVehicleJSON {
   public:
     virtual std::string ModelName() const override { return "MAN"; }
     virtual std::string VehicleJSON() const override {
-        ////return "MAN_Kat1/vehicle/MAN_5t_Vehicle_4WD.json";
-        ////return "MAN_Kat1/vehicle/MAN_7t_Vehicle_6WD.json";
-        return "MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json";
+        ////return "MAN/vehicle/MAN_5t_Vehicle_4WD.json";
+        ////return "MAN/vehicle/MAN_7t_Vehicle_6WD.json";
+        return "MAN/vehicle/MAN_10t_Vehicle_8WD.json";
     }
-    virtual std::string TireJSON(unsigned int axle) const override { return "MAN_Kat1/tire/MAN_5t_TMeasyTire.json"; }
-    virtual std::string EngineJSON() const override { return "MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json";
+    virtual std::string TireJSON(unsigned int axle) const override {
+        ////return "MAN/tire/MAN_RigidMeshTire.json";
+        return "MAN/tire/MAN_TMeasyTire.json";
     }
+    virtual std::string EngineJSON() const override { return "MAN/powertrain/MAN_7t_EngineSimpleMap.json"; }
+    virtual std::string TransmissionJSON() const override { return "MAN/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json"; }
 
     virtual double CameraDistance() const override { return 15.0; }
 };
@@ -240,9 +229,7 @@ class MTV_Model : public WheeledVehicleJSON {
     virtual std::string VehicleJSON() const override { return "mtv/vehicle/MTV_Vehicle_WalkingBeam.json"; }
     virtual std::string TireJSON(unsigned int axle) const override { return "mtv/tire/FMTV_TMeasyTire.json"; }
     virtual std::string EngineJSON() const override { return "mtv/powertrain/FMTV_EngineShafts.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "mtv/powertrain/FMTV_AutomaticTransmissionShafts.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "mtv/powertrain/FMTV_AutomaticTransmissionShafts.json"; }
 
     virtual double CameraDistance() const override { return 12.0; }
 };
@@ -251,13 +238,9 @@ class Gator_Model : public WheeledVehicleJSON {
   public:
     virtual std::string ModelName() const override { return "Gator"; }
     virtual std::string VehicleJSON() const override { return "gator/json/Gator_Vehicle.json"; }
-    virtual std::string TireJSON(unsigned int axle) const override {
-        return (axle == 0) ? "gator/json/Gator_TMeasyTireFront.json" : "gator/json/Gator_TMeasyTireRear.json";
-    }
+    virtual std::string TireJSON(unsigned int axle) const override { return (axle == 0) ? "gator/json/Gator_TMeasyTireFront.json" : "gator/json/Gator_TMeasyTireRear.json"; }
     virtual std::string EngineJSON() const override { return "gator/json/Gator_EngineSimple.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "gator/json/Gator_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "gator/json/Gator_AutomaticTransmissionSimpleMap.json"; }
 
     virtual double CameraDistance() const override { return 8.0; }
 };
@@ -268,9 +251,7 @@ class ACV_Model : public WheeledVehicleJSON {
     virtual std::string VehicleJSON() const override { return "articulated_chassis/ACV_Vehicle.json"; }
     virtual std::string TireJSON(unsigned int axle) const override { return "articulated_chassis/ACV_RigidTire.json"; }
     virtual std::string EngineJSON() const override { return "articulated_chassis/ACV_EngineSimpleMap.json"; }
-    virtual std::string TransmissionJSON() const override {
-        return "articulated_chassis/ACV_AutomaticTransmissionSimpleMap.json";
-    }
+    virtual std::string TransmissionJSON() const override { return "articulated_chassis/ACV_AutomaticTransmissionSimpleMap.json"; }
 
     virtual double CameraDistance() const override { return 8.0; }
 };
@@ -301,18 +282,12 @@ class UT_Model : public Trailer_Model {
 
 std::vector<std::pair<std::shared_ptr<WheeledVehicleJSON>, std::string>> WheeledVehicleJSON::List() {
     std::vector<std::pair<std::shared_ptr<WheeledVehicleJSON>, std::string>> models = {
-        {chrono_types::make_shared<HMMWV_Model>(), "HMMWV"},
-        {chrono_types::make_shared<Audi_Model>(), "Audi"},
-        {chrono_types::make_shared<Polaris_Model>(), "Polaris"},
-        {chrono_types::make_shared<VW_Microbus_Model>(), "VW bus"},
-        {chrono_types::make_shared<UAZ_Model>(), "UAZ"},
-        {chrono_types::make_shared<G500_Model>(), "Mercedes G500"},
-        {chrono_types::make_shared<Sedan_Model>(), "Sedan"},
-        {chrono_types::make_shared<CityBus_Model>(), "City bus"},
-        {chrono_types::make_shared<MAN_Model>(), "MAN"},
-        {chrono_types::make_shared<MTV_Model>(), "MTV"},
-        {chrono_types::make_shared<Duro_Model>(), "Duro"},
-        {chrono_types::make_shared<Gator_Model>(), "Gator"},
+        {chrono_types::make_shared<HMMWV_Model>(), "HMMWV"},     {chrono_types::make_shared<Audi_Model>(), "Audi"},
+        {chrono_types::make_shared<Polaris_Model>(), "Polaris"}, {chrono_types::make_shared<VW_Microbus_Model>(), "VW bus"},
+        {chrono_types::make_shared<UAZ_Model>(), "UAZ"},         {chrono_types::make_shared<G500_Model>(), "Mercedes G500"},
+        {chrono_types::make_shared<Sedan_Model>(), "Sedan"},     {chrono_types::make_shared<CityBus_Model>(), "City bus"},
+        {chrono_types::make_shared<MAN_Model>(), "MAN"},         {chrono_types::make_shared<MTV_Model>(), "MTV"},
+        {chrono_types::make_shared<Duro_Model>(), "Duro"},       {chrono_types::make_shared<Gator_Model>(), "Gator"},
         {chrono_types::make_shared<ACV_Model>(), "Skid steer"}};
 
     return models;

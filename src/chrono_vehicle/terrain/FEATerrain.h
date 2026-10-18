@@ -35,6 +35,8 @@ namespace vehicle {
 /// FEA Deformable terrain model.
 /// This class implements a terrain made up of isoparametric finite elements. It features
 /// Drucker-Prager plasticity and capped Drucker-Prager plasticity.
+/// Interaction with the vehicle is through the Chrono contact system; as such, only rigid tires, FEA tires, and tracked
+/// vehicles are supported. Handling tires (ChForceElementTire), which carry no collision geometry, cannot be used.
 class CH_VEHICLE_API FEATerrain : public ChTerrain {
   public:
     /// Construct a default FEADeformableSoil.

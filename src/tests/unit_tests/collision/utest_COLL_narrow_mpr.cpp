@@ -521,8 +521,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
 // =============================================================================
 
 TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
-    real c_rad = 2.0;   // radius of skeleton cylinder
-    real c_hlen = 1.5;  // half-length of skeleton cylinder
+    real c_rad = 2.0;   // (outer) radius of rounded cylinder
+    real c_hlen = 1.5;  // (outer) half-length of rounded cylinder
     real c_srad = 0.1;  // radius of sweeping sphere
 
     real s_rad = 1.0;  // sphere radius

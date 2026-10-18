@@ -485,12 +485,14 @@ ChColormap::Type ReadColorMapType(const YAML::Node& a) {
         return ChColormap::Type::JET;
     if (val == "KINDLMANN")
         return ChColormap::Type::KINDLMANN;
-    if (val == "BLACK_BODY")
-        return ChColormap::Type::BLACK_BODY;
     if (val == "PLASMA")
         return ChColormap::Type::PLASMA;
     if (val == "RED_BLUE")
         return ChColormap::Type::RED_BLUE;
+    if (val == "REGOLITH")
+        return ChColormap::Type::REGOLITH;
+    if (val == "VIRIDIS")
+        return ChColormap::Type::VIRIDIS;
     return ChColormap::Type::JET;
 }
 

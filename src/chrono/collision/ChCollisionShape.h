@@ -34,7 +34,6 @@ class ChApi ChCollisionShape {
         BOX,
         ROUNDEDBOX,
         CYLINDER,
-        CYLSHELL,
         ROUNDEDCYL,
         CAPSULE,
         CONVEXHULL,

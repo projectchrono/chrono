@@ -66,13 +66,6 @@ ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
     bt_dispatcher->registerCollisionCreateFunc(CAPSULE_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE, m_collision_capsule_box);
     bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE, CAPSULE_SHAPE_PROXYTYPE, m_collision_box_capsule);
 
-    // custom collision for cylshell-box
-    m_collision_cylshell_box = new cbtCylshellBoxCollisionAlgorithm::CreateFunc;
-    m_collision_box_cylshell = new cbtCylshellBoxCollisionAlgorithm::CreateFunc;
-    m_collision_box_cylshell->m_swapped = true;
-    bt_dispatcher->registerCollisionCreateFunc(CYLSHELL_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE, m_collision_cylshell_box);
-    bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE, CYLSHELL_SHAPE_PROXYTYPE, m_collision_box_cylshell);
-
     // custom collision for 2D arc-segment
     m_collision_arc_seg = new cbtArcSegmentCollisionAlgorithm::CreateFunc;
     m_collision_seg_arc = new cbtArcSegmentCollisionAlgorithm::CreateFunc;
@@ -113,8 +106,6 @@ ChCollisionSystemBullet::~ChCollisionSystemBullet() {
 
     delete m_collision_capsule_box;
     delete m_collision_box_capsule;
-    delete m_collision_cylshell_box;
-    delete m_collision_box_cylshell;
     delete m_collision_arc_seg;
     delete m_collision_seg_arc;
     delete m_collision_arc_arc;

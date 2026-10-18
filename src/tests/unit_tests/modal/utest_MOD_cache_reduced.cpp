@@ -37,6 +37,7 @@
 #endif
 
 #include <filesystem>
+#include <limits>
 
 using namespace chrono;
 using namespace chrono::modal;
@@ -284,7 +285,7 @@ ChVector3d RunModel(bool load_from_file) {
 
         if (!file_out.is_open()) {
             std::cerr << "Cannot save reduced model file: " << reduced_model_filename << std::endl;
-            return false;
+            return ChVector3d(std::numeric_limits<double>::quiet_NaN());
         }
 
         ChArchiveOutJSON archive_out(file_out);
@@ -295,7 +296,7 @@ ChVector3d RunModel(bool load_from_file) {
 
         if (!file_in.is_open()) {
             std::cerr << "Cannot load reduced model file: " << reduced_model_filename << std::endl;
-            return false;
+            return ChVector3d(std::numeric_limits<double>::quiet_NaN());
         }
 
         ChArchiveInJSON archive_in(file_in);

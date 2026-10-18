@@ -5,6 +5,8 @@ SET(TESTS
     utest_CH_ChVector
     utest_CH_ChQuaternion
     utest_CH_ChState
+    utest_CH_assembly_acceleration
+    utest_CH_assembly_acceleration_coupled
     utest_CH_coords
     utest_CH_linalg
     utest_CH_math
@@ -12,6 +14,7 @@ SET(TESTS
     utest_CH_ISO2631
     utest_CH_default_vismat
     utest_CH_default_vismat_firstaccess
+    utest_CH_output_directory
 )
 
 SET(LIBS Chrono_core)

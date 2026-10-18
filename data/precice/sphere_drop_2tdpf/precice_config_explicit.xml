@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Sphere drop with one Chrono MBS solid participant and two Chrono TDPF fluid participants.
+
+     Each fluid participant uses hydrodynamic data with half the fluid density, so it applies half of
+     the hydrodynamic loads of the single fluid participant in the sphere_drop demo
+     (precice_config_AMdyn_explicit.xml). Denoting by M the sphere's infinite-frequency added mass, the
+     solid participant holds a baseline added mass of M/2, and the two fluid participants send added
+     mass increments of M/6 (Fluid1) and M/3 (Fluid2), as set by the demo program
+     (demo_PRECICE_sphere_drop_2tdpf); see also make_sphere_half_rho.py. The solid participant
+     sums the forces received from both fluid participants and applies its baseline added mass plus
+     both increments, which reproduces that demo.
+
+     Naming rules followed here:
+     - preCICE requires every mesh to be provided by a single participant, so each fluid participant
+       provides its own coupling mesh (FluidMesh1, FluidMesh2) and its own added mass mesh
+       (FluidAddedMass_1, FluidAddedMass_2), and writes its own force and torque data.
+     - Added mass meshes are recognized by the Chrono adapters by name prefix: 'SolidAddedMass' for
+       meshes read by the solid participant (one per sending participant) and 'FluidAddedMass' for
+       meshes written by a fluid participant. -->
+<precice-configuration>
+  <log>
+    <sink
+      type="stream"
+      output="stdout"
+      filter="%Severity% > debug"
+      format="preCICE:%ColorizedSeverity% %Message%"
+      enabled="true" />
+  </log>
+
+  <data:vector name="positions" />
+  <data:vector name="velocities" />
+  <data:vector name="forces1" />
+  <data:vector name="torques1" />
+  <data:vector name="forces2" />
+  <data:vector name="torques2" />
+  <data:scalar name="am_coeffs" />
+
+  <mesh name="SolidMesh" dimensions="3">
+    <use-data name="positions" />
+    <use-data name="velocities" />
+    <use-data name="forces1" />
+    <use-data name="torques1" />
+    <use-data name="forces2" />
+    <use-data name="torques2" />
+  </mesh>
+
+  <mesh name="FluidMesh1" dimensions="3">
+    <use-data name="positions" />
+    <use-data name="velocities" />
+    <use-data name="forces1" />
+    <use-data name="torques1" />
+  </mesh>
+
+  <mesh name="FluidMesh2" dimensions="3">
+    <use-data name="positions" />
+    <use-data name="velocities" />
+    <use-data name="forces2" />
+    <use-data name="torques2" />
+  </mesh>
+
+  <mesh name="SolidAddedMass_1" dimensions="3">
+    <use-data name="am_coeffs" />
+  </mesh>
+
+  <mesh name="FluidAddedMass_1" dimensions="3">
+    <use-data name="am_coeffs" />
+  </mesh>
+
+  <mesh name="SolidAddedMass_2" dimensions="3">
+    <use-data name="am_coeffs" />
+  </mesh>
+
+  <mesh name="FluidAddedMass_2" dimensions="3">
+    <use-data name="am_coeffs" />
+  </mesh>
+
+  <participant name="Solid">
+    <provide-mesh name="SolidMesh" />
+    <write-data name="positions" mesh="SolidMesh" />
+    <write-data name="velocities" mesh="SolidMesh" />
+    <read-data name="forces1" mesh="SolidMesh" />
+    <read-data name="torques1" mesh="SolidMesh" />
+    <read-data name="forces2" mesh="SolidMesh" />
+    <read-data name="torques2" mesh="SolidMesh" />
+
+    <!-- One added mass input channel per fluid participant -->
+    <provide-mesh name="SolidAddedMass_1" />
+    <receive-mesh name="FluidAddedMass_1" from="Fluid1" />
+    <read-data name="am_coeffs" mesh="SolidAddedMass_1" />
+    <mapping:nearest-neighbor
+      direction="read"
+      from="FluidAddedMass_1"
+      to="SolidAddedMass_1"
+      constraint="consistent" />
+
+    <provide-mesh name="SolidAddedMass_2" />
+    <receive-mesh name="FluidAddedMass_2" from="Fluid2" />
+    <read-data name="am_coeffs" mesh="SolidAddedMass_2" />
+    <mapping:nearest-neighbor
+      direction="read"
+      from="FluidAddedMass_2"
+      to="SolidAddedMass_2"
+      constraint="consistent" />
+  </participant>
+
+  <participant name="Fluid1">
+    <provide-mesh name="FluidMesh1" />
+    <receive-mesh name="SolidMesh" from="Solid" />
+    <mapping:nearest-neighbor
+      direction="write"
+      from="FluidMesh1"
+      to="SolidMesh"
+      constraint="conservative" />
+    <mapping:nearest-neighbor
+      direction="read"
+      from="SolidMesh"
+      to="FluidMesh1"
+      constraint="consistent" />
+    <write-data name="forces1" mesh="FluidMesh1" />
+    <write-data name="torques1" mesh="FluidMesh1" />
+    <read-data name="positions" mesh="FluidMesh1" />
+    <read-data name="velocities" mesh="FluidMesh1" />
+
+    <provide-mesh name="FluidAddedMass_1" />
+    <write-data name="am_coeffs" mesh="FluidAddedMass_1" />
+  </participant>
+
+  <participant name="Fluid2">
+    <provide-mesh name="FluidMesh2" />
+    <receive-mesh name="SolidMesh" from="Solid" />
+    <mapping:nearest-neighbor
+      direction="write"
+      from="FluidMesh2"
+      to="SolidMesh"
+      constraint="conservative" />
+    <mapping:nearest-neighbor
+      direction="read"
+      from="SolidMesh"
+      to="FluidMesh2"
+      constraint="consistent" />
+    <write-data name="forces2" mesh="FluidMesh2" />
+    <write-data name="torques2" mesh="FluidMesh2" />
+    <read-data name="positions" mesh="FluidMesh2" />
+    <read-data name="velocities" mesh="FluidMesh2" />
+
+    <provide-mesh name="FluidAddedMass_2" />
+    <write-data name="am_coeffs" mesh="FluidAddedMass_2" />
+  </participant>
+
+  <m2n:sockets acceptor="Solid" connector="Fluid1" exchange-directory="." />
+  <m2n:sockets acceptor="Solid" connector="Fluid2" exchange-directory="." />
+
+  <!-- One serial-explicit scheme per fluid participant. In both, the fluid participant runs first within
+       each time window, so the forces and added mass increments it produces are available to the solid
+       participant in that same window. Combined with 'read_data_time: WINDOW_END' on the solid
+       participant (which requires it to be listed 'second' in every scheme it is part of), this makes
+       the data applied over a window derive from the solid state at the beginning of that window.
+       Both schemes must use the same time window size and number of windows.
+       5000 windows x 1e-3 s = 5 s; the adapters terminate on preCICE's coupling status alone. -->
+  <coupling-scheme:serial-explicit>
+    <participants first="Fluid1" second="Solid" />
+    <max-time-windows value="5000" />
+    <time-window-size value="0.001" />
+
+    <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid1" initialize="yes" />
+    <exchange data="velocities" mesh="SolidMesh" from="Solid" to="Fluid1" initialize="yes" />
+    <exchange data="forces1" mesh="SolidMesh" from="Fluid1" to="Solid" />
+    <exchange data="torques1" mesh="SolidMesh" from="Fluid1" to="Solid" />
+
+    <exchange data="am_coeffs" mesh="FluidAddedMass_1" from="Fluid1" to="Solid" />
+  </coupling-scheme:serial-explicit>
+
+  <coupling-scheme:serial-explicit>
+    <participants first="Fluid2" second="Solid" />
+    <max-time-windows value="5000" />
+    <time-window-size value="0.001" />
+
+    <exchange data="positions" mesh="SolidMesh" from="Solid" to="Fluid2" initialize="yes" />
+    <exchange data="velocities" mesh="SolidMesh" from="Solid" to="Fluid2" initialize="yes" />
+    <exchange data="forces2" mesh="SolidMesh" from="Fluid2" to="Solid" />
+    <exchange data="torques2" mesh="SolidMesh" from="Fluid2" to="Solid" />
+
+    <exchange data="am_coeffs" mesh="FluidAddedMass_2" from="Fluid2" to="Solid" />
+  </coupling-scheme:serial-explicit>
+</precice-configuration>

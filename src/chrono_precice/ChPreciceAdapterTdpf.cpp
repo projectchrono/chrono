@@ -308,7 +308,8 @@ void ChPreciceAdapterTdpf::OnWriteDataAM(std::vector<ChMatrix66d>& blocks) {
         throw std::runtime_error("Added mass block count mismatch");
     }
 
-    blocks = am_blocks;
+    // The TDPF added mass is the (constant) infinite-frequency added mass, which the receiving participant holds as
+    // its baseline. There is therefore no increment to report and the zero-initialized blocks are sent unchanged.
 }
 
 void ChPreciceAdapterTdpf::OnWriteData() {

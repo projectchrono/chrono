@@ -117,7 +117,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->SetDefaultMaterial(mat);
     m1->SetDefaultDensity(rho);
-    m1->SetDefaultSize(radius);
+    m1->SetDefaultSize(ChVector3d(radius));
 
     // Create particles in layers until reaching the desired number of particles
     ChVector3d range(hdim.x() - r, hdim.y() - r, 0);

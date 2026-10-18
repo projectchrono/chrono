@@ -57,9 +57,7 @@ TEST(FullAssembly, Assemble) {
 
     // Integrator settings
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.GetSolver()->AsIterative()->SetMaxIterations(300);
-    sys.GetSolver()->AsIterative()->SetTolerance(1e-10);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
@@ -87,7 +85,9 @@ TEST(FullAssembly, Assemble) {
     sys.AddLink(revoluteJoint);
 
     // Perform a full system assembly
-    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
+    auto flag = sys.DoAssembly(AssemblyAnalysis::Level::FULL);
+    ASSERT_NE(flag, AssemblyAnalysis::ExitFlag::NOT_CONVERGED);
+    ASSERT_NE(flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE);
 
     // Extract position, velocity, and acceleration of pendulum body.
     ChVector3d pos = pendulum->GetPos();

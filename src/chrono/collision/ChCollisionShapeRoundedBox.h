@@ -47,7 +47,7 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     ChVector3d GetLengths() const { return gbox.GetLengths(); }
 
     /// Get the radius of the sweeping sphere.
-    double GetSRadius() const { return gbox.GetSphereRadius(); }
+    double GetSweepRadius() const { return gbox.GetSphereRadius(); }
 
     /// Get the shape bounding box.
     virtual ChAABB GetBoundingBox() const override { return gbox.GetBoundingBox(); }

@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
             vrot.SetFromAngleY(ChRandom::Get() * CH_2PI);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             vrot.SetFromAngleAxis((ChRandom::Get() - 0.5) * 2 * CH_DEG_TO_RAD * 20,
-                                  ChVector3d(ChRandom::Get() - 0.5, 0, ChRandom::Get() - 0.5).Normalize());
+                                  ChVector3d(ChRandom::Get() - 0.5, 0, ChRandom::Get() - 0.5).GetNormalized());
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(
                 ChVector3d((ChRandom::Get() - 0.5) * 1.8, ChRandom::Get() * 0.1, -ChRandom::Get() * 3.2 + 0.9));

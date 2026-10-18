@@ -29,23 +29,20 @@ namespace chrono {
 /// same plane. This is useful for mechanisms that work on a plane, and that require more precise collision that is not
 /// possible with current 3D shapes. For example, the line can contain concave or convex round fillets.
 /// Requirements:
-/// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
+/// - the line must be clockwise for inner material (counterclockwise=hollow, material outside)
 /// - the line must contain only ChLineSegment and ChLineArc sub-lines
 /// - the sublines must follow in the proper order, with coincident corners, and must be closed.
 class ChApi ChCollisionShapePath2D : public ChCollisionShape {
   public:
     ChCollisionShapePath2D();
-    ChCollisionShapePath2D(std::shared_ptr<ChContactMaterial> material,
-                           std::shared_ptr<ChLinePath> path,
-                           double radius = 0.001);
-
+    ChCollisionShapePath2D(std::shared_ptr<ChContactMaterial> material, std::shared_ptr<ChLinePath> path, double sweep_radius = 0.001);
     ~ChCollisionShapePath2D() {}
 
     /// Access the path geometry.
-    std::shared_ptr<ChLinePath> GetGeometry() { return gpath; }
+    std::shared_ptr<ChLinePath> GetGeometry() { return m_path; }
 
     /// Get the path thickness (the radius of a sweeping sphere).
-    double GetSRadius() const { return radius; }
+    double GetSweepRadius() const { return m_sweep_radius; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -54,8 +51,8 @@ class ChApi ChCollisionShapePath2D : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::shared_ptr<ChLinePath> gpath;
-    double radius;
+    std::shared_ptr<ChLinePath> m_path;
+    double m_sweep_radius;
 };
 
 /// @} chrono_collision

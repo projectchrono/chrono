@@ -94,7 +94,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
         ChVector3d V1(heightA, radius * std::cos(phaseA), radius * std::sin(phaseA));
         ChVector3d V2(heightB, radius * std::cos(phaseB), radius * std::sin(phaseB));
 
-        auto segment = ChLineSegment(mpos.TransformPointLocalToParent(V1), mpos.TransformPointLocalToParent(V2));
+        auto segment = chrono_types::make_shared<ChLineSegment>(mpos.TransformPointLocalToParent(V1), mpos.TransformPointLocalToParent(V2));
         linepath->AddSubLine(segment);
         phaseA = phaseB;
         heightA = heightB;
@@ -117,7 +117,7 @@ void ChVisualShapeRotSpring::Update(ChObj* updater, const ChFrame<>& frame) {
         double crt_angle = iu * del_angle;
         double crt_radius = m_radius - (iu * del_angle / CH_2PI) * (m_radius / 10);
         ChVector3d V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
-        auto segment = ChLineSegment(V1, V2);
+        auto segment = chrono_types::make_shared<ChLineSegment>(V1, V2);
         linepath->AddSubLine(segment);
         V1 = V2;
     }

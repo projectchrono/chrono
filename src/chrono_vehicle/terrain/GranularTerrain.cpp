@@ -396,7 +396,7 @@ void GranularTerrain::Initialize(const ChVector3d& center,
     std::shared_ptr<utils::ChMixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->SetDefaultMaterial(m_material);
     m1->SetDefaultDensity(density);
-    m1->SetDefaultSize(radius);
+    m1->SetDefaultSize(ChVector3d(radius));
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;

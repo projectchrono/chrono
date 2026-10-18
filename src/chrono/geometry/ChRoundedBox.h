@@ -25,6 +25,8 @@ namespace chrono {
 /// @{
 
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
+/// The box lengths are the outer dimensions of the shape, i.e., the shape is the Minkowski sum of a box with
+/// lengths (L - 2*srad) and a sphere of radius srad.
 class ChApi ChRoundedBox : public ChVolume {
   public:
     ChRoundedBox() : hlen(VNULL), srad(0) {}
@@ -90,7 +92,7 @@ class ChApi ChRoundedBox : public ChVolume {
     /// Return the radius of a bounding sphere.
     static double CalcBoundingSphereRadius(const ChVector3d& lengths, double srad);
 
-    ChVector3d hlen;  ///< box halflengths
+    ChVector3d hlen;  ///< box halflengths (outer)
     double srad;      ///< radius of sweeping sphere
 };
 

@@ -44,6 +44,8 @@ namespace vehicle {
 /// Granular terrain model.
 /// This class implements a rectangular patch of granular terrain with spherical particles. Boundary conditions (model
 /// of a container bin) are imposed through a custom collision detection object.
+/// The particles interact with the vehicle through the Chrono contact system; as such, only rigid tires, FEA tires, and
+/// tracked vehicles are supported. Handling tires (ChForceElementTire), which carry no collision geometry, cannot be used.
 class CH_VEHICLE_API GranularTerrain : public ChTerrain {
   public:
     /// Construct a default GranularTerrain.

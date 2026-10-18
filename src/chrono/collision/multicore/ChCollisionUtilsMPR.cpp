@@ -52,9 +52,6 @@ real3 SupportVertNoMargin(const chrono::ConvexBase* Shape, const real3& nv, cons
         case ChCollisionShape::Type::ROUNDEDCYL:
             localSupport = GetSupportPoint_RoundedCylinder(Shape->Rbox(), n);
             break;
-        case ChCollisionShape::Type::CYLSHELL:
-            localSupport = GetSupportPoint_CylindricalShell(Shape->Box(), n);
-            break;
         case ChCollisionShape::Type::CONVEXHULL:
             localSupport = GetSupportPoint_Convex(Shape->Size(), Shape->Convex(), n);
             break;

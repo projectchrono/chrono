@@ -30,6 +30,10 @@ namespace vehicle {
 /// @{
 
 /// Base class for a terrain system.
+/// The query functions (GetHeight, GetPoint, GetNormal, GetCoefficientFriction, GetProperties) are the only mechanism
+/// through which handling tires (ChForceElementTire) interact with the terrain. Contact-based tires (rigid or FEA) and
+/// tracked vehicles do not use them. Deformable terrain models (SCMTerrain, GranularTerrain, CRMTerrain, FEATerrain)
+/// implement these functions only approximately or as placeholders and cannot be used with handling tires.
 class CH_VEHICLE_API ChTerrain {
   public:
     ChTerrain();

@@ -2349,7 +2349,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxExterior(const ChVec
     ChVector3d delta(size.x() / (np.x() - 1), size.y() / (np.y() - 1), size.z() / (np.z() - 1));
 
     // Inflate box
-    ChVector3i Np = np + 2 * (num_layers - 1);
+    ChVector3i Np = np + ChVector3i(2 * (num_layers - 1));
     ChVector3d Size = size + 2.0 * (num_layers - 1.0) * delta;
 
     // Create exterior BCE layers

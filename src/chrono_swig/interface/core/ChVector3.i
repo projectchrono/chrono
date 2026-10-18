@@ -140,6 +140,23 @@
 
 %}
 
+// The force/torque members of a ChWrench are returned as references into the wrench. Keep the
+// wrench alive while such a reference is in use, so that a chained access on a temporary wrench,
+// e.g. link.GetReaction2().force, does not read freed memory.
+%pythoncode %{
+	def _ch_keep_parent_alive(prop):
+		def fget(self):
+			member = prop.fget(self)
+			object.__setattr__(member, "_ch_parent", self)
+			return member
+		return property(fget, prop.fset, doc=prop.__doc__)
+
+	for _cls in (ChWrenchd, ChWrenchf):
+		_cls.force = _ch_keep_parent_alive(_cls.force)
+		_cls.torque = _ch_keep_parent_alive(_cls.torque)
+	del _cls
+%}
+
 
 #endif             // --------------------------------------------------------------------- PYTHON
 

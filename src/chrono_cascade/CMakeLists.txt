@@ -140,7 +140,9 @@ if(UNIX)
     target_compile_definitions(Chrono_cascade PRIVATE HAVE_LIMITS_H)
 endif()
 
-target_include_directories(Chrono_cascade SYSTEM PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+# Only for the build tree: an absolute path to OpenCASCADE must not be exported. The Chrono package configuration script
+# adds the OpenCASCADE include directory found on the consumer's machine.
+target_include_directories(Chrono_cascade SYSTEM PUBLIC "$<BUILD_INTERFACE:${OpenCASCADE_INCLUDE_DIR}>")
 
 target_compile_definitions(Chrono_cascade PRIVATE "CH_API_COMPILE_CASCADE")
 

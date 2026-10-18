@@ -193,9 +193,9 @@ class ChApi ChVisualShapeFEA {
 #ifdef CHRONO_HAS_YAML
         Settings(const YAML::Node& a);
         static Settings Read(const YAML::Node& a);
+        void PrintInfo() const;
 #endif
         Settings& operator=(const Settings& other);
-        void PrintInfo() const;
 
         DataType data_type;
         ChVector2d data_range;

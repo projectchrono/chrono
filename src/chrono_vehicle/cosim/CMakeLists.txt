@@ -136,6 +136,11 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
   list (APPEND DEPENDENCIES_VEHICLECOSIM "POSTPROCESS")
 endif()
 
+# Chrono_vehicle_cosim links to the robot models, which link to Chrono_parsers when URDF support is enabled
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "PARSERS")
+endif()
+
 set(DEPENDENCIES_VEHICLECOSIM ${DEPENDENCIES_VEHICLECOSIM} PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------

@@ -323,9 +323,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
-%shared_ptr(chrono::vehicle::ChWheelTestRigBase)
 %shared_ptr(chrono::vehicle::ChWheelTestRig)
-%shared_ptr(chrono::vehicle::ChWheelSuspensionTestRig)
 
 %shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChSprocket)

@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <type_traits>
 
 #include "chrono/serialization/ChArchive.h"
 
@@ -36,7 +37,7 @@ class ChVector2 {
 
     ChVector2();
     ChVector2(Real x, Real y);
-    ChVector2(Real a);
+    explicit ChVector2(Real a);
     ChVector2(const ChVector2<Real>& other);
 
     /// Copy constructor with type change.
@@ -442,11 +443,16 @@ inline ChVector2<Real> ChVector2<Real>::operator*(Real s) const {
 
 template <class Real>
 inline ChVector2<Real> ChVector2<Real>::operator/(Real s) const {
-    Real oos = 1 / s;
     ChVector2<Real> v;
 
-    v.m_data[0] = m_data[0] * oos;
-    v.m_data[1] = m_data[1] * oos;
+    if constexpr (std::is_integral<Real>::value) {
+        v.m_data[0] = m_data[0] / s;
+        v.m_data[1] = m_data[1] / s;
+    } else {
+        Real oos = 1 / s;
+        v.m_data[0] = m_data[0] * oos;
+        v.m_data[1] = m_data[1] * oos;
+    }
 
     return v;
 }
@@ -493,10 +499,14 @@ inline ChVector2<Real>& ChVector2<Real>::operator*=(Real s) {
 
 template <class Real>
 inline ChVector2<Real>& ChVector2<Real>::operator/=(Real s) {
-    Real oos = 1 / s;
-
-    m_data[0] *= oos;
-    m_data[1] *= oos;
+    if constexpr (std::is_integral<Real>::value) {
+        m_data[0] /= s;
+        m_data[1] /= s;
+    } else {
+        Real oos = 1 / s;
+        m_data[0] *= oos;
+        m_data[1] *= oos;
+    }
 
     return *this;
 }

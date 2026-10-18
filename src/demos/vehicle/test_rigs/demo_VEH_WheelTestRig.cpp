@@ -51,7 +51,6 @@ using std::endl;
 // -----------------------------------------------------------------------------
 
 // Terrain type (RIGID or SCM)
-enum class TerrainType { RIGID, SCM };
 ChWheelTestRig::TerrainType terrain_type = ChWheelTestRig::TerrainType::RIGID;
 
 // Tire specification file
@@ -93,8 +92,9 @@ int main() {
     fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 #endif
 
-    if (handling_tire && terrain_type == ChWheelTestRig::TerrainType::SCM) {
-        cerr << "ERROR: Handling tire models cannot be used with SCM terrain." << endl;
+    // Handling tires have no collision geometry and cannot interact with deformable terrain
+    if (handling_tire && terrain_type != ChWheelTestRig::TerrainType::RIGID) {
+        cerr << "ERROR: Handling tire models can only be used with rigid terrain." << endl;
         return 1;
     }
 

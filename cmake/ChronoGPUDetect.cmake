@@ -88,8 +88,28 @@ if(CHRONO_GPU_VENDOR_RESOLVED STREQUAL "NVIDIA")
 
     chrono_guard_cross_target_arch("CUDA" CHRONO_CUDA_ARCHITECTURES)
 
-    # Architecture 50 has no double-precision atomicAdd.
-    list(REMOVE_ITEM CHRONO_CUDA_ARCHITECTURES "50" "50-real")
+    # Expand the "all-major" and "all" keywords (e.g. from a cache written by an older
+    # Chrono, or set by the user) so that the filter below can act on the actual list.
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
+      if(CHRONO_CUDA_ARCHITECTURES STREQUAL "all-major")
+        set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES_ALL_MAJOR}")
+        message(STATUS "  CUDA archs (expanded):   ${CHRONO_CUDA_ARCHITECTURES}")
+      elseif(CHRONO_CUDA_ARCHITECTURES STREQUAL "all")
+        set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES_ALL}")
+        message(STATUS "  CUDA archs (expanded):   ${CHRONO_CUDA_ARCHITECTURES}")
+      endif()
+    endif()
+
+    # Architectures older than 60 have no double-precision atomicAdd.
+    set(_cuda_archs "")
+    foreach(_arch IN LISTS CHRONO_CUDA_ARCHITECTURES)
+      if(_arch MATCHES "^([0-9]+)" AND CMAKE_MATCH_1 LESS 60)
+        continue()
+      endif()
+      list(APPEND _cuda_archs "${_arch}")
+    endforeach()
+    set(CHRONO_CUDA_ARCHITECTURES "${_cuda_archs}")
+    unset(_cuda_archs)
     message(STATUS "  CUDA archs (filtered):   ${CHRONO_CUDA_ARCHITECTURES}")
 
     if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")

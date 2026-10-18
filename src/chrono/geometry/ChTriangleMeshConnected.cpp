@@ -526,7 +526,7 @@ ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMes
             vertices.insert(vertices.end(), m.m_vertices.begin(), m.m_vertices.end());
             std::vector<ChVector3i> tmp;
             tmp.reserve(m.m_face_v_indices.size());
-            std::transform(m.m_face_v_indices.begin(), m.m_face_v_indices.end(), std::back_inserter(tmp), [&v_off](ChVector3i& a) { return a + v_off; });
+            std::transform(m.m_face_v_indices.begin(), m.m_face_v_indices.end(), std::back_inserter(tmp), [&v_off](ChVector3i& a) { return a + ChVector3i(v_off); });
             idx_vertices.insert(idx_vertices.end(), tmp.begin(), tmp.end());
             v_off += static_cast<int>(m.m_vertices.size());
         }
@@ -535,7 +535,7 @@ ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMes
             normals.insert(normals.end(), m.m_normals.begin(), m.m_normals.end());
             std::vector<ChVector3i> tmp;
             tmp.reserve(m.m_face_n_indices.size());
-            std::transform(m.m_face_n_indices.begin(), m.m_face_n_indices.end(), std::back_inserter(tmp), [&n_off](ChVector3i& a) { return a + n_off; });
+            std::transform(m.m_face_n_indices.begin(), m.m_face_n_indices.end(), std::back_inserter(tmp), [&n_off](ChVector3i& a) { return a + ChVector3i(n_off); });
             idx_normals.insert(idx_normals.end(), tmp.begin(), tmp.end());
             n_off += static_cast<int>(m.m_normals.size());
         }
@@ -544,7 +544,7 @@ ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMes
             uvs.insert(uvs.end(), m.m_UV.begin(), m.m_UV.end());
             std::vector<ChVector3i> tmp;
             tmp.reserve(m.m_face_uv_indices.size());
-            std::transform(m.m_face_uv_indices.begin(), m.m_face_uv_indices.end(), std::back_inserter(tmp), [&uv_off](ChVector3i& a) { return a + uv_off; });
+            std::transform(m.m_face_uv_indices.begin(), m.m_face_uv_indices.end(), std::back_inserter(tmp), [&uv_off](ChVector3i& a) { return a + ChVector3i(uv_off); });
             idx_uvs.insert(idx_uvs.end(), tmp.begin(), tmp.end());
             uv_off += static_cast<int>(m.m_UV.size());
         }
@@ -553,7 +553,7 @@ ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMes
             colors.insert(colors.end(), m.m_colors.begin(), m.m_colors.end());
             std::vector<ChVector3i> tmp;
             tmp.reserve(m.m_face_col_indices.size());
-            std::transform(m.m_face_col_indices.begin(), m.m_face_col_indices.end(), std::back_inserter(tmp), [&c_off](ChVector3i& a) { return a + c_off; });
+            std::transform(m.m_face_col_indices.begin(), m.m_face_col_indices.end(), std::back_inserter(tmp), [&c_off](ChVector3i& a) { return a + ChVector3i(c_off); });
             idx_colors.insert(idx_colors.end(), tmp.begin(), tmp.end());
             c_off += static_cast<int>(m.m_colors.size());
         }

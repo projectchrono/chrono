@@ -26,6 +26,15 @@ namespace chrono {
 /// centroidal reference frame. The caller is responsible for specifying the location and orientation of the
 /// centroidal frame at the body Center Of Mass (COM).
 ///
+/// Note that a ChBodyAuxRef *is* its COM frame (same as its base class ChBody): all functions inherited from ChFrame
+/// and ChFrameMoving (e.g., GetPos, GetPosDt, TransformPointLocalToParent, PointSpeedLocalToParent, etc.) operate
+/// on the COM frame and expect local quantities expressed relative to the COM frame. 
+/// To work with points expressed relative to the auxiliary reference frame, use the frame returned by GetFrameRefToAbs().
+/// For example, to get the speed of a point expressed in the auxiliary reference frame, use:
+/// <pre>
+///   body->GetFrameRefToAbs().PointSpeedLocalToParent(pos_ref_local);
+/// </pre>
+///
 /// Additional information can be found in the @ref rigid_bodies manual page.
 class ChApi ChBodyAuxRef : public ChBody {
   public:

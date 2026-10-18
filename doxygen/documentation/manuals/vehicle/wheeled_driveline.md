@@ -50,4 +50,4 @@ This simple driveline template can be used to model a XWD driveline, capable of 
 See [ChSimpleDrivelineXWD](@ref chrono::vehicle::ChSimpleDrivelineXWD) and [SimpleDrivelineXWD](@ref chrono::vehicle::SimpleDrivelineXWD).
 
 A sample JSON file with the specification of a 2WD shafts-based driveline is:
-\include "data/vehicle/MAN_Kat1/driveline/MAN_5t_DrivelineSimpleXWD.json"
+\include "data/vehicle/MAN/driveline/MAN_5t_DrivelineSimpleXWD.json"

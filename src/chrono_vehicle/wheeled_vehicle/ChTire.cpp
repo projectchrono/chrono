@@ -102,8 +102,7 @@ void ChTire::CalculateKinematics(const WheelState& wheel_state, const ChCoordsys
 // -----------------------------------------------------------------------------
 
 // Add visualization mesh: use one of the two provided OBJ files, depending on the side on which the tire is mounted.
-std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const std::string& mesh_file_left,
-                                                                        const std::string& mesh_file_right) {
+std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const std::string& mesh_file_left, const std::string& mesh_file_right) {
     bool left = (m_wheel->GetSide() == VehicleSide::LEFT);
     ChQuaternion<> rot = left ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;

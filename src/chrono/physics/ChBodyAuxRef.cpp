@@ -51,12 +51,12 @@ void ChBodyAuxRef::SetFrameCOMToRef(const ChFramed& frame) {
 void ChBodyAuxRef::SetFrameRefToAbs(const ChFramed& frame) {
     auto cog_to_abs = frame.TransformLocalToParent(ref_to_com.GetInverse());
     ChBody::SetCoordsys(cog_to_abs.GetCoordsys());
-    ref_to_abs = frame;
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 void ChBodyAuxRef::SetFrameCOMToAbs(const ChFramed& frame) {
     ChBody::SetCoordsys(frame.GetCoordsys());
-    ref_to_abs = frame.TransformLocalToParent(ref_to_com);
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 void ChBodyAuxRef::Update(double time, UpdateFlags update_flags) {
@@ -91,8 +91,7 @@ void ChBodyAuxRef::SetCoordsys(const ChVector3<>& v, const ChQuaternion<>& q) {
 
 void ChBodyAuxRef::SetPosDt(const ChVector3<>& p_dt) {
     ChBody::SetPosDt(p_dt);
-    ref_to_abs.SetPosDt(GetPosDt());
-    ref_to_abs.SetRotDt(GetRotDt());
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 void ChBodyAuxRef::SetLinVel(const ChVector3<>& p_dt) {
@@ -101,26 +100,22 @@ void ChBodyAuxRef::SetLinVel(const ChVector3<>& p_dt) {
 
 void ChBodyAuxRef::SetRotDt(const ChQuaternion<>& q_dt) {
     ChBody::SetRotDt(q_dt);
-    ref_to_abs.SetPosDt(GetPosDt());
-    ref_to_abs.SetRotDt(GetRotDt());
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 void ChBodyAuxRef::SetAngVelLocal(const ChVector3<>& w) {
     ChBody::SetAngVelLocal(w);
-    ref_to_abs.SetPosDt(GetPosDt());
-    ref_to_abs.SetRotDt(GetRotDt());
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 void ChBodyAuxRef::SetAngVelParent(const ChVector3<>& w) {
     ChBody::SetAngVelParent(w);
-    ref_to_abs.SetPosDt(GetPosDt());
-    ref_to_abs.SetRotDt(GetRotDt());
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 void ChBodyAuxRef::SetCoordsysDt(const ChCoordsysd& csys_dt) {
     ChBody::SetCoordsysDt(csys_dt);
-    ref_to_abs.SetPosDt(GetPosDt());
-    ref_to_abs.SetRotDt(GetRotDt());
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 // -----------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 SET(TESTS
     pyutest_CH_compute_contact
+    pyutest_CH_system_state
 )
 
 set(LIBS Chrono_core)

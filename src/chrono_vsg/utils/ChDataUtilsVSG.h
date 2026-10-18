@@ -51,6 +51,20 @@ class CH_VSG_API vec4CH : public vec4 {
     vec4CH(const chrono::ChColor& col, float a = 1);
 };
 
+/// Chrono color, authored in sRGB, converted to the linear RGB in which the VSG shaders compute lighting.
+/// Use for colors consumed as-is (material factors, clear color, text, VSG builder geometry). Vertex colors
+/// passed to the Chrono PBR and line shaders are converted in the shaders and must not be converted here.
+class CH_VSG_API vec3CHLinear : public vec3 {
+  public:
+    vec3CHLinear(const chrono::ChColor& col);
+};
+
+/// Chrono color, authored in sRGB, converted to linear RGB (see vec3CHLinear). Alpha is not converted.
+class CH_VSG_API vec4CHLinear : public vec4 {
+  public:
+    vec4CHLinear(const chrono::ChColor& col, float a = 1);
+};
+
 class CH_VSG_API dmat4CH : public dmat4 {
   public:
     dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector3d& scale);

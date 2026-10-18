@@ -307,7 +307,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTrackShoeBand::ToothMesh(double y) 
 
     // Load triangles on -y side.
     for (int i = 0; i < np - 1; i++) {
-        idx_vertices[it] = ChVector3i(0, i + 1, i + 2) + (np + 1);
+        idx_vertices[it] = ChVector3i(0, i + 1, i + 2) + ChVector3i(np + 1);
         idx_normals[it] = ChVector3i(1, 1, 1);
         it++;
     }

@@ -65,7 +65,10 @@ int main(int argc, char* argv[]) {
     std::cout << "   3. Van der Pol FMU for FMI 3.0\n";
     while (which != 2 && which != 3) {
         std::cout << "Select FMU: ";
-        std::cin >> which;
+        if (!(std::cin >> which)) {
+            std::cout << "\nNo FMU selected" << std::endl;
+            return 1;
+        }
     }
     std::string fmu_filename = (which == 2 ? VDP_FMU2_FILENAME : VDP_FMU3_FILENAME);
 #else

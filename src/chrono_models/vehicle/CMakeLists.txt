@@ -536,7 +536,15 @@ set(CVM_MAN_SUSPENSION_FILES
     man/suspension/MAN_10t_Front1Axle.h
     man/suspension/MAN_10t_Front2Axle.cpp
     man/suspension/MAN_10t_Front2Axle.h
- )
+)
+set(CVM_MAN_TIRE_FILES
+    man/tire/MAN_TMeasyTire.cpp
+    man/tire/MAN_TMeasyTire.h
+    man/tire/MAN_TMsimpleTire.cpp
+    man/tire/MAN_TMsimpleTire.h
+    man/tire/MAN_RigidTire.cpp
+    man/tire/MAN_RigidTire.h
+)
 set(CVM_MAN_VEHICLE_FILES
     man/MAN_5t_BrakeSimple.cpp
     man/MAN_5t_BrakeSimple.h
@@ -552,10 +560,6 @@ set(CVM_MAN_VEHICLE_FILES
     man/MAN_5t_SimpleDriveline.h
     man/MAN_5t_SimpleDrivelineXWD.cpp
     man/MAN_5t_SimpleDrivelineXWD.h
-    man/MAN_5t_TMeasyTire.cpp
-    man/MAN_5t_TMeasyTire.h
-    man/MAN_5t_TMsimpleTire.cpp
-    man/MAN_5t_TMsimpleTire.h
     man/MAN_5t_Wheel.cpp
     man/MAN_5t_Wheel.h
     man/MAN_5t_Vehicle.cpp
@@ -583,10 +587,12 @@ set(CVM_MAN_FILES
     ${CVM_MAN_VEHICLE_FILES}
     ${CVM_MAN_POWERTRAIN_FILES}
     ${CVM_MAN_SUSPENSION_FILES}
+    ${CVM_MAN_TIRE_FILES}
 )
 source_group("man" FILES ${CVM_MAN_VEHICLE_FILES})
 source_group("man/powertrain" FILES ${CVM_MAN_POWERTRAIN_FILES})
 source_group("man/suspension" FILES ${CVM_MAN_SUSPENSION_FILES})
+source_group("man/tire" FILES ${CVM_MAN_TIRE_FILES})
 
 set(CVM_GENERIC_SUSPENSION_FILES
     generic/suspension/Generic_DoubleWishbone.cpp

@@ -166,7 +166,9 @@ class CH_FSI_API ChFsiSystem {
     ///   block execution;
     /// - the caller can register a custom callback (of type ChFsiSystem::MBDCallback) to control MBD advance;
     /// - if MBDCallback not provided, MBD advance calls ChSystem::DoStepDynamics multiple times (see SetStepsizeMBD);
-    /// - with CouplingScheme::SEQUENTIAL, the reported step timer (GetTimerStep) includes the data exchange time.
+    /// - with CouplingScheme::SEQUENTIAL, the reported step timer (GetTimerStep) includes the data exchange time;
+    /// - an exception thrown while advancing either phase propagates to the caller; with CouplingScheme::CONCURRENT,
+    ///   the MBD thread is always joined first and, if both phases throw, the CFD exception is the one reported.
     void DoStepDynamics(double step);
 
     /// Get current simulation time.

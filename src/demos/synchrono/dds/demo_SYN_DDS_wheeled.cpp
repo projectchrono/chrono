@@ -84,13 +84,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // Forward declares for straight forward helper functions
 void LogCopyright(bool show);
 void AddCommandLineOptions(ChCLI& cli);
-void GetVehicleModelFiles(VehicleType type,
-                          std::string& vehicle,
-                          std::string& engine,
-                          std::string& transmission,
-                          std::string& tire,
-                          std::string& zombie,
-                          double& cam_distance);
+void GetVehicleModelFiles(VehicleType type, std::string& vehicle, std::string& engine, std::string& transmission, std::string& tire, std::string& zombie, double& cam_distance);
 
 class IrrAppWrapper {
   public:
@@ -140,7 +134,7 @@ class DriverWrapper : public ChDriver {
             m_driver->Advance(step);
     }
 
-    void Set(std::shared_ptr<ChInteractiveDriver> driver) {m_driver = driver; }
+    void Set(std::shared_ptr<ChInteractiveDriver> driver) { m_driver = driver; }
 
     std::shared_ptr<ChInteractiveDriver> m_driver;
 };
@@ -193,8 +187,7 @@ int main(int argc, char* argv[]) {
     // Get the vehicle JSON filenames
     double cam_distance;
     std::string vehicle_filename, engine_filename, transmission_filename, tire_filename, zombie_filename;
-    GetVehicleModelFiles((VehicleType)cli.GetAsType<int>("vehicle"), vehicle_filename, engine_filename,
-                         transmission_filename, tire_filename, zombie_filename, cam_distance);
+    GetVehicleModelFiles((VehicleType)cli.GetAsType<int>("vehicle"), vehicle_filename, engine_filename, transmission_filename, tire_filename, zombie_filename, cam_distance);
 
     // Create the vehicle, set parameters, and initialize
     WheeledVehicle vehicle(vehicle_filename, contact_method);
@@ -337,13 +330,7 @@ void AddCommandLineOptions(ChCLI& cli) {
     cli.AddOption<int>("DDS", "n,num_nodes", "Number of Nodes", "2");
 }
 
-void GetVehicleModelFiles(VehicleType type,
-                          std::string& vehicle,
-                          std::string& engine,
-                          std::string& transmission,
-                          std::string& tire,
-                          std::string& zombie,
-                          double& cam_distance) {
+void GetVehicleModelFiles(VehicleType type, std::string& vehicle, std::string& engine, std::string& transmission, std::string& tire, std::string& zombie, double& cam_distance) {
     switch (type) {
         case VehicleType::SEDAN:
             vehicle = GetVehicleDataFile("sedan/vehicle/Sedan_Vehicle.json");
@@ -378,10 +365,10 @@ void GetVehicleModelFiles(VehicleType type,
             cam_distance = 14.0;
             break;
         case VehicleType::MAN:
-            vehicle = GetVehicleDataFile("MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json");
-            engine = GetVehicleDataFile("MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json");
-            transmission = GetVehicleDataFile("MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json");
-            tire = GetVehicleDataFile("MAN_Kat1/tire/MAN_5t_TMeasyTire.json");
+            vehicle = GetVehicleDataFile("MAN/vehicle/MAN_10t_Vehicle_8WD.json");
+            engine = GetVehicleDataFile("MAN/powertrain/MAN_7t_EngineSimpleMap.json");
+            transmission = GetVehicleDataFile("MAN/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json");
+            tire = GetVehicleDataFile("MAN/tire/MAN_TMeasyTire.json");
             zombie = GetSynchronoDataFile("vehicle/MAN_8WD.json");
             cam_distance = 12.0;
             break;
