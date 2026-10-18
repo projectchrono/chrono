@@ -63,6 +63,8 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     /// Definition of a layer
     class Layer {
       public:
+        Layer() {};  // default constructor only for archiving in containers
+
         /// Return the layer thickness.
         double GetThickness() const { return m_thickness; }
 

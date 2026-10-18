@@ -137,4 +137,31 @@ void ChAABB::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(max);
 }
 
+
+
+////////////////////////
+
+/// returns true if mpoint is inside the volume
+bool ChOverlapTestAABB::IsInto(const ChVector3d& apoint) const {
+    if ((aabb.min.x() <= apoint.x() && apoint.x() < aabb.max.x()) && 
+        (aabb.min.y() <= apoint.y() && apoint.y() < aabb.max.y()) &&
+        (aabb.min.z() <= apoint.z() && apoint.z() < aabb.max.z()))
+        return true;
+    else
+        return false;
+}
+
+/// returns true if mAABB is inside the volume
+bool ChOverlapTestAABB::IsOverlap(const ChAABB& mabox) const {
+    if ((aabb.min.x() <= mabox.max.x() && mabox.min.x() < aabb.max.x()) && 
+        (aabb.min.y() <= mabox.max.y() && mabox.min.y() < aabb.max.y()) &&
+        (aabb.min.z() <= mabox.max.z() && mabox.min.z() < aabb.max.z()))
+        return true;
+    else
+        return false;
+}
+
+
+
+
 }  // end namespace chrono
