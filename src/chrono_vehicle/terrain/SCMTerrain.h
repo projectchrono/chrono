@@ -63,7 +63,7 @@ struct ScmHitRecord {
     ChVector3d abs_point;
     int patch_id = -1;
 };
-void PrimeBuffers();
+bool PrimeBuffers();
 }  // namespace scm_gpu
 #endif
 
@@ -319,7 +319,11 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
 #ifdef CHRONO_HAS_SCM_GPU
     /// Enable/disable the HIP contact-force backend (default: enabled when built with SCM GPU support).
+    /// If no usable GPU device is found at run time, both GPU backends are skipped and the CPU paths run.
     void SetScmGpuEnabled(bool enable);
+
+    /// Return true if a usable GPU device was found at run time (probed once per process).
+    static bool IsScmGpuDeviceAvailable();
 
     /// Return whether the HIP contact-force backend is enabled.
     bool IsScmGpuEnabled() const;

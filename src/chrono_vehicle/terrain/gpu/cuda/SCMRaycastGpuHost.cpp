@@ -22,6 +22,7 @@
 // single-vehicle case), while transforms change every step. The caller (SCMTerrainRaycastGpu.cpp)
 // caches the candidate set and only calls scm_raycast_gpu_upload_mesh when it actually changes.
 
+#include "chrono_vehicle/terrain/SCMGpu.h"
 #include "chrono_vehicle/terrain/SCMRaycastGpu.h"
 
 #include <cuda_runtime.h>
@@ -154,6 +155,10 @@ struct ScmRaycastGpuContext {
 };
 
 extern "C" ScmRaycastGpuContext* scm_raycast_gpu_create(int device_id, ScmRaycastGpuPrecision precision) {
+    // Shares the contact-force backend's one-time device probe (SCMGpuHost.cpp).
+    if (!scm_gpu_device_available())
+        return nullptr;
+
     auto* ctx = new ScmRaycastGpuContext();
     ctx->device = device_id;
     ctx->precision = precision;
