@@ -165,14 +165,20 @@ bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm
 
     for (std::size_t i = 0; i < n; ++i) {
         const scm::gpu::HitOutput& o = batch_out[i];
-        if (!o.active)
-            continue;
-
         const ChVector2i ij(batch_in[i].grid_ix, batch_in[i].grid_iy);
         auto& nr = m_grid_map.at(ij);
+
+        // Record the hit level for every hit node, as the CPU path does (bulldozing uses it to cap material raise)
+        nr.hit_level = batch_in[i].hit_level;
+
+        // Handle uni-laterality
+        if (!o.active) {
+            nr.sigma = 0;
+            continue;
+        }
+
         const double ca = nr.normal.z();
 
-        nr.hit_level = batch_in[i].hit_level;
         nr.sinkage = o.sinkage;
         nr.sinkage_plastic = o.sinkage_plastic;
         nr.sinkage_elastic = o.sinkage_elastic;

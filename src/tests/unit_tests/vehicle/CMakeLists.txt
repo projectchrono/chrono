@@ -2,6 +2,7 @@ set(TESTS
     utest_VEH_destructors
     utest_VEH_tire_contact
     utest_VEH_scm_backend
+    utest_VEH_scm
 )
 
 set(UTILS
