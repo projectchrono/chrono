@@ -15,6 +15,7 @@ SET(TESTS
     utest_CH_default_vismat
     utest_CH_default_vismat_firstaccess
     utest_CH_output_directory
+    utest_CH_openmp
 )
 
 SET(LIBS Chrono_core)

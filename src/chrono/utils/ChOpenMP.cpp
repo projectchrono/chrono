@@ -49,7 +49,7 @@ int ChOMP::GetNumThreads() {
 }
 
 int ChOMP::GetThreadNum() {
-    return 1;
+    return 0;
 }
 
 int ChOMP::GetNumProcs() {
