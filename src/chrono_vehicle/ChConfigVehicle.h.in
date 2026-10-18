@@ -35,4 +35,10 @@
 // If SCM GPU support was enabled, define CHRONO_HAS_SCM_GPU
 @CHRONO_SCM_GPU@
 
+// Optional double precision for SCM soil-node state and base heights (default: single).
+@CHRONO_SCM_USE_DOUBLE@
+
+// Optional tiled storage for deformed SCM nodes (default: enabled).
+@CHRONO_SCM_USE_TILED_NODES@
+
 #endif

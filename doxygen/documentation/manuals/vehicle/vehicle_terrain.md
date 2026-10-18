@@ -110,6 +110,32 @@ Some other features of the Chrono SCM implementation are:
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
 
+### SCM storage options
+
+SCM defaults to **single precision storage** for soil-node state and the dense base-height field,
+and **16 x 16 tiled storage** for deformed nodes. Both choices can be changed independently when
+building Chrono:
+
+| CMake option | Default | Alternative |
+|---|---|---|
+| `CH_VEHICLE_SCM_USE_DOUBLE` | `OFF` (single precision) | `ON` uses double precision storage |
+| `CH_VEHICLE_SCM_USE_TILED_NODES` | `ON` (tiled nodes) | `OFF` uses the original flat hash map |
+
+For example, to use double precision and a flat node map:
+
+```bash
+cmake -S . -B build -DCH_ENABLE_MODULE_VEHICLE=ON \
+  -DCH_VEHICLE_SCM_USE_DOUBLE=ON \
+  -DCH_VEHICLE_SCM_USE_TILED_NODES=OFF
+cmake --build build
+```
+
+These are build options; rebuild Chrono and applications or bindings that use it after changing
+them. Public terrain APIs continue to use doubles in either storage mode. The choices apply to
+SCM storage for both CPU and GPU execution and do not change the GPU kernels' arithmetic precision.
+CPU/GPU execution can still be selected separately with `SCMTerrain::SetForceCPU` or
+`CHRONO_SCM_FORCE_CPU=1`.
+
 ## Deformable DEM (granular dynamics) {#vehicle_terrain_granular}
 
 [GranularTerrain](@ref chrono::vehicle::GranularTerrain) implements a rectangular patch of granular material and leverages Chrono's extensive support for so-called Discrete Element Method (DEM) simulations. Currently, this terrain model is limited to monodisperse spherical granular material.

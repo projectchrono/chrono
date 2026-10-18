@@ -28,6 +28,32 @@ When enabled, `ChConfigVehicle.h` defines `CHRONO_HAS_SCM_GPU`.
 
 Both backends are enabled by default in a build that has them, and each falls back to the CPU on its own when a model cannot use it. No code change is needed to run either way.
 
+To force CPU execution from a shell script, set this variable before starting the application:
+
+```bash
+CHRONO_SCM_FORCE_CPU=1 python3 my_simulation.py
+# Or: CHRONO_SCM_FORCE_CPU=1 ./my_simulation
+```
+
+For an individual terrain in Python or C++, call `SetForceCPU` before `Initialize`:
+
+```python
+terrain = veh.SCMTerrain(system, False)  # veh is pychrono.vehicle
+terrain.SetForceCPU(True)
+terrain.Initialize(10.0, 10.0, 0.02)
+```
+
+```cpp
+terrain.SetForceCPU(true);
+```
+
+This selects the default CPU ray-casting and contact-force paths, overrides the individual GPU and
+GPU-reference switches, and skips GPU buffer initialization when set before `Initialize`. The API
+is available in CPU-only builds as well. `IsForceCPU()` reports the override. Passing `false`
+(`False` in Python) restores the underlying backend settings without changing them.
+The environment variable sets the initial override for each terrain at construction; unset it or
+set it to `0` to retain normal backend selection, or use `SetForceCPU(false)` for that terrain.
+
 Contact forces run on the GPU when:
 
 - soil parameters are uniform (no `RegisterSoilParametersCallback`)

@@ -306,6 +306,15 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// GetContactForceNode for rigid bodies and FEA nodes, respectively.
     void SetCosimulationMode(bool val);
 
+    /// Force the default CPU backend for both ray casting and contact forces.
+    /// This overrides GPU and GPU-reference settings without changing them; passing false restores their use.
+    /// Available in every build, including PyChrono. Call before Initialize to also skip GPU buffer initialization.
+    /// The initial value is true if CHRONO_SCM_FORCE_CPU=1 when this terrain is constructed, otherwise false.
+    void SetForceCPU(bool force_cpu);
+
+    /// Return whether the CPU backend is forced for this terrain.
+    bool IsForceCPU() const;
+
 #ifdef CHRONO_HAS_SCM_GPU
     /// Enable/disable the HIP contact-force backend (default: enabled when built with SCM GPU support).
     void SetScmGpuEnabled(bool enable);
@@ -532,8 +541,12 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     /// node level of 25 m, three orders below the ~0.1 mm sinkage that matters to the Bekker
     /// and Janosi-Hanamoto terms. Levels are absolute heights in the SCM frame, so the margin
     /// scales with frame offset -- a patch placed thousands of metres from its frame origin
-    /// would lose that headroom. Set this to double to restore the previous behaviour.
+    /// would lose that headroom. Configure with CH_VEHICLE_SCM_USE_DOUBLE=ON to use double storage.
+#ifdef CHRONO_SCM_USE_DOUBLE
+    using ScmReal = double;
+#else
     using ScmReal = float;
+#endif
 
     // Information at contacted node
     struct NodeRecord {
@@ -580,6 +593,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         std::size_t operator()(const ChVector2i& p) const { return p.x() * 31 + p.y(); }
     };
 
+#ifdef CHRONO_SCM_USE_TILED_NODES
     /// Sparse store for deformed-node state, tiled so that neighbouring nodes share a hash probe.
     ///
     /// WHAT THIS REPLACES AND WHY. This was a flat std::unordered_map<ChVector2i, NodeRecord>, one
@@ -746,6 +760,38 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         std::unordered_map<ChVector2i, std::unique_ptr<Tile>, CoordHash> m_tiles;
         std::size_t m_count = 0;
     };
+#else
+    /// Original flat node storage, selected with CH_VEHICLE_SCM_USE_TILED_NODES=OFF.
+    /// The interface matches tiled storage so contact, visualization, and GPU packing are unchanged.
+    class NodeMap {
+      public:
+        NodeRecord* Find(const ChVector2i& ij) {
+            auto it = m_nodes.find(ij);
+            return it == m_nodes.end() ? nullptr : &it->second;
+        }
+        const NodeRecord* Find(const ChVector2i& ij) const {
+            auto it = m_nodes.find(ij);
+            return it == m_nodes.end() ? nullptr : &it->second;
+        }
+        NodeRecord& at(const ChVector2i& ij) { return m_nodes.at(ij); }
+        const NodeRecord& at(const ChVector2i& ij) const { return m_nodes.at(ij); }
+
+        NodeRecord& Emplace(const ChVector2i& ij, const NodeRecord& nr) { return m_nodes.emplace(ij, nr).first->second; }
+        NodeRecord& Set(const ChVector2i& ij, const NodeRecord& nr) { return m_nodes.insert_or_assign(ij, nr).first->second; }
+
+        std::size_t size() const { return m_nodes.size(); }
+        void clear() { m_nodes.clear(); }
+
+        template <typename F>
+        void ForEach(F&& f) const {
+            for (const auto& node : m_nodes)
+                f(node.first, node.second);
+        }
+
+      private:
+        std::unordered_map<ChVector2i, NodeRecord, CoordHash> m_nodes;
+    };
+#endif
 
     // Create visualization mesh
     void CreateVisualizationMesh(double sizeX, double sizeY);
@@ -878,6 +924,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<SCMTerrain::NodeLevel>& nodes);
 
+    bool m_force_cpu;      ///< override GPU and GPU-reference backend selection
     PatchType m_type;      ///< type of SCM patch
     ChCoordsys<> m_frame;  ///< SCM frame (deformation occurs along the z axis of this frame)
     ChVector3d m_Z;        ///< SCM plane vertical direction (in absolute frame)

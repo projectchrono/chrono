@@ -19,11 +19,13 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <cmath>
 #include <queue>
 #include <unordered_set>
 #include <cstdint>
 #include <limits>
+#include <string>
 
 #ifdef _OPENMP
     #include <omp.h>
@@ -150,6 +152,14 @@ void SCMTerrain::WriteMesh(const std::string& filename) const {
 // Enable/disable co-simulation mode.
 void SCMTerrain::SetCosimulationMode(bool val) {
     m_loader->m_cosim_mode = val;
+}
+
+void SCMTerrain::SetForceCPU(bool force_cpu) {
+    m_loader->m_force_cpu = force_cpu;
+}
+
+bool SCMTerrain::IsForceCPU() const {
+    return m_loader->m_force_cpu;
 }
 
 #ifdef CHRONO_HAS_SCM_GPU
@@ -315,7 +325,8 @@ void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
     m_loader->Initialize(sizeX, sizeY, delta);
 
 #ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
+    if (!m_loader->m_force_cpu)
+        scm_gpu::PrimeBuffers();
 #endif
 }
 
@@ -324,7 +335,8 @@ void SCMTerrain::Initialize(const std::string& heightmap_file, double sizeX, dou
     m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 
 #ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
+    if (!m_loader->m_force_cpu)
+        scm_gpu::PrimeBuffers();
 #endif
 }
 
@@ -333,7 +345,8 @@ void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
     m_loader->Initialize(mesh_file, delta);
 
 #ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
+    if (!m_loader->m_force_cpu)
+        scm_gpu::PrimeBuffers();
 #endif
 }
 
@@ -342,7 +355,8 @@ void SCMTerrain::Initialize(const ChTriangleMeshConnected& trimesh, double delta
     m_loader->Initialize(trimesh, delta);
 
 #ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
+    if (!m_loader->m_force_cpu)
+        scm_gpu::PrimeBuffers();
 #endif
 }
 
@@ -469,6 +483,8 @@ SCMContactableData::SCMContactableData(double area_ratio, double Mohr_cohesion, 
 
 // Constructor.
 SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr), m_base_height(-1000) {
+    const char* force_cpu = std::getenv("CHRONO_SCM_FORCE_CPU");
+    m_force_cpu = force_cpu && std::string(force_cpu) == "1";
     this->SetSystem(system);
 
     if (visualization_mesh) {
@@ -1473,7 +1489,7 @@ void SCMLoader::ComputeInternalForces() {
     };
 
 #ifdef CHRONO_HAS_SCM_GPU
-    bool use_raycast_hip = m_raycast_gpu_hip_enabled && m_user_domains;
+    bool use_raycast_hip = !m_force_cpu && m_raycast_gpu_hip_enabled && m_user_domains;
 #else
     bool use_raycast_hip = false;
 #endif
@@ -1499,7 +1515,7 @@ void SCMLoader::ComputeInternalForces() {
 
     if (use_raycast_hip) {
         // Handled above.
-    } else if (m_raycast_gpu_ref_enabled && m_user_domains) {
+    } else if (!m_force_cpu && m_raycast_gpu_ref_enabled && m_user_domains) {
         // GPU ray-cast reference backend (CPU stand-in).
         std::vector<RaycastHit> raw_hits;
         int rc_num_ray_casts = 0;
@@ -1724,7 +1740,7 @@ void SCMLoader::ComputeInternalForces() {
 
 #ifdef CHRONO_HAS_SCM_GPU
     bool scm_used_gpu = false;
-    if (m_scm_gpu_config.enabled && !m_soil_fun && hits.size() >= m_scm_gpu_config.min_hits) {
+    if (!m_force_cpu && m_scm_gpu_config.enabled && !m_soil_fun && hits.size() >= m_scm_gpu_config.min_hits) {
         std::vector<double> patch_oob(contact_patches.size());
         for (size_t ip = 0; ip < contact_patches.size(); ++ip)
             patch_oob[ip] = contact_patches[ip].oob;
