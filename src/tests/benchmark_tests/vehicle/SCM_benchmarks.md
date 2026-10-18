@@ -146,13 +146,13 @@ This branch defaults to single precision for soil-node state and base heights, a
 
 ```bash
 cmake -S . -B build -DCH_ENABLE_MODULE_VEHICLE=ON \
-  -DCH_VEHICLE_SCM_USE_DOUBLE=OFF \
-  -DCH_VEHICLE_SCM_USE_TILED_NODES=ON
+  -DCH_USE_SCM_DOUBLE=OFF \
+  -DCH_USE_SCM_TILED_NODES=ON
 cmake --build build
 ```
 
-Use `CH_VEHICLE_SCM_USE_DOUBLE=ON` for double storage or
-`CH_VEHICLE_SCM_USE_TILED_NODES=OFF` for the original flat hash map. Rebuild Chrono and its
+Use `CH_USE_SCM_DOUBLE=ON` for double storage or
+`CH_USE_SCM_TILED_NODES=OFF` for the original flat hash map. Rebuild Chrono and its
 clients after changing either option. Public terrain APIs still use doubles; these options
 do not change GPU kernel arithmetic.
 

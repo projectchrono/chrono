@@ -184,17 +184,22 @@ TEST(SCMStorage, NodeRoundTrip) {
 
         std::vector<SCMTerrain::NodeLevel> input;
         std::map<std::pair<int, int>, double> expected;
+        // Expected levels, indexed by (y + 33) * 67 + (x + 33). Computed once and reused by the parallel check
+        // below: recomputing the level expression there can round differently (e.g. FMA contraction).
+        std::vector<double> stored(67 * 67);
         // Include negative coordinates and both sides of the 16-node tile boundaries.
         for (int y = -33; y <= 33; ++y) {
             for (int x = -33; x <= 33; ++x) {
                 double z = -0.123456789012345 - (x + 33) * 1e-5 - (y + 33) * 2e-5;
                 input.emplace_back(ChVector2i(x, y), z);
                 expected[{x, y}] = stored_level(z);
+                stored[(y + 33) * 67 + (x + 33)] = stored_level(z);
             }
         }
         terrain.SetModifiedNodes(input);
         terrain.SetModifiedNodes({{ChVector2i(-17, 16), -0.987654321098765}});
         expected[{-17, 16}] = stored_level(-0.987654321098765);
+        stored[(16 + 33) * 67 + (-17 + 33)] = stored_level(-0.987654321098765);
         EXPECT_EQ(terrain.GetNumDeformedNodes(), expected.size());
 
         auto output = terrain.GetModifiedNodes(true);
@@ -215,10 +220,7 @@ TEST(SCMStorage, NodeRoundTrip) {
         for (int k = 0; k < 10000; ++k) {
             const int x = k % 67 - 33;
             const int y = (k / 67) % 67 - 33;
-            double z = -0.123456789012345 - (x + 33) * 1e-5 - (y + 33) * 2e-5;
-            if (x == -17 && y == 16)
-                z = -0.987654321098765;
-            if (terrain.GetHeight(ChVector3d(x * 0.02, y * 0.02, 0)) != stored_level(z))
+            if (terrain.GetHeight(ChVector3d(x * 0.02, y * 0.02, 0)) != stored[(y + 33) * 67 + (x + 33)])
                 ++errors;
         }
         EXPECT_EQ(errors, 0);

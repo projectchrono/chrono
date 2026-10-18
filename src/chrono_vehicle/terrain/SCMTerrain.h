@@ -547,7 +547,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     /// node level of 25 m, three orders below the ~0.1 mm sinkage that matters to the Bekker
     /// and Janosi-Hanamoto terms. Levels are absolute heights in the SCM frame, so the margin
     /// scales with frame offset -- a patch placed thousands of metres from its frame origin
-    /// would lose that headroom. Configure with CH_VEHICLE_SCM_USE_DOUBLE=ON to use double storage.
+    /// would lose that headroom. Configure with CH_USE_SCM_DOUBLE=ON to use double storage.
 #ifdef CHRONO_SCM_USE_DOUBLE
     using ScmReal = double;
 #else
@@ -767,7 +767,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         std::size_t m_count = 0;
     };
 #else
-    /// Original flat node storage, selected with CH_VEHICLE_SCM_USE_TILED_NODES=OFF.
+    /// Original flat node storage, selected with CH_USE_SCM_TILED_NODES=OFF.
     /// The interface matches tiled storage so contact, visualization, and GPU packing are unchanged.
     class NodeMap {
       public:

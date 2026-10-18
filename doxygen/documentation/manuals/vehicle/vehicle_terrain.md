@@ -118,15 +118,15 @@ building Chrono:
 
 | CMake option | Default | Alternative |
 |---|---|---|
-| `CH_VEHICLE_SCM_USE_DOUBLE` | `OFF` (single precision) | `ON` uses double precision storage |
-| `CH_VEHICLE_SCM_USE_TILED_NODES` | `ON` (tiled nodes) | `OFF` uses the original flat hash map |
+| `CH_USE_SCM_DOUBLE` | `OFF` (single precision) | `ON` uses double precision storage |
+| `CH_USE_SCM_TILED_NODES` | `ON` (tiled nodes) | `OFF` uses the original flat hash map |
 
 For example, to use double precision and a flat node map:
 
 ```bash
 cmake -S . -B build -DCH_ENABLE_MODULE_VEHICLE=ON \
-  -DCH_VEHICLE_SCM_USE_DOUBLE=ON \
-  -DCH_VEHICLE_SCM_USE_TILED_NODES=OFF
+  -DCH_USE_SCM_DOUBLE=ON \
+  -DCH_USE_SCM_TILED_NODES=OFF
 cmake --build build
 ```
 

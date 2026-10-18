@@ -8,7 +8,7 @@ option(CH_ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 if(NOT CH_ENABLE_MODULE_VEHICLE)
    mark_as_advanced(FORCE CH_ENABLE_OPENCRG)
    mark_as_advanced(FORCE CH_ENABLE_VEHICLE_SCM_GPU)
-   mark_as_advanced(FORCE CH_VEHICLE_SCM_USE_DOUBLE CH_VEHICLE_SCM_USE_TILED_NODES)
+   mark_as_advanced(FORCE CH_USE_SCM_DOUBLE CH_USE_SCM_TILED_NODES)
    return()
 endif()
 
@@ -20,9 +20,9 @@ mark_as_advanced(CLEAR CH_ENABLE_OPENCRG)
 option(CH_ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
 
 # SCM storage choices apply to the CPU and GPU backends alike.
-option(CH_VEHICLE_SCM_USE_DOUBLE "Store SCM soil-node state and base heights in double precision" OFF)
-option(CH_VEHICLE_SCM_USE_TILED_NODES "Store deformed SCM nodes in tiles instead of a flat hash map" ON)
-mark_as_advanced(CLEAR CH_VEHICLE_SCM_USE_DOUBLE CH_VEHICLE_SCM_USE_TILED_NODES)
+option(CH_USE_SCM_DOUBLE "Store SCM soil-node state and base heights in double precision" OFF)
+option(CH_USE_SCM_TILED_NODES "Store deformed SCM nodes in tiles instead of a flat hash map" ON)
+mark_as_advanced(CLEAR CH_USE_SCM_DOUBLE CH_USE_SCM_TILED_NODES)
 
 # ----------------------------------------------------------------------------
 # Optional SCM GPU contact-force backend (in-tree HIP, Chrono::DEM pattern)
@@ -156,13 +156,13 @@ endif()
 
 set(CV_CONFIG_FILE ${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h)
 
-if(CH_VEHICLE_SCM_USE_DOUBLE)
+if(CH_USE_SCM_DOUBLE)
   set(CHRONO_SCM_USE_DOUBLE "#define CHRONO_SCM_USE_DOUBLE")
 else()
   set(CHRONO_SCM_USE_DOUBLE "#undef CHRONO_SCM_USE_DOUBLE")
 endif()
 
-if(CH_VEHICLE_SCM_USE_TILED_NODES)
+if(CH_USE_SCM_TILED_NODES)
   set(CHRONO_SCM_USE_TILED_NODES "#define CHRONO_SCM_USE_TILED_NODES")
 else()
   set(CHRONO_SCM_USE_TILED_NODES "#undef CHRONO_SCM_USE_TILED_NODES")
