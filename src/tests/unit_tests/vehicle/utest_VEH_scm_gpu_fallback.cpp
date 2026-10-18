@@ -13,8 +13,9 @@
 // Test that SCM terrain runs on a machine without a usable GPU device.
 //
 // A build with the SCM GPU backend (CHRONO_HAS_SCM_GPU) must fall back to the CPU paths at run time
-// when no device is present, instead of aborting. CTest runs this test twice: once as is, where a
-// GPU build on a machine with a device must use the GPU backends, and once with
+// when no device is present, instead of aborting, even with the GPU backend requested explicitly.
+// CTest runs this test twice: once as is, where a GPU build on a machine with a device must use the
+// GPU backends, and once with
 // CUDA_VISIBLE_DEVICES=-1 and HIP_VISIBLE_DEVICES=-1 (and SCM_UTEST_EXPECT_NO_GPU=1), where the
 // simulation must still succeed with zero GPU steps.
 //
@@ -68,14 +69,8 @@ TEST(SCMTerrain, gpu_fallback) {
 
     SCMTerrain terrain(&sys, false);
     terrain.SetSoilParameters(0.2e6, 0, 1.1, 0, 30, 0.01, 4e7, 3e4);
-#ifdef CHRONO_HAS_SCM_GPU
-    // Make every step eligible for the GPU contact-force backend (400 hits under the box).
-    auto config = terrain.GetScmGpuConfig();
-    config.enabled = true;
-    config.min_hits = 1;
-    terrain.SetScmGpuConfig(config);
-    terrain.EnableRaycastGpuHip(true);
-#endif
+    // Request the GPU for both stages, so every step is eligible regardless of the number of hits.
+    terrain.SetBackend(SCMTerrain::Backend::GPU);
     // An explicit active domain is required by the GPU ray-cast backend.
     terrain.AddActiveDomain(box, VNULL, box_size + ChVector3d(0.1, 0.1, 0.1));
     terrain.Initialize(2.0, 2.0, 0.02);
@@ -99,21 +94,17 @@ TEST(SCMTerrain, gpu_fallback) {
     std::cout << "GPU contact-force steps: " << gpu_force_steps << "  GPU ray-cast steps: " << gpu_raycast_steps << std::endl;
 
     if (expect_no_gpu) {
-#ifdef CHRONO_HAS_SCM_GPU
-        EXPECT_FALSE(SCMTerrain::IsScmGpuDeviceAvailable());
-#endif
+        EXPECT_FALSE(SCMTerrain::IsGpuAvailable());
         EXPECT_EQ(gpu_force_steps, 0);
         EXPECT_EQ(gpu_raycast_steps, 0);
         return;
     }
 
-#ifdef CHRONO_HAS_SCM_GPU
-    if (SCMTerrain::IsScmGpuDeviceAvailable()) {
+    if (SCMTerrain::IsGpuAvailable()) {
         EXPECT_GT(gpu_force_steps, 0);
         EXPECT_GT(gpu_raycast_steps, 0);
+    } else {
+        EXPECT_EQ(gpu_force_steps, 0);
+        EXPECT_EQ(gpu_raycast_steps, 0);
     }
-#else
-    EXPECT_EQ(gpu_force_steps, 0);
-    EXPECT_EQ(gpu_raycast_steps, 0);
-#endif
 }

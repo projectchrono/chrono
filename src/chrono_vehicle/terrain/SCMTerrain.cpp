@@ -44,10 +44,6 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
-#ifdef CHRONO_HAS_SCM_GPU
-    #include "chrono_vehicle/terrain/SCMGpu.h"
-#endif
-
 #include "chrono_thirdparty/stb/stb.h"
 
 namespace chrono {
@@ -154,37 +150,35 @@ void SCMTerrain::SetCosimulationMode(bool val) {
     m_loader->m_cosim_mode = val;
 }
 
-void SCMTerrain::SetForceCPU(bool force_cpu) {
-    m_loader->m_force_cpu = force_cpu;
+// Backend selection for the ray-cast and contact-force stages.
+void SCMTerrain::SetBackend(Backend backend) {
+    m_loader->m_raycast_backend = backend;
+    m_loader->m_contact_force_backend = backend;
 }
 
-bool SCMTerrain::IsForceCPU() const {
-    return m_loader->m_force_cpu;
+void SCMTerrain::SetRayCastBackend(Backend backend) {
+    m_loader->m_raycast_backend = backend;
 }
 
-#ifdef CHRONO_HAS_SCM_GPU
-void SCMTerrain::SetScmGpuEnabled(bool enable) {
-    m_loader->m_scm_gpu_config.enabled = enable;
-    scm_gpu::SetConfig(m_loader->m_scm_gpu_config);
+void SCMTerrain::SetContactForceBackend(Backend backend) {
+    m_loader->m_contact_force_backend = backend;
 }
 
-bool SCMTerrain::IsScmGpuEnabled() const {
-    return m_loader->m_scm_gpu_config.enabled;
+SCMTerrain::Backend SCMTerrain::GetRayCastBackend() const {
+    return m_loader->m_raycast_backend;
 }
 
-void SCMTerrain::SetScmGpuConfig(const scm_gpu::Config& config) {
-    m_loader->m_scm_gpu_config = config;
-    scm_gpu::SetConfig(m_loader->m_scm_gpu_config);
+SCMTerrain::Backend SCMTerrain::GetContactForceBackend() const {
+    return m_loader->m_contact_force_backend;
 }
 
-scm_gpu::Config SCMTerrain::GetScmGpuConfig() const {
-    return m_loader->m_scm_gpu_config;
+void SCMTerrain::SetGpuSettings(const GpuSettings& settings) {
+    m_loader->m_gpu_settings = settings;
 }
 
-void SCMTerrain::EnableRaycastGpuHip(bool val) {
-    m_loader->m_raycast_gpu_hip_enabled = val;
+const SCMTerrain::GpuSettings& SCMTerrain::GetGpuSettings() const {
+    return m_loader->m_gpu_settings;
 }
-#endif
 
 // Set properties of the SCM soil model.
 void SCMTerrain::SetSoilParameters(double Bekker_Kphi,    // Kphi, frictional modulus in Bekker model
@@ -324,40 +318,28 @@ void SCMTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCa
 void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
     m_loader->Initialize(sizeX, sizeY, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    if (!m_loader->m_force_cpu)
-        scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Initialize the terrain from a specified height map.
 void SCMTerrain::Initialize(const std::string& heightmap_file, double sizeX, double sizeY, double hMin, double hMax, double delta) {
     m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    if (!m_loader->m_force_cpu)
-        scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
 void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
     m_loader->Initialize(mesh_file, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    if (!m_loader->m_force_cpu)
-        scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Initialize the terrain from a specified triangular mesh file.
 void SCMTerrain::Initialize(const ChTriangleMeshConnected& trimesh, double delta) {
     m_loader->Initialize(trimesh, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    if (!m_loader->m_force_cpu)
-        scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Get the heights of modified grid nodes.
@@ -483,8 +465,6 @@ SCMContactableData::SCMContactableData(double area_ratio, double Mohr_cohesion, 
 
 // Constructor.
 SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr), m_base_height(-1000) {
-    const char* force_cpu = std::getenv("CHRONO_SCM_FORCE_CPU");
-    m_force_cpu = force_cpu && std::string(force_cpu) == "1";
     this->SetSystem(system);
 
     if (visualization_mesh) {
@@ -517,10 +497,6 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
-#ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::SetConfig(m_scm_gpu_config);
-#endif
-
     m_colormap_type = ChColormap::Type::JET;
     m_plot_type = SCMTerrain::PLOT_NONE;
     m_plot_v_min = 0;
@@ -530,6 +506,8 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_test_offset_down = 0.5;
 
     m_raycast_gpu_ref_enabled = false;
+    m_raycast_backend = SCMTerrain::Backend::AUTO;
+    m_contact_force_backend = SCMTerrain::Backend::AUTO;
 
     m_boundary = false;
     m_user_domains = false;
@@ -1455,15 +1433,7 @@ void SCMLoader::ComputeInternalForces() {
 
     // Information of vertices with ray-cast hits
 
-#ifdef CHRONO_HAS_SCM_GPU
-    using HitRecord = scm_gpu::ScmHitRecord;
-#else
-    struct HitRecord {
-        ChContactable* contactable;  // pointer to hit object
-        ChVector3d abs_point;        // hit point, expressed in global frame
-        int patch_id;                // index of associated patch id
-    };
-#endif
+    using HitRecord = ScmHitRecord;
 
     // Hash-map for vertices with ray-cast hits
     std::unordered_map<ChVector2i, HitRecord, CoordHash> hits;
@@ -1488,34 +1458,24 @@ void SCMLoader::ComputeInternalForces() {
         m_num_ray_hits = (int)hits.size();
     };
 
-#ifdef CHRONO_HAS_SCM_GPU
-    bool use_raycast_hip = !m_force_cpu && m_raycast_gpu_hip_enabled && m_user_domains;
-#else
-    bool use_raycast_hip = false;
-#endif
-
-    if (use_raycast_hip) {
-        // GPU ray-cast HIP backend. It declines models it cannot
-        // represent -- notably any whose active-domain bodies carry no triangle-mesh collision
-        // geometry -- in which case the CPU path below runs instead for this step.
+    // GPU ray casting requires explicit active domains. The GPU implementation declines models it cannot
+    // represent -- notably any whose active-domain bodies carry no triangle-mesh collision geometry -- in
+    // which case the CPU path below runs instead for this step.
+    bool raycast_on_gpu = false;
+    if (m_user_domains && GpuAllowed(m_raycast_backend)) {
         std::vector<RaycastHit> raw_hits;
         int rc_num_ray_casts = 0;
-        bool gpu_handled = false;
-#ifdef CHRONO_HAS_SCM_GPU
-        gpu_handled = ComputeRayCastGpuHip(raw_hits, rc_num_ray_casts);
-#endif
-        if (gpu_handled) {
+        if (ComputeRayCastGpu(raw_hits, rc_num_ray_casts)) {
+            raycast_on_gpu = true;
             ++m_num_raycast_gpu_steps;
             m_num_ray_casts += rc_num_ray_casts;
             absorb_raycast_hits(raw_hits);
-        } else {
-            use_raycast_hip = false;
         }
     }
 
-    if (use_raycast_hip) {
+    if (raycast_on_gpu) {
         // Handled above.
-    } else if (!m_force_cpu && m_raycast_gpu_ref_enabled && m_user_domains) {
+    } else if (m_raycast_gpu_ref_enabled && m_user_domains) {
         // GPU ray-cast reference backend (CPU stand-in).
         std::vector<RaycastHit> raw_hits;
         int rc_num_ray_casts = 0;
@@ -1738,19 +1698,19 @@ void SCMLoader::ComputeInternalForces() {
 
     m_timer_contact_forces.start();
 
-#ifdef CHRONO_HAS_SCM_GPU
-    bool scm_used_gpu = false;
-    if (!m_force_cpu && m_scm_gpu_config.enabled && !m_soil_fun && hits.size() >= m_scm_gpu_config.min_hits) {
+    // GPU contact forces do not support location-dependent soil parameters. In AUTO mode, small hit counts
+    // stay on the CPU, where they are cheaper than the GPU transfer overhead.
+    bool forces_on_gpu = false;
+    const bool enough_hits = m_contact_force_backend != SCMTerrain::Backend::AUTO || hits.size() >= m_gpu_settings.min_hits;
+    if (!m_soil_fun && enough_hits && GpuAllowed(m_contact_force_backend)) {
         std::vector<double> patch_oob(contact_patches.size());
         for (size_t ip = 0; ip < contact_patches.size(); ++ip)
             patch_oob[ip] = contact_patches[ip].oob;
-        scm_used_gpu = ComputeContactForcesGpu(hits, patch_oob);
-        if (scm_used_gpu)
+        forces_on_gpu = ComputeContactForcesGpu(hits, patch_oob);
+        if (forces_on_gpu)
             ++m_num_contact_force_gpu_steps;
     }
-    if (!scm_used_gpu) {
-#endif
-
+    if (!forces_on_gpu) {
         // Initialize local values for the soil parameters
         double Bekker_Kphi = m_Bekker_Kphi;
         double Bekker_Kc = m_Bekker_Kc;
@@ -1929,9 +1889,7 @@ void SCMLoader::ComputeInternalForces() {
 
         }  // end loop on ray hits
 
-#ifdef CHRONO_HAS_SCM_GPU
     }  // end CPU contact-force path
-#endif
 
     // Create loads for bodies and nodes to apply the accumulated terrain force/torque for each of them
     if (!m_cosim_mode) {

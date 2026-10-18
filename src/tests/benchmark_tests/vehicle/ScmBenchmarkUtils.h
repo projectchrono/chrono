@@ -88,10 +88,8 @@ inline void SelectRaycastBackend(chrono::vehicle::SCMTerrain& terrain, bool has_
         mode = (std::string(g) == "0") ? "cpu" : "gpu";
 
     if (mode == "ref") {
+        terrain.SetRayCastBackend(chrono::vehicle::SCMTerrain::Backend::CPU);
         terrain.EnableRaycastGpuReference(true);
-#ifdef CHRONO_HAS_SCM_GPU
-        terrain.EnableRaycastGpuHip(false);
-#endif
         std::cout << "SCM ray-cast backend: REF (GPU ray set, computed on the CPU)"
                   << (has_active_domains ? "" : " -- NO ACTIVE DOMAINS, will fall back") << std::endl;
         return;
@@ -103,19 +101,16 @@ inline void SelectRaycastBackend(chrono::vehicle::SCMTerrain& terrain, bool has_
         std::exit(1);
     }
 
-#ifdef CHRONO_HAS_SCM_GPU
-    terrain.EnableRaycastGpuHip(want_gpu);
+    // "gpu" keeps the default (AUTO) ray-cast backend: the GPU when one is available.
+    terrain.SetRayCastBackend(want_gpu ? chrono::vehicle::SCMTerrain::Backend::AUTO : chrono::vehicle::SCMTerrain::Backend::CPU);
     if (!want_gpu)
         std::cout << "SCM ray-cast backend: CPU (default loop)" << std::endl;
+    else if (!chrono::vehicle::SCMTerrain::IsGpuAvailable())
+        std::cout << "SCM ray-cast backend: CPU (no usable GPU)" << std::endl;
     else if (!has_active_domains)
         std::cout << "SCM ray-cast backend: CPU (no active domains declared)" << std::endl;
     else
         std::cout << "SCM ray-cast backend: GPU" << std::endl;
-#else
-    (void)has_active_domains;
-    std::cout << "SCM ray-cast backend: CPU"
-              << (want_gpu ? " (built without the SCM GPU backend)" : " (default loop)") << std::endl;
-#endif
 }
 
 /// Per-step SCM timings, summed over a run.
