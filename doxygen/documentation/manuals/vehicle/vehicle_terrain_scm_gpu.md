@@ -1,26 +1,27 @@
 ## SCM GPU backends {#vehicle_terrain_scm_gpu}
 
-Two optional HIP backends move the per-node-independent stages of an SCM step onto the GPU: ray casting (one ray per active grid node against vehicle collision geometry) and the dense Bekker / Mohr-Coulomb / Janosi contact-force loop in [SCMLoader::ComputeInternalForces()](@ref chrono::vehicle::SCMLoader::ComputeInternalForces). Contact-patch clustering and bulldozing remain on the CPU.
+Two optional GPU paths move the per-node-independent stages of an SCM step onto the GPU: ray casting (one ray per active grid node against vehicle collision geometry) and the dense Bekker / Mohr-Coulomb / Janosi contact-force loop in [SCMLoader::ComputeInternalForces()](@ref chrono::vehicle::SCMLoader::ComputeInternalForces). Contact-patch clustering and bulldozing remain on the CPU.
 
-The HIP device code is built **into** `Chrono_vehicle` when enabled (same pattern as Chrono::DEM / Chrono::FSI::SPH). No external library or extra install step is required.
+The shared device kernels are compiled as CUDA or HIP and built **into** `Chrono_vehicle` when enabled. No external library or extra install step is required.
 
 ### Prerequisites
 
-- A HIP toolchain detected by Chrono
-- An AMD GPU (validated on gfx942 / MI300X and gfx90a / MI210), or an NVIDIA GPU through HIP's NVIDIA platform
+- A CUDA or HIP toolchain detected by Chrono
+- An NVIDIA GPU using CUDA or HIP's NVIDIA platform, or an AMD GPU using HIP (validated on gfx942 / MI300X and gfx90a / MI210)
 - OpenMP-enabled host build (host-side packing and scatter remain OpenMP)
 
 ### CMake configuration
 
-`CH_ENABLE_VEHICLE_SCM_GPU` defaults to `ON`, so no flags are required when a HIP toolchain and a supported GPU are present. To pin a target architecture:
+`CH_ENABLE_VEHICLE_SCM_GPU` defaults to `ON`, so no flags are required when a suitable toolchain and a supported GPU are present. `CHRONO_GPU_BACKEND=AUTO` selects CUDA when available, otherwise HIP. To select HIP and pin an AMD target architecture:
 
 ```bash
 cmake -S chrono -B build \
   -DCH_ENABLE_MODULE_VEHICLE=ON \
+  -DCHRONO_GPU_BACKEND=HIP \
   -DCHRONO_HIP_ARCHITECTURES=gfx942
 ```
 
-If no HIP toolchain is found, the feature is reported as unavailable in the configuration status and the CPU SCM path configures and builds as before.
+If neither toolchain is found, the feature is reported as unavailable in the configuration status and the CPU SCM path configures and builds as before.
 
 When enabled, `ChConfigVehicle.h` defines `CHRONO_HAS_SCM_GPU`.
 
@@ -81,19 +82,21 @@ cfg.profile = false;
 terrain.SetScmGpuConfig(cfg);
 ```
 
+`EnableRaycastGpuHip` retains its existing API name and controls the compiled ray-casting backend, whether CUDA or HIP.
+
 | Setting | Default | Role |
 |---------|---------|------|
 | `enabled` | `true` | Use GPU when eligibility checks pass |
 | `min_hits` | 8192 | CPU fallback below this hit count |
 | `reserve_hits` | 65536 | Pre-allocated hit buffer capacity |
-| `async` | `true` | Async HIP streams for pack / compute / scatter |
+| `async` | `true` | Async GPU streams for pack / compute / scatter |
 | `profile` | `false` | Log pack / gpu / scatter timings to stderr |
 
 The ray-cast kernels run in FP32 on every platform, so that a model produces the same trajectory on AMD and NVIDIA rather than diverging by vendor. FP64 is available via the environment variable `SCM_RAYCAST_GPU_PRECISION` (`fp32` or `fp64`), and is intended for validation.
 
 ### NVIDIA GPUs
 
-These kernels exist only in HIP. On NVIDIA hardware they compile through HIP's NVIDIA platform, where the HIP compiler is nvcc; no CUDA port of the kernels is involved. This is why `CHRONO_ENABLE_HIP_ON_NVIDIA` defaults to `ON`: for this feature, "is HIP available" and "can this use the GPU" are the same question. Chrono::DEM and Chrono::FSI::SPH still prefer CUDA and still resolve to CUDA on NVIDIA.
+NVIDIA hardware can use native CUDA or HIP's NVIDIA platform. Both compile the same kernel sources with nvcc; each has its own runtime host bridge. Native CUDA is selected by default when available. Set `CHRONO_GPU_BACKEND=HIP` to prefer HIP, or `CHRONO_GPU_BACKEND=CUDA` to prefer CUDA. The CPU override above applies to either compiled backend.
 
 ### Validation
 

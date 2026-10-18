@@ -135,8 +135,10 @@ would remove, and `btest_VEH_largeSCM` exists to measure it.
 
 # Single precision and tiled nodes
 
-Updated 2026-10-17 on `scm-fp32-and-index-overflow`, compared with the uploaded
+Measured 2026-10-17 at `f86cd55e2` on `scm-fp32-and-index-overflow`, compared with the uploaded
 `feature/scm-benchmarks` report at `3959a70eefe97f056442799b7e53d78346ba7dfb`.
+The FP32/tiled results below use HIP on NVIDIA, before the subsequent merge of main's
+native CUDA backend. The measured revisions identify the snapshots used for comparison.
 The original NVIDIA and AMD baseline tables below are retained for reference.
 
 This branch defaults to single precision for soil-node state and base heights, and a sparse
