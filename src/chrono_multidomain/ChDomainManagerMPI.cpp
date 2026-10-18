@@ -52,12 +52,12 @@ void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
 			// here make the reference unique 
 			ChVector3d reference;
 			if (contactinfo.vpA.x() < contactinfo.vpB.x())
-				reference = contactinfo.vpA.x();
+				reference = contactinfo.vpA;
 			else
-				reference = contactinfo.vpB.x();
+				reference = contactinfo.vpB;
 
 			// test if reference is inside domain
-			if (mdomain->IsInto(contactinfo.vpA))
+			if (mdomain->IsInto(reference))
 				return true;
 			else
 				return false;
