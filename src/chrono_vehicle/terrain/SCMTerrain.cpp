@@ -1780,14 +1780,17 @@ void SCMLoader::ComputeInternalForces() {
                 Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
             }
 
-            nr.hit_level = hit_point_loc.z();                              // along SCM z axis
-            double p_hit_offset = ca * (nr.level_initial - nr.hit_level);  // along local normal direction
+            // Node state is computed in double and stored once below, so the result does not depend on the
+            // storage precision of NodeRecord (this also matches the GPU contact-force path).
+            const double hit_level = hit_point_loc.z();                       // along SCM z axis
+            const double p_hit_offset = ca * (nr.level_initial - hit_level);  // along local normal direction
+            nr.hit_level = hit_level;
 
             // Elastic try (along local normal direction)
-            nr.sigma = elastic_K * (p_hit_offset - nr.sinkage_plastic);
+            double sigma = elastic_K * (p_hit_offset - nr.sinkage_plastic);
 
             // Handle uni-laterality
-            if (nr.sigma < 0) {
+            if (sigma < 0) {
                 nr.sigma = 0;
                 continue;
             }
@@ -1807,52 +1810,63 @@ void SCMLoader::ComputeInternalForces() {
             T.Normalize();
 
             // Update total sinkage and current level for this hit node
-            nr.sinkage = p_hit_offset;
-            nr.level = nr.hit_level;
+            const double sinkage = p_hit_offset;
 
             // Accumulate shear for Janosi-Hanamoto (along local tangent direction)
-            nr.kshear += Vdot(speed_abs, -T) * GetSystem()->GetStep();
+            const double kshear = nr.kshear + Vdot(speed_abs, -T) * GetSystem()->GetStep();
 
             // Plastic correction (along local normal direction)
-            if (nr.sigma > nr.sigma_yield) {
+            double sigma_yield = nr.sigma_yield;
+            double sinkage_plastic = nr.sinkage_plastic;
+            if (sigma > sigma_yield) {
                 // Bekker formula
-                nr.sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * std::pow(nr.sinkage, Bekker_n);
-                nr.sigma_yield = nr.sigma;
-                double old_sinkage_plastic = nr.sinkage_plastic;
-                nr.sinkage_plastic = nr.sinkage - nr.sigma / elastic_K;
-                nr.step_plastic_flow = (nr.sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
+                sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * std::pow(sinkage, Bekker_n);
+                sigma_yield = sigma;
+                double old_sinkage_plastic = sinkage_plastic;
+                sinkage_plastic = sinkage - sigma / elastic_K;
+                nr.step_plastic_flow = (sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
             }
 
             // Elastic sinkage (along local normal direction)
-            nr.sinkage_elastic = nr.sinkage - nr.sinkage_plastic;
+            const double sinkage_elastic = sinkage - sinkage_plastic;
 
             // Add compressive speed-proportional damping (not clamped by pressure yield)
             ////if (Vn < 0) {
-            nr.sigma += -Vn * damping_R;
+            sigma += -Vn * damping_R;
             ////}
 
             // Mohr-Coulomb
-            double tau_max = Mohr_cohesion + nr.sigma * Mohr_mu;
+            double tau_max = Mohr_cohesion + sigma * Mohr_mu;
 
             // Janosi-Hanamoto (along local tangent direction)
-            nr.tau = tau_max * (1.0 - std::exp(-(nr.kshear / Janosi_shear)));
+            const double tau = tau_max * (1.0 - std::exp(-(kshear / Janosi_shear)));
+
+            // Store the updated node state
+            nr.level = hit_level;
+            nr.sinkage = sinkage;
+            nr.kshear = kshear;
+            nr.sigma_yield = sigma_yield;
+            nr.sinkage_plastic = sinkage_plastic;
+            nr.sinkage_elastic = sinkage_elastic;
+            nr.sigma = sigma;
+            nr.tau = tau;
 
             // Calculate normal and tangential forces (in local node directions).
             // If specified, combine properties for soil-contactable interaction and soil-soil interaction.
-            ChVector3d Fn = N * m_area * nr.sigma;
+            ChVector3d Fn = N * m_area * sigma;
             ChVector3d Ft;
 
             //// TODO:  take into account "tread height" (add to SCMContactableData)?
 
             if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
                 // Use weighted sum of soil-contactable and soil-soil parameters
-                double c_tau_max = cprops->Mohr_cohesion + nr.sigma * cprops->Mohr_mu;
-                double c_tau = c_tau_max * (1.0 - std::exp(-(nr.kshear / cprops->Janosi_shear)));
+                double c_tau_max = cprops->Mohr_cohesion + sigma * cprops->Mohr_mu;
+                double c_tau = c_tau_max * (1.0 - std::exp(-(kshear / cprops->Janosi_shear)));
                 double ratio = cprops->area_ratio;
-                Ft = T * m_area * ((1 - ratio) * nr.tau + ratio * c_tau);
+                Ft = T * m_area * ((1 - ratio) * tau + ratio * c_tau);
             } else {
                 // Use only soil-soil parameters
-                Ft = T * m_area * nr.tau;
+                Ft = T * m_area * tau;
             }
 
             if (ChBody* body = dynamic_cast<ChBody*>(contactable)) {
