@@ -121,8 +121,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector3d(3, 3, 1));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(2.5, 7.0, 0.0), ChVector3d(0, 0, 0), 50, 4, 25, 130, 512,
-                                        ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->AddLightWithShadow(ChVector3d(2.5, 7.0, 0.0), ChVector3d(0, 0, 0), 50, 4, 25, 130, 512, ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
             vis_irr->EnableShadows();
 
@@ -148,11 +147,20 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+
     // Simulation loop
     while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (sys.GetChTime() >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 
         ////auto time = rover.GetSystem()->GetChTime();
         ////if (time < 1)

@@ -23,6 +23,10 @@
 /compile_commands.json
 CMakeUserPresets.json
 
+# Local benchmark build trees and generated results
+/bench_*/
+/benchresults/
+
 ##---------------------------------------------------
 ## C++
 ##---------------------------------------------------

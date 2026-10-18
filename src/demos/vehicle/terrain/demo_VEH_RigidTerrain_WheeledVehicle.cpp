@@ -107,17 +107,15 @@ int main(int argc, char* argv[]) {
             auto patch3_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             patch3_mat->SetFriction(0.9f);
             patch3_mat->SetRestitution(0.01f);
-            auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector3d(0, -42, 0), QUNIT),
-                                           GetVehicleDataFile("terrain/meshes/bump.obj"));
+            auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector3d(0, -42, 0), QUNIT), GetVehicleDataFile("terrain/meshes/bump.obj"));
             patch3->SetColor(ChColor(0.5f, 0.5f, 0.8f));
             patch3->SetTexture(GetVehicleDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
 
             auto patch4_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             patch4_mat->SetFriction(0.9f);
             patch4_mat->SetRestitution(0.01f);
-            auto patch4 =
-                terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector3d(0, 42, 0), QuatFromAngleZ(CH_PI_2)),
-                                 GetVehicleDataFile("terrain/height_maps/convex64.bmp"), 64.0, 64.0, 0.0, 3.0);
+            auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector3d(0, 42, 0), QuatFromAngleZ(CH_PI_2)), GetVehicleDataFile("terrain/height_maps/convex64.bmp"), 64.0,
+                                           64.0, 0.0, 3.0);
             patch4->SetTexture(GetVehicleDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
 
             break;
@@ -126,8 +124,7 @@ int main(int argc, char* argv[]) {
             auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
             patch_mat->SetFriction(0.9f);
             patch_mat->SetRestitution(0.01f);
-            auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, 10), QUNIT),
-                                          GetVehicleDataFile("terrain/multilayer/multilayer-terrain.obj"));
+            auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, 10), QUNIT), GetVehicleDataFile("terrain/multilayer/multilayer-terrain.obj"));
 
             break;
         }
@@ -180,14 +177,24 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver. Kept separate from render_step_size above, which
+    // sets the driver input rates and would change vehicle behavior if retuned.
+    double render_fps = 60;
+    int render_frame = 0;
+
     hmmwv.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         double time = hmmwv.GetSystem()->GetChTime();
 
         // Render scene
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
