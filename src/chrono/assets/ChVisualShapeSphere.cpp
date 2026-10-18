@@ -19,9 +19,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeSphere)
 
-ChVisualShapeSphere::ChVisualShapeSphere() {}
+ChVisualShapeSphere::ChVisualShapeSphere() : ChVisualShape(Type::SPHERE) {}
 
-ChVisualShapeSphere::ChVisualShapeSphere(double radius) {
+ChVisualShapeSphere::ChVisualShapeSphere(double radius) : ChVisualShape(Type::SPHERE) {
     gsphere.rad = radius;
 }
 

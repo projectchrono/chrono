@@ -1,12 +1,12 @@
 set(COMPONENT_NAME "FMU3me_vdp")
-set(COMPONENT_MAIN_DIR "${DEMO_FMU_MAIN_DIR}")
+set(COMPONENT_MAIN_DIR ${DEMO_FMU_MAIN_DIR})
 set(COMPONENT_SOURCES vdpFMU.h vdpFMU.cpp)
 set(COMPONENT_RESOURCES_DIR "")
 set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core)
 set(COMPONENT_DLL_DEPENDENCIES "")
 
 set(FMU_ME TRUE)
-#set(FMU_TESTING ON)
+set(FMU_TESTING ${CH_ENABLE_FMU_TESTING})
 
 #--------------------------------------------------------------
 

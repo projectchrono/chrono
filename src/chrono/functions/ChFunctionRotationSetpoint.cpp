@@ -41,11 +41,11 @@ ChFunctionRotationSetpoint::~ChFunctionRotationSetpoint() {}
 void ChFunctionRotationSetpoint::Reset(double s) {
     S = s;
     Q = QUNIT;
-    W = 0;
-    A = 0;
+    W = VNULL;
+    A = VNULL;
     last_S = 0;
     last_Q = QUNIT;
-    last_W = 0;
+    last_W = VNULL;
 }
 
 void ChFunctionRotationSetpoint::SetSetpoint(ChQuaternion<> q_setpoint, double s) {
@@ -60,8 +60,8 @@ void ChFunctionRotationSetpoint::SetSetpoint(ChQuaternion<> q_setpoint, double s
 
     S = s;
     Q = q_setpoint;
-    W = 0;
-    A = 0;
+    W = VNULL;
+    A = VNULL;
 
     if (mode == ZERO_ORDER_HOLD) {
     }
@@ -69,7 +69,7 @@ void ChFunctionRotationSetpoint::SetSetpoint(ChQuaternion<> q_setpoint, double s
         double ds = s - last_S;
         if (ds > 0) {
             W = (last_Q.GetConjugate() * Q).GetRotVec() / ds;
-            A = 0;
+            A = VNULL;
         }
     }
     /*

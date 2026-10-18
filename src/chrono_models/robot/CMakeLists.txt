@@ -4,12 +4,12 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-MESSAGE(STATUS "Add ChronoModels_robot library")
-
 #-----------------------------------------------------------------------------
 
 set(CRM_COMMON_FILES
     ../ChApiModels.h
+    ChRobotActuation.h
+    ChRobotActuation.cpp
 )
 source_group("" FILES ${CRM_COMMON_FILES})
 
@@ -19,7 +19,12 @@ set(CRM_ROBOSIMIAN_FILES
     robosimian/RoboSimian.cpp
     robosimian/RoboSimian.h
 )
-
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  set(CRM_ROBOSIMIAN_FILES ${CRM_ROBOSIMIAN_FILES}
+      robosimian/RoboSimianURDF.cpp
+      robosimian/RoboSimianURDF.h    
+  )
+endif()
 source_group("robosimian" FILES ${CRM_ROBOSIMIAN_FILES})
 
 #-----------------------------------------------------------------------------
@@ -28,7 +33,6 @@ set(CRM_VIPER_FILES
     viper/Viper.cpp
     viper/Viper.h
 )
-
 source_group("viper" FILES ${CRM_VIPER_FILES})
 
 #-----------------------------------------------------------------------------
@@ -37,7 +41,6 @@ set(CRM_TURTLEBOT_FILES
     turtlebot/Turtlebot.cpp
     turtlebot/Turtlebot.h
 )
-
 source_group("turtlebot" FILES ${CRM_TURTLEBOT_FILES})
 
 #-----------------------------------------------------------------------------
@@ -46,7 +49,6 @@ set(CRM_CURIOSITY_FILES
     curiosity/Curiosity.cpp
     curiosity/Curiosity.h
 )
-
 source_group("curiosity" FILES ${CRM_CURIOSITY_FILES})
 
 #-----------------------------------------------------------------------------
@@ -56,7 +58,6 @@ set(CRM_COPTERS_FILES
     copters/Little_Hexy.h
     copters/Little_Hexy.cpp
 )
-
 source_group("copters" FILES ${CRM_COPTERS_FILES})
 
 #-----------------------------------------------------------------------------
@@ -73,10 +74,11 @@ set(CRM_INDUSTRIAL_FILES
     industrial/IndustrialKinematicsNdofNumerical.h industrial/IndustrialKinematicsNdofNumerical.cpp
     industrial/TrajectoryInterpolator.h industrial/TrajectoryInterpolator.cpp
 )
-
 source_group("industrial" FILES ${CRM_INDUSTRIAL_FILES})
 
 #-----------------------------------------------------------------------------
+
+message(STATUS "Add ChronoModels_robot library")
 
 add_library(ChronoModels_robot 
             ${CRM_COMMON_FILES}
@@ -90,7 +92,6 @@ add_library(ChronoModels_robot
 add_library(Chrono::models_robot ALIAS ChronoModels_robot)
 
 set_target_properties(ChronoModels_robot PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
-
 
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_robot PROPERTIES COMPILE_FLAGS "/GL")
@@ -108,6 +109,9 @@ endif()
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
 
 target_link_libraries(ChronoModels_robot PUBLIC Chrono_core)
+if(CH_ENABLE_MODULE_PARSERS AND CH_USE_URDF)
+  target_link_libraries(ChronoModels_robot PUBLIC Chrono_parsers)  
+endif()
 
 install(TARGETS ChronoModels_robot
         EXPORT ChronoTargets

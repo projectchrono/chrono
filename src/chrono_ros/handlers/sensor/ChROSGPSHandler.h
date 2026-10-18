@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,58 +12,56 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// ROS Handler for communicating gps information
+// ROS handler for a ChGPSSensor (publishes sensor_msgs/msg/NavSatFix).
 //
 // =============================================================================
 
-#ifndef CH_ROS_GPS_HANDLER
-#define CH_ROS_GPS_HANDLER
+#ifndef CH_ROS_GPS_HANDLER_H
+#define CH_ROS_GPS_HANDLER_H
 
+#include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChROSHandler.h"
 
 #include "chrono_sensor/sensors/ChGPSSensor.h"
 
 #include <array>
+#include <memory>
+#include <string>
 
 namespace chrono {
 namespace ros {
 
+class ChROSPublisher;
+
 /// @addtogroup ros_sensor_handlers
 /// @{
 
-/// This handler is responsible for interfacing a ChGPSSensor to ROS. Will publish sensor_msgs::msg::NavSatFix.
+/// Publishes a ChGPSSensor as sensor_msgs/msg/NavSatFix. The position covariance
+/// is approximated from a running mean in ENU space (the sensor emits none).
 class CH_ROS_API ChROSGPSHandler : public ChROSHandler {
   public:
-    /// Constructor. The update rate is set to gps->GetUpdateRate().
-    /// The update rate corresponds to the sensor's update rate.
+    /// Tick at the sensor's own update rate.
     ChROSGPSHandler(std::shared_ptr<chrono::sensor::ChGPSSensor> gps, const std::string& topic_name);
-
-    /// Full constructor. Takes a ChGPSSensor, update rate, and topic name.
+    /// Tick at an explicit rate.
     ChROSGPSHandler(double update_rate,
                     std::shared_ptr<chrono::sensor::ChGPSSensor> gps,
                     const std::string& topic_name);
 
-    /// Initializes the handler.
-    virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+    /// Creates the NavSatFix publisher.
+    virtual bool Initialize(ChROSBridge& bridge) override;
 
-    /// Get the message type of this handler
-    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::GPS_DATA; }
-
-    /// Get the serialized data for the handler
-    virtual std::vector<uint8_t> GetSerializedData(double time) override;
+  protected:
+    /// Reads the GPS buffer and publishes the fix with approximated covariance.
+    virtual void Tick(double time) override;
 
   private:
-    /// Helper function to calculate the covariance of the accelerometer
-    /// ChGPSSensor currently doesn't support covariance, so we'll use store
-    /// the rolling averages and calculate the covariance here.
     std::array<double, 9> CalculateCovariance(const chrono::sensor::GPSData& gps_data);
 
-  private:
-    std::shared_ptr<chrono::sensor::ChGPSSensor> m_gps;  ///< handle to the gps sensor
+    std::shared_ptr<chrono::sensor::ChGPSSensor> m_gps;
+    const std::string m_topic_name;
+    std::shared_ptr<ChROSPublisher> m_publisher;
 
-    const std::string m_topic_name;                                         ///< name of the topic to publish to
-    
-    std::array<double, 3> m_running_average; ///< rolling average of the gps data to calculate covariance
+    std::array<double, 3> m_running_average;
 };
 
 /// @} ros_sensor_handlers

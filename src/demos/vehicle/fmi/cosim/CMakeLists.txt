@@ -48,7 +48,7 @@ foreach(PROGRAM ${DEMOS})
   ###add_dependencies(${PROGRAM} ${CHRONO_VEHICLE_FMU})
 endforeach()
 
-if (${FMU_EXPORT_SUPPORT})
+if (${CH_ENABLE_FMU_EXPORT})
   add_dependencies(demo_VEH_FMI2_WheeledVehiclePtrain_a FMU2cs_WheeledVehiclePtrain)
   add_dependencies(demo_VEH_FMI2_WheeledVehiclePtrain_b FMU2cs_WheeledVehiclePtrain FMU2cs_PathFollowerDriver FMU2cs_ForceElementTire)
 

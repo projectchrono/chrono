@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <cstdint>
 #include <iostream>
 
 #include "chrono/geometry/ChTriangleMeshSoup.h"

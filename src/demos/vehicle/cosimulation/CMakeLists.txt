@@ -14,33 +14,43 @@ endif()
 
 set(PROGRAMS 
     demo_VEH_Cosim_WheelRig
-    demo_VEH_Cosim_Viper
-    demo_VEH_Cosim_Curiosity
 )
 
-if(CH_ENABLE_MODULE_VEHICLE_MODELS)
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
+  set(PROGRAMS ${PROGRAMS}
+      demo_VEH_Cosim_Viper
+      demo_VEH_Cosim_Curiosity
+  )
+endif()
 
+if(CH_ENABLE_MODULE_VEHICLE_MODELS)
   set(PROGRAMS ${PROGRAMS}
       demo_VEH_Cosim_WheeledVehicle
       demo_VEH_Cosim_TrackedVehicle
   )
-
   if(CH_ENABLE_MODULE_FSI_SPH)
     set(PROGRAMS ${PROGRAMS}
-        demo_VEH_Cosim_WheeledVehicle_SPH)
+        demo_VEH_Cosim_WheeledVehicle_SPH
+    )
   endif()
-
   if(CH_ENABLE_MODULE_MULTICORE)
     set(PROGRAMS ${PROGRAMS}
-        demo_VEH_Cosim_WheeledVehicle_OMP)
+        demo_VEH_Cosim_WheeledVehicle_OMP
+    )
   endif()
-
 endif()
 
 # ------------------------------------------------------------------------------
 
 list(APPEND LIBS "Chrono_vehicle_cosim")
-list(APPEND LIBS "ChronoModels_vehicle")
+
+if(CH_ENABLE_MODULE_ROBOT_MODELS)
+  list(APPEND LIBS "ChronoModels_robot")
+endif()
+
+if(CH_ENABLE_MODULE_VEHICLE_MODELS)
+  list(APPEND LIBS "ChronoModels_vehicle")
+endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "Chrono_pardisomkl")

@@ -66,4 +66,15 @@
     @}
 */
 
+namespace chrono {
+/// @addtogroup chrono_models
+/// @{
+
+/// Namespace with classes for Chrono models.
+namespace models {}
+
+/// @}
+
+}  // namespace chrono
+
 #endif

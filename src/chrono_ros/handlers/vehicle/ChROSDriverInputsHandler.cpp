@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,17 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Aaron Young, Patrick Chen
+// Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// Handler for interfacing a ChDriver to ROS
+// Handler that drives a ChDriver from ROS (chrono_ros_interfaces/msg/DriverInputs).
 //
 // =============================================================================
 
 #include "chrono_ros/handlers/vehicle/ChROSDriverInputsHandler.h"
 
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
-#include "chrono_ros/ipc/ChROSIPCMessage.h"
+#include "chrono_ros/ChROSBridge.h"
+#include "chrono_ros/ChROSMessage.h"
+#include "chrono_ros/ChROSSubscription.h"
 
 using namespace chrono::vehicle;
 
@@ -32,50 +33,25 @@ ChROSDriverInputsHandler::ChROSDriverInputsHandler(std::shared_ptr<ChDriver> dri
 ChROSDriverInputsHandler::ChROSDriverInputsHandler(double update_rate,
                                                    std::shared_ptr<ChDriver> driver,
                                                    const std::string& topic_name)
-    : ChROSHandler(update_rate), m_driver(driver), m_topic_name(topic_name), 
-      m_inputs({0, 0, 0, 0}), m_applied_inputs({0, 0, 0, 0}), m_subscriber_setup_sent(false) {}
+    : ChROSHandler(update_rate), m_driver(driver), m_topic_name(topic_name) {}
 
-bool ChROSDriverInputsHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
-        return false;
-    }
+bool ChROSDriverInputsHandler::Initialize(ChROSBridge& bridge) {
+    // The callback fires inside ChROSManager::Update() on the simulation thread,
+    // the same thread as Tick(), so the stored inputs need no lock.
+    m_subscription = bridge.CreateSubscription(
+        m_topic_name, "chrono_ros_interfaces/msg/DriverInputs",
+        [this](const ChROSMessageView& msg) {
+            m_steering = msg.GetDouble("steering");
+            m_throttle = msg.GetDouble("throttle");
+            m_braking = msg.GetDouble("braking");
+        });
     return true;
 }
 
-void ChROSDriverInputsHandler::ApplyInputs(double steering, double throttle, double braking) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    
-    m_inputs.m_steering = steering;
-    m_inputs.m_throttle = throttle;
-    m_inputs.m_braking = braking;
-    
-    // Immediately apply to driver in IPC mode
-    m_driver->SetSteering(m_inputs.m_steering);
-    m_driver->SetThrottle(m_inputs.m_throttle);
-    m_driver->SetBraking(m_inputs.m_braking);
-    
-    m_applied_inputs = m_inputs;
-}
-
-void ChROSDriverInputsHandler::HandleIncomingMessage(const ipc::Message& msg) {
-    const auto* data = msg.GetPayload<ipc::DriverInputsData>();
-    ApplyInputs(data->steering, data->throttle, data->braking);
-}
-
-std::vector<uint8_t> ChROSDriverInputsHandler::GetSerializedData(double time) {
-    // For subscribers in IPC mode:
-    // Send topic name once to tell subprocess to create the subscriber
-    // After that, return empty (subscriber receives data, doesn't publish)
-    
-    if (!m_subscriber_setup_sent) {
-        m_subscriber_setup_sent = true;
-        
-        // Serialize topic name to send to subprocess
-        std::vector<uint8_t> data(m_topic_name.begin(), m_topic_name.end());
-        return data;
-    }
-    
-    return {};
+void ChROSDriverInputsHandler::Tick(double time) {
+    m_driver->SetSteering(m_steering);
+    m_driver->SetThrottle(m_throttle);
+    m_driver->SetBraking(m_braking);
 }
 
 }  // namespace ros

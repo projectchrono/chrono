@@ -58,10 +58,6 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of parsing Python programs.
 
--   @subpage tutorial_table_of_content_chrono_matlab
-
-    Examples of Matlab inter-operation.
-
 -   @subpage tutorial_table_of_content_chrono_cosimulation
 
     Examples of cosimulation with Simulink.

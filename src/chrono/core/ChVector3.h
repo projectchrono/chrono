@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <type_traits>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChClassFactory.h"
@@ -39,7 +40,7 @@ class ChVector3 {
 
     ChVector3();
     ChVector3(Real x, Real y, Real z);
-    ChVector3(Real a);
+    explicit ChVector3(Real a);
     ChVector3(const ChVector3<Real>& other);
 
     /// Copy constructor with type change.
@@ -632,12 +633,18 @@ inline ChVector3<Real> ChVector3<Real>::operator*(Real s) const {
 
 template <class Real>
 inline ChVector3<Real> ChVector3<Real>::operator/(Real s) const {
-    Real oos = 1 / s;
     ChVector3<Real> v;
 
-    v.m_data[0] = m_data[0] * oos;
-    v.m_data[1] = m_data[1] * oos;
-    v.m_data[2] = m_data[2] * oos;
+    if constexpr (std::is_integral<Real>::value) {
+        v.m_data[0] = m_data[0] / s;
+        v.m_data[1] = m_data[1] / s;
+        v.m_data[2] = m_data[2] / s;
+    } else {
+        Real oos = 1 / s;
+        v.m_data[0] = m_data[0] * oos;
+        v.m_data[1] = m_data[1] * oos;
+        v.m_data[2] = m_data[2] * oos;
+    }
 
     return v;
 }
@@ -689,11 +696,16 @@ inline ChVector3<Real>& ChVector3<Real>::operator*=(Real s) {
 
 template <class Real>
 inline ChVector3<Real>& ChVector3<Real>::operator/=(Real s) {
-    Real oos = 1 / s;
-
-    m_data[0] *= oos;
-    m_data[1] *= oos;
-    m_data[2] *= oos;
+    if constexpr (std::is_integral<Real>::value) {
+        m_data[0] /= s;
+        m_data[1] /= s;
+        m_data[2] /= s;
+    } else {
+        Real oos = 1 / s;
+        m_data[0] *= oos;
+        m_data[1] *= oos;
+        m_data[2] *= oos;
+    }
 
     return *this;
 }
@@ -909,11 +921,17 @@ inline void ChVector3<Real>::GetDirectionAxesAsX(ChVector3<Real>& Vx,
     success = Vz.Normalize();
     if (!success) {
         char idx = 0;
-        while (!success) {
+        while (!success && idx < 3) {
             y_sugg[idx] += 1.0;
             Vz.Cross(Vx, y_sugg);
             success = Vz.Normalize();
             ++idx;
+        }
+        if (!success) {
+            Vx = ChVector3<Real>(1, 0, 0);
+            Vy = ChVector3<Real>(0, 1, 0);
+            Vz = ChVector3<Real>(0, 0, 1);
+            return;
         }
     }
 
@@ -934,11 +952,17 @@ inline void ChVector3<Real>::GetDirectionAxesAsY(ChVector3<Real>& Vx,
     success = Vx.Normalize();
     if (!success) {
         char idx = 0;
-        while (!success) {
+        while (!success && idx < 3) {
             z_sugg[idx] += 1.0;
             Vx.Cross(Vy, z_sugg);
             success = Vx.Normalize();
             ++idx;
+        }
+        if (!success) {
+            Vx = ChVector3<Real>(1, 0, 0);
+            Vy = ChVector3<Real>(0, 1, 0);
+            Vz = ChVector3<Real>(0, 0, 1);
+            return;
         }
     }
 
@@ -960,11 +984,17 @@ inline void ChVector3<Real>::GetDirectionAxesAsZ(ChVector3<Real>& Vx,
 
     if (!success) {
         char idx = 0;
-        while (!success) {
+        while (!success && idx < 3) {
             x_sugg[idx] += 1.0;
             Vy.Cross(Vz, x_sugg);
             success = Vy.Normalize();
             ++idx;
+        }
+        if (!success) {
+            Vx = ChVector3<Real>(1, 0, 0);
+            Vy = ChVector3<Real>(0, 1, 0);
+            Vz = ChVector3<Real>(0, 0, 1);
+            return;
         }
     }
 
@@ -1028,13 +1058,18 @@ inline void ChVector3<Real>::ArchiveIn(ChArchiveIn& archive_in) {
 // Reversed operators
 
 /// Operator for scaling the vector by a scalar value, as s*V.
+/// The scalar type is not deduced (Real is deduced from V only), so that the scalar is converted to the vector type.
 template <class Real>
-ChVector3<Real> operator*(Real s, const ChVector3<Real>& V) {
+ChVector3<Real> operator*(typename std::common_type<Real>::type s, const ChVector3<Real>& V) {
     return ChVector3<Real>(V.x() * s, V.y() * s, V.z() * s);
 }
 
 /// Operator for scaling an integer vector by a double scalar, as s*V.
-ChApi ChVector3d operator*(double s, const ChVector3i& V);
+/// Implemented as a template (with Real deduced as int) so that other vector types are not implicitly converted to ChVector3i.
+template <class Real, typename std::enable_if<std::is_same<Real, int>::value, int>::type = 0>
+ChVector3d operator*(double s, const ChVector3<Real>& V) {
+    return ChVector3d(V.x() * s, V.y() * s, V.z() * s);
+}
 
 }  // end namespace chrono
 

@@ -24,10 +24,10 @@ Here are the main features:
 
 ## Dependencies
 
-- To Chrono::Irrlicht requires the Irrlicht SDK 
+- Chrono::Irrlicht requires the Irrlicht SDK 
 
 
-## Installing prerequisistes
+## Installing prerequisites
 
 1. **Download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html); the newest tested version is [1.8.5](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.5.zip)
 

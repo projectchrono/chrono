@@ -13,7 +13,7 @@ So, while just the FlatBuffers header file is required when running SynChrono co
 
 As FlatBuffers is included as a sub-module of Chrono, one easy option to get the flatc compiler is to build it from source. 
 1. Ensure you have a C++ compiler and CMake installed. 
-2. Go in **_chrono_root_** \\src\\chrono_thirdparty\\flatbuffers 
+2. Go to **_chrono_root_** \\src\\chrono_thirdparty\\flatbuffers 
 3. Run the CMake and make commands outlined in the [FlatBuffers guide](https://google.github.io/flatbuffers/flatbuffers_guide_building.html). For example on Windows:
 ~~~~~~~~~~~~~~~{.bat}
 cmake -G "Visual Studio 15" -DCMAKE_BUILD_TYPE=Release  .
@@ -60,9 +60,9 @@ union Type {
 
 3. Compile the fbs: 
 
-    1. Go in the flatbuffer directory: **_chrono_root_**\\ src\\chrono_synchrono\\flatbuffer\\message
+    1. Go to the flatbuffer directory: **_chrono_root_**\\ src\\chrono_synchrono\\flatbuffer\\message
 
-    2. Launch the flatc compiler: as follows:
+    2. Launch the flatc compiler as follows:
 ```..\..\..\chrono_thirdparty\flatbuffers\RELEASE\flatc.exe -c  ..\fbs\SynFlatBuffers.fbs --no-includes --gen-all ```
 
 Now, the file ```*_chrono_root_**\ src\chrono_synchrono\flatbuffer\message\SynFlatBuffers_generated.h ``` should have changed (to reflect the modifications in the .fbs file)
@@ -80,7 +80,7 @@ Both child classes must implement SynMessage's pure virtual functions (ConvertFr
 
 ###Create a new SynAgent derived class. 
 The new SynCopterAgent inherits from SynAgent and must override its pure virtual member functions.
-For further details look at ```chrono_synchrono/agent/SynCopterAgent.h/cpp```. Vehicles agents also provide for json file initialization which is not available for general new agents.
+For further details look at ```chrono_synchrono/agent/SynCopterAgent.h/cpp```. Vehicle agents also provide for json file initialization which is not available for general new agents.
 
 1. Constructor 
     1. Initialize state and description message member variables 
@@ -110,7 +110,7 @@ else if (agent_state->message_type() == SynFlatBuffers::Agent::Type_Copter_State
 ```
 
 2. Add a new agent to ```AgentFactory.cpp```
-AgentFactory uses dynamics casts to create a zombie agent from a description coming from another rank. Since we added new message and agent classes, we have to modify this function accordingly:
+AgentFactory uses dynamic casts to create a zombie agent from a description coming from another rank. Since we added new message and agent classes, we have to modify this function accordingly:
 ```cpp
 else if (auto copter_description = std::dynamic_pointer_cast<SynCopterDescriptionMessage>(description)) {
         auto copter_agent = chrono_types::make_shared<SynCopterAgent>();
@@ -122,4 +122,4 @@ else if (auto copter_description = std::dynamic_pointer_cast<SynCopterDescriptio
 		agent = copter_agent;
     }
 ```
-Please make sure to completely define the agent description (in this example we assign the mesh files and the number of propellers) .
+Please make sure to completely define the agent description (in this example we assign the mesh files and the number of propellers).

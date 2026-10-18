@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepsizeMBD(step_size);
 
     // Set fluid phase properties
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = 0;
 
-    fsi.SetElasticSPH(mat_props);
+    fsi.SetCrmSPH(mat_props);
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_xsph_eps = 0.25;
     sph_params.shifting_ppst_pull = 1.0;
     sph_params.shifting_ppst_push = 3.0;
-    sph_params.free_surface_threshold = 2.0;
+    sph_params.free_surface_threshold = 2.4;
     sph_params.artificial_viscosity = 0.5;
     sph_params.num_proximity_search_steps = 1;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
     // Initialize FSI problem
     fsi.Initialize();
 
-    // Create oputput directories
+    // Create output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_FEAdirections";
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
@@ -254,8 +254,7 @@ int main(int argc, char* argv[]) {
                 if (verbose)
                     std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".png";
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".png";
                 vis->WriteImageToFile(filename.str());
             }
 
@@ -286,16 +285,11 @@ void CreateContainer(ChFsiProblemSPH& fsi, std::shared_ptr<ChBody> ground, const
     auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
 
     // Add collision geometry
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x(), csize.y(), 0.1),
-                          ChVector3d(0, 0, -0.05));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2),
-                          ChVector3d(+csize.x() / 2 + 0.05, 0, csize.z() / 2));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2),
-                          ChVector3d(-csize.x() / 2 - 0.05, 0, csize.z() / 2));
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2),
-                          ChVector3d(0, +csize.y() / 2 + 0.05, csize.z() / 2), QUNIT, false);
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2),
-                          ChVector3d(0, -csize.y() / 2 - 0.05, csize.z() / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x(), csize.y(), 0.1), ChVector3d(0, 0, -0.05));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2), ChVector3d(+csize.x() / 2 + 0.05, 0, csize.z() / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, csize.y(), csize.z() + 0.2), ChVector3d(-csize.x() / 2 - 0.05, 0, csize.z() / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2), ChVector3d(0, +csize.y() / 2 + 0.05, csize.z() / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(csize.x() + 0.2, 0.1, csize.z() + 0.2), ChVector3d(0, -csize.y() / 2 - 0.05, csize.z() / 2), QUNIT, false);
 }
 
 const double beam_length = 0.6;
@@ -307,7 +301,7 @@ std::shared_ptr<ChMesh> CreateANCFCable(ChSystem& sysMBS, double x, int n) {
     double density = 8000;
     double BeamRayleighDamping = 0.1;
 
-    auto section = chrono_types::make_shared<ChBeamSectionCable>();
+    auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
     section->SetDiameter(section_dim);
     section->SetYoungModulus(E);
     section->SetDensity(density);
@@ -328,8 +322,7 @@ std::shared_ptr<ChMesh> CreateANCFCable(ChSystem& sysMBS, double x, int n) {
 
         mesh->AddNode(chrono_types::make_shared<ChNodeFEAxyzD>(p, dir));
         auto element = chrono_types::make_shared<ChElementCableANCF>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i + 1)));
+        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i)), std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(i + 1)));
         element->SetSection(section);
         element->SetRestLength(length);
         mesh->AddElement(element);
@@ -356,7 +349,7 @@ std::shared_ptr<ChMesh> CreateANCF3243Beam(ChSystem& sysMBS, double x, int n) {
     double density = 1000;
     const double k1 = 10 * (1 + nu) / (12 + 11 * nu);
     const double k2 = k1;  // k1, k2: Timoshenko shear correection coefficients
-    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E, nu, E * nu, k1, k2);
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, ChVector3d(E), ChVector3d(nu), ChVector3d(E * nu), k1, k2);
 
     double length = beam_length / n;
 
@@ -408,7 +401,7 @@ std::shared_ptr<ChMesh> CreateANCF3333Beam(ChSystem& sysMBS, double x, int n) {
     double density = 1000;
     const double k1 = 10 * (1 + nu) / (12 + 11 * nu);
     const double k2 = k1;  // k1, k2: Timoshenko shear correection coefficients
-    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E, nu, E * nu, k1, k2);
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, ChVector3d(E), ChVector3d(nu), ChVector3d(E * nu), k1, k2);
 
     double length = beam_length / n;
 
@@ -422,10 +415,8 @@ std::shared_ptr<ChMesh> CreateANCF3333Beam(ChSystem& sysMBS, double x, int n) {
     mesh->AddNode(nodeA);
 
     for (int i = 1; i <= n; i++) {
-        auto nodeB =
-            chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 0)), dir1, dir2);
-        auto nodeC =
-            chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 1)), dir1, dir2);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 0)), dir1, dir2);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 1)), dir1, dir2);
         mesh->AddNode(nodeB);
         mesh->AddNode(nodeC);
 

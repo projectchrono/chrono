@@ -13,6 +13,7 @@ else()
 endif()
 
 set(FMU_CS ON)
+set(FMU_TESTING ${CH_ENABLE_FMU_TESTING})
 
 #--------------------------------------------------------------
 

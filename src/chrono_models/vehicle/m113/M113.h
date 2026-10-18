@@ -23,6 +23,8 @@
 #include <array>
 #include <string>
 
+#include "chrono_vehicle/ChConfigVehicle.h"
+
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
@@ -48,22 +50,20 @@ class CH_MODELS_API M113 {
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
-    void SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder) {
-        m_wheel_cyl = roadwheel_as_cylinder;
-        m_idler_cyl = idler_as_cylinder;
-    }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
     void SetDoublePinTrackShoeType(DoublePinTrackShoeType topology) { m_shoe_topology = topology; }
+
+#ifdef CHRONO_FEA
     void SetANCFTrackShoeElementType(ChTrackShoeBandANCF::ElementType type) { m_ancf_element_type = type; }
     void SetANCFTrackShoeNumElements(int num_elements_length, int num_elements_width) {
         m_ancf_num_elements_length = num_elements_length;
         m_ancf_num_elements_width = num_elements_width;
     }
-    void SetANCFTrackShoeCurvatureConstraints(bool constrain_curvature) {
-        m_ancf_constrain_curvature = constrain_curvature;
-    }
+    void SetANCFTrackShoeCurvatureConstraints(bool constrain_curvature) { m_ancf_constrain_curvature = constrain_curvature; }
+#endif
+
     void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
     void SetEngineType(EngineModelType val) { m_engineType = val; }
     void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
@@ -98,10 +98,7 @@ class CH_MODELS_API M113 {
     void SetTrackShoeVisualizationType(VisualizationType vis) { m_vehicle->SetTrackShoeVisualizationType(vis); }
 
     void Synchronize(double time, const DriverInputs& driver_inputs);
-    void Synchronize(double time,
-                     const DriverInputs& driver_inputs,
-                     const TerrainForces& shoe_forces_left,
-                     const TerrainForces& shoe_forces_right);
+    void Synchronize(double time, const DriverInputs& driver_inputs, const TerrainForces& shoe_forces_left, const TerrainForces& shoe_forces_right);
     void Advance(double step);
 
     void LogConstraintViolations() { m_vehicle->LogConstraintViolations(); }
@@ -112,16 +109,16 @@ class CH_MODELS_API M113 {
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_create_track;
-    bool m_wheel_cyl;
-    bool m_idler_cyl;
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;
     DoublePinTrackShoeType m_shoe_topology;
+#ifdef CHRONO_FEA
     ChTrackShoeBandANCF::ElementType m_ancf_element_type;
     bool m_ancf_constrain_curvature;
     int m_ancf_num_elements_length;
     int m_ancf_num_elements_width;
+#endif
     DrivelineTypeTV m_driveline_type;
     EngineModelType m_engineType;
     TransmissionModelType m_transmissionType;
@@ -144,7 +141,7 @@ class CH_MODELS_API M113 {
     M113_Vehicle* m_vehicle;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_m113
 
 }  // namespace m113
 }  // end namespace vehicle

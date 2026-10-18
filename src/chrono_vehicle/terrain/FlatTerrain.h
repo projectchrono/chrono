@@ -30,8 +30,8 @@ namespace vehicle {
 
 /// Concrete class for a flat horizontal terrain.
 /// This class implements a terrain modeled as an infinite horizontal plane at a specified height.
-/// This type of terrain can be used in conjunction with tire models that perform their own collision detection
-/// (e.g., ChTMeasy ChPac89, ChPac02, ChFiala).
+/// Since it carries no collision geometry, this type of terrain can only be used with handling tire models
+/// (ChForceElementTire; e.g., ChTMeasyTire, ChTMsimpleTire, ChPac89Tire, ChPac02Tire, ChFialaTire).
 class CH_VEHICLE_API FlatTerrain : public ChTerrain {
   public:
     FlatTerrain(double height,         ///< [in] terrain height

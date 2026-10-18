@@ -13,7 +13,7 @@ endif()
 set(DEMOS
     demo_VEH_HMMWV_Multicore
     demo_VEH_M113_Multicore
-    demo_VEH_TireTestRig_Multicore
+    demo_VEH_WheelTestRig_Multicore
 )
 
 #--------------------------------------------------------------

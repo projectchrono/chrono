@@ -20,7 +20,7 @@
 #include "gtest/gtest.h"
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono_parsers/ChParserURDF.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
 
 using namespace chrono;
 using namespace chrono::parsers;

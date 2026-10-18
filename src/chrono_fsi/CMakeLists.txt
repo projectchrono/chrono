@@ -78,6 +78,7 @@ add_subdirectory(sph)
 add_subdirectory(tdpf)
 
 set(DEPENDENCIES_FSI_SPH  ${DEPENDENCIES_FSI_SPH}  PARENT_SCOPE)
+set(CHRONO_FSISPH_BACKEND ${CHRONO_FSISPH_BACKEND} PARENT_SCOPE)
 set(DEPENDENCIES_FSI_TDPF ${DEPENDENCIES_FSI_TDPF} PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------

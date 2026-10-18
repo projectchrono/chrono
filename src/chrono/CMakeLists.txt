@@ -475,6 +475,7 @@ set(Chrono_fea_materials_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
+    fea/ChMaterialFEA.h
     fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h
     fea/ChMaterialHexaANCF.h
@@ -490,7 +491,7 @@ set(Chrono_fea_sections_SOURCES
     fea/ChBeamSectionEuler.cpp
     fea/ChBeamSectionTaperedTimoshenko.cpp
     fea/ChBeamSectionTaperedTimoshenkoFPM.cpp
-    fea/ChBeamSectionCable.cpp
+    fea/ChBeamSectionCableANCF.cpp
     )
 set(Chrono_fea_sections_HEADERS
     fea/ChBeamSection.h
@@ -499,7 +500,7 @@ set(Chrono_fea_sections_HEADERS
     fea/ChBeamSectionEuler.h
     fea/ChBeamSectionTaperedTimoshenko.h
     fea/ChBeamSectionTaperedTimoshenkoFPM.h
-    fea/ChBeamSectionCable.h
+    fea/ChBeamSectionCableANCF.h
     )
 source_group(fea\\sections FILES ${Chrono_fea_sections_SOURCES} ${Chrono_fea_sections_HEADERS})
 
@@ -634,13 +635,13 @@ endif()
 
 set(Chrono_geometry_SOURCES
     geometry/ChGeometry.cpp
-    geometry/ChSphere.cpp
-    geometry/ChEllipsoid.cpp
+    geometry/ChAABB.cpp
     geometry/ChBox.cpp
     geometry/ChCone.cpp
     geometry/ChCylinder.cpp
     geometry/ChCapsule.cpp
     geometry/ChDelaunay2D.cpp
+    geometry/ChEllipsoid.cpp
     geometry/ChLine.cpp
     geometry/ChLineArc.cpp
     geometry/ChLineSegment.cpp
@@ -656,6 +657,7 @@ set(Chrono_geometry_SOURCES
     geometry/ChTriangleMeshConnected.cpp
     geometry/ChRoundedBox.cpp
     geometry/ChRoundedCylinder.cpp
+    geometry/ChSphere.cpp
     geometry/ChSurface.cpp
     geometry/ChSurfaceNurbs.cpp
     geometry/ChVolume.cpp
@@ -663,13 +665,13 @@ set(Chrono_geometry_SOURCES
     )
 set(Chrono_geometry_HEADERS
     geometry/ChGeometry.h
-    geometry/ChSphere.h
-    geometry/ChEllipsoid.h
+    geometry/ChAABB.h
     geometry/ChBox.h
     geometry/ChCone.h
     geometry/ChCylinder.h
     geometry/ChCapsule.h
     geometry/ChDelaunay2D.h
+    geometry/ChEllipsoid.h
     geometry/ChLine.h
     geometry/ChLineCam.h
     geometry/ChLinePoly.h
@@ -685,6 +687,7 @@ set(Chrono_geometry_HEADERS
     geometry/ChTriangleMeshConnected.h
     geometry/ChRoundedBox.h
     geometry/ChRoundedCylinder.h
+    geometry/ChSphere.h
     geometry/ChSurface.h
     geometry/ChSurfaceNurbs.h
     geometry/ChVolume.h
@@ -805,7 +808,6 @@ set(Chrono_collision_SOURCES
     collision/ChCollisionShapeCone.cpp
     collision/ChCollisionShapeConvexHull.cpp
     collision/ChCollisionShapeCylinder.cpp
-    collision/ChCollisionShapeCylindricalShell.cpp
     collision/ChCollisionShapeEllipsoid.cpp
     collision/ChCollisionShapePath2D.cpp
     collision/ChCollisionShapePoint.cpp
@@ -833,7 +835,6 @@ set(Chrono_collision_HEADERS
     collision/ChCollisionShapeCone.h
     collision/ChCollisionShapeConvexHull.h
     collision/ChCollisionShapeCylinder.h
-    collision/ChCollisionShapeCylindricalShell.h
     collision/ChCollisionShapeEllipsoid.h
     collision/ChCollisionShapePath2D.h
     collision/ChCollisionShapePoint.h
@@ -948,7 +949,8 @@ set(Chrono_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/cbtConvexTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtRoundedCylinderShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtRoundedBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtEmptyShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMinkowskiSumShape.cpp
@@ -1282,9 +1284,11 @@ set(Chrono_inputoutput_SOURCES
 )
 if(HDF5_FOUND)
     set(Chrono_inputoutput_HEADERS ${Chrono_inputoutput_HEADERS}
+        input_output/ChUtilsHDF5.h
         input_output/ChOutputHDF5.h
     )
     set(Chrono_inputoutput_SOURCES ${Chrono_inputoutput_SOURCES}
+        input_output/ChUtilsHDF5.cpp
         input_output/ChOutputHDF5.cpp
     )
 endif()
@@ -1444,24 +1448,20 @@ set(Chrono_FILES
 
 # -------------------------------------------------------------------------------------------------
 # Disable all warnings from external code
+#
+# See cmake/ChronoWarnings.cmake for how this is done on each compiler. Note that
+# Chrono_collision_bullet_SOURCES also holds the four Chrono-authored Bullet
+# interface files (ChCollision*Bullet.cpp); they are silenced together with the
+# Bullet sources they wrap, as they were before.
 # -------------------------------------------------------------------------------------------------
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-  set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
-elseif(MSVC)
-  set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-  set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-else()
-  set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_collision_convexdecompVHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-  set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "-w")
-endif()
+ch_disable_warnings_on_sources(
+    ${Chrono_collision_bullet_SOURCES}
+    ${Chrono_collision_convexdecompHACDv2_FILES}
+    ${Chrono_collision_convexdecompVHACD_FILES}
+    ${Chrono_tiny_obj_FILES}
+    ${Chrono_libstl_FILES}
+)
 
 # -------------------------------------------------------------------------------------------------
 # Add the Chrono_core library to the project
@@ -1489,19 +1489,55 @@ endif()
 # TODO DARIOM: CH_INCLUDES_BUILD can be removed, used only here now
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src")
 list(APPEND CH_INCLUDES_BUILD "${PROJECT_BINARY_DIR}")
-list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet" )
-list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
 
 list(APPEND CH_INCLUDES_INSTALL "include")
-list(APPEND CH_INCLUDES_INSTALL "include/chrono/collision/bullet")
-list(APPEND CH_INCLUDES_INSTALL "include/chrono_thirdparty/HACDv2")
+
+# Include directories that resolve third-party headers only. Kept separate from
+# the ones above so they can be marked SYSTEM: warnings raised inside these
+# headers are then not reported, neither here nor in projects consuming Chrono.
+list(APPEND CH_EXTERNAL_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet")
+list(APPEND CH_EXTERNAL_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
+list(APPEND CH_EXTERNAL_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
+
+list(APPEND CH_EXTERNAL_INCLUDES_INSTALL "include/chrono/collision/bullet")
+list(APPEND CH_EXTERNAL_INCLUDES_INSTALL "include/chrono_thirdparty")
+list(APPEND CH_EXTERNAL_INCLUDES_INSTALL "include/chrono_thirdparty/HACDv2")
 
 target_include_directories(Chrono_core PUBLIC
   "$<BUILD_INTERFACE:${CH_INCLUDES_BUILD}>"
   "$<INSTALL_INTERFACE:${CH_INCLUDES_INSTALL}>"
 )
 
+target_include_directories(Chrono_core ${CH_SYSTEM_INCLUDE_KEYWORD} PUBLIC
+  "$<BUILD_INTERFACE:${CH_EXTERNAL_INCLUDES_BUILD}>"
+  "$<INSTALL_INTERFACE:${CH_EXTERNAL_INCLUDES_INSTALL}>"
+)
+
 target_link_libraries(Chrono_core PUBLIC Eigen3::Eigen)
+
+# -----------------------------------------------------------------------------
+# Precompiled header
+#
+# Chrono_core has ~500 translation units, the vast majority of which include the
+# core linear-algebra headers (and therefore Eigen) plus the STL stream and
+# container headers. Build-Insights profiling shows these dominate the front-end
+# parse and template-instantiation cost (Eigen alone accounts for the top
+# template-instantiation entries, and ChMatrix.h is the single most included
+# header). Parsing them once into a PCH and reusing the result across every TU
+# eliminates that repeated work.
+#
+# ChMatrix.h (not a bare Eigen include) is used as the anchor on purpose: it
+# defines EIGEN_MATRIXBASE_PLUGIN / EIGEN_SPARSEMATRIX_PLUGIN before pulling in
+# Eigen/Dense and Eigen/Sparse, so precompiling it reproduces Chrono's exact
+# Eigen configuration. It also transitively precompiles ChArchive.h /
+# ChArchiveASCII.h, two other widely included, expensive headers.
+#
+# Scope is PRIVATE so the PCH is used only when compiling Chrono_core itself and
+# is not forced onto consumers of the library. The header list lives in
+# ChCorePCH.h, which is guarded by __cplusplus so the precompiled header is empty
+# for the target's C sources.
+target_precompile_headers(Chrono_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ChCorePCH.h")
+# -----------------------------------------------------------------------------
 
 if(CHRONO_THRUST_FOUND)
   target_link_libraries(Chrono_core PRIVATE Thrust::Thrust)
@@ -1556,14 +1592,9 @@ if(CHRONO_YAML_ENABLED)
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.
+# On Windows, Winsock is needed regardless of the compiler (MSVC, clang, GCC/MinGW).
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-	elseif("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-	endif()
+    target_link_libraries(Chrono_core PUBLIC Ws2_32.lib)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
@@ -1623,9 +1654,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_options(Chrono_core PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
-endif()
+# NOTE: do not add -Wl,-no_compact_unwind here. On arm64 macOS clang emits only
+# __compact_unwind for nearly every function, so suppressing the linker's __unwind_info leaves
+# each library with landing-pad tables (__gcc_except_tab) but no unwind tables. Every exception
+# thrown by Chrono then terminates the process instead of propagating: the unwinder cannot walk
+# out of the throwing frame, so not even catch(...) in the caller runs, and PyChrono aborts
+# instead of raising. x86_64 objects also carry __eh_frame, so Intel Macs never showed this.
 
 # Compiler warning level and disabled warnings
 

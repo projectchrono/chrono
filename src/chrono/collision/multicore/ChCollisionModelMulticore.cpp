@@ -133,21 +133,6 @@ void ChCollisionModelMulticore::Populate() {
                 m_ct_shapes.push_back(ct_shape);
                 break;
             }
-            case ChCollisionShape::Type::CYLSHELL: {
-                auto shape_cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
-                auto height = shape_cylshell->GetHeight();
-                auto radius = shape_cylshell->GetRadius();
-
-                auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
-                ct_shape->A = real3(position.x(), position.y(), position.z());
-                ct_shape->B = real3(radius, radius, height / 2);
-                ct_shape->C = real3(0, 0, 0);
-                ct_shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-
-                m_shapes.push_back(shape);
-                m_ct_shapes.push_back(ct_shape);
-                break;
-            }
             case ChCollisionShape::CONE: {
                 auto shape_cone = std::static_pointer_cast<ChCollisionShapeCone>(shape);
                 auto height = shape_cone->GetHeight();
@@ -183,7 +168,7 @@ void ChCollisionModelMulticore::Populate() {
             case ChCollisionShape::Type::ROUNDEDBOX: {
                 auto shape_rbox = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
                 const auto& hlen = shape_rbox->GetHalflengths();
-                auto srad = shape_rbox->GetSRadius();
+                auto srad = shape_rbox->GetSweepRadius();
 
                 auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
                 ct_shape->A = real3(position.x(), position.y(), position.z());
@@ -199,7 +184,7 @@ void ChCollisionModelMulticore::Populate() {
                 auto shape_rcyl = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
                 auto height = shape_rcyl->GetHeight();
                 auto radius = shape_rcyl->GetRadius();
-                auto srad = shape_rcyl->GetSRadius();
+                auto srad = shape_rcyl->GetSweepRadius();
 
                 auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
                 ct_shape->A = real3(position.x(), position.y(), position.z());

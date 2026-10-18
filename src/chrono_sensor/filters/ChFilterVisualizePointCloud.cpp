@@ -15,10 +15,14 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+#include "chrono_sensor/filters/ChFilterVisualizeGuards.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+
+#ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
-
 #include <cuda_runtime_api.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -32,15 +36,22 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Initialize(std::shared_ptr<ChSen
                                                            std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
+    auto pLidar = std::dynamic_pointer_cast<ChLidarSensor>(pSensor);
+    if (!pLidar) {
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
+    }
+#ifdef CHRONO_HAS_OPTIX
     auto pOptixSen = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
     if (!pOptixSen) {
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
     m_cuda_stream = pOptixSen->GetCudaStream();
+#endif
     m_buffer_in = std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
 
+#ifdef CHRONO_HAS_OPTIX
     m_host_buffer = chrono_types::make_shared<SensorHostXYZIBuffer>();
     std::shared_ptr<PixelXYZI[]> b(
         cudaHostMallocHelper<PixelXYZI>(m_buffer_in->Width * m_buffer_in->Height * (m_buffer_in->Dual_return + 1)),
@@ -48,6 +59,9 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Initialize(std::shared_ptr<ChSen
     m_host_buffer->Buffer = std::move(b);
     m_host_buffer->Width = m_buffer_in->Width;
     m_host_buffer->Height = m_buffer_in->Height;
+#else
+    m_host_buffer = m_buffer_in;
+#endif
 
 #ifndef USE_SENSOR_GLFW
     std::cerr << "WARNING: Chrono::SENSOR not built with GLFW support. Will proceed with no window.\n";
@@ -55,14 +69,21 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Initialize(std::shared_ptr<ChSen
 }
 CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
 #ifdef USE_SENSOR_GLFW
+    // Hand back whatever GL context the caller had current (see ChFilterVisualizeGuards.h).
+    GLContextGuard gl_context_guard;
+
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
     }
     // only render if we have a window
     if (m_window) {
-        // copy buffer to host
+        // copy buffer to host for OptiX device buffers; Vulkan RT point clouds are already host-visible.
+#ifdef CHRONO_HAS_OPTIX
         cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(),
                         m_buffer_in->Beam_return_count * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
+#else
+        m_host_buffer = m_buffer_in;
+#endif
         // lock the glfw mutex because from here on out, we don't want to be interrupted
         std::lock_guard<std::mutex> lck(s_glfwMutex);
         // visualize data
@@ -70,7 +91,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         glfwMakeContextCurrent(m_window.get());
 
         int window_w, window_h;
-        glfwGetWindowSize(m_window.get(), &window_w, &window_h);
+        glfwGetFramebufferSize(m_window.get(), &window_w, &window_h);
         //
 
         // Set Viewport to window dimensions
@@ -102,8 +123,10 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         glPointSize(1.0);
         glBegin(GL_POINTS);
 
-        // display the points, synchronizing the stream first
+        // display the points, synchronizing the stream first for OptiX device buffers
+#ifdef CHRONO_HAS_OPTIX
         cudaStreamSynchronize(m_cuda_stream);
+#endif
         // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
         for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {
             float inten = m_host_buffer->Buffer[i].intensity;
@@ -121,7 +144,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         glFlush();
 
         glfwSwapBuffers(m_window.get());
-        glfwPollEvents();
+        PollGlfwEventsPreservingHostEvents();  // not glfwPollEvents: see ChFilterVisualizeGuards.h
     }
 #endif
 }

@@ -15,6 +15,9 @@
 // =============================================================================
 
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
+// For ChSensorManager::GetDeterministicSeed(): derives each raygen buffer's own seed so that
+// stochastic renders can be made reproducible, and falls back to the wall clock.
+#include "chrono_sensor/ChSensorManager.h"
 #include <assert.h>
 #include <algorithm>
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -107,7 +110,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
             cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
             cudaFreeHelper<curandState_t>);
 
-        init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+        init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixCameraRaygen, GetRngStreamIndex()),
                       m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
         m_raygen_record->data.specific.camera.rng_buffer = m_rng.get();
 
@@ -156,7 +159,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
             cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
             cudaFreeHelper<curandState_t>);
 
-        init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+        init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixPhysCameraRaygen, GetRngStreamIndex()),
                         m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
         m_raygen_record->data.specific.phys_camera.rng_buffer = m_rng.get();
 
@@ -189,7 +192,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                 cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
                 cudaFreeHelper<curandState_t>);
 
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+            init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixSegmentationRaygen, GetRngStreamIndex()),
                           m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             m_raygen_record->data.specific.segmentation.rng_buffer = m_rng.get();
         }
@@ -214,7 +217,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                 cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
                 cudaFreeHelper<curandState_t>);
 
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+            init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixDepthRaygen, GetRngStreamIndex()),
                           m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             m_raygen_record->data.specific.depthCamera.rng_buffer = m_rng.get();
         }
@@ -239,7 +242,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                 cudaMallocHelper<curandState_t>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
                 cudaFreeHelper<curandState_t>);
 
-            init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+            init_cuda_rng(ChSensorManager::GetDeterministicSeed(pSensor, RngUsage::OptixNormalRaygen, GetRngStreamIndex()),
                           m_rng.get(), pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             m_raygen_record->data.specific.normalCamera.rng_buffer = m_rng.get();
         }
@@ -315,7 +318,9 @@ CH_SENSOR_API ChOptixDenoiser::ChOptixDenoiser(OptixDeviceContext context) : m_c
     OptixDenoiserOptions denoiser_options = {};
     denoiser_options.guideAlbedo = 1;
     denoiser_options.guideNormal = 1;
+#if OPTIX_VERSION >= 80000
     denoiser_options.denoiseAlpha = OPTIX_DENOISER_ALPHA_MODE_COPY; // default value, can be changed when invoking the denoiser
+#endif
 
     OPTIX_ERROR_CHECK(optixDenoiserCreate(context, OPTIX_DENOISER_MODEL_KIND_LDR, &denoiser_options, &m_denoiser));
 }
@@ -382,6 +387,10 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
     OPTIX_ERROR_CHECK(optixDenoiserSetup(m_denoiser, m_cuda_stream, w, h, md_state, m_state_size, md_scratch, m_scratch_size));
     m_params.hdrIntensity = 0;
     m_params.blendFactor = 0.f;
+#if OPTIX_VERSION < 80000
+    // OptiX < 8.0 sets the alpha mode per-invoke rather than at denoiser creation
+    m_params.denoiseAlpha = OPTIX_DENOISER_ALPHA_MODE_COPY;
+#endif
 }
 
 CH_SENSOR_API void ChOptixDenoiser::Execute() {

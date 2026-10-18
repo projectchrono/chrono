@@ -199,8 +199,8 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
 void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
                                  std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
-                                 ChLineBSpline& spline,  // the B-spline to be used as the centerline
-                                 const ChVector3d Ydir   // the 'up' Y direction of the beam
+                                 ChLineBSpline& spline,                        // the B-spline to be used as the centerline
+                                 const ChVector3d Ydir                         // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -253,11 +253,11 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 // ChBuilderCableANCF
 // ------------------------------------------------------------------
 
-void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              // mesh to store the resulting elements
-                                   std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
-                                   const int N,                               // number of elements in the segment
-                                   const ChVector3d A,                        // starting point
-                                   const ChVector3d B                         // ending point
+void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,                  // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionCableANCF> sect,  // section material for beam elements
+                                   const int N,                                   // number of elements in the segment
+                                   const ChVector3d A,                            // starting point
+                                   const ChVector3d B                             // ending point
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -287,13 +287,13 @@ void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
     }
 }
 
-void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              // mesh to store the resulting elements
-                                   std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
-                                   const int N,                               // number of elements in the segment
-                                   const ChVector3d A,                        // starting point
-                                   const ChVector3d B,                        // ending point
-                                   std::vector<std::vector<int>>& nodes,      // node indices for all elements
-                                   std::vector<std::vector<int>>& node_nbrs   // neighbor node indices (connectivity)
+void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,                  // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionCableANCF> sect,  // section material for beam elements
+                                   const int N,                                   // number of elements in the segment
+                                   const ChVector3d A,                            // starting point
+                                   const ChVector3d B,                            // ending point
+                                   std::vector<std::vector<int>>& nodes,          // node indices for all elements
+                                   std::vector<std::vector<int>>& node_nbrs       // neighbor node indices (connectivity)
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -443,13 +443,12 @@ void ChBuilderBeamANCF_3333::BuildBeam(std::shared_ptr<ChMesh> mesh,            
 // ChBuilderBeamTaperedTimoshenko
 // ------------------------------------------------------------------
 
-void ChBuilderBeamTaperedTimoshenko::BuildBeam(
-    std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  // section material for beam elements
-    const int N,                                                          // number of elements in the segment
-    const ChVector3d A,                                                   // starting point
-    const ChVector3d B,                                                   // ending point
-    const ChVector3d Ydir                                                 // the 'up' Y direction of the beam
+void ChBuilderBeamTaperedTimoshenko::BuildBeam(std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
+                                               std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  // section material for beam elements
+                                               const int N,                                                          // number of elements in the segment
+                                               const ChVector3d A,                                                   // starting point
+                                               const ChVector3d B,                                                   // ending point
+                                               const ChVector3d Ydir                                                 // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -479,13 +478,12 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
     }
 }
 
-void ChBuilderBeamTaperedTimoshenko::BuildBeam(
-    std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  // section material for beam elements
-    const int N,                                                          // number of elements in the segment
-    std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               // starting point
-    std::shared_ptr<ChNodeFEAxyzrot> nodeB,                               // ending point
-    const ChVector3d Ydir                                                 // the 'up' Y direction of the beam
+void ChBuilderBeamTaperedTimoshenko::BuildBeam(std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
+                                               std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  // section material for beam elements
+                                               const int N,                                                          // number of elements in the segment
+                                               std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               // starting point
+                                               std::shared_ptr<ChNodeFEAxyzrot> nodeB,                               // ending point
+                                               const ChVector3d Ydir                                                 // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -522,13 +520,12 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
     }
 }
 
-void ChBuilderBeamTaperedTimoshenko::BuildBeam(
-    std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  // section material for beam elements
-    const int N,                                                          // number of elements in the segment
-    std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               // starting point
-    const ChVector3d B,                                                   // ending point
-    const ChVector3d Ydir                                                 // the 'up' Y direction of the beam
+void ChBuilderBeamTaperedTimoshenko::BuildBeam(std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
+                                               std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> sect,  // section material for beam elements
+                                               const int N,                                                          // number of elements in the segment
+                                               std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               // starting point
+                                               const ChVector3d B,                                                   // ending point
+                                               const ChVector3d Ydir                                                 // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -566,13 +563,12 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
 // ChBuilderBeamTaperedTimoshenkoFPM
 // ------------------------------------------------------------------
 
-void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
-    std::shared_ptr<ChMesh> mesh,                                            // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
-    const int N,                                                             // number of elements in the segment
-    const ChVector3d A,                                                      // starting point
-    const ChVector3d B,                                                      // ending point
-    const ChVector3d Ydir                                                    // the 'up' Y direction of the beam
+void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(std::shared_ptr<ChMesh> mesh,                                            // mesh to store the resulting elements
+                                                  std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
+                                                  const int N,                                                             // number of elements in the segment
+                                                  const ChVector3d A,                                                      // starting point
+                                                  const ChVector3d B,                                                      // ending point
+                                                  const ChVector3d Ydir                                                    // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -602,13 +598,12 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
     }
 }
 
-void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
-    std::shared_ptr<ChMesh> mesh,                                            // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
-    const int N,                                                             // number of elements in the segment
-    std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  // starting point
-    std::shared_ptr<ChNodeFEAxyzrot> nodeB,                                  // ending point
-    const ChVector3d Ydir                                                    // the 'up' Y direction of the beam
+void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(std::shared_ptr<ChMesh> mesh,                                            // mesh to store the resulting elements
+                                                  std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
+                                                  const int N,                                                             // number of elements in the segment
+                                                  std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  // starting point
+                                                  std::shared_ptr<ChNodeFEAxyzrot> nodeB,                                  // ending point
+                                                  const ChVector3d Ydir                                                    // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -645,13 +640,12 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
     }
 }
 
-void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
-    std::shared_ptr<ChMesh> mesh,                                            // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
-    const int N,                                                             // number of elements in the segment
-    std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  // starting point
-    const ChVector3d B,                                                      // ending point
-    const ChVector3d Ydir                                                    // the 'up' Y direction of the beam
+void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(std::shared_ptr<ChMesh> mesh,                                            // mesh to store the resulting elements
+                                                  std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
+                                                  const int N,                                                             // number of elements in the segment
+                                                  std::shared_ptr<ChNodeFEAxyzrot> nodeA,                                  // starting point
+                                                  const ChVector3d B,                                                      // ending point
+                                                  const ChVector3d Ydir                                                    // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -890,8 +884,7 @@ bool ChExtruderBeamIGA::Update() {
     if (this->beam_nodes.size() > p) {
         std::vector<double> beam_knots_multiplends = this->beam_knots;
         for (int i = 0; i < p; ++i)
-            beam_knots_multiplends[beam_knots_multiplends.size() - i - 1] =
-                beam_knots_multiplends[beam_knots_multiplends.size() - p - 1];
+            beam_knots_multiplends[beam_knots_multiplends.size() - i - 1] = beam_knots_multiplends[beam_knots_multiplends.size() - p - 1];
 
         std::vector<double> my_el_knots;
         for (int i_el_knot = 0; i_el_knot < p + p + 1 + 1; ++i_el_knot) {
@@ -908,8 +901,7 @@ bool ChExtruderBeamIGA::Update() {
         if (beam_elems.size() == 0) {
             // std::cout << "Adjust row" << std::endl;
             for (int i_el_node = 0; i_el_node < p + 1; ++i_el_node) {
-                ChVector3d rect_pos =
-                    beam_nodes.back()->GetPos() + outlet.TransformDirectionLocalToParent(VECT_Z * h * i_el_node);
+                ChVector3d rect_pos = beam_nodes.back()->GetPos() + outlet.TransformDirectionLocalToParent(VECT_Z * h * i_el_node);
                 my_el_nodes[i_el_node]->SetPos(rect_pos);
             }
             // (fix singularity for single first cable?) to improve
@@ -935,8 +927,7 @@ bool ChExtruderBeamIGA::Update() {
             if (i_el < this->beam_elems.size()) {
                 std::vector<double> my_el_knots_pre;
                 for (int i_el_knot = 0; i_el_knot < p + p + 1 + 1; ++i_el_knot) {
-                    my_el_knots_pre.push_back(
-                        beam_knots_multiplends[beam_knots_multiplends.size() - 1 - 1 - i_el - i_el_knot]);
+                    my_el_knots_pre.push_back(beam_knots_multiplends[beam_knots_multiplends.size() - 1 - 1 - i_el - i_el_knot]);
                 }
                 /*
                 std::cout << "pre KNOTS at previous " << i_el << ":" << std::endl;

@@ -22,6 +22,8 @@ namespace chrono {
 /// This class only allows to output/serialize the object, not to deserialize it.
 class ChApi ChArchiveOutASCII : public ChArchiveOut {
   public:
+    using ChArchiveOut::out;  // un-hide the ChArchiveOut::out overloads not overridden here
+
     ChArchiveOutASCII(std::ostream& stream_out);
 
     virtual ~ChArchiveOutASCII();

@@ -41,9 +41,9 @@ ChMarker::ChMarker()
 
 ChMarker::ChMarker(const std::string& name,
                    ChBody* body,
-                   const ChCoordsys<>& rel_csys,
-                   const ChCoordsys<>& rel_csys_dt,
-                   const ChCoordsys<>& rel_csys_dtdt) {
+                   const ChCoordsysd& rel_csys,
+                   const ChCoordsysd& rel_csys_dt,
+                   const ChCoordsysd& rel_csys_dtdt) {
     SetName(name);
     m_body = body;
 
@@ -115,7 +115,7 @@ void ChMarker::SetMotionAxis(ChVector3d axis) {
 
 // Coordinate setting, for user access
 
-void ChMarker::ImposeRelativeTransform(const ChFrame<>& frame) {
+void ChMarker::ImposeRelativeTransform(const ChFramed& frame) {
     // set the actual coordinates
     SetCoordsys(frame.GetPos(), frame.GetRot());
 
@@ -129,13 +129,13 @@ void ChMarker::ImposeRelativeTransform(const ChFrame<>& frame) {
     UpdateState();
 }
 
-void ChMarker::ImposeAbsoluteTransform(const ChFrame<>& frame) {
+void ChMarker::ImposeAbsoluteTransform(const ChFramed& frame) {
     // transform representation from the parent reference frame to the local reference frame
     auto pos = GetBody()->TransformPointParentToLocal(frame.GetPos());
     auto rot = Qcross(Qconjugate(GetBody()->GetRot()), frame.GetRot());
 
     // impose relative transform and set resting coordinate
-    ImposeRelativeTransform(ChFrame<>(pos, rot));
+    ImposeRelativeTransform(ChFramed(pos, rot));
 }
 
 // This handles the time-varying functions for the relative coordinates

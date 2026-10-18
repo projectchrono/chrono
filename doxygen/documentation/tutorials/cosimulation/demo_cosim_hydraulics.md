@@ -136,7 +136,7 @@ This explains the need for those two yellow blocks: one is
 the SimScape Simulink block used to get a reaction force 
 (in this example in the rod of the piston) while the other is used to 
 impose a motion (in this example to the rod of the piston).
-The PS S and S PS grey blocks are used to convert SimScape 
+The PS S and S PS gray blocks are used to convert SimScape 
 and SimHydraulics signals from/to Simulink signals.
 
 <div class="ce-info">
@@ -182,9 +182,9 @@ src/demos/cosimulation/demo_COSIM_hydraulics.cpp. The steps implemented in this 
 
 - Use the 'try...catch' statements around socket communication operations because errors in sockets might throw exceptions.
 
-- Create a Chsystem and populate it with a truss, a moving body, and a revolute joint.
+- Create a ChSystem and populate it with a truss, a moving body, and a revolute joint.
 
-- Now create create a 'dead' linear actuator between two points using a ChLinkTSDA with zero stiffness and damping. This will be used to apply the force between the two bodies as a cylinder with spherical ball ends.
+- Now create a 'dead' linear actuator between two points using a ChLinkTSDA with zero stiffness and damping. This will be used to apply the force between the two bodies as a cylinder with spherical ball ends.
 
 - Create a spring-damper to have some load when moving, and configure the system's solver precision.
 
@@ -197,7 +197,7 @@ src/demos/cosimulation/demo_COSIM_hydraulics.cpp. The steps implemented in this 
 
 - Wait for client (Simulink) to connect. Note that in this implementation Chrono is the server and Simulink the client.
 
-- Upon establishing a connection, the simulation is ready to begin. Note that 'dt' must be the same with the value entered in the CEcosimulation block.
+- Upon establishing a connection, the simulation is ready to begin. Note that 'dt' must be the same as the value entered in the CEcosimulation block.
 
 - Finally, provision for exception catching in running into any trouble with the socket connection.
 
@@ -208,7 +208,7 @@ All the tools are ready for the cosimulation at this point. The next steps:
 
 - Compile the Chrono program;
 
-- Run the Chrono program; it will enter a wait state because it is waiting Simulink to connect;
+- Run the Chrono program; it will enter a wait state because it is waiting for Simulink to connect;
 
 - Open the ''Input/Output'' orange scope block in Simulink, simply to plot some results.
 
@@ -235,7 +235,7 @@ Only a single ''CoSimulate'' block can be used at a time. If you need to send/re
 </div>
 
 <div class="ce-info">
-The input and output signals of the 'CoSimulate' block accepts vectors. To build a vector from single signals use the 'Mux' block in Simulink. To split a vector in single signals use a 'De-Mux' block as shown in the example above.
+The input and output signals of the 'CoSimulate' block accept vectors. To build a vector from single signals use the 'Mux' block in Simulink. To split a vector in single signals use a 'De-Mux' block as shown in the example above.
 </div>
 
 <div class="ce-info">

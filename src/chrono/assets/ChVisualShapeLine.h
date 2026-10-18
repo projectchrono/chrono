@@ -28,26 +28,35 @@ namespace chrono {
 class ChApi ChVisualShapeLine : public ChVisualShape {
   public:
     ChVisualShapeLine();
-    ChVisualShapeLine(std::shared_ptr<ChLine>& mline);
+    ChVisualShapeLine(std::shared_ptr<ChLine> line);
     virtual ~ChVisualShapeLine() {}
 
-    /// Access the line geometry.
-    std::shared_ptr<ChLine> GetLineGeometry() const { return gline; }
-
     /// Set the line geometry.
-    void SetLineGeometry(std::shared_ptr<ChLine> mline) { gline = mline; }
+    void SetLineGeometry(std::shared_ptr<ChLine> line) { m_line = line; }
 
-    const std::string& GetName() const { return name; }
-    void SetName(const std::string& mname) { name = mname; }
+    /// Access the line geometry.
+    std::shared_ptr<ChLine> GetLineGeometry() const { return m_line; }
 
-    unsigned int GetNumRenderPoints() const { return npoints; }
-    void SetNumRenderPoints(unsigned int n) { npoints = n; }
+    /// Set line name.
+    void SetName(const std::string& name) { m_name = name; }
 
-    double GetThickness() const { return thickness; }
-    void SetThickness(double mt) { thickness = mt; }
+    /// Get line name.
+    const std::string& GetName() const { return m_name; }
+
+    /// Set resolution for line rendering.
+    void SetNumRenderPoints(unsigned int n) { m_num_render_points = n; }
+
+    /// Get resolution for line rendering.
+    unsigned int GetNumRenderPoints() const { return m_num_render_points; }
+
+    /// Get thickness of line used when rendering (for engines supporting it).
+    double GetThickness() const { return m_thickness; }
+
+    /// Set thickness of line used when rendering (for engines supporting it).
+    void SetThickness(double thickness) { m_thickness = thickness; }
 
     /// Get the shape bounding box.
-    virtual ChAABB GetBoundingBox() const override { return gline->GetBoundingBox(); }
+    virtual ChAABB GetBoundingBox() const override { return m_line->GetBoundingBox(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -56,10 +65,10 @@ class ChApi ChVisualShapeLine : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
-    std::shared_ptr<ChLine> gline;  ///< underlying line geometry
-    std::string name;               ///< asset name
-    unsigned int npoints;           ///< number of points evaluated when rendering
-    double thickness;               ///< thickness of line when rendering (for rendering engines that support it)
+    std::shared_ptr<ChLine> m_line;    ///< underlying line geometry
+    std::string m_name;                ///< asset name
+    unsigned int m_num_render_points;  ///< number of points evaluated when rendering
+    double m_thickness;                ///< thickness of line when rendering (for rendering engines that support it)
 };
 
 /// @} chrono_assets

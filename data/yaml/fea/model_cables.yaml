@@ -1,0 +1,147 @@
+chrono-version: 10.0
+
+model:
+  name: Cables
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../data/"
+
+  bodies:
+    - name: ground
+      location: [0, 0, 0]
+      fixed: true
+  
+    - name: mid_body
+      location: [0.6, 0, 0]
+      mass: 0.3
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia:
+        moments: [0.0001, 0.001, 0.001]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.2, 0.04, 0.04]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.2, 0.2, 0.8]
+               
+    - name: end_body
+      location: [1.1, 0, 0]
+      mass: 0.3
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia:
+        moments: [0.005, 0.1, 0.1]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.2, 0.04, 0.04]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.8, 0.2, 0.2]
+  
+  FEA:
+    beam_sections:
+    - name: cable_section
+      type: ANCF_CABLE
+      diameter: 0.015
+      Young_modulus: 1e8
+      density: 1000
+      Rayleight_damping: 0
+
+    beams:
+    - name: beam1
+      type: ANCF_CABLE
+      num_elements: 5
+      start_point: [0, 0, 0]
+      end_point: [0.5, 0, 0]
+      section: cable_section
+      visualization:
+        data:
+          type: NODE_SPEED_NORM
+          range: [0.0, 1.5]
+          colormap: BLUE
+          smooth_faces: true
+          wireframe: false
+        glyphs:
+          type: NONE
+          size: 0.006
+          color: [1, 0, 0]
+
+    - name: beam2
+      type: ANCF_CABLE
+      num_elements: 3
+      start_point: [0.7, 0, 0]
+      end_point: [1.0, 0, 0]
+      section: cable_section
+      visualization:
+        data:
+          type: NODE_SPEED_NORM
+          range: [0.0, 1.5]
+          colormap: COPPER
+          smooth_faces: true
+          wireframe: false
+        glyphs:
+          type: NONE
+          size: 0.006
+          color: [0, 0, 1]
+
+    constraints:
+    - name: start_pos
+      type: NODE_FRAME
+      node:
+        mesh: beam1
+        index: 1
+      body: ground
+    
+    - name: mid_pos1
+      type: NODE_FRAME
+      node:
+        mesh: beam1
+        index: 6
+      body: mid_body
+    
+    - name: mid_slope1
+      type: NODESLOPE_FRAME
+      node:
+        mesh: beam1
+        index: 6
+      body: mid_body
+      body_direction: [1, 0, 0]
+    
+    - name: mid_pos2
+      type: NODE_FRAME
+      node:
+        mesh: beam2
+        index: 1
+      body: mid_body
+    
+    - name: mid_slope2
+      type: NODESLOPE_FRAME
+      node:
+        mesh: beam2
+        index: 1
+      body: mid_body
+      body_direction: [1, 0, 0]
+    
+    - name: end_pos
+      type: NODE_FRAME
+      node:
+        mesh: beam2
+        index: 4
+      body: end_body
+    
+    - name: end_slope
+      type: NODESLOPE_FRAME
+      node:
+        mesh: beam2
+        index: 4
+      body: end_body
+      body_direction: [1, 0, 0]

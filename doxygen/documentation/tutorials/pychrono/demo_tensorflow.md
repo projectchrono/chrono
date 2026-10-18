@@ -4,17 +4,17 @@ Deep Reinforcement Learning with PyChrono and Tensorflow {#tutorial_pychrono_dem
 # Introduction
 Deep Reinforcement Learning (DRL) consists in using Reinforcement Learning to train Deep Neural Network. In the last few years it has been applied with success to various robotic control tasks. 
 The main advantage of this approach is its ability to deal with unstructured and mutable environments, while classical robotic control often fails when facing these challenges.
-To train a NN with DRL several interactions with the environment are needed. For this reason physical engines offer a valuable help, allowing to train the agent in a virtual environment instead of training it directly in the real world, reducing time and risks of the operation.
-With PyChrono you can easily build physical models and exchange data between the simulation and you favorite ML framework. 
+To train a NN with DRL several interactions with the environment are needed. For this reason physics engines offer valuable help, allowing to train the agent in a virtual environment instead of training it directly in the real world, reducing time and risks of the operation.
+With PyChrono you can easily build physical models and exchange data between the simulation and your favorite ML framework. 
 We suggest two ways to get started using PyChrono for DRL:
 
 # 1- [gym-chrono](https://github.com/projectchrono/gym-chrono)
  
-If you are looking for more complex and realistic environments and you want to leverage OpenAI Gym capabilities (i.e. using [OpenAI Baselines](https://github.com/openai/baselines)) we recommend to use gym-chrono, a set of PyChrono-based OpenAI Gym environments. 
+If you are looking for more complex and realistic environments and you want to leverage OpenAI Gym capabilities (i.e. using [OpenAI Baselines](https://github.com/openai/baselines)) we recommend using gym-chrono, a set of PyChrono-based OpenAI Gym environments. 
 These environments provide an open-source alternative to MuJoCo environments.
 
 # 2- Tensorflow Demos
-We also provide 2 simple plug-and-play examples to kickstart you into DRL for robotic control. These demos only require Tensorflow and PyChrono to run; and are provided together with a standalon Proximal Policy optimization algorithm.
+We also provide 2 simple plug-and-play examples to kickstart you into DRL for robotic control. These demos only require Tensorflow and PyChrono to run; and are provided together with a standalone Proximal Policy optimization algorithm.
 
 [PYTHON CODES HERE](https://github.com/projectchrono/chrono/tree/main/src/demos/python/chrono-tensorflow)
 
@@ -24,7 +24,7 @@ In order to run these demos, you will need:
 * Scikit-Learn
 * Tensorflow 1
 
-We recommend to use [Anaconda](https://www.anaconda.com/). To prepare your environment do the following:
+We recommend using [Anaconda](https://www.anaconda.com/). To prepare your environment do the following:
 * [Download](https://www.anaconda.com/distribution/) and install Anaconda. We suggest user-only installation and to set Anaconda as your default Python.
 * Create a new Python [environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html). If you've built PyChrono from sources, set the Python version of your environment as the version of the Python executable you pointed to in CMake. You could also use the executable, headers and libraries of the virtual environment to build PyChrono.
 * Activate the new environment 
@@ -72,7 +72,7 @@ The policy and value function codes are in the **Policy.py** and **VF.py** respe
 
 
 ## How to run examples
-Make sure that you are using the right Python interpreter (the one with Pychrono an Tensorflow installed). 
+Make sure that you are using the right Python interpreter (the one with PyChrono and Tensorflow installed). 
 Then simply run the script with the needed keyboard arguments
 
 ### Serial and Parallel Training

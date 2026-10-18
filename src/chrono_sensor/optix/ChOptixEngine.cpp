@@ -225,7 +225,7 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
     }
 }
 
-void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
+void ChOptixEngine::UpdateSensors(std::shared_ptr<ChOptixScene> scene) {
     if (!m_params.root) {
         ConstructScene();
     }
@@ -742,7 +742,7 @@ void ChOptixEngine::ConstructScene() {
     cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
 }
 
-void ChOptixEngine::UpdateSensorParameters(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene) {
+void ChOptixEngine::UpdateSensorParameters(std::vector<int>& to_be_updated, std::shared_ptr<ChOptixScene> scene) {
     // go through all the sensors to be updated
     for (unsigned int i = 0; i < to_be_updated.size(); i++) {
         int id = to_be_updated[i];
@@ -762,7 +762,7 @@ void ChOptixEngine::UpdateSensorParameters(std::vector<int>& to_be_updated, std:
     }
 }
 
-void ChOptixEngine::UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChScene> scene) {
+void ChOptixEngine::UpdateSensorTransforms(std::vector<int>& to_be_updated, std::shared_ptr<ChOptixScene> scene) {
     // go through the sensors to be updated and see if we need to move the scene origin
     for (unsigned int i = 0; i < to_be_updated.size(); i++) {
         int id = to_be_updated[i];
@@ -818,7 +818,7 @@ void ChOptixEngine::UpdateDeformableMeshes() {
     m_geometry->UpdateDeformableMeshes();
 }
 
-void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
+void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChOptixScene> scene) {
     if (scene->GetBackgroundChanged()) {
         m_pipeline->UpdateBackground(scene->GetBackground());
 

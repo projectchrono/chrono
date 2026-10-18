@@ -17,7 +17,13 @@
 #ifndef CHFILTERVISUALIZEPOINTCLOUD_H
 #define CHFILTERVISUALIZEPOINTCLOUD_H
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
+
+
+#ifdef CHRONO_HAS_OPTIX
+#include <cuda.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -54,7 +60,9 @@ class CH_SENSOR_API ChFilterVisualizePointCloud : public ChFilterVisualize {
     float m_zoom;  ///< value for setting the zoom factor of the visualization box
     std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_in;  ///< input buffer
     std::shared_ptr<SensorHostXYZIBuffer> m_host_buffer;  ///< host side buffer for visualization
+#ifdef CHRONO_HAS_OPTIX
     CUstream m_cuda_stream;                               ///< reference to the cuda stream
+#endif
 };
 
 /// @}

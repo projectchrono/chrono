@@ -10,7 +10,7 @@ Learn about:
 
 - how to enable collisions
 
-- how to change the settings of the stepper in 
+- how to change the settings of the stepper for the
   sake of higher precision or higher computing speed.
   
 - create a motor between two parts.

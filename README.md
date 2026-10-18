@@ -31,6 +31,7 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
   - [Release 9.0.0](http://api.projectchrono.org/9.0.0/)
 - Python interface
   - [PyChrono](https://api.projectchrono.org/pychrono_introduction.html)
+- **AMD GPUs (ROCm)** — [Chrono on AMD GPUs (ROCm)](docs/README_AMD_GPU.md) (CPU PyChrono vs HIP/FSI, CMake hints, `ROCR_VISIBLE_DEVICES`)
 - Reference manuals
   - [Core module](https://api.projectchrono.org/manual_root.html)
   - [Chrono::Vehicle module](https://api.projectchrono.org/manual_vehicle.html)

@@ -20,7 +20,7 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <thread>
+#include <future>
 #include <filesystem>
 
 #include "chrono/core/ChTypes.h"
@@ -49,6 +49,7 @@ ChFsiSystem::ChFsiSystem(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
       m_step_MBD(-1),
       m_step_CFD(-1),
       m_time(0),
+      m_coupling(CouplingScheme::SEQUENTIAL),
       m_RTF(-1),
       m_ratio_MBD(-1) {}
 
@@ -113,12 +114,15 @@ void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
         m_sysMBS->SetGravitationalAcceleration(gravity);
 }
 
-std::shared_ptr<FsiBody> ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded) {
+std::shared_ptr<FsiBody> ChFsiSystem::AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded) {
     ChAssertAlways(m_fsi_interface);
-    return m_fsi_interface->AddFsiBody(body, geometry, check_embedded);
+    auto fsi_body = m_fsi_interface->AddRigidBody(body, geometry, check_embedded);
+    m_sysCFD->OnAddRigidBody(fsi_body, check_embedded);
+    return fsi_body;
 }
 
 #ifdef CHRONO_FEA
+
 void ChFsiSystem::UseNodeDirections(NodeDirectionsMode mode) {
     ChAssertAlways(m_fsi_interface);
     ChDebugLog("uses direction data? " << (mode != NodeDirectionsMode::NONE));
@@ -127,14 +131,17 @@ void ChFsiSystem::UseNodeDirections(NodeDirectionsMode mode) {
         m_sysCFD->UseNodeDirections(mode);
 }
 
-std::shared_ptr<FsiMesh1D> ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
+std::shared_ptr<FsiMesh1D> ChFsiSystem::AddFeaMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
     ChAssertAlways(m_fsi_interface);
 
     // Search for contact surfaces associated with the FEA mesh
     for (const auto& surface : mesh->GetContactSurfaces()) {
         if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
-            if (surface_segs->GetNumSegments() > 0)
-                return m_fsi_interface->AddFsiMesh1D(surface_segs, check_embedded);
+            if (surface_segs->GetNumSegments() > 0) {
+                auto fsi_mesh1D = m_fsi_interface->AddFeaMesh1D(surface_segs, check_embedded);
+                m_sysCFD->OnAddFeaMesh1D(fsi_mesh1D, check_embedded);
+                return fsi_mesh1D;
+            }
         }
     }
 
@@ -143,21 +150,27 @@ std::shared_ptr<FsiMesh1D> ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChMesh
     ChContactMaterialData contact_material_data;
     auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(contact_material_data.CreateMaterial(ChContactMethod::SMC));
     surface_segs->AddAllSegments(*mesh, 0);
-    if (surface_segs->GetNumSegments() > 0)
-        return m_fsi_interface->AddFsiMesh1D(surface_segs, check_embedded);
+    if (surface_segs->GetNumSegments() > 0) {
+        auto fsi_mesh1D = m_fsi_interface->AddFeaMesh1D(surface_segs, check_embedded);
+        m_sysCFD->OnAddFeaMesh1D(fsi_mesh1D, check_embedded);
+        return fsi_mesh1D;
+    }
 
     // The FEA mesh contains no 1D elements (cable or beam)
     return nullptr;
 }
 
-std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
+std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFeaMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
     ChAssertAlways(m_fsi_interface);
 
     // Search for contact surfaces associated with the FEA mesh
     for (const auto& surface : mesh->GetContactSurfaces()) {
         if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
-            if (surface_mesh->GetNumTriangles() > 0)
-                return m_fsi_interface->AddFsiMesh2D(surface_mesh, check_embedded);
+            if (surface_mesh->GetNumTriangles() > 0) {
+                auto fsi_mesh2D = m_fsi_interface->AddFeaMesh2D(surface_mesh, check_embedded);
+                m_sysCFD->OnAddFeaMesh2D(fsi_mesh2D, check_embedded);
+                return fsi_mesh2D;
+            }
         }
     }
 
@@ -166,17 +179,20 @@ std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChMesh
     ChContactMaterialData contact_material_data;
     auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(contact_material_data.CreateMaterial(ChContactMethod::SMC));
     surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
-    if (surface_mesh->GetNumTriangles() > 0)
-        return m_fsi_interface->AddFsiMesh2D(surface_mesh, check_embedded);
+    if (surface_mesh->GetNumTriangles() > 0) {
+        auto fsi_mesh2D = m_fsi_interface->AddFeaMesh2D(surface_mesh, check_embedded);
+        m_sysCFD->OnAddFeaMesh2D(fsi_mesh2D, check_embedded);
+        return fsi_mesh2D;
+    }
 
     // The FEA mesh contains no 2D elements (shell or solid)
     return nullptr;
 }
+
 #endif
 
 void ChFsiSystem::Initialize() {
     ChAssertAlways(m_sysCFD);
-    ChAssertAlways(m_sysMBS);
     ChAssertAlways(m_fsi_interface);
 
     if (m_step_CFD < 0)
@@ -213,8 +229,7 @@ void ChFsiSystem::Initialize() {
     m_sysCFD->Initialize(body_states);
 #endif
 
-    // Mark systems as initialized
-    m_sysCFD->m_is_initialized = true;
+    // Mark as initialized
     m_is_initialized = true;
 }
 
@@ -274,29 +289,60 @@ void ChFsiSystem::DoStepDynamics(double step) {
     m_timer_step.reset();
     m_timer_FSI.reset();
 
-    // Advance dynamics of the two phases.
-    //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
-    //   2. Advance the dynamics of the fluid system (in the main thread)
-    //   3. Wait for the MBS thread to finish execution.
-    m_timer_step.start();
-    std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
-    AdvanceCFD(step, threshold_CFD);
-    th.join();
-    m_timer_step.stop();
+    if (m_coupling == CouplingScheme::CONCURRENT) {
+        // Advance dynamics of the two phases.
+        //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
+        //   2. Advance the dynamics of the fluid system (in the main thread)
+        //   3. Wait for the MBS thread to finish execution.
+        // Note that the fluid forces applied to the MBS over this step were evaluated from the solid states loaded
+        // at the *previous* data exchange point.
+        // An exception thrown by either phase propagates to the caller. If the fluid step throws, the destructor of
+        // the future still waits for the MBS thread to finish; if the MBS step throws, get() rethrows its exception.
+        m_timer_step.start();
+        auto mbs = std::async(std::launch::async, &ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
+        AdvanceCFD(step, threshold_CFD);
+        mbs.get();
+        m_timer_step.stop();
 
-    // Data exchange between phases:
-    //   1. [CFD -> MBS] Apply fluid forces and torques on FSI solids
-    //   2. [MBS -> CFD] Load new solid phase states
-    m_timer_FSI.start();
-    m_sysCFD->OnExchangeSolidForces();
-    m_fsi_interface->ExchangeSolidForces();
-    m_fsi_interface->ExchangeSolidStates();
-    m_sysCFD->OnExchangeSolidStates();
-    m_timer_FSI.stop();
+        // Data exchange between phases:
+        //   1. [CFD -> MBS] Apply fluid forces and torques on FSI solids
+        //   2. [MBS -> CFD] Load new solid phase states
+        m_timer_FSI.start();
+        m_sysCFD->OnExchangeSolidForces();
+        m_fsi_interface->ExchangeSolidForces();
+        m_fsi_interface->ExchangeSolidStates();
+        m_sysCFD->OnExchangeSolidStates();
+        m_timer_FSI.stop();
+    } else {
+        // Advance the dynamics of the two phases serially, exchanging data such that the fluid forces applied to the
+        // MBS over this step are evaluated from the solid states at the beginning of this step.
+        m_timer_step.start();
+
+        // [MBS -> CFD] Load solid phase states at the beginning of the step
+        m_timer_FSI.start();
+        m_fsi_interface->ExchangeSolidStates();
+        m_sysCFD->OnExchangeSolidStates();
+        m_timer_FSI.stop();
+
+        // Advance the dynamics of the fluid system, using the solid states just loaded
+        AdvanceCFD(step, threshold_CFD);
+
+        // [CFD -> MBS] Apply the fluid forces and torques that act on the FSI solids over this step
+        m_timer_FSI.start();
+        m_sysCFD->OnExchangeSolidForces();
+        m_fsi_interface->ExchangeSolidForces();
+        m_timer_FSI.stop();
+
+        // Advance the dynamics of the multibody system, with those forces held constant over the step
+        AdvanceMBS(step, threshold_MBD);
+
+        m_timer_step.stop();
+    }
 
     // Calculate RTF and MBD/CFD timer ratio
     m_RTF = m_timer_step() / step;
-    m_ratio_MBD = m_timer_MBD / m_timer_CFD;
+    if (m_timer_CFD > 0)
+        m_ratio_MBD = m_timer_MBD / m_timer_CFD;
 
     // Update simulation time
     m_time += step;

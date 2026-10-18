@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,62 +12,49 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// Handler responsible for publishing a Robot Model to be visualized in RViz
+// Handler that publishes a robot model (URDF) on /robot_description for RViz.
 //
 // =============================================================================
 
-#include <filesystem>
-#include <fstream>
-#include <tinyxml2.h>
-
 #include "chrono_ros/handlers/robot/ChROSRobotModelHandler.h"
-#include "chrono_ros/handlers/robot/ChROSRobotModelHandler_ipc.h"
 
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
+#include "chrono_ros/ChROSBridge.h"
+#include "chrono_ros/ChROSPublisher.h"
+#include "chrono_ros/ChROSQoS.h"
+
+#ifdef CHRONO_HAS_URDF
+    #include "chrono/physics/ChSystem.h"
+    #include <tinyxml2.h>
+    #include <filesystem>
+    #include <iostream>
+#endif
 
 namespace chrono {
 namespace ros {
 
-ChROSRobotModelHandler::ChROSRobotModelHandler(const std::string& robot_model, const std::string& topic_name)
-    : ChROSHandler(std::numeric_limits<double>::max()), m_robot_model(robot_model), m_topic_name(topic_name) {}
-
 #ifdef CHRONO_HAS_URDF
+// Re-emits the URDF with every mesh/texture filename rewritten to an absolute
+// file:// URI, which is what RViz requires.
+namespace {
 class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::CustomProcessor {
   public:
-    CustomProcessorFilenameResolver(const std::string& filename)
+    explicit CustomProcessorFilenameResolver(const std::string& filename)
         : m_filepath(std::filesystem::path(filename).parent_path().string()) {}
 
-    /// This method will parse the links and resolve each filename to be an absolute path.
-    virtual void Process(tinyxml2::XMLElement& elem, ChSystem& system) override {
-        // filename exists in visual/geometry/mesh, visual/material, and collision/geometry/mesh
-        for (tinyxml2::XMLElement* vis = elem.FirstChildElement("visual");  //
-             vis;                                                           //
-             vis = elem.NextSiblingElement("visual")                        //
-        ) {
-            // Geometry is required
-            tinyxml2::XMLElement* geom = vis->FirstChildElement("geometry");
-            if (!ParseGeometry(geom)) {
-                std::cerr << "Failed to parse visual/geometry." << std::endl;
+    void Process(tinyxml2::XMLElement& elem, ChSystem& /*system*/) override {
+        for (tinyxml2::XMLElement* vis = elem.FirstChildElement("visual"); vis;
+             vis = elem.NextSiblingElement("visual")) {
+            if (!ParseGeometry(vis->FirstChildElement("geometry"))) {
+                std::cerr << "ChROSRobotModelHandler: failed to parse visual/geometry." << std::endl;
                 return;
             }
-
-            // Material is optional
-            if (tinyxml2::XMLElement* mat = vis->FirstChildElement("material")) {
-                if (!ParseMaterial(mat)) {
-                    std::cerr << "Failed to parse visual/material." << std::endl;
-                    return;
-                }
-            }
+            if (tinyxml2::XMLElement* mat = vis->FirstChildElement("material"))
+                ParseMaterial(mat);
         }
-
-        for (tinyxml2::XMLElement* col = elem.FirstChildElement("collision");  //
-             col;                                                              //
-             col = elem.NextSiblingElement("collision")                        //
-        ) {
-            // Geometry is required
-            tinyxml2::XMLElement* geom = col->FirstChildElement("geometry");
-            if (!ParseGeometry(geom)) {
-                std::cerr << "Failed to parse collision/geometry." << std::endl;
+        for (tinyxml2::XMLElement* col = elem.FirstChildElement("collision"); col;
+             col = elem.NextSiblingElement("collision")) {
+            if (!ParseGeometry(col->FirstChildElement("geometry"))) {
+                std::cerr << "ChROSRobotModelHandler: failed to parse collision/geometry." << std::endl;
                 return;
             }
         }
@@ -77,78 +64,64 @@ class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::Cu
     bool ParseGeometry(tinyxml2::XMLElement* geom) {
         if (!geom || !geom->FirstChildElement())
             return false;
-
-        if (tinyxml2::XMLElement* shape = geom->FirstChildElement(); std::string(shape->Value()) == "mesh") {
+        if (tinyxml2::XMLElement* shape = geom->FirstChildElement(); std::string(shape->Value()) == "mesh")
             shape->SetAttribute("filename", ResolveFilename(shape->Attribute("filename")).c_str());
-        }
-
         return true;
     }
 
-    bool ParseMaterial(tinyxml2::XMLElement* mat) {
-        if (tinyxml2::XMLElement* tex = mat->FirstChildElement("texture")) {
+    void ParseMaterial(tinyxml2::XMLElement* mat) {
+        if (tinyxml2::XMLElement* tex = mat->FirstChildElement("texture"))
             tex->SetAttribute("filename", ResolveFilename(tex->Attribute("filename")).c_str());
-        }
-
-        return true;
     }
 
-    /// rviz2 expects URI. Convert all the url filenames (i.e. don't have ://) to an absolute path prefixed with
-    /// file://.
+    // rviz2 expects a URI; convert any plain path (no "://") to an absolute file:// URI.
     std::string ResolveFilename(const std::string& filename) {
-        std::string resolved_filename = filename;
-
-        const std::string separator("://");
-        const size_t pos_separator = filename.find(separator);
-        if (pos_separator == std::string::npos) {
-            auto path = absolute(std::filesystem::path(filename));
-            resolved_filename = "file://" + path.string();
-        }
-
-        return resolved_filename;
+        if (filename.find("://") != std::string::npos)
+            return filename;
+        std::filesystem::path path(filename);
+        if (!path.is_absolute())
+            path = std::filesystem::absolute(std::filesystem::path(m_filepath) / path);
+        return "file://" + path.string();
     }
 
-  private:
     const std::string m_filepath;
 };
+}  // namespace
+#endif
 
+// update_rate 0 -> Tick runs every step, but we publish exactly once (the model
+// is static) and rely on the latched QoS to deliver to late subscribers.
+ChROSRobotModelHandler::ChROSRobotModelHandler(const std::string& robot_model, const std::string& topic_name)
+    : ChROSHandler(0), m_topic_name(topic_name), m_robot_model(robot_model) {}
+
+#ifdef CHRONO_HAS_URDF
 ChROSRobotModelHandler::ChROSRobotModelHandler(chrono::parsers::ChParserURDF& parser, const std::string& topic_name)
-    : ChROSHandler(std::numeric_limits<double>::max()), m_topic_name(topic_name) {
-    auto filename = parser.GetFilename();
+    : ChROSHandler(0), m_topic_name(topic_name) {
+    const auto filename = parser.GetFilename();
     auto xml = parser.CustomProcess("link", std::make_shared<CustomProcessorFilenameResolver>(filename));
     if (!xml) {
-        std::cerr << "Failed to parse RobotModel file: " << filename << std::endl;
+        std::cerr << "ChROSRobotModelHandler: failed to parse URDF file: " << filename << std::endl;
         return;
     }
-
     tinyxml2::XMLPrinter printer;
     xml->Print(&printer);
     m_robot_model = printer.CStr();
 }
 #endif
 
-bool ChROSRobotModelHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
-        return false;
-    }
+bool ChROSRobotModelHandler::Initialize(ChROSBridge& bridge) {
+    m_publisher = bridge.CreatePublisher(m_topic_name, "std_msgs/msg/String", ChROSQoS::Latched());
     return true;
 }
 
-std::vector<uint8_t> ChROSRobotModelHandler::GetSerializedData(double time) {
-    if (m_published) {
-        return {};
-    }
+void ChROSRobotModelHandler::Tick(double time) {
+    if (m_published)
+        return;
 
-    ipc::RobotModelData msg;
-    strncpy(msg.topic_name, m_topic_name.c_str(), sizeof(msg.topic_name) - 1);
-    msg.model_length = m_robot_model.length();
-
-    std::vector<uint8_t> buffer(sizeof(ipc::RobotModelData) + msg.model_length + 1);
-    std::memcpy(buffer.data(), &msg, sizeof(ipc::RobotModelData));
-    std::memcpy(buffer.data() + sizeof(ipc::RobotModelData), m_robot_model.c_str(), msg.model_length + 1);
-
-    m_published = true;
-    return buffer;
+    auto msg = m_publisher->NewMessage();
+    msg.SetString("data", m_robot_model);
+    if (m_publisher->Publish(msg))
+        m_published = true;  // static model; the latched QoS serves late joiners
 }
 
 }  // namespace ros

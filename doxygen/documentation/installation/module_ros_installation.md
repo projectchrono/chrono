@@ -13,13 +13,14 @@ For more detail, read the [Chrono::ROS](@ref manual_ros) section of the referenc
 ## Requirements
 
 - To build and run applications based on this module, the following are required:
-  - Linux OS (Windows OS support will be validated soon).
-  - Available shared memory (`/dev/shm`) of at least 1 GB by default.
-    - The Chrono::ROS Interface attempts to reserve (not necessarily use) at least 1 GB of `/dev/shm` to support 4K Chrono::Sensor camera images.
-    - If you are running on a memory-constrained system and do not require high-bandwidth sensor data (like 4K cameras), you can reduce the shared memory requirement by modifying `src/chrono_ros/ipc/ChROSIPCChannel.h`. Change the default `buffer_size` in `CreateMainChannel` from `512 * 1024 * 1024` (512 MB) to a smaller value (e.g., `16 * 1024 * 1024` for 16 MB). 16 MB is sufficient for most non-visual sensors. Chrono::ROS creates a bi-directional shared memory channel; therefore, whatever value you set above, the maximum shared memory utilization is that value * 2.
-  - All ROS 2 distributions and middleware variants are supported. However, since Humble is the LTS release, it has been most thoroughly tested with Chrono::ROS, so we recommend Humble for your projects. ROS 1 is not supported.
-  - ROS 2 Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended. A Docker image with Chrono::ROS built is available [here](https://hub.docker.com/r/uwsbel/projectchrono).
-    - When using Docker, please make sure to override the default `shm_size` of 64 MB; a `shm_size` of > 1 GB is required by default.
+  - A distribution for Linux (any ROS2 distribution) or Windows 11 (requires ROS2 Lyrical).
+  - Available shared memory (`/dev/shm`) sized for the bridge's channel.
+    - The simulation and the ROS subprocess communicate over a shared-memory channel. Its default capacity is 128 MiB for simulation-to-ROS (publishing) traffic plus 32 MiB for ROS-to-simulation (received-command) traffic.
+    - Sizing: peak `sim->node` usage is roughly (number of actively-subscribed large topics) × (per-message size). Handlers skip publishing a topic that has no subscriber, and the subprocess drains the channel continuously, so frames rarely accumulate beyond one or two per topic. A 4K RGBA8 image is ~31.6 MiB, so the 128 MiB default holds about four such frames in flight — ample in practice. If `ChROSBridge::GetDroppedOutboundCount()` grows during a run, a subscriber was too slow to keep up and the channel filled momentarily.
+    - Override the capacities with `ChROSManager::SetChannelCapacity(sim_to_node_bytes, node_to_sim_bytes)` — both directions are set together, and it must be called **before** `Initialize()`. Raise them for many simultaneous high-bandwidth streams or very large custom topics; lower them on memory-constrained systems. `/dev/shm` must exceed the configured total plus some slack.
+  - All current ROS 2 distributions and middleware (rmw) variants are supported; ROS 1 is not.
+  - A ROS 2 installation (see [docs.ros.org](https://docs.ros.org/) for instructions). Docker is recommended; a Docker image with Chrono::ROS built is available [here](https://hub.docker.com/r/uwsbel/projectchrono).
+    - When using Docker, override the default `shm_size` (often 64 MB) so it exceeds the configured channel total; `shm_size: 256mb` covers the default capacity.
   - NOTE: All ROS 2 packages required by Chrono::ROS are included in the base ROS 2 installation.
 
 ## Optional Dependencies

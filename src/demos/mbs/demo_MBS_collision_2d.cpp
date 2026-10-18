@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
     // Note that the end of one segment must match the beginning of the other.
     // For arcs, the beginning corresponds to angle1, the second to angle2.
     auto coin_path = chrono_types::make_shared<ChLinePath>();
-    ChLineArc marcol1(ChCoordsys<>(ChVector3d(0, 0, 0)), 0.5, 0, CH_PI);
-    ChLineSegment msegcol1(ChVector3d(-0.5, 0, 0), ChVector3d(0.5, 0, 0));
+    auto marcol1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, 0)), 0.5, 0, CH_PI);
+    auto msegcol1 = chrono_types::make_shared<ChLineSegment>(ChVector3d(-0.5, 0, 0), ChVector3d(0.5, 0, 0));
     coin_path->AddSubLine(marcol1);
     coin_path->AddSubLine(msegcol1);
 
@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
     // means 'concave' because for 2d shapes, the 'solid' part of the shape is always ON THE RIGHT
     // side of the curvilinear abscyssa.
     auto hole_path = chrono_types::make_shared<ChLinePath>();
-    ChLineArc arc_hole(ChCoordsys<>(ChVector3d(0, 0, 0)), 1, -CH_PI, 0, true);  // true = ccw arc = concave
-    ChLineSegment seg_hole(ChVector3d(1, 0, 0), ChVector3d(2, 0.04, 0));
+    auto arc_hole = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, 0)), 1, -CH_PI, 0, true);  // true = ccw arc = concave
+    auto seg_hole = chrono_types::make_shared<ChLineSegment>(ChVector3d(1, 0, 0), ChVector3d(2, 0.04, 0));
     hole_path->AddSubLine(arc_hole);
     hole_path->AddSubLine(seg_hole);
     hole_path->SetClosed(false);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     sys.Add(geneva_wheel);
 
     // Create a ChLinePath geometry that represents the 2D shape of the Geneva wheel.
-    // It can be made of ChLineArc or ChLineSegment sub-lines. These must be added in clockwise
+    // It can be made of ChLineArc or ChLineSegment lines. These must be added in clockwise
     // order, and the end of sub-item i must be coincident with beginning of sub-line i+1.
     auto wheel_path = chrono_types::make_shared<ChLinePath>();
 
@@ -145,11 +145,11 @@ int main(int argc, char* argv[]) {
         p5 = mm * p5;
         p6 = mm * p6;
         p7 = mm * p7;
-        ChLineSegment seg1(p1, p2);
-        ChLineSegment seg2(p2, p3);
-        ChLineSegment seg3(p3, p4);
-        ChLineSegment seg4(p4, p5);
-        ChLineSegment seg5(p5, p6);
+        auto seg1 = chrono_types::make_shared<ChLineSegment>(p1, p2);
+        auto seg2 = chrono_types::make_shared<ChLineSegment>(p2, p3);
+        auto seg3 = chrono_types::make_shared<ChLineSegment>(p3, p4);
+        auto seg4 = chrono_types::make_shared<ChLineSegment>(p4, p5);
+        auto seg5 = chrono_types::make_shared<ChLineSegment>(p5, p6);
         wheel_path->AddSubLine(seg1);
         wheel_path->AddSubLine(seg2);
         wheel_path->AddSubLine(seg3);
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
         wheel_path->AddSubLine(seg5);
         double a1 = alpha + CH_PI;
         double a2 = alpha + CH_PI + gamma;
-        ChLineArc arc0(ChCoordsys<>(p7), Ri, a1, a2, true);  // ccw arc bacause concave
+        auto arc0 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(p7), Ri, a1, a2, true);  // ccw arc bacause concave
         wheel_path->AddSubLine(arc0);
     }
 
@@ -185,13 +185,13 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order
     auto crankpin_path = chrono_types::make_shared<ChLinePath>();
-    ChLineArc pin(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_2PI, 0);
+    auto pin = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_2PI, 0);
     crankpin_path->AddSubLine(pin);
 
     auto crankstopper_path = chrono_types::make_shared<ChLinePath>();
-    ChLineArc stopper_arc(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.005, CH_PI - gamma / 2, -CH_PI + gamma / 2);
-    ChLineSegment stopperve1(stopper_arc.GetEndB(), ChVector3d(0, 0, 0));
-    ChLineSegment stopperve2(ChVector3d(0, 0, 0), stopper_arc.GetEndA());
+    auto stopper_arc = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.005, CH_PI - gamma / 2, -CH_PI + gamma / 2);
+    auto stopperve1 = chrono_types::make_shared<ChLineSegment>(stopper_arc->GetEndB(), ChVector3d(0, 0, 0));
+    auto stopperve2 = chrono_types::make_shared<ChLineSegment>(ChVector3d(0, 0, 0), stopper_arc->GetEndA());
     crankstopper_path->AddSubLine(stopper_arc);
     crankstopper_path->AddSubLine(stopperve1);
     crankstopper_path->AddSubLine(stopperve2);
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
     vis->SetBackgroundColor(ChColor(0.1f, 0.2f, 0.3f));
     vis->Initialize();
     vis->AddLogo();
-    vis->AddCamera(ChVector3d(0, 4, -6));
+    vis->AddCamera(ChVector3d(0, 0, 6));
     vis->AddTypicalLights();
 
     // This means that contactforces will be shown in Irrlicht application

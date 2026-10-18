@@ -19,7 +19,7 @@ To install a PyChrono conda module, do the following:
 
 1. Install the [Anaconda](https://www.anaconda.com/download/) Python distribution. <br>
 
-2. We strongly recommend to use a dedicated conda environment and install the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
+2. We strongly recommend using a dedicated conda environment and installing the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
 
    To create a `chrono` environment with Python 3.12, use:
 
@@ -67,6 +67,10 @@ Do this:
    Or, if you have hard disk space, better install a full stack like [Anaconda](https://www.anaconda.com/download/)
 3. build the PyChrono module, following [these instructions](@ref module_python_installation)
 
+<div class="ce-info">
+**AMD GPUs (ROCm):** If your machine has AMD Instinct or Radeon GPUs and you use **PyTorch ROCm** (or another ROCm ML stack) alongside Chrono, you can still build **CPU PyChrono** without the NVIDIA CUDA toolkit. See the repository file **`docs/README_AMD_GPU.md`** for workflows (CPU vs HIP/FSI), **Eigen3** / **SWIG** prerequisites, and **`ROCR_VISIBLE_DEVICES`** on multi-GPU hosts.
+</div>
+
 <div class="ce-warning">
 When building PyChrono from the C++ source, the PYTHONPATH environment variable must be edited to include the path to the bin/ directory in the Chrono build tree.
 For example:
@@ -78,8 +82,8 @@ export PYTHONPATH=$HOME/chrono_build/bin
 ## Tips
 
 <div class="ce-info">
-We suggest you to use a specialized IDE editor that nicely handles the Python language (syntax highlighting, intellisense, etc.). 
-The default IDE installed with most Python distribution is IDLE which is sufficient only for simpler tasks. 
+We suggest you use a specialized IDE editor that nicely handles the Python language (syntax highlighting, intellisense, etc.). 
+The default IDE installed with most Python distributions is IDLE which is sufficient only for simpler tasks. 
 Our best pick is **Spyder**, the IDE that comes together with the [Anaconda](https://www.anaconda.com/download/) Python distribution. 
 Other free options are [Visual Studio Code](https://code.visualstudio.com/) or the [Python add-on for Visual Studio](https://marketplace.visualstudio.com/items?itemName=ms-python.python).
 </div>

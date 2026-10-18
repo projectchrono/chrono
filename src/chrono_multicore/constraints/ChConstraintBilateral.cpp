@@ -72,7 +72,8 @@ void ChConstraintBilateral::Build_D() {
                 const auto& cq_lo = (idA <= idB) ? mbilateral->Get_Cq_a() : mbilateral->Get_Cq_b();
                 const auto& cq_hi = (idA <= idB) ? mbilateral->Get_Cq_b() : mbilateral->Get_Cq_a();
                 for (int k = 0; k < 6; ++k) {
-                    v[k] = cq_lo(k); v[6 + k] = cq_hi(k);
+                    v[k] = cq_lo(k);
+                    v[6 + k] = cq_hi(k);
                 }
             } break;
 
@@ -81,15 +82,18 @@ void ChConstraintBilateral::Build_D() {
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
                 if (idA <= idB) {
-                    v[0] = mbilateral->Get_Cq_a()(0); v[1] = mbilateral->Get_Cq_b()(0);
+                    v[0] = mbilateral->Get_Cq_a()(0);
+                    v[1] = mbilateral->Get_Cq_b()(0);
                 } else {
-                    v[0] = mbilateral->Get_Cq_b()(0); v[1] = mbilateral->Get_Cq_a()(0);
+                    v[0] = mbilateral->Get_Cq_b()(0);
+                    v[1] = mbilateral->Get_Cq_a()(0);
                 }
             } break;
 
             case BilateralType::SHAFT_BODY: {
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
-                for (int k = 0; k < 6; ++k) v[k] = mbilateral->Get_Cq_b()(k);
+                for (int k = 0; k < 6; ++k)
+                    v[k] = mbilateral->Get_Cq_b()(k);
                 v[6] = mbilateral->Get_Cq_a()(0);
             } break;
 
@@ -98,11 +102,7 @@ void ChConstraintBilateral::Build_D() {
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
                 int idC = ((ChVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetIndex();
-                std::pair<int, double> entries[3] = {
-                    {idA, mbilateral->Get_Cq_a()(0)},
-                    {idB, mbilateral->Get_Cq_b()(0)},
-                    {idC, mbilateral->Get_Cq_c()(0)}
-                };
+                std::pair<int, double> entries[3] = {{idA, mbilateral->Get_Cq_a()(0)}, {idB, mbilateral->Get_Cq_b()(0)}, {idC, mbilateral->Get_Cq_c()(0)}};
                 std::sort(entries, entries + 3, [](const auto& x, const auto& y) { return x.first < y.first; });
                 v[0] = entries[0].second;
                 v[1] = entries[1].second;
@@ -113,11 +113,14 @@ void ChConstraintBilateral::Build_D() {
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
-                for (int k = 0; k < 6; ++k) v[k] = mbilateral->Get_Cq_c()(k);
+                for (int k = 0; k < 6; ++k)
+                    v[k] = mbilateral->Get_Cq_c()(k);
                 if (idA <= idB) {
-                    v[6] = mbilateral->Get_Cq_a()(0); v[7] = mbilateral->Get_Cq_b()(0);
+                    v[6] = mbilateral->Get_Cq_a()(0);
+                    v[7] = mbilateral->Get_Cq_b()(0);
                 } else {
-                    v[6] = mbilateral->Get_Cq_b()(0); v[7] = mbilateral->Get_Cq_a()(0);
+                    v[6] = mbilateral->Get_Cq_b()(0);
+                    v[7] = mbilateral->Get_Cq_a()(0);
                 }
             } break;
         }
@@ -143,15 +146,18 @@ void ChConstraintBilateral::GenerateSparsity() {
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetIndex();
                 int col_lo = std::min(idA, idB) * 6;
                 int col_hi = std::max(idA, idB) * 6;
-                for (int k = 0; k < 6; ++k) D_b_T.insert(row, col_lo + k) = 0.0;
-                for (int k = 0; k < 6; ++k) D_b_T.insert(row, col_hi + k) = 0.0;
+                for (int k = 0; k < 6; ++k)
+                    D_b_T.insert(row, col_lo + k) = 0.0;
+                for (int k = 0; k < 6; ++k)
+                    D_b_T.insert(row, col_hi + k) = 0.0;
             } break;
 
             case BilateralType::SHAFT_SHAFT: {
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
-                if (idA > idB) std::swap(idA, idB);
+                if (idA > idB)
+                    std::swap(idA, idB);
                 D_b_T.insert(row, rigid_dof_base + idA) = 0.0;
                 D_b_T.insert(row, rigid_dof_base + idB) = 0.0;
             } break;
@@ -161,7 +167,8 @@ void ChConstraintBilateral::GenerateSparsity() {
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetIndex();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetIndex();
                 int colB = idB * 6;
-                for (int k = 0; k < 6; ++k) D_b_T.insert(row, colB + k) = 0.0;
+                for (int k = 0; k < 6; ++k)
+                    D_b_T.insert(row, colB + k) = 0.0;
                 D_b_T.insert(row, rigid_dof_base + idA) = 0.0;
             } break;
 
@@ -183,8 +190,10 @@ void ChConstraintBilateral::GenerateSparsity() {
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetIndex();
                 int idC = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetIndex();
                 int colC = idC * 6;
-                for (int k = 0; k < 6; ++k) D_b_T.insert(row, colC + k) = 0.0;
-                if (idA > idB) std::swap(idA, idB);
+                for (int k = 0; k < 6; ++k)
+                    D_b_T.insert(row, colC + k) = 0.0;
+                if (idA > idB)
+                    std::swap(idA, idB);
                 D_b_T.insert(row, rigid_dof_base + idA) = 0.0;
                 D_b_T.insert(row, rigid_dof_base + idB) = 0.0;
             } break;

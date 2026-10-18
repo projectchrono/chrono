@@ -37,8 +37,7 @@ namespace vehicle {
 /// @{
 
 /// Rigid tire model.
-/// This tire is modeled as a rigid cylinder.  Requires a terrain system that
-/// supports rigid contact with friction.
+/// This tire is modeled as a rigid cylinder.  Requires a terrain system that supports rigid contact with friction.
 class CH_VEHICLE_API ChRigidTire : public ChTire {
   public:
     ChRigidTire(const std::string& name  ///< [in] name of this tire system

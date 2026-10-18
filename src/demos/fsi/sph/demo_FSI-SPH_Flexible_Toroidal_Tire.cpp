@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepSizeCFD(dT);
     sysFSI.SetStepsizeMBD(dT);
 
-    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::SoilProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_2 = 0.5;
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = 2e3;
-    sysSPH.SetElasticSPH(mat_props);
+    sysSPH.SetCrmSPH(mat_props);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     // Initialize FSI system
     sysFSI.Initialize();
 
-    // Create oputput directories
+    // Create output directories
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -471,10 +471,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
                 element->SetNodes(node0, node1, node2, node3);
 
                 // Element dimensions
-                double dx =
-                    0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-                double dy =
-                    0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
+                double dx = 0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
+                double dy = 0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
 
                 // Set element dimensions
                 element->SetDimensions(dx, dy);
@@ -488,10 +486,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
                 // Add element to mesh
                 mesh->AddElement(element);
 
-                ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
-                                            element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-                cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " "
-                     << center.z() << endl;
+                ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() + element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
+                cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " " << center.z() << endl;
 
                 num_elem++;
             }
@@ -502,7 +498,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     sysMBS.Add(mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh2D(mesh, false);
+    sysFSI.AddFeaMesh2D(mesh, false);
 
     return mesh;
 }

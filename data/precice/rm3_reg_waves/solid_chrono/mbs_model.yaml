@@ -1,0 +1,94 @@
+chrono-version: 10.0
+
+# Multibody model of the RM3 two-body point absorber, mirroring the model built in
+# demo_FSI-TDPF_rm3_reg_waves: a float and a reaction plate joined by a prismatic joint with a
+# (currently passive) PTO, plus a non-hydrodynamic body attached to the plate.
+#
+# Body order matters. 'body1' and 'body2' are listed as coupling bodies in mbs_participant.yaml in
+# this order, and the preCICE data exchange as well as the added mass lookup in rm3.h5 are by index:
+# the first coupling body maps to /body1 in the hydro file, the second to /body2.
+
+model:
+  name: rm3
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  bodies:
+    # Float. Its reference frame is at the center of gravity, which is what the *_cog.obj meshes and
+    # the hydro coefficients in rm3.h5 are expressed about.
+    - name: body1
+      location: [0, 0, -0.72]
+      mass: 725834
+      inertia:
+        moments: [20907301.0, 21306090.66, 37085481.11]
+      visualization:
+        shapes:
+          - type: MESH
+            filename: fsi-tdpf/rm3/float_cog.obj
+            location: [0, 0, 0]
+            color: [0.3, 0.1, 0.1]
+
+    # Reaction plate.
+    - name: body2
+      location: [0, 0, -21.29]
+      mass: 886691
+      inertia:
+        moments: [94419614.57, 94407091.24, 28542224.82]
+      visualization:
+        shapes:
+          - type: MESH
+            filename: fsi-tdpf/rm3/plate_cog.obj
+            location: [0, 0, 0]
+            color: [0.3, 0.1, 0.6]
+
+    # A body with no hydrodynamics, to show that the coupling interface need not cover the whole
+    # multibody model. Mass and inertia are those of a 2 m sphere of density 100 (a solid sphere,
+    # I = 2/5 m r^2), matching the ChBodyEasySphere used by the monolithic demo.
+    - name: top
+      location: [0, 0, 10.0]
+      mass: 3351.032
+      inertia:
+        moments: [5361.651, 5361.651, 5361.651]
+      visualization:
+        shapes:
+          - type: SPHERE
+            location: [0, 0, 0]
+            radius: 2.0
+            color: [0.6, 0.6, 0.2]
+
+  joints:
+    # Float-plate prismatic joint along the vertical.
+    # The monolithic demo initializes this joint with a separate frame on each body, at the two
+    # centers of gravity. Those frames differ only along the joint axis, which is the free direction
+    # of a prismatic joint, so the single common frame below imposes the same constraint.
+    - name: heave_prismatic
+      type: PRISMATIC
+      body1: body1
+      body2: body2
+      location: [0, 0, -0.72]
+      axis: [0, 0, 1]
+
+    # Plate-top revolute joint, about the vertical.
+    - name: top_revolute
+      type: REVOLUTE
+      body1: body2
+      body2: top
+      location: [0, 0, 10.0]
+      axis: [0, 0, 1]
+
+  tsdas:
+    # Power take-off, acting between the two centers of gravity. Both coefficients are zero, so the
+    # element applies no force: it is a placeholder for a PTO model, as in the monolithic demo. The
+    # free length is the initial separation of the two attachment points, so that a non-zero spring
+    # coefficient would start from an unstretched element.
+    - name: pto
+      body1: body1
+      body2: body2
+      point1: [0, 0, -0.72]
+      point2: [0, 0, -21.29]
+      free_length: 20.57
+      spring_coefficient: 0.0
+      damping_coefficient: 0.0

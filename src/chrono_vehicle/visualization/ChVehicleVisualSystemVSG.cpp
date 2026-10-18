@@ -52,6 +52,11 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                 break;
         }
 
+        // In KeyboardMode::HELD, driving keys are tracked by press/release rather than as discrete keypresses;
+        // idempotent state updates absorb auto-repeat presses.
+        if (ProcessDrivingKey(driver, keyPress.keyBase, true))
+            return;
+
         switch (keyPress.keyBase) {
             case vsg::KEY_Left:
                 m_vsys->m_camera->Turn(-1);
@@ -164,7 +169,58 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
         }
     }
 
+    // Release of a driving control key (used only with held-key semantics).
+    void process(vsg::KeyReleaseEvent& keyRelease) override {
+        if (!m_vsys->m_vehicle)
+            return;
+        auto driver = dynamic_cast<ChInteractiveDriver*>(m_vsys->GetDriver());
+        ProcessDrivingKey(driver, keyRelease.keyBase, false);
+    }
+
+    // A key release while the render window lacks focus would never reach this handler, leaving the input
+    // pinned; drop all held keys as soon as focus is lost.
+    //
+    // VSG only reports focus changes on XCB and Win32; as of VSG 1.1.11 its macOS backend never fires
+    // FocusOutEvent, so this safety net does not trigger there and a key held across an app switch stays held
+    // until pressed and released again.
+    void process(vsg::FocusOutEvent& focusOut) override {
+        if (auto driver = dynamic_cast<ChInteractiveDriver*>(m_vsys->GetDriver()))
+            driver->ReleaseAllKeys();
+    }
+
   private:
+    // Update the state of a driving control key. Returns true if consumed (KeyboardMode::HELD only); in
+    // KeyboardMode::CUMULATIVE the caller handles these keys as discrete keypresses.
+    bool ProcessDrivingKey(ChInteractiveDriver* driver, vsg::KeySymbol key, bool pressed) {
+        if (!driver || driver->GetKeyboardMode() != ChInteractiveDriver::KeyboardMode::HELD)
+            return false;
+
+        switch (key) {
+            case vsg::KEY_a:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::STEER_LEFT, pressed);
+                return true;
+            case vsg::KEY_d:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::STEER_RIGHT, pressed);
+                return true;
+            case vsg::KEY_w:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::THROTTLE, pressed);
+                return true;
+            case vsg::KEY_s:
+                driver->SetKeyState(ChInteractiveDriver::InputKey::BRAKE, pressed);
+                return true;
+            case vsg::KEY_e:
+                if (m_transmission_manual) {
+                    driver->SetKeyState(ChInteractiveDriver::InputKey::CLUTCH, pressed);
+                    return true;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return false;
+    }
+
     ChVehicleVisualSystemVSG* m_vsys;
     ChAutomaticTransmission* m_transmission_auto;
     ChManualTransmission* m_transmission_manual;
@@ -181,7 +237,7 @@ class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
     ChVehicleVisualSystemVSG* m_vsys;
 };
 
-void ShowHelp() {
+void ShowHelp(ChInteractiveDriver::KeyboardMode keyboard_mode) {
     if (ImGui::CollapsingHeader("Chase camera controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BulletText("Selection of camera mode");
         ImGui::Indent();
@@ -209,8 +265,14 @@ void ShowHelp() {
     if (ImGui::CollapsingHeader("Vehicle controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BulletText("Drive and steering controls");
         ImGui::Indent();
-        ImGui::TextUnformatted("W/S: acceleration/deceleration (combined throttle/brake controls)");
-        ImGui::TextUnformatted("A/D: steering (left/right)");
+        if (keyboard_mode == ChInteractiveDriver::KeyboardMode::HELD) {
+            ImGui::TextUnformatted("W: accelerate while held (throttle falls back to 0 on release)");
+            ImGui::TextUnformatted("S: brake while held (brake falls back to 0 on release)");
+            ImGui::TextUnformatted("A/D: steer left/right while held (steering self-centers on release)");
+        } else {
+            ImGui::TextUnformatted("W/S: acceleration/deceleration (combined throttle/brake controls)");
+            ImGui::TextUnformatted("A/D: steering (left/right)");
+        }
         ImGui::TextUnformatted("C: center steering wheel (set steering=0)");
         ImGui::TextUnformatted("R: release pedals (set throttle=brake=clutch=0)");
         ImGui::Unindent();
@@ -461,7 +523,8 @@ void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
                                 ImVec2(0.5f, 0.5f));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.75f, io.DisplaySize.y * 0.75f), ImGuiCond_Always);
         ImGui::Begin("Help", &show_help, ImGuiWindowFlags_NoCollapse);
-        ShowHelp();
+        auto driver = dynamic_cast<ChInteractiveDriver*>(m_vsys->GetDriver());
+        ShowHelp(driver ? driver->GetKeyboardMode() : ChInteractiveDriver::KeyboardMode::CUMULATIVE);
         ImGui::End();
     }
 
@@ -470,12 +533,27 @@ void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG() {
+ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_keyboard_mode(ChInteractiveDriver::KeyboardMode::CUMULATIVE) {
     // Disable global visibility controls
     m_show_visibility_controls = false;
 }
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
+
+void ChVehicleVisualSystemVSG::SetKeyboardMode(ChInteractiveDriver::KeyboardMode mode) {
+    m_keyboard_mode = mode;
+    if (auto driver = dynamic_cast<ChInteractiveDriver*>(GetDriver()))
+        driver->SetKeyboardMode(mode);
+}
+
+void ChVehicleVisualSystemVSG::AttachDriver(ChDriver* driver) {
+    ChVehicleVisualSystem::AttachDriver(driver);
+
+    // VSG reports key releases and window focus loss, so held-key driving controls can be supported. This only
+    // proposes a default; an explicit call to ChInteractiveDriver::SetKeyboardMode always wins.
+    if (auto idriver = dynamic_cast<ChInteractiveDriver*>(driver))
+        idriver->SetDefaultKeyboardMode(m_keyboard_mode);
+}
 
 void ChVehicleVisualSystemVSG::Initialize() {
     if (m_initialized)

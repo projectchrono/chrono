@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+  <log>
+    <sink
+      type="stream"
+      output="stdout"
+      filter="%Severity% > debug"
+      format="preCICE:%ColorizedSeverity% %Message%"
+      enabled="true" />
+  </log>
+
+  <data:vector name="data1" />
+  <data:vector name="data2" />
+
+  <mesh name="Mesh1" dimensions="3">
+    <use-data name="data1" />
+    <use-data name="data2" />
+  </mesh>
+
+  <mesh name="Mesh2" dimensions="3">
+    <use-data name="data1" />
+    <use-data name="data2" />
+  </mesh>
+
+  <participant name="Solver1">
+    <provide-mesh name="Mesh1" />
+    <write-data name="data1" mesh="Mesh1" />
+    <read-data name="data2" mesh="Mesh1" />
+  </participant>
+
+  <participant name="Solver2">
+    <receive-mesh name="Mesh1" from="Solver1" />
+    <provide-mesh name="Mesh2" />
+    <mapping:nearest-neighbor
+      direction="write"
+      from="Mesh2"
+      to="Mesh1"
+      constraint="conservative" />
+    <mapping:nearest-neighbor
+      direction="read"
+      from="Mesh1"
+      to="Mesh2"
+      constraint="consistent" />
+    <write-data name="data2" mesh="Mesh2" />
+    <read-data name="data1" mesh="Mesh2" />
+  </participant>
+
+  <m2n:sockets acceptor="Solver1" connector="Solver2" exchange-directory=".." />
+
+  <coupling-scheme:serial-implicit>
+    <participants first="Solver1" second="Solver2" />
+    <max-time-windows value="2" />
+    <time-window-size value="1.0" />
+    <max-iterations value="3" />
+    <exchange data="data1" mesh="Mesh1" from="Solver1" to="Solver2" initialize ="yes"/>
+    <exchange data="data2" mesh="Mesh1" from="Solver2" to="Solver1" />
+  </coupling-scheme:serial-implicit>
+</precice-configuration>

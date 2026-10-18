@@ -17,17 +17,17 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeEllipsoid)
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid() {}
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid() : ChVisualShape(Type::ELLIPSOID) {}
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(double axis_x, double axis_y, double axis_z) {
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(double axis_x, double axis_y, double axis_z) : ChVisualShape(Type::ELLIPSOID) {
     gellipsoid.rad = ChVector3d(axis_x / 2, axis_y / 2, axis_z / 2);
 }
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChVector3d& axes) {
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChVector3d& axes) : ChVisualShape(Type::ELLIPSOID) {
     gellipsoid.rad = axes / 2;
 }
 
-ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChEllipsoid& ellipsoid) : gellipsoid(ellipsoid) {}
+ChVisualShapeEllipsoid::ChVisualShapeEllipsoid(const ChEllipsoid& ellipsoid) : ChVisualShape(Type::ELLIPSOID), gellipsoid(ellipsoid) {}
 
 void ChVisualShapeEllipsoid::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

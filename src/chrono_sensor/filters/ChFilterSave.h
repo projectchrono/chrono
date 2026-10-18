@@ -19,8 +19,13 @@
 #define CHFILTERSAVE_H
 
 #include "chrono_sensor/filters/ChFilter.h"
+#include "chrono_sensor/ChConfigSensor.h"
 
-#include <cuda.h>
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+#else
+    using CUstream = void*;
+#endif
 
 namespace chrono {
 namespace sensor {

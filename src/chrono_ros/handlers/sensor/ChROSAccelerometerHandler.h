@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,67 +12,63 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// ROS Handler for communicating accelerometer information
+// ROS handler for a ChAccelerometerSensor (publishes sensor_msgs/msg/Imu).
 //
 // =============================================================================
 
-#ifndef CH_ROS_ACCELEROMETER_HANDLER
-#define CH_ROS_ACCELEROMETER_HANDLER
+#ifndef CH_ROS_ACCELEROMETER_HANDLER_H
+#define CH_ROS_ACCELEROMETER_HANDLER_H
 
+#include "chrono_ros/ChApiROS.h"
 #include "chrono_ros/ChROSHandler.h"
 
+#include "chrono/core/ChVector3.h"
 #include "chrono_sensor/sensors/ChIMUSensor.h"
-#include "chrono_ros/handlers/sensor/ChROSAccelerometerHandler_ipc.h"
 
 #include <array>
+#include <memory>
+#include <string>
 
 namespace chrono {
 namespace ros {
 
+class ChROSPublisher;
 class ChROSIMUHandler;
 
 /// @addtogroup ros_sensor_handlers
 /// @{
 
-/// This handler is responsible for interfacing a ChAccelerometerSensor to ROS. Will publish sensor_msgs::msg::Imu.
+/// Publishes a ChAccelerometerSensor as sensor_msgs/msg/Imu (only the linear
+/// acceleration fields are populated).
 class CH_ROS_API ChROSAccelerometerHandler : public ChROSHandler {
   public:
-    /// Constructor. The update rate is set to imu->GetUpdateRate().
-    /// The update rate corresponds to the sensor's update rate.
+    /// Tick at the sensor's own update rate.
     ChROSAccelerometerHandler(std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu,
                               const std::string& topic_name);
-
-    /// Full constructor. Takes a ChAccelerometerSensor, update rate, and topic name.
+    /// Tick at an explicit rate.
     ChROSAccelerometerHandler(double update_rate,
                               std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu,
                               const std::string& topic_name);
 
-    /// Initializes the handler.
-    virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
+    /// Creates the Imu publisher.
+    virtual bool Initialize(ChROSBridge& bridge) override;
 
-    /// Get the message type of this handler
-    virtual ipc::MessageType GetMessageType() const override { return ipc::MessageType::ACCELEROMETER_DATA; }
-
-    /// Get the serialized data for the handler
-    virtual std::vector<uint8_t> GetSerializedData(double time) override;
+  protected:
+    /// Reads the accelerometer buffer and publishes the linear acceleration.
+    virtual void Tick(double time) override;
 
   private:
-    /// Helper function to calculate the covariance of the accelerometer
-    /// ChAccelerometerSensor currently doesn't support covariance, so we'll use store
-    /// the rolling averages and calculate the covariance here.
-    std::array<double, 9> CalculateCovariance(const chrono::sensor::AccelData& imu_data);
+    std::array<double, 9> CalculateCovariance(const chrono::sensor::AccelData& data);
 
-  private:
-    std::shared_ptr<chrono::sensor::ChAccelerometerSensor> m_imu;  ///< handle to the imu sensor
+    std::shared_ptr<chrono::sensor::ChAccelerometerSensor> m_imu;
+    const std::string m_topic_name;
+    std::shared_ptr<ChROSPublisher> m_publisher;
 
-    const std::string m_topic_name;                                   ///< name of the topic to publish to
+    std::array<double, 3> m_running_average;
 
-    std::array<double, 3> m_running_average;  ///< running average to calcualte covariance of the accelerometer
-
-    // Cache for idempotency and friend access
-    double m_last_time = -1.0;
-    std::vector<uint8_t> m_last_serialized_data;
-    ipc::AccelerometerData m_last_data_struct;
+    // Last-extracted data, retained for the composite ChROSIMUHandler to read.
+    chrono::ChVector3d m_linear_acceleration;
+    std::array<double, 9> m_linear_acceleration_covariance;
 
     friend class ChROSIMUHandler;
 };

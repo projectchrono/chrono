@@ -22,7 +22,7 @@ In this page you can find a description of their properties.
 The chrono::fea::ChElementSpring is the simplest element, and it can be used 
 as a starting point to learn how to implement finite elements.
 
-Moreover, it is useful for problems like trusses, suspensions, etc. this base implementation
+Moreover, it is useful for problems like trusses, suspensions, etc.
 This spring assumes linear behavior, but experienced programmers can override this class 
 and implement more advanced non-linear spring models.
 
@@ -50,7 +50,7 @@ The chrono::fea::ChElementBar is quite similar to the ChElementSpring, but adds 
   - rest length L, 
   - Section area A, 
   - Young modulus E, 
-  - damping (like in Rayleight beta parameter)
+  - damping (like in Rayleigh beta parameter)
 - Stiffness matrix computed analytically for high performance (both material and geometric stiffness are supported).
 
 
@@ -75,7 +75,7 @@ The chrono::fea::ChElementTetraCorot_4 is the simplest volume element for simula
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementTetra_10.png)
 
-The chrono::fea::ChElementTetraCorot_10 is a quadratic volume element based on tetahedrons with intermediate nodes along edges, as in figure.
+The chrono::fea::ChElementTetraCorot_10 is a quadratic volume element based on tetrahedrons with intermediate nodes along edges, as in figure.
 
 - 10 nodes of ChNodeFEAxyz type
 - Quadratic interpolation, linear stress 
@@ -153,7 +153,7 @@ The chrono::fea::ChElementHexaANCF_3813_9 is a brick element implemented using t
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBrickANCF_3843.png)
 
-The chrono::fea::ChElementHexaANCF_3843 is a 8 node brick element based on the ANCF approach with a full set of position vector gradient coordinates at each node.
+The chrono::fea::ChElementHexaANCF_3843 is an 8 node brick element based on the ANCF approach with a full set of position vector gradient coordinates at each node.
 
 - 8 nodes of ChNodeFEAxyzDDD type
 - 64 integration points
@@ -169,7 +169,7 @@ The chrono::fea::ChElementHexaANCF_3843 is a 8 node brick element based on the A
 The chrono::fea::ChElementCableANCF is a fast element for the simulation of thin beams (cables, wires, ropes) where one is not interested in twisting, shear, etc.
 
 - 2 nodes of @ref chrono::fea::ChNodeFEAxyzD type
-- 3 integration point (stiffness), 4 (mass)
+- 3 integration points (stiffness), 4 (mass)
 - ANCF formulation for large displacements
 - Thin beam (no shear)
 - Does not model torsional stiffness (useful for wires, cables)
@@ -244,7 +244,7 @@ shape, and relying on the Geometrically Exact Beam theory.
 - Thick beam shear effects are possible, v. Timoshenko theory
 - Reduced integration to correct shear locking
 - Initial curved configuration is supported
-- Suggestion: use ChBuilderBeamIGA for easy creation a full B-spine, ie. given full knot sequence and points as in the second figure above.
+- Suggestion: use ChBuilderBeamIGA for easy creation of a full B-spline, ie. given full knot sequence and points as in the second figure above.
 - Section defined in a modular way, via a  chrono::fea::ChBeamSectionCosserat that is composed via 
   - Elasticity model from chrono::fea::ChElasticityCosserat, ex:
     - chrono::fea::ChElasticityCosseratGeneric 
@@ -261,7 +261,7 @@ shape, and relying on the Geometrically Exact Beam theory.
   - Damping model from chrono::fea::ChDampingCosserat (optional), ex:
     - chrono::fea::ChDampingCosseratLinear 
     - chrono::fea::ChDampingCosseratRayleigh 	
-  - Plasticity model from chrono::fea::ChPlastcityCosserat (optional)
+  - Plasticity model from chrono::fea::ChPlasticityCosserat (optional)
 - Some of the sectional properties above support the case of offsets in center of mass, center of shear, center of axial elastic forces, as well as rotation of the section axes, for defining complex beams like helicopter blades
 - Both material and geometric stiffness are considered.
 
@@ -279,9 +279,9 @@ The chrono::fea::ChElementShellReissner is a quadrilateral thick shell element.
 - Allows large displacements, exponential map used for SO3
 - Thick shells allowed
 - Based on the Reissner 6-field shell theory (w. drilling stiffness)
-- Can have multi-layered materials, using CLT thory
+- Can have multi-layered materials, using CLT theory
 - ANS, shear-lock free
-- Nodes need not to be aligned to shell (rotation offsets auto-computed in initialization)
+- Nodes need not be aligned to shell (rotation offsets auto-computed in initialization)
 - Section defined in a modular way, via N layers, each with a chrono::fea::ChMaterialShellReissner composed by: 
   - Elasticity model from chrono::fea::ChElasticityReissner, ex:
     - chrono::fea::ChElasticityReissnerIsothropic
@@ -350,8 +350,8 @@ The chrono::fea::ChElementShellBST is a triangular thin shell element that offer
 - Triangular thin-shell 
 - 6 nodes of chrono::fea::ChNodeFEAxyz type
   - 1,2,3 from the triangle
-  - 4,5,6 from the neighbouring triangles (any can be optional if on the boundary)
-- Constant strain, constant curvature computed from bent triangle neighbours
+  - 4,5,6 from the neighboring triangles (any can be optional if on the boundary)
+- Constant strain, constant curvature computed from bent triangle neighbors
 - Allows large deformation
 - Can have multi-layered materials
 - Based on Kirchhoff-Love theory (no shear), good for tissues, sails, etc.

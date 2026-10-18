@@ -12,11 +12,9 @@
 // Authors: Nevindu Batagoda
 // =============================================================================
 //
-// A class to contain a volumetric object rendered using NVDB Voxels. 
-// Inherits elements from ChBody and ChBox
+// A class to contain a volumetric object rendered using NVDB voxels.
 //
 // =============================================================================
-
 
 #include "chrono_sensor/optix/ChNVDBVolume.h"
 
@@ -26,6 +24,25 @@ namespace sensor {
 ChNVDBShape::ChNVDBShape() {}
 
 ChNVDBShape::ChNVDBShape(const ChBox& box) : gbox(box) {}
+
+ChNVDBVolume::ChNVDBVolume(double Xsize, double Ysize, double Zsize, double density, bool visualize) : ChBody() {
+    SetupBody(Xsize, Ysize, Zsize, density, visualize);
+}
+
+void ChNVDBVolume::SetupBody(double Xsize, double Ysize, double Zsize, double density, bool visualize) {
+    double mmass = density * (Xsize * Ysize * Zsize);
+
+    SetMass(mmass);
+    SetInertiaXX(ChVector3d((1.0 / 12.0) * mmass * (pow(Ysize, 2) + pow(Zsize, 2)), (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Zsize, 2)),
+                            (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
+    if (visualize) {
+        auto vshape = chrono_types::make_shared<ChNVDBShape>();
+        vshape->GetBoxGeometry().SetLengths(ChVector3d(Xsize, Ysize, Zsize));
+        auto vmodel = chrono_types::make_shared<ChVisualModel>();
+        vmodel->AddShape(vshape);
+        this->AddVisualModel(vmodel);
+    }
+}
 
 void ChNVDBShape::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -45,35 +62,5 @@ void ChNVDBShape::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(gbox);
 }
 
-ChNVDBVolume::ChNVDBVolume(double Xsize,
-                           double Ysize,
-                           double Zsize,
-                           double density,
-                           bool visualize)
-    : ChBody() {
-    SetupBody(Xsize, Ysize, Zsize, density, visualize);
-}
-
-void ChNVDBVolume::SetupBody(double Xsize,
-                                 double Ysize,
-                                 double Zsize,
-                                 double density,
-                                 bool visualize
-                                 ) {
-    double mmass = density * (Xsize * Ysize * Zsize);
-
-    SetMass(mmass);
-    SetInertiaXX(ChVector3d((1.0 / 12.0) * mmass * (pow(Ysize, 2) + pow(Zsize, 2)),
-                                  (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Zsize, 2)),
-                                  (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
-    if (visualize) {
-        auto vshape = chrono_types::make_shared<ChNVDBShape>();
-        vshape->GetBoxGeometry().SetLengths(ChVector3d(Xsize, Ysize, Zsize));
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
-        this->AddVisualModel(vmodel);
-    }
-}
-
 }  // namespace sensor
-} //namespace chrono
+}  // namespace chrono

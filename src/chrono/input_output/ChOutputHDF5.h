@@ -22,9 +22,13 @@
 #include <string>
 #include <fstream>
 
-#include <H5Cpp.h>
-
 #include "chrono/input_output/ChOutput.h"
+
+namespace H5 {
+class H5File;
+class Group;
+class CompType;
+}
 
 namespace chrono {
 

@@ -17,11 +17,11 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapePath)
 
-ChVisualShapePath::ChVisualShapePath() : npoints(200), thickness(10.0) {
+ChVisualShapePath::ChVisualShapePath() : ChVisualShape(Type::PATH), npoints(200), thickness(10.0) {
     gpath = chrono_types::make_shared<ChLinePath>();
 }
 
-ChVisualShapePath::ChVisualShapePath(std::shared_ptr<ChLinePath>& path) : npoints(200), thickness(10.0), gpath(path) {}
+ChVisualShapePath::ChVisualShapePath(std::shared_ptr<ChLinePath>& path) : ChVisualShape(Type::PATH), npoints(200), thickness(10.0), gpath(path) {}
 
 void ChVisualShapePath::SetPathGeometry(std::shared_ptr<ChLinePath> path) {
     gpath = path;

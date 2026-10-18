@@ -20,6 +20,7 @@
 
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
+#include "chrono/core/ChRotation.h"
 #include "chrono/core/ChTimer.h"
 
 #include "gtest/gtest.h"
@@ -217,4 +218,21 @@ TEST(CoordsTest, global_to_local_3frames) {
     mvect1 = mvect3 >> f10.GetInverse() >> f21.GetInverse() >> f32.GetInverse();
     cout << mvect1 << " ..inv three transf (another method) \n";
     check_vector(mvect1, mvect1_ref, ABS_ERR);
+}
+
+TEST(CoordsTest, frame_moving_translate) {
+    ChFrameMoving<> frame(ChVector3d(1, 2, 3), QuatFromAngleZ(CH_PI / 3));
+    frame.SetPosDt(ChVector3d(0.1, 0.2, 0.3));
+    frame.SetAngVelParent(ChVector3d(0, 0, 0.5));
+    ChVector3d shift(10, 20, 30);
+
+    // Both operators translate the frame and leave its rotation and velocities unchanged
+    ChFrameMoving<> res1 = shift * frame;
+    ChFrameMoving<> res2 = frame >> shift;
+    for (const auto& res : {res1, res2}) {
+        check_vector(res.GetPos(), frame.GetPos() + shift, ABS_ERR);
+        ASSERT_TRUE(res.GetRot().Equals(frame.GetRot(), ABS_ERR));
+        check_vector(res.GetPosDt(), frame.GetPosDt(), ABS_ERR);
+        check_vector(res.GetAngVelParent(), frame.GetAngVelParent(), ABS_ERR);
+    }
 }

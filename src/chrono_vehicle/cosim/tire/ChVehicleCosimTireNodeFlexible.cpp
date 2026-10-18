@@ -188,7 +188,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
         m_vsys->SetImageOutput(m_writeRT);
         m_vsys->Initialize();
 
-        m_vsys->ToggleCOMFrameVisibility();
+        m_vsys->SetCOMFrameVisibility(true);
 #endif
     }
 }

@@ -48,14 +48,15 @@ print ('quat. dot product=', my_qconjugate ^ my_quat)
 print ('quat. product=',     my_qconjugate * my_quat)
 
 # Test matrices and NumPy interoperability
-mlist = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]]
-ma = chrono.ChMatrixDynamicd() 
+mlist = [[4,1,0,0], [1,4,1,0], [0,1,4,1], [0,0,1,4]]   # symmetric matrix
+ma = chrono.ChMatrixDynamicd()
 ma.SetMatr(mlist)   # Create a Matrix from a list. Size is adjusted automatically.
 npmat = np.asarray(ma.GetMatr()) # Create a 2D npy array from the list extracted from ChMatrixDynamic
-w, v = LA.eig(npmat)  # get eigenvalues and eigenvectors using numpy
+w, v = LA.eigh(npmat)  # get eigenvalues and eigenvectors using numpy (real-valued, since the matrix is symmetric)
+print ('eigenvalues =', w)
 mb = chrono.ChMatrixDynamicd(4,4)
-prod = v * npmat   # you can perform linear algebra operations with numpy and then feed results into a ChMatrixDynamicd using SetMatr 
-mb.SetMatr(v.tolist())    # create a ChMatrixDynamicd from the numpy eigenvectors
+prod = npmat @ v   # you can perform linear algebra operations with numpy and then feed results into a ChMatrixDynamicd using SetMatr
+mb.SetMatr(prod.tolist())    # create a ChMatrixDynamicd from the numpy matrix product
 mr = chrono.ChMatrix33d()
 mr.SetMatr([[1,2,3], [4,5,6], [7,8,9]])
 print (mr*my_vect1)

@@ -22,7 +22,6 @@
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtilsSamplers.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_dem/physics/ChSystemDem.h"
 #include "chrono_dem/utils/ChDemJsonParser.h"

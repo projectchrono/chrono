@@ -105,9 +105,7 @@ void ChFsiInterface::AttachMultibodySystem(ChSystem* sys) {
     m_sysMBS = sys;
 }
 
-std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded) {
-    ChAssertAlways(m_sysMBS);
-    ChAssertAlways(m_sysCFD);
+std::shared_ptr<FsiBody> ChFsiInterface::AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry, bool check_embedded) {
     ChAssertAlways(!geometry || geometry->HasCollision());
 
     auto fsi_body = chrono_types::make_shared<FsiBody>();
@@ -122,9 +120,6 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
     // Set the body index in list of FSI bodies
     fsi_body->index = m_fsi_bodies.size();
 
-    // Let the fluid solver process the FSI solid
-    m_sysCFD->OnAddFsiBody(fsi_body, check_embedded);
-
     // Store the body
     m_fsi_bodies.push_back(fsi_body);
 
@@ -132,10 +127,7 @@ std::shared_ptr<FsiBody> ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body
 }
 
 #ifdef CHRONO_FEA
-std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded) {
-    ChAssertAlways(m_sysMBS);
-    ChAssertAlways(m_sysCFD);
-
+std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFeaMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded) {
     auto fsi_mesh = chrono_types::make_shared<FsiMesh1D>();
     fsi_mesh->contact_surface = surface;
 
@@ -156,19 +148,13 @@ std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChC
     // Set the mesh index in list of FSI 1D meshes
     fsi_mesh->index = m_fsi_bodies.size();
 
-    // Let the fluid solver process the FSI solid
-    m_sysCFD->OnAddFsiMesh1D(fsi_mesh, check_embedded);
-
     // Store the mesh contact surface
     m_fsi_meshes1D.push_back(fsi_mesh);
 
     return m_fsi_meshes1D.back();
 }
 
-std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded) {
-    ChAssertAlways(m_sysMBS);
-    ChAssertAlways(m_sysCFD);
-
+std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFeaMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded) {
     auto fsi_mesh = chrono_types::make_shared<FsiMesh2D>();
     fsi_mesh->contact_surface = surface;
 
@@ -195,9 +181,6 @@ std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChC
 
     // Set the mesh index in list of FSI 1D meshes
     fsi_mesh->index = m_fsi_bodies.size();
-
-    // Let the fluid solver process the FSI solid
-    m_sysCFD->OnAddFsiMesh2D(fsi_mesh, check_embedded);
 
     // Store the mesh contact surface
     m_fsi_meshes2D.push_back(fsi_mesh);

@@ -23,8 +23,8 @@ namespace chrono {
 /// Differently from the ChLinkMotorLinearPosition and ChLinkMotorLinearSpeed, this does not enforce precise motion via
 /// constraint. Application examples:
 /// - mimic a PID controlled system with some feedback (user-defined)
-/// - force that is updated by a cosimulation
-/// - force from a human-in-the-loop setpoint
+/// - force that is updated by a co-simulation
+/// - force from a human-in-the-loop set-point
 /// Use SetForceFunction() to change to other force function (default zero force).
 class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
   public:

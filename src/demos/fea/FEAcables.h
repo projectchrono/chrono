@@ -20,6 +20,7 @@
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
@@ -40,14 +41,14 @@ class Model1 {
 
         // Create a section, i.e. thickness and material properties
         // for beams. This will be shared among some beams.
-        auto section = chrono_types::make_shared<ChBeamSectionCable>();
+        auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
         section->SetDiameter(beam_diameter);
         section->SetYoungModulus(0.01e9);
         section->SetRayleighDamping(0.000);
 
         // Create the nodes
-        auto node1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, -0.2), ChVector3d(1, 0, 0));
-        auto node2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_L, 0, -0.2), ChVector3d(1, 0, 0));
+        auto node1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, -0.2, 0), ChVector3d(1, 0, 0));
+        auto node2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_L, -0.2, 0), ChVector3d(1, 0, 0));
         mesh->AddNode(node1);
         mesh->AddNode(node2);
 
@@ -59,7 +60,7 @@ class Model1 {
 
         // Fix node1 and apply a force to node2
         node1->SetFixed(true);
-        node2->SetForce(ChVector3d(0, 3, 0));
+        node2->SetForce(ChVector3d(0, 0, 3));
 
         // Add a rigid body connected to the end of the beam
         body = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.02, 0.02, 1000);
@@ -100,7 +101,7 @@ class Model2 {
         ground->SetFixed(true);
 
         // Create a section, i.e. thickness and material properties for beams.
-        auto section = chrono_types::make_shared<ChBeamSectionCable>();
+        auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
         section->SetDiameter(0.015);
         section->SetYoungModulus(0.01e9);
         section->SetRayleighDamping(0.000);
@@ -110,8 +111,8 @@ class Model2 {
         builder.BuildBeam(mesh,                       // container FEA mesh
                           section,                    // cable section
                           10,                         // number of cable elements
-                          ChVector3d(0, 0, -0.1),     // point A (beginning of beam)
-                          ChVector3d(0.5, 0, -0.1));  // point B (end of beam)
+                          ChVector3d(0, -0.1, 0),     // point A (beginning of beam)
+                          ChVector3d(0.5, -0.1, 0));  // point B (end of beam)
 
         // Apply a force on the first node of the beam
         builder.GetLastBeamNodes().front()->SetForce(ChVector3d(1.0, 0, 0));
@@ -135,8 +136,8 @@ class Model2 {
 
 class Model3 {
   public:
-    Model3(ChSystem& system, std::shared_ptr<ChMesh> mesh, int n_chains = 6) : bodies(n_chains) {
-        auto section = chrono_types::make_shared<ChBeamSectionCable>();
+    Model3(ChSystem& system, std::shared_ptr<ChMesh> mesh, int n_chains = 6) : mid_bodies(n_chains), end_bodies(n_chains) {
+        auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
         section->SetDiameter(0.015);
         section->SetYoungModulus(0.01e9);
         section->SetRayleighDamping(0.000);
@@ -151,11 +152,11 @@ class Model3 {
             builder.BuildBeam(mesh,                                   // container FEA mesh
                               section,                                // cable section
                               1 + j,                                  // number of cable elements
-                              ChVector3d(0, 0, -0.1 * j),             // point A (beginning of beam)
-                              ChVector3d(0.1 + 0.1 * j, 0, -0.1 * j)  // point B (end of beam)
+                              ChVector3d(0, -0.1 * j, 0),             // point A (beginning of beam)
+                              ChVector3d(0.1 + 0.1 * j, -0.1 * j, 0)  // point B (end of beam)
             );
 
-            builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, -0.2, 0));
+            ////builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, 0, -0.2));
 
             auto constraint_hinge = chrono_types::make_shared<ChLinkNodeFrame>();
             constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), ground);
@@ -165,61 +166,76 @@ class Model3 {
             constraint_hinge->AddVisualShape(msphere);
 
             // Create and connect the intermediate body
-            auto mid_body = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
-            mid_body->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
-            system.Add(mid_body);
+            mid_bodies[j] = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
+            mid_bodies[j]->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
+            system.Add(mid_bodies[j]);
 
             auto constraint_pos = chrono_types::make_shared<ChLinkNodeFrame>();
-            constraint_pos->Initialize(builder.GetLastBeamNodes().back(), mid_body);
+            constraint_pos->Initialize(builder.GetLastBeamNodes().back(), mid_bodies[j]);
             system.Add(constraint_pos);
 
             auto constraint_dir = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
-            constraint_dir->Initialize(builder.GetLastBeamNodes().back(), mid_body);
+            constraint_dir->Initialize(builder.GetLastBeamNodes().back(), mid_bodies[j]);
             constraint_dir->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
             system.Add(constraint_dir);
 
             // Create a second beam
-            builder.BuildBeam(
-                mesh,                                                   // container FEA mesh
-                section,                                                // cable section
-                1 + (n_chains - j),                                     // number of cable elements
-                ChVector3d(mid_body->GetPos().x() + 0.1, 0, -0.1 * j),  // point A (beginning of beam)
-                ChVector3d(mid_body->GetPos().x() + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  // point B (end of beam)
+            builder.BuildBeam(mesh,                                                                              // container FEA mesh
+                              section,                                                                           // cable section
+                              1 + (n_chains - j),                                                                // number of cable elements
+                              ChVector3d(mid_bodies[j]->GetPos().x() + 0.1, -0.1 * j, 0),                        // point A (beginning of beam)
+                              ChVector3d(mid_bodies[j]->GetPos().x() + 0.1 + 0.1 * (n_chains - j), -0.1 * j, 0)  // point B (end of beam)
             );
 
             auto constraint_pos2 = chrono_types::make_shared<ChLinkNodeFrame>();
-            constraint_pos2->Initialize(builder.GetLastBeamNodes().front(), mid_body);
+            constraint_pos2->Initialize(builder.GetLastBeamNodes().front(), mid_bodies[j]);
             system.Add(constraint_pos2);
 
             auto constraint_dir2 = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
-            constraint_dir2->Initialize(builder.GetLastBeamNodes().front(), mid_body);
+            constraint_dir2->Initialize(builder.GetLastBeamNodes().front(), mid_bodies[j]);
             constraint_dir2->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
             system.Add(constraint_dir2);
 
             // Create and connect the end body
-            bodies[j] = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
-            bodies[j]->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
-            system.Add(bodies[j]);
+            end_bodies[j] = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.04, 0.04, 1000);
+            end_bodies[j]->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
+            system.Add(end_bodies[j]);
 
             auto constraint_pos3 = chrono_types::make_shared<ChLinkNodeFrame>();
-            constraint_pos3->Initialize(builder.GetLastBeamNodes().back(), bodies[j]);
+            constraint_pos3->Initialize(builder.GetLastBeamNodes().back(), end_bodies[j]);
             system.Add(constraint_pos3);
 
             auto constraint_dir3 = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
-            constraint_dir3->Initialize(builder.GetLastBeamNodes().back(), bodies[j]);
+            constraint_dir3->Initialize(builder.GetLastBeamNodes().back(), end_bodies[j]);
             constraint_dir3->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
             system.Add(constraint_dir3);
         }
     }
 
-    // Print positions of end bodies in each chain
+    // Print body positions in each chain
     void PrintBodyPositions() {
-        std::cout << "Time: " << bodies[0]->GetChTime() << std::endl;
-        for (auto body : bodies) {
-            std::cout << "  " << body->GetPos() << std::endl;
-        }
+        std::cout << "Time: " << end_bodies[0]->GetChTime() << std::endl;
+        std::cout << "  Mid bodies" << std::endl;
+        for (const auto& body : mid_bodies)
+            std::cout << "    " << body->GetPos() << std::endl;
+        std::cout << "  End bodies" << std::endl;
+        for (const auto& body : end_bodies)
+            std::cout << "    " << body->GetPos() << std::endl;
+        std::cout << std::endl;
     }
 
-  private:
-    std::vector<std::shared_ptr<ChBodyEasyBox>> bodies;  // end bodies
+    // Print body velocities in each chain
+    void PrintBodyVelocities() {
+        std::cout << "Time: " << end_bodies[0]->GetChTime() << std::endl;
+        std::cout << "  Mid bodies" << std::endl;
+        for (const auto& body : mid_bodies)
+            std::cout << "    " << body->GetPosDt() << std::endl;
+        std::cout << "  End bodies" << std::endl;
+        for (const auto& body : end_bodies)
+            std::cout << "    " << body->GetPosDt() << std::endl;
+        std::cout << std::endl;
+    }
+
+    std::vector<std::shared_ptr<ChBodyEasyBox>> mid_bodies;  // mid bodies
+    std::vector<std::shared_ptr<ChBodyEasyBox>> end_bodies;  // end bodies
 };

@@ -31,6 +31,11 @@ ChIrrNodeModel::ChIrrNodeModel(std::weak_ptr<ChPhysicsItem> physicsitem,
     m_clones = (std::dynamic_pointer_cast<ChParticleCloud>(m_physicsitem.lock()) != nullptr);
 }
 
+ChIrrNodeModel::~ChIrrNodeModel() {
+    removeAll();
+    remove();
+}
+
 void ChIrrNodeModel::OnRegisterSceneNode() {
     if (IsVisible)
         SceneManager->registerNodeForRendering(this);

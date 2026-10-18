@@ -59,6 +59,11 @@ class ChElementBase;
 %shared_ptr(chrono::ChVisualShapeSpring)
 %shared_ptr(chrono::ChVisualShapeSurface)
 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// ensure SWIG knows how to handle base class overrides so we're not hiding members
+%csmethodmodifiers chrono::ChVisualShape::GetType "public new"
+#endif             // --------------------------------------------------------------------- CSHARP
+
 %include "../../../chrono/assets/ChVisualShape.h"
 %include "../../../chrono/assets/ChVisualShapeModelFile.h"
 %include "../../../chrono/assets/ChVisualShapeTriangleMesh.h"

@@ -30,7 +30,11 @@ static constexpr float float_max = std::numeric_limits<float>::max();
 static constexpr int int_max = std::numeric_limits<int>::max();
 
 #elif defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
-    #ifndef __HIP_PLATFORM_AMD__
+    // Default to the AMD platform only when neither platform macro is already
+    // set. Defining __HIP_PLATFORM_AMD__ unconditionally breaks HIP targeting
+    // NVIDIA, where __HIP_PLATFORM_NVIDIA__ is already defined and HIP's own
+    // headers reject having both.
+    #if !defined(__HIP_PLATFORM_AMD__) && !defined(__HIP_PLATFORM_NVIDIA__)
         #define __HIP_PLATFORM_AMD__
     #endif
     #include <hip/hip_runtime.h>
@@ -91,14 +95,8 @@ struct float3 {
 struct float4 {
     float x, y, z, w;
 };
-struct double2 {
-    double x, y;
-};
 struct double3 {
     double x, y, z;
-};
-struct double4 {
-    double x, y, z, w;
 };
 
 constexpr inline int2 make_int2(int x, int y) {
@@ -131,14 +129,8 @@ constexpr inline float3 make_float3(float x, float y, float z) {
 constexpr inline float4 make_float4(float x, float y, float z, float w) {
     return {x, y, z, w};
 }
-constexpr inline double2 make_double2(double x, double y) {
-    return {x, y};
-}
 constexpr inline double3 make_double3(double x, double y, double z) {
     return {x, y, z};
-}
-constexpr inline double4 make_double4(double x, double y, double z, double w) {
-    return {x, y, z, w};
 }
 #endif
 

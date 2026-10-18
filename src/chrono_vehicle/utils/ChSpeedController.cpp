@@ -96,6 +96,9 @@ ChSpeedControllerPID::ChSpeedControllerPID(const std::string& filename) {
     m_Kd = d["Gains"]["Kd"].GetDouble();
 
     std::cout << "Loaded JSON " << filename << std::endl;
+    std::cout << "  Kp: " << m_Kp << std::endl;
+    std::cout << "  Ki: " << m_Ki << std::endl;
+    std::cout << "  Kd: " << m_Kd << std::endl;
 }
 
 ChSpeedControllerPID::~ChSpeedControllerPID() {

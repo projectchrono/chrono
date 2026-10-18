@@ -1,0 +1,185 @@
+#version 460
+#extension GL_EXT_ray_tracing : require
+
+struct GpuMaterial {
+    vec4 diffuse;
+    vec4 specular;
+    vec4 emissive;
+    vec4 params;
+    uvec4 ids;
+    vec4 sensor;
+    uvec4 texture0;
+    uvec4 texture1;
+    vec4 tex_scale;
+};
+
+struct GpuTexture {
+    uvec4 info;  // texel offset, width, height, flags (bit 0 = RGB9E5 HDR)
+};
+
+struct GpuSceneData {
+    vec4 ambient;
+    vec4 background0;
+    vec4 background1;
+    uvec4 counts;      // light count, background mode, environment texture id, texture count
+};
+
+struct GpuVertex {
+    vec4 pos;
+    vec4 normal;
+    vec4 uv;
+    vec4 tangent;
+};
+
+struct GpuTriangle {
+    uvec4 index_material;
+};
+
+struct ShadowPayload {
+    vec4 attenuation_remaining;  // rgb attenuation, remaining distance/debug
+};
+
+layout(std430, set = 0, binding = 1) readonly buffer Materials {
+    GpuMaterial materials[];
+};
+layout(std430, set = 0, binding = 2) readonly buffer Vertices {
+    GpuVertex vertices[];
+};
+layout(std430, set = 0, binding = 3) readonly buffer Triangles {
+    GpuTriangle triangles[];
+};
+layout(std430, set = 0, binding = 5) readonly buffer TextureTable {
+    GpuTexture textures[];
+};
+layout(std430, set = 0, binding = 6) readonly buffer TexturePixels {
+    uint texture_pixels[];
+};
+layout(std430, set = 0, binding = 8) readonly buffer Scene {
+    GpuSceneData scene_data;
+};
+
+hitAttributeEXT vec2 attribs;
+layout(location = 1) rayPayloadInEXT ShadowPayload shadow_payload;
+
+const uint INVALID_TEXTURE = 0xffffffffu;
+const uint TEX_FLAG_RGB9E5 = 1u;
+
+float saturate(float v) {
+    return clamp(v, 0.0, 1.0);
+}
+
+float max_component(vec3 v) {
+    return max(v.x, max(v.y, v.z));
+}
+
+float wrap01(float x) {
+    x = fract(x);
+    return x < 0.0 ? x + 1.0 : x;
+}
+
+int wrap_index(int i, int n) {
+    int r = i % n;
+    return r < 0 ? r + n : r;
+}
+
+vec4 unpack_rgba8(uint packed) {
+    return vec4(float(packed & 255u),
+                float((packed >> 8) & 255u),
+                float((packed >> 16) & 255u),
+                float((packed >> 24) & 255u)) / 255.0;
+}
+
+vec3 unpack_rgb9e5(uint packed) {
+    uint e = (packed >> 27) & 31u;
+    if (e == 0u && (packed & 0x07ffffffu) == 0u)
+        return vec3(0.0);
+    float scale = exp2(float(int(e) - 15 - 9));
+    return vec3(float(packed & 511u),
+                float((packed >> 9) & 511u),
+                float((packed >> 18) & 511u)) * scale;
+}
+
+vec4 unpack_texture_pixel(uint packed, uint flags) {
+    if ((flags & TEX_FLAG_RGB9E5) != 0u)
+        return vec4(unpack_rgb9e5(packed), 1.0);
+    return unpack_rgba8(packed);
+}
+
+vec4 texel_fetch_wrapped(uint tex_id, int x, int y) {
+    if (tex_id == INVALID_TEXTURE || tex_id >= scene_data.counts.w)
+        return vec4(1.0);
+    uvec4 info = textures[tex_id].info;
+    uint w = max(info.y, 1u);
+    uint h = max(info.z, 1u);
+    int xi = wrap_index(x, int(w));
+    int yi = wrap_index(y, int(h));
+    return unpack_texture_pixel(texture_pixels[info.x + uint(yi) * w + uint(xi)], info.w);
+}
+
+vec4 sample_texture(uint tex_id, vec2 uv, vec2 scale) {
+    if (tex_id == INVALID_TEXTURE || tex_id >= scene_data.counts.w)
+        return vec4(1.0);
+    uvec4 info = textures[tex_id].info;
+    float w = float(max(info.y, 1u));
+    float h = float(max(info.z, 1u));
+    float u = wrap01(uv.x * scale.x);
+    float v = wrap01(uv.y * scale.y);
+    float x = u * w - 0.5;
+    float y = v * h - 0.5;
+    int x0 = int(floor(x));
+    int y0 = int(floor(y));
+    float tx = x - float(x0);
+    float ty = y - float(y0);
+    vec4 c00 = texel_fetch_wrapped(tex_id, x0, y0);
+    vec4 c10 = texel_fetch_wrapped(tex_id, x0 + 1, y0);
+    vec4 c01 = texel_fetch_wrapped(tex_id, x0, y0 + 1);
+    vec4 c11 = texel_fetch_wrapped(tex_id, x0 + 1, y0 + 1);
+    return mix(mix(c00, c10, tx), mix(c01, c11, tx), ty);
+}
+
+float material_opacity(uint mat_id, vec2 uv, bool has_uv) {
+    GpuMaterial mat = materials[mat_id];
+    float opacity = saturate(mat.params.x);
+    if (has_uv) {
+        vec2 scale = mat.tex_scale.xy;
+        if (mat.texture0.x != INVALID_TEXTURE) {
+            vec4 kd = sample_texture(mat.texture0.x, uv, scale);
+            // OptiX uses Kd alpha to cut out cards; treating intermediate alpha
+            // as continuous opacity is still compatible with glass/PNG masks and
+            // avoids false hard shadows through masked materials.
+            opacity *= saturate(kd.a);
+        }
+        if (mat.texture1.z != INVALID_TEXTURE)
+            opacity = saturate(sample_texture(mat.texture1.z, uv, scale).r);
+        if (mat.texture1.w != INVALID_TEXTURE)
+            opacity *= saturate(sample_texture(mat.texture1.w, uv, scale).r);
+    }
+    return opacity;
+}
+
+void main() {
+    GpuTriangle tri = triangles[gl_PrimitiveID];
+    uint i0 = tri.index_material.x;
+    uint i1 = tri.index_material.y;
+    uint i2 = tri.index_material.z;
+    uint mat_id = tri.index_material.w;
+
+    float b1 = attribs.x;
+    float b2 = attribs.y;
+    float b0 = 1.0 - b1 - b2;
+    vec2 uv = vertices[i0].uv.xy * b0 + vertices[i1].uv.xy * b1 + vertices[i2].uv.xy * b2;
+    bool has_uv = max(vertices[i0].uv.z, max(vertices[i1].uv.z, vertices[i2].uv.z)) > 0.5;
+
+    float opacity = material_opacity(mat_id, uv, has_uv);
+    if (opacity >= 1.0 - 1e-5) {
+        shadow_payload.attenuation_remaining.rgb = vec3(0.0);
+        terminateRayEXT;
+    }
+
+    float pass = saturate(1.0 - opacity);
+    shadow_payload.attenuation_remaining.rgb *= vec3(pass);
+    if (max_component(shadow_payload.attenuation_remaining.rgb) <= 1e-5)
+        terminateRayEXT;
+
+    ignoreIntersectionEXT;
+}

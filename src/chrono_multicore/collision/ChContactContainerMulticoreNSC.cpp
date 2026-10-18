@@ -17,11 +17,9 @@
 
 namespace chrono {
 
-ChContactContainerMulticoreNSC::ChContactContainerMulticoreNSC(ChMulticoreDataManager* dc)
-    : ChContactContainerMulticore(dc) {}
+ChContactContainerMulticoreNSC::ChContactContainerMulticoreNSC(ChMulticoreDataManager* dc) : ChContactContainerMulticore(dc) {}
 
-ChContactContainerMulticoreNSC::ChContactContainerMulticoreNSC(const ChContactContainerMulticoreNSC& other)
-    : ChContactContainerMulticore(other) {
+ChContactContainerMulticoreNSC::ChContactContainerMulticoreNSC(const ChContactContainerMulticoreNSC& other) : ChContactContainerMulticore(other) {
     //// TODO
 }
 
@@ -41,9 +39,7 @@ void ChContactContainerMulticoreNSC::EndAddContact() {
     //// Anything else here?!?
 }
 
-void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
-                                                std::shared_ptr<ChContactMaterial> mat1,
-                                                std::shared_ptr<ChContactMaterial> mat2) {
+void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo, std::shared_ptr<ChContactMaterial> mat1, std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -82,16 +78,13 @@ void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
         }
 
         // Composite material for added contact
-        ChContactMaterialCompositeNSC cmat(data_manager->composition_strategy.get(),
-                                           std::static_pointer_cast<ChContactMaterialNSC>(mat1),
+        ChContactMaterialCompositeNSC cmat(data_manager->composition_strategy.get(), std::static_pointer_cast<ChContactMaterialNSC>(mat1),
                                            std::static_pointer_cast<ChContactMaterialNSC>(mat2));
 
         // Load composite material properties in global data structure
-        data_manager->host_data.fric_rigid_rigid.push_back(
-            real3(cmat.sliding_friction, cmat.rolling_friction, cmat.spinning_friction));
+        data_manager->host_data.fric_rigid_rigid.push_back(real3(cmat.sliding_friction, cmat.rolling_friction, cmat.spinning_friction));
         data_manager->host_data.coh_rigid_rigid.push_back(cmat.cohesion);
-        data_manager->host_data.compliance_rigid_rigid.push_back(
-            real4(cmat.compliance, cmat.complianceT, cmat.complianceRoll, cmat.complianceSpin));
+        data_manager->host_data.compliance_rigid_rigid.push_back(real4(cmat.compliance, cmat.complianceT, cmat.complianceRoll, cmat.complianceSpin));
 
         // Increment number of contacts
         cd_data->num_rigid_contacts++;
@@ -121,8 +114,7 @@ void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo) {
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
         cd_data->dpth_rigid_rigid.push_back(cinfo.distance);
         cd_data->erad_rigid_rigid.push_back(cinfo.eff_radius);
-        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)contactableA)->GetIndex(),
-                                                 ((ChBody*)contactableB)->GetIndex()));
+        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)contactableA)->GetIndex(), ((ChBody*)contactableB)->GetIndex()));
         cd_data->num_rigid_contacts++;
     }
 }

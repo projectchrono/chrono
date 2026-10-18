@@ -39,7 +39,7 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadsBeam.h"
 #include "chrono/fea/ChMesh.h"
-//#include "chrono/utils/ChValidation.h"
+// #include "chrono/utils/ChValidation.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -60,8 +60,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 20000; x++) {
-        fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2) >> FileInputMat(x, 3) >>
-            FileInputMat(x, 4) >> FileInputMat(x, 5) >> FileInputMat(x, 6);
+        fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2) >> FileInputMat(x, 3) >> FileInputMat(x, 4) >> FileInputMat(x, 5) >> FileInputMat(x, 6);
     }
     fileMid.close();
 
@@ -81,7 +80,7 @@ int main(int argc, char* argv[]) {
     unsigned int NElem = 4;
     double rho = 0.0;
 
-    auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    auto msection_cable = chrono_types::make_shared<ChBeamSectionCableANCF>();
     diam = std::sqrt(1e-6 / CH_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
     msection_cable->SetYoungModulus(1e9 / std::pow(f_const, 4));
@@ -93,8 +92,7 @@ int main(int argc, char* argv[]) {
     auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, 0.0), ChVector3d(1, 0, 0));
     auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length / 4, 0, 0), ChVector3d(1, 0, 0));
     auto hnodeancf3 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length / 2, 0, 0), ChVector3d(1, 0, 0));
-    auto hnodeancf4 =
-        chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(3.0 * beam_length / 4, 0, 0), ChVector3d(1, 0, 0));
+    auto hnodeancf4 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(3.0 * beam_length / 4, 0, 0), ChVector3d(1, 0, 0));
     auto hnodeancf5 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(beam_length, 0, 0), ChVector3d(1, 0, 0));
 
     my_mesh->AddNode(hnodeancf1);
@@ -188,10 +186,8 @@ int main(int argc, char* argv[]) {
 
         if (std::max(AbsVal, AbsVal2) > precision) {
             std::cout << "Unit test check failed \n";
-            std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat(it, 4)
-                      << "  diff: " << AbsVal << ")\n";
-            std::cout << "  z position: " << hnodeancf5->GetPos().z() << "  (reference: " << FileInputMat(it, 6)
-                      << "  diff: " << AbsVal2 << ")\n";
+            std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat(it, 4) << "  diff: " << AbsVal << ")\n";
+            std::cout << "  z position: " << hnodeancf5->GetPos().z() << "  (reference: " << FileInputMat(it, 6) << "  diff: " << AbsVal2 << ")\n";
             return 1;
         }
     }
@@ -210,7 +206,7 @@ int main(int argc, char* argv[]) {
     m_data[6][it] << std::endl;
     // Advance system state
     std::cout << "Time t = " << sys.GetChTime() << "s \n";
-    csv.WriteToFile("UT_ANCFBeam.txt"); 
+    csv.WriteToFile("UT_ANCFBeam.txt");
     */
 
     return 0;

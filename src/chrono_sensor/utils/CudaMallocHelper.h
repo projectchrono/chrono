@@ -34,7 +34,7 @@ namespace sensor {
 /// @addtogroup sensor_utils
 /// @{
 
-/// Function for creating a chunk of memory that will implicitely desconstruct itself.
+/// Function for creating a chunk of memory that will implicitly deconstruct itself.
 /// @param size The number of values for which we should have space. Full memory length will be size*sizeof(T)
 template <class T>
 inline T* cudaMallocHelper(unsigned int size) {
@@ -44,7 +44,7 @@ inline T* cudaMallocHelper(unsigned int size) {
     return (T*)ret;
 }
 
-/// The desconstructor that will be called to free memory from the device pointer.
+/// The deconstructor that will be called to free memory from the device pointer.
 /// @param ptr The pointer to the object that should be freed.
 template <class T>
 inline void cudaFreeHelper(T* ptr) {
@@ -52,7 +52,7 @@ inline void cudaFreeHelper(T* ptr) {
         CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(ptr)));
 }
 
-/// Function for creating a chunk of memory that will implicitely desconstruct itself.
+/// Function for creating a chunk of memory that will implicitly deconstruct itself.
 /// @param size The number of values for which we should have space. Full memory length will be size*sizeof(T)
 template <class T>
 inline T* cudaHostMallocHelper(unsigned int size) {
@@ -62,7 +62,7 @@ inline T* cudaHostMallocHelper(unsigned int size) {
     return (T*)ret;
 }
 
-/// The desconstructor that will be called to free memory from the device pointer.
+/// The deconstructor that will be called to free memory from the device pointer.
 /// @param ptr The pointer to the object that should be freed.
 template <class T>
 inline void cudaHostFreeHelper(T* ptr) {

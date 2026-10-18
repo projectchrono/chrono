@@ -17,11 +17,9 @@
 
 namespace chrono {
 
-ChContactContainerMulticoreSMC::ChContactContainerMulticoreSMC(ChMulticoreDataManager* dc)
-    : ChContactContainerMulticore(dc) {}
+ChContactContainerMulticoreSMC::ChContactContainerMulticoreSMC(ChMulticoreDataManager* dc) : ChContactContainerMulticore(dc) {}
 
-ChContactContainerMulticoreSMC::ChContactContainerMulticoreSMC(const ChContactContainerMulticoreSMC& other)
-    : ChContactContainerMulticore(other) {
+ChContactContainerMulticoreSMC::ChContactContainerMulticoreSMC(const ChContactContainerMulticoreSMC& other) : ChContactContainerMulticore(other) {
     //// TODO
 }
 
@@ -43,9 +41,7 @@ void ChContactContainerMulticoreSMC::EndAddContact() {
     //// Anything else here?!?
 }
 
-void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
-                                                std::shared_ptr<ChContactMaterial> mat1,
-                                                std::shared_ptr<ChContactMaterial> mat2) {
+void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo, std::shared_ptr<ChContactMaterial> mat1, std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -74,15 +70,13 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
         cd_data->bids_rigid_rigid.push_back(vec2(b1, b2));
 
         // Composite material for added contact
-        ChContactMaterialCompositeSMC cmat(data_manager->composition_strategy.get(),
-                                           std::static_pointer_cast<ChContactMaterialSMC>(mat1),
+        ChContactMaterialCompositeSMC cmat(data_manager->composition_strategy.get(), std::static_pointer_cast<ChContactMaterialSMC>(mat1),
                                            std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
         // Load composite material properties in global data structure
         data_manager->host_data.fric_rigid_rigid.push_back(real3(cmat.mu_eff, cmat.muRoll_eff, cmat.muSpin_eff));
         data_manager->host_data.modulus_rigid_rigid.push_back(real2(cmat.E_eff, cmat.G_eff));
-        data_manager->host_data.adhesion_rigid_rigid.push_back(
-            real3(cmat.adhesion_eff, cmat.adhesionMultDMT_eff, cmat.adhesionSPerko_eff));
+        data_manager->host_data.adhesion_rigid_rigid.push_back(real3(cmat.adhesion_eff, cmat.adhesionMultDMT_eff, cmat.adhesionSPerko_eff));
         data_manager->host_data.cr_rigid_rigid.push_back(real(cmat.cr_eff));
         data_manager->host_data.smc_rigid_rigid.push_back(real4(cmat.kn, cmat.kt, cmat.gn, cmat.gt));
 
@@ -114,8 +108,7 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo) {
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
         cd_data->dpth_rigid_rigid.push_back(cinfo.distance);
         cd_data->erad_rigid_rigid.push_back(cinfo.eff_radius);
-        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)contactableA)->GetIndex(),
-                                                 ((ChBody*)contactableB)->GetIndex()));
+        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)contactableA)->GetIndex(), ((ChBody*)contactableB)->GetIndex()));
         cd_data->num_rigid_contacts++;
     }
 }
@@ -167,8 +160,7 @@ void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b
     // Load composite material properties in global data structure
     data_manager->host_data.fric_rigid_rigid[index] = real3(cmat.mu_eff, cmat.muRoll_eff, cmat.muSpin_eff);
     data_manager->host_data.modulus_rigid_rigid[index] = real2(cmat.E_eff, cmat.G_eff);
-    data_manager->host_data.adhesion_rigid_rigid[index] =
-        real3(cmat.adhesion_eff, cmat.adhesionMultDMT_eff, cmat.adhesionSPerko_eff);
+    data_manager->host_data.adhesion_rigid_rigid[index] = real3(cmat.adhesion_eff, cmat.adhesionMultDMT_eff, cmat.adhesionSPerko_eff);
     data_manager->host_data.cr_rigid_rigid[index] = real(cmat.cr_eff);
     data_manager->host_data.smc_rigid_rigid[index] = real4(cmat.kn, cmat.kt, cmat.gn, cmat.gt);
 }

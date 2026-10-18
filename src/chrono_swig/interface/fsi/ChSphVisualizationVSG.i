@@ -15,5 +15,7 @@ using namespace chrono::vsg3d;
 %rename(MarkerPlanesVisibilityCallback_Plane) chrono::fsi::sph::MarkerPlanesVisibilityCallback::Plane;
 %template(vector_MarkerPlanesVisibilityCallback_Plane) std::vector<chrono::fsi::sph::MarkerPlanesVisibilityCallback::Plane>;
 
+%rename(SphVisualizationSettings) chrono::fsi::sph::ChSphVisualizationVSG::Settings;
+
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"    

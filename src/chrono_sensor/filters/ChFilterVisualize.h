@@ -18,16 +18,25 @@
 #define CHFILTERVISUALIZE_H
 
 #ifdef USE_SENSOR_GLFW
-    #include <GL/glew.h>
+    #ifdef __APPLE__
+        #include <OpenGL/gl.h>
+    #else
+        #include <GL/glew.h>
+    #endif
     #include <GLFW/glfw3.h>
 #endif
 
 #include "chrono_sensor/filters/ChFilter.h"
+#include "chrono_sensor/ChConfigSensor.h"
 
 #include <iostream>
 #include <mutex>
 
-#include <cuda.h>
+#ifdef CHRONO_HAS_OPTIX
+    #include <cuda.h>
+#else
+    using CUstream = void*;
+#endif
 
 namespace chrono {
 namespace sensor {

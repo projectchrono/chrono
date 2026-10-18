@@ -104,6 +104,9 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         }
     }
 #endif
+
+    // Update solid AABBs (expressed in absolute frame)
+    m_data_mgr->UpdateActiveDomains();
 }
 
 void ChFsiInterfaceSPH::ExchangeSolidForces() {
@@ -127,7 +130,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
 #ifdef CHRONO_FEA
     {
         // Transfer to host
-        auto forces_H = m_data_mgr->GetFlex1dForces();
+        auto forces_H = m_data_mgr->GetMesh1DForces();
 
         // Apply to FEA 1-D mesh nodes
         int index = 0;
@@ -142,7 +145,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
 
     {
         // Transfer to host
-        auto forces_H = m_data_mgr->GetFlex2dForces();
+        auto forces_H = m_data_mgr->GetMesh2DForces();
 
         // Apply to FEA 2-D mesh nodes
         int index = 0;

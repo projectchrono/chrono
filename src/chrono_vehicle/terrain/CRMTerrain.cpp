@@ -57,8 +57,8 @@ void CRMTerrain::SetActiveDomain(const ChVector3d& box_dim) {
     GetFluidSystemSPH()->SetActiveDomain(box_dim);
 }
 
-void CRMTerrain::SetActiveDomainDelay(double delay) {
-    GetFluidSystemSPH()->SetActiveDomainDelay(delay);
+void CRMTerrain::SetFreeFlowDuration(double delay) {
+    GetFluidSystemSPH()->SetFreeFlowDuration(delay);
 }
 
 void CRMTerrain::RegisterVehicle(ChVehicle* vehicle) {
@@ -129,7 +129,7 @@ void CRMTerrain::Synchronize(double time) {
     if (dist >= m_buffer)
         return;
 
-    // Current computationl domain
+    // Current computational domain
     ChAABB domainAABB = m_sysSPH->GetComputationalDomain();
 
     if (m_verbose) {

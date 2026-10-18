@@ -1,0 +1,77 @@
+chrono-version: 10.0
+type: MBS
+
+model:  "mbs_model.yaml"
+solver: "mbs_solver.yaml"
+
+simulation:
+  # This value is ignored: a preCICE adapter terminates on the coupling status reported by
+  # preCICE alone. A negative end time is the Chrono convention for "no end time of my own".
+  end_time: -1
+
+  enforce_realtime: true
+
+  # Gravitational acceleration for the solid phase. Must match the gravity of the fluid participants:
+  # the participants are separate processes and nothing reconciles these values for you.
+  gravity: [0, 0, -9.8]
+
+output:
+  format: HDF5
+  mode: SERIES
+  fps: 20
+
+visualization:
+  type: PRIMITIVES
+  render_fps: 120
+  enable_shadows: false
+  camera:
+    vertical: Z
+    location: [2, 2, 0.6]
+    target: [0, 0, -0.4]
+  output:
+    save_images: false
+    image_type: "bmp"
+
+precice_adapter_config:
+  participant_name: Solid
+
+  # Sample the fluid data at the end of the coupling time window. Valid because this participant is
+  # listed as 'second' in both serial coupling schemes (one per fluid participant) and therefore runs
+  # after both fluid participants within each window; the adapter verifies this against the preCICE
+  # configuration during initialization.
+  read_data_time: WINDOW_END
+
+  data_path:
+    type: RELATIVE
+    root: "../fluid_tdpf"
+
+  bodies:
+  - name: ball
+
+  # Baseline added mass. Denoting by M the sphere's infinite-frequency added mass, the hydrodynamic file
+  # below (shared with the TDPF participants) holds M/2, since its fluid density is halved (see
+  # ../make_sphere_half_rho.py). At each window, the added mass applied is this baseline plus the
+  # increments received from the two TDPF participants (M/6 from Fluid1 and M/3 from Fluid2), for a
+  # total of M.
+  added_mass:
+    h5_filename: "sphere_half_rho.h5"
+
+  # The forces and torques of the two fluid participants are read as separate data blocks; the adapter
+  # accumulates all forces and torques acting on a body.
+  interfaces:
+  - mesh_name: SolidMesh
+    mesh_type: RIGID_BODY_REFS
+    write_data:
+    - name: positions
+      type: POSITIONS
+    - name: velocities
+      type: LINEAR_VELOCITIES
+    read_data:
+    - name: forces1
+      type: FORCES
+    - name: torques1
+      type: TORQUES
+    - name: forces2
+      type: FORCES
+    - name: torques2
+      type: TORQUES

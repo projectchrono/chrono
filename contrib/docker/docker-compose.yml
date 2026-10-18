@@ -14,18 +14,27 @@ services:
       args:
         PROJECT: "${COMPOSE_PROJECT_NAME}"
         IMAGE_BASE: "ubuntu"
-        IMAGE_TAG: "22.04"
+        IMAGE_TAG: "26.04"
         USER_GROUPS: "dialout video"
         PIP_REQUIREMENTS: "black"
         APT_DEPENDENCIES: "vim cmake-curses-gui"
         USER_SHELL_ADD_ONS: "alias python=python3"
 
-        CUDA_VERSION: "12-2"
-        ROS_DISTRO: "humble"
+        CUDA_VERSION: "13-3"
+        # Empty builds every architecture this CUDA toolkit knows. The resolved list is baked
+        # into the installed ChronoConfig.cmake and forced on downstream projects, so it must
+        # cover the GPU that runs the image; pin a compute capability when the toolkit predates
+        # the card, e.g. "120" (Blackwell) or "86". A list works ("86;89"). Not "native".
+        CHRONO_CUDA_ARCHITECTURES: ""
+        ROS_DISTRO: "lyrical"
         OPTIX_SCRIPT: "data/NVIDIA-OptiX-SDK-9.0.0-linux64-x86_64.sh" # Get optix script at https://developer.nvidia.com/designworks/optix/downloads/legacy
     volumes:
       - '../../:/home/${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}-dev'
       - '/tmp/.X11-unix:/tmp/.X11-unix'
+      # The OptiX denoiser needs the driver's nvoptix.bin. nvidia-container-toolkit mounts it
+      # from v1.14.4 / v1.15.0 on; uncomment for older toolkits, and only where the file exists,
+      # since Docker materialises a missing bind source as an empty directory.
+      # - '/usr/share/nvidia/nvoptix.bin:/usr/share/nvidia/nvoptix.bin:ro'
     environment:
       DISPLAY: '${DISPLAY:-vnc:0.0}'
       NVIDIA_VISIBLE_DEVICES: all
@@ -41,7 +50,7 @@ services:
             count: all
             driver: nvidia
   vnc:
-    image: "camera/${COMPOSE_PROJECT_NAME}:vnc"
+    image: "${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}:vnc"
     hostname: "${COMPOSE_PROJECT_NAME}-vnc"
     container_name: "${COMPOSE_PROJECT_NAME}-vnc"
     build:

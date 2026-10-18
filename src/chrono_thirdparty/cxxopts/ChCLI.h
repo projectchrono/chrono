@@ -101,7 +101,7 @@ class ChCLI {
     const cxxopts::OptionValue& Get(const std::string& option) { return (*m_result)[option]; }
 
     /// Get option as type
-    /// Recommanded way of accessing
+    /// Recommended way of accessing
     template <typename T>
     const T GetAsType(const std::string& option) {
         try {
@@ -116,7 +116,7 @@ class ChCLI {
                     << "\" requested by ChCLI::GetAsType, but has no default value and not present on command line"
                     << std::endl;
             }
-            exit(-1);
+            throw;
         }
     }
 

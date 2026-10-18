@@ -37,7 +37,7 @@ ChParserCfdYAML::FluidSystemType ChParserCfdYAML::ReadFluidSystemType(const std:
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
     if (yaml["type"]) {
-        auto sysCFD_type = yaml["type"].as<std::string>();
+        auto sysCFD_type = ChToUpper(yaml["type"].as<std::string>());
         if (sysCFD_type == "SPH")
             return FluidSystemType::SPH;
         if (sysCFD_type == "TDPF")

@@ -223,7 +223,7 @@ std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, const ChVector3d& 
     sysMBS.AddBody(ground);
 
     // Create beam section and construct beam
-    auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    auto section_cable = chrono_types::make_shared<ChBeamSectionCableANCF>();
     section_cable->SetDiameter(2 * radius);
     section_cable->SetYoungModulus(E);
     section_cable->SetDensity(density);
@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
 
     sph_params.shifting_method = ShiftingMethod::DIFFUSION;
     sph_params.shifting_diffusion_A = 1.;
-    sph_params.shifting_diffusion_AFSM = 3.;
+    sph_params.shifting_diffusion_AFSM = 2.9;
     sph_params.shifting_diffusion_AFST = 2.;
 
     sph_params.use_consistent_gradient_discretization = false;

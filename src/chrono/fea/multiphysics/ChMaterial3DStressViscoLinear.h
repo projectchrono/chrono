@@ -111,7 +111,7 @@ public:
 
 
     /// This material need info on the spatial velocity gradient  l=\nabla_x v 
-    virtual bool IsSpatialVelocityGradientNeeded() const {
+    virtual bool IsSpatialVelocityGradientNeeded() const override {
         return true;
     }
 

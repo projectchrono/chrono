@@ -83,9 +83,12 @@ static void inline AppendRow6Weak(T& D, const int row, const int col, const real
 
 template <typename T>
 static void inline SetRow3Weak(T& D, const int row, const int col, const real3& A) {
-    if (A.x != 0.0) D.coeffRef(row, col + 0) = A.x;
-    if (A.y != 0.0) D.coeffRef(row, col + 1) = A.y;
-    if (A.z != 0.0) D.coeffRef(row, col + 2) = A.z;
+    if (A.x != 0.0)
+        D.coeffRef(row, col + 0) = A.x;
+    if (A.y != 0.0)
+        D.coeffRef(row, col + 1) = A.y;
+    if (A.z != 0.0)
+        D.coeffRef(row, col + 2) = A.z;
 }
 
 template <typename T>

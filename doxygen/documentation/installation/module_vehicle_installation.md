@@ -14,11 +14,11 @@ For more detail, read the [Chrono::Vehicle](@ref manual_vehicle) section of the 
 ## Dependencies
 
 - This module has no additional dependencies
-- Use the [CRGTerrain](@ref vehicle_terrain_crg) feature requires the [OpenCRG](https://www.asam.net/standards/detail/opencrg/) library. 
+- Using the [CRGTerrain](@ref vehicle_terrain_crg) feature requires the [OpenCRG](https://www.asam.net/standards/detail/opencrg/) library. 
 
 For run-time visualization, it is recommended to enable and install the [Chrono::VSG](@ref module_vsg_installation) module and/or the [Chrono::Irrlicht](@ref module_irrlicht_installation) module. 
 
-## Building and installing prerequisistes
+## Building and installing prerequisites
 
 Chrono::Vehicle includes the option of specifying a terrain using an OpenCRG specification. Support for this optional capability requires the OpenCRG library.
 

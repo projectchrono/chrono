@@ -41,6 +41,11 @@ const int COLOR_MODE_VELOCITY_Z = 5;
 const int COLOR_MODE_DENSITY = 6;
 const int COLOR_MODE_PRESSURE = 7;
 
+// Colormaps are authored in sRGB; the particle shader computes lighting in linear space
+vec3 sRGBToLinear(vec3 c) {
+    return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
+}
+
 // Interpolate a RGB sample from the uploaded colourmap texture
 vec3 sampleColormap(float normalizedValue) {
     int count = colormap.length();
@@ -122,5 +127,5 @@ void main() {
     float normalizedValue = (colorMode == COLOR_MODE_PRESSURE) ? normalizePressure(scalar) : safeNormalize(scalar);
 
     vec3 color = sampleColormap(normalizedValue);
-    colors[idx] = vec4(color, 1.0); // no alpha
+    colors[idx] = vec4(sRGBToLinear(color), 1.0); // no alpha
 }

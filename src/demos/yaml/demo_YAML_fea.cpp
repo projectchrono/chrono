@@ -1,0 +1,144 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2026 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Simple demo for populating a Chrono system from a YAML model file and
+// simulating it with parameters from a YAML simulation file.
+//
+// =============================================================================
+
+////#include <float.h>
+////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+
+#include "chrono_parsers/yaml/ChParserMbsYAML.h"
+
+#include "chrono/assets/ChVisualSystem.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystem.h"
+
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+
+using namespace chrono;
+
+int main(int argc, char* argv[]) {
+    std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    // Extract filename from command-line arguments
+    std::string yaml_filename = GetChronoDataFile("yaml/fea/mbs.yaml");
+
+    ChCLI cli(argv[0], "");
+    cli.AddOption<std::string>("", "s,simulation_file", "MBS simulation specification YAML file", yaml_filename);
+    if (!cli.Parse(argc, argv, true))
+        return 1;
+    if (argc == 1) {
+        cli.Help();
+        std::cout << "Using default YAML simulation specification" << std::endl;
+    }
+    yaml_filename = cli.GetAsType<std::string>("simulation_file");
+
+    std::cout << std::endl;
+    std::cout << "YAML specification file: " << yaml_filename << std::endl;
+
+    // Create YAML parser object, load the YAML file, then create a Chrono system and populate it
+    parsers::ChParserMbsYAML parser(yaml_filename, true);
+    auto sys = parser.CreateSystem();
+    parser.Populate(*sys);
+
+    // Print hierarchy of modeling components in ChSystem
+    ////std::cout << "Number of model instances: " << parser.GetNumInstances() << std::endl;
+    ////sys->ShowHierarchy(std::cout);
+
+    // Extract information from parsed YAML files
+    const std::string& model_name = parser.GetName();
+    double time_end = parser.GetEndtime();
+    double time_step = parser.GetTimestep();
+
+    bool output = parser.OutputEnabled();
+    bool render = parser.VisualizationEnabled();
+
+    CameraVerticalDir camera_vertical = parser.GetCameraVerticalDir();
+    const ChVector3d& camera_location = parser.GetCameraLocation();
+    const ChVector3d& camera_target = parser.GetCameraTarget();
+    bool enable_shadows = parser.EnableShadows();
+
+    // Print system hierarchy
+    ////sys->ShowHierarchy(std::cout);
+
+    // Create the run-time visualization system
+    std::shared_ptr<ChVisualSystem> vis;
+#ifdef CHRONO_VSG
+    if (render) {
+        auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+        vis_vsg->AttachSystem(sys.get());
+        vis_vsg->SetWindowTitle("YAML model - " + model_name);
+        vis_vsg->AddCamera(camera_location, camera_target);
+        vis_vsg->SetWindowSize(1280, 800);
+        vis_vsg->SetWindowPosition(100, 100);
+        vis_vsg->SetCameraVertical(camera_vertical);
+        vis_vsg->SetCameraAngleDeg(40.0);
+        vis_vsg->SetLightIntensity(1.0f);
+        vis_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
+        vis_vsg->EnableShadows(enable_shadows);
+        vis_vsg->ToggleAbsFrameVisibility();
+        vis_vsg->SetAbsFrameScale(2.0);
+        vis_vsg->Initialize();
+
+        vis = vis_vsg;
+    }
+#else
+    if (render)
+        std::cout << "Chrono::VSG run-time visualization module not enabled. Disabling visualization." << std::endl;
+    render = false;
+#endif
+
+    // Create output directory
+    if (output) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_MBS";
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        out_dir = out_dir + "/" + model_name;
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        parser.SetOutputDir(out_dir);
+    }
+
+    // Simulation loop
+    double time = 0;
+
+    while (true) {
+        if (time_end > 0 && time > time_end)
+            break;
+
+        if (render && !parser.Render(*vis, time))
+            break;
+
+        if (output)
+            parser.Output(time);
+
+        // Advance multibody system dynamics
+        parser.DoStepDynamics();
+
+        time += time_step;
+    }
+
+    return 0;
+}

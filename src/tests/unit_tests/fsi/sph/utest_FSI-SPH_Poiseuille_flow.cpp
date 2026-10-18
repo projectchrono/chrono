@@ -71,8 +71,7 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChFsiFluidSys
     // Truncate infinite series to 50 terms
     double v = 1.0 / (2.0 * nu) * F * Z * (H - Z);
     for (int n = 0; n < 50; n++) {
-        v = v - 4.0 * F * std::pow(H, 2) / (nu * std::pow(CH_PI, 3) * std::pow(2 * n + 1, 3)) *
-                    std::sin(CH_PI * Z * (2 * n + 1) / H) *
+        v = v - 4.0 * F * std::pow(H, 2) / (nu * std::pow(CH_PI, 3) * std::pow(2 * n + 1, 3)) * std::sin(CH_PI * Z * (2 * n + 1) / H) *
                     std::exp(-pow(2 * n + 1, 2) * std::pow(CH_PI, 2) * nu * time / std::pow(H, 2));
     }
 
@@ -82,10 +81,9 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChFsiFluidSys
 //------------------------------------------------------------------
 
 // Callback for setting initial SPH particle velocity
-class InitialVelocityCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
+class InitialVelocityCallback : public ChFsiFluidSystemSPH::ParticlePropertiesCallback {
   public:
-    InitialVelocityCallback(double fluid_height, double time)
-        : ParticlePropertiesCallback(), height(fluid_height), time(time) {}
+    InitialVelocityCallback(double fluid_height, double time) : ParticlePropertiesCallback(), height(fluid_height), time(time) {}
 
     virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double v_x = PoiseuilleAnalytical(pos.z(), height, time, sysSPH);

@@ -18,12 +18,7 @@
 
 using namespace chrono;
 
-uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,
-                                    ChProjectConstraints& Project,
-                                    const uint max_iter,
-                                    const uint size,
-                                    const VectorType& r,
-                                    VectorType& gamma) {
+uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, const uint max_iter, const uint size, const VectorType& r, VectorType& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -45,18 +40,14 @@ uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,
     if (!data_manager->settings.solver.compute_N) {
         nschur_local = data_manager->host_data.D_T * data_manager->host_data.M_invD;
     }
-    const SparseMatrixType& Nschur = data_manager->settings.solver.compute_N
-                                         ? data_manager->host_data.Nschur
-                                         : nschur_local;
+    const SparseMatrixType& Nschur = data_manager->settings.solver.compute_N ? data_manager->host_data.Nschur : nschur_local;
     VectorType D;
     D.resize(num_constraints, false);
     // real eignenval = LargestEigenValue(SchurProduct, temp);
 
     auto diag = Nschur.diagonal();
     for (int index = 0; index < (signed)num_contacts; index++) {
-        D[index] = diag[index] +
-                   diag[num_contacts + index * 2] +
-                   diag[num_contacts + index * 2 + 1];
+        D[index] = diag[index] + diag[num_contacts + index * 2] + diag[num_contacts + index * 2 + 1];
         D[index] = 3.0 / D[index];
         D[num_contacts + index * 2 + 0] = D[index];
         D[num_contacts + index * 2 + 1] = D[index];
@@ -81,9 +72,7 @@ uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct,
                 D[offset + i] = Nschur.coeff(offset + i, offset + i);
                 D[offset + i] = 3.0 / D[offset + i];
             } else {
-                D[offset + i] = diag[offset + i] +
-                                diag[offset + i * 2 + 0] +
-                                diag[offset + i * 2 + 1];
+                D[offset + i] = diag[offset + i] + diag[offset + i * 2 + 0] + diag[offset + i * 2 + 1];
                 D[offset + i] = 3.0 / D[offset + i];
                 D[offset + i * 2 + 0] = D[offset + i];
                 D[offset + i * 2 + 1] = D[offset + i];

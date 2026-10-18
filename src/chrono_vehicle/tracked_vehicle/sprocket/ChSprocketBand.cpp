@@ -786,13 +786,13 @@ std::shared_ptr<ChLinePath> ChSprocketBand::GetProfile() const {
         double OuterArc_Angle2 = OuterArc_Angle1 - OuterRadArcAng;
 
         // Start the profile geometry with the upper concave tooth arc
-        ChLineArc arc1(ChCoordsys<>(ToothUpperArcCtrPnt), ArcRad, UpperArc_Angle1, UpperArc_Angle2, true);
+        auto arc1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ToothUpperArcCtrPnt), ArcRad, UpperArc_Angle1, UpperArc_Angle2, true);
         // Next is the straight segment for the tooth tip
-        ChLineSegment seg2(ToothTipWidthUpperPnt, ToothTipWidthLowerPnt);
+        auto seg2 = chrono_types::make_shared<ChLineSegment>(ToothTipWidthUpperPnt, ToothTipWidthLowerPnt);
         // Next is the lower concave tooth arc
-        ChLineArc arc3(ChCoordsys<>(ToothLowerArcCtrPnt), ArcRad, LowerArc_Angle1, LowerArc_Angle2, true);
+        auto arc3 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ToothLowerArcCtrPnt), ArcRad, LowerArc_Angle1, LowerArc_Angle2, true);
         // Finally is the arc segment that runs along the sprocket's outer radius to the start of the next tooth profile
-        ChLineArc arc4(ChCoordsys<>(SprocketCtr), OutRad, OuterArc_Angle1, OuterArc_Angle2);
+        auto arc4 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(SprocketCtr), OutRad, OuterArc_Angle1, OuterArc_Angle2);
 
         // Add this tooth segments profile to the sprocket profile
         profile->AddSubLine(arc1);

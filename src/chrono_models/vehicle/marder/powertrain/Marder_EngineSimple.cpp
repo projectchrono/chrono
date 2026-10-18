@@ -23,8 +23,8 @@ namespace vehicle {
 namespace marder {
 
 // Static variables
-const double Marder_EngineSimple::m_max_torque = 2400;
-const double Marder_EngineSimple::m_max_power = 530000;
+const double Marder_EngineSimple::m_max_torque = 4000;
+const double Marder_EngineSimple::m_max_power = 800000;
 const double Marder_EngineSimple::m_max_speed = 10000;
 
 Marder_EngineSimple::Marder_EngineSimple(const std::string& name) : ChEngineSimple(name) {}

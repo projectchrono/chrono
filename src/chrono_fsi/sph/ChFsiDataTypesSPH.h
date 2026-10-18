@@ -12,8 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Math utilities for the Chrono::FSI module.
-// These functions can be invoked either on the CPU (host) or on the GPU (device)
+// Base data types for Chrono::SPH (based on specified precision).
 //
 // =============================================================================
 

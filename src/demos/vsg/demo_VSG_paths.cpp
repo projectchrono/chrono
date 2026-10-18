@@ -47,13 +47,13 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths:
     auto path = chrono_types::make_shared<ChLinePath>();
-    ChLineSegment mseg1(ChVector3d(1, 2, 0), ChVector3d(2, 2, 0));
+    auto mseg1 = chrono_types::make_shared<ChLineSegment>(ChVector3d(1, 2, 0), ChVector3d(2, 2, 0));
     path->AddSubLine(mseg1);
-    ChLineArc marc1(ChCoordsys<>(ChVector3d(2, 2.5, 0)), 0.5, -CH_PI_2, CH_PI_2, true);
+    auto marc1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(2, 2.5, 0)), 0.5, -CH_PI_2, CH_PI_2, true);
     path->AddSubLine(marc1);
-    ChLineSegment mseg2(ChVector3d(2, 3, 0), ChVector3d(1, 3, 0));
+    auto mseg2 = chrono_types::make_shared<ChLineSegment>(ChVector3d(2, 3, 0), ChVector3d(1, 3, 0));
     path->AddSubLine(mseg2);
-    ChLineArc marc2(ChCoordsys<>(ChVector3d(1, 2.5, 0)), 0.5, CH_PI_2, -CH_PI_2, true);
+    auto marc2 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(1, 2.5, 0)), 0.5, CH_PI_2, -CH_PI_2, true);
     path->AddSubLine(marc2);
     path->SetClosed(true);
 
@@ -105,13 +105,13 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths:
     auto glyph = chrono_types::make_shared<ChLinePath>();
-    ChLineSegment ms1(ChVector3d(-0.5, -0.5, 0), ChVector3d(0.5, -0.5, 0));
+    auto ms1 = chrono_types::make_shared<ChLineSegment>(ChVector3d(-0.5, -0.5, 0), ChVector3d(0.5, -0.5, 0));
     glyph->AddSubLine(ms1);
-    ChLineArc ma1(ChCoordsys<>(ChVector3d(0.5, 0, 0)), 0.5, -CH_PI_2, CH_PI_2, true);
+    auto ma1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0.5, 0, 0)), 0.5, -CH_PI_2, CH_PI_2, true);
     glyph->AddSubLine(ma1);
-    ChLineSegment ms2(ChVector3d(0.5, 0.5, 0), ChVector3d(-0.5, 0.5, 0));
+    auto ms2 = chrono_types::make_shared<ChLineSegment>(ChVector3d(0.5, 0.5, 0), ChVector3d(-0.5, 0.5, 0));
     glyph->AddSubLine(ms2);
-    ChLineArc ma2(ChCoordsys<>(ChVector3d(-0.5, 0, 0)), 0.5, CH_PI_2, -CH_PI_2, true);
+    auto ma2 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(-0.5, 0, 0)), 0.5, CH_PI_2, -CH_PI_2, true);
     glyph->AddSubLine(ma2);
     glyph->SetPathDuration(1);
     glyph->SetClosed(true);

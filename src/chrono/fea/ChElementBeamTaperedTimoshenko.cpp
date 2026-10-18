@@ -915,6 +915,7 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
 
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
+    this->tapered_section->SetLength(this->length);
     this->mass = 0.5 * this->length * this->tapered_section->GetSectionA()->GetMassPerUnitLength() +
                  0.5 * this->length * this->tapered_section->GetSectionB()->GetMassPerUnitLength();
 

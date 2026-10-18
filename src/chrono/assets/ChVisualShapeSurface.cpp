@@ -17,6 +17,10 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVisualShapeSurface)
 
+ChVisualShapeSurface::ChVisualShapeSurface() : ChVisualShape(Type::SURFACE), wireframe(false), resolution_U(5), resolution_V(5) {}
+
+ChVisualShapeSurface::ChVisualShapeSurface(std::shared_ptr<ChSurface> surf) : ChVisualShape(Type::SURFACE), gsurface(surf), wireframe(false), resolution_U(5), resolution_V(5) {}
+
 void ChVisualShapeSurface::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVisualShapeSurface>();

@@ -119,9 +119,9 @@ void ChParserVehicleYAML::LoadFile(const std::string& yaml_filename) {
     if (m_verbose) {
         m_sim.PrintInfo();
         cout << endl;
-        m_vis.PrintInfo();
+        m_vis_settings.PrintInfo();
         cout << endl;
-        m_output.PrintInfo();
+        m_output_settings.PrintInfo();
     }
 
     m_loaded = true;

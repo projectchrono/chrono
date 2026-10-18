@@ -31,7 +31,7 @@ class Model1:
 
         # Create a section, i.e. thickness and material properties
         # for beams. This will be shared among some beams.
-        msection_cable = fea.ChBeamSectionCable()
+        msection_cable = fea.ChBeamSectionCableANCF()
         msection_cable.SetDiameter(beam_diameter)
         msection_cable.SetYoungModulus(0.01e9)
         msection_cable.SetRayleighDamping(0.000)
@@ -87,7 +87,7 @@ class Model2 :
         # Create a section, i.e. thickness and material properties
         # for beams. This will be shared among some beams.
 
-        msection_cable2 = fea.ChBeamSectionCable()
+        msection_cable2 = fea.ChBeamSectionCableANCF()
         msection_cable2.SetDiameter(0.015)
         msection_cable2.SetYoungModulus(0.01e9)
         msection_cable2.SetRayleighDamping(0.000)
@@ -100,7 +100,7 @@ class Model2 :
 
         # Now, simply use BuildBeam to create a beam from a poto another:
         builder.BuildBeam(mesh,                    # the mesh where to put the created nodes and elements
-                          msection_cable2,         # the ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                          msection_cable2,         # the ChBeamSectionCableANCF to use for the ChElementBeamANCF_3333 elements
                           10,                      # the number of ChElementBeamANCF_3333 to create
                           chrono.ChVector3d(0, 0, -0.1),  # the 'A' poin space (beginning of beam)
                           chrono.ChVector3d(0.5, 0, -0.1))  # the 'B' poin space (end of beam)
@@ -127,7 +127,7 @@ class Model2 :
 class Model3 :
     def __init__(self, system, mesh, n_chains = 6):
         self.bodies = []#[chrono.ChBodyEasyBox for i in range(n_chains)]
-        msection_cable2 = fea.ChBeamSectionCable()
+        msection_cable2 = fea.ChBeamSectionCableANCF()
         msection_cable2.SetDiameter(0.015)
         msection_cable2.SetYoungModulus(0.01e9)
         msection_cable2.SetRayleighDamping(0.000)
@@ -140,7 +140,7 @@ class Model3 :
 
             # Now, simply use BuildBeam to create a beam from a poto another:
             builder.BuildBeam(mesh,             # the mesh where to put the created nodes and elements
-                              msection_cable2,  # ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                              msection_cable2,  # ChBeamSectionCableANCF to use for the ChElementBeamANCF_3333 elements
                               1 + j,            # number of ChElementBeamANCF_3333 to create
                               chrono.ChVector3d(0, 0, -0.1 * j),             # poA (beginning of beam)
                               chrono.ChVector3d(0.1 + 0.1 * j, 0, -0.1 * j)  # poB (end of beam)
@@ -172,7 +172,7 @@ class Model3 :
             # make another beam
             builder.BuildBeam(
                 mesh,                # mesh where to put the created nodes and elements
-                msection_cable2,     # ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                msection_cable2,     # ChBeamSectionCableANCF to use for the ChElementBeamANCF_3333 elements
                 1 + (n_chains - j),  # number of ChElementBeamANCF_3333 to create
                 chrono.ChVector3d(mbox.GetPos().x + 0.1, 0, -0.1 * j),                        # poA (beginning of beam)
                 chrono.ChVector3d(mbox.GetPos().x + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  # poB (end of beam)

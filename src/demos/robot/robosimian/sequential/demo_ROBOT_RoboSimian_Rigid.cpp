@@ -77,8 +77,7 @@ class RayCaster {
     std::vector<ChVector3d> m_points;
 };
 
-RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing)
-    : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
+RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing) : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
     m_body = chrono_types::make_shared<ChBody>();
     m_body->SetFixed(true);
     m_body->EnableCollision(false);
@@ -260,35 +259,35 @@ int main(int argc, char* argv[]) {
     // Create a driver and attach to robot
     // -----------------------------------
 
-    std::shared_ptr<robosimian::RS_Driver> driver;
+    std::shared_ptr<models::ChRobotActuation> driver;
     switch (mode) {
         case robosimian::LocomotionMode::WALK:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                "",                                                                 // start input file
-                GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
-                "",                                                                 // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                 // num. motors
+                                                                         "",                                                                 // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
+                                                                         "",                                                                 // stop input file
+                                                                         true);
             break;
         case robosimian::LocomotionMode::SCULL:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   // start input file
-                GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                   // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    // stop input file
+                                                                         true);
             break;
         case robosimian::LocomotionMode::INCHWORM:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  // start input file
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                     // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   // stop input file
+                                                                         true);
             break;
         case robosimian::LocomotionMode::DRIVE:
-            driver = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  // start input file
-                GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   // stop input file
-                true);
+            driver = chrono_types::make_shared<models::ChRobotActuation>(32,                                                                 // num. motors
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  // start input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  // cycle input file
+                                                                         GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   // stop input file
+                                                                         true);
             break;
     }
 
@@ -304,8 +303,7 @@ int main(int argc, char* argv[]) {
 
     ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), QuatFromAngleY(-CH_PI_2)),
     ////                 ChVector2d(2.5, 2.5), 0.02);
-    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_PI_2)),
-                     ChVector2d(2.5, 2.5), 0.02);
+    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_PI_2)), ChVector2d(2.5, 2.5), 0.02);
 
     // -------------------------------
     // Create the visualization window

@@ -22,7 +22,6 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"

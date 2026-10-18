@@ -37,15 +37,15 @@ namespace sph {
 
 /// Structure with FSI simulation parameters.
 struct ChFsiParamsSPH {
+    PhysicsProblem physics_problem;        ///< Physics problem type: (CFD or CRM)
+    RheologyCRM rheology_model_crm;        ///< Rheology model for CRM problems (MU_OF_I or MCC)
+
     IntegrationScheme integration_scheme;  ///< Integration scheme
     EosType eos_type;                      ///< Equation of state type (Tait or isothermal)
     ViscosityMethod viscosity_method;      ///< Viscosity treatment type (physics-based laminar flow or artificial)
     BoundaryMethod boundary_method;        ///< Boundary type (Adami or Holmes)
     KernelType kernel_type;                ///< Kernel type (Quadratic, cubic spline, quintic spline, quintic Wendland)
     ShiftingMethod shifting_method;        ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
-    RheologyCRM rheology_model_crm;        ///< Rheology model (MU_OF_I or MCC)
-
-    bool elastic_SPH;  ///< Set physics problem: CFD (false) or CRM granular (true)
 
     int3 gridSize;          ///< dx, dy, dz distances between particle centers
     Real3 worldOrigin;      ///< Origin point
@@ -87,9 +87,16 @@ struct ChFsiParamsSPH {
                                    ///< sphere is detected
     Real shifting_ppst_pull;       ///< Coefficient for PPST pulling - this is applied when penetration with fictitious
     Real shifting_beta_implicit;   ///< Coefficient for shifting used in implicit scheme
-    Real shifting_diffusion_A;     ///< TODO: Add documentation
-    Real shifting_diffusion_AFSM;  ///< TODO: Add documentation
-    Real shifting_diffusion_AFST;  ///< TODO: Add documentation
+    Real shifting_diffusion_A;     ///< Fickian shifting coefficient. Scales the shifting velocity
+                                   ///< -A h |v_i| sum_j (m_j / rho_j) grad W_ij, whose sum is the discrete
+                                   ///< gradient of particle concentration (default: 1.0, range 1 to 6)
+    Real shifting_diffusion_AFSM;  ///< Upper anchor of the free-surface taper applied to diffusion
+                                   ///< shifting. Particles whose position-field divergence reaches AFSM are
+                                   ///< given the full shift; between AFST and AFSM the shift ramps linearly.
+                                   ///< Complete 3D kernel support yields about 2.9 (default: 2.9)
+    Real shifting_diffusion_AFST;  ///< Lower anchor of the free-surface taper applied to diffusion
+                                   ///< shifting. Particles whose position-field divergence is at or below
+                                   ///< AFST are not shifted at all (default: 2.0)
 
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to
               ///< use is to run simulations multiple time and find which one is the largest dT that produces a
@@ -168,11 +175,16 @@ struct ChFsiParamsSPH {
     Real Coh_coeff;               ///< Cohesion coefficient
     Real free_surface_threshold;  ///< threshold for identifying free surface. The divergence of the position
     ///< field is computed and compared to this threshold. Particles with divergence
-    ///< less than this threshold are considered free surface particles (CRM only,
-    ///< default: 2.0)
-    Real mcc_M;         ///< CSL line slope
-    Real mcc_kappa;     ///< Compression index
-    Real mcc_lambda;    ///< Swelling index
+    ///< less than this threshold are considered free surface particles. Evaluated for
+    ///< both CFD and CRM problems, but currently only the CRM solution consumes the
+    ///< result (the stress state is zeroed at flagged particles); default: 2.4
+    Real mcc_M;         ///< Cam-Clay critical state line slope, q = M p
+    Real mcc_kappa;     ///< Cam-Clay swelling index: slope of the elastic unload/reload line in
+                        ///< v-ln(p). Sets the elastic bulk modulus, K = v p / kappa.
+                        ///< Must satisfy 0 < mcc_kappa < mcc_lambda
+    Real mcc_lambda;    ///< Cam-Clay compression index: slope of the normal consolidation line in
+                        ///< v-ln(p). Governs virgin compressibility and the hardening rate, which
+                        ///< divides by (mcc_lambda - mcc_kappa). Must exceed mcc_kappa
     Real mcc_v_lambda;  ///< Specific volume at reference pressure of 1000 Pa
 
     Real boxDimX;  ///< Dimension of the space domain - X
@@ -193,9 +205,7 @@ struct ChFsiParamsSPH {
     Real3 zombieMin;  ///< Lower limit point of the zombie domain -> All particles outside this will be frozen
     Real3 zombieMax;  ///< Upper limit point of the zombie domain -> All particles outside this will be frozen
 
-    Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
-    bool use_active_domain;  ///< Set to true if active domain is used
-    Real settlingTime;       ///< Time for the granular to settle down
+    Real free_flow_duration;  ///< initial  duration for free flow CRM material (default: 0)
 
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists
     bool use_variable_time_step;     ///< use variable time step (default: false)

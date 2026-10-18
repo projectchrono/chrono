@@ -5,10 +5,10 @@ The Chrono::Vehicle module provides a collection of templates for various topolo
 
 Modeling of vehicle systems is done in a modular fashion, with a vehicle defined as an assembly of instances of various subsystems (suspension, steering, driveline, etc.).  Flexibility in modeling is provided by adopting a template-based design. In Chrono::Vehicle, templates are parameterized models that define a particular implementation of a vehicle subsystem. As such, a template defines the basic modeling elements (bodies, joints, force elements), imposes the subsystem topology, prescribes the design parameters, and implements the common functionality for a given type of subsystem (e.g., suspension) particularized to a specific template (e.g., double wishbone). Finally, an instantiation of such a template is obtained by specifying the template parameters (hardpoints, joint directions, inertial properties, contact material properties, etc.) for a concrete vehicle (e.g., the HMMWV front suspension).
 
-The core templates in Chrono::Vehicle are parameterized models of vehicle subcomponents.  However, a complete vehicle mobility simulation also requires auxiliary systems, external to the vehicle itself, such as a driver system to provide input controls (e.g., steering, throttle, braking), a powertrain system which encapsulates the engine and transmission and connects to the the vehicle driveline, and a terrain system. 
+The core templates in Chrono::Vehicle are parameterized models of vehicle subcomponents.  However, a complete vehicle mobility simulation also requires auxiliary systems, external to the vehicle itself, such as a driver system to provide input controls (e.g., steering, throttle, braking), a powertrain system which encapsulates the engine and transmission and connects to the vehicle driveline, and a terrain system. 
 
 For wheeled vehicle systems, templates are provided for the following subsystems:
-- suspension (double wishbone, reduced double wishbone using distance constraints, multi-link, solid-axle, MacPhearson strut, semi-trailing arm, ...)
+- suspension (double wishbone, reduced double wishbone using distance constraints, multi-link, solid-axle, MacPherson strut, semi-trailing arm, ...)
 - steering (Pitman arm, rack-and-pinion)
 - driveline (2WD and 4WD shaft-based using specialized Chrono modeling elements, simplified kinematic driveline)
 - wheel (simply a carrier for additional mass and inertia appended to the suspension's spindle body)
@@ -83,7 +83,7 @@ For modeling, Chrono::Vehicle uses exclusively the ISO vehicle axes convention, 
 
 ### Simulation world frame
 
-While the default world frame for Chrono::Vehicle simulations is also an ISO (Z up) frame, support is provided to simulate vehicles in a scene specified in a different reference frame (for example, an Y up frame).
+While the default world frame for Chrono::Vehicle simulations is also an ISO (Z up) frame, support is provided to simulate vehicles in a scene specified in a different reference frame (for example, a Y up frame).
 The world frame is uniquely defined through a rotation matrix (the rotation required to align the ISO frame with the desired world frame). To change the world frame definition from the default ISO convention, the desired world frame must be set **before** any Chrono::Vehicle library call:
 ~~~{.cpp}
 ChWorldFrame::Set(world_rotation);
@@ -94,7 +94,7 @@ ChWorldFrame::SetYUP();
 ~~~
 The [ChWorldFrame](@ref chrono::vehicle::ChWorldFrame) class provides utilities to query the world normal, forward direction, the height of a given 3D point (component along the world's vertical direction), to project a point onto the world's horizontal plane, as well as to express a 3D vector to and from the base ISO frame.
 
-See `demo_VEH_HMMWV9_YUP` for an example of a Chrono::Vehicle simulation in an Y up world frame.
+See `demo_VEH_HMMWV9_YUP` for an example of a Chrono::Vehicle simulation in a Y up world frame.
 
 
 ## Simulation loop {#vehicle_simulation_loop}

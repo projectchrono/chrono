@@ -26,6 +26,13 @@
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
+// Forward declaration
+#ifdef CHRONO_HAS_YAML
+namespace YAML {
+class Node;
+}
+#endif
+
 namespace chrono {
 namespace fsi {
 namespace sph {
@@ -66,7 +73,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     void SetColorRigidBodyMarkers(const ChColor& col) { m_rigid_bce_color = col; }
 
     /// Set default color for flex body BCE markers (default: [0.40, 0.10, 0.65]).
-    void SetColorFlexBodyMarkers(const ChColor& col) { m_flex_bce_color = col; }
+    void SetColorFeaMeshMarkers(const ChColor& col) { m_flex_bce_color = col; }
 
     /// Get the type of the colormap currently in use.
     ChColormap::Type GetColormapType() const;
@@ -89,15 +96,16 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         ChParticleCloud* cloud = nullptr;
 
       private:
-        virtual ChColor get(unsigned int n, const ChParticleCloud& source_cloud) const override final {
-            return GetColor(n);
-        }
+        virtual ChColor get(unsigned int n, const ChParticleCloud& source_cloud) const override final { return GetColor(n); }
     };
 
     /// Set a callback for dynamic coloring of SPH particles.
     /// If none provided, SPH particles are rendered with a default color.
-    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor,
-                             ChColormap::Type type = ChColormap::Type::JET);
+    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor, ChColormap::Type type = ChColormap::Type::JET);
+
+    /// Enable colormap GUI (default: true).
+    /// A colormap GUI can be rendered only if an SPHColorCallback is defined.
+    void EnableColormapGUI(bool val) { m_colormap_gui = val; }
 
     /// Class to be used as a callback interface for dynamic visibility of SPH particles or BCE markers.
     class CH_FSI_API MarkerVisibilityCallback : public ChParticleCloud::VisibilityCallback {
@@ -131,7 +139,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     void EnableRigidBodyMarkers(bool val) { m_rigid_bce_markers = val; }
 
     /// Enable/disable rendering of flex-body BCE markers (default: true).
-    void EnableFlexBodyMarkers(bool val) { m_flex_bce_markers = val; }
+    void EnableFeaMeshMarkers(bool val) { m_flex_bce_markers = val; }
 
     /// Enable/disable rendering of boundary BCE markers (default: false).
     void EnableBoundaryMarkers(bool val) { m_bndry_bce_markers = val; }
@@ -148,18 +156,35 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     /// Return the internal Chrono system that holds visualization shapes.
     ChSystem* GetSystem() const { return m_sysMBS; }
 
+    /// SPH run-time visualization settings.
+    struct CH_FSI_API Settings {
+        enum class ParticleColoringType { NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE };
+
+        Settings();
+        Settings(const Settings& other);
+#ifdef CHRONO_HAS_YAML
+        Settings(const YAML::Node& a);
+        static Settings Read(const YAML::Node& a);
+#endif
+        Settings& operator=(const Settings& other);
+        void PrintInfo() const;
+
+        bool sph_markers;                                             ///< render fluid SPH particles?
+        bool bndry_bce_markers;                                       ///< render boundary BCE markers?
+        bool rigid_bce_markers;                                       ///< render rigid-body BCE markers?
+        bool flex_bce_markers;                                        ///< render flex-body markers?
+        bool active_boxes;                                            ///< render active boxes?
+        bool use_splashsurf;                                          ///< use splashsurf for mesh reconstruction?
+        ChFsiFluidSystemSPH::SplashsurfParameters splashsurf_params;  ///< splashsurf settings
+        ChColormap::Type colormap;                                    ///< colormap for coloring callback
+        std::shared_ptr<ChSphVisualizationVSG::ParticleColorCallback> color_callback;
+        std::shared_ptr<ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_sph;
+        std::shared_ptr<ChSphVisualizationVSG::MarkerVisibilityCallback> visibility_callback_bce;
+    };
+
   private:
     /// GPU shader modes supported by the SPH particle color compute path.
-    enum class ColorMode {
-        NONE = 0,
-        HEIGHT = 1,
-        VELOCITY_MAG = 2,
-        VELOCITY_X = 3,
-        VELOCITY_Y = 4,
-        VELOCITY_Z = 5,
-        DENSITY = 6,
-        PRESSURE = 7
-    };
+    enum class ColorMode { NONE = 0, HEIGHT = 1, VELOCITY_MAG = 2, VELOCITY_X = 3, VELOCITY_Y = 4, VELOCITY_Z = 5, DENSITY = 6, PRESSURE = 7 };
 
     /// Tags for different particle cloud types.
     enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
@@ -168,7 +193,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     struct GpuColoringResources {
         bool initialized = false;                                      ///< true once GPU buffers are allocated
         bool active = false;                                           ///< true when compute pass runs this frame
-        uint32_t workgroupSize = 256;                                  ///< compute workgroup size
+        uint32_t workgroupSize = 256;                                  ///< compute work group size
         vsg::ref_ptr<vsg::vec4Array> positionData;                     ///< staging buffer for positions
         vsg::ref_ptr<vsg::vec4Array> velocityData;                     ///< staging buffer for velocities
         vsg::ref_ptr<vsg::vec4Array> propertyData;                     ///< staging buffer for auxiliary properties
@@ -205,7 +230,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     bool IsColormapSupported() const;
 
     void BindComputationalDomain();
-    void BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag);
+    void BindActiveBox(const std::shared_ptr<ChBody>& obj, const  ChAABB& aabb, int tag);
 
     vsg3d::ChVisualSystemVSG::ParticleCloud* GetSphParticleCloud();
 
@@ -218,6 +243,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
     bool m_flex_bce_markers;   ///< render flex-body markers?
     bool m_active_boxes;       ///< render active boxes?
+    bool m_colormap_gui;       ///< render colormap GUI?
 
     std::shared_ptr<ChParticleCloud> m_sph_cloud;        ///< particle cloud proxy for SPH particles
     std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers
@@ -235,7 +261,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     std::shared_ptr<ParticleColorCallback> m_color_fun;         ///< color functor for SPH particles
     std::shared_ptr<MarkerVisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
-    std::shared_ptr<MarkerVisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for bndry BCE markers
+    std::shared_ptr<MarkerVisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for boundary BCE markers
 
     // Data for color and visibility functors
     std::vector<Real3> m_pos;   ///< SPH and BCE positions
@@ -247,7 +273,7 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     int m_sph_cloud_index;  ///< cache of the SPH cloud slot inside the VSG visual system
 
     bool m_use_active_boxes;                     ///< active domains enabled?
-    ChVector3d m_active_box_hsize;               ///< half-dimensions of active boxes
+    std::map<ChBody*, ChAABB> m_ad_body;         ///< body active domains
     vsg::ref_ptr<vsg::Switch> m_activeBoxScene;  ///< VSG scene containing FSI body active boxes
 
     bool m_write_images;      ///< if true, save snapshots

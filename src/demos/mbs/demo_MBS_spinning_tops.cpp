@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
-            vis_vsg->ToggleRefFrameVisibility();
+            vis_vsg->SetRefFrameVisibility(true);
             vis_vsg->SetRefFrameScale(2.0);
             vis_vsg->SetContactNormalsVisibility(true);
 

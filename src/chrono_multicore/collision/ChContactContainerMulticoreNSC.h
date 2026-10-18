@@ -36,9 +36,7 @@ class CH_MULTICORE_API ChContactContainerMulticoreNSC : public ChContactContaine
     /// Add a contact between two collision shapes, storing it into this container.
     /// A composite contact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
-    virtual void AddContact(const ChCollisionInfo& cinfo,
-                            std::shared_ptr<ChContactMaterial> mat1,
-                            std::shared_ptr<ChContactMaterial> mat2) override;
+    virtual void AddContact(const ChCollisionInfo& cinfo, std::shared_ptr<ChContactMaterial> mat1, std::shared_ptr<ChContactMaterial> mat2) override;
 
     /// Add a contact between two collision shapes, storing it into this container.
     /// The collision info object is assumed to contain valid pointers to the two colliding shapes.

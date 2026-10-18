@@ -54,8 +54,9 @@ ChChassis::~ChChassis() {
 // -----------------------------------------------------------------------------
 
 uint16_t ChChassis::GetVehicleTag() const {
-    ChAssertAlways(m_vehicle != nullptr);
-    return m_vehicle->GetVehicleTag();
+    if (m_vehicle)
+        return m_vehicle->GetVehicleTag();
+    return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -136,37 +137,39 @@ void ChChassis::PopulateComponentList() {
 }
 
 void ChChassis::Initialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family) {
-    ChAssertAlways(vehicle != nullptr);
     m_vehicle = vehicle;
-    ChSystem* system = vehicle->GetSystem();
+    ChSystem* system = vehicle ? vehicle->GetSystem() : nullptr;
 
-    // Set body tag
-    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS);
+    if (vehicle) {
+        // Set body tag
+        m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS);
 
-    // Initial pose and velocity assumed to be given in current WorldFrame
-    ChFrame<> chassis_pos(chassisPos.pos, ChMatrix33<>(chassisPos.rot) * ChWorldFrame::Rotation().transpose());
+        // Initial pose and velocity assumed to be given in current WorldFrame
+        ChFrame<> chassis_pos(chassisPos.pos, ChMatrix33<>(chassisPos.rot) * ChWorldFrame::Rotation().transpose());
 
-    m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetTag(m_obj_tag);
-    m_body->SetName(m_name + " body");
-    m_body->SetMass(GetBodyMass());
-    m_body->SetFrameCOMToRef(GetBodyCOMFrame());
-    m_body->SetInertia(GetBodyInertia());
-    m_body->SetFixed(m_fixed);
+        // Create chassis body
+        m_body = chrono_types::make_shared<ChBodyAuxRef>();
+        m_body->SetTag(m_obj_tag);
+        m_body->SetName(m_name + " body");
+        m_body->SetMass(GetBodyMass());
+        m_body->SetFrameCOMToRef(GetBodyCOMFrame());
+        m_body->SetInertia(GetBodyInertia());
+        m_body->SetFixed(m_fixed);
 
-    m_body->SetFrameRefToAbs(chassis_pos);
-    m_body->SetPosDt(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
+        m_body->SetFrameRefToAbs(chassis_pos);
+        m_body->SetPosDt(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
 
-    system->Add(m_body);
+        system->Add(m_body);
 
-    // Add containers for bushing elements and external forces.
-    system->Add(m_container_bushings);
-    system->Add(m_container_external);
-    system->Add(m_container_terrain);
+        // Add containers for bushing elements and external forces.
+        system->Add(m_container_bushings);
+        system->Add(m_container_external);
+        system->Add(m_container_terrain);
 
-    // Add pre-defined markers (driver position and COM) on the chassis body.
-    AddMarker("driver position", ChFrame<>(GetLocalDriverCoordsys()));
-    AddMarker("COM", GetCOMFrame());
+        // Add pre-defined markers (driver position and COM) on the chassis body.
+        AddMarker("driver position", ChFrame<>(GetLocalDriverCoordsys()));
+        AddMarker("COM", GetCOMFrame());
+    }
 
     OnInitialize(vehicle, chassisPos, chassisFwdVel, collision_family);
 

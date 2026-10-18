@@ -91,8 +91,6 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
         double m_theta;                                       ///< fiber angle
 
         friend class ChElementShellReissner4;
-        friend class MyForce;
-        friend class MyJacobian;
     };
 
     /// Get the number of nodes used by this element.

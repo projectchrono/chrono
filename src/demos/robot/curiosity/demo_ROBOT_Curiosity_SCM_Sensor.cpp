@@ -24,13 +24,10 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChMassProperties.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/input_output/ChWriterCSV.h"
-#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"

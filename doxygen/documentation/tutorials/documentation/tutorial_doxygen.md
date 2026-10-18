@@ -9,7 +9,7 @@ Documenting code with Doxygen {#tutorial_doxygen}
 ##Installing doxygen
 
 ### Windows:
-The recommended way to install doxygen is by using [chocolatey](https://chocolatey.org/). Start by following the installation instructions for choclatey and then run
+The recommended way to install doxygen is by using [chocolatey](https://chocolatey.org/). Start by following the installation instructions for chocolatey and then run
 
 ~~~
 choco install doxygen.install -y

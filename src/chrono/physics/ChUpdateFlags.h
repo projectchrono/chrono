@@ -16,6 +16,7 @@
 #define CH_UPDATE_FLAGS_H
 
 #include "chrono/core/ChApiCE.h"
+#include <cstdint>
 
 namespace chrono {
 

@@ -56,6 +56,7 @@ ChSystem::ChSystem(const std::string& name)
       ch_time(0),
       m_RTF(0),
       step(0.04),
+      assembly_acc_tol(1e-2),
       use_sleeping(false),
       max_penetration_recovery_speed(0.6),
       stepcount(0),
@@ -99,6 +100,7 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     m_num_constr_uni = other.m_num_constr_uni;
     ch_time = other.ch_time;
     step = other.step;
+    assembly_acc_tol = other.assembly_acc_tol;
     stepcount = other.stepcount;
     solvecount = other.solvecount;
     setupcount = other.setupcount;
@@ -124,6 +126,11 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
 }
 
 ChSystem::~ChSystem() {
+    // Release the collision system first. When destroyed, it detaches the collision models it holds, so the physics
+    // items are then removed without removing their collision models one by one (not all collision systems support
+    // that). A collision system still shared elsewhere keeps its models, whose implementations then remain valid.
+    collision_system.reset();
+
     Clear();
 }
 
@@ -139,12 +146,11 @@ std::shared_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
 }
 
 void ChSystem::Clear() {
+    // This also removes the collision models of all items from the collision system and discards all contacts
     assembly.Clear();
 
     if (visual_system)
         visual_system->OnClear(this);
-
-    // contact_container->RemoveAllContacts();
 
     // ResetTimers();
 }
@@ -181,38 +187,28 @@ void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChSystem::RemoveBody(std::shared_ptr<ChBody> body) {
-    if (collision_system)
-        body->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveBody(body);
     body->SetSystem(nullptr);
 }
 
 void ChSystem::RemoveShaft(std::shared_ptr<ChShaft> shaft) {
-    if (collision_system)
-        shaft->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveShaft(shaft);
     shaft->SetSystem(nullptr);
 }
 
 void ChSystem::RemoveLink(std::shared_ptr<ChLinkBase> link) {
-    if (collision_system)
-        link->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveLink(link);
     link->SetSystem(nullptr);
 }
 
 #ifdef CHRONO_FEA
 void ChSystem::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
-    if (collision_system)
-        mesh->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveMesh(mesh);
     mesh->SetSystem(nullptr);
 }
 #endif
 
 void ChSystem::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
-    if (collision_system)
-        item->RemoveCollisionModelsFromSystem(collision_system.get());
     assembly.RemoveOtherPhysicsItem(item);
     item->SetSystem(nullptr);
 }
@@ -1762,6 +1758,12 @@ bool ChSystem::DoFrameDynamics(double frame_time, double step_size) {
 AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action, int max_num_iterationsNR, double abstol_residualNR, double reltol_updateNR, double abstol_updateNR) {
     Initialize();
 
+    // NSC contacts (present only after a dynamics step or an explicit call to ComputeCollisions) are not supported:
+    // the contact rows corrupt the position, velocity, and acceleration levels alike (see issue #850). Leave the
+    // system state untouched and report it.
+    if (GetContactMethod() == ChContactMethod::NSC && GetNumContacts() > 0)
+        return AssemblyAnalysis::ExitFlag::UNSUPPORTED_CONTACTS;
+
     applied_forces_current = false;
 
     solvecount = 0;
@@ -1776,12 +1778,31 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action, int max_num_iteratio
     ChAssemblyAnalysis assembling(*this);
     assembling.SetMaxAssemblyIters(max_num_iterationsNR);
 
-    // Perform analysis
+    // Perform analysis.
+    // The assembly uses a tiny internal step (also visible through GetStep() to items updated during the
+    // analysis); restore the system step afterwards, since DoFrameKinematics() advances time by 'step'
+    // after each assembly and the caller's step size must not be replaced by the internal one.
+    double step_saved = step;
     step = 1e-6;
     assembling.SetAbsToleranceResidual(abstol_residualNR);
     assembling.SetRelToleranceUpdate(reltol_updateNR);
     assembling.SetAbsToleranceUpdate(abstol_updateNR);
     AssemblyAnalysis::ExitFlag exit_flag = assembling.AssemblyAnalysis(action, step);
+
+    // Check the accuracy of the acceleration-level solve. The accelerations are a velocity increment over the
+    // internal step, so a constraint residual left by the solver results in an acceleration error of about
+    // residual/step. The descriptor still holds the unknowns of that (last) solve.
+    if ((action & AssemblyAnalysis::Level::ACCELERATION) && exit_flag != AssemblyAnalysis::ExitFlag::NOT_CONVERGED) {
+        double max_violation = 0;
+        for (const auto& constr : descriptor->GetConstraints()) {
+            if (constr->IsActive())
+                max_violation = std::max(max_violation, std::abs(constr->Violation(constr->ComputeResidual())));
+        }
+        if (max_violation / step > assembly_acc_tol)
+            exit_flag = AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE;
+    }
+
+    step = step_saved;
 
     // Update any attached visualization system
     if (visual_system)
@@ -1824,13 +1845,14 @@ AssemblyAnalysis::ExitFlag ChSystem::DoFrameKinematics(double frame_time, double
         if (left_time < (1.3 * step))
             step = left_time;
 
+        // Advance the time first, so that the last assembly is performed at frame_time
+        ch_time += step;
+
         exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
-        if (exit_flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED) {
+        if (exit_flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED || exit_flag == AssemblyAnalysis::ExitFlag::UNSUPPORTED_CONTACTS) {
             break;
         }
-
-        ch_time += step;
     }
 
     return exit_flag;

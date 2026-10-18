@@ -158,7 +158,7 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
     std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->SetDefaultMaterial(m_material_g);
     m1->SetDefaultDensity(m_density);
-    m1->SetDefaultSize(m_radius);
+    m1->SetDefaultSize(ChVector3d(m_radius));
 
     // Set starting value for body identifiers
     gen.SetStartTag(tag_particles);

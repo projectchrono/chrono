@@ -36,6 +36,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -65,6 +66,8 @@
 #include "Eigen/src/Core/util/Memory.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/robot/ChRobotActuation.h"
+
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/viper/Viper.h"
 #include "chrono_models/robot/curiosity/Curiosity.h"
@@ -149,7 +152,7 @@ using namespace chrono::industrial;
 #endif              // --------------------------------------------------------------------- PYTHON
 
 #ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
-// Unity uses Enum in a global namespace, hence the renaming of the enums to avoid conflicts with the same names
+// C# uses Enum in a global namespace, hence the renaming of the enums to avoid conflicts with the same names
 %rename(CollisionFamily_Enum) chrono::robosimian::CollisionFamily::Enum;
 %rename(CollisionFlags_Enum) chrono::robosimian::CollisionFlags::Enum;
 %rename(TurtlebotCollisionFamily_Enum) chrono::turtlebot::CollisionFamily::Enum;
@@ -185,11 +188,15 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
+// RoboSimian::SetDriver takes a std::shared_ptr<models::ChRobotActuation>. Without this
+// registration ChRobotActuation is wrapped as a plain class, so no driver object can be
+// passed to it from Python or C#.
+%shared_ptr(chrono::models::ChRobotActuation)
+
 %shared_ptr(chrono::robosimian::RS_Part)
 %shared_ptr(chrono::robosimian::RS_Chassis)
 %shared_ptr(chrono::robosimian::RS_Sled)
 %shared_ptr(chrono::robosimian::RS_WheelDD)
-%shared_ptr(chrono::robosimian::RS_Driver)
 
 %shared_ptr(chrono::viper::ViperPart)
 %shared_ptr(chrono::viper::ViperChassis)
@@ -262,6 +269,10 @@ using namespace chrono::industrial;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
+// ChColor and the VisualizationType enum (declared in ChBodyGeometry.h) are used by the robot
+// models; without these imports SWIG wraps them as opaque placeholders in this module.
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyGeometry.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
@@ -293,8 +304,10 @@ using namespace chrono::industrial;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
 
-%ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
-%feature("director")  chrono::robosimian::RS_Driver::PhaseChangeCallback;
+%ignore chrono::models::ChRobotActuation::GetCurrentPhase;
+%feature("director")  chrono::models::ChRobotActuation::PhaseChangeCallback;
+
+%include "../../../chrono_models/robot/ChRobotActuation.h"
 
 %include "../../../chrono_models/robot/robosimian/RoboSimian.h"
 %include "../../../chrono_models/robot/viper/Viper.h"
@@ -373,5 +386,3 @@ using namespace chrono::industrial;
 
 %}
 */
-
-

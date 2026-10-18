@@ -54,7 +54,7 @@ Model::Model() {
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // pasted part begins
-    auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
+    auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCableANCF>();
     msection_cable2->SetDiameter(0.015);
     msection_cable2->SetYoungModulus(0.01e9);
     msection_cable2->SetRayleighDamping(0.000);
@@ -66,7 +66,7 @@ Model::Model() {
 
     // Now, simply use BuildBeam to create a beam from a point to another:
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
-                      msection_cable2,       // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                      msection_cable2,       // ChBeamSectionCableANCF to use for the ChElementBeamANCF_3333 elements
                       1,                     // number of ChElementBeamANCF_3333 to create
                       ChVector3d(0, 0, 0),   // point A (beginning of beam)
                       ChVector3d(0.1, 0, 0)  // point B (end of beam)
@@ -93,9 +93,9 @@ Model::Model() {
     m_system->Add(constraint_dir);
 
     // make another beam
-    builder.BuildBeam(my_mesh,          // mesh where to put the created nodes and elements
-                      msection_cable2,  // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
-                      7,                // number of ChElementBeamANCF_3333 to create
+    builder.BuildBeam(my_mesh,                                                // mesh where to put the created nodes and elements
+                      msection_cable2,                                        // ChBeamSectionCableANCF to use for the ChElementBeamANCF_3333 elements
+                      7,                                                      // number of ChElementBeamANCF_3333 to create
                       ChVector3d(m_box1->GetPos().x() + 0.1, 0, 0),           // point A (beginning of beam)
                       ChVector3d(m_box1->GetPos().x() + 0.1 + 0.1 * 6, 0, 0)  // point B (end of beam)
     );

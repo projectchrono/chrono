@@ -16,10 +16,15 @@
 
 #pragma once
 
-#if defined(CHRONO_USE_HIP)
+#if defined(CHRONO_USE_HIP) && !defined(__HIP_PLATFORM_NVIDIA__)
     #include <hipcub/hipcub.hpp>
 namespace cub = hipcub;
 #else
+    // Plain CUB, for CUDA and equally for HIP targeting NVIDIA. On that platform
+    // hipCUB is only a thin wrapper over the very CUB this translation unit is
+    // already compiling against, so going through it buys nothing -- and hipCUB's
+    // CUB backend is still written against the CCCL 2.x API surface, so it does
+    // not build against the CCCL that ships with CUDA 13.
     #include <cub/cub.cuh>
 #endif
 #include <thrust/functional.h>

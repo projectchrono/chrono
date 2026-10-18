@@ -121,9 +121,15 @@ mkdir ${VSG_INSTALL_DIR}
 # --- glslang ------------------------------------------------------------
 
 echo "\n------------------------ Configure glslang\n"
+# Note: ENABLE_OPT=0 is required when building glslang from a plain clone: its default
+# (ENABLE_OPT=1) requires SPIRV-Tools sources that are not present, and the configure
+# step fails, silently leaving VSG without runtime shader compilation
+# ("FATAL: VulkanSceneGraph not compiled with GLSLang" in every VSG application).
+# The glslang build also requires a Python 3 interpreter.
 rm -rf build_glslang
 cmake -G "${BUILDSYSTEM}" -B build_glslang -S ${GLSLANG_SOURCE_DIR} \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+      -DENABLE_OPT=0 \
       -DCMAKE_DEBUG_POSTFIX="_d"
 
 echo "\n------------------------ Build and install glslang\n"

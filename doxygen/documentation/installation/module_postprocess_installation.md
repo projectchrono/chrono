@@ -5,7 +5,7 @@ Install the POSTPROCESS module {#module_postprocess_installation}
 
 Chrono::Postprocess is an optional unit that can be used to export scripts for 
 postprocessing simulation data. For example, it can generate files that can be
-load in Blender for high quality photorealistic rendering, or in the POVray rendering tool. 
+loaded in Blender for high quality photorealistic rendering, or in the POVray rendering tool. 
 It is also used to output files for GNUplot.
 
 
@@ -17,7 +17,7 @@ batch rendering of animations etc.
 Here are the main features:
 
 - Blender:
-	- exports files that can be load in [Blender](http://www.blender.org)
+	- exports files that can be loaded in [Blender](http://www.blender.org)
 	  using the chrono_import.py add-in
 	- converts the ChVisualization assets into Blender objects
 	- using the Blender GUI, one can add more objects, or modify the 
@@ -45,7 +45,7 @@ Here are the main features:
 	- creates .gpl scripts automatically from c++ with easy functions
 	- save plots on disk as .EPS or .PNG or other formats.
 
-In future we plan to support also other type of rendering software, 
+In future we plan to support also other types of rendering software, 
 because the architecture of this system is not limited to POVray.
 
 

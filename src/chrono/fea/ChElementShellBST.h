@@ -61,10 +61,8 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     ~ChElementShellBST();
 
     /// Definition of a layer
-    class ChApi Layer {
+    class Layer {
       public:
-        Layer() {}; // default constructor only for archiving in containers
-
         /// Return the layer thickness.
         double GetThickness() const { return m_thickness; }
 
@@ -91,9 +89,6 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
         double m_theta;                                        ///< fiber angle
 
         friend class ChElementShellBST;
-        friend class MyForce;
-        friend class MyJacobian;
-
       public:
         // SERIALIZATION
         virtual void ArchiveOut(ChArchiveOut& archive_out);
@@ -281,7 +276,6 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     // The default implementation in ChElementBase is ok, but inefficient because it passes
     // through the computation of the M mass matrix via ComputeKRMmatricesGlobal(H,0,0,M).
     void EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) override;
-
 
     // Interface to ChElementShell base class
     // --------------------------------------

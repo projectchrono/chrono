@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     double collision_envelope = 0.05;
 
     // Collision shape
-    enum class CollisionShape { SPHERE, CYLINDER, CAPSULE, CYLSHELL, MESH };
+    enum class CollisionShape { SPHERE, CYLINDER, CAPSULE, MESH };
     CollisionShape object_model = CollisionShape::CYLINDER;
 
     std::string tire_mesh_file = GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_fine.obj");
@@ -115,9 +115,6 @@ int main(int argc, char* argv[]) {
             break;
         case CollisionShape::CAPSULE:
             std::cout << "CAPSULE" << std::endl;
-            break;
-        case CollisionShape::CYLSHELL:
-            std::cout << "CYLSHELL" << std::endl;
             break;
         case CollisionShape::MESH:
             std::cout << "MESH" << std::endl;
@@ -221,15 +218,6 @@ int main(int argc, char* argv[]) {
 
             auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
             object->AddVisualShape(cap, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
-
-            break;
-        }
-        case CollisionShape::CYLSHELL: {
-            auto shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
-
-            auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
-            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }

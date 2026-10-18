@@ -137,6 +137,9 @@ class ChApi ChCollisionSystem {
     /// Register a broadphase callback object.
     void RegisterBroadphaseCallback(std::shared_ptr<BroadphaseCallback> callback) { broad_callback = callback; }
 
+    /// Get registered broadphase callback object, if any.
+    std::shared_ptr<BroadphaseCallback> GetBroadphaseCallback() const { return broad_callback; }
+
     /// Class to be used as a callback interface for user-defined actions to be performed during narrowphase.
     /// The `OnNarrowphase()` method will be called for each collision pair found during narrow phase.
     class ChApi NarrowphaseCallback {
@@ -150,6 +153,9 @@ class ChApi ChCollisionSystem {
 
     /// Register a narrowphase callback object.
     void RegisterNarrowphaseCallback(std::shared_ptr<NarrowphaseCallback> callback) { narrow_callback = callback; }
+
+    /// Get registered narrowphase callback object, if any.
+    std::shared_ptr<NarrowphaseCallback> GetNarrowphaseCallback() const { return narrow_callback; }
 
     /// Recover results from RayHit() ray-casting.
     struct ChRayhitResult {

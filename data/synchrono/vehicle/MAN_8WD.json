@@ -4,7 +4,7 @@
   "Template": "WheeledVehicle",
 
   "Vehicle": {
-    "Input File": "MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json",
+    "Input File": "MAN/vehicle/MAN_10t_Vehicle_8WD.json",
     "Chassis Visualization Type": "Mesh",
     "Suspension Visualization Type": "Primitives",
     "Steering Visualization Type": "Primitives",
@@ -12,18 +12,18 @@
   },
 
   "Powertrain": {
-    "Input File": "MAN_Kat1/powertrain/MAN_7t_SimpleCVTPowertrain.json"
+    "Input File": "MAN/powertrain/MAN_7t_SimpleCVTPowertrain.json"
   },
 
   "Tire": {
-    "Input File": "MAN_Kat1/tire/MAN_5t_TMeasyTire.json",
+    "Input File": "MAN/tire/MAN_TMeasyTire.json",
     "Visualization Type": "Mesh"
   },
 
   "Zombie": {
-    "Chassis Visualization File": "MAN_Kat1/meshes/MAN_10t_chassis.obj",
-    "Wheel Visualization File": "MAN_Kat1/meshes/MAN_rim.obj",
-    "Tire Visualization File": "MAN_Kat1/meshes/MAN_tire.obj",
+    "Chassis Visualization File": "MAN/meshes/MAN_10t_chassis.obj",
+    "Wheel Visualization File": "MAN/meshes/MAN_rim.obj",
+    "Tire Visualization File": "MAN/meshes/MAN_tire.obj",
     "Number of Wheels": 8
   }
 }

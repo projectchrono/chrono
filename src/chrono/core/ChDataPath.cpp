@@ -73,10 +73,13 @@ const std::string& GetChronoTestOutputPath() {
 // -----------------------------------------------------------------------------
 
 bool CreateOutputDirectory(const std::filesystem::path& p) {
-    if (exists(p) && is_directory(p))
-        return true;
-
-    return std::filesystem::create_directory(p);
+    // Do not check for existence first: another process (e.g., another participant in a co-simulation) may create the
+    // directory between that check and the creation attempt, in which case create_directories reports that it did not
+    // create anything. Instead, attempt the creation (including any missing parent directories), ignore its outcome,
+    // and report success if the directory exists afterwards, regardless of who created it.
+    std::error_code ec;
+    std::filesystem::create_directories(p, ec);
+    return std::filesystem::is_directory(p, ec);
 }
 
 bool CreateOutputDirectory(const std::string& p) {

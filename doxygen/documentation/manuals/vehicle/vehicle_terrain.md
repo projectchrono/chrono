@@ -15,7 +15,7 @@ For a quick user-facing comparison between SPH-based CRM terrain and SCM terrain
 see [CRM Deformable Terrain (SPH) for Vehicle Users](@ref vehicle_terrain_crm).
 
 
-Note however that these quantities are relevant only for the interaction with the so-called [semi-empirical tire models](@ref vehicle_tire_empirical).  As such, they are not used for the case of deformable terrain (SCM, granular, or FEA-based) which can only work in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles (as they rely on the underlying Chrono collision and contact system).
+Note however that these quantities are relevant only for the interaction with the so-called [semi-empirical (handling) tire models](@ref vehicle_tire_empirical), which carry no collision geometry and interact with the terrain exclusively through these queries.  Contact-based tires and tracked vehicles do not use them.  As a consequence, **handling tire models cannot be used with deformable terrain** (SCM, granular, CRM, or FEA-based).  Deformable terrain can only work in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles, as these rely on their collision geometry (through the underlying Chrono collision and contact system or, for CRM terrain, through FSI).  See the [tire models](@ref wheeled_tire) page for a summary of supported tire-terrain combinations.
 
 Furthermore, the coefficient of friction value may be used by certain tire models to modify the tire characteristics, but it will have no effect on the interaction of the terrain with other objects (including tire models that do not explicitly use it).
 
@@ -77,6 +77,8 @@ Since the CRG terrain model currently does not carry any collision and contact i
 ## Deformable SCM (Soil Contact Model) {#vehicle_terrain_scm}
 
 In the [SCMTerrain](@ref chrono::vehicle::SCMTerrain), the terrain is represented by an implicit regular Cartesian grid whose deformation is achieved via vertical deflection of its nodes.  This soil model draws on the general-purpose collision engine in Chrono and its lightweight formulation allows computing vehicle-terrain contact forces in close to real-time.
+
+Optional HIP backends move SCM ray casting and the contact-force loop onto the GPU; see [SCM GPU backends](@ref vehicle_terrain_scm_gpu) for prerequisites, defaults, and validation steps.
 To address memory and computational efficiency concerns, the grid is never created explicitly. Instead, only nodes that have been deformed are maintained in a hash map.  Furthermore, ray-casting in the collision system (the most costly operation in the SCM calculation) is multi-threaded.  To allow efficient visualization of the deformed terrain, the Chrono SCM subsystem provides methods for incrementally updating a visualization mesh and, when using an external visualization system, reporting the subset of nodes deformed over the last time step.
 
 Shown below, a tire makes ruts in deformable soil, illustrating the mesh structure of the Chrono version of the SCM.
@@ -106,9 +108,9 @@ Some other features of the Chrono SCM implementation are:
 - support for a moving-patch approach wherein ray-casting (the most costly operation) is confined to a specified domain -- either a rectangular patch moving relative to the vehicle or the projection of a bounding box
 - support for specifying location-dependent soil parameters; this can be achieved by providing a custom callback class which implements a method that returns all soil parameters at a given \f$(x,y)\f$ point specified in the terrain's reference plane. See [SCMTerrain::SoilParametersCallback](@ref chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
-Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
+Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles; [handling tires](@ref vehicle_tire_empirical) cannot be used.
 
-## Deformable DEM (granular dyynamics) {#vehicle_terrain_granular}
+## Deformable DEM (granular dynamics) {#vehicle_terrain_granular}
 
 [GranularTerrain](@ref chrono::vehicle::GranularTerrain) implements a rectangular patch of granular material and leverages Chrono's extensive support for so-called Discrete Element Method (DEM) simulations. Currently, this terrain model is limited to monodisperse spherical granular material.
 
@@ -124,7 +126,7 @@ Other features of GranularTerrain include:
 - analytical definition of the bin boundaries and a custom collision detection mechanism
 - reporting of the terrain height (defined as the largest \f$z\f$ value over all particle locations)
 
-Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
+Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles; [handling tires](@ref vehicle_tire_empirical) cannot be used.
 
 ## Deformable FEA (ANCF solid elements) {#vehicle_terrain_fea}
 
@@ -135,7 +137,7 @@ This terrain model permits:
 - assignment of material properties (density, modulus of elasticity, Poisson ratio, yield stress, hardening slope, dilatancy angle, and friction angle)
 - addition of Chrono FEA mesh visualization assets
 
-Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
+Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles; [handling tires](@ref vehicle_tire_empirical) cannot be used.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/FEA_terrain.png" width="600" />
 
@@ -143,7 +145,9 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 [CRMTerrain](@ref chrono::vehicle::CRMTerrain) provides a deformable terrain model based on the so-called Continuous Representation Model (CRM) approach which involves solving a set of PDEs describing soil dynamics. These PDEs are solved using the [Chrono::FSI-SPH](group__fsisph.html) module with the appropriate underlying dynamics.
 
-CRMTerrain provides a very attractive alternative to granular dynamics as it gives sdimilar accuracy and fidelity of soil dynamics with much better computational performance.
+CRMTerrain provides a very attractive alternative to granular dynamics as it gives similar accuracy and fidelity of soil dynamics with much better computational performance.
+
+CRM terrain interacts with the vehicle through FSI and requires [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tires (or a tracked vehicle) registered with the FSI system; [handling tires](@ref vehicle_tire_empirical) cannot be used.
 
 Further details on using a CRM terrain with Chrono::Vehicle is provided in:
 * @subpage vehicle_terrain_crm_api_

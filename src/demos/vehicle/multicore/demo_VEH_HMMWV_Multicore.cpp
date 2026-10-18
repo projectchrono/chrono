@@ -28,7 +28,6 @@
 #include <algorithm>
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChVisualShapeLine.h"
 
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/input_output/ChUtilsInputOutput.h"

@@ -5,6 +5,7 @@ set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/handling_tire)
 set(COMPONENT_DLL_DEPENDENCIES "")
 
 set(FMU_CS ON)
+set(FMU_TESTING ${CH_ENABLE_FMU_TESTING})
 
 #--------------------------------------------------------------
 

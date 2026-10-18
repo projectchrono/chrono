@@ -108,7 +108,6 @@ class SphForce {
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
     SphForce(FsiDataManager& data_mgr,  ///< FSI data manager
-             SphBceManager& bce_mgr,    ///< BCE manager
              bool verbose               ///< verbose output
     );
 
@@ -157,7 +156,6 @@ class SphForce {
 
   protected:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
-    SphBceManager& m_bce_mgr;    ///< BCE manager
 
     bool m_verbose;
     bool* m_errflagD;

@@ -19,8 +19,12 @@
 #ifndef M113_VEHICLE_H
 #define M113_VEHICLE_H
 
+#include "chrono_vehicle/ChConfigVehicle.h"
+
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
+#endif
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
@@ -45,55 +49,12 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
 
   protected:
     /// Construct the M113 vehicle within an automatically created Chrono system.
-    M113_Vehicle(bool fixed,
-                 TrackShoeType shoe_type,
-                 DoublePinTrackShoeType shoe_topology,
-                 ChTrackShoeBandANCF::ElementType element_type,
-                 bool constrain_curvature,
-                 int num_elements_length,
-                 int num_elements_width,
-                 DrivelineTypeTV driveline_type,
-                 BrakeType brake_type,
-                 bool use_track_bushings,
-                 bool use_suspension_bushings,
-                 bool use_track_RSDA,
-                 ChContactMethod contact_method,
-                 CollisionType chassis_collision_type);
+    M113_Vehicle(ChContactMethod contact_method);
 
     /// Construct the M113 vehicle within the specified Chrono system.
-    M113_Vehicle(bool fixed,
-                 TrackShoeType shoe_type,
-                 DoublePinTrackShoeType shoe_topology,
-                 ChTrackShoeBandANCF::ElementType element_type,
-                 bool constrain_curvature,
-                 int num_elements_length,
-                 int num_elements_width,
-                 DrivelineTypeTV driveline_type,
-                 BrakeType brake_type,
-                 bool use_track_bushings,
-                 bool use_suspension_bushings,
-                 bool use_track_RSDA,
-                 ChSystem* system,
-                 CollisionType chassis_collision_type);
-
-  private:
-    void Create(bool fixed,
-                TrackShoeType shoe_type,
-                DoublePinTrackShoeType shoe_topology,
-                ChTrackShoeBandANCF::ElementType element_type,
-                bool constrain_curvature,
-                int num_elements_length,
-                int num_elements_width,
-                DrivelineTypeTV driveline_type,
-                BrakeType brake_type,
-                bool use_track_bushings,
-                bool use_suspension_bushings,
-                bool use_track_RSDA,
-                CollisionType chassis_collision_type);
+    M113_Vehicle(ChSystem* system);
 
     bool m_create_track;
-
-    friend class M113;
 };
 
 /// M113 vehicle with segmented single-pin track shoes.
@@ -106,7 +67,7 @@ class CH_MODELS_API M113_Vehicle_SinglePin : public M113_Vehicle {
                            bool use_track_bushings,
                            bool use_suspension_bushings,
                            bool use_track_RSDA,
-                           ChContactMethod contact_method = ChContactMethod::NSC,
+                           ChContactMethod contact_method,
                            CollisionType chassis_collision_type = CollisionType::NONE);
 
     /// Construct the M113 vehicle within the specified Chrono system.
@@ -118,6 +79,16 @@ class CH_MODELS_API M113_Vehicle_SinglePin : public M113_Vehicle {
                            bool use_track_RSDA,
                            ChSystem* system,
                            CollisionType chassis_collision_type = CollisionType::NONE);
+
+  private:
+    /// Create the single-pin M113 vehicle with given parameters.
+    void Create(bool fixed,
+                DrivelineTypeTV driveline_type,
+                BrakeType brake_type,
+                bool use_track_bushings,
+                bool use_suspension_bushings,
+                bool use_track_RSDA,
+                CollisionType chassis_collision_type);
 };
 
 /// M113 vehicle with segmented double-pin track shoes.
@@ -131,7 +102,7 @@ class CH_MODELS_API M113_Vehicle_DoublePin : public M113_Vehicle {
                            bool use_track_bushings,
                            bool use_suspension_bushings,
                            bool use_track_RSDA,
-                           ChContactMethod contact_method = ChContactMethod::NSC,
+                           ChContactMethod contact_method,
                            CollisionType chassis_collision_type = CollisionType::NONE);
 
     /// Construct the M113 vehicle within the specified Chrono system.
@@ -144,6 +115,17 @@ class CH_MODELS_API M113_Vehicle_DoublePin : public M113_Vehicle {
                            bool use_track_RSDA,
                            ChSystem* system,
                            CollisionType chassis_collision_type = CollisionType::NONE);
+
+  private:
+    /// Create the double-pin M113 vehicle with given parameters.
+    void Create(bool fixed,
+                DoublePinTrackShoeType shoe_topology,
+                DrivelineTypeTV driveline_type,
+                BrakeType brake_type,
+                bool use_track_bushings,
+                bool use_suspension_bushings,
+                bool use_track_RSDA,
+                CollisionType chassis_collision_type);
 };
 
 /// M113 vehicle with bushings-based continuous tracks.
@@ -154,7 +136,7 @@ class CH_MODELS_API M113_Vehicle_BandBushing : public M113_Vehicle {
                              DrivelineTypeTV driveline_type,
                              BrakeType brake_type,
                              bool use_suspension_bushings,
-                             ChContactMethod contact_method = ChContactMethod::NSC,
+                             ChContactMethod contact_method,
                              CollisionType chassis_collision_type = CollisionType::NONE);
 
     /// Construct the M113 vehicle within the specified Chrono system.
@@ -164,7 +146,13 @@ class CH_MODELS_API M113_Vehicle_BandBushing : public M113_Vehicle {
                              bool use_suspension_bushings,
                              ChSystem* system,
                              CollisionType chassis_collision_type = CollisionType::NONE);
+
+  private:
+    /// Create the band-bushing M113 vehicle with given parameters.
+    void Create(bool fixed, DrivelineTypeTV driveline_type, BrakeType brake_type, bool use_suspension_bushings, CollisionType chassis_collision_type);
 };
+
+#ifdef CHRONO_FEA
 
 /// M113 vehicle with ANCF-based continuous tracks.
 class CH_MODELS_API M113_Vehicle_BandANCF : public M113_Vehicle {
@@ -178,7 +166,7 @@ class CH_MODELS_API M113_Vehicle_BandANCF : public M113_Vehicle {
                           DrivelineTypeTV driveline_type,
                           BrakeType brake_type,
                           bool use_suspension_bushings,
-                          ChContactMethod contact_method = ChContactMethod::NSC,
+                          ChContactMethod contact_method,
                           CollisionType chassis_collision_type = CollisionType::NONE);
 
     /// Construct the M113 vehicle within the specified Chrono system.
@@ -192,7 +180,21 @@ class CH_MODELS_API M113_Vehicle_BandANCF : public M113_Vehicle {
                           bool use_suspension_bushings,
                           ChSystem* system,
                           CollisionType chassis_collision_type = CollisionType::NONE);
+
+  private:
+    /// Create the band-ANCF M113 vehicle with given parameters.
+    void Create(bool fixed,
+                ChTrackShoeBandANCF::ElementType element_type,
+                bool constrain_curvature,
+                int num_elements_length,
+                int num_elements_width,
+                DrivelineTypeTV driveline_type,
+                BrakeType brake_type,
+                bool use_suspension_bushings,
+                CollisionType chassis_collision_type);
 };
+
+#endif
 
 /// @} vehicle_models_m113
 

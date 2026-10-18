@@ -1,0 +1,59 @@
+chrono-version: 10.0
+
+model:
+  name: Beams
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../data/"
+
+  FEA_beams:
+  - name: beam1_euler
+    type: EULER
+    num_elements: 4
+    start_point: [0, 0, 0]
+    end_point: [1, 0, 0]
+    up_direction: [0, 0, 1]
+
+  - name: beam2_ancf_cable
+    type: ANCF_CABLE
+    num_elements: 4
+    start_point: [0, 0, 0]
+    end_point: [1, 0, 0]
+
+  - name: beam3_ancf_3243
+    type: ANCF_3243
+    num_elements: 4
+    start_point: [0, 0, 0]
+    end_point: [1, 0, 0]
+    section_dimensions: [1, 1]
+    node_directions:
+        direction: [1, 0, 0]
+        curvature_v: [0, 1, 0]
+        curvature_w: [0, 0, 1]
+    struct_damping: 0
+
+  - name: beam4_ancf_3333
+    type: ANCF_3333
+    num_elements: 4
+    start_point: [0, 0, 0]
+    end_point: [1, 0, 0]
+    section_dimensions: [1, 1]
+    node_directions:
+        direction: [1, 0, 0]
+        curvature: [0, 1, 0]
+
+  - name: beam5_iga
+    type: IGA
+    num_elements: 4
+    start_point: [0, 0, 0]
+    end_point: [1, 0, 0]
+    up_direction: [0, 0, 1]
+    spline_order: 3     
+
+  - name: beam6_timoshenko
+    type: TYMOSHENKO
+    num_elements: 4
+    start_point: [0, 0, 0]
+    end_point: [1, 0, 0]

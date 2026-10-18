@@ -17,10 +17,12 @@
 #define PROFILE false
 
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
+#include "chrono_sensor/filters/ChFilterVisualizeGuards.h"
+#ifdef CHRONO_HAS_OPTIX
 #include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
-
 #include <cuda_runtime_api.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -34,11 +36,15 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Initialize(std::shared_ptr<ChS
                                                              std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
+    m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
+    if (!m_radar)
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
+#ifdef CHRONO_HAS_OPTIX
     auto pOptixSen = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
     if (!pOptixSen)
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     m_cuda_stream = pOptixSen->GetCudaStream();
-    m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
+#endif
     m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarXYZBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
@@ -49,6 +55,9 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Initialize(std::shared_ptr<ChS
 
 CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
 #ifdef USE_SENSOR_GLFW
+    // Hand back whatever GL context the caller had current (see ChFilterVisualizeGuards.h).
+    GLContextGuard gl_context_guard;
+
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
         float hfov = m_radar->GetHFOV();
@@ -68,7 +77,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         glfwMakeContextCurrent(m_window.get());
 
         int window_w, window_h;
-        glfwGetWindowSize(m_window.get(), &window_w, &window_h);
+        glfwGetFramebufferSize(m_window.get(), &window_w, &window_h);
         //
 
         // Set Viewport to window dimensions
@@ -103,8 +112,10 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         glPointSize(1.0);
         glBegin(GL_POINTS);
 
-        // display the points, synchronizing the streamf first
+        // display the points, synchronizing the stream first for OptiX device buffers
+#ifdef CHRONO_HAS_OPTIX
         cudaStreamSynchronize(m_cuda_stream);
+#endif
         // draw the vertices, color them by clusterID
 
         if (m_buffer_in->Num_clusters > 0) {
@@ -129,7 +140,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         glFlush();
 
         glfwSwapBuffers(m_window.get());
-        glfwPollEvents();
+        PollGlfwEventsPreservingHostEvents();  // not glfwPollEvents: see ChFilterVisualizeGuards.h
     }
 #endif
 }

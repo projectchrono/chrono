@@ -34,6 +34,9 @@ class ChVisualSystemVSG;
 /// Base class for a GUI component for the VSG run-time visualization system.
 class CH_VSG_API ChGuiComponentVSG {
   public:
+    /// Padding between a GUI panel and the VSG window margin.
+    static constexpr float GUI_PADDING = 5.0f;
+
     ChGuiComponentVSG();
     virtual ~ChGuiComponentVSG() {}
 

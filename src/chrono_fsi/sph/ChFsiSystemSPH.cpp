@@ -34,6 +34,10 @@ namespace sph {
 
 ChFsiSystemSPH::ChFsiSystemSPH(ChSystem* sysMBS, ChFsiFluidSystemSPH* sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH), m_generic_fsi_interface(use_generic_interface) {
+    // Overlap the SPH and MBS advances. The resulting one-step lag in the fluid forces applied to the MBS is
+    // acceptable for SPH coupling and is worth the concurrency; see SetCouplingScheme to select the alternative.
+    SetCouplingScheme(CouplingScheme::CONCURRENT);
+
     if (use_generic_interface) {
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceGeneric>(sysMBS, sysSPH);
     } else {
@@ -48,11 +52,11 @@ ChFsiFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return *m_sysSPH;
 }
 
-std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded) {
+std::shared_ptr<FsiBody> ChFsiSystemSPH::AddRigidBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame, bool check_embedded) {
     ChAssertAlways(m_sysSPH);
 
     // Add the FSI body with no geometry
-    auto fsi_body = ChFsiSystem::AddFsiBody(body, nullptr, check_embedded);
+    auto fsi_body = ChFsiSystem::AddRigidBody(body, nullptr, check_embedded);
 
     // Explicitly set the BCE marker locations
     auto& fsisph_body = m_sysSPH->m_bodies.back();
@@ -64,6 +68,26 @@ std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body
     std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce), [&abs_frame](const ChVector3d& v) { return abs_frame.TransformPointLocalToParent(v); });
 
     return fsi_body;
+}
+
+void ChFsiSystemSPH::SetActiveDomainBody(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(m_sysSPH && !m_sysSPH->m_is_initialized);
+    m_sysSPH->SetActiveDomainBody(i, aabb);
+}
+
+void ChFsiSystemSPH::SetActiveDomainMesh1D(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(m_sysSPH);
+    m_sysSPH->SetActiveDomainMesh1D(i, aabb);
+}
+
+void ChFsiSystemSPH::SetActiveDomainMesh2D(size_t i, const ChAABB& aabb) {
+    ChAssertAlways(m_sysSPH);
+    m_sysSPH->SetActiveDomainMesh2D(i, aabb);
+}
+
+void ChFsiSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    ChAssertAlways(m_sysSPH);
+    m_sysSPH->SetActiveDomain(box_dim);
 }
 
 void ChFsiSystemSPH::AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& frame) {

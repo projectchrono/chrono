@@ -8,7 +8,7 @@ where we control the motion of the legs with 18 actuators.
 
 In detail, one performs the following steps: 
 - use SolidWorks to make a 3D CAD model of the crawling robot, 
-- export it as a .pyfile using the Chrono::SolidWorks add-in; ex. use the name **spider\_robot.py**
+- export it as a .py file using the Chrono::SolidWorks add-in; ex. use the name **spider\_robot.py**
 - create a Python program, ex. use the name **demo_SW\_spider_robot.py**, using the functions of [PyChrono](@ref pychrono_introduction) to load and simulate spider\_robot.py.
 
 The CAD model and the **demo_SW\_spider_robot.py** program come with the Chrono SolidWorks add-in installation, but are also directly available [here](https://github.com/projectchrono/chrono-solidworks/tree/master/to_put_in_app_dir/examples/spider_robot) 

@@ -79,15 +79,12 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    virtual void SetMaterialCompositionStrategy(
-        std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
 
     /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
-    virtual unsigned int GetNumBodies() const override {
-        return data_manager->num_rigid_bodies + data_manager->num_particles;
-    }
+    virtual unsigned int GetNumBodies() const override { return data_manager->num_rigid_bodies + data_manager->num_particles; }
 
     /// Get the number of shafts.
     virtual unsigned int GetNumShafts() const override { return data_manager->num_shafts; }
@@ -96,21 +93,13 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual unsigned int GetNumContacts() const override;
 
     /// Get the number of scalar constraints in the system.
-    virtual unsigned int GetNumConstraints() override {
-        return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral();
-    }
+    virtual unsigned int GetNumConstraints() override { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
 
     /// Get the number of bilateral scalar constraints.
-    virtual unsigned int GetNumConstraintsBilateral() override {
-        return data_manager->num_bilaterals;
-        ;
-    }
+    virtual unsigned int GetNumConstraintsBilateral() override { return data_manager->num_bilaterals; }
 
     /// Get the number of unilateral scalar constraints.
-    virtual unsigned int GetNumConstraintsUnilateral() override {
-        return data_manager->num_unilaterals;
-        ;
-    }
+    virtual unsigned int GetNumConstraintsUnilateral() override { return data_manager->num_unilaterals; }
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const override;
@@ -176,9 +165,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     ///                          If passing 0, then num_threads_eigen = num_threads_chrono.
     /// </pre>
     /// By default, num_threads_chrono is set to omp_get_num_procs() and num_threads_eigen is set to 1.
-    virtual void SetNumThreads(int num_threads_chrono,
-                               int num_threads_collision = 0,
-                               int num_threads_eigen = 0) override;
+    virtual void SetNumThreads(int num_threads_chrono, int num_threads_collision = 0, int num_threads_eigen = 0) override;
 
     /// Enable dynamic adjustment of number of threads between the specified limits.
     /// The initial number of threads is set to min_threads.
@@ -261,9 +248,7 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
 
     virtual void PrintStepStats() override;
 
-    double GetTimerProcessContact() const {
-        return data_manager->system_timer.GetTime("ChIterativeSolverMulticoreSMC_ProcessContact");
-    }
+    double GetTimerProcessContact() const { return data_manager->system_timer.GetTime("ChIterativeSolverMulticoreSMC_ProcessContact"); }
 };
 
 /// @} multicore_physics

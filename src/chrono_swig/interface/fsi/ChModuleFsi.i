@@ -36,6 +36,7 @@
 
 // For optional casting of polimorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -51,6 +52,7 @@
 #include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChAABB.h"
 #include "chrono/geometry/ChVolume.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChBox.h"
@@ -108,8 +110,8 @@ using namespace chrono::fsi;
 %include "wchar.i"
 #ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 %include "python/cwstring.i"
-#endif              // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
+#endif              // --------------------------------------------------------------------- PYTHON
 %include "cpointer.i"
 
 #ifdef SWIGPYTHON
@@ -148,6 +150,7 @@ using namespace chrono::fsi;
 %import(module="pychrono.core") "chrono_swig/interface/core/ChSystem.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChBody.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChGeometry.i"
+%import(module="pychrono.core") "../../../chrono/geometry/ChAABB.h"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChParticleCloud.i"
 #ifdef CHRONO_VSG

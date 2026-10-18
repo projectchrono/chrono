@@ -25,15 +25,12 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
 void CopyParametersToDevice_SphCollisionSystem(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
     gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     gpuCheckError();
 }
-
-#endif
 
 // =============================================================================
 
@@ -82,14 +79,14 @@ __global__ void calcHashD(uint* gridMarkerHashD,    // gridMarkerHash Store part
 
     // Check particle is inside the domain.
     Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.h);
-    if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z && IsFluidParticle(rhoPresMu[index].w)) {
+    if ((p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) && IsFluidParticle(rhoPresMu[index].w)) {
         printf("[calcHashD] index %u (%f %f %f) out of min boundary (%f %f %f)\n",  //
                index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
         return;
     }
     boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.h);
-    if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z && IsFluidParticle(rhoPresMu[index].w)) {
+    if ((p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) && IsFluidParticle(rhoPresMu[index].w)) {
         printf("[calcHashD] index %u (%f %f %f) out of max boundary (%f %f %f)\n",  //
                index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
@@ -100,6 +97,19 @@ __global__ void calcHashD(uint* gridMarkerHashD,    // gridMarkerHash Store part
     int3 gridPos = calcGridPos(p);
     // Calculate a hash from the bin index
     uint hash = calcGridHash(gridPos);
+
+    // The per-cell arrays are indexed with this hash, so it must lie inside the grid. The bin
+    // reduction in calcGridHash makes that true for any input; this checks it rather than
+    // trusting it, because an out-of-range hash writes outside those arrays with no other
+    // symptom (no fault, no diagnostic, plausible results).
+    uint numCells = (uint)(paramsD.gridSize.x * paramsD.gridSize.y * paramsD.gridSize.z);
+    if (hash >= numCells) {
+        printf("[calcHashD] index %u (%f %f %f) produced cell hash %u outside the grid (%u cells)\n",  //
+               index, p.x, p.y, p.z, hash, numCells);
+        *error_flag = true;
+        return;
+    }
+
     // Store grid hash
     // grid hash is a scalar cell ID
     gridMarkerHashD[globalIndex] = hash;
@@ -198,8 +208,8 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
     sortedRhoPreMuD[tid] = rhoPreMuVal;
     activityIdentifierSortedD[tid] = activityIdentifierVal;
 
-    // For elastic SPH or granular
-    if (paramsD.elastic_SPH) {
+    // For CRM only
+    if (paramsD.physics_problem == PhysicsProblem::CRM) {
         Real3 tauXxYyZzVal = tauXxYyZzD[originalIndex];
         Real3 tauXyXzYzVal = tauXyXzYzD[originalIndex];
         Real3 pcEvSvVal = pcEvSvD[originalIndex];
@@ -307,9 +317,15 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
 
 // =============================================================================
 
-SphCollisionSystem::SphCollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
+SphCollisionSystem::SphCollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_errflagD(nullptr), m_sphMarkersD(nullptr) {
+    // Allocated once here rather than on every ArrangeData call: that runs every step, and a
+    // device allocation plus free per step is pure overhead for a one-byte flag.
+    gpuMallocErrorFlag(m_errflagD);
+}
 
-SphCollisionSystem::~SphCollisionSystem() {}
+SphCollisionSystem::~SphCollisionSystem() {
+    gpuFreeErrorFlag(m_errflagD);
+}
 
 void SphCollisionSystem::Initialize() {
     gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
@@ -317,9 +333,7 @@ void SphCollisionSystem::Initialize() {
 }
 
 void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    bool* error_flagD;
-    gpuMallocErrorFlag(error_flagD);
-    gpuResetErrorFlag(error_flagD);
+    gpuResetErrorFlag(m_errflagD);
 
     m_sphMarkersD = sphMarkersD;  //// TODO RADU: why is this cached?!?!
 
@@ -340,8 +354,8 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
                                          U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-                                         (uint)m_data_mgr.countersH->numExtendedParticles, error_flagD);
-    gpuCheckErrorFlag(error_flagD, "calcHashD");
+                                         (uint)m_data_mgr.countersH->numExtendedParticles, m_errflagD);
+    gpuCheckErrorFlag(m_errflagD, "calcHashD");
 
     // Sort Particles based on Hash
     thrust::sort_by_key(m_data_mgr.markersProximity_D->gridMarkerHashD.begin(), m_data_mgr.markersProximity_D->gridMarkerHashD.begin() + m_data_mgr.countersH->numExtendedParticles,
@@ -372,8 +386,6 @@ void SphCollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD
         mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
         mR3CAST(m_sphMarkersD->tauXyXzYzD), mR3CAST(m_sphMarkersD->pcEvSvD), INT_32CAST(m_data_mgr.activityIdentifierOriginalD), (uint)m_data_mgr.countersH->numExtendedParticles);
     gpuCheckError();
-
-    gpuFreeErrorFlag(error_flagD);
 }
 
 void SphCollisionSystem::NeighborSearch(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {

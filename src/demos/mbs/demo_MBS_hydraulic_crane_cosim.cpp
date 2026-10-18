@@ -26,9 +26,6 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 
-#include "chrono/assets/ChVisualShapeSphere.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono/input_output/ChWriterCSV.h"

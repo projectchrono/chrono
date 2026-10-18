@@ -8,7 +8,6 @@ endif()
 # Add demos that can work with either Irrlicht or VSG
 set(DEMOS
   demo_MBS_aux_ref
-  demo_MBS_object_drop
   demo_MBS_bricks
   demo_MBS_callbackNSC
   demo_MBS_callbackSMC
@@ -37,6 +36,7 @@ if(CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_MBS_checkpoint
         demo_MBS_custom_contact
+        demo_MBS_object_drop
     )
 endif()
 

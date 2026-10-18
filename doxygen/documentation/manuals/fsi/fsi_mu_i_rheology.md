@@ -26,7 +26,7 @@ Primary references:
 Quick Start
 -----------
 
-1. Enable CRM and choose mu(I) rheology through `ElasticMaterialProperties`.
+1. Enable CRM and choose mu(I) rheology through `SoilProperties`.
 2. Set the core mu(I) material parameters:
    - `mu_fric_s`, `mu_fric_2`, `mu_I0`, `average_diam`, `cohesion_coeff`
 3. Set SPH parameters following `manual_fsi_sph_parameter_selection`
@@ -38,7 +38,7 @@ API Map (How To Set mu(I) Parameters)
 Core API pattern:
 
 ~~~{.cpp}
-ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
+ChFsiFluidSystemSPH::SoilProperties mat_props;
 mat_props.rheology_model = RheologyCRM::MU_OF_I;
 
 mat_props.density = 1700.0;
@@ -51,7 +51,7 @@ mat_props.mu_I0 = 0.08;
 mat_props.average_diam = 0.003;
 mat_props.cohesion_coeff = 0.0;
 
-sysSPH.SetElasticSPH(mat_props);
+sysSPH.SetCrmSPH(mat_props);
 ~~~
 
 Solver/stabilization parameters (same SPH parameter block used in CFD/CRM following `manual_fsi_sph_parameter_selection`):
@@ -65,7 +65,7 @@ sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
 sph_params.shifting_xsph_eps = 0.25;
 sph_params.shifting_ppst_push = 3.0;
 sph_params.shifting_ppst_pull = 1.0;
-sph_params.free_surface_threshold = 2.0;
+sph_params.free_surface_threshold = 2.4;
 sysSPH.SetSPHParameters(sph_params);
 ~~~
 
@@ -86,31 +86,36 @@ Chrono's CRM mu(I) branch is implemented in `TauEulerStep(...)` (`SphFluidDynami
 | Friction law | `mu = mu_s + (mu_2 - mu_s) * I / (I0 + I)` |
 | Yield limit (with cohesion) | `tau_max = mu * p_tr + c` |
 | Plastic correction | radial return when `tau_tr > tau_max` |
-| Cohesive tension cutoff | if `p_tr < -c/mu_s`, stress is zeroed |
+| Tension cutoff | trial mean pressure is clamped at zero, `p_tr = max(p_tr, 0)`, so no particle carries tension; cohesion still contributes shear strength through `tau_max` |
 | Free-surface treatment | if flagged (`nabla_r < free_surface_threshold`), stress and pressure are zeroed |
 
 Important model notes (current Chrono code behavior):
 
 - EOS is not used in CRM; pressure comes from stress trace.
+- The tension cutoff is applied to `p_tr` before both the inertial number and the yield limit are
+  evaluated, so a particle that would have gone into tension yields at `tau_max = c`. Earlier versions
+  cut off at `p_tr < -c/mu_s` instead, which let particles sustain negative pressure; that drove the
+  SPH tensile instability and made `I` non-finite for `p_tr < 0`, silently disabling the yield check
+  for those particles. For `c = 0` the two forms agree.
 
 Core mu(I) Material Parameters
 ------------------------------
 
-These are set through `ElasticMaterialProperties`.
+These are set through `SoilProperties`.
 
 | Parameter | Physical meaning | Code default | Practical recommendation | API |
 |---|---|---|---|---|
-| `density` | Bulk density scale for inertia, particle mass, and `I ~ d * sqrt(rho/p)`. | `1000` | Use measured bulk density for the soil state you want to reproduce (e.g., 1500-1800 kg/m^3 in many validations). | `mat_props.density` -> `SetElasticSPH` |
-| `Young_modulus` | Elastic stiffness in the trial stress update (through `K` and `G`). | `1e6` | Start near `1e6` Pa for stable terramechanics baselines; increase if response is too soft, but expect smaller stable step sizes when stiffness rises. | `mat_props.Young_modulus` -> `SetElasticSPH` |
-| `Poisson_ratio` | Sets volumetric vs shear elasticity split (`K/G`). | `0.3` | Keep around `0.25-0.35` for granular CRM unless you have calibrated test data. Avoid values too close to `0.5`. | `mat_props.Poisson_ratio` -> `SetElasticSPH` |
-| `mu_fric_s` | Low-rate/static friction coefficient (`I -> 0`). Governs yield at slow shear. | `0.7` | Set from friction angle (`mu ~= tan(phi)`) when available. | `mat_props.mu_fric_s` -> `SetElasticSPH` |
-| `mu_fric_2` | High-rate friction limit (`I` large). Controls rate strengthening. | `0.7` | Use `mu_fric_2 >= mu_fric_s`. If equal, rate dependence is effectively removed. Increase gap (`mu_2 - mu_s`) for stronger inertial hardening. | `mat_props.mu_fric_2` -> `SetElasticSPH` |
-| `mu_I0` | Inertial-number transition scale between `mu_s` and `mu_2`. | `0.03` | Smaller `I0`: faster transition to high-rate friction. Larger `I0`: slower transition. Common values in demos/validation: `0.03-0.08`. | `mat_props.mu_I0` -> `SetElasticSPH` |
-| `average_diam` | Grain-size scale in `I`. Larger `d` increases inertial effects for same shear/pressure state. | `0.005` | Use representative particle size from material data; this is one of the most sensitive calibration knobs. | `mat_props.average_diam` -> `SetElasticSPH` |
-| `cohesion_coeff` | Cohesive intercept `c` in `tau_max = mu p + c`; adds shear strength at low pressure. | `0` | Start with `0` for dry cohesionless media; use positive values for weakly cemented/wet regolith-like behavior. | `mat_props.cohesion_coeff` -> `SetElasticSPH` or `SetCohesionForce` |
-| `rheology_model` | Selects CRM constitutive law (`MU_OF_I` or `MCC`). | `MU_OF_I` | Set explicitly to `MU_OF_I` for clarity. | `mat_props.rheology_model` -> `SetElasticSPH` |
+| `density` | Bulk density scale for inertia, particle mass, and `I ~ d * sqrt(rho/p)`. | `1000` | Use measured bulk density for the soil state you want to reproduce (e.g., 1500-1800 kg/m^3 in many validations). | `mat_props.density` -> `SetCrmSPH` |
+| `Young_modulus` | Elastic stiffness in the trial stress update (through `K` and `G`). | `1e6` | Start near `1e6` Pa for stable terramechanics baselines; increase if response is too soft, but expect smaller stable step sizes when stiffness rises. | `mat_props.Young_modulus` -> `SetCrmSPH` |
+| `Poisson_ratio` | Sets volumetric vs shear elasticity split (`K/G`). | `0.3` | Keep around `0.25-0.35` for granular CRM unless you have calibrated test data. Avoid values too close to `0.5`. | `mat_props.Poisson_ratio` -> `SetCrmSPH` |
+| `mu_fric_s` | Low-rate/static friction coefficient (`I -> 0`). Governs yield at slow shear. | `0.7` | Set from friction angle (`mu ~= tan(phi)`) when available. | `mat_props.mu_fric_s` -> `SetCrmSPH` |
+| `mu_fric_2` | High-rate friction limit (`I` large). Controls rate strengthening. | `0.7` | Use `mu_fric_2 >= mu_fric_s`. If equal, rate dependence is effectively removed. Increase gap (`mu_2 - mu_s`) for stronger inertial hardening. | `mat_props.mu_fric_2` -> `SetCrmSPH` |
+| `mu_I0` | Inertial-number transition scale between `mu_s` and `mu_2`. | `0.03` | Smaller `I0`: faster transition to high-rate friction. Larger `I0`: slower transition. Common values in demos/validation: `0.03-0.08`. | `mat_props.mu_I0` -> `SetCrmSPH` |
+| `average_diam` | Grain-size scale in `I`. Larger `d` increases inertial effects for same shear/pressure state. | `0.005` | Use representative particle size from material data; this is one of the most sensitive calibration knobs. | `mat_props.average_diam` -> `SetCrmSPH` |
+| `cohesion_coeff` | Cohesive intercept `c` in `tau_max = mu p + c`; adds shear strength at low pressure. | `0` | Start with `0` for dry cohesionless media; use positive values for weakly cemented/wet regolith-like behavior. | `mat_props.cohesion_coeff` -> `SetCrmSPH` or `SetCohesionForce` |
+| `rheology_model` | Selects CRM constitutive law (`MU_OF_I` or `MCC`). | `MU_OF_I` | Set explicitly to `MU_OF_I` for clarity. | `mat_props.rheology_model` -> `SetCrmSPH` |
 
-Derived elastic quantities (computed internally in `SetElasticSPH`):
+Derived elastic quantities (computed internally in `SetCrmSPH`):
 
 - `G = E / (2(1+nu))`
 - `K = E / (3(1-2nu))`
@@ -126,7 +131,7 @@ Parameter Selection Workflow
 3. Tune `mu_I0` to control how quickly rate strengthening appears.
 4. Set `average_diam` from representative grains/aggregate size used in calibration experiments.
 5. Add `cohesion_coeff` only if low-pressure strength is under-predicted.
-6. Stabilize numerics with `ARTIFICIAL_BILATERAL`, PPST/XSPH shifting, and `free_surface_threshold = 2.0`.
+6. Stabilize numerics with `ARTIFICIAL_BILATERAL`, PPST/XSPH shifting, and `free_surface_threshold = 2.4`.
 
 
 Common Failure Modes and First Fixes

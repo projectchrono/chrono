@@ -18,8 +18,9 @@
 
 #include "IndustrialRobot6dof.h"
 
-#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 
 namespace chrono {
 namespace industrial {

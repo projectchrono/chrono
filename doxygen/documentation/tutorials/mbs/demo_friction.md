@@ -1,7 +1,7 @@
 Rolling and spinning friction example (demo_MBS_friction.cpp)  {#tutorial_demo_friction}
 ==========================
 
-A benchmark that show the feature of spinning friction 
+A benchmark that shows the feature of spinning friction 
 (aka 'drilling' friction) and rolling friction. 
 
 These types of frictions are useful for rolling objects 

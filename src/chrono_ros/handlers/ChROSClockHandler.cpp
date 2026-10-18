@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2025 projectchrono.org
+// Copyright (c) 2026 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,12 +12,15 @@
 // Authors: Aaron Young, Patrick Chen
 // =============================================================================
 //
-// Clock publisher handler
+// Clock publisher handler.
 //
 // =============================================================================
 
 #include "chrono_ros/handlers/ChROSClockHandler.h"
-#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
+
+#include "chrono_ros/ChROSBridge.h"
+#include "chrono_ros/ChROSPublisher.h"
+#include "chrono_ros/ChROSQoS.h"
 
 namespace chrono {
 namespace ros {
@@ -25,24 +28,15 @@ namespace ros {
 ChROSClockHandler::ChROSClockHandler(double update_rate, const std::string& topic_name)
     : ChROSHandler(update_rate), m_topic_name(topic_name) {}
 
-bool ChROSClockHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    auto node = interface->GetNode();
-    if (!node) {
-        return true;  // IPC mode - no node in main process
-    }
-
-    rclcpp::ClockQoS qos;
-    m_publisher = node->create_publisher<rosgraph_msgs::msg::Clock>(m_topic_name, qos);
+bool ChROSClockHandler::Initialize(ChROSBridge& bridge) {
+    m_publisher = bridge.CreatePublisher(m_topic_name, "rosgraph_msgs/msg/Clock", ChROSQoS::Clock());
     return true;
 }
 
-std::vector<uint8_t> ChROSClockHandler::GetSerializedData(double time) {
-    ChROSClockData data;
-    data.time_seconds = time;
-    
-    std::vector<uint8_t> bytes(sizeof(ChROSClockData));
-    std::memcpy(bytes.data(), &data, sizeof(ChROSClockData));
-    return bytes;
+void ChROSClockHandler::Tick(double time) {
+    auto msg = m_publisher->NewMessage();
+    msg.SetTime("clock", time);  // rosgraph_msgs/Clock has a single builtin_interfaces/Time field
+    m_publisher->Publish(msg);
 }
 
 }  // namespace ros

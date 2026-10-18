@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono_fmi/ChConfigFMI.h"
-#include "chrono_fmi/fmi2/ChFmuToolsImport.h"
+#include "chrono_fmi/fmi2/ChFmuForgeImport.h"
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono/core/ChTimer.h"

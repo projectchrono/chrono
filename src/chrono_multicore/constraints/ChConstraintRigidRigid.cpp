@@ -31,8 +31,7 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-ChConstraintRigidRigid::ChConstraintRigidRigid()
-    : data_manager(nullptr), offset(3), inv_h(0), inv_hpa(0), inv_hhpa(0) {}
+ChConstraintRigidRigid::ChConstraintRigidRigid() : data_manager(nullptr), offset(3), inv_h(0), inv_hpa(0), inv_hhpa(0) {}
 
 void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, const real* cohesion, real* gamma) {
     const auto num_rigid_contacts = data_manager->cd_data ? data_manager->cd_data->num_rigid_contacts : 0;
@@ -58,11 +57,7 @@ void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, con
     }
 }
 
-void ChConstraintRigidRigid::func_Project_sliding(int index,
-                                                  const vec2* ids,
-                                                  const real3* fric,
-                                                  const real* cohesion,
-                                                  real* gam) {
+void ChConstraintRigidRigid::func_Project_sliding(int index, const vec2* ids, const real3* fric, const real* cohesion, real* gam) {
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
 
     real3 gamma;
@@ -208,16 +203,14 @@ void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
 
         {
             quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b1];
-            real3 sbar = Rotate(data_manager->cd_data->cpta_rigid_rigid[i] - data_manager->host_data.pos_rigid[b1],
-                                quaternion_conjugate);
+            real3 sbar = Rotate(data_manager->cd_data->cpta_rigid_rigid[i] - data_manager->host_data.pos_rigid[b1], quaternion_conjugate);
 
             rotated_point_a[i] = real3_int(sbar, b1);
             quat_a[i] = quaternion_conjugate;
         }
         {
             quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b2];
-            real3 sbar = Rotate(data_manager->cd_data->cptb_rigid_rigid[i] - data_manager->host_data.pos_rigid[b2],
-                                quaternion_conjugate);
+            real3 sbar = Rotate(data_manager->cd_data->cptb_rigid_rigid[i] - data_manager->host_data.pos_rigid[b2], quaternion_conjugate);
 
             rotated_point_b[i] = real3_int(sbar, b2);
             quat_b[i] = quaternion_conjugate;

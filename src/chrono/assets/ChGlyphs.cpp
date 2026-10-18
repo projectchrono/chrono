@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChGlyphs)
 
-ChGlyphs::ChGlyphs() {
+ChGlyphs::ChGlyphs() : ChVisualShape(Type::GLYPH) {
     draw_mode = GLYPH_POINT;
     glyph_length_type = eCh_GlyphLength::CONSTANT;
     glyph_length_prop = "";
@@ -141,11 +141,7 @@ void ChGlyphs::SetGlyphVector(unsigned int id, ChVector3d mpoint, ChVector3d mve
 }
 
 // Fast method to set a glyph for GLYPH_VECTOR draw mode, local basis
-void ChGlyphs::SetGlyphVectorLocal(unsigned int id,
-                                   ChVector3d mpoint,
-                                   ChVector3d mvector,
-                                   ChQuaternion<> mrot,
-                                   ChColor mcolor) {
+void ChGlyphs::SetGlyphVectorLocal(unsigned int id, ChVector3d mpoint, ChVector3d mvector, ChQuaternion<> mrot, ChColor mcolor) {
     if (this->draw_mode != GLYPH_VECTOR)
         SetDrawMode(GLYPH_VECTOR);
 
@@ -184,7 +180,7 @@ void ChGlyphs::SetGlyphVectorLocal(unsigned int id,
 
 // Fast method to set a glyph for GLYPH_COORDSYS draw mode.
 // If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
-void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
+void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsysd mcoord) {
     if (this->draw_mode != GLYPH_COORDSYS)
         SetDrawMode(GLYPH_COORDSYS);
 

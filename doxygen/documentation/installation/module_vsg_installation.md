@@ -17,7 +17,7 @@ Here are the main features:
 	- mouse wheel rotation for camera forward/backward
 	- press arrows to have x z camera motion, press page up & down for y vertical motion
 
-## Building and installing prerequisistes
+## Building and installing prerequisites
 
 There are two prerequisites for building the Chrono VSG module:
 

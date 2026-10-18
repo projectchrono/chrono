@@ -15,8 +15,8 @@
 // Wrapper classes for modeling an entire MAN 5t vehicle assembly
 // (including the vehicle itself, the powertrain, and the tires).
 //
-// The MAN Kat 1 truck family has been designed for offroad service.
-// The development stems from the 60s, the begin of servce was ca. 1976
+// The MAN Kat 1 truck family has been designed for off-road service.
+// The development stems from the 60s, the begin of service was ca. 1976
 //
 // The model data come from publicly available sources, fora of private Kat 1
 // users and the book:
@@ -30,17 +30,12 @@
 #ifndef MAN10T_H
 #define MAN10T_H
 
-#include <array>
 #include <string>
+
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/man/MAN_10t_Vehicle.h"
-#include "chrono_models/vehicle/man/powertrain/MAN_7t_EngineSimpleMap.h"
-#include "chrono_models/vehicle/man/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.h"
-#include "chrono_models/vehicle/man/powertrain/MAN_7t_EngineSimple.h"
-#include "chrono_models/vehicle/man/powertrain/MAN_7t_AutomaticTransmissionSimple.h"
-#include "chrono_models/vehicle/man/MAN_5t_TMeasyTire.h"
-#include "chrono_models/vehicle/man/MAN_5t_TMsimpleTire.h"
 
 namespace chrono {
 namespace vehicle {

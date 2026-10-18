@@ -78,8 +78,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
 
     if (data_manager->num_constraints > 0) {
         data_manager->host_data.R_full.noalias() =
-            -data_manager->host_data.b - data_manager->host_data.D_T *
-                (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
+            -data_manager->host_data.b - data_manager->host_data.D_T * (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
     }
     SchurProductFull.Setup(data_manager);
     SchurProductBilateral.Setup(data_manager);
@@ -92,36 +91,24 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_normal > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::NORMAL;
             SetR();
-            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,
-                                                                           ProjectFull,
-                                                                           data_manager->settings.solver.max_iteration_normal,
-                                                                           data_manager->num_constraints,
-                                                                           data_manager->host_data.R,
-                                                                           data_manager->host_data.gamma);
+            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull, ProjectFull, data_manager->settings.solver.max_iteration_normal,
+                                                                           data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
         }
     }
     if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING || data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         if (data_manager->settings.solver.max_iteration_sliding > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SLIDING;
             SetR();
-            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,
-                                                                           ProjectFull,
-                                                                           data_manager->settings.solver.max_iteration_sliding,
-                                                                           data_manager->num_constraints,
-                                                                           data_manager->host_data.R,
-                                                                           data_manager->host_data.gamma);
+            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull, ProjectFull, data_manager->settings.solver.max_iteration_sliding,
+                                                                           data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
         }
     }
     if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         if (data_manager->settings.solver.max_iteration_spinning > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SPINNING;
             SetR();
-            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull,
-                                                                           ProjectFull,
-                                                                           data_manager->settings.solver.max_iteration_spinning,
-                                                                           data_manager->num_constraints,
-                                                                           data_manager->host_data.R,
-                                                                           data_manager->host_data.gamma);
+            data_manager->measures.solver.total_iteration += solver->Solve(SchurProductFull, ProjectFull, data_manager->settings.solver.max_iteration_spinning,
+                                                                           data_manager->num_constraints, data_manager->host_data.R, data_manager->host_data.gamma);
         }
     }
 
@@ -197,20 +184,30 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
             for (int index = 0; index < (signed)num_bilaterals; index++) {
                 int cntr = data_manager->host_data.bilateral_mapping[index];
                 switch (data_manager->host_data.bilateral_type[cntr]) {
-                    case BilateralType::BODY_BODY:         d_nnz[bil_off + index] = 12; break;
-                    case BilateralType::SHAFT_SHAFT:       d_nnz[bil_off + index] = 2;  break;
-                    case BilateralType::SHAFT_BODY:        d_nnz[bil_off + index] = 7;  break;
-                    case BilateralType::SHAFT_SHAFT_SHAFT: d_nnz[bil_off + index] = 3;  break;
-                    case BilateralType::SHAFT_SHAFT_BODY:  d_nnz[bil_off + index] = 8;  break;
-                    default: break;
+                    case BilateralType::BODY_BODY:
+                        d_nnz[bil_off + index] = 12;
+                        break;
+                    case BilateralType::SHAFT_SHAFT:
+                        d_nnz[bil_off + index] = 2;
+                        break;
+                    case BilateralType::SHAFT_BODY:
+                        d_nnz[bil_off + index] = 7;
+                        break;
+                    case BilateralType::SHAFT_SHAFT_SHAFT:
+                        d_nnz[bil_off + index] = 3;
+                        break;
+                    case BilateralType::SHAFT_SHAFT_BODY:
+                        d_nnz[bil_off + index] = 8;
+                        break;
+                    default:
+                        break;
                 }
             }
         }
 
         if (num_particle_particle > 0) {
             int pp_off = (int)num_unilaterals + (int)num_bilaterals;
-            int avg_nnz = ((int)nnz_particle_particle + (int)num_particle_particle - 1) /
-                          (int)num_particle_particle;
+            int avg_nnz = ((int)nnz_particle_particle + (int)num_particle_particle - 1) / (int)num_particle_particle;
             d_nnz.segment(pp_off, (int)num_particle_particle).setConstant(avg_nnz);
         }
 
@@ -243,8 +240,7 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
         real* invD_vals = M_invD.valuePtr();
         const int n = (int)M_invD.outerSize();
         for (int i = 0; i < n; i++) {
-            const real scale = (M_inv_outer[i] < M_inv_outer[i + 1])
-                               ? M_inv_vals[M_inv_outer[i]] : real(0);
+            const real scale = (M_inv_outer[i] < M_inv_outer[i + 1]) ? M_inv_vals[M_inv_outer[i]] : real(0);
             for (int k = invD_outer[i]; k < invD_outer[i + 1]; k++)
                 invD_vals[k] *= scale;
         }
@@ -331,8 +327,7 @@ void ChIterativeSolverMulticoreNSC::SetR() {
         R.segment(num_unilaterals + num_bilaterals, num_rigid_particle) = R_full.segment(num_unilaterals + num_bilaterals, num_rigid_particle);
 
         // TODO: Set R in the associated 3dof container
-        R.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles) =
-            R_full.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles);
+        R.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles) = R_full.segment(num_unilaterals + num_bilaterals + num_rigid_particle, num_particles);
 
         switch (data_manager->settings.solver.local_solver_mode) {
             case SolverMode::BILATERAL: {

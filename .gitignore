@@ -115,3 +115,13 @@ src/chrono_granular/DoxyGenDocs/
 ##---------------------------------------------------
 
 src/demos/python/DEMO_OUTPUT
+
+##---------------------------------------------------
+## Docker build inputs
+##---------------------------------------------------
+
+# OptiX SDK installers are placed here by hand for the Chrono::Sensor docker build
+# (see contrib/docker/snippets/ch_sensor.dockerfile). They are proprietary and must not
+# be redistributed, so keep them out of the repository.
+contrib/docker/data/*
+!contrib/docker/data/.gitkeep

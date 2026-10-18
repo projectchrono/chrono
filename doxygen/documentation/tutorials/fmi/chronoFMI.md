@@ -42,8 +42,8 @@ Chrono FMI module tutorials {#tutorial_table_of_content_chrono_fmi}
     This driver FMU must be co-simulated with a vehicle system which provides the current vehicle reference frame (of type ChFrameMoving).
     
     This driver FMU defines continuous output variables for:
-      - sterring command (in [-1,1])
-      - throttle command (in [0,1]
+      - steering command (in [-1,1])
+      - throttle command (in [0,1])
       - braking command (in [0,1])  
 
 To see how these FMUs can be used together in a co-simulation loop, we provide two demo programs:

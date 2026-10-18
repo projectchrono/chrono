@@ -22,7 +22,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/assets/ChVisualShapeModelFile.h"
 
-#include "chrono_parsers/ChParserURDF.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
 
 #ifdef CHRONO_HAS_ROS
     #include "ament_index_cpp/get_package_prefix.hpp"

@@ -26,8 +26,8 @@ namespace sensor {
 
 void Cartesian2GPS(ChVector3d& coords, ChVector3d& ref) {
     // convert from Cartesian to gps coordinates assuming a sphere
-    double lat = (coords.y() / EARTH_RADIUS) * 180.0 / CH_PI + ref.y();
-    double lon = (coords.x() / (EARTH_RADIUS * cos(lat * CH_PI / 180.0))) * 180.0 / CH_PI + ref.x();
+    double lat = (coords.y() / EARTH_RADIUS) * CH_RAD_TO_DEG + ref.y();
+    double lon = (coords.x() / (EARTH_RADIUS * std::cos(lat * CH_DEG_TO_RAD))) * CH_RAD_TO_DEG + ref.x();
     double alt = coords.z() + ref.z();
 
     if (lon < -180.0) {
@@ -43,8 +43,8 @@ void GPS2Cartesian(ChVector3d& coords, ChVector3d& ref) {
     double lat = coords.y();
     double alt = coords.z();
 
-    double x = ((lon - ref.x()) * CH_PI / 180.0) * (EARTH_RADIUS * cos(lat * CH_PI / 180.0));
-    double y = ((lat - ref.y()) * CH_PI / 180.0) * EARTH_RADIUS;
+    double x = ((lon - ref.x()) * CH_DEG_TO_RAD) * (EARTH_RADIUS * std::cos(lat * CH_DEG_TO_RAD));
+    double y = ((lat - ref.y()) * CH_DEG_TO_RAD) * EARTH_RADIUS;
     double z = alt - ref.z();
 
     coords = ChVector3d({x, y, z});
@@ -60,10 +60,10 @@ void Cartesian2ENU(ChVector3d& coords, ChVector3d& ref) {
     double y = coords.y();
     double z = coords.z();
 
-    double clat = cos(lat * CH_PI / 180.0);
-    double slat = sin(lat * CH_PI / 180.0);
-    double clon = cos(lon * CH_PI / 180.0);
-    double slon = sin(lon * CH_PI / 180.0);
+    double clat = std::cos(lat * CH_DEG_TO_RAD);
+    double slat = std::sin(lat * CH_DEG_TO_RAD);
+    double clon = std::cos(lon * CH_DEG_TO_RAD);
+    double slon = std::sin(lon * CH_DEG_TO_RAD);
 
     double dx = x - ref.x();
     double dy = y - ref.y();
@@ -84,10 +84,10 @@ void ENU2Cartesian(ChVector3d& coords, ChVector3d& ref) {
     double y = coords.y();
     double z = coords.z();
 
-    double clat = cos(lat * CH_PI / 180.0);
-    double slat = sin(lat * CH_PI / 180.0);
-    double clon = cos(lon * CH_PI / 180.0);
-    double slon = sin(lon * CH_PI / 180.0);
+    double clat = std::cos(lat * CH_DEG_TO_RAD);
+    double slat = std::sin(lat * CH_DEG_TO_RAD);
+    double clon = std::cos(lon * CH_DEG_TO_RAD);
+    double slon = std::sin(lon * CH_DEG_TO_RAD);
 
     double dx = -slon * x - slat * clon * y + clat * clon * z;
     double dy = clon * x - slat * slon * y + clat * slon * z;

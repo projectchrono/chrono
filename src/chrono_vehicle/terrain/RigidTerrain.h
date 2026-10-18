@@ -43,7 +43,9 @@ namespace vehicle {
 /// This class implements a terrain modeled as a rigid shape which can interact
 /// through contact and friction with any other bodies whose contact flag is
 /// enabled. In particular, this type of terrain can be used in conjunction with
-/// a ChRigidTire.
+/// contact-based tires (ChRigidTire or ChDeformableTire) and with tracked vehicles.
+/// It can also be used with handling tires (ChForceElementTire), which interact
+/// with the terrain through its height, normal, and coefficient of friction queries.
 class CH_VEHICLE_API RigidTerrain : public ChTerrain {
   public:
     /// Patch type.
@@ -167,6 +169,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Get the terrain patches currently added to the rigid terrain system.
     const std::vector<std::shared_ptr<Patch>>& GetPatches() const { return m_patches; }
+
+    /// Get the specified rigid terrain patch.
+    std::shared_ptr<Patch> GetPatch(int i) const { return m_patches[i]; }
 
     /// Bind the visual and collision models of the specified patch.
     /// This function should be called for any patches created dynamically during simulation, after the RigidTerrain was

@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <cctype>
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
@@ -129,7 +130,8 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         // Specification through load index
         unsigned int li = d["Load Index"].GetUint();
         std::string vehicle_type = d["Vehicle Type"].GetString();
-        std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(), ::tolower);
+        std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
         if (vehicle_type.compare("truck") == 0) {
             GuessTruck80Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
         } else {
@@ -156,7 +158,8 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         // Specification through bearing capacity
         double bearing_capacity = d["Maximum Bearing Capacity [N]"].GetDouble();
         std::string vehicle_type = d["Name"].GetString();
-        std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(), ::tolower);
+        std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
         if (vehicle_type.compare("truck") == 0) {
             GuessTruck80Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li,
                             p_use);

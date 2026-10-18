@@ -17,10 +17,10 @@ Loads can be applied to these objects through different approaches:
   - requires the computation of the generalized loads;
 + loads inheriting from @ref chrono::ChLoadCustom "ChLoadCustom"|@ref chrono::ChLoadCustomMultiple "ChLoadCustomMultiple":
   - they are applied to either one or multiple @ref chrono::ChLoadable "ChLoadable" objects;
-  - it is the preferred choice for loads applied to pair of objects;
+  - it is the preferred choice for loads applied to a pair of objects;
   - multiple pre-defined classes are available, simplifying the writing of the generalized loads.
 
-While not being considered explicitly in the previous list, also the @ref chrono::ChLinkTSDA "ChLinkTSDA"|@ref chrono::ChLinkRSDA "ChLinkRSDA" can do similar jobs, also including the Jacobian for the generalized forces or also some advanced internal dynamic, by providing custom functors (@ref chrono::ChLinkTSDA::ForceFunctor "ChLinkTSDA::ForceFunctor"|@ref chrono::ChLinkRSDA::TorqueFunctor "ChLinkRSDA::TorqueFunctor") or even proper ODEs (only @ref chrono::ChLinkTSDA::ODE "ChLinkTSDA::ODE").
+While not being considered explicitly in the previous list, also the @ref chrono::ChLinkTSDA "ChLinkTSDA"|@ref chrono::ChLinkRSDA "ChLinkRSDA" can do similar jobs, also including the Jacobian for the generalized forces or also some advanced internal dynamics, by providing custom functors (@ref chrono::ChLinkTSDA::ForceFunctor "ChLinkTSDA::ForceFunctor"|@ref chrono::ChLinkRSDA::TorqueFunctor "ChLinkRSDA::TorqueFunctor") or even proper ODEs (only @ref chrono::ChLinkTSDA::ODE "ChLinkTSDA::ODE").
 
 Other simplified approaches, limited to _ChBody_, allow to accumulate forces, by using @ref chrono::ChBody::AccumulateForce() "AccumulateForce()" and @ref chrono::ChBody::AccumulateTorque() "AccumulateTorque()".
 
@@ -28,7 +28,7 @@ The overall contributions of forces to a given _ChBody_ can be retrieved through
 
 For FEA nodes, similarly to the @ref chrono::ChForce "ChForce" for @ref chrono::ChBody "ChBody", it is possible to add a force directly to the node through @ref chrono::fea::ChNodeFEAxyz::SetForce() "ChNodeFEAxyz::SetForce()". However, in this case the options are even more limited, since the force is expressed as a simple @ref chrono::ChVector3 "ChVector3", thus always assumed constant and expressed in absolute frame. The @ref chrono::fea::ChNodeFEAxyzrot "ChNodeFEAxyzrot" class implements also @ref chrono::fea::ChNodeFEAxyzrot::SetTorque() "ChNodeFEAxyzrot::SetTorque()".
 
-Some more peculiar class has been excluded from this list: please look at @ref chrono::ChLoadBase "ChLoadBase" to have a full perspective on the load classes in Chrono.
+Some more peculiar classes have been excluded from this list: please look at @ref chrono::ChLoadBase "ChLoadBase" to have a full perspective on the load classes in Chrono.
 
 
 ### ChForce
@@ -43,7 +43,7 @@ The @ref chrono::ChForce "ChForce" can be applied directly to a @ref chrono::ChB
 ~~~
 
 Please mind that:
-- use `body->AddForce(force)` and not `force->SetBody(body)`: the latter it is not sufficient since the _ChForce_ wouldn't be considered by the _ChSystem_;
+- use `body->AddForce(force)` and not `force->SetBody(body)`: the latter is not sufficient since the _ChForce_ wouldn't be considered by the _ChSystem_;
 - always call `ChForce` methods **after** having called `body->AddForce(force)`
 
 The application point, direction, position and modulus can be set either through constant values or through [ChFunctions](@ref ChFunction_objects). The reference system can be either relative to the body or absolute, but cannot be set to a generic frame.
@@ -51,9 +51,9 @@ The application point, direction, position and modulus can be set either through
 
 ### ChLoad and inherited
 
-These sets of loads allows for the maximum freedom and coupling with the Chrono system.
+These sets of loads allow for the maximum freedom and coupling with the Chrono system.
 
-Contrary to @ref chrono::ChForce "ChForce", these other _ChLoad_s requires the introduction of a @ref chrono::ChLoadContainer "ChLoadContainer" in order to be added to the system. For example:
+Contrary to @ref chrono::ChForce "ChForce", these other _ChLoad_s require the introduction of a @ref chrono::ChLoadContainer "ChLoadContainer" in order to be added to the system. For example:
 
 ~~~{.cpp}
   auto load_container = chrono_types::make_shared<ChLoadContainer>();
@@ -63,8 +63,8 @@ Contrary to @ref chrono::ChForce "ChForce", these other _ChLoad_s requires the i
   load_container->Add(load_bb);
 ~~~
 
-For the case of the @ref chrono::ChLoad "ChLoad", the user is asked to either provide one of the pre-defined @ref chrono::ChLoader "ChLoader" objects or to write its own. Please refer to the documentation of each single _ChLoader_ to understand their use. This method considers the load applied to a single object.
+For the case of the @ref chrono::ChLoad "ChLoad", the user is asked to either provide one of the pre-defined @ref chrono::ChLoader "ChLoader" objects or to write their own. Please refer to the documentation of each single _ChLoader_ to understand their use. This method considers the load applied to a single object.
 
-A similar set of loads includes those inheriting from @ref chrono::ChLoadCustom "ChLoadCustom"|@ref chrono::ChLoadCustomMultiple "ChLoadCustomMultiple": while the features are similar compared to @ref chrono::ChLoad "ChLoad" type and also their usage might have big overlaps, they usually offere a wider set of pre-defined classes that might match the user needs.
+A similar set of loads includes those inheriting from @ref chrono::ChLoadCustom "ChLoadCustom"|@ref chrono::ChLoadCustomMultiple "ChLoadCustomMultiple": while the features are similar compared to @ref chrono::ChLoad "ChLoad" type and also their usage might have big overlaps, they usually offer a wider set of pre-defined classes that might match the user's needs.
 
-These more advanced approaches allow for a tighter coupling with the Chrono system, allowing to introduce also entire stiffness matrix blocks (see @ref chrono::ChLoadBodyBodyBushingGeneric "ChLoadBodyBodyBushingGeneric" and others), providing Jacobians and much more. This come with the added price of having to implement some additional code.
+These more advanced approaches allow for a tighter coupling with the Chrono system, allowing to introduce also entire stiffness matrix blocks (see @ref chrono::ChLoadBodyBodyBushingGeneric "ChLoadBodyBodyBushingGeneric" and others), providing Jacobians and much more. This comes with the added price of having to implement some additional code.

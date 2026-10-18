@@ -37,15 +37,26 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-#if defined(__HIPCC__) || defined(__HIP_DEVICE_COMPILE__)
+// Reduction operators.
+// Defined locally rather than using thrust::minimum / thrust::plus /
+// thrust::equal_to: those are deprecated in CCCL 3.1 (CUDA 13.x) in favor of
+// cuda::minimum / cuda::std::plus / cuda::std::equal_to, which are libcu++ and
+// therefore unavailable under rocThrust (the Thrust device system used on AMD).
+
+struct real_min {
+    __host__ __device__ Real operator()(const Real& a, const Real& b) const { return a < b ? a : b; }
+};
+
+struct real_sum {
+    __host__ __device__ Real operator()(const Real& a, const Real& b) const { return a + b; }
+};
+
 void CopyParametersToDevice_SphForceISPH(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH) {
     gpuMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuCheckError();
     gpuMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     gpuCheckError();
 }
-
-#endif
 
 __device__ void BCE_Vel_Acc(int i_idx,
                             Real3& myAcc,         // output: BCE marker acceleration
@@ -110,12 +121,12 @@ __device__ void BCE_Vel_Acc(int i_idx,
 
         // Or not, Flexible bodies for sure
     } else if (Original_idx >= updatePortion.z && Original_idx < updatePortion.w) {
-        int FlexIndex = Original_idx - updatePortion.z;  // offset index for bce markers on flex bodies
+        int feaIndex = Original_idx - updatePortion.z;  // offset index for bce markers on flex bodies
 
-        // FlexIndex iterates through both 1D and 2D ones
-        if (FlexIndex < countersD.numFlexMarkers1D) {
+        // feaIndex iterates through both 1D and 2D ones
+        if (feaIndex < countersD.numMesh1DMarkers) {
             // 1D element case
-            uint3 flex_solid = flex1D_BCEsolids_D[FlexIndex];  // associated flex mesh and segment
+            uint3 flex_solid = flex1D_BCEsolids_D[feaIndex];  // associated flex mesh and segment
             // Luning TODO: do we need flex_mesh and flex_mesh_seg?
             ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
             ////uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
@@ -128,14 +139,14 @@ __device__ void BCE_Vel_Acc(int i_idx,
             Real3 V0 = flex1D_vel_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
             Real3 V1 = flex1D_vel_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
-            Real lambda0 = flex1D_BCEcoords_D[FlexIndex].x;  // segment coordinate
+            Real lambda0 = flex1D_BCEcoords_D[feaIndex].x;  // segment coordinate
             Real lambda1 = 1 - lambda0;                      // segment coordinate
 
             V_prescribed = V0 * lambda0 + V1 * lambda1;
             myAcc = A0 * lambda0 + A1 * lambda1;
         }
-        if (FlexIndex >= countersD.numFlexMarkers1D) {
-            int flex2d_index = FlexIndex - countersD.numFlexMarkers1D;
+        if (feaIndex >= countersD.numMesh1DMarkers) {
+            int flex2d_index = feaIndex - countersD.numMesh1DMarkers;
 
             uint3 flex_solid = flex2D_BCEsolids_D[flex2d_index];  // associated flex mesh and face
             ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -885,7 +896,7 @@ __global__ void Shifting(Real4* sortedPosRad,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-SphForceISPH::SphForceISPH(FsiDataManager& data_mgr, SphBceManager& bce_mgr, bool verbose, bool check_errors) : SphForce(data_mgr, bce_mgr, verbose), m_check_errors(check_errors) {
+SphForceISPH::SphForceISPH(FsiDataManager& data_mgr, bool verbose, bool check_errors) : SphForce(data_mgr, verbose), m_check_errors(check_errors) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
 }
 
@@ -967,7 +978,7 @@ void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
     size_t end_fluid = cH->numGhostMarkers + cH->numHelperMarkers + cH->numFluidMarkers;
     size_t end_bndry = end_fluid + cH->numBoundaryMarkers;
     size_t end_rigid = end_bndry + cH->numRigidMarkers;
-    size_t end_flex = end_rigid + cH->numFlexMarkers1D + cH->numFlexMarkers2D;
+    size_t end_flex = end_rigid + cH->numMesh1DMarkers + cH->numMesh2DMarkers;
     int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
     if (m_verbose)
@@ -1164,7 +1175,7 @@ void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
         }
     }
     //    Real4_y unary_op_p;
-    //    thrust::plus<Real> binary_op;
+    //    real_sum binary_op;
     //    Real Ave_pressure = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(),
     //                                                 sortedSphMarkersD->rhoPresMuD.end(), unary_op_p, 0.0,
     //                                                 binary_op)
@@ -1208,7 +1219,7 @@ void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
     gpuCheckErrorFlag(m_errflagD, "Shifting");
 
     Real4_x unary_op(pH->rho0);
-    thrust::plus<Real> binary_op;
+    real_sum binary_op;
     Real Ave_density_Err =
         thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), unary_op, Real(0), binary_op) / (cH->numFluidMarkers * pH->rho0);
 
@@ -1221,7 +1232,7 @@ void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
 
     // post-processing for conservative formulation
     if (pH->Conservative_Form && pH->ClampPressure) {
-        Real minP = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), Real4_y_min(), Real(1e9), thrust::minimum<Real>());
+        Real minP = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), Real4_y_min(), Real(1e9), real_min());
         my_Functor_real4y negate(minP);
         thrust::for_each(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), negate);
         if (m_verbose)

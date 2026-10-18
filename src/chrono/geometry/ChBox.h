@@ -44,6 +44,9 @@ class ChApi ChBox : public ChVolume {
     /// Return the gyration matrix for this solid.
     virtual ChMatrix33<> GetGyration() const override;
 
+    /// Return the principal gyration moments for this solid.
+    ChVector3d GetGyrationXX() const;
+
     /// Compute bounding box along the directions of the shape definition frame.
     virtual ChAABB GetBoundingBox() const override;
 
@@ -74,8 +77,11 @@ class ChApi ChBox : public ChVolume {
     /// Return the volume of this type of solid with given dimensions.
     static double CalcVolume(const ChVector3d& lengths);
 
-    /// Return the gyration matrix of this type of solid with given dimensions.
+    /// Return the gyration matrix for this type of solid with given dimensions.
     static ChMatrix33<> CalcGyration(const ChVector3d& lengths);
+
+    /// Return the principal gyration moments for this type of solid with given dimensions.
+    static ChVector3d CalcGyrationXX(const ChVector3d& lengths);
 
     /// Return the bounding box of this type of solid with given dimensions.
     static ChAABB CalcBoundingBox(const ChVector3d& lengths);

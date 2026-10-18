@@ -13,7 +13,7 @@ The system is the cornerstone of a Chrono simulation.
 A Chrono simulation system is an object of class ChSystem. 
 See @ref chrono::ChSystem "ChSystem" for API details.
 
-Note that ChSystem is an abstract class: you must instantiate one of its specializations. In detail you can use of these sublclasses:
+Note that ChSystem is an abstract class: you must instantiate one of its specializations. In detail you can use these subclasses:
 
 - @ref chrono::ChSystemNSC "ChSystemNSC" for **Non Smooth Contacts** (NSC): in case of contacts a complementarity solver will take care of them using non-smooth dynamics; this is very efficient even with large time steps.
 - @ref chrono::ChSystemSMC "ChSystemSMC" for **SMooth Contacts** (SMC): contacts are handled using penalty methods, i.e. contacts are deformable; 
@@ -163,6 +163,16 @@ if (auto msolver = std::dynamic_pointer_cast<ChSolverMINRES>(my_system.GetSolver
 
 See @ref chrono::ChSolver "ChSolver" API for further details.
 
+### Solver accuracy and system assembly
+
+The accelerations and reaction forces computed by `my_system.DoAssembly(AssemblyAnalysis::Level::FULL)` (and therefore by `DoStepKinematics()` and `DoFrameKinematics()`) are obtained from a velocity increment over a tiny internal step (1e-6 s). Any residual left by an iterative solver is amplified accordingly: with its default settings, `PSOR` can produce acceleration errors of several m/s^2 near singular configurations (for example, a slider-crank at a dead center), and `APGD` and `PJACOBI` even in regular ones; more iterations do not reliably fix this. When accurate accelerations or reactions from an assembly are needed:
+- use a direct solver (`SPARSE_LU`, `SPARSE_QR`, or Pardiso MKL / MUMPS if available), or `MINRES` / `GMRES`;
+- if the system has unilateral constraints and requires a VI solver, use `BARZILAIBORWEIN`.
+
+`DoAssembly()` checks the constraint residual of its acceleration-level solve and returns `AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE` if the resulting acceleration error estimate exceeds a tolerance (1e-2 by default, adjustable with `my_system.SetAssemblyAccelerationTolerance(...)`). Positions and velocities are still assembled in that case. The check cannot detect every failure (for instance, an inaccurate `BICGSTAB` solution), so choosing an accurate solver remains the primary safeguard.
+
+`DoAssembly()` does not run collision detection, so contacts are present at the call only if the system was already advanced in time or `ComputeCollisions()` was called explicitly. NSC contacts are **not supported** by the assembly analysis: with its tiny internal step, the constraint stabilization term (-C/dt) admits an approach velocity of gap/dt, and the contact rows corrupt the position, velocity, and acceleration levels alike. If an NSC system has contacts at the call, `DoAssembly()` therefore performs no assembly, leaves the system state unchanged, and returns `AssemblyAnalysis::ExitFlag::UNSUPPORTED_CONTACTS` (`DoStepKinematics()` and `DoFrameKinematics()` return the same flag). To obtain consistent accelerations or contact reactions in a configuration with contacts, either use an SMC system (where contacts enter as forces and assemble correctly; since SMC contact forces are evaluated during collision detection, call `ComputeCollisions()` after changing the system state and before `DoAssembly()`) or perform a short settling run with `DoStepDynamics()` at the actual step size.
+
 
 # Other parameters  {#other_simulation_parameters}
 
@@ -171,13 +181,13 @@ There are many integrator/solver settings that can affect the outcome of a simul
 
 ### Max. recovery speed 
 
-Bodies in contact that interpenetrate for various reasons, e.g., small numerical integration error, inconsistent initial conditions, etc., will not 'escape' this contact violation at a speed faster than this threshold. The recovery speed is in general problem dependent and is controlled by user as shown below. 
+Bodies in contact that interpenetrate for various reasons, e.g., small numerical integration error, inconsistent initial conditions, etc., will not 'escape' this contact violation at a speed faster than this threshold. The recovery speed is in general problem dependent and is controlled by the user as shown below. 
 
 ~~~{.cpp}
 my_system.SetMaxPenetrationRecoverySpeed(0.2);
 ~~~
 
-- Larger values allow a more aggressive correction of the penetration, yet this can lead to scenarios in which bodies in contact pop out fast or in stacking problems the stack becoming jittery, noisy   
+- Larger values allow a more aggressive correction of the penetration, yet this can lead to scenarios in which bodies in contact pop out fast or, in stacking problems, the stack becoming jittery and noisy   
 - A small threshold increases the risk that objects _sink_ into one another when integrator precision is low, for instance, when the solver has a small max number of iterations
 
   
@@ -192,7 +202,7 @@ my_system.SetMinBounceSpeed(0.1);
 ~~~
 - A higher value leads to more stable simulations but less physically realistic collisions
 
-- Lower values lead to a more physically realistic time evolution but require small integration time steps otherwise objects may keep bounce erratically
+- Lower values lead to a more physically realistic time evolution but require small integration time steps, otherwise objects may keep bouncing erratically
 
 
 

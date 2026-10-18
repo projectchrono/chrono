@@ -31,6 +31,7 @@
 
 // For optional casting of polymorphic objects:
 %include "../chrono_cast.i" 
+%include "../chrono_ignore_operators.i"
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
@@ -40,8 +41,7 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono_parsers/yaml/ChParserYAML.h"
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
-#include "chrono_parsers/ChParserURDF.h"
-#include "chrono_parsers/ChRobotActuation.h"
+#include "chrono_parsers/urdf/ChParserURDF.h"
 
 #include "chrono/functions/ChFunction.h"
 #include "chrono/functions/ChFunctionSineStep.h"
@@ -103,12 +103,11 @@ using namespace chrono::parsers;
 %include "../../../chrono/core/ChFrame.h"
 %include "../../../chrono_parsers/yaml/ChParserYAML.h"
 %include "../../../chrono_parsers/yaml/ChParserMbsYAML.h"
-%include "../../../chrono_parsers/ChParserURDF.h"
+%include "../../../chrono_parsers/urdf/ChParserURDF.h"
 // note: unignore these if tinyxml2/urdfdom can be wrapped
 %ignore chrono::parsers::ChParserURDF::CustomProcess;
 %ignore chrono::parsers::ChParserURDF::CustomProcessor;
 %ignore chrono::parsers::ChParserURDF::GetModelTree;
-%include "../../../chrono_parsers/ChRobotActuation.h"
 
 %include "../../../chrono/functions/ChFunction.h"
 %include "../../../chrono/functions/ChFunctionSineStep.h"

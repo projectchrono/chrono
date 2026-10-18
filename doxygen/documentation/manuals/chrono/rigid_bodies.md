@@ -22,14 +22,14 @@ Rigid bodies can also:
 - be used in coordinate transformation, being themselves inherited from ChFrameMoving;
 
 @ref chrono::ChBody "ChBody" and @ref chrono::ChBodyAuxRef "ChBodyAuxRef" bodies **do not come with any visual or collision model**, thus requiring the user to specify them as well as providing valid mass and inertia parameters.  
-However, in the case the rigid body could be described **through a primitive shape**, a set classes of the type `ChBodyEasy` can simplify this task, by calculating mass, inertia and by optionally creating a visual and collision shape:
+However, in the case the rigid body could be described **through a primitive shape**, a set of classes of the type `ChBodyEasy` can simplify this task, by calculating mass, inertia and by optionally creating a visual and collision shape:
 - @ref chrono::ChBodyEasySphere "ChBodyEasySphere"
 - @ref chrono::ChBodyEasyCylinder "ChBodyEasyCylinder"
 - @ref chrono::ChBodyEasyBox "ChBodyEasyBox"
 - @ref chrono::ChBodyEasyConvexHull "ChBodyEasyConvexHull"
 - @ref chrono::ChBodyEasyClusterOfSpheres "ChBodyEasyClusterOfSpheres"
 
-Rigid bodies are not the only option. Chrono can simulate also flexible finite-elements bodies. Please refer to [FEA manual](@ref manual_fea) for a description of the FEA capabilities.
+Rigid bodies are not the only option. Chrono can simulate also flexible finite-element bodies. Please refer to [FEA manual](@ref manual_fea) for a description of the FEA capabilities.
 
 ## Usage
 
@@ -58,7 +58,7 @@ Creating/Setting up a ChBody object typically involves the following steps:
       mybody->EnableCollision(true);
    ~~~
 
-Please refer to the dedicate pages for [collision](@ref collisions) and [visualization](@ref visualization_system) to complete the configuration of the system.
+Please refer to the dedicated pages for [collision](@ref collisions) and [visualization](@ref visualization_system) to complete the configuration of the system.
 
 
 For bodies of the class `ChBodyEasy` the constructor is richer:

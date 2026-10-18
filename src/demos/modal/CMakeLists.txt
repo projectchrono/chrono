@@ -30,10 +30,6 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
   list(APPEND LIBS Chrono_pardisomkl)
 endif()
 
-if(CH_ENABLE_MODULE_MATLAB)
-  list(APPEND LIBS Chrono_matlab)
-endif()
-
 if(CH_ENABLE_MODULE_POSTPROCESS)
   list(APPEND LIBS Chrono_postprocess)
 endif()

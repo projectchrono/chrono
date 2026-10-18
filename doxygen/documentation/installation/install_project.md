@@ -22,7 +22,7 @@ find_package(Chrono
 to find a Chono build or install which provides the `required_components` modules and, optionally, also the `optional_components` modules. Note that `OPTIONAL_COMPONENTS` can be missing if there are no optional components needed.
 
 In the call to find_package(), the following Chrono components can be requested (case insensitive): 
-Cascade, CSharp, DEM, FMI, FSI, FSI_SPH, FSI_TDPF, Irrlicht, VSG, Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono, Vehicle, VehicleCosim.<br>
+Cascade, CSharp, DEM, FMI, FSI, FSI_SPH, FSI_TDPF, Irrlicht, VSG, Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono, Vehicle, VehicleCosim.<br>
 __Notes__: 
 - The core Chrono module is included automatically as a required component.
 - A particular component is available only if the targeted Chrono package was built with the corresponding module enabled.
@@ -59,10 +59,10 @@ In addition, for each requested component 'COMPONENT', a variable `CHRONO_<COMPO
 ## Configuring and building an external project
 
 The Chrono distribution includes template projects for different types of Chrono-based external projects. These template projects, available in the top-level directory of the Chrono source tree (or of a Chrono install tree) are:
-- [template_project](https://github.com/projectchrono/chrono/tree/main/template_project) - a simple C++ project that build a simple pendulum mechanism visualized with Irrlicht
+- [template_project](https://github.com/projectchrono/chrono/tree/main/template_project) - a simple C++ project that builds a simple pendulum mechanism visualized with Irrlicht
 - [template_project_csharp](https://github.com/projectchrono/chrono/tree/main/template_project_csharp) - a simple C# project that builds a bouncing ball visualized with Irrlicht
 - [template_project_fmi](https://github.com/projectchrono/chrono/tree/main/template_project_fmi2) - a simple C++ project that builds an FMU (see the [special instructions](@ref module_fmi_installation) for building Chrono with support for FMU generation)
-- [template_project_ros](https://github.com/projectchrono/chrono/tree/main/template_project_ros) - a simple C++ project that ilustrates the use of Chrono::ROS from an external project
+- [template_project_ros](https://github.com/projectchrono/chrono/tree/main/template_project_ros) - a simple C++ project that illustrates the use of Chrono::ROS from an external project
 - [template_project_vehicle_cosim](https://github.com/projectchrono/chrono/tree/main/template_project_vehicle_cosim) - a simple MPI project that builds a Chrono::Vehicle co-simulation of a single wheel on rigid terrain
 
 #### 1. Check prerequisites
@@ -167,14 +167,8 @@ If C++ is not enabled, `chono-config.cmake` will disable these features and any 
 
 ### Important information if using Chrono::Sensor
 
-If linking to the Chrono::Sensor module from an external project, make sure to set the directory of the install location where the shader code (compiled ptx code or shaders cu files) is located. This should be set at the top of any external code that will use Chrono::Sensor from an install location.
+An installed Chrono::Sensor locates its shaders and the headers needed for runtime (NVRTC) compilation of the RT kernels relative to its own library, so it keeps working if the installation is moved, including to another machine. The OptiX SDK and CUDA toolkit headers are taken from the locations used to build Chrono; if these do not exist on the machine running the program, set the `OptiX_INSTALL_DIR` and `CUDA_PATH` environment variables to the root directories of the OptiX SDK and CUDA toolkit installed there. To use shaders from a different location, call the following at the top of the program:
 ```cpp
   //function to set the shader location (include ChOptixUtils.h)
   chrono::sensor::SetSensorShaderDir("path/to/sensor/shaders");
-
-  //if USE_CUDA_NVRTC is enabled, use
-  chrono::sensor::SetSensorShaderDir("path/to/install/include/chrono_sensor/optix/shaders/");
-
-  //if USE_CUDA_NVRTC is disabled, use
-  chrono::sensor::SetSensorShaderDir("path/to/install/lib/sensor_ptx/");
 ```

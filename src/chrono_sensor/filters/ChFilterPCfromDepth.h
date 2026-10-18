@@ -17,8 +17,12 @@
 #ifndef CHFILTERPCFROMDEPTH_H
 #define CHFILTERPCFROMDEPTH_H
 
+#include "chrono_sensor/ChConfigSensor.h"
 #include "chrono_sensor/filters/ChFilter.h"
+
+#ifdef CHRONO_HAS_OPTIX
 #include <cuda.h>
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -48,7 +52,9 @@ class CH_SENSOR_API ChFilterPCfromDepth : public ChFilter {
     float m_hFOV;                                          ///< field of view of the parent lidar
     float m_min_vert_angle;                                ///< minimum vertical angle of parent lidar
     float m_max_vert_angle;                                ///< maximum vertical angle of parent lidar
+#ifdef CHRONO_HAS_OPTIX
     CUstream m_cuda_stream;                                ///< reference to the cuda stream
+#endif
     std::shared_ptr<SensorDeviceDIBuffer> m_buffer_in;     ///< holder of the input buffer
     std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_out;  ///< holder of the output buffer
 };

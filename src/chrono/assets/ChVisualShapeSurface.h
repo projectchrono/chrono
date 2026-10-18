@@ -24,10 +24,8 @@ namespace chrono {
 /// Class for referencing a ChSurface u,v, parametric surface that can be visualized in some way.
 class ChApi ChVisualShapeSurface : public ChVisualShape {
   public:
-    ChVisualShapeSurface() : wireframe(false), resolution_U(5), resolution_V(5) {}
-
-    ChVisualShapeSurface(std::shared_ptr<ChSurface> msurf)
-        : gsurface(msurf), wireframe(false), resolution_U(5), resolution_V(5) {}
+    ChVisualShapeSurface();
+    ChVisualShapeSurface(std::shared_ptr<ChSurface> surf);
 
     ~ChVisualShapeSurface() {}
 

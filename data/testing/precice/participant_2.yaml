@@ -1,0 +1,12 @@
+precice_adapter_config:
+    participant_name: Solver2
+    
+    interfaces:
+    - mesh_name: Mesh2
+      mesh_type: GENERIC
+      write_data:
+      - name: data2
+        type: GENERIC
+      read_data:
+      - name: data1
+        type: GENERIC

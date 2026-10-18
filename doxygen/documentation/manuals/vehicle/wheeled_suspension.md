@@ -4,7 +4,7 @@ Suspension models {#wheeled_suspension}
 
 \tableofcontents
 
-A suspension subsystem is a model of one axle of a wheeld vehicle. The base class [ChSuspension](@ref chrono::vehicle::ChSuspension) imposes that any derived suspension class (a suspension template) provide two wheel spindles (left and right) each connected through a revolute joint to some part of that type of suspension, and two spindle axles (elements of [ChShaft](@ref chrono::ChShaft) type) which may be connected to a vehicle driveline if that axle is driven.
+A suspension subsystem is a model of one axle of a wheeled vehicle. The base class [ChSuspension](@ref chrono::vehicle::ChSuspension) imposes that any derived suspension class (a suspension template) provide two wheel spindles (left and right) each connected through a revolute joint to some part of that type of suspension, and two spindle axles (elements of [ChShaft](@ref chrono::ChShaft) type) which may be connected to a vehicle driveline if that axle is driven.
 
 A derived suspension type defines the bodies, joints, force elements, and topology of a particular type of suspension. All locations are assumed to be provided with respect to a suspension reference frame (a derived suspension type is free to pick the location of this frame but not its orientation, which is assumed to be parallel to the chassis ISO reference frame).
 
@@ -12,7 +12,7 @@ A suspension assembly is attached to a vehicle's chassis by specifying the locat
 
 ## Double wishbone {#wheeled_suspension_ChDoubleWishbone}
 
-Independent steerable suspension using two wishbone control arms (also know as A-arms) to connect the knuckle and chassis.  Used as both front and rear suspension on the [HMMWV](@ref chrono::vehicle::hmmwv::HMMWV) vehicle model.
+Independent steerable suspension using two wishbone control arms (also known as A-arms) to connect the knuckle and chassis.  Used as both front and rear suspension on the [HMMWV](@ref chrono::vehicle::hmmwv::HMMWV) vehicle model.
 
 See [ChDoubleWishbone](@ref chrono::vehicle::ChDoubleWishbone) and [DoubleWishbone](@ref chrono::vehicle::DoubleWishbone).
 
@@ -120,7 +120,7 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## Solid three-link axle {#wheeled_suspension_ChSolidThreeLinkAxle}
 
-Used as rear suspensions on the [MAN 5t](@ref chrono::vehicle::man::MAN_5t), [MAN 7t](@ref chrono::vehicle::man::MAN_7t), and [MAN 10t](@ref chrono::vehicle::man::MAN_10t) truck models. This suspension allows very high wheel travel, which could not be realized with leafsprings. It is also in on-road trucks with airsprings. Airsprings and coilsprings need a suspension guided by links.
+Used as rear suspensions on the [MAN 5t](@ref chrono::vehicle::man::MAN_5t), [MAN 7t](@ref chrono::vehicle::man::MAN_7t), and [MAN 10t](@ref chrono::vehicle::man::MAN_10t) truck models. This suspension allows very high wheel travel, which could not be realized with leafsprings. It is also used in on-road trucks with airsprings. Airsprings and coilsprings need a suspension guided by links.
 
 See [ChSolidThreeLinkAxle](@ref chrono::vehicle::ChSolidThreeLinkAxle) and [SolidThreeLinkAxle](@ref chrono::vehicle::SolidThreeLinkAxle).
 
@@ -265,7 +265,7 @@ The hardpoints (defined for the left side only and mirrored to construct the rig
 
 ## Rigid pinned-axle {#wheeled_suspension_ChRigidPinnedAxle}
 
-Trivial assembly with spindles directly attached to the axle tube that can swing around a pivot point against the chassis. This can be used, if an unsprung axle system is needed but has to run on ondulated terrain to avoid wheel lift off.
+Trivial assembly with spindles directly attached to the axle tube that can swing around a pivot point against the chassis. This can be used, if an unsprung axle system is needed but has to run on undulated terrain to avoid wheel lift off.
 
 See [ChRigidPinnedAxle](@ref chrono::vehicle::ChRigidPinnedAxle) and [RigidPinnedAxle](@ref chrono::vehicle::RigidPinnedAxle).
 

@@ -12,6 +12,8 @@
 // Radu Serban
 // =============================================================================
 
+#include <vsg/utils/CoordinateSpace.h>
+
 #include "chrono_vsg/utils/ChDataUtilsVSG.h"
 
 namespace vsg {
@@ -21,10 +23,21 @@ vec2CH::vec2CH(const chrono::ChVector2d& vec) {
     y = static_cast<float>(vec.y());
 }
 
+vec2CH::vec2CH(const chrono::ChVector2f& vec) {
+    x = vec.x();
+    y = vec.y();
+}
+
 vec3CH::vec3CH(const chrono::ChVector3d& vec) {
     x = static_cast<float>(vec.x());
     y = static_cast<float>(vec.y());
     z = static_cast<float>(vec.z());
+}
+
+vec3CH::vec3CH(const chrono::ChVector3f& vec) {
+    x = vec.x();
+    y = vec.y();
+    z = vec.z();
 }
 
 vec3CH::vec3CH(const chrono::ChColor& col) {
@@ -43,13 +56,26 @@ vec4CH::vec4CH(const chrono::ChVector3d& vec, double w) {
     x = static_cast<float>(vec.x());
     y = static_cast<float>(vec.y());
     z = static_cast<float>(vec.z());
-    w = static_cast<float>(w);
+    this->w = static_cast<float>(w);  // the parameter shadows the member
 }
 
 vec4CH::vec4CH(const chrono::ChColor& col, float a) {
     x = col.R;
     y = col.G;
     z = col.B;
+    w = a;
+}
+
+vec3CHLinear::vec3CHLinear(const chrono::ChColor& col) {
+    x = sRGB_to_linear(col.R);
+    y = sRGB_to_linear(col.G);
+    z = sRGB_to_linear(col.B);
+}
+
+vec4CHLinear::vec4CHLinear(const chrono::ChColor& col, float a) {
+    x = sRGB_to_linear(col.R);
+    y = sRGB_to_linear(col.G);
+    z = sRGB_to_linear(col.B);
     w = a;
 }
 
@@ -64,6 +90,8 @@ dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector3d& scale
 }
 
 dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, double scale) : dmat4CH(frame, chrono::ChVector3d(scale)) {}
+
+dmat4CH::dmat4CH(const chrono::ChFrame<>& frame) : dmat4CH(frame, 1.0) {}
 
 }  // namespace vsg
 

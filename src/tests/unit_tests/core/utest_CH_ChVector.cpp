@@ -17,12 +17,93 @@
 // =============================================================================
 
 #include "gtest/gtest.h"
+#include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 
 using namespace chrono;
 
 const double ABS_ERR_D = 1e-15;
 const float ABS_ERR_F = 1e-6f;
+
+TEST(ChVector, cast) {
+    float s = 2.0f;
+    {
+        ChVector3f vec(1.5, 2.5, 3.5);
+        ChVector3f res = s * vec;
+        ASSERT_NEAR(res.x(), 3.0f, ABS_ERR_F);
+        ASSERT_NEAR(res.y(), 5.0f, ABS_ERR_F);
+        ASSERT_NEAR(res.z(), 7.0f, ABS_ERR_F);
+    }
+    {
+        ChVector3d vec(1.5, 2.5, 3.5);
+        ChVector3d res = s * vec;
+        ASSERT_NEAR(res.x(), 3.0, ABS_ERR_D);
+        ASSERT_NEAR(res.y(), 5.0, ABS_ERR_D);
+        ASSERT_NEAR(res.z(), 7.0, ABS_ERR_D);
+    }
+}
+
+TEST(ChVectorTest, scalar_mult_mixed) {
+    // A double scalar times a float vector must not be routed through the integer-vector overload
+    {
+        ChVector3f vec(1.5, 2.5, 3.5);
+        auto res = 2.0 * vec;
+        static_assert(std::is_same<decltype(res), ChVector3f>::value, "double * ChVector3f must be a ChVector3f");
+        ASSERT_NEAR(res.x(), 3.0f, ABS_ERR_F);
+        ASSERT_NEAR(res.y(), 5.0f, ABS_ERR_F);
+        ASSERT_NEAR(res.z(), 7.0f, ABS_ERR_F);
+    }
+    // A floating point scalar times an integer vector yields a double vector
+    {
+        ChVector3i vec(1, 2, 3);
+        auto res = 2.5 * vec;
+        static_assert(std::is_same<decltype(res), ChVector3d>::value, "double * ChVector3i must be a ChVector3d");
+        ASSERT_NEAR(res.x(), 2.5, ABS_ERR_D);
+        ASSERT_NEAR(res.y(), 5.0, ABS_ERR_D);
+        ASSERT_NEAR(res.z(), 7.5, ABS_ERR_D);
+
+        auto resf = 2.5f * vec;
+        static_assert(std::is_same<decltype(resf), ChVector3d>::value, "float * ChVector3i must be a ChVector3d");
+        ASSERT_NEAR(resf.x(), 2.5, ABS_ERR_D);
+        ASSERT_NEAR(resf.y(), 5.0, ABS_ERR_D);
+        ASSERT_NEAR(resf.z(), 7.5, ABS_ERR_D);
+    }
+    // An integer scalar times an integer vector remains an integer vector
+    {
+        ChVector3i vec(1, 2, 3);
+        auto res = 2 * vec;
+        static_assert(std::is_same<decltype(res), ChVector3i>::value, "int * ChVector3i must be a ChVector3i");
+        ASSERT_EQ(res, ChVector3i(2, 4, 6));
+    }
+}
+
+TEST(ChVectorTest, int_division) {
+    {
+        ChVector3i vec(4, -6, 9);
+        ASSERT_EQ(vec / 2, ChVector3i(2, -3, 4));
+        vec /= 2;
+        ASSERT_EQ(vec, ChVector3i(2, -3, 4));
+    }
+    {
+        ChVector2i vec(4, -6);
+        ASSERT_EQ(vec / 2, ChVector2i(2, -3));
+        vec /= 2;
+        ASSERT_EQ(vec, ChVector2i(2, -3));
+    }
+}
+
+TEST(ChVectorTest, no_implicit_scalar_conversion) {
+    // Scalars must not implicitly convert to vectors (e.g. 'v + 1.0' or passing a scalar for a vector argument)
+    static_assert(!std::is_convertible<double, ChVector3d>::value, "double must not implicitly convert to ChVector3d");
+    static_assert(!std::is_convertible<float, ChVector3f>::value, "float must not implicitly convert to ChVector3f");
+    static_assert(!std::is_convertible<int, ChVector3i>::value, "int must not implicitly convert to ChVector3i");
+    static_assert(!std::is_convertible<double, ChVector2d>::value, "double must not implicitly convert to ChVector2d");
+    static_assert(!std::is_convertible<int, ChVector2i>::value, "int must not implicitly convert to ChVector2i");
+
+    // Explicit construction from a scalar is still available
+    ASSERT_EQ(ChVector3d(2.0), ChVector3d(2.0, 2.0, 2.0));
+    ASSERT_EQ(ChVector2d(2.0), ChVector2d(2.0, 2.0));
+}
 
 TEST(ChVectorTest, normalize) {
     ChVector3d ad(1.1, -2.2, 3.3);

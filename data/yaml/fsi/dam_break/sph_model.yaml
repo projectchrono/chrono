@@ -1,0 +1,41 @@
+chrono-version: 10.0
+
+model:
+  name: Container
+  physics_problem: CFD
+  geometry_type: CARTESIAN
+
+  angle_degrees: true
+ 
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+  
+  fluid_properties:
+    density: 1000.0
+    viscosity: 1.0
+    characteristic_length: 1.0
+
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 3.8
+
+  fluid_domain:
+    dimensions: [3.8, 1, 3.8]
+    box_origin: [-4, 0, 0]
+
+  container:
+    dimensions: [12, 1, 8]
+    box_origin: [0, 0, 0]
+    box_walls: 
+      x: [true, true]     # negative, positive
+      y: [false, false]   # negative, positive
+      z: [true, false]    # negative, positive
+
+  computational_domain:
+    aabb_min: [-7, -0.55, -16]
+    aabb_max: [7, 0.55, 16]
+    x_bc_type: NONE
+    y_bc_type: PERIODIC
+    z_bc_type: NONE
+   

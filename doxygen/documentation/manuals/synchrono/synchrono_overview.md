@@ -9,7 +9,7 @@ SynChrono {#module_synchrono_overview}
 ## Project Overview
 
 SynChrono is an autonomous vehicle simulation project developed by the Simulation Based Engineering Lab ([SBEL](https://sbel.wisc.edu/)) at the University of Wisconsin-Madison. 
-This simulation framework is based around the ability to simulation one or multiple robots, autonomous vehicles, or other autonomous agents together in a unified framework.
+This simulation framework is based around the ability to simulate one or multiple robots, autonomous vehicles, or other autonomous agents together in a unified framework.
 Our current motivation comes from autonomous vehicle testing, so many of our demos and examples will draw on autonomous vehicles, but since the simulation is backed by Chrono, we can support any virtual environment.
 
 Our goal is to extend Project Chrono's physics simulation into the multi-agent realm, specifically the multi-agent realm where the dynamics of the agents are not strongly coupled. 
@@ -18,7 +18,7 @@ SynChrono is suited for scenarios where the dynamics of each agent are important
 This is the case for autonomous vehicles where, barring a collision, the dynamics of one vehicle will not impact any other.
 SynChrono synchronizes the motion of all agents, but allows their dynamics to be distributed across computing nodes rather than including all dynamics in one monolithic simulation.
 
-_Images_: On the left a convoy of autonomous vehicles navigate obstacles on offroad terrain using a policy developed through machine learning. On the right an autonomous vehicle performs a lane change in a highway setting.
+_Images_: On the left a convoy of autonomous vehicles navigates obstacles on offroad terrain using a policy developed through machine learning. On the right an autonomous vehicle performs a lane change in a highway setting.
 
 ## Agent Synchronization {#syn_agent_sync}
 
@@ -26,23 +26,23 @@ The dynamics of a "typical" Chrono system (for example one using `Chrono::Vehicl
 
 <img src="http://www.projectchrono.org/assets/manual/synchrono/syn-timestep-heartbeat.png" width="600" />
 
-Each node steps forward in time, at the same constant timestep. Some nodes may move through their timesteps in less real-world time than the others, simply because they have more processing power, a simpler system, or for any other range of reasons. However after a certain number of timesteps have elapsed in simulation, called the heartbeat, all nodes will synchronize their current state. Between heartbeats, the zombie agents in a node's `ChSystem` are not updated, and will remain static until a heartbeat is reached and updated state information for them is applied to the `ChSystem`.
+Each node steps forward in time, at the same constant timestep. Some nodes may move through their timesteps in less real-world time than the others, simply because they have more processing power, a simpler system, or for any other range of reasons. However, after a certain number of timesteps have elapsed in simulation, called the heartbeat, all nodes will synchronize their current state. Between heartbeats, the zombie agents in a node's `ChSystem` are not updated, and will remain static until a heartbeat is reached and updated state information for them is applied to the `ChSystem`.
 
 Next we explain what exactly is communicated at each heartbeat ([State Information](#syn_state_info)), how this data is formatted ([FlatBuffers](#syn_flatbuffers)) and how the data is communicated between nodes ([Communication Types](#syn_communication)).
 
 ### State Information {#syn_state_info}
 
-The state information that is communicated at each heartbeat is specific to each type of agent, it should be the minimum required to construct a zombie agent in the world of another node. For vehicle agents we need to know two things:
+The state information that is communicated at each heartbeat is specific to each type of agent; it should be the minimum required to construct a zombie agent in the world of another node. For vehicle agents we need to know two things:
 - What the zombie should look like
 - Where the zombie should be placed
 
-__What__ the zombie looks like is handled through specification of the number of wheels and of mesh files to be used for the chassis and wheels, this happens just once at the beginning of the simulation. __Where__ the zombie is placed gets communicated at every heartbeat, and consists of the position and orientation (pose) of the vehicle's center of mass along with a pose for each of its wheels.
+__What__ the zombie looks like is handled through specification of the number of wheels and of mesh files to be used for the chassis and wheels; this happens just once at the beginning of the simulation. __Where__ the zombie is placed gets communicated at every heartbeat, and consists of the position and orientation (pose) of the vehicle's center of mass along with a pose for each of its wheels.
 
 <img src="http://www.projectchrono.org/assets/manual/synchrono/synchrono_vehicle_synchronization.png" width="600" />
 
 ### FlatBuffers {#syn_flatbuffers}
 
-To communicate state information between nodes, we need to move data about each agent from C++ objects, to a series of bytes that travel over the wire between nodes. [FlatBuffers](https://google.github.io/flatbuffers/) is a library that handles exactly this serialization and deserialization of data.
+To communicate state information between nodes, we need to move data about each agent from C++ objects to a series of bytes that travel over the wire between nodes. [FlatBuffers](https://google.github.io/flatbuffers/) is a library that handles exactly this serialization and deserialization of data.
 
 Any agent that will be synchronized must have a flatbuffers schema (see example below) that defines how their state data is formatted, and a corresponding class that uses this schema to pack and unpack data into a C++ class.
 
@@ -79,6 +79,6 @@ Synchronization can also be accomplished using DDS. Rather than the collective c
 
 ## Support for Other Chrono Modules {#syn_modules}
 
-The focus during SynChrono's development has been on autonomous vehicle simulation, so SynChrono currently depends on Chrono::Vehicle for proper operation. While this is not a fundamental limitation, there are also no additional dependencies required to build Chrono::Vehicle so this dependency should not be a burden.
+The focus during SynChrono's development has been on autonomous vehicle simulation, so SynChrono currently depends on Chrono::Vehicle for proper operation. While this is not a fundamental limitation, there are also no additional dependencies required to build Chrono::Vehicle, so this dependency should not be a burden.
 
 SynChrono supports visualization through both the Chrono::Irrlicht and Chrono::Sensor modules.

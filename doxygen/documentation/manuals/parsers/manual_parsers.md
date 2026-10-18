@@ -15,7 +15,7 @@ Note that import of finite element models (meshes) can be done using the @ref ch
 
 ## YAML parsers
 
-The various YAML parser classes allows parsing YAML specification files for Chrono models and simulations. The parsers cache model information and simulation settings from the corresponding YAML input files and then allows populating a Chrono, Chrono::Vehicle, or Chrono::FSI system and setting solver and simulation parameters.
+The various YAML parser classes allow parsing YAML specification files for Chrono models and simulations. The parsers cache model information and simulation settings from the corresponding YAML input files and then allow populating a Chrono, Chrono::Vehicle, or Chrono::FSI system and setting solver and simulation parameters.
 
 * @subpage YAML_parser_overview
 * @subpage YAML_schema_mbs_simulation
@@ -36,8 +36,8 @@ The various YAML parser classes allows parsing YAML specification files for Chro
 The @ref chrono::parsers::ChPythonEngine "ChPythonEngine" class allows running Python code directly from C++ and to interact with it by exchanging data from/to variables.  
 It should not be confused with [PyChrono](@ref pychrono_introduction) that is a completely stand-alone Python library that wraps Chrono C++ code:
 
-+ @ref chrono::parsers::ChPythonEngine "ChPythonEngine" allows to run generic Python code from C++
-+ [PyChrono](@ref pychrono_introduction) allows to use Chrono from Python
++ @ref chrono::parsers::ChPythonEngine "ChPythonEngine" allows running generic Python code from C++
++ [PyChrono](@ref pychrono_introduction) allows using Chrono from Python
 
 Through this class the user can also import models exported from SolidWorks to Python, by means of the method @ref chrono::parsers::ChPythonEngine::ImportSolidWorksSystem() "ChPythonEngine::ImportSolidWorksSystem()". Please refer to the [Chrono::SolidWorks reference manual](@ref manual_chrono_solidworks) for additional information. Please just be aware that this is **not the only way** to import SolidWorks models.
 

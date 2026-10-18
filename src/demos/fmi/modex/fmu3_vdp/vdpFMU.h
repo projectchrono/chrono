@@ -22,7 +22,7 @@
 
 #include <array>
 
-#include "fmi3/FmuToolsExport.h"
+#include "fmi3/FmuForgeExport.h"
 
 class FmuComponent : public fmu_forge::fmi3::FmuComponentBase {
   public:

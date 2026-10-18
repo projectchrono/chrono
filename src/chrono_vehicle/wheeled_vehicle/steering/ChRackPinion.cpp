@@ -108,7 +108,7 @@ void ChRackPinion::Synchronize(double time, const DriverInputs& driver_inputs) {
 
 void ChRackPinion::InitializeInertiaProperties() {
     m_mass = GetSteeringLinkMass();
-    m_com = ChFrame<>(GetSteeringLinkCOM(), QUNIT);
+    m_com = ChFrame<>(ChVector3d(0, GetSteeringLinkCOM(), 0), QUNIT);
     m_inertia.setZero();
     m_inertia.diagonal() = GetSteeringLinkInertia().eigen();
 }

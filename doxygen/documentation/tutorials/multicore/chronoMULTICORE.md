@@ -8,7 +8,7 @@ Selected demos:
 - demo_MCORE_ballsNSC
 - demo_MCORE_mixerNSC - simple examples of using NSC (non-smooth) contact formulation
 - demo_MCORE_ballsSMC
-- demo_MCORE_mixerSMC - sinple examples of using SMC (smooth, penalty) contact formulation
+- demo_MCORE_mixerSMC - simple examples of using SMC (smooth, penalty) contact formulation
 - demo_MCORE_friction - rolling and spinning friction example
 - demo_MCORE_motors - example of using linear and rotational motors
 - demo_MCORE_callbackNSC

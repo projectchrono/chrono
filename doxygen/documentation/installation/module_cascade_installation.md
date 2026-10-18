@@ -24,7 +24,7 @@ Here are the main features:
 - To **build** this module:
 	- you must have the [OpenCASCADE](http://www.opencascade.org) libraries installed.
 
-Currently, the Chrono API is compatible with OpenCASCADE **OCCT 7.9.2** and **OCCCT 7.9.3**. Other versions of OpenCASCADE *are not compatible*.
+Currently, the Chrono API is compatible with OpenCASCADE **OCCT 7.9.2** and **OCCT 7.9.3**. Other versions of OpenCASCADE *are not compatible*.
 
 
 ## Building instructions
@@ -33,7 +33,7 @@ Currently, the Chrono API is compatible with OpenCASCADE **OCCT 7.9.2** and **OC
   
 2. Set `CH_ENABLE_MODULE_CASCADE` to 'on'.
 
-3. If prompted, set `OpenCASCADE_DIR` to the path to the OpenCASCADE project configuration script (`OpenCASCADEConfig.cmake`) is located.
+3. If prompted, set `OpenCASCADE_DIR` to the path where the OpenCASCADE project configuration script (`OpenCASCADEConfig.cmake`) is located.
 
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
