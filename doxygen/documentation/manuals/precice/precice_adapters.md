@@ -27,11 +27,11 @@ The table below summarizes where the three differ. The rest of this page takes t
 | | MBS / Solid | Fluid_SPH | Fluid_TDPF |
 |---|---|---|---|
 | Chrono solver | `ChSystem` | `ChFsiFluidSystemSPH` | `ChFsiFluidSystemTDPF` |
-| Reads | forces, torques | body poses, velocities, accelerations | body poses, velocities |
-| Writes | poses, displacements, velocities, accelerations | forces, torques | forces, torques |
+| Reads | forces, torques | body and node poses, velocities, accelerations | body poses, velocities |
+| Writes | poses, displacements, velocities, accelerations | forces, torques (bodies), forces (nodes) | forces, torques |
 | `RIGID_BODY_REFS` | yes | yes | yes |
 | `RIGID_BODY_POINTS` | yes | not implemented | not implemented |
-| `FEA_MESH_NODES` | yes | not implemented | — |
+| `FEA_MESH_NODES` | yes | yes (1-D meshes) | — |
 | `FEA_MESH_POINTS` | not implemented | not implemented | — |
 | Checkpointing | yes | no | no |
 | Solver step | `min(step, window)` | `min(step, window)` | the whole window |
@@ -57,7 +57,7 @@ name under `meshes` in a YAML specification) and are exchanged through a `FEA_ME
 are the mesh nodes with position degrees of freedom (`ChNodeFEAxyz` and derived types, and
 `ChNodeFEAxyzrot`), in the order in which the meshes were added and, within each mesh, in node order. FEA
 nodes can receive forces (but not torques) and send positions, displacements (relative to the initial node
-position), and velocities.
+position), velocities, and accelerations.
 
 **Applying received loads.** Forces and torques arriving from the fluid participant are applied through a
 Chrono force accumulator held per coupling body, and forces on FEA nodes through a force accumulator held per
@@ -103,9 +103,23 @@ case, and what a YAML `shapes` entry produces — or from an explicit list of ma
 SPH participant builds its *own* proxies for the solid bodies; it never sees the partner's multibody model,
 only the states arriving over the interface.
 
-**Exchange granularity.** Only `RIGID_BODY_REFS` is implemented: the solid states arrive as one pose and
-velocity per body, and the forces are returned as one resultant per body. The BCE-level exchange that would
-correspond to a `RIGID_BODY_POINTS` mesh is not implemented.
+FEA meshes are represented the same way. A 1-D mesh (e.g., a cable) is added with `AddCouplingFEAMesh`, from
+its initial node positions and its segments (in a YAML specification, a `meshes` entry with a `nodes` list or
+file and an optional `segments` list of 1-based node index pairs; without `segments` the nodes form a single
+chain). The adapter builds a proxy FEA mesh from these, only to generate the BCE markers; its nodes follow the
+positions, velocities, and accelerations received on a `FEA_MESH_NODES` mesh, and the forces on the BCE markers
+are returned as nodal forces. The node positions must match the initial node positions of the solid
+participant, and the BCE marker pattern (`bce_pattern_1D`, `remove_center`) and `node_directions` (`NONE` or
+`AVERAGE`; node directions are not exchanged) can be set as for a Chrono::FSI YAML specification. 2-D FEA meshes
+are not yet supported.
+
+**Exchange granularity.** For rigid bodies, only `RIGID_BODY_REFS` is implemented: the solid states arrive as
+one pose, velocity, and (optionally) acceleration per body, and the forces are returned as one resultant force
+and torque per body. The BCE-level exchange that would correspond to a `RIGID_BODY_POINTS` mesh is not
+implemented. For FEA meshes, only `FEA_MESH_NODES` is implemented, and only for 1-D meshes: the solid states
+arrive as one position, velocity, and (optionally) acceleration per mesh node, and the forces on the mesh BCE
+markers are returned as one force per mesh node. The exchange at arbitrary points on the mesh elements that
+would correspond to a `FEA_MESH_POINTS` mesh is not implemented.
 
 **Time stepping.** The adapter advances by `min(its own step, the coupling window)`. Because the SPH step is
 usually far smaller than a sensible coupling window, the normal situation is that preCICE sub-cycles: the

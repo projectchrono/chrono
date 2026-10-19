@@ -1002,6 +1002,9 @@ void ChPreciceAdapterMbs::WriteFeaNodeData(const std::string& mesh_name, Couplin
                     case CouplingDataType::LINEAR_VELOCITIES:
                         value = c_node.GetPosDt();
                         break;
+                    case CouplingDataType::LINEAR_ACCELERATIONS:
+                        value = c_node.GetPosDt2();
+                        break;
                     default:
                         cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                         throw std::runtime_error("Invalid Chrono MBS write data type");

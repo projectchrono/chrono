@@ -286,14 +286,21 @@ respectively.
 
 Coupling interfaces are described by a mesh type (`CouplingMeshType`: `GENERIC`, `RIGID_BODY_REFS`,
 `RIGID_BODY_POINTS`, `FEA_MESH_NODES`, `FEA_MESH_POINTS`) and a data type (`CouplingDataType`:
-`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `FORCES`,
-`TORQUES`, `GENERIC`). Coupling mesh vertices on rigid bodies can be specified either through a
+`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`,
+`LINEAR_ACCELERATIONS`, `ANGULAR_ACCELERATIONS`, `FORCES`, `TORQUES`, `GENERIC`). Coupling mesh
+vertices on rigid bodies can be specified either through a
 triangular mesh (OBJ or STL) or as an explicit list of 3D points, and callbacks are available for
 user-defined operations before and after each dynamics advance. A generic driver program is also
 provided, which runs an arbitrary Chrono preCICE adapter defined entirely through a YAML
 specification file.
 
-See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH) and
+FEA meshes can be coupled through `FEA_MESH_NODES` interfaces: the MBS adapter exchanges the nodes of
+its FEA meshes (applying the received forces through node force accumulators), and the SPH adapter
+represents 1-D FEA meshes (e.g., cables) with proxy meshes built from node positions and segments given
+in its own specification.
+
+See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH),
+`demo_PRECICE_flexible_cable` (Chrono FEA cable coupled with Chrono::FSI-SPH), and
 `demo_PRECICE_flap_openfoam` (Chrono MBS coupled with OpenFOAM, matching the corresponding preCICE
 tutorial).
 

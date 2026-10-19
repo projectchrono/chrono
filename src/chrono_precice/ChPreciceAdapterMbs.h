@@ -169,6 +169,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
         ChVector3d GetPos() const { return node_xyz ? node_xyz->GetPos() : node_xyzrot->GetPos(); }
         ChVector3d GetPosDt() const { return node_xyz ? node_xyz->GetPosDt() : node_xyzrot->GetPosDt(); }
+        ChVector3d GetPosDt2() const { return node_xyz ? node_xyz->GetPosDt2() : node_xyzrot->GetPosDt2(); }
     };
 
     /// Coupling FEA mesh data.

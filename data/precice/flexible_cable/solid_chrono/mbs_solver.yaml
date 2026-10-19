@@ -1,0 +1,16 @@
+chrono-version: 10.0
+
+contact_method: SMC
+
+# Multibody integration step. The adapter takes steps no larger than the preCICE time window.
+integrator:
+  type: Euler_implicit_linearized
+  time_step: 2.5e-4
+
+# The ANCF cable elements require a solver that supports stiffness and damping matrices.
+# MINRES is used here (rather than a direct sparse solver) so that the model runs in any Chrono build.
+solver:
+  type: MINRES
+  max_iterations: 2000
+  tolerance: 1e-12
+  enable_diagonal_preconditioner: true
