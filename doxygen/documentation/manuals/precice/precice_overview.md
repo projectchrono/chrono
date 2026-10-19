@@ -38,6 +38,7 @@ model to the meshes named in the XML. Its keys are:
 | `participant_name` | yes | must match a `<participant>` name in the preCICE XML |
 | `interfaces` | yes | list of coupling meshes; each names a `mesh_name`, a `mesh_type`, and its `read_data` and `write_data` blocks |
 | `bodies` | adapter-specific | the Chrono bodies exposed on the interface, in a significant order |
+| `meshes` | adapter-specific | the Chrono FEA meshes exposed on the interface (by `name`), in a significant order |
 | `data_path` | no | file handler for any data files referenced (meshes, hydrodynamic data) |
 | `angle_degrees` | no | angle units used in this file |
 | `read_data_time` | no | when within the window to sample data, see [coupling schemes](@ref precice_coupling) |

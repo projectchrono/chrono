@@ -31,7 +31,8 @@ The table below summarizes where the three differ. The rest of this page takes t
 | Writes | poses, displacements, velocities | forces, torques | forces, torques |
 | `RIGID_BODY_REFS` | yes | yes | yes |
 | `RIGID_BODY_POINTS` | yes | not implemented | not implemented |
-| FEA mesh interfaces | not implemented | not implemented | not implemented |
+| `FEA_MESH_NODES` | yes | not implemented | — |
+| `FEA_MESH_POINTS` | not implemented | not implemented | — |
 | Checkpointing | yes | no | no |
 | Solver step | `min(step, window)` | `min(step, window)` | the whole window |
 | Added mass | consumes | — | produces |
@@ -51,13 +52,18 @@ non-Chrono solver.
 in the body frame. With no points the body is exchanged through its reference frame on a `RIGID_BODY_REFS`
 mesh; with points it contributes them to a `RIGID_BODY_POINTS` mesh. In a YAML specification the points may
 be given as a plain list of coordinates, or as a Wavefront `.obj` or `.stl` file whose vertices are used, so
-a surface mesh can drive the exchange directly. FEA meshes can be registered but the data exchange for them
-is not yet implemented.
+a surface mesh can drive the exchange directly. FEA meshes are added with `AddCouplingFEAMesh` (or listed by
+name under `meshes` in a YAML specification) and are exchanged through a `FEA_MESH_NODES` mesh whose vertices
+are the mesh nodes with position degrees of freedom (`ChNodeFEAxyz` and derived types, and
+`ChNodeFEAxyzrot`), in the order in which the meshes were added and, within each mesh, in node order. FEA
+nodes can receive forces (but not torques) and send positions, displacements (relative to the initial node
+position), and velocities.
 
 **Applying received loads.** Forces and torques arriving from the fluid participant are applied through a
-Chrono force accumulator held per coupling body. The accumulator is emptied at the start of each read, so
-the loads replace rather than accumulate across windows, and they remain applied while the multibody system
-takes its step.
+Chrono force accumulator held per coupling body, and forces on FEA nodes through a force accumulator held per
+coupling node. The accumulators are emptied at the start of each read, so the loads replace rather than
+accumulate across windows, and they remain applied while the multibody system takes its step. Since they are
+dedicated accumulators, they add to (and do not overwrite) any other loads applied on the same bodies and nodes.
 
 **Data it can send.** `POSITIONS`, `ROTATIONS` (as rotation vectors), `DISPLACEMENTS` (relative to the
 initial pose), `LINEAR_VELOCITIES` and `ANGULAR_VELOCITIES`. Which of these are actually exchanged is decided

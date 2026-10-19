@@ -33,6 +33,8 @@
 
 #ifdef CHRONO_FEA
     #include "chrono/fea/ChMesh.h"
+    #include "chrono/fea/ChNodeFEAxyz.h"
+    #include "chrono/fea/ChNodeFEAxyzrot.h"
 #endif
 
 #include "chrono/utils/ChBodyGeometry.h"
@@ -76,6 +78,9 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
 #ifdef CHRONO_FEA
     /// Add the specified FEA mesh as a preCICE interface object.
+    /// All mesh nodes with position degrees of freedom (ChNodeFEAxyz and derived types, and ChNodeFEAxyzrot) are
+    /// exchanged through coupling meshes of type FEA_MESH_NODES; other mesh nodes are ignored. Forces received from
+    /// preCICE are applied through a dedicated force accumulator on each node.
     /// Notes:
     /// - if the MBS preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
@@ -154,10 +159,23 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     };
 
 #ifdef CHRONO_FEA
+    /// Coupling FEA mesh node data.
+    /// Exactly one of the two node pointers is set.
+    struct CouplingFEANode {
+        std::shared_ptr<fea::ChNodeFEAxyz> node_xyz;        ///< coupling node (ChNodeFEAxyz or derived)
+        std::shared_ptr<fea::ChNodeFEAxyzrot> node_xyzrot;  ///< coupling node (ChNodeFEAxyzrot)
+        ChVector3d init_pos;                                ///< initial node position (absolute)
+        unsigned int accumulator_index;                     ///< index of associated force accumulator
+
+        ChVector3d GetPos() const { return node_xyz ? node_xyz->GetPos() : node_xyzrot->GetPos(); }
+        ChVector3d GetPosDt() const { return node_xyz ? node_xyz->GetPosDt() : node_xyzrot->GetPosDt(); }
+    };
+
     /// Coupling FEA mesh data.
     struct CouplingFEAMesh {
-        int index;                          ///< index of coupling FEA mesh
-        std::shared_ptr<fea::ChMesh> mesh;  ///< coupling FEA mesh
+        int index;                           ///< index of coupling FEA mesh
+        std::shared_ptr<fea::ChMesh> mesh;   ///< coupling FEA mesh
+        std::vector<CouplingFEANode> nodes;  ///< coupling nodes (mesh nodes with position degrees of freedom)
     };
 #endif
 
@@ -172,6 +190,11 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
     void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
+
+#ifdef CHRONO_FEA
+    void ReadFeaNodeData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
+    void WriteFeaNodeData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
+#endif
 
     std::shared_ptr<ChSystem> m_sys;  ///< underlying Chrono system
     double m_time_step;               ///< integration step size
