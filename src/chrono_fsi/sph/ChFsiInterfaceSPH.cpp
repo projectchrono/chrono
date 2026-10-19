@@ -135,9 +135,9 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         // Apply to FEA 1-D mesh nodes
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
-            ////int num_nodes = (int)fsi_mesh->ind2ptr_map.size();
-            for (auto& node : fsi_mesh->ind2ptr_map) {
-                node.second->SetForce(ToChVector(forces_H[index]));
+            for (const auto& [inode, node] : fsi_mesh->ind2ptr_map) {
+                node->EmptyAccumulator(fsi_mesh->fsi_accumulators[inode]);
+                node->AccumulateForce(fsi_mesh->fsi_accumulators[inode], ToChVector(forces_H[index]));
                 index++;
             }
         }
@@ -150,9 +150,9 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         // Apply to FEA 2-D mesh nodes
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
-            ////int num_nodes = (int)fsi_mesh->ind2ptr_map.size();
-            for (auto& node : fsi_mesh->ind2ptr_map) {
-                node.second->SetForce(ToChVector(forces_H[index]));
+            for (const auto& [inode, node] : fsi_mesh->ind2ptr_map) {
+                node->EmptyAccumulator(fsi_mesh->fsi_accumulators[inode]);
+                node->AccumulateForce(fsi_mesh->fsi_accumulators[inode], ToChVector(forces_H[index]));
                 index++;
             }
         }

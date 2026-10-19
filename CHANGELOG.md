@@ -171,6 +171,12 @@ when a body or node is copied or assigned.
 Loads applied through accumulators on internal nodes of a `ChModalAssembly` are included in the
 reduced model, as are those set with `SetForce` and `SetTorque`.
 
+Chrono::FSI now applies fluid forces on FEA nodes through a dedicated node accumulator (created when
+the FEA mesh is added to the FSI system), mirroring how fluid forces are applied on rigid bodies.
+Previously, the FSI interfaces set the fluid force with `SetForce`, overwriting any other force set on
+FSI mesh nodes; such forces are now added to the fluid forces. This also fixes the generic FSI
+interface (`ChFsiInterfaceGeneric`), which applied the 2-D mesh forces to the nodes of 1-D meshes.
+
 ## [Changed] Chrono::Sensor appearance of shapes with no visual material
 
 A visual shape that carries no `ChVisualMaterial` is now rendered by Chrono::Sensor with
