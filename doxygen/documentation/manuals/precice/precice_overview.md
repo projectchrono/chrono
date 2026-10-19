@@ -71,8 +71,8 @@ a moving wall needs. The `sphere_drop` and `rm3_reg_waves` examples use the form
 latter.
 
 Each data block declared on a mesh carries a type, which is how the adapter knows what to do with the
-numbers: `POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `FORCES`,
-`TORQUES`, or `GENERIC`. The name of the block is arbitrary and only has to match the XML; the type is what
+numbers: `POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`,
+`LINEAR_ACCELERATIONS`, `ANGULAR_ACCELERATIONS`, `FORCES`, `TORQUES`, or `GENERIC`. The name of the block is arbitrary and only has to match the XML; the type is what
 gives it meaning. A block declared in the YAML but not referenced by this participant in the XML is marked
 unused and skipped, so one YAML file can serve configurations that exchange different subsets of data.
 

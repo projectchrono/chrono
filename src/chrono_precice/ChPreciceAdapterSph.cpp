@@ -165,6 +165,8 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::ROTATIONS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
                 case CouplingDataType::DISPLACEMENTS:
@@ -204,6 +206,8 @@ void ChPreciceAdapterSph::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                     if (m_verbose)
                         cout << "FAIL" << endl;
                     cerr << "\nERROR: Invalid Chrono SPH write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
@@ -407,6 +411,34 @@ void ChPreciceAdapterSph::ReadBodyRefData(const std::string& mesh_name, const Co
                     i_data += 3;
                     if (m_verbose)
                         cout << m_prefix2 << "body: " << i_body << " | ang_vel:  " << bstates.ang_vel << endl;
+                }
+                break;
+            }
+            case CouplingDataType::LINEAR_ACCELERATIONS: {
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
+                size_t i_data = 0;
+                for (size_t i_body = 0; i_body < num_bodies; i_body++) {
+                    auto& bstates = body_states[i_body];
+                    bstates.lin_acc.x() = data_values[i_data + 0];
+                    bstates.lin_acc.y() = data_values[i_data + 1];
+                    bstates.lin_acc.z() = data_values[i_data + 2];
+                    i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | lin_acc:  " << bstates.lin_acc << endl;
+                }
+                break;
+            }
+            case CouplingDataType::ANGULAR_ACCELERATIONS: {
+                assert(GetCouplingDataDimensions(mesh_name, data_name) == GetCouplingMeshDimensions(mesh_name));
+                size_t i_data = 0;
+                for (size_t i_body = 0; i_body < num_bodies; i_body++) {
+                    auto& bstates = body_states[i_body];
+                    bstates.ang_acc.x() = data_values[i_data + 0];
+                    bstates.ang_acc.y() = data_values[i_data + 1];
+                    bstates.ang_acc.z() = data_values[i_data + 2];
+                    i_data += 3;
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << i_body << " | ang_acc:  " << bstates.ang_acc << endl;
                 }
                 break;
             }

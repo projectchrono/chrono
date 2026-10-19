@@ -27,8 +27,8 @@ The table below summarizes where the three differ. The rest of this page takes t
 | | MBS / Solid | Fluid_SPH | Fluid_TDPF |
 |---|---|---|---|
 | Chrono solver | `ChSystem` | `ChFsiFluidSystemSPH` | `ChFsiFluidSystemTDPF` |
-| Reads | forces, torques | body poses, velocities | body poses, velocities |
-| Writes | poses, displacements, velocities | forces, torques | forces, torques |
+| Reads | forces, torques | body poses, velocities, accelerations | body poses, velocities |
+| Writes | poses, displacements, velocities, accelerations | forces, torques | forces, torques |
 | `RIGID_BODY_REFS` | yes | yes | yes |
 | `RIGID_BODY_POINTS` | yes | not implemented | not implemented |
 | `FEA_MESH_NODES` | yes | not implemented | — |
@@ -66,9 +66,11 @@ accumulate across windows, and they remain applied while the multibody system ta
 dedicated accumulators, they add to (and do not overwrite) any other loads applied on the same bodies and nodes.
 
 **Data it can send.** `POSITIONS`, `ROTATIONS` (as rotation vectors), `DISPLACEMENTS` (relative to the
-initial pose), `LINEAR_VELOCITIES` and `ANGULAR_VELOCITIES`. Which of these are actually exchanged is decided
-by the preCICE XML; a CFD partner driving a moving wall typically wants displacements, while a potential-flow
-partner wants absolute positions and velocities.
+initial pose), `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `LINEAR_ACCELERATIONS`, and `ANGULAR_ACCELERATIONS`.
+Rotations and angular quantities are only available on a `RIGID_BODY_REFS` mesh; the linear quantities on a
+`RIGID_BODY_POINTS` mesh are those of the individual body points. Which of these are actually exchanged is
+decided by the preCICE XML; a CFD partner driving a moving wall typically wants displacements, while a
+potential-flow partner wants absolute positions and velocities, and an SPH partner also uses accelerations.
 
 **Added mass.** This is the one adapter that consumes added mass. When the preCICE configuration declares
 the added mass meshes, the adapter builds a [ChLoadHydrodynamics](@ref chrono::ChLoadHydrodynamics) so that
@@ -90,8 +92,10 @@ vary a spring coefficient during the run.
 ## The Fluid_SPH adapter
 
 [ChPreciceAdapterSph](@ref chrono::ch_precice::ChPreciceAdapterSph) exposes a Chrono::FSI-SPH fluid solver
-as a participant. It reads the poses and velocities of the solid bodies, prescribes them on its own
-representation of those bodies, advances the SPH solution, and writes back the resulting forces and torques.
+as a participant. It reads the poses, velocities, and (optionally) accelerations of the solid bodies,
+prescribes them on its own representation of those bodies, advances the SPH solution, and writes back the
+resulting forces and torques. Solid accelerations enter the boundary treatment of the SPH solver (the pressure
+extrapolation of the Adami boundary method); if they are not exchanged, they are taken as zero.
 
 **Coupling objects.** Bodies are added by name, initial pose, and geometry. The adapter creates the BCE
 markers that represent the body to the SPH solver, either from a `ChBodyGeometry` description — the usual

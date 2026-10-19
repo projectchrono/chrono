@@ -324,6 +324,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                     if (m_verbose)
                         cout << "FAIL" << endl;
                     cerr << "\nERROR: Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
@@ -348,11 +350,13 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::POSITIONS:
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
-                    // Positions, displacement, and velocities must have the same dimension as the coupling mesh
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                    // Positions, displacement, velocities, and accelerations must have the same dimension as the coupling mesh
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
                 case CouplingDataType::ROTATIONS:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                     if (mesh_info.type == CouplingMeshType::RIGID_BODY_REFS) {
                         ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                     } else {
@@ -717,6 +721,47 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 }
                 break;
             }
+            case CouplingDataType::LINEAR_ACCELERATIONS: {
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    // Acceleration of the body reference frame origin (evaluated from the body COM frame)
+                    const auto& ref_pos_com = c_body->body->GetFrameRefToCOM().GetPos();
+                    auto lin_acc_abs = c_body->body->PointAccelerationLocalToParent(ref_pos_com);
+                    if (data_dim == 2) {
+                        data_values[i_data + 0] = lin_acc_abs.x();
+                        data_values[i_data + 1] = lin_acc_abs.y();
+                        i_data += 2;
+                    } else {
+                        data_values[i_data + 0] = lin_acc_abs.x();
+                        data_values[i_data + 1] = lin_acc_abs.y();
+                        data_values[i_data + 2] = lin_acc_abs.z();
+                        i_data += 3;
+                    }
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | lin_acc:  " << lin_acc_abs << endl;
+                }
+                break;
+            }
+            case CouplingDataType::ANGULAR_ACCELERATIONS: {
+                assert((GetCouplingMeshDimensions(mesh_name) == 3 && data_dim == 3) || (GetCouplingMeshDimensions(mesh_name) == 2 && data_dim == 1));
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    auto ang_acc_abs = c_body->body->GetAngAccParent();
+                    if (data_dim == 1) {
+                        data_values[i_data + 0] = ang_acc_abs.z();
+                        i_data += 1;
+                    } else {
+                        data_values[i_data + 0] = ang_acc_abs.x();
+                        data_values[i_data + 1] = ang_acc_abs.y();
+                        data_values[i_data + 2] = ang_acc_abs.z();
+                        i_data += 3;
+                    }
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | ang_acc:  " << ang_acc_abs << endl;
+                }
+                break;
+            }
             default:
                 cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono MBS write data type");
@@ -841,7 +886,9 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
-                        ChVector3d vel_abs = c_body->body->PointSpeedLocalToParent(pos_loc);
+                        // Points are expressed in the body reference frame; evaluate from the body COM frame
+                        auto pos_com = c_body->body->GetFrameRefToCOM().TransformPointLocalToParent(pos_loc);
+                        ChVector3d vel_abs = c_body->body->PointSpeedLocalToParent(pos_com);
                         if (data_dim == 2) {
                             data_values[i_data + 0] = vel_abs.x();
                             data_values[i_data + 1] = vel_abs.y();
@@ -850,6 +897,28 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                             data_values[i_data + 0] = vel_abs.x();
                             data_values[i_data + 1] = vel_abs.y();
                             data_values[i_data + 2] = vel_abs.z();
+                            i_data += 3;
+                        }
+                    }
+                }
+                break;
+            }
+            case CouplingDataType::LINEAR_ACCELERATIONS: {
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    for (const auto& pos_loc : c_body->points) {
+                        // Points are expressed in the body reference frame; evaluate from the body COM frame
+                        auto pos_com = c_body->body->GetFrameRefToCOM().TransformPointLocalToParent(pos_loc);
+                        ChVector3d acc_abs = c_body->body->PointAccelerationLocalToParent(pos_com);
+                        if (data_dim == 2) {
+                            data_values[i_data + 0] = acc_abs.x();
+                            data_values[i_data + 1] = acc_abs.y();
+                            i_data += 2;
+                        } else {
+                            data_values[i_data + 0] = acc_abs.x();
+                            data_values[i_data + 1] = acc_abs.y();
+                            data_values[i_data + 2] = acc_abs.z();
                             i_data += 3;
                         }
                     }
