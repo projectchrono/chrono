@@ -1261,15 +1261,15 @@ static ChVisualShapeFEA::DataType ReadDataType(const YAML::Node& a) {
         return ChVisualShapeFEA::DataType::ELEM_BEAM_MX;
     if (val == "ELEM_BEAM_MY")
         return ChVisualShapeFEA::DataType::ELEM_BEAM_MY;
-    if (val == "ELEM_BEAM_MX")
-        return ChVisualShapeFEA::DataType::ELEM_BEAM_MX;
+    if (val == "ELEM_BEAM_MZ")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_MZ;
 
     if (val == "ELEM_BEAM_TX")
         return ChVisualShapeFEA::DataType::ELEM_BEAM_TX;
     if (val == "ELEM_BEAM_TY")
         return ChVisualShapeFEA::DataType::ELEM_BEAM_TY;
-    if (val == "ELEM_BEAM_TX")
-        return ChVisualShapeFEA::DataType::ELEM_BEAM_TX;
+    if (val == "ELEM_BEAM_TZ")
+        return ChVisualShapeFEA::DataType::ELEM_BEAM_TZ;
 
     if (val == "ANCF_BEAM_AX")
         return ChVisualShapeFEA::DataType::ANCF_BEAM_AX;
