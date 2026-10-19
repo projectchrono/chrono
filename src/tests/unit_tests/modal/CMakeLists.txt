@@ -6,6 +6,7 @@ if(CH_ENABLE_MODULE_FEA)
         utest_MOD_eigensolver
         utest_MOD_curved_beam
         utest_MOD_cache_reduced
+        utest_MOD_node_accumulators
     )
 endif()
 

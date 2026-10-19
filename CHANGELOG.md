@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
   - [\[Added\] Chrono::FEA multiphysics framework](#added-chronofea-multiphysics-framework)
   - [\[Added\] Chrono::PRECICE module](#added-chronoprecice-module)
@@ -145,6 +146,30 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Added] Force accumulators for FEA nodes
+
+FEA nodes now provide the same force accumulator mechanism as rigid bodies. Any number of accumulators
+can be added to a node, each identified by the index returned when it is created, and each owned by
+the code that created it. The accumulated loads are applied *in addition to* the force (and torque)
+set directly on the node with `SetForce` (and `SetTorque`), so independent sources of applied loads
+no longer overwrite one another.
+
+- `ChNodeFEAxyz` (and derived node types such as `ChNodeFEAxyzD` and `ChNodeFEAxyzDD`) provides
+  force-only accumulators: `AddAccumulator`, `EmptyAccumulator`, `AccumulateForce(idx, force)`, and
+  `GetAccumulatedForce(idx)`. Forces are expressed in the absolute frame.
+- `ChNodeFEAxyzrot` provides the full rigid-body API: `AccumulateForce(idx, force, point, local)` and
+  `AccumulateTorque(idx, torque, local)`.
+- `ChMesh::AddAccumulators` adds a new accumulator to every mesh node that supports one and returns
+  the per-node accumulator indices (in the order of `ChMesh::GetNodes`); `ChMesh::EmptyAccumulators`
+  clears them. Nodes without position degrees of freedom are marked with `ChMesh::NO_ACCUMULATOR`.
+
+The accumulator implementation was moved from `ChBody` to its base class `ChBodyFrame`, which is
+shared by `ChBody` and `ChNodeFEAxyzrot`. The `ChBody` API is unchanged. Accumulators are not copied
+when a body or node is copied or assigned.
+
+Loads applied through accumulators on internal nodes of a `ChModalAssembly` are included in the
+reduced model, as are those set with `SetForce` and `SetTorque`.
 
 ## [Changed] Chrono::Sensor appearance of shapes with no visual material
 
