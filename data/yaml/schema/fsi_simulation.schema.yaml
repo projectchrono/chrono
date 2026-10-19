@@ -146,6 +146,48 @@ fsi:
             items:
               <<: *SHAPE
 
+    node_directions:
+      description: |
+        Method for obtaining FEA node directions, used to place BCE markers on FSI FEA meshes.
+        NONE: node directions are not used (piece-wise linear interpolation between nodes);
+        AVERAGE: directions are approximated by averaging over the elements incident to a node;
+        EXACT: directions are obtained from the FEA mesh.
+        Used only with an SPH fluid system.
+      type: string
+      enum: [NONE, AVERAGE, EXACT]
+      default: NONE
+
+    fsi_meshes:
+      description: |
+        FSI FEA meshes (flexible solids interacting with the fluid). Requires the Chrono::FEA module.
+        FSI FEA meshes are supported only with an SPH fluid system.
+      type: array
+      items:
+        type: object
+        required: [name]
+        properties:
+          name:
+            description: Name of the FEA mesh in the multibody system (e.g., the name of a beam)
+            type: string
+          bce_pattern_1D:
+            description: BCE marker pattern in the cross section of 1-D elements (e.g., cables and beams)
+            type: string
+            enum: [FULL, STAR]
+            default: FULL
+          bce_pattern_2D:
+            description: BCE marker pattern along the normal of 2-D surfaces (e.g., shells and volume boundaries)
+            type: string
+            enum: [CENTERED, OUTWARD, INWARD]
+            default: CENTERED
+          remove_center:
+            description: Whether to eliminate the BCE markers on the center line (1-D) or on the surface (2-D)
+            type: boolean
+            default: false
+          check_embedded:
+            description: Whether to remove SPH particles initially overlapping the mesh BCE markers
+            type: boolean
+            default: true
+
 simulation:
   description: Definition of co-simulation metastep and simulation duration
   type: object

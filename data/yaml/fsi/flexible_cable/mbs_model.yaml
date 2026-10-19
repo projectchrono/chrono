@@ -1,0 +1,57 @@
+chrono-version: 10.0
+
+# Flexible cable anchored at its bottom end to the bottom of the container.
+# The cable is modeled with ANCF cable elements, from the top end (node 1) to the bottom end (node 9).
+
+model:
+  name: Flexible cable
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  bodies:
+    - name: ground
+      location: [0, 0, 0]
+      fixed: true
+
+  FEA:
+    beam_sections:
+    - name: cable_section
+      type: ANCF_CABLE
+      diameter: 0.02
+      Young_modulus: 6e8
+      density: 8000
+      Rayleight_damping: 0.02
+
+    beams:
+    - name: cable
+      type: ANCF_CABLE
+      num_elements: 8
+      start_point: [-0.3, 0, 0.8]
+      end_point: [-0.3, 0, 0.005]
+      section: cable_section
+      visualization:
+        data:
+          type: ELEM_BEAM_MZ
+          range: [-0.4, 0.4]
+          colormap: JET
+          smooth_faces: true
+          wireframe: false
+
+    constraints:
+    - name: anchor_pos
+      type: NODE_FRAME
+      node:
+        mesh: cable
+        index: 9
+      body: ground
+
+    - name: anchor_slope
+      type: NODESLOPE_FRAME
+      node:
+        mesh: cable
+        index: 9
+      body: ground
+      body_direction: [0, 0, -1]

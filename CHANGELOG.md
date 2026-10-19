@@ -492,6 +492,10 @@ extended and made consistent:
 
 - Initial support for specifying FEA models (see `demo_YAML_fea`) and Chrono::FSI-SPH problems (see
   `demo_YAML_fsi`).
+- FEA meshes defined in the multibody model can be declared as FSI solids in a Chrono::FSI-SPH
+  problem through the `fsi_meshes` list of the FSI specification file, with optional settings for the
+  BCE marker patterns and FEA node directions. See the flexible cable models (CRM and CFD) in
+  `demo_YAML_fsi`.
 - Output and run-time visualization settings now use the common `Settings` definitions shared with
   `ChOutput` and the visualization systems. Note that the default visualization type is now `NONE`,
   which disables run-time visualization altogether.

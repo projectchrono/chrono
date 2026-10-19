@@ -31,7 +31,7 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserFsiYAML::ChParserFsiYAML(const std::string& yaml_filename, bool verbose) : ChParserYAML() {
+ChParserFsiYAML::ChParserFsiYAML(const std::string& yaml_filename, bool verbose) : ChParserYAML(), m_node_directions(fsi::NodeDirectionsMode::NONE) {
     SetVerbose(verbose);
     LoadFile(yaml_filename);
 }
@@ -123,10 +123,68 @@ void ChParserFsiYAML::LoadFsiData(const YAML::Node& yaml) {
         }
     }
 
+    // Read FSI FEA meshes
+    if (yaml["node_directions"]) {
+        auto val = ChToUpper(yaml["node_directions"].as<std::string>());
+        if (val == "NONE")
+            m_node_directions = fsi::NodeDirectionsMode::NONE;
+        else if (val == "AVERAGE")
+            m_node_directions = fsi::NodeDirectionsMode::AVERAGE;
+        else if (val == "EXACT")
+            m_node_directions = fsi::NodeDirectionsMode::EXACT;
+        else {
+            cerr << "Unknown FEA node directions mode '" << val << "'" << endl;
+            throw std::runtime_error("Unknown FEA node directions mode");
+        }
+    }
+
+    if (yaml["fsi_meshes"]) {
+#ifndef CHRONO_FEA
+        throw std::runtime_error("FSI meshes require the Chrono::FEA module");
+#endif
+        auto fsi_meshes = yaml["fsi_meshes"];
+        ChAssertAlways(fsi_meshes.IsSequence());
+        for (int i = 0; i < fsi_meshes.size(); i++) {
+            ChAssertAlways(fsi_meshes[i]["name"]);
+            FsiMesh fsi_mesh;
+            fsi_mesh.name = fsi_meshes[i]["name"].as<std::string>();
+            fsi_mesh.bce_pattern_1D = "FULL";
+            fsi_mesh.bce_pattern_2D = "CENTERED";
+            fsi_mesh.remove_center = false;
+            fsi_mesh.check_embedded = true;
+            if (fsi_meshes[i]["bce_pattern_1D"])
+                fsi_mesh.bce_pattern_1D = ChToUpper(fsi_meshes[i]["bce_pattern_1D"].as<std::string>());
+            if (fsi_meshes[i]["bce_pattern_2D"])
+                fsi_mesh.bce_pattern_2D = ChToUpper(fsi_meshes[i]["bce_pattern_2D"].as<std::string>());
+            if (fsi_meshes[i]["remove_center"])
+                fsi_mesh.remove_center = fsi_meshes[i]["remove_center"].as<bool>();
+            if (fsi_meshes[i]["check_embedded"])
+                fsi_mesh.check_embedded = fsi_meshes[i]["check_embedded"].as<bool>();
+            if (fsi_mesh.bce_pattern_1D != "FULL" && fsi_mesh.bce_pattern_1D != "STAR") {
+                cerr << "Unknown 1-D BCE pattern '" << fsi_mesh.bce_pattern_1D << "' for FSI mesh '" << fsi_mesh.name << "'" << endl;
+                throw std::runtime_error("Unknown 1-D BCE pattern");
+            }
+            if (fsi_mesh.bce_pattern_2D != "CENTERED" && fsi_mesh.bce_pattern_2D != "OUTWARD" && fsi_mesh.bce_pattern_2D != "INWARD") {
+                cerr << "Unknown 2-D BCE pattern '" << fsi_mesh.bce_pattern_2D << "' for FSI mesh '" << fsi_mesh.name << "'" << endl;
+                throw std::runtime_error("Unknown 2-D BCE pattern");
+            }
+            m_fsi_meshes.push_back(fsi_mesh);
+        }
+    }
+
     if (m_verbose) {
         cout << "model name: '" << m_name << "'" << endl;
         cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
         m_file_handler.PrintInfo();
+        cout << "FSI rigid bodies: " << m_fsi_bodies.size() << endl;
+        for (const auto& fsi_body : m_fsi_bodies)
+            cout << "   '" << fsi_body.name << "'" << endl;
+        cout << "FSI FEA meshes: " << m_fsi_meshes.size() << endl;
+        for (const auto& fsi_mesh : m_fsi_meshes) {
+            cout << "   '" << fsi_mesh.name << "'  BCE patterns: " << fsi_mesh.bce_pattern_1D << " (1-D) " << fsi_mesh.bce_pattern_2D << " (2-D)";
+            cout << "  remove center: " << (fsi_mesh.remove_center ? "true" : "false");
+            cout << "  check embedded: " << (fsi_mesh.check_embedded ? "true" : "false") << endl;
+        }
     }
 }
 
@@ -182,6 +240,25 @@ void ChParserFsiYAML::CreateFsiSystem() {
                     problemSPH->AddRigidBody(body, fsi_body.geometry, true);
             }
 
+    #ifdef CHRONO_FEA
+            // Create FSI FEA meshes
+            if (!m_fsi_meshes.empty())
+                problemSPH->UseNodeDirections(m_node_directions);
+            for (const auto& fsi_mesh : m_fsi_meshes) {
+                auto meshes = m_parserMBS->FindMeshesByName(fsi_mesh.name);
+                if (meshes.empty())
+                    cerr << "  Warning: No FEA mesh with name '" << fsi_mesh.name << "' was found. Ignoring." << endl;
+                auto pattern1D = (fsi_mesh.bce_pattern_1D == "STAR") ? fsi::sph::BcePatternMesh1D::STAR : fsi::sph::BcePatternMesh1D::FULL;
+                auto pattern2D = (fsi_mesh.bce_pattern_2D == "OUTWARD")  ? fsi::sph::BcePatternMesh2D::OUTWARD
+                                 : (fsi_mesh.bce_pattern_2D == "INWARD") ? fsi::sph::BcePatternMesh2D::INWARD
+                                                                         : fsi::sph::BcePatternMesh2D::CENTERED;
+                problemSPH->SetBcePattern1D(pattern1D, fsi_mesh.remove_center);
+                problemSPH->SetBcePattern2D(pattern2D, fsi_mesh.remove_center);
+                for (const auto& mesh : meshes)
+                    problemSPH->AddFeaMesh(mesh, fsi_mesh.check_embedded);
+            }
+    #endif
+
             // Initialize the FSI problem (now that an MBS system and FSI solids are specified)
             problemSPH->Initialize();
 
@@ -193,6 +270,8 @@ void ChParserFsiYAML::CreateFsiSystem() {
                 cout << "  Attached MBS system" << endl;
                 if (!m_fsi_bodies.empty())
                     cout << "  Associated FSI rigid bodies" << endl;
+                if (!m_fsi_meshes.empty())
+                    cout << "  Associated FSI FEA meshes" << endl;
                 cout << "  Initialized FSI problem" << endl;
                 cout << endl;
             }
@@ -206,6 +285,10 @@ void ChParserFsiYAML::CreateFsiSystem() {
             // Create  a TDPF YAML parser and the underlying FSI problem, but do not initialize the FSI problem
             auto parserTDPF = std::static_pointer_cast<ChParserTdpfYAML>(m_parserCFD);
             auto problemTDPF = parserTDPF->CreateFsiSystemTDPF(false);
+
+            // Chrono::FSI-TDPF does not support flexible FSI solids
+            if (!m_fsi_meshes.empty())
+                throw std::runtime_error("FSI FEA meshes are not supported with a Chrono::FSI-TDPF fluid system");
 
             // Cache the underlying FSI and CFD systems
             m_sysFSI = parserTDPF->GetFsiSystem();
