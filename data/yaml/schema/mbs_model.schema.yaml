@@ -809,9 +809,9 @@ model:
                 type: number
                 description: Material density (ANCF_CABLE type)
                 minimum: 0
-              Rayleight_damping:
+              Rayleigh_damping:
                 type: number
-                description: Rayleigh damping factor (ANCF_CABLE type). Note the spelling of this key.
+                description: Rayleigh damping factor (ANCF_CABLE type)
                 minimum: 0
 
         materials:

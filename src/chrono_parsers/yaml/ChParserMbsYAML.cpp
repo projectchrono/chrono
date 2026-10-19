@@ -714,7 +714,7 @@ void ChParserMbsYAML::LoadFEABeams(const YAML::Node& fea) {
                     auto diameter = sections[i]["diameter"].as<double>();
                     auto modulus = sections[i]["Young_modulus"].as<double>();
                     auto density = sections[i]["density"].as<double>();
-                    auto damping = sections[i]["Rayleight_damping"].as<double>();
+                    auto damping = sections[i]["Rayleigh_damping"].as<double>();
                     auto section_cable = chrono_types::make_shared<fea::ChBeamSectionCableANCF>();
                     section_cable->SetDiameter(diameter);
                     section_cable->SetYoungModulus(modulus);

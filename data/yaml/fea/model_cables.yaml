@@ -54,7 +54,7 @@ model:
       diameter: 0.015
       Young_modulus: 1e8
       density: 1000
-      Rayleight_damping: 0
+      Rayleigh_damping: 0
 
     beams:
     - name: beam1

@@ -23,7 +23,7 @@ model:
       diameter: 0.02
       Young_modulus: 6e8
       density: 8000
-      Rayleight_damping: 0.02
+      Rayleigh_damping: 0.02
 
     beams:
     - name: cable
