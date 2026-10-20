@@ -146,13 +146,13 @@ This branch defaults to single precision for soil-node state and base heights, a
 
 ```bash
 cmake -S . -B build -DCH_ENABLE_MODULE_VEHICLE=ON \
-  -DCH_VEHICLE_SCM_USE_DOUBLE=OFF \
-  -DCH_VEHICLE_SCM_USE_TILED_NODES=ON
+  -DCH_USE_SCM_DOUBLE=OFF \
+  -DCH_USE_SCM_TILED_NODES=ON
 cmake --build build
 ```
 
-Use `CH_VEHICLE_SCM_USE_DOUBLE=ON` for double storage or
-`CH_VEHICLE_SCM_USE_TILED_NODES=OFF` for the original flat hash map. Rebuild Chrono and its
+Use `CH_USE_SCM_DOUBLE=ON` for double storage or
+`CH_USE_SCM_TILED_NODES=OFF` for the original flat hash map. Rebuild Chrono and its
 clients after changing either option. Public terrain APIs still use doubles; these options
 do not change GPU kernel arithmetic.
 
@@ -347,7 +347,7 @@ work, and a shared 16-core EPYC slice loses to a 5.3 GHz Raptor Lake on a four-t
 - **Primitive-shaped bodies get no contact force on the GPU path.** The GPU backend intersects
   triangle meshes only: a primitive collision shape contributes no faces, never appears as a hit's
   contactable, and receives nothing back from the soil. It falls through the terrain. The bail-out
-  in `ComputeRayCastGpuHip` fires only when *no* candidate carries a mesh, so a mixed scene keeps
+  in `ComputeRayCastGpu` fires only when *no* candidate carries a mesh, so a mixed scene keeps
   the GPU path and silently drops its primitives. This is why `MESH_1`'s obstacles are rock meshes:
   as spheres they fell through, and the variant timed a scene its obstacles were absent from. The
   defect is in the backend, not the benchmark, and is unfixed.

@@ -9,13 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Runtime selection of the CPU SCM backend, including builds with GPU support.
+// Run-time selection of the SCM backend (CPU or GPU) and SCM node storage.
+// Tests that need a GPU are skipped when SCMTerrain::IsGpuAvailable() is false.
+// CTest also runs these tests with every GPU hidden and SCM_UTEST_EXPECT_NO_GPU=1;
+// the GpuBackend test then requires that no GPU is reported, so the run fails if
+// hiding the devices did not take effect.
 // =============================================================================
 
 #include <cstdlib>
+#include <cstring>
 #include <map>
 #include <memory>
-#include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -51,17 +56,6 @@ struct ScmScene {
         terrain->AddActiveDomain(body, VNULL, ChVector3d(0.6));
     }
 
-    void RequestGpu() {
-#ifdef CHRONO_HAS_SCM_GPU
-        auto config = terrain->GetScmGpuConfig();
-        config.enabled = true;
-        config.min_hits = 0;
-        terrain->SetScmGpuConfig(config);
-        terrain->SetScmGpuEnabled(true);
-        terrain->EnableRaycastGpuHip(true);
-#endif
-    }
-
     void Initialize() { terrain->Initialize(2, 2, 0.05); }
 
     void Step() {
@@ -76,27 +70,44 @@ struct ScmScene {
 
 }  // namespace
 
-TEST(SCMBackend, EnvironmentDefault) {
+TEST(SCMBackend, Selection) {
     ChSystemSMC system;
     system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     SCMTerrain terrain(&system, false);
-    const char* force_cpu = std::getenv("CHRONO_SCM_FORCE_CPU");
-    EXPECT_EQ(terrain.IsForceCPU(), force_cpu && std::string(force_cpu) == "1");
-    terrain.SetForceCPU(false);
-    EXPECT_FALSE(terrain.IsForceCPU());
-    terrain.SetForceCPU(true);
-    EXPECT_TRUE(terrain.IsForceCPU());
+
+    EXPECT_EQ(terrain.GetRayCastBackend(), SCMTerrain::Backend::AUTO);
+    EXPECT_EQ(terrain.GetContactForceBackend(), SCMTerrain::Backend::AUTO);
+
+    terrain.SetBackend(SCMTerrain::Backend::CPU);
+    EXPECT_EQ(terrain.GetRayCastBackend(), SCMTerrain::Backend::CPU);
+    EXPECT_EQ(terrain.GetContactForceBackend(), SCMTerrain::Backend::CPU);
+
+    terrain.SetRayCastBackend(SCMTerrain::Backend::GPU);
+    EXPECT_EQ(terrain.GetRayCastBackend(), SCMTerrain::Backend::GPU);
+    EXPECT_EQ(terrain.GetContactForceBackend(), SCMTerrain::Backend::CPU);
+
+    terrain.SetContactForceBackend(SCMTerrain::Backend::AUTO);
+    EXPECT_EQ(terrain.GetRayCastBackend(), SCMTerrain::Backend::GPU);
+    EXPECT_EQ(terrain.GetContactForceBackend(), SCMTerrain::Backend::AUTO);
+
+    SCMTerrain::GpuSettings settings;
+    settings.min_hits = 17;
+    settings.raycast_fp64 = true;
+    terrain.SetGpuSettings(settings);
+    EXPECT_EQ(terrain.GetGpuSettings().min_hits, 17u);
+    EXPECT_TRUE(terrain.GetGpuSettings().raycast_fp64);
+
+#ifndef CHRONO_HAS_SCM_GPU
+    EXPECT_FALSE(SCMTerrain::IsGpuAvailable());
+#endif
 }
 
-TEST(SCMBackend, ForceCPUOverridesGpuSettings) {
+TEST(SCMBackend, CpuBackend) {
     ScmScene scene;
-    scene.terrain->SetForceCPU(true);
-    scene.RequestGpu();  // Existing application settings must not defeat the override.
-    scene.terrain->EnableRaycastGpuReference(true);
+    scene.terrain->SetBackend(SCMTerrain::Backend::CPU);
     scene.Initialize();
     scene.Step();
 
-    EXPECT_TRUE(scene.terrain->IsForceCPU());
     EXPECT_EQ(scene.terrain->GetNumRaycastGpuSteps(), 0);
     EXPECT_EQ(scene.terrain->GetNumContactForceGpuSteps(), 0);
     EXPECT_GT(scene.terrain->GetNumRayCasts(), 0);
@@ -107,62 +118,107 @@ TEST(SCMBackend, ForceCPUOverridesGpuSettings) {
     EXPECT_GT(scene.terrain->GetNodeInfo(VNULL).sinkage, 0);
 }
 
-TEST(SCMBackend, RestoreBackendSettings) {
-#ifdef CHRONO_HAS_SCM_GPU
-    const char* test_gpu = std::getenv("CHRONO_TEST_SCM_GPU");
-    if (!test_gpu || std::string(test_gpu) != "1")
-        GTEST_SKIP() << "Set CHRONO_TEST_SCM_GPU=1 to test resuming GPU execution on a compatible device.";
-#endif
+TEST(SCMBackend, GpuBackend) {
+    // When the GPUs are meant to be hidden, require it: otherwise this run would silently test the GPU path.
+    const char* expect_env = std::getenv("SCM_UTEST_EXPECT_NO_GPU");
+    if (expect_env && std::strcmp(expect_env, "1") == 0)
+        ASSERT_FALSE(SCMTerrain::IsGpuAvailable()) << "SCM_UTEST_EXPECT_NO_GPU=1, but a GPU is still visible";
+
     ScmScene scene;
-    scene.terrain->SetForceCPU(true);
-    scene.RequestGpu();
+    scene.terrain->SetBackend(SCMTerrain::Backend::GPU);
+    scene.Initialize();
+    scene.Step();
+
+    // Without a usable GPU, the GPU backend falls back to the CPU.
+    if (SCMTerrain::IsGpuAvailable()) {
+        EXPECT_GT(scene.terrain->GetNumRaycastGpuSteps(), 0);
+        EXPECT_GT(scene.terrain->GetNumContactForceGpuSteps(), 0);
+    } else {
+        EXPECT_EQ(scene.terrain->GetNumRaycastGpuSteps(), 0);
+        EXPECT_EQ(scene.terrain->GetNumContactForceGpuSteps(), 0);
+    }
+    EXPECT_GT(scene.terrain->GetNumRayCasts(), 0);
+    ChVector3d force, torque;
+    ASSERT_TRUE(scene.terrain->GetContactForceBody(scene.body, force, torque));
+    EXPECT_GT(force.z(), 0);
+}
+
+TEST(SCMBackend, AutoBackendMinHits) {
+    if (!SCMTerrain::IsGpuAvailable())
+        GTEST_SKIP() << "No usable GPU";
+
+    // This scene has far fewer ray hits than the default AUTO threshold: contact forces stay on the CPU.
+    ScmScene scene;
+    scene.Initialize();
+    scene.Step();
+    EXPECT_GT(scene.terrain->GetNumRaycastGpuSteps(), 0);
+    EXPECT_EQ(scene.terrain->GetNumContactForceGpuSteps(), 0);
+
+    // With no threshold, AUTO uses the GPU for contact forces too.
+    SCMTerrain::GpuSettings settings;
+    settings.min_hits = 0;
+    scene.terrain->SetGpuSettings(settings);
+    scene.Step();
+    EXPECT_GT(scene.terrain->GetNumContactForceGpuSteps(), 0);
+}
+
+TEST(SCMBackend, SwitchAtRunTime) {
+    if (!SCMTerrain::IsGpuAvailable())
+        GTEST_SKIP() << "No usable GPU";
+
+    ScmScene scene;
+    scene.terrain->SetBackend(SCMTerrain::Backend::CPU);
     scene.Initialize();
     scene.Step();
     ASSERT_EQ(scene.terrain->GetNumRaycastGpuSteps(), 0);
     ASSERT_EQ(scene.terrain->GetNumContactForceGpuSteps(), 0);
 
-    scene.terrain->SetForceCPU(false);
+    scene.terrain->SetBackend(SCMTerrain::Backend::GPU);
     scene.Step();
-#ifdef CHRONO_HAS_SCM_GPU
     EXPECT_GT(scene.terrain->GetNumRaycastGpuSteps(), 0);
     EXPECT_GT(scene.terrain->GetNumContactForceGpuSteps(), 0);
-#else
-    EXPECT_EQ(scene.terrain->GetNumRaycastGpuSteps(), 0);
-    EXPECT_EQ(scene.terrain->GetNumContactForceGpuSteps(), 0);
-#endif
+
     const int raycast_steps = scene.terrain->GetNumRaycastGpuSteps();
     const int force_steps = scene.terrain->GetNumContactForceGpuSteps();
-    scene.terrain->SetForceCPU(true);
+    scene.terrain->SetBackend(SCMTerrain::Backend::CPU);
     scene.Step();
     EXPECT_EQ(scene.terrain->GetNumRaycastGpuSteps(), raycast_steps);
     EXPECT_EQ(scene.terrain->GetNumContactForceGpuSteps(), force_steps);
     EXPECT_GT(scene.terrain->GetNumRayCasts(), 0);
 }
 
-TEST(SCMBackend, TerrainOverridesAreIndependent) {
-#ifdef CHRONO_HAS_SCM_GPU
-    const char* test_gpu = std::getenv("CHRONO_TEST_SCM_GPU");
-    if (!test_gpu || std::string(test_gpu) != "1")
-        GTEST_SKIP() << "Set CHRONO_TEST_SCM_GPU=1 to test simultaneous CPU and GPU terrains on a compatible device.";
-#endif
+TEST(SCMBackend, TerrainsAreIndependent) {
+    if (!SCMTerrain::IsGpuAvailable())
+        GTEST_SKIP() << "No usable GPU";
+
+    // Terrains with different backends and ray-cast precisions, stepped alternately (shared GPU contexts).
     ScmScene cpu;
-    ScmScene other;
-    cpu.terrain->SetForceCPU(true);
-    other.terrain->SetForceCPU(false);
-    cpu.RequestGpu();
-    other.RequestGpu();
+    ScmScene gpu32;
+    ScmScene gpu64;
+    cpu.terrain->SetBackend(SCMTerrain::Backend::CPU);
+    gpu32.terrain->SetBackend(SCMTerrain::Backend::GPU);
+    gpu64.terrain->SetBackend(SCMTerrain::Backend::GPU);
+    SCMTerrain::GpuSettings settings;
+    settings.raycast_fp64 = true;
+    gpu64.terrain->SetGpuSettings(settings);
     cpu.Initialize();
-    other.Initialize();
-    cpu.Step();
-    other.Step();
-    EXPECT_TRUE(cpu.terrain->IsForceCPU());
-    EXPECT_FALSE(other.terrain->IsForceCPU());
+    gpu32.Initialize();
+    gpu64.Initialize();
+    for (int i = 0; i < 2; i++) {
+        cpu.Step();
+        gpu32.Step();
+        gpu64.Step();
+    }
+
     EXPECT_EQ(cpu.terrain->GetNumRaycastGpuSteps(), 0);
     EXPECT_EQ(cpu.terrain->GetNumContactForceGpuSteps(), 0);
-#ifdef CHRONO_HAS_SCM_GPU
-    EXPECT_GT(other.terrain->GetNumRaycastGpuSteps(), 0);
-    EXPECT_GT(other.terrain->GetNumContactForceGpuSteps(), 0);
-#endif
+    for (auto* scene : {&gpu32, &gpu64}) {
+        EXPECT_GT(scene->terrain->GetNumRaycastGpuSteps(), 0);
+        EXPECT_GT(scene->terrain->GetNumContactForceGpuSteps(), 0);
+        ChVector3d force, torque;
+        ASSERT_TRUE(scene->terrain->GetContactForceBody(scene->body, force, torque));
+        EXPECT_GT(force.z(), 0);
+    }
 }
 
 TEST(SCMStorage, NodeRoundTrip) {
@@ -179,22 +235,27 @@ TEST(SCMStorage, NodeRoundTrip) {
         ChSystemSMC system;
         system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
         SCMTerrain terrain(&system, visualization);
-        terrain.SetForceCPU(true);
+        terrain.SetBackend(SCMTerrain::Backend::CPU);
         terrain.Initialize(4, 4, 0.02);
 
         std::vector<SCMTerrain::NodeLevel> input;
         std::map<std::pair<int, int>, double> expected;
+        // Expected levels, indexed by (y + 33) * 67 + (x + 33). Computed once and reused by the parallel check
+        // below: recomputing the level expression there can round differently (e.g. FMA contraction).
+        std::vector<double> stored(67 * 67);
         // Include negative coordinates and both sides of the 16-node tile boundaries.
         for (int y = -33; y <= 33; ++y) {
             for (int x = -33; x <= 33; ++x) {
                 double z = -0.123456789012345 - (x + 33) * 1e-5 - (y + 33) * 2e-5;
                 input.emplace_back(ChVector2i(x, y), z);
                 expected[{x, y}] = stored_level(z);
+                stored[(y + 33) * 67 + (x + 33)] = stored_level(z);
             }
         }
         terrain.SetModifiedNodes(input);
         terrain.SetModifiedNodes({{ChVector2i(-17, 16), -0.987654321098765}});
         expected[{-17, 16}] = stored_level(-0.987654321098765);
+        stored[(16 + 33) * 67 + (-17 + 33)] = stored_level(-0.987654321098765);
         EXPECT_EQ(terrain.GetNumDeformedNodes(), expected.size());
 
         auto output = terrain.GetModifiedNodes(true);
@@ -215,10 +276,7 @@ TEST(SCMStorage, NodeRoundTrip) {
         for (int k = 0; k < 10000; ++k) {
             const int x = k % 67 - 33;
             const int y = (k / 67) % 67 - 33;
-            double z = -0.123456789012345 - (x + 33) * 1e-5 - (y + 33) * 2e-5;
-            if (x == -17 && y == 16)
-                z = -0.987654321098765;
-            if (terrain.GetHeight(ChVector3d(x * 0.02, y * 0.02, 0)) != stored_level(z))
+            if (terrain.GetHeight(ChVector3d(x * 0.02, y * 0.02, 0)) != stored[(y + 33) * 67 + (x + 33)])
                 ++errors;
         }
         EXPECT_EQ(errors, 0);

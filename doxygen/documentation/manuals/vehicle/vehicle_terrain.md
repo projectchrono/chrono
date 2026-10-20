@@ -118,23 +118,26 @@ building Chrono:
 
 | CMake option | Default | Alternative |
 |---|---|---|
-| `CH_VEHICLE_SCM_USE_DOUBLE` | `OFF` (single precision) | `ON` uses double precision storage |
-| `CH_VEHICLE_SCM_USE_TILED_NODES` | `ON` (tiled nodes) | `OFF` uses the original flat hash map |
+| `CH_USE_SCM_DOUBLE` | `OFF` (single precision) | `ON` uses double precision storage |
+| `CH_USE_SCM_TILED_NODES` | `ON` (tiled nodes) | `OFF` uses the original flat hash map |
 
 For example, to use double precision and a flat node map:
 
 ```bash
 cmake -S . -B build -DCH_ENABLE_MODULE_VEHICLE=ON \
-  -DCH_VEHICLE_SCM_USE_DOUBLE=ON \
-  -DCH_VEHICLE_SCM_USE_TILED_NODES=OFF
+  -DCH_USE_SCM_DOUBLE=ON \
+  -DCH_USE_SCM_TILED_NODES=OFF
 cmake --build build
 ```
 
 These are build options; rebuild Chrono and applications or bindings that use it after changing
 them. Public terrain APIs continue to use doubles in either storage mode. The choices apply to
-SCM storage for both CPU and GPU execution and do not change the GPU kernels' arithmetic precision.
-CPU/GPU execution can still be selected separately with `SCMTerrain::SetForceCPU` or
-`CHRONO_SCM_FORCE_CPU=1`.
+SCM storage for both CPU and GPU execution; computations are carried out in double precision and
+only the stored node state is rounded. With `CH_USE_SCM_DOUBLE=ON`, results are identical to those
+of the original double-precision implementation, with either node map.
+
+Whether SCM runs on the CPU or the GPU is selected at run time, independently of these options;
+see [SCM GPU acceleration](@ref vehicle_terrain_scm_gpu).
 
 ## Deformable DEM (granular dynamics) {#vehicle_terrain_granular}
 

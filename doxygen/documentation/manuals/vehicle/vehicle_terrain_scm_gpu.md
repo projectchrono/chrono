@@ -2,7 +2,7 @@
 
 Two optional GPU paths move the per-node-independent stages of an SCM step onto the GPU: ray casting (one ray per active grid node against vehicle collision geometry) and the dense Bekker / Mohr-Coulomb / Janosi contact-force loop in [SCMLoader::ComputeInternalForces()](@ref chrono::vehicle::SCMLoader::ComputeInternalForces). Contact-patch clustering and bulldozing remain on the CPU.
 
-The shared device kernels are compiled as CUDA or HIP and built **into** `Chrono_vehicle` when enabled. No external library or extra install step is required.
+The shared device kernels are compiled as CUDA or HIP and built **into** `Chrono_vehicle` whenever a toolchain is found. No external library or extra install step is required, and whether SCM uses the GPU is decided at run time.
 
 ### Prerequisites
 
@@ -12,7 +12,7 @@ The shared device kernels are compiled as CUDA or HIP and built **into** `Chrono
 
 ### CMake configuration
 
-`CH_ENABLE_VEHICLE_SCM_GPU` defaults to `ON`, so no flags are required when a suitable toolchain and a supported GPU are present. `CHRONO_GPU_BACKEND=AUTO` selects CUDA when available, otherwise HIP. To select HIP and pin an AMD target architecture:
+GPU support is compiled in whenever a CUDA or HIP toolchain is found, with no flags required. `CHRONO_GPU_BACKEND=AUTO` selects CUDA when available, otherwise HIP. To select HIP and pin an AMD target architecture:
 
 ```bash
 cmake -S chrono -B build \
@@ -21,82 +21,84 @@ cmake -S chrono -B build \
   -DCHRONO_HIP_ARCHITECTURES=gfx942
 ```
 
-If neither toolchain is found, the feature is reported as unavailable in the configuration status and the CPU SCM path configures and builds as before.
+If neither toolchain is found, the configuration status reports the GPU backend as unavailable and only the CPU implementation is built. The SCMTerrain API is the same in either case. To build without GPU support even when a toolchain is available, set `CHRONO_VEHICLE_SCM_GPU_BACKEND=NONE` (`CUDA` or `HIP` force a specific backend).
 
-When enabled, `ChConfigVehicle.h` defines `CHRONO_HAS_SCM_GPU`.
+When GPU support is compiled in, `ChConfigVehicle.h` defines `CHRONO_HAS_SCM_GPU`.
+
+A CUDA build links the CUDA runtime statically, so `Chrono_vehicle` loads and runs on machines without the CUDA toolkit, an NVIDIA driver, or a GPU. A HIP build links the HIP runtime dynamically, so the ROCm runtime libraries must be installed wherever the library is loaded, even if SCM then runs on the CPU.
 
 ### Runtime
 
-Both backends are enabled by default in a build that has them, and each falls back to the CPU on its own when a model cannot use it. No code change is needed to run either way.
+Whether each stage (ray casting and contact forces) runs on the CPU or the GPU is selected at run time, per terrain:
 
-To force CPU execution from a shell script, set this variable before starting the application:
-
-```bash
-CHRONO_SCM_FORCE_CPU=1 python3 my_simulation.py
-# Or: CHRONO_SCM_FORCE_CPU=1 ./my_simulation
+```cpp
+using Backend = chrono::vehicle::SCMTerrain::Backend;
+terrain.SetBackend(Backend::GPU);              // both stages
+terrain.SetRayCastBackend(Backend::CPU);       // or each stage separately
+terrain.SetContactForceBackend(Backend::AUTO);
 ```
-
-For an individual terrain in Python or C++, call `SetForceCPU` before `Initialize`:
 
 ```python
 terrain = veh.SCMTerrain(system, False)  # veh is pychrono.vehicle
-terrain.SetForceCPU(True)
+terrain.SetBackend(veh.SCMTerrain.Backend_CPU)
 terrain.Initialize(10.0, 10.0, 0.02)
 ```
 
-```cpp
-terrain.SetForceCPU(true);
-```
+| Backend | Behavior |
+|---------|----------|
+| `AUTO` (default) | GPU if available; GPU contact forces also require at least `GpuSettings::min_hits` ray hits |
+| `CPU` | Always the CPU implementation |
+| `GPU` | GPU if available, for any number of hits; otherwise the CPU, with a one-time warning |
 
-This selects the default CPU ray-casting and contact-force paths, overrides the individual GPU and
-GPU-reference switches, and skips GPU buffer initialization when set before `Initialize`. The API
-is available in CPU-only builds as well. `IsForceCPU()` reports the override. Passing `false`
-(`False` in Python) restores the underlying backend settings without changing them.
-The environment variable sets the initial override for each terrain at construction; unset it or
-set it to `0` to retain normal backend selection, or use `SetForceCPU(false)` for that terrain.
+The GPU is available if Chrono was built with GPU support and a usable device is found at run time; [SCMTerrain::IsGpuAvailable](@ref chrono::vehicle::SCMTerrain::IsGpuAvailable) reports this (the device is probed once per process). Without one, SCM runs on the CPU and never aborts.
 
-Contact forces run on the GPU when:
+With the default `AUTO` backend, each stage therefore runs as follows:
+
+| Situation | Ray casting | Contact forces |
+|-----------|-------------|----------------|
+| Built without GPU support, or no usable GPU at run time | CPU | CPU |
+| GPU available, active domains on bodies with triangle-mesh collision shapes | GPU | GPU when the step has at least `GpuSettings::min_hits` (default 8192) ray hits, otherwise CPU |
+| GPU available, no active domains or no triangle-mesh collision shapes | CPU | as in the row above |
+| Location-dependent soil parameters (`RegisterSoilParametersCallback`) | as in the rows above | CPU |
+
+The hit threshold keeps small contact patches on the CPU, where they are typically faster than the transfer overhead of the GPU path. Use `Backend::GPU` to run a stage on the GPU regardless of the number of hits, or `Backend::CPU` to keep it on the CPU.
+
+Independently of the selected backend, a stage runs on the CPU for any step the GPU implementation does not support. Contact forces run on the GPU only when:
 
 - soil parameters are uniform (no `RegisterSoilParametersCallback`)
 - contactables are rigid `ChBody` only
-- the hit count is at or above the minimum threshold (default **8192**)
 
-Ray casting runs on the GPU when:
+Ray casting runs on the GPU only when:
 
 - the model registers explicit active domains ([AddActiveDomain](@ref chrono::vehicle::SCMTerrain::AddActiveDomain))
 - the bodies in those domains carry triangle-mesh collision shapes, the only shape type these kernels intersect
 
-A model built from primitives or convex hulls therefore stays on the CPU ray-cast path, which tests against the full collision system and handles every shape type. That case reports itself once on stderr rather than silently producing no hits.
+A model built from primitives or convex hulls therefore stays on the CPU ray-cast path, which tests against the full collision system and handles every shape type. That case reports itself once on stderr rather than silently producing no hits. `GetNumRaycastGpuSteps()` and `GetNumContactForceGpuSteps()` report how many steps each stage actually ran on the GPU.
 
-Use the SCMTerrain API to control behavior:
+GPU tuning parameters are set per terrain:
 
 ```cpp
-terrain.SetScmGpuEnabled(true);      // contact forces; default when CHRONO_HAS_SCM_GPU
-terrain.EnableRaycastGpuHip(true);   // ray casting; default when CHRONO_HAS_SCM_GPU
-
-chrono::vehicle::scm_gpu::Config cfg = terrain.GetScmGpuConfig();
-cfg.min_hits = 4096;
-cfg.reserve_hits = 65536;
-cfg.async = true;
-cfg.profile = false;
-terrain.SetScmGpuConfig(cfg);
+chrono::vehicle::SCMTerrain::GpuSettings settings;
+settings.min_hits = 4096;
+settings.raycast_fp64 = false;
+terrain.SetGpuSettings(settings);
 ```
-
-`EnableRaycastGpuHip` retains its existing API name and controls the compiled ray-casting backend, whether CUDA or HIP.
 
 | Setting | Default | Role |
 |---------|---------|------|
-| `enabled` | `true` | Use GPU when eligibility checks pass |
-| `min_hits` | 8192 | CPU fallback below this hit count |
-| `reserve_hits` | 65536 | Pre-allocated hit buffer capacity |
-| `async` | `true` | Async GPU streams for pack / compute / scatter |
+| `min_hits` | 8192 | Minimum ray hits for GPU contact forces in `AUTO` mode |
+| `reserve_hits` | 65536 | Initial capacity of the GPU contact-force hit buffers |
+| `async` | `true` | Asynchronous GPU streams for the contact-force transfers |
 | `profile` | `false` | Log pack / gpu / scatter timings to stderr |
+| `raycast_fp64` | `false` | Run GPU ray casting in double precision |
 
-The ray-cast kernels run in FP32 on every platform, so that a model produces the same trajectory on AMD and NVIDIA rather than diverging by vendor. FP64 is available via the environment variable `SCM_RAYCAST_GPU_PRECISION` (`fp32` or `fp64`), and is intended for validation.
+The ray-cast kernels run in FP32 by default on every platform, so that a model produces the same trajectory on AMD and NVIDIA rather than diverging by vendor. FP64 (`raycast_fp64`) is intended for validation.
+
+The GPU contexts are shared by all terrains in a process; terrains stepped from different threads are serialized on them.
 
 ### NVIDIA GPUs
 
-NVIDIA hardware can use native CUDA or HIP's NVIDIA platform. Both compile the same kernel sources with nvcc; each has its own runtime host bridge. Native CUDA is selected by default when available. Set `CHRONO_GPU_BACKEND=HIP` to prefer HIP, or `CHRONO_GPU_BACKEND=CUDA` to prefer CUDA. The CPU override above applies to either compiled backend.
+NVIDIA hardware can use native CUDA or HIP's NVIDIA platform. Both compile the same kernel sources with nvcc; each has its own runtime host bridge. Native CUDA is selected by default when available. Set `CHRONO_GPU_BACKEND=HIP` to prefer HIP, or `CHRONO_GPU_BACKEND=CUDA` to prefer CUDA. The run-time backend selection above applies to either compiled backend.
 
 ### Validation
 

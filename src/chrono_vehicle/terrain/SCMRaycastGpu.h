@@ -32,8 +32,8 @@ struct ScmRaycastGpuContext;
 
 /// Floating-point precision used by the kernel for a given context. kFP32 is the default on every
 /// platform so that a model behaves identically on AMD and NVIDIA; kFP64 is available for validation
-/// or for parts with the double-precision throughput to spare. Selected in SCMTerrainRaycastGpu.cpp
-/// and overridable with env SCM_RAYCAST_GPU_PRECISION=fp32|fp64.
+/// or for parts with the double-precision throughput to spare. Selected per terrain with
+/// SCMTerrain::GpuSettings::raycast_fp64 (see SCMTerrainRaycastGpu.cpp).
 enum class ScmRaycastGpuPrecision {
     kFP64 = 0,
     kFP32 = 1,

@@ -71,15 +71,9 @@ static ScmRunResults RunScm(int num_threads, bool gpu_forces, int num_steps) {
     terrain.SetBulldozingParameters(55, 1, 5, 10);
     terrain.AddActiveDomain(body, VNULL, ChVector3d(0.7, 0.7, 0.5));
 
-#ifdef CHRONO_HAS_SCM_GPU
-    // Ray casting always on the CPU; contact forces on the GPU only if requested, for any number of hits
-    auto config = terrain.GetScmGpuConfig();
-    config.enabled = gpu_forces;
-    config.min_hits = 0;
-    terrain.SetScmGpuConfig(config);
-    terrain.SetScmGpuEnabled(gpu_forces);
-    terrain.EnableRaycastGpuHip(false);
-#endif
+    // Ray casting always on the CPU; contact forces on the GPU only if requested (GPU mode has no minimum hit count)
+    terrain.SetRayCastBackend(SCMTerrain::Backend::CPU);
+    terrain.SetContactForceBackend(gpu_forces ? SCMTerrain::Backend::GPU : SCMTerrain::Backend::CPU);
 
     terrain.Initialize(3, 3, 0.02);
 
@@ -111,18 +105,17 @@ TEST(SCMTerrain, single_thread) {
     EXPECT_GT(res.num_nodes, 0u);
 }
 
-#ifdef CHRONO_HAS_SCM_GPU
-
 // CPU and GPU contact forces must agree with bulldozing enabled. Bulldozing caps the raise of
 // displaced material at the hit level of each node, so a hit node with no pressure must still record
 // its hit level; otherwise the terrain shapes, and then the forces, diverge.
 TEST(SCMTerrain, gpu_forces_match_cpu) {
+    if (!SCMTerrain::IsGpuAvailable())
+        GTEST_SKIP() << "No usable GPU";
+
     const int num_steps = 1000;
     auto cpu = RunScm(1, false, num_steps);
     auto gpu = RunScm(1, true, num_steps);
-
-    if (gpu.num_gpu_force_steps == 0)
-        GTEST_SKIP() << "SCM GPU contact-force backend not used (no GPU device?)";
+    ASSERT_GT(gpu.num_gpu_force_steps, 0);
 
     ASSERT_EQ(cpu.forces.size(), gpu.forces.size());
     for (size_t k = 0; k < cpu.forces.size(); k++) {
@@ -135,5 +128,3 @@ TEST(SCMTerrain, gpu_forces_match_cpu) {
     EXPECT_EQ(cpu.num_nodes, gpu.num_nodes);
     EXPECT_NEAR(cpu.level_sum, gpu.level_sum, 1e-6 * std::max(1.0, std::abs(cpu.level_sum)));
 }
-
-#endif

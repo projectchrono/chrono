@@ -398,51 +398,43 @@ int main(int argc, char* argv[]) {
             }
         }
 
-            // Select SCM contact-force backend at run time: env SCM_GPU=0 -> CPU, else GPU (default on when built
-            // with SCM GPU support).
-#ifdef CHRONO_HAS_SCM_GPU
+    // Select the SCM backends at run time (benchmarking switches read from the environment):
+    //   SCM_GPU=0                    contact forces on the CPU (default: GPU, for any number of hits)
+    //   SCM_RAYCAST_GPU=gpu|ref|cpu  ray casting on the GPU (default), the CPU reference of the GPU algorithm,
+    //                                or the CPU (Bullet)
+    //   SCM_RAYCAST_GPU_FP64=1       GPU ray casting in double precision (default: single)
+    // Without a usable GPU, a GPU request falls back to the CPU (see vehicle::SCMTerrain::IsGpuAvailable).
     {
-        auto scm_cfg = terrain.GetScmGpuConfig();
         const char* e = std::getenv("SCM_GPU");
-        scm_cfg.enabled = !(e && std::string(e) == "0");
-        scm_cfg.min_hits = 0;     // force GPU when enabled (don't fall back to CPU)
-        scm_cfg.profile = false;  // clean timing (no per-step stderr)
-        terrain.SetScmGpuConfig(scm_cfg);
-        std::cout << "SCM contact-force backend: " << (scm_cfg.enabled ? "GPU (HIP)" : "CPU") << std::endl;
-    }
-#else
-    std::cout << "SCM contact-force backend: CPU (built without SCM GPU)" << std::endl;
-#endif
+        const bool gpu_forces = !(e && std::string(e) == "0");
+        terrain.SetContactForceBackend(gpu_forces ? vehicle::SCMTerrain::Backend::GPU : vehicle::SCMTerrain::Backend::CPU);
 
-    // Select SCM ray-cast backend at run time: env SCM_RAYCAST_GPU = "hip" | "ref" | "cpu".
-    // Unset means the SCMTerrain default, which is the GPU backend in a build configured with it.
-    {
-        const char* e = std::getenv("SCM_RAYCAST_GPU");
-        std::string mode = e ? e : "default";
-#ifdef CHRONO_HAS_SCM_GPU
+        vehicle::SCMTerrain::GpuSettings settings;
+        settings.profile = false;  // clean timing (no per-step stderr)
+        const char* fp64 = std::getenv("SCM_RAYCAST_GPU_FP64");
+        settings.raycast_fp64 = fp64 && std::string(fp64) == "1";
+        terrain.SetGpuSettings(settings);
+
+        const char* r = std::getenv("SCM_RAYCAST_GPU");
+        std::string mode = r ? r : "gpu";
         if (mode == "ref") {
-            // The HIP backend is on by default and wins the dispatch, so it has to be turned off
-            // explicitly for the reference path to be reached.
-            terrain.EnableRaycastGpuHip(false);
+            terrain.SetRayCastBackend(vehicle::SCMTerrain::Backend::CPU);
             terrain.EnableRaycastGpuReference(true);
-            std::cout << "SCM ray-cast backend: CPU reference (slow, correctness stand-in only)" << std::endl;
         } else if (mode == "cpu") {
-            terrain.EnableRaycastGpuHip(false);
-            std::cout << "SCM ray-cast backend: CPU (Bullet)" << std::endl;
+            terrain.SetRayCastBackend(vehicle::SCMTerrain::Backend::CPU);
         } else {
-            terrain.EnableRaycastGpuHip(true);
-            std::cout << "SCM ray-cast backend: HIP" << (e ? "" : " (default)") << std::endl;
-            const char* prec = std::getenv("SCM_RAYCAST_GPU_PRECISION");
-            std::cout << "  precision: " << (prec ? prec : "fp32 (default on every platform)") << std::endl;
+            terrain.SetRayCastBackend(vehicle::SCMTerrain::Backend::GPU);
         }
-#else
-        if (mode == "ref") {
-            terrain.EnableRaycastGpuReference(true);
+
+        const bool gpu = vehicle::SCMTerrain::IsGpuAvailable();
+        std::cout << "GPU available: " << (gpu ? "yes" : "no") << std::endl;
+        std::cout << "SCM contact-force backend: " << (gpu_forces && gpu ? "GPU" : "CPU") << std::endl;
+        if (mode == "ref")
             std::cout << "SCM ray-cast backend: CPU reference (slow, correctness stand-in only)" << std::endl;
-        } else {
-            std::cout << "SCM ray-cast backend: CPU (Bullet, built without SCM GPU)" << std::endl;
-        }
-#endif
+        else if (mode == "cpu" || !gpu)
+            std::cout << "SCM ray-cast backend: CPU (Bullet)" << std::endl;
+        else
+            std::cout << "SCM ray-cast backend: GPU (" << (settings.raycast_fp64 ? "fp64" : "fp32") << ")" << std::endl;
     }
 
     ChTimer sim_timer;
@@ -486,9 +478,7 @@ int main(int argc, char* argv[]) {
     std::cout << "[BENCH] delta=" << mesh_resolution << " rocks=" << num_rocks << "  steps=" << nsteps << "  sim_time=" << sys.GetChTime() << "s" << "  wall=" << sim_timer() << "s"
               << "  (" << ms_per_step << " ms/step, avg RTF=" << avg_rtf << ")" << "  steady=" << steady_ms << " ms/step over " << steady_steps << " steps"
               << "  (RTF=" << (steady_ms * 1e-3) / 5e-4 << ")" << "  x_end=" << Body_1->GetPos().x();
-#ifdef CHRONO_HAS_SCM_GPU
     std::cout << "  gpu_steps: raycast=" << terrain.GetNumRaycastGpuSteps() << "/" << nsteps << " forces=" << terrain.GetNumContactForceGpuSteps() << "/" << nsteps;
-#endif
     if (!rocks.empty()) {
         double zmin = 1e9, zmax = -1e9;
         for (auto& r : rocks) {
