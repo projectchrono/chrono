@@ -1267,6 +1267,28 @@ void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
     y = Vcross(z, x);
 }
 
+// Host counterpart of get_projected_axes (see SphCustomMath.cuh).
+void GetProjectedAxes(const ChVector3d& x, const ChVector3d& n, ChVector3d& y, ChVector3d& z) {
+    ChVector3d n_perp = n - Vdot(n, x) * x;
+    double len = n_perp.Length();
+    if (len < 1e-3) {
+        GetOrthogonalAxes(x, y, z);
+        return;
+    }
+    y = n_perp / len;
+    z = Vcross(x, y);
+}
+
+// Initial reference normal for a 1-D segment with given end points.
+// The cross-section frames of all BCE markers on the segment are derived from this normal, which is then carried over
+// to the current segment configuration at each update of the BCE marker states (see SphBceManager).
+ChVector3d GetSegmentNormal(const ChVector3d& P0, const ChVector3d& P1) {
+    ChVector3d y;
+    ChVector3d z;
+    GetOrthogonalAxes((P1 - P0).GetNormalized(), y, z);
+    return y;
+}
+
 void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh,
                                              BcePatternMesh1D pattern,
                                              bool remove_center,
@@ -1323,6 +1345,7 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
         ////cout << segID << "  " << P0 << "  |  " << P1 << endl;
 
         auto len = (P1 - P0).Length();          // segment length
+        auto normal = GetSegmentNormal(P0, P1);  // segment reference normal
         int n = (int)std::ceil(len / spacing);  // required divisions on segment
 
         for (int i = 0; i <= n; i++) {
@@ -1355,11 +1378,11 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
                 D = P1 - P0;
             }
 
-            // Create local frame
+            // Create local frame (from the segment reference normal, for continuity along the segment)
             ChVector3d x_dir = D.GetNormalized();
             ChVector3d y_dir;
             ChVector3d z_dir;
-            GetOrthogonalAxes(x_dir, y_dir, z_dir);
+            GetProjectedAxes(x_dir, normal, y_dir, z_dir);
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
@@ -1976,6 +1999,7 @@ void ChFsiFluidSystemSPH::AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh) {
         auto node0_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(0));
         auto node1_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(1));
         m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
+        m_data_mgr->flex1D_Normals_H.push_back(ToReal3(GetSegmentNormal(seg->GetNode(0)->GetPos(), seg->GetNode(1)->GetPos())));
     }
 
     // Add BCE markers and load their local coordinates and mesh associations

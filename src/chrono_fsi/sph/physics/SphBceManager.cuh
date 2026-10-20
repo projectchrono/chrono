@@ -76,6 +76,9 @@ class SphBceManager {
     /// Set up block sizes for rigid body force accumulation.
     void SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum);
 
+    /// Carry the reference normals of 1-D flex segments over to the current segment configurations.
+    void UpdateSegmentNormals1D();
+
     // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
     void CalcRigidBodyBceAcceleration();
     void CalcFeaMesh1DBceAcceleration();

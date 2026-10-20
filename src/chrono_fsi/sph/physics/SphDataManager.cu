@@ -1085,6 +1085,7 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
 
     // FSI nodes
     total_bytes += flex1D_Nodes_D.capacity() * sizeof(int2);
+    total_bytes += flex1D_Normals_D.capacity() * sizeof(Real3);
     total_bytes += flex2D_Nodes_D.capacity() * sizeof(int3);
 
     return total_bytes;

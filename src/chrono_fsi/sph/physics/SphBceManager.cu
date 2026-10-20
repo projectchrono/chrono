@@ -91,6 +91,7 @@ void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     // Populate local position of BCE markers - on flexible bodies
     if (haveMesh1D) {
         m_data_mgr.flex1D_Nodes_D = m_data_mgr.flex1D_Nodes_H;
+        m_data_mgr.flex1D_Normals_D = m_data_mgr.flex1D_Normals_H;
         m_data_mgr.flex1D_BCEsolids_D = m_data_mgr.flex1D_BCEsolids_H;
         m_data_mgr.flex1D_BCEcoords_D = m_data_mgr.flex1D_BCEcoords_H;
         //// TODO (Huzaifa): Try to see if this additional function is needed
@@ -806,6 +807,39 @@ void SphBceManager::CalcNodeDirections1D(thrust::device_vector<Real3>& dirs) {
     ////std::cout << std::endl;
 }
 
+// Carry the segment reference normals over to the current segment configurations.
+// The reference normal of a segment is projected onto the plane orthogonal to the current segment direction. As long as
+// a segment rotates by less than 90 degrees between two calls, this results in a normal that varies continuously, with
+// no rotation about the segment direction. The update is idempotent (repeated calls with the same node positions leave
+// the normals unchanged).
+__global__ void UpdateSegmentNormals1D_D(Real3* normals,              // segment reference normals (input/output)
+                                         const Real3* pos,            // positions of FEA 1-D segment nodes
+                                         const uint2* flex1D_Nodes_D  // segment node indices
+) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= countersD.numFsiElements1D)
+        return;
+
+    uint2 seg_nodes = flex1D_Nodes_D[index];  // indices of the 2 nodes on associated segment
+    Real3 x_dir = get_normalized(pos[seg_nodes.y] - pos[seg_nodes.x]);
+    Real3 y_dir;
+    Real3 z_dir;
+    get_projected_axes(x_dir, normals[index], y_dir, z_dir);
+
+    normals[index] = y_dir;
+}
+
+void SphBceManager::UpdateSegmentNormals1D() {
+    uint nBlocks, nThreads;
+    computeGridSize((uint)m_data_mgr.countersH->numFsiElements1D, 256, nBlocks, nThreads);
+
+    UpdateSegmentNormals1D_D<<<nBlocks, nThreads>>>(mR3CAST(m_data_mgr.flex1D_Normals_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), U2CAST(m_data_mgr.flex1D_Nodes_D));
+
+    if (m_check_errors) {
+        gpuCheckError();
+    }
+}
+
 __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // marker positions (output)
                                           Real3* velMasD,                   // marker velocities (output)
                                           const Real3* pos_fsi_fea_D,       // positions of FEA 1-D segment nodes
@@ -813,6 +847,7 @@ __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // m
                                           bool use_dirs,                    // use nodal directions
                                           const Real3* dirs,                // nodal directions
                                           const uint2* flex1D_Nodes_D,      // segment node indices
+                                          const Real3* flex1D_Normals_D,    // segment reference normals
                                           const uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
                                           const Real3* flex1D_BCEcoords_D,  // local coordinates of BCE markers on FEA 1-D segments
                                           const uint* mapOriginalToSorted   //
@@ -859,11 +894,11 @@ __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // m
         D = P1 - P0;
     }
 
-    // Create local frame
+    // Create local frame (from the segment reference normal, for continuity in time and along the segment)
     Real3 x_dir = get_normalized(D);
     Real3 y_dir;
     Real3 z_dir;
-    get_orthogonal_axes(x_dir, y_dir, z_dir);
+    get_projected_axes(x_dir, flex1D_Normals_D[flex_seg], y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
@@ -881,6 +916,7 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(Real4* posRadD,               
                                                   bool use_dirs,                    // use nodal directions
                                                   const Real3* dirs,                // nodal directions
                                                   const uint2* flex1D_Nodes_D,      // segment node indices
+                                                  const Real3* flex1D_Normals_D,    // segment reference normals
                                                   const uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
                                                   const Real3* flex1D_BCEcoords_D   // local coordinates of BCE markers on FEA 1-D segments
 ) {
@@ -926,11 +962,11 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(Real4* posRadD,               
         D = P1 - P0;
     }
 
-    // Create local frame
+    // Create local frame (from the segment reference normal, for continuity in time and along the segment)
     Real3 x_dir = get_normalized(D);
     Real3 y_dir;
     Real3 z_dir;
-    get_orthogonal_axes(x_dir, y_dir, z_dir);
+    get_projected_axes(x_dir, flex1D_Normals_D[flex_seg], y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
@@ -954,6 +990,9 @@ void SphBceManager::UpdateMeshMarker1DState() {
 
     bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
+    // Carry the segment reference normals over to the current configuration
+    UpdateSegmentNormals1D();
+
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh1DMarkers, 256, nBlocks, nThreads);
 
@@ -962,6 +1001,7 @@ void SphBceManager::UpdateMeshMarker1DState() {
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel),                //
         use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                                      //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                                                                   //
+        mR3CAST(m_data_mgr.flex1D_Normals_D),                                                                //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                               //
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                                                              //
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                           //
@@ -983,6 +1023,9 @@ void SphBceManager::UpdateMeshMarker1DStateInitial() {
 
     bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
+    // Carry the segment reference normals over to the current configuration
+    UpdateSegmentNormals1D();
+
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh1DMarkers, 256, nBlocks, nThreads);
 
@@ -991,6 +1034,7 @@ void SphBceManager::UpdateMeshMarker1DStateInitial() {
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel),  //
         use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                        //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                                                     //
+        mR3CAST(m_data_mgr.flex1D_Normals_D),                                                  //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                 //
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D)                                                 //
     );

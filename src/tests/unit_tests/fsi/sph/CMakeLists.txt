@@ -10,6 +10,10 @@ set(TESTS
     utest_FSI-SPH_rigid_bce_state
 )
 
+if(CH_ENABLE_MODULE_FEA)
+  list(APPEND TESTS utest_FSI-SPH_flex1D_bce_frame)
+endif()
+
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS Chrono_fsisph)
 if(CH_ENABLE_MODULE_VSG)
