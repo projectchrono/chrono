@@ -120,6 +120,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// The reference frame of this Euler-Bernoulli beam has X aligned to two nodes and Y parallel to Y of 1st node
     virtual void UpdateRotation() override;
 
+    /// Set element rotation aligned with modal, to improve modal's internal force accurace.
+    void UpdateRotation(const ChQuaternion<>& q_modal);
+
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     /// For corotational elements, field is assumed in local reference!

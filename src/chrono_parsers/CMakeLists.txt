@@ -13,7 +13,7 @@ if(NOT CH_ENABLE_MODULE_PARSERS)
     return()
 endif()
 
-MESSAGE(STATUS "\n==== Chrono Parsers module ====\n")
+message(STATUS "\n==== Chrono Parsers module ====\n")
 
 mark_as_advanced(CLEAR urdfdom_DIR)
 mark_as_advanced(CLEAR urdfdom_headers_DIR)
@@ -64,7 +64,7 @@ else()
     message(STATUS "Package Python NOT found.\n  The Chrono Python parser will NOT be built.")
 endif()
 
-SET(CH_USE_PYTHON "${CH_USE_PYTHON}" PARENT_SCOPE)
+set(CH_USE_PYTHON "${CH_USE_PYTHON}" PARENT_SCOPE)
 
 # ---- ROS
 
