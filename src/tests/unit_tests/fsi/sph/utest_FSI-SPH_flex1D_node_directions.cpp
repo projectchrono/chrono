@@ -13,12 +13,14 @@
 // =============================================================================
 //
 // Unit test for the node directions of 1-D FEA meshes calculated on the device
-// as averages of the adjacent segment directions (NodeDirectionsMode::AVERAGE).
+// from the adjacent segment directions (NodeDirectionsMode::AVERAGE).
 // With node directions, the center-line of each segment is a cubic Hermite curve
+// (with tangents equal to the unit node directions scaled by the segment length)
 // and the BCE markers on the center-line are placed on that curve.
 // The cable elements are added to the mesh out of order, so that the node indices
-// of consecutive segments are not consecutive. The positions of the center-line
-// BCE markers are compared against a host calculation of the Hermite curves.
+// of consecutive segments are not consecutive, and the segments have different
+// lengths. The positions of the center-line BCE markers are compared against a
+// host calculation of the Hermite curves.
 //
 // =============================================================================
 
@@ -44,11 +46,12 @@ double dt = 1e-4;
 
 int num_failures = 0;
 
-// Node positions on a circular arc in the x-z plane (center at origin)
-std::vector<ChVector3d> ArcPoints(int num_points, double radius, double angle_span) {
+// Node positions on a circular arc in the x-z plane (center at origin), with unequal spacing
+std::vector<ChVector3d> ArcPoints(double radius, double angle_span) {
+    std::vector<double> fractions = {0.0, 0.15, 0.45, 0.6, 1.0};
     std::vector<ChVector3d> points;
-    for (int i = 0; i < num_points; i++) {
-        double angle = -angle_span / 2 + i * angle_span / (num_points - 1);
+    for (auto f : fractions) {
+        double angle = -angle_span / 2 + f * angle_span;
         points.push_back(ChVector3d(radius * std::sin(angle), 0, radius * std::cos(angle)));
     }
     return points;
@@ -61,18 +64,15 @@ void CheckCenterline(const std::string& name,
                      const std::vector<ChVector2i>& segs,
                      const std::vector<int>& num_div,
                      const std::vector<ChVector3d>& pos) {
-    // Node directions: averages of the adjacent segment vectors
+    // Node directions: normalized sums of the adjacent unit segment directions
     std::vector<ChVector3d> dir(pos.size(), VNULL);
-    std::vector<int> count(pos.size(), 0);
     for (const auto& s : segs) {
-        auto d = pos[s.y()] - pos[s.x()];
+        auto d = (pos[s.y()] - pos[s.x()]).GetNormalized();
         dir[s.x()] += d;
         dir[s.y()] += d;
-        count[s.x()]++;
-        count[s.y()]++;
     }
-    for (size_t i = 0; i < pos.size(); i++)
-        dir[i] /= count[i];
+    for (auto& d : dir)
+        d.Normalize();
 
     auto markers = sysSPH.GetParticlePositions();
 
@@ -81,8 +81,9 @@ void CheckCenterline(const std::string& name,
     for (size_t is = 0; is < segs.size(); is++) {
         const auto& P0 = pos[segs[is].x()];
         const auto& P1 = pos[segs[is].y()];
-        const auto& D0 = dir[segs[is].x()];
-        const auto& D1 = dir[segs[is].y()];
+        double len = (P1 - P0).Length();
+        auto D0 = dir[segs[is].x()] * len;  // Hermite tangents
+        auto D1 = dir[segs[is].y()] * len;
         int n = num_div[is];
         for (int i = 0; i <= n; i++) {
             double t = double(i) / n;
@@ -129,9 +130,9 @@ int main(int argc, char* argv[]) {
     fsi.SetStepSizeCFD(dt);
     fsi.SetStepsizeMBD(dt);
 
-    // Cable along a circular arc (chain of 5 nodes and 4 segments)
-    int num_nodes = 5;
-    auto pos0 = ArcPoints(num_nodes, 0.2, CH_PI_2);
+    // Cable along a circular arc (chain of 5 nodes and 4 segments of different lengths)
+    auto pos0 = ArcPoints(0.2, CH_PI_2);
+    int num_nodes = (int)pos0.size();
 
     auto mesh = chrono_types::make_shared<ChMesh>();
     std::vector<std::shared_ptr<ChNodeFEAxyzD>> nodes;
@@ -193,7 +194,7 @@ int main(int argc, char* argv[]) {
     };
 
     check("initial configuration", pos0);
-    check("deformed configuration", ArcPoints(num_nodes, 0.12, 150 * CH_DEG_TO_RAD));
+    check("deformed configuration", ArcPoints(0.12, 150 * CH_DEG_TO_RAD));
 
     std::cout << (num_failures == 0 ? "PASSED" : "FAILED") << std::endl;
     return num_failures == 0 ? 0 : 1;

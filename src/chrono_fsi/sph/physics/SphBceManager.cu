@@ -719,7 +719,8 @@ void SphBceManager::UpdateBodyMarkerStateInitial() {
 }
 
 // -----------------------------------------------------------------------------
-// Options for nodal direction calculation
+// Options for nodal direction calculation for 2-D meshes
+// (1-D node directions are always unit vectors, calculated as normalized sums of adjacent segment directions)
 // NODAL_DIR_METHOD = 1:  average over adjacent elements
 // NODAL_DIR_METHOD = 2:  normalized sum over adjacent elements
 // -----------------------------------------------------------------------------
@@ -746,9 +747,9 @@ struct averageDirs {
 
 // Combine the element directions loaded to each element node into node directions.
 // The extended arrays hold one entry per element node (in arbitrary node order); they are sorted in place by node index.
-// The direction of each node is the average (NODAL_DIR_METHOD 1) or the normalized sum (NODAL_DIR_METHOD 2) of the
-// directions of all elements that share the node. Nodes not in any element are assigned a zero direction.
-void CombineNodeDirections(thrust::device_vector<uint>& ext_nodes, thrust::device_vector<Real3>& ext_dirs, thrust::device_vector<Real3>& dirs) {
+// The direction of each node is the normalized sum (if 'normalize' is true) or the average of the directions of all
+// elements that share the node. Nodes not in any element are assigned a zero direction.
+void CombineNodeDirections(thrust::device_vector<uint>& ext_nodes, thrust::device_vector<Real3>& ext_dirs, thrust::device_vector<Real3>& dirs, bool normalize) {
     // Sort by node index, so that all contributions to a given node are consecutive
     thrust::sort_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin());
 
@@ -758,21 +759,22 @@ void CombineNodeDirections(thrust::device_vector<uint>& ext_nodes, thrust::devic
     auto out_end = thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), out_dirs.begin(), same_key_uint());
     auto num_out = out_end.first - out_nodes.begin();
 
-#if NODAL_DIR_METHOD == 1
-    // Average directions
-    thrust::device_vector<uint> counts(num_out);
-    thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1u), thrust::make_discard_iterator(), counts.begin(), same_key_uint());
-    thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, counts.begin(), out_dirs.begin(), averageDirs());
-#elif NODAL_DIR_METHOD == 2
-    // Normalize nodal directions
-    thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, out_dirs.begin(), normalizeReal3());
-#endif
+    if (normalize) {
+        // Normalize nodal directions
+        thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, out_dirs.begin(), normalizeReal3());
+    } else {
+        // Average directions
+        thrust::device_vector<uint> counts(num_out);
+        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1u), thrust::make_discard_iterator(), counts.begin(), same_key_uint());
+        thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, counts.begin(), out_dirs.begin(), averageDirs());
+    }
 
     // Scatter the combined directions to the corresponding nodes
     thrust::fill(dirs.begin(), dirs.end(), mR3(0, 0, 0));
     thrust::scatter(out_dirs.begin(), out_dirs.begin() + num_out, out_nodes.begin(), dirs.begin());
 }
 
+// Load the unit direction of each 1-D segment to its two nodes.
 __global__ void CalcNodeDir1D_D(uint* ext_nodes,             // extended node indices (2 per segment)
                                 Real3* ext_dirs,             // extended node directions (2 per segment)
                                 const Real3* pos,            // positions of FEA 1-D segment nodes
@@ -786,10 +788,7 @@ __global__ void CalcNodeDir1D_D(uint* ext_nodes,             // extended node in
     Real3 P0 = pos[seg_nodes.x];              // (absolute) position of node 0
     Real3 P1 = pos[seg_nodes.y];              // (absolute) position of node 1
 
-    Real3 d = P1 - P0;
-#if NODAL_DIR_METHOD == 2
-    normalize(d);
-#endif
+    Real3 d = get_normalized(P1 - P0);
 
     ext_nodes[2 * index + 0] = seg_nodes.x;
     ext_nodes[2 * index + 1] = seg_nodes.y;
@@ -812,8 +811,9 @@ void SphBceManager::CalcNodeDirections1D(thrust::device_vector<Real3>& dirs) {
         gpuCheckError();
     }
 
-    // Combine the directions from adjacent segments
-    CombineNodeDirections(ext_nodes, ext_dirs, dirs);
+    // Combine the directions from adjacent segments into unit node directions (normalized sums).
+    // Node directions are unit vectors; they are scaled by the segment length where used as Hermite tangents.
+    CombineNodeDirections(ext_nodes, ext_dirs, dirs, true);
 }
 
 // Carry the segment reference normals over to the current segment configurations.
@@ -884,6 +884,11 @@ __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // m
     Real3 P;  // position along segment center-line
     Real3 D;  // normal along segment center-line
     if (use_dirs) {
+        // Cubic Hermite interpolation; the Hermite tangents are the unit node directions scaled by the segment length
+        Real len = length(P1 - P0);
+        Real3 T0 = dirs[seg_nodes.x] * len;
+        Real3 T1 = dirs[seg_nodes.y] * len;
+
         auto t2 = t * t;
         auto t3 = t2 * t;
 
@@ -891,13 +896,13 @@ __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // m
         auto a1 = -2 * t3 + 3 * t2;
         auto b0 = t3 - 2 * t2 + t;
         auto b1 = t3 - t2;
-        P = P0 * a0 + P1 * a1 + dirs[seg_nodes.x] * b0 + dirs[seg_nodes.y] * b1;
+        P = P0 * a0 + P1 * a1 + T0 * b0 + T1 * b1;
 
         auto a0d = 6 * t2 - 6 * t;
         auto a1d = -6 * t2 + 6 * t;
         auto b0d = 3 * t2 - 4 * t + 1;
         auto b1d = 3 * t2 - 2 * t;
-        D = P0 * a0d + P1 * a1d + dirs[seg_nodes.x] * b0d + dirs[seg_nodes.y] * b1d;
+        D = P0 * a0d + P1 * a1d + T0 * b0d + T1 * b1d;
     } else {
         P = P0 * (1 - t) + P1 * t;
         D = P1 - P0;
@@ -952,6 +957,11 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(Real4* posRadD,               
     Real3 P;  // position along segment center-line
     Real3 D;  // normal along segment center-line
     if (use_dirs) {
+        // Cubic Hermite interpolation; the Hermite tangents are the unit node directions scaled by the segment length
+        Real len = length(P1 - P0);
+        Real3 T0 = dirs[seg_nodes.x] * len;
+        Real3 T1 = dirs[seg_nodes.y] * len;
+
         auto t2 = t * t;
         auto t3 = t2 * t;
 
@@ -959,13 +969,13 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(Real4* posRadD,               
         auto a1 = -2 * t3 + 3 * t2;
         auto b0 = t3 - 2 * t2 + t;
         auto b1 = t3 - t2;
-        P = P0 * a0 + P1 * a1 + dirs[seg_nodes.x] * b0 + dirs[seg_nodes.y] * b1;
+        P = P0 * a0 + P1 * a1 + T0 * b0 + T1 * b1;
 
         auto a0d = 6 * t2 - 6 * t;
         auto a1d = -6 * t2 + 6 * t;
         auto b0d = 3 * t2 - 4 * t + 1;
         auto b1d = 3 * t2 - 2 * t;
-        D = P0 * a0d + P1 * a1d + dirs[seg_nodes.x] * b0d + dirs[seg_nodes.y] * b1d;
+        D = P0 * a0d + P1 * a1d + T0 * b0d + T1 * b1d;
     } else {
         P = P0 * (1 - t) + P1 * t;
         D = P1 - P0;
@@ -1101,7 +1111,7 @@ void SphBceManager::CalcNodeDirections2D(thrust::device_vector<Real3>& dirs) {
     }
 
     // Combine the directions from adjacent triangles
-    CombineNodeDirections(ext_nodes, ext_dirs, dirs);
+    CombineNodeDirections(ext_nodes, ext_dirs, dirs, NODAL_DIR_METHOD == 2);
 }
 
 //// TODO RADU - implement utility device function to interpolate position on triangle (linear or cubic)

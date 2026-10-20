@@ -1359,6 +1359,11 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
             ChVector3d P;
             ChVector3d D;
             if (use_node_directions) {
+                // Cubic Hermite interpolation; the Hermite tangents are the unit node directions scaled by the segment
+                // length (as in the device BCE marker update)
+                auto T0 = dir[i0] * len;
+                auto T1 = dir[i1] * len;
+
                 auto t2 = t * t;
                 auto t3 = t2 * t;
 
@@ -1366,13 +1371,13 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
                 auto a1 = -2 * t3 + 3 * t2;
                 auto b0 = t3 - 2 * t2 + t;
                 auto b1 = t3 - t2;
-                P = P0 * a0 + P1 * a1 + dir[i0] * b0 + dir[i1] * b1;
+                P = P0 * a0 + P1 * a1 + T0 * b0 + T1 * b1;
 
                 auto a0d = 6 * t2 - 6 * t;
                 auto a1d = -6 * t2 + 6 * t;
                 auto b0d = 3 * t2 - 4 * t + 1;
                 auto b1d = 3 * t2 - 2 * t;
-                D = P0 * a0d + P1 * a1d + dir[i0] * b0d + dir[i1] * b1d;
+                D = P0 * a0d + P1 * a1d + T0 * b0d + T1 * b1d;
             } else {
                 P = P0 * (1 - t) + P1 * t;
                 D = P1 - P0;
