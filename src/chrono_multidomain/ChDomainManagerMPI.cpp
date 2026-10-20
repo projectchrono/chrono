@@ -81,7 +81,7 @@ void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
 	//  mdomain->GetSystem()->EnableResidualFilteringByDomain(true, mdomain.get());
 	
 	// By default, scale forces F, M*v, lumped Md and masses for shared nodes
-	mdomain->GetSystem()->EnableCoordWeightsWv(true);
+	mdomain->GetSystem()->EnableCoordWeightsWv(true, mdomain->CoordWeightsWv());
 
 	mdomain->serializer_type = this->serializer_type;
 

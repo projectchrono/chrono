@@ -237,16 +237,17 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     );
 
    */
-    /// Compute the GLOBAL dot product of a vector (in multidomain mode, using MPI_AllReduce)
-    /// Here we assume that avector and bvector are both in 'clipped' format.
-    /// If the clipped vectors overlap at some elements, then a Wv_partition vector with same length
-    /// must be passed, where across domains all the Wv_partition define partition of unity for shared elements.
+    /// Compute the GLOBAL dot product of two vectors (in multidomain mode, using MPI_AllReduce)
+    /// Case 1) one of the vectors is a 'clipped' vector, the other is an 'additive' vector: 
+    ///         the Wv_partition vector is not needed
+    /// Case 2) both vectors are 'clipped' vectors: the Wv_partition vector must be passed, where 
+    ///         across domains all the Wv_partition define partition of unity for shared elements,
+    ///         (except if the clipped vectors do not overlap at all, in which case Wv_partition is not needed).
     virtual double globalVdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector, ChVectorDynamic<>* Wv_partition = nullptr);
 
     /// Compute the GLOBAL norm of a vector (in multidomain mode, using MPI_AllReduce)
-    /// Here we assume that avector is in 'clipped' format.
-    /// If the clipped vectors overlap at some elements, then a Wv_partition vector with same length
-    /// must be passed, where across domains all the Wv_partition define partition of unity for shared elements.
+    /// Here we assume that avector is in 'clipped' format, so the Wv_partition vector must be passed,
+    /// (except if the clipped vectors do not overlap at all, in which case Wv_partition is not needed).
     virtual double globalVnorm(const ChVectorDynamic<>& avector, ChVectorDynamic<>* Wv_partition = nullptr);
 
     /// Compute the GLOBAL max among values (in multidomain mode, using MPI_AllReduce)

@@ -409,8 +409,9 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
 }
 
 
-void ChSystem::EnableCoordWeightsWv(bool enable) {
+void ChSystem::EnableCoordWeightsWv(bool enable, ChVectorDynamic<>& Wv) {
     this->enable_Wv_weights = enable;
+    this->Wv = &Wv;
 }
 
 
@@ -1189,11 +1190,11 @@ void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
     // 'scaled' via weight vector Wv, for example because representing a node split among n domains.
     if (this->enable_Wv_weights) {
         // Operate on assembly sub-objects (bodies, links, etc.)
-        assembly.IntLoadResidual_F_weighted(off, R, c, this->Wv);
+        assembly.IntLoadResidual_F_weighted(off, R, c, *this->Wv);
 
         // Use also on contact container:
         unsigned int displ_v = off - assembly.offset_w;
-        contact_container->IntLoadResidual_F_weighted(displ_v + contact_container->GetOffset_w(), R, c, this->Wv);
+        contact_container->IntLoadResidual_F_weighted(displ_v + contact_container->GetOffset_w(), R, c, *this->Wv);
 
         return;
     }
@@ -1215,11 +1216,11 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w,
     // 'scaled' via weight vector Wv, for example because representing a node split among n domains.
     if (this->enable_Wv_weights) {
         // Operate on assembly sub-objects (bodies, links, etc.)
-        assembly.IntLoadResidual_Mv_weighted(off, R, w, c, this->Wv);
+        assembly.IntLoadResidual_Mv_weighted(off, R, w, c, *this->Wv);
 
         // Use also on contact container:
         unsigned int displ_v = off - assembly.offset_w;
-        contact_container->IntLoadResidual_Mv_weighted(displ_v + contact_container->GetOffset_w(), R, w, c, this->Wv);
+        contact_container->IntLoadResidual_Mv_weighted(displ_v + contact_container->GetOffset_w(), R, w, c, *this->Wv);
 
         return;
     }
@@ -1242,11 +1243,11 @@ void ChSystem::LoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, const doubl
     // 'scaled' via weight vector Wv, for example because representing a node split among n domains.
     if (this->enable_Wv_weights) {
         // Operate on assembly sub-objects (bodies, links, etc.)
-        assembly.IntLoadLumpedMass_Md_weighted(off, Md, err, c, this->Wv);
+        assembly.IntLoadLumpedMass_Md_weighted(off, Md, err, c, *this->Wv);
 
         // Use also on contact container: [ does nothing anyway ]
         unsigned int displ_v = off - assembly.offset_w;
-        contact_container->IntLoadLumpedMass_Md_weighted(displ_v + contact_container->GetOffset_w(), Md, err, c, this->Wv);
+        contact_container->IntLoadLumpedMass_Md_weighted(displ_v + contact_container->GetOffset_w(), Md, err, c, *this->Wv);
 
         return;
     }
