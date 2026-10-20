@@ -162,9 +162,7 @@ void ChNodeFEAxyzDD::NodeIntStateGetIncrement(const unsigned int off_x,
 
 void ChNodeFEAxyzDD::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     ChNodeFEAxyzD::NodeIntLoadResidual_F(off, R, c);
-    if (!IsSlope2Fixed()) {
-        R.segment(off + 6, 3).setZero();  // TODO something about applied nodal torque..
-    }
+    // No applied loads on the slope coordinates (R is accumulated into and must not be overwritten here)
 }
 
 void ChNodeFEAxyzDD::NodeIntLoadResidual_Mv(const unsigned int off,
