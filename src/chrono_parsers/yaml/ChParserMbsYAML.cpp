@@ -1447,6 +1447,7 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
 
     for (auto& item : m_beam_params) {
         auto mesh = chrono_types::make_shared<fea::ChMesh>();
+        mesh->SetName(model_prefix + item.first);
 
         switch (item.second.type) {
             case FEABeamType::EULER: {
