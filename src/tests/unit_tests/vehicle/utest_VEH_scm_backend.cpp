@@ -11,8 +11,13 @@
 // =============================================================================
 // Run-time selection of the SCM backend (CPU or GPU) and SCM node storage.
 // Tests that need a GPU are skipped when SCMTerrain::IsGpuAvailable() is false.
+// CTest also runs these tests with every GPU hidden and SCM_UTEST_EXPECT_NO_GPU=1;
+// the GpuBackend test then requires that no GPU is reported, so the run fails if
+// hiding the devices did not take effect.
 // =============================================================================
 
+#include <cstdlib>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <vector>
@@ -114,6 +119,11 @@ TEST(SCMBackend, CpuBackend) {
 }
 
 TEST(SCMBackend, GpuBackend) {
+    // When the GPUs are meant to be hidden, require it: otherwise this run would silently test the GPU path.
+    const char* expect_env = std::getenv("SCM_UTEST_EXPECT_NO_GPU");
+    if (expect_env && std::strcmp(expect_env, "1") == 0)
+        ASSERT_FALSE(SCMTerrain::IsGpuAvailable()) << "SCM_UTEST_EXPECT_NO_GPU=1, but a GPU is still visible";
+
     ScmScene scene;
     scene.terrain->SetBackend(SCMTerrain::Backend::GPU);
     scene.Initialize();
