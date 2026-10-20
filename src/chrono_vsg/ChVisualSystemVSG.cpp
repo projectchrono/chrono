@@ -2602,7 +2602,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
             case ChCollisionShape::Type::ROUNDEDBOX: {
                 auto rbox = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
                 const ChVector3d& lengths = rbox->GetLengths();
-                double sradius = rbox->GetSRadius();
+                double sradius = rbox->GetSweepRadius();
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::dmat4CH(X_SM);
                 auto grp = m_shapeBuilder->CreatePbrRoundedShape(ChVisualShape::Type::ROUNDEDBOX, material, transform, lengths, sradius, true, true);
@@ -2613,7 +2613,7 @@ void ChVisualSystemVSG::PopulateCollisionShapeFixed(vsg::ref_ptr<vsg::Group> gro
                 auto rcyl = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
                 double radius = rcyl->GetRadius();
                 double height = rcyl->GetHeight();
-                double sradius = rcyl->GetSRadius();
+                double sradius = rcyl->GetSweepRadius();
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::dmat4CH(X_SM);
                 auto grp = m_shapeBuilder->CreatePbrRoundedShape(ChVisualShape::Type::ROUNDEDCYL, material, transform, ChVector3d(radius, radius, height), sradius, true, true);

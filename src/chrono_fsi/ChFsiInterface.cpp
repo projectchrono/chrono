@@ -145,8 +145,13 @@ std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFeaMesh1D(std::shared_ptr<fea::ChC
         }
     }
 
+    // Create force accumulators dedicated to FSI fluid forces (one per node, indexed as ind2ptr_map)
+    fsi_mesh->fsi_accumulators.resize(fsi_mesh->ind2ptr_map.size());
+    for (const auto& [index, node] : fsi_mesh->ind2ptr_map)
+        fsi_mesh->fsi_accumulators[index] = node->AddAccumulator();
+
     // Set the mesh index in list of FSI 1D meshes
-    fsi_mesh->index = m_fsi_bodies.size();
+    fsi_mesh->index = m_fsi_meshes1D.size();
 
     // Store the mesh contact surface
     m_fsi_meshes1D.push_back(fsi_mesh);
@@ -179,8 +184,13 @@ std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFeaMesh2D(std::shared_ptr<fea::ChC
     assert(fsi_mesh->ptr2ind_map.size() == surface->GetNumVertices());
     assert(fsi_mesh->ind2ptr_map.size() == surface->GetNumVertices());
 
-    // Set the mesh index in list of FSI 1D meshes
-    fsi_mesh->index = m_fsi_bodies.size();
+    // Create force accumulators dedicated to FSI fluid forces (one per node, indexed as ind2ptr_map)
+    fsi_mesh->fsi_accumulators.resize(fsi_mesh->ind2ptr_map.size());
+    for (const auto& [index, node] : fsi_mesh->ind2ptr_map)
+        fsi_mesh->fsi_accumulators[index] = node->AddAccumulator();
+
+    // Set the mesh index in list of FSI 2D meshes
+    fsi_mesh->index = m_fsi_meshes2D.size();
 
     // Store the mesh contact surface
     m_fsi_meshes2D.push_back(fsi_mesh);
@@ -559,10 +569,9 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces, std
     {
         size_t imesh = 0;
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
-            size_t inode = 0;
-            for (auto& node : fsi_mesh->ind2ptr_map) {
-                node.second->SetForce(mesh2D_forces[imesh].force[inode]);
-                inode++;
+            for (const auto& [inode, node] : fsi_mesh->ind2ptr_map) {
+                node->EmptyAccumulator(fsi_mesh->fsi_accumulators[inode]);
+                node->AccumulateForce(fsi_mesh->fsi_accumulators[inode], mesh1D_forces[imesh].force[inode]);
             }
             imesh++;
         }
@@ -572,10 +581,9 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces, std
     {
         size_t imesh = 0;
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
-            size_t inode = 0;
-            for (auto& node : fsi_mesh->ind2ptr_map) {
-                node.second->SetForce(mesh2D_forces[imesh].force[inode]);
-                inode++;
+            for (const auto& [inode, node] : fsi_mesh->ind2ptr_map) {
+                node->EmptyAccumulator(fsi_mesh->fsi_accumulators[inode]);
+                node->AccumulateForce(fsi_mesh->fsi_accumulators[inode], mesh2D_forces[imesh].force[inode]);
             }
             imesh++;
         }

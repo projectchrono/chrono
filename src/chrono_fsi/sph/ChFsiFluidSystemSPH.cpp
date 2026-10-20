@@ -763,8 +763,10 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
         m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
         m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
         m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
-        m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
-        m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+        // The angular velocity and acceleration in FsiBodyState are expressed in the global frame, but the SPH solver
+        // uses them expressed in the body frame
+        m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_vel));
+        m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_acc));
     }
 
     if (num_bodies > 0)
@@ -798,8 +800,10 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
             m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
             m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
             m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
-            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
-            m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+            // The angular velocity and acceleration in FsiBodyState are expressed in the global frame, but the SPH
+            // solver uses them expressed in the body frame
+            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_vel));
+            m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_acc));
         }
 
         if (num_bodies > 0)

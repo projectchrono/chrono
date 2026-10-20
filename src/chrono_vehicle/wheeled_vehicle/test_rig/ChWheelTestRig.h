@@ -58,7 +58,8 @@ namespace vehicle {
 
 /// Base class definition of a single-wheel test rig.
 /// - Accepts an arbitrary wheel assembly (derived from ChWheelTestRig::WheelAssembly)
-/// - Works with Rigid, SCM, DEM granular, or CRM terrain
+/// - Works with Rigid, SCM, DEM granular, or CRM terrain (deformable terrain requires a rigid or FEA tire; handling tires
+///   can only be used with rigid terrain)
 /// - Allows variation of longitudinal speed, wheel angular speed, and wheel slip angle as functions of time
 /// - Provides support for automatic selection of longitudinal and angular speeds in order to enforce a specified longitudinal slip value
 /// - Allows specification of camber angle (kept constant through the simulation)

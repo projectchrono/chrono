@@ -29,10 +29,20 @@ namespace vehicle {
 /// @{
 
 /// Base class for a force element (handling) tire model.
+/// Handling tire models (e.g., ChTMeasyTire, ChTMsimpleTire, ChPac89Tire, ChPac02Tire, ChFialaTire) carry no collision
+/// geometry. Tire forces are computed from a semi-empirical model using only the terrain height, normal, and coefficient
+/// of friction obtained through the ChTerrain query functions at one or more points below the wheel (see
+/// ChTire::CollisionType).
+/// As a consequence, handling tires can only be used with terrain models that provide a height-field description of a
+/// non-deformable surface (FlatTerrain, RigidTerrain, CRGTerrain, RandomSurfaceTerrain, ObsModTerrain). They cannot be
+/// used with deformable terrain (SCMTerrain, GranularTerrain, CRMTerrain, FEATerrain): such a tire does not deform the
+/// soil and does not experience sinkage or soil resistance. For deformable terrain, use a rigid tire (ChRigidTire) or an
+/// FEA tire (ChDeformableTire).
 class CH_VEHICLE_API ChForceElementTire : public ChTire {
   public:
     /// Tire contact information.
-    /// A ChForceElementTire performs its own collision detection to evaluate the normal tire load.
+    /// A ChForceElementTire does not participate in the Chrono collision detection. Instead, it locates the contact point
+    /// and evaluates the normal tire load by querying the terrain height and normal.
     /// This structure stores information on the current tire-terrain contact state.
     struct ContactData {
         ContactData() : in_contact(false), normal_force(0), depth(0) {}

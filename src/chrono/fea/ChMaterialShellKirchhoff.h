@@ -324,7 +324,7 @@ class ChApi ChDampingKirchhoff {
     ChMaterialShellKirchhoff* section;
 };
 
-/// Simple Rayleight damping of a Kirchhoff shell layer, where damping is proportional to stiffness via a beta coefficient.
+/// Simple Rayleigh damping of a Kirchhoff shell layer, where damping is proportional to stiffness via a beta coefficient.
 /// In order to generalize it also in case of nonlinearity, the full element tangent stiffness matrix cannot be used (it may contain negative eigenvalues)
 /// and it can't be used to recover instant nodal caused by damping as F=beta*K*q_dt so it is generalized to the following implementation at the material stress level
 ///   <pre>

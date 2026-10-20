@@ -49,6 +49,11 @@ std::size_t scm_gpu_min_hits(void);
 std::size_t scm_gpu_reserve_hits(void);
 int scm_gpu_async_enabled(void);
 
+/// Return 1 if a usable GPU device is present, 0 otherwise. Probed once per process; a negative
+/// result is reported once on stderr. scm_gpu_create and scm_raycast_gpu_create return nullptr in
+/// that case, and SCMTerrain then uses its CPU paths.
+int scm_gpu_device_available(void);
+
 ScmGpuContext* scm_gpu_create(int device_id);
 void scm_gpu_destroy(ScmGpuContext* ctx);
 void scm_gpu_reserve(ScmGpuContext* ctx, std::size_t n_hits);

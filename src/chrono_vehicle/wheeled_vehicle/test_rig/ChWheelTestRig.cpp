@@ -144,7 +144,7 @@ void VehicleWheelAssembly::AddFSIBodies(CRMTerrain& terrain, double spacing) {
     }
     #endif
 
-    if (auto rgd_tire = std::static_pointer_cast<ChRigidTire>(tire)) {
+    if (auto rgd_tire = std::dynamic_pointer_cast<ChRigidTire>(tire)) {
         assert(rgd_tire->UseContactMesh());
         auto trimesh = rgd_tire->GetContactMesh();
         auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();

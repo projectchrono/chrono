@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+  <log>
+    <sink
+      type="stream"
+      output="stdout"
+      filter="%Severity% > info"
+      format="preCICE:%ColorizedSeverity% %Message%"
+      enabled="true" />
+  </log>
+
+  <data:vector name="Positions" />
+  <data:vector name="Velocities" />
+  <data:vector name="Accelerations" />
+  <data:vector name="Forces" />
+
+  <mesh name="SolidMesh" dimensions="3">
+    <use-data name="Positions" />
+    <use-data name="Velocities" />
+    <use-data name="Accelerations" />
+    <use-data name="Forces" />
+  </mesh>
+
+  <mesh name="FluidMesh" dimensions="3">
+    <use-data name="Positions" />
+    <use-data name="Velocities" />
+    <use-data name="Accelerations" />
+    <use-data name="Forces" />
+  </mesh>
+
+  <participant name="Solid">
+    <provide-mesh name="SolidMesh" />
+    <write-data name="Positions" mesh="SolidMesh" />
+    <write-data name="Velocities" mesh="SolidMesh" />
+    <write-data name="Accelerations" mesh="SolidMesh" />
+    <read-data name="Forces" mesh="SolidMesh" />
+  </participant>
+
+  <participant name="Fluid">
+    <provide-mesh name="FluidMesh" />
+    <receive-mesh name="SolidMesh" from="Solid" />
+    <!-- The solid and fluid meshes have identical initial node positions, so nearest-neighbor mappings are exact -->
+    <mapping:nearest-neighbor direction="read" from="SolidMesh" to="FluidMesh" constraint="consistent" />
+    <mapping:nearest-neighbor direction="write" from="FluidMesh" to="SolidMesh" constraint="conservative" />
+    <read-data name="Positions" mesh="FluidMesh" />
+    <read-data name="Velocities" mesh="FluidMesh" />
+    <read-data name="Accelerations" mesh="FluidMesh" />
+    <write-data name="Forces" mesh="FluidMesh" />
+  </participant>
+
+  <m2n:sockets acceptor="Solid" connector="Fluid" exchange-directory="." />
+
+  <coupling-scheme:serial-explicit>
+    <!-- The fluid participant runs first in each time window, using the solid state at the beginning of the
+         window; the solid participant then advances with the fluid forces produced in the same window
+         ('read_data_time: WINDOW_END'). With a time window equal to the integration step size, this matches the
+         SEQUENTIAL coupling scheme of a (non-preCICE) Chrono::FSI simulation. The solid states are initialized
+         (written by the solid participant before the first window), so the fluid participant starts from the
+         actual initial configuration of the cable. -->
+    <time-window-size value="2e-5" />
+    <max-time value="5.0" />
+    <participants first="Fluid" second="Solid" />
+    <exchange data="Positions" mesh="SolidMesh" from="Solid" to="Fluid" initialize="true" />
+    <exchange data="Velocities" mesh="SolidMesh" from="Solid" to="Fluid" initialize="true" />
+    <exchange data="Accelerations" mesh="SolidMesh" from="Solid" to="Fluid" initialize="true" />
+    <exchange data="Forces" mesh="SolidMesh" from="Fluid" to="Solid" />
+  </coupling-scheme:serial-explicit>
+</precice-configuration>

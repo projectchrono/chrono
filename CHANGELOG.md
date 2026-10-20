@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
   - [\[Added\] Chrono::FEA multiphysics framework](#added-chronofea-multiphysics-framework)
   - [\[Added\] Chrono::PRECICE module](#added-chronoprecice-module)
@@ -146,6 +147,36 @@ Change Log
 
 # Unreleased (development branch) 
 
+## [Added] Force accumulators for FEA nodes
+
+FEA nodes now provide the same force accumulator mechanism as rigid bodies. Any number of accumulators
+can be added to a node, each identified by the index returned when it is created, and each owned by
+the code that created it. The accumulated loads are applied *in addition to* the force (and torque)
+set directly on the node with `SetForce` (and `SetTorque`), so independent sources of applied loads
+no longer overwrite one another.
+
+- `ChNodeFEAxyz` (and derived node types such as `ChNodeFEAxyzD` and `ChNodeFEAxyzDD`) provides
+  force-only accumulators: `AddAccumulator`, `EmptyAccumulator`, `AccumulateForce(idx, force)`, and
+  `GetAccumulatedForce(idx)`. Forces are expressed in the absolute frame.
+- `ChNodeFEAxyzrot` provides the full rigid-body API: `AccumulateForce(idx, force, point, local)` and
+  `AccumulateTorque(idx, torque, local)`.
+- `ChMesh::AddAccumulators` adds a new accumulator to every mesh node that supports one and returns
+  the per-node accumulator indices (in the order of `ChMesh::GetNodes`); `ChMesh::EmptyAccumulators`
+  clears them. Nodes without position degrees of freedom are marked with `ChMesh::NO_ACCUMULATOR`.
+
+The accumulator implementation was moved from `ChBody` to its base class `ChBodyFrame`, which is
+shared by `ChBody` and `ChNodeFEAxyzrot`. The `ChBody` API is unchanged. Accumulators are not copied
+when a body or node is copied or assigned.
+
+Loads applied through accumulators on internal nodes of a `ChModalAssembly` are included in the
+reduced model, as are those set with `SetForce` and `SetTorque`.
+
+Chrono::FSI now applies fluid forces on FEA nodes through a dedicated node accumulator (created when
+the FEA mesh is added to the FSI system), mirroring how fluid forces are applied on rigid bodies.
+Previously, the FSI interfaces set the fluid force with `SetForce`, overwriting any other force set on
+FSI mesh nodes; such forces are now added to the fluid forces. This also fixes the generic FSI
+interface (`ChFsiInterfaceGeneric`), which applied the 2-D mesh forces to the nodes of 1-D meshes.
+
 ## [Changed] Chrono::Sensor appearance of shapes with no visual material
 
 A visual shape that carries no `ChVisualMaterial` is now rendered by Chrono::Sensor with
@@ -255,14 +286,21 @@ respectively.
 
 Coupling interfaces are described by a mesh type (`CouplingMeshType`: `GENERIC`, `RIGID_BODY_REFS`,
 `RIGID_BODY_POINTS`, `FEA_MESH_NODES`, `FEA_MESH_POINTS`) and a data type (`CouplingDataType`:
-`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `FORCES`,
-`TORQUES`, `GENERIC`). Coupling mesh vertices on rigid bodies can be specified either through a
+`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`,
+`LINEAR_ACCELERATIONS`, `ANGULAR_ACCELERATIONS`, `FORCES`, `TORQUES`, `GENERIC`). Coupling mesh
+vertices on rigid bodies can be specified either through a
 triangular mesh (OBJ or STL) or as an explicit list of 3D points, and callbacks are available for
 user-defined operations before and after each dynamics advance. A generic driver program is also
 provided, which runs an arbitrary Chrono preCICE adapter defined entirely through a YAML
 specification file.
 
-See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH) and
+FEA meshes can be coupled through `FEA_MESH_NODES` interfaces: the MBS adapter exchanges the nodes of
+its FEA meshes (applying the received forces through node force accumulators), and the SPH adapter
+represents 1-D FEA meshes (e.g., cables) with proxy meshes built from node positions and segments given
+in its own specification.
+
+See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH),
+`demo_PRECICE_flexible_cable` (Chrono FEA cable coupled with Chrono::FSI-SPH), and
 `demo_PRECICE_flap_openfoam` (Chrono MBS coupled with OpenFOAM, matching the corresponding preCICE
 tutorial).
 
@@ -461,6 +499,10 @@ extended and made consistent:
 
 - Initial support for specifying FEA models (see `demo_YAML_fea`) and Chrono::FSI-SPH problems (see
   `demo_YAML_fsi`).
+- FEA meshes defined in the multibody model can be declared as FSI solids in a Chrono::FSI-SPH
+  problem through the `fsi_meshes` list of the FSI specification file, with optional settings for the
+  BCE marker patterns and FEA node directions. See the flexible cable models (CRM and CFD) in
+  `demo_YAML_fsi`.
 - Output and run-time visualization settings now use the common `Settings` definitions shared with
   `ChOutput` and the visualization systems. Note that the default visualization type is now `NONE`,
   which disables run-time visualization altogether.

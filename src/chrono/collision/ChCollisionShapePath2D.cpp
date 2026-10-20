@@ -24,9 +24,9 @@ ChCollisionShapePath2D::ChCollisionShapePath2D() : ChCollisionShape(Type::PATH2D
 
 ChCollisionShapePath2D::ChCollisionShapePath2D(std::shared_ptr<ChContactMaterial> material,
                                                std::shared_ptr<ChLinePath> path,
-                                               double radius)
-    : ChCollisionShape(Type::PATH2D, material), gpath(path) {
-    this->radius = radius;
+                                               double sweep_radius)
+    : ChCollisionShape(Type::PATH2D, material), m_path(path) {
+    m_sweep_radius = sweep_radius;
 }
 
 void ChCollisionShapePath2D::ArchiveOut(ChArchiveOut& archive_out) {
@@ -35,8 +35,8 @@ void ChCollisionShapePath2D::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
     ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    archive_out << CHNVP(gpath);
-    archive_out << CHNVP(radius);
+    archive_out << CHNVP(m_path);
+    archive_out << CHNVP(m_sweep_radius);
 }
 
 void ChCollisionShapePath2D::ArchiveIn(ChArchiveIn& archive_in) {
@@ -45,8 +45,8 @@ void ChCollisionShapePath2D::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
     ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    archive_in >> CHNVP(gpath);
-    archive_in >> CHNVP(radius);
+    archive_in >> CHNVP(m_path);
+    archive_in >> CHNVP(m_sweep_radius);
 }
 
 }  // end namespace chrono

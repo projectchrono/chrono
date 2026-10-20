@@ -28,6 +28,7 @@
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
     #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #endif
@@ -75,6 +76,12 @@ int main() {
 
     auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
     auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
+
+    // Handling tires have no collision geometry and cannot interact with CRM terrain
+    if (std::dynamic_pointer_cast<ChForceElementTire>(tire)) {
+        cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << endl;
+        return 1;
+    }
 
     bool fea_tire = false;
 #ifdef CHRONO_FEA

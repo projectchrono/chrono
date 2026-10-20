@@ -310,23 +310,54 @@ extern "C" int scm_gpu_async_enabled(void) {
     return chrono::vehicle::scm_gpu::GetConfig().async ? 1 : 0;
 }
 
+// Probed once per process. A CUDA build can run on a machine with no usable device (a prebuilt
+// package, a container without the device passed through, CUDA_VISIBLE_DEVICES=-1); report that
+// once and let SCMTerrain use its CPU paths instead of aborting on the first runtime call.
+extern "C" int scm_gpu_device_available(void) {
+    static const int available = [] {
+        int count = 0;
+        const cudaError_t err = cudaGetDeviceCount(&count);
+        if (err != cudaSuccess || count < 1) {
+            (void)cudaGetLastError();
+            fprintf(stderr, "SCM GPU: no usable CUDA device (%s); using the CPU backend.\n", err != cudaSuccess ? cudaGetErrorString(err) : "no devices found");
+            return 0;
+        }
+        return 1;
+    }();
+    return available;
+}
+
 extern "C" ScmGpuContext* scm_gpu_create(int device_id) {
+    if (!scm_gpu_device_available())
+        return nullptr;
+
     auto* impl = new ScmGpuContextImpl();
     impl->device = device_id;
     ensure_device(device_id);
 
-    cudaError_t e1 = cudaStreamCreateWithFlags(&impl->stream_copy, cudaStreamNonBlocking);
-    if (e1 != cudaSuccess)
-        die_cuda("cudaStreamCreate copy", e1);
-    cudaError_t e2 = cudaStreamCreateWithFlags(&impl->stream_compute, cudaStreamNonBlocking);
-    if (e2 != cudaSuccess)
-        die_cuda("cudaStreamCreate compute", e2);
-    cudaError_t e3 = cudaEventCreateWithFlags(&impl->event_h2d_done, cudaEventDisableTiming);
-    if (e3 != cudaSuccess)
-        die_cuda("cudaEventCreate h2d", e3);
-    cudaError_t e4 = cudaEventCreateWithFlags(&impl->event_compute_done, cudaEventDisableTiming);
-    if (e4 != cudaSuccess)
-        die_cuda("cudaEventCreate compute", e4);
+    const char* what = nullptr;
+    cudaError_t err = cudaStreamCreateWithFlags(&impl->stream_copy, cudaStreamNonBlocking);
+    if (err != cudaSuccess)
+        what = "cudaStreamCreate copy";
+    if (!what && (err = cudaStreamCreateWithFlags(&impl->stream_compute, cudaStreamNonBlocking)) != cudaSuccess)
+        what = "cudaStreamCreate compute";
+    if (!what && (err = cudaEventCreateWithFlags(&impl->event_h2d_done, cudaEventDisableTiming)) != cudaSuccess)
+        what = "cudaEventCreate h2d";
+    if (!what && (err = cudaEventCreateWithFlags(&impl->event_compute_done, cudaEventDisableTiming)) != cudaSuccess)
+        what = "cudaEventCreate compute";
+
+    if (what) {
+        fprintf(stderr, "SCM GPU: %s failed (%s); using the CPU backend.\n", what, cudaGetErrorString(err));
+        if (impl->event_h2d_done)
+            (void)cudaEventDestroy(impl->event_h2d_done);
+        if (impl->stream_compute)
+            (void)cudaStreamDestroy(impl->stream_compute);
+        if (impl->stream_copy)
+            (void)cudaStreamDestroy(impl->stream_copy);
+        (void)cudaGetLastError();
+        delete impl;
+        return nullptr;
+    }
 
     return reinterpret_cast<ScmGpuContext*>(impl);
 }

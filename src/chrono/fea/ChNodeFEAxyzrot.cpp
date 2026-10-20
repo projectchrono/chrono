@@ -139,8 +139,16 @@ void ChNodeFEAxyzrot::NodeIntStateGetIncrement(const unsigned int off_x,
 void ChNodeFEAxyzrot::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     ChVector3d gyro = Vcross(this->GetAngVelLocal(), (variables.GetBodyInertia() * this->GetAngVelLocal()));
 
-    R.segment(off + 0, 3) += c * Force.eigen();
-    R.segment(off + 3, 3) += c * (Torque - gyro).eigen();
+    // Applied force and torque, including forces and torques from node accumulators (if any)
+    ChVector3d force = Force;
+    ChVector3d torque = Torque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+
+    R.segment(off + 0, 3) += c * force.eigen();
+    R.segment(off + 3, 3) += c * (torque - gyro).eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntLoadResidual_Mv(const unsigned int off,
@@ -190,8 +198,16 @@ void ChNodeFEAxyzrot::VariablesFbReset() {
 void ChNodeFEAxyzrot::VariablesFbLoadForces(double factor) {
     ChVector3d gyro = Vcross(this->GetAngVelLocal(), variables.GetBodyInertia() * this->GetAngVelLocal());
 
-    variables.Force().segment(0, 3) = factor * Force.eigen();
-    variables.Force().segment(3, 3) = factor * (Torque - gyro).eigen();
+    // Applied force and torque, including forces and torques from node accumulators (if any)
+    ChVector3d force = Force;
+    ChVector3d torque = Torque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+
+    variables.Force().segment(0, 3) = factor * force.eigen();
+    variables.Force().segment(3, 3) = factor * (torque - gyro).eigen();
 }
 
 void ChNodeFEAxyzrot::VariablesQbLoadSpeed() {

@@ -46,15 +46,17 @@ int main(int argc, char* argv[]) {
     std::cout << "  3. Baffle flow (SPH)" << std::endl;
     std::cout << "  4. Dam break (SPH)" << std::endl;
     std::cout << "  5. Wave tank (SPH)" << std::endl;
-    std::cout << "  6. Sphere regular waves (TDPF)" << std::endl;
-    std::cout << "  7. Sphere decay (TDPF)" << std::endl;
-    std::cout << "  8. Other (user-provided FSI YAML file)" << std::endl;
+    std::cout << "  6. Flexible cable in granular flow (SPH, CRM)" << std::endl;
+    std::cout << "  7. Flexible cable in water flow (SPH, CFD)" << std::endl;
+    std::cout << "  8. Sphere regular waves (TDPF)" << std::endl;
+    std::cout << "  9. Sphere decay (TDPF)" << std::endl;
+    std::cout << " 10. Other (user-provided FSI YAML file)" << std::endl;
     std::cout << "\nSelect model: ";
     std::getline(std::cin, input);
     if (!input.empty()) {
         std::istringstream stream(input);
         stream >> model;
-        ChClampValue(model, 1, 8);
+        ChClampValue(model, 1, 10);
     }
 
     // Set input file name
@@ -76,12 +78,18 @@ int main(int argc, char* argv[]) {
             yaml_filename = GetChronoDataFile("yaml/fsi/wave_tank/fsi_wave_tank.yaml");
             break;
         case 6:
-            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_regular_waves/fsi_sphere_regular_waves.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/flexible_cable/fsi_flexible_cable_crm.yaml");
             break;
         case 7:
-            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+            yaml_filename = GetChronoDataFile("yaml/fsi/flexible_cable/fsi_flexible_cable_cfd.yaml");
             break;
         case 8:
+            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_regular_waves/fsi_sphere_regular_waves.yaml");
+            break;
+        case 9:
+            yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
+            break;
+        case 10:
             std::cout << "FSI YAML specification file name: ";
             std::getline(std::cin, yaml_filename);
             break;

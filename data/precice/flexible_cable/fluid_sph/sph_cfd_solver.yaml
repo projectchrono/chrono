@@ -1,0 +1,29 @@
+chrono-version: 10.0
+
+sph:
+   use_delta_sph: true
+   delta_sph_coefficient: 0.1
+   max_velocity: 10
+   free_surface_threshold: 2.4
+
+kernel:
+   initial_spacing: 0.02
+   d0_multiplier: 1.0
+
+boundary_conditions:
+   boundary_method: ADAMI
+
+integration:
+   integration_scheme: RK2
+   time_step: 2e-5
+
+proximity_search:
+   num_proximity_search_steps: 1
+
+particle_shifting:
+   shifting_method: XSPH
+   shifting_xsph_eps: 0.5
+
+viscosity:
+   viscosity_method: ARTIFICIAL_UNILATERAL
+   artificial_viscosity: 0.02

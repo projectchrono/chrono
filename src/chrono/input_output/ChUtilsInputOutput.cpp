@@ -131,7 +131,7 @@ bool WriteBodyShapesCheckpoint(ChSystem* system, const std::string& filename) {
                 case ChCollisionShape::Type::ROUNDEDBOX: {
                     auto box = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
                     const auto& hdims = box->GetLengths();
-                    auto sradius = box->GetSRadius();
+                    auto sradius = box->GetSweepRadius();
                     dims = {hdims.x(), hdims.y(), hdims.z(), sradius};
                     break;
                 }
@@ -139,7 +139,7 @@ bool WriteBodyShapesCheckpoint(ChSystem* system, const std::string& filename) {
                     auto cylinder = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
                     auto height = cylinder->GetHeight();
                     auto radius = cylinder->GetRadius();
-                    auto sradius = cylinder->GetSRadius();
+                    auto sradius = cylinder->GetSweepRadius();
                     dims = {radius, radius, height, sradius};
                     break;
                 }

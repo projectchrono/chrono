@@ -168,7 +168,7 @@ void ChCollisionModelMulticore::Populate() {
             case ChCollisionShape::Type::ROUNDEDBOX: {
                 auto shape_rbox = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
                 const auto& hlen = shape_rbox->GetHalflengths();
-                auto srad = shape_rbox->GetSRadius();
+                auto srad = shape_rbox->GetSweepRadius();
 
                 auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
                 ct_shape->A = real3(position.x(), position.y(), position.z());
@@ -184,7 +184,7 @@ void ChCollisionModelMulticore::Populate() {
                 auto shape_rcyl = std::static_pointer_cast<ChCollisionShapeRoundedCylinder>(shape);
                 auto height = shape_rcyl->GetHeight();
                 auto radius = shape_rcyl->GetRadius();
-                auto srad = shape_rcyl->GetSRadius();
+                auto srad = shape_rcyl->GetSweepRadius();
 
                 auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
                 ct_shape->A = real3(position.x(), position.y(), position.z());

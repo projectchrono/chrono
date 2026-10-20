@@ -49,8 +49,9 @@ API differences that matter most
    - CRM: `SetActiveDomain(...)` limits active SPH particles and `ConstructMovingPatch(...)` can relocate soil forward.
 7. Terrain query semantics:
    - SCM: `GetHeight/GetNormal/GetCoefficientFriction` are meaningful.
-   - CRM: these currently return placeholder values (`0`, world-up normal, `0` friction), so CRM is not intended for
-     height/normal/friction-based tire models.
+   - CRM: these currently return placeholder values (`0`, world-up normal, `0` friction), so CRM cannot be used with
+     handling tire models (`ChForceElementTire`: TMeasy, TMsimple, Pac89, Pac02, Fiala). Use rigid or FEA tires,
+     registered with the FSI system.
 
 Minimal API patterns
 --------------------

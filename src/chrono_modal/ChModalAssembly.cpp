@@ -2800,12 +2800,13 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
                 for (auto& node : internal_meshlist[ip]->GetNodes()) {
                     if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        m_full_forces_internal.segment(offset_loc, 3) = xyz->GetForce().eigen();
+                        m_full_forces_internal.segment(offset_loc, 3) = (xyz->GetForce() + xyz->GetAccumulatorForce()).eigen();
                         offset_loc += xyz->GetNumCoordsVelLevel();
                     }
                     if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        m_full_forces_internal.segment(offset_loc, 3) = xyzrot->GetForce().eigen();
-                        m_full_forces_internal.segment(offset_loc + 3, 3) = xyzrot->GetTorque().eigen();
+                        const auto& wrench = xyzrot->GetAccumulatorWrench();
+                        m_full_forces_internal.segment(offset_loc, 3) = (xyzrot->GetForce() + wrench.force).eigen();
+                        m_full_forces_internal.segment(offset_loc + 3, 3) = (xyzrot->GetTorque() + wrench.torque).eigen();
                         offset_loc += xyzrot->GetNumCoordsVelLevel();
                     }
                 }

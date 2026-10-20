@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Generic TMeasy tire subsystem
+// Generic vehicle TMsimple tire subsystem
 //
 // =============================================================================
 
@@ -30,7 +30,7 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// TMeasy tire model for the Generic vehicle.
+/// TMsimple tire model for the Generic vehicle.
 class CH_MODELS_API Generic_TMsimpleTire : public ChTMsimpleTire {
   public:
     Generic_TMsimpleTire(const std::string& name);

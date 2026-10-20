@@ -30,7 +30,7 @@ namespace sedan {
 /// @addtogroup vehicle_models_sedan
 /// @{
 
-/// TMeasy tire model for the Sedan vehicle.
+/// TMsimple tire model for the Sedan vehicle.
 class CH_MODELS_API Sedan_TMsimpleTire : public ChTMsimpleTire {
   public:
     Sedan_TMsimpleTire(const std::string& name);

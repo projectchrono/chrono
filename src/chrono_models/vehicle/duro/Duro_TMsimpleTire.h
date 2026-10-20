@@ -12,7 +12,7 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Duro TMeasy tire subsystem
+// Duro TMsimple tire subsystem
 //
 // Updated: 2018-02-24
 // =============================================================================
@@ -31,7 +31,7 @@ namespace duro {
 /// @addtogroup vehicle_models_duro
 /// @{
 
-/// TMeasy tire model for the Duro.
+/// TMsimple tire model for the Duro.
 class CH_MODELS_API Duro_TMsimpleTire : public ChTMsimpleTire {
   public:
     Duro_TMsimpleTire(const std::string& name);

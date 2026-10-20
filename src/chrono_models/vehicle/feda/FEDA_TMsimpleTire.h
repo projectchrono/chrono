@@ -30,7 +30,7 @@ namespace feda {
 /// @addtogroup vehicle_models_feda
 /// @{
 
-/// TMeasy tire model for the Fed Alpha.
+/// TMsimple tire model for the Fed Alpha.
 class CH_MODELS_API FEDA_TMsimpleTire : public ChTMsimpleTire {
   public:
     FEDA_TMsimpleTire(const std::string& name);

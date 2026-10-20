@@ -2,6 +2,10 @@ set(TESTS
     utest_FSI_step_exception
 )
 
+if(CH_ENABLE_MODULE_FEA)
+  list(APPEND TESTS utest_FSI_mesh_forces)
+endif()
+
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS Chrono_fsi)
 

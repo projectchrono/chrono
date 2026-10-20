@@ -398,9 +398,7 @@ Each entry of `beam_sections` specifies the following properties:
 | `diameter` | Section diameter | double | -- | Yes, for `ANCF_CABLE` | -- |
 | `Young_modulus` | Young's modulus | double | -- | Yes, for `ANCF_CABLE` | -- |
 | `density` | Material density | double | -- | Yes, for `ANCF_CABLE` | -- |
-| `Rayleight_damping` | Rayleigh damping factor | double | -- | Yes, for `ANCF_CABLE` | -- |
-
-Note the spelling of the `Rayleight_damping` key.
+| `Rayleigh_damping` | Rayleigh damping factor | double | -- | Yes, for `ANCF_CABLE` | -- |
 
 #### FEA materials
 

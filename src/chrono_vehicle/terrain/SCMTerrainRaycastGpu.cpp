@@ -66,6 +66,7 @@ ScmRaycastGpuPrecision DesiredRaycastGpuPrecision() {
     return precision;
 }
 
+// Null when no usable device is present (see scm_gpu_device_available); callers then use the CPU path.
 ScmRaycastGpuContext* RaycastGpuContext() {
     static ScmRaycastGpuContext* ctx = scm_raycast_gpu_create(0, DesiredRaycastGpuPrecision());
     return ctx;
@@ -196,12 +197,18 @@ RaycastBodyTransform BuildTransform(ChBody* body, const LocalBox& box) {
 bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num_ray_casts) {
     num_ray_casts = 0;
 
+    // No usable device: decline, so the caller runs the CPU path and does not count a GPU step.
+    if (!scm_gpu_device_available())
+        return false;
+
+    ScmRaycastGpuContext* ctx = RaycastGpuContext();
+    if (!ctx)
+        return false;
+
     std::vector<ChBody*> candidates;
     DiscoverRaycastCandidates(candidates);
     if (candidates.empty())
         return false;
-
-    ScmRaycastGpuContext* ctx = RaycastGpuContext();
 
     // Mesh (vertices/faces/margins) only re-extracted and re-uploaded when the candidate set actually
     // changed since last step -- see LastUploadedCandidates(). Common case: identical set every step,

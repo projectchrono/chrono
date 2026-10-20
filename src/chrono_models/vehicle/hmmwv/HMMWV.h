@@ -20,7 +20,6 @@
 #ifndef HMMWV_H
 #define HMMWV_H
 
-#include <array>
 #include <string>
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"

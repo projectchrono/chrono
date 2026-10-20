@@ -38,6 +38,8 @@ model to the meshes named in the XML. Its keys are:
 | `participant_name` | yes | must match a `<participant>` name in the preCICE XML |
 | `interfaces` | yes | list of coupling meshes; each names a `mesh_name`, a `mesh_type`, and its `read_data` and `write_data` blocks |
 | `bodies` | adapter-specific | the Chrono bodies exposed on the interface, in a significant order |
+| `meshes` | adapter-specific | the FEA meshes exposed on the interface, in a significant order: by `name` (MBS adapter), or by `name`, `nodes`, and `segments` (SPH adapter) |
+| `node_directions` | no | method for obtaining FEA node directions (SPH adapter) |
 | `data_path` | no | file handler for any data files referenced (meshes, hydrodynamic data) |
 | `angle_degrees` | no | angle units used in this file |
 | `read_data_time` | no | when within the window to sample data, see [coupling schemes](@ref precice_coupling) |
@@ -64,14 +66,16 @@ A coupling mesh is a set of vertices with an agreed meaning. The mesh type state
 | `GENERIC` | anything else, interpreted by the participant |
 
 The choice between the first two decides the fidelity of the exchange. With `RIGID_BODY_REFS` the fluid
-sends one resultant force and torque per body and receives one pose and velocity; with `RIGID_BODY_POINTS`
-the exchange is distributed over a point cloud on the body surface, which is what a CFD code coupled through
-a moving wall needs. The `sphere_drop` and `rm3_reg_waves` examples use the former, `flap_openfoam` the
-latter.
+sends one resultant force and torque per body and receives one pose, velocity, and (optionally) acceleration;
+with `RIGID_BODY_POINTS` the exchange is distributed over a point cloud on the body surface, which is what a
+CFD code coupled through a moving wall needs. The `sphere_drop` and `rm3_reg_waves` examples use the former,
+`flap_openfoam` the latter. For flexible solids, `FEA_MESH_NODES` exchanges one force per FEA mesh node and
+one position, velocity, and (optionally) acceleration per node, as in the `flexible_cable` example;
+`FEA_MESH_POINTS`, for points distributed over the FEA mesh elements, is not yet implemented.
 
 Each data block declared on a mesh carries a type, which is how the adapter knows what to do with the
-numbers: `POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `FORCES`,
-`TORQUES`, or `GENERIC`. The name of the block is arbitrary and only has to match the XML; the type is what
+numbers: `POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`,
+`LINEAR_ACCELERATIONS`, `ANGULAR_ACCELERATIONS`, `FORCES`, `TORQUES`, or `GENERIC`. The name of the block is arbitrary and only has to match the XML; the type is what
 gives it meaning. A block declared in the YAML but not referenced by this participant in the XML is marked
 unused and skipped, so one YAML file can serve configurations that exchange different subsets of data.
 

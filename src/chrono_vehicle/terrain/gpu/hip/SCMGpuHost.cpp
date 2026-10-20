@@ -310,23 +310,54 @@ extern "C" int scm_gpu_async_enabled(void) {
     return chrono::vehicle::scm_gpu::GetConfig().async ? 1 : 0;
 }
 
+// Probed once per process. A HIP build can run on a machine with no usable device (a prebuilt
+// package, a container without the device passed through, HIP_VISIBLE_DEVICES=-1); report that
+// once and let SCMTerrain use its CPU paths instead of aborting on the first runtime call.
+extern "C" int scm_gpu_device_available(void) {
+    static const int available = [] {
+        int count = 0;
+        const hipError_t err = hipGetDeviceCount(&count);
+        if (err != hipSuccess || count < 1) {
+            (void)hipGetLastError();
+            fprintf(stderr, "SCM GPU: no usable HIP device (%s); using the CPU backend.\n", err != hipSuccess ? hipGetErrorString(err) : "no devices found");
+            return 0;
+        }
+        return 1;
+    }();
+    return available;
+}
+
 extern "C" ScmGpuContext* scm_gpu_create(int device_id) {
+    if (!scm_gpu_device_available())
+        return nullptr;
+
     auto* impl = new ScmGpuContextImpl();
     impl->device = device_id;
     ensure_device(device_id);
 
-    hipError_t e1 = hipStreamCreateWithFlags(&impl->stream_copy, hipStreamNonBlocking);
-    if (e1 != hipSuccess)
-        die_hip("hipStreamCreate copy", e1);
-    hipError_t e2 = hipStreamCreateWithFlags(&impl->stream_compute, hipStreamNonBlocking);
-    if (e2 != hipSuccess)
-        die_hip("hipStreamCreate compute", e2);
-    hipError_t e3 = hipEventCreateWithFlags(&impl->event_h2d_done, hipEventDisableTiming);
-    if (e3 != hipSuccess)
-        die_hip("hipEventCreate h2d", e3);
-    hipError_t e4 = hipEventCreateWithFlags(&impl->event_compute_done, hipEventDisableTiming);
-    if (e4 != hipSuccess)
-        die_hip("hipEventCreate compute", e4);
+    const char* what = nullptr;
+    hipError_t err = hipStreamCreateWithFlags(&impl->stream_copy, hipStreamNonBlocking);
+    if (err != hipSuccess)
+        what = "hipStreamCreate copy";
+    if (!what && (err = hipStreamCreateWithFlags(&impl->stream_compute, hipStreamNonBlocking)) != hipSuccess)
+        what = "hipStreamCreate compute";
+    if (!what && (err = hipEventCreateWithFlags(&impl->event_h2d_done, hipEventDisableTiming)) != hipSuccess)
+        what = "hipEventCreate h2d";
+    if (!what && (err = hipEventCreateWithFlags(&impl->event_compute_done, hipEventDisableTiming)) != hipSuccess)
+        what = "hipEventCreate compute";
+
+    if (what) {
+        fprintf(stderr, "SCM GPU: %s failed (%s); using the CPU backend.\n", what, hipGetErrorString(err));
+        if (impl->event_h2d_done)
+            (void)hipEventDestroy(impl->event_h2d_done);
+        if (impl->stream_compute)
+            (void)hipStreamDestroy(impl->stream_compute);
+        if (impl->stream_copy)
+            (void)hipStreamDestroy(impl->stream_copy);
+        (void)hipGetLastError();
+        delete impl;
+        return nullptr;
+    }
 
     return reinterpret_cast<ScmGpuContext*>(impl);
 }
