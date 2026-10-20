@@ -128,12 +128,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     std::shared_ptr<ChDirectSolverLS> GetModalSolver() const;
 
     /// Get the floating frame F of the reduced modal assembly.
-    ChFrameMoving<> GetFloatingFrameOfReference() { return floating_frame_F; }
+    ChFrameMoving<> GetFloatingFrameOfReference() const { return floating_frame_F; }
 
     /// Get the residual of constraint equations on the floating frame F.
     /// The configuration of the floating frame F is determined by the six constraint equations using a Newton-Raphson
     /// iteration. The residual of constraint equations is an indicator to check the convergence of the modal method.
-    const ChVectorDynamic<>& GetConstraintsResidualF() { return m_res_CF; }
+    const ChVectorDynamic<>& GetConstraintsResidualF() const { return m_res_CF; }
 
     /// Set verbose output.
     void SetVerbose(bool verbose) { m_verbose = verbose; }
@@ -147,7 +147,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void SetUseStaticCorrection(bool flag);
 
     /// Return true if the static correction is used.
-    bool GetUsetStaticCorrection() { return static_cast<bool>(m_num_coords_static_correction); }
+    bool IsUsingStaticCorrection() const { return m_num_coords_static_correction > 0; }
 
     /// Set whether a linear assumption is used for the inertial forces and the resulting inertial damping matrix.
     /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the resulting inertial
@@ -200,7 +200,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Return true if this modal assembly automatically adds a gravity load to all contained boundary and internal
     /// bodies/nodes in the modal reduced state.
-    bool GetModalAutomaticGravity() { return m_modal_automatic_gravity; }
+    bool GetModalAutomaticGravity() const { return m_modal_automatic_gravity; }
 
     /// Get the modal mass matrix.
     const ChMatrixDynamic<>& GetModalMassMatrix() const { return this->modal_M; }
@@ -393,7 +393,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     unsigned int GetNumConstraintsUnilateralBoundary() const { return m_num_constr_uni_boundary; }
 
     /// Get the number of modal coordinates. Use DoModalReduction() to change it.
-    int GetNumCoordinatesModal() { return m_num_coords_modal; }
+    int GetNumCoordinatesModal() const { return m_num_coords_modal; }
 
     // OTHER FUNCTIONS
 
