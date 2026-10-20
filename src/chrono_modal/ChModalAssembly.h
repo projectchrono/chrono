@@ -42,6 +42,23 @@ namespace modal {
 /// to the motion of a floating frame (for small deflections). Some nodes can be selected as "boundary nodes"
 /// to allow connecting this modal assembly to external joints and forces.
 ///
+/// Supported items:
+///
+/// The modal reduction (and the simulation of the reduced assembly) assumes that the velocity-level coordinates of
+/// every boundary and internal item come in groups of 6: 3 translational coordinates (expressed in the absolute frame)
+/// followed by 3 rotational coordinates (expressed in the local frame of the item). This holds for:
+/// - rigid bodies (ChBody and derived classes);
+/// - FEA meshes with ChNodeFEAxyzrot nodes only (e.g., Euler, IGA, or Tapered Timoshenko beams; Reissner shells);
+/// - links and other items without states of their own (e.g., ChLinkMate, ChLinkLock joints, loads).
+///
+/// Items with a different layout of velocity-level coordinates are *not* supported in a modal reduction, neither as
+/// boundary nor as internal items. These include FEA meshes with ChNodeFEAxyz nodes (3 coordinates), ChNodeFEAxyzD,
+/// ChNodeFEAxyzDD, or ChNodeFEAxyzDDD nodes (ANCF cables, beams, and shells), ChNodeFEAxyzP or ChNodeFEAcurv nodes,
+/// shafts (ChShaft), and links with internal states (e.g., motors with internal shafts). Such items are not detected
+/// and lead to incorrect results.
+///
+/// These restrictions do not apply to the modal analysis of an assembly in its full (unreduced) state.
+///
 /// =============================================================================
 /// The development of this modal reduction procedure has been inspired by the research paper:
 /// Sonneville, V., Scapolan, M., Shan, M. et al. Modal reduction procedures for flexible multibody dynamics. Multibody
