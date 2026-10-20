@@ -92,10 +92,6 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     /// Note that this is a resultant torque expressed in the local frame.
     const ChVector3d& GetAccumulatedTorque(unsigned int idx) const;
 
-    // This function should *not* exist. It's here only because of the asinine implementation of ChModalAssembly!
-    // Collects the resultant wrench across all accumulators.
-    const ChWrenchd GetAccumulatorWrench() const;
-
     /// Transform a force applied to a point on the body to a force and moment at the frame origin.
     /// The applied force and its application point are assumed to be expressed in the body frame.
     /// The resulting force and torque are expressed in the parent frame.

@@ -2497,36 +2497,34 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) -= c * g_quadvel;
         }
 
-        // 3. update the external forces imposed on the internal nodes.
-        // Note: the below code requires that the internal bodies and internal nodes are inserted in sequence.
+        // 3. update the external forces imposed on the internal items.
+        // Each internal item loads its own applied loads (without gravity and gyroscopic terms, which are accounted
+        // for separately) at its offset relative to the start of the internal coordinates.
         {
+            m_full_forces_internal.setZero(m_num_coords_vel_internal);
+            unsigned int offset_internal = offset_w + m_num_coords_vel_boundary;
+
             std::unordered_map<ChBody*, unsigned int> body_to_offset;
 
-            unsigned int offset_loc = 0;
-            for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-                body_to_offset[internal_bodylist[ip].get()] = offset_loc;
-                const auto& wrench = internal_bodylist[ip]->GetAccumulatorWrench();
-                m_full_forces_internal.segment(offset_loc, 3) = wrench.force.eigen();
-                m_full_forces_internal.segment(offset_loc + 3, 3) = wrench.torque.eigen();
-                offset_loc += internal_bodylist[ip]->GetNumCoordsVelLevel();
-            }
-
-#ifdef CHRONO_FEA
-            for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
-                for (auto& node : internal_meshlist[ip]->GetNodes()) {
-                    if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        m_full_forces_internal.segment(offset_loc, 3) = (xyz->GetForce() + xyz->GetAccumulatorForce()).eigen();
-                        offset_loc += xyz->GetNumCoordsVelLevel();
-                    }
-                    if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        const auto& wrench = xyzrot->GetAccumulatorWrench();
-                        m_full_forces_internal.segment(offset_loc, 3) = (xyzrot->GetForce() + wrench.force).eigen();
-                        m_full_forces_internal.segment(offset_loc + 3, 3) = (xyzrot->GetTorque() + wrench.torque).eigen();
-                        offset_loc += xyzrot->GetNumCoordsVelLevel();
-                    }
+            for (auto& body : internal_bodylist) {
+                if (body->IsActive()) {
+                    body_to_offset[body.get()] = body->GetOffset_w() - offset_internal;
+                    body->IntLoadResidual_F_applied(body->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
                 }
             }
+            for (auto& link : internal_linklist) {
+                if (link->IsActive())
+                    link->IntLoadResidual_F_applied(link->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
+            }
+#ifdef CHRONO_FEA
+            for (auto& mesh : internal_meshlist) {
+                mesh->IntLoadResidual_F_applied(mesh->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
+            }
 #endif
+            for (auto& item : internal_otherphysicslist) {
+                if (item->IsActive())
+                    item->IntLoadResidual_F_applied(item->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
+            }
 
             for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
                 const auto& physicsitem = internal_otherphysicslist[ip];

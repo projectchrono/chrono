@@ -59,16 +59,6 @@ const ChVector3d& ChBodyFrame::GetAccumulatedTorque(unsigned int idx) const {
     return accumulators[idx].torque;
 }
 
-//// TODO - get rid of this as soon as ChModalAssembly is dealt with (fixed or removed)
-const ChWrenchd ChBodyFrame::GetAccumulatorWrench() const {
-    ChWrenchd wrench;
-    for (const auto& a : accumulators) {
-        wrench.force += a.force;
-        wrench.torque += a.torque;
-    }
-    return wrench;
-}
-
 // -----------------------------------------------------------------------------
 
 void ChBodyFrame::ArchiveOut(ChArchiveOut& archive_out) {

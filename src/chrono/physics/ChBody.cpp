@@ -191,6 +191,30 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
         R.segment(off + 3, 3) += c * (Xtorque - gyro).eigen();
 }
 
+void ChBody::IntLoadResidual_F_applied(const unsigned int off,  // offset in R residual
+                                       ChVectorDynamic<>& R,    // result: the R residual, R += c*F_applied
+                                       const double c           // a scaling factor
+) {
+    // Loads from body accumulators and from the forces in the body force list (as evaluated at the last force update).
+    // Unlike IntLoadResidual_F, exclude the gravitational force and the gyroscopic torque.
+    ChVector3d force;
+    ChVector3d torque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+    for (const auto& f : forcelist) {
+        ChVector3d f_force;
+        ChVector3d f_torque;
+        f->GetBodyForceTorque(f_force, f_torque);
+        force += f_force;
+        torque += f_torque;
+    }
+
+    R.segment(off, 3) += c * force.eigen();
+    R.segment(off + 3, 3) += c * torque.eigen();
+}
+
 void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                 const ChVectorDynamic<>& w,  // the w vector

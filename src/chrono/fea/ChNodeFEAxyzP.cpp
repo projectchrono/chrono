@@ -93,6 +93,11 @@ void ChNodeFEAxyzP::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynami
     R(off) += F * c;
 }
 
+void ChNodeFEAxyzP::NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // All node loads are applied loads
+    ChNodeFEAxyzP::NodeIntLoadResidual_F(off, R, c);
+}
+
 void ChNodeFEAxyzP::NodeIntLoadResidual_Mv(const unsigned int off,
                                            ChVectorDynamic<>& R,
                                            const ChVectorDynamic<>& w,

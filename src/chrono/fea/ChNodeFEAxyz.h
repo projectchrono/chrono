@@ -102,10 +102,6 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     /// Return the current value of the accumulated force from the specified accumulator.
     const ChVector3d& GetAccumulatedForce(unsigned int idx) const;
 
-    // This function should *not* exist. It's here only because of the asinine implementation of ChModalAssembly!
-    // Collects the resultant force across all accumulators.
-    const ChVector3d GetAccumulatorForce() const;
-
     /// Get the number of degrees of freedom
     virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
@@ -141,6 +137,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
                                           const unsigned int off_v,
                                           ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,
