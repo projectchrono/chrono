@@ -12,6 +12,7 @@ set(TESTS
 
 if(CH_ENABLE_MODULE_FEA)
   list(APPEND TESTS utest_FSI-SPH_flex1D_bce_frame)
+  list(APPEND TESTS utest_FSI-SPH_flex1D_node_directions)
 endif()
 
 list(APPEND LIBS Chrono_core)

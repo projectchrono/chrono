@@ -27,6 +27,10 @@
 #include <thrust/reduce.h>
 #include <thrust/transform.h>
 #include <thrust/copy.h>
+#include <thrust/fill.h>
+#include <thrust/scatter.h>
+#include <thrust/sort.h>
+#include <thrust/iterator/discard_iterator.h>
 
 #include "chrono_fsi/sph/physics/SphBceManager.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
@@ -740,13 +744,42 @@ struct averageDirs {
     __host__ __device__ Real3 operator()(const Real3& v, uint count) { return v / Real(count); }
 };
 
+// Combine the element directions loaded to each element node into node directions.
+// The extended arrays hold one entry per element node (in arbitrary node order); they are sorted in place by node index.
+// The direction of each node is the average (NODAL_DIR_METHOD 1) or the normalized sum (NODAL_DIR_METHOD 2) of the
+// directions of all elements that share the node. Nodes not in any element are assigned a zero direction.
+void CombineNodeDirections(thrust::device_vector<uint>& ext_nodes, thrust::device_vector<Real3>& ext_dirs, thrust::device_vector<Real3>& dirs) {
+    // Sort by node index, so that all contributions to a given node are consecutive
+    thrust::sort_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin());
+
+    // Sum directions from adjacent elements
+    thrust::device_vector<uint> out_nodes(ext_nodes.size());
+    thrust::device_vector<Real3> out_dirs(ext_nodes.size());
+    auto out_end = thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), out_dirs.begin(), same_key_uint());
+    auto num_out = out_end.first - out_nodes.begin();
+
+#if NODAL_DIR_METHOD == 1
+    // Average directions
+    thrust::device_vector<uint> counts(num_out);
+    thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1u), thrust::make_discard_iterator(), counts.begin(), same_key_uint());
+    thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, counts.begin(), out_dirs.begin(), averageDirs());
+#elif NODAL_DIR_METHOD == 2
+    // Normalize nodal directions
+    thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, out_dirs.begin(), normalizeReal3());
+#endif
+
+    // Scatter the combined directions to the corresponding nodes
+    thrust::fill(dirs.begin(), dirs.end(), mR3(0, 0, 0));
+    thrust::scatter(out_dirs.begin(), out_dirs.begin() + num_out, out_nodes.begin(), dirs.begin());
+}
+
 __global__ void CalcNodeDir1D_D(uint* ext_nodes,             // extended node indices (2 per segment)
                                 Real3* ext_dirs,             // extended node directions (2 per segment)
                                 const Real3* pos,            // positions of FEA 1-D segment nodes
                                 const uint2* flex1D_Nodes_D  // segment node indices
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numFsiNodes1D)
+    if (index >= countersD.numFsiElements1D)
         return;
 
     uint2 seg_nodes = flex1D_Nodes_D[index];  // indices of the 2 nodes on associated segment
@@ -765,46 +798,22 @@ __global__ void CalcNodeDir1D_D(uint* ext_nodes,             // extended node in
 }
 
 void SphBceManager::CalcNodeDirections1D(thrust::device_vector<Real3>& dirs) {
-    uint num_nodes = (uint)m_data_mgr.countersH->numFsiNodes1D;
+    uint num_segments = (uint)m_data_mgr.countersH->numFsiElements1D;
 
     uint nBlocks, nThreads;
-    computeGridSize(num_nodes, 256, nBlocks, nThreads);
+    computeGridSize(num_segments, 256, nBlocks, nThreads);
 
     // Load segment directions to each adjacent node
-    thrust::device_vector<uint> ext_nodes(2 * num_nodes);
-    thrust::device_vector<Real3> ext_dirs(2 * num_nodes);
+    thrust::device_vector<uint> ext_nodes(2 * num_segments);
+    thrust::device_vector<Real3> ext_dirs(2 * num_segments);
     CalcNodeDir1D_D<<<nBlocks, nThreads>>>(U1CAST(ext_nodes), mR3CAST(ext_dirs), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), U2CAST(m_data_mgr.flex1D_Nodes_D));
 
-    ////thrust::for_each(m_data_mgr.flex1D_Nodes_D.begin(), m_data_mgr.flex1D_Nodes_D.end(), printInt2());
-    ////std::cout << std::endl;
-
-    //// TODO RADU - must sort by key before reductions
-
-    // Sum directions from adjacent segments
-    {
-        thrust::device_vector<uint> out_nodes(2 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), same_key_uint());
+    if (m_check_errors) {
+        gpuCheckError();
     }
 
-#if NODAL_DIR_METHOD == 1
-    // Average directions
-    {
-        thrust::device_vector<uint> out_nodes(2 * num_nodes);
-        thrust::device_vector<uint> counts(2 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1), out_nodes.begin(), counts.begin());
-
-        ////thrust::copy(counts.begin(), counts.end(), std::ostream_iterator<uint>(std::cout, " "));
-        ////std::cout << std::endl;
-
-        thrust::transform(dirs.begin(), dirs.end(), counts.begin(), dirs.begin(), averageDirs());
-    }
-#elif NODAL_DIR_METHOD == 2
-    // Normalize nodal directions
-    thrust::transform(dirs.begin(), dirs.end(), dirs.begin(), normalizeReal3());
-#endif
-
-    ////thrust::copy(dirs.begin(), dirs.end(), std::ostream_iterator<Real3>(std::cout, " | "));
-    ////std::cout << std::endl;
+    // Combine the directions from adjacent segments
+    CombineNodeDirections(ext_nodes, ext_dirs, dirs);
 }
 
 // Carry the segment reference normals over to the current segment configurations.
@@ -1055,7 +1064,7 @@ __global__ void CalcNodeDir2D_D(uint* ext_nodes,             // extended node in
                                 const uint3* flex2D_Nodes_D  // segment node indices
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numFsiNodes1D)
+    if (index >= countersD.numFsiElements2D)
         return;
 
     uint3 tri_nodes = flex2D_Nodes_D[index];  // indices of the 3 nodes on associated triangle
@@ -1070,52 +1079,29 @@ __global__ void CalcNodeDir2D_D(uint* ext_nodes,             // extended node in
 
     ext_nodes[3 * index + 0] = tri_nodes.x;
     ext_nodes[3 * index + 1] = tri_nodes.y;
-    ext_nodes[3 * index + 2] = tri_nodes.y;
+    ext_nodes[3 * index + 2] = tri_nodes.z;
     ext_dirs[3 * index + 0] = d;
     ext_dirs[3 * index + 1] = d;
     ext_dirs[3 * index + 2] = d;
 }
 
 void SphBceManager::CalcNodeDirections2D(thrust::device_vector<Real3>& dirs) {
-    uint num_nodes = (uint)m_data_mgr.countersH->numFsiNodes2D;
+    uint num_triangles = (uint)m_data_mgr.countersH->numFsiElements2D;
 
     uint nBlocks, nThreads;
-    computeGridSize(num_nodes, 256, nBlocks, nThreads);
+    computeGridSize(num_triangles, 256, nBlocks, nThreads);
 
-    // Load triangle normal directions to each each adjacent node
-    thrust::device_vector<uint> ext_nodes(3 * num_nodes);
-    thrust::device_vector<Real3> ext_dirs(3 * num_nodes);
+    // Load triangle normal directions to each adjacent node
+    thrust::device_vector<uint> ext_nodes(3 * num_triangles);
+    thrust::device_vector<Real3> ext_dirs(3 * num_triangles);
     CalcNodeDir2D_D<<<nBlocks, nThreads>>>(U1CAST(ext_nodes), mR3CAST(ext_dirs), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos), U3CAST(m_data_mgr.flex2D_Nodes_D));
 
-    //// TODO RADU - must sort by key before reductions
-
-    // Sum directions from adjacent triangles
-    {
-        thrust::device_vector<uint> out_nodes(3 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), same_key_uint());
+    if (m_check_errors) {
+        gpuCheckError();
     }
 
-#if NODAL_DIR_METHOD == 1
-    // Average directions
-    {
-        thrust::device_vector<uint> out_nodes(3 * num_nodes);
-        thrust::device_vector<uint> counts(3 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1), out_nodes.begin(), counts.begin());
-
-        ////thrust::copy(counts.begin(), counts.end(), std::ostream_iterator<uint>(std::cout, " "));
-        ////std::cout << std::endl;
-
-        thrust::transform(dirs.begin(), dirs.end(), counts.begin(), dirs.begin(), averageDirs());
-
-        //// TODO
-    }
-#elif NODAL_DIR_METHOD == 2
-    // Normalize nodal directions
-    thrust::transform(dirs.begin(), dirs.end(), dirs.begin(), normalizeReal3());
-#endif
-
-    ////thrust::copy(dirs.begin(), dirs.end(), std::ostream_iterator<Real3>(std::cout, " | "));
-    ////std::cout << std::endl;
+    // Combine the directions from adjacent triangles
+    CombineNodeDirections(ext_nodes, ext_dirs, dirs);
 }
 
 //// TODO RADU - implement utility device function to interpolate position on triangle (linear or cubic)
