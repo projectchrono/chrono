@@ -17,5 +17,6 @@ model:
 
 rig:
   normal_load: 6500               # HMMWV front static wheel load
+  #camber_angle: 0                # ignored with a suspension
 
 solver: "rig_solver.yaml"

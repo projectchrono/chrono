@@ -537,6 +537,11 @@ bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool d
         if (output)
             parser.Output(time);
 
+        if (parser.StopAtPatchEnd() && rig->PatchEndReached()) {
+            cout << "\n  time : " << time << " - end of terrain patch reached" << endl;
+            break;
+        }
+
         if (real_time)
             rt_timer.Spin(step);
     }

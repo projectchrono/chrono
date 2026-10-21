@@ -83,6 +83,7 @@ ChParserWheelRigYAML::ChParserWheelRigYAML(const std::string& yaml_filename, boo
       m_active_domain(ActiveDomain::NONE),
       m_active_domain_size(VNULL),
       m_rig_step(-1),
+      m_stop_at_patch_end(false),
       m_camera_offset(2.0, 2.5, 1.0),
       m_camera_target_offset(0, 0.25, -0.25),
       m_plot_output(PlotOutput::PNG),
@@ -106,6 +107,8 @@ void ChParserWheelRigYAML::LoadFile(const std::string& yaml_filename) {
     LoadSimData(yaml);
     if (yaml["simulation"]["time_step"])
         m_rig_step = yaml["simulation"]["time_step"].as<double>();
+    if (yaml["simulation"]["stop_at_patch_end"])
+        m_stop_at_patch_end = yaml["simulation"]["stop_at_patch_end"].as<bool>();
     if (yaml["visualization"] && yaml["visualization"]["camera"]) {
         auto camera = yaml["visualization"]["camera"];
         if (camera["offset"])

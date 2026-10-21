@@ -44,6 +44,7 @@ test:
 simulation:
   time_step: 2e-4                 # rig step (FSI coupling step with CRM terrain); default: MBS solver step
   end_time: 40                    # negative for infinite end time
+  stop_at_patch_end: true         # end the simulation when the wheel reaches the end of the patch
   enforce_realtime: false
   gravity: [0, 0, -9.8]           # must be vertical: [0, 0, -g]
   num_threads:

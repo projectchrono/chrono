@@ -449,6 +449,11 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// Get current wheel position.
     ChVector3d GetWheelPos() const { return m_wheel_assembly->GetHub()->GetPos(); }
 
+    /// Return true if the wheel has reached either end of the terrain patch.
+    /// The patch end is reached when the wheel hub is within one wheel radius of the patch boundary, measured along the
+    /// direction of travel. Always false for terrain types without a fixed patch (granular terrain uses a moving patch).
+    bool PatchEndReached() const;
+
     /// Get the current terrain forces acting on the wheel as applied to the wheel hub.
     TerrainForce ReportWheelForce() const;
 
@@ -517,6 +522,7 @@ class CH_VEHICLE_API ChWheelTestRig {
 
     /// Create the terrain patch of specified type.
     void CreateTerrain();
+    double GetPatchCenterX() const;
 
     void CreateTerrainSCM();
     void CreateTerrainRigid();

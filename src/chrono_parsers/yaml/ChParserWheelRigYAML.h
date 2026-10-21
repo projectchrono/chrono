@@ -86,6 +86,10 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     /// With CRM terrain, this is the FSI coupling step.
     double GetRigStep() const { return m_rig_step > 0 ? m_rig_step : GetTimestep(); }
 
+    /// Return true if the simulation should end when the wheel reaches the end of the terrain patch.
+    /// See ChWheelTestRig::PatchEndReached.
+    bool StopAtPatchEnd() const { return m_stop_at_patch_end; }
+
     /// Return true if generating output, i.e., writing an output database or recording data for plots.
     virtual bool OutputEnabled() const override { return ChParserYAML::OutputEnabled() || PlotsEnabled(); }
 
@@ -194,6 +198,7 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
 
     // Simulation and visualization
     double m_rig_step;
+    bool m_stop_at_patch_end;
     ChVector3d m_camera_offset;
     ChVector3d m_camera_target_offset;
 

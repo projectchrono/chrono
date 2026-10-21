@@ -165,6 +165,11 @@ int main(int argc, char* argv[]) {
         if (output)
             parser.Output(time);
 
+        if (parser.StopAtPatchEnd() && rig->PatchEndReached()) {
+            cout << "\n  time : " << time << " - end of terrain patch reached" << endl;
+            break;
+        }
+
         // Report measured quantities (once measurements are enabled)
         if (rig->OutputEnabled() && time >= status_frame / status_fps) {
             cout << std::fixed << std::setprecision(3) << "\rt = " << time                    //

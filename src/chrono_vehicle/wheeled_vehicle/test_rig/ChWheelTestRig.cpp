@@ -933,8 +933,27 @@ void ChWheelTestRig::CreateTerrain() {
     }
 }
 
+// Fixed terrain patches extend from 2 wheel radii behind the initial wheel location.
+double ChWheelTestRig::GetPatchCenterX() const {
+    return m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius();
+}
+
+bool ChWheelTestRig::PatchEndReached() const {
+    switch (m_terrain_type) {
+        case TerrainType::RIGID:
+        case TerrainType::SCM:
+        case TerrainType::CRM:
+            break;
+        default:
+            return false;
+    }
+
+    double x = GetWheelPos().x() - GetPatchCenterX();
+    return std::abs(x) + m_wheel_assembly->GetRadius() >= m_terrain_size.length / 2;
+}
+
 void ChWheelTestRig::CreateTerrainSCM() {
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, m_terrain_height);
+    ChVector3d location(GetPatchCenterX(), m_terrain_offset, m_terrain_height);
 
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
@@ -953,7 +972,7 @@ void ChWheelTestRig::CreateTerrainSCM() {
 }
 
 void ChWheelTestRig::CreateTerrainRigid() {
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, m_terrain_height);
+    ChVector3d location(GetPatchCenterX(), m_terrain_offset, m_terrain_height);
 
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(&m_system);
 
@@ -1085,7 +1104,7 @@ void ChWheelTestRig::CreateTerrainCRM() {
     terrain->SetSPHParameters(m_params_crm.sph_params);
 
     double loc_z = m_terrain_height - m_terrain_size.depth;
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, loc_z);
+    ChVector3d location(GetPatchCenterX(), m_terrain_offset, loc_z);
     terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location, BoxSide::ALL & ~BoxSide::Z_POS);
 
     // Add wheel FSI bodies
