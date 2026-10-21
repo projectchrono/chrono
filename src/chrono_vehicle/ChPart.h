@@ -238,6 +238,7 @@ class CH_VEHICLE_API ChPart {
     friend class ChWheeledVehicle;
     friend class ChTrackedVehicle;
     friend class ChTrackAssembly;
+    friend class ChWheelTestRig;
 };
 
 /// @} vehicle

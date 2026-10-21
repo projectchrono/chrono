@@ -280,7 +280,11 @@ ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<ChWheel> wheel,
     : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, wheel, tire)) {}
 
 ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, std::shared_ptr<ChSuspension> suspension)
-    : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, suspension, wheel, tire)) {}
+    : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, suspension, wheel, tire)) {
+    // Calculate the suspension mass (outside a vehicle, this is not done automatically), so that it is included in the
+    // wheel assembly mass used to enforce the specified normal load
+    suspension->InitializeInertiaProperties();
+}
 
 ChWheelTestRig::~ChWheelTestRig() {
     // Let the wheel assembly remove the items it created, then remove all rig items (in reverse order of creation)
