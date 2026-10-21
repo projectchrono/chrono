@@ -106,6 +106,10 @@ linux:doxygen:deploy:
   tags:
     - linux
     - arm64
+  # The arm64 runner is a DGX Spark, whose GPU shares one pool of system memory with the CPU.
+  # Concurrent arm64 jobs exhaust it, and every CUDA allocation in the test job then fails with
+  # "out of memory". Run the arm64 jobs (including the deploy jobs) one at a time.
+  resource_group: arm64-dgx-spark
   image:
       name: uwsbel/packages:cuda12.8.1
   before_script:
@@ -417,6 +421,8 @@ linux:ubuntu22.04-clang:arm64:test:
   tags:
     - linux
     - arm64
+  # Shares the resource group of .ubuntu:arm64; see the note there.
+  resource_group: arm64-dgx-spark
   image:
       name: uwsbel/packages:cuda12.8.1
   before_script:
