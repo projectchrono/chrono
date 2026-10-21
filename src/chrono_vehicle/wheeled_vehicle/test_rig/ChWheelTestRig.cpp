@@ -325,6 +325,7 @@ ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> 
       m_steer_yaw0(0),
       m_steer_offset(0),
       m_drop_contact_time(-1),
+      m_hub_offset0(0),
       m_terrain_type(TerrainType::NONE),
       m_terrain_offset(0),
       m_terrain_height(0),
@@ -871,6 +872,9 @@ void ChWheelTestRig::CreateWheelSuspensionMechanism(double dim) {
     // Initialize the suspension and wheel assembly
     m_wheel_assembly->Initialize(m_chassis_body, ChFramed(ChVector3d(0, 0, -4 * dim), QUNIT), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
+    // Record the hub height relative to the chassis in the design configuration (reference for suspension travel)
+    m_hub_offset0 = m_wheel_assembly->GetHub()->GetPos().z() - m_chassis_body->GetPos().z();
+
     // Steering actuator (if any), held at zero unless a steering input is specified (TEST mode only)
     m_steer_actuator = m_wheel_assembly->GetSteeringActuator();
     if (m_steer_actuator)
@@ -1146,7 +1150,7 @@ TerrainForce ChWheelTestRig::ReportWheelForce() const {
 }
 
 double ChWheelTestRig::GetDBP() const {
-    if (!m_output)
+    if (!m_output || !m_lin_motor)
         return 0;
 
     return -m_lin_motor->GetMotorForce();
@@ -1184,6 +1188,46 @@ double ChWheelTestRig::GetSteeringAngle() const {
 
 double ChWheelTestRig::GetSteeringActuatorCoordinate() const {
     return m_steer_actuator ? m_steer_actuator->GetCoordinate() : 0;
+}
+
+std::vector<ChOutput::Channel> ChWheelTestRig::GetOutputChannels() const {
+    auto hub = m_wheel_assembly->GetHub();
+    const auto& hub_pos = hub->GetPos();
+    auto tforce = ReportWheelForce();
+    double drive_torque = (m_output && m_rot_motor) ? m_rot_motor->GetMotorLoad() : 0;
+
+    std::vector<ChOutput::Channel> channels = {
+        {"measuring", "-", m_output ? 1.0 : 0.0},                                           //
+        {"long_slip", "-", GetLongitudinalSlip()},                                          //
+        {"slip_angle", "rad", GetSlipAngle()},                                              //
+        {"camber_angle", "rad", GetCamberAngle()},                                          //
+        {"steering_angle", "rad", GetSteeringAngle()},                                      //
+        {"steering_actuator", "actuator", GetSteeringActuatorCoordinate()},                 //
+        {"wheel_force_x", "N", tforce.force.x()},                                           //
+        {"wheel_force_y", "N", tforce.force.y()},                                           //
+        {"wheel_force_z", "N", tforce.force.z()},                                           //
+        {"wheel_moment_x", "N.m", tforce.moment.x()},                                       //
+        {"wheel_moment_y", "N.m", tforce.moment.y()},                                       //
+        {"wheel_moment_z", "N.m", tforce.moment.z()},                                       //
+        {"drawbar_pull", "N", GetDBP()},                                                    //
+        {"drive_torque", "N.m", drive_torque},                                              //
+        {"wheel_angular_speed", "rad/s", hub->GetAngVelLocal().y()},                        //
+        {"carrier_speed", "m/s", m_carrier_body->GetPosDt().x()},                           //
+        {"carrier_position", "m", m_carrier_body->GetPos().x()},                            //
+        {"hub_position_x", "m", hub_pos.x()},                                               //
+        {"hub_position_y", "m", hub_pos.y()},                                               //
+        {"hub_position_z", "m", hub_pos.z()},                                               //
+        {"sinkage", "m", m_terrain_height - (hub_pos.z() - m_wheel_assembly->GetRadius())}  //
+    };
+
+    // Suspension travel: hub height relative to the chassis, measured from the design configuration
+    if (m_wheel_assembly->HasSuspension())
+        channels.push_back({"suspension_travel", "m", hub_pos.z() - m_chassis_body->GetPos().z() - m_hub_offset0});
+
+    // Wheel assembly specific channels
+    m_wheel_assembly->AddOutputChannels(channels);
+
+    return channels;
 }
 
 TerrainForce ChWheelTestRig::CalculateTerrainForce(const std::vector<std::shared_ptr<ChBody>>& bodies, ChTerrain& terrain, const ChVector3d& point) {

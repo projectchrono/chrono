@@ -31,6 +31,7 @@
 
 #include <vector>
 
+#include "chrono/input_output/ChOutput.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
@@ -161,6 +162,10 @@ class CH_VEHICLE_API ChWheelTestRig {
 
         /// Report the current resultant terrain forces and torques as applied to the hub.
         virtual TerrainForce ReportForces(ChTerrain& terrain) const { return TerrainForce(); }
+
+        /// Append assembly-specific output channels to the given list (default: none).
+        /// The set of channels (names and order) must be the same at every call. Values should be in SI units.
+        virtual void AddOutputChannels(std::vector<ChOutput::Channel>& channels) const {}
 
         /// Remove from the containing system all physics items created by this assembly in Initialize().
         /// This function is called by the test rig destructor. It should remove only items that the wheel assembly
@@ -476,6 +481,12 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// Get current steering actuator coordinate (0 if the wheel assembly has no steering actuator).
     double GetSteeringActuatorCoordinate() const;
 
+    /// Get the current values of the rig output channels.
+    /// The channels include the rig measurements (zero until measurements are enabled, see OutputEnabled), the rig and
+    /// wheel kinematics, and any channels provided by the wheel assembly (see WheelAssembly::AddOutputChannels). All
+    /// quantities are in SI units, with angles in radians. The set of channels is the same at every call.
+    std::vector<ChOutput::Channel> GetOutputChannels() const;
+
     /// Get the kinematic steering map (steering angle as a function of steering actuator coordinate).
     /// This map is computed during initialization, only if a steering angle function was specified.
     const ChFunctionInterp& GetSteeringMap() const { return m_steer_map; }
@@ -587,6 +598,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     std::shared_ptr<ChLinkMotorLinearPosition> m_travel_motor;  ///< suspension travel actuator during the drop phase
     std::shared_ptr<SteeringActuator> m_steer_actuator;         ///< steering actuator of the wheel assembly
     double m_drop_contact_time;                                 ///< time at which the wheel reached the terrain (drop phase)
+    double m_hub_offset0;                                       ///< hub height relative to chassis in design configuration
 };
 
 /// @} vehicle_wheeled_test_rig
