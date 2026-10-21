@@ -66,6 +66,7 @@ class ChApi ChOutputHDF5 : public ChOutput {
 #ifdef CHRONO_FEA
     virtual void WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) override;
 #endif
+    virtual void WriteChannels(const std::vector<Channel>& channels) override;
 
     H5::H5File* m_fileHDF5;
     H5::Group* m_frame_group;

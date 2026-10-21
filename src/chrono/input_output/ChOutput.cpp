@@ -39,6 +39,10 @@ void ChOutput::Write(int frame, double time, const ChAssembly::Components& compo
 }
 
 void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components) {
+    Write(frame, time, components, {});
+}
+
+void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components, const std::vector<Channel>& channels) {
     switch (m_mode) {
         case Mode::FRAMES:
             WriteTimeStamp(frame, time);
@@ -65,6 +69,8 @@ void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly:
             for (auto c : components)
                 WriteMeshNodes(c->mesh_nodes);
 #endif
+            if (!channels.empty())
+                WriteChannels(channels);
 
             break;
 
@@ -108,8 +114,16 @@ void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly:
                 }
 #endif
 
+                // One buffer for each channel
+                for (const auto& channel : channels)
+                    m_channel_buf.push_back({channel.name, channel.units, {}});
+
                 m_buf_allocated = true;
             }
+
+            ChAssertAlways(channels.size() == m_channel_buf.size());
+            for (size_t i = 0; i < channels.size(); i++)
+                m_channel_buf[i].values.push_back(channels[i].value);
 
             m_time.push_back(time);
 

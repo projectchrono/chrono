@@ -114,6 +114,13 @@ struct node_info {
 
 // -----------------------------------------------------------------------------
 
+// Attach the given units as a string attribute of the specified dataset.
+static void writeUnits(H5::DataSet& set, const std::string& units) {
+    H5::StrType str_type(H5::PredType::C_S1, H5T_VARIABLE);
+    H5::Attribute att = set.createAttribute("units", str_type, H5::DataSpace(H5S_SCALAR));
+    att.write(str_type, units);
+}
+
 ChOutputHDF5::ChOutputHDF5(const std::string& out_dir, const std::string& out_file_stem, Mode mode) : ChOutput(mode), m_frame_group(nullptr) {
     auto filename = out_dir + "/" + out_file_stem + "." + GetModeAsString(mode) + ".h5";
     m_fileHDF5 = new H5::H5File(filename, H5F_ACC_TRUNC);
@@ -232,6 +239,7 @@ ChOutputHDF5::ChOutputHDF5(const std::string& out_dir, const std::string& out_fi
             H5::Group tsda_group(m_fileHDF5->createGroup("/TSDAs"));
             H5::Group rsda_group(m_fileHDF5->createGroup("/RSDAs"));
             H5::Group node_group(m_fileHDF5->createGroup("/FEA_Nodes"));
+            H5::Group channel_group(m_fileHDF5->createGroup("/Channels"));
 
             break;
         }
@@ -380,6 +388,16 @@ void ChOutputHDF5::WriteBuffers() {
             }
         }
     }
+
+    {
+        // Channels: /Channels/<channel name>, with the channel units as an attribute
+        H5::Group cgroup = m_fileHDF5->openGroup("/Channels");
+        for (const auto& buf : m_channel_buf) {
+            H5::DataSet set = cgroup.createDataSet(buf.name.c_str(), H5::PredType::NATIVE_DOUBLE, data_space_N);
+            set.write(buf.values.data(), H5::PredType::NATIVE_DOUBLE);
+            writeUnits(set, buf.units);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -397,6 +415,22 @@ static std::string format_number(int num, int precision) {
     std::ostringstream out;
     out << std::internal << std::setfill('0') << std::setw(precision) << num;
     return out.str();
+}
+
+void ChOutputHDF5::WriteChannels(const std::vector<Channel>& channels) {
+    if (channels.empty())
+        return;
+    if (!m_frame_group)
+        return;
+
+    // Channels for this frame: /Frames/Frame_<frame>/Channels/<channel name>, with the channel units as an attribute
+    H5::Group group = m_frame_group->createGroup("Channels");
+    H5::DataSpace dataspace(H5S_SCALAR);
+    for (const auto& channel : channels) {
+        H5::DataSet set = group.createDataSet(channel.name.c_str(), H5::PredType::NATIVE_DOUBLE, dataspace);
+        set.write(&channel.value, H5::PredType::NATIVE_DOUBLE);
+        writeUnits(set, channel.units);
+    }
 }
 
 void ChOutputHDF5::WriteTimeStamp(int frame, double time) {

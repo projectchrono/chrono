@@ -57,6 +57,7 @@ class ChApi ChOutputASCII : public ChOutput {
 #ifdef CHRONO_FEA
     virtual void WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) override;
 #endif
+    virtual void WriteChannels(const std::vector<Channel>& channels) override;
 
     // Implementation of functions for Mode::SERIES
     void WriteBuffers();

@@ -54,6 +54,7 @@ void ChOutputASCII::WriteBuffers() {
     m_stream << "Num TSDAs:      " << m_tsda_buf.size() << endl;
     m_stream << "Num RSDAs:      " << m_rsda_buf.size() << endl;
     m_stream << "Num FEA nodes:  " << m_node_buf.size() << endl;
+    m_stream << "Num channels:   " << m_channel_buf.size() << endl;
 
     m_stream << "Time ";
     for (size_t i = 0; i < m_time.size(); i++)
@@ -108,6 +109,10 @@ void ChOutputASCII::WriteBuffers() {
         }
         if (buf.has_slope)
             write_data(m_stream, "  slope", buf.slope);
+    }
+    for (const auto& buf : m_channel_buf) {
+        m_stream << "Channel " << buf.name << " [" << buf.units << "]" << endl;
+        write_data(m_stream, "  values", buf.values);
     }
 }
 
@@ -217,6 +222,11 @@ void ChOutputASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotor
         m_stream << "  ANG/VEL: " << motor->GetMotorAngle() << " " << motor->GetMotorAngleDt() << endl;
         m_stream << "  TORQUE:  " << motor->GetMotorTorque() << endl;
     }
+}
+
+void ChOutputASCII::WriteChannels(const std::vector<Channel>& channels) {
+    for (const auto& channel : channels)
+        m_stream << "Channel " << channel.name << " [" << channel.units << "]: " << channel.value << endl;
 }
 
 #ifdef CHRONO_FEA

@@ -19,6 +19,9 @@
 #ifndef CH_OUTPUT_H
 #define CH_OUTPUT_H
 
+#include <string>
+#include <vector>
+
 #include "chrono/physics/ChAssembly.h"
 
 #ifdef CHRONO_HAS_YAML
@@ -67,10 +70,23 @@ class ChApi ChOutput {
         double fps;
     };
 
+    /// Named scalar output quantity.
+    /// Channels are used for output quantities not associated with a single model component (e.g., derived
+    /// measurements).
+    struct ChApi Channel {
+        std::string name;   ///< channel name
+        std::string units;  ///< channel units (informational)
+        double value;       ///< current value
+    };
+
     virtual ~ChOutput() {}
 
     void Write(int frame, double time, const ChAssembly::Components& components);
     void Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components);
+
+    /// Write output for the given model components and channels.
+    /// The set of channels (names and order) must be the same at every call.
+    void Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components, const std::vector<Channel>& channels);
 
     static std::string GetFormatAsString(Format type);
 
@@ -121,6 +137,7 @@ class ChApi ChOutput {
 #ifdef CHRONO_FEA
     virtual void WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) = 0;
 #endif
+    virtual void WriteChannels(const std::vector<Channel>& channels) {}
 
   protected:
     // Data and functions for Mode::SERIES
@@ -183,6 +200,14 @@ class ChApi ChOutput {
     std::vector<TSDABuffers> m_tsda_buf;    ///< TSDA buffers
     std::vector<RSDABuffers> m_rsda_buf;    ///< RSDA buffers
     std::vector<MeshNodeBuffers> m_node_buf;  ///< FEA mesh node buffers
+
+    struct ChannelBuffers {
+        std::string name;            ///< channel name
+        std::string units;           ///< channel units
+        std::vector<double> values;  ///< values
+    };
+
+    std::vector<ChannelBuffers> m_channel_buf;  ///< channel buffers
 };
 
 /// @} chrono_io
