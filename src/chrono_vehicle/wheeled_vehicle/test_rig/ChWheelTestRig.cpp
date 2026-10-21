@@ -188,7 +188,6 @@ void VehicleWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body
     wheel->SetTire(tire);
 
     tire->Initialize(wheel);
-    tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
     tire->SetStepsize(step_size);
     tire->SetVisualizationType(vis_type);
 }
