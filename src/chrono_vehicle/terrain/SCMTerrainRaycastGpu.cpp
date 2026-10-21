@@ -245,8 +245,13 @@ bool SCMLoader::ComputeRayCastGpu(std::vector<RaycastHit>& out_hits, int& num_ra
                                                   static_cast<int>(faces.size()),
                                                   margins.data(),
                                                   static_cast<int>(candidates.size()));
-        if (mesh_rc != 0)
+        if (mesh_rc != 0) {
+            // A failed upload can leave the device buffers partly overwritten or freed. Forget the cached
+            // candidate set so the next step re-uploads the mesh instead of trusting what is on the device.
+            state.last_candidates.clear();
+            state.boxes.clear();
             return false;
+        }
 
         state.last_candidates = candidates;
         state.boxes = boxes;

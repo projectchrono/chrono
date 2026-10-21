@@ -27,9 +27,9 @@
 
 #include <cuda_runtime.h>
 
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 #include <vector>
 
 namespace {
@@ -92,11 +92,6 @@ extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
                                        void* results_dev,
                                        cudaStream_t stream);
 
-void die_cuda(const char* msg, cudaError_t err) {
-    fprintf(stderr, "SCM RAYCAST GPU FATAL: %s -- %s\n", msg, cudaGetErrorString(err));
-    std::abort();
-}
-
 void ensure_device(int device) {
     int current = -1;
     cudaGetDevice(&current);
@@ -104,16 +99,28 @@ void ensure_device(int device) {
         cudaSetDevice(device);
 }
 
+// Grow a device buffer. A failed allocation is not fatal: the buffer is left empty, the error is
+// returned, and the caller declines the step so SCM runs the CPU ray cast instead. The allocation
+// is retried on the next step, so the message is printed only once.
 template <typename T>
-void ensure_capacity(T** d_ptr, std::size_t& capacity, std::size_t n) {
+cudaError_t ensure_capacity(T** d_ptr, std::size_t& capacity, std::size_t n) {
     if (n <= capacity)
-        return;
+        return cudaSuccess;
     if (*d_ptr)
         (void)cudaFree(*d_ptr);
+    *d_ptr = nullptr;
+    capacity = 0;
     cudaError_t e = cudaMalloc(d_ptr, n * sizeof(T));
-    if (e != cudaSuccess)
-        die_cuda("cudaMalloc", e);
+    if (e != cudaSuccess) {
+        *d_ptr = nullptr;
+        (void)cudaGetLastError();
+        static std::atomic<bool> warned{false};
+        if (!warned.exchange(true))
+            fprintf(stderr, "SCM RAYCAST GPU: cudaMalloc failed (%s); falling back to the CPU ray cast.\n", cudaGetErrorString(e));
+        return e;
+    }
     capacity = n;
+    return cudaSuccess;
 }
 
 }  // namespace
@@ -212,19 +219,22 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
             for (int i = 0; i < n_verts; ++i)
                 tmp[i] = {static_cast<float>(verts[i].x), static_cast<float>(verts[i].y),
                          static_cast<float>(verts[i].z)};
-            ensure_capacity(&ctx->d_verts_f, ctx->cap_verts_f, static_cast<std::size_t>(n_verts));
+            if (cudaError_t ea = ensure_capacity(&ctx->d_verts_f, ctx->cap_verts_f, static_cast<std::size_t>(n_verts)); ea != cudaSuccess)
+                return static_cast<int>(ea);
             cudaError_t e = cudaMemcpy(ctx->d_verts_f, tmp.data(), n_verts * sizeof(VertexF), cudaMemcpyHostToDevice);
             if (e != cudaSuccess)
                 return static_cast<int>(e);
         } else {
-            ensure_capacity(&ctx->d_verts, ctx->cap_verts, static_cast<std::size_t>(n_verts));
+            if (cudaError_t ea = ensure_capacity(&ctx->d_verts, ctx->cap_verts, static_cast<std::size_t>(n_verts)); ea != cudaSuccess)
+                return static_cast<int>(ea);
             cudaError_t e = cudaMemcpy(ctx->d_verts, verts, n_verts * sizeof(RaycastVertex), cudaMemcpyHostToDevice);
             if (e != cudaSuccess)
                 return static_cast<int>(e);
         }
     }
     if (n_faces > 0) {
-        ensure_capacity(&ctx->d_faces, ctx->cap_faces, static_cast<std::size_t>(n_faces));
+        if (cudaError_t ea = ensure_capacity(&ctx->d_faces, ctx->cap_faces, static_cast<std::size_t>(n_faces)); ea != cudaSuccess)
+            return static_cast<int>(ea);
         cudaError_t e = cudaMemcpy(ctx->d_faces, faces, n_faces * sizeof(RaycastFace), cudaMemcpyHostToDevice);
         if (e != cudaSuccess)
             return static_cast<int>(e);
@@ -234,13 +244,15 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
             std::vector<MarginF> tmp(n_bodies);
             for (int i = 0; i < n_bodies; ++i)
                 tmp[i] = {static_cast<float>(margins[i].margin), margins[i].face_begin, margins[i].face_end};
-            ensure_capacity(&ctx->d_margins_f, ctx->cap_margins_f, static_cast<std::size_t>(n_bodies));
+            if (cudaError_t ea = ensure_capacity(&ctx->d_margins_f, ctx->cap_margins_f, static_cast<std::size_t>(n_bodies)); ea != cudaSuccess)
+                return static_cast<int>(ea);
             cudaError_t e =
                 cudaMemcpy(ctx->d_margins_f, tmp.data(), n_bodies * sizeof(MarginF), cudaMemcpyHostToDevice);
             if (e != cudaSuccess)
                 return static_cast<int>(e);
         } else {
-            ensure_capacity(&ctx->d_margins, ctx->cap_margins, static_cast<std::size_t>(n_bodies));
+            if (cudaError_t ea = ensure_capacity(&ctx->d_margins, ctx->cap_margins, static_cast<std::size_t>(n_bodies)); ea != cudaSuccess)
+                return static_cast<int>(ea);
             cudaError_t e =
                 cudaMemcpy(ctx->d_margins, margins, n_bodies * sizeof(RaycastBodyMargin), cudaMemcpyHostToDevice);
             if (e != cudaSuccess)
@@ -273,12 +285,14 @@ extern "C" int scm_raycast_gpu_upload_transforms(ScmRaycastGpuContext* ctx,
                      static_cast<float>(t.bx0), static_cast<float>(t.by0), static_cast<float>(t.bz0),
                      static_cast<float>(t.bx1), static_cast<float>(t.by1), static_cast<float>(t.bz1)};
         }
-        ensure_capacity(&ctx->d_xforms_f, ctx->cap_bodies_f, static_cast<std::size_t>(n_bodies));
+        if (cudaError_t ea = ensure_capacity(&ctx->d_xforms_f, ctx->cap_bodies_f, static_cast<std::size_t>(n_bodies)); ea != cudaSuccess)
+            return static_cast<int>(ea);
         cudaError_t e = cudaMemcpy(ctx->d_xforms_f, tmp.data(), n_bodies * sizeof(TransformF), cudaMemcpyHostToDevice);
         if (e != cudaSuccess)
             return static_cast<int>(e);
     } else {
-        ensure_capacity(&ctx->d_xforms, ctx->cap_bodies, static_cast<std::size_t>(n_bodies));
+        if (cudaError_t ea = ensure_capacity(&ctx->d_xforms, ctx->cap_bodies, static_cast<std::size_t>(n_bodies)); ea != cudaSuccess)
+            return static_cast<int>(ea);
         cudaError_t e =
             cudaMemcpy(ctx->d_xforms, xforms, n_bodies * sizeof(RaycastBodyTransform), cudaMemcpyHostToDevice);
         if (e != cudaSuccess)
@@ -306,8 +320,10 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
                        static_cast<float>(queries[i].from_z), static_cast<float>(queries[i].to_x),
                        static_cast<float>(queries[i].to_y),   static_cast<float>(queries[i].to_z)};
 
-        ensure_capacity(&ctx->d_queries_f, ctx->cap_queries_f, static_cast<std::size_t>(n_queries));
-        ensure_capacity(&ctx->d_results_f, ctx->cap_results_f, static_cast<std::size_t>(n_queries));
+        if (cudaError_t ea = ensure_capacity(&ctx->d_queries_f, ctx->cap_queries_f, static_cast<std::size_t>(n_queries)); ea != cudaSuccess)
+            return static_cast<int>(ea);
+        if (cudaError_t ea = ensure_capacity(&ctx->d_results_f, ctx->cap_results_f, static_cast<std::size_t>(n_queries)); ea != cudaSuccess)
+            return static_cast<int>(ea);
 
         cudaError_t e1 = cudaMemcpy(ctx->d_queries_f, q_tmp.data(), n_queries * sizeof(QueryF), cudaMemcpyHostToDevice);
         if (e1 != cudaSuccess)
@@ -338,8 +354,10 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
         return static_cast<int>(cudaSuccess);
     }
 
-    ensure_capacity(&ctx->d_queries, ctx->cap_queries, static_cast<std::size_t>(n_queries));
-    ensure_capacity(&ctx->d_results, ctx->cap_results, static_cast<std::size_t>(n_queries));
+    if (cudaError_t ea = ensure_capacity(&ctx->d_queries, ctx->cap_queries, static_cast<std::size_t>(n_queries)); ea != cudaSuccess)
+        return static_cast<int>(ea);
+    if (cudaError_t ea = ensure_capacity(&ctx->d_results, ctx->cap_results, static_cast<std::size_t>(n_queries)); ea != cudaSuccess)
+        return static_cast<int>(ea);
 
     cudaError_t e1 = cudaMemcpy(ctx->d_queries, queries, n_queries * sizeof(RaycastQuery), cudaMemcpyHostToDevice);
     if (e1 != cudaSuccess)

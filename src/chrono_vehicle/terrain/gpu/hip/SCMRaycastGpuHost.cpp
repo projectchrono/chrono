@@ -27,9 +27,9 @@
 
 #include <hip/hip_runtime.h>
 
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 #include <vector>
 
 namespace {
@@ -92,11 +92,6 @@ extern "C" int scm_launch_raycast_fp32(const void* queries_dev,
                                        void* results_dev,
                                        hipStream_t stream);
 
-void die_hip(const char* msg, hipError_t err) {
-    fprintf(stderr, "SCM RAYCAST GPU FATAL: %s -- %s\n", msg, hipGetErrorString(err));
-    std::abort();
-}
-
 void ensure_device(int device) {
     int current = -1;
     hipGetDevice(&current);
@@ -104,16 +99,28 @@ void ensure_device(int device) {
         hipSetDevice(device);
 }
 
+// Grow a device buffer. A failed allocation is not fatal: the buffer is left empty, the error is
+// returned, and the caller declines the step so SCM runs the CPU ray cast instead. The allocation
+// is retried on the next step, so the message is printed only once.
 template <typename T>
-void ensure_capacity(T** d_ptr, std::size_t& capacity, std::size_t n) {
+hipError_t ensure_capacity(T** d_ptr, std::size_t& capacity, std::size_t n) {
     if (n <= capacity)
-        return;
+        return hipSuccess;
     if (*d_ptr)
         (void)hipFree(*d_ptr);
+    *d_ptr = nullptr;
+    capacity = 0;
     hipError_t e = hipMalloc(d_ptr, n * sizeof(T));
-    if (e != hipSuccess)
-        die_hip("hipMalloc", e);
+    if (e != hipSuccess) {
+        *d_ptr = nullptr;
+        (void)hipGetLastError();
+        static std::atomic<bool> warned{false};
+        if (!warned.exchange(true))
+            fprintf(stderr, "SCM RAYCAST GPU: hipMalloc failed (%s); falling back to the CPU ray cast.\n", hipGetErrorString(e));
+        return e;
+    }
     capacity = n;
+    return hipSuccess;
 }
 
 }  // namespace
@@ -212,19 +219,22 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
             for (int i = 0; i < n_verts; ++i)
                 tmp[i] = {static_cast<float>(verts[i].x), static_cast<float>(verts[i].y),
                          static_cast<float>(verts[i].z)};
-            ensure_capacity(&ctx->d_verts_f, ctx->cap_verts_f, static_cast<std::size_t>(n_verts));
+            if (hipError_t ea = ensure_capacity(&ctx->d_verts_f, ctx->cap_verts_f, static_cast<std::size_t>(n_verts)); ea != hipSuccess)
+                return static_cast<int>(ea);
             hipError_t e = hipMemcpy(ctx->d_verts_f, tmp.data(), n_verts * sizeof(VertexF), hipMemcpyHostToDevice);
             if (e != hipSuccess)
                 return static_cast<int>(e);
         } else {
-            ensure_capacity(&ctx->d_verts, ctx->cap_verts, static_cast<std::size_t>(n_verts));
+            if (hipError_t ea = ensure_capacity(&ctx->d_verts, ctx->cap_verts, static_cast<std::size_t>(n_verts)); ea != hipSuccess)
+                return static_cast<int>(ea);
             hipError_t e = hipMemcpy(ctx->d_verts, verts, n_verts * sizeof(RaycastVertex), hipMemcpyHostToDevice);
             if (e != hipSuccess)
                 return static_cast<int>(e);
         }
     }
     if (n_faces > 0) {
-        ensure_capacity(&ctx->d_faces, ctx->cap_faces, static_cast<std::size_t>(n_faces));
+        if (hipError_t ea = ensure_capacity(&ctx->d_faces, ctx->cap_faces, static_cast<std::size_t>(n_faces)); ea != hipSuccess)
+            return static_cast<int>(ea);
         hipError_t e = hipMemcpy(ctx->d_faces, faces, n_faces * sizeof(RaycastFace), hipMemcpyHostToDevice);
         if (e != hipSuccess)
             return static_cast<int>(e);
@@ -234,13 +244,15 @@ extern "C" int scm_raycast_gpu_upload_mesh(ScmRaycastGpuContext* ctx,
             std::vector<MarginF> tmp(n_bodies);
             for (int i = 0; i < n_bodies; ++i)
                 tmp[i] = {static_cast<float>(margins[i].margin), margins[i].face_begin, margins[i].face_end};
-            ensure_capacity(&ctx->d_margins_f, ctx->cap_margins_f, static_cast<std::size_t>(n_bodies));
+            if (hipError_t ea = ensure_capacity(&ctx->d_margins_f, ctx->cap_margins_f, static_cast<std::size_t>(n_bodies)); ea != hipSuccess)
+                return static_cast<int>(ea);
             hipError_t e =
                 hipMemcpy(ctx->d_margins_f, tmp.data(), n_bodies * sizeof(MarginF), hipMemcpyHostToDevice);
             if (e != hipSuccess)
                 return static_cast<int>(e);
         } else {
-            ensure_capacity(&ctx->d_margins, ctx->cap_margins, static_cast<std::size_t>(n_bodies));
+            if (hipError_t ea = ensure_capacity(&ctx->d_margins, ctx->cap_margins, static_cast<std::size_t>(n_bodies)); ea != hipSuccess)
+                return static_cast<int>(ea);
             hipError_t e =
                 hipMemcpy(ctx->d_margins, margins, n_bodies * sizeof(RaycastBodyMargin), hipMemcpyHostToDevice);
             if (e != hipSuccess)
@@ -273,12 +285,14 @@ extern "C" int scm_raycast_gpu_upload_transforms(ScmRaycastGpuContext* ctx,
                      static_cast<float>(t.bx0), static_cast<float>(t.by0), static_cast<float>(t.bz0),
                      static_cast<float>(t.bx1), static_cast<float>(t.by1), static_cast<float>(t.bz1)};
         }
-        ensure_capacity(&ctx->d_xforms_f, ctx->cap_bodies_f, static_cast<std::size_t>(n_bodies));
+        if (hipError_t ea = ensure_capacity(&ctx->d_xforms_f, ctx->cap_bodies_f, static_cast<std::size_t>(n_bodies)); ea != hipSuccess)
+            return static_cast<int>(ea);
         hipError_t e = hipMemcpy(ctx->d_xforms_f, tmp.data(), n_bodies * sizeof(TransformF), hipMemcpyHostToDevice);
         if (e != hipSuccess)
             return static_cast<int>(e);
     } else {
-        ensure_capacity(&ctx->d_xforms, ctx->cap_bodies, static_cast<std::size_t>(n_bodies));
+        if (hipError_t ea = ensure_capacity(&ctx->d_xforms, ctx->cap_bodies, static_cast<std::size_t>(n_bodies)); ea != hipSuccess)
+            return static_cast<int>(ea);
         hipError_t e =
             hipMemcpy(ctx->d_xforms, xforms, n_bodies * sizeof(RaycastBodyTransform), hipMemcpyHostToDevice);
         if (e != hipSuccess)
@@ -306,8 +320,10 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
                        static_cast<float>(queries[i].from_z), static_cast<float>(queries[i].to_x),
                        static_cast<float>(queries[i].to_y),   static_cast<float>(queries[i].to_z)};
 
-        ensure_capacity(&ctx->d_queries_f, ctx->cap_queries_f, static_cast<std::size_t>(n_queries));
-        ensure_capacity(&ctx->d_results_f, ctx->cap_results_f, static_cast<std::size_t>(n_queries));
+        if (hipError_t ea = ensure_capacity(&ctx->d_queries_f, ctx->cap_queries_f, static_cast<std::size_t>(n_queries)); ea != hipSuccess)
+            return static_cast<int>(ea);
+        if (hipError_t ea = ensure_capacity(&ctx->d_results_f, ctx->cap_results_f, static_cast<std::size_t>(n_queries)); ea != hipSuccess)
+            return static_cast<int>(ea);
 
         hipError_t e1 = hipMemcpy(ctx->d_queries_f, q_tmp.data(), n_queries * sizeof(QueryF), hipMemcpyHostToDevice);
         if (e1 != hipSuccess)
@@ -338,8 +354,10 @@ extern "C" int scm_raycast_gpu_run(ScmRaycastGpuContext* ctx,
         return static_cast<int>(hipSuccess);
     }
 
-    ensure_capacity(&ctx->d_queries, ctx->cap_queries, static_cast<std::size_t>(n_queries));
-    ensure_capacity(&ctx->d_results, ctx->cap_results, static_cast<std::size_t>(n_queries));
+    if (hipError_t ea = ensure_capacity(&ctx->d_queries, ctx->cap_queries, static_cast<std::size_t>(n_queries)); ea != hipSuccess)
+        return static_cast<int>(ea);
+    if (hipError_t ea = ensure_capacity(&ctx->d_results, ctx->cap_results, static_cast<std::size_t>(n_queries)); ea != hipSuccess)
+        return static_cast<int>(ea);
 
     hipError_t e1 = hipMemcpy(ctx->d_queries, queries, n_queries * sizeof(RaycastQuery), hipMemcpyHostToDevice);
     if (e1 != hipSuccess)
