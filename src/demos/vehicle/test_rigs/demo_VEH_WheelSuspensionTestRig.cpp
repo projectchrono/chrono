@@ -59,7 +59,8 @@ std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
 ////std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
 // Suspension specification file
-std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneRear.json";
+std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneFront.json";
+////std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneRear.json";
 ////std::string suspension_json = "Polaris/Polaris_Rear_TrailingArm.json";
 
 double render_fps = 60;
@@ -113,6 +114,14 @@ int main() {
     //   angular speed: 10 RPM
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
+
+    // Steering (steerable suspension only): the wheel is steered about its kingpin through a rack attached to the tierods.
+    //   steering angle: sinusoidal +- 5 deg with 5 s period (converted to rack displacement through a kinematic map)
+    rig.SetSteeringAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
+    ////rig.EnableSteeringFeedback(true, 0.05);
+
+    // Alternatively, prescribe the steering rack displacement directly
+    ////rig.SetRackDisplacementFunction(chrono_types::make_shared<ChFunctionSine>(0.01, 0.2));
 
     // Set delay before applying inputs (settling time)
     double input_time_delay = 1.0;
@@ -181,7 +190,7 @@ int main() {
 
         if (debug_output && rig.OutputEnabled()) {
             cout << time << endl;
-            cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
+            cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << " " << rig.GetSteeringAngle() * CH_RAD_TO_DEG << endl;
             auto tforce = rig.ReportWheelForce();
             auto frc = tforce.force;
             auto pnt = tforce.point;

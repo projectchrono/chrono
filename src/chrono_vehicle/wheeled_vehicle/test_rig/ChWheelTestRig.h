@@ -33,9 +33,11 @@
 
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
@@ -72,6 +74,13 @@ class CH_VEHICLE_API ChWheelTestRig {
 
         /// Return `true` if the assembly includes a suspension subsystem and `false` otherwise.
         virtual bool HasSuspension() const = 0;
+
+        /// Return `true` if the assembly can be steered through a steering link (e.g., a steerable suspension).
+        virtual bool IsSteerable() const { return false; }
+
+        /// Set the steering link to which the steering linkage of the assembly (e.g., the suspension tierods) must be attached.
+        /// This function is called before Initialize(), and only for a steerable assembly when steering is requested.
+        virtual void SetSteeringLink(std::shared_ptr<ChBody> link) {}
 
         /// Return the total mass of the wheel assembly.
         virtual double GetMass() const = 0;
@@ -218,6 +227,27 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// A slip angle function can be used only if the wheel is not attached to a suspension subsystem
     /// (in that case, the suspension dictates slip angle).
     void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
+
+    /// Specify wheel steering angle as function of time (default: none).
+    /// Steering requires a steerable wheel assembly (e.g., a steerable suspension) and is ignored otherwise; for a wheel
+    /// without a suspension, use SetSlipAngleFunction instead. The rig steers the wheel about its kingpin by moving a
+    /// steering rack to which the suspension tierods are attached. The rack displacement is obtained from the specified
+    /// steering angle through a kinematic map, computed during initialization at the suspension design configuration.
+    /// Steering angles are relative to the design configuration and positive to the left (positive rotation about the
+    /// vertical axis). Away from the design configuration, the actual steering angle includes bump and compliance steer.
+    /// This function overrides any rack displacement function.
+    void SetSteeringAngleFunction(std::shared_ptr<ChFunction> funct);
+
+    /// Specify steering rack displacement as function of time (default: none).
+    /// The rack moves along the rig lateral (Y) axis. See SetSteeringAngleFunction for the steering requirements.
+    /// This function overrides any steering angle function.
+    void SetRackDisplacementFunction(std::shared_ptr<ChFunction> funct);
+
+    /// Enable feedback correction of the steering rack displacement (default: false).
+    /// Used only with a steering angle function. An integral correction, normalized by the local slope of the kinematic
+    /// steering map, drives the actual steering angle to the specified one with the given time constant. Note that this
+    /// cancels bump and compliance steer.
+    void EnableSteeringFeedback(bool enable, double time_constant = 0.05);
 
     /// Set the time step for advancing wheel assembly dynamics (default: 1e-3 s).
     void SetStepsize(double step) { m_step_size = step; }
@@ -376,6 +406,17 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// This value is calculated from the current hub normal direction.
     double GetCamberAngle() const;
 
+    /// Get current wheel steering angle, relative to the initial configuration (positive to the left).
+    /// This value is calculated from the current hub normal direction, relative to the rig chassis.
+    double GetSteeringAngle() const;
+
+    /// Get current steering rack displacement (0 if the rig has no steering rack).
+    double GetRackDisplacement() const;
+
+    /// Get the kinematic steering map (steering angle as a function of rack displacement).
+    /// This map is computed during initialization, only if a steering angle function was specified.
+    const ChFunctionInterp& GetSteeringMap() const { return m_steer_map; }
+
     /// Get the linear motor used to actuate the carrier.
     std::shared_ptr<ChLinkMotorLinearSpeed> GetMotorCarrier() const { return m_lin_motor; }
 
@@ -387,6 +428,12 @@ class CH_VEHICLE_API ChWheelTestRig {
     void CreateMechanism();
     void CreateWheelSuspensionMechanism(double dim);
     void CreateWheelMechanism(double dim);
+
+    /// Compute the kinematic steering map through a sweep of position-level assemblies.
+    void ComputeSteeringMap();
+
+    /// Calculate the current hub yaw angle relative to the rig chassis.
+    double CalcHubYaw() const;
 
     /// Create the terrain patch of specified type.
     void CreateTerrain();
@@ -454,10 +501,22 @@ class CH_VEHICLE_API ChWheelTestRig {
     std::shared_ptr<ChFunction> m_rs_fun;  ///< angular speed function of time
     std::shared_ptr<ChFunction> m_sa_fun;  ///< slip angle function of time
 
+    enum class SteeringInput { NONE, ANGLE, RACK };
+    SteeringInput m_steer_input;              ///< type of steering input
+    std::shared_ptr<ChFunction> m_steer_fun;  ///< steering angle or rack displacement function of time
+    bool m_steer_feedback;                    ///< use feedback correction of rack displacement?
+    double m_steer_tau;                       ///< time constant for steering feedback correction
+    double m_steer_yaw0;                      ///< hub yaw angle in the initial configuration
+    double m_rack_offset;                     ///< rack displacement correction (steering feedback)
+    ChFunctionInterp m_steer_map;             ///< steering angle as function of rack displacement
+    ChFunctionInterp m_steer_map_inv;         ///< rack displacement as function of steering angle
+
     std::shared_ptr<ChLinkMotorLinearSpeed> m_drop_motor;  ///< actuator for controlled wheel drop
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;   ///< carrier actuator
     std::shared_ptr<ChShaftsMotorSpeed> m_rot_motor;       ///< wheel actuator
     std::shared_ptr<ChLinkLockLock> m_slip_lock;           ///< slip angle actuator
+    std::shared_ptr<ChBody> m_rack_body;                   ///< steering rack (tierod attachment)
+    std::shared_ptr<ChLinkMotorLinearPosition> m_rack_motor;  ///< steering rack actuator
 };
 
 /// @} vehicle_wheeled_test_rig

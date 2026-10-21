@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
@@ -23,6 +25,8 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
@@ -74,6 +78,27 @@ class DummyChassis : public ChChassis {
     std::shared_ptr<ChBodyAuxRef> chassis_body;
 };
 
+// Stand-in steering subsystem for a VehicleWheelAssembly.
+// Wraps the rig steering rack, so that the tierods of a steerable suspension are attached to it.
+class DummySteering : public ChSteering {
+  public:
+    DummySteering(std::shared_ptr<ChBody> link) : ChSteering("dummy_steering"), link(link) {}
+    virtual std::string GetTemplateName() const override { return "dummy_template"; }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs) override {}
+    virtual void InitializeInertiaProperties() override {
+        m_mass = link->GetMass();
+        m_inertia = link->GetInertia();
+        m_com = ChFrame<>();
+    }
+    virtual void UpdateInertiaProperties() override { m_xform = m_parent->GetTransform().TransformLocalToParent(m_rel_xform); }
+
+  private:
+    // The rig owns the rack body, so ~ChSteering finds it already removed from the system.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, const ChQuaternion<>& rotation) override { m_link = link; }
+
+    std::shared_ptr<ChBody> link;
+};
+
 // ChWheelTestRig::WheelAssembly that wraps a Chrono::Vehicle tire and wheel assembly and, optionally, a Chrono::vehicle suspension.
 class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
   public:
@@ -81,6 +106,8 @@ class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
     VehicleWheelAssembly(ChSystem& system, std::shared_ptr<ChSuspension> suspension, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire);
 
     virtual bool HasSuspension() const override { return suspension ? true : false; }
+    virtual bool IsSteerable() const override { return suspension && suspension->IsSteerable(); }
+    virtual void SetSteeringLink(std::shared_ptr<ChBody> link) override { steering_link = link; }
 
     virtual double GetMass() const override;
     virtual double GetWheelMass() const override { return wheel->GetMass(); }
@@ -105,6 +132,8 @@ class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
   private:
     std::shared_ptr<DummyChassis> chassis;
     std::shared_ptr<ChSuspension> suspension;
+    std::shared_ptr<ChBody> steering_link;
+    std::shared_ptr<DummySteering> steering;
     std::shared_ptr<ChSpindle> spindle;
     std::shared_ptr<ChWheel> wheel;
     std::shared_ptr<ChTire> tire;
@@ -167,7 +196,13 @@ void VehicleWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body
         chassis->Initialize(nullptr, ChCoordsysd(chassis_body->GetPos(), QUNIT), 0.0);
         chassis->SetVisualizationType(vis_type);
 
-        suspension->Initialize(chassis, nullptr, nullptr, frame.GetPos());
+        // If a steering link was provided, attach the suspension tierods to it (through a stand-in steering subsystem)
+        if (steering_link) {
+            steering = chrono_types::make_shared<DummySteering>(steering_link);
+            steering->Initialize(chassis, steering_link->GetPos() - chassis_body->GetPos(), QUNIT);
+        }
+
+        suspension->Initialize(chassis, nullptr, steering, frame.GetPos());
         suspension->SetVisualizationType(vis_type);
 
         spindle = suspension->GetSpindle(VehicleSide::LEFT);
@@ -230,6 +265,11 @@ ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> 
       m_rs_actuated(false),
       m_long_slip_constant(false),
       m_sa_fun(chrono_types::make_shared<ChFunctionConst>(0)),
+      m_steer_input(SteeringInput::NONE),
+      m_steer_feedback(false),
+      m_steer_tau(0.05),
+      m_steer_yaw0(0),
+      m_rack_offset(0),
       m_terrain_type(TerrainType::NONE),
       m_terrain_offset(0),
       m_terrain_height(0),
@@ -259,6 +299,21 @@ void ChWheelTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) {
 void ChWheelTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) {
     m_rs_fun = funct;
     m_rs_actuated = true;
+}
+
+void ChWheelTestRig::SetSteeringAngleFunction(std::shared_ptr<ChFunction> funct) {
+    m_steer_fun = funct;
+    m_steer_input = SteeringInput::ANGLE;
+}
+
+void ChWheelTestRig::SetRackDisplacementFunction(std::shared_ptr<ChFunction> funct) {
+    m_steer_fun = funct;
+    m_steer_input = SteeringInput::RACK;
+}
+
+void ChWheelTestRig::EnableSteeringFeedback(bool enable, double time_constant) {
+    m_steer_feedback = enable;
+    m_steer_tau = time_constant;
 }
 
 void ChWheelTestRig::SetConstantLongitudinalSlip(double long_slip, double base_speed) {
@@ -385,10 +440,43 @@ class DelayedFun : public ChFunction {
     double m_delay;
 };
 
+// Steering rack displacement function.
+// Evaluates the steering input after the given delay and, for a steering angle input, converts it to a rack displacement
+// through the inverse kinematic steering map. A feedback correction (if any) is added and the result is clamped to the
+// range of the map.
+class RackFun : public ChFunction {
+  public:
+    RackFun(std::shared_ptr<ChFunction> fun, double delay, const ChFunctionInterp* map_inv, const double* offset)
+        : m_fun(fun), m_delay(delay), m_map_inv(map_inv), m_offset(offset) {}
+    virtual RackFun* Clone() const override { return new RackFun(*this); }
+    virtual double GetVal(double x) const override {
+        if (x < m_delay)
+            return 0;
+        double val = m_fun->GetVal(x - m_delay);
+        if (!m_map_inv)
+            return val;
+        double rack = m_map_inv->GetVal(val) + *m_offset;
+        const auto& table = m_map_inv->GetTable();
+        double rack_min = std::min(table.begin()->second, table.rbegin()->second);
+        double rack_max = std::max(table.begin()->second, table.rbegin()->second);
+        return std::clamp(rack, rack_min, rack_max);
+    }
+    std::shared_ptr<ChFunction> m_fun;
+    double m_delay;
+    const ChFunctionInterp* m_map_inv;
+    const double* m_offset;
+};
+
 void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
     m_mode = mode;
 
     CreateMechanism();
+
+    // Record the initial hub yaw angle and, for a steering angle input, compute the kinematic steering map
+    m_steer_yaw0 = CalcHubYaw();
+    if (m_rack_motor && m_steer_input == SteeringInput::ANGLE)
+        ComputeSteeringMap();
+
     CreateTerrain();
 
     std::cout << "Wheel radius: " << m_wheel_assembly->GetRadius() << std::endl;
@@ -431,6 +519,19 @@ void ChWheelTestRig::Advance(double step) {
 
         if (m_slip_lock)
             m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
+
+        if (m_rack_motor) {
+            const ChFunctionInterp* map_inv = (m_steer_input == SteeringInput::ANGLE) ? &m_steer_map_inv : nullptr;
+            m_rack_motor->SetMotionFunction(chrono_types::make_shared<RackFun>(m_steer_fun, m_time_delay, map_inv, &m_rack_offset));
+        }
+    }
+
+    // Steering feedback: integral correction of the rack displacement, normalized by the local slope of the steering map
+    if (m_rack_motor && m_steer_input == SteeringInput::ANGLE && m_steer_feedback && m_drop_motor->IsDisabled() && time > m_time_delay) {
+        double error = m_steer_fun->GetVal(time - m_time_delay) - (CalcHubYaw() - m_steer_yaw0);
+        double slope = m_steer_map.GetDer(m_rack_motor->GetMotorPos());
+        if (std::abs(slope) > 1e-6)
+            m_rack_offset += step * error / (m_steer_tau * slope);
     }
 
     // Turn on calculation of measured quantities
@@ -593,6 +694,8 @@ void ChWheelTestRig::CreateMechanism() {
     if (m_grav > 0) {
         m_total_mass = m_normal_load / m_grav;
         double other_mass = m_wheel_assembly->GetMass() + (has_suspension ? 0.0 : m_slip_body->GetMass());
+        if (m_rack_body)
+            other_mass += m_rack_body->GetMass();
         double chassis_mass = m_total_mass - other_mass;
         if (chassis_mass > m_wheel_assembly->GetWheelMass()) {
             m_chassis_body->SetMass(chassis_mass);
@@ -603,6 +706,11 @@ void ChWheelTestRig::CreateMechanism() {
 }
 
 void ChWheelTestRig::CreateWheelMechanism(double dim) {
+    if (m_steer_input != SteeringInput::NONE) {
+        std::cout << "\nWARNING!  Steering requires a steerable suspension. Steering input ignored (use a slip angle function).\n" << std::endl;
+        m_steer_input = SteeringInput::NONE;
+    }
+
     // Create the slip body
     m_slip_body = chrono_types::make_shared<ChBody>();
     AddItem(m_slip_body);
@@ -623,7 +731,8 @@ void ChWheelTestRig::CreateWheelMechanism(double dim) {
     qc.SetFromAngleX(-m_camber_angle);
     m_wheel_assembly->Initialize(nullptr, ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
-    // Adjust rig body mass and inertia commensurate with those of the wheel
+    // Adjust rig body mass and inertia commensurate with those of the wheel.
+    // Note that this must be done after initialization of the wheel assembly (the tire radius may not be available before).
     double mass = m_wheel_assembly->GetWheelMass();
     const double radius = m_wheel_assembly->GetRadius();
     ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
@@ -662,10 +771,46 @@ void ChWheelTestRig::CreateWheelSuspensionMechanism(double dim) {
         m_chassis_body->AddVisualShape(box, ChFramed(ChVector3d(0, 0, -4 * dim), QUNIT));
     }
 
+    // Create the steering rack (if steering was requested and the assembly is steerable).
+    // The rack translates laterally relative to the chassis, actuated by a position motor; the suspension tierods are attached to it.
+    if (m_mode == Mode::TEST && m_steer_input != SteeringInput::NONE) {
+        if (m_wheel_assembly->IsSteerable()) {
+            ChVector3d rack_pos(0, 0, -4 * dim);
+
+            m_rack_body = chrono_types::make_shared<ChBody>();
+            AddItem(m_rack_body);
+            m_rack_body->SetName("rig_rack");
+            m_rack_body->SetPos(rack_pos);
+            {
+                auto mat = chrono_types::make_shared<ChVisualMaterial>();
+                mat->SetDiffuseColor({0.35f, 0.32f, 0.29f});
+                mat->SetRoughness(0.6f);
+
+                utils::ChBodyGeometry::AddVisualizationCylinder(m_rack_body,                            //
+                                                                rack_pos + ChVector3d(0, -2 * dim, 0),  //
+                                                                rack_pos + ChVector3d(0, +2 * dim, 0),  //
+                                                                dim / 4,                                //
+                                                                mat);
+            }
+
+            // Motor frame Z axis along the rig Y axis; the motor also acts as a prismatic guide
+            m_rack_motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+            AddItem(m_rack_motor);
+            m_rack_motor->Initialize(m_rack_body, m_chassis_body, ChFrame<>(rack_pos, QuatFromAngleX(-CH_PI_2)));
+            m_rack_motor->SetMotionFunction(chrono_types::make_shared<ChFunctionConst>(0));
+
+            m_wheel_assembly->SetSteeringLink(m_rack_body);
+        } else {
+            std::cout << "\nWARNING!  Wheel assembly is not steerable. Steering input ignored.\n" << std::endl;
+            m_steer_input = SteeringInput::NONE;
+        }
+    }
+
     // Initialize the suspension and wheel assembly
     m_wheel_assembly->Initialize(m_chassis_body, ChFramed(ChVector3d(0, 0, -4 * dim), QUNIT), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
-    // Adjust rig body mass and inertia commensurate with those of the wheel
+    // Adjust rig body mass and inertia commensurate with those of the wheel.
+    // Note that this must be done after initialization of the wheel assembly (the tire radius may not be available before).
     double mass = m_wheel_assembly->GetWheelMass();
     const double radius = m_wheel_assembly->GetRadius();
     ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
@@ -675,6 +820,11 @@ void ChWheelTestRig::CreateWheelSuspensionMechanism(double dim) {
 
     m_chassis_body->SetMass(mass);
     m_chassis_body->SetInertia(inertia);
+
+    if (m_rack_body) {
+        m_rack_body->SetMass(mass);
+        m_rack_body->SetInertia(inertia);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -944,6 +1094,95 @@ double ChWheelTestRig::GetSlipAngle() const {
     auto dir = m_wheel_assembly->GetHub()->GetRotMat().GetAxisY();
     double slip_angle = std::atan(dir.x() / dir.y());
     return slip_angle;
+}
+
+double ChWheelTestRig::GetSteeringAngle() const {
+    if (!m_output)
+        return 0;
+
+    return CalcHubYaw() - m_steer_yaw0;
+}
+
+double ChWheelTestRig::GetRackDisplacement() const {
+    return m_rack_motor ? m_rack_motor->GetMotorPos() : 0;
+}
+
+double ChWheelTestRig::CalcHubYaw() const {
+    // Hub rotation axis, expressed in the rig chassis frame; yaw is positive for a rotation about the vertical axis
+    auto dir = m_chassis_body->TransformDirectionParentToLocal(m_wheel_assembly->GetHub()->GetRotMat().GetAxisY());
+    return std::atan2(-dir.x(), dir.y());
+}
+
+void ChWheelTestRig::ComputeSteeringMap() {
+    // Sweep the rack displacement in both directions from the design configuration, performing a position-level assembly
+    // at each step and recording the resulting hub yaw angle. A sweep direction ends when the assembly fails, the
+    // steering angle stops increasing in magnitude, or a maximum steering angle is reached.
+    const double max_angle = 45 * CH_DEG_TO_RAD;
+    const double rack_step = 0.005 * m_wheel_assembly->GetRadius();
+    const int max_steps = 400;
+
+    ChTimer timer;
+    timer.start();
+
+    auto rack_fun = chrono_types::make_shared<ChFunctionConst>(0);
+    m_rack_motor->SetMotionFunction(rack_fun);
+
+    // Use a direct linear solver for the position-level assemblies, independent of the solver used for dynamics
+    auto solver = m_system.GetSolver();
+    auto sweep_solver = chrono_types::make_shared<ChSolverSparseQR>();
+    sweep_solver->LockSparsityPattern(true);
+    m_system.SetSolver(sweep_solver);
+
+    // Assemble at the design configuration and save the system state
+    int num_assemblies = 1;
+    m_system.DoAssembly(AssemblyAnalysis::Level::POSITION);
+    ChState x0(m_system.GetNumCoordsPosLevel(), &m_system);
+    ChStateDelta v0(m_system.GetNumCoordsVelLevel(), &m_system);
+    double t0;
+    m_system.StateGather(x0, v0, t0);
+
+    m_steer_yaw0 = CalcHubYaw();
+    m_steer_map.Reset();
+    m_steer_map_inv.Reset();
+    m_steer_map.AddPoint(0, 0);
+    m_steer_map_inv.AddPoint(0, 0);
+
+    double slope_sign = 0;
+    for (int dir : {+1, -1}) {
+        m_system.StateScatter(x0, v0, t0, UpdateFlags::UPDATE_ALL);
+        double angle_prev = 0;
+        for (int k = 1; k <= max_steps; k++) {
+            double rack = dir * k * rack_step;
+            rack_fun->SetConstant(rack);
+            auto flag = m_system.DoAssembly(AssemblyAnalysis::Level::POSITION);
+            num_assemblies++;
+            if (flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED)
+                break;
+            double angle = CalcHubYaw() - m_steer_yaw0;
+            if (!std::isfinite(angle))
+                break;
+            if (slope_sign == 0)
+                slope_sign = (angle > 0) ? +1 : -1;
+            if ((angle - angle_prev) * slope_sign * dir < 1e-6)
+                break;
+            m_steer_map.AddPoint(rack, angle);
+            m_steer_map_inv.AddPoint(angle, rack);
+            if (std::abs(angle) > max_angle)
+                break;
+            angle_prev = angle;
+        }
+    }
+
+    // Restore the design configuration and the system solver
+    rack_fun->SetConstant(0);
+    m_system.StateScatter(x0, v0, t0, UpdateFlags::UPDATE_ALL);
+    m_system.SetSolver(solver);
+
+    timer.stop();
+
+    std::cout << "Steering map: " << m_steer_map.GetTable().size() << " points (" << num_assemblies << " assemblies) in " << 1e3 * timer() << " ms" << std::endl;
+    std::cout << "  rack displacement: [" << m_steer_map.GetStart() << ", " << m_steer_map.GetEnd() << "]" << std::endl;
+    std::cout << "  steering angle:    [" << m_steer_map_inv.GetStart() * CH_RAD_TO_DEG << ", " << m_steer_map_inv.GetEnd() * CH_RAD_TO_DEG << "] deg" << std::endl;
 }
 
 double ChWheelTestRig::GetCamberAngle() const {
