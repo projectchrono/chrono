@@ -38,6 +38,11 @@ visualization:
     map: JET
     min: 0.0
     max: 2.0
+  # Hide markers with y < 0 to reveal the cable (in the y = 0 plane) to a camera looking along +y
+  visibility:
+    planes:
+    - point: [0, 0, 0]
+      normal: [0, -1, 0]
 
 precice_adapter_config:
   participant_name: Fluid
