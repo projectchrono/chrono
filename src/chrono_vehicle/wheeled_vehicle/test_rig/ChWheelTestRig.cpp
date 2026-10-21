@@ -586,14 +586,24 @@ void ChWheelTestRig::Advance(double step) {
         std::static_pointer_cast<CRMTerrain>(m_terrain)->GetFsiSystemSPH()->DoStepDynamics(step);
 #endif
     } else {
-        // Synchronize subsystems
-        m_terrain->Synchronize(time);
-        m_wheel_assembly->Synchronize(time, *m_terrain.get());
+        // Advance over the given interval with the multibody step size
+        double t = 0;
+        while (t < step) {
+            double h = std::min(m_step_size, step - t);
+            if (h <= 1e-6 * m_step_size)
+                break;
 
-        // Advance state
-        m_terrain->Advance(step);
-        m_wheel_assembly->Advance(step);
-        m_system.DoStepDynamics(step);
+            // Synchronize subsystems
+            m_terrain->Synchronize(time + t);
+            m_wheel_assembly->Synchronize(time + t, *m_terrain.get());
+
+            // Advance state
+            m_terrain->Advance(h);
+            m_wheel_assembly->Advance(h);
+            m_system.DoStepDynamics(h);
+
+            t += h;
+        }
     }
 }
 
@@ -984,7 +994,7 @@ void ChWheelTestRig::CreateTerrainGranular() {
 
 #ifdef CHRONO_CRM
 
-ChWheelTestRig::TerrainParamsCRM::TerrainParamsCRM() {
+ChWheelTestRig::TerrainParamsCRM::TerrainParamsCRM() : step_cfd(0) {
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = 0.02;
     sph_params.d0_multiplier = 1.2;
@@ -1040,7 +1050,7 @@ void ChWheelTestRig::CreateTerrainCRM() {
     terrain->SetOutputLevel(OutputLevel::STATE);
     terrain->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
-    terrain->SetStepSizeCFD(m_step_size);
+    terrain->SetStepSizeCFD(m_params_crm.step_cfd > 0 ? m_params_crm.step_cfd : m_step_size);
 
     terrain->SetStepsizeMBD(m_step_size);
 

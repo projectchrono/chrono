@@ -249,7 +249,8 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// cancels bump and compliance steer.
     void EnableSteeringFeedback(bool enable, double time_constant = 0.05);
 
-    /// Set the time step for advancing wheel assembly dynamics (default: 1e-3 s).
+    /// Set the step size for the multibody system and the wheel assembly dynamics (default: 1e-3 s).
+    /// With CRM terrain, the SPH (CFD) step size is set separately, through TerrainParamsCRM::step_cfd.
     void SetStepsize(double step) { m_step_size = step; }
 
     /// Set visualization type for the wheel assembly (default: PRIMITIVES).
@@ -308,6 +309,7 @@ class CH_VEHICLE_API ChWheelTestRig {
         TerrainParamsCRM();
         fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph_params;  ///< SPH solver settings
         fsi::sph::ChFsiFluidSystemSPH::SoilProperties mat_props;  ///< soil properties
+        double step_cfd;                                          ///< SPH (CFD) step size; if not positive, the multibody step size is used (default: 0)
     };
 
     /// Enable use of CRM terrain.
@@ -365,7 +367,10 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// specified normal load (computed during initialization) and released once the wheel reaches the terrain.
     void Initialize(Mode mode, double drop_speed = 0.1);
 
-    /// Advance system state by the specified time step.
+    /// Advance the rig state by the specified time interval.
+    /// The multibody system is advanced with the step size set through SetStepsize, using as many steps as needed to
+    /// cover the given interval. With CRM terrain, the interval is the FSI coupling step: the multibody and SPH systems
+    /// are each advanced over it with their own step sizes and exchange data at its end.
     void Advance(double step);
 
     /// Get suggested collision settings.
