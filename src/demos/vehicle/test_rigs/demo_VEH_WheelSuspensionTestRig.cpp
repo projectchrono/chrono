@@ -121,12 +121,12 @@ int main() {
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
 
     // Steering (steerable suspension only): the wheel is steered about its kingpin through a rack attached to the tierods.
-    //   steering angle: sinusoidal +- 5 deg with 5 s period (converted to rack displacement through a kinematic map)
+    //   steering angle: sinusoidal +- 5 deg with 5 s period (converted to the steering actuator input through a kinematic map)
     rig.SetSteeringAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
     ////rig.EnableSteeringFeedback(true, 0.05);
 
-    // Alternatively, prescribe the steering rack displacement directly
-    ////rig.SetRackDisplacementFunction(chrono_types::make_shared<ChFunctionSine>(0.01, 0.2));
+    // Alternatively, prescribe the steering actuator input directly (for a Chrono::Vehicle suspension, the rack displacement)
+    ////rig.SetSteeringActuatorFunction(chrono_types::make_shared<ChFunctionSine>(0.01, 0.2));
 
     // Set delay before applying inputs (settling time)
     double input_time_delay = 1.0;
