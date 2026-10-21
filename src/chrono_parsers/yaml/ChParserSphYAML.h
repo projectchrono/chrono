@@ -57,6 +57,15 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Load the solver parameters from the specified YAML node.
     void LoadSolverData(const YAML::Node& yaml);
 
+    /// Read SPH solver parameters from the specified YAML node (following the fsisph_solver.schema).
+    /// Only parameters present in the node are set; all others keep their current values. The integration time step,
+    /// if specified, is returned in `time_step` (otherwise, `time_step` is not modified).
+    static void ReadSPHParameters(const YAML::Node& yaml, fsi::sph::ChFsiFluidSystemSPH::SPHParameters& sph, double& time_step);
+
+    /// Read CRM soil properties from the specified YAML node (the `soil_properties` object of the fsisph_model.schema).
+    /// Only properties present in the node are set; all others keep their current values.
+    static void ReadSoilProperties(const YAML::Node& yaml, fsi::sph::ChFsiFluidSystemSPH::SoilProperties& props);
+
     double GetTimestep() const { return m_sim.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
 
