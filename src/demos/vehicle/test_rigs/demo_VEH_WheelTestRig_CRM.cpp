@@ -60,6 +60,9 @@ std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
 // Wheel specification file
 std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
+// Normal load (static wheel load, appropriate for the selected vehicle)
+double normal_load = 2500;  // Polaris
+
 double render_fps = 100;
 bool debug_output = false;
 bool gnuplot_output = true;
@@ -145,7 +148,7 @@ int main() {
     ChWheelTestRig rig(*sys, wheel, tire);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(2500);
+    rig.SetNormalLoad(normal_load);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 

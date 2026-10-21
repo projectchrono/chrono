@@ -46,6 +46,10 @@ tire_json = "Polaris/Polaris_TMeasyTire.json"
 # wheel_json = "hmmwv/wheel/HMMWV_Wheel.json"
 wheel_json = "Polaris/Polaris_Wheel.json"
 
+# Normal load (static wheel load, appropriate for the selected vehicle)
+normal_load = 3000  # Polaris
+# normal_load = 6500  # HMMWV
+
 render_fps = 120
 debug_output = False
 
@@ -123,7 +127,7 @@ def main():
     rig = veh.ChWheelTestRig(wheel, tire, sys)
 
     rig.SetGravitationalAcceleration(9.8)
-    rig.SetNormalLoad(3000)
+    rig.SetNormalLoad(normal_load)
     
     # rig.SetCamberAngle(15 * chrono.CH_DEG_TO_RAD)
 

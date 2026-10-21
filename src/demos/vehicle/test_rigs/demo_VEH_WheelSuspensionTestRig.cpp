@@ -61,7 +61,12 @@ std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
 // Suspension specification file
 std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneFront.json";
 ////std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneRear.json";
+////std::string suspension_json = "Polaris/Polaris_Front_DoubleWishbone.json";
 ////std::string suspension_json = "Polaris/Polaris_Rear_TrailingArm.json";
+
+// Normal load (static wheel load, appropriate for the selected vehicle)
+double normal_load = 6500;  // HMMWV
+////double normal_load = 2900;  // Polaris
 
 double render_fps = 60;
 bool debug_output = false;
@@ -102,7 +107,7 @@ int main() {
     ChWheelTestRig rig(sys, wheel, tire, suspension);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(3000);
+    rig.SetNormalLoad(normal_load);
 
     rig.SetStepsize(step_size);
     rig.SetVisualizationType(VisualizationType::MESH);

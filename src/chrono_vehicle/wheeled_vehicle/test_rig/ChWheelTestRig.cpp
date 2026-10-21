@@ -25,6 +25,7 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
@@ -134,6 +135,7 @@ class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
     std::shared_ptr<ChSuspension> suspension;
     std::shared_ptr<ChBody> steering_link;
     std::shared_ptr<DummySteering> steering;
+    std::shared_ptr<ChLinkMateGeneric> other_lock;
     std::shared_ptr<ChSpindle> spindle;
     std::shared_ptr<ChWheel> wheel;
     std::shared_ptr<ChTire> tire;
@@ -149,6 +151,10 @@ void VehicleWheelAssembly::RemoveFromSystem() {
     // Suspension case: the rig chassis is wrapped in a DummyChassis
     if (chassis)
         chassis->RemoveContainers();
+
+    // Suspension case: travel lock on the other side of an independent suspension
+    if (other_lock && other_lock->GetSystem())
+        other_lock->GetSystem()->Remove(other_lock);
 
     // No-suspension case: the spindle body was created here (a suspension spindle is removed by the suspension itself)
     if (!suspension && spindle && spindle->GetSystem())
@@ -203,6 +209,14 @@ void VehicleWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body
         }
 
         suspension->Initialize(chassis, nullptr, steering, frame.GetPos());
+
+        // For an independent suspension, lock the vertical travel of the other side, which is not supported by the terrain
+        if (suspension->IsIndependent()) {
+            auto other_spindle = suspension->GetSpindle(VehicleSide::RIGHT);
+            other_lock = chrono_types::make_shared<ChLinkMateGeneric>(false, false, true, false, false, false);
+            other_lock->Initialize(other_spindle, chassis_body, ChFramed(other_spindle->GetPos(), QUNIT));
+            system.Add(other_lock);
+        }
         suspension->SetVisualizationType(vis_type);
 
         spindle = suspension->GetSpindle(VehicleSide::LEFT);
@@ -476,6 +490,13 @@ void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
 
     CreateMechanism();
 
+    // For a wheel assembly with a suspension, set the suspension travel at static equilibrium under the normal load and
+    // place the terrain relative to the resulting wheel position
+    if (m_travel_motor) {
+        ComputeLoadedTravel();
+        SetTerrainLocation();
+    }
+
     // Record the initial hub yaw angle and, for a steering angle input, compute the kinematic steering map
     m_steer_yaw0 = CalcHubYaw();
     if (m_rack_motor && m_steer_input == SteeringInput::ANGLE)
@@ -501,15 +522,25 @@ void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
 void ChWheelTestRig::Advance(double step) {
     double time = m_system.GetChTime();
 
-    // Check end of dropping phase
-    if (m_mode == Mode::TEST &&                                                                      // in TEST mode
-        !m_drop_motor->IsDisabled() &&                                                               // dropping is ongoing
-        m_wheel_assembly->GetHub()->GetPos().z() < m_terrain_height + m_wheel_assembly->GetRadius()  // wheel bottom reached terrain
-    ) {
+    // Check end of dropping phase.
+    // Without a suspension, the drop phase ends when the wheel reaches the terrain. With a suspension (held at its
+    // equilibrium travel under the normal load), lowering continues until the tire carries the normal load, so that
+    // releasing the suspension travel does not change the load on the wheel.
+    bool drop_done = false;
+    if (m_mode == Mode::TEST && !m_drop_motor->IsDisabled()) {
+        if (m_travel_motor)
+            drop_done = m_wheel_assembly->ReportForces(*m_terrain).force.z() >= m_normal_load;
+        else
+            drop_done = m_wheel_assembly->GetHub()->GetPos().z() < m_terrain_height + m_wheel_assembly->GetRadius();
+    }
+
+    if (drop_done) {
         std::cout << "\n  time : " << time << " - end drop phase" << std::endl;
 
-        // Disable the actuator for wheel drop
+        // Disable the actuator for wheel drop and release the suspension travel (if any)
         m_drop_motor->SetDisabled(true);
+        if (m_travel_motor)
+            m_travel_motor->SetDisabled(true);
 
         // Set motor functions with a delay measured from current time
         m_time_delay += time;
@@ -691,8 +722,7 @@ void ChWheelTestRig::CreateMechanism() {
 
     // ---- Set terrain offset (based on wheel center) and terrain height (below wheel)
 
-    m_terrain_offset = m_wheel_assembly->GetHub()->GetPos().y();
-    m_terrain_height = m_wheel_assembly->GetHub()->GetPos().z() - m_wheel_assembly->GetRadius() - 0.1;
+    SetTerrainLocation();
 
     // ---- Update chassis mass to satisfy requested normal load
     if (m_grav > 0) {
@@ -828,6 +858,18 @@ void ChWheelTestRig::CreateWheelSuspensionMechanism(double dim) {
     if (m_rack_body) {
         m_rack_body->SetMass(mass);
         m_rack_body->SetInertia(inertia);
+    }
+
+    // In TEST mode, hold the vertical travel of the suspension during the drop phase, so that the wheel is lowered onto the
+    // terrain at the prescribed drop speed instead of drooping under its own weight (released at the end of the drop phase).
+    // The travel actuator constrains only the vertical displacement of the hub relative to the chassis.
+    if (m_mode == Mode::TEST) {
+        auto hub = m_wheel_assembly->GetHub();
+        m_travel_motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+        AddItem(m_travel_motor);
+        m_travel_motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
+        m_travel_motor->Initialize(hub, m_chassis_body, ChFramed(hub->GetPos(), QUNIT));
+        m_travel_motor->SetMotionFunction(chrono_types::make_shared<ChFunctionConst>(0));
     }
 }
 
@@ -1115,6 +1157,103 @@ double ChWheelTestRig::CalcHubYaw() const {
     // Hub rotation axis, expressed in the rig chassis frame; yaw is positive for a rotation about the vertical axis
     auto dir = m_chassis_body->TransformDirectionParentToLocal(m_wheel_assembly->GetHub()->GetRotMat().GetAxisY());
     return std::atan2(-dir.x(), dir.y());
+}
+
+void ChWheelTestRig::SetTerrainLocation() {
+    m_terrain_offset = m_wheel_assembly->GetHub()->GetPos().y();
+    m_terrain_height = m_wheel_assembly->GetHub()->GetPos().z() - m_wheel_assembly->GetRadius() - 0.1;
+}
+
+void ChWheelTestRig::ComputeLoadedTravel() {
+    // Find the suspension travel (vertical displacement of the hub relative to the chassis) at which the travel actuator
+    // supports the hub with a force equal to the normal load, i.e., the static equilibrium configuration of the suspension
+    // with the wheel on the terrain. Each evaluation performs a position- and acceleration-level assembly (at zero
+    // velocity) to obtain the static actuator force. The equilibrium travel is bracketed by stepping from the design
+    // configuration and then refined by bisection.
+    const double travel_step = 0.01;
+    const double max_travel = 0.5;
+    const double tolerance = 1e-5;
+
+    ChTimer timer;
+    timer.start();
+
+    auto travel_fun = chrono_types::make_shared<ChFunctionConst>(0);
+    m_travel_motor->SetMotionFunction(travel_fun);
+
+    // Use a direct linear solver for the assemblies, independent of the solver used for dynamics
+    auto solver = m_system.GetSolver();
+    auto assembly_solver = chrono_types::make_shared<ChSolverSparseQR>();
+    assembly_solver->LockSparsityPattern(true);
+    m_system.SetSolver(assembly_solver);
+
+    int num_assemblies = 0;
+    auto eval = [&](double travel, double& force) {
+        travel_fun->SetConstant(travel);
+        auto flag = m_system.DoAssembly(AssemblyAnalysis::Level::POSITION | AssemblyAnalysis::Level::ACCELERATION);
+        num_assemblies++;
+        force = m_travel_motor->GetMotorForce();
+        return flag != AssemblyAnalysis::ExitFlag::NOT_CONVERGED && std::isfinite(force);
+    };
+
+    // The hub requires an upward support in the design configuration (spring preload and weight of the wheel assembly);
+    // use it to orient the actuator force so that a positive value supports the hub.
+    double force0;
+    if (!eval(0, force0)) {
+        std::cout << "\nWARNING!  Assembly failed in the design configuration. Suspension travel not adjusted.\n" << std::endl;
+        m_system.SetSolver(solver);
+        return;
+    }
+    double sign = (force0 >= 0) ? +1 : -1;
+    auto residual = [&](double force) { return sign * force - m_normal_load; };
+
+    // Extend the suspension if the support exceeds the normal load, compress it otherwise
+    double dir = (residual(force0) > 0) ? -1 : +1;
+    double travel_a = 0;
+    double res_a = residual(force0);
+    double travel_b = 0;
+    double res_b = res_a;
+    bool bracketed = (res_a == 0);
+    for (int k = 1; !bracketed && k * travel_step <= max_travel; k++) {
+        double travel = dir * k * travel_step;
+        double force;
+        if (!eval(travel, force))
+            break;
+        travel_a = travel_b;
+        res_a = res_b;
+        travel_b = travel;
+        res_b = residual(force);
+        bracketed = (res_a * res_b <= 0);
+    }
+
+    if (bracketed) {
+        while (std::abs(travel_b - travel_a) > tolerance) {
+            double travel = 0.5 * (travel_a + travel_b);
+            double force;
+            if (!eval(travel, force))
+                break;
+            double res = residual(force);
+            if (res_a * res <= 0) {
+                travel_b = travel;
+                res_b = res;
+            } else {
+                travel_a = travel;
+                res_a = res;
+            }
+        }
+    } else {
+        std::cout << "\nWARNING!  Normal load outside the range of the suspension travel. Using closest configuration.\n" << std::endl;
+    }
+
+    // Leave the system assembled at the equilibrium travel
+    double travel_eq = (std::abs(res_a) < std::abs(res_b)) ? travel_a : travel_b;
+    double force_eq;
+    eval(travel_eq, force_eq);
+    m_system.SetSolver(solver);
+
+    timer.stop();
+
+    std::cout << "Suspension travel at normal load: " << travel_eq << " (support force: " << sign * force_eq << ", design: " << sign * force0 << ") - " << num_assemblies
+              << " assemblies in " << 1e3 * timer() << " ms" << std::endl;
 }
 
 void ChWheelTestRig::ComputeSteeringMap() {

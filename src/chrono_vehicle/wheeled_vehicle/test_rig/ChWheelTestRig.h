@@ -360,7 +360,9 @@ class CH_VEHICLE_API ChWheelTestRig {
 
     /// Initialize the rig system.
     /// It is the user's responsibility to set the operation mode and motion functions in a consistent way.
-    /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`.
+    /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`. For a wheel assembly with a
+    /// suspension, the suspension travel is held during this drop phase at the static equilibrium configuration under the
+    /// specified normal load (computed during initialization) and released once the wheel reaches the terrain.
     void Initialize(Mode mode, double drop_speed = 0.1);
 
     /// Advance system state by the specified time step.
@@ -431,6 +433,12 @@ class CH_VEHICLE_API ChWheelTestRig {
 
     /// Compute the kinematic steering map through a sweep of position-level assemblies.
     void ComputeSteeringMap();
+
+    /// Find and set the suspension travel at static equilibrium under the normal load.
+    void ComputeLoadedTravel();
+
+    /// Set the terrain offset and height based on the current wheel position.
+    void SetTerrainLocation();
 
     /// Calculate the current hub yaw angle relative to the rig chassis.
     double CalcHubYaw() const;
@@ -515,6 +523,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;   ///< carrier actuator
     std::shared_ptr<ChShaftsMotorSpeed> m_rot_motor;       ///< wheel actuator
     std::shared_ptr<ChLinkLockLock> m_slip_lock;           ///< slip angle actuator
+    std::shared_ptr<ChLinkMotorLinearPosition> m_travel_motor;  ///< suspension travel actuator during the drop phase
     std::shared_ptr<ChBody> m_rack_body;                   ///< steering rack (tierod attachment)
     std::shared_ptr<ChLinkMotorLinearPosition> m_rack_motor;  ///< steering rack actuator
 };
