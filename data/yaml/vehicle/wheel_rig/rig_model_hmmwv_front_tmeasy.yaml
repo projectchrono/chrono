@@ -1,0 +1,24 @@
+## Rig mechanism: HMMWV wheel with TMeasy tire on the steerable HMMWV front suspension
+
+chrono-version: 10.0
+
+model:
+  type: VEHICLE                   # VEHICLE, CUSTOM
+  name: HMMWV_front_TMeasy
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  wheel_json: "vehicle/hmmwv/wheel/HMMWV_Wheel.json"
+  tire_json: "vehicle/hmmwv/tire/HMMWV_TMeasyTire.json"
+  suspension_json: "vehicle/hmmwv/suspension/HMMWV_DoubleWishboneFront.json"
+
+  tire:
+    collision_type: FOUR_POINTS   # SINGLE_POINT, FOUR_POINTS, ENVELOPE
+
+rig:
+  normal_load: 6500               # HMMWV front static wheel load
+
+solver: "rig_solver.yaml"

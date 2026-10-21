@@ -136,6 +136,8 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     double GetTimestep() const { return m_sim.integrator.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
+    const ChVector3d& GetGravitationalAcceleration() const { return m_sim.gravity; }
+    VisualizationType GetVisualizationType() const { return m_vis_type; }
 
     // --------------
 
@@ -589,6 +591,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     friend class ChParserVehicleYAML;
     friend class ChParserFsiYAML;
+    friend class ChParserWheelRigYAML;
 };
 
 /// @} parsers_module

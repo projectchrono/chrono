@@ -57,6 +57,8 @@ ChParserYAML::YamlFileType ChParserYAML::ReadYamlFileType(const YAML::Node& a) {
         return YamlFileType::FSI;
     if (type == "VEHICLE")
         return YamlFileType::VEHICLE;
+    if (type == "WHEEL_RIG")
+        return YamlFileType::WHEEL_RIG;
     if (type == "CUSTOM")
         return YamlFileType::CUSTOM;
 

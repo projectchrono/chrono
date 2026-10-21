@@ -15,7 +15,7 @@ if(CH_ENABLE_MODULE_FSI)
 endif()
 
 if(CH_ENABLE_MODULE_VEHICLE)
-  set(DEMOS ${DEMOS} demo_YAML_vehicle)
+  set(DEMOS ${DEMOS} demo_YAML_vehicle demo_YAML_wheel_rig)
 endif()
 
 #--------------------------------------------------------------

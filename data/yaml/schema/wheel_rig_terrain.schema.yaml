@@ -1,0 +1,175 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2026 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a YAML Chrono::Vehicle single-wheel test rig terrain specification file.
+# This is the "terrain" side of a WHEEL_RIG simulation (see wheel_rig_simulation.schema). For CRM terrain, it plays
+# the role of the fluid specification in an FSI simulation: soil properties here, SPH solver in a separate file.
+# The terrain patch is placed by the rig relative to the wheel.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+#
+# =============================================================================
+
+required: [chrono-version, type, patch]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Terrain type and patch
+
+type:
+  description: |
+    Terrain type.
+    Only the parameter object matching the type is read (e.g., `scm` for type SCM); the others are ignored.
+  type: string
+  enum: [RIGID, SCM, GRANULAR, CRM]
+
+patch:
+  type: object
+  description: Terrain patch dimensions
+  required: [length, width]
+  properties:
+    length:
+      type: number
+      minimum: 0
+    width:
+      type: number
+      minimum: 0
+    depth:
+      type: number
+      description: Patch depth (used by GRANULAR and CRM terrain only)
+      minimum: 0
+      default: 0
+
+# -----------------------------------------------------------------------------
+# Terrain parameters
+
+rigid:
+  type: object
+  description: Contact material for RIGID terrain
+  properties:
+    friction:
+      type: number
+      minimum: 0
+      default: 0.8
+    restitution:
+      type: number
+      minimum: 0
+      maximum: 1
+      default: 0
+    Young_modulus:
+      type: number
+      description: Young's modulus (Pa), used with SMC contact
+      minimum: 0
+      default: 2e7
+
+scm:
+  type: object
+  description: Soil parameters for SCM terrain
+  properties:
+    Bekker_Kphi:
+      type: number
+      description: Frictional modulus in Bekker model
+      default: 2e6
+    Bekker_Kc:
+      type: number
+      description: Cohesive modulus in Bekker model
+      default: 0
+    Bekker_n:
+      type: number
+      description: Exponent of sinkage in Bekker model (usually 0.6...1.8)
+      default: 1.1
+    Mohr_cohesion:
+      type: number
+      description: Cohesion for shear failure (Pa)
+      default: 50
+    Mohr_friction:
+      type: number
+      description: Friction angle for shear failure, always in degrees
+      default: 20
+    Janosi_shear:
+      type: number
+      description: Shear parameter J in Janosi-Hanamoto formula (m)
+      default: 0.01
+    grid_spacing:
+      type: number
+      description: SCM grid spacing
+      minimum: 0
+      default: 0.125
+    visualize_mesh:
+      type: boolean
+      description: Whether to create the SCM visualization mesh
+      default: true
+
+granular:
+  type: object
+  description: |
+    Particle parameters for GRANULAR terrain.
+    A granular terrain consists of many sphere bodies; practical run times require a Chrono::Multicore system, which
+    is not yet supported by the wheel test rig YAML parser.
+  properties:
+    radius:
+      type: number
+      minimum: 0
+      default: 0.02
+    density:
+      type: number
+      minimum: 0
+      default: 2000
+    friction:
+      type: number
+      minimum: 0
+      default: 0.9
+    cohesion:
+      type: number
+      description: Inter-particle cohesion pressure (Pa)
+      minimum: 0
+      default: 0
+    Young_modulus:
+      type: number
+      minimum: 0
+      default: 1e7
+
+crm:
+  type: object
+  description: Parameters for CRM (SPH continuum) terrain
+  required: [solver]
+  properties:
+    soil_properties:
+      type: object
+      description: |
+        Soil properties, with the same keys and defaults as `model.soil_properties` in fsisph_model.schema
+        (including the MCC rheology parameters).
+    solver:
+      type: string
+      description: |
+        SPH solver specification YAML file, following the fsisph_solver.schema, with the path relative to this file.
+        Values not specified there take the fsisph_solver.schema defaults. The SPH particle spacing is set by
+        `kernel.initial_spacing` and the SPH (CFD) step size by `integration.time_step`.
+    visualization:
+      type: object
+      description: |
+        Rendering of SPH particles and BCE markers. Same settings as the `visualization` object of the
+        fsisph_simulation.schema; only the most commonly used ones are listed here.
+      properties:
+        sph_markers:
+          type: boolean
+          description: Render SPH particles
+          default: true
+        bndry_bce_markers:
+          type: boolean
+          description: Render boundary BCE markers
+          default: false
+        rigid_bce_markers:
+          type: boolean
+          description: Render BCE markers on rigid solids
+          default: true

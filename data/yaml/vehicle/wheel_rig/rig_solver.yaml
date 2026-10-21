@@ -1,0 +1,17 @@
+## MBS solver for the single-wheel test rig samples (follows mbs_solver.schema)
+
+chrono-version: 10.0
+
+contact_method: NSC               # NSC, SMC
+
+integrator:
+  type: Euler_implicit_linearized
+  time_step: 2e-4                 # multibody and wheel assembly step size
+
+solver:
+  type: Barzilai_Borwein
+  max_iterations: 100
+  #overrelaxation_factor: 1.0
+  #sharpness_factor: 1.0
+  #enable_diagonal_preconditioner: false
+  #warm_start: false

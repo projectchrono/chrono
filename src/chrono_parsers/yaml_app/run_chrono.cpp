@@ -23,12 +23,14 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
 
 #ifdef CHRONO_VEHICLE
     #include "chrono_parsers/yaml/ChParserVehicleYAML.h"
+    #include "chrono_parsers/yaml/ChParserWheelRigYAML.h"
     #include "chrono_vehicle/driver/ChInteractiveDriver.h"
     #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #endif
@@ -60,6 +62,7 @@ bool ParseArgs(int argc, char** argv, std::string& yaml_filename, std::string& o
 bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
 bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
 bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
 
 // -----------------------------------------------------------------------------
 
@@ -101,6 +104,13 @@ int main(int argc, char* argv[]) {
             RunFSI(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
 #else
             cerr << "The Chrono::FSI module is not available. Cannot process an FSI YAML specification." << endl;
+#endif
+            break;
+        case ChParserYAML::YamlFileType::WHEEL_RIG:
+#ifdef CHRONO_VEHICLE
+            RunWHEEL_RIG(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
+#else
+            cerr << "The Chrono::Vehicle module is not available. Cannot process a wheel test rig YAML specification." << endl;
 #endif
             break;
 
@@ -439,4 +449,82 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
 #endif
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+
+bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
+#ifdef CHRONO_VEHICLE
+    // Create the YAML parser object
+    parsers::ChParserWheelRigYAML parser(yaml_filename, !disable_verbose);
+
+    // Create Chrono system and the wheel test rig.
+    // Note that a rig model with a custom wheel assembly requires an application that registers a factory for it.
+    auto sys = parser.CreateSystem();
+    std::shared_ptr<vehicle::ChWheelTestRig> rig;
+    try {
+        rig = parser.CreateRig(*sys);
+    } catch (const std::exception& e) {
+        cerr << "Error: cannot create the wheel test rig (" << e.what() << ")." << endl;
+        if (parser.IsCustomAssembly())
+            cerr << "The rig model uses a custom wheel assembly, which run_chrono cannot create." << endl;
+        return false;
+    }
+
+    double time_end = parser.GetEndtime();
+    double step = parser.GetRigStep();
+    bool real_time = parser.EnforceRealtime();
+    bool render = parser.VisualizationEnabled() && !disable_vis;
+
+    if (parser.OutputEnabled() && !disable_output)
+        cout << "Warning: output is not yet supported for wheel test rig simulations." << endl;
+
+    const ChVector3d& camera_offset = parser.GetCameraOffset();
+    const ChVector3d& camera_target_offset = parser.GetCameraTargetOffset();
+
+    // Create the run-time visualization (camera follows the wheel hub)
+    #ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> vis;
+    if (render) {
+        vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        if (auto plugin = parser.GetVisualizationPlugin())
+            vis->AttachPlugin(plugin);
+        vis->AttachSystem(sys.get());
+        vis->SetWindowTitle("Wheel test rig YAML - " + parser.GetName());
+        vis->SetWindowSize(1280, 800);
+        vis->SetWindowPosition(100, 100);
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        auto loc = rig->GetWheelPos();
+        vis->AddCamera(loc + camera_offset, loc + camera_target_offset);
+        vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows(parser.EnableShadows());
+        vis->Initialize();
+    }
+    #else
+    render = false;
+    #endif
+
+    // Simulation loop
+    ChRealtimeStepTimer rt_timer;
+    double time = 0;
+
+    while (time_end < 0 || time < time_end) {
+    #ifdef CHRONO_VSG
+        if (render) {
+            auto loc = rig->GetWheelPos();
+            vis->UpdateCamera(loc + camera_offset, loc + camera_target_offset);
+            if (!parser.Render(*vis, time))
+                break;
+        }
+    #endif
+
+        rig->Advance(step);
+        time = sys->GetChTime();
+
+        if (real_time)
+            rt_timer.Spin(step);
+    }
+#endif
+
+    return true;
 }

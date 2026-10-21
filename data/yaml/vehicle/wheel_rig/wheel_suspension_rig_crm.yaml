@@ -1,0 +1,76 @@
+## Wheel with a steerable suspension on CRM terrain
+
+chrono-version: 10.0
+type: WHEEL_RIG
+
+rig: "rig_model_hmmwv_front_rigidmesh.yaml"
+terrain: "terrain_crm.yaml"
+
+test:
+  angle_degrees: true
+  mode: TEST                      # SUSPEND, DROP, TEST
+  drop_speed: 0.05
+  time_delay: 1.0
+
+  longitudinal_speed:
+    type: CONSTANT
+    value: 0.2
+  angular_speed:                  # 10 RPM
+    type: CONSTANT
+    value: 1.0471975512
+  #slip_angle:                    # ignored with a suspension (use steering)
+
+  steering:                       # +-5 deg with a 5 s period, about the kingpin
+    input: ANGLE                  # ANGLE (through kinematic map), ACTUATOR (rack displacement in m)
+    function:
+      type: SINE
+      amplitude: 5
+      frequency: 0.2
+    feedback:                     # ANGLE input only; cancels bump and compliance steer
+      enabled: false
+      time_constant: 0.05
+  #steering:
+  #  input: ACTUATOR
+  #  function:
+  #    type: SINE
+  #    amplitude: 0.01
+  #    frequency: 0.2
+
+  ## Constant longitudinal slip (overrides longitudinal_speed and angular_speed)
+  #longitudinal_slip:
+  #  value: 0.2
+  #  base_speed: 0.1
+
+coupling:
+  crm:
+    active_domain:
+      type: AUTO                  # NONE, AUTO, BOX
+      #size: [1.5, 1.0, 1.5]      # BOX only
+
+simulation:
+  time_step: 2e-4                 # rig step (FSI coupling step with CRM terrain); default: MBS solver step
+  end_time: 10                    # negative for infinite end time
+  enforce_realtime: false
+  gravity: [0, 0, -9.8]           # must be vertical: [0, 0, -g]
+  num_threads:
+    chrono: 8
+    collision: 1
+    eigen: 1
+    pardiso: 8
+
+output:
+  format: NONE                    # NONE, ASCII, HDF5
+  #mode: FRAMES                   # FRAMES, SERIES
+  #fps: 100
+
+visualization:
+  type: COLLISION                 # MODEL_FILE, PRIMITIVES, COLLISION, NONE
+  render_fps: 100
+  enable_shadows: false
+  camera:
+    vertical: Z
+    offset: [2.0, 2.5, 1.0]
+    target_offset: [0, 0.25, -0.25]
+  output:
+    save_images: false
+    image_type: "bmp"

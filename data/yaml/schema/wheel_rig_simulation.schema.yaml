@@ -1,0 +1,380 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2026 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono YAML WHEEL_RIG simulation specification file.
+# A WHEEL_RIG simulation runs a Chrono::Vehicle single-wheel test rig (ChWheelTestRig).
+# The `chrono-version` must match the Chrono major and minor version numbers.
+#
+# A WHEEL_RIG simulation combines (paralleling a Chrono FSI simulation):
+#   rig      - the rig mechanism: wheel assembly and rig properties, plus the MBS solver (wheel_rig_model.schema)
+#   terrain  - the terrain: type, patch, and parameters, plus the SPH solver for CRM terrain (wheel_rig_terrain.schema)
+#   test     - the test scenario: operation mode and motion functions
+#   coupling - wheel-terrain coupling settings (CRM terrain only)
+# Rig, terrain, and test are independent, so that the same rig can be tested on different terrains and with
+# different scenarios.
+#
+# =============================================================================
+
+required: [chrono-version, type, rig, terrain, test, simulation]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+
+vector3d: &VECTOR3D   # Specification of a ChVector3d
+    type: array
+    items:
+        type: number
+    minItems: 3
+    maxItems: 3
+
+data_array_2: &DATA_ARRAY_2
+    type: array
+    description: Array of number pairs
+    items:
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+
+# Specification of a function of one variable (same as in mbs_model.schema)
+function: &FUNCTION
+    type: object
+    description: Function of one variable
+    required: [type]
+    properties:
+      type:
+        type: string
+        enum: [CONSTANT, POLYNOMIAL, SINE, RAMP, DATA]
+        description: Function type
+      repeat:
+        type: object
+        description: Periodic replication of the underlying function
+        start:
+          type: number
+          description: Slice start position
+        width:
+          type: number
+          description: Slice width
+        shift:
+          type: number
+          description: Slice shift
+      value:
+        type: number
+        description: Constant value for CONSTANT type
+      coefficients:
+        type: array
+        description: Coefficents for POLYNOMIAL type
+        items:
+          type: number
+        minItems: 2
+      amplitude:
+        type: number
+        description: Amplitude for SINE type
+      frequency:
+        type: number
+        description: Frequency for SINE type
+      phase:
+        type: number
+        description: Phase for SINE type
+        default: 0.0
+      slope:
+        type: number
+        description: Slope for RAMP type
+      intercept:
+        type: number
+        description: Intercept value for RAMP type
+        default: 0.0
+      data:
+        <<: *DATA_ARRAY_2
+        description: Interpolation data points for DATA type [[x, f(x)], ...]
+
+# -----------------------------------------------------------------------------
+# Definition of a single-wheel test rig simulation
+
+type:
+  description: Type of Chrono simulation (must be WHEEL_RIG)
+  type: string
+  value: WHEEL_RIG
+
+rig:
+  description: |
+      Rig mechanism specification YAML file (wheel assembly, rig properties, and MBS solver).
+      The path must be provided relative to the location of this simulation specification file.
+      The file must follow the wheel_rig_model.schema.
+  type: string
+
+terrain:
+  description: |
+      Terrain specification YAML file (terrain type, patch, parameters, and, for CRM terrain, the SPH solver).
+      The path must be provided relative to the location of this simulation specification file.
+      The file must follow the wheel_rig_terrain.schema.
+  type: string
+
+test:
+  description: |
+    Test scenario: operation mode and motion functions.
+    Motion functions are functions of time, applied after `time_delay`.
+    Supported scenarios include:
+      driven wheel:      angular_speed only
+      pulled wheel:      longitudinal_speed only
+      immobilized wheel: longitudinal_speed and angular_speed both CONSTANT 0
+      fully prescribed:  longitudinal_speed, angular_speed, and slip_angle (or steering, with a suspension)
+      constant slip:     longitudinal_slip (overrides longitudinal_speed and angular_speed)
+  type: object
+  required: [mode]
+  properties:
+    angle_degrees:
+      type: boolean
+      description: |
+        Whether angles are specified in degrees (true) or radians (false).
+        Applies to the values of the `slip_angle` and `steering` (ANGLE input) functions.
+      default: true
+    mode:
+      type: string
+      description: |
+        SUSPEND: suspended wheel (locked spindle).
+        DROP:    free wheel drop test.
+        TEST:    wheel lowered onto the terrain at `drop_speed`, then motion functions applied.
+                 Without a suspension, the drop phase ends when the wheel reaches the terrain. With a suspension,
+                 the suspension travel is held at its loaded equilibrium and lowering continues until the tire
+                 carries the normal load; the suspension is then released.
+      enum: [SUSPEND, DROP, TEST]
+    drop_speed:
+      type: number
+      description: Wheel lowering speed (m/s), TEST mode only
+      minimum: 0
+      default: 0.1
+    time_delay:
+      type: number
+      description: Settling time (s) before the motion functions are applied, measured from the end of the drop phase
+      minimum: 0
+      default: 0
+    longitudinal_speed:
+      <<: *FUNCTION
+      description: Rig carrier longitudinal speed (m/s) as a function of time; if absent, the carrier is not actuated
+    angular_speed:
+      <<: *FUNCTION
+      description: Wheel angular speed (rad/s) as a function of time; if absent, the wheel is not actuated
+    slip_angle:
+      <<: *FUNCTION
+      description: |
+        Wheel slip angle as a function of time (default: 0), in degrees or radians per `angle_degrees`.
+        Wheel without a suspension only (ignored otherwise; use `steering`).
+    steering:
+      type: object
+      description: |
+        Steering input (requires a wheel assembly with a steering actuator, e.g., a steerable suspension; ignored
+        otherwise, use `slip_angle` for a wheel without a suspension). The wheel is steered through the steering
+        mechanism of the assembly; for a Chrono::Vehicle steerable suspension, a rig steering rack to which the
+        suspension tierods are attached.
+      required: [input, function]
+      properties:
+        input:
+          type: string
+          description: |
+            ANGLE:    wheel steering angle (degrees or radians per `angle_degrees`), relative to the loaded
+                      configuration and positive to the left. Converted to the actuator coordinate through a kinematic
+                      map computed at initialization, so bump and compliance steer are retained.
+            ACTUATOR: steering actuator coordinate, specific to the steering mechanism (for a Chrono::Vehicle
+                      steerable suspension, the rack displacement in m along the rig lateral axis).
+          enum: [ANGLE, ACTUATOR]
+        function:
+          <<: *FUNCTION
+          description: Steering angle or actuator coordinate as a function of time
+        feedback:
+          type: object
+          description: |
+            Optional feedback correction of the actuator coordinate (ANGLE input only), driving the actual steering
+            angle to the specified one. Note that this cancels bump and compliance steer.
+          properties:
+            enabled:
+              type: boolean
+              default: false
+            time_constant:
+              type: number
+              description: Time constant of the feedback correction (s)
+              minimum: 0
+              default: 0.05
+    longitudinal_slip:
+      type: object
+      description: |
+        Constant longitudinal slip. Overrides `longitudinal_speed` and `angular_speed`.
+        A positive value indicates a spinning wheel; a negative value a sliding (skidding) wheel; -1 is
+        sliding without rotation.
+      required: [value]
+      properties:
+        value:
+          type: number
+        base_speed:
+          type: number
+          description: Base longitudinal speed (m/s) used to enforce the slip value
+          default: 1.0
+
+coupling:
+  description: Wheel-terrain coupling settings
+  type: object
+  properties:
+    crm:
+      type: object
+      description: Coupling with CRM terrain (ignored for other terrain types)
+      properties:
+        active_domain:
+          type: object
+          description: |
+            CRM active domain attached to the wheel hub.
+            NONE: no active domain (the entire SPH domain is always active).
+            AUTO: box of estimated size (2.5 times the wheel assembly AABB).
+            BOX:  box of the specified size, centered at the hub.
+          required: [type]
+          properties:
+            type:
+              type: string
+              enum: [NONE, AUTO, BOX]
+              default: NONE
+            size:
+              <<: *VECTOR3D
+              description: Box dimensions (BOX type only)
+
+simulation:
+  description: Simulation settings
+  type: object
+  properties:
+    time_step:
+      type: number
+      description: |
+        Rig step (s): the interval over which the rig is advanced at each call.
+        With CRM terrain, this is the FSI coupling step: the multibody system (step from the MBS solver file) and the
+        SPH system (step from the SPH solver file) are each advanced over it and exchange data at its end.
+        For other terrain types, the multibody system is advanced over it with the step from the MBS solver file.
+        If omitted, the MBS solver step is used.
+      minimum: 0
+    end_time:
+      type: number
+      description: |
+        Total simulation duration in seconds.
+        The simulation will run from t=0 to t=end_time. A negative value indicates an infinite end time.
+      default: -1
+    enforce_realtime:
+      type: boolean
+      description: Whether to enforce real-time simulation.
+      default: false
+    gravity:
+      <<: *VECTOR3D
+      description: |
+        Gravitational acceleration vector [x, y, z].
+        The test rig assumes a vertical (Z-up) world frame: only vectors of the form [0, 0, -g] with g >= 0 are
+        accepted. The magnitude g is passed to the rig, which uses it (together with the specified normal load) to
+        size the rig mass.
+      default: [0, 0, -9.8]
+    num_threads:
+      type: object
+      description: |
+        Number of threads used by the various parallel components.
+        Any entry that is omitted keeps its default value of 1.
+      properties:
+        chrono:
+          type: integer
+          description: Number of threads used by Chrono (e.g., SCM ray casting)
+          minimum: 1
+          default: 1
+        collision:
+          type: integer
+          description: Number of threads used by the collision detection system
+          minimum: 1
+          default: 1
+        eigen:
+          type: integer
+          description: Number of threads used by Eigen
+          minimum: 1
+          default: 1
+        pardiso:
+          type: integer
+          description: Number of threads used by the PARDISO solver (used only with the PARDISO solver type)
+          minimum: 1
+          default: 1
+
+output:
+  description: Output settings
+  type: object
+  required: [format]
+  properties:
+     format:
+        type: string
+        description: Output DB format
+        enum: [NONE, ASCII, HDF5]
+        default: NONE
+     mode:
+        type: string
+        description: Output mode (one file per output frame, or a single time-series file)
+        enum: [FRAMES, SERIES]
+        default: FRAMES
+     fps:
+        type: number
+        description: Output frequency (FPS or Hz)
+        minimum: 0
+        default: 100
+
+visualization:
+  description: |
+    Run-time visualization settings.
+    Rendering of SPH particles and BCE markers (CRM terrain) is specified in the terrain file.
+  type: object
+  properties:
+      type:
+          type: string
+          description: |
+            Type of wheel assembly visualization shapes.
+            A value of NONE (the default) also disables run-time visualization altogether.
+          enum: [MODEL_FILE, PRIMITIVES, COLLISION, NONE]
+          default: NONE
+      render_fps:
+          type: number
+          description: Target frames per second for visualization.
+          minimum: 0
+          default: 120
+      enable_shadows:
+          type: boolean
+          description: Whether to enable shadows in run-time visualization system
+          default: true
+      camera:
+          type: object
+          description: Camera that follows the wheel hub
+          properties:
+              vertical:
+                  type: string
+                  description: Vertical axis for camera orientation (the rig requires Z)
+                  enum: [Z]
+                  default: Z
+              offset:
+                  <<: *VECTOR3D
+                  description: Camera location relative to the wheel hub position (in the world frame)
+                  default: [2.0, 2.5, 1.0]
+              target_offset:
+                  <<: *VECTOR3D
+                  description: Camera look-at point relative to the wheel hub position (in the world frame)
+                  default: [0, 0.25, -0.25]
+      output:
+          type: object
+          description: Run-time visualization image output
+          properties:
+              save_images:
+                  type: boolean
+                  description: Whether to save rendered frames as image files
+                  default: false
+              image_type:
+                  type: string
+                  description: Image file type, specified through the file extension
+                  default: bmp
