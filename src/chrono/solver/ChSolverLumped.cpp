@@ -36,10 +36,9 @@ double ChSolverLumped::Solve(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> R(nv);
     ChVectorDynamic<> a(nv);
 
-    // penalty terms from constraints
+    // rhs, applied forces (and constraints penalty if timestepper, in penalty ON mode, added to R)
     R.setZero(nv);
-    
-    sysd.BuildFbVector(R); // rhs, applied forces
+    sysd.BuildFbVector(R);  
 
     // compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
     a.array() = R.array() / this->diagonal_M.array();  //  a = Md^-1 * F

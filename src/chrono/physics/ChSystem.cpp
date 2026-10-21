@@ -1070,9 +1070,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // R and Qc vectors  --> solver sparse solver structures  (also sets Dl and Dv to warmstart)
     IntToDescriptor(0, Dv, R, 0, Dl, Qc);
 
+    auto lumpedsolver = std::dynamic_pointer_cast<ChSolverLumped>(solver);
+
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
-    if (call_setup || solver->SolveRequiresMatrix()) {
+    if ((call_setup || solver->SolveRequiresMatrix()) && !lumpedsolver) {
         timer_jacobian.start();
 
         // Cq  matrix
@@ -1086,6 +1088,14 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         descriptor->SetMassFactor(c_a);
 
         timer_jacobian.stop();
+    }
+
+    // For "lumped mass" solvers, typically for explicit timestepping,
+    // a diagonal vector of lumped masses must be filled and provided to solver
+    if (lumpedsolver) { 
+        double lumped_err = 0;
+        lumpedsolver->diagonal_M.setZero(GetNumCoordsVelLevel());
+        LoadLumpedMass_Md(lumpedsolver->diagonal_M, lumped_err, c_a);
     }
 
     // Diagnostics:

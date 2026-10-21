@@ -360,13 +360,10 @@ int main(int argc, char* argv[]) {
     // gmres_solver->SetMaxIterations(50);
     // sys.SetSolver(gmres_solver);
 
-    // Simulation loop
+   // Simulation loop
     double timestep = 0.005;
     sys.Setup();
     sys.Update(UpdateFlags::UPDATE_ALL & ~UpdateFlags::VISUAL_ASSETS);
-
-    ChFunctionInterp rec_X;
-    ChFunctionInterp rec_Y;
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -389,17 +386,18 @@ int main(int argc, char* argv[]) {
     //   ChTimestepperRungeKutta    timestep = 0.0005   (the famous 4th order Runge Kutta, of course slower)
     //
     // You will see that the explicit integrator does not introduce numerical damping unlike implicit integrators,
-    // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add �
+    // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add  
     // structural damping, this might help with stability, by the way)
     //
-    // In explicit integrators, you can optionally enable mass lumping via  SetDiagonalLumpingON() , just remember:
-    // - this helps reducing CPU overhead because it does not lead to linear systems
-    // - not all finite elements/bodies support this: nodes with non-diagonal inertias lead to approximation in lumping
-    // - to avoid linear systems, this option also enables "constraints by penalty". Constraints, if any,
-    //   will turn into penalty forces. Penalty factors can be set as optional parameters in SetDiagonalLumpingON(..)
+    // In explicit integrators, you can optionally enable constraint handling via penalty, using SetDiagonalLumpingON():
+    // - Constraints, if any, will turn into penalty forces. Penalty factors can be set as optional parameters in SetDiagonalLumpingON(..)
     //   It is not the case of this demo, but if you add constraints, you'll see that they will be satisfied
     //   approximately with some oscillatory clearance. The higher the penalty, the smaller the amplitude of such
     //   clearances, but the higher the risk of divergence.
+    // - this allows the use of the ChSolverLumped solver, that is a very fast solver that does not require any linear 
+    //   system solution, but just a diagonal inversion of the mass matrix.
+    // - not all finite elements/bodies support lumping: nodes with non-diagonal inertias lead to approximation in lumping
+
     //
     // Final tip: if the time step is extremely small, it is not worth while rendering all time steps, in some cases the
     // video rendering could become the real bottleneck.
@@ -412,10 +410,10 @@ int main(int argc, char* argv[]) {
 
     timestep = 0.0001;
 
-    while (vsys->Run()) {
-        vsys->BeginScene();
-        vsys->Render();
-        vsys->EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
         // Tip: draw scene only each N steps of the explicit integrator because
         // explicit integration requires many small timesteps, each with low CPU overhead, though.

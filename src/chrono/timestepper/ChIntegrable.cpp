@@ -64,9 +64,11 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
         StateScatter(x, v, T, update_flags);
 
     ChVectorDynamic<> R(GetNumCoordsVelLevel());
+    ChVectorDynamic<> Qc(GetNumConstraints());
+    bool success = false;
 
     if (!lumping) {
-        ChVectorDynamic<> Qc(GetNumConstraints());
+
         const double Delta = 1e-6;
 
         R.setZero();
@@ -90,22 +92,19 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
 
         StateScatter(x, v, T, update_flags);  // back to original state
 
-        bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, true, true);
+        // Call the solver to solve the system of equations for Dvdt (here, the acceleration
+        success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, true, true);
 
-        return success;
     } else {
-        ChVectorDynamic<> Md(GetNumCoordsVelLevel());  // diagonal mass
-        Md.setZero(GetNumCoordsVelLevel());
 
-        // penalty terms from constraints
         R.setZero(GetNumCoordsVelLevel());
         L.setZero(GetNumConstraints());
+        ChVectorDynamic<> L_discarded(GetNumConstraints());
 
-        LoadResidual_F(R, 1.0);  // rhs, applied forces
+        // rhs, applied forces
+        LoadResidual_F(R, 1.0);  
 
-        double err = 0;
-        LoadLumpedMass_Md(Md, err, 1.0);
-
+        // penalty terms from constraints
         if (GetNumConstraints()) {
             LoadConstraint_C(L, -lumping->Ck_penalty, -lumping->Ck_penalty);  // L  = -k*C     // to do: modulate  k  as constraint-dependent,
                                                         // k=lumping->Ck_penalty*Ck_i
@@ -113,11 +112,11 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
             // to do: add c_penalty for speed proportional damping, as   Fc = - Cq' * (k*C + c*(dC/dt))
         }
 
-        // compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
-        Dvdt.array() = R.array() / Md.array();  //  a = Md^-1 * F
-
-        return (err == 0);
+        // Call the solver to solve the system of equations for Dvdt (here, the acceleration
+        success = StateSolveCorrection(Dvdt, L_discarded, R, Qc, 1.0, 0, 0, x, v, T, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, true, true);
     }
+    
+    return success;
 }
 
 void ChIntegrableIIorder::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDelta& Dx) {
