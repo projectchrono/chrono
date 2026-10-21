@@ -63,6 +63,9 @@ class ChApi ChOutputHDF5 : public ChOutput {
     virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
+#ifdef CHRONO_FEA
+    virtual void WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) override;
+#endif
 
     H5::H5File* m_fileHDF5;
     H5::Group* m_frame_group;
@@ -77,6 +80,7 @@ class ChApi ChOutputHDF5 : public ChOutput {
     H5::CompType* m_bodyload_type;
     H5::CompType* m_linmotor_type;
     H5::CompType* m_rotmotor_type;
+    H5::CompType* m_node_type;
 };
 
 /// @} chrono_io

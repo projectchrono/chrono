@@ -76,6 +76,29 @@ class ChApi ChOutput {
 
     static std::string GetModeAsString(Mode mode);
 
+#ifdef CHRONO_FEA
+    /// State of an FEA mesh node, as written to output.
+    /// All quantities are expressed in the absolute frame. Orientation and angular velocity are available only for
+    /// nodes with rotational coordinates (ChNodeFEAxyzrot); a slope (position gradient) is available only for nodes
+    /// with slope coordinates (ChNodeFEAxyzD and derived classes).
+    struct MeshNodeState {
+        bool supported;      ///< false if output is not supported for this node type
+        ChVector3d pos;      ///< node position
+        ChVector3d lin_vel;  ///< node linear velocity
+        bool has_rot;        ///< true if the node has orientation and angular velocity
+        ChQuaterniond rot;   ///< node orientation
+        ChVector3d ang_vel;  ///< node angular velocity
+        bool has_slope;      ///< true if the node has a slope
+        ChVector3d slope;    ///< node slope (first position gradient)
+    };
+
+    /// Extract the state of the given FEA mesh node.
+    static MeshNodeState GetMeshNodeState(const std::shared_ptr<fea::ChNodeFEAbase>& node);
+
+    /// Return the name used in output for the given mesh (the mesh name or, if not set, a name based on its identifier).
+    static std::string GetMeshOutputName(const fea::ChMesh& mesh);
+#endif
+
   protected:
     ChOutput(Mode mode);
 
@@ -95,6 +118,9 @@ class ChApi ChOutput {
     virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
+#ifdef CHRONO_FEA
+    virtual void WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) = 0;
+#endif
 
   protected:
     // Data and functions for Mode::SERIES
@@ -137,6 +163,18 @@ class ChApi ChOutput {
         std::vector<double> torque;  ///< torque
     };
 
+    struct MeshNodeBuffers {
+        std::string mesh;             ///< mesh name
+        unsigned int id;              ///< node identifier
+        bool has_rot;                 ///< node has orientation and angular velocity
+        bool has_slope;               ///< node has a slope
+        std::vector<double> pos;      ///< position
+        std::vector<double> lin_vel;  ///< linear velocity
+        std::vector<double> rot;      ///< orientation (Tait-Bryan extrinsic X-Y-Z angles)
+        std::vector<double> ang_vel;  ///< angular velocity
+        std::vector<double> slope;    ///< slope
+    };
+
     bool m_buf_allocated;                   ///< buffers allocated?
     std::vector<double> m_time;             ///< time series
     std::vector<BodyBuffers> m_body_buf;    ///< body buffers
@@ -144,6 +182,7 @@ class ChApi ChOutput {
     std::vector<JointBuffers> m_joint_buf;  ///< joint buffers
     std::vector<TSDABuffers> m_tsda_buf;    ///< TSDA buffers
     std::vector<RSDABuffers> m_rsda_buf;    ///< RSDA buffers
+    std::vector<MeshNodeBuffers> m_node_buf;  ///< FEA mesh node buffers
 };
 
 /// @} chrono_io

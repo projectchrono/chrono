@@ -32,6 +32,9 @@ model:
       start_point: [-0.3, 0, 0.8]
       end_point: [-0.3, 0, 0.005]
       section: cable_section
+      # Beam nodes included in output (top and bottom cable nodes); alternatively, include all nodes:
+      output_nodes: [1, 9]
+      # output_nodes: all
       visualization:
         data:
           type: ELEM_BEAM_MZ

@@ -53,6 +53,7 @@ void ChOutputASCII::WriteBuffers() {
     m_stream << "Num joints:     " << m_joint_buf.size() << endl;
     m_stream << "Num TSDAs:      " << m_tsda_buf.size() << endl;
     m_stream << "Num RSDAs:      " << m_rsda_buf.size() << endl;
+    m_stream << "Num FEA nodes:  " << m_node_buf.size() << endl;
 
     m_stream << "Time ";
     for (size_t i = 0; i < m_time.size(); i++)
@@ -95,6 +96,18 @@ void ChOutputASCII::WriteBuffers() {
         write_data(m_stream, " ang", buf.ang);
         write_data(m_stream, " vel", buf.vel);
         write_data(m_stream, " torque", buf.torque);
+    }
+
+    for (const auto& buf : m_node_buf) {
+        m_stream << "FEA node " << buf.mesh << " " << buf.id << endl;
+        write_data(m_stream, "  pos", buf.pos);
+        write_data(m_stream, "  lin_vel", buf.lin_vel);
+        if (buf.has_rot) {
+            write_data(m_stream, "  rot", buf.rot);
+            write_data(m_stream, "  ang_vel", buf.ang_vel);
+        }
+        if (buf.has_slope)
+            write_data(m_stream, "  slope", buf.slope);
     }
 }
 
@@ -205,5 +218,24 @@ void ChOutputASCII::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotor
         m_stream << "  TORQUE:  " << motor->GetMotorTorque() << endl;
     }
 }
+
+#ifdef CHRONO_FEA
+void ChOutputASCII::WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) {
+    for (const auto& mn : mesh_nodes) {
+        auto mesh_name = GetMeshOutputName(*mn.mesh);
+        for (size_t i = 0; i < mn.nodes.size(); i++) {
+            auto state = GetMeshNodeState(mn.nodes[i]);
+            if (!state.supported)
+                continue;
+            m_stream << "FEA node " << mn.node_ids[i] << " '" << mesh_name << "'" << endl;
+            m_stream << "  POS/VEL:     " << state.pos << "  |  " << state.lin_vel << endl;
+            if (state.has_rot)
+                m_stream << "  ROT/ANG VEL: " << state.rot << "  |  " << state.ang_vel << endl;
+            if (state.has_slope)
+                m_stream << "  SLOPE:       " << state.slope << endl;
+        }
+    }
+}
+#endif
 
 }  // namespace chrono

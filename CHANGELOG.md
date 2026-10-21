@@ -503,6 +503,11 @@ extended and made consistent:
   problem through the `fsi_meshes` list of the FSI specification file, with optional settings for the
   BCE marker patterns and FEA node directions. See the flexible cable models (CRM and CFD) in
   `demo_YAML_fsi`.
+- Selected nodes of FEA beams can be included in the simulation output through the `output_nodes`
+  key of a beam (`all` or a list of node indices). Node positions and velocities, as well as node
+  orientations and angular velocities or node slopes (depending on the node type), are written by
+  `ChOutputASCII` and `ChOutputHDF5` in both output modes, including from the Chrono::PRECICE
+  multibody adapter. See `demo_YAML_fea`.
 - Output and run-time visualization settings now use the common `Settings` definitions shared with
   `ChOutput` and the visualization systems. Note that the default visualization type is now `NONE`,
   which disables run-time visualization altogether.

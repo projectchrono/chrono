@@ -54,6 +54,9 @@ class ChApi ChOutputASCII : public ChOutput {
     virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
+#ifdef CHRONO_FEA
+    virtual void WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) override;
+#endif
 
     // Implementation of functions for Mode::SERIES
     void WriteBuffers();

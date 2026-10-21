@@ -844,6 +844,20 @@ void ChParserMbsYAML::LoadFEABeams(const YAML::Node& fea) {
         if (beams[i]["visualization"])
             beam.visualization = ChVisualShapeFEA::Settings::Read(beams[i]["visualization"]);
 
+        // Beam nodes included in output: 'all' or a list of 1-based node indices (node 1 at the start point)
+        if (beams[i]["output_nodes"]) {
+            const auto& a = beams[i]["output_nodes"];
+            if (a.IsScalar() && ChToUpper(a.as<std::string>()) == "ALL") {
+                beam.output_all_nodes = true;
+            } else if (a.IsSequence()) {
+                for (size_t j = 0; j < a.size(); j++)
+                    beam.output_nodes.push_back(a[j].as<int>());
+            } else {
+                cerr << "Invalid 'output_nodes' for beam '" << name << "' (expected 'all' or a list of node indices)" << endl;
+                throw std::runtime_error("Invalid beam output nodes");
+            }
+        }
+
         if (m_verbose)
             beam.PrintInfo(name);
 
@@ -1449,6 +1463,9 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
         auto mesh = chrono_types::make_shared<fea::ChMesh>();
         mesh->SetName(model_prefix + item.first);
 
+        // Nodes of this beam instance, in order from the start to the end point
+        std::vector<std::shared_ptr<fea::ChNodeFEAbase>> beam_nodes;
+
         switch (item.second.type) {
             case FEABeamType::EULER: {
                 fea::ChBuilderBeamEuler builder;
@@ -1459,8 +1476,10 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
                                   item.second.end,                                                         // point B (end of beam)
                                   item.second.up                                                           // beam up direction
                 );
-                for (const auto& n : builder.GetLastBeamNodes())
+                for (const auto& n : builder.GetLastBeamNodes()) {
                     item.second.nodesXYZrot.push_back(n);
+                    beam_nodes.push_back(n);
+                }
                 for (const auto& e : builder.GetLastBeamElements())
                     item.second.elements.push_back(e);
                 break;
@@ -1473,8 +1492,10 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
                                   item.second.start,                                                           // point A (start of beam)
                                   item.second.end                                                              // point B (end of beam)
                 );
-                for (const auto& n : builder.GetLastBeamNodes())
+                for (const auto& n : builder.GetLastBeamNodes()) {
                     item.second.nodesXYZ.push_back(n);
+                    beam_nodes.push_back(n);
+                }
                 for (const auto& e : builder.GetLastBeamElements())
                     item.second.elements.push_back(e);
                 break;
@@ -1503,6 +1524,27 @@ int ChParserMbsYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const 
 
         sys.AddMesh(mesh);
         item.second.mesh.push_back(mesh);
+
+        // Register the selected beam nodes for output
+        if (item.second.output_all_nodes || !item.second.output_nodes.empty()) {
+            ChAssembly::Components::MeshNodes mesh_nodes;
+            mesh_nodes.mesh = mesh;
+            std::vector<int> ids = item.second.output_nodes;
+            if (item.second.output_all_nodes) {
+                ids.clear();
+                for (int id = 1; id <= (int)beam_nodes.size(); id++)
+                    ids.push_back(id);
+            }
+            for (auto id : ids) {
+                if (id < 1 || id > (int)beam_nodes.size()) {
+                    cerr << "Invalid output node " << id << " for beam '" << item.first << "' (valid range: 1 to " << beam_nodes.size() << ")" << endl;
+                    throw std::runtime_error("Invalid beam output node");
+                }
+                mesh_nodes.nodes.push_back(beam_nodes[id - 1]);
+                mesh_nodes.node_ids.push_back(id);
+            }
+            m_output_components.mesh_nodes.push_back(mesh_nodes);
+        }
     }
 
     // Create FEA shells
@@ -2061,7 +2103,7 @@ void ChParserMbsYAML::MotorParams::PrintInfo(const std::string& name) const {
 
 #ifdef CHRONO_FEA
 
-ChParserMbsYAML::FEABeamParams::FEABeamParams() : type(FEABeamType::EULER), num_elements(0) {}
+ChParserMbsYAML::FEABeamParams::FEABeamParams() : type(FEABeamType::EULER), num_elements(0), output_all_nodes(false) {}
 
 ChParserMbsYAML::FEAConstraintParams::FEAConstraintParams() : type(FEAConstraintType::NODE_NODE) {}
 
@@ -2096,6 +2138,14 @@ void ChParserMbsYAML::FEABeamParams::PrintInfo(const std::string& name) const {
     cout << "     start:        " << start << endl;
     cout << "     end:          " << end << endl;
     cout << "     num elements: " << num_elements << endl;
+    if (output_all_nodes) {
+        cout << "     output nodes: all" << endl;
+    } else if (!output_nodes.empty()) {
+        cout << "     output nodes:";
+        for (auto id : output_nodes)
+            cout << " " << id;
+        cout << endl;
+    }
 }
 
 void ChParserMbsYAML::FEAConstraintParams::PrintInfo(const std::string& name) const {

@@ -425,6 +425,13 @@ referenced by name from the FEA constraints.
 | `material` | Name of a material defined in `materials` | string | -- | Yes, for `ANCF_3243`, `ANCF_3333` | -- |
 | `up` | Section "up" direction | array[3] | -- | Yes, for `EULER` | -- |
 | `visualization` | Visualization settings for this beam mesh | object | -- | No | no visualization |
+| `output_nodes` | Beam nodes included in the simulation output | string or array[int] | `all` or a list of node indices | No | no output |
+
+The beam nodes are numbered from 1 (the node at `start_point`) to `num_elements + 1` (the node at `end_point`).
+If output is enabled in the simulation specification file, the selected beam nodes are written to output with their
+positions and velocities, as well as their orientations and angular velocities (`EULER` beams) or their slopes
+(`ANCF_CABLE` beams), all expressed in the absolute frame. Only the `EULER` and `ANCF_CABLE` beam types are currently
+implemented.
 
 #### FEA constraints
 

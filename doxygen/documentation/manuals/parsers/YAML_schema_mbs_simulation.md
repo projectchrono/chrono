@@ -57,6 +57,15 @@ If the `output` key is present, it must specify a YAML object with the following
 Note that `format` is required whenever the `output` key is present.
 `HDF5` output silently falls back to `NONE` in a build without HDF5 support.
 
+FEA mesh nodes are included in output only if selected in the model specification file (see the `output_nodes`
+property of FEA beams). Each selected node is identified by the mesh (beam) name and its node index:
+- `ASCII` output: one `FEA node` entry per node, with its position and velocity, orientation and angular velocity
+  (nodes with rotational coordinates), or slope (nodes with slope coordinates).
+- `HDF5` output, `FRAMES` mode: one data set `FEA Mesh <name>` per mesh and output frame, with one record per selected
+  node (fields not applicable to a node type are set to NaN).
+- `HDF5` output, `SERIES` mode: one group `/FEA_Nodes/<name>/node_<index>` per selected node, with time series
+  `pos`, `lin_vel` and, as applicable, `rot`, `ang_vel` (nodes with rotational coordinates) or `slope`.
+
 #### Visualization options
 
 If the `visualization` key is present, it must specify a YAML object with the following properties:

@@ -325,6 +325,17 @@ class ChApi ChAssembly : public ChPhysicsItem {
         std::vector<std::shared_ptr<ChLoadCustom>> loads;
         std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
         std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
+
+#ifdef CHRONO_FEA
+        /// Selection of nodes of an FEA mesh.
+        struct MeshNodes {
+            std::shared_ptr<fea::ChMesh> mesh;                       ///< FEA mesh
+            std::vector<std::shared_ptr<fea::ChNodeFEAbase>> nodes;  ///< selected mesh nodes
+            std::vector<unsigned int> node_ids;                      ///< identifiers of the selected nodes
+        };
+
+        std::vector<MeshNodes> mesh_nodes;
+#endif
     };
 
   protected:

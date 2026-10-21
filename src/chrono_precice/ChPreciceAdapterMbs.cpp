@@ -64,6 +64,9 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filen
     // - read information on FEA meshes and check that they are defined in the MBS
     if (config["meshes"])
         LoadMeshesYAML(config["meshes"], parser);
+
+    // - include in output the FEA mesh nodes selected in the MBS model (beam 'output_nodes')
+    m_output_data.mesh_nodes = parser.GetOutputComponents().mesh_nodes;
     #endif
 
     // - if expected, look for specification of (baseline) added mass blocks.
@@ -216,9 +219,6 @@ void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_me
         cout << m_prefix1 << "Add coupling FEA mesh '" << fea_mesh->GetName() << "' with " << c_mesh->nodes.size() << " nodes" << endl;
 
     m_coupling_fea.push_back(c_mesh);
-
-    //// TODO
-    ////m_output_data.meshes.push_back(fea_mesh);
 }
 #endif
 
@@ -1077,10 +1077,6 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
 
 void ChPreciceAdapterMbs::OnWriteOutput(int frame, double time) {
     m_output_db->Write(frame, time, m_output_data);
-#ifdef CHRONO_FEA
-    //// TODO
-    ////m_output_db->WriteFeaMeshes(m_output_data.meshes);
-#endif
 }
 
 }  // end namespace ch_precice

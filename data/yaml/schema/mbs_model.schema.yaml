@@ -835,7 +835,7 @@ model:
           description: |
             List of FEA beams. Each beam is a straight run of `num_elements` elements from
             `start_point` to `end_point`, and constitutes one mesh (referenced by name from
-            FEA constraints). Only the ANCF_CABLE beam type is currently implemented.
+            FEA constraints). Only the EULER and ANCF_CABLE beam types are currently implemented.
           type: array
           items:
             type: object
@@ -874,6 +874,20 @@ model:
               visualization:
                 <<: *FEA_VISUALIZATION
                 description: Visualization settings for this beam mesh
+              output_nodes:
+                description: |
+                  Beam nodes included in the simulation output (if output is enabled): either `all` or a
+                  list of node indices. Nodes are numbered from 1 (at `start_point`) to `num_elements + 1`
+                  (at `end_point`). The output includes node positions and velocities, as well as node
+                  orientations and angular velocities (EULER beams) or node slopes (ANCF_CABLE beams).
+                  By default, no beam nodes are included in output.
+                oneOf:
+                  - type: string
+                    enum: [all, ALL]
+                  - type: array
+                    items:
+                      type: integer
+                      minimum: 1
 
         shells:
           description: |
