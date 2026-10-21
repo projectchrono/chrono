@@ -28,6 +28,10 @@
     #include "chrono_parsers/yaml/ChParserSphYAML.h"
 #endif
 
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -80,7 +84,9 @@ ChParserWheelRigYAML::ChParserWheelRigYAML(const std::string& yaml_filename, boo
       m_active_domain_size(VNULL),
       m_rig_step(-1),
       m_camera_offset(2.0, 2.5, 1.0),
-      m_camera_target_offset(0, 0.25, -0.25) {
+      m_camera_target_offset(0, 0.25, -0.25),
+      m_plot_output(PlotOutput::PNG),
+      m_plot_measuring_only(true) {
     LoadFile(yaml_filename);
 }
 
@@ -127,6 +133,10 @@ void ChParserWheelRigYAML::LoadFile(const std::string& yaml_filename) {
     if (yaml["coupling"])
         LoadCouplingData(yaml["coupling"]);
 
+    // Load plot specifications
+    if (yaml["plots"])
+        LoadPlotData(yaml["plots"]);
+
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
         cout << "\nWheel test rig: " << m_name << endl;
@@ -139,6 +149,7 @@ void ChParserWheelRigYAML::LoadFile(const std::string& yaml_filename) {
         }
         cout << "  normal load: " << m_normal_load << endl;
         cout << "  rig step:    " << GetRigStep() << endl;
+        cout << "  plots:       " << m_figures.size() << endl;
         cout << endl;
         m_vis_settings.PrintInfo();
     }
@@ -394,12 +405,180 @@ std::shared_ptr<ChFunction> ChParserWheelRigYAML::ReadAngleFunction(const YAML::
 // -----------------------------------------------------------------------------
 
 void ChParserWheelRigYAML::WriteOutput(int frame, double time) {
-    // Create the output database if needed (null if the requested format is not available)
-    ChParserYAML::WriteOutput(frame, time);
-    if (!m_output_db || !m_rig)
+    if (!m_rig)
         return;
 
-    m_output_db->Write(frame, time, {}, m_rig->GetOutputChannels());
+    auto channels = m_rig->GetOutputChannels();
+
+    // Write to the output database (created if needed; null if no output database or format not available)
+    ChParserYAML::WriteOutput(frame, time);
+    if (m_output_db)
+        m_output_db->Write(frame, time, {}, channels);
+
+    // Record channels for plotting
+    if (PlotsEnabled()) {
+        if (m_plot_channels.empty()) {
+            for (const auto& channel : channels) {
+                m_plot_channels.push_back(channel.name);
+                m_plot_units.push_back(channel.units);
+            }
+            m_plot_data.resize(channels.size());
+        }
+        m_plot_time.push_back(time);
+        for (size_t i = 0; i < channels.size(); i++)
+            m_plot_data[i].push_back(channels[i].value);
+    }
+}
+
+void ChParserWheelRigYAML::LoadPlotData(const YAML::Node& a) {
+    if (a["output"]) {
+        auto output = ChToUpper(a["output"].as<std::string>());
+        if (output == "WINDOW")
+            m_plot_output = PlotOutput::WINDOW;
+        else if (output == "PNG")
+            m_plot_output = PlotOutput::PNG;
+        else if (output == "PDF")
+            m_plot_output = PlotOutput::PDF;
+        else {
+            cerr << "Error: unknown plot output '" << a["output"].as<std::string>() << "'." << endl;
+            throw std::runtime_error("Unknown plot output");
+        }
+    }
+    if (a["measuring_only"])
+        m_plot_measuring_only = a["measuring_only"].as<bool>();
+
+    if (!a["figures"])
+        return;
+    for (const auto& f : a["figures"]) {
+        Figure figure;
+        figure.set_range = false;
+        if (f.IsScalar()) {
+            // Shorthand: a single channel as a function of time
+            figure.y.push_back(f.as<std::string>());
+        } else {
+            ChAssertAlways(f["y"]);
+            if (f["y"].IsSequence()) {
+                for (const auto& y : f["y"])
+                    figure.y.push_back(y.as<std::string>());
+            } else {
+                figure.y.push_back(f["y"].as<std::string>());
+            }
+            if (f["x"])
+                figure.x = f["x"].as<std::string>();
+            if (f["title"])
+                figure.title = f["title"].as<std::string>();
+            if (f["y_range"]) {
+                ChAssertAlways(f["y_range"].IsSequence() && f["y_range"].size() == 2);
+                figure.set_range = true;
+                figure.y_min = f["y_range"][0].as<double>();
+                figure.y_max = f["y_range"][1].as<double>();
+            }
+        }
+        m_figures.push_back(figure);
+    }
+}
+
+void ChParserWheelRigYAML::GeneratePlots() {
+    if (!PlotsEnabled())
+        return;
+
+#ifdef CHRONO_POSTPROCESS
+    if (m_plot_time.empty()) {
+        cerr << "Warning: no data recorded for plots." << endl;
+        return;
+    }
+
+    // Index of a recorded channel (-1 if not found)
+    auto find_channel = [this](const std::string& name) -> int {
+        for (size_t i = 0; i < m_plot_channels.size(); i++) {
+            if (m_plot_channels[i] == name)
+                return (int)i;
+        }
+        return -1;
+    };
+
+    // Frames to plot (all, or only those with measurements enabled)
+    std::vector<size_t> frames;
+    int i_measuring = find_channel("measuring");
+    for (size_t k = 0; k < m_plot_time.size(); k++) {
+        if (!m_plot_measuring_only || i_measuring < 0 || m_plot_data[i_measuring][k] > 0)
+            frames.push_back(k);
+    }
+    if (frames.empty()) {
+        cerr << "Warning: no frames to plot (measurements were never enabled)." << endl;
+        return;
+    }
+
+    auto select = [&frames](const std::vector<double>& values) {
+        std::vector<double> selected;
+        selected.reserve(frames.size());
+        for (auto k : frames)
+            selected.push_back(values[k]);
+        return selected;
+    };
+    auto label = [this](int i) { return m_plot_channels[i] + " (" + m_plot_units[i] + ")"; };
+
+    for (size_t f = 0; f < m_figures.size(); f++) {
+        const auto& figure = m_figures[f];
+
+        // Abscissa data and label
+        std::vector<double> x_data;
+        std::string x_label;
+        if (figure.x.empty()) {
+            x_data = select(m_plot_time);
+            x_label = "time (s)";
+        } else {
+            int i = find_channel(figure.x);
+            if (i < 0) {
+                cerr << "Warning: unknown channel '" << figure.x << "' in plot " << f + 1 << ". Plot skipped." << endl;
+                continue;
+            }
+            x_data = select(m_plot_data[i]);
+            x_label = label(i);
+        }
+
+        // Ordinate channels
+        std::vector<int> y_channels;
+        for (const auto& name : figure.y) {
+            int i = find_channel(name);
+            if (i < 0)
+                cerr << "Warning: unknown channel '" << name << "' in plot " << f + 1 << ". Channel skipped." << endl;
+            else
+                y_channels.push_back(i);
+        }
+        if (y_channels.empty())
+            continue;
+
+        std::string stem = m_output_dir + "/plot_" + std::to_string(f + 1);
+        postprocess::ChGnuPlot gplot(stem + ".gpl");
+        switch (m_plot_output) {
+            case PlotOutput::PNG:
+                gplot.SetPersist(false);
+                gplot.OutputPNG(stem + ".png", 800, 600);
+                break;
+            case PlotOutput::PDF:
+                gplot.SetPersist(false);
+                gplot.OutputPDF(stem + ".pdf");
+                break;
+            case PlotOutput::WINDOW:
+                break;
+        }
+        gplot.SetCommand("set termoption noenhanced");  // render channel names (with underscores) literally
+        gplot.SetGrid();
+        if (!figure.title.empty())
+            gplot.SetTitle(figure.title);
+        gplot.SetLabelX(x_label);
+        gplot.SetLabelY(y_channels.size() == 1 ? label(y_channels[0]) : m_plot_units[y_channels[0]]);
+        if (figure.set_range)
+            gplot.SetRangeY(figure.y_min, figure.y_max);
+        for (auto i : y_channels)
+            gplot.Plot(x_data, select(m_plot_data[i]), m_plot_channels[i], " with lines");
+
+        // The plot is generated when the ChGnuPlot object goes out of scope
+    }
+#else
+    cerr << "Warning: plots require the Chrono::Postprocess module. No plots generated." << endl;
+#endif
 }
 
 void ChParserWheelRigYAML::RegisterWheelAssembly(const std::string& name, WheelAssemblyFactory factory) {

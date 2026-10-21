@@ -53,6 +53,23 @@ output:
   mode: SERIES                    # FRAMES, SERIES
   fps: 100
 
+plots:
+  output: PNG                     # WINDOW, PNG, PDF
+  measuring_only: true            # plot only after the time delay
+  figures:
+    - y: [wheel_force_x, wheel_force_y, wheel_force_z]
+      title: Wheel forces
+    - y: [slip_angle, steering_angle, camber_angle]
+      title: Wheel angles
+      #y_range: [-0.1, 0.1]
+    - x: slip_angle
+      y: wheel_force_y
+      title: Lateral force vs. slip angle
+    - long_slip
+    - drawbar_pull
+    - drive_torque
+    - sinkage
+
 visualization:
   type: COLLISION                 # MODEL_FILE, PRIMITIVES, COLLISION, NONE
   render_fps: 100

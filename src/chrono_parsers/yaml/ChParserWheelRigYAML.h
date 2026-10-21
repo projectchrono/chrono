@@ -86,9 +86,22 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     /// With CRM terrain, this is the FSI coupling step.
     double GetRigStep() const { return m_rig_step > 0 ? m_rig_step : GetTimestep(); }
 
-    /// Write the rig output channels (see ChWheelTestRig::GetOutputChannels) at the current time.
+    /// Return true if generating output, i.e., writing an output database or recording data for plots.
+    virtual bool OutputEnabled() const override { return ChParserYAML::OutputEnabled() || PlotsEnabled(); }
+
+    /// Return true if plots were requested (in the `plots` section of the simulation specification).
+    bool PlotsEnabled() const { return !m_figures.empty(); }
+
+    /// Write the rig output channels (see ChWheelTestRig::GetOutputChannels) at the current time and record them for
+    /// plotting (if plots were requested).
     /// The output directory must be set (SetOutputDir) and the rig created (CreateRig) before generating output.
     virtual void WriteOutput(int frame, double time) override;
+
+    /// Generate the requested plots from the data recorded during the simulation.
+    /// For each figure, a Gnuplot script is written to the output directory and executed, producing an image file or
+    /// an interactive window. This function must be called once, at the end of the simulation; it does nothing if no
+    /// plots were requested. Plotting requires the Chrono::Postprocess module and Gnuplot.
+    void GeneratePlots();
 
     /// Return the camera location relative to the wheel hub position.
     const ChVector3d& GetCameraOffset() const { return m_camera_offset; }
@@ -114,6 +127,21 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     static vehicle::ChWheelTestRig::Mode ReadMode(const YAML::Node& a);
     static vehicle::ChWheelTestRig::TerrainType ReadTerrainType(const YAML::Node& a);
     static vehicle::ChTire::CollisionType ReadTireCollisionType(const YAML::Node& a);
+
+    void LoadPlotData(const YAML::Node& yaml);
+
+    /// Plot output type.
+    enum class PlotOutput { WINDOW, PNG, PDF };
+
+    /// Figure specification: one or more channels as functions of time or of another channel.
+    struct Figure {
+        std::string x;               ///< abscissa channel (empty for time)
+        std::vector<std::string> y;  ///< ordinate channels
+        std::string title;           ///< figure title (optional)
+        bool set_range;              ///< true if an ordinate range was specified
+        double y_min;                ///< ordinate range (lower bound)
+        double y_max;                ///< ordinate range (upper bound)
+    };
 
     enum class SteeringInput { NONE, ANGLE, ACTUATOR };
     enum class ActiveDomain { NONE, AUTO, BOX };
@@ -168,6 +196,15 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     double m_rig_step;
     ChVector3d m_camera_offset;
     ChVector3d m_camera_target_offset;
+
+    // Plots
+    std::vector<Figure> m_figures;                 ///< requested figures
+    PlotOutput m_plot_output;                      ///< plot output type
+    bool m_plot_measuring_only;                    ///< plot only while measurements are enabled
+    std::vector<std::string> m_plot_channels;      ///< names of recorded channels
+    std::vector<std::string> m_plot_units;         ///< units of recorded channels
+    std::vector<double> m_plot_time;               ///< recorded times
+    std::vector<std::vector<double>> m_plot_data;  ///< recorded channel values (one vector per channel)
 
     std::shared_ptr<vehicle::ChWheelTestRig> m_rig;
 };

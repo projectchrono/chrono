@@ -180,5 +180,9 @@ int main(int argc, char* argv[]) {
     }
     cout << endl;
 
+    // Generate plots (if requested)
+    if (output)
+        parser.GeneratePlots();
+
     return 0;
 }

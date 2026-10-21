@@ -540,6 +540,10 @@ bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool d
         if (real_time)
             rt_timer.Spin(step);
     }
+
+    // Generate plots (if requested)
+    if (output)
+        parser.GeneratePlots();
 #endif
 
     return true;

@@ -323,9 +323,65 @@ output:
         default: FRAMES
      fps:
         type: number
-        description: Output frequency (FPS or Hz)
+        description: Output frequency (FPS or Hz); also the sampling frequency of the data recorded for plots
         minimum: 0
         default: 100
+
+plots:
+  description: |
+    Gnuplot plots generated at the end of the simulation from the rig output channels (requires Chrono::Postprocess
+    and Gnuplot). Channels are sampled at the output frequency (output.fps), even if no output database is written
+    (output.format NONE). For each figure, a Gnuplot script (plot_<n>.gpl) and, for PNG or PDF output, the plot image
+    (plot_<n>.png or plot_<n>.pdf) are written to the output directory.
+    Available channels: measuring, long_slip, slip_angle, camber_angle, steering_angle, steering_actuator,
+    wheel_force_x, wheel_force_y, wheel_force_z, wheel_moment_x, wheel_moment_y, wheel_moment_z, drawbar_pull,
+    drive_torque, wheel_angular_speed, carrier_speed, carrier_position, hub_position_x, hub_position_y, hub_position_z,
+    sinkage, suspension_travel (wheel assemblies with suspension only), plus any channels specific to a custom wheel
+    assembly. Quantities are in SI units, with angles in radians.
+  type: object
+  required: [figures]
+  properties:
+    output:
+      type: string
+      description: Plot output (interactive Gnuplot windows, PNG images, or PDF files)
+      enum: [WINDOW, PNG, PDF]
+      default: PNG
+    measuring_only:
+      type: boolean
+      description: If true, plot only data recorded while rig measurements are enabled (after the time delay)
+      default: true
+    figures:
+      type: array
+      description: |
+        List of figures. A figure is either a channel name (that channel as a function of time) or an object
+        specifying one or more channels as functions of time or of another channel.
+      items:
+        oneOf:
+          - type: string
+            description: Channel plotted as a function of time
+          - type: object
+            required: [y]
+            properties:
+              x:
+                type: string
+                description: Abscissa channel (default time)
+              y:
+                description: Ordinate channel or list of channels
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+              title:
+                type: string
+                description: Figure title
+              y_range:
+                type: array
+                description: Ordinate range [min, max] (default automatic)
+                items:
+                  type: number
+                minItems: 2
+                maxItems: 2
 
 visualization:
   description: |
