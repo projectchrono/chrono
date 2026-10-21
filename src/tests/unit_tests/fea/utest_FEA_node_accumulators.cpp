@@ -45,6 +45,14 @@ static ChVectorDynamic<> NodeResidual(ChNodeFEAbase& node) {
     return R;
 }
 
+// Evaluate the applied loads of a node (no gyroscopic terms).
+static ChVectorDynamic<> NodeAppliedLoads(ChNodeFEAbase& node) {
+    ChVectorDynamic<> R(node.GetNumCoordsVelLevel());
+    R.setZero();
+    node.NodeIntLoadResidual_F_applied(0, R, 1.0);
+    return R;
+}
+
 static void CheckVector(const ChVectorDynamic<>& v, const ChVector3d& expected, int offset = 0) {
     ASSERT_NEAR(v(offset + 0), expected.x(), tol);
     ASSERT_NEAR(v(offset + 1), expected.y(), tol);
@@ -83,7 +91,7 @@ TEST(ChNodeFEAxyz, accumulators) {
 
     CheckVector(node->GetAccumulatedForce(idx1), 2 * F1);
     CheckVector(node->GetAccumulatedForce(idx2), F2);
-    CheckVector(node->GetAccumulatorForce(), 2 * F1 + F2);
+    CheckVector(NodeAppliedLoads(*node), F0 + 2 * F1 + F2);
     CheckVector(NodeResidual(*node), F0 + 2 * F1 + F2);
 
     // The same total load is passed to the solver variables
@@ -127,7 +135,7 @@ TEST(ChNodeFEAxyz, copy) {
     node.AccumulateForce(idx, F1);
 
     ChNodeFEAxyz node_copy(node);
-    CheckVector(node_copy.GetAccumulatorForce(), VNULL);
+    CheckVector(NodeAppliedLoads(node_copy), F0);
     CheckVector(NodeResidual(node_copy), F0);
 
     ChNodeFEAxyz node_assigned;
@@ -179,9 +187,9 @@ TEST(ChNodeFEAxyzrot, accumulators) {
     ChVector3d force = F0 + F1;
     ChVector3d torque = T0 + frame.TransformDirectionParentToLocal(Vcross(P1 - frame.GetPos(), F1)) + frame.TransformDirectionParentToLocal(T2) + T2;
 
-    auto wrench = node->GetAccumulatorWrench();
-    CheckVector(wrench.force + F0, force);
-    CheckVector(wrench.torque + T0, torque);
+    auto A = NodeAppliedLoads(*node);
+    CheckVector(A, force, 0);
+    CheckVector(A, torque, 3);
 
     // The node is at rest, so there is no gyroscopic torque
     auto R = NodeResidual(*node);
@@ -200,6 +208,34 @@ TEST(ChNodeFEAxyzrot, accumulators) {
     CheckVector(R, T0 + frame.TransformDirectionParentToLocal(T2) + T2, 3);
 }
 
+TEST(ChNodeFEAxyzrot, applied_loads) {
+    // For a spinning node, the residual includes the gyroscopic torque but the applied loads do not
+    ChVector3d F0(1, 2, 3);
+    ChVector3d T0(0.1, 0.2, 0.3);
+    ChVector3d T1(-1, 0.5, 2);
+    ChVector3d w(0.5, -1.0, 2.0);  // angular velocity, in node frame
+
+    auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFramed(ChVector3d(1, 0, 0)));
+    node->SetMass(2);
+    node->GetInertia() = ChMatrix33<>(ChVector3d(1, 2, 3));
+    node->SetForce(F0);
+    node->SetTorque(T0);
+    node->SetAngVelLocal(w);
+    auto idx = node->AddAccumulator();
+    node->AccumulateTorque(idx, T1, true);
+
+    ChVector3d gyro = Vcross(w, ChVector3d(1 * w.x(), 2 * w.y(), 3 * w.z()));
+    ASSERT_GT(gyro.Length(), 0.1);
+
+    auto A = NodeAppliedLoads(*node);
+    CheckVector(A, F0, 0);
+    CheckVector(A, T0 + T1, 3);
+
+    auto R = NodeResidual(*node);
+    CheckVector(R, F0, 0);
+    CheckVector(R, T0 + T1 - gyro, 3);
+}
+
 TEST(ChNodeFEAxyzrot, copy) {
     // Accumulators are not copied with the node
     ChVector3d F0(1, 2, 3);
@@ -211,7 +247,7 @@ TEST(ChNodeFEAxyzrot, copy) {
     node.AccumulateForce(idx, F1, node.GetPos(), false);
 
     ChNodeFEAxyzrot node_copy(node);
-    CheckVector(node_copy.GetAccumulatorWrench().force, VNULL);
+    CheckVector(NodeAppliedLoads(node_copy), F0, 0);
     CheckVector(NodeResidual(node_copy), F0, 0);
 
     ChNodeFEAxyzrot node_assigned;

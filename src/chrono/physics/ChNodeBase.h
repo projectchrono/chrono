@@ -88,6 +88,8 @@ class ChApi ChNodeBase {
                                           const unsigned int off_v,
                                           ChStateDelta& Dv);
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {}
+    /// Load only the externally applied loads on the node (see ChPhysicsItem::IntLoadResidual_F_applied).
+    virtual void NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) {}
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,

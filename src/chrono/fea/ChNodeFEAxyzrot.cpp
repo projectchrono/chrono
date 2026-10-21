@@ -151,6 +151,19 @@ void ChNodeFEAxyzrot::NodeIntLoadResidual_F(const unsigned int off, ChVectorDyna
     R.segment(off + 3, 3) += c * (torque - gyro).eigen();
 }
 
+void ChNodeFEAxyzrot::NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // Applied force and torque, including forces and torques from node accumulators (if any), without gyroscopic torque
+    ChVector3d force = Force;
+    ChVector3d torque = Torque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+
+    R.segment(off + 0, 3) += c * force.eigen();
+    R.segment(off + 3, 3) += c * torque.eigen();
+}
+
 void ChNodeFEAxyzrot::NodeIntLoadResidual_Mv(const unsigned int off,
                                              ChVectorDynamic<>& R,
                                              const ChVectorDynamic<>& w,

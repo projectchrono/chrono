@@ -308,6 +308,17 @@ void ChMesh::IntStateOnEndStep(double T) {
     }
 }
 
+void ChMesh::IntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // Loads applied on the nodes only (no element internal forces, no gravity)
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {
+            vnodes[j]->NodeIntLoadResidual_F_applied(off + local_off_v, R, c);
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
+        }
+    }
+}
+
 void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // nodes applied forces
     unsigned int local_off_v = 0;
