@@ -86,6 +86,10 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     /// With CRM terrain, this is the FSI coupling step.
     double GetRigStep() const { return m_rig_step > 0 ? m_rig_step : GetTimestep(); }
 
+    /// Write the rig output channels (see ChWheelTestRig::GetOutputChannels) at the current time.
+    /// The output directory must be set (SetOutputDir) and the rig created (CreateRig) before generating output.
+    virtual void WriteOutput(int frame, double time) override;
+
     /// Return the camera location relative to the wheel hub position.
     const ChVector3d& GetCameraOffset() const { return m_camera_offset; }
 

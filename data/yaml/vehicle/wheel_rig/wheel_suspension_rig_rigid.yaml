@@ -53,9 +53,9 @@ simulation:
     pardiso: 8
 
 output:
-  format: NONE                    # NONE, ASCII, HDF5
-  #mode: FRAMES                   # FRAMES, SERIES
-  #fps: 100
+  format: ASCII                   # NONE, ASCII, HDF5
+  mode: SERIES                    # FRAMES, SERIES
+  fps: 100
 
 visualization:
   type: MODEL_FILE                # MODEL_FILE, PRIMITIVES, COLLISION, NONE

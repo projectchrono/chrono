@@ -476,8 +476,21 @@ bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool d
     bool real_time = parser.EnforceRealtime();
     bool render = parser.VisualizationEnabled() && !disable_vis;
 
-    if (parser.OutputEnabled() && !disable_output)
-        cout << "Warning: output is not yet supported for wheel test rig simulations." << endl;
+    bool output = parser.OutputEnabled() && !disable_output;
+
+    // Create output directory (named after the simulation specification file)
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return false;
+        }
+        out_dir = out_dir + "/" + std::filesystem::path(yaml_filename).stem().string();
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return false;
+        }
+        parser.SetOutputDir(out_dir);
+    }
 
     const ChVector3d& camera_offset = parser.GetCameraOffset();
     const ChVector3d& camera_target_offset = parser.GetCameraTargetOffset();
@@ -520,6 +533,9 @@ bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool d
 
         rig->Advance(step);
         time = sys->GetChTime();
+
+        if (output)
+            parser.Output(time);
 
         if (real_time)
             rt_timer.Spin(step);

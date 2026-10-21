@@ -393,6 +393,15 @@ std::shared_ptr<ChFunction> ChParserWheelRigYAML::ReadAngleFunction(const YAML::
 
 // -----------------------------------------------------------------------------
 
+void ChParserWheelRigYAML::WriteOutput(int frame, double time) {
+    // Create the output database if needed (null if the requested format is not available)
+    ChParserYAML::WriteOutput(frame, time);
+    if (!m_output_db || !m_rig)
+        return;
+
+    m_output_db->Write(frame, time, {}, m_rig->GetOutputChannels());
+}
+
 void ChParserWheelRigYAML::RegisterWheelAssembly(const std::string& name, WheelAssemblyFactory factory) {
     m_factories[name] = factory;
 }

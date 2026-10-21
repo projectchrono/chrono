@@ -19,6 +19,7 @@
 //
 // =============================================================================
 
+#include <filesystem>
 #include <iomanip>
 
 #include "chrono/core/ChRealtimeStep.h"
@@ -97,6 +98,23 @@ int main(int argc, char* argv[]) {
     double step = parser.GetRigStep();
     bool real_time = parser.EnforceRealtime();
     bool render = parser.VisualizationEnabled();
+    bool output = parser.OutputEnabled();
+
+    // Create output directory (named after the simulation specification file)
+    if (output) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_WHEEL_RIG";
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            cout << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        out_dir += "/" + std::filesystem::path(yaml_filename).stem().string();
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            cout << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        parser.SetOutputDir(out_dir);
+        cout << "Output directory: " << out_dir << endl;
+    }
 
     const ChVector3d& camera_offset = parser.GetCameraOffset();
     const ChVector3d& camera_target_offset = parser.GetCameraTargetOffset();
@@ -143,6 +161,9 @@ int main(int argc, char* argv[]) {
 
         rig->Advance(step);
         time = sys->GetChTime();
+
+        if (output)
+            parser.Output(time);
 
         // Report measured quantities (once measurements are enabled)
         if (rig->OutputEnabled() && time >= status_frame / status_fps) {
