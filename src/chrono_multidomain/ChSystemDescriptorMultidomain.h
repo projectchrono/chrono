@@ -403,10 +403,14 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
     /// Add vectors of this->shared_vects into corresponding slots of vector vect, depending on the
     /// offsets of shared variables of this domain.
-    /// If use_average = 0, simply sum all contributions, if =1, shared contributions 
-    /// are averaged, if >0 multiply the average.
     /// Note, vect has size and indexing as domain's coordinates.
-    virtual void SharedVectsAddToDomainVector(ChVectorDynamic<>& vect, double use_average = 0);
+    virtual void SharedVectsAddToDomainVector(ChVectorDynamic<>& vect);
+
+    /// Average vectors of this->shared_vects into corresponding slots of vector vect, depending on the
+    /// offsets of shared variables of this domain.
+    /// If use_average =1, shared contributions are averaged, if >0 multiply the sum.
+    /// Note, vect has size and indexing as domain's coordinates.
+    virtual void SharedVectsAverageToDomainVector(ChVectorDynamic<>& vect, double average_multiplier = 1.0);
 
     /// Send the delta ((current variables State) - (last shared_vects)) to the neighbouring domains, 
     /// and finally all deltas are ADDED to the corresponding variables State() as State()+=deltas;
@@ -431,7 +435,13 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// where we used restriction matrices R as  v_distr_j =  R_j v_global.
     /// This operation requires a network-expensive SEND and RECEIVE operation!
     /// It is expected that all domains will execute this operation, otherwise deadlock.
-    virtual void VectAdditiveToClipped(ChVectorDynamic<>& vect, double use_average = 0);
+    virtual void VectAdditiveToClipped(ChVectorDynamic<>& vect);
+
+    /// Takes vectors "vect" and average the shared coordinates with other vectors from other domains.
+    /// Overwrites "vect". Note, vect has size and indexing as domain's coordinates.
+    /// This operation requires a network-expensive SEND and RECEIVE operation!
+    /// It is expected that all domains will execute this operation, otherwise deadlock.
+    virtual void VectAverage(ChVectorDynamic<>& vect, double average_multiplier = 1.0);
 
     /// Sync the State() of ChVariables across the domains. Depending on numerical
     /// roundoff issues, solvers might not guarantee that the values in distributed clipped

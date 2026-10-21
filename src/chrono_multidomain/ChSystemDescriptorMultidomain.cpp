@@ -281,34 +281,43 @@ void ChSystemDescriptorMultidomain::SharedVectsFromDomainVector(const ChVectorDy
     }
 }
 
-void ChSystemDescriptorMultidomain::SharedVectsAddToDomainVector(ChVectorDynamic<>& vect, double use_average) {
-    std::unordered_map<ChVariables*, int> sharing_count;
-    if (use_average) {
-        // initialize avg counters to 1
-        for (auto gvar : this->m_variables)
-            sharing_count[gvar] = 1;
+void ChSystemDescriptorMultidomain::SharedVectsAddToDomainVector(ChVectorDynamic<>& vect) {
+    for (auto& interf : this->domain->GetInterfaces()) {
+        int nrank = interf.second.side_OUT->GetRank();
+        int offset = 0;
+        for (auto avar : interf.second.shared_vars) {
+            if (avar->IsActive()) {
+                vect.segment(avar->GetOffset(), avar->GetDOF()) += shared_vects[nrank].segment(offset, avar->GetDOF());
+                offset += avar->GetDOF();
+            }
+        }
     }
+}
+
+void ChSystemDescriptorMultidomain::SharedVectsAverageToDomainVector(ChVectorDynamic<>& vect, double average_multiplier) {
+    std::unordered_map<ChVariables*, int> sharing_count;
+
+    // initialize avg counters to 1
+    for (auto gvar : this->m_variables)
+        sharing_count[gvar] = 1;
 
     for (auto& interf : this->domain->GetInterfaces()) {
         int nrank = interf.second.side_OUT->GetRank();
         int offset = 0;
         for (auto avar : interf.second.shared_vars) {
             if (avar->IsActive()) {
-                if (use_average)
-                    sharing_count[avar] += 1;
+                sharing_count[avar] += 1;
                 vect.segment(avar->GetOffset(), avar->GetDOF()) += shared_vects[nrank].segment(offset, avar->GetDOF());
                 offset += avar->GetDOF();
             }
         }
     }
-
-    if (use_average) {
-        // initialize avg counters to 1
-        for (auto gvar : this->m_variables)
-            if (gvar->IsActive()) {
-                vect.segment(gvar->GetOffset(), gvar->GetDOF()) *= (use_average / (double)sharing_count[gvar]);
-            }
-    }
+        
+    // initialize avg counters to 1
+    for (auto gvar : this->m_variables)
+        if (gvar->IsActive()) {
+            vect.segment(gvar->GetOffset(), gvar->GetDOF()) *= (average_multiplier / (double)sharing_count[gvar]);
+        }
 }
 
 void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(double omega) {
@@ -594,10 +603,16 @@ void ChSystemDescriptorMultidomain::SharedVectsSwap() {
     }
 }
 
-void ChSystemDescriptorMultidomain::VectAdditiveToClipped(ChVectorDynamic<>& vect, double use_average) {
+void ChSystemDescriptorMultidomain::VectAdditiveToClipped(ChVectorDynamic<>& vect) {
     this->SharedVectsFromDomainVector(vect);
     this->SharedVectsSwap();                        // *** COMM + MULTITHREAD BARRIER ***
-    this->SharedVectsAddToDomainVector(vect, use_average);
+    this->SharedVectsAddToDomainVector(vect);
+}
+
+void ChSystemDescriptorMultidomain::VectAverage(ChVectorDynamic<>& vect, double average_multiplier) {
+    this->SharedVectsFromDomainVector(vect);
+    this->SharedVectsSwap();  // *** COMM + MULTITHREAD BARRIER ***
+    this->SharedVectsAverageToDomainVector(vect, average_multiplier);
 }
 
 
@@ -611,7 +626,7 @@ double ChSystemDescriptorMultidomain::SyncSharedStates(bool return_max_correctio
     }
 
     // Average shared coordinates across interfaces and write back.
-    this->VectAdditiveToClipped(state, 1.0);
+    this->VectAverage(state);
     this->FromVectorToVariables(state);
 
     if (!return_max_correction_error || state.size() == 0) {
