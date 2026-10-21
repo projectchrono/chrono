@@ -312,6 +312,16 @@ void ChParserSphYAML::LoadModelData(const YAML::Node& yaml) {
             m_material.soil_props.average_diam = a["average_diam"].as<double>();
         if (a["cohesion_coefficient"])
             m_material.soil_props.cohesion_coeff = a["cohesion_coefficient"].as<double>();
+        if (a["rheology_model"])
+            m_material.soil_props.rheology_model = ReadRheologyModel(a["rheology_model"]);
+        if (a["mcc_M"])
+            m_material.soil_props.mcc_M = a["mcc_M"].as<double>();
+        if (a["mcc_kappa"])
+            m_material.soil_props.mcc_kappa = a["mcc_kappa"].as<double>();
+        if (a["mcc_lambda"])
+            m_material.soil_props.mcc_lambda = a["mcc_lambda"].as<double>();
+        if (a["mcc_v_lambda"])
+            m_material.soil_props.mcc_v_lambda = a["mcc_v_lambda"].as<double>();
     }
 
     // Read SPH state initialization settings
@@ -546,6 +556,9 @@ class SPHPropertiesCallback : public fsi::sph::ChFsiFluidSystemSPH::ParticleProp
         : ParticlePropertiesCallback(), set_pressure(set_pressure), zero_height(zero_height), set_velocity(set_velocity), init_velocity(init_velocity) {}
 
     virtual void set(const fsi::sph::ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+        // Start from the default properties, so that every property not overridden below is still set
+        ParticlePropertiesCallback::set(sysSPH, pos);
+
         if (set_pressure) {
             double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
             double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
@@ -752,6 +765,15 @@ void ChParserSphYAML::MaterialProperties::PrintInfo() const {
             cout << "      mu fric_2 :            " << soil_props.mu_fric_2 << endl;
             cout << "      average diameter :     " << soil_props.average_diam << endl;
             cout << "      cohesion coefficient : " << soil_props.cohesion_coeff << endl;
+            if (soil_props.rheology_model == fsi::sph::RheologyCRM::MCC) {
+                cout << "      rheology model :       MCC" << endl;
+                cout << "      MCC M :                " << soil_props.mcc_M << endl;
+                cout << "      MCC kappa :            " << soil_props.mcc_kappa << endl;
+                cout << "      MCC lambda :           " << soil_props.mcc_lambda << endl;
+                cout << "      MCC v_lambda :         " << soil_props.mcc_v_lambda << endl;
+            } else {
+                cout << "      rheology model :       MU_OF_I" << endl;
+            }
             break;
     }
 }
@@ -834,6 +856,15 @@ fsi::sph::PhysicsProblem ChParserSphYAML::ReadPhysicsProblemType(const YAML::Nod
     if (val == "CRM")
         return fsi::sph::PhysicsProblem::CRM;
     return fsi::sph::PhysicsProblem::CFD;
+}
+
+fsi::sph::RheologyCRM ChParserSphYAML::ReadRheologyModel(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+    if (val == "MU_OF_I")
+        return fsi::sph::RheologyCRM::MU_OF_I;
+    if (val == "MCC")
+        return fsi::sph::RheologyCRM::MCC;
+    return fsi::sph::RheologyCRM::MU_OF_I;
 }
 
 fsi::sph::ChFsiProblemWavetank::WavemakerType ChParserSphYAML::ReadWavetankType(const YAML::Node& a) {

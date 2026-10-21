@@ -148,7 +148,9 @@ class CH_VEHICLE_API ChWheelTestRig {
     };
 
     /// SCM terrain patch parameters.
+    /// The default soil parameters match the SCMTerrain defaults.
     struct CH_VEHICLE_API TerrainParamsSCM {
+        TerrainParamsSCM() : Bekker_Kphi(2e6), Bekker_Kc(0), Bekker_n(1.1), Mohr_cohesion(50), Mohr_friction(20), Janosi_shear(0.01), grid_spacing(0.125), vis_mesh(true) {}
         double Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
         double Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
         double Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
@@ -161,6 +163,7 @@ class CH_VEHICLE_API ChWheelTestRig {
 
     /// Granular terrain patch parameters.
     struct CH_VEHICLE_API TerrainParamsGranular {
+        TerrainParamsGranular() : radius(0.02), density(2000), friction(0.9), cohesion(0), Young_modulus(1e7) {}
         double radius;         ///< particle radius
         double density;        ///< particle material density (kg/m3)
         double friction;       ///< inter-particle coefficient of friction

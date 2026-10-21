@@ -220,10 +220,43 @@ model:
           minimum: 0
           default: 0.005
         cohesion_coefficient:
-          description: Cohesion coefficient.
+          description: Cohesion coefficient (not used by the MCC rheology).
           type: number
           minimum: 0
           default: 0.0
+        rheology_model:
+          description: |
+            CRM rheology model: mu(I) (MU_OF_I) or Modified Cam-Clay critical-state plasticity (MCC).
+            MCC requires mcc_M > 0, mcc_kappa > 0, and mcc_lambda > mcc_kappa.
+            The initial pre-consolidation pressure is set to 1.01 times the initial particle pressure, which is the
+            hydrostatic pressure if `initial_states.depth_based_pressure` is enabled and 1 kPa otherwise.
+          type: string
+          enum: [MU_OF_I, MCC]
+          default: MU_OF_I
+        mcc_M:
+          description: Cam-Clay critical state line slope, q = M p (MCC only).
+          type: number
+          minimum: 0
+          default: 0.0
+        mcc_kappa:
+          description: |
+            Cam-Clay swelling index, the slope of the elastic unload/reload line in v-ln(p) (MCC only).
+            Sets the elastic bulk modulus K = v p / mcc_kappa. Must satisfy 0 < mcc_kappa < mcc_lambda.
+          type: number
+          minimum: 0
+          default: 0.0
+        mcc_lambda:
+          description: |
+            Cam-Clay compression index, the slope of the normal consolidation line in v-ln(p) (MCC only).
+            Must be larger than mcc_kappa.
+          type: number
+          minimum: 0
+          default: 0.0
+        mcc_v_lambda:
+          description: Cam-Clay specific volume at the reference pressure of 1000 Pa (MCC only).
+          type: number
+          minimum: 0
+          default: 2.0
 
     initial_states:
       description: Initialization of the SPH particle states.

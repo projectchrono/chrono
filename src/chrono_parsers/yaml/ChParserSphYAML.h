@@ -174,6 +174,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
   private:
     static GeometryType ReadGeometryType(const YAML::Node& a);
     static fsi::sph::PhysicsProblem ReadPhysicsProblemType(const YAML::Node& a);
+    static fsi::sph::RheologyCRM ReadRheologyModel(const YAML::Node& a);
     static fsi::sph::ChFsiProblemWavetank::WavemakerType ReadWavetankType(const YAML::Node& a);
     static fsi::sph::EosType ReadEosType(const YAML::Node& a);
     static fsi::sph::KernelType ReadKernelType(const YAML::Node& a);
