@@ -68,6 +68,10 @@ std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneFront.json";
 double normal_load = 6500;  // HMMWV
 ////double normal_load = 2900;  // Polaris
 
+// Wheel angular speed (small longitudinal slip, about 2.5%, at a longitudinal speed of 0.2 m/s, for the selected wheel)
+double angular_speed = 4.25 * CH_RPM_TO_RAD_S;  // HMMWV
+////double angular_speed = 6.0 * CH_RPM_TO_RAD_S;  // Polaris
+
 double render_fps = 60;
 bool debug_output = false;
 bool gnuplot_output = true;
@@ -116,9 +120,9 @@ int main() {
 
     // Set test scenario: prescribe all motion functions
     //   longitudinal speed: 0.2 m/s
-    //   angular speed: 10 RPM
+    //   angular speed: see above
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
-    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(angular_speed));
 
     // Steering (steerable suspension only): the wheel is steered about its kingpin through a rack attached to the tierods.
     //   steering angle: sinusoidal +- 5 deg with 5 s period (converted to the steering actuator input through a kinematic map)

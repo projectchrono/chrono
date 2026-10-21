@@ -288,6 +288,8 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// initialization at the loaded configuration of the suspension. Steering angles are relative to that configuration
     /// and positive to the left (positive rotation about the vertical axis). Away from it, the actual steering angle
     /// includes bump and compliance steer.
+    /// Note that a zero steering angle retains the static toe of the suspension in the loaded configuration (in general
+    /// different from the design toe, because of bump steer), so that the wheel may run at a non-zero slip angle.
     /// This function overrides any steering actuator function.
     void SetSteeringAngleFunction(std::shared_ptr<ChFunction> funct);
 
@@ -472,7 +474,9 @@ class CH_VEHICLE_API ChWheelTestRig {
     double GetLongitudinalSlip() const;
 
     /// Get current wheel slip angle.
-    /// This value is calculated from the current hub normal direction.
+    /// This value is calculated from the current hub normal direction, relative to the direction of travel. For a wheel
+    /// with a steerable suspension, the slip angle includes the static toe of the loaded configuration, i.e., it is the
+    /// negative of the sum of the steering angle (see GetSteeringAngle) and the loaded toe angle.
     double GetSlipAngle() const;
 
     /// Get current wheel camber angle.
@@ -480,7 +484,9 @@ class CH_VEHICLE_API ChWheelTestRig {
     double GetCamberAngle() const;
 
     /// Get current wheel steering angle, relative to the initial configuration (positive to the left).
-    /// This value is calculated from the current hub normal direction, relative to the rig chassis.
+    /// This value is calculated from the current hub normal direction, relative to the rig chassis. For a wheel with a
+    /// suspension, the initial configuration is the loaded configuration with the steering actuator at zero; a zero
+    /// steering angle therefore retains the static toe of the suspension in that configuration.
     double GetSteeringAngle() const;
 
     /// Get current steering actuator coordinate (0 if the wheel assembly has no steering actuator).

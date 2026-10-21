@@ -187,7 +187,10 @@ test:
           description: |
             ANGLE:    wheel steering angle (degrees or radians per `angle_degrees`), relative to the loaded
                       configuration and positive to the left. Converted to the actuator coordinate through a kinematic
-                      map computed at initialization, so bump and compliance steer are retained.
+                      map computed at initialization, so bump and compliance steer are retained. A zero steering
+                      angle retains the static toe of the suspension in the loaded configuration (in general different
+                      from the design toe, because of bump steer), so the wheel may run at a non-zero slip angle; the
+                      `slip_angle` output channel includes that toe, the `steering_angle` channel does not.
             ACTUATOR: steering actuator coordinate, specific to the steering mechanism (for a Chrono::Vehicle
                       steerable suspension, the rack displacement in m along the rig lateral axis).
           enum: [ANGLE, ACTUATOR]

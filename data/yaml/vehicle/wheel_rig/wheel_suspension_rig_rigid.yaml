@@ -15,9 +15,9 @@ test:
   longitudinal_speed:
     type: CONSTANT
     value: 0.2
-  angular_speed:                  # 10 RPM
+  angular_speed:                  # 4.25 RPM (small longitudinal slip, about 2.5%)
     type: CONSTANT
-    value: 1.0471975512
+    value: 0.4450589593
   #slip_angle:                    # ignored with a suspension (use steering)
 
   steering:                       # +-5 deg with a 5 s period, about the kingpin
