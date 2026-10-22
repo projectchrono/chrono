@@ -78,7 +78,7 @@ The `PARDISO` and `MUMPS` solvers require the corresponding optional Chrono modu
 
 Below is an example of an MBS solver configuration:
 
-\include data/yaml/mbs/solver_mbs.yaml
+\include data/yaml/mbs/solver_nonstiff.yaml
 
 ## YAML schema
 

@@ -118,7 +118,7 @@ The following optional properties can be set:
 
 Below is an example of an FSI-SPH simulation configuration:
 
-\include data/yaml/fsi/sphere_decay/sph.yaml
+\include data/yaml/fsi/dam_break/sph.yaml
 
 ## YAML schema
 

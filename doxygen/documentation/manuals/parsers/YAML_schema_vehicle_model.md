@@ -61,7 +61,7 @@ The `chase_camera` key, if present, specifies the following properties (all of w
 
 Below is an example of a wheeled vehicle model configuration:
 
-\include data/yaml/vehicle/polaris.yaml
+\include data/yaml/vehicle/model_polaris.yaml
 
 ## YAML schema
 

@@ -117,7 +117,7 @@ The `LAMINAR` method uses the physical viscosity given by the `fluid_properties`
 
 Below is an example of an SPH solver configuration:
 
-\include data/yaml/fsi/dam_break/solver_sph.yaml
+\include data/yaml/fsi/dam_break/sph_solver.yaml
 
 ## YAML schema
 

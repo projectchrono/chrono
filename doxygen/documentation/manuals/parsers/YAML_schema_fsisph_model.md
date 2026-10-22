@@ -161,7 +161,7 @@ The `actuation_function` is a generic function object (see the
 
 Below is an example of an SPH model configuration:
 
-\include data/yaml/fsi/dam_break/model_sph.yaml
+\include data/yaml/fsi/dam_break/sph_model.yaml
 
 ## YAML schema
 
