@@ -335,6 +335,8 @@ void ChParserWheelRigYAML::LoadTestData(const YAML::Node& a) {
         m_drop_speed = a["drop_speed"].as<double>();
     if (a["time_delay"])
         m_time_delay = a["time_delay"].as<double>();
+    if (a["normal_load"])
+        m_normal_load = a["normal_load"].as<double>();  // overrides the normal load from the rig model file
 
     if (a["longitudinal_speed"])
         m_long_speed_fun = ReadFunction(a["longitudinal_speed"], m_test_degrees);

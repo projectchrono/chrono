@@ -317,6 +317,12 @@ int main() {
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
 
+        // End the simulation when the wheel reaches the end of the terrain patch
+        if (rig.PatchEndReached()) {
+            cout << "\nEnd of terrain patch reached at t = " << sys->GetChTime() << endl;
+            break;
+        }
+
         auto long_slip = rig.GetLongitudinalSlip();
         auto slip_angle = rig.GetSlipAngle();
         auto camber_angle = rig.GetCamberAngle();

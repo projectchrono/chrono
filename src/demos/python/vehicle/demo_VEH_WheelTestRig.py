@@ -141,9 +141,9 @@ def main():
 
     if terrain_type == TerrainType.RIGID:
         params = veh.TerrainParamsRigid()
-        params.friction = 0.8
-        params.restitution = 0
-        params.Young_modulus = 2e7
+        params.mu = 0.8
+        params.cr = 0
+        params.Y = 2e7
         rig.SetTerrainRigid(patch_size, params)
     else:
         params = veh.TerrainParamsSCM()

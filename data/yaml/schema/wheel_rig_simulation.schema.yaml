@@ -162,6 +162,13 @@ test:
       description: Settling time (s) before the motion functions are applied, measured from the end of the drop phase
       minimum: 0
       default: 0
+    normal_load:
+      type: number
+      description: |
+        Normal load on the wheel (N). If present, overrides `rig.normal_load` from the rig model file, e.g., to test
+        the same wheel assembly under different loads. With a suspension, the normal load sets the loaded
+        configuration and therefore the steering reference (see `steering`).
+      minimum: 0
     longitudinal_speed:
       <<: *FUNCTION
       description: Rig carrier longitudinal speed (m/s) as a function of time; if absent, the carrier is not actuated

@@ -70,6 +70,7 @@ after the time delay.
 | `angle_degrees` | Whether angles are specified in degrees (true) or radians (false) | boolean | -- | No | `true` |
 | `drop_speed` | Wheel lowering speed (m/s), `TEST` mode only | double | -- | No | 0.1 |
 | `time_delay` | Settling time (s) before the motion functions are applied, measured from the end of the drop phase | double | -- | No | 0 |
+| `normal_load` | Normal load on the wheel (N), overriding the normal load of the rig model | double | -- | No | rig model value |
 | `longitudinal_speed` | Carrier longitudinal speed (m/s) as a function of time | function | -- | No | not actuated |
 | `angular_speed` | Wheel angular speed (rad/s) as a function of time | function | -- | No | not actuated |
 | `slip_angle` | Wheel slip angle as a function of time, wheel without a suspension only | function | -- | No | 0 |
@@ -78,6 +79,11 @@ after the time delay.
 
 The `angle_degrees` setting applies to the values of the `slip_angle` function and of the `steering` function with an
 `ANGLE` input.
+
+The normal load is normally a property of the rig model (see the [rig model schema](@ref YAML_schema_wheel_rig_model)).
+The optional `normal_load` entry overrides it for this test, so that the same wheel assembly can be tested under
+different loads without duplicating the rig model file. With a suspension, the normal load sets the loaded
+configuration and therefore the steering reference (see [steering and slip angle reference](@ref YAML_wheel_rig_steering_reference)).
 
 @anchor YAML_wheel_rig_modes
 #### Operation modes

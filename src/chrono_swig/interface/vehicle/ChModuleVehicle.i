@@ -267,7 +267,7 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "../../../chrono/fea/ChMesh.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 
-%import(module = "pychrono.core") "../../../chrono/input_output/ChOutput.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChOutput.i"
 %import(module = "pychrono.core") "../../../chrono/input_output/ChCheckpoint.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON

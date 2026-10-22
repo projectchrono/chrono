@@ -106,6 +106,7 @@ rig:
     normal_load:
       description: |
         Desired normal load on the wheel (N), typically the static wheel load of the vehicle the wheel belongs to.
+        Can be overridden for a given test through `test.normal_load` in the simulation file.
         The rig mass is set so that the total weight supported by the wheel equals this load. With a suspension,
         the suspension is held at its static equilibrium configuration under this load during the drop phase.
       type: number

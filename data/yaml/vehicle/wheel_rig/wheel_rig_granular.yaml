@@ -13,6 +13,7 @@ test:
   mode: TEST                      # SUSPEND, DROP, TEST
   drop_speed: 0.05
   time_delay: 1.0
+  #normal_load: 1000               # overrides the rig model normal load (N)
 
   longitudinal_speed:
     type: CONSTANT

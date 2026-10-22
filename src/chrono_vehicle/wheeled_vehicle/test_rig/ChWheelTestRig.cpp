@@ -52,10 +52,10 @@ class DummyChassis : public ChChassis {
 
     virtual std::string GetTemplateName() const override { return "dummy_template"; }
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
-    virtual ChFrame<> GetBodyCOMFrame() const { return ChFrame<>(); }
-    virtual double GetBodyMass() const { return chassis_body->GetMass(); }
-    virtual ChMatrix33<> GetBodyInertia() const { return chassis_body->GetInertia(); }
-    virtual void EnableCollision(bool state) {}
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(); }
+    virtual double GetBodyMass() const override { return chassis_body->GetMass(); }
+    virtual ChMatrix33<> GetBodyInertia() const override { return chassis_body->GetInertia(); }
+    virtual void EnableCollision(bool state) override {}
     virtual void OnInitialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family) override {
         m_body = chassis_body;  // set the underlying ChChassis body
 

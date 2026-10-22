@@ -100,8 +100,9 @@ be used with the `run_chrono` program, which does not register any factories.
 | `normal_load` | Normal load on the wheel (N) | double | -- | No | 1000 |
 | `camber_angle` | Constant wheel camber angle (ignored with a suspension) | double | -- | No | 0 |
 
-The normal load is typically the static wheel load of the vehicle the wheel belongs to. The rig mass is set so that
-the total weight supported by the wheel equals this load. With a suspension, the suspension is held at its static
+The normal load is typically the static wheel load of the vehicle the wheel belongs to. It can be overridden for a
+given test through `test.normal_load` in the simulation file. The rig mass is set so that the total weight supported
+by the wheel equals this load. With a suspension, the suspension is held at its static
 equilibrium configuration under this load during the drop phase of a test, and released once the tire carries the
 normal load. This *loaded configuration* is also the reference for steering angles (see
 [steering and slip angle reference](@ref YAML_wheel_rig_steering_reference)).
