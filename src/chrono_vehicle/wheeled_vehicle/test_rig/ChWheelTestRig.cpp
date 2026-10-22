@@ -1004,7 +1004,7 @@ void ChWheelTestRig::CreateTerrainGranular() {
             auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();
             mat_g->SetFriction(static_cast<float>(m_params_granular.friction));
             mat_g->SetRestitution(0.0f);
-            mat_g->SetYoungModulus(8e5f);
+            mat_g->SetYoungModulus(static_cast<float>(m_params_granular.Young_modulus));
             mat_g->SetPoissonRatio(0.3f);
             mat_g->SetAdhesion(static_cast<float>(coh_force));
             mat_g->SetKn(1.0e6f);

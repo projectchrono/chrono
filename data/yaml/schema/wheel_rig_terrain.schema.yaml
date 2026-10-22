@@ -136,6 +136,7 @@ granular:
       default: 0
     Young_modulus:
       type: number
+      description: Young's modulus (Pa), used with SMC contact
       minimum: 0
       default: 1e7
 

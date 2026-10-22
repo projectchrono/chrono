@@ -76,7 +76,7 @@ The `granular` key, if present, specifies the particle parameters of the granula
 | `density` | Particle density (kg/m<sup>3</sup>) | double | -- | No | 2000 |
 | `friction` | Coefficient of friction | double | -- | No | 0.9 |
 | `cohesion` | Inter-particle cohesion pressure (Pa) | double | -- | No | 0 |
-| `Young_modulus` | Young's modulus (Pa) | double | -- | No | 1e7 |
+| `Young_modulus` | Young's modulus (Pa), used with SMC contact | double | -- | No | 1e7 |
 
 The number of particle layers is set by the patch depth. Note that a granular terrain consists of many sphere bodies
 and practical run times require a Chrono::Multicore system, which is not yet supported by the wheel test rig YAML

@@ -229,7 +229,7 @@ class CH_VEHICLE_API ChWheelTestRig {
         double density;        ///< particle material density (kg/m3)
         double friction;       ///< inter-particle coefficient of friction
         double cohesion;       ///< inter-particle cohesion pressure (Pa)
-        double Young_modulus;  ///< particle contact material Young's modulus (Pa)
+        double Young_modulus;  ///< particle contact material Young's modulus (Pa), used with SMC contact
     };
 
     /// Construct a test rig within the specified system using the given custom wheel.
@@ -357,7 +357,7 @@ class CH_VEHICLE_API ChWheelTestRig {
                             double density,                ///< particle material density [kg/m3]
                             double friction,               ///< inter-particle coefficient of friction
                             double cohesion,               ///< inter-particle cohesion pressure [Pa]
-                            double Young_modulus           ///< particle contact material Young's modulus [Pa]
+                            double Young_modulus           ///< particle contact material Young's modulus [Pa], used with SMC contact
     );
 
 #ifdef CHRONO_CRM
