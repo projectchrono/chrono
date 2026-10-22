@@ -544,7 +544,18 @@ void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
     if (m_steer_actuator && m_steer_input == SteeringInput::ANGLE)
         ComputeSteeringMap();
 
+    // The assembly analyses above (suspension equilibrium, steering map) initialize the system, which binds only the
+    // collision models existing at that time; bind those of the bodies created with the terrain
+    bool sys_initialized = m_system.IsInitialized();
+    size_t num_bodies = m_system.GetBodies().size();
+
     CreateTerrain();
+
+    if (sys_initialized && m_system.GetCollisionSystem()) {
+        const auto& bodies = m_system.GetBodies();
+        for (size_t i = num_bodies; i < bodies.size(); i++)
+            m_system.GetCollisionSystem()->BindItem(bodies[i]);
+    }
 
     std::cout << "Wheel radius: " << m_wheel_assembly->GetRadius() << std::endl;
 
@@ -577,6 +588,8 @@ void ChWheelTestRig::Advance(double step) {
 
             // An assembly that reports no terrain force would never end the drop phase. If no force is reported for some
             // time after the wheel reached the terrain, end the drop phase there (as for a wheel without suspension).
+            // Any reported force restarts this interval, so that isolated zero-force steps (e.g., with intermittent
+            // contacts) do not end the drop phase early.
             if (!drop_done && contact && load == 0) {
                 if (m_drop_contact_time < 0)
                     m_drop_contact_time = time;
@@ -584,6 +597,8 @@ void ChWheelTestRig::Advance(double step) {
                     std::cout << "\nWARNING!  Wheel assembly reports no terrain force. Drop phase ended at terrain contact.\n" << std::endl;
                     drop_done = true;
                 }
+            } else {
+                m_drop_contact_time = -1;
             }
         } else {
             drop_done = contact;
