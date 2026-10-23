@@ -73,6 +73,9 @@ class ChApiParsers ChParserVehicleYAML : public ChParserMbsYAML {
     double GetChaseHeight() const { return m_chase_height; }
 
   private:
+    /// Print the names of the output files (one per vehicle subsystem).
+    virtual void PrintOutputFileInfo() const override;
+
     VehicleType ReadVehicleType(const std::string& vehicle_json);
 
     VehicleType m_vehicle_type;

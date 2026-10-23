@@ -103,25 +103,32 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
     }
 
     if (m_verbose) {
-        if (m_output_settings.format != ChOutput::Format::NONE) {
-            auto filename = m_output_dir + "/" + m_name + "." + ChOutput::GetModeAsString(m_output_settings.mode);
-            switch (m_output_settings.format) {
-                case ChOutput::Format::ASCII:
-                    cout << "Output file: " << filename << ".txt" << endl;
-                    break;
-                case ChOutput::Format::HDF5:
-#ifdef CHRONO_HAS_HDF5
-                    cout << "Output file: " << filename << ".h5" << endl;
-                    break;
-#else
-                    cerr << "HDF5 not available. No output file will be generated" << endl;
-#endif
-            }
-        }
+        if (m_output_settings.format != ChOutput::Format::NONE)
+            PrintOutputFileInfo();
 
         if (m_vis_settings.write_images) {
             cout << "Image directory: " << m_vis_settings.image_dir << endl;
         }
+    }
+}
+
+void ChParserYAML::PrintOutputFileInfo() const {
+    PrintOutputFileName("Output file: ", m_name);
+}
+
+void ChParserYAML::PrintOutputFileName(const std::string& label, const std::string& file_stem) const {
+    auto filename = m_output_dir + "/" + file_stem + "." + ChOutput::GetModeAsString(m_output_settings.mode);
+    switch (m_output_settings.format) {
+        case ChOutput::Format::ASCII:
+            cout << label << filename << ".txt" << endl;
+            break;
+        case ChOutput::Format::HDF5:
+#ifdef CHRONO_HAS_HDF5
+            cout << label << filename << ".h5" << endl;
+            break;
+#else
+            cerr << "HDF5 not available. No output file will be generated" << endl;
+#endif
     }
 }
 
