@@ -13,5 +13,5 @@ solver:
   max_iterations: 100
   #overrelaxation_factor: 1.0
   #sharpness_factor: 1.0
-  #enable_diagonal_preconditioner: false
+  #enable_diagonal_preconditioner: true
   #warm_start: false

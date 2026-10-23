@@ -1854,7 +1854,7 @@ ChParserMbsYAML::SolverParams::SolverParams()
       use_sparsity_pattern_learner(true),
       tolerance(0.0),
       max_iterations(100),
-      enable_diagonal_preconditioner(false),
+      enable_diagonal_preconditioner(true),  // to address potentially large mass discrepancies
       overrelaxation_factor(1.0),
       sharpness_factor(1.0),
       warm_start(false) {}

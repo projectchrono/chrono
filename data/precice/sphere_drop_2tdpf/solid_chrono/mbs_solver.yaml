@@ -25,4 +25,4 @@ solver:
   type: GMRES
   max_iterations: 100
   tolerance: 1e-8
-  enable_diagonal_preconditioner: false
+  enable_diagonal_preconditioner: true
