@@ -952,13 +952,13 @@ void SphForceISPH::Initialize() {
 struct my_Functor {
     Real ave;
     my_Functor(Real s) { ave = s; }
-    __host__ __device__ void operator()(Real& i) { i -= ave; }
+    __host__ __device__ void operator()(Real& i) const { i -= ave; }
 };
 
 struct my_Functor_real4y {
     Real ave;
     my_Functor_real4y(Real s) { ave = s; }
-    __host__ __device__ void operator()(Real4& i) { i.y -= ave; }
+    __host__ __device__ void operator()(Real4& i) const { i.y -= ave; }
 };
 
 void SphForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) {

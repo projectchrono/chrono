@@ -734,15 +734,15 @@ void SphBceManager::UpdateBodyMarkerStateInitial() {
 // -----------------------------------------------------------------------------
 
 struct printInt2 {
-    __host__ __device__ void operator()(const int2& v) { printf("%d %d   ", v.x, v.y); }
+    __host__ __device__ void operator()(const int2& v) const { printf("%d %d   ", v.x, v.y); }
 };
 
 struct normalizeReal3 {
-    __host__ __device__ Real3 operator()(const Real3& v) { return get_normalized(v); }
+    __host__ __device__ Real3 operator()(const Real3& v) const { return get_normalized(v); }
 };
 
 struct averageDirs {
-    __host__ __device__ Real3 operator()(const Real3& v, uint count) { return v / Real(count); }
+    __host__ __device__ Real3 operator()(const Real3& v, uint count) const { return v / Real(count); }
 };
 
 // Combine the element directions loaded to each element node into node directions.
