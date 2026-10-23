@@ -359,8 +359,8 @@ void ChTrackAssembly::InitializeOutput(ChOutput::Format output_format, ChOutput:
         m_out_suspensions[i].comp.push_back(&m_suspensions[i]->GetComponents());
         m_out_suspensions[i].comp.push_back(&m_suspensions[i]->GetRoadWheel()->GetComponents());
     }
-    for (size_t i = 0; i < m_suspensions.size(); i++)
-        m_out_rollers[i].comp.push_back(&m_suspensions[i]->GetComponents());
+    for (size_t i = 0; i < m_rollers.size(); i++)
+        m_out_rollers[i].comp.push_back(&m_rollers[i]->GetComponents());
 
     // For each vehicle subsystem, create its output DB
     switch (output_format) {
@@ -372,7 +372,7 @@ void ChTrackAssembly::InitializeOutput(ChOutput::Format output_format, ChOutput:
                 m_out_shoe.db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_shoe_0", out_mode);
             for (size_t i = 0; i < m_suspensions.size(); i++)
                 m_out_suspensions[i].db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_suspension_" + std::to_string(i), out_mode);
-            for (size_t i = 0; i < m_suspensions.size(); i++)
+            for (size_t i = 0; i < m_rollers.size(); i++)
                 m_out_rollers[i].db = chrono_types::make_unique<ChOutputASCII>(out_dir, out_name + "_roller_" + std::to_string(i), out_mode);
             break;
         case ChOutput::Format::HDF5:
