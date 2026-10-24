@@ -20,7 +20,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverLumped)
 CH_UPCASTING(ChSolverLumped, ChSolver)
 
-ChSolverLumped::ChSolverLumped() {}
 
 double ChSolverLumped::Solve(ChSystemDescriptor& sysd) {
 

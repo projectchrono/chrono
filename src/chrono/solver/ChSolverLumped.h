@@ -19,13 +19,28 @@
 
 namespace chrono {
 
+/// Base class for all solvers that require some form of lumped mass
+/// as an approximation or substitute for the full mass matrix. 
+/// This class provides a common interface for setting the diagonal mass vector,
+/// which is used in the solution process.
+
+class ChApi ChSolverLumpedBase {
+  public:
+    ChSolverLumpedBase() {}
+
+    ~ChSolverLumpedBase() {}
+
+    /// Diagonal mass. To be set before calling Solve()
+    ChVectorDynamic<> diagonal_M;
+};
+
 
 /// A solver for explicit methods, based on constraint regularization 
 /// and diagonal mass lumping.
 
-class ChApi ChSolverLumped : public ChSolver {
+class ChApi ChSolverLumped : public ChSolver, public ChSolverLumpedBase {
 public:
-    ChSolverLumped();
+    ChSolverLumped() {}
 
     ~ChSolverLumped() {}
 
@@ -39,14 +54,10 @@ public:
         return false;
     }
 
-
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) override;
-
-    /// Diagonal mass. To be set before calling Solve()
-    ChVectorDynamic<> diagonal_M;
 
 //private:
 

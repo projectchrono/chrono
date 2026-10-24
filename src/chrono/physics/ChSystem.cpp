@@ -409,9 +409,9 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
 }
 
 
-void ChSystem::EnableCoordWeightsWv(bool enable, ChVectorDynamic<>& Wv) {
+void ChSystem::EnableCoordWeightsWv(bool enable, ChVectorDynamic<>& W) {
     this->enable_Wv_weights = enable;
-    this->Wv = &Wv;
+    this->Wv = &W;
 }
 
 
@@ -1070,7 +1070,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // R and Qc vectors  --> solver sparse solver structures  (also sets Dl and Dv to warmstart)
     IntToDescriptor(0, Dv, R, 0, Dl, Qc);
 
-    auto lumpedsolver = std::dynamic_pointer_cast<ChSolverLumped>(solver);
+    auto lumpedsolver = std::dynamic_pointer_cast<ChSolverLumpedBase>(solver);
 
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
