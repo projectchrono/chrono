@@ -46,13 +46,14 @@ int main(int argc, char* argv[]) {
 
     // Available tests (YAML simulation specification files and descriptions)
     std::vector<std::pair<std::string, std::string>> tests = {
-        {"wheel_rig_rigid.yaml", "Wheel on rigid terrain"},
-        {"wheel_suspension_rig_rigid.yaml", "Wheel with steerable suspension on rigid terrain"},
-        {"wheel_rig_scm.yaml", "Wheel on SCM terrain"},
+        {"wheel_rig_rigid.yaml", "Wheel on rigid terrain"},                                       //
+        {"wheel_suspension_rig_rigid.yaml", "Wheel with steerable suspension on rigid terrain"},  //
+        {"wheel_rig_scm.yaml", "Wheel on SCM terrain"},                                           //
+        {"wheel_suspension_rig_scm.yaml", "Wheel with steerable suspension on SCM terrain"},      //
 #ifdef CHRONO_CRM
-        {"wheel_rig_crm.yaml", "Wheel on CRM terrain"},
-        {"wheel_suspension_rig_crm.yaml", "Wheel with steerable suspension on CRM terrain"},
-        {"viper_wheel_rig_crm.yaml", "Viper rover wheel (custom wheel assembly) on CRM terrain"},
+        {"wheel_rig_crm.yaml", "Wheel on CRM terrain"},                                            //
+        {"wheel_suspension_rig_crm.yaml", "Wheel with steerable suspension on CRM terrain"},       //
+        {"viper_wheel_rig_crm.yaml", "Viper rover wheel (custom wheel assembly) on CRM terrain"},  //
 #endif
     };
 
