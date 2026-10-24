@@ -1057,7 +1057,7 @@ void ChWheelTestRig::CreateTerrainGranular() {
 
 #ifdef CHRONO_CRM
 
-ChWheelTestRig::TerrainParamsCRM::TerrainParamsCRM() : step_cfd(0) {
+ChWheelTestRig::TerrainParamsCRM::TerrainParamsCRM() : step_cfd(0), sides(BoxSide::ALL & ~BoxSide::Z_POS), depth_based_pressure(false) {
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = 0.02;
     sph_params.d0_multiplier = 1.2;
@@ -1122,7 +1122,11 @@ void ChWheelTestRig::CreateTerrainCRM() {
 
     double loc_z = m_terrain_height - m_terrain_size.depth;
     ChVector3d location(GetPatchCenterX(), m_terrain_offset, loc_z);
-    terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location, BoxSide::ALL & ~BoxSide::Z_POS);
+    terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location, m_params_crm.sides);
+
+    // Initialize particle pressures from their depth below the patch surface, if requested
+    if (m_params_crm.depth_based_pressure)
+        terrain->RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(m_terrain_height));
 
     // Add wheel FSI bodies
     m_wheel_assembly->AddFSIBodies(*terrain, m_params_crm.sph_params.initial_spacing);

@@ -367,6 +367,8 @@ class CH_VEHICLE_API ChWheelTestRig {
         fsi::sph::ChFsiFluidSystemSPH::SPHParameters sph_params;  ///< SPH solver settings
         fsi::sph::ChFsiFluidSystemSPH::SoilProperties mat_props;  ///< soil properties
         double step_cfd;                                          ///< SPH (CFD) step size; if not positive, the multibody step size is used (default: 0)
+        int sides;                                                ///< patch sides with boundary BCE markers, as BoxSide flags (default: all but the top)
+        bool depth_based_pressure;                                ///< initialize particle pressures from their depth below the patch surface (default: false)
     };
 
     /// Enable use of CRM terrain.
