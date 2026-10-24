@@ -15,8 +15,14 @@ with different test scenarios:
 | simulation | test scenario, coupling, simulation, output, plots, and visualization settings | this page |
 | rig model | wheel assembly, rig properties, and a reference to the MBS solver file | [wheel test rig model schema](@ref YAML_schema_wheel_rig_model) |
 | MBS solver | multibody integrator and solver | [MBS solver schema](@ref YAML_schema_mbs_solver) |
-| terrain | terrain type, patch, and parameters; for CRM terrain, a reference to the SPH solver file | [wheel test rig terrain schema](@ref YAML_schema_wheel_rig_terrain) |
-| SPH solver | SPH solver, CRM terrain only | [FSI-SPH solver schema](@ref YAML_schema_fsisph_solver) |
+| terrain | RIGID, SCM, or GRANULAR terrain: terrain type, patch, and parameters | [wheel test rig terrain schema](@ref YAML_schema_wheel_rig_terrain) |
+| terrain | CRM terrain: an SPH simulation, with references to the SPH model and solver files | [FSI-SPH simulation schema](@ref YAML_schema_fsisph_simulation) |
+| SPH model | CRM terrain only: soil properties, patch dimensions and walls | [FSI-SPH model schema](@ref YAML_schema_fsisph_model) |
+| SPH solver | CRM terrain only: SPH solver | [FSI-SPH solver schema](@ref YAML_schema_fsisph_solver) |
+
+For CRM terrain, a wheel test rig simulation therefore uses exactly the same SPH simulation, model, and solver schemas
+as an FSI simulation. The parts of these specifications that do not apply to a test rig terrain are ignored (see the
+[terrain schema](@ref YAML_schema_wheel_rig_terrain) page).
 
 The simulation file consists of the following main objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML specification.
@@ -55,8 +61,10 @@ file) to the YAML file with a rig model specification, which must follow the
 [wheel test rig model schema](@ref YAML_schema_wheel_rig_model).
 
 The `terrain` entry (required) must specify the path (relative to the location of this YAML simulation specification
-file) to the YAML file with a terrain specification, which must follow the
-[wheel test rig terrain schema](@ref YAML_schema_wheel_rig_terrain).
+file) to the YAML file with a terrain specification. For RIGID, SCM, or GRANULAR terrain, this file must follow the
+[wheel test rig terrain schema](@ref YAML_schema_wheel_rig_terrain). For CRM terrain, it must be an SPH simulation file
+(`type: SPH`) following the [FSI-SPH simulation schema](@ref YAML_schema_fsisph_simulation); see the
+[terrain schema](@ref YAML_schema_wheel_rig_terrain) page for how its settings apply to a test rig terrain.
 
 ## Test scenario
 
@@ -327,7 +335,8 @@ The `output` key, if present, specifies the following properties:
 | `image_type` | Image file type, specified through the file extension | string | -- | No | `bmp` |
 
 Run-time visualization is enabled only if the `visualization` key is present *and* specifies a `type` other than
-`NONE`. Rendering of SPH particles and BCE markers (CRM terrain) is specified in the terrain file.
+`NONE`. Rendering of SPH particles and BCE markers (CRM terrain) is specified in the `visualization` object of the SPH
+simulation file.
 For deformable terrain, `COLLISION` shows the tire geometry that interacts with the terrain.
 
 ## Running a wheel test rig simulation

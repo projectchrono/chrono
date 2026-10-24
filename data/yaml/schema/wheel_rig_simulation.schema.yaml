@@ -15,7 +15,8 @@
 #
 # A WHEEL_RIG simulation combines (paralleling a Chrono FSI simulation):
 #   rig      - the rig mechanism: wheel assembly and rig properties, plus the MBS solver (wheel_rig_model.schema)
-#   terrain  - the terrain: type, patch, and parameters, plus the SPH solver for CRM terrain (wheel_rig_terrain.schema)
+#   terrain  - the terrain: a terrain file for RIGID, SCM, or GRANULAR terrain (wheel_rig_terrain.schema), or an SPH
+#              simulation file for CRM terrain (fsisph_simulation.schema, with its SPH model and solver files)
 #   test     - the test scenario: operation mode and motion functions
 #   coupling - wheel-terrain coupling settings (CRM terrain only)
 # Rig, terrain, and test are independent, so that the same rig can be tested on different terrains and with
@@ -118,9 +119,18 @@ rig:
 
 terrain:
   description: |
-      Terrain specification YAML file (terrain type, patch, parameters, and, for CRM terrain, the SPH solver).
-      The path must be provided relative to the location of this simulation specification file.
-      The file must follow the wheel_rig_terrain.schema.
+      Terrain specification YAML file, with the path relative to the location of this simulation specification file.
+      - RIGID, SCM, or GRANULAR terrain: a terrain file following the wheel_rig_terrain.schema.
+      - CRM terrain: a Chrono::FSI-SPH simulation file (type SPH) following the fsisph_simulation.schema, which
+        references an SPH model file (fsisph_model.schema) and an SPH solver file (fsisph_solver.schema).
+        The SPH model must use CRM physics and a CARTESIAN box fluid domain. Its use as a test rig terrain:
+          fluid_domain.dimensions sets the patch length, width, and depth;
+          fluid_domain.box_walls sets the patch sides with boundary walls (default: all sides but the top);
+          initial_states.depth_based_pressure initializes pressures from the depth below the patch surface;
+          fluid_domain.box_origin, initial_states.zero_height, initial_states.initial_velocity, container, and
+          computational_domain are ignored (the rig places the patch relative to the wheel).
+        Of the SPH simulation file, only the model, solver, and SPH visualization settings are used; its simulation
+        and output settings are ignored (they are set in this file).
   type: string
 
 test:

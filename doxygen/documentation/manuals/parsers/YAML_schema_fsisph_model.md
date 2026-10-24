@@ -6,6 +6,10 @@ A Chrono YAML SPH model file defines a fluid system for Chrono::FSI-SPH and cont
   This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The `model` object that defines the fluid phase, its material properties, and the problem geometry.
 
+An SPH model with CRM physics and a Cartesian box fluid domain can also be used for the CRM terrain of a
+[wheel test rig simulation](@ref YAML_schema_wheel_rig_simulation). The settings it then uses and ignores are listed on
+the [wheel test rig terrain](@ref YAML_wheel_rig_terrain_crm) page.
+
 ## Model specification
 
 An SPH model defines the fluid (or granular) phase: its material properties, the region initially filled with SPH

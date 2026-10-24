@@ -10,6 +10,10 @@ A Chrono YAML SPH simulation file defines the setup for a Chrono::FSI-SPH simula
 - [optional] The `output` object which specifies output options from the SPH simulation.
 - [optional] The `visualization` object which specifies SPH-specific run-time visualization settings.
 
+An SPH simulation file with CRM physics also specifies the CRM terrain of a
+[wheel test rig simulation](@ref YAML_schema_wheel_rig_simulation). In that case, only its model, solver, and
+visualization settings are used; see the [wheel test rig terrain](@ref YAML_wheel_rig_terrain_crm) page for details.
+
 ## FSI-SPH simulation specification
 
 An FSI-SPH simulation must specify the SPH model to be simulated, SPH solver settings, as well as optional output and SPH-specific run-time visualization settings.

@@ -122,6 +122,7 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
   private:
     void LoadRigFile(const std::string& filename);
     void LoadTerrainFile(const std::string& filename);
+    void LoadTerrainSPH(const std::string& filename);
     void LoadTestData(const YAML::Node& yaml);
     void LoadCouplingData(const YAML::Node& yaml);
 

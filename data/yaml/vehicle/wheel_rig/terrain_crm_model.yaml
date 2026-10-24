@@ -1,0 +1,35 @@
+## SPH model for the wheel test rig CRM terrain (follows fsisph_model.schema).
+## The fluid domain dimensions set the terrain patch size. The test rig places the patch relative to the wheel,
+## so the fluid domain box_origin is ignored, as are any container and computational domain settings.
+
+chrono-version: 10.0
+
+model:
+  name: CRM terrain
+  physics_problem: CRM
+  geometry_type: CARTESIAN
+
+  soil_properties:
+    density: 1700
+    Young_modulus: 2e6
+    cohesion_coefficient: 1e2
+    #Poisson_ratio: 0.3
+    #mu_I0: 0.03
+    #mu_fric_s: 0.7
+    #mu_fric_2: 0.7
+    #average_diam: 0.005
+    #rheology_model: MU_OF_I      # MU_OF_I, MCC
+    #mcc_M: 1.2                   # MCC only
+    #mcc_kappa: 0.00625           # MCC only
+    #mcc_lambda: 0.025            # MCC only
+    #mcc_v_lambda: 2.0            # MCC only
+
+  initial_states:
+    depth_based_pressure: false   # zero pressure at the patch surface (zero_height is ignored)
+
+  fluid_domain:
+    dimensions: [10, 1, 0.2]      # patch length, width, and depth
+    box_walls:                    # boundary walls on all sides but the top
+      x: [true, true]             # negative, positive
+      y: [true, true]             # negative, positive
+      z: [true, false]            # negative, positive

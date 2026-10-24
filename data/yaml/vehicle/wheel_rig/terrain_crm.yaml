@@ -1,33 +1,20 @@
-## CRM deformable terrain patch
+## CRM deformable terrain patch, specified as a Chrono::FSI-SPH simulation (follows fsisph_simulation.schema).
+## As a wheel test rig terrain, only the model, solver, and SPH visualization settings are used;
+## the simulation and output settings come from the wheel rig simulation file.
 
 chrono-version: 10.0
 
-type: CRM
+type: SPH
 
-patch:
-  length: 10
-  width: 1
-  depth: 0.2
+model: "terrain_crm_model.yaml"
+solver: "terrain_crm_solver.yaml"
 
-crm:
-  soil_properties:
-    density: 1700
-    Young_modulus: 2e6
-    cohesion_coefficient: 1e2
-    #Poisson_ratio: 0.3
-    #mu_I0: 0.03
-    #mu_fric_s: 0.7
-    #mu_fric_2: 0.7
-    #average_diam: 0.005
-    #rheology_model: MU_OF_I      # MU_OF_I, MCC
-    #mcc_M: 1.2                   # MCC only
-    #mcc_kappa: 0.00625           # MCC only
-    #mcc_lambda: 0.025            # MCC only
-    #mcc_v_lambda: 2.0            # MCC only
-
-  solver: "terrain_crm_solver.yaml"
-
-  visualization:
-    sph_markers: true
-    bndry_bce_markers: true
-    rigid_bce_markers: true
+visualization:
+  sph_markers: true
+  bndry_bce_markers: true
+  rigid_bce_markers: true
+  #color_map:
+  #  type: HEIGHT                  # NONE, HEIGHT, VELOCITY, DENSITY, PRESSURE
+  #  map: BROWN
+  #  min: -0.2
+  #  max: 0.0

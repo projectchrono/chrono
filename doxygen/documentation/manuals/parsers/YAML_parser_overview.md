@@ -12,7 +12,7 @@ Currently, the Chrono YAML parsers support rigid multibody, vehicle, single-whee
 
 These 3 YAML files provide the top of a hierarchy of YAML specification files that fully describe the desired Chrono simulation.
 Note that FSI problems, which couple MBS and fluid simulations have a deeper hierarchy of YAML specification files, as the top-level FSI *simulation* file refers to an MBS *simulation* file and a fluid *simulation* file.
-Similarly, a single-wheel test rig *simulation* file refers to a rig *model* file (which in turn refers to an MBS *solver* file) and a *terrain* file (which, for CRM terrain, refers to an SPH *solver* file).
+Similarly, a single-wheel test rig *simulation* file refers to a rig *model* file (which in turn refers to an MBS *solver* file) and a *terrain* file. For CRM terrain, the terrain file is an SPH *simulation* file, which refers to an SPH *model* file and an SPH *solver* file, exactly as in an FSI problem.
 
 The various types of Chrono simulations that can be conducted through YAML files and the corresponding required YAML files are shown in the schematic below.
 

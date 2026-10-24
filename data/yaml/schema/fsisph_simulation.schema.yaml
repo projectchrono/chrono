@@ -12,6 +12,9 @@
 # Schema for a Chrono::FSI-SPH YAML fluid simulation specification file.
 # The `chrono-version` must match the Chrono major and minor version numbers.
 #
+# An SPH simulation file (with CRM physics) also specifies the CRM terrain of a single-wheel test rig simulation
+# (see wheel_rig_simulation.schema). In that case, only its model, solver, and visualization settings are used.
+#
 # =============================================================================
 
 required: [chrono-version, type, model, solver]

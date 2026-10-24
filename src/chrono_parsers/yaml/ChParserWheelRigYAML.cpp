@@ -231,9 +231,19 @@ void ChParserWheelRigYAML::LoadTerrainFile(const std::string& filename) {
         cout << "Loading terrain specification from: " << filename << endl;
 
     auto yaml = LoadYamlFile(filename);
-
     ChAssertAlways(yaml["type"]);
+
+    // CRM terrain is specified through a Chrono::FSI-SPH simulation file (with its SPH model and solver files)
+    if (ChToUpper(yaml["type"].as<std::string>()) == "SPH") {
+        LoadTerrainSPH(filename);
+        return;
+    }
+
     m_terrain_type = ReadTerrainType(yaml["type"]);
+    if (m_terrain_type == vehicle::ChWheelTestRig::TerrainType::CRM) {
+        cerr << "Error: CRM terrain must be specified through an SPH simulation file (type: SPH), not a terrain file." << endl;
+        throw std::runtime_error("Invalid CRM terrain specification");
+    }
 
     ChAssertAlways(yaml["patch"]);
     auto patch = yaml["patch"];
@@ -292,37 +302,63 @@ void ChParserWheelRigYAML::LoadTerrainFile(const std::string& filename) {
                     m_params_granular.Young_modulus = a["Young_modulus"].as<double>();
             }
             break;
-        case vehicle::ChWheelTestRig::TerrainType::CRM: {
-#ifdef CHRONO_CRM
-            ChAssertAlways(yaml["crm"]);
-            auto a = yaml["crm"];
-
-            // Start from the generic SPH defaults (fsisph_solver.schema), not the test rig CRM defaults
-            m_params_crm.sph_params = fsi::sph::ChFsiFluidSystemSPH::SPHParameters();
-            m_params_crm.mat_props = fsi::sph::ChFsiFluidSystemSPH::SoilProperties();
-
-            if (a["soil_properties"])
-                ChParserSphYAML::ReadSoilProperties(a["soil_properties"], m_params_crm.mat_props);
-
-            ChAssertAlways(a["solver"]);
-            auto solver_filename = GetRelativeFile(filename, a["solver"].as<std::string>());
-            if (m_verbose)
-                cout << "Loading SPH solver specification from: " << solver_filename << endl;
-            ChParserSphYAML::ReadSPHParameters(LoadYamlFile(solver_filename), m_params_crm.sph_params, m_params_crm.step_cfd);
-
-    #ifdef CHRONO_VSG
-            if (a["visualization"])
-                m_vis_sph_settings = fsi::sph::ChSphVisualizationVSG::Settings::Read(a["visualization"]);
-    #endif
-#else
-            cerr << "Error: CRM terrain requires Chrono::Vehicle with CRM support." << endl;
-            throw std::runtime_error("CRM terrain not supported");
-#endif
-            break;
-        }
         default:
             break;
     }
+}
+
+void ChParserWheelRigYAML::LoadTerrainSPH(const std::string& filename) {
+#ifdef CHRONO_CRM
+    // Load the SPH simulation file, together with the SPH model and solver files it references
+    ChParserSphYAML sph(filename, m_verbose);
+
+    // A test rig terrain must be a CRM problem with a box domain
+    if (sph.m_material.physics_problem != fsi::sph::PhysicsProblem::CRM) {
+        cerr << "Error: the SPH model of a wheel test rig terrain must use CRM physics." << endl;
+        throw std::runtime_error("Invalid CRM terrain specification");
+    }
+    if (sph.m_geometry_type != ChParserSphYAML::GeometryType::CARTESIAN || sph.m_has_wavetank || !sph.m_geometry.fluid_domain_cartesian) {
+        cerr << "Error: the SPH model of a wheel test rig terrain must specify a CARTESIAN box fluid domain (no wave tank)." << endl;
+        throw std::runtime_error("Invalid CRM terrain specification");
+    }
+
+    m_terrain_type = vehicle::ChWheelTestRig::TerrainType::CRM;
+
+    // The fluid domain box sets the patch size; the rig places the patch relative to the wheel
+    const auto& domain = *sph.m_geometry.fluid_domain_cartesian;
+    m_patch_size.length = domain.dimensions.x();
+    m_patch_size.width = domain.dimensions.y();
+    m_patch_size.depth = domain.dimensions.z();
+
+    // SPH solver settings, CFD step size, and soil properties (the generic SPH defaults apply to unspecified values)
+    m_params_crm.sph_params = sph.m_sim.sph;
+    m_params_crm.step_cfd = sph.m_sim.time_step;
+    m_params_crm.mat_props = sph.m_material.soil_props;
+
+    // Patch walls as specified; without walls, keep the rig default (all sides but the top)
+    if (domain.wall_code != fsi::sph::BoxSide::NONE)
+        m_params_crm.sides = domain.wall_code;
+
+    // Depth-based initial pressure, with zero pressure at the patch surface
+    m_params_crm.depth_based_pressure = sph.m_depth_based_pressure;
+
+    #ifdef CHRONO_VSG
+    m_vis_sph_settings = sph.m_visSPH_settings;
+    #endif
+
+    // Report settings of the SPH specification that do not apply to a test rig terrain
+    if (domain.origin != VNULL)
+        cout << "Note: the fluid domain 'box_origin' is ignored; the test rig places the terrain patch." << endl;
+    if (sph.m_geometry.container_cartesian)
+        cout << "Note: the SPH 'container' is ignored for a wheel test rig terrain." << endl;
+    if (sph.m_geometry.computational_domain)
+        cout << "Note: the SPH 'computational_domain' is ignored for a wheel test rig terrain." << endl;
+    if (sph.m_initial_velocity)
+        cout << "Note: the SPH 'initial_velocity' is ignored for a wheel test rig terrain." << endl;
+#else
+    cerr << "Error: CRM terrain requires Chrono::Vehicle with CRM support." << endl;
+    throw std::runtime_error("CRM terrain not supported");
+#endif
 }
 
 void ChParserWheelRigYAML::LoadTestData(const YAML::Node& a) {

@@ -1,16 +1,18 @@
 YAML schema for Chrono::Vehicle single-wheel test rig terrain specification {#YAML_schema_wheel_rig_terrain}
 ========================================
 
-A Chrono YAML wheel test rig terrain file defines the terrain of a
-[wheel test rig simulation](@ref YAML_schema_wheel_rig_simulation): the terrain type, the dimensions of the terrain
-patch, and the terrain parameters. It is independent of the rig mechanism and of the test scenario. For CRM terrain,
-it plays the role of the fluid specification in an FSI simulation, with the soil properties specified here and the
-SPH solver in a separate file. It consists of the following objects:
+The terrain of a [wheel test rig simulation](@ref YAML_schema_wheel_rig_simulation) is specified in a separate file,
+independent of the rig mechanism and of the test scenario. Depending on the terrain type, this file is either:
+- a wheel test rig terrain file, following the schema described on this page, for RIGID, SCM, or GRANULAR terrain; or
+- a Chrono::FSI-SPH simulation file for CRM terrain (see [CRM terrain](@ref YAML_wheel_rig_terrain_crm) below), which uses
+  exactly the same SPH simulation, model, and solver schemas as an FSI simulation.
+
+A wheel test rig terrain file consists of the following objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML specification.
   This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The terrain `type`.
 - [required] The `patch` object, which specifies the dimensions of the terrain patch.
-- [optional] The terrain parameter object matching the terrain type (`rigid`, `scm`, `granular`, or `crm`).
+- [optional] The terrain parameter object matching the terrain type (`rigid`, `scm`, or `granular`).
 
 ## Terrain type and patch
 
@@ -19,7 +21,6 @@ SPH solver in a separate file. It consists of the following objects:
 | `RIGID` | Rigid terrain patch | `rigid` |
 | `SCM` | Soil Contact Model (SCM) deformable terrain | `scm` |
 | `GRANULAR` | Granular terrain, made of rigid spheres | `granular` |
-| `CRM` | Continuum Representation Model (CRM) deformable terrain, using SPH | `crm` (required) |
 
 Only the parameter object matching the terrain type is read; the others are ignored. Parameters that are not
 specified take their default values.
@@ -30,12 +31,13 @@ The `patch` object specifies the following properties:
 |----------|-------------|------|------------------|----------|---------|
 | `length` | Patch length (m), along the direction of travel | double | -- | Yes | -- |
 | `width` | Patch width (m) | double | -- | Yes | -- |
-| `depth` | Patch depth (m), `GRANULAR` and `CRM` terrain only | double | -- | No | 0 |
+| `depth` | Patch depth (m), `GRANULAR` terrain only | double | -- | No | 0 |
 
-The terrain patch is placed by the rig relative to the wheel: its surface is 0.1 m below the wheel (with a suspension,
-in the loaded configuration) and it starts 2 wheel radii behind the initial wheel location, extending along the positive X axis. With a test longitudinal speed,
-the patch length therefore determines the duration of a test (see the `stop_at_patch_end` simulation option). Granular
-terrain uses a moving patch, which is relocated ahead of the wheel as the wheel advances.
+For all terrain types (including CRM), the terrain patch is placed by the rig relative to the wheel: its surface is
+0.1 m below the wheel (with a suspension, in the loaded configuration) and it starts 2 wheel radii behind the initial
+wheel location, extending along the positive X axis. With a test longitudinal speed, the patch length therefore
+determines the duration of a test (see the `stop_at_patch_end` simulation option). Granular terrain uses a moving patch,
+which is relocated ahead of the wheel as the wheel advances.
 
 ## Rigid terrain
 
@@ -82,33 +84,39 @@ The number of particle layers is set by the patch depth. Note that a granular te
 and practical run times require a Chrono::Multicore system, which is not yet supported by the wheel test rig YAML
 parser.
 
-## CRM terrain
+## CRM terrain {#YAML_wheel_rig_terrain_crm}
 
-The `crm` key (required for CRM terrain) specifies the following properties:
+CRM (Continuum Representation Model) terrain is specified through a Chrono::FSI-SPH simulation file (`type: SPH`),
+following the [FSI-SPH simulation schema](@ref YAML_schema_fsisph_simulation), which references an SPH model file
+([FSI-SPH model schema](@ref YAML_schema_fsisph_model)) and an SPH solver file
+([FSI-SPH solver schema](@ref YAML_schema_fsisph_solver)). The same files can therefore be used in FSI and wheel test
+rig simulations. The SPH model must use CRM physics (`physics_problem: CRM`) and a Cartesian box fluid domain
+(`geometry_type: CARTESIAN`, no wave tank).
 
-| Property | Description | Type | Available Values | Required | Default |
-|----------|-------------|------|------------------|----------|---------|
-| `soil_properties` | Soil properties | object | -- | No | -- |
-| `solver` | SPH solver specification file | string | -- | Yes | -- |
-| `visualization` | Rendering of SPH particles and BCE markers | object | -- | No | -- |
+The parts of these specifications that apply to a test rig terrain are used as follows:
 
-The `soil_properties` object has the same keys and defaults as `model.soil_properties` in the
-[FSI-SPH model schema](@ref YAML_schema_fsisph_model), including the parameters of the MCC rheology model.
+| Specification | Use for a test rig terrain |
+|---------------|----------------------------|
+| model `soil_properties` | CRM soil properties, including the parameters of the MCC rheology model |
+| model `fluid_domain.dimensions` | Patch length, width, and depth |
+| model `fluid_domain.box_walls` | Patch sides with boundary walls; if no walls are specified, all sides but the top |
+| model `initial_states.depth_based_pressure` | Initialize particle pressures from their depth below the patch surface |
+| solver file | SPH solver settings; the particle spacing is set by `kernel.initial_spacing` and the SPH (CFD) step size by `integration.time_step` |
+| simulation `visualization` | Rendering of SPH particles and BCE markers |
 
-The `solver` entry must specify the path (relative to the location of this YAML file) to the YAML file with an SPH
-solver specification, which must follow the [FSI-SPH solver schema](@ref YAML_schema_fsisph_solver). Values not
-specified there take the defaults of that schema. The SPH particle spacing is set by `kernel.initial_spacing` and the
-SPH (CFD) step size by `integration.time_step`. The multibody step size is set in the MBS solver file of the rig
-model, and the FSI coupling step by `simulation.time_step` in the simulation file.
+The following parts are ignored, since the test rig places the patch relative to the wheel and the simulation settings
+are specified in the wheel test rig simulation file:
 
-The `visualization` object has the same settings as the `visualization` object of the
-[FSI-SPH simulation schema](@ref YAML_schema_fsisph_simulation). The most commonly used ones are:
+| Specification | Reason |
+|---------------|--------|
+| model `fluid_domain.box_origin` | The rig places the patch relative to the wheel |
+| model `initial_states.zero_height` | Pressures are zero at the patch surface |
+| model `initial_states.initial_velocity` | The terrain is initially at rest |
+| model `container`, `computational_domain` | The rig defines the patch boundaries and the computational domain |
+| simulation `simulation`, `output` | Set in the wheel test rig simulation file |
 
-| Property | Description | Type | Available Values | Required | Default |
-|----------|-------------|------|------------------|----------|---------|
-| `sph_markers` | Render SPH particles | boolean | -- | No | `true` |
-| `bndry_bce_markers` | Render boundary BCE markers | boolean | -- | No | `false` |
-| `rigid_bce_markers` | Render BCE markers on rigid solids | boolean | -- | No | `true` |
+A note is printed for ignored model settings that are present. Note that the multibody step size is set in the MBS
+solver file of the rig model, and the FSI coupling step by `simulation.time_step` in the wheel test rig simulation file.
 
 The SPH domain spans the entire terrain patch. An active domain attached to the wheel, which restricts the SPH
 computation to the vicinity of the wheel, can be specified through `coupling.crm.active_domain` in the simulation file.
@@ -119,9 +127,13 @@ Below is an example of an SCM terrain specification:
 
 \include data/yaml/vehicle/wheel_rig/terrain_scm.yaml
 
-Below is an example of a CRM terrain specification:
+Below is an example of a CRM terrain specification (an SPH simulation file):
 
 \include data/yaml/vehicle/wheel_rig/terrain_crm.yaml
+
+with the SPH model file it references:
+
+\include data/yaml/vehicle/wheel_rig/terrain_crm_model.yaml
 
 ## YAML schema
 

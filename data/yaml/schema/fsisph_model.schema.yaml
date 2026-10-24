@@ -13,6 +13,10 @@
 # The `chrono-version` must match the Chrono major and minor version numbers.
 # The `model` object contains the schema for the model YAML specification.
 #
+# When used for the CRM terrain of a single-wheel test rig (see wheel_rig_simulation.schema), the model must use CRM
+# physics and a CARTESIAN box fluid domain. The fluid domain dimensions set the terrain patch size; the box origin,
+# container, computational domain, zero-pressure height, and initial velocity are ignored.
+#
 # =============================================================================
 
 required: [chrono-version, model]
@@ -265,11 +269,11 @@ model:
         depth_based_pressure:
           description: |
             Whether to initialize particle pressure from hydrostatic depth.
-            If present and true, `zero_height` is required.
+            If true, `zero_height` is required (except for a wheel test rig terrain, which uses the patch surface).
           type: boolean
           default: false
         zero_height:
-          description: Height of the zero-pressure level (required if depth_based_pressure is set).
+          description: Height of the zero-pressure level (required if depth_based_pressure is true; ignored for a wheel test rig terrain).
           type: number
         initial_velocity:
           <<: *VECTOR3D

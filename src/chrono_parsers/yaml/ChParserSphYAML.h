@@ -222,6 +222,8 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     bool m_loaded;         ///< YAML simulation file loaded
     bool m_solver_loaded;  ///< YAML solver file loaded
     bool m_model_loaded;   ///< YAML model file loaded
+
+    friend class ChParserWheelRigYAML;
 };
 
 /// @} parsers_module
