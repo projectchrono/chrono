@@ -17,7 +17,9 @@
 //// - output
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
+#include <limits>
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/input_output/ChOutputASCII.h"
@@ -38,6 +40,7 @@ ChParserSphYAML::ChParserSphYAML(const std::string& yaml_filename, bool verbose)
     : ChParserCfdYAML(verbose),
       m_has_wavetank(false),
       m_depth_based_pressure(false),
+      m_zero_height(std::numeric_limits<double>::quiet_NaN()),
       m_initial_velocity(false),
       m_velocity(VNULL),
       m_loaded(false),
@@ -336,11 +339,10 @@ void ChParserSphYAML::LoadModelData(const YAML::Node& yaml) {
             cout << "read initial state settings" << endl;
 
         auto a = model["initial_states"];
-        if (a["depth_based_pressure"]) {
-            m_depth_based_pressure = true;
-            ChAssertAlways(a["zero_height"]);
+        if (a["depth_based_pressure"])
+            m_depth_based_pressure = a["depth_based_pressure"].as<bool>();
+        if (a["zero_height"])
             m_zero_height = a["zero_height"].as<double>();
-        }
         if (a["initial_velocity"]) {
             m_initial_velocity = true;
             m_velocity = ReadVector(a["initial_velocity"]);
@@ -653,6 +655,10 @@ std::shared_ptr<fsi::sph::ChFsiProblemSPH> ChParserSphYAML::CreateFsiProblemSPH(
 
     // Set callback for initial states
     if (m_depth_based_pressure || m_initial_velocity) {
+        if (m_depth_based_pressure && std::isnan(m_zero_height)) {
+            cerr << "[ChParserSphYAML::CreateFsiProblemSPH] Error: depth-based pressure requires 'initial_states.zero_height'." << endl;
+            throw std::runtime_error("Missing zero_height");
+        }
         m_fsi_problem->RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(m_depth_based_pressure, m_zero_height, m_initial_velocity, m_velocity));
     }
 
