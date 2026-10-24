@@ -115,7 +115,8 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// - AddFSIBodies() must be implemented to use the assembly with CRM terrain.
     /// - ReportForces() should report the terrain force on the wheel (see ChWheelTestRig::CalculateTerrainForce). With a
     ///   suspension, the rig uses it in TEST mode to end the drop phase once the wheel carries the normal load; if an
-    ///   assembly reports no force, the drop phase ends when the wheel reaches the terrain.
+    ///   assembly reports no force, the drop phase ends when the wheel has been lowered 10% of its radius below the
+    ///   nominal terrain contact height.
     /// - A steerable assembly must create its steering mechanism in Initialize() and provide an actuator for it through
     ///   GetSteeringActuator().
     class WheelAssembly {
@@ -423,7 +424,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// It is the user's responsibility to set the operation mode and motion functions in a consistent way.
     /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`. For a wheel assembly with a
     /// suspension, the suspension travel is held during this drop phase at the static equilibrium configuration under the
-    /// specified normal load (computed during initialization) and released once the wheel reaches the terrain.
+    /// specified normal load (computed during initialization) and released once the wheel carries the normal load.
     void Initialize(Mode mode, double drop_speed = 0.1);
 
     /// Advance the rig state by the specified time interval.
@@ -611,7 +612,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     std::shared_ptr<ChLinkLockLock> m_slip_lock;           ///< slip angle actuator
     std::shared_ptr<ChLinkMotorLinearPosition> m_travel_motor;  ///< suspension travel actuator during the drop phase
     std::shared_ptr<SteeringActuator> m_steer_actuator;         ///< steering actuator of the wheel assembly
-    double m_drop_contact_time;                                 ///< time at which the wheel reached the terrain (drop phase)
+    bool m_drop_force_reported;                                 ///< terrain force reported during the drop phase
     double m_hub_offset0;                                       ///< hub height relative to chassis in design configuration
 };
 

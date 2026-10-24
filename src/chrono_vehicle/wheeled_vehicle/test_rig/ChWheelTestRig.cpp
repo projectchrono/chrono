@@ -324,7 +324,7 @@ ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> 
       m_steer_tau(0.05),
       m_steer_yaw0(0),
       m_steer_offset(0),
-      m_drop_contact_time(-1),
+      m_drop_force_reported(false),
       m_hub_offset0(0),
       m_terrain_type(TerrainType::NONE),
       m_terrain_offset(0),
@@ -581,24 +581,23 @@ void ChWheelTestRig::Advance(double step) {
     // releasing the suspension travel does not change the load on the wheel.
     bool drop_done = false;
     if (m_mode == Mode::TEST && !m_drop_motor->IsDisabled()) {
-        bool contact = m_wheel_assembly->GetHub()->GetPos().z() < m_terrain_height + m_wheel_assembly->GetRadius();
+        double radius = m_wheel_assembly->GetRadius();
+        double depth = m_terrain_height + radius - m_wheel_assembly->GetHub()->GetPos().z();  // below nominal contact
+        bool contact = depth > 0;
         if (m_travel_motor) {
             double load = m_wheel_assembly->ReportForces(*m_terrain).force.z();
             drop_done = load >= m_normal_load;
+            if (load > 0)
+                m_drop_force_reported = true;
 
-            // An assembly that reports no terrain force would never end the drop phase. If no force is reported for some
-            // time after the wheel reached the terrain, end the drop phase there (as for a wheel without suspension).
-            // Any reported force restarts this interval, so that isolated zero-force steps (e.g., with intermittent
-            // contacts) do not end the drop phase early.
-            if (!drop_done && contact && load == 0) {
-                if (m_drop_contact_time < 0)
-                    m_drop_contact_time = time;
-                if (time - m_drop_contact_time > 0.1) {
-                    std::cout << "\nWARNING!  Wheel assembly reports no terrain force. Drop phase ended at terrain contact.\n" << std::endl;
-                    drop_done = true;
-                }
-            } else {
-                m_drop_contact_time = -1;
+            // An assembly that reports no terrain force would never end the drop phase. The actual wheel geometry may
+            // first touch the terrain below the nominal contact height (e.g., between grousers) and deformable terrain
+            // may need some sinkage to develop a force, so allow lowering by a fraction of the wheel radius before
+            // concluding that no force is reported. Once a force was reported, lowering continues until the normal
+            // load is reached, regardless of isolated zero-force steps (e.g., with intermittent contacts).
+            if (!drop_done && !m_drop_force_reported && depth > 0.1 * radius) {
+                std::cout << "\nWARNING!  Wheel assembly reports no terrain force. Drop phase ended below terrain contact.\n" << std::endl;
+                drop_done = true;
             }
         } else {
             drop_done = contact;
@@ -983,7 +982,9 @@ void ChWheelTestRig::CreateTerrainSCM() {
         E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
     terrain->Initialize(m_terrain_size.length, m_terrain_size.width, m_params_SCM.grid_spacing);
-    terrain->AddActiveDomain(m_chassis_body, ChVector3d(0, 0, 0), ChVector3d(2 * m_wheel_assembly->GetRadius(), 1.0, 2 * m_wheel_assembly->GetRadius()));
+    // Center the active domain on the wheel; with a suspension, the wheel may be laterally offset from the rig chassis
+    auto domain_center = m_chassis_body->TransformPointParentToLocal(m_wheel_assembly->GetHub()->GetPos());
+    terrain->AddActiveDomain(m_chassis_body, domain_center, ChVector3d(2 * m_wheel_assembly->GetRadius(), 1.0, 2 * m_wheel_assembly->GetRadius()));
 
     m_terrain = terrain;
 }
