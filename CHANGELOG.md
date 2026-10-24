@@ -19,6 +19,7 @@ Change Log
   - [\[Added\] New geometry and collision utilities](#added-new-geometry-and-collision-utilities)
   - [\[Changed\] Chrono::Vehicle API updates](#changed-chronovehicle-api-updates)
   - [\[Added\] Extended YAML and JSON model specification support](#added-extended-yaml-and-json-model-specification-support)
+  - [\[Added\] YAML specification of single-wheel test rig simulations](#added-yaml-specification-of-single-wheel-test-rig-simulations)
   - [\[Added\] Chrono::Modal reduced model serialization and applied loads](#added-chronomodal-reduced-model-serialization-and-applied-loads)
   - [\[Changed\] Build requirements and third-party dependencies](#changed-build-requirements-and-third-party-dependencies)
   - [\[Removed\] Chrono::Matlab module](#removed-chronomatlab-module)
@@ -517,6 +518,39 @@ extended and made consistent:
 
 The YAML schema documentation was audited against the parser code, and several documented settings
 that were unreachable in practice were fixed.
+
+## [Added] YAML specification of single-wheel test rig simulations
+
+The Chrono::Vehicle single-wheel test rig (`ChWheelTestRig`) was extended, and test rig simulations
+can now be fully specified through YAML files (simulation type `WHEEL_RIG`), run with `run_chrono` or
+from a user program (see `demo_YAML_wheel_rig`):
+
+- Wheel assemblies: besides a Chrono::Vehicle wheel and tire, optionally attached to a
+  Chrono::Vehicle suspension, the rig accepts wheel assemblies built outside Chrono::Vehicle (derived
+  from `ChWheelTestRig::WheelAssembly`). In YAML, such custom assemblies are created by factories that
+  the application registers with `ChParserWheelRigYAML::RegisterWheelAssembly` (see the Viper wheel in
+  `demo_YAML_wheel_rig`).
+- Steering: a wheel on a steerable suspension is steered about its kingpin through a steering actuator
+  (for a Chrono::Vehicle suspension, a rig steering rack attached to the tierods). Either the actuator
+  coordinate or the steering angle can be prescribed; a steering angle is converted to the actuator
+  input through a kinematic map computed at initialization, with an optional feedback correction.
+  Steering angles are measured from the loaded configuration, so a zero steering angle retains the
+  static toe of the suspension under the normal load.
+- Drop phase: with a suspension, the suspension travel is held at its static equilibrium under the
+  normal load while the wheel is lowered, and released once the tire carries the normal load. The
+  suspension mass is now included in the load supported by the wheel.
+- Terrain: rigid, SCM, granular, or CRM terrain. A CRM terrain is specified through an SPH simulation
+  file, using the same SPH model and solver schemas as an FSI simulation, and the SPH and multibody
+  systems can use different step sizes.
+- Output: the rig reports its measurements and kinematics as named output channels
+  (`ChWheelTestRig::GetOutputChannels`), which are written to the Chrono output database through the
+  new named scalar channels of `ChOutput`. A YAML specification can also request Gnuplot plots of
+  these channels.
+- A simulation can end when the wheel reaches the end of the terrain patch
+  (`ChWheelTestRig::PatchEndReached`), and a test specification can override the normal load of the
+  rig model.
+
+The new YAML schemas are documented in the Chrono::Parsers manual.
 
 ## [Added] Chrono::Modal reduced model serialization and applied loads
 
