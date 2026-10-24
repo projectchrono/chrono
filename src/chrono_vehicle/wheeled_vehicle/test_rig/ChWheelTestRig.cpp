@@ -765,8 +765,10 @@ void ChWheelTestRig::CreateMechanism() {
     prismatic->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
 
     if (m_mode == Mode::TEST) {
+        // The carrier-chassis prismatic joint already constrains the other relative degrees of freedom
         m_drop_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
         AddItem(m_drop_motor);
+        m_drop_motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
         m_drop_motor->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
     }
 
