@@ -57,6 +57,15 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     /// Load the solver parameters from the specified YAML node.
     void LoadSolverData(const YAML::Node& yaml);
 
+    /// Read SPH solver parameters from the specified YAML node (following the fsisph_solver.schema).
+    /// Only parameters present in the node are set; all others keep their current values. The integration time step,
+    /// if specified, is returned in `time_step` (otherwise, `time_step` is not modified).
+    static void ReadSPHParameters(const YAML::Node& yaml, fsi::sph::ChFsiFluidSystemSPH::SPHParameters& sph, double& time_step);
+
+    /// Read CRM soil properties from the specified YAML node (the `soil_properties` object of the fsisph_model.schema).
+    /// Only properties present in the node are set; all others keep their current values.
+    static void ReadSoilProperties(const YAML::Node& yaml, fsi::sph::ChFsiFluidSystemSPH::SoilProperties& props);
+
     double GetTimestep() const { return m_sim.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
 
@@ -174,6 +183,7 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
   private:
     static GeometryType ReadGeometryType(const YAML::Node& a);
     static fsi::sph::PhysicsProblem ReadPhysicsProblemType(const YAML::Node& a);
+    static fsi::sph::RheologyCRM ReadRheologyModel(const YAML::Node& a);
     static fsi::sph::ChFsiProblemWavetank::WavemakerType ReadWavetankType(const YAML::Node& a);
     static fsi::sph::EosType ReadEosType(const YAML::Node& a);
     static fsi::sph::KernelType ReadKernelType(const YAML::Node& a);
@@ -212,6 +222,8 @@ class ChApiParsers ChParserSphYAML : public ChParserCfdYAML {
     bool m_loaded;         ///< YAML simulation file loaded
     bool m_solver_loaded;  ///< YAML solver file loaded
     bool m_model_loaded;   ///< YAML model file loaded
+
+    friend class ChParserWheelRigYAML;
 };
 
 /// @} parsers_module

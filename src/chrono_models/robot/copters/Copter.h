@@ -197,7 +197,7 @@ Copter<nop>::Copter(ChSystem& sys,
     chassis->SetInertiaXX(ChVector3d(1, 1, 1));
     chassis->SetFixed(false);
     sys.AddBody(chassis);
-    h0 = chassis->GetPos() ^ up;
+    h0 = chassis->GetPos().Dot(up);
     // 26.4 inch propellers
     for (int p = 0; p < nop; p++) {
         auto prop = chrono_types::make_shared<ChBody>();
@@ -336,7 +336,7 @@ void Copter<nop>::Update(double timestep) {
 // This model holds below 11 km altitude.
 template <int nop>
 void Copter<nop>::UpdateAirData() {
-    Altitude = Altitude0 + (chassis->GetPos() ^ up - h0);
+    Altitude = Altitude0 + chassis->GetPos().Dot(up) - h0;
     Temp = Temp0 - (6.5 * (Altitude / 1000));
     pressure = pressure0 * std::pow((Temp0 / Temp), -5.255877);
 }

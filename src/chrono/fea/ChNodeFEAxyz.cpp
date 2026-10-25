@@ -63,6 +63,24 @@ void ChNodeFEAxyz::ForceToRest() {
 
 // -----------------------------------------------------------------------------
 
+unsigned int ChNodeFEAxyz::AddAccumulator() {
+    auto idx = accumulators.size();
+    accumulators.push_back(VNULL);
+    return (unsigned int)idx;
+}
+
+void ChNodeFEAxyz::EmptyAccumulator(unsigned int idx) {
+    accumulators[idx] = VNULL;
+}
+
+void ChNodeFEAxyz::AccumulateForce(unsigned int idx, const ChVector3d& force) {
+    accumulators[idx] += force;
+}
+
+const ChVector3d& ChNodeFEAxyz::GetAccumulatedForce(unsigned int idx) const {
+    return accumulators[idx];
+}
+
 void ChNodeFEAxyz::NodeIntStateGather(const unsigned int off_x,
                                       ChState& x,
                                       const unsigned int off_v,
@@ -111,6 +129,15 @@ void ChNodeFEAxyz::NodeIntStateGetIncrement(const unsigned int off_x,
 
 void ChNodeFEAxyz::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     R.segment(off, 3) += c * Force.eigen();
+
+    // Add forces from node accumulators (if any)
+    for (const auto& a : accumulators)
+        R.segment(off, 3) += c * a.eigen();
+}
+
+void ChNodeFEAxyz::NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // All node loads are applied loads
+    ChNodeFEAxyz::NodeIntLoadResidual_F(off, R, c);
 }
 
 void ChNodeFEAxyz::NodeIntLoadResidual_Mv(const unsigned int off,
@@ -152,6 +179,10 @@ void ChNodeFEAxyz::VariablesFbReset() {
 
 void ChNodeFEAxyz::VariablesFbLoadForces(double factor) {
     variables.Force() += factor * Force.eigen();
+
+    // Add forces from node accumulators (if any)
+    for (const auto& a : accumulators)
+        variables.Force() += factor * a.eigen();
 }
 
 void ChNodeFEAxyz::VariablesQbLoadSpeed() {

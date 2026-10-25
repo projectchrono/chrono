@@ -80,11 +80,11 @@ struct same_key_int {
 };
 
 struct add_dir {
-    __host__ __device__ Real3 operator()(const Real3& d1, const Real3& d2) { return d1 + d2; }
+    __host__ __device__ Real3 operator()(const Real3& d1, const Real3& d2) const { return d1 + d2; }
 };
 
 struct normalize_dir {
-    __host__ __device__ Real3 operator()(const Real3& d) { return get_normalized(d); }
+    __host__ __device__ Real3 operator()(const Real3& d) const { return get_normalized(d); }
 };
 
 void calculateDirectionsMesh1D(FsiDataManager& data_mgr) {

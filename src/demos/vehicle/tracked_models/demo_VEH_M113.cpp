@@ -223,9 +223,6 @@ int main(int argc, char* argv[]) {
     // Control steering type (enable crossdrive capability)
     ////m113.GetDriveline()->SetGyrationMode(true);
 
-    // Change collision shape for road wheels and idlers (true: cylinder; false: cylshell)
-    ////m113.SetWheelCollisionType(true, true);
-
     // ------------------------------------------------
     // Initialize the vehicle at the specified position
     // ------------------------------------------------

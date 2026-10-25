@@ -216,6 +216,17 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const double c           ///< a scaling factor
     ) {}
 
+    /// Takes only the externally applied loads, scale and adds to R at given offset:
+    ///    R += c*F_applied
+    /// Applied loads are loads set or accumulated by the user (e.g., accumulator loads, ChForce objects, node forces).
+    /// They exclude gravity, velocity-dependent inertial terms (e.g., gyroscopic torques), and internal forces (e.g.,
+    /// elastic forces in FEA elements). This is used by items that account for these other terms separately (e.g.,
+    /// ChModalAssembly for its internal items). By default, an item has no applied loads.
+    virtual void IntLoadResidual_F_applied(const unsigned int off,  ///< offset in R residual
+                                           ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F_applied
+                                           const double c           ///< a scaling factor
+    ) {}
+
     /// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
     ///    R += c*M*w
     virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual

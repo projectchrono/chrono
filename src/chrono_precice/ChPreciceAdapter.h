@@ -26,6 +26,7 @@
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChUtils.h"
+#include "chrono/input_output/ChOutput.h"
 
 #ifdef CHRONO_HAS_YAML
     #include "chrono/input_output/ChUtilsYAML.h"
@@ -59,14 +60,16 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Chrono coupling data type.
     enum class CouplingDataType {
-        GENERIC,             ///< generic data
-        POSITIONS,           ///< 3D positions (of body ref frames, body points, or FEA nodes)
-        ROTATIONS,           ///< 3D rotations (of body ref frames, expressed as rotation vectors)
-        DISPLACEMENTS,       ///< 3D displacements (relative to initial position)
-        LINEAR_VELOCITIES,   ///< 3D velocities (of body ref frames, body points, or FEA nodes)
-        ANGULAR_VELOCITIES,  ///< 3D angular velocities (of body ref frames)
-        FORCES,              ///< 3D forces (on body ref frames, body points, or FEA nodes)
-        TORQUES              ///< 3D torques (on body ref frames)
+        GENERIC,                ///< generic data
+        POSITIONS,              ///< 3D positions (of body ref frames, body points, or FEA nodes)
+        ROTATIONS,              ///< 3D rotations (of body ref frames, expressed as rotation vectors)
+        DISPLACEMENTS,          ///< 3D displacements (relative to initial position)
+        LINEAR_VELOCITIES,      ///< 3D velocities (of body ref frames, body points, or FEA nodes)
+        ANGULAR_VELOCITIES,     ///< 3D angular velocities (of body ref frames)
+        LINEAR_ACCELERATIONS,   ///< 3D accelerations (of body ref frames, body points, or FEA nodes)
+        ANGULAR_ACCELERATIONS,  ///< 3D angular accelerations (of body ref frames)
+        FORCES,                 ///< 3D forces (on body ref frames, body points, or FEA nodes)
+        TORQUES                 ///< 3D torques (on body ref frames)
     };
 
     /// Point within the coupling time window at which data from other participants is sampled.
@@ -475,18 +478,25 @@ class ChApiPrecice ChPreciceAdapter {
     /// - Mark mesh data as used (referenced) or not.
     void ProcessXML();
 
-    /// Check the configured coupling read time against the coupling scheme found in the preCICE
-    /// configuration file. Throws if preCICE cannot honor the request (reading at the end of the window
-    /// on a participant that runs first, or under a scheme with no serial ordering) and warns if the
-    /// request leaves the coupling lagging by one time window.
+    /// Check the configured coupling read time against all coupling schemes, found in the preCICE
+    /// configuration file, that involve this participant. Throws if preCICE cannot honor the request
+    /// (reading at the end of the window on a participant that does not run second in all of its schemes,
+    /// or under a scheme with no serial ordering) and warns if the request leaves the coupling lagging by
+    /// one time window.
     void ValidateCouplingReadTime() const;
+
+    /// Definition of a coupling scheme declared in the preCICE configuration file.
+    struct CouplingSchemeInfo {
+        std::string type;                       ///< scheme type (e.g., "serial-explicit", "multi")
+        bool serial;                            ///< true for a serial scheme (fixed participant ordering)
+        std::string first;                      ///< participant listed as 'first' (bi-coupling schemes only)
+        std::string second;                     ///< participant listed as 'second' (bi-coupling schemes only)
+        std::vector<std::string> participants;  ///< all participants in this scheme
+    };
 
     MeshDataNames m_defined_meshes;                          ///< meshes defined in preCICE configuration file
     std::map<std::string, MeshDataNames> m_provided_meshes;  ///< meshes provided by a participant
-
-    bool m_serial_coupling;            ///< true if the configuration declares a serial coupling scheme
-    std::string m_first_participant;   ///< participant listed as 'first' in a serial coupling scheme
-    std::string m_second_participant;  ///< participant listed as 'second' in a serial coupling scheme
+    std::vector<CouplingSchemeInfo> m_coupling_schemes;      ///< coupling schemes declared in preCICE configuration file
 
   protected:
     /// Return dimension of one added mass block.
@@ -495,37 +505,57 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Process added mass data received via preCICE.
     /// Called only if using dynamic added mass on a receiving participant.
-    /// Must be overridden if using dynamic added mass and this is a sending participant; the default implementation throws in that case.
+    /// Must be overridden if using dynamic added mass and this is a receiving participant; the default implementation throws in that case.
+    /// `blocks` holds one 6x6 block per FSI body: the increment to that body's self (diagonal) added mass block,
+    /// accumulated over all participants that send added mass. The receiving participant adds these increments to its
+    /// baseline added mass; increments are not cumulative over time (each call supersedes the previous one).
     virtual void OnReadDataAM(const std::vector<ChMatrix66d>& blocks);
 
     /// Prepare added mass data to be sent via preCICE.
     /// Called only if using dynamic added mass on a sending participant.
     /// Must be overridden if using dynamic added mass and this is a sending participant; the default implementation throws in that case.
     /// On entry, `blocks` is sized to the number of FSI bodies (as reported by `GetNumFsiBodies`) and is zero-initialized.
-    /// The override is expected to set the 6x6 added mass block for every FSI body; any block left untouched is sent as a zero block.
+    /// The override is expected to set, for every FSI body, this participant's increment to the body's self (diagonal)
+    /// added mass block, relative to the baseline added mass held by the receiving participant (typically the
+    /// infinite-frequency added mass). Any block left untouched is sent as a zero increment.
     virtual void OnWriteDataAM(std::vector<ChMatrix66d>& blocks);
 
   private:
-    /// Create and register internal exchange mesh for added mass information.
+    /// Create and register the internal exchange meshes for added mass information provided by this participant.
     /// The approach used here is based on a "pseudo reference domain":
     /// - use a fictitious mesh with coordinates encoding the FSI body and matrix row and column in the corresponding added mass block.
     /// - define scalar data on this mesh (each value is an entry in the added mass diagonal block for a body).
     /// - apply a nearest-neighbor mapping to pass generic arrays representing updates to the added mass generalized mass matrix term.
+    /// Added mass meshes are identified by name: a receiving participant provides one or more meshes with names starting
+    /// with "SolidAddedMass" and a sending participant provides one mesh with name starting with "FluidAddedMass".
     void RegisterMeshAM();
 
-    /// Read added mass data (if using dynamic added mass and if on a receiving participant).
-    /// The received data is then passed to the concrete participant (via `OnReadDataAM`).
+    /// Read added mass data from all input channels (if using dynamic added mass and if on a receiving participant).
+    /// The increments received from all channels are summed and then passed to the concrete participant (via `OnReadDataAM`).
     void ReadDataAM();
 
-    /// Write added mass data (if using dynamic added mass and if on a receiving participant).
+    /// Write added mass data (if using dynamic added mass and if on a sending participant).
     /// The concrete participant first prepares the data to be sent (via `OnWriteDataAM`).
     void WriteDataAM();
 
-    bool m_AMmesh_write = false;
-    bool m_AMmesh_read = false;
-    std::string m_AMmesh_name;
-    std::vector<int> m_AMmesh_vertexIDs;
-    std::vector<double> m_AMmesh_values;
+    /// Added mass mesh provided by this participant.
+    struct AddedMassMesh {
+        std::string name;             ///< mesh name
+        std::vector<int> vertex_ids;  ///< preCICE IDs of the mesh vertices
+    };
+
+    /// Added mass data channel (a scalar data block on an added mass mesh provided by this participant).
+    /// A receiving participant has one input channel for each participant that sends added mass; a sending participant
+    /// has exactly one output channel.
+    struct AddedMassChannel {
+        size_t mesh_index;           ///< index of the added mass mesh (in m_AM_meshes)
+        std::string data_name;       ///< data name
+        std::vector<double> values;  ///< data values
+    };
+
+    std::vector<AddedMassMesh> m_AM_meshes;             ///< added mass meshes provided by this participant
+    std::vector<AddedMassChannel> m_AM_read_channels;   ///< added mass input channels
+    std::vector<AddedMassChannel> m_AM_write_channels;  ///< added mass output channels (at most one)
 };
 
 /// @} precice_module

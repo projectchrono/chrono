@@ -88,8 +88,36 @@ if(CHRONO_GPU_VENDOR_RESOLVED STREQUAL "NVIDIA")
 
     chrono_guard_cross_target_arch("CUDA" CHRONO_CUDA_ARCHITECTURES)
 
-    # Architecture 50 has no double-precision atomicAdd.
-    list(REMOVE_ITEM CHRONO_CUDA_ARCHITECTURES "50" "50-real")
+    # Expand the "all-major" and "all" keywords (e.g. from a cache written by an older
+    # Chrono, or set by the user) so that the filter below can act on the actual list.
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
+      if(CHRONO_CUDA_ARCHITECTURES STREQUAL "all-major")
+        set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES_ALL_MAJOR}")
+        message(STATUS "  CUDA archs (expanded):   ${CHRONO_CUDA_ARCHITECTURES}")
+      elseif(CHRONO_CUDA_ARCHITECTURES STREQUAL "all")
+        set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES_ALL}")
+        message(STATUS "  CUDA archs (expanded):   ${CHRONO_CUDA_ARCHITECTURES}")
+      endif()
+    endif()
+
+    # Minimum supported architecture: Turing (7.5), the oldest one supported by CUDA 13. Older
+    # architectures are dropped even when building with an older toolkit. CUDA 12 lists 7.0 (and not
+    # 7.5) as the Turing-compatible entry of 'all-major', so 7.x entries below 7.5 are raised to 7.5
+    # (keeping any -real/-virtual suffix) rather than dropped, which would leave no code for Turing.
+    set(_cuda_archs "")
+    foreach(_arch IN LISTS CHRONO_CUDA_ARCHITECTURES)
+      if(_arch MATCHES "^([0-9]+)(.*)$")
+        if(CMAKE_MATCH_1 LESS 70)
+          continue()
+        elseif(CMAKE_MATCH_1 LESS 75)
+          set(_arch "75${CMAKE_MATCH_2}")
+        endif()
+      endif()
+      list(APPEND _cuda_archs "${_arch}")
+    endforeach()
+    list(REMOVE_DUPLICATES _cuda_archs)
+    set(CHRONO_CUDA_ARCHITECTURES "${_cuda_archs}")
+    unset(_cuda_archs)
     message(STATUS "  CUDA archs (filtered):   ${CHRONO_CUDA_ARCHITECTURES}")
 
     if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")

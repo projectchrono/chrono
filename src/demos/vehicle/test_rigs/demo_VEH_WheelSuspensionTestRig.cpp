@@ -59,8 +59,18 @@ std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
 ////std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
 // Suspension specification file
-std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneRear.json";
+std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneFront.json";
+////std::string suspension_json = "hmmwv/suspension/HMMWV_DoubleWishboneRear.json";
+////std::string suspension_json = "Polaris/Polaris_Front_DoubleWishbone.json";
 ////std::string suspension_json = "Polaris/Polaris_Rear_TrailingArm.json";
+
+// Normal load (static wheel load, appropriate for the selected vehicle)
+double normal_load = 6500;  // HMMWV
+////double normal_load = 2900;  // Polaris
+
+// Wheel angular speed (small longitudinal slip, about 2.5%, at a longitudinal speed of 0.2 m/s, for the selected wheel)
+double angular_speed = 4.25 * CH_RPM_TO_RAD_S;  // HMMWV
+////double angular_speed = 6.0 * CH_RPM_TO_RAD_S;  // Polaris
 
 double render_fps = 60;
 bool debug_output = false;
@@ -98,10 +108,10 @@ int main() {
     SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
 
     // Create and configure test rig
-    ChWheelSuspensionTestRig rig(sys, wheel, tire, suspension);
+    ChWheelTestRig rig(sys, wheel, tire, suspension);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(3000);
+    rig.SetNormalLoad(normal_load);
 
     rig.SetStepsize(step_size);
     rig.SetVisualizationType(VisualizationType::MESH);
@@ -110,9 +120,17 @@ int main() {
 
     // Set test scenario: prescribe all motion functions
     //   longitudinal speed: 0.2 m/s
-    //   angular speed: 10 RPM
+    //   angular speed: see above
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
-    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(angular_speed));
+
+    // Steering (steerable suspension only): the wheel is steered about its kingpin through a rack attached to the tierods.
+    //   steering angle: sinusoidal +- 5 deg with 5 s period (converted to the steering actuator input through a kinematic map)
+    rig.SetSteeringAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
+    ////rig.EnableSteeringFeedback(true, 0.05);
+
+    // Alternatively, prescribe the steering actuator input directly (for a Chrono::Vehicle suspension, the rack displacement)
+    ////rig.SetSteeringActuatorFunction(chrono_types::make_shared<ChFunctionSine>(0.01, 0.2));
 
     // Set delay before applying inputs (settling time)
     double input_time_delay = 1.0;
@@ -169,6 +187,12 @@ int main() {
         rig.Advance(step_size);
         sim_time += sys.GetTimerStep();
 
+        // End the simulation when the wheel reaches the end of the terrain patch
+        if (rig.PatchEndReached()) {
+            cout << "\nEnd of terrain patch reached at t = " << sys.GetChTime() << endl;
+            break;
+        }
+
         auto long_slip = rig.GetLongitudinalSlip();
         auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;
         auto camber_angle = rig.GetCamberAngle() * CH_RAD_TO_DEG;
@@ -181,7 +205,7 @@ int main() {
 
         if (debug_output && rig.OutputEnabled()) {
             cout << time << endl;
-            cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
+            cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << " " << rig.GetSteeringAngle() * CH_RAD_TO_DEG << endl;
             auto tforce = rig.ReportWheelForce();
             auto frc = tforce.force;
             auto pnt = tforce.point;

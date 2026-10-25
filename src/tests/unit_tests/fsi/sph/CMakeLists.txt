@@ -7,7 +7,13 @@ set(TESTS
     utest_FSI-SPH_mcc_parameters
     utest_FSI-SPH_proximity_cadence
     utest_FSI-SPH_free_surface_export
+    utest_FSI-SPH_rigid_bce_state
 )
+
+if(CH_ENABLE_MODULE_FEA)
+  list(APPEND TESTS utest_FSI-SPH_flex1D_bce_frame)
+  list(APPEND TESTS utest_FSI-SPH_flex1D_node_directions)
+endif()
 
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS Chrono_fsisph)

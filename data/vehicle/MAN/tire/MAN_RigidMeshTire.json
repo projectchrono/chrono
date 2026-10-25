@@ -1,0 +1,39 @@
+{
+  "Name":     "MAN Rigid Mesh Tire",
+  "Type":     "Tire",
+  "Template": "RigidTire",
+
+  "Radius":   0.629,
+  "Width":    0.385,
+  "Mass":     104.0,
+  "Inertia":  [17.86, 31.66, 17.86],
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.9,
+      "Coefficient of Restitution": 0.1,
+
+      "Properties": {
+          "Young Modulus":          2e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  },
+
+  "Contact Mesh":
+  {
+    "Mesh Filename":       "MAN/meshes/MAN_tire_collision_mesh.obj",
+    "Sweep Sphere Radius": 0.005
+  },
+
+  "Visualization": {
+    "Mesh Filename Left":  "MAN/meshes/MAN_tire.obj",
+    "Mesh Filename Right": "MAN/meshes/MAN_tire.obj"
+  }
+}

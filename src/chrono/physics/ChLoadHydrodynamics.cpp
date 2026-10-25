@@ -14,12 +14,13 @@
 
 #include "chrono/physics/ChLoadHydrodynamics.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtils.h"
 
 ////#define DEBUG_PRINT
 
 namespace chrono {
 
-ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_blocks) : m_body_blocks(body_blocks), m_verbose(false), m_system_size(0) {
+ChLoadHydrodynamics::ChLoadHydrodynamics(const ChBodyAddedMassBlocks& body_blocks) : m_body_blocks(body_blocks), m_verbose(false), m_system_size(0), m_blocks_modified(false) {
     // Traverse list of hydro bodies, check added mass block size, and collect list of variables
     std::vector<ChVariables*> variables;
     auto num_bodies = (int)body_blocks.size();
@@ -46,6 +47,7 @@ ChLoadHydrodynamics::ChLoadHydrodynamics(const ChLoadHydrodynamics& other) {
     m_KRM = other.m_KRM;
     m_verbose = other.m_verbose;
     m_system_size = other.m_system_size;
+    m_blocks_modified = other.m_blocks_modified;
 }
 
 ChLoadHydrodynamics::~ChLoadHydrodynamics() {}
@@ -55,83 +57,88 @@ void ChLoadHydrodynamics::SetBodyAddedMassBlocks(const std::vector<ChMatrixDynam
     ChAssertAlways(blocks.size() == num_bodies);
     for (size_t i = 0; i < num_bodies; i++) {
         ChAssertAlways(m_body_blocks[i].block.rows() == blocks[i].rows() && m_body_blocks[i].block.cols() == blocks[i].cols());
-        m_body_blocks[i].block = blocks[i];
+        if (m_body_blocks[i].block != blocks[i]) {
+            m_body_blocks[i].block = blocks[i];
+            m_blocks_modified = true;
+        }
     }
+    OnBlocksModified();
 }
 
 void ChLoadHydrodynamics::UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66d>& blocks) {
     auto num_bodies = m_body_blocks.size();
     ChAssertAlways(blocks.size() == num_bodies);
     for (size_t i = 0; i < num_bodies; i++) {
-        m_body_blocks[i].block.block(0, 6 * i, 6, 6) = blocks[i];
+        auto self_block = m_body_blocks[i].block.block(0, 6 * i, 6, 6);
+        if (self_block != blocks[i]) {
+            self_block = blocks[i];
+            m_blocks_modified = true;
+        }
     }
+    OnBlocksModified();
+}
+
+bool ChLoadHydrodynamics::NeedsMassInverse() const {
+    // Schur complement-based solvers need the inverse of the total mass matrix. That is the only
+    // system-wide work done by this load: the KRM block it injects spans the hydrodynamic bodies alone
+    // and is filled in LoadKRMMatrices.
+    // PSOR is not included: it does not support systems with KRM blocks and throws for such problems.
+    auto solver_type = system->GetSolverType();
+    return (solver_type == ChSolver::Type::APGD ||  //
+            solver_type == ChSolver::Type::BARZILAIBORWEIN);
+}
+
+void ChLoadHydrodynamics::OnBlocksModified() {
+    // The system updates its physics items only after the solve of each step, so waiting for the next
+    // call to Update would let the next step be solved with a stale mass inverse. If a mass inverse was
+    // already computed (and therefore the system is set up and the solver needs it), recompute it now.
+    // Otherwise, it is computed during the first call to Update.
+    if (m_blocks_modified && system && m_system_size > 0 && NeedsMassInverse())
+        ComputeMassInverse();
+}
+
+void ChLoadHydrodynamics::ComputeMassInverse() {
+    m_system_size = system->GetNumCoordsVelLevel();
+    m_blocks_modified = false;
+
+    if (m_verbose)
+        std::cout << "Assemble total mass matrix at t = " << system->GetChTime() << std::endl;
+
+    // Load the total mass matrix. GetMassMatrix includes the body inertia as well as the M part of all
+    // KRM blocks, including the one injected by this load, so the added mass blocks are already
+    // accounted for and must not be added again here.
+    ChSparseMatrix M_sparse;
+    system->DescriptorPrepareInject();
+    system->GetMassMatrix(M_sparse);
+
+    // Calculate inverse of total mass
+    if (m_verbose)
+        std::cout << "  compute inverse of total mass matrix" << std::endl;
+
+    auto M = M_sparse.toDense();
+#ifdef DEBUG_PRINT
+    std::cout << "Mass matrix + Added mass" << std::endl;
+    std::cout << M << std::endl;
+#endif
+
+    auto Minv = M.inverse();
+#ifdef DEBUG_PRINT
+    std::cout << "Inverse" << std::endl;
+    std::cout << Minv << std::endl;
+    std::cout << "Check" << std::endl;
+    std::cout << M * Minv << std::endl;
+#endif
+
+    system->GetSystemDescriptor()->SetMassInverse(Minv);
 }
 
 void ChLoadHydrodynamics::Update(double time, UpdateFlags update_flags) {
-    // Check whether the solver needs the inverse of the total mass matrix (Schur complement-based
-    // solvers). That is the only system-wide work here: the KRM block this load injects spans the
-    // hydrodynamic bodies alone and is filled in LoadKRMMatrices.
-    auto solver_type = system->GetSolverType();
-    bool calc_M_inv = (solver_type == ChSolver::Type::APGD ||             //
-                       solver_type == ChSolver::Type::BARZILAIBORWEIN ||  //
-                       solver_type == ChSolver::Type::PSOR);              //
-
-    // Recompute whenever the system problem size changes.
-    auto size = GetSystem()->GetNumCoordsVelLevel();
-    if (calc_M_inv && m_system_size != size) {
-        m_system_size = size;
-
-        if (m_verbose)
-            std::cout << "Assemble total mass matrix at t = " << time << std::endl;
-
-        // Load mass matrix with body inertia (sparse, block-diagonal)
-        ChSparseMatrix M_sparse;
-        system->DescriptorPrepareInject();
-        system->GetMassMatrix(M_sparse);
-#ifdef DEBUG_PRINT
-        std::cout << "Mass matrix" << std::endl;
-        std::cout << total_mass << std::endl;
-#endif
-
-        // Add the added mass blocks. These are indexed by system offsets, since M_sparse is system-wide.
-        for (const auto& b1 : m_body_blocks) {
-            auto row = b1.body->GetOffset_w();
-            if (m_verbose)
-                std::cout << "- process blocks for body '" << b1.body->GetName() << "'" << std::endl;
-
-            int i = 0;
-            for (const auto& b2 : m_body_blocks) {
-                auto col = b2.body->GetOffset_w();
-                if (m_verbose)
-                    std::cout << "  add 6x6 block starting at (" << row << "," << col << ")" << std::endl;
-
-                PasteMatrix(M_sparse, b1.block(Eigen::seq(0, 5), Eigen::seq(i, i + 5)), row, col, false);
-                i += 6;
-            }
-        }
-
-        // Calculate inverse of total mass
-        {
-            if (m_verbose)
-                std::cout << "  compute inverse of total mass matrix" << std::endl;
-
-            auto M = M_sparse.toDense();
-#ifdef DEBUG_PRINT
-            std::cout << "Mass matrix + Added mass" << std::endl;
-            std::cout << M << std::endl;
-#endif
-
-            auto Minv = M.inverse();
-#ifdef DEBUG_PRINT
-            std::cout << "Inverse" << std::endl;
-            std::cout << Minv << std::endl;
-            std::cout << "Check" << std::endl;
-            std::cout << M * Minv << std::endl;
-#endif
-
-            system->GetSystemDescriptor()->SetMassInverse(Minv);
-        }
-    }
+    // Recompute the mass inverse (if needed) whenever the system problem size changes or the added mass
+    // blocks were modified since it was last computed. The blocks are only flagged as modified when their
+    // values actually change, so setting the same coefficients again (e.g., constant added mass resent at
+    // every coupling step) does not trigger a recomputation.
+    if (NeedsMassInverse() && (m_system_size != system->GetNumCoordsVelLevel() || m_blocks_modified))
+        ComputeMassInverse();
 
     // Overloading of base class:
     ChPhysicsItem::Update(time, update_flags);

@@ -64,14 +64,19 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filen
     // - read information on FEA meshes and check that they are defined in the MBS
     if (config["meshes"])
         LoadMeshesYAML(config["meshes"], parser);
+
+    // - include in output the FEA mesh nodes selected in the MBS model (beam 'output_nodes')
+    m_output_data.mesh_nodes = parser.GetOutputComponents().mesh_nodes;
     #endif
 
-    // - if expected, look for specification of added mass blocks
+    // - if expected, look for specification of (baseline) added mass blocks.
+    //   With dynamic added mass, a baseline is optional: if none is provided, a zero baseline is used and the
+    //   added mass consists only of the increments received over the coupling interface.
     if (m_use_added_mass) {
         if (config["added_mass"]) {
             LoadAddedMassYAML(config["added_mass"], parser);
             m_has_added_mass = true;
-        } else {
+        } else if (!m_use_dynamic_added_mass) {
             cerr << "Added mass enabled, but no YAML specification provided." << endl;
             throw std::runtime_error("Added mass enabled, but no YAML specification provided");
         }
@@ -114,7 +119,17 @@ void ChPreciceAdapterMbs::LoadBodiesYAML(const YAML::Node& bodies, const parsers
 void ChPreciceAdapterMbs::LoadMeshesYAML(const YAML::Node& meshes, const parsers::ChParserMbsYAML& parser) {
     #ifdef CHRONO_FEA
     ChAssertAlways(meshes.IsSequence());
-    //// TODO
+    for (int i = 0; i < meshes.size(); i++) {
+        ChAssertAlways(meshes[i]["name"]);
+        auto mesh_name = meshes[i]["name"].as<std::string>();
+        auto fea_meshes = parser.FindMeshesByName(mesh_name);
+        if (fea_meshes.empty()) {
+            cerr << "No FEA mesh named '" << mesh_name << "' was found in the MBS" << endl;
+            throw std::runtime_error("Interface FEA mesh not present in MBS");
+        }
+        for (const auto& fea_mesh : fea_meshes)
+            AddCouplingFEAMesh(fea_mesh);
+    }
     #endif
 }
 
@@ -134,6 +149,7 @@ void ChPreciceAdapterMbs::LoadAddedMassYAML(const YAML::Node& added_mass, const 
         ChAssertAlways(blocks.size() == num_bodies);
         if (m_verbose)
             cout << "Read added mass blocks" << endl;
+        m_added_mass_blocks.clear();
         for (size_t ib = 0; ib < num_bodies; ib++) {
             ChAssertAlways(blocks[ib]["name"]);
             auto body_name = blocks[ib]["name"].as<std::string>();
@@ -181,8 +197,28 @@ void ChPreciceAdapterMbs::AddCouplingBody(std::shared_ptr<ChBodyAuxRef> body, co
 
 #ifdef CHRONO_FEA
 void ChPreciceAdapterMbs::AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh) {
-    //// TODO
-    ////m_output_data.meshes.push_back(fea_mesh);
+    auto c_mesh = chrono_types::make_shared<CouplingFEAMesh>();
+    c_mesh->index = (int)m_coupling_fea.size();
+    c_mesh->mesh = fea_mesh;
+
+    // Create a force accumulator on each mesh node and collect the nodes with position degrees of freedom
+    auto accumulators = fea_mesh->AddAccumulators();
+    const auto& nodes = fea_mesh->GetNodes();
+    for (size_t i = 0; i < nodes.size(); i++) {
+        if (accumulators[i] == fea::ChMesh::NO_ACCUMULATOR)
+            continue;
+        CouplingFEANode c_node;
+        c_node.node_xyz = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(nodes[i]);
+        c_node.node_xyzrot = std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(nodes[i]);
+        c_node.init_pos = c_node.GetPos();
+        c_node.accumulator_index = accumulators[i];
+        c_mesh->nodes.push_back(c_node);
+    }
+
+    if (m_verbose)
+        cout << m_prefix1 << "Add coupling FEA mesh '" << fea_mesh->GetName() << "' with " << c_mesh->nodes.size() << " nodes" << endl;
+
+    m_coupling_fea.push_back(c_mesh);
 }
 #endif
 
@@ -199,6 +235,7 @@ void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::string& h5_filename) {
         auto rho = ReadDouble(h5_file, "simulation_parameters/rho");
         if (m_verbose)
             cout << "Read added mass blocks" << endl;
+        m_added_mass_blocks.clear();
         auto num_bodies = m_coupling_bodies.size();
         for (size_t i = 0; i < num_bodies; i++) {
             auto data_name = "body" + std::to_string(i + 1) + "/hydro_coeffs/added_mass/inf_freq";
@@ -272,6 +309,13 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
                 case CouplingDataType::TORQUES:
+                    // Torques can only be applied to rigid bodies
+                    if (mesh_info.type == CouplingMeshType::FEA_MESH_NODES || mesh_info.type == CouplingMeshType::FEA_MESH_POINTS) {
+                        if (m_verbose)
+                            cout << "FAIL" << endl;
+                        cerr << "\nERROR: Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ") on FEA mesh" << endl;
+                        throw std::runtime_error("Invalid Chrono MBS read data type");
+                    }
                     // Torques must be 3D for a 3D mesh and 1D for a 2D mesh
                     ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                     break;
@@ -280,6 +324,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                     if (m_verbose)
                         cout << "FAIL" << endl;
                     cerr << "\nERROR: Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
@@ -304,11 +350,13 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 case CouplingDataType::POSITIONS:
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
-                    // Positions, displacement, and velocities must have the same dimension as the coupling mesh
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                    // Positions, displacement, velocities, and accelerations must have the same dimension as the coupling mesh
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
                 case CouplingDataType::ROTATIONS:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                     if (mesh_info.type == CouplingMeshType::RIGID_BODY_REFS) {
                         ChAssertAlways((mesh_dim == 3 && data_dim == 3) || (mesh_dim == 2 && data_dim == 1));
                     } else {
@@ -348,9 +396,16 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
                 break;
             }
             case CouplingMeshType::FEA_MESH_NODES: {
-                //// TODO
-                ////break;
-                throw std::runtime_error("CouplingMeshType::FEA_MESH_NODES not yet implemented");
+#ifdef CHRONO_FEA
+                ChAssertAlways(!m_coupling_fea.empty());
+                for (const auto& c_mesh : m_coupling_fea) {
+                    for (const auto& c_node : c_mesh->nodes)
+                        vertices.push_back(c_node.init_pos);
+                }
+                break;
+#else
+                throw std::runtime_error("CouplingMeshType::FEA_MESH_NODES requires the Chrono::FEA module");
+#endif
             }
             case CouplingMeshType::FEA_MESH_POINTS: {
                 //// TODO
@@ -366,8 +421,8 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
     // Handle added mass info (applied via a Chrono ChLoadHydrodynamics)
     auto num_bodies = m_coupling_bodies.size();
 
-    // 1. if using dynamic added mass but the participant does not provide the necessary information,
-    //    assume zero "static" added mass blocks and allocate space for the updates communicated via preCICE.
+    // 1. if using dynamic added mass but no baseline blocks were provided, use a zero baseline;
+    //    the added mass then consists only of the increments communicated via preCICE.
     if (m_use_dynamic_added_mass && !m_has_added_mass) {
         m_added_mass_blocks.resize(num_bodies);
         for (auto& block : m_added_mass_blocks)
@@ -441,6 +496,16 @@ void ChPreciceAdapterMbs::OnReadData() {
     for (auto& c_body : m_coupling_bodies) {
         c_body->body->EmptyAccumulator(c_body->accumulator_index);
     }
+#ifdef CHRONO_FEA
+    for (auto& c_mesh : m_coupling_fea) {
+        for (auto& c_node : c_mesh->nodes) {
+            if (c_node.node_xyz)
+                c_node.node_xyz->EmptyAccumulator(c_node.accumulator_index);
+            else
+                c_node.node_xyzrot->EmptyAccumulator(c_node.accumulator_index);
+        }
+    }
+#endif
 
     for (const auto& [mesh_name, mesh_info] : m_coupling_meshes) {
         switch (mesh_info.type) {
@@ -451,7 +516,9 @@ void ChPreciceAdapterMbs::OnReadData() {
                 ReadBodyMeshData(mesh_name, mesh_info);
                 break;
             case CouplingMeshType::FEA_MESH_NODES:
-                //// TODO
+#ifdef CHRONO_FEA
+                ReadFeaNodeData(mesh_name, mesh_info);
+#endif
                 break;
             case CouplingMeshType::FEA_MESH_POINTS:
                 //// TODO
@@ -470,7 +537,9 @@ void ChPreciceAdapterMbs::OnWriteData() {
                 WriteBodyMeshData(mesh_name, mesh_info);
                 break;
             case CouplingMeshType::FEA_MESH_NODES:
-                //// TODO
+#ifdef CHRONO_FEA
+                WriteFeaNodeData(mesh_name, mesh_info);
+#endif
                 break;
             case CouplingMeshType::FEA_MESH_POINTS:
                 //// TODO
@@ -652,6 +721,47 @@ void ChPreciceAdapterMbs::WriteBodyRefData(const std::string& mesh_name, Couplin
                 }
                 break;
             }
+            case CouplingDataType::LINEAR_ACCELERATIONS: {
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    // Acceleration of the body reference frame origin (evaluated from the body COM frame)
+                    const auto& ref_pos_com = c_body->body->GetFrameRefToCOM().GetPos();
+                    auto lin_acc_abs = c_body->body->PointAccelerationLocalToParent(ref_pos_com);
+                    if (data_dim == 2) {
+                        data_values[i_data + 0] = lin_acc_abs.x();
+                        data_values[i_data + 1] = lin_acc_abs.y();
+                        i_data += 2;
+                    } else {
+                        data_values[i_data + 0] = lin_acc_abs.x();
+                        data_values[i_data + 1] = lin_acc_abs.y();
+                        data_values[i_data + 2] = lin_acc_abs.z();
+                        i_data += 3;
+                    }
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | lin_acc:  " << lin_acc_abs << endl;
+                }
+                break;
+            }
+            case CouplingDataType::ANGULAR_ACCELERATIONS: {
+                assert((GetCouplingMeshDimensions(mesh_name) == 3 && data_dim == 3) || (GetCouplingMeshDimensions(mesh_name) == 2 && data_dim == 1));
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    auto ang_acc_abs = c_body->body->GetAngAccParent();
+                    if (data_dim == 1) {
+                        data_values[i_data + 0] = ang_acc_abs.z();
+                        i_data += 1;
+                    } else {
+                        data_values[i_data + 0] = ang_acc_abs.x();
+                        data_values[i_data + 1] = ang_acc_abs.y();
+                        data_values[i_data + 2] = ang_acc_abs.z();
+                        i_data += 3;
+                    }
+                    if (m_verbose)
+                        cout << m_prefix2 << "body: " << c_body->body->GetName() << " | ang_acc:  " << ang_acc_abs << endl;
+                }
+                break;
+            }
             default:
                 cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
                 throw std::runtime_error("Invalid Chrono MBS write data type");
@@ -776,7 +886,9 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                 size_t i_data = 0;
                 for (auto& c_body : m_coupling_bodies) {
                     for (const auto& pos_loc : c_body->points) {
-                        ChVector3d vel_abs = c_body->body->PointSpeedLocalToParent(pos_loc);
+                        // Points are expressed in the body reference frame; evaluate from the body COM frame
+                        auto pos_com = c_body->body->GetFrameRefToCOM().TransformPointLocalToParent(pos_loc);
+                        ChVector3d vel_abs = c_body->body->PointSpeedLocalToParent(pos_com);
                         if (data_dim == 2) {
                             data_values[i_data + 0] = vel_abs.x();
                             data_values[i_data + 1] = vel_abs.y();
@@ -785,6 +897,28 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
                             data_values[i_data + 0] = vel_abs.x();
                             data_values[i_data + 1] = vel_abs.y();
                             data_values[i_data + 2] = vel_abs.z();
+                            i_data += 3;
+                        }
+                    }
+                }
+                break;
+            }
+            case CouplingDataType::LINEAR_ACCELERATIONS: {
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
+                size_t i_data = 0;
+                for (auto& c_body : m_coupling_bodies) {
+                    for (const auto& pos_loc : c_body->points) {
+                        // Points are expressed in the body reference frame; evaluate from the body COM frame
+                        auto pos_com = c_body->body->GetFrameRefToCOM().TransformPointLocalToParent(pos_loc);
+                        ChVector3d acc_abs = c_body->body->PointAccelerationLocalToParent(pos_com);
+                        if (data_dim == 2) {
+                            data_values[i_data + 0] = acc_abs.x();
+                            data_values[i_data + 1] = acc_abs.y();
+                            i_data += 2;
+                        } else {
+                            data_values[i_data + 0] = acc_abs.x();
+                            data_values[i_data + 1] = acc_abs.y();
+                            data_values[i_data + 2] = acc_abs.z();
                             i_data += 3;
                         }
                     }
@@ -800,12 +934,114 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
 
 // -----------------------------------------------------------------------------
 
+#ifdef CHRONO_FEA
+
+void ChPreciceAdapterMbs::ReadFeaNodeData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
+    for (const auto& data_name : m_data_read[mesh_name]) {
+        const auto& data_info = mesh_info.data.at(data_name);
+        if (!data_info.used)
+            continue;
+        auto data_type = data_info.type;
+        const auto& data_values = data_info.values;
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
+        assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
+        switch (data_type) {
+            case CouplingDataType::FORCES: {
+                assert(data_dim == GetCouplingMeshDimensions(mesh_name));
+                size_t i_data = 0;
+                for (auto& c_mesh : m_coupling_fea) {
+                    for (auto& c_node : c_mesh->nodes) {
+                        ChVector3d force_abs;
+                        if (data_dim == 2) {
+                            force_abs.x() = data_values[i_data + 0];
+                            force_abs.y() = data_values[i_data + 1];
+                            force_abs.z() = 0;
+                            i_data += 2;
+                        } else {
+                            force_abs.x() = data_values[i_data + 0];
+                            force_abs.y() = data_values[i_data + 1];
+                            force_abs.z() = data_values[i_data + 2];
+                            i_data += 3;
+                        }
+                        if (c_node.node_xyz)
+                            c_node.node_xyz->AccumulateForce(c_node.accumulator_index, force_abs);
+                        else
+                            c_node.node_xyzrot->AccumulateForce(c_node.accumulator_index, force_abs, c_node.node_xyzrot->GetPos(), false);
+                    }
+                }
+                break;
+            }
+            default:
+                cerr << "\nERROR: Invalid Chrono MBS read data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                throw std::runtime_error("Invalid Chrono MBS read data type");
+        }
+    }
+}
+
+void ChPreciceAdapterMbs::WriteFeaNodeData(const std::string& mesh_name, CouplingMeshInfo& mesh_info) {
+    for (const auto& data_name : m_data_write[mesh_name]) {
+        auto& data_info = mesh_info.data[data_name];
+        if (!data_info.used)
+            continue;
+        auto data_type = data_info.type;
+        auto& data_values = data_info.values;
+        auto data_dim = GetCouplingDataDimensions(mesh_name, data_name);
+        assert(data_values.size() == data_dim * GetNumVertices(mesh_name));
+        assert(data_dim == GetCouplingMeshDimensions(mesh_name));
+        size_t i_data = 0;
+        for (const auto& c_mesh : m_coupling_fea) {
+            for (const auto& c_node : c_mesh->nodes) {
+                ChVector3d value;
+                switch (data_type) {
+                    case CouplingDataType::POSITIONS:
+                        value = c_node.GetPos();
+                        break;
+                    case CouplingDataType::DISPLACEMENTS:
+                        value = c_node.GetPos() - c_node.init_pos;
+                        break;
+                    case CouplingDataType::LINEAR_VELOCITIES:
+                        value = c_node.GetPosDt();
+                        break;
+                    case CouplingDataType::LINEAR_ACCELERATIONS:
+                        value = c_node.GetPosDt2();
+                        break;
+                    default:
+                        cerr << "\nERROR: Invalid Chrono MBS write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
+                        throw std::runtime_error("Invalid Chrono MBS write data type");
+                }
+                if (data_dim == 2) {
+                    data_values[i_data + 0] = value.x();
+                    data_values[i_data + 1] = value.y();
+                    i_data += 2;
+                } else {
+                    data_values[i_data + 0] = value.x();
+                    data_values[i_data + 1] = value.y();
+                    data_values[i_data + 2] = value.z();
+                    i_data += 3;
+                }
+            }
+        }
+    }
+}
+
+#endif
+
+// -----------------------------------------------------------------------------
+
 void ChPreciceAdapterMbs::OnReadDataAM(const std::vector<ChMatrix66d>& blocks) {
     auto num_bodies = m_coupling_bodies.size();
-    assert(blocks.size() > 0);
+    ChAssertAlways(blocks.size() == num_bodies);
     assert(m_has_added_mass);
 
-    m_hydro_load->UpdateBodyAddedMassBlocks(blocks);
+    // The received blocks are increments to the self (diagonal) blocks, accumulated over all participants that
+    // send added mass. Add them to the baseline self blocks, which are never modified, so that the result does
+    // not depend on previous updates (e.g., when a time window is repeated in an implicit coupling scheme).
+    // The body-to-body coupling (off-diagonal) blocks are not updated and keep their baseline values.
+    std::vector<ChMatrix66d> self_blocks(num_bodies);
+    for (size_t i = 0; i < num_bodies; i++)
+        self_blocks[i] = m_added_mass_blocks[i].block(0, 6 * i, 6, 6) + blocks[i];
+
+    m_hydro_load->UpdateBodyAddedMassBlocks(self_blocks);
 }
 
 // -----------------------------------------------------------------------------
@@ -841,10 +1077,6 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
 
 void ChPreciceAdapterMbs::OnWriteOutput(int frame, double time) {
     m_output_db->Write(frame, time, m_output_data);
-#ifdef CHRONO_FEA
-    //// TODO
-    ////m_output_db->WriteFeaMeshes(m_output_data.meshes);
-#endif
 }
 
 }  // end namespace ch_precice

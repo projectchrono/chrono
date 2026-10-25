@@ -30,7 +30,6 @@ class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
     CH_ENUM_VAL(Type::ELLIPSOID);
     CH_ENUM_VAL(Type::BOX);
     CH_ENUM_VAL(Type::CYLINDER);
-    CH_ENUM_VAL(Type::CYLSHELL);
     CH_ENUM_VAL(Type::CONVEXHULL);
     CH_ENUM_VAL(Type::TRIANGLEMESH);
     CH_ENUM_VAL(Type::BARREL);
@@ -90,8 +89,6 @@ std::string ChCollisionShape::GetTypeAsString(Type type) {
             return "BOX";
         case Type::CYLINDER:
             return "CYLINDER";
-        case Type::CYLSHELL:
-            return "CYLSHELL";
         case Type::CONVEXHULL:
             return "CONVEXHULL";
         case Type::TRIANGLEMESH:

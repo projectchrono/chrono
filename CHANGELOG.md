@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
   - [\[Added\] Chrono::FEA multiphysics framework](#added-chronofea-multiphysics-framework)
   - [\[Added\] Chrono::PRECICE module](#added-chronoprecice-module)
@@ -18,6 +19,7 @@ Change Log
   - [\[Added\] New geometry and collision utilities](#added-new-geometry-and-collision-utilities)
   - [\[Changed\] Chrono::Vehicle API updates](#changed-chronovehicle-api-updates)
   - [\[Added\] Extended YAML and JSON model specification support](#added-extended-yaml-and-json-model-specification-support)
+  - [\[Added\] YAML specification of single-wheel test rig simulations](#added-yaml-specification-of-single-wheel-test-rig-simulations)
   - [\[Added\] Chrono::Modal reduced model serialization and applied loads](#added-chronomodal-reduced-model-serialization-and-applied-loads)
   - [\[Changed\] Build requirements and third-party dependencies](#changed-build-requirements-and-third-party-dependencies)
   - [\[Removed\] Chrono::Matlab module](#removed-chronomatlab-module)
@@ -146,6 +148,36 @@ Change Log
 
 # Unreleased (development branch) 
 
+## [Added] Force accumulators for FEA nodes
+
+FEA nodes now provide the same force accumulator mechanism as rigid bodies. Any number of accumulators
+can be added to a node, each identified by the index returned when it is created, and each owned by
+the code that created it. The accumulated loads are applied *in addition to* the force (and torque)
+set directly on the node with `SetForce` (and `SetTorque`), so independent sources of applied loads
+no longer overwrite one another.
+
+- `ChNodeFEAxyz` (and derived node types such as `ChNodeFEAxyzD` and `ChNodeFEAxyzDD`) provides
+  force-only accumulators: `AddAccumulator`, `EmptyAccumulator`, `AccumulateForce(idx, force)`, and
+  `GetAccumulatedForce(idx)`. Forces are expressed in the absolute frame.
+- `ChNodeFEAxyzrot` provides the full rigid-body API: `AccumulateForce(idx, force, point, local)` and
+  `AccumulateTorque(idx, torque, local)`.
+- `ChMesh::AddAccumulators` adds a new accumulator to every mesh node that supports one and returns
+  the per-node accumulator indices (in the order of `ChMesh::GetNodes`); `ChMesh::EmptyAccumulators`
+  clears them. Nodes without position degrees of freedom are marked with `ChMesh::NO_ACCUMULATOR`.
+
+The accumulator implementation was moved from `ChBody` to its base class `ChBodyFrame`, which is
+shared by `ChBody` and `ChNodeFEAxyzrot`. The `ChBody` API is unchanged. Accumulators are not copied
+when a body or node is copied or assigned.
+
+Loads applied through accumulators on internal nodes of a `ChModalAssembly` are included in the
+reduced model, as are those set with `SetForce` and `SetTorque`.
+
+Chrono::FSI now applies fluid forces on FEA nodes through a dedicated node accumulator (created when
+the FEA mesh is added to the FSI system), mirroring how fluid forces are applied on rigid bodies.
+Previously, the FSI interfaces set the fluid force with `SetForce`, overwriting any other force set on
+FSI mesh nodes; such forces are now added to the fluid forces. This also fixes the generic FSI
+interface (`ChFsiInterfaceGeneric`), which applied the 2-D mesh forces to the nodes of 1-D meshes.
+
 ## [Changed] Chrono::Sensor appearance of shapes with no visual material
 
 A visual shape that carries no `ChVisualMaterial` is now rendered by Chrono::Sensor with
@@ -255,14 +287,21 @@ respectively.
 
 Coupling interfaces are described by a mesh type (`CouplingMeshType`: `GENERIC`, `RIGID_BODY_REFS`,
 `RIGID_BODY_POINTS`, `FEA_MESH_NODES`, `FEA_MESH_POINTS`) and a data type (`CouplingDataType`:
-`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `FORCES`,
-`TORQUES`, `GENERIC`). Coupling mesh vertices on rigid bodies can be specified either through a
+`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`,
+`LINEAR_ACCELERATIONS`, `ANGULAR_ACCELERATIONS`, `FORCES`, `TORQUES`, `GENERIC`). Coupling mesh
+vertices on rigid bodies can be specified either through a
 triangular mesh (OBJ or STL) or as an explicit list of 3D points, and callbacks are available for
 user-defined operations before and after each dynamics advance. A generic driver program is also
 provided, which runs an arbitrary Chrono preCICE adapter defined entirely through a YAML
 specification file.
 
-See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH) and
+FEA meshes can be coupled through `FEA_MESH_NODES` interfaces: the MBS adapter exchanges the nodes of
+its FEA meshes (applying the received forces through node force accumulators), and the SPH adapter
+represents 1-D FEA meshes (e.g., cables) with proxy meshes built from node positions and segments given
+in its own specification.
+
+See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH),
+`demo_PRECICE_flexible_cable` (Chrono FEA cable coupled with Chrono::FSI-SPH), and
 `demo_PRECICE_flap_openfoam` (Chrono MBS coupled with OpenFOAM, matching the corresponding preCICE
 tutorial).
 
@@ -461,6 +500,15 @@ extended and made consistent:
 
 - Initial support for specifying FEA models (see `demo_YAML_fea`) and Chrono::FSI-SPH problems (see
   `demo_YAML_fsi`).
+- FEA meshes defined in the multibody model can be declared as FSI solids in a Chrono::FSI-SPH
+  problem through the `fsi_meshes` list of the FSI specification file, with optional settings for the
+  BCE marker patterns and FEA node directions. See the flexible cable models (CRM and CFD) in
+  `demo_YAML_fsi`.
+- Selected nodes of FEA beams can be included in the simulation output through the `output_nodes`
+  key of a beam (`all` or a list of node indices). Node positions and velocities, as well as node
+  orientations and angular velocities or node slopes (depending on the node type), are written by
+  `ChOutputASCII` and `ChOutputHDF5` in both output modes, including from the Chrono::PRECICE
+  multibody adapter. See `demo_YAML_fea`.
 - Output and run-time visualization settings now use the common `Settings` definitions shared with
   `ChOutput` and the visualization systems. Note that the default visualization type is now `NONE`,
   which disables run-time visualization altogether.
@@ -470,6 +518,42 @@ extended and made consistent:
 
 The YAML schema documentation was audited against the parser code, and several documented settings
 that were unreachable in practice were fixed.
+
+## [Added] YAML specification of single-wheel test rig simulations
+
+The Chrono::Vehicle single-wheel test rig (`ChWheelTestRig`) was extended, and test rig simulations
+can now be fully specified through YAML files (simulation type `WHEEL_RIG`), run with `run_chrono` or
+from a user program (see `demo_YAML_wheel_rig`):
+
+- Wheel assemblies: besides a Chrono::Vehicle wheel and tire, optionally attached to a
+  Chrono::Vehicle suspension, the rig accepts wheel assemblies built outside Chrono::Vehicle (derived
+  from `ChWheelTestRig::WheelAssembly`). In YAML, such custom assemblies are created by factories that
+  the application registers with `ChParserWheelRigYAML::RegisterWheelAssembly` (see the Viper wheel in
+  `demo_YAML_wheel_rig`).
+- Steering: a wheel on a steerable suspension is steered about its kingpin through a steering actuator
+  (for a Chrono::Vehicle suspension, a rig steering rack attached to the tierods). Either the actuator
+  coordinate or the steering angle can be prescribed; a steering angle is converted to the actuator
+  input through a kinematic map computed at initialization, with an optional feedback correction.
+  Steering angles are measured from the loaded configuration, so a zero steering angle retains the
+  static toe of the suspension under the normal load.
+- Drop phase: with a suspension, the suspension travel is held at its static equilibrium under the
+  normal load while the wheel is lowered, and released once the tire carries the normal load. The
+  suspension mass is now included in the load supported by the wheel.
+- Settling phase: the drop is preceded by a terrain settling phase (by default 0.5 s for CRM and
+  granular terrain, none for rigid and SCM terrain), during which CRM active domains are disabled so
+  that the entire terrain patch settles.
+- Terrain: rigid, SCM, granular, or CRM terrain. A CRM terrain is specified through an SPH simulation
+  file, using the same SPH model and solver schemas as an FSI simulation, and the SPH and multibody
+  systems can use different step sizes.
+- Output: the rig reports its measurements and kinematics as named output channels
+  (`ChWheelTestRig::GetOutputChannels`), which are written to the Chrono output database through the
+  new named scalar channels of `ChOutput`. A YAML specification can also request Gnuplot plots of
+  these channels.
+- A simulation can end when the wheel reaches the end of the terrain patch
+  (`ChWheelTestRig::PatchEndReached`), and a test specification can override the normal load of the
+  rig model.
+
+The new YAML schemas are documented in the Chrono::Parsers manual.
 
 ## [Added] Chrono::Modal reduced model serialization and applied loads
 
@@ -547,6 +631,23 @@ Notable fixes since the 10.0.0 release:
 - Materials loaded from an MTL file are now stored in the order referenced by the associated OBJ
   file, and only materials actually referenced are retained.
 - FMU resource directories resolved to a relative path on POSIX systems.
+- `ChSystem::DoAssembly()` at the acceleration level reported the velocity increment of a small
+  linearized step as the acceleration. That increment satisfies `Cq a = 0`, so it omitted the
+  quadratic-velocity term (for a swinging pendulum, the entire centripetal acceleration) from both
+  the accelerations and the reactions it scattered; at rest the result was correct, which is how it
+  went unnoticed. The acceleration level now takes a second linearized step whose constraint
+  right-hand side carries the quadratic-velocity term (obtained by central differencing of the
+  constraints), so bilateral constraints get the correct acceleration-level solution while unilateral
+  constraints and frictional contacts keep their velocity-level treatment. The differencing (step
+  1e-6) puts a roundoff floor on the reported accelerations, also at rest where they were previously
+  exact, of about 1e-4 times the constraint's length scale (SI units), and on the reactions of that
+  times the mass involved. With active contacts, resting and separating cases are unchanged; for a
+  sliding frictional contact the relaxed cone complementarity of the velocity-level step already
+  alters the sliding velocity, so the reported acceleration is not meaningful there, before or after
+  (a pre-existing limitation of assembly with active contacts, to be addressed separately). Also,
+  `DoAssembly()` no longer leaves its internal 1e-6 step in the system, so `DoFrameKinematics()`
+  advances by the requested step. Unit tests check a pendulum against its closed form at two lengths
+  (#846).
 
 # Release 10.0.0 (2026-03-27)
 

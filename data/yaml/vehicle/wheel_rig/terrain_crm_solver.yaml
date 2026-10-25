@@ -1,0 +1,36 @@
+## SPH solver for the wheel test rig CRM terrain (follows fsisph_solver.schema).
+## Values not listed here take the fsisph_solver.schema defaults.
+
+chrono-version: 10.0
+
+sph:
+  free_surface_threshold: 0.8
+
+kernel:
+  initial_spacing: 0.02
+  d0_multiplier: 1.2
+  #kernel_type: CUBIC_SPLINE
+
+discretization:
+  use_consistent_gradient_discretization: false
+  use_consistent_laplacian_discretization: false
+
+boundary_conditions:
+  boundary_method: ADAMI
+
+integration:
+  time_step: 2e-4                 # SPH (CFD) step size
+  integration_scheme: RK2
+
+proximity_search:
+  num_proximity_search_steps: 1
+
+particle_shifting:
+  shifting_method: PPST_XSPH
+  shifting_xsph_eps: 0.25
+  shifting_ppst_push: 3.0
+  shifting_ppst_pull: 1.0
+
+viscosity:
+  viscosity_method: ARTIFICIAL_BILATERAL
+  artificial_viscosity: 0.5

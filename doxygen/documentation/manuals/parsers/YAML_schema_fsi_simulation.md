@@ -28,8 +28,8 @@ the YAML file with a fluid simulation specification (which must follow the [SPH 
 
 #### Specification of coupled FSI problem
 
-The `fsi` entry (required) describes the coupling itself: which bodies of the multibody model interact with the fluid,
-and what geometry represents them on the fluid side.
+The `fsi` entry (required) describes the coupling itself: which bodies and FEA meshes of the multibody model interact
+with the fluid, and how they are represented on the fluid side.
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
@@ -37,6 +37,8 @@ and what geometry represents them on the fluid side.
 | `angle_degrees` | Whether angles are specified in degrees (true) or radians (false) | boolean | -- | No | `true` |
 | `data_path` | Location of the data files referenced in this specification | object | -- | No | absolute paths |
 | `fsi_bodies` | List of rigid bodies that interact with the fluid | array | -- | No | no FSI bodies |
+| `fsi_meshes` | List of FEA meshes that interact with the fluid (SPH fluid only) | array | -- | No | no FSI meshes |
+| `node_directions` | Method for obtaining FEA node directions for FSI meshes (SPH fluid only) | enum | `NONE`,`AVERAGE`,`EXACT` | No | `NONE` |
 
 The `data_path` key, if present, specifies the following properties:
 
@@ -69,6 +71,24 @@ Each entry of `shapes` specifies the following properties:
 | `axis` | Cylinder axis direction, in the body reference frame | array[3] | -- | Yes, for `CYLINDER` | -- |
 | `filename` | 3D data file name | string | -- | Yes, for `MESH` and `HULL` | -- |
 | `scale` | Scale factor | double | -- | No | 1.0 |
+
+Each entry of `fsi_meshes` specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `name` | Name of the FEA mesh in the multibody model (e.g., the name of a beam) | string | -- | Yes | -- |
+| `bce_pattern_1D` | BCE marker pattern in the cross section of 1-D elements | enum | `FULL`,`STAR` | No | `FULL` |
+| `bce_pattern_2D` | BCE marker pattern along the normal of 2-D surfaces | enum | `CENTERED`,`OUTWARD`,`INWARD` | No | `CENTERED` |
+| `remove_center` | Whether to eliminate the BCE markers on the center line (1-D) or on the surface (2-D) | boolean | -- | No | `false` |
+| `check_embedded` | Whether to remove SPH particles initially overlapping the mesh BCE markers | boolean | -- | No | `true` |
+
+The mesh `name` is looked up in the MBS model; if no FEA mesh with that name exists, a warning is issued and the entry is
+ignored. As for `fsi_bodies`, the lookup matches all instances of that mesh name. FSI meshes require the Chrono::FEA
+module and are supported only with an SPH fluid system (a TDPF fluid system does not support flexible solids).
+
+`node_directions` selects how BCE markers are placed between the nodes of FSI meshes: `NONE` uses piece-wise linear
+interpolation between nodes, `AVERAGE` approximates node directions by averaging over the incident elements, and
+`EXACT` uses the node directions provided by the FEA mesh.
 
 #### Co-simulation options
 
@@ -130,6 +150,10 @@ The `output` key nested under `visualization`, if present, specifies the followi
 Below is an example of an FSI simulation configuration:
 
 \include data/yaml/fsi/cylinder_drop/fsi_cylinder_drop.yaml
+
+Below is an example of an FSI simulation with a flexible FEA cable interacting with a granular (CRM) column:
+
+\include data/yaml/fsi/flexible_cable/fsi_flexible_cable_crm.yaml
 
 ## YAML schema
 

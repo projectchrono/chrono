@@ -1,0 +1,14 @@
+## Rigid terrain patch
+
+chrono-version: 10.0
+
+type: RIGID
+
+patch:
+  length: 10
+  width: 1
+
+rigid:
+  friction: 0.8
+  restitution: 0
+  Young_modulus: 2e7

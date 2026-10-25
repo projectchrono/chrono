@@ -138,8 +138,7 @@ int main(int argc, char* argv[]) {
     // Create the body
     // ---------------
 
-    ChVector3d pos(terrain.GetPatchRear(), (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
-                   terrain_height + 2 * body_rad);
+    ChVector3d pos(terrain.GetPatchRear(), (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2, terrain_height + 2 * body_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
@@ -183,11 +182,17 @@ int main(int argc, char* argv[]) {
     bool is_pitched = false;
     double time = 0;
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver. vis->Run() is still called every iteration so the
+    // window stays responsive and a close request still breaks the loop.
+    double render_fps = 60;
+    int render_frame = 0;
+
     while (time < time_end) {
         // Rotate gravity vector
         if (!is_pitched && time > time_pitch) {
-            std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
-                      << std::endl;
+            std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z() << std::endl;
             sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
@@ -204,24 +209,27 @@ int main(int argc, char* argv[]) {
         ////}
 
         if (vis->Run()) {
-            switch (cam_type) {
-                case FRONT: {
-                    double body_x = body->GetPos().x();
-                    ChVector3d cam_loc(body_x + buffer_dist, -4, 0);
-                    ChVector3d cam_point(body_x + buffer_dist, 0, 0);
-                    vis->UpdateCamera(cam_loc, cam_point);
-                    break;
+            if (time >= render_frame / render_fps) {
+                switch (cam_type) {
+                    case FRONT: {
+                        double body_x = body->GetPos().x();
+                        ChVector3d cam_loc(body_x + buffer_dist, -4, 0);
+                        ChVector3d cam_point(body_x + buffer_dist, 0, 0);
+                        vis->UpdateCamera(cam_loc, cam_point);
+                        break;
+                    }
+                    case TRACK: {
+                        ChVector3d cam_point = body->GetPos();
+                        ChVector3d cam_loc = cam_point + ChVector3d(-3 * body_rad, -1, 0.6);
+                        vis->UpdateCamera(cam_loc, cam_point);
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                case TRACK: {
-                    ChVector3d cam_point = body->GetPos();
-                    ChVector3d cam_loc = cam_point + ChVector3d(-3 * body_rad, -1, 0.6);
-                    vis->UpdateCamera(cam_loc, cam_point);
-                    break;
-                }
-                default:
-                    break;
+                vis->Render();
+                render_frame++;
             }
-            vis->Render();
         } else {
             break;
         }

@@ -136,6 +136,8 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     double GetTimestep() const { return m_sim.integrator.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
+    const ChVector3d& GetGravitationalAcceleration() const { return m_sim.gravity; }
+    VisualizationType GetVisualizationType() const { return m_vis_type; }
 
     // --------------
 
@@ -229,6 +231,9 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     /// Write simulation output results at the current time.
     virtual void WriteOutput(int frame, double time) override;
+
+    /// Get the model components included in output (from all model instances populated so far).
+    const ChAssembly::Components& GetOutputComponents() const { return m_output_components; }
 
   private:
     /// Solver parameters.
@@ -430,6 +435,8 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         ChVector3d up;                             ///< beam up direction
         int num_elements;                          ///< number of elements along beam
         ChVisualShapeFEA::Settings visualization;  ///< run-time visualization settings
+        bool output_all_nodes;                     ///< include all beam nodes in output
+        std::vector<int> output_nodes;             ///< beam nodes included in output (1-based indices)
 
         std::vector<std::shared_ptr<fea::ChMesh>> mesh;  ///< underlying Chrono FEA meshes (one per instance)
 
@@ -584,6 +591,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
 
     friend class ChParserVehicleYAML;
     friend class ChParserFsiYAML;
+    friend class ChParserWheelRigYAML;
 };
 
 /// @} parsers_module

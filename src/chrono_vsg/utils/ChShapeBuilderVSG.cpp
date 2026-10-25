@@ -563,7 +563,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
                     uv[iv] = uvs[uv_indices[itri][iv]];
             } else {
                 for (int iv = 0; iv < 3; iv++)
-                    uv[iv] = 0.0;
+                    uv[iv] = ChVector2d(0.0);
             }
             for (int j = 0; j < 3; j++) {
                 tmp_vertices.push_back(t[j]);

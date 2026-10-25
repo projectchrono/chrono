@@ -59,10 +59,12 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
 
     /// Modify the added mass blocks.
     /// In this case, each given block is assumed to have size 6 x 6n.
+    /// If any block changes, the inverse of the total mass matrix (if needed by the solver) is recomputed.
     void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);
 
     /// Modify the added mass block.
     /// In this case, each given block is assumed to have size 6 x 6 and overwrites the diagonal block of the added mass matrix.
+    /// If any block changes, the inverse of the total mass matrix (if needed by the solver) is recomputed.
     void UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66d>& blocks);
 
     /// Perform setup operations at the beginning of a step.
@@ -88,10 +90,20 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
   protected:
+    /// Return true if the current solver needs the inverse of the total mass matrix.
+    bool NeedsMassInverse() const;
+
+    /// Recompute the mass inverse right away if the blocks were modified and a mass inverse is in use.
+    void OnBlocksModified();
+
+    /// Assemble the total mass matrix (including added mass), invert it, and pass it to the system descriptor.
+    void ComputeMassInverse();
+
     bool m_verbose;
     ChBodyAddedMassBlocks m_body_blocks;  ///< added mass blocks for hydrodynamic bodies
     ChKRMBlock m_KRM;                     ///< scaled added mass matrix (6*num_bodies square, in block order)
     unsigned int m_system_size;           ///< system size for which the mass inverse was last computed
+    bool m_blocks_modified;               ///< added mass blocks changed since the mass inverse was last computed
 };
 
 }  // end namespace chrono

@@ -27,11 +27,12 @@ The table below summarizes where the three differ. The rest of this page takes t
 | | MBS / Solid | Fluid_SPH | Fluid_TDPF |
 |---|---|---|---|
 | Chrono solver | `ChSystem` | `ChFsiFluidSystemSPH` | `ChFsiFluidSystemTDPF` |
-| Reads | forces, torques | body poses, velocities | body poses, velocities |
-| Writes | poses, displacements, velocities | forces, torques | forces, torques |
+| Reads | forces, torques | body and node poses, velocities, accelerations | body poses, velocities |
+| Writes | poses, displacements, velocities, accelerations | forces, torques (bodies), forces (nodes) | forces, torques |
 | `RIGID_BODY_REFS` | yes | yes | yes |
 | `RIGID_BODY_POINTS` | yes | not implemented | not implemented |
-| FEA mesh interfaces | not implemented | not implemented | not implemented |
+| `FEA_MESH_NODES` | yes | yes (1-D meshes) | — |
+| `FEA_MESH_POINTS` | not implemented | not implemented | — |
 | Checkpointing | yes | no | no |
 | Solver step | `min(step, window)` | `min(step, window)` | the whole window |
 | Added mass | consumes | — | produces |
@@ -51,25 +52,33 @@ non-Chrono solver.
 in the body frame. With no points the body is exchanged through its reference frame on a `RIGID_BODY_REFS`
 mesh; with points it contributes them to a `RIGID_BODY_POINTS` mesh. In a YAML specification the points may
 be given as a plain list of coordinates, or as a Wavefront `.obj` or `.stl` file whose vertices are used, so
-a surface mesh can drive the exchange directly. FEA meshes can be registered but the data exchange for them
-is not yet implemented.
+a surface mesh can drive the exchange directly. FEA meshes are added with `AddCouplingFEAMesh` (or listed by
+name under `meshes` in a YAML specification) and are exchanged through a `FEA_MESH_NODES` mesh whose vertices
+are the mesh nodes with position degrees of freedom (`ChNodeFEAxyz` and derived types, and
+`ChNodeFEAxyzrot`), in the order in which the meshes were added and, within each mesh, in node order. FEA
+nodes can receive forces (but not torques) and send positions, displacements (relative to the initial node
+position), velocities, and accelerations.
 
 **Applying received loads.** Forces and torques arriving from the fluid participant are applied through a
-Chrono force accumulator held per coupling body. The accumulator is emptied at the start of each read, so
-the loads replace rather than accumulate across windows, and they remain applied while the multibody system
-takes its step.
+Chrono force accumulator held per coupling body, and forces on FEA nodes through a force accumulator held per
+coupling node. The accumulators are emptied at the start of each read, so the loads replace rather than
+accumulate across windows, and they remain applied while the multibody system takes its step. Since they are
+dedicated accumulators, they add to (and do not overwrite) any other loads applied on the same bodies and nodes.
 
 **Data it can send.** `POSITIONS`, `ROTATIONS` (as rotation vectors), `DISPLACEMENTS` (relative to the
-initial pose), `LINEAR_VELOCITIES` and `ANGULAR_VELOCITIES`. Which of these are actually exchanged is decided
-by the preCICE XML; a CFD partner driving a moving wall typically wants displacements, while a potential-flow
-partner wants absolute positions and velocities.
+initial pose), `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `LINEAR_ACCELERATIONS`, and `ANGULAR_ACCELERATIONS`.
+Rotations and angular quantities are only available on a `RIGID_BODY_REFS` mesh; the linear quantities on a
+`RIGID_BODY_POINTS` mesh are those of the individual body points. Which of these are actually exchanged is
+decided by the preCICE XML; a CFD partner driving a moving wall typically wants displacements, while a
+potential-flow partner wants absolute positions and velocities, and an SPH partner also uses accelerations.
 
 **Added mass.** This is the one adapter that consumes added mass. When the preCICE configuration declares
 the added mass meshes, the adapter builds a [ChLoadHydrodynamics](@ref chrono::ChLoadHydrodynamics) so that
 the coefficients enter the system mass matrix rather than being applied as a force. The blocks come either
 from an HDF5 hydrodynamic file or from values given inline in the YAML, and may additionally be updated over
-the coupling interface every window. The semantics of that update, the ordering requirement it imposes on the
-coupling bodies, and why added mass cannot be treated as a force are covered in
+the coupling interface every window. Those blocks are then the baseline to which the increments received from
+fluid participants are added (see [Added mass over the interface](@ref precice_coupling)). The ordering
+requirement added mass imposes on the coupling bodies, and why it cannot be treated as a force, are covered in
 [Added mass in Chrono::FSI-TDPF](@ref manual_fsi_tdpf_added_mass).
 
 **Checkpointing.** The adapter implements it, gathering and scattering the full system state. It is the only
@@ -83,8 +92,10 @@ vary a spring coefficient during the run.
 ## The Fluid_SPH adapter
 
 [ChPreciceAdapterSph](@ref chrono::ch_precice::ChPreciceAdapterSph) exposes a Chrono::FSI-SPH fluid solver
-as a participant. It reads the poses and velocities of the solid bodies, prescribes them on its own
-representation of those bodies, advances the SPH solution, and writes back the resulting forces and torques.
+as a participant. It reads the poses, velocities, and (optionally) accelerations of the solid bodies,
+prescribes them on its own representation of those bodies, advances the SPH solution, and writes back the
+resulting forces and torques. Solid accelerations enter the boundary treatment of the SPH solver (the pressure
+extrapolation of the Adami boundary method); if they are not exchanged, they are taken as zero.
 
 **Coupling objects.** Bodies are added by name, initial pose, and geometry. The adapter creates the BCE
 markers that represent the body to the SPH solver, either from a `ChBodyGeometry` description — the usual
@@ -92,9 +103,23 @@ case, and what a YAML `shapes` entry produces — or from an explicit list of ma
 SPH participant builds its *own* proxies for the solid bodies; it never sees the partner's multibody model,
 only the states arriving over the interface.
 
-**Exchange granularity.** Only `RIGID_BODY_REFS` is implemented: the solid states arrive as one pose and
-velocity per body, and the forces are returned as one resultant per body. The BCE-level exchange that would
-correspond to a `RIGID_BODY_POINTS` mesh is not implemented.
+FEA meshes are represented the same way. A 1-D mesh (e.g., a cable) is added with `AddCouplingFEAMesh`, from
+its initial node positions and its segments (in a YAML specification, a `meshes` entry with a `nodes` list or
+file and an optional `segments` list of 1-based node index pairs; without `segments` the nodes form a single
+chain). The adapter builds a proxy FEA mesh from these, only to generate the BCE markers; its nodes follow the
+positions, velocities, and accelerations received on a `FEA_MESH_NODES` mesh, and the forces on the BCE markers
+are returned as nodal forces. The node positions must match the initial node positions of the solid
+participant, and the BCE marker pattern (`bce_pattern_1D`, `remove_center`) and `node_directions` (`NONE` or
+`AVERAGE`; node directions are not exchanged) can be set as for a Chrono::FSI YAML specification. 2-D FEA meshes
+are not yet supported.
+
+**Exchange granularity.** For rigid bodies, only `RIGID_BODY_REFS` is implemented: the solid states arrive as
+one pose, velocity, and (optionally) acceleration per body, and the forces are returned as one resultant force
+and torque per body. The BCE-level exchange that would correspond to a `RIGID_BODY_POINTS` mesh is not
+implemented. For FEA meshes, only `FEA_MESH_NODES` is implemented, and only for 1-D meshes: the solid states
+arrive as one position, velocity, and (optionally) acceleration per mesh node, and the forces on the mesh BCE
+markers are returned as one force per mesh node. The exchange at arbitrary points on the mesh elements that
+would correspond to a `FEA_MESH_POINTS` mesh is not implemented.
 
 **Time stepping.** The adapter advances by `min(its own step, the coupling window)`. Because the SPH step is
 usually far smaller than a sensible coupling window, the normal situation is that preCICE sub-cycles: the
@@ -126,10 +151,11 @@ hydrodynamic body; see [Added mass in Chrono::FSI-TDPF](@ref manual_fsi_tdpf_add
 A TDPF solver has no internal time step of its own: it evaluates the hydrodynamic loads for the given
 interval directly, so there is nothing to sub-cycle.
 
-**Added mass.** This adapter can report infinite-frequency added mass over the coupling interface when the
-preCICE configuration declares the added mass meshes. Because those coefficients are constant for a TDPF
-solver, doing so delivers the same numbers the solid participant could read from the hydrodynamic file
-itself; the path exists for fluid solvers whose added mass does change during the simulation.
+**Added mass.** This adapter can take part in a dynamic added mass exchange when the preCICE configuration
+declares the added mass meshes. A fluid participant sends increments relative to the baseline added mass held
+by the solid participant, and the TDPF added mass is the constant infinite-frequency added mass that the solid
+participant reads from the same hydrodynamic file as its baseline. The increments sent are therefore zero;
+the path exists for fluid solvers whose added mass does change during the simulation.
 
 **Checkpointing.** Not available, for the same reason as the SPH adapter.
 

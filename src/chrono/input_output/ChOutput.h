@@ -19,6 +19,9 @@
 #ifndef CH_OUTPUT_H
 #define CH_OUTPUT_H
 
+#include <string>
+#include <vector>
+
 #include "chrono/physics/ChAssembly.h"
 
 #ifdef CHRONO_HAS_YAML
@@ -67,14 +70,50 @@ class ChApi ChOutput {
         double fps;
     };
 
+    /// Named scalar output quantity.
+    /// Channels are used for output quantities not associated with a single model component (e.g., derived
+    /// measurements).
+    struct ChApi Channel {
+        std::string name;   ///< channel name
+        std::string units;  ///< channel units (informational)
+        double value;       ///< current value
+    };
+
     virtual ~ChOutput() {}
 
     void Write(int frame, double time, const ChAssembly::Components& components);
     void Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components);
 
+    /// Write output for the given model components and channels.
+    /// The set of channels (names and order) must be the same at every call.
+    void Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components, const std::vector<Channel>& channels);
+
     static std::string GetFormatAsString(Format type);
 
     static std::string GetModeAsString(Mode mode);
+
+#ifdef CHRONO_FEA
+    /// State of an FEA mesh node, as written to output.
+    /// All quantities are expressed in the absolute frame. Orientation and angular velocity are available only for
+    /// nodes with rotational coordinates (ChNodeFEAxyzrot); a slope (position gradient) is available only for nodes
+    /// with slope coordinates (ChNodeFEAxyzD and derived classes).
+    struct MeshNodeState {
+        bool supported;      ///< false if output is not supported for this node type
+        ChVector3d pos;      ///< node position
+        ChVector3d lin_vel;  ///< node linear velocity
+        bool has_rot;        ///< true if the node has orientation and angular velocity
+        ChQuaterniond rot;   ///< node orientation
+        ChVector3d ang_vel;  ///< node angular velocity
+        bool has_slope;      ///< true if the node has a slope
+        ChVector3d slope;    ///< node slope (first position gradient)
+    };
+
+    /// Extract the state of the given FEA mesh node.
+    static MeshNodeState GetMeshNodeState(const std::shared_ptr<fea::ChNodeFEAbase>& node);
+
+    /// Return the name used in output for the given mesh (the mesh name or, if not set, a name based on its identifier).
+    static std::string GetMeshOutputName(const fea::ChMesh& mesh);
+#endif
 
   protected:
     ChOutput(Mode mode);
@@ -95,6 +134,10 @@ class ChApi ChOutput {
     virtual void WriteBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
     virtual void WriteLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) = 0;
     virtual void WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
+#ifdef CHRONO_FEA
+    virtual void WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) = 0;
+#endif
+    virtual void WriteChannels(const std::vector<Channel>& channels) {}
 
   protected:
     // Data and functions for Mode::SERIES
@@ -137,6 +180,18 @@ class ChApi ChOutput {
         std::vector<double> torque;  ///< torque
     };
 
+    struct MeshNodeBuffers {
+        std::string mesh;             ///< mesh name
+        unsigned int id;              ///< node identifier
+        bool has_rot;                 ///< node has orientation and angular velocity
+        bool has_slope;               ///< node has a slope
+        std::vector<double> pos;      ///< position
+        std::vector<double> lin_vel;  ///< linear velocity
+        std::vector<double> rot;      ///< orientation (Tait-Bryan extrinsic X-Y-Z angles)
+        std::vector<double> ang_vel;  ///< angular velocity
+        std::vector<double> slope;    ///< slope
+    };
+
     bool m_buf_allocated;                   ///< buffers allocated?
     std::vector<double> m_time;             ///< time series
     std::vector<BodyBuffers> m_body_buf;    ///< body buffers
@@ -144,6 +199,15 @@ class ChApi ChOutput {
     std::vector<JointBuffers> m_joint_buf;  ///< joint buffers
     std::vector<TSDABuffers> m_tsda_buf;    ///< TSDA buffers
     std::vector<RSDABuffers> m_rsda_buf;    ///< RSDA buffers
+    std::vector<MeshNodeBuffers> m_node_buf;  ///< FEA mesh node buffers
+
+    struct ChannelBuffers {
+        std::string name;            ///< channel name
+        std::string units;           ///< channel units
+        std::vector<double> values;  ///< values
+    };
+
+    std::vector<ChannelBuffers> m_channel_buf;  ///< channel buffers
 };
 
 /// @} chrono_io

@@ -34,6 +34,8 @@ namespace vehicle {
 /// @{
 
 /// Fiala based tire model.
+/// As a handling tire (see ChForceElementTire), this model cannot be used with deformable terrain
+/// (SCM, granular, CRM, or FEA).
 class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
   public:
     ChFialaTire(const std::string& name);

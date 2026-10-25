@@ -1,0 +1,23 @@
+## Rig mechanism: Viper rover wheel (custom wheel assembly provided by the application), without suspension
+
+chrono-version: 10.0
+
+model:
+  type: CUSTOM                    # VEHICLE, CUSTOM
+  name: Viper_wheel
+  angle_degrees: true
+
+  assembly: Viper_wheel           # name of the factory registered by the application
+
+  parameters:                     # passed unchanged to the custom wheel assembly factory
+    radius: 0.225
+    width: 0.2
+    grouser_height: 0.02
+    grouser_width: 0.01
+    num_grousers: 24
+
+rig:
+  normal_load: 1000
+  camber_angle: 0
+
+solver: "rig_solver.yaml"

@@ -373,12 +373,22 @@ void ChSphVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
     if (!m_vsys->IsInitialized())
         return;
 
+    bool suspended = ActiveDomainsSuspended();
     for (auto& child : m_activeBoxScene->children) {
         int c_tag;
         child.node->getValue("Tag", c_tag);
-        if (c_tag == tag || tag == -1)
-            child.mask = vis;
+        if (c_tag == tag || tag == -1) {
+            child.node->setValue("Visible", vis);
+            std::shared_ptr<ChBody> obj;
+            child.node->getValue("Object", obj);
+            child.mask = vis && !(obj && suspended);
+        }
     }
+}
+
+bool ChSphVisualizationVSG::ActiveDomainsSuspended() const {
+    // Active domains are not enforced during the initial CRM free flow phase
+    return m_sysSPH->GetSimTime() < m_sysSPH->GetParams().free_flow_duration;
 }
 
 void ChSphVisualizationVSG::BindComputationalDomain() {
@@ -394,6 +404,7 @@ void ChSphVisualizationVSG::BindComputationalDomain() {
     // Set group properties
     group->setValue("Object", nullptr);
     group->setValue("Tag", -1);
+    group->setValue("Visible", m_active_boxes);
     group->setValue("Transform", transform);
 
     // Add the group to the global holder
@@ -416,10 +427,11 @@ void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, co
     // Set group properties
     group->setValue("Object", obj);
     group->setValue("Tag", tag);
+    group->setValue("Visible", m_active_boxes);
     group->setValue("Transform", transform);
 
-    // Add the group to the global holder
-    vsg::Mask mask = m_active_boxes;
+    // Add the group to the global holder (hidden while active domains are suspended, see OnRender)
+    vsg::Mask mask = m_active_boxes && !ActiveDomainsSuspended();
     m_activeBoxScene->addChild(mask, group);
 }
 
@@ -825,14 +837,21 @@ void ChSphVisualizationVSG::OnRender() {
         bulkWritePositions(m_flex_bce_cloud, p, m_sysSPH->GetNumFleaMeshMarkers());
     }
 
-    // Update positions of all active boxes
-    for (const auto& child : m_activeBoxScene->children) {
+    // Update positions of all active boxes.
+    // Body active boxes are hidden during an initial CRM free flow phase, when active domains are not enforced.
+    bool suspended = ActiveDomainsSuspended();
+    for (auto& child : m_activeBoxScene->children) {
         std::shared_ptr<ChBody> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
         if (!child.node->getValue("Object", obj))
             continue;
         if (!child.node->getValue("Transform", transform))
             continue;
+        if (obj) {
+            bool visible = false;
+            child.node->getValue("Visible", visible);
+            child.mask = visible && !suspended;
+        }
         if (obj == nullptr) {
             auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
             transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);

@@ -1,0 +1,19 @@
+## Granular terrain patch
+## Note: a granular terrain consists of many sphere bodies; practical run times require a Chrono::Multicore system,
+## which is not yet supported by the wheel test rig YAML parser.
+
+chrono-version: 10.0
+
+type: GRANULAR
+
+patch:
+  length: 3
+  width: 1
+  depth: 0.24
+
+granular:
+  radius: 0.02
+  density: 2000
+  friction: 0.9
+  cohesion: 1e4
+  Young_modulus: 1e7

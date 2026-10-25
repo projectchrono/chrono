@@ -601,21 +601,21 @@ void ChSystemDescriptor::SchurComplementRHS(ChVectorDynamic<>& result, ChVectorD
         b.setZero();
         BuildFbVector(f);
         BuildBiVector(b);
+
+        // Load q = M^(-1) * f into the variables, as in the block-diagonal case below
+        ChVectorDynamic<double> q = m_Minv * f;
+        FromVectorToVariables(q);
+        if (Mif)
+            *Mif = q;
+
         if (n_c == 0) {
-            if (Mif)
-                *Mif = m_Minv * f;
             result = b;
             return;
         }
         ChSparseMatrix Cq(n_c, n_q);
         Cq.setZero();
         PasteConstraintsJacobianMatrixInto(Cq);
-        if (Mif) {
-            *Mif = m_Minv * f;
-            result = -Cq * (*Mif) - b;
-        } else {
-            result = -Cq * m_Minv * f - b;
-        }
+        result = -Cq * q - b;
         return;
     }
 

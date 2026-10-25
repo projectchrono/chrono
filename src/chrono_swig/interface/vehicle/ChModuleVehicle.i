@@ -268,7 +268,7 @@ using namespace chrono::vehicle::m113;
 %import(module = "pychrono.core") "../../../chrono/fea/ChMesh.h"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyGeometry.i"
 
-%import(module = "pychrono.core") "../../../chrono/input_output/ChOutput.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChOutput.i"
 %import(module = "pychrono.core") "../../../chrono/input_output/ChCheckpoint.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
@@ -326,9 +326,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
 %shared_ptr(chrono::vehicle::ChTireStaticTestRig)
-%shared_ptr(chrono::vehicle::ChWheelTestRigBase)
 %shared_ptr(chrono::vehicle::ChWheelTestRig)
-%shared_ptr(chrono::vehicle::ChWheelSuspensionTestRig)
 
 %shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChSprocket)

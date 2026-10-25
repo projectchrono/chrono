@@ -133,6 +133,134 @@ would remove, and `btest_VEH_largeSCM` exists to measure it.
   <img alt="SCM_Total against modified-node count" src="img/scm-scaling-light.svg">
 </picture>
 
+# Single precision and tiled nodes
+
+Measured 2026-10-17 at `f86cd55e2` on `scm-fp32-and-index-overflow`, compared with the uploaded
+`feature/scm-benchmarks` report at `3959a70eefe97f056442799b7e53d78346ba7dfb`.
+The FP32/tiled results below use HIP on NVIDIA, before the subsequent merge of main's
+native CUDA backend. The measured revisions identify the snapshots used for comparison.
+The original NVIDIA and AMD baseline tables below are retained for reference.
+
+This branch defaults to single precision for soil-node state and base heights, and a sparse
+16 x 16 tiled node map. The two storage choices are independent Chrono build options:
+
+```bash
+cmake -S . -B build -DCH_ENABLE_MODULE_VEHICLE=ON \
+  -DCH_USE_SCM_DOUBLE=OFF \
+  -DCH_USE_SCM_TILED_NODES=ON
+cmake --build build
+```
+
+Use `CH_USE_SCM_DOUBLE=ON` for double storage or
+`CH_USE_SCM_TILED_NODES=OFF` for the original flat hash map. Rebuild Chrono and its
+clients after changing either option. Public terrain APIs still use doubles; these options
+do not change GPU kernel arithmetic.
+
+## Trends
+
+**Tiling pays off as the modified-node map grows and cache pressure increases.** Large GPU
+cases improve by 2-17%, with the largest gain at 3.63M stored nodes. GPU SCM cost now stays
+near 0.72-0.73 ms/step from `SEED0` to `SEED16`; the uploaded flat-map baseline grew from
+0.7493 to 0.8702 ms/step, about 16%. Tiling keeps neighbouring node accesses together as
+more ground is covered.
+
+**Single precision reduces the terrain footprint.** The dense base-height field uses four
+bytes per entry instead of eight. Total GPU-process setup RSS falls by 39-45% on the large
+terrain, and the memory added by the seeded nodes falls by about 18%.
+
+**Small maps can pay tile lookup overhead without gaining much locality.** When the working
+set already fits in cache, the extra tile lookup can cost more than it saves. Three small GPU
+cases are 2-8% slower here; `MESH_1` is about 2% faster. The flat-map toggle lets applications
+choose that tradeoff, while single precision remains useful for reducing storage. CPU SCM
+time improves by about 1-4% across the eight cases.
+
+![SCM time change versus the uploaded baseline; negative is faster](img/scm-storage-comparison.svg)
+
+## SCM time per step
+
+GCC / RTX 4080, four OpenMP threads. Negative percentages mean less time. `SCM_Total`
+includes all SCM phases, not just the ray cast.
+
+| Variant | Uploaded GPU ms | FP32/tiled GPU ms | Change | Uploaded CPU ms | FP32/tiled CPU ms | Change |
+|---|---:|---:|---:|---:|---:|---:|
+| `WheelSCM_D20` | 0.0982 | 0.1042 | +6.1% | 2.1204 | 2.0928 | -1.3% |
+| `WheelSCM_D10` | 0.5070 | 0.5183 | +2.2% | 8.6116 | 8.4867 | -1.4% |
+| `HmmwvSCM_MESH_0` | 0.1149 | 0.1244 | +8.3% | 0.3506 | 0.3468 | -1.1% |
+| `HmmwvSCM_MESH_1` | 0.3625 | 0.3560 | -1.8% | 1.2149 | 1.1769 | -3.1% |
+| `LargeSCM_SEED0` | 0.7493 | 0.7337 | -2.1% | 2.3183 | 2.2595 | -2.5% |
+| `LargeSCM_SEED1` | 0.7786 | 0.7219 | -7.3% | 2.3377 | 2.2497 | -3.8% |
+| `LargeSCM_SEED4` | 0.8182 | 0.7183 | -12.2% | 2.3303 | 2.2413 | -3.8% |
+| `LargeSCM_SEED16` | 0.8702 | 0.7221 | -17.0% | 2.3447 | 2.2430 | -4.3% |
+
+## Large terrain memory
+
+GPU path, process resident set after setup. RSS includes the terrain, libraries, runtime
+and allocator state; it is not peak memory.
+
+| Variant | Uploaded MiB | FP32/tiled MiB | Change |
+|---|---:|---:|---:|
+| `LargeSCM_SEED0` | 1862.1 | 1018.5 | -45.3% |
+| `LargeSCM_SEED16` | 2457.0 | 1508.8 | -38.6% |
+
+Adding about 3.60M seeded nodes increases setup RSS by 490.3 MiB, versus 594.9 MiB uploaded
+(-17.6%). The ruts are 15 nodes wide and cross tile boundaries, so partly filled tiles are
+included in this measurement.
+
+![Large terrain setup memory comparison](img/scm-storage-memory.svg)
+
+## Whole-simulation real-time factor
+
+RTF is wall time divided by simulated time, including vehicle dynamics and the solver.
+Below 1 is real time. The two intermediate seed cases have no uploaded RTF value.
+
+| Variant | Uploaded GPU | FP32/tiled GPU | Uploaded CPU | FP32/tiled CPU |
+|---|---:|---:|---:|---:|
+| `WheelSCM_D20` | 0.800 | 0.854 | 10.930 | 10.823 |
+| `WheelSCM_D10` | 2.900 | 2.985 | 43.570 | 42.969 |
+| `HmmwvSCM_MESH_0` | 0.240 | 0.248 | 0.360 | 0.360 |
+| `HmmwvSCM_MESH_1` | 0.390 | 0.388 | 0.820 | 0.797 |
+| `LargeSCM_SEED0` | 0.450 | 0.438 | 1.230 | 1.202 |
+| `LargeSCM_SEED1` | - | 0.432 | - | 1.197 |
+| `LargeSCM_SEED4` | - | 0.429 | - | 1.193 |
+| `LargeSCM_SEED16` | 0.530 | 0.431 | 1.250 | 1.193 |
+
+## Thread scaling
+
+`HmmwvSCM_MESH_0`. GPU execution remains almost independent of the OpenMP thread count;
+CPU ray casting continues to benefit from more threads.
+
+| Threads | Uploaded CPU cast ms | FP32/tiled CPU cast ms | Uploaded GPU cast ms | FP32/tiled GPU cast ms | FP32/tiled CPU RTF | FP32/tiled GPU RTF |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 0.6143 | 0.6093 | 0.0662 | 0.0707 | 0.517 | 0.247 |
+| 2 | 0.3529 | 0.3422 | 0.0630 | 0.0698 | 0.388 | 0.246 |
+| 4 | 0.2951 | 0.2876 | 0.0628 | 0.0703 | 0.360 | 0.248 |
+| 6 | 0.2167 | 0.2141 | 0.0623 | 0.0697 | 0.322 | 0.248 |
+| 8 | 0.1754 | 0.1726 | 0.0625 | 0.0697 | 0.302 | 0.249 |
+
+## Measurement setup and data
+
+- Same i7-13700K / RTX 4080 host as the uploaded NVIDIA baseline: 24 logical CPUs,
+  30 MiB L3, 62 GiB RAM. GCC 11.4.0, Release `-O3 -march=native`, ROCm 7.2.4 HIP on
+  NVIDIA over CUDA 13.2.78. GPU kernel arithmetic explicitly FP32.
+- Each variant ran in a fresh process with an anchored filter. GPU cells average two
+  processes; CPU cells use one. Each process has the fixture's 5 or 10 internal repetitions.
+  All 32 processes completed successfully; no builds or tests ran concurrently.
+- GPU runs used `SCM_BENCH_RAYCAST=gpu CHRONO_SCM_FORCE_CPU=0`; CPU runs used
+  `SCM_BENCH_RAYCAST=cpu CHRONO_SCM_FORCE_CPU=1`. Backend banners and populated counters
+  were checked. CPU/GPU paths retain their own ray and node counts.
+- Worst internal `SCM_Total` CV was 2.61%; GPU process-mean spreads were at most 1.43%.
+  Thread-scaling cells use 10 internal repetitions; the uploaded sweep used 3.
+- Setup RSS is the median completed-repetition sample per process, averaged across the
+  two GPU processes. One variant per process prevents retention from other variants
+  inflating the comparison.
+- The uploaded report notes the upstream wheel-rig refactor and a few percent of wheel
+  timing variation. These are comparisons with that historical report. AMD and Clang
+  baseline columns below have not been refreshed.
+
+[Main comparison CSV](results/scm-fp32-tiled-rtx4080.csv) includes SCM and ray-cast timers,
+RTF, node counts, memory, repetition counts and variation.
+[Thread-scaling CSV](results/scm-fp32-tiled-rtx4080-scaling.csv) contains the full sweep.
+
 # Baseline -- RTX 4080
 
 i7-13700K (16 cores / 24 threads, 30 MiB L3), 62 GB. Release, `-O3 -march=native`, Chrono OpenMP
@@ -219,7 +347,7 @@ work, and a shared 16-core EPYC slice loses to a 5.3 GHz Raptor Lake on a four-t
 - **Primitive-shaped bodies get no contact force on the GPU path.** The GPU backend intersects
   triangle meshes only: a primitive collision shape contributes no faces, never appears as a hit's
   contactable, and receives nothing back from the soil. It falls through the terrain. The bail-out
-  in `ComputeRayCastGpuHip` fires only when *no* candidate carries a mesh, so a mixed scene keeps
+  in `ComputeRayCastGpu` fires only when *no* candidate carries a mesh, so a mixed scene keeps
   the GPU path and silently drops its primitives. This is why `MESH_1`'s obstacles are rock meshes:
   as spheres they fell through, and the variant timed a scene its obstacles were absent from. The
   defect is in the backend, not the benchmark, and is unfixed.

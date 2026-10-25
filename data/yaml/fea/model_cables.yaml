@@ -54,7 +54,7 @@ model:
       diameter: 0.015
       Young_modulus: 1e8
       density: 1000
-      Rayleight_damping: 0
+      Rayleigh_damping: 0
 
     beams:
     - name: beam1
@@ -63,6 +63,7 @@ model:
       start_point: [0, 0, 0]
       end_point: [0.5, 0, 0]
       section: cable_section
+      output_nodes: all
       visualization:
         data:
           type: NODE_SPEED_NORM
@@ -81,6 +82,7 @@ model:
       start_point: [0.7, 0, 0]
       end_point: [1.0, 0, 0]
       section: cable_section
+      output_nodes: [1, 4]
       visualization:
         data:
           type: NODE_SPEED_NORM

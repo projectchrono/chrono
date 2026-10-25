@@ -51,7 +51,6 @@ using std::endl;
 // -----------------------------------------------------------------------------
 
 // Terrain type (RIGID or SCM)
-enum class TerrainType { RIGID, SCM };
 ChWheelTestRig::TerrainType terrain_type = ChWheelTestRig::TerrainType::RIGID;
 
 // Tire specification file
@@ -72,6 +71,10 @@ std::string tire_json = "hmmwv/tire/HMMWV_MBTire.json";
 // Wheel specification file
 std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
 ////std::string wheel_json = "Polaris/Polaris_Wheel.json";
+
+// Normal load (static wheel load, appropriate for the selected vehicle)
+////double normal_load = 3000;  // Polaris
+double normal_load = 6500;  // HMMWV
 
 double render_fps = 120;
 bool debug_output = false;
@@ -94,8 +97,9 @@ int main() {
     fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
 #endif
 
-    if (handling_tire && terrain_type == ChWheelTestRig::TerrainType::SCM) {
-        cerr << "ERROR: Handling tire models cannot be used with SCM terrain." << endl;
+    // Handling tires have no collision geometry and cannot interact with deformable terrain
+    if (handling_tire && terrain_type != ChWheelTestRig::TerrainType::RIGID) {
+        cerr << "ERROR: Handling tire models can only be used with rigid terrain." << endl;
         return 1;
     }
 
@@ -174,7 +178,7 @@ int main() {
     ChWheelTestRig rig(*sys, wheel, tire);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(3000);
+    rig.SetNormalLoad(normal_load);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
@@ -329,6 +333,12 @@ int main() {
 
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
+
+        // End the simulation when the wheel reaches the end of the terrain patch
+        if (rig.PatchEndReached()) {
+            cout << "\nEnd of terrain patch reached at t = " << sys->GetChTime() << endl;
+            break;
+        }
 
         auto long_slip = rig.GetLongitudinalSlip();
         auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;

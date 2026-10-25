@@ -143,6 +143,8 @@ void ChPreciceAdapterTdpf::InitializeParticipant() {
                     ChAssertAlways(data_dim == mesh_dim);
                     break;
                 case CouplingDataType::DISPLACEMENTS:
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                 case CouplingDataType::FORCES:
                 case CouplingDataType::TORQUES:
                     if (m_verbose)
@@ -179,6 +181,8 @@ void ChPreciceAdapterTdpf::InitializeParticipant() {
                 case CouplingDataType::DISPLACEMENTS:
                 case CouplingDataType::LINEAR_VELOCITIES:
                 case CouplingDataType::ANGULAR_VELOCITIES:
+                case CouplingDataType::LINEAR_ACCELERATIONS:
+                case CouplingDataType::ANGULAR_ACCELERATIONS:
                     if (m_verbose)
                         cout << "FAIL" << endl;
                     cerr << "\nERROR: Invalid Chrono TDPF write data type (" << GetCouplingDataTypeAsString(data_type) << ")" << endl;
@@ -308,7 +312,8 @@ void ChPreciceAdapterTdpf::OnWriteDataAM(std::vector<ChMatrix66d>& blocks) {
         throw std::runtime_error("Added mass block count mismatch");
     }
 
-    blocks = am_blocks;
+    // The TDPF added mass is the (constant) infinite-frequency added mass, which the receiving participant holds as
+    // its baseline. There is therefore no increment to report and the zero-initialized blocks are sent unchanged.
 }
 
 void ChPreciceAdapterTdpf::OnWriteData() {

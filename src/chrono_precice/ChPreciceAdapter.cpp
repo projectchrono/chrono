@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cctype>
 
+#include "chrono/core/ChDataPath.h"
 #include "chrono/utils/ChUtils.h"
 #ifdef CHRONO_HAS_YAML
     #include "chrono/input_output/ChUtilsYAML.h"
@@ -34,6 +35,21 @@ using std::endl;
 namespace chrono {
 namespace ch_precice {
 
+// Name prefixes identifying the meshes used for exchanging added mass information.
+// A receiving participant provides one or more meshes with names starting with "SolidAddedMass" (one per input
+// channel, unless several data blocks are read on the same mesh) and a sending participant provides one mesh with a
+// name starting with "FluidAddedMass".
+static const std::string AM_mesh_prefix_read = "SolidAddedMass";
+static const std::string AM_mesh_prefix_write = "FluidAddedMass";
+
+static bool StartsWith(const std::string& name, const std::string& prefix) {
+    return name.rfind(prefix, 0) == 0;
+}
+
+static bool IsAddedMassMesh(const std::string& mesh_name) {
+    return StartsWith(mesh_name, AM_mesh_prefix_read) || StartsWith(mesh_name, AM_mesh_prefix_write);
+}
+
 ChPreciceAdapter::ChPreciceAdapter(const std::string& precice_config_filename, const std::string& model_name, bool verbose)
     : m_precice_config_filename(precice_config_filename),
       m_model_name(model_name),
@@ -41,7 +57,6 @@ ChPreciceAdapter::ChPreciceAdapter(const std::string& precice_config_filename, c
       m_use_added_mass(false),
       m_use_dynamic_added_mass(false),
       m_coupling_read_time(CouplingReadTime::WINDOW_START),
-      m_serial_coupling(false),
       m_interfaces_created(false),
       m_participant_created(false),
       m_initialized(false),
@@ -149,6 +164,10 @@ static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node&
         return ChPreciceAdapter::CouplingDataType::LINEAR_VELOCITIES;
     if (type == "ANGULAR_VELOCITIES")
         return ChPreciceAdapter::CouplingDataType::ANGULAR_VELOCITIES;
+    if (type == "LINEAR_ACCELERATIONS")
+        return ChPreciceAdapter::CouplingDataType::LINEAR_ACCELERATIONS;
+    if (type == "ANGULAR_ACCELERATIONS")
+        return ChPreciceAdapter::CouplingDataType::ANGULAR_ACCELERATIONS;
     if (type == "FORCES")
         return ChPreciceAdapter::CouplingDataType::FORCES;
     if (type == "TORQUES")
@@ -378,6 +397,10 @@ std::string ChPreciceAdapter::GetCouplingDataTypeAsString(CouplingDataType type)
             return "LINEAR_VELOCITIES";
         case CouplingDataType::ANGULAR_VELOCITIES:
             return "ANGULAR_VELOCITIES";
+        case CouplingDataType::LINEAR_ACCELERATIONS:
+            return "LINEAR_ACCELERATIONS";
+        case CouplingDataType::ANGULAR_ACCELERATIONS:
+            return "ANGULAR_ACCELERATIONS";
         case CouplingDataType::FORCES:
             return "FORCES";
         case CouplingDataType::TORQUES:
@@ -421,12 +444,18 @@ std::vector<std::string> ChPreciceAdapter::GetCouplingMeshNames() const {
 
 std::vector<std::string> ChPreciceAdapter::GetReadDataNamesOnMesh(const std::string& mesh_name) const {
     assert(m_participant_created);
-    return m_data_read.at(mesh_name);
+    auto it = m_data_read.find(mesh_name);
+    if (it == m_data_read.end())
+        return {};  // no read data on this mesh
+    return it->second;
 }
 
 std::vector<std::string> ChPreciceAdapter::GetWriteDataNamesOnMesh(const std::string& mesh_name) const {
     assert(m_participant_created);
-    return m_data_write.at(mesh_name);
+    auto it = m_data_write.find(mesh_name);
+    if (it == m_data_write.end())
+        return {};  // no write data on this mesh
+    return it->second;
 }
 
 size_t ChPreciceAdapter::GetNumVertices(const std::string& mesh_name) {
@@ -468,6 +497,7 @@ void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size)
         m_output = false;
 
     // Disable visualization if not supported; otherwise, create image directory as needed
+#ifdef CHRONO_VSG
     if (!m_vis_settings.render)
         m_visualize = false;
     else if (m_vis_settings.write_images) {
@@ -477,6 +507,9 @@ void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size)
             throw std::runtime_error("Could not create image output directory");
         }
     }
+#else
+    m_visualize = false;
+#endif
 
     // Create the preCICE participant
     assert(m_participant == nullptr);
@@ -489,8 +522,8 @@ void ChPreciceAdapter::InitializeSimulation(int process_index, int process_size)
     // Check the requested coupling read time against the declared coupling scheme
     ValidateCouplingReadTime();
 
-    // If using dynamic added mass, create and register the necessary data exchange mesh
-    if (m_use_dynamic_added_mass)
+    // If this participant exchanges dynamic added mass, create and register the necessary data exchange meshes
+    if (!m_AM_meshes.empty())
         RegisterMeshAM();
 
     // Initialize the concrete Chrono preCICE participant
@@ -521,7 +554,7 @@ void ChPreciceAdapter::RunSimulation() {
         double time_step = std::min(max_time_step, GetSolverTimeStep(max_time_step));
 
         // Read data, advance participant solver, write data, then advance preCICE coupling
-        if (m_AMmesh_read)
+        if (!m_AM_read_channels.empty())
             ReadDataAM();
         ReadData();
 
@@ -529,7 +562,7 @@ void ChPreciceAdapter::RunSimulation() {
             cout << m_prefix1 << "Advance from " << time << " by " << time_step << endl;
         AdvanceParticipant(time, time_step);
 
-        if (m_AMmesh_write)
+        if (!m_AM_write_channels.empty())
             WriteDataAM();
         WriteData();
 
@@ -555,31 +588,45 @@ void ChPreciceAdapter::FinalizeSimulation() {
 void ChPreciceAdapter::ValidateCouplingReadTime() const {
     bool read_at_end = (m_coupling_read_time == CouplingReadTime::WINDOW_END);
 
-    if (!m_serial_coupling) {
-        // Without a serial ordering, no participant is guaranteed to have produced data for the current
-        // window by the time another one reads it.
-        if (read_at_end) {
-            cerr << "\nERROR: read_data_time = WINDOW_END requires a serial coupling scheme "
-                 << "(coupling-scheme:serial-explicit or coupling-scheme:serial-implicit), but none was "
-                 << "found in '" << m_precice_config_filename << "'." << endl;
-            throw std::runtime_error("read_data_time = WINDOW_END requires a serial coupling scheme");
+    // Reading at the end of the window is valid only if, in every coupling scheme involving this participant, this
+    // participant runs after its partner, i.e., it is listed as 'second' in a serial scheme. Without a serial
+    // ordering, no participant is guaranteed to have produced data for the current window by the time another one
+    // reads it. With several schemes (e.g., one per fluid participant coupled to a solid participant), all of them
+    // must satisfy this condition, since the same read time applies to all data read by this participant.
+    int num_schemes = 0;    // number of schemes involving this participant
+    int num_second = 0;     // number of serial schemes in which this participant is listed as 'second'
+    std::string offending;  // description of a scheme that does not allow reading at the end of the window
+    for (const auto& scheme : m_coupling_schemes) {
+        if (std::find(scheme.participants.begin(), scheme.participants.end(), m_participant_name) == scheme.participants.end())
+            continue;
+        num_schemes++;
+        if (scheme.serial && scheme.second == m_participant_name) {
+            num_second++;
+        } else if (offending.empty()) {
+            if (!scheme.serial)
+                offending = "coupling-scheme:" + scheme.type + " (no serial ordering)";
+            else
+                offending = "coupling-scheme:" + scheme.type + " with '" + scheme.second + "' listed as 'second'";
         }
-        return;
     }
 
-    bool is_second = (m_participant_name == m_second_participant);
-    bool is_first = (m_participant_name == m_first_participant);
+    bool second_in_all = (num_schemes > 0 && num_second == num_schemes);
 
-    if (read_at_end && !is_second) {
-        cerr << "\nERROR: read_data_time = WINDOW_END is only valid for the participant listed as "
-             << "'second' in the serial coupling scheme. Participant '" << m_participant_name << "' is " << (is_first ? "listed as 'first'" : "not part of that scheme")
-             << ", so no data for the current time window is available to it." << endl;
-        throw std::runtime_error("read_data_time = WINDOW_END is only valid for the 'second' participant");
+    if (read_at_end && !second_in_all) {
+        cerr << "\nERROR: read_data_time = WINDOW_END is only valid for a participant listed as 'second' in a "
+             << "serial coupling scheme (coupling-scheme:serial-explicit or coupling-scheme:serial-implicit), "
+             << "in every scheme it is part of. ";
+        if (num_schemes == 0)
+            cerr << "Participant '" << m_participant_name << "' is not part of any coupling scheme in '" << m_precice_config_filename << "'.";
+        else
+            cerr << "Participant '" << m_participant_name << "' is part of " << offending << ".";
+        cerr << " No data for the current time window is available to it." << endl;
+        throw std::runtime_error("read_data_time = WINDOW_END is only valid for a participant listed as 'second' in all its serial schemes");
     }
 
-    if (!read_at_end && is_second && m_verbose) {
-        cout << m_prefix1 << "WARNING: this participant is 'second' in a serial coupling scheme but reads "
-             << "data at the start of the time window, so the data it consumes lags the other participant "
+    if (!read_at_end && second_in_all && m_verbose) {
+        cout << m_prefix1 << "WARNING: this participant is 'second' in all its serial coupling schemes but reads "
+             << "data at the start of the time window, so the data it consumes lags the other participants "
              << "by one window. Set 'read_data_time: WINDOW_END' to consume data produced in the current "
              << "window instead." << endl;
     }
@@ -639,11 +686,11 @@ void ChPreciceAdapter::ParseXML() {
         if (m_verbose)
             cout << endl;
 
-        if (mesh_name == "SolidAddedMass" || mesh_name == "FluidAddedMass")
+        if (IsAddedMassMesh(mesh_name))
             m_use_added_mass = true;
     }
 
-    // Loop over all nodes and extract participant information; check if any participant provides the FluidAddedMass mesh
+    // Loop over all nodes and extract participant information; check if any participant provides an added mass mesh
     if (m_verbose)
         cout << "  Participants" << endl;
 
@@ -664,7 +711,7 @@ void ChPreciceAdapter::ParseXML() {
             if (m_verbose)
                 cout << "'" << mesh_name << "' ";
 
-            if (m_use_added_mass && (mesh_name == "SolidAddedMass" || mesh_name == "FluidAddedMass"))
+            if (m_use_added_mass && IsAddedMassMesh(mesh_name))
                 m_use_dynamic_added_mass = true;
         }
 
@@ -683,38 +730,53 @@ void ChPreciceAdapter::ParseXML() {
             cout << endl;
     }
 
-    // Loop over all nodes and extract the coupling scheme. A serial scheme runs its participants one
-    // after the other within each time window, so the one listed as 'second' can consume data the
-    // 'first' produced in the current window (see CouplingReadTime). Only the first serial scheme found
-    // that involves this participant is recorded; schemes with no serial ordering (parallel-* and
-    // coupling-scheme:multi) leave m_serial_coupling false.
+    // Loop over all nodes and extract all coupling schemes. A configuration with more than two participants declares
+    // either several bi-coupling schemes (each with a 'participants' node listing 'first' and 'second') or a single
+    // coupling-scheme:multi (with one 'participant' node per participant). A serial scheme runs its participants one
+    // after the other within each time window, so the one listed as 'second' can consume data the 'first' produced in
+    // the current window (see CouplingReadTime). The schemes involving this participant are only known once the
+    // participant name is set; they are checked in ValidateCouplingReadTime.
     for (auto c_node = root_node->first_node(); c_node; c_node = c_node->next_sibling()) {
-        std::string scheme(c_node->name());
-        if (scheme.rfind("coupling-scheme:", 0) != 0)
-            continue;
-        if (scheme.find("serial") == std::string::npos)
+        std::string node_name(c_node->name());
+        if (!StartsWith(node_name, "coupling-scheme:"))
             continue;
 
-        auto p_node = c_node->first_node("participants");
-        if (!p_node)
-            continue;
-        auto first_attr = p_node->first_attribute("first");
-        auto second_attr = p_node->first_attribute("second");
-        if (!first_attr || !second_attr)
-            continue;
+        CouplingSchemeInfo scheme;
+        scheme.type = node_name.substr(std::string("coupling-scheme:").size());
+        scheme.serial = StartsWith(scheme.type, "serial");
 
-        m_serial_coupling = true;
-        m_first_participant = first_attr->value();
-        m_second_participant = second_attr->value();
-        break;
+        if (auto p_node = c_node->first_node("participants")) {
+            auto first_attr = p_node->first_attribute("first");
+            auto second_attr = p_node->first_attribute("second");
+            if (first_attr && second_attr) {
+                scheme.first = first_attr->value();
+                scheme.second = second_attr->value();
+                scheme.participants = {scheme.first, scheme.second};
+            }
+        }
+        for (auto p_node = c_node->first_node("participant"); p_node; p_node = p_node->next_sibling("participant")) {
+            if (auto name_attr = p_node->first_attribute("name"))
+                scheme.participants.push_back(name_attr->value());
+        }
+
+        m_coupling_schemes.push_back(scheme);
     }
 
     if (m_verbose) {
-        cout << "  Coupling scheme: ";
-        if (m_serial_coupling)
-            cout << "serial | first: '" << m_first_participant << "' | second: '" << m_second_participant << "'" << endl;
-        else
-            cout << "no serial ordering declared" << endl;
+        cout << "  Coupling schemes" << endl;
+        if (m_coupling_schemes.empty())
+            cout << "    none declared" << endl;
+        for (const auto& scheme : m_coupling_schemes) {
+            cout << "    " << scheme.type << " | ";
+            if (!scheme.first.empty())
+                cout << "first: '" << scheme.first << "' | second: '" << scheme.second << "'" << endl;
+            else {
+                cout << "participants: ";
+                for (const auto& name : scheme.participants)
+                    cout << "'" << name << "' ";
+                cout << endl;
+            }
+        }
 
         if (m_use_added_mass) {
             cout << "  Use added mass: YES ";
@@ -728,26 +790,34 @@ void ChPreciceAdapter::ProcessXML() {
     if (m_verbose)
         cout << m_prefix1 << "Check consistency with preCICE XML file ... ";
 
+    auto provided_meshes = m_provided_meshes.find(m_participant_name);
+    if (provided_meshes == m_provided_meshes.end()) {
+        if (m_verbose)
+            cout << "FAILED" << endl;
+        cerr << "\nERROR: Participant '" << m_participant_name << "' is not defined in '" << m_precice_config_filename << "'" << endl;
+        throw std::runtime_error("Participant not defined in preCICE configuration file");
+    }
+
     // Check that participant has all provided meshes
     // Mark data on each mesh as used (referenced) or not
-    auto provided_meshes = m_provided_meshes.find(m_participant_name);
     for (const auto& mesh : provided_meshes->second) {
         const auto& mesh_name = mesh.first;
         const auto& data_names = mesh.second;
 
-        // If meshes for added mass are defined, infer if this participant reads or writes AM information.
-        if (mesh_name == "SolidAddedMass") {
-            m_AMmesh_name = mesh_name;
-            m_AMmesh_read = true;
-        }
-        if (mesh_name == "FluidAddedMass") {
-            m_AMmesh_name = mesh_name;
-            m_AMmesh_write = true;
-        }
-
-        // Skip meshes for added mass (if any) since these are not treated by the concrete participant
-        if (mesh_name == "SolidAddedMass" || mesh_name == "FluidAddedMass")
+        // Collect the added mass meshes and data channels of this participant; these are not treated by the concrete
+        // participant. Each data block on a mesh with the receiving (sending) prefix is an input (output) channel.
+        if (IsAddedMassMesh(mesh_name)) {
+            m_AM_meshes.push_back({mesh_name, {}});
+            bool read = StartsWith(mesh_name, AM_mesh_prefix_read);
+            for (const auto& data_name : data_names) {
+                AddedMassChannel channel{m_AM_meshes.size() - 1, data_name, {}};
+                if (read)
+                    m_AM_read_channels.push_back(channel);
+                else
+                    m_AM_write_channels.push_back(channel);
+            }
             continue;
+        }
 
         // Check that the participant is configured to provide this mesh
         auto coupling_mesh = m_coupling_meshes.find(mesh_name);
@@ -766,6 +836,23 @@ void ChPreciceAdapter::ProcessXML() {
         }
     }
 
+    // A participant either receives added mass (from any number of sending participants) or sends added mass
+    // (to a single receiving participant), but not both.
+    if (!m_AM_read_channels.empty() && !m_AM_write_channels.empty()) {
+        if (m_verbose)
+            cout << "FAILED" << endl;
+        cerr << "\nERROR: Participant '" << m_participant_name << "' both reads data on a '" << AM_mesh_prefix_read << "*' mesh and writes data on a '"
+             << AM_mesh_prefix_write << "*' mesh. A participant can either receive or send added mass, but not both." << endl;
+        throw std::runtime_error("Participant cannot both receive and send added mass");
+    }
+    if (m_AM_write_channels.size() > 1) {
+        if (m_verbose)
+            cout << "FAILED" << endl;
+        cerr << "\nERROR: Participant '" << m_participant_name << "' writes " << m_AM_write_channels.size() << " added mass data blocks. "
+             << "A participant that sends added mass must write exactly one data block on one '" << AM_mesh_prefix_write << "*' mesh." << endl;
+        throw std::runtime_error("Participant writes more than one added mass data block");
+    }
+
     if (m_verbose)
         cout << "OK" << endl;
 
@@ -782,8 +869,12 @@ void ChPreciceAdapter::ProcessXML() {
         }
         if (m_use_dynamic_added_mass) {
             cout << m_prefix1 << "Dynamic added mass" << endl;
-            cout << m_prefix2 << "  read?  " << m_AMmesh_read << endl;
-            cout << m_prefix2 << "  write? " << m_AMmesh_write << endl;
+            if (m_AM_read_channels.empty() && m_AM_write_channels.empty())
+                cout << m_prefix2 << "  not exchanged by this participant" << endl;
+            for (const auto& channel : m_AM_read_channels)
+                cout << m_prefix2 << "  read:  '" << channel.data_name << "' on mesh '" << m_AM_meshes[channel.mesh_index].name << "'" << endl;
+            for (const auto& channel : m_AM_write_channels)
+                cout << m_prefix2 << "  write: '" << channel.data_name << "' on mesh '" << m_AM_meshes[channel.mesh_index].name << "'" << endl;
         }
     }
 }
@@ -1015,11 +1106,11 @@ std::vector<ChVector3d> ChPreciceAdapter::ReadPoints(const std::string& filename
 // -----------------------------------------------------------------------------
 
 size_t ChPreciceAdapter::GetNumFsiBodies() const {
-    if (!m_use_dynamic_added_mass)
+    if (m_AM_meshes.empty())
         return 0;
 
-    cerr << "\nERROR: GetNumFsiBodies must be implemented when using dynamic added mass." << endl;
-    throw std::runtime_error("GetNumFsiBodies must be implemented when using dynamic added mass");
+    cerr << "\nERROR: GetNumFsiBodies must be implemented by a participant that exchanges dynamic added mass." << endl;
+    throw std::runtime_error("GetNumFsiBodies must be implemented by a participant that exchanges dynamic added mass");
 }
 
 void ChPreciceAdapter::RegisterMeshAM() {
@@ -1039,21 +1130,34 @@ void ChPreciceAdapter::RegisterMeshAM() {
         }
     }
 
-    m_AMmesh_vertexIDs.resize(num_vertices);
-    m_participant->setMeshVertices(m_AMmesh_name, coords, m_AMmesh_vertexIDs);
+    // Register the same pseudo-mesh vertices on every added mass mesh provided by this participant
+    for (auto& mesh : m_AM_meshes) {
+        mesh.vertex_ids.resize(num_vertices);
+        m_participant->setMeshVertices(mesh.name, coords, mesh.vertex_ids);
+    }
 
-    m_AMmesh_values.resize(num_vertices);
+    // Allocate the data vectors for all channels; each entry of an added mass block is a scalar
+    for (auto* channels : {&m_AM_read_channels, &m_AM_write_channels}) {
+        for (auto& channel : *channels) {
+            const auto& mesh_name = m_AM_meshes[channel.mesh_index].name;
+            if (m_participant->getDataDimensions(mesh_name, channel.data_name) != 1) {
+                cerr << "\nERROR: Added mass data '" << channel.data_name << "' on mesh '" << mesh_name << "' must be scalar data." << endl;
+                throw std::runtime_error("Added mass data must be scalar data");
+            }
+            channel.values.resize(num_vertices);
+        }
+    }
 }
 
 void ChPreciceAdapter::OnReadDataAM(const std::vector<ChMatrix66d>& blocks) {
-    if (m_AMmesh_read) {
+    if (!m_AM_read_channels.empty()) {
         cerr << "\nERROR: OnReadDataAM not implemented." << endl;
         throw std::runtime_error("OnReadDataAM not implemented");
     }
 }
 
 void ChPreciceAdapter::OnWriteDataAM(std::vector<ChMatrix66d>& blocks) {
-    if (m_AMmesh_write) {
+    if (!m_AM_write_channels.empty()) {
         cerr << "\nERROR: OnWriteDataAM not implemented." << endl;
         throw std::runtime_error("OnWriteDataAM not implemented");
     }
@@ -1066,16 +1170,23 @@ void ChPreciceAdapter::ReadDataAM() {
     // Sample at the same point in the time window as the other read data, so that the added-mass
     // coefficients and the forces evaluated with them refer to the same instant.
     double read_time = (m_coupling_read_time == CouplingReadTime::WINDOW_END) ? GetMaxTimeStepSize() : 0.0;
-    m_participant->readData(m_AMmesh_name, "am_coeffs", m_AMmesh_vertexIDs, read_time, m_AMmesh_values);
 
+    // Sum the increments received from all input channels (one per participant sending added mass)
     size_t num_bodies = GetNumFsiBodies();
-    std::vector<ChMatrix66d> blocks(num_bodies);
+    std::vector<ChMatrix66d> blocks(num_bodies, ChMatrix66d::Zero());
 
-    int i = 0;
-    for (size_t i_body = 0; i_body < num_bodies; i_body++) {
-        for (size_t i_row = 0; i_row < 6; i_row++) {
-            for (size_t i_col = 0; i_col < 6; i_col++) {
-                blocks[i_body](i_row, i_col) = m_AMmesh_values[i++];
+    for (auto& channel : m_AM_read_channels) {
+        const auto& mesh = m_AM_meshes[channel.mesh_index];
+        m_participant->readData(mesh.name, channel.data_name, mesh.vertex_ids, read_time, channel.values);
+        if (m_verbose)
+            cout << m_prefix2 << "data: '" << channel.data_name << "' on mesh '" << mesh.name << "'" << endl;
+
+        int i = 0;
+        for (size_t i_body = 0; i_body < num_bodies; i_body++) {
+            for (size_t i_row = 0; i_row < 6; i_row++) {
+                for (size_t i_col = 0; i_col < 6; i_col++) {
+                    blocks[i_body](i_row, i_col) += channel.values[i++];
+                }
             }
         }
     }
@@ -1092,16 +1203,20 @@ void ChPreciceAdapter::WriteDataAM() {
 
     OnWriteDataAM(blocks);
 
+    assert(m_AM_write_channels.size() == 1);
+    auto& channel = m_AM_write_channels[0];
+    const auto& mesh = m_AM_meshes[channel.mesh_index];
+
     int i = 0;
     for (size_t i_body = 0; i_body < num_bodies; i_body++) {
         for (size_t i_row = 0; i_row < 6; i_row++) {
             for (size_t i_col = 0; i_col < 6; i_col++) {
-                m_AMmesh_values[i++] = blocks[i_body](i_row, i_col);
+                channel.values[i++] = blocks[i_body](i_row, i_col);
             }
         }
     }
 
-    m_participant->writeData(m_AMmesh_name, "am_coeffs", m_AMmesh_vertexIDs, m_AMmesh_values);
+    m_participant->writeData(mesh.name, channel.data_name, mesh.vertex_ids, channel.values);
 }
 
 }  // end namespace ch_precice

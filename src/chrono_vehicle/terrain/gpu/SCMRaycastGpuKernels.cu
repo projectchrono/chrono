@@ -21,8 +21,8 @@
 // (RTX 4080/5090-class), where FP64 is deliberately throttled relative to FP32, unlike a datacenter
 // part such as the MI300X -- so a double-only port would be correct there but far slower than it
 // needs to be. Both precisions are exported (scm_launch_raycast_fp64 / _fp32) and the host bridge
-// (SCMRaycastGpuHost.cpp) selects one per context from ScmRaycastGpuPrecision; env
-// SCM_RAYCAST_GPU_PRECISION=fp32|fp64 overrides the default at run time.
+// (SCMRaycastGpuHost.cpp) selects one per context from ScmRaycastGpuPrecision, which each terrain
+// chooses with SCMTerrain::GpuSettings::raycast_fp64.
 //
 // Includes the empirically-determined margin-correction sign; an exact match to Bullet's hit set is
 // not the goal.

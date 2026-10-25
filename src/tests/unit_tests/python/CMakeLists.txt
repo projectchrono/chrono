@@ -41,8 +41,11 @@ function(build_pyutests ADD_TESTS TESTS LIBS)
 			# and a single incompatible third-party plugin (for instance ROS 2 launch_testing, whose
 			# hooks still use the py.path argument removed in pytest 8) aborts every pytest run
 			# before collection.
+			# pytest exits with code 5 when no tests were collected, e.g. when a test module is skipped
+			# with pytest.importorskip because an optional Python package is missing; report it as skipped.
 			set_tests_properties(${PROGRAM} PROPERTIES
-				ENVIRONMENT "PYTHONPATH=${_pythonpath};PYTEST_DISABLE_PLUGIN_AUTOLOAD=1")
+				ENVIRONMENT "PYTHONPATH=${_pythonpath};PYTEST_DISABLE_PLUGIN_AUTOLOAD=1"
+				SKIP_RETURN_CODE 5)
 		endif()
 	endforeach()
 

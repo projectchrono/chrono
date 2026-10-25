@@ -1,0 +1,45 @@
+chrono-version: 10.0
+
+model:
+  name: Water column
+  physics_problem: CFD
+  geometry_type: CARTESIAN
+
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "."
+
+  fluid_properties:
+    density: 1000.0
+    viscosity: 5.0
+
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 1.4
+
+  # Water column (no BCE markers)
+  fluid_domain:
+    dimensions: [1.0, 0.2, 1.4]
+    box_origin: [-1.0, 0, 0]
+    box_walls:
+      x: [false, false]   # negative, positive
+      y: [false, false]   # negative, positive
+      z: [false, false]   # negative, positive
+
+  # Container with bottom and left/right walls (periodic in y)
+  container:
+    dimensions: [3.0, 0.2, 2.0]
+    box_origin: [0, 0, 0]
+    box_walls:
+      x: [true, true]     # negative, positive
+      y: [false, false]   # negative, positive
+      z: [true, false]    # negative, positive
+
+  computational_domain:
+    aabb_min: [-15.0, -0.11, -10.0]
+    aabb_max: [15.0, 0.11, 10.0]
+    x_bc_type: NONE
+    y_bc_type: PERIODIC
+    z_bc_type: NONE

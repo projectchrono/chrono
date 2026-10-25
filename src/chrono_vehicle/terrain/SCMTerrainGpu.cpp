@@ -1,39 +1,76 @@
-// SCMTerrainGpu.cpp — SCMLoader::ComputeContactForcesGpu (GPU body reduce, grid-only scatter).
+// SCMTerrainGpu.cpp -- SCM GPU backend selection and SCMLoader::ComputeContactForcesGpu (GPU body reduce,
+// grid-only scatter). Compiled in every build; without GPU support (CHRONO_VEHICLE_SCM_GPU undefined) the GPU
+// entry points are stubs that decline, so SCMTerrain uses its CPU paths.
+
+#include <cstdio>
+#include <unordered_map>
+#include <vector>
+
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #ifdef CHRONO_VEHICLE_SCM_GPU
-
     #include <chrono>
-    #include <cstdio>
-    #include <unordered_map>
-    #include <vector>
+    #include <mutex>
 
     #include "chrono/physics/ChBody.h"
-    #include "chrono_vehicle/terrain/SCMTerrain.h"
-
     #include "chrono_vehicle/terrain/SCMGpu.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
-namespace scm_gpu {
 
-static ScmGpuContext* GpuContext() {
-    static ScmGpuContext* ctx = scm_gpu_create(0);
-    static bool primed = false;
-    if (!primed) {
-        scm_gpu_reserve(ctx, scm_gpu_reserve_hits());
-        scm_gpu_warmup(ctx);
-        primed = true;
+namespace {
+
+// Report once per process that the GPU was requested explicitly (Backend::GPU) but cannot be used.
+void WarnGpuUnavailableOnce(const char* reason) {
+    static bool warned = false;
+    if (!warned) {
+        warned = true;
+        std::fprintf(stderr, "SCMTerrain: GPU backend requested but %s; using the CPU implementation.\n", reason);
     }
+}
+
+}  // namespace
+
+bool SCMLoader::GpuAllowed(SCMTerrain::Backend backend) const {
+    if (backend == SCMTerrain::Backend::CPU)
+        return false;
+    if (SCMTerrain::IsGpuAvailable())
+        return true;
+    if (backend == SCMTerrain::Backend::GPU) {
+#ifdef CHRONO_VEHICLE_SCM_GPU
+        WarnGpuUnavailableOnce("no usable GPU device was found");
+#else
+        WarnGpuUnavailableOnce("Chrono was built without SCM GPU support");
+#endif
+    }
+    return false;
+}
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
+
+namespace {
+
+// The contact-force GPU context (device buffers and streams) is shared by all SCM terrains in the process.
+// A single step uses its buffers from packing through scatter, so whole steps are serialized.
+std::mutex& GpuMutex() {
+    static std::mutex mtx;
+    return mtx;
+}
+
+// Null when no usable device is present (see scm_gpu_device_available); callers then use the CPU path.
+// The first caller's settings size the initial buffers; buffers grow on demand afterwards.
+ScmGpuContext* GpuContext(const SCMTerrain::GpuSettings& settings) {
+    static ScmGpuContext* ctx = [&settings] {
+        ScmGpuContext* c = scm_gpu_create(0);
+        if (c)
+            scm_gpu_warmup(c, settings.reserve_hits, settings.async ? 1 : 0);
+        return c;
+    }();
     return ctx;
 }
 
-void PrimeBuffers() {
-    if (!GetConfig().enabled)
-        return;
-    (void)GpuContext();
-}
-
-static int32_t BodySlot(std::vector<ChBody*>& bodies, ChBody* body) {
+int32_t BodySlot(std::vector<ChBody*>& bodies, ChBody* body) {
     for (std::size_t i = 0; i < bodies.size(); ++i) {
         if (bodies[i] == body)
             return static_cast<int32_t>(i);
@@ -42,23 +79,41 @@ static int32_t BodySlot(std::vector<ChBody*>& bodies, ChBody* body) {
     return static_cast<int32_t>(bodies.size() - 1);
 }
 
-}  // namespace scm_gpu
+}  // namespace
 
-bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm_gpu::ScmHitRecord, CoordHash>& hits,
-                                        const std::vector<double>& patch_oob) {
+bool SCMTerrain::IsGpuAvailable() {
+    return scm_gpu_device_available() != 0;
+}
+
+void SCMLoader::PrimeGpuBuffers() {
+    if (m_contact_force_backend == SCMTerrain::Backend::CPU || !SCMTerrain::IsGpuAvailable())
+        return;
+    std::lock_guard<std::mutex> lock(GpuMutex());
+    if (ScmGpuContext* ctx = GpuContext(m_gpu_settings))
+        scm_gpu_reserve(ctx, m_gpu_settings.reserve_hits);
+}
+
+bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, ScmHitRecord, CoordHash>& hits, const std::vector<double>& patch_oob) {
     using Clock = std::chrono::steady_clock;
+
+    // No usable device: decline before anything else, so the caller runs the CPU path and does not
+    // count this step as a GPU step.
+    if (!scm_gpu_device_available())
+        return false;
 
     const std::size_t n = hits.size();
     if (n == 0)
         return true;
 
-    if (n < m_scm_gpu_config.min_hits)
+    std::lock_guard<std::mutex> lock(GpuMutex());
+
+    ScmGpuContext* ctx = GpuContext(m_gpu_settings);
+    if (!ctx)
         return false;
 
-    const bool profile = m_scm_gpu_config.profile;
+    const bool profile = m_gpu_settings.profile;
     const auto t0 = Clock::now();
 
-    ScmGpuContext* ctx = scm_gpu::GpuContext();
     scm::gpu::HitInput* batch_in = scm_gpu_prepare_input(ctx, n);
     scm::gpu::HitOutput* batch_out = scm_gpu_prepare_output(ctx, n);
     if (!batch_in || !batch_out)
@@ -86,7 +141,7 @@ bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm
             return false;
 
         const ChVector2i& ij = h.first;
-        const int32_t bid = scm_gpu::BodySlot(bodies, body);
+        const int32_t bid = BodySlot(bodies, body);
 
         auto& nr = m_grid_map.at(ij);
         const double ca = nr.normal.z();
@@ -152,7 +207,7 @@ bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm
     if (!body_forces)
         return false;
 
-    const int gpu_rc = scm_gpu_compute_forces_staged(ctx, soil, n, n_bodies);
+    const int gpu_rc = scm_gpu_compute_forces_staged(ctx, soil, n, n_bodies, m_gpu_settings.async ? 1 : 0);
     if (gpu_rc != 0) {
         std::fprintf(stderr, "SCM GPU: scm_gpu_compute_forces_staged failed rc=%d n=%zu\n", gpu_rc, n);
         return false;
@@ -165,14 +220,20 @@ bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm
 
     for (std::size_t i = 0; i < n; ++i) {
         const scm::gpu::HitOutput& o = batch_out[i];
-        if (!o.active)
-            continue;
-
         const ChVector2i ij(batch_in[i].grid_ix, batch_in[i].grid_iy);
         auto& nr = m_grid_map.at(ij);
+
+        // Record the hit level for every hit node, as the CPU path does (bulldozing uses it to cap material raise)
+        nr.hit_level = batch_in[i].hit_level;
+
+        // Handle uni-laterality
+        if (!o.active) {
+            nr.sigma = 0;
+            continue;
+        }
+
         const double ca = nr.normal.z();
 
-        nr.hit_level = batch_in[i].hit_level;
         nr.sinkage = o.sinkage;
         nr.sinkage_plastic = o.sinkage_plastic;
         nr.sinkage_elastic = o.sinkage_elastic;
@@ -213,7 +274,19 @@ bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, scm
     return true;
 }
 
-}  // namespace vehicle
-}  // namespace chrono
+#else  // CHRONO_VEHICLE_SCM_GPU
+
+bool SCMTerrain::IsGpuAvailable() {
+    return false;
+}
+
+void SCMLoader::PrimeGpuBuffers() {}
+
+bool SCMLoader::ComputeContactForcesGpu(const std::unordered_map<ChVector2i, ScmHitRecord, CoordHash>&, const std::vector<double>&) {
+    return false;
+}
 
 #endif  // CHRONO_VEHICLE_SCM_GPU
+
+}  // namespace vehicle
+}  // namespace chrono

@@ -21,6 +21,11 @@
 #include "chrono/input_output/ChOutput.h"
 #include "chrono/utils/ChUtils.h"
 
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChNodeFEAxyzD.h"
+    #include "chrono/fea/ChNodeFEAxyzrot.h"
+#endif
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -34,6 +39,10 @@ void ChOutput::Write(int frame, double time, const ChAssembly::Components& compo
 }
 
 void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components) {
+    Write(frame, time, components, {});
+}
+
+void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly::Components*>& components, const std::vector<Channel>& channels) {
     switch (m_mode) {
         case Mode::FRAMES:
             WriteTimeStamp(frame, time);
@@ -56,6 +65,12 @@ void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly:
                 WriteLinMotors(c->lin_motors);
             for (auto c : components)
                 WriteRotMotors(c->rot_motors);
+#ifdef CHRONO_FEA
+            for (auto c : components)
+                WriteMeshNodes(c->mesh_nodes);
+#endif
+            if (!channels.empty())
+                WriteChannels(channels);
 
             break;
 
@@ -78,8 +93,37 @@ void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly:
                 m_joint_buf.resize(n_joints);
                 m_tsda_buf.resize(n_tsdas);
                 m_rsda_buf.resize(n_rsdas);
+
+#ifdef CHRONO_FEA
+                // One buffer for each selected FEA mesh node of a supported type
+                for (auto c : components) {
+                    for (const auto& mn : c->mesh_nodes) {
+                        auto mesh_name = GetMeshOutputName(*mn.mesh);
+                        for (size_t i = 0; i < mn.nodes.size(); i++) {
+                            auto state = GetMeshNodeState(mn.nodes[i]);
+                            if (!state.supported)
+                                continue;
+                            MeshNodeBuffers buf;
+                            buf.mesh = mesh_name;
+                            buf.id = mn.node_ids[i];
+                            buf.has_rot = state.has_rot;
+                            buf.has_slope = state.has_slope;
+                            m_node_buf.push_back(buf);
+                        }
+                    }
+                }
+#endif
+
+                // One buffer for each channel
+                for (const auto& channel : channels)
+                    m_channel_buf.push_back({channel.name, channel.units, {}});
+
                 m_buf_allocated = true;
             }
+
+            ChAssertAlways(channels.size() == m_channel_buf.size());
+            for (size_t i = 0; i < channels.size(); i++)
+                m_channel_buf[i].values.push_back(channels[i].value);
 
             m_time.push_back(time);
 
@@ -144,9 +188,73 @@ void ChOutput::Write(int frame, double time, const std::vector<const ChAssembly:
                 }
             }
 
+#ifdef CHRONO_FEA
+            size_t i_node = 0;
+            for (auto c : components) {
+                for (const auto& mn : c->mesh_nodes) {
+                    for (const auto& node : mn.nodes) {
+                        auto state = GetMeshNodeState(node);
+                        if (!state.supported)
+                            continue;
+                        auto& buf = m_node_buf[i_node++];
+                        const auto& p = state.pos;
+                        const auto& v = state.lin_vel;
+                        buf.pos.insert(buf.pos.end(), {p.x(), p.y(), p.z()});
+                        buf.lin_vel.insert(buf.lin_vel.end(), {v.x(), v.y(), v.z()});
+                        if (state.has_rot) {
+                            const auto r = state.rot.GetCardanAnglesXYZ();
+                            const auto& w = state.ang_vel;
+                            buf.rot.insert(buf.rot.end(), {r.x(), r.y(), r.z()});
+                            buf.ang_vel.insert(buf.ang_vel.end(), {w.x(), w.y(), w.z()});
+                        }
+                        if (state.has_slope) {
+                            const auto& d = state.slope;
+                            buf.slope.insert(buf.slope.end(), {d.x(), d.y(), d.z()});
+                        }
+                    }
+                }
+            }
+#endif
+
             break;
     }
 }
+
+#ifdef CHRONO_FEA
+
+ChOutput::MeshNodeState ChOutput::GetMeshNodeState(const std::shared_ptr<fea::ChNodeFEAbase>& node) {
+    MeshNodeState state;
+    state.supported = false;
+    state.has_rot = false;
+    state.has_slope = false;
+    state.rot = QUNIT;
+
+    if (auto xyzrot = std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(node)) {
+        state.supported = true;
+        state.pos = xyzrot->GetPos();
+        state.lin_vel = xyzrot->GetPosDt();
+        state.has_rot = true;
+        state.rot = xyzrot->GetRot();
+        state.ang_vel = xyzrot->GetAngVelParent();
+    } else if (auto xyz = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(node)) {
+        state.supported = true;
+        state.pos = xyz->GetPos();
+        state.lin_vel = xyz->GetPosDt();
+        if (auto xyzD = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(node)) {
+            state.has_slope = true;
+            state.slope = xyzD->GetSlope1();
+        }
+    }
+
+    return state;
+}
+
+std::string ChOutput::GetMeshOutputName(const fea::ChMesh& mesh) {
+    const auto& name = mesh.GetName();
+    return name.empty() ? "mesh_" + std::to_string(mesh.GetIdentifier()) : name;
+}
+
+#endif
 
 std::string ChOutput::GetFormatAsString(Format type) {
     switch (type) {

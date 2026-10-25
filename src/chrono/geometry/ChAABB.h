@@ -21,11 +21,12 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
 
-#include "chrono/geometry/ChAABB.h"
-
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Axis-aligned bounding box in integer grid coordinates.
 struct ChApi ChIntAABB {

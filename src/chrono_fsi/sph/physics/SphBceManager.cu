@@ -27,6 +27,10 @@
 #include <thrust/reduce.h>
 #include <thrust/transform.h>
 #include <thrust/copy.h>
+#include <thrust/fill.h>
+#include <thrust/scatter.h>
+#include <thrust/sort.h>
+#include <thrust/iterator/discard_iterator.h>
 
 #include "chrono_fsi/sph/physics/SphBceManager.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
@@ -91,6 +95,7 @@ void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     // Populate local position of BCE markers - on flexible bodies
     if (haveMesh1D) {
         m_data_mgr.flex1D_Nodes_D = m_data_mgr.flex1D_Nodes_H;
+        m_data_mgr.flex1D_Normals_D = m_data_mgr.flex1D_Normals_H;
         m_data_mgr.flex1D_BCEsolids_D = m_data_mgr.flex1D_BCEsolids_H;
         m_data_mgr.flex1D_BCEcoords_D = m_data_mgr.flex1D_BCEcoords_H;
         //// TODO (Huzaifa): Try to see if this additional function is needed
@@ -714,7 +719,8 @@ void SphBceManager::UpdateBodyMarkerStateInitial() {
 }
 
 // -----------------------------------------------------------------------------
-// Options for nodal direction calculation
+// Options for nodal direction calculation for 2-D meshes
+// (1-D node directions are always unit vectors, calculated as normalized sums of adjacent segment directions)
 // NODAL_DIR_METHOD = 1:  average over adjacent elements
 // NODAL_DIR_METHOD = 2:  normalized sum over adjacent elements
 // -----------------------------------------------------------------------------
@@ -728,34 +734,61 @@ void SphBceManager::UpdateBodyMarkerStateInitial() {
 // -----------------------------------------------------------------------------
 
 struct printInt2 {
-    __host__ __device__ void operator()(const int2& v) { printf("%d %d   ", v.x, v.y); }
+    __host__ __device__ void operator()(const int2& v) const { printf("%d %d   ", v.x, v.y); }
 };
 
 struct normalizeReal3 {
-    __host__ __device__ Real3 operator()(const Real3& v) { return get_normalized(v); }
+    __host__ __device__ Real3 operator()(const Real3& v) const { return get_normalized(v); }
 };
 
 struct averageDirs {
-    __host__ __device__ Real3 operator()(const Real3& v, uint count) { return v / Real(count); }
+    __host__ __device__ Real3 operator()(const Real3& v, uint count) const { return v / Real(count); }
 };
 
+// Combine the element directions loaded to each element node into node directions.
+// The extended arrays hold one entry per element node (in arbitrary node order); they are sorted in place by node index.
+// The direction of each node is the normalized sum (if 'normalize' is true) or the average of the directions of all
+// elements that share the node. Nodes not in any element are assigned a zero direction.
+void CombineNodeDirections(thrust::device_vector<uint>& ext_nodes, thrust::device_vector<Real3>& ext_dirs, thrust::device_vector<Real3>& dirs, bool normalize) {
+    // Sort by node index, so that all contributions to a given node are consecutive
+    thrust::sort_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin());
+
+    // Sum directions from adjacent elements
+    thrust::device_vector<uint> out_nodes(ext_nodes.size());
+    thrust::device_vector<Real3> out_dirs(ext_nodes.size());
+    auto out_end = thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), out_dirs.begin(), same_key_uint());
+    auto num_out = out_end.first - out_nodes.begin();
+
+    if (normalize) {
+        // Normalize nodal directions
+        thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, out_dirs.begin(), normalizeReal3());
+    } else {
+        // Average directions
+        thrust::device_vector<uint> counts(num_out);
+        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1u), thrust::make_discard_iterator(), counts.begin(), same_key_uint());
+        thrust::transform(out_dirs.begin(), out_dirs.begin() + num_out, counts.begin(), out_dirs.begin(), averageDirs());
+    }
+
+    // Scatter the combined directions to the corresponding nodes
+    thrust::fill(dirs.begin(), dirs.end(), mR3(0, 0, 0));
+    thrust::scatter(out_dirs.begin(), out_dirs.begin() + num_out, out_nodes.begin(), dirs.begin());
+}
+
+// Load the unit direction of each 1-D segment to its two nodes.
 __global__ void CalcNodeDir1D_D(uint* ext_nodes,             // extended node indices (2 per segment)
                                 Real3* ext_dirs,             // extended node directions (2 per segment)
                                 const Real3* pos,            // positions of FEA 1-D segment nodes
                                 const uint2* flex1D_Nodes_D  // segment node indices
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numFsiNodes1D)
+    if (index >= countersD.numFsiElements1D)
         return;
 
     uint2 seg_nodes = flex1D_Nodes_D[index];  // indices of the 2 nodes on associated segment
     Real3 P0 = pos[seg_nodes.x];              // (absolute) position of node 0
     Real3 P1 = pos[seg_nodes.y];              // (absolute) position of node 1
 
-    Real3 d = P1 - P0;
-#if NODAL_DIR_METHOD == 2
-    normalize(d);
-#endif
+    Real3 d = get_normalized(P1 - P0);
 
     ext_nodes[2 * index + 0] = seg_nodes.x;
     ext_nodes[2 * index + 1] = seg_nodes.y;
@@ -764,46 +797,56 @@ __global__ void CalcNodeDir1D_D(uint* ext_nodes,             // extended node in
 }
 
 void SphBceManager::CalcNodeDirections1D(thrust::device_vector<Real3>& dirs) {
-    uint num_nodes = (uint)m_data_mgr.countersH->numFsiNodes1D;
+    uint num_segments = (uint)m_data_mgr.countersH->numFsiElements1D;
 
     uint nBlocks, nThreads;
-    computeGridSize(num_nodes, 256, nBlocks, nThreads);
+    computeGridSize(num_segments, 256, nBlocks, nThreads);
 
     // Load segment directions to each adjacent node
-    thrust::device_vector<uint> ext_nodes(2 * num_nodes);
-    thrust::device_vector<Real3> ext_dirs(2 * num_nodes);
+    thrust::device_vector<uint> ext_nodes(2 * num_segments);
+    thrust::device_vector<Real3> ext_dirs(2 * num_segments);
     CalcNodeDir1D_D<<<nBlocks, nThreads>>>(U1CAST(ext_nodes), mR3CAST(ext_dirs), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), U2CAST(m_data_mgr.flex1D_Nodes_D));
 
-    ////thrust::for_each(m_data_mgr.flex1D_Nodes_D.begin(), m_data_mgr.flex1D_Nodes_D.end(), printInt2());
-    ////std::cout << std::endl;
-
-    //// TODO RADU - must sort by key before reductions
-
-    // Sum directions from adjacent segments
-    {
-        thrust::device_vector<uint> out_nodes(2 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), same_key_uint());
+    if (m_check_errors) {
+        gpuCheckError();
     }
 
-#if NODAL_DIR_METHOD == 1
-    // Average directions
-    {
-        thrust::device_vector<uint> out_nodes(2 * num_nodes);
-        thrust::device_vector<uint> counts(2 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1), out_nodes.begin(), counts.begin());
+    // Combine the directions from adjacent segments into unit node directions (normalized sums).
+    // Node directions are unit vectors; they are scaled by the segment length where used as Hermite tangents.
+    CombineNodeDirections(ext_nodes, ext_dirs, dirs, true);
+}
 
-        ////thrust::copy(counts.begin(), counts.end(), std::ostream_iterator<uint>(std::cout, " "));
-        ////std::cout << std::endl;
+// Carry the segment reference normals over to the current segment configurations.
+// The reference normal of a segment is projected onto the plane orthogonal to the current segment direction. As long as
+// a segment rotates by less than 90 degrees between two calls, this results in a normal that varies continuously, with
+// no rotation about the segment direction. The update is idempotent (repeated calls with the same node positions leave
+// the normals unchanged).
+__global__ void UpdateSegmentNormals1D_D(Real3* normals,              // segment reference normals (input/output)
+                                         const Real3* pos,            // positions of FEA 1-D segment nodes
+                                         const uint2* flex1D_Nodes_D  // segment node indices
+) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= countersD.numFsiElements1D)
+        return;
 
-        thrust::transform(dirs.begin(), dirs.end(), counts.begin(), dirs.begin(), averageDirs());
+    uint2 seg_nodes = flex1D_Nodes_D[index];  // indices of the 2 nodes on associated segment
+    Real3 x_dir = get_normalized(pos[seg_nodes.y] - pos[seg_nodes.x]);
+    Real3 y_dir;
+    Real3 z_dir;
+    get_projected_axes(x_dir, normals[index], y_dir, z_dir);
+
+    normals[index] = y_dir;
+}
+
+void SphBceManager::UpdateSegmentNormals1D() {
+    uint nBlocks, nThreads;
+    computeGridSize((uint)m_data_mgr.countersH->numFsiElements1D, 256, nBlocks, nThreads);
+
+    UpdateSegmentNormals1D_D<<<nBlocks, nThreads>>>(mR3CAST(m_data_mgr.flex1D_Normals_D), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), U2CAST(m_data_mgr.flex1D_Nodes_D));
+
+    if (m_check_errors) {
+        gpuCheckError();
     }
-#elif NODAL_DIR_METHOD == 2
-    // Normalize nodal directions
-    thrust::transform(dirs.begin(), dirs.end(), dirs.begin(), normalizeReal3());
-#endif
-
-    ////thrust::copy(dirs.begin(), dirs.end(), std::ostream_iterator<Real3>(std::cout, " | "));
-    ////std::cout << std::endl;
 }
 
 __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // marker positions (output)
@@ -813,6 +856,7 @@ __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // m
                                           bool use_dirs,                    // use nodal directions
                                           const Real3* dirs,                // nodal directions
                                           const uint2* flex1D_Nodes_D,      // segment node indices
+                                          const Real3* flex1D_Normals_D,    // segment reference normals
                                           const uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
                                           const Real3* flex1D_BCEcoords_D,  // local coordinates of BCE markers on FEA 1-D segments
                                           const uint* mapOriginalToSorted   //
@@ -840,6 +884,11 @@ __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // m
     Real3 P;  // position along segment center-line
     Real3 D;  // normal along segment center-line
     if (use_dirs) {
+        // Cubic Hermite interpolation; the Hermite tangents are the unit node directions scaled by the segment length
+        Real len = length(P1 - P0);
+        Real3 T0 = dirs[seg_nodes.x] * len;
+        Real3 T1 = dirs[seg_nodes.y] * len;
+
         auto t2 = t * t;
         auto t3 = t2 * t;
 
@@ -847,23 +896,23 @@ __global__ void UpdateMeshMarker1DState_D(Real4* posRadD,                   // m
         auto a1 = -2 * t3 + 3 * t2;
         auto b0 = t3 - 2 * t2 + t;
         auto b1 = t3 - t2;
-        P = P0 * a0 + P1 * a1 + dirs[seg_nodes.x] * b0 + dirs[seg_nodes.y] * b1;
+        P = P0 * a0 + P1 * a1 + T0 * b0 + T1 * b1;
 
         auto a0d = 6 * t2 - 6 * t;
         auto a1d = -6 * t2 + 6 * t;
         auto b0d = 3 * t2 - 4 * t + 1;
         auto b1d = 3 * t2 - 2 * t;
-        D = P0 * a0d + P1 * a1d + dirs[seg_nodes.x] * b0d + dirs[seg_nodes.y] * b1d;
+        D = P0 * a0d + P1 * a1d + T0 * b0d + T1 * b1d;
     } else {
         P = P0 * (1 - t) + P1 * t;
         D = P1 - P0;
     }
 
-    // Create local frame
+    // Create local frame (from the segment reference normal, for continuity in time and along the segment)
     Real3 x_dir = get_normalized(D);
     Real3 y_dir;
     Real3 z_dir;
-    get_orthogonal_axes(x_dir, y_dir, z_dir);
+    get_projected_axes(x_dir, flex1D_Normals_D[flex_seg], y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
@@ -881,6 +930,7 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(Real4* posRadD,               
                                                   bool use_dirs,                    // use nodal directions
                                                   const Real3* dirs,                // nodal directions
                                                   const uint2* flex1D_Nodes_D,      // segment node indices
+                                                  const Real3* flex1D_Normals_D,    // segment reference normals
                                                   const uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
                                                   const Real3* flex1D_BCEcoords_D   // local coordinates of BCE markers on FEA 1-D segments
 ) {
@@ -907,6 +957,11 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(Real4* posRadD,               
     Real3 P;  // position along segment center-line
     Real3 D;  // normal along segment center-line
     if (use_dirs) {
+        // Cubic Hermite interpolation; the Hermite tangents are the unit node directions scaled by the segment length
+        Real len = length(P1 - P0);
+        Real3 T0 = dirs[seg_nodes.x] * len;
+        Real3 T1 = dirs[seg_nodes.y] * len;
+
         auto t2 = t * t;
         auto t3 = t2 * t;
 
@@ -914,23 +969,23 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(Real4* posRadD,               
         auto a1 = -2 * t3 + 3 * t2;
         auto b0 = t3 - 2 * t2 + t;
         auto b1 = t3 - t2;
-        P = P0 * a0 + P1 * a1 + dirs[seg_nodes.x] * b0 + dirs[seg_nodes.y] * b1;
+        P = P0 * a0 + P1 * a1 + T0 * b0 + T1 * b1;
 
         auto a0d = 6 * t2 - 6 * t;
         auto a1d = -6 * t2 + 6 * t;
         auto b0d = 3 * t2 - 4 * t + 1;
         auto b1d = 3 * t2 - 2 * t;
-        D = P0 * a0d + P1 * a1d + dirs[seg_nodes.x] * b0d + dirs[seg_nodes.y] * b1d;
+        D = P0 * a0d + P1 * a1d + T0 * b0d + T1 * b1d;
     } else {
         P = P0 * (1 - t) + P1 * t;
         D = P1 - P0;
     }
 
-    // Create local frame
+    // Create local frame (from the segment reference normal, for continuity in time and along the segment)
     Real3 x_dir = get_normalized(D);
     Real3 y_dir;
     Real3 z_dir;
-    get_orthogonal_axes(x_dir, y_dir, z_dir);
+    get_projected_axes(x_dir, flex1D_Normals_D[flex_seg], y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
@@ -954,6 +1009,9 @@ void SphBceManager::UpdateMeshMarker1DState() {
 
     bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
+    // Carry the segment reference normals over to the current configuration
+    UpdateSegmentNormals1D();
+
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh1DMarkers, 256, nBlocks, nThreads);
 
@@ -962,6 +1020,7 @@ void SphBceManager::UpdateMeshMarker1DState() {
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel),                //
         use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                                      //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                                                                   //
+        mR3CAST(m_data_mgr.flex1D_Normals_D),                                                                //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                               //
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                                                              //
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                           //
@@ -983,6 +1042,9 @@ void SphBceManager::UpdateMeshMarker1DStateInitial() {
 
     bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
+    // Carry the segment reference normals over to the current configuration
+    UpdateSegmentNormals1D();
+
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh1DMarkers, 256, nBlocks, nThreads);
 
@@ -991,6 +1053,7 @@ void SphBceManager::UpdateMeshMarker1DStateInitial() {
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel),  //
         use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                        //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                                                     //
+        mR3CAST(m_data_mgr.flex1D_Normals_D),                                                  //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                 //
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D)                                                 //
     );
@@ -1011,7 +1074,7 @@ __global__ void CalcNodeDir2D_D(uint* ext_nodes,             // extended node in
                                 const uint3* flex2D_Nodes_D  // segment node indices
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numFsiNodes1D)
+    if (index >= countersD.numFsiElements2D)
         return;
 
     uint3 tri_nodes = flex2D_Nodes_D[index];  // indices of the 3 nodes on associated triangle
@@ -1026,52 +1089,29 @@ __global__ void CalcNodeDir2D_D(uint* ext_nodes,             // extended node in
 
     ext_nodes[3 * index + 0] = tri_nodes.x;
     ext_nodes[3 * index + 1] = tri_nodes.y;
-    ext_nodes[3 * index + 2] = tri_nodes.y;
+    ext_nodes[3 * index + 2] = tri_nodes.z;
     ext_dirs[3 * index + 0] = d;
     ext_dirs[3 * index + 1] = d;
     ext_dirs[3 * index + 2] = d;
 }
 
 void SphBceManager::CalcNodeDirections2D(thrust::device_vector<Real3>& dirs) {
-    uint num_nodes = (uint)m_data_mgr.countersH->numFsiNodes2D;
+    uint num_triangles = (uint)m_data_mgr.countersH->numFsiElements2D;
 
     uint nBlocks, nThreads;
-    computeGridSize(num_nodes, 256, nBlocks, nThreads);
+    computeGridSize(num_triangles, 256, nBlocks, nThreads);
 
-    // Load triangle normal directions to each each adjacent node
-    thrust::device_vector<uint> ext_nodes(3 * num_nodes);
-    thrust::device_vector<Real3> ext_dirs(3 * num_nodes);
+    // Load triangle normal directions to each adjacent node
+    thrust::device_vector<uint> ext_nodes(3 * num_triangles);
+    thrust::device_vector<Real3> ext_dirs(3 * num_triangles);
     CalcNodeDir2D_D<<<nBlocks, nThreads>>>(U1CAST(ext_nodes), mR3CAST(ext_dirs), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos), U3CAST(m_data_mgr.flex2D_Nodes_D));
 
-    //// TODO RADU - must sort by key before reductions
-
-    // Sum directions from adjacent triangles
-    {
-        thrust::device_vector<uint> out_nodes(3 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(), same_key_uint());
+    if (m_check_errors) {
+        gpuCheckError();
     }
 
-#if NODAL_DIR_METHOD == 1
-    // Average directions
-    {
-        thrust::device_vector<uint> out_nodes(3 * num_nodes);
-        thrust::device_vector<uint> counts(3 * num_nodes);
-        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), thrust::make_constant_iterator(1), out_nodes.begin(), counts.begin());
-
-        ////thrust::copy(counts.begin(), counts.end(), std::ostream_iterator<uint>(std::cout, " "));
-        ////std::cout << std::endl;
-
-        thrust::transform(dirs.begin(), dirs.end(), counts.begin(), dirs.begin(), averageDirs());
-
-        //// TODO
-    }
-#elif NODAL_DIR_METHOD == 2
-    // Normalize nodal directions
-    thrust::transform(dirs.begin(), dirs.end(), dirs.begin(), normalizeReal3());
-#endif
-
-    ////thrust::copy(dirs.begin(), dirs.end(), std::ostream_iterator<Real3>(std::cout, " | "));
-    ////std::cout << std::endl;
+    // Combine the directions from adjacent triangles
+    CombineNodeDirections(ext_nodes, ext_dirs, dirs, NODAL_DIR_METHOD == 2);
 }
 
 //// TODO RADU - implement utility device function to interpolate position on triangle (linear or cubic)

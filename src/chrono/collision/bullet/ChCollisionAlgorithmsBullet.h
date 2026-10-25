@@ -62,41 +62,6 @@ class cbtCapsuleBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
 
 // ================================================================================================
 
-/// Custom override of the default Bullet algorithm for cylshell-box collision.
-class cbtCylshellBoxCollisionAlgorithm : public cbtActivatingCollisionAlgorithm {
-  public:
-    cbtCylshellBoxCollisionAlgorithm(cbtPersistentManifold* mf,
-                                     const cbtCollisionAlgorithmConstructionInfo& ci,
-                                     const cbtCollisionObjectWrapper* col0,
-                                     const cbtCollisionObjectWrapper* col1,
-                                     bool isSwapped);
-    cbtCylshellBoxCollisionAlgorithm(const cbtCollisionAlgorithmConstructionInfo& ci);
-    ~cbtCylshellBoxCollisionAlgorithm();
-
-    virtual void processCollision(const cbtCollisionObjectWrapper* body0,
-                                  const cbtCollisionObjectWrapper* body1,
-                                  const cbtDispatcherInfo& dispatchInfo,
-                                  cbtManifoldResult* resultOut) override;
-    virtual cbtScalar calculateTimeOfImpact(cbtCollisionObject* body0,
-                                            cbtCollisionObject* body1,
-                                            const cbtDispatcherInfo& dispatchInfo,
-                                            cbtManifoldResult* resultOut) override;
-    virtual void getAllContactManifolds(cbtManifoldArray& manifoldArray) override;
-
-    struct CreateFunc : public cbtCollisionAlgorithmCreateFunc {
-        virtual cbtCollisionAlgorithm* CreateCollisionAlgorithm(cbtCollisionAlgorithmConstructionInfo& ci,
-                                                                const cbtCollisionObjectWrapper* body0Wrap,
-                                                                const cbtCollisionObjectWrapper* body1Wrap) override;
-    };
-
-  private:
-    bool m_ownManifold;
-    cbtPersistentManifold* m_manifoldPtr;
-    bool m_isSwapped;
-};
-
-// ================================================================================================
-
 /// Custom override of the default Bullet algorithm for sphere-cylinder collision.
 /// This replaces the default GJK algorithm in Bullet which is inaccurate if the cylinder is much larger than the
 /// sphere.

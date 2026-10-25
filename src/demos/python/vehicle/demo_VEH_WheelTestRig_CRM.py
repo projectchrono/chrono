@@ -25,6 +25,9 @@ tire_json = "Polaris/Polaris_RigidMeshTire.json"
 # Wheel specification file
 wheel_json = "Polaris/Polaris_Wheel.json"
 
+# Normal load (static wheel load, appropriate for the selected vehicle)
+normal_load = 2500  # Polaris
+
 render_fps = 100
 debug_output = False
 gnuplot_output = True
@@ -97,7 +100,7 @@ def main():
     rig = veh.ChWheelTestRig(wheel, tire, sys)
 
     rig.SetGravitationalAcceleration(9.8)
-    rig.SetNormalLoad(2500)
+    rig.SetNormalLoad(normal_load)
 
     rig.SetStepsize(step_size)
     rig.SetVisualizationType(chrono.VisualizationType_COLLISION)

@@ -73,7 +73,7 @@ int main() {
     // Create Viper wheel assembly
     // --------------------------------
 
-    auto wheel = chrono_types::make_shared<ViperRigWheel>(sys, false);
+    auto wheel = chrono_types::make_shared<ViperRigWheel>(sys);
     wheel->SetGrouserHeight(0.02);
     wheel->SetGrouserWidth(0.01);
 

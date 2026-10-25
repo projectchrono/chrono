@@ -43,8 +43,6 @@ M113::M113()
       m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-      m_wheel_cyl(true),
-      m_idler_cyl(true),
       m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
@@ -73,8 +71,6 @@ M113::M113(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_collsysType(ChCollisionSystem::Type::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
-      m_wheel_cyl(true),
-      m_idler_cyl(true),
       m_fixed(false),
       m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
@@ -176,8 +172,6 @@ void M113::Initialize() {
 
     m_vehicle->SetCollisionSystemType(m_collsysType);
     m_vehicle->CreateTrack(m_create_track);
-    m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);
-    m_vehicle->GetTrackAssembly(RIGHT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // If specified, enable aerodynamic drag

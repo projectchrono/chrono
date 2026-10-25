@@ -28,6 +28,7 @@
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
     #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #endif
@@ -59,6 +60,9 @@ std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
 // Wheel specification file
 std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
+// Normal load (static wheel load, appropriate for the selected vehicle)
+double normal_load = 2500;  // Polaris
+
 double render_fps = 100;
 bool debug_output = false;
 bool gnuplot_output = true;
@@ -75,6 +79,12 @@ int main() {
 
     auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
     auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
+
+    // Handling tires have no collision geometry and cannot interact with CRM terrain
+    if (std::dynamic_pointer_cast<ChForceElementTire>(tire)) {
+        cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << endl;
+        return 1;
+    }
 
     bool fea_tire = false;
 #ifdef CHRONO_FEA
@@ -138,7 +148,7 @@ int main() {
     ChWheelTestRig rig(*sys, wheel, tire);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(2500);
+    rig.SetNormalLoad(normal_load);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
@@ -306,6 +316,12 @@ int main() {
 
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
+
+        // End the simulation when the wheel reaches the end of the terrain patch
+        if (rig.PatchEndReached()) {
+            cout << "\nEnd of terrain patch reached at t = " << sys->GetChTime() << endl;
+            break;
+        }
 
         auto long_slip = rig.GetLongitudinalSlip();
         auto slip_angle = rig.GetSlipAngle();

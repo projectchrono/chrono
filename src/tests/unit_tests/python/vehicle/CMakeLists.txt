@@ -1,5 +1,6 @@
 set(TESTS
     pyutest_VEH_tire_contact
+    pyutest_VEH_scm_backend
 )
 
 set(LIBS Chrono_core Chrono_vehicle)

@@ -1,0 +1,19 @@
+## SCM deformable terrain patch
+
+chrono-version: 10.0
+
+type: SCM
+
+patch:
+  length: 10
+  width: 1
+
+scm:
+  Bekker_Kphi: 2e6
+  Bekker_Kc: 0
+  Bekker_n: 1.1
+  Mohr_cohesion: 0
+  Mohr_friction: 30               # degrees
+  Janosi_shear: 0.01
+  grid_spacing: 0.05
+  visualize_mesh: true

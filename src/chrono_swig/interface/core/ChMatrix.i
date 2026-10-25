@@ -169,6 +169,12 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
 
 #endif             // --------------------------------------------------------------------- PYTHON
 
+// Eigen::Index is a std::ptrdiff_t. Without this typedef SWIG treats it as an opaque type, so
+// no function taking a size (e.g. the ChState/ChStateDelta constructors) accepts an integer.
+namespace Eigen {
+typedef long long Index;
+}
+
 template <typename Real = double>
 class chrono::ChMatrixDynamic : public Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
     public:

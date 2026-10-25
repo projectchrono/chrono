@@ -6,6 +6,10 @@ A Chrono YAML SPH model file defines a fluid system for Chrono::FSI-SPH and cont
   This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The `model` object that defines the fluid phase, its material properties, and the problem geometry.
 
+An SPH model with CRM physics and a Cartesian box fluid domain can also be used for the CRM terrain of a
+[wheel test rig simulation](@ref YAML_schema_wheel_rig_simulation). The settings it then uses and ignores are listed on
+the [wheel test rig terrain](@ref YAML_wheel_rig_terrain_crm) page.
+
 ## Model specification
 
 An SPH model defines the fluid (or granular) phase: its material properties, the region initially filled with SPH
@@ -58,7 +62,16 @@ For a `CRM` problem, the `soil_properties` key specifies:
 | `mu_fric_s` | Static friction coefficient mu_s in mu = mu(I) | double | -- | No | 0.7 |
 | `mu_fric_2` | Limit friction coefficient mu_2 in mu = mu(I) | double | -- | No | 0.7 |
 | `average_diam` | Average granular particle diameter | double | -- | No | 0.005 |
-| `cohesion_coefficient` | Cohesion coefficient | double | -- | No | 0 |
+| `cohesion_coefficient` | Cohesion coefficient (not used by the MCC rheology) | double | -- | No | 0 |
+| `rheology_model` | CRM rheology model | enum | `MU_OF_I`,`MCC` | No | `MU_OF_I` |
+| `mcc_M` | Cam-Clay critical state line slope, q = M p (MCC only) | double | -- | No | 0 |
+| `mcc_kappa` | Cam-Clay swelling index: slope of the elastic unload/reload line in v-ln(p) (MCC only) | double | -- | No | 0 |
+| `mcc_lambda` | Cam-Clay compression index: slope of the normal consolidation line in v-ln(p) (MCC only) | double | -- | No | 0 |
+| `mcc_v_lambda` | Cam-Clay specific volume at the reference pressure of 1000 Pa (MCC only) | double | -- | No | 2.0 |
+
+The MCC rheology requires `mcc_M > 0`, `mcc_kappa > 0`, and `mcc_lambda > mcc_kappa`; these are checked when the
+SPH system is initialized. The initial pre-consolidation pressure is set to 1.01 times the initial particle pressure,
+which is the hydrostatic pressure if `initial_states.depth_based_pressure` is enabled and 1 kPa otherwise.
 
 #### Initial particle states
 
@@ -152,7 +165,7 @@ The `actuation_function` is a generic function object (see the
 
 Below is an example of an SPH model configuration:
 
-\include data/yaml/fsi/dam_break/model_sph.yaml
+\include data/yaml/fsi/dam_break/sph_model.yaml
 
 ## YAML schema
 

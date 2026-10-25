@@ -4,8 +4,13 @@ SET(TESTS
     utest_CH_shafts
     utest_CH_compute_contact
     utest_CH_assembly
+    utest_CH_assembly_contact
     utest_CH_composite_inertia
     utest_CH_prismatic_spring
+    utest_CH_remove_items
+    utest_CH_body_auxref
+    utest_CH_added_mass_update
+    utest_CH_applied_loads
 )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)

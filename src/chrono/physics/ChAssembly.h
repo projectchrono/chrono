@@ -91,6 +91,11 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// effectively add them and clean the batch. Called automatically at each Setup().
     void FlushBatch();
 
+    // Removal functions.
+    // If this assembly belongs to a system, the collision models of the removed items are also removed from the
+    // collision system of that system and, if an item that can be in contact is removed, all contacts currently in its
+    // contact container are discarded (they are recreated by the next collision detection).
+
     /// Remove a body from this assembly.
     void RemoveBody(std::shared_ptr<ChBody> body);
     /// Remove a shaft from this assembly.
@@ -320,10 +325,29 @@ class ChApi ChAssembly : public ChPhysicsItem {
         std::vector<std::shared_ptr<ChLoadCustom>> loads;
         std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
         std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
+
+#ifdef CHRONO_FEA
+        /// Selection of nodes of an FEA mesh.
+        struct MeshNodes {
+            std::shared_ptr<fea::ChMesh> mesh;                       ///< FEA mesh
+            std::vector<std::shared_ptr<fea::ChNodeFEAbase>> nodes;  ///< selected mesh nodes
+            std::vector<unsigned int> node_ids;                      ///< identifiers of the selected nodes
+        };
+
+        std::vector<MeshNodes> mesh_nodes;
+#endif
     };
 
   protected:
     virtual void SetupInitial() override;
+
+    /// Remove the collision models of an item being removed from this assembly from the collision system of the
+    /// system this assembly belongs to (if any).
+    void RemoveCollisionModels(const ChPhysicsItem& item) const;
+
+    /// Discard the contacts in the system this assembly belongs to (if any), since they may involve an item being
+    /// removed.
+    void RemoveContacts() const;
 
     std::vector<std::shared_ptr<ChBody>> bodylist;      ///< list of rigid bodies
     std::vector<std::shared_ptr<ChShaft>> shaftlist;    ///< list of 1-D shafts

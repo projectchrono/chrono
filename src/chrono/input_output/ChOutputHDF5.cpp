@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <fstream>
 
@@ -102,7 +103,23 @@ struct rotmotor_info {
     double t;      // motor torque
 };
 
+struct node_info {
+    int id;                 // node identifier
+    double x, y, z;         // position
+    double xd, yd, zd;      // linear velocity
+    double e0, e1, e2, e3;  // orientation (NaN if not available)
+    double wx, wy, wz;      // angular velocity (NaN if not available)
+    double Dx, Dy, Dz;      // slope (NaN if not available)
+};
+
 // -----------------------------------------------------------------------------
+
+// Attach the given units as a string attribute of the specified dataset.
+static void writeUnits(H5::DataSet& set, const std::string& units) {
+    H5::StrType str_type(H5::PredType::C_S1, H5T_VARIABLE);
+    H5::Attribute att = set.createAttribute("units", str_type, H5::DataSpace(H5S_SCALAR));
+    att.write(str_type, units);
+}
 
 ChOutputHDF5::ChOutputHDF5(const std::string& out_dir, const std::string& out_file_stem, Mode mode) : ChOutput(mode), m_frame_group(nullptr) {
     auto filename = out_dir + "/" + out_file_stem + "." + GetModeAsString(mode) + ".h5";
@@ -190,6 +207,25 @@ ChOutputHDF5::ChOutputHDF5(const std::string& out_dir, const std::string& out_fi
             m_rotmotor_type->insertMember("xd", HOFFSET(rotmotor_info, xd), H5::PredType::NATIVE_DOUBLE);
             m_rotmotor_type->insertMember("torque", HOFFSET(rotmotor_info, t), H5::PredType::NATIVE_DOUBLE);
 
+            m_node_type = new H5::CompType(sizeof(node_info));
+            m_node_type->insertMember("id", HOFFSET(node_info, id), H5::PredType::NATIVE_INT);
+            m_node_type->insertMember("x", HOFFSET(node_info, x), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("y", HOFFSET(node_info, y), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("z", HOFFSET(node_info, z), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("xd", HOFFSET(node_info, xd), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("yd", HOFFSET(node_info, yd), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("zd", HOFFSET(node_info, zd), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("e0", HOFFSET(node_info, e0), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("e1", HOFFSET(node_info, e1), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("e2", HOFFSET(node_info, e2), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("e3", HOFFSET(node_info, e3), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("wx", HOFFSET(node_info, wx), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("wy", HOFFSET(node_info, wy), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("wz", HOFFSET(node_info, wz), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("Dx", HOFFSET(node_info, Dx), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("Dy", HOFFSET(node_info, Dy), H5::PredType::NATIVE_DOUBLE);
+            m_node_type->insertMember("Dz", HOFFSET(node_info, Dz), H5::PredType::NATIVE_DOUBLE);
+
             H5::Group frames_group(m_fileHDF5->createGroup("/Frames"));
 
             break;
@@ -202,6 +238,8 @@ ChOutputHDF5::ChOutputHDF5(const std::string& out_dir, const std::string& out_fi
             H5::Group joint_group(m_fileHDF5->createGroup("/Joints"));
             H5::Group tsda_group(m_fileHDF5->createGroup("/TSDAs"));
             H5::Group rsda_group(m_fileHDF5->createGroup("/RSDAs"));
+            H5::Group node_group(m_fileHDF5->createGroup("/FEA_Nodes"));
+            H5::Group channel_group(m_fileHDF5->createGroup("/Channels"));
 
             break;
         }
@@ -226,6 +264,7 @@ ChOutputHDF5::~ChOutputHDF5() {
             delete m_bodyload_type;
             delete m_linmotor_type;
             delete m_rotmotor_type;
+            delete m_node_type;
 
             break;
 
@@ -325,6 +364,40 @@ void ChOutputHDF5::WriteBuffers() {
             tset.write(buf.torque.data(), H5::PredType::NATIVE_DOUBLE);
         }
     }
+
+    {
+        // FEA mesh nodes, grouped by mesh: /FEA_Nodes/<mesh name>/node_<id>
+        H5::Group ngroup = m_fileHDF5->openGroup("/FEA_Nodes");
+        for (const auto& buf : m_node_buf) {
+            const char* mesh_name = buf.mesh.c_str();
+            H5::Group mgroup = H5Lexists(ngroup.getId(), mesh_name, H5P_DEFAULT) ? ngroup.openGroup(mesh_name) : ngroup.createGroup(mesh_name);
+            H5::Group group = mgroup.createGroup(("node_" + std::to_string(buf.id)).c_str());
+            H5::DataSet pset = group.createDataSet("pos", H5::PredType::NATIVE_DOUBLE, data_space_N3);
+            H5::DataSet vset = group.createDataSet("lin_vel", H5::PredType::NATIVE_DOUBLE, data_space_N3);
+            pset.write(buf.pos.data(), H5::PredType::NATIVE_DOUBLE);
+            vset.write(buf.lin_vel.data(), H5::PredType::NATIVE_DOUBLE);
+            if (buf.has_rot) {
+                H5::DataSet rset = group.createDataSet("rot", H5::PredType::NATIVE_DOUBLE, data_space_N3);
+                H5::DataSet wset = group.createDataSet("ang_vel", H5::PredType::NATIVE_DOUBLE, data_space_N3);
+                rset.write(buf.rot.data(), H5::PredType::NATIVE_DOUBLE);
+                wset.write(buf.ang_vel.data(), H5::PredType::NATIVE_DOUBLE);
+            }
+            if (buf.has_slope) {
+                H5::DataSet dset = group.createDataSet("slope", H5::PredType::NATIVE_DOUBLE, data_space_N3);
+                dset.write(buf.slope.data(), H5::PredType::NATIVE_DOUBLE);
+            }
+        }
+    }
+
+    {
+        // Channels: /Channels/<channel name>, with the channel units as an attribute
+        H5::Group cgroup = m_fileHDF5->openGroup("/Channels");
+        for (const auto& buf : m_channel_buf) {
+            H5::DataSet set = cgroup.createDataSet(buf.name.c_str(), H5::PredType::NATIVE_DOUBLE, data_space_N);
+            set.write(buf.values.data(), H5::PredType::NATIVE_DOUBLE);
+            writeUnits(set, buf.units);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -342,6 +415,22 @@ static std::string format_number(int num, int precision) {
     std::ostringstream out;
     out << std::internal << std::setfill('0') << std::setw(precision) << num;
     return out.str();
+}
+
+void ChOutputHDF5::WriteChannels(const std::vector<Channel>& channels) {
+    if (channels.empty())
+        return;
+    if (!m_frame_group)
+        return;
+
+    // Channels for this frame: /Frames/Frame_<frame>/Channels/<channel name>, with the channel units as an attribute
+    H5::Group group = m_frame_group->createGroup("Channels");
+    H5::DataSpace dataspace(H5S_SCALAR);
+    for (const auto& channel : channels) {
+        H5::DataSet set = group.createDataSet(channel.name.c_str(), H5::PredType::NATIVE_DOUBLE, dataspace);
+        set.write(&channel.value, H5::PredType::NATIVE_DOUBLE);
+        writeUnits(set, channel.units);
+    }
 }
 
 void ChOutputHDF5::WriteTimeStamp(int frame, double time) {
@@ -538,5 +627,56 @@ void ChOutputHDF5::WriteRotMotors(const std::vector<std::shared_ptr<ChLinkMotorR
     H5::DataSet set = getDataSet(m_frame_group, "Rot Motors", *m_rotmotor_type, H5::DataSpace(1, &D));
     set.write(info.data(), *m_rotmotor_type);
 }
+
+#ifdef CHRONO_FEA
+void ChOutputHDF5::WriteMeshNodes(const std::vector<ChAssembly::Components::MeshNodes>& mesh_nodes) {
+    if (mesh_nodes.empty())
+        return;
+    if (!m_frame_group)
+        return;
+
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+
+    // One data set per mesh, named "FEA Mesh <mesh name>"
+    for (const auto& mn : mesh_nodes) {
+        auto mesh_name = GetMeshOutputName(*mn.mesh);
+
+        std::vector<node_info> info;
+        for (size_t i = 0; i < mn.nodes.size(); i++) {
+            auto state = GetMeshNodeState(mn.nodes[i]);
+            if (!state.supported)
+                continue;
+            const auto& p = state.pos;
+            const auto& v = state.lin_vel;
+            node_info ni = {(int)mn.node_ids[i], p.x(), p.y(), p.z(), v.x(), v.y(), v.z(), nan, nan, nan, nan, nan, nan, nan, nan, nan, nan};
+            if (state.has_rot) {
+                const auto& q = state.rot;
+                const auto& w = state.ang_vel;
+                ni.e0 = q.e0();
+                ni.e1 = q.e1();
+                ni.e2 = q.e2();
+                ni.e3 = q.e3();
+                ni.wx = w.x();
+                ni.wy = w.y();
+                ni.wz = w.z();
+            }
+            if (state.has_slope) {
+                const auto& d = state.slope;
+                ni.Dx = d.x();
+                ni.Dy = d.y();
+                ni.Dz = d.z();
+            }
+            info.push_back(ni);
+        }
+
+        if (info.empty())
+            continue;
+
+        hsize_t D = info.size();
+        H5::DataSet set = getDataSet(m_frame_group, ("FEA Mesh " + mesh_name).c_str(), *m_node_type, H5::DataSpace(1, &D));
+        set.write(info.data(), *m_node_type);
+    }
+}
+#endif
 
 }  // end namespace chrono

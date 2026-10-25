@@ -46,7 +46,7 @@ Note that `IRREGULAR` waves are accepted by the parser but not yet implemented; 
 
 Below is an example of a TDPF model configuration:
 
-\include data/yaml/fsi/sphere_decay/model_tdpf.yaml
+\include data/yaml/fsi/sphere_decay/tdpf_model.yaml
 
 ## YAML schema
 

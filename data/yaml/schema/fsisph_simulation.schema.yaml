@@ -12,6 +12,9 @@
 # Schema for a Chrono::FSI-SPH YAML fluid simulation specification file.
 # The `chrono-version` must match the Chrono major and minor version numbers.
 #
+# An SPH simulation file (with CRM physics) also specifies the CRM terrain of a single-wheel test rig simulation
+# (see wheel_rig_simulation.schema). In that case, only its model, solver, and visualization settings are used.
+#
 # =============================================================================
 
 required: [chrono-version, type, model, solver]
@@ -145,13 +148,17 @@ visualization:
 
     visibility:
       description: |
-        Marker visibility control through a set of half-spaces.
-        A marker is hidden depending on its position relative to the specified planes.
+        Marker visibility control through a set of planes (e.g., to cut away part of the domain).
+        A marker is "in front of" a plane if it lies on the side the plane normal points to.
+        With mode ALL, a marker is hidden if it is in front of all planes; with mode ANY, a marker
+        is hidden if it is in front of at least one plane.
+        The criterion can be applied to SPH particles and to boundary (wall) BCE markers; rigid-body
+        and flexible-body BCE markers are not affected.
       type: object
       required: [planes]
       properties:
         planes:
-          description: List of planes defining the half-spaces
+          description: List of planes; markers in front of a plane (on the side of its normal) are candidates for hiding
           type: array
           items:
             type: object
@@ -162,10 +169,11 @@ visualization:
                 description: A point on the plane
               normal:
                 <<: *VECTOR3D
-                description: Plane normal direction
+                description: Plane normal direction (points toward the side whose markers are hidden)
         mode:
           type: string
-          description: Whether a marker must be inside all half-spaces or any one of them
+          description: |
+            Hide a marker if it is in front of all planes (ALL) or in front of at least one plane (ANY)
           enum: [ALL, ANY]
           default: ALL
         SPH:
@@ -174,7 +182,7 @@ visualization:
           default: true
         BCE:
           type: boolean
-          description: Apply the visibility criterion to BCE markers
+          description: Apply the visibility criterion to boundary (wall) BCE markers
           default: true
 
     splashsurf:

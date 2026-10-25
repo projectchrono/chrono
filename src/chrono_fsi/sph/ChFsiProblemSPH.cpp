@@ -146,9 +146,7 @@ void ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body, const ChFra
 }
 
 bool ChFsiProblemSPH::IsFsiSolid(std::shared_ptr<ChBody> body) {
-    if (!m_fsi_meshes1D.empty() && m_fsi_bodies.find(body) != m_fsi_bodies.end())
-        return true;
-    return false;
+    return m_fsi_bodies.find(body) != m_fsi_bodies.end();
 }
 
 void ChFsiProblemSPH::SetActiveDomainBody(std::shared_ptr<ChBody> body, const ChAABB& aabb) {
@@ -183,24 +181,24 @@ void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_e
 
     // Add 1D surfaces from given FEA mesh to the underlying FSI system
     auto fsi_mesh1D = m_sysFSI->AddFeaMesh1D(mesh, check_embedded);
+    if (fsi_mesh1D)
+        m_fsi_meshes1D[mesh] = fsi_mesh1D->index;
     if (m_verbose) {
-        if (fsi_mesh1D) {
+        if (fsi_mesh1D)
             cout << "  added " << fsi_mesh1D->GetNumElements() << " segments" << endl;
-            m_fsi_meshes1D[mesh] = fsi_mesh1D->index;
-        } else {
+        else
             cout << "  mesh does not contain any 1D elements" << endl;
-        }
     }
 
     // Add 2D surfaces from given mesh to the underlying FSI system
     auto fsi_mesh2D = m_sysFSI->AddFeaMesh2D(mesh, check_embedded);
+    if (fsi_mesh2D)
+        m_fsi_meshes2D[mesh] = fsi_mesh2D->index;
     if (m_verbose) {
-        if (fsi_mesh2D) {
+        if (fsi_mesh2D)
             cout << "  added " << fsi_mesh2D->GetNumElements() << " faces" << endl;
-            m_fsi_meshes2D[mesh] = fsi_mesh1D->index;
-        } else {
+        else
             cout << "  mesh does not contain any 2D elements" << endl;
-        }
     }
 }
 
@@ -240,7 +238,12 @@ void ChFsiProblemSPH::Initialize() {
         m_sysMBS->AddBody(m_ground);
 
     // Prune SPH particles at grid locations that overlap with obstacles
-    if (!m_sysSPH->m_bodies.empty()) {
+#ifdef CHRONO_FEA
+    bool has_fsi_solids = !m_sysSPH->m_bodies.empty() || !m_sysSPH->m_meshes1D.empty() || !m_sysSPH->m_meshes2D.empty();
+#else
+    bool has_fsi_solids = !m_sysSPH->m_bodies.empty();
+#endif
+    if (has_fsi_solids) {
         if (m_verbose)
             cout << "Remove SPH particles inside FSI solid volumes" << endl;
 
@@ -319,7 +322,7 @@ void ChFsiProblemSPH::Initialize() {
     } else {
         // Calculate computational domain based on actual AABB of all markers
         int bce_layers = m_sysSPH->GetNumBCELayers();
-        m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
+        m_domain_aabb = ChAABB(aabb.min - ChVector3d(bce_layers * m_spacing), aabb.max + ChVector3d(bce_layers * m_spacing));
         m_sysSPH->SetComputationalDomain(m_domain_aabb, BC_NONE);
     }
 
@@ -351,7 +354,7 @@ bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p, dou
 
     for (const auto& box : geometry.coll_boxes) {
         auto pp = box.rot.RotateBack(p - box.pos);
-        auto hdims = box.dims / 2 + envelope;
+        auto hdims = box.dims / 2 + ChVector3d(envelope);
         if (std::abs(pp.x()) <= hdims.x() &&  //
             std::abs(pp.y()) <= hdims.y() &&  //
             std::abs(pp.z()) <= hdims.z())

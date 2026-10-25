@@ -5,15 +5,24 @@ message(STATUS "Add demo programs for preCICE adapters")
 
 set(DEMOS "")
 
-if(CH_ENABLE_MODULE_PARSERS)
+if(CH_ENABLE_MODULE_PARSERS AND CHRONO_YAML_ENABLED)
 
   set(DEMOS ${DEMOS}
       demo_PRECICE_sphere_drop
       demo_PRECICE_flap_openfoam
   )
 
+  if(CH_ENABLE_MODULE_FSI_SPH)
+    set(DEMOS ${DEMOS}
+        demo_PRECICE_flexible_cable
+    )
+  endif()
+
   if(CH_ENABLE_MODULE_FSI_TDPF)
-    set(DEMOS ${DEMOS} demo_PRECICE_rm3_reg_waves)
+    set(DEMOS ${DEMOS}
+        demo_PRECICE_rm3_reg_waves
+        demo_PRECICE_sphere_drop_2tdpf
+    )
   endif()
   
   #if(CH_ENABLE_MODULE_VEHICLE)

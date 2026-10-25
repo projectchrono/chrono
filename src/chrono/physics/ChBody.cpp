@@ -191,6 +191,30 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
         R.segment(off + 3, 3) += c * (Xtorque - gyro).eigen();
 }
 
+void ChBody::IntLoadResidual_F_applied(const unsigned int off,  // offset in R residual
+                                       ChVectorDynamic<>& R,    // result: the R residual, R += c*F_applied
+                                       const double c           // a scaling factor
+) {
+    // Loads from body accumulators and from the forces in the body force list (as evaluated at the last force update).
+    // Unlike IntLoadResidual_F, exclude the gravitational force and the gyroscopic torque.
+    ChVector3d force;
+    ChVector3d torque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+    for (const auto& f : forcelist) {
+        ChVector3d f_force;
+        ChVector3d f_torque;
+        f->GetBodyForceTorque(f_force, f_torque);
+        force += f_force;
+        torque += f_torque;
+    }
+
+    R.segment(off, 3) += c * force.eigen();
+    R.segment(off + 3, 3) += c * torque.eigen();
+}
+
 void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                 const ChVectorDynamic<>& w,  // the w vector
@@ -371,51 +395,6 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
     // [Iq]=[G'][Ix][G]
     ChGlMatrix34<> Gl(GetRot());
     mQInertia = Gl.transpose() * GetInertia() * Gl;
-}
-
-// -----------------------------------------------------------------------------
-
-unsigned int ChBody::AddAccumulator() {
-    auto idx = accumulators.size();
-    accumulators.push_back(WrenchAccumulator());
-    return (unsigned int)idx;
-}
-
-void ChBody::EmptyAccumulator(unsigned int idx) {
-    accumulators[idx].force = VNULL;
-    accumulators[idx].torque = VNULL;
-}
-
-void ChBody::AccumulateForce(unsigned int idx, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
-    ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
-                            : AppliedForceParentToWrenchParent(force, appl_point);
-    accumulators[idx].force += w_abs.force;
-    accumulators[idx].torque += TransformDirectionParentToLocal(w_abs.torque);
-}
-
-void ChBody::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool local) {
-    if (local)
-        accumulators[idx].torque += torque;
-    else
-        accumulators[idx].torque += TransformDirectionParentToLocal(torque);
-}
-
-const ChVector3d& ChBody::GetAccumulatedForce(unsigned int idx) const {
-    return accumulators[idx].force;
-}
-
-const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int idx) const {
-    return accumulators[idx].torque;
-}
-
-//// TODO - get rid of this as soon as ChModalAssembly is dealt with (fixed or removed)
-const ChWrenchd ChBody::GetAccumulatorWrench() const {
-    ChWrenchd wrench;
-    for (const auto& a : accumulators) {
-        wrench.force += a.force;
-        wrench.torque += a.torque;
-    }
-    return wrench;
 }
 
 // -----------------------------------------------------------------------------

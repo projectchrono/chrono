@@ -376,11 +376,11 @@ std::shared_ptr<ChLinePath> ChSprocketSinglePin::GetProfile() const {
         p2 = rot * p2;
         p3 = rot * p3;
         p4 = rot * p4;
-        ChLineSegment seg1(p1, p2);
+        auto seg1 = chrono_types::make_shared<ChLineSegment>(p1, p2);
         double angle1 = alpha + 1.5 * CH_PI - gamma;
         double angle2 = alpha + 1.5 * CH_PI + gamma;
-        ChLineArc arc(ChCoordsys<>(p0), R, angle1, angle2, true);
-        ChLineSegment seg2(p3, p4);
+        auto arc = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(p0), R, angle1, angle2, true);
+        auto seg2 = chrono_types::make_shared<ChLineSegment>(p3, p4);
         profile->AddSubLine(seg1);
         profile->AddSubLine(arc);
         profile->AddSubLine(seg2);

@@ -103,7 +103,7 @@ solver:
       enable_diagonal_preconditioner:
           type: boolean
           description: Whether to use a diagonal preconditioner (iterative DVI and Krylov linear solvers)
-          default: false
+          default: true
       warm_start:
           type: boolean
           description: Whether to warm start the solver from the previous solution (iterative DVI and Krylov linear solvers)

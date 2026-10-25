@@ -13,12 +13,66 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <filesystem>
+#include <system_error>
+
+#ifdef _WIN32
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #include <windows.h>
+#else
+    #include <dlfcn.h>
+#endif
+
 #include "chrono/utils/ChConstants.h"
 
 #include "chrono_sensor/utils/ChSensorUtils.h"
 
 namespace chrono {
 namespace sensor {
+
+namespace {
+
+// Directory of the module containing this code: the Chrono::Sensor shared library or, for a static build, the
+// executable. Empty if it cannot be determined.
+std::filesystem::path GetModuleDirectory() {
+#ifdef _WIN32
+    HMODULE module = nullptr;
+    if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, reinterpret_cast<LPCWSTR>(&GetModuleDirectory), &module)) {
+        std::wstring path(MAX_PATH, L'\0');
+        DWORD length;
+        while ((length = GetModuleFileNameW(module, path.data(), (DWORD)path.size())) == path.size())
+            path.resize(2 * path.size());
+        if (length > 0) {
+            path.resize(length);
+            return std::filesystem::path(path).parent_path();
+        }
+    }
+#else
+    Dl_info info;
+    if (dladdr(reinterpret_cast<void*>(&GetModuleDirectory), &info) && info.dli_fname != nullptr) {
+        std::error_code ec;
+        return std::filesystem::absolute(info.dli_fname, ec).parent_path();
+    }
+#endif
+    return {};
+}
+
+}  // namespace
+
+std::string LocateSensorDirectory(const std::string& relative_path, const std::string& fallback_path, const std::string& required_entry) {
+    if (!relative_path.empty()) {
+        const auto module_dir = GetModuleDirectory();
+        if (!module_dir.empty()) {
+            const auto candidate = (module_dir / relative_path).lexically_normal();
+            std::error_code ec;
+            if (std::filesystem::is_directory(candidate, ec) && (required_entry.empty() || std::filesystem::exists(candidate / required_entry, ec)))
+                return candidate.generic_string();
+        }
+    }
+    return fallback_path;
+}
 
 #if defined(CHRONO_HAS_OPTIX) || defined(CHRONO_HAS_VULKAN_RT) || defined(CHRONO_HAS_METAL_RT)
 

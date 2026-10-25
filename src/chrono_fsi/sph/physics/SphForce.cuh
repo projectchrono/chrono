@@ -32,24 +32,24 @@ namespace fsi {
 namespace sph {
 
 struct compare_Real4_x {
-    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) { return lhs.x < rhs.x; }
+    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) const { return lhs.x < rhs.x; }
 };
 struct compare_Real4_y {
-    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) { return lhs.y < rhs.y; }
+    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) const { return lhs.y < rhs.y; }
 };
 struct compare_Real4_z {
-    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) { return lhs.z < rhs.z; }
+    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) const { return lhs.z < rhs.z; }
 };
 struct compare_Real4_w {
-    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) { return lhs.w < rhs.w; }
+    __host__ __device__ bool operator()(Real4 lhs, Real4 rhs) const { return lhs.w < rhs.w; }
 };
 struct compare_Real3_mag {
-    __host__ __device__ bool operator()(Real3 lhs, Real3 rhs) { return length(lhs) < length(rhs); }
+    __host__ __device__ bool operator()(Real3 lhs, Real3 rhs) const { return length(lhs) < length(rhs); }
 };
 struct equal_invalid {
     uint invalidParticleID;
     equal_invalid(uint y) { invalidParticleID = y; }
-    __host__ __device__ bool operator()(const uint& x) { return x == invalidParticleID; }
+    __host__ __device__ bool operator()(const uint& x) const { return x == invalidParticleID; }
 };
 struct Real4_x {
     const Real rest_val;

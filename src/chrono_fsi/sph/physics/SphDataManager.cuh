@@ -371,6 +371,8 @@ struct FsiDataManager {
     // FSI flex solid connectivity
     thrust::host_vector<int2> flex1D_Nodes_H;    ///< node indices for each 1-D flex segment (host)
     thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
+    thrust::host_vector<Real3> flex1D_Normals_H;    ///< reference normal for each 1-D flex segment (host)
+    thrust::device_vector<Real3> flex1D_Normals_D;  ///< reference normal for each 1-D flex segment (device)
     thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
     thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
 

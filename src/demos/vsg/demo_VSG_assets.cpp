@@ -67,11 +67,11 @@ int main(int argc, char* argv[]) {
     if (lines_and_surfaces) {
         // Attach a path shape populated with segments and arcs
         auto pathfloor = chrono_types::make_shared<ChVisualShapePath>();
-        ChLineSegment mseg1(ChVector3d(1, 2, 0), ChVector3d(1, 3, 0));
+        auto mseg1 = chrono_types::make_shared<ChLineSegment>(ChVector3d(1, 2, 0), ChVector3d(1, 3, 0));
         pathfloor->GetPathGeometry()->AddSubLine(mseg1);
-        ChLineSegment mseg2(ChVector3d(1, 3, 0), ChVector3d(2, 3, 0));
+        auto mseg2 = chrono_types::make_shared<ChLineSegment>(ChVector3d(1, 3, 0), ChVector3d(2, 3, 0));
         pathfloor->GetPathGeometry()->AddSubLine(mseg2);
-        ChLineArc marc1(ChCoordsys<>(ChVector3d(2, 3.5, 0)), 0.5, -CH_PI_2, CH_PI_2);
+        auto marc1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(2, 3.5, 0)), 0.5, -CH_PI_2, CH_PI_2);
         pathfloor->GetPathGeometry()->AddSubLine(marc1);
         pathfloor->SetColor(ChColor(0.0f, 0.5f, 0.8f));
         floor->AddVisualShape(pathfloor, ChFramed(ChVector3d(3, -1, -8), QUNIT));

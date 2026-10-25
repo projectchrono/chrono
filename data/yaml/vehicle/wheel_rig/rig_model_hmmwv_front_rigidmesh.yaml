@@ -1,0 +1,22 @@
+## Rig mechanism: HMMWV wheel with rigid mesh tire on the steerable HMMWV front suspension
+
+chrono-version: 10.0
+
+model:
+  type: VEHICLE                   # VEHICLE, CUSTOM
+  name: HMMWV_front_RigidMesh
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  wheel_json: "vehicle/hmmwv/wheel/HMMWV_Wheel.json"
+  tire_json: "vehicle/hmmwv/tire/HMMWV_RigidMeshTire.json"
+  suspension_json: "vehicle/hmmwv/suspension/HMMWV_DoubleWishboneFront.json"
+
+rig:
+  normal_load: 6500               # HMMWV front static wheel load
+  #camber_angle: 0                # ignored with a suspension
+
+solver: "rig_solver.yaml"

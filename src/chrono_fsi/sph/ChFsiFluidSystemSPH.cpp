@@ -763,8 +763,10 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
         m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
         m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
         m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
-        m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
-        m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+        // The angular velocity and acceleration in FsiBodyState are expressed in the global frame, but the SPH solver
+        // uses them expressed in the body frame
+        m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_vel));
+        m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_acc));
     }
 
     if (num_bodies > 0)
@@ -798,8 +800,10 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
             m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
             m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
             m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
-            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
-            m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+            // The angular velocity and acceleration in FsiBodyState are expressed in the global frame, but the SPH
+            // solver uses them expressed in the body frame
+            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_vel));
+            m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_acc));
         }
 
         if (num_bodies > 0)
@@ -1263,6 +1267,28 @@ void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
     y = Vcross(z, x);
 }
 
+// Host counterpart of get_projected_axes (see SphCustomMath.cuh).
+void GetProjectedAxes(const ChVector3d& x, const ChVector3d& n, ChVector3d& y, ChVector3d& z) {
+    ChVector3d n_perp = n - Vdot(n, x) * x;
+    double len = n_perp.Length();
+    if (len < 1e-3) {
+        GetOrthogonalAxes(x, y, z);
+        return;
+    }
+    y = n_perp / len;
+    z = Vcross(x, y);
+}
+
+// Initial reference normal for a 1-D segment with given end points.
+// The cross-section frames of all BCE markers on the segment are derived from this normal, which is then carried over
+// to the current segment configuration at each update of the BCE marker states (see SphBceManager).
+ChVector3d GetSegmentNormal(const ChVector3d& P0, const ChVector3d& P1) {
+    ChVector3d y;
+    ChVector3d z;
+    GetOrthogonalAxes((P1 - P0).GetNormalized(), y, z);
+    return y;
+}
+
 void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh,
                                              BcePatternMesh1D pattern,
                                              bool remove_center,
@@ -1319,6 +1345,7 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
         ////cout << segID << "  " << P0 << "  |  " << P1 << endl;
 
         auto len = (P1 - P0).Length();          // segment length
+        auto normal = GetSegmentNormal(P0, P1);  // segment reference normal
         int n = (int)std::ceil(len / spacing);  // required divisions on segment
 
         for (int i = 0; i <= n; i++) {
@@ -1332,6 +1359,11 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
             ChVector3d P;
             ChVector3d D;
             if (use_node_directions) {
+                // Cubic Hermite interpolation; the Hermite tangents are the unit node directions scaled by the segment
+                // length (as in the device BCE marker update)
+                auto T0 = dir[i0] * len;
+                auto T1 = dir[i1] * len;
+
                 auto t2 = t * t;
                 auto t3 = t2 * t;
 
@@ -1339,23 +1371,23 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
                 auto a1 = -2 * t3 + 3 * t2;
                 auto b0 = t3 - 2 * t2 + t;
                 auto b1 = t3 - t2;
-                P = P0 * a0 + P1 * a1 + dir[i0] * b0 + dir[i1] * b1;
+                P = P0 * a0 + P1 * a1 + T0 * b0 + T1 * b1;
 
                 auto a0d = 6 * t2 - 6 * t;
                 auto a1d = -6 * t2 + 6 * t;
                 auto b0d = 3 * t2 - 4 * t + 1;
                 auto b1d = 3 * t2 - 2 * t;
-                D = P0 * a0d + P1 * a1d + dir[i0] * b0d + dir[i1] * b1d;
+                D = P0 * a0d + P1 * a1d + T0 * b0d + T1 * b1d;
             } else {
                 P = P0 * (1 - t) + P1 * t;
                 D = P1 - P0;
             }
 
-            // Create local frame
+            // Create local frame (from the segment reference normal, for continuity along the segment)
             ChVector3d x_dir = D.GetNormalized();
             ChVector3d y_dir;
             ChVector3d z_dir;
-            GetOrthogonalAxes(x_dir, y_dir, z_dir);
+            GetProjectedAxes(x_dir, normal, y_dir, z_dir);
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
@@ -1972,6 +2004,7 @@ void ChFsiFluidSystemSPH::AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh) {
         auto node0_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(0));
         auto node1_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(1));
         m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
+        m_data_mgr->flex1D_Normals_H.push_back(ToReal3(GetSegmentNormal(seg->GetNode(0)->GetPos(), seg->GetNode(1)->GetPos())));
     }
 
     // Add BCE markers and load their local coordinates and mesh associations
@@ -2349,7 +2382,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxExterior(const ChVec
     ChVector3d delta(size.x() / (np.x() - 1), size.y() / (np.y() - 1), size.z() / (np.z() - 1));
 
     // Inflate box
-    ChVector3i Np = np + 2 * (num_layers - 1);
+    ChVector3i Np = np + ChVector3i(2 * (num_layers - 1));
     ChVector3d Size = size + 2.0 * (num_layers - 1.0) * delta;
 
     // Create exterior BCE layers

@@ -30,6 +30,13 @@
 %csmethodmodifiers chrono::ChBody::GetAngAccLocal "public"
 %csmethodmodifiers chrono::ChBody::GetAngAccParent "public"
 
+%csmethodmodifiers chrono::ChBody::AddAccumulator "public"
+%csmethodmodifiers chrono::ChBody::EmptyAccumulator "public"
+%csmethodmodifiers chrono::ChBody::AccumulateForce "public"
+%csmethodmodifiers chrono::ChBody::AccumulateTorque "public"
+%csmethodmodifiers chrono::ChBody::GetAccumulatedForce "public"
+%csmethodmodifiers chrono::ChBody::GetAccumulatedTorque "public"
+
 // avoid adding new keyword
 %csmethodmodifiers chrono::ChBody::AddCollisionModel "public"
 %csmethodmodifiers chrono::ChBody::AddCollisionShape "public"
@@ -62,6 +69,14 @@ const ChVector3<double>& GetLinAcc() const         {return $self->GetLinAcc();}
 const ChQuaternion<double>& GetRotDt2() const      {return $self->GetRotDt2();}
 ChVector3<double> GetAngAccLocal() const           {return $self->GetAngAccLocal();}
 ChVector3<double> GetAngAccParent() const          {return $self->GetAngAccParent();}
+
+// Methods inherited from ChBodyFrame
+unsigned int AddAccumulator()                                                                              {return $self->AddAccumulator();}
+void EmptyAccumulator(unsigned int idx)                                                                    {$self->EmptyAccumulator(idx);}
+void AccumulateForce(unsigned int idx, const ChVector3<double>& force, const ChVector3<double>& point, bool local) {$self->AccumulateForce(idx, force, point, local);}
+void AccumulateTorque(unsigned int idx, const ChVector3<double>& torque, bool local)                       {$self->AccumulateTorque(idx, torque, local);}
+const ChVector3<double>& GetAccumulatedForce(unsigned int idx) const                                       {return $self->GetAccumulatedForce(idx);}
+const ChVector3<double>& GetAccumulatedTorque(unsigned int idx) const                                      {return $self->GetAccumulatedTorque(idx);}
 
 // Methods inherited from ChContactable
 void AddCollisionModel(std::shared_ptr<ChCollisionModel> model)                         {$self->AddCollisionModel(model);}

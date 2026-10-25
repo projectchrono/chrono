@@ -15,6 +15,8 @@
 #ifndef CHNODEFEAXYZ_H
 #define CHNODEFEAXYZ_H
 
+#include <vector>
+
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/solver/ChVariablesNode.h"
 #include "chrono/fea/ChNodeFEAbase.h"
@@ -30,9 +32,13 @@ class ChMesh;
 
 /// Class for a generic 3D finite element node, with x,y,z displacement.
 /// This is the typical node that can be used for tetrahedrons, etc.
+/// Force accumulators (see AddAccumulator) are applied in addition to the force set with SetForce.
 class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
   public:
     ChNodeFEAxyz(ChVector3d initial_pos = VNULL);
+
+    /// Copy constructor.
+    /// Force accumulators are not copied (they are owned by the code that created them).
     ChNodeFEAxyz(const ChNodeFEAxyz& other);
     virtual ~ChNodeFEAxyz() {}
 
@@ -71,6 +77,31 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     /// Get the 3d applied force, in absolute reference
     virtual const ChVector3d& GetForce() const { return Force; }
 
+    /// Add a new force accumulator.
+    /// An arbitrary number of accumulators can be specified for a node, differentiated by their index `idx` (as
+    /// returned by this function). At each step in a simulation loop, a typical use of these accumulators is:
+    /// <pre>
+    ///    EmptyAccumulator(idx);
+    ///    AccumulateForce(idx, ...);
+    ///    ...
+    ///    AccumulateForce(idx, ...);
+    ///    ...
+    /// </pre>
+    /// Accumulated forces are applied in addition to the force set with SetForce.
+    unsigned int AddAccumulator();
+
+    /// Clear the accumulator with specified index.
+    void EmptyAccumulator(unsigned int idx);
+
+    /// Include a force (expressed in the absolute frame) in the specified accumulator.
+    /// It is the caller's responsibility to clear the force accumulator before reuse (e.g., at each integration step).
+    void AccumulateForce(unsigned int idx,        ///< index of the accumulator
+                         const ChVector3d& force  ///< applied force, in absolute reference
+    );
+
+    /// Return the current value of the accumulated force from the specified accumulator.
+    const ChVector3d& GetAccumulatedForce(unsigned int idx) const;
+
     /// Get the number of degrees of freedom
     virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
@@ -106,6 +137,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
                                           const unsigned int off_v,
                                           ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,
@@ -133,6 +165,8 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     ChVariablesNode variables;  ///< 3D node variables, with x,y,z
     ChVector3d X0;              ///< reference position
     ChVector3d Force;           ///< applied force
+
+    std::vector<ChVector3d> accumulators;  ///< force accumulators (in absolute coords)
 };
 
 /// @} fea_nodes

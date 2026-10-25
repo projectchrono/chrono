@@ -37,11 +37,6 @@
     #define CHRONO_ALIGN_16
 #endif
 
-#if defined _MSC_VER
-    #define fmax fmax
-    #define fmin fmin
-#endif
-
 #if defined(_WIN32) || defined(_WIN64)
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN

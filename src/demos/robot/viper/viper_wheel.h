@@ -15,7 +15,9 @@
 /// Viper wheel for use in a ChWheelTestRig.
 class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
   public:
-    ViperRigWheel(chrono::ChSystem& system, bool attached_to_suspension);
+    ViperRigWheel(chrono::ChSystem& system);
+
+    virtual bool HasSuspension() const override { return false; }
 
     void SetRadius(double radius) { m_radius = radius; }
     void SetWidth(double width) { m_width = width; }
@@ -28,15 +30,27 @@ class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
     virtual double GetRadius() const override { return m_radius + m_grouser_height; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetMass() const override { return m_mass; }
+    virtual double GetWheelMass() const override { return m_mass; }
 
     virtual std::shared_ptr<chrono::ChBody> GetHub() const override { return m_wheel; }
 
-    virtual void Initialize(const chrono::ChFramed& frame, bool fixed, double step_size, chrono::VisualizationType vis_type) override {
-        ChAssertAlways(!attached_to_suspension);
-
+    virtual void Initialize(std::shared_ptr<chrono::ChBodyAuxRef> chassis_body,
+                            const chrono::ChFramed& frame,
+                            bool fixed_wheel,
+                            double step_size,
+                            chrono::VisualizationType vis_type) override {
         m_wheel->SetPos(frame.GetPos());
         m_wheel->SetRot(frame.GetRot());
-        m_wheel->SetFixed(fixed);
+        m_wheel->SetFixed(fixed_wheel);
+    }
+
+    virtual chrono::vehicle::TerrainForce ReportForces(chrono::vehicle::ChTerrain& terrain) const override {
+        return chrono::vehicle::ChWheelTestRig::CalculateTerrainForce({m_wheel}, terrain, m_wheel->GetPos());
+    }
+
+    virtual void RemoveFromSystem() override {
+        if (m_wheel->GetSystem())
+            m_wheel->GetSystem()->Remove(m_wheel);
     }
 
 #ifdef CHRONO_CRM
@@ -66,8 +80,8 @@ class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
 
 // -----------------------------------------------------------------------------
 
-ViperRigWheel::ViperRigWheel(chrono::ChSystem& system, bool attached_to_suspension)
-    : chrono::vehicle::ChWheelTestRig::WheelAssembly(system, attached_to_suspension), m_radius(0.225), m_width(0.2), m_grouser_height(0.01), m_grouser_width(0.005), m_num_grousers(24) {
+ViperRigWheel::ViperRigWheel(chrono::ChSystem& system)
+    : chrono::vehicle::ChWheelTestRig::WheelAssembly(system), m_radius(0.225), m_width(0.2), m_grouser_height(0.01), m_grouser_width(0.005), m_num_grousers(24) {
     // Create trimesh
     std::string mesh_filename = chrono::GetChronoDataFile("robot/viper/obj/nasa_viper_wheel.obj");
 
@@ -109,15 +123,18 @@ ViperRigWheel::ViperRigWheel(chrono::ChSystem& system, bool attached_to_suspensi
 #ifdef CHRONO_CRM
 
 void ViperRigWheel::AddFSIBodies(chrono::vehicle::CRMTerrain& terrain, double spacing) {
+    // Register the wheel with the CRM terrain (not directly with the underlying FSI system), so that the terrain can
+    // report the FSI forces on the wheel and associate an active domain with it
     auto bce = CreateBCE(spacing);
-    terrain.GetFsiSystemSPH()->AddRigidBody(m_wheel, bce, chrono::ChFramed(), false);
+    terrain.AddRigidBody(m_wheel, bce, chrono::ChFramed(), false);
 }
 
 std::vector<chrono::ChVector3d> ViperRigWheel::CreateBCE(double spacing, bool cartesian) const {
     return CreateBCE(m_radius, m_width - spacing, m_grouser_height, m_grouser_width, m_num_grousers, spacing, cartesian);
 }
 
-std::vector<chrono::ChVector3d> ViperRigWheel::CreateBCE(double radius, double width, double grouser_height, double grouser_width, int num_grousers, double spacing, bool cartesian) {
+std::vector<chrono::ChVector3d>
+ViperRigWheel::CreateBCE(double radius, double width, double grouser_height, double grouser_width, int num_grousers, double spacing, bool cartesian) {
     std::vector<chrono::ChVector3d> bce;
 
     int num_layers = (int)std::floor(1.00001 * width / spacing) + 1;

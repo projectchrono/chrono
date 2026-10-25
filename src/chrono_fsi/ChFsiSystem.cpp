@@ -20,7 +20,7 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <thread>
+#include <future>
 #include <filesystem>
 
 #include "chrono/core/ChTypes.h"
@@ -296,10 +296,12 @@ void ChFsiSystem::DoStepDynamics(double step) {
         //   3. Wait for the MBS thread to finish execution.
         // Note that the fluid forces applied to the MBS over this step were evaluated from the solid states loaded
         // at the *previous* data exchange point.
+        // An exception thrown by either phase propagates to the caller. If the fluid step throws, the destructor of
+        // the future still waits for the MBS thread to finish; if the MBS step throws, get() rethrows its exception.
         m_timer_step.start();
-        std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
+        auto mbs = std::async(std::launch::async, &ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
         AdvanceCFD(step, threshold_CFD);
-        th.join();
+        mbs.get();
         m_timer_step.stop();
 
         // Data exchange between phases:

@@ -35,15 +35,41 @@ enum class ExitFlag {
     SUCCESS,          ///< no iterations have been performed, no error during velocity and/or acceleration assembly
     ABSTOL_RESIDUAL,  ///< iterations stopped because residual norm below threshold
     RELTOL_UPDATE,    ///< iterations stopped because relative update (Dx/X) norm below threshold
-    ABSTOL_UPDATE     ///< iterations stopped because update norm below threshold
+    ABSTOL_UPDATE,    ///< iterations stopped because update norm below threshold
+    ACCELERATION_INACCURATE,  ///< assembly done, but the acceleration-level solve was not accurate enough (see
+                              ///< ChSystem::SetAssemblyAccelerationTolerance)
+    UNSUPPORTED_CONTACTS      ///< assembly not performed: the NSC system has contacts (see ChSystem::DoAssembly)
 };
 }  // namespace AssemblyAnalysis
 
 /// Class for assembly analysis.
 /// Assembly is performed by satisfying constraints at a position, velocity, and acceleration levels.
 /// Assembly at position level involves solving a non-linear problem. Assembly at velocity level is
-/// performed by taking a small integration step. Consistent accelerations are obtained through
-/// finite differencing.
+/// performed by taking a small linearized integration step. Consistent accelerations and reactions are
+/// obtained from a second such step whose constraint right-hand side carries the quadratic-velocity
+/// term, so that the acceleration-level constraint equations, including that term, are satisfied while
+/// unilateral constraints and frictional contacts keep their velocity-level (DVI) treatment. The
+/// quadratic-velocity term is obtained by central differencing of the constraints (step 1e-6), which puts
+/// a roundoff floor on the reported accelerations, also at rest, of about 1e-4 times the length scale of
+/// the constraint (SI units: about 1e-4 for a 1 m distance constraint, 1e-2 for 100 m); the corresponding
+/// floor on the reactions is that acceleration floor times the mass the constraint acts on.
+/// Like the implicit integrators, the analysis scatters perturbed states to the system and expects the
+/// update of every item to be a function of (position, velocity, time) only. Accelerations and reactions
+/// are formed from a velocity increment over the step dt passed to AssemblyAnalysis() (1e-6 when called
+/// through ChSystem::DoAssembly()), so the residual of an iterative solver is amplified by 1/dt in them.
+/// When they matter, use a direct solver (SPARSE_LU, SPARSE_QR), MINRES or GMRES, or, if unilateral
+/// constraints require a VI solver, BARZILAIBORWEIN. The default PSOR solver can leave acceleration errors of
+/// several m/s^2 near singular configurations (e.g., a slider-crank at a dead centre), APGD and PJACOBI even
+/// in regular ones. ChSystem::DoAssembly() checks the residual of the acceleration-level solve and returns
+/// ExitFlag::ACCELERATION_INACCURATE if it is too large. This dt is distinct from the fixed
+/// 1e-6 differencing step of the quadratic-velocity term.
+/// NSC contacts are not supported. The active set and the friction are decided at velocity level, where the
+/// -C/dt stabilization with the tiny step dt admits an approach velocity of gap/dt, and the contact rows also
+/// enter the position-level iterations. As a result, contacts present at the time of the analysis corrupt all
+/// assembly levels (e.g., a resting body gets spurious position and velocity corrections and accelerations of
+/// order 1e3 m/s^2). ChSystem::DoAssembly() therefore does not perform the analysis on an NSC system with
+/// contacts and returns ExitFlag::UNSUPPORTED_CONTACTS instead. Use an SMC system or a short settling run with
+/// ChSystem::DoStepDynamics() to obtain consistent accelerations and reactions in the presence of contacts.
 class ChApi ChAssemblyAnalysis {
   public:
     ChAssemblyAnalysis(ChIntegrableIIorder& mintegrable);
@@ -54,7 +80,8 @@ class ChApi ChAssemblyAnalysis {
     /// Assembly is performed by satisfying constraints at position, velocity, and acceleration levels.
     /// Assembly at position level involves solving a non-linear problem.
     /// Assembly at velocity level is performed by taking a small integration step.
-    /// Consistent accelerations are obtained through finite differencing.
+    /// Consistent accelerations and reactions are obtained from a second linearized step that includes the
+    /// quadratic-velocity term, so that Cq a = Qc holds (see the class description for the accuracy floor).
     AssemblyAnalysis::ExitFlag AssemblyAnalysis(int action, double dt = 1e-7);
 
     /// Set the max number of Newton-Raphson iterations for the position assembly procedure.

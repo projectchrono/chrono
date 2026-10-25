@@ -142,7 +142,6 @@ public:
 	virtual cbtCollisionShape* createCylinderShapeX(cbtScalar radius, cbtScalar height);
 	virtual cbtCollisionShape* createCylinderShapeY(cbtScalar radius, cbtScalar height);
 	virtual cbtCollisionShape* createCylinderShapeZ(cbtScalar radius, cbtScalar height);
-    virtual cbtCollisionShape* createCylindricalShellShape(cbtScalar radius, cbtScalar height);  /* ***CHRONO*** */
     virtual cbtCollisionShape* createConeShapeX(cbtScalar radius, cbtScalar height);
 	virtual cbtCollisionShape* createConeShapeY(cbtScalar radius, cbtScalar height);
 	virtual cbtCollisionShape* createConeShapeZ(cbtScalar radius, cbtScalar height);

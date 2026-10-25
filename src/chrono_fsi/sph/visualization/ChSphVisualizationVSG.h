@@ -232,6 +232,9 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     void BindComputationalDomain();
     void BindActiveBox(const std::shared_ptr<ChBody>& obj, const  ChAABB& aabb, int tag);
 
+    /// Return true if FSI active domains are currently not enforced (initial CRM free flow phase).
+    bool ActiveDomainsSuspended() const;
+
     vsg3d::ChVisualSystemVSG::ParticleCloud* GetSphParticleCloud();
 
     ChFsiSystemSPH* m_sysFSI;       ///< associated FSI system

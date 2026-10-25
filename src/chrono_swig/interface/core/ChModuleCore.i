@@ -258,6 +258,13 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
 
+// Needed before the hoisted ChState.h and ChSystemDescriptor.h below. Otherwise a ChSystem
+// cannot be passed as the ChIntegrable* of a ChState, and GetSystemDescriptor() returns an
+// unwrapped shared_ptr.
+%shared_ptr(chrono::ChIntegrable)
+%shared_ptr(chrono::ChIntegrableIIorder)
+%shared_ptr(chrono::ChSystemDescriptor)
+
 #ifdef CHRONO_FEA
 %shared_ptr(chrono::fea::ChMesh)
 #endif
@@ -322,9 +329,6 @@ inline const char* ChUtils_GetFilename() {
 %feature("director") chrono::ChCollisionSystem::BroadphaseCallback;
 %feature("director") chrono::ChCollisionSystem::NarrowphaseCallback;
 %feature("director") chrono::ChCollisionSystem::VisualizationCallback;
-
-// Rename
-%rename(OutputSettings) chrono::ChOutput::Settings;
 
 //
 // B- INCLUDE HEADERS
@@ -395,9 +399,10 @@ inline const char* ChUtils_GetFilename() {
 // functions/   classes
 %include "ChFunction.i"
 
-#ifdef SWIGCSHARP   // --------------------------------------------------------------------- CSHARP
 %include "ChUpdateFlags.i"
-#endif              // --------------------------------------------------------------------- CSHARP
+
+// The time in StateGather / IntStateGather is an output argument (returned in Python, 'out' in C#).
+%apply double& OUTPUT { double& T };
 
 // Hoisted: ChMesh, ChPhysicsItem and ChNodeBase below refer to these types, which would
 // otherwise first be parsed via ChTimestepper.i / ChSolver.i further down.
@@ -461,7 +466,7 @@ inline const char* ChUtils_GetFilename() {
 %include "ChSolver.i"
 %include "ChContactContainer.i"
 // ChOutput precedes ChSystem.i, which refers to it.
-%include "../../../chrono/input_output/ChOutput.h"
+%include "ChOutput.i"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"
@@ -549,7 +554,6 @@ inline const char* ChUtils_GetFilename() {
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCone)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeConvexHull)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCylinder)
-%DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeCylindricalShell)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapeEllipsoid)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapePath2D)
 %DefSharedPtrDynamicCast(chrono, ChCollisionShape, ChCollisionShapePoint)

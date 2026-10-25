@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <cassert>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -80,6 +81,29 @@ void ChMesh::ForceToRest() {
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         // set null speeds, null accelerations
         vnodes[i]->ForceToRest();
+    }
+}
+
+std::vector<unsigned int> ChMesh::AddAccumulators() {
+    std::vector<unsigned int> indices(vnodes.size(), NO_ACCUMULATOR);
+    for (size_t i = 0; i < vnodes.size(); i++) {
+        if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[i]))
+            indices[i] = xyz->AddAccumulator();
+        else if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[i]))
+            indices[i] = xyzrot->AddAccumulator();
+    }
+    return indices;
+}
+
+void ChMesh::EmptyAccumulators(const std::vector<unsigned int>& indices) {
+    assert(indices.size() == vnodes.size());
+    for (size_t i = 0; i < vnodes.size(); i++) {
+        if (indices[i] == NO_ACCUMULATOR)
+            continue;
+        if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[i]))
+            xyz->EmptyAccumulator(indices[i]);
+        else if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[i]))
+            xyzrot->EmptyAccumulator(indices[i]);
     }
 }
 
@@ -281,6 +305,17 @@ void ChMesh::IntStateGetIncrement(const unsigned int off_x,
 void ChMesh::IntStateOnEndStep(double T) {
     for (int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->ElementUpdateEndStep(T);
+    }
+}
+
+void ChMesh::IntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // Loads applied on the nodes only (no element internal forces, no gravity)
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {
+            vnodes[j]->NodeIntLoadResidual_F_applied(off + local_off_v, R, c);
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
+        }
     }
 }
 

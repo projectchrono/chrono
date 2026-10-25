@@ -29,6 +29,8 @@ namespace fea {
 
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
+/// Force and torque accumulators (see ChBodyFrame) are applied in addition to the force and torque set with SetForce
+/// and SetTorque.
 class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
                               public ChBodyFrame,
                               public ChLoadableUVW {
@@ -131,6 +133,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
                                           const unsigned int off_v,
                                           ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,

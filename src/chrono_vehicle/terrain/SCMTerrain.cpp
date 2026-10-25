@@ -17,11 +17,15 @@
 //
 // =============================================================================
 
+#include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <cmath>
 #include <queue>
 #include <unordered_set>
+#include <cstdint>
 #include <limits>
+#include <string>
 
 #ifdef _OPENMP
     #include <omp.h>
@@ -39,10 +43,6 @@
 
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-
-#ifdef CHRONO_HAS_SCM_GPU
-    #include "chrono_vehicle/terrain/SCMGpu.h"
-#endif
 
 #include "chrono_thirdparty/stb/stb.h"
 
@@ -150,29 +150,35 @@ void SCMTerrain::SetCosimulationMode(bool val) {
     m_loader->m_cosim_mode = val;
 }
 
-#ifdef CHRONO_HAS_SCM_GPU
-void SCMTerrain::SetScmGpuEnabled(bool enable) {
-    m_loader->m_scm_gpu_config.enabled = enable;
-    scm_gpu::SetConfig(m_loader->m_scm_gpu_config);
+// Backend selection for the ray-cast and contact-force stages.
+void SCMTerrain::SetBackend(Backend backend) {
+    m_loader->m_raycast_backend = backend;
+    m_loader->m_contact_force_backend = backend;
 }
 
-bool SCMTerrain::IsScmGpuEnabled() const {
-    return m_loader->m_scm_gpu_config.enabled;
+void SCMTerrain::SetRayCastBackend(Backend backend) {
+    m_loader->m_raycast_backend = backend;
 }
 
-void SCMTerrain::SetScmGpuConfig(const scm_gpu::Config& config) {
-    m_loader->m_scm_gpu_config = config;
-    scm_gpu::SetConfig(m_loader->m_scm_gpu_config);
+void SCMTerrain::SetContactForceBackend(Backend backend) {
+    m_loader->m_contact_force_backend = backend;
 }
 
-scm_gpu::Config SCMTerrain::GetScmGpuConfig() const {
-    return m_loader->m_scm_gpu_config;
+SCMTerrain::Backend SCMTerrain::GetRayCastBackend() const {
+    return m_loader->m_raycast_backend;
 }
 
-void SCMTerrain::EnableRaycastGpuHip(bool val) {
-    m_loader->m_raycast_gpu_hip_enabled = val;
+SCMTerrain::Backend SCMTerrain::GetContactForceBackend() const {
+    return m_loader->m_contact_force_backend;
 }
-#endif
+
+void SCMTerrain::SetGpuSettings(const GpuSettings& settings) {
+    m_loader->m_gpu_settings = settings;
+}
+
+const SCMTerrain::GpuSettings& SCMTerrain::GetGpuSettings() const {
+    return m_loader->m_gpu_settings;
+}
 
 // Set properties of the SCM soil model.
 void SCMTerrain::SetSoilParameters(double Bekker_Kphi,    // Kphi, frictional modulus in Bekker model
@@ -288,6 +294,21 @@ void SCMTerrain::AddActiveDomain(std::shared_ptr<ChBody> body, const ChVector3d&
     m_loader->m_user_domains = true;
 }
 
+std::size_t SCMTerrain::RemoveActiveDomain(std::shared_ptr<ChBody> body) {
+    auto& domains = m_loader->m_active_domains;
+    const std::size_t before = domains.size();
+    domains.erase(std::remove_if(domains.begin(), domains.end(), [&body](const SCMLoader::ActiveDomainInfo& ad) { return ad.m_body == body; }), domains.end());
+    // m_user_domains deliberately stays set even if this emptied the list. Clearing it would send
+    // ComputeInternalForces down the default-domain branch, which asserts a single domain exists
+    // and would then rebuild one spanning every collision shape in the scene -- the opposite of
+    // what a caller trimming domains is asking for.
+    return before - domains.size();
+}
+
+std::size_t SCMTerrain::GetNumActiveDomains() const {
+    return m_loader->m_active_domains.size();
+}
+
 // Set user-supplied callback for evaluating location-dependent soil parameters.
 void SCMTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb) {
     m_loader->m_soil_fun = cb;
@@ -297,36 +318,28 @@ void SCMTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCa
 void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
     m_loader->Initialize(sizeX, sizeY, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Initialize the terrain from a specified height map.
 void SCMTerrain::Initialize(const std::string& heightmap_file, double sizeX, double sizeY, double hMin, double hMax, double delta) {
     m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
 void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
     m_loader->Initialize(mesh_file, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Initialize the terrain from a specified triangular mesh file.
 void SCMTerrain::Initialize(const ChTriangleMeshConnected& trimesh, double delta) {
     m_loader->Initialize(trimesh, delta);
 
-#ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::PrimeBuffers();
-#endif
+    m_loader->PrimeGpuBuffers();
 }
 
 // Get the heights of modified grid nodes.
@@ -385,6 +398,11 @@ int SCMTerrain::GetNumErosionNodes() const {
     return m_loader->m_num_erosion_nodes;
 }
 
+// Return the number of grid nodes deformed since the run began (size of the sparse node map).
+std::size_t SCMTerrain::GetNumDeformedNodes() const {
+    return m_loader->m_grid_map.size();
+}
+
 // Timer information
 double SCMTerrain::GetTimerActiveDomains() const {
     return 1e3 * m_loader->m_timer_active_domains();
@@ -431,6 +449,7 @@ void SCMTerrain::PrintStepStatistics(std::ostream& os) const {
     os << "   Number ray hits:         " << m_loader->m_num_ray_hits << std::endl;
     os << "   Number contact patches:  " << m_loader->m_num_contact_patches << std::endl;
     os << "   Number erosion nodes:    " << m_loader->m_num_erosion_nodes << std::endl;
+    os << "   Number deformed nodes:   " << m_loader->m_grid_map.size() << "  (cumulative, never evicted)" << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -478,10 +497,6 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
-#ifdef CHRONO_HAS_SCM_GPU
-    scm_gpu::SetConfig(m_scm_gpu_config);
-#endif
-
     m_colormap_type = ChColormap::Type::JET;
     m_plot_type = SCMTerrain::PLOT_NONE;
     m_plot_v_min = 0;
@@ -491,6 +506,8 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_test_offset_down = 0.5;
 
     m_raycast_gpu_ref_enabled = false;
+    m_raycast_backend = SCMTerrain::Backend::AUTO;
+    m_contact_force_backend = SCMTerrain::Backend::AUTO;
 
     m_boundary = false;
     m_user_domains = false;
@@ -547,7 +564,7 @@ void SCMLoader::Initialize(const std::string& heightmap_file, double sizeX, doub
     // corresponding to hMin and white corresponding to hMax. Entry (0,0) corresponds to bottom-left grid vertex.
     // Note that pixels in the image start at top-left corner.
     double h_scale = (hMax - hMin) / hmap.GetRange();
-    m_heights = ChMatrixDynamic<>(nvx, nvy);
+    m_heights = ChMatrixDynamic<ScmReal>(nvx, nvy);
     for (int ix = 0; ix < nvx; ix++) {
         double x = ix * dx_grid;                  // x location in image (in [0,1], 0 at left)
         int jx1 = (int)std::floor(x / dx_img);    // Left pixel
@@ -577,9 +594,9 @@ void SCMLoader::Initialize(const std::string& heightmap_file, double sizeX, doub
             double g22 = hmap.Gray(jx2, jy2);
 
             // Bilinear interpolation (gray level)
-            m_heights(ix, iy) = (1 - ax) * (1 - ay) * g11 + (1 - ax) * ay * g12 + ax * (1 - ay) * g21 + ax * ay * g22;
+            m_heights(ix, iy) = static_cast<ScmReal>((1 - ax) * (1 - ay) * g11 + (1 - ax) * ay * g12 + ax * (1 - ay) * g21 + ax * ay * g22);
             // Map into height range
-            m_heights(ix, iy) = hMin + m_heights(ix, iy) * h_scale;
+            m_heights(ix, iy) = static_cast<ScmReal>(hMin + m_heights(ix, iy) * h_scale);
         }
     }
 
@@ -640,8 +657,8 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
     int nvy = 2 * m_ny + 1;                                   // number of grid vertices in Y direction
 
     // Loop over all mesh faces, project onto the x-y plane and set the height for all covered grid nodes.
-    ////m_heights = ChMatrixDynamic<>::Zero(nvx, nvy);
-    m_heights = (minZ + m_base_height) * ChMatrixDynamic<>::Ones(nvx, nvy);
+    ////m_heights = ChMatrixDynamic<ScmReal>::Zero(nvx, nvy);
+    m_heights = static_cast<ScmReal>(minZ + m_base_height) * ChMatrixDynamic<ScmReal>::Ones(nvx, nvy);
 
     int num_h_set = 0;
     double a1, a2, a3;
@@ -667,7 +684,7 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
             for (int j = j_min; j <= j_max; j++) {
                 ChVector3d v(i * m_delta, j * m_delta, 0);
                 if (calcBarycentricCoordinates(v1, v2, v3, v, a1, a2, a3)) {
-                    m_heights(m_nx + i, m_ny + j) = minZ + a1 * v1.z() + a2 * v2.z() + a3 * v3.z();
+                    m_heights(m_nx + i, m_ny + j) = static_cast<ScmReal>(minZ + a1 * v1.z() + a2 * v2.z() + a3 * v3.z());
                     num_h_set++;
                 }
             }
@@ -687,12 +704,29 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     // Create the colormap
     m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
 
-    int nvx = 2 * m_nx + 1;                     // number of grid vertices in X direction
-    int nvy = 2 * m_ny + 1;                     // number of grid vertices in Y direction
-    int n_verts = nvx * nvy;                    // total number of vertices for initial visualization trimesh
-    int n_faces = 2 * (2 * m_nx) * (2 * m_ny);  // total number of faces for initial visualization trimesh
-    double x_scale = 0.5 / m_nx;                // scale for texture coordinates (U direction)
-    double y_scale = 0.5 / m_ny;                // scale for texture coordinates (V direction)
+    // Counters are 64-bit: on a fine grid the face count passes 2^31 before anything else
+    // does (there are two faces per node), and the previous int arithmetic overflowed
+    // silently -- at 0.03125 m spacing over a 1024 m patch n_faces evaluates to exactly
+    // 2^31 -- leaving the resize calls below to run on a negative count.
+    const std::int64_t nvx = 2 * static_cast<std::int64_t>(m_nx) + 1;  // grid vertices in X direction
+    const std::int64_t nvy = 2 * static_cast<std::int64_t>(m_ny) + 1;  // grid vertices in Y direction
+    const std::int64_t n_verts = nvx * nvy;                            // total vertices for initial visualization trimesh
+    const std::int64_t n_faces = 2 * (nvx - 1) * (nvy - 1);            // total faces for initial visualization trimesh
+    double x_scale = 0.5 / m_nx;                                       // scale for texture coordinates (U direction)
+    double y_scale = 0.5 / m_ny;                                       // scale for texture coordinates (V direction)
+
+    // Widening the counters does not lift the underlying limit: a face stores its three
+    // vertex indices in a ChVector3i, so a vertex index must still fit in int32 however the
+    // count is computed. That caps a visualization mesh at 2^31-1 vertices, reached at a
+    // spacing of ~0.0221 m over a 1024 m patch. Past that, fail with a diagnostic that names
+    // the way out rather than corrupting the mesh.
+    if (n_verts > static_cast<std::int64_t>(std::numeric_limits<int>::max())) {
+        std::cerr << "\nError: SCM visualization mesh would need " << n_verts << " vertices, exceeding the " << std::numeric_limits<int>::max()
+                  << " addressable by the 32-bit face indices of " << "ChTriangleMeshConnected.\n"
+                  << "Grid is " << nvx << " x " << nvy << " vertices at " << m_delta << " m spacing.\n"
+                  << "Coarsen the grid, shrink the patch, or construct SCMTerrain with visualization " << "disabled -- the soil model does not use this mesh." << std::endl;
+        throw std::runtime_error("SCM visualization mesh exceeds the 32-bit vertex index limit");
+    }
 
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
@@ -716,10 +750,10 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
     // UV coordinates are mapped in [0,1] x [0,1]. Use smoothed vertex normals.
-    int iv = 0;
-    for (int iy = 0; iy < nvy; iy++) {
+    std::int64_t iv = 0;
+    for (std::int64_t iy = 0; iy < nvy; iy++) {
         double y = iy * m_delta - 0.5 * sizeY;
-        for (int ix = 0; ix < nvx; ix++) {
+        for (std::int64_t ix = 0; ix < nvx; ix++) {
             double x = ix * m_delta - 0.5 * sizeX;
             if (m_type == PatchType::FLAT) {
                 // Set vertex location
@@ -728,7 +762,7 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
                 normals[iv] = m_frame.TransformDirectionLocalToParent(ChVector3d(0, 0, 1));
             } else {
                 // Set vertex location
-                vertices[iv] = m_frame * ChVector3d(x, y, m_heights(ix, iy));
+                vertices[iv] = m_frame * ChVector3d(x, y, static_cast<double>(m_heights(ix, iy)));
                 // Initialize vertex normal to zero (will be set later)
                 normals[iv] = ChVector3d(0, 0, 0);
             }
@@ -743,15 +777,16 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     // Specify triangular faces (two at a time).
     // Specify the face vertices counter-clockwise.
     // Set the normal indices same as the vertex indices.
-    int it = 0;
-    for (int iy = 0; iy < nvy - 1; iy++) {
-        for (int ix = 0; ix < nvx - 1; ix++) {
-            int v0 = ix + nvx * iy;
-            idx_vertices[it] = ChVector3i(v0, v0 + 1, v0 + nvx + 1);
-            idx_normals[it] = ChVector3i(v0, v0 + 1, v0 + nvx + 1);
+    std::int64_t it = 0;
+    for (std::int64_t iy = 0; iy < nvy - 1; iy++) {
+        for (std::int64_t ix = 0; ix < nvx - 1; ix++) {
+            const int v0 = static_cast<int>(ix + nvx * iy);
+            const int vn = static_cast<int>(nvx);
+            idx_vertices[it] = ChVector3i(v0, v0 + 1, v0 + vn + 1);
+            idx_normals[it] = ChVector3i(v0, v0 + 1, v0 + vn + 1);
             ++it;
-            idx_vertices[it] = ChVector3i(v0, v0 + nvx + 1, v0 + nvx);
-            idx_normals[it] = ChVector3i(v0, v0 + nvx + 1, v0 + nvx);
+            idx_vertices[it] = ChVector3i(v0, v0 + vn + 1, v0 + vn);
+            idx_normals[it] = ChVector3i(v0, v0 + vn + 1, v0 + vn);
             ++it;
         }
     }
@@ -760,7 +795,7 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
         return;
 
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
-    std::vector<int> accumulators(n_verts, 0);
+    std::vector<int> accumulators(static_cast<std::size_t>(n_verts), 0);
 
     // Calculate normals and then average the normals from all adjacent faces.
     for (it = 0; it < n_faces; it++) {
@@ -778,7 +813,7 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     }
 
     // Set the normals to the average values.
-    for (int in = 0; in < n_verts; in++) {
+    for (std::int64_t in = 0; in < n_verts; in++) {
         normals[in] /= (double)accumulators[in];
     }
 }
@@ -809,16 +844,15 @@ SCMTerrain::NodeInfo SCMLoader::GetNodeInfo(const ChVector3d& loc) const {
     int j = static_cast<int>(std::round(loc_loc.y() / m_delta));
     ChVector2i ij(i, j);
 
-    // First query the hash-map
-    auto p = m_grid_map.find(ij);
-    if (p != m_grid_map.end()) {
-        ni.sinkage = p->second.sinkage;
-        ni.sinkage_plastic = p->second.sinkage_plastic;
-        ni.sinkage_elastic = p->second.sinkage_elastic;
-        ni.sigma = p->second.sigma;
-        ni.sigma_yield = p->second.sigma_yield;
-        ni.kshear = p->second.kshear;
-        ni.tau = p->second.tau;
+    // First query the node map
+    if (const NodeRecord* p = m_grid_map.Find(ij)) {
+        ni.sinkage = p->sinkage;
+        ni.sinkage_plastic = p->sinkage_plastic;
+        ni.sinkage_elastic = p->sinkage_elastic;
+        ni.sigma = p->sigma;
+        ni.sigma_yield = p->sigma_yield;
+        ni.kshear = p->kshear;
+        ni.tau = p->tau;
         return ni;
     }
 
@@ -839,23 +873,26 @@ int SCMLoader::GetMeshVertexIndex(const ChVector2i& loc) {
     assert(loc.x() <= +m_nx);
     assert(loc.y() >= -m_ny);
     assert(loc.y() <= +m_ny);
-    return (loc.x() + m_nx) + (2 * m_nx + 1) * (loc.y() + m_ny);
+    // Evaluated in 64-bit: the product overruns int32 on a fine grid. The result itself is a
+    // vertex index, which CreateVisualizationMesh has already proven fits in int32.
+    const std::int64_t nvx = 2 * static_cast<std::int64_t>(m_nx) + 1;
+    return static_cast<int>((loc.x() + m_nx) + nvx * (loc.y() + m_ny));
 }
 
 // Get indices of trimesh faces incident to the specified grid vertex.
-std::vector<int> SCMLoader::GetMeshFaceIndices(const ChVector2i& loc) {
-    int i = loc.x();
-    int j = loc.y();
+std::vector<std::int64_t> SCMLoader::GetMeshFaceIndices(const ChVector2i& loc) {
+    std::int64_t i = loc.x();
+    std::int64_t j = loc.y();
 
     // Ignore boundary vertices
     if (i == -m_nx || i == m_nx || j == -m_ny || j == m_ny)
-        return std::vector<int>();
+        return std::vector<std::int64_t>();
 
     // Load indices of 6 adjacent faces
     i += m_nx;
     j += m_ny;
-    int nx = 2 * m_nx;
-    std::vector<int> faces(6);
+    const std::int64_t nx = 2 * static_cast<std::int64_t>(m_nx);
+    std::vector<std::int64_t> faces(6);
     faces[0] = 2 * ((i - 1) + nx * (j - 1));
     faces[1] = 2 * ((i - 1) + nx * (j - 1)) + 1;
     faces[2] = 2 * ((i - 1) + nx * (j - 0));
@@ -875,7 +912,7 @@ double SCMLoader::GetInitHeight(const ChVector2i& loc) const {
         case PatchType::TRI_MESH: {
             auto x = ChClamp(loc.x(), -m_nx, +m_nx);
             auto y = ChClamp(loc.y(), -m_ny, +m_ny);
-            return m_heights(x + m_nx, y + m_ny);
+            return static_cast<double>(m_heights(x + m_nx, y + m_ny));
         }
         default:
             return 0;
@@ -907,10 +944,9 @@ ChVector3d SCMLoader::GetPoint(const ChVector2i& loc) const {
 
 // Get the terrain height (relative to the SCM plane) at the specified grid vertex.
 double SCMLoader::GetHeight(const ChVector2i& loc) const {
-    // First query the hash-map
-    auto p = m_grid_map.find(loc);
-    if (p != m_grid_map.end())
-        return p->second.level;
+    // First query the node map
+    if (const NodeRecord* p = m_grid_map.Find(loc))
+        return p->level;
 
     // Else return undeformed height
     return GetInitHeight(loc);
@@ -1397,15 +1433,7 @@ void SCMLoader::ComputeInternalForces() {
 
     // Information of vertices with ray-cast hits
 
-#ifdef CHRONO_HAS_SCM_GPU
-    using HitRecord = scm_gpu::ScmHitRecord;
-#else
-    struct HitRecord {
-        ChContactable* contactable;  // pointer to hit object
-        ChVector3d abs_point;        // hit point, expressed in global frame
-        int patch_id;                // index of associated patch id
-    };
-#endif
+    using HitRecord = ScmHitRecord;
 
     // Hash-map for vertices with ray-cast hits
     std::unordered_map<ChVector2i, HitRecord, CoordHash> hits;
@@ -1420,9 +1448,9 @@ void SCMLoader::ComputeInternalForces() {
     // (contact-patch clustering, force computation) needs to know which backend ran.
     auto absorb_raycast_hits = [&](const std::vector<RaycastHit>& raw_hits) {
         for (auto& rh : raw_hits) {
-            if (m_grid_map.find(rh.ij) == m_grid_map.end()) {
+            if (!m_grid_map.Find(rh.ij)) {
                 double z = GetInitHeight(rh.ij);
-                m_grid_map.insert(std::make_pair(rh.ij, NodeRecord(z, z, GetInitNormal(rh.ij))));
+                m_grid_map.Emplace(rh.ij, NodeRecord(z, z, GetInitNormal(rh.ij)));
             }
             HitRecord record = {rh.contactable, rh.abs_point, -1};
             hits.insert(std::make_pair(rh.ij, record));
@@ -1430,32 +1458,22 @@ void SCMLoader::ComputeInternalForces() {
         m_num_ray_hits = (int)hits.size();
     };
 
-#ifdef CHRONO_HAS_SCM_GPU
-    bool use_raycast_hip = m_raycast_gpu_hip_enabled && m_user_domains;
-#else
-    bool use_raycast_hip = false;
-#endif
-
-    if (use_raycast_hip) {
-        // GPU ray-cast HIP backend. It declines models it cannot
-        // represent -- notably any whose active-domain bodies carry no triangle-mesh collision
-        // geometry -- in which case the CPU path below runs instead for this step.
+    // GPU ray casting requires explicit active domains. The GPU implementation declines models it cannot
+    // represent -- notably any whose active-domain bodies carry no triangle-mesh collision geometry -- in
+    // which case the CPU path below runs instead for this step.
+    bool raycast_on_gpu = false;
+    if (m_user_domains && GpuAllowed(m_raycast_backend)) {
         std::vector<RaycastHit> raw_hits;
         int rc_num_ray_casts = 0;
-        bool gpu_handled = false;
-#ifdef CHRONO_HAS_SCM_GPU
-        gpu_handled = ComputeRayCastGpuHip(raw_hits, rc_num_ray_casts);
-#endif
-        if (gpu_handled) {
+        if (ComputeRayCastGpu(raw_hits, rc_num_ray_casts)) {
+            raycast_on_gpu = true;
             ++m_num_raycast_gpu_steps;
             m_num_ray_casts += rc_num_ray_casts;
             absorb_raycast_hits(raw_hits);
-        } else {
-            use_raycast_hip = false;
         }
     }
 
-    if (use_raycast_hip) {
+    if (raycast_on_gpu) {
         // Handled above.
     } else if (m_raycast_gpu_ref_enabled && m_user_domains) {
         // GPU ray-cast reference backend (CPU stand-in).
@@ -1503,8 +1521,8 @@ void SCMLoader::ComputeInternalForces() {
     #pragma omp critical(SCM_ray_casting)
                     {
                         // If this is the first hit from this node, initialize the node record
-                        if (m_grid_map.find(ij) == m_grid_map.end()) {
-                            m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z, GetInitNormal(ij))));
+                        if (!m_grid_map.Find(ij)) {
+                            m_grid_map.Emplace(ij, NodeRecord(z, z, GetInitNormal(ij)));
                         }
 
                         // Add to our map of hits to process
@@ -1576,9 +1594,9 @@ void SCMLoader::ComputeInternalForces() {
             for (int t_num = 0; t_num < nthreads; t_num++) {
                 for (auto& h : t_hits[t_num]) {
                     // If this is the first hit from this node, initialize the node record
-                    if (m_grid_map.find(h.first) == m_grid_map.end()) {
+                    if (!m_grid_map.Find(h.first)) {
                         double z = GetInitHeight(h.first);
-                        m_grid_map.insert(std::make_pair(h.first, NodeRecord(z, z, GetInitNormal(h.first))));
+                        m_grid_map.Emplace(h.first, NodeRecord(z, z, GetInitNormal(h.first)));
                     }
                     ////hits.insert(h);
                 }
@@ -1680,19 +1698,19 @@ void SCMLoader::ComputeInternalForces() {
 
     m_timer_contact_forces.start();
 
-#ifdef CHRONO_HAS_SCM_GPU
-    bool scm_used_gpu = false;
-    if (m_scm_gpu_config.enabled && !m_soil_fun && hits.size() >= m_scm_gpu_config.min_hits) {
+    // GPU contact forces do not support location-dependent soil parameters. In AUTO mode, small hit counts
+    // stay on the CPU, where they are cheaper than the GPU transfer overhead.
+    bool forces_on_gpu = false;
+    const bool enough_hits = m_contact_force_backend != SCMTerrain::Backend::AUTO || hits.size() >= m_gpu_settings.min_hits;
+    if (!m_soil_fun && enough_hits && GpuAllowed(m_contact_force_backend)) {
         std::vector<double> patch_oob(contact_patches.size());
         for (size_t ip = 0; ip < contact_patches.size(); ++ip)
             patch_oob[ip] = contact_patches[ip].oob;
-        scm_used_gpu = ComputeContactForcesGpu(hits, patch_oob);
-        if (scm_used_gpu)
+        forces_on_gpu = ComputeContactForcesGpu(hits, patch_oob);
+        if (forces_on_gpu)
             ++m_num_contact_force_gpu_steps;
     }
-    if (!scm_used_gpu) {
-#endif
-
+    if (!forces_on_gpu) {
         // Initialize local values for the soil parameters
         double Bekker_Kphi = m_Bekker_Kphi;
         double Bekker_Kc = m_Bekker_Kc;
@@ -1707,8 +1725,8 @@ void SCMLoader::ComputeInternalForces() {
         for (auto& h : hits) {
             ChVector2d ij = h.first;
 
-            auto& nr = m_grid_map.at(ij);      // node record
-            const double& ca = nr.normal.z();  // cosine of angle between local normal and SCM plane vertical
+            auto& nr = m_grid_map.at(ij);     // node record
+            const double ca = nr.normal.z();  // cosine of angle between local normal and SCM plane vertical
 
             ChContactable* contactable = h.second.contactable;
             const ChVector3d& hit_point_abs = h.second.abs_point;
@@ -1722,14 +1740,17 @@ void SCMLoader::ComputeInternalForces() {
                 Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
             }
 
-            nr.hit_level = hit_point_loc.z();                              // along SCM z axis
-            double p_hit_offset = ca * (nr.level_initial - nr.hit_level);  // along local normal direction
+            // Node state is computed in double and stored once below, so the result does not depend on the
+            // storage precision of NodeRecord (this also matches the GPU contact-force path).
+            const double hit_level = hit_point_loc.z();                       // along SCM z axis
+            const double p_hit_offset = ca * (nr.level_initial - hit_level);  // along local normal direction
+            nr.hit_level = hit_level;
 
             // Elastic try (along local normal direction)
-            nr.sigma = elastic_K * (p_hit_offset - nr.sinkage_plastic);
+            double sigma = elastic_K * (p_hit_offset - nr.sinkage_plastic);
 
             // Handle uni-laterality
-            if (nr.sigma < 0) {
+            if (sigma < 0) {
                 nr.sigma = 0;
                 continue;
             }
@@ -1743,58 +1764,69 @@ void SCMLoader::ComputeInternalForces() {
             ChVector3d speed_abs = contactable->GetContactPointSpeed(point_abs);
 
             // Calculate normal and tangent directions (expressed in absolute frame)
-            ChVector3d N = m_frame.TransformDirectionLocalToParent(nr.normal);
+            ChVector3d N = m_frame.TransformDirectionLocalToParent(ChVector3d(nr.normal));
             double Vn = Vdot(speed_abs, N);
             ChVector3d T = -(speed_abs - Vn * N);
             T.Normalize();
 
             // Update total sinkage and current level for this hit node
-            nr.sinkage = p_hit_offset;
-            nr.level = nr.hit_level;
+            const double sinkage = p_hit_offset;
 
             // Accumulate shear for Janosi-Hanamoto (along local tangent direction)
-            nr.kshear += Vdot(speed_abs, -T) * GetSystem()->GetStep();
+            const double kshear = nr.kshear + Vdot(speed_abs, -T) * GetSystem()->GetStep();
 
             // Plastic correction (along local normal direction)
-            if (nr.sigma > nr.sigma_yield) {
+            double sigma_yield = nr.sigma_yield;
+            double sinkage_plastic = nr.sinkage_plastic;
+            if (sigma > sigma_yield) {
                 // Bekker formula
-                nr.sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * std::pow(nr.sinkage, Bekker_n);
-                nr.sigma_yield = nr.sigma;
-                double old_sinkage_plastic = nr.sinkage_plastic;
-                nr.sinkage_plastic = nr.sinkage - nr.sigma / elastic_K;
-                nr.step_plastic_flow = (nr.sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
+                sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * std::pow(sinkage, Bekker_n);
+                sigma_yield = sigma;
+                double old_sinkage_plastic = sinkage_plastic;
+                sinkage_plastic = sinkage - sigma / elastic_K;
+                nr.step_plastic_flow = (sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
             }
 
             // Elastic sinkage (along local normal direction)
-            nr.sinkage_elastic = nr.sinkage - nr.sinkage_plastic;
+            const double sinkage_elastic = sinkage - sinkage_plastic;
 
             // Add compressive speed-proportional damping (not clamped by pressure yield)
             ////if (Vn < 0) {
-            nr.sigma += -Vn * damping_R;
+            sigma += -Vn * damping_R;
             ////}
 
             // Mohr-Coulomb
-            double tau_max = Mohr_cohesion + nr.sigma * Mohr_mu;
+            double tau_max = Mohr_cohesion + sigma * Mohr_mu;
 
             // Janosi-Hanamoto (along local tangent direction)
-            nr.tau = tau_max * (1.0 - std::exp(-(nr.kshear / Janosi_shear)));
+            const double tau = tau_max * (1.0 - std::exp(-(kshear / Janosi_shear)));
+
+            // Store the updated node state
+            nr.level = hit_level;
+            nr.sinkage = sinkage;
+            nr.kshear = kshear;
+            nr.sigma_yield = sigma_yield;
+            nr.sinkage_plastic = sinkage_plastic;
+            nr.sinkage_elastic = sinkage_elastic;
+            nr.sigma = sigma;
+            nr.tau = tau;
 
             // Calculate normal and tangential forces (in local node directions).
             // If specified, combine properties for soil-contactable interaction and soil-soil interaction.
-            ChVector3d Fn = N * m_area * nr.sigma;
+            ChVector3d Fn = N * m_area * sigma;
             ChVector3d Ft;
 
             //// TODO:  take into account "tread height" (add to SCMContactableData)?
 
             if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
                 // Use weighted sum of soil-contactable and soil-soil parameters
-                double c_tau_max = cprops->Mohr_cohesion + nr.sigma * cprops->Mohr_mu;
-                double c_tau = c_tau_max * (1.0 - std::exp(-(nr.kshear / cprops->Janosi_shear)));
+                double c_tau_max = cprops->Mohr_cohesion + sigma * cprops->Mohr_mu;
+                double c_tau = c_tau_max * (1.0 - std::exp(-(kshear / cprops->Janosi_shear)));
                 double ratio = cprops->area_ratio;
-                Ft = T * m_area * ((1 - ratio) * nr.tau + ratio * c_tau);
+                Ft = T * m_area * ((1 - ratio) * tau + ratio * c_tau);
             } else {
                 // Use only soil-soil parameters
-                Ft = T * m_area * nr.tau;
+                Ft = T * m_area * tau;
             }
 
             if (ChBody* body = dynamic_cast<ChBody*>(contactable)) {
@@ -1857,9 +1889,7 @@ void SCMLoader::ComputeInternalForces() {
 
         }  // end loop on ray hits
 
-#ifdef CHRONO_HAS_SCM_GPU
     }  // end CPU contact-force path
-#endif
 
     // Create loads for bodies and nodes to apply the accumulated terrain force/torque for each of them
     if (!m_cosim_mode) {
@@ -1913,10 +1943,10 @@ void SCMLoader::ComputeInternalForces() {
                     ChVector2i nbr_ij = ij + neighbors4[k];  //     neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                     //     if neighbor out of bounds
                     ////    continue;                                     //       skip neighbor
-                    if (m_grid_map.find(nbr_ij) == m_grid_map.end())  //     if neighbor not yet recorded
-                        p_boundary.insert(nbr_ij);                    //       set neighbor as boundary
-                    else if (m_grid_map.at(nbr_ij).sigma <= 0)        //     if neighbor not touched
-                        p_boundary.insert(nbr_ij);                    //       set neighbor as boundary
+                    if (!m_grid_map.Find(nbr_ij))               //     if neighbor not yet recorded
+                        p_boundary.insert(nbr_ij);              //       set neighbor as boundary
+                    else if (m_grid_map.at(nbr_ij).sigma <= 0)  //     if neighbor not touched
+                        p_boundary.insert(nbr_ij);              //       set neighbor as boundary
                 }
             }
             tot_step_flow *= GetSystem()->GetStep();
@@ -1925,13 +1955,13 @@ void SCMLoader::ComputeInternalForces() {
             double diff = m_flow_factor * tot_step_flow / p_boundary.size();
 
             // Raise boundary (create a sharp spike which will be later smoothed out with erosion)
-            for (const auto& ij : p_boundary) {                                  // for each node in boundary
-                m_modified_nodes.push_back(ij);                                  //   mark as modified
-                if (m_grid_map.find(ij) == m_grid_map.end()) {                   //   if not yet recorded
-                    double z = GetInitHeight(ij);                                //     undeformed height
-                    const ChVector3d& n = GetInitNormal(ij);                     //     terrain normal
-                    m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z, n)));  //     add new node record
-                    m_modified_nodes.push_back(ij);                              //     mark as modified
+            for (const auto& ij : p_boundary) {                   // for each node in boundary
+                m_modified_nodes.push_back(ij);                   //   mark as modified
+                if (!m_grid_map.Find(ij)) {                       //   if not yet recorded
+                    double z = GetInitHeight(ij);                 //     undeformed height
+                    const ChVector3d& n = GetInitNormal(ij);      //     terrain normal
+                    m_grid_map.Emplace(ij, NodeRecord(z, z, n));  //     add new node record
+                    m_modified_nodes.push_back(ij);               //     mark as modified
                 }
                 auto& nr = m_grid_map.at(ij);  //   node record
                 nr.erosion = true;             //   add to erosion domain
@@ -1957,20 +1987,20 @@ void SCMLoader::ComputeInternalForces() {
                     ChVector2i nbr_ij = ij + neighbors4[k];  //   neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                       //   if out of bounds
                     ////    continue;                                       //     ignore neighbor
-                    if (m_grid_map.find(nbr_ij) == m_grid_map.end()) {  //   if neighbor not yet recorded
-                        double z = GetInitHeight(nbr_ij);               //     undeformed height at neighbor location
-                        const ChVector3d& n = GetInitNormal(nbr_ij);    //     terrain normal at neighbor location
-                        NodeRecord nr(z, z, n);                         //     create new record
-                        nr.erosion = true;                              //     include in erosion domain
-                        m_grid_map.insert(std::make_pair(nbr_ij, nr));  //     add new node record
-                        front.insert(nbr_ij);                           //     add neighbor to new front
-                        m_modified_nodes.push_back(nbr_ij);             //     mark as modified
-                    } else {                                            //   if neighbor previously recorded
-                        NodeRecord& nr = m_grid_map.at(nbr_ij);         //     get existing record
-                        if (!nr.erosion && nr.sigma <= 0) {             //     if neighbor not touched
-                            nr.erosion = true;                          //       include in erosion domain
-                            front.insert(nbr_ij);                       //       add neighbor to new front
-                            m_modified_nodes.push_back(nbr_ij);         //       mark as modified
+                    if (!m_grid_map.Find(nbr_ij)) {                   //   if neighbor not yet recorded
+                        double z = GetInitHeight(nbr_ij);             //     undeformed height at neighbor location
+                        const ChVector3d& n = GetInitNormal(nbr_ij);  //     terrain normal at neighbor location
+                        NodeRecord nr(z, z, n);                       //     create new record
+                        nr.erosion = true;                            //     include in erosion domain
+                        m_grid_map.Emplace(nbr_ij, nr);               //     add new node record
+                        front.insert(nbr_ij);                         //     add neighbor to new front
+                        m_modified_nodes.push_back(nbr_ij);           //     mark as modified
+                    } else {                                          //   if neighbor previously recorded
+                        NodeRecord& nr = m_grid_map.at(nbr_ij);       //     get existing record
+                        if (!nr.erosion && nr.sigma <= 0) {           //     if neighbor not touched
+                            nr.erosion = true;                        //       include in erosion domain
+                            front.insert(nbr_ij);                     //       add neighbor to new front
+                            m_modified_nodes.push_back(nbr_ij);       //       mark as modified
                         }
                     }
                 }
@@ -1990,10 +2020,10 @@ void SCMLoader::ComputeInternalForces() {
                 auto& nr = m_grid_map.at(ij);
                 for (int k = 0; k < 4; k++) {
                     ChVector2i nbr_ij = ij + neighbors4[k];
-                    auto rec = m_grid_map.find(nbr_ij);
-                    if (rec == m_grid_map.end())
+                    NodeRecord* rec = m_grid_map.Find(nbr_ij);
+                    if (!rec)
                         continue;
-                    auto& nbr_nr = rec->second;
+                    NodeRecord& nbr_nr = *rec;
 
                     // (3.1) Flow remaining material to neighbor
                     double diff = 0.5 * (nr.massremainder - nbr_nr.massremainder) / 4;  //// TODO: rethink this!
@@ -2160,14 +2190,13 @@ void SCMLoader::UpdateMeshVertexNormal(const ChVector2i ij, int iv) {
 std::vector<SCMTerrain::NodeLevel> SCMLoader::GetModifiedNodes(bool all_nodes) const {
     std::vector<SCMTerrain::NodeLevel> nodes;
     if (all_nodes) {
-        for (const auto& nr : m_grid_map) {
-            nodes.push_back(std::make_pair(nr.first, nr.second.level));
-        }
+        nodes.reserve(m_grid_map.size());
+        m_grid_map.ForEach([&nodes](const ChVector2i& ij, const NodeRecord& nr) { nodes.push_back(std::make_pair(ij, nr.level)); });
     } else {
         for (const auto& ij : m_modified_nodes) {
-            auto rec = m_grid_map.find(ij);
-            assert(rec != m_grid_map.end());
-            nodes.push_back(std::make_pair(ij, rec->second.level));
+            const NodeRecord* rec = m_grid_map.Find(ij);
+            assert(rec);
+            nodes.push_back(std::make_pair(ij, rec->level));
         }
     }
     return nodes;
@@ -2179,7 +2208,7 @@ std::vector<SCMTerrain::NodeLevel> SCMLoader::GetModifiedNodes(bool all_nodes) c
 void SCMLoader::SetModifiedNodes(const std::vector<SCMTerrain::NodeLevel>& nodes) {
     for (const auto& n : nodes) {
         // Modify existing entry in grid map or insert new one
-        m_grid_map[n.first] = SCMLoader::NodeRecord(n.second, n.second, GetInitNormal(n.first));
+        m_grid_map.Set(n.first, SCMLoader::NodeRecord(n.second, n.second, GetInitNormal(n.first)));
     }
 
     // Update visualization

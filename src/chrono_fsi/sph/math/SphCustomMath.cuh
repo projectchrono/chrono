@@ -1660,6 +1660,22 @@ __host__ __device__ inline void get_orthogonal_axes(const Real3& x, Real3& y, Re
     y = cross(z, x);
 }
 
+// Given a unit vector x and a reference direction n, calculate unit vectors y and z such that [x y z] represents a
+// rotation matrix and y is the direction of the projection of n onto the plane orthogonal to x.
+// Unlike get_orthogonal_axes, the resulting frame varies continuously with x (as long as n is not parallel to x).
+// If n is (almost) parallel to x, fall back on get_orthogonal_axes.
+__host__ __device__ inline void get_projected_axes(const Real3& x, const Real3& n, Real3& y, Real3& z) {
+    Real3 n_perp = n - dot(n, x) * x;
+    Real len = length(n_perp);
+    if (len < Real(1e-3)) {
+        get_orthogonal_axes(x, y, z);
+        return;
+    }
+
+    y = n_perp / len;
+    z = cross(x, y);
+}
+
 // -----------------------------------------------------------------------------
 
 __host__ __device__ inline bool IsFinite(Real3 v) {

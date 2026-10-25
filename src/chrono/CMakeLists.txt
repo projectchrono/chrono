@@ -808,7 +808,6 @@ set(Chrono_collision_SOURCES
     collision/ChCollisionShapeCone.cpp
     collision/ChCollisionShapeConvexHull.cpp
     collision/ChCollisionShapeCylinder.cpp
-    collision/ChCollisionShapeCylindricalShell.cpp
     collision/ChCollisionShapeEllipsoid.cpp
     collision/ChCollisionShapePath2D.cpp
     collision/ChCollisionShapePoint.cpp
@@ -836,7 +835,6 @@ set(Chrono_collision_HEADERS
     collision/ChCollisionShapeCone.h
     collision/ChCollisionShapeConvexHull.h
     collision/ChCollisionShapeCylinder.h
-    collision/ChCollisionShapeCylindricalShell.h
     collision/ChCollisionShapeEllipsoid.h
     collision/ChCollisionShapePath2D.h
     collision/ChCollisionShapePoint.h
@@ -951,7 +949,6 @@ set(Chrono_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/cbtConvexTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtRoundedCylinderShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtRoundedBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp

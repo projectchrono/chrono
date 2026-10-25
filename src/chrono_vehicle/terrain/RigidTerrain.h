@@ -43,7 +43,9 @@ namespace vehicle {
 /// This class implements a terrain modeled as a rigid shape which can interact
 /// through contact and friction with any other bodies whose contact flag is
 /// enabled. In particular, this type of terrain can be used in conjunction with
-/// a ChRigidTire.
+/// contact-based tires (ChRigidTire or ChDeformableTire) and with tracked vehicles.
+/// It can also be used with handling tires (ChForceElementTire), which interact
+/// with the terrain through its height, normal, and coefficient of friction queries.
 class CH_VEHICLE_API RigidTerrain : public ChTerrain {
   public:
     /// Patch type.

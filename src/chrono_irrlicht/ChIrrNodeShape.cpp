@@ -293,7 +293,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
             if (uv_indices.size() == ntriangles_all) {
                 for (int iv = 0; iv < 3; iv++) {
                     auto uv_index = uv_indices[itri][iv];
-                    uv[iv] = uv_index == -1 ? 0 : uvs[uv_index];
+                    uv[iv] = uv_index == -1 ? ChVector2d(0) : uvs[uv_index];
                 }
             }
 

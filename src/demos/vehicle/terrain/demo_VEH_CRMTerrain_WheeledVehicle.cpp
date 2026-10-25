@@ -70,6 +70,7 @@ double terrain_width = 3;
 std::string vehicle_json = "Polaris/Polaris.json";
 std::string engine_json = "Polaris/Polaris_EngineSimpleMap.json";
 std::string transmission_json = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
+// Only rigid or FEA tires: handling tires have no collision geometry and cannot interact with CRM terrain
 std::string tire_json = "Polaris/Polaris_RigidTire.json";
 ////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
 
