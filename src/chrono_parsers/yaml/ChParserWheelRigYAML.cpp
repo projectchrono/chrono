@@ -74,6 +74,7 @@ ChParserWheelRigYAML::ChParserWheelRigYAML(const std::string& yaml_filename, boo
       m_mode(vehicle::ChWheelTestRig::Mode::TEST),
       m_drop_speed(0.1),
       m_time_delay(0),
+      m_settling_time(-1),
       m_steering_input(SteeringInput::NONE),
       m_steering_feedback(false),
       m_steering_time_constant(0.05),
@@ -371,6 +372,8 @@ void ChParserWheelRigYAML::LoadTestData(const YAML::Node& a) {
         m_drop_speed = a["drop_speed"].as<double>();
     if (a["time_delay"])
         m_time_delay = a["time_delay"].as<double>();
+    if (a["settling_time"])
+        m_settling_time = a["settling_time"].as<double>();
     if (a["normal_load"])
         m_normal_load = a["normal_load"].as<double>();  // overrides the normal load from the rig model file
 
@@ -716,6 +719,7 @@ std::shared_ptr<vehicle::ChWheelTestRig> ChParserWheelRigYAML::CreateRig(ChSyste
     if (m_long_slip)
         m_rig->SetConstantLongitudinalSlip(m_long_slip_value, m_long_slip_base_speed);
     m_rig->SetTimeDelay(m_time_delay);
+    m_rig->SetSettlingTime(m_settling_time);
 
     m_rig->Initialize(m_mode, m_drop_speed);
 

@@ -157,7 +157,8 @@ test:
       description: |
         SUSPEND: suspended wheel (locked spindle).
         DROP:    free wheel drop test.
-        TEST:    wheel lowered onto the terrain at `drop_speed`, then motion functions applied.
+        TEST:    after terrain settling (see `settling_time`), wheel lowered onto the terrain at `drop_speed`, then
+                 motion functions applied.
                  Without a suspension, the drop phase ends when the wheel reaches the terrain. With a suspension,
                  the suspension travel is held at its loaded equilibrium and lowering continues until the tire
                  carries the normal load; the suspension is then released.
@@ -167,9 +168,16 @@ test:
       description: Wheel lowering speed (m/s), TEST mode only
       minimum: 0
       default: 0.1
+    settling_time:
+      type: number
+      description: |
+        Duration (s) of the initial terrain settling phase, TEST mode only. The wheel is held above the terrain during
+        this phase and lowered at its end. For CRM terrain, the FSI active domains are disabled during settling.
+        Default: 0.5 for CRM and GRANULAR terrain, 0 for RIGID and SCM terrain.
+      minimum: 0
     time_delay:
       type: number
-      description: Settling time (s) before the motion functions are applied, measured from the end of the drop phase
+      description: Delay (s) before the motion functions are applied, measured from the end of the drop phase
       minimum: 0
       default: 0
     normal_load:

@@ -411,6 +411,16 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// In TEST mode, this delay is measured after the wheel bottom point reaches the terrain height.
     void SetTimeDelay(double delay) { m_time_delay = delay; }
 
+    /// Set the duration of the initial terrain settling phase (TEST mode only).
+    /// During this phase, the wheel is held above the terrain and the drop phase starts at its end. For CRM terrain, the
+    /// FSI active domains are disabled during settling, so that all SPH particles settle (not only those near the wheel).
+    /// By default (or if a negative value is specified), the settling time is 0.5 s for CRM and granular terrain and 0
+    /// for rigid and SCM terrain.
+    void SetSettlingTime(double time) { m_settling_time = time; }
+
+    /// Get the duration of the initial terrain settling phase (TEST mode only).
+    double GetSettlingTime() const;
+
     /// Get time delay after which measurements are calculated.
     /// After the drop phase (TEST mode only), this value is set to the input time delay increased by the wheel drop
     /// time. Before the drop phase is completed, this function returns the input time delay.
@@ -422,7 +432,8 @@ class CH_VEHICLE_API ChWheelTestRig {
 
     /// Initialize the rig system.
     /// It is the user's responsibility to set the operation mode and motion functions in a consistent way.
-    /// In TEST mode, the wheel is lowered onto the terrain with a speed equal to `drop_speed`. For a wheel assembly with a
+    /// In TEST mode, the wheel is held above the terrain during the terrain settling phase (see SetSettlingTime) and then
+    /// lowered onto the terrain with a speed equal to `drop_speed`. For a wheel assembly with a
     /// suspension, the suspension travel is held during this drop phase at the static equilibrium configuration under the
     /// specified normal load (computed during initialization) and released once the wheel carries the normal load.
     void Initialize(Mode mode, double drop_speed = 0.1);
@@ -564,6 +575,7 @@ class CH_VEHICLE_API ChWheelTestRig {
     double m_normal_load;  ///< desired normal load
     double m_total_mass;   ///< total sprung mass
     double m_time_delay;   ///< time delay before applying external load
+    double m_settling_time;  ///< terrain settling time before the drop phase (negative: terrain-type default)
 
     TerrainType m_terrain_type;               ///< terrain type
     double m_terrain_offset;                  ///< Y coordinate of wheel center

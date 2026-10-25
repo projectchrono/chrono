@@ -77,7 +77,8 @@ after the time delay.
 | `mode` | Rig operation mode | enum | `SUSPEND`,`DROP`,`TEST` | Yes | -- |
 | `angle_degrees` | Whether angles are specified in degrees (true) or radians (false) | boolean | -- | No | `true` |
 | `drop_speed` | Wheel lowering speed (m/s), `TEST` mode only | double | -- | No | 0.1 |
-| `time_delay` | Settling time (s) before the motion functions are applied, measured from the end of the drop phase | double | -- | No | 0 |
+| `settling_time` | Duration (s) of the initial terrain settling phase, `TEST` mode only (see below) | double | -- | No | 0.5 for `CRM` and `GRANULAR`, 0 for `RIGID` and `SCM` |
+| `time_delay` | Delay (s) before the motion functions are applied, measured from the end of the drop phase | double | -- | No | 0 |
 | `normal_load` | Normal load on the wheel (N), overriding the normal load of the rig model | double | -- | No | rig model value |
 | `longitudinal_speed` | Carrier longitudinal speed (m/s) as a function of time | function | -- | No | not actuated |
 | `angular_speed` | Wheel angular speed (rad/s) as a function of time | function | -- | No | not actuated |
@@ -98,8 +99,10 @@ configuration and therefore the steering reference (see [steering and slip angle
 
 - `SUSPEND`: the wheel is suspended above the terrain, with a locked spindle.
 - `DROP`: the wheel is released and falls freely onto the terrain.
-- `TEST`: the wheel is lowered onto the terrain at `drop_speed`, then the motion functions are applied after
-  `time_delay`. Without a suspension, the drop phase ends when the wheel reaches the terrain. With a suspension, the
+- `TEST`: after a terrain settling phase of duration `settling_time`, during which the wheel is held just above the
+  terrain, the wheel is lowered onto the terrain at `drop_speed`, then the motion functions are applied after
+  `time_delay`. For CRM terrain, the FSI active domains are disabled during settling, so that the entire terrain
+  patch settles. Without a suspension, the drop phase ends when the wheel reaches the terrain. With a suspension, the
   suspension travel is held at its static equilibrium under the normal load and lowering continues until the tire
   carries the normal load; the suspension is then released, so that releasing it does not change the load on the
   wheel. A slow drop speed avoids impacting the terrain, which matters in particular for deformable terrain.

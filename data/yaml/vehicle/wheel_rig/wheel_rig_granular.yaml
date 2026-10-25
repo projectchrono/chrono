@@ -12,6 +12,7 @@ test:
   angle_degrees: true
   mode: TEST                      # SUSPEND, DROP, TEST
   drop_speed: 0.05
+  #settling_time: 0.5             # terrain settling before the drop (s); default: 0.5 for CRM and GRANULAR, 0 otherwise
   time_delay: 1.0
   #normal_load: 1000               # overrides the rig model normal load (N)
 

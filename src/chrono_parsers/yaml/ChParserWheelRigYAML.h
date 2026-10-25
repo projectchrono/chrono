@@ -182,6 +182,7 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     vehicle::ChWheelTestRig::Mode m_mode;
     double m_drop_speed;
     double m_time_delay;
+    double m_settling_time;
     std::shared_ptr<ChFunction> m_long_speed_fun;
     std::shared_ptr<ChFunction> m_ang_speed_fun;
     std::shared_ptr<ChFunction> m_slip_angle_fun;

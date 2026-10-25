@@ -539,6 +539,9 @@ from a user program (see `demo_YAML_wheel_rig`):
 - Drop phase: with a suspension, the suspension travel is held at its static equilibrium under the
   normal load while the wheel is lowered, and released once the tire carries the normal load. The
   suspension mass is now included in the load supported by the wheel.
+- Settling phase: the drop is preceded by a terrain settling phase (by default 0.5 s for CRM and
+  granular terrain, none for rigid and SCM terrain), during which CRM active domains are disabled so
+  that the entire terrain patch settles.
 - Terrain: rigid, SCM, granular, or CRM terrain. A CRM terrain is specified through an SPH simulation
   file, using the same SPH model and solver schemas as an FSI simulation, and the SPH and multibody
   systems can use different step sizes.

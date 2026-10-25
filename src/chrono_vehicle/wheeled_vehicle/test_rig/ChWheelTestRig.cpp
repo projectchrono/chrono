@@ -315,6 +315,7 @@ ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> 
       m_camber_angle(0),
       m_output(false),
       m_time_delay(0),
+      m_settling_time(-1),
       m_ls_actuated(false),
       m_rs_actuated(false),
       m_long_slip_constant(false),
@@ -562,8 +563,15 @@ void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
     if (m_mode != Mode::TEST)
         return;
 
-    // Set the drop speed
-    m_drop_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(drop_speed));
+    // Set the drop speed; the wheel is held in place during the terrain settling phase
+    double settling_time = GetSettlingTime();
+    auto drop_fun = chrono_types::make_shared<ChFunctionConst>(drop_speed);
+    if (settling_time > 0) {
+        m_drop_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(drop_fun, settling_time));
+        std::cout << "  terrain settling until t = " << settling_time << std::endl;
+    } else {
+        m_drop_motor->SetSpeedFunction(drop_fun);
+    }
 
     // Override motion functions to enforce specified constant longitudinal slip
     if (m_long_slip_constant) {
@@ -1140,6 +1148,10 @@ void ChWheelTestRig::CreateTerrainCRM() {
         terrain->SetActiveDomainBody(m_wheel_assembly->GetHub(), m_wheel_AABB);
     }
 
+    // Disable the FSI active domains during the terrain settling phase, so that all SPH particles settle
+    if (m_mode == Mode::TEST && GetSettlingTime() > 0)
+        terrain->SetFreeFlowDuration(GetSettlingTime());
+
     terrain->Initialize();
     const auto& aabb = terrain->GetSPHBoundingBox();
     std::cout << "  SPH particles:        " << terrain->GetNumSPHParticles() << std::endl;
@@ -1314,9 +1326,23 @@ double ChWheelTestRig::CalcHubYaw() const {
     return std::atan2(-dir.x(), dir.y());
 }
 
+double ChWheelTestRig::GetSettlingTime() const {
+    if (m_settling_time >= 0)
+        return m_settling_time;
+    // Default: only deformable terrains with a particle representation (CRM, granular) need to settle
+    return (m_terrain_type == TerrainType::CRM || m_terrain_type == TerrainType::GRANULAR) ? 0.5 : 0.0;
+}
+
 void ChWheelTestRig::SetTerrainLocation() {
     m_terrain_offset = m_wheel_assembly->GetHub()->GetPos().y();
-    m_terrain_height = m_wheel_assembly->GetHub()->GetPos().z() - m_wheel_assembly->GetRadius() - 0.1;
+    // Start the wheel close above the terrain. For CRM terrain, keep the wheel outside the SPH kernel support of the
+    // terrain particles, so that it does not interact with the terrain during settling.
+    double gap = 0.01;
+#ifdef CHRONO_CRM
+    if (m_terrain_type == TerrainType::CRM)
+        gap = std::max(gap, 2 * m_params_crm.sph_params.d0_multiplier * m_params_crm.sph_params.initial_spacing);
+#endif
+    m_terrain_height = m_wheel_assembly->GetHub()->GetPos().z() - m_wheel_assembly->GetRadius() - gap;
 }
 
 void ChWheelTestRig::ComputeLoadedTravel() {
