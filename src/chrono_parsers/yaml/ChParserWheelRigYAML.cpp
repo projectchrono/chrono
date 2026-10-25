@@ -14,22 +14,23 @@
 
 #include <filesystem>
 
+#include "chrono/ChConfig.h"
 #include "chrono/functions/ChFunctionConst.h"
 #include "chrono/functions/ChFunctionOperator.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
+#endif
 
 #include "chrono_parsers/yaml/ChParserWheelRigYAML.h"
 
 #ifdef CHRONO_CRM
     #include "chrono_vehicle/terrain/CRMTerrain.h"
     #include "chrono_parsers/yaml/ChParserSphYAML.h"
-#endif
-
-#ifdef CHRONO_POSTPROCESS
-    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using std::cout;
@@ -67,6 +68,10 @@ ChParserWheelRigYAML::ChParserWheelRigYAML(const std::string& yaml_filename, boo
       m_custom(false),
       m_set_collision_type(false),
       m_collision_type(vehicle::ChTire::CollisionType::SINGLE_POINT),
+      m_set_contact_surface(false),
+      m_contact_surface_type(vehicle::ChTire::ContactSurfaceType::NODE_CLOUD),
+      m_contact_surface_dim(0.01),
+      m_collision_family(13),
       m_normal_load(1000),
       m_camber_angle(0),
       m_terrain_type(vehicle::ChWheelTestRig::TerrainType::NONE),
@@ -86,9 +91,7 @@ ChParserWheelRigYAML::ChParserWheelRigYAML(const std::string& yaml_filename, boo
       m_rig_step(-1),
       m_stop_at_patch_end(false),
       m_camera_offset(2.0, 2.5, 1.0),
-      m_camera_target_offset(0, 0.25, -0.25),
-      m_plot_output(PlotOutput::PNG),
-      m_plot_measuring_only(true) {
+      m_camera_target_offset(0, 0.25, -0.25) {
     LoadFile(yaml_filename);
 }
 
@@ -139,7 +142,7 @@ void ChParserWheelRigYAML::LoadFile(const std::string& yaml_filename) {
 
     // Load plot specifications
     if (yaml["plots"])
-        LoadPlotData(yaml["plots"]);
+        m_plots.Load(yaml["plots"]);
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
@@ -153,7 +156,7 @@ void ChParserWheelRigYAML::LoadFile(const std::string& yaml_filename) {
         }
         cout << "  normal load: " << m_normal_load << endl;
         cout << "  rig step:    " << GetRigStep() << endl;
-        cout << "  plots:       " << m_figures.size() << endl;
+        cout << "  plots:       " << m_plots.GetNumFigures() << endl;
         cout << endl;
         m_vis_settings.PrintInfo();
     }
@@ -208,6 +211,16 @@ void ChParserWheelRigYAML::LoadRigFile(const std::string& filename) {
         if (model["tire"] && model["tire"]["collision_type"]) {
             m_set_collision_type = true;
             m_collision_type = ReadTireCollisionType(model["tire"]["collision_type"]);
+        }
+        if (model["tire"] && model["tire"]["contact_surface"]) {
+            auto surface = model["tire"]["contact_surface"];
+            ChAssertAlways(surface["type"]);
+            m_set_contact_surface = true;
+            m_contact_surface_type = ReadTireContactSurfaceType(surface["type"]);
+            if (surface["dimension"])
+                m_contact_surface_dim = surface["dimension"].as<double>();
+            if (surface["collision_family"])
+                m_collision_family = surface["collision_family"].as<int>();
         }
     }
 
@@ -460,169 +473,11 @@ void ChParserWheelRigYAML::WriteOutput(int frame, double time) {
         m_output_db->Write(frame, time, {}, channels);
 
     // Record channels for plotting
-    if (PlotsEnabled()) {
-        if (m_plot_channels.empty()) {
-            for (const auto& channel : channels) {
-                m_plot_channels.push_back(channel.name);
-                m_plot_units.push_back(channel.units);
-            }
-            m_plot_data.resize(channels.size());
-        }
-        m_plot_time.push_back(time);
-        for (size_t i = 0; i < channels.size(); i++)
-            m_plot_data[i].push_back(channels[i].value);
-    }
-}
-
-void ChParserWheelRigYAML::LoadPlotData(const YAML::Node& a) {
-    if (a["output"]) {
-        auto output = ChToUpper(a["output"].as<std::string>());
-        if (output == "WINDOW")
-            m_plot_output = PlotOutput::WINDOW;
-        else if (output == "PNG")
-            m_plot_output = PlotOutput::PNG;
-        else if (output == "PDF")
-            m_plot_output = PlotOutput::PDF;
-        else {
-            cerr << "Error: unknown plot output '" << a["output"].as<std::string>() << "'." << endl;
-            throw std::runtime_error("Unknown plot output");
-        }
-    }
-    if (a["measuring_only"])
-        m_plot_measuring_only = a["measuring_only"].as<bool>();
-
-    if (!a["figures"])
-        return;
-    for (const auto& f : a["figures"]) {
-        Figure figure;
-        figure.set_range = false;
-        if (f.IsScalar()) {
-            // Shorthand: a single channel as a function of time
-            figure.y.push_back(f.as<std::string>());
-        } else {
-            ChAssertAlways(f["y"]);
-            if (f["y"].IsSequence()) {
-                for (const auto& y : f["y"])
-                    figure.y.push_back(y.as<std::string>());
-            } else {
-                figure.y.push_back(f["y"].as<std::string>());
-            }
-            if (f["x"])
-                figure.x = f["x"].as<std::string>();
-            if (f["title"])
-                figure.title = f["title"].as<std::string>();
-            if (f["y_range"]) {
-                ChAssertAlways(f["y_range"].IsSequence() && f["y_range"].size() == 2);
-                figure.set_range = true;
-                figure.y_min = f["y_range"][0].as<double>();
-                figure.y_max = f["y_range"][1].as<double>();
-            }
-        }
-        m_figures.push_back(figure);
-    }
+    m_plots.Record(time, channels);
 }
 
 void ChParserWheelRigYAML::GeneratePlots() {
-    if (!PlotsEnabled())
-        return;
-
-#ifdef CHRONO_POSTPROCESS
-    if (m_plot_time.empty()) {
-        cerr << "Warning: no data recorded for plots." << endl;
-        return;
-    }
-
-    // Index of a recorded channel (-1 if not found)
-    auto find_channel = [this](const std::string& name) -> int {
-        for (size_t i = 0; i < m_plot_channels.size(); i++) {
-            if (m_plot_channels[i] == name)
-                return (int)i;
-        }
-        return -1;
-    };
-
-    // Frames to plot (all, or only those with measurements enabled)
-    std::vector<size_t> frames;
-    int i_measuring = find_channel("measuring");
-    for (size_t k = 0; k < m_plot_time.size(); k++) {
-        if (!m_plot_measuring_only || i_measuring < 0 || m_plot_data[i_measuring][k] > 0)
-            frames.push_back(k);
-    }
-    if (frames.empty()) {
-        cerr << "Warning: no frames to plot (measurements were never enabled)." << endl;
-        return;
-    }
-
-    auto select = [&frames](const std::vector<double>& values) {
-        std::vector<double> selected;
-        selected.reserve(frames.size());
-        for (auto k : frames)
-            selected.push_back(values[k]);
-        return selected;
-    };
-    auto label = [this](int i) { return m_plot_channels[i] + " (" + m_plot_units[i] + ")"; };
-
-    for (size_t f = 0; f < m_figures.size(); f++) {
-        const auto& figure = m_figures[f];
-
-        // Abscissa data and label
-        std::vector<double> x_data;
-        std::string x_label;
-        if (figure.x.empty()) {
-            x_data = select(m_plot_time);
-            x_label = "time (s)";
-        } else {
-            int i = find_channel(figure.x);
-            if (i < 0) {
-                cerr << "Warning: unknown channel '" << figure.x << "' in plot " << f + 1 << ". Plot skipped." << endl;
-                continue;
-            }
-            x_data = select(m_plot_data[i]);
-            x_label = label(i);
-        }
-
-        // Ordinate channels
-        std::vector<int> y_channels;
-        for (const auto& name : figure.y) {
-            int i = find_channel(name);
-            if (i < 0)
-                cerr << "Warning: unknown channel '" << name << "' in plot " << f + 1 << ". Channel skipped." << endl;
-            else
-                y_channels.push_back(i);
-        }
-        if (y_channels.empty())
-            continue;
-
-        std::string stem = m_output_dir + "/plot_" + std::to_string(f + 1);
-        postprocess::ChGnuPlot gplot(stem + ".gpl");
-        switch (m_plot_output) {
-            case PlotOutput::PNG:
-                gplot.SetPersist(false);
-                gplot.OutputPNG(stem + ".png", 800, 600);
-                break;
-            case PlotOutput::PDF:
-                gplot.SetPersist(false);
-                gplot.OutputPDF(stem + ".pdf");
-                break;
-            case PlotOutput::WINDOW:
-                break;
-        }
-        gplot.SetCommand("set termoption noenhanced");  // render channel names (with underscores) literally
-        gplot.SetGrid();
-        if (!figure.title.empty())
-            gplot.SetTitle(figure.title);
-        gplot.SetLabelX(x_label);
-        gplot.SetLabelY(y_channels.size() == 1 ? label(y_channels[0]) : m_plot_units[y_channels[0]]);
-        if (figure.set_range)
-            gplot.SetRangeY(figure.y_min, figure.y_max);
-        for (auto i : y_channels)
-            gplot.Plot(x_data, select(m_plot_data[i]), m_plot_channels[i], " with lines");
-
-        // The plot is generated when the ChGnuPlot object goes out of scope
-    }
-#else
-    cerr << "Warning: plots require the Chrono::Postprocess module. No plots generated." << endl;
-#endif
+    m_plots.Generate(m_output_dir);
 }
 
 void ChParserWheelRigYAML::RegisterWheelAssembly(const std::string& name, WheelAssemblyFactory factory) {
@@ -651,12 +506,28 @@ std::shared_ptr<vehicle::ChWheelTestRig> ChParserWheelRigYAML::CreateRig(ChSyste
         auto tire = vehicle::ReadTireJSON(m_tire_json);
         if (m_set_collision_type)
             tire->SetCollisionType(m_collision_type);
+        if (m_set_contact_surface)
+            tire->SetContactSurfaceType(m_contact_surface_type, m_contact_surface_dim, m_collision_family);
 
         // Handling tires have no collision geometry and can only be used with rigid terrain
         if (std::dynamic_pointer_cast<vehicle::ChForceElementTire>(tire) && m_terrain_type != vehicle::ChWheelTestRig::TerrainType::RIGID) {
             cerr << "Error: handling tire models can only be used with rigid terrain." << endl;
             throw std::runtime_error("Incompatible tire and terrain");
         }
+
+#ifdef CHRONO_FEA
+        // MB tires do not yet support interaction with CRM terrain
+        if (std::dynamic_pointer_cast<vehicle::ChMBTire>(tire) && m_terrain_type == vehicle::ChWheelTestRig::TerrainType::CRM) {
+            cerr << "Error: MB tire models cannot be used with CRM terrain." << endl;
+            throw std::runtime_error("Incompatible tire and terrain");
+        }
+
+        // Deformable tires interact with SCM terrain only through a triangle mesh contact surface
+        if (std::dynamic_pointer_cast<vehicle::ChDeformableTire>(tire) && m_terrain_type == vehicle::ChWheelTestRig::TerrainType::SCM &&
+            m_contact_surface_type != vehicle::ChTire::ContactSurfaceType::TRIANGLE_MESH) {
+            cerr << "Warning: a deformable tire on SCM terrain requires a TRIANGLE_MESH contact surface (see tire.contact_surface)." << endl;
+        }
+#endif
 
         // Create the test rig
         if (m_suspension_json.empty()) {
@@ -790,6 +661,16 @@ vehicle::ChTire::CollisionType ChParserWheelRigYAML::ReadTireCollisionType(const
         return vehicle::ChTire::CollisionType::ENVELOPE;
     cerr << "Error: unknown tire collision type '" << a.as<std::string>() << "'." << endl;
     throw std::runtime_error("Unknown tire collision type");
+}
+
+vehicle::ChTire::ContactSurfaceType ChParserWheelRigYAML::ReadTireContactSurfaceType(const YAML::Node& a) {
+    auto val = ChToUpper(a.as<std::string>());
+    if (val == "NODE_CLOUD")
+        return vehicle::ChTire::ContactSurfaceType::NODE_CLOUD;
+    if (val == "TRIANGLE_MESH")
+        return vehicle::ChTire::ContactSurfaceType::TRIANGLE_MESH;
+    cerr << "Error: unknown tire contact surface type '" << a.as<std::string>() << "'." << endl;
+    throw std::runtime_error("Unknown tire contact surface type");
 }
 
 }  // namespace parsers

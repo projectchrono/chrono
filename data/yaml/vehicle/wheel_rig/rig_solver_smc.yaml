@@ -1,0 +1,16 @@
+## MBS solver for single-wheel test rig samples with deformable tires (follows mbs_solver.schema)
+
+chrono-version: 10.0
+
+contact_method: SMC               # deformable tires require SMC
+effective_curvature_radius: 0.1   # SMC contact stiffness (Chrono default, as in the C++ demos)
+
+integrator:
+  type: Euler_implicit_projected
+  time_step: 5e-5                 # multibody and wheel assembly step size
+
+solver:
+  type: MINRES
+  max_iterations: 200
+  tolerance: 1e-10
+  enable_diagonal_preconditioner: true

@@ -163,6 +163,8 @@ if(CHRONO_YAML_ENABLED)
         yaml/ChParserYAML.cpp
         yaml/ChParserMbsYAML.h
         yaml/ChParserMbsYAML.cpp
+        yaml/ChChannelPlotsYAML.h
+        yaml/ChChannelPlotsYAML.cpp
     )
     if(CH_ENABLE_MODULE_FSI)
         set(Chrono_PARSERS_YAML_FILES ${Chrono_PARSERS_YAML_FILES}

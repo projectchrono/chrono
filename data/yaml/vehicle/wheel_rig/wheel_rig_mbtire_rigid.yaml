@@ -1,0 +1,84 @@
+## Single wheel (no suspension) with MB tire on rigid terrain
+
+chrono-version: 10.0
+type: WHEEL_RIG
+
+rig: "rig_model_hmmwv_mbtire.yaml"
+terrain: "terrain_rigid.yaml"
+
+test:
+  angle_degrees: true
+  mode: TEST                      # SUSPEND, DROP, TEST
+  drop_speed: 0.05
+  #settling_time: 0.5             # terrain settling before the drop (s); default: 0.5 for CRM and GRANULAR, 0 otherwise
+  time_delay: 1.0
+  #normal_load: 1000               # overrides the rig model normal load (N)
+
+  longitudinal_speed:
+    type: CONSTANT
+    value: 0.2
+  angular_speed:                  # 10 RPM
+    type: CONSTANT
+    value: 1.0471975512
+  slip_angle:                     # +-5 deg with a 5 s period
+    type: SINE
+    amplitude: 5
+    frequency: 0.2
+
+  ## Steering requires a steerable suspension (see wheel_suspension_rig_rigid.yaml); use slip_angle for a wheel alone
+  #steering:
+  #  input: ANGLE
+  #  function:
+  #    type: CONSTANT
+  #    value: 0
+
+  ## Constant longitudinal slip (overrides longitudinal_speed and angular_speed)
+  #longitudinal_slip:
+  #  value: 0.2
+  #  base_speed: 0.1
+
+simulation:
+  time_step: 2e-4                 # rig step (FSI coupling step with CRM terrain); default: MBS solver step
+  end_time: 40                    # negative for infinite end time
+  stop_at_patch_end: true         # end the simulation when the wheel reaches the end of the patch
+  enforce_realtime: false
+  gravity: [0, 0, -9.8]           # must be vertical: [0, 0, -g]
+  num_threads:
+    chrono: 8
+    collision: 1
+    eigen: 1
+    pardiso: 8
+
+output:
+  format: ASCII                   # NONE, ASCII, HDF5
+  mode: SERIES                    # FRAMES, SERIES
+  fps: 100
+
+plots:
+  output: PNG                     # WINDOW, PNG, PDF
+  measuring_only: true            # plot only after the time delay
+  figures:
+    - y: [wheel_force_x, wheel_force_y, wheel_force_z]
+      title: Wheel forces
+    - y: [slip_angle, steering_angle, camber_angle]
+      title: Wheel angles
+      #y_range: [-0.1, 0.1]
+    - x: slip_angle
+      y: wheel_force_y
+      title: Lateral force vs. slip angle
+    - long_slip
+    - drawbar_pull
+    - drive_torque
+    - sinkage
+
+visualization:
+  type: MODEL_FILE                # MODEL_FILE, PRIMITIVES, COLLISION, NONE
+  render_fps: 100
+  enable_shadows: true
+  camera:
+    vertical: Z
+    offset: [2.0, 2.5, 1.0]
+    target_offset: [0, 0.25, -0.25]
+  output:
+    save_images: false
+    image_type: "bmp"

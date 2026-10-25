@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <iomanip>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtils.h"
 
@@ -50,6 +51,10 @@ int main(int argc, char* argv[]) {
         {"wheel_suspension_rig_rigid.yaml", "Wheel with steerable suspension on rigid terrain"},  //
         {"wheel_rig_scm.yaml", "Wheel on SCM terrain"},                                           //
         {"wheel_suspension_rig_scm.yaml", "Wheel with steerable suspension on SCM terrain"},      //
+#ifdef CHRONO_FEA
+        {"wheel_rig_mbtire_rigid.yaml", "Wheel with MB tire on rigid terrain"},  //
+        {"wheel_rig_mbtire_scm.yaml", "Wheel with MB tire on SCM terrain"},      //
+#endif
 #ifdef CHRONO_CRM
         {"wheel_rig_crm.yaml", "Wheel on CRM terrain"},                                            //
         {"wheel_suspension_rig_crm.yaml", "Wheel with steerable suspension on CRM terrain"},       //

@@ -77,7 +77,7 @@ model:
       description: |
         JSON file for tire subsystem specification (VEHICLE type only).
         Handling (force-element) tires have no collision geometry and can only be used with RIGID terrain.
-        FEA (deformable) tires are not supported.
+        Deformable tires (FEA and MB tires) require an SMC contact method; MB tires cannot be used with CRM terrain.
       type: string
     suspension_json:
       description: |
@@ -95,6 +95,27 @@ model:
           description: Tire-terrain collision detection type (handling tires only)
           enum: [SINGLE_POINT, FOUR_POINTS, ENVELOPE]
           default: SINGLE_POINT
+        contact_surface:
+          type: object
+          description: Tire contact surface (deformable tires only)
+          required: [type]
+          properties:
+            type:
+              type: string
+              description: |
+                Contact surface type (contact spheres at the tire nodes or a triangle mesh over the tire surface).
+                A deformable tire on SCM terrain requires a TRIANGLE_MESH contact surface.
+              enum: [NODE_CLOUD, TRIANGLE_MESH]
+              default: NODE_CLOUD
+            dimension:
+              type: number
+              description: Contact sphere radius (NODE_CLOUD) or mesh thickness (TRIANGLE_MESH)
+              minimum: 0
+              default: 0.01
+            collision_family:
+              type: integer
+              description: Collision family of the tire contact surface (collisions within the family are disabled)
+              default: 13
 
 # -----------------------------------------------------------------------------
 # Rig properties

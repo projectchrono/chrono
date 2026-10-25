@@ -20,6 +20,7 @@
 #include <string>
 
 #include "chrono_parsers/yaml/ChParserMbsYAML.h"
+#include "chrono_parsers/yaml/ChChannelPlotsYAML.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
@@ -94,7 +95,7 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     virtual bool OutputEnabled() const override { return ChParserYAML::OutputEnabled() || PlotsEnabled(); }
 
     /// Return true if plots were requested (in the `plots` section of the simulation specification).
-    bool PlotsEnabled() const { return !m_figures.empty(); }
+    bool PlotsEnabled() const { return m_plots.Enabled(); }
 
     /// Write the rig output channels (see ChWheelTestRig::GetOutputChannels) at the current time and record them for
     /// plotting (if plots were requested).
@@ -112,6 +113,12 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
 
     /// Return the camera look-at point relative to the wheel hub position.
     const ChVector3d& GetCameraTargetOffset() const { return m_camera_target_offset; }
+
+    /// Read a tire-terrain collision type (`SINGLE_POINT`, `FOUR_POINTS`, or `ENVELOPE`).
+    static vehicle::ChTire::CollisionType ReadTireCollisionType(const YAML::Node& a);
+
+    /// Read a tire contact surface type (`NODE_CLOUD` or `TRIANGLE_MESH`).
+    static vehicle::ChTire::ContactSurfaceType ReadTireContactSurfaceType(const YAML::Node& a);
 
 #ifdef CHRONO_VSG
     /// Return a VSG plugin for rendering the SPH particles and BCE markers of a CRM terrain.
@@ -131,22 +138,6 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
 
     static vehicle::ChWheelTestRig::Mode ReadMode(const YAML::Node& a);
     static vehicle::ChWheelTestRig::TerrainType ReadTerrainType(const YAML::Node& a);
-    static vehicle::ChTire::CollisionType ReadTireCollisionType(const YAML::Node& a);
-
-    void LoadPlotData(const YAML::Node& yaml);
-
-    /// Plot output type.
-    enum class PlotOutput { WINDOW, PNG, PDF };
-
-    /// Figure specification: one or more channels as functions of time or of another channel.
-    struct Figure {
-        std::string x;               ///< abscissa channel (empty for time)
-        std::vector<std::string> y;  ///< ordinate channels
-        std::string title;           ///< figure title (optional)
-        bool set_range;              ///< true if an ordinate range was specified
-        double y_min;                ///< ordinate range (lower bound)
-        double y_max;                ///< ordinate range (upper bound)
-    };
 
     enum class SteeringInput { NONE, ANGLE, ACTUATOR };
     enum class ActiveDomain { NONE, AUTO, BOX };
@@ -161,6 +152,10 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     std::string m_suspension_json;
     bool m_set_collision_type;
     vehicle::ChTire::CollisionType m_collision_type;
+    bool m_set_contact_surface;
+    vehicle::ChTire::ContactSurfaceType m_contact_surface_type;
+    double m_contact_surface_dim;
+    int m_collision_family;
     double m_normal_load;
     double m_camber_angle;
 
@@ -205,13 +200,7 @@ class ChApiParsers ChParserWheelRigYAML : public ChParserMbsYAML {
     ChVector3d m_camera_target_offset;
 
     // Plots
-    std::vector<Figure> m_figures;                 ///< requested figures
-    PlotOutput m_plot_output;                      ///< plot output type
-    bool m_plot_measuring_only;                    ///< plot only while measurements are enabled
-    std::vector<std::string> m_plot_channels;      ///< names of recorded channels
-    std::vector<std::string> m_plot_units;         ///< units of recorded channels
-    std::vector<double> m_plot_time;               ///< recorded times
-    std::vector<std::vector<double>> m_plot_data;  ///< recorded channel values (one vector per channel)
+    ChChannelPlotsYAML m_plots;
 
     std::shared_ptr<vehicle::ChWheelTestRig> m_rig;
 };

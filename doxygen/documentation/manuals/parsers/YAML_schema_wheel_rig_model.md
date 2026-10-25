@@ -48,13 +48,29 @@ A `VEHICLE` wheel assembly consists of a wheel and a tire and, optionally, a sus
 
 Any Chrono::Vehicle tire with a collision geometry (rigid tires, including rigid mesh tires) can be used on any
 terrain type. Handling (force-element) tires, such as TMeasy or Pacejka tires, have no collision geometry and can only
-be used on rigid terrain. FEA (deformable) tires are not supported.
+be used on rigid terrain. Deformable tires (FEA tires, such as ANCF or Reissner tires, and MB tires) require the
+`SMC` contact method in the [MBS solver](@ref YAML_schema_mbs_solver) specification; MB tires cannot currently be used
+on CRM terrain.
 
 The `tire` key, if present, specifies the following properties:
 
 | Property | Description | Type | Available Values | Required | Default |
 |----------|-------------|------|------------------|----------|---------|
 | `collision_type` | Tire-terrain collision detection type (handling tires only) | enum | `SINGLE_POINT`,`FOUR_POINTS`,`ENVELOPE` | No | `SINGLE_POINT` |
+| `contact_surface` | Tire contact surface (deformable tires only) | object | -- | No | -- |
+
+The `contact_surface` key, if present, specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default |
+|----------|-------------|------|------------------|----------|---------|
+| `type` | Contact surface type | enum | `NODE_CLOUD`,`TRIANGLE_MESH` | Yes | `NODE_CLOUD` |
+| `dimension` | Contact sphere radius (`NODE_CLOUD`) or mesh thickness (`TRIANGLE_MESH`) | double | -- | No | 0.01 |
+| `collision_family` | Collision family of the tire contact surface | int | -- | No | 13 |
+
+A `NODE_CLOUD` contact surface uses a contact sphere at each tire node; a `TRIANGLE_MESH` contact surface uses a
+triangle mesh over the tire surface. A deformable tire on SCM terrain requires a `TRIANGLE_MESH` contact surface (a
+`NODE_CLOUD` contact surface does not interact with SCM terrain). Collisions between the tire contact surface and other
+collision shapes in the same collision family are disabled.
 
 With a suspension (`suspension_json`), the wheel is attached to the spindle of the suspension and the suspension to
 the rig chassis. The suspension geometry then dictates the camber and slip angles, so `rig.camber_angle` and the test
@@ -118,6 +134,10 @@ integrator time step is the step size for the multibody system and the wheel ass
 Below is an example of a rig model with a Chrono::Vehicle wheel, tire, and steerable suspension:
 
 \include data/yaml/vehicle/wheel_rig/rig_model_hmmwv_front_tmeasy.yaml
+
+Below is an example of a rig model with a deformable (MB) tire, which uses an `SMC` MBS solver:
+
+\include data/yaml/vehicle/wheel_rig/rig_model_hmmwv_mbtire.yaml
 
 Below is an example of a rig model with a custom wheel assembly:
 
