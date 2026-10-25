@@ -275,6 +275,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
         ChVector3d gravity;
 
         ChContactMethod contact_method;
+        double eff_curvature_radius;  ///< default effective radius of curvature for SMC contacts
 
         int num_threads_chrono;
         int num_threads_collision;

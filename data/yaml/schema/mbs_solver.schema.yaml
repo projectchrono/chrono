@@ -25,6 +25,15 @@ contact_method:
   description: Contact method for collision detection and response
   enum: [SMC, NSC]
 
+effective_curvature_radius:
+  type: number
+  description: |
+    Default effective radius of curvature (m) used by SMC contact force models. The Bullet collision system (used by
+    the YAML parsers) does not compute contact curvatures, so this value applies to all contacts; a larger value
+    results in stiffer contacts. Ignored with NSC.
+  minimum: 0
+  default: 0.2
+
 integrator:
   type: object
   description: |

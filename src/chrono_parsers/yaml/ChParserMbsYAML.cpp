@@ -220,6 +220,10 @@ void ChParserMbsYAML::LoadSolverData(const YAML::Node& yaml) {
         throw std::runtime_error("Incorrect contact method");
     }
 
+    // Default effective radius of curvature for SMC contacts (optional)
+    if (yaml["effective_curvature_radius"])
+        m_sim.eff_curvature_radius = yaml["effective_curvature_radius"].as<double>();
+
     // Integrator parameters (optional)
     if (yaml["integrator"]) {
         auto intgr = yaml["integrator"];
@@ -1096,7 +1100,7 @@ std::shared_ptr<ChSystem> ChParserMbsYAML::CreateSystem() {
     // Create a Chrono system of specified type
     m_sys = ChSystem::Create(m_sim.contact_method);
     m_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(m_sim.eff_curvature_radius);
 
     // Set solver and integrator parameters
     SetSimulationParameters(*m_sys);
@@ -1872,6 +1876,7 @@ ChParserMbsYAML::IntegratorParams::IntegratorParams()
 ChParserMbsYAML::SimParams::SimParams()
     : gravity({0, 0, -9.8}),
       contact_method(ChContactMethod::NSC),
+      eff_curvature_radius(0.2),
       num_threads_chrono(1),
       num_threads_collision(1),
       num_threads_eigen(1),
@@ -1936,6 +1941,8 @@ void ChParserMbsYAML::IntegratorParams::PrintInfo() const {
 
 void ChParserMbsYAML::SimParams::PrintInfo() const {
     cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
+    if (contact_method == ChContactMethod::SMC)
+        cout << "eff. curvature radius:  " << eff_curvature_radius << endl;
     cout << endl;
     cout << "simulation end time:    " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
     cout << "enforce real time?      " << std::boolalpha << enforce_realtime << endl;

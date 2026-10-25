@@ -18,6 +18,12 @@ Note that a solver file specifies neither output nor run-time visualization sett
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
 | `contact_method` | Contact method for collision detection and response | string | `SMC`,`NSC` | Yes | -- |
+| `effective_curvature_radius` | Default effective radius of curvature for SMC contacts (m) | double | -- | No | 0.2 |
+
+With the `SMC` contact method, the contact force models use an effective radius of curvature at each contact point.
+The Bullet collision system, used by the Chrono YAML parsers, does not compute contact curvatures, so the value of
+`effective_curvature_radius` applies to all contacts. A larger value results in stiffer contacts. This setting is
+ignored with the `NSC` contact method.
 
 ## Integrator types and parameters
 
