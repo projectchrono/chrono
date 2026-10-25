@@ -26,6 +26,7 @@ The various YAML parser classes allow parsing YAML specification files for Chron
 * @subpage YAML_schema_wheel_rig_simulation
   * @subpage YAML_schema_wheel_rig_model
   * @subpage YAML_schema_wheel_rig_terrain
+* @subpage YAML_schema_tire_static_rig_simulation
 * @subpage YAML_schema_fsi_simulation
   * @subpage YAML_schema_fsisph_simulation
     * @subpage YAML_schema_fsisph_model

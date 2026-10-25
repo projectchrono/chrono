@@ -51,6 +51,7 @@ ChTireStaticTestRig::ChTireStaticTestRig(std::shared_ptr<ChWheel> wheel, std::sh
       m_z_speed(0.01),
       m_transition_delay(0.1),
       m_transition_time(0),
+      m_spindle_z_ref(0),
       m_tire_step(1e-3),
       m_output(false),
       m_gnuplot(false),
@@ -370,20 +371,21 @@ void ChTireStaticTestRig::StateTransition(double time) {
 
 // -----------------------------------------------------------------------------
 
-void ChTireStaticTestRig::Output(double time) {
-    if (!m_output)
-        return;
-
+bool ChTireStaticTestRig::IsMeasuring() const {
     if (m_mode == Mode::SUSPEND)
-        return;
+        return false;
 
     if (m_state == State::FIXED || m_state == State::DROPPING)
-        return;
+        return false;
 
     if (m_state == State::COMPRESSING && m_mode != Mode::TEST_R)
-        return;
-    
-    if (time < m_transition_time + m_transition_delay)
+        return false;
+
+    return m_system->GetChTime() >= m_transition_time + m_transition_delay;
+}
+
+void ChTireStaticTestRig::Output(double time) {
+    if (!m_output || !IsMeasuring())
         return;
 
     // Write current outputs (in mm, deg, N, Nm)
@@ -555,6 +557,65 @@ TerrainForce ChTireStaticTestRig::ReportTireForce() {
 
 double ChTireStaticTestRig::GetRadialLoad() const {
     return m_motor_r->GetMotorForce();
+}
+
+std::vector<ChOutput::Channel> ChTireStaticTestRig::GetOutputChannels() const {
+    bool contact = m_state != State::FIXED && m_state != State::DROPPING;
+
+    // Deflections in each test direction (as reported in the rig output file, but in SI units)
+    double r_defl = contact ? m_spindle_z_ref - m_spindle->GetPos().z() : 0;
+    double x_defl = std::abs(m_plate_body->GetPos().x());
+    double y_defl = std::abs(m_plate_body->GetPos().y());
+    double z_defl = std::abs(AngleSetFromQuat(RotRepresentation::CARDAN_ANGLES_ZXY, m_plate_body->GetRot()).angles.x());
+
+    double r_load = GetCompressionLoad();
+    double x_load = GetLongitudinalLoad();
+    double y_load = GetLateralLoad();
+    double z_load = GetTorsionalLoad();
+
+    // Deflection and load for the current test mode
+    double defl = 0;
+    double load = 0;
+    std::string defl_units = "m";
+    std::string load_units = "N";
+    switch (m_mode) {
+        case Mode::SUSPEND:
+            break;
+        case Mode::TEST_R:
+            defl = r_defl;
+            load = r_load;
+            break;
+        case Mode::TEST_X:
+            defl = x_defl;
+            load = x_load;
+            break;
+        case Mode::TEST_Y:
+            defl = y_defl;
+            load = y_load;
+            break;
+        case Mode::TEST_Z:
+            defl = z_defl;
+            load = z_load;
+            defl_units = "rad";
+            load_units = "N.m";
+            break;
+    }
+
+    return {
+        {"measuring", "-", IsMeasuring() ? 1.0 : 0.0},      //
+        {"state", "-", (double)static_cast<int>(m_state)},  //
+        {"deflection", defl_units, defl},                   //
+        {"load", load_units, load},                         //
+        {"radial_deflection", "m", r_defl},                 //
+        {"radial_load", "N", r_load},                       //
+        {"longitudinal_deflection", "m", x_defl},           //
+        {"longitudinal_load", "N", x_load},                 //
+        {"lateral_deflection", "m", y_defl},                //
+        {"lateral_load", "N", y_load},                      //
+        {"torsional_deflection", "rad", z_defl},            //
+        {"torsional_load", "N.m", z_load},                  //
+        {"spindle_height", "m", m_spindle->GetPos().z()}    //
+    };
 }
 
 }  // end namespace vehicle

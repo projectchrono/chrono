@@ -192,6 +192,8 @@ if(CHRONO_YAML_ENABLED)
             yaml/ChParserVehicleYAML.cpp
             yaml/ChParserWheelRigYAML.h
             yaml/ChParserWheelRigYAML.cpp
+            yaml/ChParserTireStaticRigYAML.h
+            yaml/ChParserTireStaticRigYAML.cpp
         )
     endif()
     source_group("yaml" FILES ${Chrono_PARSERS_YAML_FILES})

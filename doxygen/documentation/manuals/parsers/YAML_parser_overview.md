@@ -30,6 +30,7 @@ recognized values are:
 | `MBS` | Rigid multibody simulation, see the [MBS simulation schema](@ref YAML_schema_mbs_simulation) |
 | `VEHICLE` | Vehicle simulation, see the [vehicle simulation schema](@ref YAML_schema_vehicle_simulation) |
 | `WHEEL_RIG` | Single-wheel test rig simulation, see the [wheel test rig simulation schema](@ref YAML_schema_wheel_rig_simulation) |
+| `TIRE_STATIC_RIG` | Static tire test rig simulation, see the [static tire test rig simulation schema](@ref YAML_schema_tire_static_rig_simulation) |
 | `FSI` | Coupled fluid-solid interaction simulation, see the [FSI simulation schema](@ref YAML_schema_fsi_simulation) |
 | `SPH` | Chrono::FSI-SPH fluid phase, see the [FSI-SPH simulation schema](@ref YAML_schema_fsisph_simulation) |
 | `TDPF` | Chrono::FSI-TDPF fluid phase, see the [FSI-TDPF simulation schema](@ref YAML_schema_fsitdpf_simulation) |
@@ -89,6 +90,9 @@ The Chrono distribution includes (in the `data\yaml\` directory) several YAML sp
 - Single-wheel test rig simulation (a wheel with a steerable suspension on rigid terrain):<br>
   `./run_chrono -s ../data/yaml/vehicle/wheel_rig/wheel_suspension_rig_rigid.yaml`<br>
   (use a different wheel test rig specification file for other wheel assemblies and terrain types)
+- Static tire test rig simulation (a radial test of an MB tire):<br>
+  `./run_chrono -s ../data/yaml/vehicle/tire_static_rig/tire_static_rig_hmmwv_mbtire.yaml`<br>
+  (use a different static tire test rig specification file for other tire models)
 - FSI-SPH problem (defaults to a CFD simulation of a cylinder dropped in water):<br>
   `./run_chrono -s ../data/yaml/fsi/cylinder_drop/fsi_cylinder_drop.yaml`<br>
   (use a different FSI specification file for other examples)

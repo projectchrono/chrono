@@ -33,7 +33,7 @@ class ChApiParsers ChParserYAML {
     /// Type of a Chrono YAML specification file, as declared by its `type` key.
     /// `CUSTOM` marks a file that is not consumed by any of the Chrono YAML parsers but is instead read
     /// by application code. An unrecognized `type` value is also reported as `CUSTOM`, with a warning.
-    enum class YamlFileType { MBS, SPH, TDPF, FSI, VEHICLE, WHEEL_RIG, CUSTOM };
+    enum class YamlFileType { MBS, SPH, TDPF, FSI, VEHICLE, WHEEL_RIG, TIRE_STATIC_RIG, CUSTOM };
 
     ChParserYAML();
     virtual ~ChParserYAML() {}

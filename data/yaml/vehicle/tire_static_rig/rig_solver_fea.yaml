@@ -1,0 +1,21 @@
+## MBS solver for static tire test rig samples with FEA tires (follows mbs_solver.schema)
+## Requires the Chrono::PardisoMKL module.
+
+chrono-version: 10.0
+
+contact_method: SMC               # deformable tires require SMC
+effective_curvature_radius: 0.1   # SMC contact stiffness (Chrono default, as in the C++ demos)
+
+integrator:
+  type: HHT
+  time_step: 1e-4                 # multibody and tire step size
+  rel_tolerance: 1e-3
+  abs_tolerance_states: 1e2
+  abs_tolerance_multipliers: 1e2
+  max_iterations: 10
+  use_stepsize_control: false
+  use_modified_newton: true
+
+solver:
+  type: PARDISO
+  lock_sparsity_pattern: true

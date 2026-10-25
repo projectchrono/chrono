@@ -1,0 +1,26 @@
+## Static tire test rig model: HMMWV wheel with rigid mesh tire
+
+chrono-version: 10.0
+
+model:
+  type: VEHICLE
+  name: HMMWV_RigidMeshTire
+
+  data_path:
+    type: RELATIVE
+    root: "../../.."
+
+  wheel_json: "vehicle/hmmwv/wheel/HMMWV_Wheel.json"
+  tire_json: "vehicle/hmmwv/tire/HMMWV_RigidMeshTire.json"
+
+  tire:
+    collision_type: FOUR_POINTS   # SINGLE_POINT, FOUR_POINTS, ENVELOPE (handling tires only)
+    contact_surface:              # deformable tires only
+      type: NODE_CLOUD            # NODE_CLOUD, TRIANGLE_MESH
+      dimension: 0.02             # contact sphere radius (NODE_CLOUD) or mesh thickness (TRIANGLE_MESH)
+      collision_family: 7
+
+rig:
+  normal_load: 6500               # HMMWV front static wheel load
+
+solver: "rig_solver_rigid.yaml"

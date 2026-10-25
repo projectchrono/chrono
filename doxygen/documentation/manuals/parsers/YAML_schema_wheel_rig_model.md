@@ -4,7 +4,8 @@ YAML schema for Chrono::Vehicle single-wheel test rig model specification {#YAML
 A Chrono YAML wheel test rig model file defines the rig mechanism of a
 [wheel test rig simulation](@ref YAML_schema_wheel_rig_simulation): the wheel assembly under test, the rig
 properties, and the multibody solver. It is the "multibody" side of a wheel test rig simulation, independent of the
-terrain and of the test scenario. It consists of the following objects:
+terrain and of the test scenario. The same rig model files are also used by
+[static tire test rig simulations](@ref YAML_schema_tire_static_rig_simulation). It consists of the following objects:
 - [required] The Chrono version (`chrono-version`) that is compatible with the YAML specification.
   This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fields are verified for compatibility.
 - [required] The `model` object, which defines the wheel assembly.

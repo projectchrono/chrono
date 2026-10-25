@@ -31,6 +31,7 @@
 #ifdef CHRONO_VEHICLE
     #include "chrono_parsers/yaml/ChParserVehicleYAML.h"
     #include "chrono_parsers/yaml/ChParserWheelRigYAML.h"
+    #include "chrono_parsers/yaml/ChParserTireStaticRigYAML.h"
     #include "chrono_vehicle/driver/ChInteractiveDriver.h"
     #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #endif
@@ -63,6 +64,7 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
 bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
 bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
 bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
+bool RunTIRE_STATIC_RIG(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis);
 
 // -----------------------------------------------------------------------------
 
@@ -111,6 +113,13 @@ int main(int argc, char* argv[]) {
             RunWHEEL_RIG(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
 #else
             cerr << "The Chrono::Vehicle module is not available. Cannot process a wheel test rig YAML specification." << endl;
+#endif
+            break;
+        case ChParserYAML::YamlFileType::TIRE_STATIC_RIG:
+#ifdef CHRONO_VEHICLE
+            RunTIRE_STATIC_RIG(yaml_filename, out_dir, disable_verbose, disable_output, disable_vis);
+#else
+            cerr << "The Chrono::Vehicle module is not available. Cannot process a static tire test rig YAML specification." << endl;
 #endif
             break;
 
@@ -541,6 +550,102 @@ bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool d
             cout << "\n  time : " << time << " - end of terrain patch reached" << endl;
             break;
         }
+
+        if (real_time)
+            rt_timer.Spin(step);
+    }
+
+    // Generate plots (if requested)
+    if (output)
+        parser.GeneratePlots();
+#endif
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+
+bool RunTIRE_STATIC_RIG(const std::string& yaml_filename, std::string& out_dir, bool disable_verbose, bool disable_output, bool& disable_vis) {
+#ifdef CHRONO_VEHICLE
+    // Create the YAML parser object
+    parsers::ChParserTireStaticRigYAML parser(yaml_filename, !disable_verbose);
+
+    // Create Chrono system and the static tire test rig
+    auto sys = parser.CreateSystem();
+    std::shared_ptr<vehicle::ChTireStaticTestRig> rig;
+    try {
+        rig = parser.CreateRig(*sys);
+    } catch (const std::exception& e) {
+        cerr << "Error: cannot create the static tire test rig (" << e.what() << ")." << endl;
+        return false;
+    }
+
+    double time_end = parser.GetEndtime();
+    double step = parser.GetTimestep();
+    bool real_time = parser.EnforceRealtime();
+    bool render = parser.VisualizationEnabled() && !disable_vis;
+
+    bool output = parser.OutputEnabled() && !disable_output;
+
+    // Create output directory (named after the simulation specification file)
+    if (output) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return false;
+        }
+        out_dir = out_dir + "/" + std::filesystem::path(yaml_filename).stem().string();
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return false;
+        }
+        parser.SetOutputDir(out_dir);
+    }
+
+    const ChVector3d& camera_offset = parser.GetCameraOffset();
+    const ChVector3d& camera_target_offset = parser.GetCameraTargetOffset();
+
+    // Create the run-time visualization (camera follows the wheel)
+    #ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> vis;
+    if (render) {
+        vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        vis->AttachSystem(sys.get());
+        vis->SetWindowTitle("Static tire test rig YAML - " + parser.GetName());
+        vis->SetWindowSize(1280, 800);
+        vis->SetWindowPosition(100, 100);
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        auto loc = rig->GetWheelPos();
+        vis->AddCamera(loc + camera_offset, loc + camera_target_offset);
+        vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows(parser.EnableShadows());
+        vis->Initialize();
+    }
+    #else
+    render = false;
+    #endif
+
+    // Simulation loop (until the end time or the end of the test)
+    ChRealtimeStepTimer rt_timer;
+    double time = 0;
+
+    while (time_end < 0 || time < time_end) {
+    #ifdef CHRONO_VSG
+        if (render) {
+            auto loc = rig->GetWheelPos();
+            vis->UpdateCamera(loc + camera_offset, loc + camera_target_offset);
+            if (!parser.Render(*vis, time))
+                break;
+        }
+    #endif
+
+        if (!rig->Advance(step)) {
+            cout << "\n  time : " << time << " - test completed" << endl;
+            break;
+        }
+        time = sys->GetChTime();
+
+        if (output)
+            parser.Output(time);
 
         if (real_time)
             rt_timer.Spin(step);

@@ -12,6 +12,7 @@
 # Schema for a YAML Chrono::Vehicle single-wheel test rig mechanism specification file.
 # This is the "multibody" side of a WHEEL_RIG simulation (see wheel_rig_simulation.schema): the wheel assembly under
 # test, the rig properties, and the MBS solver.
+# The same rig model files are also used by TIRE_STATIC_RIG simulations (see tire_static_rig_simulation.schema).
 # The `chrono-version` must match the Chrono major and minor version numbers.
 #
 # =============================================================================

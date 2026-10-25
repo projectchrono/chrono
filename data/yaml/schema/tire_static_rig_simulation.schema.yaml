@@ -1,0 +1,312 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2026 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono YAML TIRE_STATIC_RIG simulation specification file.
+# A TIRE_STATIC_RIG simulation runs a Chrono::Vehicle static tire test rig (ChTireStaticTestRig): the wheel spindle is
+# lowered onto a rigid plate until the tire carries a nominal radial load and, depending on the test mode, the plate is
+# then translated or rotated to load the tire longitudinally, laterally, or torsionally.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+#
+# A TIRE_STATIC_RIG simulation combines:
+#   rig   - the rig model: wheel and tire, plus the MBS solver (wheel_rig_model.schema, VEHICLE type only)
+#   plate - the contact material of the rig plate
+#   test  - the test scenario: operation mode, nominal radial load, and loading speeds
+#
+# =============================================================================
+
+required: [chrono-version, type, rig, test, simulation]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+
+vector3d: &VECTOR3D   # Specification of a ChVector3d
+    type: array
+    items:
+        type: number
+    minItems: 3
+    maxItems: 3
+
+# -----------------------------------------------------------------------------
+# Definition of a static tire test rig simulation
+
+type:
+  description: Type of Chrono simulation (must be TIRE_STATIC_RIG)
+  type: string
+  value: TIRE_STATIC_RIG
+
+rig:
+  description: |
+      Rig model specification YAML file (wheel and tire, and MBS solver).
+      The path must be provided relative to the location of this simulation specification file.
+      The file must follow the wheel_rig_model.schema, with the following restrictions:
+        - the model must be of VEHICLE type (custom wheel assemblies are not supported);
+        - a suspension (suspension_json) and the rig camber angle (rig.camber_angle) are ignored;
+        - the rig normal load (rig.normal_load) is the default nominal radial load (see test.radial_load);
+        - handling (force-element) tires cannot be used, as they have no collision geometry.
+      The integrator time step of the MBS solver is the step size for the multibody system and the tire dynamics.
+  type: string
+
+plate:
+  description: Contact material properties of the rig plate
+  type: object
+  properties:
+    friction:
+      type: number
+      description: Coefficient of friction
+      minimum: 0
+      default: 0.8
+    restitution:
+      type: number
+      description: Coefficient of restitution
+      minimum: 0
+      maximum: 1
+      default: 0
+    Young_modulus:
+      type: number
+      description: Young's modulus (Pa), used with an SMC contact method
+      minimum: 0
+      default: 2e7
+
+test:
+  description: |
+    Test scenario.
+    In all test modes other than SUSPEND, the wheel spindle is first lowered at the drop speed until the tire contacts
+    the plate, and then at the radial loading speed until the radial load reaches the nominal radial load. In TEST_R
+    mode, the test ends at that point; in the other modes, the spindle is then held and the plate is translated or
+    rotated at the corresponding loading speed until the end of the simulation.
+  type: object
+  required: [mode]
+  properties:
+    mode:
+      type: string
+      description: |
+        Test mode:
+          SUSPEND - the wheel spindle is fixed above the plate (no test);
+          TEST_R  - radial (vertical compression) test;
+          TEST_X  - longitudinal test (plate translated in the x direction);
+          TEST_Y  - lateral test (plate translated in the y direction);
+          TEST_Z  - torsional test (plate rotated about the vertical axis).
+      enum: [SUSPEND, TEST_R, TEST_X, TEST_Y, TEST_Z]
+    radial_load:
+      type: number
+      description: Nominal radial load (N); overrides the normal load from the rig model file
+      minimum: 0
+    drop_speed:
+      type: number
+      description: Spindle speed (m/s) before the tire contacts the plate
+      minimum: 0
+      default: 1
+    radial_speed:
+      type: number
+      description: Spindle speed (m/s) during the radial loading phase
+      minimum: 0
+      default: 0.001
+    longitudinal_speed:
+      type: number
+      description: Plate speed (m/s) in a longitudinal test (TEST_X)
+      minimum: 0
+      default: 0.001
+    lateral_speed:
+      type: number
+      description: Plate speed (m/s) in a lateral test (TEST_Y)
+      minimum: 0
+      default: 0.001
+    torsional_speed:
+      type: number
+      description: Plate angular speed (rad/s) in a torsional test (TEST_Z)
+      minimum: 0
+      default: 0.01
+    transition_delay:
+      type: number
+      description: |
+        Time delay (s) after a change of test phase before checking for the next phase change and before measurements
+        are enabled
+      minimum: 0
+      default: 0.1
+
+simulation:
+  description: Simulation settings
+  type: object
+  properties:
+    end_time:
+      type: number
+      description: |
+        Total simulation duration in seconds.
+        The simulation will run from t=0 to t=end_time (or until the end of a TEST_R test).
+        A negative value indicates an infinite end time.
+      default: -1
+    enforce_realtime:
+      type: boolean
+      description: Whether to enforce real-time simulation.
+      default: false
+    gravity:
+      <<: *VECTOR3D
+      description: |
+        Gravitational acceleration vector [x, y, z].
+        The test rig assumes a vertical (Z-up) world frame: only vectors of the form [0, 0, -g] with g >= 0 are
+        accepted.
+      default: [0, 0, -9.8]
+    num_threads:
+      type: object
+      description: |
+        Number of threads used by the various parallel components.
+        Any entry that is omitted keeps its default value of 1.
+      properties:
+        chrono:
+          type: integer
+          description: Number of threads used by Chrono (e.g., FEA tire computations)
+          minimum: 1
+          default: 1
+        collision:
+          type: integer
+          description: Number of threads used by the collision detection system
+          minimum: 1
+          default: 1
+        eigen:
+          type: integer
+          description: Number of threads used by Eigen
+          minimum: 1
+          default: 1
+        pardiso:
+          type: integer
+          description: Number of threads used by the PARDISO solver (used only with the PARDISO solver type)
+          minimum: 1
+          default: 1
+
+output:
+  description: Output settings (same as for a WHEEL_RIG simulation, see wheel_rig_simulation.schema)
+  type: object
+  required: [format]
+  properties:
+     format:
+        type: string
+        description: Output DB format
+        enum: [NONE, ASCII, HDF5]
+        default: NONE
+     mode:
+        type: string
+        description: Output mode (one file per output frame, or a single time-series file)
+        enum: [FRAMES, SERIES]
+        default: FRAMES
+     fps:
+        type: number
+        description: Output frequency (FPS or Hz); also the sampling frequency of the data recorded for plots
+        minimum: 0
+        default: 100
+
+plots:
+  description: |
+    Gnuplot plots generated at the end of the simulation from the rig output channels (same specification as for a
+    WHEEL_RIG simulation, see wheel_rig_simulation.schema).
+    Available channels: measuring, state, deflection, load, radial_deflection, radial_load, longitudinal_deflection,
+    longitudinal_load, lateral_deflection, lateral_load, torsional_deflection, torsional_load, spindle_height.
+    The `deflection` and `load` channels are those of the current test mode. Deflections are measured from the
+    configuration at first tire-plate contact. Quantities are in SI units, with angles in radians.
+    With measuring_only, only data recorded during the measuring phase of the test (the radial loading phase for a
+    TEST_R test, the plate displacement phase otherwise, after the transition delay) is plotted.
+  type: object
+  required: [figures]
+  properties:
+    output:
+      type: string
+      description: Plot output (interactive Gnuplot windows, PNG images, or PDF files)
+      enum: [WINDOW, PNG, PDF]
+      default: PNG
+    measuring_only:
+      type: boolean
+      description: If true, plot only data recorded during the measuring phase of the test
+      default: true
+    figures:
+      type: array
+      description: |
+        List of figures. A figure is either a channel name (that channel as a function of time) or an object
+        specifying one or more channels as functions of time or of another channel.
+      items:
+        oneOf:
+          - type: string
+            description: Channel plotted as a function of time
+          - type: object
+            required: [y]
+            properties:
+              x:
+                type: string
+                description: Abscissa channel (default time)
+              y:
+                description: Ordinate channel or list of channels
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+              title:
+                type: string
+                description: Figure title
+              y_range:
+                type: array
+                description: Ordinate range [min, max] (default automatic)
+                items:
+                  type: number
+                minItems: 2
+                maxItems: 2
+
+visualization:
+  description: Run-time visualization settings
+  type: object
+  properties:
+      type:
+          type: string
+          description: |
+            Type of tire visualization shapes.
+            A value of NONE (the default) also disables run-time visualization altogether.
+          enum: [MODEL_FILE, PRIMITIVES, COLLISION, NONE]
+          default: NONE
+      render_fps:
+          type: number
+          description: Target frames per second for visualization.
+          minimum: 0
+          default: 120
+      enable_shadows:
+          type: boolean
+          description: Whether to enable shadows in run-time visualization system
+          default: true
+      camera:
+          type: object
+          description: Camera that follows the wheel
+          properties:
+              vertical:
+                  type: string
+                  description: Vertical axis for camera orientation (the rig requires Z)
+                  enum: [Z]
+                  default: Z
+              offset:
+                  <<: *VECTOR3D
+                  description: Camera location relative to the wheel position (in the world frame)
+                  default: [1.0, 2.5, 0.5]
+              target_offset:
+                  <<: *VECTOR3D
+                  description: Camera look-at point relative to the wheel position (in the world frame)
+                  default: [0, 0, 0]
+      output:
+          type: object
+          description: Run-time visualization image output
+          properties:
+              save_images:
+                  type: boolean
+                  description: Whether to save rendered frames as image files
+                  default: false
+              image_type:
+                  type: string
+                  description: Image file type, specified through the file extension
+                  default: bmp

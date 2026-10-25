@@ -27,6 +27,7 @@
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
+#include "chrono/input_output/ChOutput.h"
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/input_output/ChUtilsInputOutput.h"
 
@@ -142,6 +143,18 @@ class CH_VEHICLE_API ChTireStaticTestRig {
 
     /// Get the current radial load.
     double GetRadialLoad() const;
+
+    /// Return true if the rig is in the measuring phase of the current test.
+    /// This is the compression phase for a radial test (TEST_R), and the plate displacement phase for the other tests,
+    /// in both cases after the state transition delay. It is always false in SUSPEND mode.
+    bool IsMeasuring() const;
+
+    /// Get the current values of the rig output channels.
+    /// The channels include a measuring flag (see IsMeasuring), the rig state, the deflection and load for the current
+    /// test mode (`deflection` and `load`), the deflection and load for each test direction, and the spindle height.
+    /// Deflections are measured from the configuration at first tire-plate contact and are zero before that. All
+    /// quantities are in SI units, with angles in radians. The set of channels is the same at every call.
+    std::vector<ChOutput::Channel> GetOutputChannels() const;
 
   private:
     class RigTerrain : public ChTerrain {

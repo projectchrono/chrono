@@ -593,6 +593,7 @@ class ChApiParsers ChParserMbsYAML : public ChParserYAML {
     friend class ChParserVehicleYAML;
     friend class ChParserFsiYAML;
     friend class ChParserWheelRigYAML;
+    friend class ChParserTireStaticRigYAML;
 };
 
 /// @} parsers_module

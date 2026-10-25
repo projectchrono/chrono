@@ -1,0 +1,58 @@
+## Static tire test rig: HMMWV wheel with rigid mesh tire
+
+chrono-version: 10.0
+type: TIRE_STATIC_RIG
+
+rig: "rig_model_hmmwv_rigidmesh.yaml"
+
+plate:
+  friction: 0.8
+  restitution: 0
+  Young_modulus: 2e7
+
+test:
+  mode: TEST_R                    # SUSPEND, TEST_R, TEST_X, TEST_Y, TEST_Z
+  radial_load: 35280              # nominal radial load (N); overrides the rig model normal load
+  drop_speed: 0.1                 # m/s
+  radial_speed: 0.01              # m/s
+  longitudinal_speed: 0.1         # m/s
+  lateral_speed: 0.1              # m/s
+  torsional_speed: 0.1            # rad/s
+  transition_delay: 0.02          # s (100 steps)
+
+simulation:
+  end_time: 20                    # a radial test ends when reaching the nominal load; negative for infinite end time
+  enforce_realtime: false
+  gravity: [0, 0, -9.8]           # must be vertical: [0, 0, -g]
+  num_threads:
+    chrono: 4
+    collision: 4
+    eigen: 1
+    pardiso: 8
+
+output:
+  format: NONE                    # NONE, ASCII, HDF5
+  mode: SERIES                    # FRAMES, SERIES
+  fps: 1000
+
+plots:
+  output: PNG                     # WINDOW, PNG, PDF
+  measuring_only: true            # plot only during the measuring phase of the test
+  figures:
+    - x: deflection
+      y: load
+      title: Load vs. deflection
+    - y: [radial_load, longitudinal_load, lateral_load]
+      title: Plate loads
+
+visualization:
+  type: MODEL_FILE                # MODEL_FILE, PRIMITIVES, COLLISION, NONE
+  render_fps: 120
+  enable_shadows: true
+  camera:
+    vertical: Z
+    offset: [1.0, 2.5, 0.5]
+    target_offset: [0, 0, 0]
+  output:
+    save_images: false
+    image_type: "bmp"
