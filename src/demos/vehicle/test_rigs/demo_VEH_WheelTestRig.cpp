@@ -30,6 +30,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
     #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 #endif
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -62,19 +63,19 @@ ChWheelTestRig::TerrainType terrain_type = ChWheelTestRig::TerrainType::RIGID;
 ////std::string tire_json = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
 ////std::string tire_json = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
 ////std::string tire_json = "hmmwv/tire/HMMWV_ReissnerTire.json";
-std::string tire_json = "hmmwv/tire/HMMWV_MBTire.json";
-////std::string tire_json = "Polaris/Polaris_TMeasyTire.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_MBTire.json";
+std::string tire_json = "Polaris/Polaris_TMeasyTire.json";
 ////std::string tire_json = "Polaris/Polaris_RigidTire.json";
 ////std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
 ////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
 
 // Wheel specification file
-std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
-////std::string wheel_json = "Polaris/Polaris_Wheel.json";
+////std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
+std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
 // Normal load (static wheel load, appropriate for the selected vehicle)
-////double normal_load = 3000;  // Polaris
-double normal_load = 6500;  // HMMWV
+double normal_load = 3000;  // Polaris
+////double normal_load = 6500;  // HMMWV
 
 double render_fps = 120;
 bool debug_output = false;
@@ -93,8 +94,10 @@ int main() {
 
     bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
     bool fea_tire = false;
+    bool mb_tire = false;
 #ifdef CHRONO_FEA
     fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    mb_tire = std::dynamic_pointer_cast<ChMBTire>(tire) != nullptr;
 #endif
 
     // Handling tires have no collision geometry and cannot interact with deformable terrain
@@ -132,23 +135,20 @@ int main() {
     if (!fea_tire) {
         sys = new ChSystemNSC;
         step_size = 2e-4;
-        
         solver_type = ChSolver::Type::BARZILAIBORWEIN;
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
 #ifdef CHRONO_FEA
-    else {
+    else if (mb_tire) {
         sys = new ChSystemSMC;
         step_size = 5e-5;
-
-        solver_type = ChSolver::Type::PARDISO_MKL;
-        ////solver_type = ChSolver::Type::PARDISO_MKL;
-        ////solver_type = ChSolver::Type::SPARSE_QR;
-        ////solver_type = ChSolver::Type::BICGSTAB;
         solver_type = ChSolver::Type::MINRES;
-
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-        ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    } else {
+        sys = new ChSystemSMC;
+        step_size = 5e-5;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
 #endif
 
@@ -156,20 +156,19 @@ int main() {
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Number of OpenMP threads used in Chrono (SCM ray-casting and FEA)
-    int num_threads_chrono = std::min(4, ChOMP::GetNumProcs());
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
 
     // Number of threads used in collision detection
-    int num_threads_collision = std::min(4, ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
 
     // Number of threads used by Eigen
     int num_threads_eigen = 1;
 
     // Number of threads used by PardisoMKL
-    int num_threads_pardiso = std::min(4, ChOMP::GetNumProcs());
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
 
     sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
-    SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso, true);
-    tire->SetStepsize(step_size);
+    SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);
 
     // -----------------------------
     // Create and configure test rig
@@ -219,7 +218,7 @@ int main() {
     // Scenario: pulled wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(1.0));
 
-    // Scenario: immobilized wheel
+    // Scenario: imobilized wheel
     ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.0));
 
@@ -228,8 +227,8 @@ int main() {
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
-    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
+    rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
 
     // Scenario: specified longitudinal slip (overrides other definitions of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
@@ -269,6 +268,7 @@ int main() {
     // ---------------------------------
     // Create the run-time visualization
     // ---------------------------------
+
     auto vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
     vis->AttachSystem(sys);
     vis->SetCameraVertical(CameraVerticalDir::Z);

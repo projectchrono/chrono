@@ -13,6 +13,7 @@
 // =============================================================================
 //
 // Demonstration of the single-wheel static tire test rig.
+// The tire model to test is selected at run time.
 //
 // =============================================================================
 
@@ -20,8 +21,10 @@
 ////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
 
 #include <algorithm>
+#include <iomanip>
 
 #include "chrono/core/ChTimer.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -30,9 +33,11 @@
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireStaticTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
+#ifdef CHRONO_FEA
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
+#endif
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
@@ -40,6 +45,7 @@
 
 using std::cout;
 using std::cerr;
+using std::cin;
 using std::endl;
 
 using namespace chrono;
@@ -47,19 +53,28 @@ using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 
-// Tire specification file
-////std::string tire_json = "hmmwv/tire/HMMWV_RigidTire.json";
-////std::string tire_json = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
-////std::string tire_json = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
-////std::string tire_json = "hmmwv/tire/HMMWV_ReissnerTire.json";
-std::string tire_json = "hmmwv/tire/HMMWV_MBTire.json";
-////std::string tire_json = "Polaris/Polaris_RigidTire.json";
-////std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
-////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+// Available tire models (tire and wheel specification files, and description)
+struct TireModel {
+    std::string tire_json;
+    std::string wheel_json;
+    std::string description;
+};
 
-// Wheel specification file
-std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
-////std::string wheel_json = "Polaris/Polaris_Wheel.json";
+std::vector<TireModel> tire_models = {
+    {"hmmwv/tire/HMMWV_RigidTire.json", "hmmwv/wheel/HMMWV_Wheel.json", "HMMWV rigid tire"},
+    {"hmmwv/tire/HMMWV_RigidMeshTire.json", "hmmwv/wheel/HMMWV_Wheel.json", "HMMWV rigid mesh tire"},
+#ifdef CHRONO_FEA
+    {"hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json", "hmmwv/wheel/HMMWV_Wheel.json", "HMMWV ANCF 4-node shell tire"},
+    {"hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json", "hmmwv/wheel/HMMWV_Wheel.json", "HMMWV ANCF 8-node shell tire"},
+    {"hmmwv/tire/HMMWV_ReissnerTire.json", "hmmwv/wheel/HMMWV_Wheel.json", "HMMWV Reissner shell tire"},
+    {"hmmwv/tire/HMMWV_MBTire.json", "hmmwv/wheel/HMMWV_Wheel.json", "HMMWV MB tire"},
+#endif
+    {"Polaris/Polaris_RigidTire.json", "Polaris/Polaris_Wheel.json", "Polaris rigid tire"},
+    {"Polaris/Polaris_RigidMeshTire.json", "Polaris/Polaris_Wheel.json", "Polaris rigid mesh tire"},
+#ifdef CHRONO_FEA
+    {"Polaris/Polaris_ANCF4Tire_Lumped.json", "Polaris/Polaris_Wheel.json", "Polaris ANCF 4-node shell tire"},
+#endif
+};
 
 // Tire contact model (nodes or faces)
 auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
@@ -75,17 +90,36 @@ bool gnuplot_output = true;
 // -----------------------------------------------------------------------------
 
 int main() {
+    // -----------------
+    // Select tire model
+    // -----------------
+
+    int num_models = (int)tire_models.size();
+    int which = 0;
+    cout << "Options:\n";
+    for (int i = 0; i < num_models; i++)
+        cout << std::setw(2) << i + 1 << "  " << tire_models[i].description << endl;
+    cout << "\nSelect tire: ";
+    cin >> which;
+    cout << endl;
+    ChClampValue(which, 1, num_models);
+    const auto& tire_model = tire_models[which - 1];
+
     // --------------------------------
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = ReadWheelJSON(GetVehicleDataFile(wheel_json));
-    auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
+    auto wheel = ReadWheelJSON(GetVehicleDataFile(tire_model.wheel_json));
+    auto tire = ReadTireJSON(GetVehicleDataFile(tire_model.tire_json));
 
     bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
-    bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
-    bool mb_tire = std::dynamic_pointer_cast<ChMBTire>(tire) != nullptr;
     bool rigid_tire = std::dynamic_pointer_cast<ChRigidTire>(tire) != nullptr;
+    bool fea_tire = false;
+    bool mb_tire = false;
+#ifdef CHRONO_FEA
+    fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    mb_tire = std::dynamic_pointer_cast<ChMBTire>(tire) != nullptr;
+#endif
 
     if (handling_tire) {
         cerr << "ERROR: Handling tire models cannot be used with the static test rig." << endl;
