@@ -55,7 +55,9 @@
 // cart at th = 0, and the heavy slider at either dead centre) default PSOR leaves
 // acceleration errors of several m/s^2, and DoAssembly must report them as
 // ACCELERATION_INACCURATE. With equal crank and slider masses PSOR stays accurate even
-// at dead centre, so those cases carry no expectation on PSOR.
+// at dead centre, so those cases carry no expectation on PSOR. One smaller PSOR error (the heavy
+// slider at th = 0.3) falls below the default tolerance of the check; a separate test asserts
+// that the check catches it at a tolerance of 1e-3. Every run prints the check's own estimate.
 //
 // =============================================================================
 
@@ -97,12 +99,14 @@ struct Outcome {
     AssemblyAnalysis::ExitFlag flag = AssemblyAnalysis::ExitFlag::SUCCESS;
     int iterations = -1, max_iterations = -1;                   // iterative solver only
     double solver_error = 0, solver_tolerance = 0;              // iterative solver only
+    double estimate = 0;  // the accuracy check's own estimate of the acceleration error (see Assemble)
 };
 
 // A solver choice: type, plus an iteration limit for the iterative solver (0 = default).
 struct Solver {
     ChSolver::Type type;
     int max_iterations;
+    double acc_tol = 0;  // tolerance of the acceleration accuracy check (0 = default)
 };
 
 // A system of point-mass bodies joined by rods and slides.
@@ -117,6 +121,8 @@ struct Mechanism {
             sys.SetSolverType(solver.type);
         if (solver.max_iterations > 0 && sys.GetSolver()->IsIterative())
             sys.GetSolver()->AsIterative()->SetMaxIterations(solver.max_iterations);
+        if (solver.acc_tol > 0)
+            sys.SetAssemblyAccelerationTolerance(solver.acc_tol);
         ground = chrono_types::make_shared<ChBody>();
         ground->SetFixed(true);
         sys.Add(ground);
@@ -152,6 +158,12 @@ struct Mechanism {
     Outcome Assemble(const std::vector<ChVector3d>& exact) {
         Outcome out;
         out.flag = sys.DoAssembly(AssemblyAnalysis::Level::FULL);
+        // The estimate that DoAssembly compares with its tolerance: the largest constraint residual left by the
+        // acceleration-level solve, divided by the internal step of 1e-6 s.
+        for (auto* constr : sys.GetSystemDescriptor()->GetConstraints()) {
+            if (constr->IsActive())
+                out.estimate = std::max(out.estimate, std::abs(constr->Violation(constr->ComputeResidual())) / 1e-6);
+        }
         for (size_t i = 0; i < bodies.size(); i++)
             out.err = std::max(out.err, (bodies[i]->GetPosDt2() - exact[i]).Length());
         if (auto it = sys.GetSolver()->AsIterative()) {
@@ -300,7 +312,8 @@ void Check(const Case& c, const std::string& label, bool psor_inaccurate = false
     const char* names[] = {"SPARSE_QR ", "BB        ", "PSOR      ", "PSOR x500 "};
     for (int k = 0; k < 4; k++) {
         Outcome r = c.Run(solvers[k]);
-        std::cout << label << "  solver = " << names[k] << "  max |a err| = " << r.err << "  flag = " << FlagName(r.flag);
+        std::cout << label << "  solver = " << names[k] << "  max |a err| = " << r.err << "  flag = " << FlagName(r.flag)
+                  << "  check estimate = " << r.estimate;
         if (r.iterations >= 0)
             std::cout << "  iterations = " << r.iterations << "/" << r.max_iterations << "  solver error = " << r.solver_error
                       << " (tolerance " << r.solver_tolerance << ")";
@@ -348,6 +361,30 @@ TEST(AssemblyAnalysisCoupled, slider_crank_through_dead_centre) {
                       "slider-crank l/r=" + std::to_string(ratio) + " ms/mc=" + std::to_string(mass_ratio) + " th=" + std::to_string(th),
                       mass_ratio == 1e2 && (th == 0.0 || th == PI));
             }
+        }
+    }
+}
+
+TEST(AssemblyAnalysisCoupled, slider_crank_lower_tolerance) {
+    // At the default tolerance (1e-2), the check flags the five large PSOR errors above (3.2-16.2 m/s^2). A heavy
+    // slider at th = 0.3, ill-conditioned through the mass ratio rather than the geometry, leaves a sixth PSOR error
+    // of about 8.6e-3 m/s^2, which falls below the default tolerance. At 1e-3 the check catches it, while the direct
+    // and Barzilai-Borwein solves stay accurate and unflagged. The default-tolerance expectations above are unchanged.
+    const SliderCrank c{3.0, 1e2, 0.3, 4.0};
+    const Solver solvers[] = {{ChSolver::Type::SPARSE_QR, 0, 1e-3},
+                              {ChSolver::Type::BARZILAIBORWEIN, 0, 1e-3},
+                              {ChSolver::Type::PSOR, 0, 1e-3}};
+    const char* names[] = {"SPARSE_QR ", "BB        ", "PSOR      "};
+    for (int k = 0; k < 3; k++) {
+        Outcome r = c.Run(solvers[k]);
+        std::cout << "slider-crank l/r=3 ms/mc=100 th=0.3 tol=1e-3  solver = " << names[k]
+                  << "  max |a err| = " << r.err << "  flag = " << FlagName(r.flag)
+                  << "  check estimate = " << r.estimate << std::endl;
+        if (k <= 1) {
+            EXPECT_LT(r.err, TOL) << names[k];
+            EXPECT_NE(r.flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE) << names[k];
+        } else {
+            EXPECT_EQ(r.flag, AssemblyAnalysis::ExitFlag::ACCELERATION_INACCURATE) << names[k];
         }
     }
 }
