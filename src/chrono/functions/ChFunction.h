@@ -22,6 +22,7 @@
 #include "chrono/functions/ChFunctionFillet3.h"
 #include "chrono/functions/ChFunctionIntegral.h"
 #include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionLambda.h"
 #include "chrono/functions/ChFunctionMirror.h"
 #include "chrono/functions/ChFunctionOperator.h"
 #include "chrono/functions/ChFunctionPoly.h"
@@ -32,5 +33,6 @@
 #include "chrono/functions/ChFunctionSequence.h"
 #include "chrono/functions/ChFunctionSetpoint.h"
 #include "chrono/functions/ChFunctionSine.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 
 #endif

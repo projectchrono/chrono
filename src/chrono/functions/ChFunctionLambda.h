@@ -23,11 +23,12 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Lambda function wrapper
+/// Lambda function wrapper.
 /// Allows the usage of C++ lambda functions as ChFunction objects.
 class ChFunctionLambda : public ChFunction {
   public:
     ChFunctionLambda() {}
+    ChFunctionLambda(std::function<double(double)> function) { m_function = function; }
     ~ChFunctionLambda() {}
 
     virtual ChFunctionLambda* Clone() const override { return new ChFunctionLambda(*this); }
