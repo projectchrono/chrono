@@ -991,11 +991,21 @@ void DrawArrow(const ChVisualSystemIrrlicht* vis,
 // -----------------------------------------------------------------------------
 // Draw a label in 3D scene at given position.
 // -----------------------------------------------------------------------------
-void DrawLabel3D(const ChVisualSystemIrrlicht* vis, const std::string& text, const ChVector3d& position, const ChColor& color, bool use_Zbuffer) {
-    irr::core::position2di spos = vis->GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(irr::core::vector3dfCH(position));
-    auto font = vis->GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/arial8.xml").c_str());
-    if (font) {
-        font->draw(text.c_str(), irr::core::rect<irr::s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), tools::ToIrrlichtSColor(color));
+void DrawLabel3D(const ChVisualSystemIrrlicht* vis, const std::string& text, const ChVector3d& position, const ChColor& color, bool use_Zbuffer, irr::gui::IGUIFont* font) {
+    irr::gui::IGUIFont* used_font = (font) ? font : vis->GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/arial8.xml").c_str());
+    if (used_font) {
+        irr::core::position2di spos = vis->GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(irr::core::vector3dfCH(position));
+        used_font->draw(text.c_str(), irr::core::rect<irr::s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), ToIrrlichtSColor(color));
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Draw some (dynamic) text on screen at given position.
+// -----------------------------------------------------------------------------
+ChApiIrr void DrawText(const ChVisualSystemIrrlicht* vis, const std::string& text, const ChVector2i& position, const ChColor& color, irr::gui::IGUIFont* font) {
+    irr::gui::IGUIFont* used_font = (font) ? font : vis->GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/arial8.xml").c_str());
+    if (used_font) {
+        used_font->draw(text.c_str(), irr::core::rect<irr::s32>(position.x(), position.y(), position.x() + 100, position.y() + 100), ToIrrlichtSColor(color));
     }
 }
 
