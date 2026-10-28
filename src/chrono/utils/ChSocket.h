@@ -25,8 +25,9 @@
 
 #include <string>
 #include <iostream>
-
-#include "chrono/core/ChApiCE.h"
+#include <cstdio>
+#include <vector>
+#include <functional>
 
 #ifdef UNIX
     #include <sys/socket.h>
@@ -36,10 +37,8 @@
     #include <arpa/inet.h>
     #include <netdb.h>
     #include <netinet/in.h>
-    #include <iostream>
     #include <sys/types.h>
     #include <sys/ioctl.h>
-    #include <cstdio>
     #include <cstring>
     #ifdef __APPLE__
         // be sure to have TARGET_OS_MAC defined
@@ -49,80 +48,88 @@
     #include <winsock2.h>
 #endif
 
-#include <cstdio>
-#include <vector>
-#include <functional>
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 namespace utils {
 
-// For getting host info
-enum hostType { NAME, ADDRESS };
-const int HOST_NAME_LENGTH = 64;
+/// Host info data type.
+enum class HostType { NAME, ADDRESS };
 
-// so far we only consider the TCP socket, UDP will be added in later release
-// const int MAX_RECV_LEN = 1048576;
-const int MAX_RECV_LEN = 8096;
-const int MAX_MSG_LEN = 1024;
-const int PORTNUM = 1200;
+// =============================================================================
+// ChSocketFramework
+// =============================================================================
+/// Class for initializing platform-specific socket framework.
+/// A single instance of this class *must* be created before using any ChSocket-related class.
+class ChApi ChSocketFramework {
+  public:
+    ChSocketFramework();
+    ~ChSocketFramework();
+};
 
-/// Base class for sockets. Sockets have at least an ID and a port.
+// =============================================================================
+// ChSocket
+// =============================================================================
+/// Base class for sockets.
+/// Sockets have at least an ID and a port number.
 class ChApi ChSocket {
   public:
-    // given a port number, create a socket
-    ChSocket(int);
+    /// Create a socket and assign it a unique ID (aka. file descriptor).
+    /// Store port number for later use.
+    ChSocket(int port_number);
 
+    /// Close and destroy socket.
     virtual ~ChSocket();
 
-    // socket options : ON/OFF
-    void setDebug(int);
-    void setReuseAddr(int);
-    void setKeepAlive(int);
-    void setLingerOnOff(bool);
-    void setLingerSeconds(int);
-    void setSocketBlocking(int);
+    /// Get socket ID (aka. file descriptor).
+    int GetSocketId() { return socketId; }
 
-    // size of the send and receive buffer
-    void setSendBufSize(int);
-    void setReceiveBufSize(int);
+    /// Get socket port number.
+    int GetPortNumber() { return portNumber; }
 
-    // retrieve socket option settings
-    int getDebug();
-    int getReuseAddr();
-    int getKeepAlive();
-    int getSendBufSize();
-    int getReceiveBufSize();
-    int getSocketBlocking() { return blocking; }
-    int getLingerSeconds();
-    bool getLingerOnOff();
+    /// Toggle socket options (either ON or OFF).
+    void SetDebug(int debug_toggle);
+    void SetReuseAddr(int reuse_toggle);
+    void SetKeepAlive(int alive_toggle);
+    void SetLingerOnOff(bool linger_on);
+    void SetSocketBlocking(int blocking_toggle);
 
-    // returns the socket file descriptor
-    int getSocketId() { return socketId; }
+    /// Set linger timeout on socket close (seconds).
+    void SetLingerSeconds(int seconds);
 
-    // returns the port number
-    int getPortNumber() { return portNumber; }
+    /// Retrieve socket options.
+    int GetDebug();
+    int GetReuseAddr();
+    int GetKeepAlive();
+    bool GetLingerOnOff();
+    int GetLingerSeconds();
+    int GetSocketBlocking();
 
-    // show the socket
-    friend std::ostream& operator<<(std::ostream&, ChSocket&);
+    /// Set the size of the socket send and receive buffer (bytes).
+    void SetSendBufSize(int sendbuff_size);
+    void SetReceiveBufSize(int recvbuff_size);
+
+    /// Get the size of the socket send and receive buffer (bytes).
+    int GetSendBufSize();
+    int GetReceiveBufSize();
+
+    /// Stream socket info.
+    friend std::ostream& operator<<(std::ostream& os, ChSocket& socket);
 
   protected:
-    /*
-       only used when the socket is used for client communication
-       once this is done, the next necessary call is setSocketId(int)
-    */
+    /// Only used when the socket is used for client communication.
+    /// Once this is done, the next necessary call is SetSocketId(int).
     ChSocket() {}
-    void setSocketId(int socketFd) { socketId = socketFd; }
+    void SetSocketId(int socketFd) { socketId = socketFd; }
 
-    int portNumber;  // Socket port number
-    int socketId;    // Socket file descriptor
-
-    int blocking;  // Blocking flag
-    int bindFlag;  // Binding flag
-
-    struct sockaddr_in clientAddr;  // Address of the client that sent data
+    int socketId;            ///< socket file descriptor
+    int portNumber;          ///< socket port number
+    int blocking;            ///< blocking flag
+    int bindFlag;            ///< binding flag
+    sockaddr_in clientAddr;  ///< address of the client that sent data
 
   private:
-// Gets the system error
+    /// Get the system errors.
 #ifdef _WIN32
     void detectErrorOpenWinSocket(int*, std::string&);
     void detectErrorSetSocketOption(int*, std::string&);
@@ -134,153 +141,175 @@ class ChApi ChSocket {
 #endif
 };
 
+// =============================================================================
+// ChSocketTCP
+// =============================================================================
 /// ChSocket for TCP communications.
 /// Three modes for sending|receiving are available:
 /// - full-manual mode:
-///   + the user owns its own buffer of type std::vector<char>
-///   + calls SendBuffer(std::vector<char>&) | ReceiveBuffer(std::vector<char>&, int) once
-/// - templated mode (sending):
-///   + multiple calls to Enqueue()
-///   + call SendBuffer() once
-/// - templated mode (receiving):
-///   + call ReceiveBuffer(int)
-///   + multiple calls to ParseReceivedData()
+///   + user owns a buffer of type std::vector<char>
+///     - single call to SendBuffer(const std::vector<char>&) | ReceiveBuffer(std::vector<char>&, int)
+///   + user owns a message of type std::string
+///     - single call to SendString(const std::string&) | ReceiveString(std::string&)
+/// - templated mode:
+///   + for sending:
+///     - multiple calls to EnqueueData()
+///     - single call to SendDataBuffer()
+///   + for receiving:
+///     - single call to ReceiveDataBuffer(int)
+///     - multiple calls to ParseReceivedData()
 /// - full-auto mode
-///   + call SendData() | ReceiveData() with all the variables to be sent
+///   + single call to SendData() | ReceiveData(), with all the variables involved
 class ChApi ChSocketTCP : public ChSocket {
   public:
     /// Constructor used for creating instances dedicated to client communication.
-    /// When accept() is successful, a socketId is generated and returned this socket id is then used to build a new
-    /// socket using the following constructor, therefore, the next necessary call should be setSocketId() using this
-    /// newly generated socket fd.
+    /// When accept() is successful, a socketId is generated and returned. This socket id is then used
+    /// to build a *new* socket using the following constructor.
+    /// Therefore, the next necessary call should be SetSocketId() using this newly generated socket fd.
     ChSocketTCP() {}
+
+    /// Create a TCP socket and assign it a unique ID.
+    /// Store port number for later use.
+    ChSocketTCP(int port_number);
+
+    /// Destroy TCP socket.
     ~ChSocketTCP() {}
 
-    /// Constructor.  Used to create a new TCP socket given a port.
-    ChSocketTCP(int portId) : ChSocket(portId) {}
+    /// Server-side functionalities --------------------------------------------
 
-    /// Send a std::string to the connected host.
-    /// Note that the string size is handled automatically because there is
-    /// a header that tells the length of the string in bytes.
-    int sendMessage(std::string&);
+    /// Bind the socket to an address and a port number [SERVER SIDE].
+    /// Return true on success.
+    bool BindSocket();
 
-    /// Receive a std::string from the connected host.
-    /// Note that the string size is handled automatically because there is
-    /// a header that tells the length of the string in bytes.
-    int receiveMessage(std::string&);
+    /// Configure the socket to listen for incoming client connections [SERVER SIDE].
+    /// Optionally specify the maximum length of the pending connections queue (backlog).
+    /// Subsequent calls to AcceptClient() will actually perform the connection.
+    /// Return true on success.
+    bool ListenToClient(int max_pending_connections = 5);
 
-    /// Send a std::vector<char> (a buffer of bytes) to the connected host,
-    /// without the header as in SendMessage (so the receiver must know in advance
-    /// the length of the buffer).
-    int SendBuffer(std::vector<char>& source_buf  ///< source buffer
-    );
+    /// Accept an incoming client connection [SERVER SIDE].
+    /// If successful, return a new heap-allocated socket with the ID of the accepted connection (which must be managed by the user).
+    /// If unsuccessful, return a null pointer.
+    /// The resolved host name of the connected client is returned as function argument.
+    ChSocketTCP* AcceptClient(std::string& client_host_name);
 
-    /// Receive a std::vector<char> (a buffer of bytes) from the connected host,
-    /// without the header as in SendMessage (so one must know in advance
-    /// the length of the buffer). If the receiving buffer size is not =bsize, it
-    /// will be resized before receiving.
-    int ReceiveBuffer(std::vector<char>& dest_buf,  ///< destination buffer - will be resized
-                      int bsize                     ///< size in bytes of expected received buffer.
-    );
+    /// Client-side functionalities --------------------------------------------
 
-    /// Add data to an internal sending buffer.
-    /// When operation is completed, send all data at once with SendBuffer().
+    /// Connect to a server using the port number configured for this socket [CLIENT SIDE].
+    /// Target server can be specified either by host name or IP address.
+    /// Return true on success.
+    bool ConnectToServer(std::string& server_name_or_addr, HostType host_type);
+
+    /// Manual communication functionalities -----------------------------------
+
+    /// Send a string message to the connected host.
+    /// This method automatically prepends a fixed-length header, specifying the message size in bytes.
+    /// Return the number of bytes sent.
+    int SendString(const std::string& message);
+
+    /// Receive a string message from the connected host into the given argument.
+    /// This method automatically determines the message size from a fixed-length header, which is not exposed to the user.
+    /// Return the number of bytes received.
+    int ReceiveString(std::string& message);
+
+    /// Send a buffer of raw bytes to the connected host.
+    /// This method does not send any header, so the receiver must know in advance the length of the buffer.
+    /// Return the number of bytes sent.
+    int SendBuffer(const std::vector<char>& source_buffer);
+
+    /// Receive a buffer of raw bytes from the connected host into the given argument.
+    /// This method does not receive any header, so the caller must know in advance the length of the buffer.
+    /// The destination buffer is resized to the specified size in bytes before receiving.
+    /// Return the number of bytes received.
+    int ReceiveBuffer(std::vector<char>& destination_buffer, int byte_size);
+
+    /// Buffered communication functionalities ---------------------------------
+
+    /// Add data to the internal sending buffer.
+    /// When operation is completed, collected data can be sent at once using SendDataBuffer().
     template <typename T>
-    void Enqueue(const T& data_to_send) {
+    void EnqueueData(const T& data_to_send) {
         for (auto s = 0; s < sizeof(data_to_send); ++s) {
             m_internal_buffer_send.push_back(reinterpret_cast<const char*>(&data_to_send)[s]);
         }
     }
 
-    /// Clear the internal send buffer.
-    void ClearInternalSendBuffer() { m_internal_buffer_send.clear(); }
+    /// Clear the internal sending buffer populated by EnqueueData().
+    void ClearInternalSendDataBuffer() { m_internal_buffer_send.clear(); }
 
-    /// Send data collected in internal buffer.
-    int SendBuffer();
+    /// Send the data collected into the internal sending buffer and clear it.
+    /// Return the number of bytes sent.
+    int SendDataBuffer();
 
-    /// Receive a given amount of bytes.
-    int ReceiveBuffer(int data_in_size);
+    /// Receive a given amount of bytes and store them into the internal receiving buffer.
+    /// Received data can be subsequently read  using ParseReceivedData().
+    /// This method clears the internal reading buffer before operating.
+    /// Return the number of bytes received.
+    int ReceiveDataBuffer(int data_in_size);
 
-    /// Read the received buffer, at the specified offset, into the given variable.
+    /// Copy data from the internal receiving buffer, at the specified byte offset, into the given variable.
+    /// This method should be called (potentially multiple times) to access data received by ReceiveBuffer().
     template <typename T>
-    void ParseReceivedData(T& data_read, int offset = 0) {
+    void ParseReceivedData(T& data_read, int byte_offset = 0) {
         for (auto s = 0; s < sizeof(data_read); ++s) {
-            reinterpret_cast<char*>(&data_read)[s] = m_internal_buffer_receive[offset + s];
+            reinterpret_cast<char*>(&data_read)[s] = m_internal_buffer_receive[byte_offset + s];
         }
     }
 
     /// Send the given variables.
     /// The sending order respects the order of the arguments.
+    /// Return the number of bytes sent.
     template <typename DataInType, typename... DataInTypes>
     int SendData(DataInType data_in_1, DataInTypes... data_ins) {
-        Enqueue(data_in_1);
+        EnqueueData(data_in_1);
         return SendData(data_ins...);
     }
 
     /// Receive the given variables.
     /// The receiving order follows the order of the arguments.
     /// It is not possible to receive only part of the streamed content.
-    /// To this purpose use ReceiveBuffer(int) together with ParseReceivedData()
+    /// To this purpose use ReceiveBuffer(int) together with ParseReceivedData().
+    /// Return the number of bytes received.
     template <typename DataInType, typename... DataInTypes>
     int ReceiveData(DataInType& data_in_1, DataInTypes&... data_ins) {
-        receive_id += sizeof(data_in_1);
-        int received_size = ReceiveData(data_ins...); 
+        receive_offset += sizeof(data_in_1);
+        int received_size = ReceiveData(data_ins...);
         if (received_size <= 0) {
             return received_size;
         }
-        receive_id -= sizeof(data_in_1);
-        ParseReceivedData(data_in_1, receive_id);
+        receive_offset -= sizeof(data_in_1);
+        ParseReceivedData(data_in_1, receive_offset);
         return received_size;
     }
 
-    /// Binds the socket to an address and port number
-    /// (a server call)
-    void bindSocket();
-
-    /// Accepts a connecting client.  The address of the connected client
-    /// is stored in the parameter
-    /// (a server call)
-    ChSocketTCP* acceptClient(std::string&);
-
-    /// Listens to connecting clients,
-    /// (a server call)
-    void listenToClient(int numPorts = 5);
-
-    /// Connects to the server, a client call
-    virtual void connectToServer(std::string&, hostType);
-
   private:
+    /// SendData variadic specialization for empty arguments.
+    int SendData();
+
+    /// ReceiveData variadic specialization for empty arguments.
+    int ReceiveData();
+
 #ifdef _WIN32
-    // Windows NT version of the MSG_WAITALL option
+    /// Windows NT version of the MSG_WAITALL option.
     int XPReceiveMessage(std::string&);
 #endif
 
-    // SendData variadic specialization for empty arguments
-    int SendData() { return SendBuffer(); }
-
-    // ReceiveData variadic specialization for empty arguments
-    int ReceiveData();
-
-    std::vector<char> m_internal_buffer_send = {};     ///< internal buffer to collect data to be sent
-    std::vector<char> m_internal_buffer_receive = {};  ///< internal buffer to collect received data
-    int receive_id = 0;
-
+    /// Error reporting.
     void detectErrorBind(int*, std::string&);
     void detectErrorSend(int*, std::string&);
     void detectErrorRecv(int*, std::string&);
     void detectErrorConnect(int*, std::string&);
     void detectErrorAccept(int*, std::string&);
     void detectErrorListen(int*, std::string&);
+
+    std::vector<char> m_internal_buffer_send = {};     ///< internal buffer to collect data to be sent
+    std::vector<char> m_internal_buffer_receive = {};  ///< internal buffer to collect received data
+    int receive_offset = 0;                            ///< internal offset for variadic ReceiveData() function
 };
 
-/// A single object of this class must be instantiated before using
-/// all classes related to sockets, because it initializes some platform-specific settings.
-class ChApi ChSocketFramework {
-  public:
-    ChSocketFramework();
-    ~ChSocketFramework();
-};
-
+// =============================================================================
+// ChSocketHostInfo
+// =============================================================================
 /*
   Liyang Yu, Jan 9th, 2004, version 0.0
 
@@ -304,25 +333,21 @@ class ChApi ChSocketFramework {
 
 /// Class for storing information about a TCP host in socket communication, e.g. with an IP address.
 class ChApi ChSocketHostInfo {
-  private:
-#ifdef UNIX
-    char searchHostDB;  ///< search the host database flag
-#endif
-
-    struct hostent* hostPtr;  ///< entry within the host address database
-
   public:
+    /// Initialize host information using standard parameters.
     ChSocketHostInfo();
 
-    /// Retrieves the host entry based on the host name or address.
-    ChSocketHostInfo(const std::string& hostName, hostType type);
+    /// Retrieve host information based on the host name or address.
+    ChSocketHostInfo(const std::string& host_name, HostType type);
 
-    /// Destructor.  Closes the host entry database.
-    ~ChSocketHostInfo() {
-#ifdef UNIX
-        endhostent();
-#endif
-    }
+    /// Close and destroy the host information database.
+    ~ChSocketHostInfo();
+
+    /// Retrieve the hosts IP address in dot x.y.z.w notation.
+    char* GetHostIPAddress();
+
+    /// Retrieve the hosts name.
+    char* GetHostName() { return hostPtr->h_name; }
 
 #ifdef UNIX
 
@@ -338,16 +363,15 @@ class ChApi ChSocketHostInfo {
 
 #endif
 
-    /// Retrieve the hosts IP address in dot x.y.z.w notation.
-    char* getHostIPAddress();
-
-    /// Retrieve the hosts name.
-    char* getHostName() { return hostPtr->h_name; }
-
   private:
 #ifdef _WIN32
     void detectErrorGethostbyname(int*, std::string&);
     void detectErrorGethostbyaddr(int*, std::string&);
+#endif
+
+    struct hostent* hostPtr;  ///< entry within the host address database
+#ifdef UNIX
+    char searchHostDB;  ///< search the host database flag
 #endif
 };
 

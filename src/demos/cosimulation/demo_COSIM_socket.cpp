@@ -23,83 +23,79 @@ using namespace chrono;
 using namespace chrono::utils;
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\n"
-              << "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n";
 
-    std::cout << "CHRONO demo about sockets\n" << std::endl;
+    std::cout << "CHRONO demo about sockets\n";
 
     try {
-        ChSocketFramework* socket_tools = new ChSocketFramework;
+        // Test 1 ==============================================================
+        // Initialize platform-specific socket framework
+        ChSocketFramework socket_framework;
 
-        // Test 1
         // Get the name and IP of local host, and display infos
-
         ChSocketHostInfo local_host;
-
-        std::cout << " Local host information:" << std::endl;
-        std::cout << "      Name:    " << local_host.getHostName() << std::endl;
-        std::cout << "      Address: " << local_host.getHostIPAddress() << std::endl;
-
-        // Test 2
-        // create a server and listen to a client on a port
-        // (it is assumed that, when waiting, a client will send
-        // something to this port)
-
-        int PORT_NUMBER = 50009;
-
-        // a server is created, that could listen at a given port
-        ChSocketTCP myServer(PORT_NUMBER);
-
-        // bind socket to server
-        std::cout << "Binding to socket..." << std::endl;
-        myServer.bindSocket();
-
-        // wait for a client to connect (this might put the program in
-        // a long waiting state... a timeout can be useful then)
-        std::cout << "Listening for connection..." << std::endl;
-        std::cout << "(load 'data/cosimulation/test_socket.mdl' in Simulink and press Start...)" << std::endl;
-        myServer.listenToClient(1);
-
-        ChSocketTCP* client;
-        std::string clientHostName;
-        client = myServer.acceptClient(clientHostName);  // pick up the call!
-
-        if (!client)
-            throw std::runtime_error("Server failed in getting the client socket");
-
-        std::cout << "OK! Connected with client: " << clientHostName << std::endl;
-
-        double a_out = 0;
-        double a, b, c = 0;
+        std::cout << " Local host information:" << "\n";
+        std::cout << "    Name:    " << local_host.GetHostName() << "\n";
+        std::cout << "    Address: " << local_host.GetHostIPAddress() << "\n";
 
         //// TODO: the pointer of local_host gets null after some time
-        //// thus triggering an exception when asket to get its name
-        auto local_host_name = std::string(local_host.getHostName());
+        //// thus triggering an exception when asked to get its name
+        std::string local_host_name = local_host.GetHostName();
+
+
+        // Test 2 ==============================================================
+        // Create a server and listen to a client on a port
+        // It is assumed that, while waiting, a client will send something to this port
+
+        // Create a server that can listen to a given port
+        const int port_number = 50009;
+        ChSocketTCP server(port_number);
+
+        // Bind socket to server
+        std::cout << "Binding server to socket... ";
+        server.BindSocket();
+        std::cout << "done\n";
+
+        // Wait for a client to connect
+        // This might put the program in a long waiting state, so a timeout could be useful
+        std::cout << "Listening for connection...\n";
+        std::cout << "(load 'data/cosimulation/test_socket.mdl' in Simulink and press Start...)\n";
+        server.ListenToClient(1);
+
+        // Accept incoming client connection
+        std::string client_host_name;
+        auto connection = std::unique_ptr<ChSocketTCP>(server.AcceptClient(client_host_name));
+
+        if (!connection)
+            throw std::runtime_error("Server failed in getting the client socket");
+        std::cout << "Successfully connected with client: " << client_host_name << "\n";
+
+
+        // Test 3 ==============================================================
+        // Exchange some data between server and client
+
+        double a_out = 0;
+        double a = 0, b = 0, c = 0;
 
         while (true) {
+            // Send single variable through templated approach
+            int size_sent = connection->SendData(a_out);
+            std::cout << local_host_name << " will send a buffer of " << size_sent << " bytes\n";
 
-            int size_sent = client->SendData(a_out);
+            // Receive multiple variables at once through templated approach
+            int size_recv = connection->ReceiveData(a, b, c);
+            std::cout << "Received " << size_recv << " bytes\n";
 
-            std::cout << local_host_name << " will send a buffer of " << size_sent << " bytes." << std::endl;
+            std::cout << "a = " << a << "\n" << " b = " << b << "\n" << " c = " << c << "\n";
 
-            int size_recv = client->ReceiveData(a, b, c);
-
-            std::cout << "Received " << size_recv << " bytes" << std::endl;
-
-            std::cout << " a = " << a << std::endl << " b = " << b << std::endl << " c = " << c << std::endl;
-
-            // change output var just for fun
+            // Update sent data
             a_out = 0.5 * b;
         }
 
-        delete client;
-
-        // Last stuff to do
-        delete socket_tools;
-
-    } catch (std::exception exception) {
-        std::cerr << " ERROR with socket system:\n" << exception.what() << std::endl;
+    } catch (const std::exception& exc) {
+        std::cerr << "Error with socket system:\n" << exc.what() << "\n";
     }
 
+    std::cout << "Done\n";
     return 0;
 }
