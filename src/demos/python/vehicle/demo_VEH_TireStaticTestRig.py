@@ -52,10 +52,9 @@ def main():
     step_size = 5e-5
     tire.SetStepsize(step_size)
 
-    sys.SetSolverType(chrono.ChSolver.Type_MINRES)
+    sys.SetSolverType(chrono.ChSolver.Type_BICGSTAB)
     #sys.SetSolverType(chrono.ChSolver.Type_PARDISO_MKL)
     #sys.SetSolverType(chrono.ChSolver.Type_SPARSE_QR)
-    #sys.SetSolverType(chrono.ChSolver.Type_BICGSTAB)
 
     sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_PROJECTED)
     #sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_LINEARIZED)

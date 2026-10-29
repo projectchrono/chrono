@@ -142,7 +142,7 @@ int main() {
     else if (mb_tire) {
         sys = new ChSystemSMC;
         step_size = 5e-5;
-        solver_type = ChSolver::Type::MINRES;
+        solver_type = ChSolver::Type::BICGSTAB;
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
     } else {
         sys = new ChSystemSMC;

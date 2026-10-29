@@ -10,7 +10,7 @@ integrator:
   time_step: 3e-5                 # multibody and tire step size
 
 solver:
-  type: MINRES
+  type: BICGSTAB                  # MB tire Jacobians are not symmetric (MINRES requires symmetry)
   max_iterations: 200
   tolerance: 1e-10
   enable_diagonal_preconditioner: true

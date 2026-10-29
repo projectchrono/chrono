@@ -810,10 +810,12 @@ void MBTireModel::EdgeSpring2::CalculateForce() {
 //    wheel state (6)
 //    node2 state (3)
 
+// Jacobian of the rim node position with respect to the wheel rotational states.
+// Wheel rotations are incremented in the body frame, so d(pos1) = [p - pos1]x * A * dtheta.
 ChMatrix33<> MBTireModel::EdgeSpring2::JacobianRotatedVector() {
     const auto& pos1 = node1->GetPos();
     ChVector3d p = wheel->GetPos();  // wheel body position
-    ChStarMatrix33<> Jac_Af_m(p - pos1);
+    ChMatrix33<> Jac_Af_m = ChStarMatrix33<>(p - pos1) * wheel->GetRotMat();
     return Jac_Af_m;
 }
 
@@ -827,18 +829,24 @@ void MBTireModel::EdgeSpring2::CalculateJacobian(double Kfactor, double Rfactor)
     ////std::cout << "Edge spring2 " << inode1 << "-" << inode2;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
+    Spring2::CalculateForce();
     auto A = CalculateJacobianBlock(Kfactor, Rfactor);
 
+    // The wheel torque (body frame) is [rp]x * A^T * force1, with rp the rim node position in the wheel frame.
+    // Besides the force variation, its Jacobian includes the rotation of force1 into the wheel frame.
     auto Jac_Af_m = JacobianRotatedVector();
+    ChMatrix33<> At = wheel->GetRotMat().transpose();
     ChVector3d rp = wheel->TransformPointParentToLocal(node1->GetPos());
     ChStarMatrix33<> skew_rp(rp);
+    ChStarMatrix33<> skew_f(wheel->TransformDirectionParentToLocal(force1));
 
     J.block(0, 0, 3, 3) = -A;
     J.block(0, 3, 3, 3) = -A * Jac_Af_m;
     J.block(0, 6, 3, 3) = A;
 
-    J.block(3, 0, 3, 9) = skew_rp * J.block(0, 0, 3, 9);  // block of torque
-    J.block(6, 0, 3, 9) = -J.block(0, 0, 3, 9);           // block for F2 and node1
+    J.block(3, 0, 3, 9) = skew_rp * At * J.block(0, 0, 3, 9);  // block of torque
+    J.block(3, 3, 3, 3) += Kfactor * skew_rp * skew_f;
+    J.block(6, 0, 3, 9) = -J.block(0, 0, 3, 9);  // block for F2 and node1
 
     /*
     CalculateJacobianFD(Kfactor, Rfactor);
@@ -865,7 +873,7 @@ void MBTireModel::EdgeSpring2::CalculateJacobianFD(double Kfactor, double Rfacto
     ChVector3d posW = wheel->GetPos();
     ChQuaterniond rotW = wheel->GetRot();
     ChVector3d velW = wheel->GetPosDt();
-    ChVector3d omgW = wheel->GetAngVelParent();
+    ChVector3d omgW = wheel->GetAngVelLocal();
 
     ChVector3d pos2 = node2->GetPos();
     ChVector3d vel2 = node2->GetPosDt();
@@ -1267,10 +1275,12 @@ void MBTireModel::EdgeSpring3::CalculateForce() {
 //    node_c state (3)
 //    node_n state (3)
 
+// Jacobian of the rim node position with respect to the wheel rotational states.
+// Wheel rotations are incremented in the body frame, so d(pos_p) = [p - pos_p]x * A * dtheta.
 ChMatrix33<> MBTireModel::EdgeSpring3::JacobianRotatedVector() {
     const auto& pos_p = node_p->GetPos();
     ChVector3d p = wheel->GetPos();  // wheel body position
-    ChStarMatrix33<> Jac_Af_m(p - pos_p);
+    ChMatrix33<> Jac_Af_m = ChStarMatrix33<>(p - pos_p) * wheel->GetRotMat();
     return Jac_Af_m;
 }
 
@@ -1285,12 +1295,17 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     ////std::cout << "Edge spring3 " << inode_p << "-" << inode_c << "-" << inode_n;
     ////std::cout << "  J size: " << J.rows() << "x" << J.cols() << std::endl;
 
+    Spring3::CalculateForce();
     auto J1 = CalculateJacobianBlockJ1(Kfactor);
     auto J2 = CalculateJacobianBlockJ2(Kfactor);
 
+    // The wheel torque (body frame) is [rp]x * A^T * force_p, with rp the rim node position in the wheel frame.
+    // Besides the force variation, its Jacobian includes the rotation of force_p into the wheel frame.
     auto Jac_Af_m = JacobianRotatedVector();
+    ChMatrix33<> At = wheel->GetRotMat().transpose();
     ChVector3d rp = wheel->TransformPointParentToLocal(node_p->GetPos());
     ChStarMatrix33<> skew_rp(rp);
+    ChStarMatrix33<> skew_f(wheel->TransformDirectionParentToLocal(force_p));
 
     ChMatrixNM<double, 9, 12> TransitionMatrix;
     TransitionMatrix.setZero();
@@ -1305,7 +1320,8 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     ChMatrixNM<double, 3, 12> Jn = J1_new.bottomRows(3) + J2_new.bottomRows(3);
 
     J.block(0, 0, 3, 12) = -Jp;
-    J.block(3, 0, 3, 12) = -skew_rp * Jp;  // block of torque
+    J.block(3, 0, 3, 12) = -skew_rp * At * Jp;  // block of torque
+    J.block(3, 3, 3, 3) += Kfactor * skew_rp * skew_f;
     J.block(6, 0, 3, 12) = Jp + Jn;
     J.block(9, 0, 3, 12) = -Jn;
 
@@ -2219,6 +2235,11 @@ void MBTireModel::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
 void MBTireModel::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!m_stiff)
         return;
+
+    // The load and spring Jacobians are calculated as Kfactor * dF/dx + Rfactor * dF/dv, while the KRM blocks must hold
+    // Kfactor * K + Rfactor * R, with K = -dF/dx and R = -dF/dv. The Jacobians are linear in Kfactor and Rfactor.
+    Kfactor = -Kfactor;
+    Rfactor = -Rfactor;
 
     for (auto& load : m_pressure_loads)
         load->CalculateJacobian(Kfactor, Rfactor);

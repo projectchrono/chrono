@@ -148,8 +148,7 @@ int main() {
         ////solver_type = ChSolver::Type::PARDISO_MKL;
         ////solver_type = ChSolver::Type::MUMPS;
         ////solver_type = ChSolver::Type::SPARSE_QR;
-        ////solver_type = ChSolver::Type::BICGSTAB;
-        solver_type = ChSolver::Type::MINRES;
+        solver_type = ChSolver::Type::BICGSTAB;
         ////solver_type = ChSolver::Type::PSOR;
 
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
