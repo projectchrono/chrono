@@ -380,11 +380,8 @@ void MBTireModel::CalculateNormal(int ir, int id, ChVector3d& normal, double& ar
 // Constant threshold for checking zero length vectors
 static constexpr double zero_length = 1e-6;
 
-// Constant threshold for checking zero angles
-static constexpr double zero_angle = 1e-3;
-
-// Perturbation for FD Jacobian approximation
-static constexpr double FD_step = 1e-3;
+// Perturbation for FD Jacobian approximation (forward differences; small compared to the mesh spacing)
+static constexpr double FD_step = 1e-6;
 
 void MBTireModel::NodePressure::Initialize(bool stiff) {
     if (stiff) {
@@ -976,7 +973,7 @@ void MBTireModel::Spring3::Initialize() {
     auto dir_p = (pos_c - pos_p).GetNormalized();
     auto dir_n = (pos_n - pos_c).GetNormalized();
 
-    double cosA = Vdot(dir_p, dir_n);
+    double cosA = std::clamp(Vdot(dir_p, dir_n), -1.0, 1.0);
     a0 = std::acos(cosA);
 }
 
@@ -1019,15 +1016,8 @@ void MBTireModel::Spring3::CalculateForce() {
     d_p /= l_p;
     d_n /= l_n;
 
-    double cosA = Vdot(d_p, d_n);
+    double cosA = std::clamp(Vdot(d_p, d_n), -1.0, 1.0);
     double a = std::acos(cosA);
-
-    if (std::abs(a - a0) < zero_angle) {
-        force_p = VNULL;
-        force_c = VNULL;
-        force_n = VNULL;
-        return;
-    }
 
     auto cross = Vcross(d_p, d_n);
     double length_cross = cross.Length();
@@ -1069,7 +1059,7 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ1(double K
         lt = 1;
     }
 
-    double cosA = Vdot(np, nn);
+    double cosA = std::clamp(Vdot(np, nn), -1.0, 1.0);
     double a = std::acos(cosA);
     double sinA = std::sin(a);
 
@@ -1129,7 +1119,7 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ2(double K
         lt = 1;
     }
 
-    double cosA = Vdot(np, nn);
+    double cosA = std::clamp(Vdot(np, nn), -1.0, 1.0);
     double a = std::acos(cosA);
 
     // Calculate D_pp, D_nn, D_pn
