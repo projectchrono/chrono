@@ -620,19 +620,21 @@ if(CH_ENABLE_MODULE_FEA)
     set(CV_WV_TIRE_FILES ${CV_WV_TIRE_FILES}
         wheeled_vehicle/tire/ChDeformableTire.h
         wheeled_vehicle/tire/ChDeformableTire.cpp
+        wheeled_vehicle/tire/ChFEATire.h
+        wheeled_vehicle/tire/ChFEATire.cpp
         wheeled_vehicle/tire/ChANCFTire.h
         wheeled_vehicle/tire/ChANCFTire.cpp
         wheeled_vehicle/tire/ChReissnerTire.h
         wheeled_vehicle/tire/ChReissnerTire.cpp
-        wheeled_vehicle/tire/ChFEATire.h
-        wheeled_vehicle/tire/ChFEATire.cpp
+        wheeled_vehicle/tire/ChSolidFEATire.h
+        wheeled_vehicle/tire/ChSolidFEATire.cpp
         #
         wheeled_vehicle/tire/ReissnerTire.h
         wheeled_vehicle/tire/ReissnerTire.cpp
         wheeled_vehicle/tire/ANCFTire.h
         wheeled_vehicle/tire/ANCFTire.cpp
-        wheeled_vehicle/tire/FEATire.h
-        wheeled_vehicle/tire/FEATire.cpp
+        wheeled_vehicle/tire/SolidFEATire.h
+        wheeled_vehicle/tire/SolidFEATire.cpp
         wheeled_vehicle/tire/ANCFToroidalTire.h
         wheeled_vehicle/tire/ANCFToroidalTire.cpp
         wheeled_vehicle/tire/ReissnerToroidalTire.h

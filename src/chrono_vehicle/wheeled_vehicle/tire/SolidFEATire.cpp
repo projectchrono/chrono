@@ -19,7 +19,7 @@
 
 #include "chrono/fea/ChMeshFileLoader.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/SolidFEATire.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 
@@ -30,9 +30,9 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Constructors for FEATire
+// Constructors for SolidFEATire
 // -----------------------------------------------------------------------------
-FEATire::FEATire(const std::string& filename) : ChFEATire("") {
+SolidFEATire::SolidFEATire(const std::string& filename) : ChSolidFEATire("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -43,14 +43,14 @@ FEATire::FEATire(const std::string& filename) : ChFEATire("") {
     std::cout << "Loaded JSON " << filename << std::endl;
 }
 
-FEATire::FEATire(const rapidjson::Document& d) : ChFEATire("") {
+SolidFEATire::SolidFEATire(const rapidjson::Document& d) : ChSolidFEATire("") {
     ProcessJSON(d);
 }
 
 // -----------------------------------------------------------------------------
 // Process the specified JSON document and load tire specification
 // -----------------------------------------------------------------------------
-void FEATire::ProcessJSON(const rapidjson::Document& d) {
+void SolidFEATire::ProcessJSON(const rapidjson::Document& d) {
     // Read top-level data
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
@@ -89,7 +89,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 // Create the FEA mesh
 // -----------------------------------------------------------------------------
-void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
+void SolidFEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     //// TODO:
     ////    Currently, we assume that the INP file contains a tire with rotation axis along X
     ChMeshFileLoader::FromAbaqusFile(m_mesh, GetVehicleDataFile(m_input_file).c_str(), m_material, m_node_sets,
@@ -106,15 +106,15 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     }
 }
 
-std::vector<std::shared_ptr<ChNodeFEAbase>> FEATire::GetInternalNodes() const {
+std::vector<std::shared_ptr<ChNodeFEAbase>> SolidFEATire::GetInternalNodes() const {
     return m_node_sets.at("BC_INT");
 }
 
-std::vector<std::shared_ptr<fea::ChNodeFEAbase>> FEATire::GetConnectedNodes() const {
+std::vector<std::shared_ptr<fea::ChNodeFEAbase>> SolidFEATire::GetConnectedNodes() const {
     return m_node_sets.at("BC_CONN");
 }
 
-void FEATire::CreateContactMaterial() {
+void SolidFEATire::CreateContactMaterial() {
     m_contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     m_contact_mat->SetFriction(m_mat_info.mu);
     m_contact_mat->SetRestitution(m_mat_info.cr);

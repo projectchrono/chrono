@@ -19,7 +19,7 @@
 #ifndef CH_REISSNERTIRE_H
 #define CH_REISSNERTIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -29,7 +29,7 @@ namespace vehicle {
 
 /// Tire template for tires based on Reissner shells.
 /// This tire is modeled as a mesh composed of Reissner-Mindlin 4 nodes shell elements.
-class CH_VEHICLE_API ChReissnerTire : public ChDeformableTire {
+class CH_VEHICLE_API ChReissnerTire : public ChFEATire {
   public:
     ChReissnerTire(const std::string& name);
 

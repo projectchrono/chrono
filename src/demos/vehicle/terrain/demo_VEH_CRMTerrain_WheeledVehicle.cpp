@@ -440,20 +440,9 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
 #ifdef CHRONO_FEA
-            auto tire_fea = std::dynamic_pointer_cast<ChDeformableTire>(wheel->GetTire());
-            if (tire_fea) {
-                auto mesh = tire_fea->GetMesh();
-                if (mesh->GetNumContactSurfaces() > 0) {
-                    auto surf = mesh->GetContactSurface(0);
-                    cout << "FEA tire HAS contact surface: ";
-                    if (std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(surf))
-                        cout << " NODE_CLOUD" << endl;
-                    else
-                        cout << " TRI_MESH" << endl;
-                } else {
-                    cout << "FEA tire DOES NOT HAVE contact surface!" << endl;
-                }
-                terrain.AddFeaMesh(mesh, false);
+            auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(wheel->GetTire());
+            if (tire_def) {
+                terrain.AddFeaSurface(tire_def->GetSurfaceMesh(), false);
             } else {
                 terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
             }

@@ -490,6 +490,14 @@ shapes was fixed in both the Bullet-based and multicore collision systems. See
   URDF models. `ChRobotActuation` was moved to the Chrono robot models library, which can now be
   excluded from the build.
 - The Chrono::Vehicle FMUs and demos were updated to reflect the current Chrono::Vehicle API.
+- The deformable tire class hierarchy was refactored. `ChFEATire` is now the base class for all tires
+  built on an FEA mesh (`ChANCFTire`, `ChReissnerTire`, and `ChSolidFEATire`), and the FEA mesh
+  specific functions (`GetMesh`, `GetLoadContainer`, `AddVisualShapeFEA`, `EnableRimConnection`) moved
+  from `ChDeformableTire` to `ChFEATire`. The former co-rotational solid-element tire classes
+  `ChFEATire` and `FEATire` were renamed `ChSolidFEATire` and `SolidFEATire` (JSON template
+  `SolidFEATire`). Every deformable tire provides a triangle surface mesh over its nodes
+  (`ChDeformableTire::GetSurfaceMesh`), which is used for coupling with CRM terrain through the new
+  `ChFsiProblemSPH::AddFeaSurface` function.
 
 ## [Added] Extended YAML and JSON model specification support
 

@@ -1,7 +1,7 @@
 {
   "Name":            "HMMWV FEA Tire",
   "Type":            "Tire",
-  "Template":        "FEATire",
+  "Template":        "SolidFEATire",
 
   "Tire Radius":     0.7,
   "Rim Radius":      0.4,

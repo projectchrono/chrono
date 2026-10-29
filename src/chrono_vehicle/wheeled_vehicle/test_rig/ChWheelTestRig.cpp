@@ -182,9 +182,14 @@ double VehicleWheelAssembly::GetMass() const {
 
 void VehicleWheelAssembly::AddFSIBodies(CRMTerrain& terrain, double spacing) {
     #ifdef CHRONO_FEA
-    if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-        auto mesh = fea_tire->GetMesh();
-        terrain.AddFeaMesh(mesh, false);
+    if (auto def_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
+        // CRM couples only triangles with XYZ nodes (e.g., not Reissner shell tires)
+        auto surface = def_tire->GetSurfaceMesh();
+        if (!surface || surface->GetTrianglesXYZ().empty()) {
+            std::cerr << "ERROR: Tire model " << tire->GetTemplateName() << " cannot be used with CRM terrain." << std::endl;
+            throw std::runtime_error("ERROR: Tire model " + tire->GetTemplateName() + " cannot be used with CRM terrain.");
+        }
+        terrain.AddFeaSurface(surface, false);
         return;
     }
     #endif

@@ -19,7 +19,7 @@
 #ifndef CH_ANCFTIRE_H
 #define CH_ANCFTIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 #include "chrono/fea/ChMaterialShellANCF.h"
 
 namespace chrono {
@@ -30,7 +30,7 @@ namespace vehicle {
 
 /// ANCF tire template.
 /// This tire is modeled as a mesh composed of ANCF shell elements.
-class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
+class CH_VEHICLE_API ChANCFTire : public ChFEATire {
   public:
     ChANCFTire(const std::string& name);
 
@@ -40,13 +40,6 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
     virtual std::string GetTemplateName() const override { return "ANCFTire"; }
 
   protected:
-    /// Tire profile.
-    struct Profile {
-        std::vector<double> t;  ///< independent parameter
-        std::vector<double> x;  ///< x coordinate (radial direction)
-        std::vector<double> y;  ///< y coordinate (transversal direction)
-    };
-
     /// Tire section.
     struct Section {
         int num_divs;                                                ///< number of section divisions

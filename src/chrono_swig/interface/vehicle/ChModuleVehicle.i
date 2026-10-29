@@ -507,8 +507,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 #ifdef CHRONO_FEA
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChDeformableTire)
-%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChANCFTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFEATire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChANCFTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChSolidFEATire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChReissnerTire)
 #endif
 
