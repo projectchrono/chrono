@@ -217,11 +217,11 @@ __global__ void CalcFeaMesh1DBceAcceleration_D(Real3* accelerations,            
 }
 
 __global__ void CalcFeaMesh2DBceAcceleration_D(Real3* accelerations,             // [num BCEs on all solids]  BCE marker accelerations (output)
-                                            const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 2D nodes
-                                            const uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
-                                            const uint3* flex2D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and face
-                                            const Real3* flex2D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 2-D faces
-                                            const uint* mapOriginalToSorted) {
+                                               const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 2D nodes
+                                               const uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
+                                               const uint3* flex2D_BCEsolids_D,  // [num BCEs on 2D faces]    association of flex BCEs with a mesh and face
+                                               const Real3* flex2D_BCEcoords_D,  // [num BCEs on 2D faces]    local coordinates of BCE markers on FEA 2-D faces
+                                               const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numMesh2DMarkers)
         return;
@@ -1064,6 +1064,7 @@ void SphBceManager::UpdateMeshMarker1DStateInitial() {
 }
 
 // -----------------------------------------------------------------------------
+// CalcNodeDir2D
 // UpdateMeshMarker2DState
 // UpdateMeshMarker2DStateInitial
 // -----------------------------------------------------------------------------
@@ -1071,7 +1072,7 @@ void SphBceManager::UpdateMeshMarker1DStateInitial() {
 __global__ void CalcNodeDir2D_D(uint* ext_nodes,             // extended node indices (3 per triangle)
                                 Real3* ext_dirs,             // extended node directions (3 per triangle)
                                 const Real3* pos,            // positions of FEA 2-D triangle nodes
-                                const uint3* flex2D_Nodes_D  // segment node indices
+                                const uint3* flex2D_Nodes_D  // triangle node indices
 ) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFsiElements2D)

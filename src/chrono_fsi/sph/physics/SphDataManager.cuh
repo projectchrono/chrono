@@ -382,7 +382,7 @@ struct FsiDataManager {
     thrust::device_vector<ActiveDomain> ad_body_D;    ///< body active domains (on device, expressed in absolute frame)
     thrust::host_vector<ActiveDomain> ad_node1D_H;    ///< 1-D mesh node active domains (on host, expressed in node frames)
     thrust::device_vector<ActiveDomain> ad_node1D_D;  ///< 1-D mesh node active domains (on device, expressed in absolute frame)
-    thrust::host_vector<ActiveDomain> ad_node2D_H;    ///< 2--D mesh node active domains (on host, expressed in node frames)
+    thrust::host_vector<ActiveDomain> ad_node2D_H;    ///< 2-D mesh node active domains (on host, expressed in node frames)
     thrust::device_vector<ActiveDomain> ad_node2D_D;  ///< 2-D mesh node active domains (on device, expressed in absolute frame)
 
     // FSI solid BCEs
@@ -391,7 +391,7 @@ struct FsiDataManager {
     thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
     thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
     thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
-    thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
+    thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coords for BCE markers on 2-D flex faces (device)
 
     thrust::host_vector<uint> rigid_BCEsolids_H;      ///< body ID for BCE markers on rigid bodies (host)
     thrust::device_vector<uint> rigid_BCEsolids_D;    ///< body ID for BCE markers on rigid bodies (device)
