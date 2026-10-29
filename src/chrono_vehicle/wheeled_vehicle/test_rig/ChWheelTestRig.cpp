@@ -184,6 +184,10 @@ void VehicleWheelAssembly::AddFSIBodies(CRMTerrain& terrain, double spacing) {
     #ifdef CHRONO_FEA
     if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
         auto mesh = fea_tire->GetMesh();
+        if (!mesh) {
+            std::cerr << "ERROR: Tire model " << tire->GetTemplateName() << " cannot be used with CRM terrain." << std::endl;
+            throw std::runtime_error("ERROR: Tire model " + tire->GetTemplateName() + " cannot be used with CRM terrain.");
+        }
         terrain.AddFeaMesh(mesh, false);
         return;
     }

@@ -74,11 +74,12 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shape);
 
     /// Get the underlying FEA mesh.
+    /// A tire model that does not use an FEA mesh (e.g., ChMBTire) returns an empty shared pointer.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
 
     /// Get the mesh contact surface.
     /// If contact is not enabled, an empty shared pointer is returned.
-    std::shared_ptr<fea::ChContactSurface> GetContactSurface() const;
+    virtual std::shared_ptr<fea::ChContactSurface> GetContactSurface() const;
 
     /// Get the load container associated with this tire.
     std::shared_ptr<ChLoadContainer> GetLoadContainer() const { return m_load_container; }

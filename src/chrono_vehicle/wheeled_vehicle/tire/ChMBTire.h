@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     };
 
     ChMBTire(const std::string& name);
-    virtual ~ChMBTire() {}
+    virtual ~ChMBTire();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "MBTire"; }
@@ -122,6 +122,10 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
 
     /// Get the tire rim nodes.
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& GetRimNodes() const;
+
+    /// Get the tire contact surface.
+    /// If contact is not enabled or the tire is not initialized, an empty shared pointer is returned.
+    virtual std::shared_ptr<fea::ChContactSurface> GetContactSurface() const override;
 
     /// Get statistics of the current tire contacts.
     /// Use these to check that the contact compliance is small compared to the tire deflection (in which case results

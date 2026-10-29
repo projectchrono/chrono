@@ -43,6 +43,12 @@ ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name) {
     m_model->m_stiff = false;
 }
 
+ChMBTire::~ChMBTire() {
+    // Remove the underlying MB tire model from the system (it holds a pointer back to this tire)
+    if (auto sys = m_model->GetSystem())
+        sys->Remove(m_model);
+}
+
 void ChMBTire::SetTireGeometry(const std::vector<double>& ring_radii, const std::vector<double>& ring_offsets, int num_divs, double rim_radius) {
     assert(ring_radii.size() > 1);
     assert(ring_radii.size() == ring_offsets.size());
@@ -176,6 +182,13 @@ std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetGridNodes() const 
 
 std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
     return m_model->m_rim_nodes;
+}
+
+std::shared_ptr<fea::ChContactSurface> ChMBTire::GetContactSurface() const {
+    if (m_contact_enabled)
+        return m_model->m_contact_surf;
+
+    return nullptr;
 }
 
 // Callback class to accumulate statistics of the contacts involving the MB tire contact surface.
