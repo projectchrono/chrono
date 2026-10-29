@@ -189,6 +189,9 @@ void VehicleWheelAssembly::AddFSIBodies(CRMTerrain& terrain, double spacing) {
             std::cerr << "ERROR: Tire model " << tire->GetTemplateName() << " cannot be used with CRM terrain." << std::endl;
             throw std::runtime_error("ERROR: Tire model " + tire->GetTemplateName() + " cannot be used with CRM terrain.");
         }
+        // Place the BCE markers inside the tire (surface normals point outward), so that the soil interacts with the
+        // actual tire surface
+        terrain.SetBcePattern2D(BcePatternMesh2D::INWARD, false);
         terrain.AddFeaSurface(surface, false);
         return;
     }

@@ -442,6 +442,8 @@ void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrai
 #ifdef CHRONO_FEA
             auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(wheel->GetTire());
             if (tire_def) {
+                // Place the BCE markers inside the tire (surface normals point outward)
+                terrain.SetBcePattern2D(BcePatternMesh2D::INWARD, false);
                 terrain.AddFeaSurface(tire_def->GetSurfaceMesh(), false);
             } else {
                 terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);

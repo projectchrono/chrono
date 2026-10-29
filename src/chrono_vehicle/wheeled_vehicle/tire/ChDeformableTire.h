@@ -69,6 +69,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// This surface is used for interaction with terrain models that require a triangulated tire surface (e.g., CRM
     /// terrain). If the tire contact surface is a triangle mesh, it is returned. Otherwise (node cloud contact surface or
     /// contact disabled), a triangle surface mesh is created on the first call; this surface is not used for collision.
+    /// The face normals point outward from the tire (as assumed by the INWARD BCE pattern for CRM terrain).
     /// An empty shared pointer is returned if the tire is not initialized.
     virtual std::shared_ptr<fea::ChContactSurfaceMesh> GetSurfaceMesh() const = 0;
 
