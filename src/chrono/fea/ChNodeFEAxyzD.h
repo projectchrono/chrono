@@ -187,6 +187,11 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     unsigned int m_dof_actual;  ///< actual number of degrees of freedom
 
   protected:
+    /// Update the number of active degrees of freedom from the current fixed state of the node and its slopes.
+    /// This is called whenever that state changes, so that the count stays correct for a node fixed or released at any
+    /// time (in particular, the containing mesh does not initialize nodes that are fixed at that time).
+    virtual void UpdateActiveCoords();
+
     /// Get mass of the node (corresponding to the slope derivative).
     ChVectorDynamic<>& GetMassDiagonalSlope1() { return variables_D->GetMassDiagonal(); }
 
