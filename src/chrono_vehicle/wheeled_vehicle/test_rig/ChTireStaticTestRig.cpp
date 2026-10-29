@@ -24,6 +24,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChContactContainer.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -559,8 +560,49 @@ double ChTireStaticTestRig::GetRadialLoad() const {
     return m_motor_r->GetMotorForce();
 }
 
+// Callback class to accumulate statistics of the contacts involving the rig plate (i.e., the tire-plate contacts).
+class PlateContactReporter : public ChContactContainer::ReportContactCallback {
+  public:
+    PlateContactReporter(ChBody* plate) : m_plate(plate) {}
+
+    int num_contacts = 0;
+    double max_penetration = 0;
+    double avg_penetration = 0;
+    double normal_force = 0;
+
+  private:
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 double distance,
+                                 double eff_radius,
+                                 const ChVector3d& rforce,
+                                 const ChVector3d& rtorque,
+                                 ChContactable* modA,
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
+        if ((modA != m_plate && modB != m_plate) || distance >= 0)
+            return true;
+
+        num_contacts++;
+        max_penetration = std::max(max_penetration, -distance);
+        avg_penetration -= distance;
+        normal_force += std::abs(rforce.x());
+
+        return true;
+    }
+
+    ChBody* m_plate;
+};
+
 std::vector<ChOutput::Channel> ChTireStaticTestRig::GetOutputChannels() const {
     bool contact = m_state != State::FIXED && m_state != State::DROPPING;
+
+    // Statistics of the tire-plate contacts
+    auto reporter = chrono_types::make_shared<PlateContactReporter>(m_plate_body.get());
+    m_system->GetContactContainer()->ReportAllContacts(reporter);
+    if (reporter->num_contacts > 0)
+        reporter->avg_penetration /= reporter->num_contacts;
 
     // Deflections in each test direction (as reported in the rig output file, but in SI units)
     double r_defl = contact ? m_spindle_z_ref - m_spindle->GetPos().z() : 0;
@@ -602,19 +644,23 @@ std::vector<ChOutput::Channel> ChTireStaticTestRig::GetOutputChannels() const {
     }
 
     return {
-        {"measuring", "-", IsMeasuring() ? 1.0 : 0.0},      //
-        {"state", "-", (double)static_cast<int>(m_state)},  //
-        {"deflection", defl_units, defl},                   //
-        {"load", load_units, load},                         //
-        {"radial_deflection", "m", r_defl},                 //
-        {"radial_load", "N", r_load},                       //
-        {"longitudinal_deflection", "m", x_defl},           //
-        {"longitudinal_load", "N", x_load},                 //
-        {"lateral_deflection", "m", y_defl},                //
-        {"lateral_load", "N", y_load},                      //
-        {"torsional_deflection", "rad", z_defl},            //
-        {"torsional_load", "N.m", z_load},                  //
-        {"spindle_height", "m", m_spindle->GetPos().z()}    //
+        {"measuring", "-", IsMeasuring() ? 1.0 : 0.0},                //
+        {"state", "-", (double)static_cast<int>(m_state)},            //
+        {"deflection", defl_units, defl},                             //
+        {"load", load_units, load},                                   //
+        {"radial_deflection", "m", r_defl},                           //
+        {"radial_load", "N", r_load},                                 //
+        {"longitudinal_deflection", "m", x_defl},                     //
+        {"longitudinal_load", "N", x_load},                           //
+        {"lateral_deflection", "m", y_defl},                          //
+        {"lateral_load", "N", y_load},                                //
+        {"torsional_deflection", "rad", z_defl},                      //
+        {"torsional_load", "N.m", z_load},                            //
+        {"spindle_height", "m", m_spindle->GetPos().z()},             //
+        {"contact_count", "-", (double)reporter->num_contacts},       //
+        {"contact_max_penetration", "m", reporter->max_penetration},  //
+        {"contact_avg_penetration", "m", reporter->avg_penetration},  //
+        {"contact_normal_force", "N", reporter->normal_force}         //
     };
 }
 

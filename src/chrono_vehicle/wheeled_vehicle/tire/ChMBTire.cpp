@@ -23,6 +23,7 @@
 #include <algorithm>
 
 #include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 
 // =============================================================================
@@ -175,6 +176,59 @@ std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetGridNodes() const 
 
 std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& ChMBTire::GetRimNodes() const {
     return m_model->m_rim_nodes;
+}
+
+// Callback class to accumulate statistics of the contacts involving the MB tire contact surface.
+// The contactables of the tire contact surface (nodes or triangles) report the MB tire model as their physics item.
+class MBTireContactReporter : public ChContactContainer::ReportContactCallback {
+  public:
+    MBTireContactReporter(ChPhysicsItem* item) : m_item(item) {}
+
+    ChMBTire::ContactStats stats;
+
+  private:
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 double distance,
+                                 double eff_radius,
+                                 const ChVector3d& rforce,
+                                 const ChVector3d& rtorque,
+                                 ChContactable* modA,
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
+        bool tireA = modA && modA->GetPhysicsItem() == m_item;
+        bool tireB = modB && modB->GetPhysicsItem() == m_item;
+        if (!(tireA || tireB) || distance >= 0)
+            return true;
+
+        // Reported contact forces act on the second object and are expressed in the contact frame
+        ChVector3d force = plane_coord * rforce;
+
+        stats.num_contacts++;
+        stats.max_penetration = std::max(stats.max_penetration, -distance);
+        stats.avg_penetration -= distance;
+        stats.normal_force += std::abs(rforce.x());
+        stats.force += tireB ? force : -force;
+
+        return true;
+    }
+
+    ChPhysicsItem* m_item;
+};
+
+ChMBTire::ContactStats ChMBTire::GetContactStats() const {
+    if (!m_contact_enabled || !m_model->GetSystem())
+        return ContactStats();
+
+    auto reporter = chrono_types::make_shared<MBTireContactReporter>(m_model.get());
+    m_model->GetSystem()->GetContactContainer()->ReportAllContacts(reporter);
+
+    auto stats = reporter->stats;
+    if (stats.num_contacts > 0)
+        stats.avg_penetration /= stats.num_contacts;
+
+    return stats;
 }
 
 // =============================================================================

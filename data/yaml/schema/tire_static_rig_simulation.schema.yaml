@@ -211,7 +211,8 @@ plots:
     Gnuplot plots generated at the end of the simulation from the rig output channels (same specification as for a
     WHEEL_RIG simulation, see wheel_rig_simulation.schema).
     Available channels: measuring, state, deflection, load, radial_deflection, radial_load, longitudinal_deflection,
-    longitudinal_load, lateral_deflection, lateral_load, torsional_deflection, torsional_load, spindle_height.
+    longitudinal_load, lateral_deflection, lateral_load, torsional_deflection, torsional_load, spindle_height,
+    contact_count, contact_max_penetration, contact_avg_penetration, contact_normal_force.
     The `deflection` and `load` channels are those of the current test mode. Deflections are measured from the
     configuration at first tire-plate contact. Quantities are in SI units, with angles in radians.
     With measuring_only, only data recorded during the measuring phase of the test (the radial loading phase for a

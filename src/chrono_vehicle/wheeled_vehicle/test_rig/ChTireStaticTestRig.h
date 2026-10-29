@@ -151,7 +151,8 @@ class CH_VEHICLE_API ChTireStaticTestRig {
 
     /// Get the current values of the rig output channels.
     /// The channels include a measuring flag (see IsMeasuring), the rig state, the deflection and load for the current
-    /// test mode (`deflection` and `load`), the deflection and load for each test direction, and the spindle height.
+    /// test mode (`deflection` and `load`), the deflection and load for each test direction, the spindle height, and
+    /// statistics of the tire-plate contacts (number of contacts, maximum and average penetration, total normal force).
     /// Deflections are measured from the configuration at first tire-plate contact and are zero before that. All
     /// quantities are in SI units, with angles in radians. The set of channels is the same at every call.
     std::vector<ChOutput::Channel> GetOutputChannels() const;

@@ -35,6 +35,16 @@ class MBTireModel;
 /// Template for a multibody deformable tire.
 class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
   public:
+    /// Statistics of the contacts between the tire contact surface and other objects.
+    /// Only contacts with positive penetration are included. Penetrations are reported as positive values.
+    struct ContactStats {
+        int num_contacts = 0;        ///< number of active contacts
+        double max_penetration = 0;  ///< maximum penetration depth
+        double avg_penetration = 0;  ///< average penetration depth over the active contacts
+        double normal_force = 0;     ///< sum of the normal contact force magnitudes
+        ChVector3d force = VNULL;    ///< resultant contact force on the tire (global frame)
+    };
+
     ChMBTire(const std::string& name);
     virtual ~ChMBTire() {}
 
@@ -112,6 +122,11 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
 
     /// Get the tire rim nodes.
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>>& GetRimNodes() const;
+
+    /// Get statistics of the current tire contacts.
+    /// Use these to check that the contact compliance is small compared to the tire deflection (in which case results
+    /// are insensitive to the contact stiffness). All values are zero if contact is disabled.
+    ContactStats GetContactStats() const;
 
   protected:
     /// Initialize the tire subsystem inertia properties.

@@ -117,6 +117,13 @@ tire-plate contact and are zero before that.
 | `lateral_deflection`, `lateral_load` | Plate displacement and load in the y direction | m, N |
 | `torsional_deflection`, `torsional_load` | Plate rotation and torque about the vertical axis | rad, N.m |
 | `spindle_height` | Height of the wheel spindle | m |
+| `contact_count` | Number of tire-plate contacts with positive penetration | -- |
+| `contact_max_penetration`, `contact_avg_penetration` | Maximum and average penetration over the tire-plate contacts | m |
+| `contact_normal_force` | Sum of the normal force magnitudes over the tire-plate contacts | N |
+
+The contact channels help assess the effect of the contact model. With an SMC (penalty) contact method, the tire
+deflection includes the contact penetration. If the penetration is not small compared to the deflection, results depend
+on the contact stiffness (e.g., the contact Young's modulus) and, for a node-based contact surface, on the mesh resolution.
 
 ## Plots
 
