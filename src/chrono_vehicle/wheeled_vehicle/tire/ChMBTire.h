@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
 
     /// Set the tire geometry.
     void SetTireGeometry(const std::vector<double>& ring_radii,    ///< radii of node rings
-                         const std::vector<double>& ring_offsets,  ///< transversal offsets of node rings
+                         const std::vector<double>& ring_offsets,  ///< transversal offsets of node rings (increasing)
                          int num_divs,                             ///< number of divisions in circumferential direction
                          double rim_radius                         ///< radius of wheel rim
     );
