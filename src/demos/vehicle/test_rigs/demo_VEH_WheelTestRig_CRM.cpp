@@ -30,7 +30,7 @@
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
-    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 #endif
 
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -207,7 +207,7 @@ int main() {
 
 #ifdef CHRONO_FEA
     // Optionally, modify tire visualization (can be done only after initialization)
-    if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
+    if (auto tire_def = std::dynamic_pointer_cast<ChFEATire>(tire)) {
         auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
         visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
         visFEA->SetShellResolution(3);

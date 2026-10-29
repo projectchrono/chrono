@@ -30,10 +30,11 @@
 #ifdef CHRONO_FEA
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChSolidFEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/SolidFEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
@@ -64,10 +65,11 @@
 #ifdef CHRONO_FEA
 %shared_ptr(chrono::vehicle::ChDeformableTire)
 %shared_ptr(chrono::vehicle::ChFEATire)
+%shared_ptr(chrono::vehicle::ChSolidFEATire)
 %shared_ptr(chrono::vehicle::ChANCFTire)
 %shared_ptr(chrono::vehicle::ChReissnerTire)
 %shared_ptr(chrono::vehicle::ChMBTire)
-%shared_ptr(chrono::vehicle::FEATire)
+%shared_ptr(chrono::vehicle::SolidFEATire)
 %shared_ptr(chrono::vehicle::ANCFTire)
 %shared_ptr(chrono::vehicle::ANCFToroidalTire)
 %shared_ptr(chrono::vehicle::ReissnerTire)
@@ -108,10 +110,11 @@
 #ifdef CHRONO_FEA
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/ChSolidFEATire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/tire/SolidFEATire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"

@@ -194,7 +194,7 @@ def main():
     rig.Initialize(veh.ChWheelTestRig.Mode_TEST, 0.05)
 
     # Optionally, modify tire visualization (can be done only after initialization)
-    tire_def = veh.CastToChDeformableTire(tire)
+    tire_def = veh.CastToChFEATire(tire)
     if tire_def is not None:
         visFEA = chrono.ChVisualShapeFEA()
         visFEA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)

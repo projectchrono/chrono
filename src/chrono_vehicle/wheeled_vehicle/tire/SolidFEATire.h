@@ -12,15 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// FEA co-rotational tire constructed with data from file (JSON format).
+// Co-rotational FEA tire with solid elements, constructed with data from file (JSON format).
 // The mesh data is assumed to be provided through an Abaqus INP file.
 //
 // =============================================================================
 
-#ifndef FEA_TIRE_H
-#define FEA_TIRE_H
+#ifndef SOLID_FEA_TIRE_H
+#define SOLID_FEA_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChSolidFEATire.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -30,12 +30,12 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Co-rotational FEA tire constructed with data from file (JSON format).
-class CH_VEHICLE_API FEATire : public ChFEATire {
+/// Co-rotational FEA tire with solid elements, constructed with data from file (JSON format).
+class CH_VEHICLE_API SolidFEATire : public ChSolidFEATire {
   public:
-    FEATire(const std::string& filename);
-    FEATire(const rapidjson::Document& d);
-    ~FEATire() {}
+    SolidFEATire(const std::string& filename);
+    SolidFEATire(const rapidjson::Document& d);
+    ~SolidFEATire() {}
 
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_tire_radius; }

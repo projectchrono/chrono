@@ -100,6 +100,8 @@ Finally, the third class of tire models offered are full finite element represen
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/FEA_tire_sections.png" width="600" />
 
+All deformable tires derive from [ChDeformableTire](@ref chrono::vehicle::ChDeformableTire). The tires built on an FEA mesh (ANCF shell, Reissner shell, and solid-element tires) derive from [ChFEATire](@ref chrono::vehicle::ChFEATire), which provides access to the underlying mesh (`GetMesh`). Every deformable tire provides a triangle surface mesh over its nodes (`GetSurfaceMesh`): this is the tire contact surface if that is a triangle mesh, or else a surface over the same nodes that does not participate in collision. This surface is used to couple the tire with CRM terrain (see `CRMTerrain::AddFeaSurface`). CRM terrain couples only triangles with translational (XYZ) nodes, so Reissner shell tires cannot currently be used with CRM terrain.
+
 ### ANCF shell deformable tire {#vehicle_tire_ancf}
 
 See [ChANCFTire](@ref chrono::vehicle::ChANCFTire) and [ANCFTire](@ref chrono::vehicle::ANCFTire).

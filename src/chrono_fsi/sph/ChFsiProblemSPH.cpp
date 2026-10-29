@@ -224,6 +224,44 @@ void ChFsiProblemSPH::SetActiveDomainMesh(std::shared_ptr<fea::ChMesh> mesh, con
     }
 }
 
+void ChFsiProblemSPH::AddFeaSurface(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded) {
+    auto fsi_mesh1D = m_sysFSI->AddFeaMesh1D(surface, check_embedded);
+    if (fsi_mesh1D)
+        m_fsi_surfaces1D[surface] = fsi_mesh1D->index;
+    if (m_verbose) {
+        if (fsi_mesh1D)
+            cout << "Add FEA surface with " << fsi_mesh1D->GetNumElements() << " segments" << endl;
+        else
+            cout << "FEA surface does not contain any segments with XYZ nodes" << endl;
+    }
+}
+
+void ChFsiProblemSPH::AddFeaSurface(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded) {
+    auto fsi_mesh2D = m_sysFSI->AddFeaMesh2D(surface, check_embedded);
+    if (fsi_mesh2D)
+        m_fsi_surfaces2D[surface] = fsi_mesh2D->index;
+    if (m_verbose) {
+        if (fsi_mesh2D)
+            cout << "Add FEA surface with " << fsi_mesh2D->GetNumElements() << " faces" << endl;
+        else
+            cout << "FEA surface does not contain any faces with XYZ nodes" << endl;
+    }
+}
+
+bool ChFsiProblemSPH::IsFsiSolid(std::shared_ptr<fea::ChContactSurface> surface) {
+    return m_fsi_surfaces1D.find(surface) != m_fsi_surfaces1D.end() || m_fsi_surfaces2D.find(surface) != m_fsi_surfaces2D.end();
+}
+
+void ChFsiProblemSPH::SetActiveDomainSurface(std::shared_ptr<fea::ChContactSurface> surface, const ChAABB& aabb) {
+    auto surface1D = m_fsi_surfaces1D.find(surface);
+    if (surface1D != m_fsi_surfaces1D.end())
+        m_sysFSI->SetActiveDomainMesh1D(surface1D->second, aabb);
+
+    auto surface2D = m_fsi_surfaces2D.find(surface);
+    if (surface2D != m_fsi_surfaces2D.end())
+        m_sysFSI->SetActiveDomainMesh2D(surface2D->second, aabb);
+}
+
 #endif
 
 void ChFsiProblemSPH::SetActiveDomain(const ChVector3d& box_dim) {

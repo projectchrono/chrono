@@ -28,7 +28,7 @@ namespace vehicle {
 
 using namespace chrono::fea;
 
-ChANCFTire::ChANCFTire(const std::string& name) : ChDeformableTire(name) {}
+ChANCFTire::ChANCFTire(const std::string& name) : ChFEATire(name) {}
 
 void ChANCFTire::CreatePressureLoad() {
     // Create a pressure load for each element in the mesh.

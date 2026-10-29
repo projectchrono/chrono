@@ -136,6 +136,27 @@ class CH_FSI_API ChFsiProblemSPH {
     /// This setting is used only for CRM problems and ignored for CFD problems.
     void SetActiveDomainMesh(std::shared_ptr<fea::ChMesh> mesh, const ChAABB& aabb);
 
+    /// Add a set of FEA segments to the FSI problem.
+    /// BCE markers are created on the segments with XYZ nodes. The segment set need not be associated with an FEA mesh.
+    /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// This function must be called before Initialize().
+    void AddFeaSurface(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded);
+
+    /// Add a triangle surface over FEA nodes to the FSI problem.
+    /// BCE markers are created on the triangles with XYZ nodes. The surface need not be associated with an FEA mesh
+    /// (e.g., the surface of a deformable tire, see ChDeformableTire::GetSurfaceMesh).
+    /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// This function must be called before Initialize().
+    void AddFeaSurface(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded);
+
+    /// Check if the specified surface was added as an FSI solid (with AddFeaSurface).
+    bool IsFsiSolid(std::shared_ptr<fea::ChContactSurface> surface);
+
+    /// Set the active domain for the nodes of the specified surface (assumed already added with AddFeaSurface).
+    /// By default, this is an inverted AABB.
+    /// This setting is used only for CRM problems and ignored for CFD problems.
+    void SetActiveDomainSurface(std::shared_ptr<fea::ChContactSurface> surface, const ChAABB& aabb);
+
 #endif
 
     /// Set the active domain for all FSI solids (bodies and mesh nodes) to an AABB of given dimensions, centered at the solid origin.
@@ -318,6 +339,8 @@ class CH_FSI_API ChFsiProblemSPH {
 #ifdef CHRONO_FEA
     std::unordered_map<std::shared_ptr<fea::ChMesh>, size_t> m_fsi_meshes1D;  ///< map from ChMesh pointer to index in FSI mesh1D list
     std::unordered_map<std::shared_ptr<fea::ChMesh>, size_t> m_fsi_meshes2D;  ///< map from ChMesh pointer to index in FSI mesh2D list
+    std::unordered_map<std::shared_ptr<fea::ChContactSurface>, size_t> m_fsi_surfaces1D;  ///< map from surface pointer to index in FSI mesh1D list
+    std::unordered_map<std::shared_ptr<fea::ChContactSurface>, size_t> m_fsi_surfaces2D;  ///< map from surface pointer to index in FSI mesh2D list
 #endif
 
     std::shared_ptr<ChFsiFluidSystemSPH::ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties

@@ -545,6 +545,10 @@ void SphBceManager::CalcRigidBodyForces() {
     thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
     thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
 
+    // Nothing to do if no FSI body has BCE markers (e.g., a body added only to carry an active domain)
+    if (m_rigid_grid_size == 0)
+        return;
+
     // Calculate shared memory size
     size_t sharedMemSize = 2 * m_rigid_block_size * sizeof(Real3);
 
