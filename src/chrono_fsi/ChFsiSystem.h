@@ -107,6 +107,16 @@ class CH_FSI_API ChFsiSystem {
     /// mesh.
     std::shared_ptr<FsiMesh2D> AddFeaMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
+    /// Add a set of FEA segments to the FSI system.
+    /// The fluid-solid interaction is based on the segments of the given surface with XYZ nodes; the surface need not be
+    /// associated with an FEA mesh. Returns an empty pointer if the surface has no such segments.
+    std::shared_ptr<FsiMesh1D> AddFeaMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface, bool check_embedded);
+
+    /// Add a triangle surface over FEA nodes to the FSI system.
+    /// The fluid-solid interaction is based on the triangles of the given surface with XYZ nodes; the surface need not be
+    /// associated with an FEA mesh. Returns an empty pointer if the surface has no such triangles.
+    std::shared_ptr<FsiMesh2D> AddFeaMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface, bool check_embedded);
+
     /// Enable use and set method of obtaining FEA node directions.
     /// If provided, node direction vectors can be used to provide a more accurate interpolation of positions between
     /// nodes (piece-wise cubic as opposed to only piece-wise linear). Node directions can be provided by the FEA
