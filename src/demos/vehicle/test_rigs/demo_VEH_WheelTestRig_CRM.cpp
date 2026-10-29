@@ -31,6 +31,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
     #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 #endif
 
 #include "chrono_fsi/sph/visualization/ChSphVisualizationVSG.h"
@@ -56,12 +57,15 @@ using std::endl;
 // Tire specification file
 std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
 ////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_MBTire.json";
 
 // Wheel specification file
 std::string wheel_json = "Polaris/Polaris_Wheel.json";
+////std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
 
 // Normal load (static wheel load, appropriate for the selected vehicle)
 double normal_load = 2500;  // Polaris
+////double normal_load = 6500;  // HMMWV
 
 double render_fps = 100;
 bool debug_output = false;
@@ -87,8 +91,10 @@ int main() {
     }
 
     bool fea_tire = false;
+    bool mb_tire = false;
 #ifdef CHRONO_FEA
     fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    mb_tire = std::dynamic_pointer_cast<ChMBTire>(tire) != nullptr;
 
     // Set tire contact surface (relevant for FEA tires only)
     if (fea_tire) {
@@ -115,7 +121,12 @@ int main() {
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
 #ifdef CHRONO_FEA
-    else {
+    else if (mb_tire) {
+        sys = new ChSystemSMC;
+        step_size = 5e-5;
+        solver_type = ChSolver::Type::BICGSTAB;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+    } else {
         sys = new ChSystemSMC;
         step_size = 1e-5;
         solver_type = ChSolver::Type::PARDISO_MKL;
@@ -241,6 +252,7 @@ int main() {
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(true);
+        visFSI->EnableFeaMeshMarkers(true);
 
         // VSG visual system (attach visFSI as plugin)
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();

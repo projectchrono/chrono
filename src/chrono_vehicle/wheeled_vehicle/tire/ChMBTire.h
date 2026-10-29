@@ -171,6 +171,11 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     /// If contact is not enabled or the tire is not initialized, an empty shared pointer is returned.
     virtual std::shared_ptr<fea::ChContactSurface> GetContactSurface() const override;
 
+    /// Get a triangle surface mesh over the tire grid nodes.
+    /// If the tire contact surface is a triangle mesh, it is returned. Otherwise, a triangle surface mesh over the same
+    /// faces is created on the first call; this surface is not used for collision.
+    virtual std::shared_ptr<fea::ChContactSurfaceMesh> GetSurfaceMesh() const override;
+
     /// Get statistics of the current tire contacts.
     /// Use these to check that the contact compliance is small compared to the tire deflection (in which case results
     /// are insensitive to the contact stiffness). All values are zero if contact is disabled.
@@ -186,13 +191,6 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
   private:
     // Overrides of ChDeformableTire functions
     virtual void CreateContactMaterial() override final;
-
-    // Overrides of ChDeformableTire functions not implemented (used) by ChMBTire
-    virtual void CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) override final {}
-    virtual void CreatePressureLoad() override final {}
-    virtual void CreateContactSurface() override final {}
-    virtual void CreateRimConnections(std::shared_ptr<ChBody> wheel) override final {}
-    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const final { return {}; }
 
   private:
     std::shared_ptr<MBTireModel> m_model;
@@ -210,6 +208,9 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
   private:
     // Construct the MB tire relative to the associated wheel hub body.
     void Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family);
+
+    // Create a triangle surface mesh over the grid nodes, using the specified contact material.
+    std::shared_ptr<fea::ChContactSurfaceMesh> CreateSurfaceMesh(std::shared_ptr<ChContactMaterialSMC> mat, double surface_dim);
 
     // Calculate COG and inertia, expressed relative to the frame of the associated wheel hub body.
     void CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia);
@@ -320,7 +321,16 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;      // FEA grid nodes
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_rim_nodes;  // FEA nodes fixed to the rim
     std::shared_ptr<fea::ChContactSurface> m_contact_surf;        // contact surface
+    std::shared_ptr<fea::ChContactSurfaceMesh> m_surface_mesh;    // surface mesh (if not the contact surface)
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;   // mesh visualization asset
+
+    // Auxiliary face information (for a triangle mesh surface)
+    struct FaceAuxData {
+        ChVector3i nbr_node;   // neighbor (opposite) vertex/node for each face vertex
+        ChVector3b owns_node;  // vertex/node owned by the face?
+        ChVector3b owns_edge;  // edge owned by the face?
+    };
+    std::vector<FaceAuxData> m_face_auxdata;  // auxiliary data for each mesh face
 
     // Base class for all force elements (loads) in an MBTire model.
     // A load can generate forces on 1, 2, or 3 nodes in the system.

@@ -129,5 +129,7 @@ The MB tire is typically integrated with an SMC system, the `EULER_IMPLICIT_PROJ
 
 With an SMC (penalty) contact method, the tire deflection includes the contact penetration, which should be small compared to the tire deflection for results not to depend on the contact stiffness. Note that the combined contact stiffness is limited by the softer of the two contacting materials (e.g., the terrain). With a node cloud contact surface, the number of nodes in the contact patch, and therefore the total contact stiffness, grows with the number of divisions; specify a reference number of divisions (`SetContactReferenceDivisions`) to scale the contact material stiffness and damping accordingly. The tire contact statistics (`GetContactStats`) and the contact output channels of the static tire test rig report the number of contacts, the contact penetration, and the contact force.
 
+The MB tire does not use an FEA mesh and derives directly from ChDeformableTire. It can be used on rigid, SCM, and CRM terrain. SCM terrain requires a triangle mesh contact surface. On CRM terrain, BCE markers are attached to the triangle surface mesh over the tire nodes (`GetSurfaceMesh`), independent of the contact surface type, and the soil forces are applied to the tire nodes (see `demo_VEH_WheelTestRig_CRM` and `data/yaml/vehicle/wheel_rig/wheel_rig_mbtire_crm.yaml`).
+
 The following JSON file contains the specification of an MBTire:
 \include "data/vehicle/hmmwv/tire/HMMWV_MBTire.json"

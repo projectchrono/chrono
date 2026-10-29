@@ -23,7 +23,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
     #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
-    #include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 #endif
 
 #include "chrono_parsers/yaml/ChParserWheelRigYAML.h"
@@ -516,12 +515,6 @@ std::shared_ptr<vehicle::ChWheelTestRig> ChParserWheelRigYAML::CreateRig(ChSyste
         }
 
 #ifdef CHRONO_FEA
-        // MB tires do not yet support interaction with CRM terrain
-        if (std::dynamic_pointer_cast<vehicle::ChMBTire>(tire) && m_terrain_type == vehicle::ChWheelTestRig::TerrainType::CRM) {
-            cerr << "Error: MB tire models cannot be used with CRM terrain." << endl;
-            throw std::runtime_error("Incompatible tire and terrain");
-        }
-
         // Deformable tires interact with SCM terrain only through a triangle mesh contact surface
         if (std::dynamic_pointer_cast<vehicle::ChDeformableTire>(tire) && m_terrain_type == vehicle::ChWheelTestRig::TerrainType::SCM &&
             m_contact_surface_type != vehicle::ChTire::ContactSurfaceType::TRIANGLE_MESH) {

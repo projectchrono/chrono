@@ -144,7 +144,8 @@ void ChMBTire::CreateContactMaterial() {
 }
 
 void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
-    ChTire::Initialize(wheel);
+    // Note: this also sets the default internal tire pressure (if enabled and not explicitly set)
+    ChDeformableTire::Initialize(wheel);
 
     ChSystem* system = wheel->GetSpindle()->GetSystem();
     assert(system);
@@ -152,10 +153,6 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     // Add the underlying MB tire model (as a PhysicsItem) to the system *before* its construction.
     // This way, all its components will have an associated system during construction.
     system->Add(m_model);
-
-    // Set internal tire pressure (if enabled)
-    if (m_pressure_enabled && m_pressure <= 0)
-        m_pressure = GetDefaultPressure();
 
     // Set contact material properties (if enabled)
     if (m_contact_enabled)
@@ -225,6 +222,23 @@ std::shared_ptr<fea::ChContactSurface> ChMBTire::GetContactSurface() const {
         return m_model->m_contact_surf;
 
     return nullptr;
+}
+
+std::shared_ptr<fea::ChContactSurfaceMesh> ChMBTire::GetSurfaceMesh() const {
+    if (!IsInitialized())
+        return nullptr;
+
+    // Use the contact surface, if it is a triangle mesh
+    if (auto contact_surf = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(GetContactSurface()))
+        return contact_surf;
+
+    // Otherwise, create a surface mesh over the same faces (not used for collision)
+    if (!m_model->m_surface_mesh) {
+        auto mat = m_contact_mat ? m_contact_mat : chrono_types::make_shared<ChContactMaterialSMC>();
+        m_model->m_surface_mesh = m_model->CreateSurfaceMesh(mat, 0);
+    }
+
+    return m_model->m_surface_mesh;
 }
 
 // Callback class to accumulate statistics of the contacts involving the MB tire contact surface.
@@ -1792,15 +1806,9 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
 
     // ------------ Collision and visualization meshes
 
-    // Auxiliary face information (for possible collision mesh)
-    struct FaceAuxData {
-        ChVector3i nbr_node;   // neighbor (opposite) vertex/node for each face vertex
-        ChVector3b owns_node;  // vertex/node owned by the face?
-        ChVector3b owns_edge;  // edge owned by the face?
-    };
-    std::vector<FaceAuxData> auxdata(m_num_faces);
-
-    // Create the mesh faces and define auxiliary data (for possible collision mesh)
+    // Create the mesh faces and define auxiliary data (for a possible triangle mesh surface)
+    auto& auxdata = m_face_auxdata;
+    auxdata.resize(m_num_faces);
     idx_vertices.resize(m_num_faces);
     idx_normals.resize(m_num_faces);
     k = 0;
@@ -1841,22 +1849,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
                 break;
             }
             case ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH: {
-                auto contact_surf = chrono_types::make_shared<fea::ChContactSurfaceMesh>(contact_mat);
-                contact_surf->SetPhysicsItem(this);
+                auto contact_surf = CreateSurfaceMesh(contact_mat, surface_dim);
                 contact_surf->DisableSelfCollisions(collision_family);
-                for (k = 0; k < m_num_faces; k++) {
-                    const auto& node1 = m_nodes[idx_vertices[k][0]];
-                    const auto& node2 = m_nodes[idx_vertices[k][1]];
-                    const auto& node3 = m_nodes[idx_vertices[k][2]];
-                    const auto& edge_node1 = (auxdata[k].nbr_node[0] != -1 ? m_nodes[auxdata[k].nbr_node[0]] : nullptr);
-                    const auto& edge_node2 = (auxdata[k].nbr_node[1] != -1 ? m_nodes[auxdata[k].nbr_node[1]] : nullptr);
-                    const auto& edge_node3 = (auxdata[k].nbr_node[2] != -1 ? m_nodes[auxdata[k].nbr_node[2]] : nullptr);
-                    contact_surf->AddFace(node1, node2, node3,                                                        //
-                                          edge_node1, edge_node2, edge_node3,                                         //
-                                          auxdata[k].owns_node[0], auxdata[k].owns_node[1], auxdata[k].owns_node[2],  //
-                                          auxdata[k].owns_edge[0], auxdata[k].owns_edge[1], auxdata[k].owns_edge[2],  //
-                                          surface_dim);
-                }
                 m_contact_surf = contact_surf;
                 break;
             }
@@ -1887,6 +1881,29 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
     for (int in = 0; in < m_num_nodes; in++) {
         normals[in] /= (double)accumulators[in];
     }
+}
+
+std::shared_ptr<fea::ChContactSurfaceMesh> MBTireModel::CreateSurfaceMesh(std::shared_ptr<ChContactMaterialSMC> mat, double surface_dim) {
+    const auto& idx_vertices = m_trimesh_shape->GetMesh()->GetIndicesVertices();
+    const auto& auxdata = m_face_auxdata;
+
+    auto surf = chrono_types::make_shared<fea::ChContactSurfaceMesh>(mat);
+    surf->SetPhysicsItem(this);
+    for (int k = 0; k < m_num_faces; k++) {
+        const auto& node1 = m_nodes[idx_vertices[k][0]];
+        const auto& node2 = m_nodes[idx_vertices[k][1]];
+        const auto& node3 = m_nodes[idx_vertices[k][2]];
+        const auto& edge_node1 = (auxdata[k].nbr_node[0] != -1 ? m_nodes[auxdata[k].nbr_node[0]] : nullptr);
+        const auto& edge_node2 = (auxdata[k].nbr_node[1] != -1 ? m_nodes[auxdata[k].nbr_node[1]] : nullptr);
+        const auto& edge_node3 = (auxdata[k].nbr_node[2] != -1 ? m_nodes[auxdata[k].nbr_node[2]] : nullptr);
+        surf->AddFace(node1, node2, node3,                                                        //
+                      edge_node1, edge_node2, edge_node3,                                         //
+                      auxdata[k].owns_node[0], auxdata[k].owns_node[1], auxdata[k].owns_node[2],  //
+                      auxdata[k].owns_edge[0], auxdata[k].owns_edge[1], auxdata[k].owns_edge[2],  //
+                      surface_dim);
+    }
+
+    return surf;
 }
 
 void MBTireModel::CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
