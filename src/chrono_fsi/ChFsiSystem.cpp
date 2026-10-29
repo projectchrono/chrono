@@ -137,7 +137,7 @@ std::shared_ptr<FsiMesh1D> ChFsiSystem::AddFeaMesh1D(std::shared_ptr<fea::ChMesh
     // Search for contact surfaces associated with the FEA mesh
     for (const auto& surface : mesh->GetContactSurfaces()) {
         if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
-            if (surface_segs->GetNumSegments() > 0) {
+            if (!surface_segs->GetSegmentsXYZ().empty()) {
                 auto fsi_mesh1D = m_fsi_interface->AddFeaMesh1D(surface_segs, check_embedded);
                 m_sysCFD->OnAddFeaMesh1D(fsi_mesh1D, check_embedded);
                 return fsi_mesh1D;
@@ -150,7 +150,7 @@ std::shared_ptr<FsiMesh1D> ChFsiSystem::AddFeaMesh1D(std::shared_ptr<fea::ChMesh
     ChContactMaterialData contact_material_data;
     auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(contact_material_data.CreateMaterial(ChContactMethod::SMC));
     surface_segs->AddAllSegments(*mesh, 0);
-    if (surface_segs->GetNumSegments() > 0) {
+    if (!surface_segs->GetSegmentsXYZ().empty()) {
         auto fsi_mesh1D = m_fsi_interface->AddFeaMesh1D(surface_segs, check_embedded);
         m_sysCFD->OnAddFeaMesh1D(fsi_mesh1D, check_embedded);
         return fsi_mesh1D;
@@ -166,7 +166,7 @@ std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFeaMesh2D(std::shared_ptr<fea::ChMesh
     // Search for contact surfaces associated with the FEA mesh
     for (const auto& surface : mesh->GetContactSurfaces()) {
         if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
-            if (surface_mesh->GetNumTriangles() > 0) {
+            if (!surface_mesh->GetTrianglesXYZ().empty()) {
                 auto fsi_mesh2D = m_fsi_interface->AddFeaMesh2D(surface_mesh, check_embedded);
                 m_sysCFD->OnAddFeaMesh2D(fsi_mesh2D, check_embedded);
                 return fsi_mesh2D;
@@ -179,7 +179,7 @@ std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFeaMesh2D(std::shared_ptr<fea::ChMesh
     ChContactMaterialData contact_material_data;
     auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(contact_material_data.CreateMaterial(ChContactMethod::SMC));
     surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
-    if (surface_mesh->GetNumTriangles() > 0) {
+    if (!surface_mesh->GetTrianglesXYZ().empty()) {
         auto fsi_mesh2D = m_fsi_interface->AddFeaMesh2D(surface_mesh, check_embedded);
         m_sysCFD->OnAddFeaMesh2D(fsi_mesh2D, check_embedded);
         return fsi_mesh2D;
