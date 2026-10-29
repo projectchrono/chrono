@@ -110,3 +110,22 @@ The following JSON file contains the specification of an ANCFTire:
 ### Reissner shell deformable tire {#vehicle_tire_reissner}
 
 See [ChReissnerTire](@ref chrono::vehicle::ChReissnerTire) and [ReissnerTire](@ref chrono::vehicle::ReissnerTire).
+
+### Multibody (MB) deformable tire {#vehicle_tire_mb}
+
+See [ChMBTire](@ref chrono::vehicle::ChMBTire) and [MBTire](@ref chrono::vehicle::MBTire).
+
+The MB tire is a lumped-mass model of the tire carcass. Point-mass nodes are placed on a set of rings (specified by their radii and transversal offsets) with a given number of divisions around the circumference. Nodes are connected by translational springs along the rings (circumferential) and across the rings (transversal), by rotational springs that resist bending along and across the rings, and by radial springs that connect the first and last rings to the rim. Internal pressure is applied at each node and contact with the terrain uses a node cloud or a triangle mesh contact surface. The MB tire is much cheaper than the FEA tires, while still capturing the tire deformation and contact patch.
+
+Spring coefficients can be specified in two ways (see `SetSpringCoefficientType`):
+- `PER_SPRING`: the coefficients are used as given for every spring. The tire response then depends on the number of divisions and on the ring spacing: refining the mesh adds springs in series and in parallel and changes the tire stiffness.
+- `DISTRIBUTED` (default): the coefficients are properties of the tire surface (stiffness per unit width and unit strain for the translational springs, bending stiffness per unit width for the rotational springs) and the coefficient of each spring is calculated from the mesh geometry. The tire response then converges as the mesh is refined, so the number of divisions becomes a pure discretization choice. Bending along the rings and across the rings (sidewall bending) can be given separate coefficients.
+
+By default, the tire mass is distributed to the nodes in proportion to the surface area associated with each node, and the pressure load is a follower load acting along the current surface normal with a magnitude equal to the pressure times the current nodal area. Both can be disabled to recover the original model (uniform nodal masses and a constant pressure force directed from the wheel center to each node).
+
+The MB tire is typically integrated with an SMC system, the `EULER_IMPLICIT_PROJECTED` integrator, and an iterative linear solver that does not require symmetry (`BICGSTAB`). When the tire is set as stiff (`IsStiff`), it contributes its stiffness and damping Jacobians to the system matrix; these Jacobians (in particular the follower pressure Jacobian) are not symmetric. In that case, use a direct sparse solver: `PARDISO_MKL` (fastest, requires the Chrono::PardisoMKL module) or `SPARSE_LU`, with a locked sparsity pattern. Iterative solvers converge slowly on the stiff system and `SPARSE_QR` is considerably slower than `SPARSE_LU`. A stiff tire allows a larger integration step (about 4 times larger than a non-stiff tire for comparable accuracy), but each step is more expensive, so a non-stiff tire is usually faster overall.
+
+With an SMC (penalty) contact method, the tire deflection includes the contact penetration, which should be small compared to the tire deflection for results not to depend on the contact stiffness. Note that the combined contact stiffness is limited by the softer of the two contacting materials (e.g., the terrain). With a node cloud contact surface, the number of nodes in the contact patch, and therefore the total contact stiffness, grows with the number of divisions; specify a reference number of divisions (`SetContactReferenceDivisions`) to scale the contact material stiffness and damping accordingly. The tire contact statistics (`GetContactStats`) and the contact output channels of the static tire test rig report the number of contacts, the contact penetration, and the contact force.
+
+The following JSON file contains the specification of an MBTire:
+\include "data/vehicle/hmmwv/tire/HMMWV_MBTire.json"
