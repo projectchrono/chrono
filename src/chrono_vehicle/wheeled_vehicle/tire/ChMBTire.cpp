@@ -37,10 +37,13 @@
 namespace chrono {
 namespace vehicle {
 
-ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name) {
+ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name), m_contact_ref_divs(0) {
     m_model = chrono_types::make_shared<MBTireModel>();
     m_model->m_tire = this;
     m_model->m_stiff = false;
+    m_model->m_coef_type = SpringCoefficientType::DISTRIBUTED;
+    m_model->m_follower_pressure = true;
+    m_model->m_area_lumping = true;
 }
 
 ChMBTire::~ChMBTire() {
@@ -66,6 +69,10 @@ void ChMBTire::SetTireMass(double mass) {
     m_mass = mass;
 }
 
+void ChMBTire::SetSpringCoefficientType(SpringCoefficientType type) {
+    m_model->m_coef_type = type;
+}
+
 void ChMBTire::SetMeshSpringCoefficients(double kC, double cC, double kT, double cT) {
     m_model->m_kC = kC;
     m_model->m_cC = cC;
@@ -74,13 +81,27 @@ void ChMBTire::SetMeshSpringCoefficients(double kC, double cC, double kT, double
 }
 
 void ChMBTire::SetBendingSpringCoefficients(double kB, double cB) {
-    m_model->m_kB = kB;
-    m_model->m_cB = cB;
+    SetBendingSpringCoefficients(kB, cB, kB, cB);
+}
+
+void ChMBTire::SetBendingSpringCoefficients(double kBC, double cBC, double kBT, double cBT) {
+    m_model->m_kBC = kBC;
+    m_model->m_cBC = cBC;
+    m_model->m_kBT = kBT;
+    m_model->m_cBT = cBT;
 }
 
 void ChMBTire::SetRadialSpringCoefficients(double kR, double cR) {
     m_model->m_kR = kR;
     m_model->m_cR = cR;
+}
+
+void ChMBTire::EnableFollowerPressure(bool val) {
+    m_model->m_follower_pressure = val;
+}
+
+void ChMBTire::EnableAreaWeightedLumping(bool val) {
+    m_model->m_area_lumping = val;
 }
 
 void ChMBTire::IsStiff(bool val) {
@@ -89,6 +110,10 @@ void ChMBTire::IsStiff(bool val) {
 
 void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
     m_contact_mat_data = mat_data;
+}
+
+void ChMBTire::SetContactReferenceDivisions(int ref_divs) {
+    m_contact_ref_divs = ref_divs;
 }
 
 double ChMBTire::GetRadius() const {
@@ -104,7 +129,18 @@ double ChMBTire::GetWidth() const {
 }
 
 void ChMBTire::CreateContactMaterial() {
-    m_contact_mat = std::static_pointer_cast<ChContactMaterialSMC>(m_contact_mat_data.CreateMaterial(ChContactMethod::SMC));
+    // Scale contact stiffness and damping to the current number of divisions
+    ChContactMaterialData mat_data = m_contact_mat_data;
+    if (m_contact_ref_divs > 0) {
+        float scale = (float)m_contact_ref_divs / m_model->m_num_divs;
+        mat_data.Y *= scale;
+        mat_data.kn *= scale;
+        mat_data.gn *= scale;
+        mat_data.kt *= scale;
+        mat_data.gt *= scale;
+    }
+
+    m_contact_mat = std::static_pointer_cast<ChContactMaterialSMC>(mat_data.CreateMaterial(ChContactMethod::SMC));
 }
 
 void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
@@ -287,6 +323,36 @@ double MBTireModel::CalculateArea() const {
     return area;
 }
 
+// Calculate the geometry of the undeformed mesh.
+// The tributary width of a ring is half the sum of the lengths of the adjacent meridian segments (including the segments
+// to the rim for the first and last rings). The tributary area of a node is its tributary width times the ring chord.
+void MBTireModel::CalculateGeometry() {
+    double sin_half = std::sin(CH_PI / m_num_divs);
+
+    m_seg_len.resize(m_num_rings - 1);
+    for (int ir = 0; ir < m_num_rings - 1; ir++) {
+        double dr = m_radii[ir + 1] - m_radii[ir];
+        double dy = m_offsets[ir + 1] - m_offsets[ir];
+        m_seg_len[ir] = std::sqrt(dr * dr + dy * dy);
+    }
+    m_rim_len[0] = std::abs(m_radii[0] - m_rim_radius);
+    m_rim_len[1] = std::abs(m_radii[m_num_rings - 1] - m_rim_radius);
+
+    m_chord.resize(m_num_rings);
+    for (int ir = 0; ir < m_num_rings; ir++)
+        m_chord[ir] = 2 * m_radii[ir] * sin_half;
+    m_rim_chord = 2 * m_rim_radius * sin_half;
+
+    m_width.resize(m_num_rings);
+    m_area.resize(m_num_rings);
+    for (int ir = 0; ir < m_num_rings; ir++) {
+        double len_p = (ir == 0) ? m_rim_len[0] : m_seg_len[ir - 1];
+        double len_n = (ir == m_num_rings - 1) ? m_rim_len[1] : m_seg_len[ir];
+        m_width[ir] = 0.5 * (len_p + len_n);
+        m_area[ir] = m_width[ir] * m_chord[ir];
+    }
+}
+
 void MBTireModel::CalculateNormal(int ir, int id, ChVector3d& normal, double& area) {
     // Get locations of previous and next nodes in the two directions
     const auto& posS = m_nodes[NodeIndex(ir, id - 1)]->GetPos();
@@ -419,6 +485,144 @@ void MBTireModel::NodePressure::CalculateJacobianFD(double Kfactor, double Rfact
         K.col(3 + i).segment(0, 3) = (force.eigen() - force_0.eigen()) / FD_step;
         w_pos[i] -= FD_step;
         wheel->SetPos(w_pos);
+    }
+
+    J_fd = Kfactor * K;
+}
+
+void MBTireModel::FollowerPressure::Initialize(bool stiff) {
+    if (stiff) {
+        std::vector<ChVariables*> vars;
+        vars.push_back(&node->Variables());
+        vars.push_back(&nodeN->Variables());
+        vars.push_back(&nodeS->Variables());
+        if (!rimE)
+            vars.push_back(&nodeE->Variables());
+        if (!rimW)
+            vars.push_back(&nodeW->Variables());
+        if (rimE || rimW)
+            vars.push_back(&wheel->Variables());
+        KRM.SetVariables(vars);
+    }
+}
+
+ChVector3d MBTireModel::FollowerPressure::PosE() const {
+    return rimE ? wheel->TransformPointLocalToParent(local_posE) : nodeE->GetPos();
+}
+
+ChVector3d MBTireModel::FollowerPressure::PosW() const {
+    return rimW ? wheel->TransformPointLocalToParent(local_posW) : nodeW->GetPos();
+}
+
+void MBTireModel::FollowerPressure::CalculateForce() {
+    force = p4 * Vcross(nodeN->GetPos() - nodeS->GetPos(), PosE() - PosW());
+}
+
+// The force F = p/4 * a x b, with a = xN - xS and b = xE - xW, has the partial derivatives
+//    dF/dxN = -p/4 [b],  dF/dxS = p/4 [b],  dF/dxE = p/4 [a],  dF/dxW = -p/4 [a]
+// where [v] denotes the skew-symmetric matrix of v. For a rim node with location r = x_wheel + A * r_loc, a perturbation
+// of the wheel states gives dr = dx_wheel + [x_wheel - r] * A * dtheta_loc (rotational states are in the wheel frame).
+void MBTireModel::FollowerPressure::CalculateJacobian(double Kfactor, double Rfactor) {
+    ChMatrixRef J = KRM.GetMatrix();
+    J.setZero();
+    if (Kfactor == 0)
+        return;
+
+    auto posE = PosE();
+    auto posW = PosW();
+    ChStarMatrix33<> Sa(Kfactor * p4 * (nodeN->GetPos() - nodeS->GetPos()));
+    ChStarMatrix33<> Sb(Kfactor * p4 * (posE - posW));
+
+    J.block(0, 3, 3, 3) = -Sb;  // block for F and node N
+    J.block(0, 6, 3, 3) = Sb;   // block for F and node S
+
+    int off = 9;
+    if (!rimE) {
+        J.block(0, off, 3, 3) = Sa;  // block for F and node E
+        off += 3;
+    }
+    if (!rimW) {
+        J.block(0, off, 3, 3) = -Sa;  // block for F and node W
+        off += 3;
+    }
+    if (rimE || rimW) {
+        const auto& w_pos = wheel->GetPos();
+        ChMatrix33<> A = wheel->GetRotMat();
+        if (rimE) {
+            J.block(0, off, 3, 3) += Sa;                                           // wheel translational states
+            J.block(0, off + 3, 3, 3) += Sa * ChStarMatrix33<>(w_pos - posE) * A;  // wheel rotational states
+        }
+        if (rimW) {
+            J.block(0, off, 3, 3) -= Sa;
+            J.block(0, off + 3, 3, 3) -= Sa * ChStarMatrix33<>(w_pos - posW) * A;
+        }
+    }
+
+    /*
+    CalculateJacobianFD(Kfactor, Rfactor);
+    std::cout << "FollowerPressure " << inode << std::endl;
+    std::cout << "err_2 = " << (J_fd - J).norm() / J.norm() << "\t";
+    std::cout << "err_inf = " << (J_fd - J).lpNorm<Eigen::Infinity>() / J.lpNorm<Eigen::Infinity>() << "\n";
+    */
+}
+
+void MBTireModel::FollowerPressure::CalculateJacobianFD(double Kfactor, double Rfactor) {
+    int n = 9 + (rimE ? 0 : 3) + (rimW ? 0 : 3) + (rimE || rimW ? 6 : 0);
+    ChMatrixDynamic<double> K(n, n);
+    K.setZero();
+
+    CalculateForce();
+    auto force_0 = force;
+
+    // Perturb the position of a grid node and load the corresponding columns
+    auto perturb_node = [&](fea::ChNodeFEAxyz* nd, int col) {
+        ChVector3d pos = nd->GetPos();
+        for (int i = 0; i < 3; i++) {
+            pos[i] += FD_step;
+            nd->SetPos(pos);
+            CalculateForce();
+            K.col(col + i).segment(0, 3) = (force.eigen() - force_0.eigen()) / FD_step;
+            pos[i] -= FD_step;
+            nd->SetPos(pos);
+        }
+    };
+
+    perturb_node(node, 0);
+    perturb_node(nodeN, 3);
+    perturb_node(nodeS, 6);
+    int off = 9;
+    if (!rimE) {
+        perturb_node(nodeE, off);
+        off += 3;
+    }
+    if (!rimW) {
+        perturb_node(nodeW, off);
+        off += 3;
+    }
+
+    // Perturb the wheel states (at velocity level, so that rotational perturbations are in the wheel frame)
+    if (rimE || rimW) {
+        ChVector3d posW = wheel->GetPos();
+        ChQuaterniond rotW = wheel->GetRot();
+        ChState wheel_state(7, nullptr);
+        wheel_state.segment(0, 3) = posW.eigen();
+        wheel_state.segment(3, 4) = rotW.eigen();
+        ChState wheel_state_perturbed(7, nullptr);
+        ChStateDelta state_delta(6, nullptr);
+        state_delta.setZero(6, nullptr);
+
+        for (int i = 0; i < 6; i++) {
+            state_delta(i) += FD_step;
+            wheel->LoadableStateIncrement(0, wheel_state_perturbed, wheel_state, 0, state_delta);
+            wheel->SetPos(ChVector3d(wheel_state_perturbed.segment(0, 3)));
+            wheel->SetRot(ChQuaterniond(wheel_state_perturbed.segment(3, 4)));
+            CalculateForce();
+            K.col(off + i).segment(0, 3) = (force.eigen() - force_0.eigen()) / FD_step;
+            state_delta(i) -= FD_step;
+        }
+        wheel->SetPos(posW);
+        wheel->SetRot(rotW);
+        CalculateForce();
     }
 
     J_fd = Kfactor * K;
@@ -1205,7 +1409,17 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
     m_num_nodes = m_num_rings * m_num_divs;
     m_num_faces = 2 * (m_num_rings - 1) * m_num_divs;
 
-    m_node_mass = m_tire->GetMass() / m_num_nodes;
+    // Calculate undeformed mesh geometry and nodal masses (for each ring)
+    CalculateGeometry();
+
+    m_ring_mass.resize(m_num_rings);
+    double ring_area_sum = 0;
+    for (int ir = 0; ir < m_num_rings; ir++)
+        ring_area_sum += m_area[ir];
+    for (int ir = 0; ir < m_num_rings; ir++) {
+        m_ring_mass[ir] = m_area_lumping ? m_tire->GetMass() * m_area[ir] / (m_num_divs * ring_area_sum)  //
+                                         : m_tire->GetMass() / m_num_nodes;
+    }
 
     // Create the visualization shape and get access to the underling trimesh
     m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -1233,8 +1447,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             double z = r * std::sin(phi);
             vertices[k] = m_hub->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(vertices[k]);
-            m_nodes[k]->SetMass(m_node_mass);
-            m_nodes[k]->m_TotalMass = m_node_mass;
+            m_nodes[k]->SetMass(m_ring_mass[ir]);
+            m_nodes[k]->m_TotalMass = m_ring_mass[ir];
             k++;
         }
     }
@@ -1250,8 +1464,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             double z = m_rim_radius * std::sin(phi);
             auto loc = m_hub->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
-            m_rim_nodes[k]->SetMass(m_node_mass);
-            m_rim_nodes[k]->m_TotalMass = m_node_mass;
+            m_rim_nodes[k]->SetMass(m_ring_mass[0]);
+            m_rim_nodes[k]->m_TotalMass = m_ring_mass[0];
             k++;
         }
     }
@@ -1263,26 +1477,59 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             double z = m_rim_radius * std::sin(phi);
             auto loc = m_hub->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
-            m_rim_nodes[k]->SetMass(m_node_mass);
-            m_rim_nodes[k]->m_TotalMass = m_node_mass;
+            m_rim_nodes[k]->SetMass(m_ring_mass[m_num_rings - 1]);
+            m_rim_nodes[k]->m_TotalMass = m_ring_mass[m_num_rings - 1];
             k++;
         }
     }
 
     // ------------ Pressure loads
 
-    double tire_area = CalculateArea();
-    double node_area = tire_area / (m_num_rings * m_num_divs);
-    double p_times_a = m_tire->GetPressure() * node_area;
+    double pressure = m_tire->GetPressure();
+    double node_area = CalculateArea() / (m_num_rings * m_num_divs);
+
+    // For a follower pressure load, check the orientation of the ring sequence. The nodes on the previous ring (E) and
+    // next ring (W) are swapped if needed, so that the load points outward.
+    bool swap_EW = false;
+    if (m_follower_pressure) {
+        int ir = m_num_rings / 2;
+        auto posE = (ir == 0) ? m_rim_nodes[RimNodeIndex(0, 0)]->GetPos() : m_nodes[NodeIndex(ir - 1, 0)]->GetPos();
+        auto posW = (ir == m_num_rings - 1) ? m_rim_nodes[RimNodeIndex(ir, 0)]->GetPos() : m_nodes[NodeIndex(ir + 1, 0)]->GetPos();
+        auto dir_NS = m_nodes[NodeIndex(ir, 1)]->GetPos() - m_nodes[NodeIndex(ir, -1)]->GetPos();
+        auto dir_out = m_nodes[NodeIndex(ir, 0)]->GetPos() - m_hub->GetPos();
+        swap_EW = Vdot(Vcross(dir_NS, posE - posW), dir_out) < 0;
+    }
 
     for (int id = 0; id < m_num_divs; id++) {
         for (int ir = 0; ir < m_num_rings; ir++) {
             int inode = NodeIndex(ir, id);
-            auto load = chrono_types::make_shared<NodePressure>();
+            std::shared_ptr<PressureLoad> load;
+
+            if (m_follower_pressure) {
+                auto fload = chrono_types::make_shared<FollowerPressure>();
+                fload->p4 = pressure / 4;
+                fload->nodeN = m_nodes[NodeIndex(ir, id + 1)].get();
+                fload->nodeS = m_nodes[NodeIndex(ir, id - 1)].get();
+                int irE = swap_EW ? ir + 1 : ir - 1;
+                int irW = swap_EW ? ir - 1 : ir + 1;
+                fload->rimE = (irE < 0 || irE >= m_num_rings);
+                fload->rimW = (irW < 0 || irW >= m_num_rings);
+                fload->nodeE = fload->rimE ? m_rim_nodes[RimNodeIndex(irE < 0 ? 0 : m_num_rings - 1, id)].get()  //
+                                           : m_nodes[NodeIndex(irE, id)].get();
+                fload->nodeW = fload->rimW ? m_rim_nodes[RimNodeIndex(irW < 0 ? 0 : m_num_rings - 1, id)].get()  //
+                                           : m_nodes[NodeIndex(irW, id)].get();
+                fload->local_posE = m_hub->TransformPointParentToLocal(fload->nodeE->GetPos());
+                fload->local_posW = m_hub->TransformPointParentToLocal(fload->nodeW->GetPos());
+                load = fload;
+            } else {
+                auto rload = chrono_types::make_shared<NodePressure>();
+                rload->p_times_a = pressure * (m_area_lumping ? m_area[ir] : node_area);
+                load = rload;
+            }
+
             load->inode = inode;
             load->node = m_nodes[inode].get();
             load->wheel = m_hub.get();
-            load->p_times_a = p_times_a;
 
             load->Initialize(m_stiff);
 
@@ -1296,8 +1543,20 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
 
     // ------------ Springs
 
+    // Scaling factors for spring coefficients. With distributed coefficients, a spring of length l covering a strip of
+    // width w gets the coefficient scaled by w/l.
+    bool distributed = (m_coef_type == ChMBTire::SpringCoefficientType::DISTRIBUTED);
+
+    // radial springs (rim to first and last ring)
+    double fR0 = distributed ? 0.5 * (m_rim_chord + m_chord[0]) / m_rim_len[0] : 1.0;
+    double fR1 = distributed ? 0.5 * (m_rim_chord + m_chord[m_num_rings - 1]) / m_rim_len[1] : 1.0;
+
+    // transversal bending springs (bending across rings, centered at a node on ring ir)
+    auto fBT = [&](int ir) { return distributed ? m_chord[ir] / m_width[ir] : 1.0; };
+
     // Create circumferential linear springs (node-node)
     for (int ir = 0; ir < m_num_rings; ir++) {
+        double fC = distributed ? m_width[ir] / m_chord[ir] : 1.0;
         for (int id = 0; id < m_num_divs; id++) {
             int inode1 = NodeIndex(ir, id);
             int inode2 = NodeIndex(ir, id + 1);
@@ -1308,8 +1567,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node1 = m_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
             spring->wheel = m_hub.get();
-            spring->k = m_kC;
-            spring->c = m_cC;
+            spring->k = m_kC * fC;
+            spring->c = m_cC * fC;
 
             spring->Initialize(m_stiff);
 
@@ -1334,8 +1593,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node1 = m_rim_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
             spring->wheel = m_hub.get();
-            spring->k = m_kR;
-            spring->c = m_cR;
+            spring->k = m_kR * fR0;
+            spring->c = m_cR * fR0;
 
             spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
@@ -1350,6 +1609,7 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
 
         // node-node springs
         for (int ir = 0; ir < m_num_rings - 1; ir++) {
+            double fT = distributed ? 0.5 * (m_chord[ir] + m_chord[ir + 1]) / m_seg_len[ir] : 1.0;
             int inode1 = NodeIndex(ir, id);
             int inode2 = NodeIndex(ir + 1, id);
 
@@ -1359,8 +1619,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node1 = m_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
             spring->wheel = m_hub.get();
-            spring->k = m_kT;
-            spring->c = m_cT;
+            spring->k = m_kT * fT;
+            spring->c = m_cT * fT;
 
             spring->Initialize(m_stiff);
 
@@ -1382,8 +1642,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node1 = m_rim_nodes[inode1].get();
             spring->node2 = m_nodes[inode2].get();
             spring->wheel = m_hub.get();
-            spring->k = m_kR;
-            spring->c = m_cR;
+            spring->k = m_kR * fR1;
+            spring->c = m_cR * fR1;
 
             spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode1]->GetPos());
 
@@ -1399,6 +1659,7 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
 
     // Create circumferential rotational springs (node-node)
     for (int ir = 0; ir < m_num_rings; ir++) {
+        double fBC = distributed ? m_width[ir] / m_chord[ir] : 1.0;
         for (int id = 0; id < m_num_divs; id++) {
             int inode_p = NodeIndex(ir, id - 1);
             int inode_c = NodeIndex(ir, id);
@@ -1413,8 +1674,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node_n = m_nodes[inode_n].get();
             spring->wheel = m_hub.get();
             spring->t0 = ChVector3d(0, 1, 0);
-            spring->k = m_kB;
-            spring->c = m_cB;
+            spring->k = m_kBC * fBC;
+            spring->c = m_cBC * fBC;
 
             spring->Initialize(m_stiff);
 
@@ -1446,8 +1707,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node_n = m_nodes[inode_n].get();
             spring->wheel = m_hub.get();
             spring->t0 = t0;
-            spring->k = m_kB;
-            spring->c = m_cB;
+            spring->k = m_kBT * fBT(0);
+            spring->c = m_cBT * fBT(0);
 
             spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
@@ -1475,8 +1736,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node_n = m_nodes[inode_n].get();
             spring->wheel = m_hub.get();
             spring->t0 = t0;
-            spring->k = m_kB;
-            spring->c = m_cB;
+            spring->k = m_kBT * fBT(ir);
+            spring->c = m_cBT * fBT(ir);
 
             spring->Initialize(m_stiff);
 
@@ -1502,8 +1763,8 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
             spring->node_n = m_nodes[inode_n].get();
             spring->wheel = m_hub.get();
             spring->t0 = -t0;
-            spring->k = m_kB;
-            spring->c = m_cB;
+            spring->k = m_kBT * fBT(m_num_rings - 1);
+            spring->c = m_cBT * fBT(m_num_rings - 1);
 
             spring->local_pos = m_hub->TransformPointParentToLocal(m_rim_nodes[inode_p]->GetPos());
 
@@ -1670,8 +1931,9 @@ void MBTireModel::CalculateForces() {
 
     // ------------ Gravitational nodal forces
 
-    ChVector3d gforce = m_node_mass * GetSystem()->GetGravitationalAcceleration();
+    const auto& g = GetSystem()->GetGravitationalAcceleration();
     for (int ir = 0; ir < m_num_rings; ir++) {
+        ChVector3d gforce = m_ring_mass[ir] * g;
         for (int id = 0; id < m_num_divs; id++) {
             int k = NodeIndex(ir, id);
             nodal_forces[k] = gforce;

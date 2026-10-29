@@ -13,10 +13,12 @@
   },
 
   "Spring Properties": {
-    "Radial": [ 2.5e5, 2.0e3 ],
-    "Circumferential": [ 2.5e5, 1.0e3 ],
-    "Transversal": [ 2.5e5, 1.0e3 ],
-    "Bending": [ 2.5e3, 0 ]
+    "Type": "Distributed",
+    "Radial": [ 3.8e5, 4.7e3 ],
+    "Circumferential": [ 1.2e5, 7.3e2 ],
+    "Transversal": [ 2.2e5, 1.4e3 ],
+    "Circumferential Bending": [ 1.2e3, 0 ],
+    "Transversal Bending": [ 2.2e3, 0 ]
   },
 
   "Default Pressure": 200e3,
@@ -26,7 +28,7 @@
     "Coefficient of Restitution": 0.1,
 
     "Properties": {
-      "Young Modulus": 2.0e6,
+      "Young Modulus": 2.0e8,
       "Poisson Ratio": 0.3
     },
 
@@ -35,7 +37,14 @@
       "Normal Damping": 1.3e2,
       "Tangential Stiffness": 1.0e6,
       "Tangential Damping": 0
-    }
+    },
+
+    "Reference Divisions": 40
+  },
+
+  "Model Settings": {
+    "Follower Pressure": true,
+    "Area Weighted Lumping": true
   },
 
   "Numerical Settings": {

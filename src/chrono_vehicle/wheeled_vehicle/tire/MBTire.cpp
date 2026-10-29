@@ -86,13 +86,33 @@ void MBTire::Create(const rapidjson::Document& d) {
     auto kcT = d["Spring Properties"]["Transversal"].GetArray();
     double kT = kcT[0].GetDouble();
     double cT = kcT[1].GetDouble();
-    auto kcB = d["Spring Properties"]["Bending"].GetArray();
-    double kB = kcB[0].GetDouble();
-    double cB = kcB[1].GetDouble();
 
     SetRadialSpringCoefficients(kR, cR);
     SetMeshSpringCoefficients(kC, cC, kT, cT);
-    SetBendingSpringCoefficients(kB, cB);
+
+    // Bending springs: either common coefficients ("Bending") or separate coefficients for bending along the rings
+    // ("Circumferential Bending") and across the rings ("Transversal Bending")
+    if (d["Spring Properties"].HasMember("Bending")) {
+        auto kcB = d["Spring Properties"]["Bending"].GetArray();
+        SetBendingSpringCoefficients(kcB[0].GetDouble(), kcB[1].GetDouble());
+    } else {
+        assert(d["Spring Properties"].HasMember("Circumferential Bending"));
+        assert(d["Spring Properties"].HasMember("Transversal Bending"));
+        auto kcBC = d["Spring Properties"]["Circumferential Bending"].GetArray();
+        auto kcBT = d["Spring Properties"]["Transversal Bending"].GetArray();
+        SetBendingSpringCoefficients(kcBC[0].GetDouble(), kcBC[1].GetDouble(), kcBT[0].GetDouble(), kcBT[1].GetDouble());
+    }
+
+    // Interpretation of spring coefficients (default: distributed)
+    if (d["Spring Properties"].HasMember("Type")) {
+        std::string type = d["Spring Properties"]["Type"].GetString();
+        if (type == "Distributed")
+            SetSpringCoefficientType(SpringCoefficientType::DISTRIBUTED);
+        else if (type == "Per Spring")
+            SetSpringCoefficientType(SpringCoefficientType::PER_SPRING);
+        else
+            throw std::runtime_error("Unknown MB tire spring coefficient type: " + type);
+    }
 
     // Read default internal pressure
     assert(d.HasMember("Default Pressure"));
@@ -104,6 +124,17 @@ void MBTire::Create(const rapidjson::Document& d) {
 
     ChContactMaterialData mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
     SetTireContactMaterial(mat_info);
+
+    if (d["Contact Material"].HasMember("Reference Divisions"))
+        SetContactReferenceDivisions(d["Contact Material"]["Reference Divisions"].GetInt());
+
+    // Read optional model settings
+    if (d.HasMember("Model Settings")) {
+        if (d["Model Settings"].HasMember("Follower Pressure"))
+            EnableFollowerPressure(d["Model Settings"]["Follower Pressure"].GetBool());
+        if (d["Model Settings"].HasMember("Area Weighted Lumping"))
+            EnableAreaWeightedLumping(d["Model Settings"]["Area Weighted Lumping"].GetBool());
+    }
 
     // Read optional numerical settings
     if (d.HasMember("Numerical Settings")) {
