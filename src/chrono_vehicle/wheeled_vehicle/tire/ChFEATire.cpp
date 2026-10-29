@@ -143,11 +143,12 @@ std::shared_ptr<ChContactSurfaceMesh> ChFEATire::GetSurfaceMesh() const {
         return contact_surf;
 
     // Otherwise, create a surface mesh from the boundary faces of the FEA mesh (not added to the mesh, so that it does
-    // not participate in collision)
+    // not participate in collision). Use the same vertex ordering as the triangle mesh contact surfaces of the shell
+    // tires, so that the face normals point outward.
     if (!m_surface_mesh) {
         auto mat = m_contact_mat ? m_contact_mat : chrono_types::make_shared<ChContactMaterialSMC>();
         m_surface_mesh = chrono_types::make_shared<ChContactSurfaceMesh>(mat);
-        m_surface_mesh->AddFacesFromBoundary(*m_mesh, 0, true, false, false);
+        m_surface_mesh->AddFacesFromBoundary(*m_mesh, 0, false, false, false);
     }
 
     return m_surface_mesh;
