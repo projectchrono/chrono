@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChSocket.h"
+#include <memory>
 
 using namespace chrono;
 using namespace chrono::utils;
