@@ -75,6 +75,14 @@ Instructions for setting up an external project that uses Chrono.
 
 ---
 
+<h3>Developer Manuals</h3>
+
+- [Chrono Developer Manuals](@ref manual_developer)
+
+  Internal design of Chrono for the Chrono team and for users who extend Chrono with new classes
+
+---
+
 <h3><a href="classes.html">API Reference</a></h3>
 
 Doxygen documentation, accessible from buttons at the top of the page. For a quick overview of all the classes: [Class Index](classes.html).
