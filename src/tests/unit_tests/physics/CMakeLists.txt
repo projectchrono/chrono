@@ -11,6 +11,7 @@ SET(TESTS
     utest_CH_body_auxref
     utest_CH_added_mass_update
     utest_CH_applied_loads
+    utest_CH_item_lifecycle
 )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
