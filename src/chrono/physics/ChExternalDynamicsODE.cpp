@@ -52,6 +52,9 @@ void ChExternalDynamicsODE::SetupInitialState() {
 }
 
 ChVectorDynamic<> ChExternalDynamicsODE::GetInitialStates() {
+    InitializePhase(InitPhase::STRUCTURE);
+    InitializePhase(InitPhase::STATE);
+
     ChVectorDynamic<> y0(m_nstates);
     SetInitialConditions(y0);
     return y0;

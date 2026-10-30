@@ -70,9 +70,11 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     virtual unsigned int GetNumAlgebraicConstraints() const { return 0; }
 
     /// Get the initial state values (state at initial time).
+    /// This function initializes the item first, if it was not yet initialized.
     ChVectorDynamic<> GetInitialStates();
 
     /// Get the initial state derivative values (state derivatives at initial time).
+    /// This function initializes the item first, if it was not yet initialized.
     ChVectorDynamic<> GetInitialStateDerivatives();
 
     /// Get current states.

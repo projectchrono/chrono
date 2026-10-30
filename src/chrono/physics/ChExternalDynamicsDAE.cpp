@@ -82,6 +82,9 @@ void ChExternalDynamicsDAE::SetupInitialState() {
 }
 
 ChVectorDynamic<> ChExternalDynamicsDAE::GetInitialStates() {
+    InitializePhase(InitPhase::STRUCTURE);
+    InitializePhase(InitPhase::STATE);
+
     ChVectorDynamic<> y0(m_ny);
     ChVectorDynamic<> yd0(m_nyd);
     SetInitialConditions(y0, yd0);
@@ -89,6 +92,9 @@ ChVectorDynamic<> ChExternalDynamicsDAE::GetInitialStates() {
 }
 
 ChVectorDynamic<> ChExternalDynamicsDAE::GetInitialStateDerivatives() {
+    InitializePhase(InitPhase::STRUCTURE);
+    InitializePhase(InitPhase::STATE);
+
     ChVectorDynamic<> y0(m_ny);
     ChVectorDynamic<> yd0(m_nyd);
     SetInitialConditions(y0, yd0);

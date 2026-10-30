@@ -49,6 +49,7 @@ class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
     virtual unsigned int GetNumStates() const = 0;
 
     /// Get the initial values (state at initial time).
+    /// This function initializes the item first, if it was not yet initialized.
     ChVectorDynamic<> GetInitialStates();
 
     /// Get current states.
