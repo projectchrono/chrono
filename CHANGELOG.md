@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Initialization of physics items](#changed-initialization-of-physics-items)
   - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
   - [\[Added\] Chrono::FEA multiphysics framework](#added-chronofea-multiphysics-framework)
@@ -147,6 +148,38 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Changed] Initialization of physics items
+
+The one-time initialization of physics items was redesigned. The design is described in a new
+developer manual, "Physics Item Lifecycle", in the new "Developer Manuals" section of the
+documentation.
+
+- Each physics item is initialized once, on its own. Items added to a system (and nodes or elements
+  added to an FEA mesh) after the simulation started are initialized alone; the items already in the
+  system are left untouched. Previously, adding a mesh, a node, an element, or a batch of items
+  re-ran the initialization of *every* item in the system, so FEA meshes that were already deformed
+  recorded their deformed shape as their new stress-free reference configuration.
+- `ChMesh::ComputeMassProperties` no longer re-records the reference configuration of the mesh
+  elements. Previously, every call (including calls made during a simulation, for example to
+  report the inertia properties of a Chrono::Vehicle FEA tire or ANCF track shoe) made the elements
+  treat their current shape as stress free.
+- Initialization runs in two phases, each across all items before the next one starts:
+  `SetupInitial` (data allocation and reference configuration) and the new `SetupInitialState`
+  (initial conditions). A physics item can override `SetupInitialState` to set initial conditions
+  that require all other items to have recorded their reference configuration (for example, to
+  pretension an FEA mesh).
+- `ChPhysicsItem::ResetInitialization` marks an item (and, for an assembly or mesh, all its
+  contents) as not initialized, so that it records a new reference configuration from its current
+  state at the next step. `ChPhysicsItem::IsInitialized` reports whether an item was initialized.
+- `ChExternalDynamicsODE`, `ChExternalDynamicsDAE`, the hydraulic actuators, and `ChExternalFmu`
+  are initialized automatically by the containing system. Their `Initialize()` function is
+  deprecated and no longer needs to be called; existing calls keep working.
+- The number of active coordinates of FEA nodes is recomputed every time the mesh is set up, so it
+  stays correct for nodes fixed or released at any time.
+- Loading a SYSTEM checkpoint into a system that was not yet initialized now initializes the system
+  first, so that reference configurations are recorded from the system as built, not from the
+  loaded state.
 
 ## [Added] Force accumulators for FEA nodes
 

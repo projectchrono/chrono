@@ -52,12 +52,23 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     virtual unsigned int GetIndex() { return g_index; }
 
     /// Initial setup.
+    /// Called once by the containing mesh, before the node is first used in a simulation.
     virtual void SetupInitial(ChSystem* system) {}
+
+    /// Update the number of active coordinates from the current fixed state of the node.
+    /// Called by the containing mesh every time it counts coordinates. Only needed for nodes whose number of active
+    /// coordinates can change.
+    virtual void UpdateActiveCoords() {}
 
     double m_TotalMass;  ///< Nodal mass obtained from element mass matrix
 
   protected:
     unsigned int g_index;  ///< global node index
+
+  private:
+    bool m_initialized = false;  ///< true once SetupInitial was called by the containing mesh
+
+    friend class ChMesh;
 };
 
 /// @} fea_nodes

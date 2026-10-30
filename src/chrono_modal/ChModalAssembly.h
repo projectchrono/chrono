@@ -419,6 +419,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     virtual void SyncCollisionModels() override;
 
+    /// Mark this assembly and all its items, including the internal ones, as not initialized.
+    virtual void ResetInitialization() override;
+
     /// Count the number of bodies, links, and meshes.
     /// Compute the offsets of object states in the global state.
     /// Assumes that this->offset_x, this->offset_w, and this->offset_L are already set
@@ -588,7 +591,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Internal use only. Compute v_F = P_W^T * v_W.
     ChVectorDynamic<> TransformAbsToCorotational(const ChVectorDynamic<>& v_W);
 
-    virtual void SetupInitial() override;
+    /// Run the specified initialization phase on all items, including the internal ones.
+    virtual void InitializeChildren(InitPhase phase) override;
+
+    /// Run both initialization phases on all items not yet initialized, including the internal ones.
+    void InitializeItems();
 
     /// Resize the modal matrices and hook up the variables to the M, K, R block for the solver. To be called every
     /// time the number of modes of the modal reduction (m_num_coords_modal) changes.
@@ -802,7 +809,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
     if (m_is_model_reduced)
         return;
 
-    SetupInitial();
+    InitializeItems();
     Setup();
     Update(ChTime, UpdateFlags::UPDATE_ALL);
 

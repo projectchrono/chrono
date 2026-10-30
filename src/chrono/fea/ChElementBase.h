@@ -157,6 +157,8 @@ class ChApi ChElementBase {
     /// each element, if any, the mass, etc.
     virtual void SetupInitial(ChSystem* system) {}
 
+    bool m_initialized = false;  ///< true once SetupInitial was called by the containing mesh
+
     friend class ChMesh;
 };
 

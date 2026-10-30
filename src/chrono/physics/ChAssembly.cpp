@@ -140,7 +140,7 @@ void ChAssembly::AddBody(std::shared_ptr<ChBody> body) {
     body->SetSystem(system);
     bodylist.push_back(body);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChBody::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -163,7 +163,7 @@ void ChAssembly::AddShaft(std::shared_ptr<ChShaft> shaft) {
     shaft->SetSystem(system);
     shaftlist.push_back(shaft);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChShaft::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -185,7 +185,7 @@ void ChAssembly::AddLink(std::shared_ptr<ChLinkBase> link) {
     link->SetSystem(system);
     linklist.push_back(link);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChLink::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -207,7 +207,7 @@ void ChAssembly::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     mesh->SetSystem(system);
     meshlist.push_back(mesh);
 
-    system->is_initialized = false;
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -238,7 +238,7 @@ void ChAssembly::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     item->SetSystem(system);
     otherphysicslist.push_back(item);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChPhysicsItem::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -283,7 +283,7 @@ void ChAssembly::Add(std::shared_ptr<ChPhysicsItem> item) {
 void ChAssembly::AddBatch(std::shared_ptr<ChPhysicsItem> item) {
     batch_to_insert.push_back(item);
 
-    system->is_initialized = false;  // Needed, as the list may include a ChMesh
+    // Items are initialized after they are moved to the assembly lists (see FlushBatch)
     system->is_updated = false;
 }
 
@@ -566,23 +566,45 @@ void ChAssembly::SyncCollisionModels() {
 // -----------------------------------------------------------------------------
 // UPDATING ROUTINES
 
-void ChAssembly::SetupInitial() {
+void ChAssembly::InitializeChildren(InitPhase phase) {
     for (auto& body : bodylist) {
-        body->SetupInitial();
+        body->InitializePhase(phase);
     }
     for (auto& shaft : shaftlist) {
-        shaft->SetupInitial();
+        shaft->InitializePhase(phase);
     }
     for (auto& link : linklist) {
-        link->SetupInitial();
+        link->InitializePhase(phase);
     }
 #ifdef CHRONO_FEA
     for (auto& mesh : meshlist) {
-        mesh->SetupInitial();
+        mesh->InitializePhase(phase);
     }
 #endif
     for (auto& otherphysics : otherphysicslist) {
-        otherphysics->SetupInitial();
+        otherphysics->InitializePhase(phase);
+    }
+}
+
+void ChAssembly::ResetInitialization() {
+    ChPhysicsItem::ResetInitialization();
+
+    for (auto& body : bodylist) {
+        body->ResetInitialization();
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->ResetInitialization();
+    }
+    for (auto& link : linklist) {
+        link->ResetInitialization();
+    }
+#ifdef CHRONO_FEA
+    for (auto& mesh : meshlist) {
+        mesh->ResetInitialization();
+    }
+#endif
+    for (auto& otherphysics : otherphysicslist) {
+        otherphysics->ResetInitialization();
     }
 }
 

@@ -45,11 +45,11 @@ void ChHydraulicActuatorBase::SetInitialLoad(double initial_load) {
     F0 = initial_load;
 }
 
-void ChHydraulicActuatorBase::Initialize() {
+void ChHydraulicActuatorBase::SetupInitialState() {
     OnInitialize(cyl.p0, cyl.L0, dvalve.U0);
 
-    // Initialize the external dynamics
-    ChExternalDynamicsODE::Initialize();
+    // Load the initial conditions of the external dynamics
+    ChExternalDynamicsODE::SetupInitialState();
 }
 
 void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // first connected body
@@ -59,9 +59,6 @@ void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // firs
                                          ChVector3d loc2                 // location of connection point on body 2
 ) {
     is_attached = true;
-
-    // Call base initialization
-    Initialize();
 
     // Cache connected bodies and body local connection points
     m_body1 = body1.get();

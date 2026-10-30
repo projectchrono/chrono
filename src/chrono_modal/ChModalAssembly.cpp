@@ -1360,7 +1360,7 @@ void ChModalAssembly::AddInternalBody(std::shared_ptr<ChBody> body) {
     body->SetSystem(system);
     internal_bodylist.push_back(body);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChBody::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1380,7 +1380,7 @@ void ChModalAssembly::AddInternalLink(std::shared_ptr<ChLinkBase> link) {
     link->SetSystem(system);
     internal_linklist.push_back(link);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChLink::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1401,7 +1401,7 @@ void ChModalAssembly::AddInternalMesh(std::shared_ptr<fea::ChMesh> mesh) {
     mesh->SetSystem(system);
     internal_meshlist.push_back(mesh);
 
-    system->is_initialized = false;
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1428,7 +1428,7 @@ void ChModalAssembly::AddInternalOtherPhysicsItem(std::shared_ptr<ChPhysicsItem>
     item->SetSystem(system);
     internal_otherphysicslist.push_back(item);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChPhysicsItem::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1583,7 +1583,7 @@ const std::vector<std::shared_ptr<ChPhysicsItem>>& ChModalAssembly::GetOtherPhys
 // -----------------------------------------------------------------------------
 
 void ChModalAssembly::GetSubassemblyMatrices(ChSparseMatrix* K, ChSparseMatrix* R, ChSparseMatrix* M, ChSparseMatrix* Cq) {
-    SetupInitial();
+    InitializeItems();
     Setup();
     Update(ChTime, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 
@@ -1721,23 +1721,47 @@ void ChModalAssembly::SyncCollisionModels() {
 // -----------------------------------------------------------------------------
 // UPDATING ROUTINES
 
-void ChModalAssembly::SetupInitial() {
-    ChAssembly::SetupInitial();  // parent
+void ChModalAssembly::InitializeChildren(InitPhase phase) {
+    ChAssembly::InitializeChildren(phase);  // parent
 
-    for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-        internal_bodylist[ip]->SetupInitial();
+    for (auto& body : internal_bodylist) {
+        body->InitializePhase(phase);
     }
-    for (unsigned int ip = 0; ip < internal_linklist.size(); ++ip) {
-        internal_linklist[ip]->SetupInitial();
+    for (auto& link : internal_linklist) {
+        link->InitializePhase(phase);
     }
 #ifdef CHRONO_FEA
-    for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
-        internal_meshlist[ip]->SetupInitial();
+    for (auto& mesh : internal_meshlist) {
+        mesh->InitializePhase(phase);
     }
 #endif
-    for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
-        internal_otherphysicslist[ip]->SetupInitial();
+    for (auto& item : internal_otherphysicslist) {
+        item->InitializePhase(phase);
     }
+}
+
+void ChModalAssembly::ResetInitialization() {
+    ChAssembly::ResetInitialization();  // parent
+
+    for (auto& body : internal_bodylist) {
+        body->ResetInitialization();
+    }
+    for (auto& link : internal_linklist) {
+        link->ResetInitialization();
+    }
+#ifdef CHRONO_FEA
+    for (auto& mesh : internal_meshlist) {
+        mesh->ResetInitialization();
+    }
+#endif
+    for (auto& item : internal_otherphysicslist) {
+        item->ResetInitialization();
+    }
+}
+
+void ChModalAssembly::InitializeItems() {
+    InitializePhase(InitPhase::STRUCTURE);
+    InitializePhase(InitPhase::STATE);
 }
 
 // Count all bodies, links, meshes, and other physics items.

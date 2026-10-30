@@ -133,7 +133,9 @@ void ChCheckpointASCII::LoadState(ChSystem* sys) {
     CheckIfOpen();
     CheckIfSystemType();
 
-    // Force a calculation of state counters
+    // Force a calculation of state counters.
+    // This also initializes any items not yet initialized, so that they record their reference configuration before
+    // the saved state is loaded.
     sys->Setup();
 
     auto np = sys->GetNumCoordsPosLevel();

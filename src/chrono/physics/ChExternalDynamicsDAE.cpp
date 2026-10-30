@@ -20,12 +20,17 @@ namespace chrono {
 // Perturbation for finite-difference Jacobian approximation
 const double ChExternalDynamicsDAE::m_FD_delta = 1e-8;
 
-ChExternalDynamicsDAE::ChExternalDynamicsDAE() {}
+ChExternalDynamicsDAE::ChExternalDynamicsDAE() : m_ny(0), m_nyd(0), m_nc(0), m_variables(nullptr) {}
 ChExternalDynamicsDAE::~ChExternalDynamicsDAE() {
     delete m_variables;
 }
 
 void ChExternalDynamicsDAE::Initialize() {
+    InitializePhase(InitPhase::STRUCTURE);
+    InitializePhase(InitPhase::STATE);
+}
+
+void ChExternalDynamicsDAE::SetupInitial() {
     m_ny = GetNumStates();
     m_nyd = GetNumStateDerivatives();
     m_y.resize(m_ny);
@@ -33,19 +38,13 @@ void ChExternalDynamicsDAE::Initialize() {
     m_ydd.resize(m_nyd);
     m_F.resize(m_nyd);
 
-    SetInitialConditions(m_y, m_yd);
-    m_ydd.setZero();
-
+    delete m_variables;
     m_variables = new ChVariablesGeneric(m_nyd);
     if (InExplicitForm()) {
         m_variables->GetMass().setIdentity(m_nyd, m_nyd);
         m_variables->GetInvMass().setIdentity(m_nyd, m_nyd);
     } else {
         m_M.resize(m_nyd, m_nyd);
-        CalculateMassMatrix(m_M);
-
-        m_variables->GetMass() = m_M;
-        m_variables->GetInvMass() = m_M.inverse();
     }
 
     if (IsStiff()) {
@@ -68,6 +67,18 @@ void ChExternalDynamicsDAE::Initialize() {
     m_constraints.resize(m_nc);
     for (auto& constraint : m_constraints)
         constraint.SetVariables({m_variables});
+}
+
+void ChExternalDynamicsDAE::SetupInitialState() {
+    SetInitialConditions(m_y, m_yd);
+    m_ydd.setZero();
+
+    // The mass matrix is evaluated once, after the initial conditions are set
+    if (!InExplicitForm()) {
+        CalculateMassMatrix(m_M);
+        m_variables->GetMass() = m_M;
+        m_variables->GetInvMass() = m_M.inverse();
+    }
 }
 
 ChVectorDynamic<> ChExternalDynamicsDAE::GetInitialStates() {

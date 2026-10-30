@@ -50,24 +50,33 @@ ChMesh::ChMesh(const ChMesh& other) : ChIndexedNodes(other) {
     ncalls_KRMload = 0;
 }
 
-void ChMesh::SetupInitial() {
-    n_dofs = 0;
-    n_dofs_w = 0;
+void ChMesh::InitializeChildren(InitPhase phase) {
+    if (phase != InitPhase::STRUCTURE)
+        return;
 
-    for (unsigned int i = 0; i < vnodes.size(); i++) {
-        if (!vnodes[i]->IsFixed()) {
-            vnodes[i]->SetupInitial(GetSystem());
-
-            // count the degrees of freedom
-            n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
-            n_dofs_w += vnodes[i]->GetNumCoordsVelLevelActive();
+    for (auto& node : vnodes) {
+        if (!node->m_initialized) {
+            node->SetupInitial(GetSystem());
+            node->m_initialized = true;
         }
     }
 
-    for (unsigned int i = 0; i < velements.size(); i++) {
-        // precompute matrices, such as the [Kl] local stiffness of each element, if needed, etc.
-        velements[i]->SetupInitial(GetSystem());
+    for (auto& element : velements) {
+        if (!element->m_initialized) {
+            // precompute matrices, such as the [Kl] local stiffness of each element, if needed, etc.
+            element->SetupInitial(GetSystem());
+            element->m_initialized = true;
+        }
     }
+}
+
+void ChMesh::ResetInitialization() {
+    ChIndexedNodes::ResetInitialization();
+
+    for (auto& node : vnodes)
+        node->m_initialized = false;
+    for (auto& element : velements)
+        element->m_initialized = false;
 }
 
 void ChMesh::Relax() {
@@ -111,9 +120,9 @@ void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> node) {
     node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
     vnodes.push_back(node);
 
-    // If the mesh is already added to a system, mark the system uninitialized and out-of-date
+    // If the mesh is already added to a system, mark the system out-of-date and request initialization
     if (system) {
-        system->is_initialized = false;
+        SetInitializationPending();
         system->is_updated = false;
     }
 }
@@ -121,9 +130,9 @@ void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> node) {
 void ChMesh::AddElement(std::shared_ptr<ChElementBase> elem) {
     velements.push_back(elem);
 
-    // If the mesh is already added to a system, mark the system uninitialized and out-of-date
+    // If the mesh is already added to a system, mark the system out-of-date and request initialization
     if (system) {
-        system->is_initialized = false;
+        SetInitializationPending();
         system->is_updated = false;
     }
 }
@@ -174,6 +183,7 @@ void ChMesh::Setup() {
         vnodes[i]->NodeSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
 
         // Count the actual degrees of freedom (consider only nodes that are not fixed)
+        vnodes[i]->UpdateActiveCoords();
         if (!vnodes[i]->IsFixed()) {
             n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
             n_dofs_w += vnodes[i]->GetNumCoordsVelLevelActive();
@@ -376,7 +386,8 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
                                    ChVector3d& com,        // ChMesh center of gravity
                                    ChMatrix33<>& inertia)  // ChMesh inertia tensor
 {
-    SetupInitial();
+    // Elements need their precomputed data (phase 1 initialization) to provide mass properties
+    InitializePhase(InitPhase::STRUCTURE);
 
     mass = 0;
     com = ChVector3d(0);

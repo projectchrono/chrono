@@ -36,7 +36,15 @@ class ChModalAssembly;
 /// Such items (e.g., rigid bodies, joints, FEM meshes, etc.) can contain ChVariables or ChConstraints objects.
 class ChApi ChPhysicsItem : public ChObj {
   public:
-    ChPhysicsItem() : system(NULL), offset_x(0), offset_w(0), offset_L(0) {}
+    /// Initialization phases of a physics item.
+    /// See the developer manual on the physics item lifecycle.
+    enum class InitPhase {
+        NONE = 0,       ///< not initialized
+        STRUCTURE = 1,  ///< phase 1 (SetupInitial) done: data allocated, reference configuration recorded
+        STATE = 2       ///< phase 2 (SetupInitialState) done: initial conditions set
+    };
+
+    ChPhysicsItem() : system(NULL), offset_x(0), offset_w(0), offset_L(0), m_init_stage(InitPhase::NONE) {}
     ChPhysicsItem(const ChPhysicsItem& other);
     virtual ~ChPhysicsItem();
 
@@ -82,6 +90,21 @@ class ChApi ChPhysicsItem : public ChObj {
     /// By default this function returns the center of the AABB.
     /// Derived classes may override this, but must always return a point inside the AABB.
     virtual ChVector3d GetCenter() const;
+
+    // INITIALIZATION
+
+    /// Return true if both initialization phases ran for this item.
+    bool IsInitialized() const { return m_init_stage == InitPhase::STATE; }
+
+    /// Run the specified initialization phase on this item (if not already done) and then on its children.
+    /// Each phase runs at most once per item; requesting phase 2 first runs phase 1 if needed. This function is
+    /// normally called by ChSystem::Initialize, which runs phase 1 on all items before phase 2.
+    void InitializePhase(InitPhase phase);
+
+    /// Mark this item (and its children, if any) as not initialized.
+    /// The next ChSystem::Initialize reruns both initialization phases, so the item records a new reference
+    /// configuration from its current state. Derived containers must call the base class implementation.
+    virtual void ResetInitialization();
 
     // UPDATE OPERATIONS
 
@@ -385,8 +408,25 @@ class ChApi ChPhysicsItem : public ChObj {
     unsigned int offset_w;  ///< offset in vector of state (speed part)
     unsigned int offset_L;  ///< offset in vector of Lagrange multipliers
 
+    /// Run the specified initialization phase on the children of this item.
+    /// Containers override this function to call InitializePhase for their children (or the equivalent for children
+    /// that are not physics items).
+    virtual void InitializeChildren(InitPhase phase) {}
+
+    /// Notify the parent system that some items need initialization.
+    void SetInitializationPending();
+
   private:
+    /// Initialization phase 1: allocate data, precompute constants, and record the reference configuration.
+    /// Called once per item, before the first step. See the developer manual on the physics item lifecycle.
     virtual void SetupInitial() {}
+
+    /// Initialization phase 2: set initial conditions.
+    /// Called once per item, after all items completed phase 1. See the developer manual on the physics item
+    /// lifecycle.
+    virtual void SetupInitialState() {}
+
+    InitPhase m_init_stage;  ///< completed initialization phase
 
     friend class ChSystem;
     friend class ChAssembly;

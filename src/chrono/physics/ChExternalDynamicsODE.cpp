@@ -19,18 +19,22 @@ namespace chrono {
 // Perturbation for finite-difference Jacobian approximation
 const double ChExternalDynamicsODE::m_FD_delta = 1e-8;
 
-ChExternalDynamicsODE::ChExternalDynamicsODE() {}
+ChExternalDynamicsODE::ChExternalDynamicsODE() : m_nstates(0), m_variables(nullptr) {}
 ChExternalDynamicsODE::~ChExternalDynamicsODE() {
     delete m_variables;
 }
 
 void ChExternalDynamicsODE::Initialize() {
+    InitializePhase(InitPhase::STRUCTURE);
+    InitializePhase(InitPhase::STATE);
+}
+
+void ChExternalDynamicsODE::SetupInitial() {
     m_nstates = GetNumStates();
     m_states.resize(m_nstates);
     m_rhs.resize(m_nstates);
 
-    SetInitialConditions(m_states);
-
+    delete m_variables;
     m_variables = new ChVariablesGenericDiagonalMass(m_nstates);
     m_variables->GetMassDiagonal().Constant(m_nstates, 1);
 
@@ -41,6 +45,10 @@ void ChExternalDynamicsODE::Initialize() {
         vars.push_back(m_variables);
         m_KRM.SetVariables(vars);
     }
+}
+
+void ChExternalDynamicsODE::SetupInitialState() {
+    SetInitialConditions(m_states);
 }
 
 ChVectorDynamic<> ChExternalDynamicsODE::GetInitialStates() {

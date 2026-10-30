@@ -432,9 +432,8 @@ void ChBody::AddMarker(std::shared_ptr<ChMarker> amarker) {
     amarker->SetBody(this);
     marklist.push_back(amarker);
 
-    // If the body is already added to a system, mark the system uninitialized and out-of-date
+    // If the body is already added to a system, mark the system out-of-date
     if (system) {
-        system->is_initialized = false;
         system->is_updated = false;
     }
 }
@@ -447,9 +446,8 @@ void ChBody::AddForce(std::shared_ptr<ChForce> aforce) {
     aforce->SetBody(this);
     forcelist.push_back(aforce);
 
-    // If the body is already added to a system, mark the system uninitialized and out-of-date
+    // If the body is already added to a system, mark the system out-of-date
     if (system) {
-        system->is_initialized = false;
         system->is_updated = false;
     }
 }

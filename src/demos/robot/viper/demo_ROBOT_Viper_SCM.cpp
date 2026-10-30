@@ -291,11 +291,7 @@ int main(int argc, char* argv[]) {
     // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
     terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0, -0.5)));
 
-    // Add an active domain for every wheel. NOTE: this must happen *before* Initialize() -- Initialize()
-    // calls SetupInitial() internally, which (if m_user_domains is still false at that point) pushes a
-    // null-body default domain that AddActiveDomain() never clears, crashing the first headless step.
-    // The HMMWV demo (demo_VEH_SCMTerrain_WheeledVehicle.cpp) already calls AddActiveDomain before
-    // Initialize(); this demo didn't, which is what actually caused that segfault, not a library bug.
+    // Add an active domain for every wheel.
     if (enable_active_domains) {
         terrain.AddActiveDomain(Wheel_1, ChVector3d(0, 0, 0), wheel_size);
         terrain.AddActiveDomain(Wheel_2, ChVector3d(0, 0, 0), wheel_size);

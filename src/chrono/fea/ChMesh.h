@@ -290,16 +290,17 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Register with the given system descriptor any ChVariable objects associated with this item.
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
-  private:
-    /// Initial setup (before analysis).
-    /// This function is called from ChSystem::SetupInitial, marking a point where system
-    /// construction is completed.
-    /// <pre>
-    ///   - Computes the total number of degrees of freedom
-    ///   - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
-    /// </pre>
-    virtual void SetupInitial() override;
+    /// Mark this mesh and all its nodes and elements as not initialized.
+    /// At the next initialization, elements record a new reference configuration from the current node states.
+    virtual void ResetInitialization() override;
 
+  protected:
+    /// Run the specified initialization phase on the nodes and elements of this mesh.
+    /// Phase 1 calls SetupInitial on all nodes, then on all elements, that were not yet initialized. Nodes and
+    /// elements have no phase 2.
+    virtual void InitializeChildren(InitPhase phase) override;
+
+  private:
     std::vector<std::shared_ptr<ChNodeFEAbase>> vnodes;     ///<  nodes
     std::vector<std::shared_ptr<ChElementBase>> velements;  ///<  elements
 

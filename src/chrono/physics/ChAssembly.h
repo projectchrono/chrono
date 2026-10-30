@@ -338,8 +338,12 @@ class ChApi ChAssembly : public ChPhysicsItem {
 #endif
     };
 
+    /// Mark this assembly and all its items as not initialized.
+    virtual void ResetInitialization() override;
+
   protected:
-    virtual void SetupInitial() override;
+    /// Run the specified initialization phase on all items in this assembly.
+    virtual void InitializeChildren(InitPhase phase) override;
 
     /// Remove the collision models of an item being removed from this assembly from the collision system of the
     /// system this assembly belongs to (if any).

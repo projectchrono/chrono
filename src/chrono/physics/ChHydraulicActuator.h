@@ -68,9 +68,9 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     /// piston).
     void SetInitialLoad(double initial_load);
 
-    /// Initialize the hydraulic actuator stand-alone.
-    /// In this case, actuator position and rate are supposed to be provided from the outside.
-    virtual void Initialize() override;
+    /// Deprecated: a stand-alone hydraulic actuator (with actuator position and rate provided from the outside) no
+    /// longer requires a call to Initialize(), as the containing system initializes it automatically.
+    using ChExternalDynamicsODE::Initialize;
 
     /// Initialize this hydraulic actuator by connecting it between the two specified bodies.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first connected body
@@ -110,6 +110,10 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
 
   protected:
     ChHydraulicActuatorBase();
+
+    /// Initialization phase 2: process the initial cylinder pressures and valve displacement (see OnInitialize), then
+    /// load the initial conditions.
+    virtual void SetupInitialState() override;
 
     /// Process initial cylinder pressures and initial valve displacement.
     /// Optionally, if the initial load F0 is provided, a derived class may calculate consistent initial conditions
