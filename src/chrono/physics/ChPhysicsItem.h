@@ -28,6 +28,8 @@ namespace chrono {
 // Forward references
 class ChSystem;
 class ChCollisionSystem;
+class ChCheckpointWriter;
+class ChCheckpointReader;
 namespace modal {
 class ChModalAssembly;
 }
@@ -105,6 +107,24 @@ class ChApi ChPhysicsItem : public ChObj {
     /// The next ChSystem::Initialize reruns both initialization phases, so the item records a new reference
     /// configuration from its current state. Derived containers must call the base class implementation.
     virtual void ResetInitialization();
+
+    // CHECKPOINTING
+
+    /// Return true if the internal state of this item can be saved in a checkpoint.
+    /// The internal state is any data, not stored in the system state vectors, that the item carries from step to step.
+    /// An item that cannot save all of its internal state returns false, so that saving a checkpoint fails instead of
+    /// producing a checkpoint that would restart from a wrong state. Containers return false if any child does.
+    virtual bool SupportsCheckpoint() const { return true; }
+
+    /// Save the internal state of this item.
+    /// Derived classes that override this function must first call the base class implementation.
+    /// See the developer manual on the physics item lifecycle.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const {}
+
+    /// Load the internal state of this item, as saved by SaveInternalState.
+    /// Called after the item was initialized and before the saved coordinates are loaded.
+    /// Derived classes that override this function must first call the base class implementation.
+    virtual void LoadInternalState(ChCheckpointReader& reader) {}
 
     // UPDATE OPERATIONS
 

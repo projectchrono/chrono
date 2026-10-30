@@ -77,6 +77,15 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     //// TODO: consider removing
     virtual double GetRimRadius() const = 0;
 
+    /// Checkpoint the state of this tire (its mesh node states and the internal state of its elements).
+    /// The checkpoint is of type ChCheckpoint::Type::COMPONENT.
+    virtual void WriteCheckpoint(ChCheckpoint::Format format, const std::string& filename) const override;
+
+    /// Initialize this tire from the given checkpoint file.
+    /// The tire must have been initialized and added to a system built the same way as the one that wrote the
+    /// checkpoint.
+    virtual void ReadCheckpoint(ChCheckpoint::Format format, const std::string& filename) override;
+
     /// Get the tire force and moment expressed in the tire frame.
     /// Currently *NOT IMPLEMENTED*.
     virtual TerrainForce ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;

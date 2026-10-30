@@ -4,9 +4,9 @@ Physics Item Lifecycle {#physics_item_lifecycle}
 This manual describes how a ChPhysicsItem is initialized, set up, and updated during a simulation, and how checkpoints restore its state.
 It is written for developers who implement new physics items, FEA elements, or FEA nodes, and for anyone who changes ChSystem, ChAssembly, ChMesh, or the checkpoint classes.
 
-It is also the design document for a redesign of the lifecycle.
-Sections [Current lifecycle](@ref lifecycle_current) and [Problems](@ref lifecycle_problems) describe Chrono as it is today.
-Sections from [New design](@ref lifecycle_design) onward describe the target design, which is being implemented in stages; until then, the code follows the current lifecycle.
+It also served as the design document for a redesign of the lifecycle.
+Sections [Previous lifecycle](@ref lifecycle_current) and [Problems](@ref lifecycle_problems) describe Chrono before the redesign and why it was changed.
+Sections from [New design](@ref lifecycle_design) onward describe the current design.
 
 [TOC]
 
@@ -20,13 +20,13 @@ Several unrelated functions in Chrono have "initialize" or "setup" in their name
 - **Internal state**: data an item carries from step to step that is not part of the system state vectors, for example the plastic strains of a ChElementBeamIGA or the internal state of an FMU.
 - **Item**: a ChPhysicsItem. **Container**: an item that owns other items or sub-objects: ChAssembly (and ChModalAssembly), ChMesh (nodes and elements), ChFEModel, ChPeridynamics.
 
-# Current lifecycle {#lifecycle_current}
+# Previous lifecycle {#lifecycle_current}
 
 ## Hooks
 
 Each item takes part in the simulation through three hooks:
 
-| Hook | Called | Purpose today |
+| Hook | Called | Purpose before the redesign |
 |------|--------|---------------|
 | `SetupInitial()` (private virtual) | from `ChSystem::Initialize()` and from several other places (see below) | Record the reference configuration, precompute constants (for example element stiffness matrices), allocate data, count active coordinates |
 | `Setup()` | at the start of every step, by `ChSystem::Setup()` | Count coordinates and constraints; assign offsets in the system state vectors |
@@ -168,7 +168,7 @@ Rules:
 
 Migration of the existing initial-condition mechanisms:
 
-- **ChExternalDynamicsODE / ChExternalDynamicsDAE**: sizing and allocating `ChVariables` and Jacobian storage moves to `SetupInitial()`; the call to `SetInitialConditions(...)` moves to `SetupInitialState()`. For a DAE not in explicit form, the mass matrix is still evaluated once, right after the initial conditions are set (in `SetupInitialState()`), as before. Users no longer call `Initialize()`. `Initialize()` stays as a deprecated function that runs both phases on this item through the wrappers, so existing code keeps working and the system does not run them again.
+- **ChExternalDynamicsODE / ChExternalDynamicsDAE**: sizing and allocating `ChVariables` and Jacobian storage moves to `SetupInitial()`; the call to `SetInitialConditions(...)` moves to `SetupInitialState()`. For a DAE not in explicit form, the mass matrix is still evaluated once, right after the initial conditions are set (in `SetupInitialState()`), as before. Users no longer call `Initialize()`. `Initialize()` stays as a deprecated function that runs both phases on this item through the wrappers, so existing code keeps working and the system does not run them again. `GetInitialStates()` (and `GetInitialStateDerivatives()` for a DAE) initializes the item first if needed, since it needs the sizes from phase 1 and, for the hydraulic actuators, the data from phase 2.
 - **ChHydraulicActuatorBase**: `OnInitialize(...)` is called from `SetupInitialState()`, before the parent's call to `SetInitialConditions(...)`. Construction-time `Initialize(body1, body2, ...)` keeps connecting the bodies but no longer initializes the dynamics. A using-declaration keeps the deprecated `Initialize()` visible next to that overload.
 - **ChExternalFmu**: its `Initialize()` override is removed; instantiating and initializing the FMU (with the user's initial conditions and parameters) moves to `SetupInitial()`; reading the FMU's continuous states into the ODE states happens in `SetupInitialState()` through `SetInitialConditions(...)`. Setters that must be called before initialization check `IsInitialized()`.
 - **Pretensioning and similar setups** (for example spokes stretched after the mesh recorded its reference): an item overrides `SetupInitialState()` instead of relying on list order.
@@ -225,20 +225,22 @@ class MyItem : public ChPhysicsItem {
 };
 ~~~
 
-A new FEA element overrides `SetupInitial(ChSystem*)` to record its reference configuration and allocate its data, exactly as today. It no longer needs to worry about being called more than once. If it carries internal state, it overrides the element-level `SaveInternalState()`/`LoadInternalState()` (see below).
+A new FEA element overrides `SetupInitial(ChSystem*)` to record its reference configuration and allocate its data, as before. It no longer needs to worry about being called more than once. If it carries internal state, it overrides the element-level `SaveInternalState()`/`LoadInternalState()` (see below).
 
 A new container overrides `InitializeChildren(phase)` and calls the wrappers (or, for non-item children, the hook guarded by the child's flag), and forwards `ResetInitialization()`, `SaveInternalState()` and `LoadInternalState()` to its children.
 
 # Checkpoints {#lifecycle_checkpoint}
 
-Checkpoints are built on top of the lifecycle. The classes are ChCheckpoint and ChCheckpointASCII in `src/chrono/input_output/`.
+Checkpoints are built on top of the lifecycle. The classes are ChCheckpoint and ChCheckpointASCII in `src/chrono/input_output/`; the format-independent internal-state blocks are ChCheckpointWriter and ChCheckpointReader in `ChCheckpointBlock.h`.
 
 ## What a checkpoint contains
 
-- A checkpoint saves **current** state only: coordinates, velocities, and internal state. It does not save reference configurations; those are rebuilt by phase 1 in the system that loads the checkpoint, which must be built the same way as the system that wrote it.
+- A checkpoint saves **current** state only: coordinates, velocities, accelerations, and internal state. It does not save reference configurations; those are rebuilt by phase 1 in the system that loads the checkpoint, which must be built the same way as the system that wrote it.
+- Accelerations are saved because some items read them when computing forces or Jacobians (for example the inertial terms of ChElementBeamIGA use node accelerations). The timestepper stores them in the items at the end of each step.
 - An item whose reference configuration can change during a run (because of `ResetInitialization()`, or by design) must save its reference as part of its internal state.
+- The checkpoint time is written with full precision, so that time-dependent inputs (motor functions, loads) see exactly the same time after a restart.
 
-Today, SYSTEM checkpoints gather and scatter the full position and velocity vectors, so FEA node states are already included. COMPONENT checkpoints handle bodies, shafts, joints, couples, TSDA/RSDA, bushings and motors only.
+A SYSTEM checkpoint (ASCII) stores the position and velocity vectors of the whole system, followed by one line holding a block with the system acceleration vector and the internal state of all items (from `ChSystem::SaveInternalState()`). Files written before this line existed still load; their accelerations and internal state are not restored.
 
 ## Loading order
 
@@ -246,28 +248,32 @@ Loading a checkpoint into a system, either freshly built or already running:
 
 1. Item initialization (`ChSystem::InitializeItems()`, run by `ChSystem::Setup()`): both phases for every item not yet initialized. In a fresh system, this records the reference configurations from the construction state and sets the initial conditions. In a running system, it does nothing for existing items, so their references are kept.
 2. The rest of `Setup()`, then check that the coordinate counts match the checkpoint.
-3. Scatter the saved coordinates and velocities. This overwrites what phase 2 set.
-4. Load the internal state blocks (`LoadInternalState()`). This overwrites internal state that phase 2 set, for example ODE states or FMU state.
-5. `Update()`.
+3. Load the internal state (`LoadInternalState()`). This overwrites internal state that phase 2 set, for example ODE states.
+4. Scatter the saved coordinates and velocities (which also updates the items), then the accelerations. This overwrites what phase 2 set.
 
 Because phase 2 runs before the state is loaded, an item must not assume that the state it set in phase 2 survives; anything it needs to keep must be part of the coordinates or the internal state.
 
 ## Internal state hooks
 
-- ChPhysicsItem gets virtual `SaveInternalState(ChCheckpointWriter&) const` and `LoadInternalState(ChCheckpointReader&)`, empty by default. Overrides call the parent first.
-- `virtual bool SupportsCheckpoint() const` returns true by default for items without internal state. Items whose internal state cannot be saved (for example an FMU without `canGetAndSetFMUstate`) return false, and saving a checkpoint that includes them fails with an error instead of silently producing a checkpoint that restarts from the wrong state.
-- The writer and reader accept doubles, vectors of doubles, and opaque byte blocks (for example a serialized FMU state). The ASCII format writes byte blocks as hex or base64. Each item's block records the item identifier and the block size, so a mismatch between the saved and loaded systems is detected.
-- ChAssembly forwards the calls to all its items. ChMesh forwards them to its nodes and elements; ChNodeFEAbase and ChElementBase get the same optional virtuals.
-- SYSTEM checkpoints write the internal state blocks after the state vectors.
+- ChPhysicsItem has virtual `SaveInternalState(ChCheckpointWriter&) const` and `LoadInternalState(ChCheckpointReader&)`, empty by default. Overrides call the parent first.
+- `virtual bool SupportsCheckpoint() const` returns true by default. An item whose internal state cannot be saved returns false, and saving a checkpoint that includes it fails with an error instead of silently producing a checkpoint that restarts from the wrong state. Containers return false if any child does; a reduced ChModalAssembly returns false (its floating frame and modal data are not saved).
+- ChCheckpointWriter accepts numbers (integral values are stored exactly), ChVector3d, ChQuaterniond, `std::vector<double>`, Eigen matrices and vectors (with their dimensions), opaque byte sequences, and nested blocks. ChCheckpointReader reads them back in the same order; every read checks the type of the next entry and throws on a mismatch or on missing data, and the caller checks that a block was read completely. The ASCII format writes a block as one line of space-separated entries, with byte sequences as hexadecimal tokens.
+- Containers write their children's blocks with `ChCheckpointWriter::WriteIndexedBlocks()`: each non-empty child block is tagged with the child's index, and loading checks the index range and that each child consumes its whole block.
+- ChAssembly forwards the calls to all its items (ChModalAssembly also to its internal items). ChMesh writes its numbers of nodes, elements and fixed nodes (checked when loading), then the blocks of its nodes and elements; ChNodeFEAbase and ChElementBase have the same optional virtuals.
+- Elements with internal state: ChElementBeamIGA (plasticity data at the integration points, through `ChBeamMaterialInternalData::SaveCheckpoint()`/`LoadCheckpoint()`), ChElementHexaANCF_3813_9 (plastic strains and hardening parameters), ChElementHexaANCF_3813 (enhanced assumed strain parameters).
 
 ## COMPONENT checkpoints
 
-A generic per-item path replaces the per-type functions for new item types: the item's coordinates through `IntStateGather()`/`IntStateScatter()` with local offsets, optionally its reactions through `IntStateGatherReactions()`/`IntStateScatterReactions()`, then its internal state block. `ChAssembly::Components` gets a `meshes` list (whole meshes), separate from the output-only `mesh_nodes`. The existing per-type functions stay so that old checkpoint files still load.
+A generic per-item path complements the per-type functions: for each item, its coordinates, velocities and accelerations through `IntStateGather()`/`IntStateScatter()` and `IntStateGatherAcceleration()`/`IntStateScatterAcceleration()` with local offsets, its reactions through `IntStateGatherReactions()`/`IntStateScatterReactions()` (for example, the multipliers of a ChExternalDynamicsDAE), then its internal state block, all on one line. `ChAssembly::Components` has a `meshes` list (whole meshes, separate from the output-only `mesh_nodes`) and an `items` list (any other physics item); both use this path, after the per-type lists, so that files written before still load. Loading sets up the containing systems first, which initializes items that are not yet initialized.
+
+Chrono::Vehicle deformable tires (ChFEATire and derived) add their mesh to the `meshes` list of their components, and implement `WriteCheckpoint()`/`ReadCheckpoint()` with a COMPONENT checkpoint of those components.
 
 ## Known limits
 
-- Lagrange multipliers and the history of multistep timesteppers (for example HHT) are not saved, so restarts with such integrators are close to, but not exactly, a continuous run. Saving them is a separate, optional extension.
-- Contact history (for example tangential displacement in SMC contact) and the internal state of controllers outside the physics items (vehicle drivers, setpoint functions) need to be audited item by item.
+- ChExternalFmu saves its continuous states (they are part of the system state vectors), but not the internal state of the FMU itself (discrete states, event indicators, and outputs cached from the last evaluation, which may have been a perturbed state used for a finite-difference Jacobian). Restarts with FMUs are therefore close to, but not exactly, a continuous run. Saving it requires the FMI state functions (`fmi2GetFMUstate`, `fmi2SerializeFMUstate`, `fmi2DeSerializeFMUstate` and the FMI 3 equivalents) in fmu-forge, which neither loads them on import nor implements them on export yet.
+- The state of the collision system is not saved. With contact, a restart in a freshly built system can process contacts in a different order than the continuous run (a reload into the running system does not), which gives roundoff-level differences that grow over time.
+- Lagrange multipliers (in SYSTEM checkpoints) and the history of multistep timesteppers (for example HHT) are not saved, so restarts with such integrators are close to, but not exactly, a continuous run. Saving them is a separate, optional extension.
+- Items with hidden state that is not saved yet: ChPeridynamics (bonds and their broken status), ChFunctionSetpoint and other stateful functions, contact history (for example tangential displacement in SMC contact), the SCM terrain grid, Chrono::Vehicle drivers and powertrain internals outside the physics items, and the shared web mesh of ANCF band tracks (which is not in any component list).
 
 # Behavior changes {#lifecycle_changes}
 
@@ -277,6 +283,7 @@ A generic per-item path replaces the per-type functions for new item types: the 
 - ChExternalDynamicsODE, ChExternalDynamicsDAE, ChHydraulicActuator2/3 and ChExternalFmu no longer need a call to `Initialize()`; existing calls keep working.
 - Item code that relied on the visiting order of `ChAssembly::SetupInitial()` should move cross-item work to `SetupInitialState()`.
 - Loading a checkpoint into a freshly built, never-initialized system initializes it first, so reference configurations come from the construction state, not from the loaded state.
+- SYSTEM checkpoints also save accelerations and the internal state of all items, and the checkpoint time and states are written with full precision, so restarts reproduce a continuous run exactly (with implicit Euler integrators).
 
 # Future naming cleanup {#lifecycle_naming}
 
@@ -289,7 +296,8 @@ The redesign deliberately keeps existing names. The following candidates are col
 - Initialization flags: `ChSystem::is_initialized` versus `m_initialized` in ChExternalFmu, ChLinkNodeFace, ChVisualSystem, ChCollisionSystem, and Chrono::Vehicle's ChPart.
 - `ChPeridynamics::SetupInitialBonds()` and `SCMLoader::SetupInitial()` call lifecycle hooks directly.
 - Active-coordinate queries: `GetNumCoordsPosLevelActive()`, `m_dof_actual`, `UpdateActiveCoords()`.
-- Checkpoint functions: `ChCheckpoint::SaveState()/LoadState()` versus `Save()/Load()` in the class documentation, and the per-type `SaveBodies()`, `SaveJoints()`, ... functions once the generic COMPONENT path exists.
+- Checkpoint functions: `ChCheckpoint::SaveState()/LoadState()` versus `Save()/Load()` in the class documentation, and the per-type `SaveBodies()`, `SaveJoints()`, ... functions now that the generic COMPONENT path (`SaveItems()`/`LoadItems()`) exists.
+- Checkpoint naming at three levels: `ChPhysicsItem::SaveInternalState()`, `ChBeamMaterialInternalData::SaveCheckpoint()`, `ChPart::SaveCheckpoint()`, and `ChTire::WriteCheckpoint()`.
 
 # Design decisions {#lifecycle_decisions}
 

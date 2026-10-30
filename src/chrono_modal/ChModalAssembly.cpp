@@ -1759,6 +1759,25 @@ void ChModalAssembly::ResetInitialization() {
     }
 }
 
+void ChModalAssembly::CollectItems(std::vector<ChPhysicsItem*>& items) const {
+    ChAssembly::CollectItems(items);  // parent
+
+    for (const auto& body : internal_bodylist)
+        items.push_back(body.get());
+    for (const auto& link : internal_linklist)
+        items.push_back(link.get());
+#ifdef CHRONO_FEA
+    for (const auto& mesh : internal_meshlist)
+        items.push_back(mesh.get());
+#endif
+    for (const auto& item : internal_otherphysicslist)
+        items.push_back(item.get());
+}
+
+bool ChModalAssembly::SupportsCheckpoint() const {
+    return !m_is_model_reduced && ChAssembly::SupportsCheckpoint();
+}
+
 void ChModalAssembly::InitializeItems() {
     InitializePhase(InitPhase::STRUCTURE);
     InitializePhase(InitPhase::STATE);

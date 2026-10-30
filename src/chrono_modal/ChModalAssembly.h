@@ -422,6 +422,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Mark this assembly and all its items, including the internal ones, as not initialized.
     virtual void ResetInitialization() override;
 
+    /// Return true if this assembly and all its items support checkpointing of their internal state.
+    /// A reduced modal assembly does not: its floating frame and modal data are not saved.
+    virtual bool SupportsCheckpoint() const override;
+
     /// Count the number of bodies, links, and meshes.
     /// Compute the offsets of object states in the global state.
     /// Assumes that this->offset_x, this->offset_w, and this->offset_L are already set
@@ -593,6 +597,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Run the specified initialization phase on all items, including the internal ones.
     virtual void InitializeChildren(InitPhase phase) override;
+
+    /// Collect pointers to all items, including the internal ones.
+    virtual void CollectItems(std::vector<ChPhysicsItem*>& items) const override;
 
     /// Run both initialization phases on all items not yet initialized, including the internal ones.
     void InitializeItems();

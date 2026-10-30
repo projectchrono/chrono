@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Checkpointing of FEA meshes and internal state](#added-checkpointing-of-fea-meshes-and-internal-state)
   - [\[Changed\] Initialization of physics items](#changed-initialization-of-physics-items)
   - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
@@ -148,6 +149,29 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Added] Checkpointing of FEA meshes and internal state
+
+Checkpoints now save, besides coordinates and velocities, the data that physics items carry from step
+to step outside the system state vectors, so that a restart reproduces a continuous run. The design is
+described in the developer manual "Physics Item Lifecycle".
+
+- Physics items, FEA elements and FEA nodes can save and restore their internal state through the new
+  virtual functions `SaveInternalState` and `LoadInternalState`, using the format-independent
+  `ChCheckpointWriter` and `ChCheckpointReader` classes. An item that cannot save its internal state
+  reports it through `SupportsCheckpoint`, and saving a checkpoint that includes it fails with an error.
+- The internal state of the following elements is saved: plasticity data of `ChElementBeamIGA`, plastic
+  strains of `ChElementHexaANCF_3813_9`, and the enhanced assumed strain parameters of
+  `ChElementHexaANCF_3813`.
+- SYSTEM checkpoints also save the accelerations (used, for example, by the inertial terms of IGA beams)
+  and the internal state of all items. Checkpoint files written before this change can still be loaded.
+- COMPONENT checkpoints support whole FEA meshes (`ChAssembly::Components::meshes`) and any other
+  physics item (`ChAssembly::Components::items`), including their accelerations, reactions (for
+  example, the multipliers of a `ChExternalDynamicsDAE`) and internal state.
+- Chrono::Vehicle deformable tires (ANCF, Reissner and solid FEA tires) implement `WriteCheckpoint` and
+  `ReadCheckpoint`.
+- The checkpoint time and states are now written with full precision. Previously, the time was written
+  with 6 significant digits, so time-dependent inputs did not match after a restart.
 
 ## [Changed] Initialization of physics items
 

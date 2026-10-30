@@ -294,6 +294,16 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// At the next initialization, elements record a new reference configuration from the current node states.
     virtual void ResetInitialization() override;
 
+    /// Return true if all nodes and elements of this mesh support checkpointing of their internal state.
+    virtual bool SupportsCheckpoint() const override;
+
+    /// Save the internal state of the nodes and elements of this mesh.
+    /// Also saves the numbers of nodes, elements and fixed nodes, which are checked when loading.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the internal state of the nodes and elements of this mesh.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
   protected:
     /// Run the specified initialization phase on the nodes and elements of this mesh.
     /// Phase 1 calls SetupInitial on all nodes, then on all elements, that were not yet initialized. Nodes and

@@ -317,6 +317,15 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Get the underlying assembly containing all physics items.
     const ChAssembly& GetAssembly() const { return assembly; }
 
+    /// Return true if the internal state of all physics items in this system can be saved in a checkpoint.
+    bool SupportsCheckpoint() const { return assembly.SupportsCheckpoint(); }
+
+    /// Save the internal state of all physics items (data not stored in the system state vectors).
+    void SaveInternalState(ChCheckpointWriter& writer) const { assembly.SaveInternalState(writer); }
+
+    /// Load the internal state of all physics items, as saved by SaveInternalState.
+    void LoadInternalState(ChCheckpointReader& reader) { assembly.LoadInternalState(reader); }
+
     /// Attach a body to the underlying assembly.
     virtual void AddBody(std::shared_ptr<ChBody> body);
 

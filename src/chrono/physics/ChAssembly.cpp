@@ -17,6 +17,7 @@
 
 #include "chrono/core/ChDataPath.h"
 #include "chrono/physics/ChAssembly.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -606,6 +607,47 @@ void ChAssembly::ResetInitialization() {
     for (auto& otherphysics : otherphysicslist) {
         otherphysics->ResetInitialization();
     }
+}
+
+void ChAssembly::CollectItems(std::vector<ChPhysicsItem*>& items) const {
+    for (const auto& body : bodylist)
+        items.push_back(body.get());
+    for (const auto& shaft : shaftlist)
+        items.push_back(shaft.get());
+    for (const auto& link : linklist)
+        items.push_back(link.get());
+#ifdef CHRONO_FEA
+    for (const auto& mesh : meshlist)
+        items.push_back(mesh.get());
+#endif
+    for (const auto& item : otherphysicslist)
+        items.push_back(item.get());
+}
+
+bool ChAssembly::SupportsCheckpoint() const {
+    std::vector<ChPhysicsItem*> items;
+    CollectItems(items);
+    for (const auto item : items) {
+        if (!item->SupportsCheckpoint())
+            return false;
+    }
+    return true;
+}
+
+void ChAssembly::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChPhysicsItem::SaveInternalState(writer);
+
+    std::vector<ChPhysicsItem*> items;
+    CollectItems(items);
+    writer.WriteIndexedBlocks(items.size(), [&items](size_t i, ChCheckpointWriter& block) { items[i]->SaveInternalState(block); });
+}
+
+void ChAssembly::LoadInternalState(ChCheckpointReader& reader) {
+    ChPhysicsItem::LoadInternalState(reader);
+
+    std::vector<ChPhysicsItem*> items;
+    CollectItems(items);
+    reader.ReadIndexedBlocks(items.size(), [&items](size_t i, ChCheckpointReader& block) { items[i]->LoadInternalState(block); });
 }
 
 // Count all bodies, links, meshes, and other physics items.

@@ -18,6 +18,8 @@
 
 #include <iomanip>
 #include <iostream>
+#include <limits>
+#include <set>
 
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorLinearDriveline.h"
@@ -36,8 +38,8 @@ namespace chrono {
 ChCheckpointASCII::ChCheckpointASCII(Type type) : ChCheckpoint(type), m_file_read(false), m_np(0), m_nv(0) {
     m_csv.SetDelimiter(" ");
 
-    constexpr auto precision{std::numeric_limits<long double>::digits10 + 1};
-    m_csv.Stream() << std::setprecision(precision);
+    // Write enough digits for doubles to be read back exactly
+    m_csv.Stream() << std::setprecision(std::numeric_limits<double>::max_digits10);
 }
 
 ChCheckpointASCII::~ChCheckpointASCII() {}
@@ -49,7 +51,7 @@ void ChCheckpointASCII::Initialize() {}
 void ChCheckpointASCII::WriteFile(const std::string& filename) {
     std::ofstream ofile(filename);
     ofile << GetTypeAsString(m_type) << endl;
-    ofile << m_time << endl;
+    ofile << std::setprecision(std::numeric_limits<double>::max_digits10) << m_time << endl;
     ofile << m_np << " " << m_nv << endl;
     ofile << m_csv.Stream().str();
     ofile.close();
@@ -106,6 +108,50 @@ void ChCheckpointASCII::ReadFile(const std::string& filename) {
     m_istream = std::istringstream(m_csv.Stream().str());
 }
 
+void ChCheckpointASCII::WriteBlock(const ChCheckpointWriter& block) {
+    static const char* hex = "0123456789abcdef";
+
+    auto& os = m_csv.Stream();
+    const auto& entries = block.GetEntries();
+    os << entries.size();
+    for (const auto& entry : entries) {
+        os << ' ';
+        if (entry.is_bytes) {
+            os << 'x';
+            for (auto b : entry.bytes)
+                os << hex[b >> 4] << hex[b & 0xf];
+        } else {
+            os << entry.value;
+        }
+    }
+    os << '\n';
+}
+
+ChCheckpointReader ChCheckpointASCII::ParseBlock(const std::string& line) {
+    std::istringstream iss(line);
+    size_t n = 0;
+    iss >> n;
+
+    std::vector<ChCheckpointEntry> entries(n);
+    std::string token;
+    for (auto& entry : entries) {
+        if (!(iss >> token)) {
+            cerr << "Error: truncated checkpoint data block" << endl;
+            throw std::runtime_error("Truncated checkpoint data block");
+        }
+        if (token[0] == 'x') {
+            entry.is_bytes = true;
+            entry.bytes.resize((token.size() - 1) / 2);
+            for (size_t i = 0; i < entry.bytes.size(); i++)
+                entry.bytes[i] = static_cast<std::uint8_t>(std::stoi(token.substr(1 + 2 * i, 2), nullptr, 16));
+        } else {
+            entry.value = std::stod(token);
+        }
+    }
+
+    return ChCheckpointReader(std::move(entries));
+}
+
 void ChCheckpointASCII::CheckIfOpen() const {
     if (!m_file_read) {
         cerr << "Error: input checkpoint file not open" << endl;
@@ -118,6 +164,9 @@ void ChCheckpointASCII::CheckIfOpen() const {
 void ChCheckpointASCII::SaveState(ChSystem* sys) {
     CheckIfSystemType();
 
+    // Make sure state counters are current (e.g., for a system that was not yet simulated)
+    sys->Setup();
+
     m_np = sys->GetNumCoordsPosLevel();
     m_nv = sys->GetNumCoordsVelLevel();
     ChState x(m_np, sys);
@@ -127,6 +176,22 @@ void ChCheckpointASCII::SaveState(ChSystem* sys) {
     assert(time == m_time);
     m_csv << x << endl;
     m_csv << v << endl;
+
+    // Accelerations (used by some items, e.g., for inertial forces) and internal state of all physics items (data not
+    // in the state vectors), in one block
+    if (!sys->SupportsCheckpoint()) {
+        cerr << "Error: the system contains physics items whose internal state cannot be checkpointed" << endl;
+        throw std::runtime_error("System internal state cannot be checkpointed");
+    }
+    ChStateDelta a(m_nv, sys);
+    sys->StateGatherAcceleration(a);
+    ChCheckpointWriter internal;
+    sys->SaveInternalState(internal);
+
+    ChCheckpointWriter writer;
+    writer.Write(a);
+    writer.Write(internal);
+    WriteBlock(writer);
 }
 
 void ChCheckpointASCII::LoadState(ChSystem* sys) {
@@ -163,7 +228,28 @@ void ChCheckpointASCII::LoadState(ChSystem* sys) {
         iss >> v[i];
     }
 
+    // Load accelerations and the internal state of all physics items, if present (older checkpoint files do not
+    // include them)
+    bool has_acc = false;
+    ChStateDelta a(nv, sys);
+    if (std::getline(m_istream, line) && !line.empty()) {
+        auto reader = ParseBlock(line);
+        ChCheckpointReader internal;
+        reader.Read(a);
+        reader.Read(internal);
+        reader.CheckAtEnd();
+        if (a.size() != nv) {
+            cerr << "Error: inconsistent number of accelerations" << endl;
+            throw std::runtime_error("Inconsistent number of accelerations");
+        }
+        sys->LoadInternalState(internal);
+        internal.CheckAtEnd();
+        has_acc = true;
+    }
+
     sys->StateScatter(x, v, m_time, UpdateFlags::UPDATE_ALL);
+    if (has_acc)
+        sys->StateScatterAcceleration(a);
 }
 
 // -----------------------------------------------------------------------------
@@ -272,6 +358,44 @@ void ChCheckpointASCII::SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMo
             m_np += 2;
             m_nv += 2;
         }
+    }
+}
+
+void ChCheckpointASCII::SaveItems(const std::vector<std::shared_ptr<ChPhysicsItem>>& items) {
+    CheckIfComponentType();
+
+    for (const auto& item : items) {
+        if (!item->SupportsCheckpoint()) {
+            cerr << "Error: the internal state of physics item '" << item->GetName() << "' cannot be checkpointed" << endl;
+            throw std::runtime_error("Physics item internal state cannot be checkpointed");
+        }
+
+        // Coordinates, accelerations and reactions, gathered with local offsets
+        auto np = item->GetNumCoordsPosLevel();
+        auto nv = item->GetNumCoordsVelLevel();
+        auto nc = item->GetNumConstraints();
+        ChState x(np, nullptr);
+        ChStateDelta v(nv, nullptr);
+        ChStateDelta a(nv, nullptr);
+        ChVectorDynamic<> L(nc);
+        double time;
+        item->IntStateGather(0, x, 0, v, time);
+        item->IntStateGatherAcceleration(0, a);
+        item->IntStateGatherReactions(0, L);
+
+        ChCheckpointWriter internal;
+        item->SaveInternalState(internal);
+
+        ChCheckpointWriter writer;
+        writer.Write(x);
+        writer.Write(v);
+        writer.Write(a);
+        writer.Write(L);
+        writer.Write(internal);
+        WriteBlock(writer);
+
+        m_np += np;
+        m_nv += nv;
     }
 }
 
@@ -460,6 +584,55 @@ void ChCheckpointASCII::LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
             s1->SetPosDt(pos1_dt);
             s2->SetPosDt(pos2_dt);
         }
+    }
+}
+
+void ChCheckpointASCII::LoadItems(std::vector<std::shared_ptr<ChPhysicsItem>>& items) {
+    CheckIfOpen();
+    CheckIfComponentType();
+
+    // Set up the containing systems. This also initializes items not yet initialized, so that they record their
+    // reference configuration before the saved state is loaded.
+    std::set<ChSystem*> systems;
+    for (const auto& item : items) {
+        if (item->GetSystem())
+            systems.insert(item->GetSystem());
+    }
+    for (auto sys : systems)
+        sys->Setup();
+
+    std::string line;
+    for (const auto& item : items) {
+        if (!std::getline(m_istream, line)) {
+            cerr << "Error: missing checkpoint data for physics item '" << item->GetName() << "'" << endl;
+            throw std::runtime_error("Missing checkpoint data for physics item");
+        }
+        auto reader = ParseBlock(line);
+
+        ChState x(1, nullptr);
+        ChStateDelta v(1, nullptr);
+        ChStateDelta a(1, nullptr);
+        ChVectorDynamic<> L;
+        ChCheckpointReader internal;
+        reader.Read(x);
+        reader.Read(v);
+        reader.Read(a);
+        reader.Read(L);
+        reader.Read(internal);
+        reader.CheckAtEnd();
+
+        if (x.size() != item->GetNumCoordsPosLevel() || v.size() != item->GetNumCoordsVelLevel() || a.size() != v.size() || L.size() != item->GetNumConstraints()) {
+            cerr << "Error: inconsistent number of states or constraints for physics item '" << item->GetName() << "'" << endl;
+            throw std::runtime_error("Inconsistent number of states or constraints");
+        }
+
+        // Internal state first, since scattering the coordinates updates the item
+        item->LoadInternalState(internal);
+        internal.CheckAtEnd();
+
+        item->IntStateScatter(0, x, 0, v, m_time, UpdateFlags::UPDATE_ALL);
+        item->IntStateScatterAcceleration(0, a);
+        item->IntStateScatterReactions(0, L);
     }
 }
 

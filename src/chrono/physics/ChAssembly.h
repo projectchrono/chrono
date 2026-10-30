@@ -326,8 +326,14 @@ class ChApi ChAssembly : public ChPhysicsItem {
         std::vector<std::shared_ptr<ChLinkMotorLinear>> lin_motors;
         std::vector<std::shared_ptr<ChLinkMotorRotation>> rot_motors;
 
+        /// Other physics items, checkpointed generically (coordinates, accelerations, reactions and internal state).
+        std::vector<std::shared_ptr<ChPhysicsItem>> items;
+
 #ifdef CHRONO_FEA
-        /// Selection of nodes of an FEA mesh.
+        /// FEA meshes, checkpointed as a whole (node coordinates and internal state of nodes and elements).
+        std::vector<std::shared_ptr<fea::ChMesh>> meshes;
+
+        /// Selection of nodes of an FEA mesh (used for output only).
         struct MeshNodes {
             std::shared_ptr<fea::ChMesh> mesh;                       ///< FEA mesh
             std::vector<std::shared_ptr<fea::ChNodeFEAbase>> nodes;  ///< selected mesh nodes
@@ -341,9 +347,21 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Mark this assembly and all its items as not initialized.
     virtual void ResetInitialization() override;
 
+    /// Return true if all items in this assembly support checkpointing of their internal state.
+    virtual bool SupportsCheckpoint() const override;
+
+    /// Save the internal state of all items in this assembly.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the internal state of all items in this assembly.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
   protected:
     /// Run the specified initialization phase on all items in this assembly.
     virtual void InitializeChildren(InitPhase phase) override;
+
+    /// Collect pointers to all items in this assembly (bodies, shafts, links, meshes, other items, in this order).
+    virtual void CollectItems(std::vector<ChPhysicsItem*>& items) const;
 
     /// Remove the collision models of an item being removed from this assembly from the collision system of the
     /// system this assembly belongs to (if any).

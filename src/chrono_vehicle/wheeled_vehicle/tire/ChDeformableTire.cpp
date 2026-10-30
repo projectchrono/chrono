@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include "chrono/input_output/ChCheckpointASCII.h"
+
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
 namespace chrono {
@@ -40,6 +42,36 @@ double ChDeformableTire::GetTireMass() const {
 
 ChVector3d ChDeformableTire::GetTireInertia() const {
     return m_inertia.diagonal();
+}
+
+// -----------------------------------------------------------------------------
+void ChDeformableTire::WriteCheckpoint(ChCheckpoint::Format format, const std::string& filename) const {
+    switch (format) {
+        case ChCheckpoint::Format::ASCII: {
+            ChCheckpointASCII database(ChCheckpoint::Type::COMPONENT);
+            database.SetTime(m_wheel->GetSpindle()->GetChTime());
+            SaveCheckpoint(database);
+            database.WriteFile(filename);
+            break;
+        }
+        default:
+            std::cerr << "Error: unrecognized checkpoint format" << std::endl;
+            throw std::runtime_error("Unrecognized checkpoint format");
+    }
+}
+
+void ChDeformableTire::ReadCheckpoint(ChCheckpoint::Format format, const std::string& filename) {
+    switch (format) {
+        case ChCheckpoint::Format::ASCII: {
+            ChCheckpointASCII database(ChCheckpoint::Type::COMPONENT);
+            database.ReadFile(filename);
+            LoadCheckpoint(database);
+            break;
+        }
+        default:
+            std::cerr << "Error: unrecognized checkpoint format" << std::endl;
+            throw std::runtime_error("Unrecognized checkpoint format");
+    }
 }
 
 // -----------------------------------------------------------------------------

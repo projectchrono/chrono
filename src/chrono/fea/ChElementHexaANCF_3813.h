@@ -221,6 +221,12 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
     void ComputeGravityForceScale();
     /// Initial setup. Precompute mass and matrices that do not change during the simulation.
     virtual void SetupInitial(ChSystem* system) override;
+
+    /// Save the enhanced assumed strain (EAS) parameters from the previous step.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the enhanced assumed strain (EAS) parameters.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
     /// Sets M as the global mass matrix.
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { M = m_MassMatrix; }
 
